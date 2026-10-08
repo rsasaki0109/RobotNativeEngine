@@ -4,6 +4,19 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Renderer-independent `sample_lidar_checked` with explicit noise keys and
+  `LidarSampleError`. Healthy zero returns remain a valid scan; invalid
+  geometry or any backend raycast failure returns an error. Legacy samplers
+  retain their existing behavior. See `docs/LIDAR_CHECKED_ACQUISITION.md`.
+
+### Fixed
+
+- Rapier `sync_from_ecs` propagates body pose changes to attached colliders
+  before refreshing queries. Fixed and kinematic bodies now raycast at their
+  current positions immediately, without requiring a physics step.
+
 ### Removed
 
 - Confirmed-dead `pub` items with zero references outside their defining file

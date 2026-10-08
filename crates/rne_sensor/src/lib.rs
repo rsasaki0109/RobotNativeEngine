@@ -35,9 +35,10 @@ pub use imu::{
     ImuAxisErrors, ImuDiagnosticSample, ImuSampleError, ImuSpec, ImuTruth, GRAVITY_M_S2,
 };
 pub use lidar::{
-    sample_lidar, sample_lidar_at_entity, sample_lidar_at_entity_keyed, sample_lidar_keyed,
-    sample_lidar_pattern_swept, sample_lidar_swept, LidarAtmosphere, LidarDomainRandomization,
-    LidarFailureBehavior, LidarRay, LidarRaycaster, LidarSpec, LidarSweep, RANGE_REFERENCE_M,
+    sample_lidar, sample_lidar_at_entity, sample_lidar_at_entity_keyed, sample_lidar_checked,
+    sample_lidar_keyed, sample_lidar_pattern_swept, sample_lidar_swept, LidarAtmosphere,
+    LidarDomainRandomization, LidarFailureBehavior, LidarRay, LidarRaycaster, LidarSampleError,
+    LidarSpec, LidarSweep, RANGE_REFERENCE_M,
 };
 pub use livox::{
     livox_mid360_near_blanking_probability, livox_mid360_spec, sample_livox_mid360,

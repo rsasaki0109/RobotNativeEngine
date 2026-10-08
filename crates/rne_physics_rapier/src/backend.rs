@@ -469,6 +469,11 @@ impl PhysicsBackend for RapierBackend {
 
         sync_joints_from_ecs(world, state)?;
         apply_joint_motors(world, state)?;
+        // Queries are valid immediately after ECS synchronization, without a physics tick.
+        // Moving a parent body alone leaves attached collider world poses stale in Rapier.
+        state
+            .bodies
+            .propagate_modified_body_positions_to_colliders(&mut state.colliders);
         state.query_pipeline.update(&state.colliders);
 
         Ok(())
@@ -1812,6 +1817,44 @@ mod tests {
     /// *either* ground, but a solid volume pushes the foot back out while a
     /// height field cannot, and the foot is lost. Raising the rate keeps the
     /// per-step penetration small enough that it never happens.
+    #[test]
+    fn ecs_pose_sync_updates_raycast_before_a_physics_tick() {
+        for body_type in [RigidBodyType::Fixed, RigidBodyType::Kinematic] {
+            let mut backend = RapierBackend::new();
+            let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+            let mut world = World::new();
+            let entity = spawn_named(&mut world, "moving_query_target");
+            world.entity_mut(entity).insert((
+                RigidBody {
+                    body_type,
+                    ..RigidBody::default()
+                },
+                Collider {
+                    shape: ColliderShape::Sphere { radius_m: 1.0 },
+                    ..Collider::default()
+                },
+                Transform3::from_translation_rotation(Vec3::new(5.0, 0.0, 0.0), Quat::IDENTITY),
+            ));
+            let query = RaycastQuery {
+                origin_m: Vec3::ZERO,
+                direction: Vec3::X,
+                max_distance_m: 20.0,
+            };
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            assert_relative_eq!(
+                backend.raycast(id, query).unwrap()[0].distance_m,
+                4.0,
+                epsilon = 1e-5
+            );
+            world.get_mut::<Transform3>(entity).unwrap().translation.x = 10.0;
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            assert_relative_eq!(
+                backend.raycast(id, query).unwrap()[0].distance_m,
+                9.0,
+                epsilon = 1e-5
+            );
+        }
+    }
     #[test]
     fn a_stiff_motor_is_lost_through_an_open_height_field_but_not_through_a_solid_volume() {
         const RADIUS_M: f64 = 0.022;

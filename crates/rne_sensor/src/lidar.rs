@@ -388,6 +388,113 @@ impl LidarSpec {
     }
 }
 
+/// Checked instantaneous LiDAR acquisition failure, distinct from a healthy empty cloud.
+#[derive(Debug, thiserror::Error)]
+pub enum LidarSampleError {
+    /// Invalid scan geometry, noise parameters, or mounting transform.
+    #[error("invalid LiDAR configuration or mount")]
+    InvalidConfiguration,
+    /// A raycast failed. Partial scans are rejected even under legacy DropRay policy.
+    #[error("LiDAR raycast failed: {0}")]
+    Raycast(#[source] PhysicsError),
+    /// The sampler produced non-finite points or misaligned attributes.
+    #[error("invalid LiDAR output")]
+    InvalidOutput,
+}
+
+/// Samples a checked, instantaneous, default-material scan with explicit seeded noise.
+///
+/// Points are world-frame meters, with zero within-scan emission offsets. The caller
+/// supplies the absolute acquisition timestamp and latency at its adapter boundary.
+/// `Ok(empty)` means a healthy no-return scan; any backend error returns `Err` and
+/// never silently appears as free space. Unlike legacy functions, this entry point
+/// rejects a partial scan on **any** raycast error regardless of failure_behavior.
+/// Existing permissive entry points remain unchanged. Camera/rendering is not required.
+pub fn sample_lidar_checked<R: LidarRaycaster + ?Sized>(
+    raycaster: &R,
+    physics_world: PhysicsWorldId,
+    mount_transform: &Transform3,
+    spec: &LidarSpec,
+    noise_key: SensorNoiseKey,
+) -> Result<PointCloud, LidarSampleError> {
+    let nonnegative = [
+        spec.rotation_period_s,
+        spec.min_range_m,
+        spec.range_noise_stddev_m,
+        spec.intensity_noise_stddev,
+        spec.beam_divergence_rad,
+        spec.solar_noise_floor,
+    ];
+    if spec.ray_count == 0
+        || spec.channel_count == 0
+        || spec.rays_per_scan() > 1_000_000
+        || spec.max_returns == 0
+        || !spec.max_range_m.is_finite()
+        || spec.max_range_m <= spec.min_range_m
+        || nonnegative.iter().any(|v| !v.is_finite() || *v < 0.0)
+        || ![
+            spec.min_angle_rad,
+            spec.max_angle_rad,
+            spec.min_elevation_rad,
+            spec.max_elevation_rad,
+            spec.height_offset_m,
+        ]
+        .iter()
+        .all(|v| v.is_finite())
+        || spec.max_angle_rad < spec.min_angle_rad
+        || spec.max_elevation_rad < spec.min_elevation_rad
+        || !spec.dropout_probability.is_finite()
+        || !(0.0..=1.0).contains(&spec.dropout_probability)
+        || !mount_transform.translation.is_finite()
+        || !mount_transform.rotation.is_finite()
+        || (mount_transform.rotation.length_squared() - 1.0).abs() > 1e-6
+    {
+        return Err(LidarSampleError::InvalidConfiguration);
+    }
+    struct CheckedRaycaster<'a, R: ?Sized> {
+        inner: &'a R,
+        failure: std::cell::RefCell<Option<PhysicsError>>,
+    }
+    impl<R: LidarRaycaster + ?Sized> LidarRaycaster for CheckedRaycaster<'_, R> {
+        fn lidar_raycast(
+            &self,
+            world: PhysicsWorldId,
+            query: RaycastQuery,
+        ) -> Result<Vec<RaycastHit>, PhysicsError> {
+            match self.inner.lidar_raycast(world, query) {
+                Ok(hits) => Ok(hits),
+                Err(error) => {
+                    *self.failure.borrow_mut() = Some(error);
+                    Err(PhysicsError::WorldNotFound)
+                }
+            }
+        }
+    }
+    let checked = CheckedRaycaster {
+        inner: raycaster,
+        failure: std::cell::RefCell::new(None),
+    };
+    let strict_spec = LidarSpec {
+        failure_behavior: LidarFailureBehavior::DropScan,
+        ..*spec
+    };
+    let cloud = sample_lidar_impl(
+        &checked,
+        physics_world,
+        None,
+        &LidarSweep::stationary(*mount_transform),
+        &strict_spec,
+        noise_key,
+    );
+    if let Some(error) = checked.failure.into_inner() {
+        return Err(LidarSampleError::Raycast(error));
+    }
+    if cloud.points_m.iter().any(|p| !p.is_finite()) || !cloud.attributes_are_aligned() {
+        return Err(LidarSampleError::InvalidOutput);
+    }
+    Ok(cloud)
+}
+
 /// Samples a horizontal `LiDAR` scan using default materials and no keyed variation.
 ///
 /// This compatibility entry point does not have ECS access, so every surface uses
@@ -1270,6 +1377,81 @@ mod tests {
     use rne_math::Quat;
     use rne_physics::{ContactEvent, PhysicsCapability, PhysicsError, PhysicsWorldDesc};
 
+    #[test]
+    fn checked_empty_scan_is_distinct_from_raycast_failure() {
+        let spec = LidarSpec {
+            ray_count: 4,
+            ..LidarSpec::default()
+        };
+        let mount = Transform3::IDENTITY;
+        let key = SensorNoiseKey::new(7, 1, 1, 0);
+        let healthy = sample_lidar_checked(
+            &OrderedHitPhysics::default(),
+            PhysicsWorldId::DEFAULT,
+            &mount,
+            &spec,
+            key,
+        )
+        .unwrap();
+        assert!(healthy.points_m.is_empty());
+        let broken = OrderedHitPhysics {
+            fail: true,
+            ..OrderedHitPhysics::default()
+        };
+        for failure_behavior in [
+            LidarFailureBehavior::DropRay,
+            LidarFailureBehavior::DropScan,
+        ] {
+            let spec = LidarSpec {
+                failure_behavior,
+                ..spec
+            };
+            assert!(matches!(
+                sample_lidar_checked(&broken, PhysicsWorldId::DEFAULT, &mount, &spec, key),
+                Err(LidarSampleError::Raycast(PhysicsError::WorldNotFound))
+            ));
+        }
+    }
+    #[test]
+    fn checked_scan_rejects_invalid_geometry_and_mount() {
+        let backend = OrderedHitPhysics::default();
+        let key = SensorNoiseKey::new(1, 2, 3, 4);
+        for spec in [
+            LidarSpec {
+                ray_count: 0,
+                ..LidarSpec::default()
+            },
+            LidarSpec {
+                max_range_m: f64::NAN,
+                ..LidarSpec::default()
+            },
+            LidarSpec {
+                range_noise_stddev_m: -1.0,
+                ..LidarSpec::default()
+            },
+        ] {
+            assert!(matches!(
+                sample_lidar_checked(
+                    &backend,
+                    PhysicsWorldId::DEFAULT,
+                    &Transform3::IDENTITY,
+                    &spec,
+                    key
+                ),
+                Err(LidarSampleError::InvalidConfiguration)
+            ));
+        }
+        let mount =
+            Transform3::from_translation_rotation(Vec3::new(f64::NAN, 0.0, 0.0), Quat::IDENTITY);
+        assert!(sample_lidar_checked(
+            &backend,
+            PhysicsWorldId::DEFAULT,
+            &mount,
+            &LidarSpec::default(),
+            key
+        )
+        .is_err());
+    }
     #[derive(Default)]
     struct OrderedHitPhysics {
         hits: Vec<RaycastHit>,
