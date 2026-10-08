@@ -27,7 +27,9 @@
 //! Every routine here is a pure, deterministic function: contacts are visited
 //! in input order, no hash order participates, and no wall-clock time is read.
 
-use crate::algorithms::{frame_jacobian, mass_matrix, non_linear_effects, DenseMatrix};
+use crate::algorithms::{
+    mass_matrix_from_xup, point_linear_jacobian, rnea_from_xup, xup_transforms, DenseMatrix,
+};
 use crate::model::{ArticulatedModel, DynamicsError};
 use crate::spatial::{inverse_transform, rotation_matrix};
 use rne_ecs::Entity;
@@ -36,6 +38,10 @@ use rne_world::Transform3;
 
 /// Number of evenly spaced angles sampled to bracket the sliding direction.
 const SLIDING_BRACKET_SAMPLES: usize = 32;
+
+/// Distance to a joint limit, in the joint's units, inside which the limit
+/// always takes part in a step.
+const LIMIT_ACTIVATION_MARGIN: f64 = 1.0e-3;
 
 /// Relative slack accepted when testing a sticking impulse against the cone.
 const CONE_TOLERANCE: f64 = 1.0e-12;
@@ -570,8 +576,13 @@ pub fn contact_step(
         ));
     }
 
-    let mut effective_mass = mass_matrix(model, q)?;
-    let bias = non_linear_effects(model, q, qd)?;
+    // One forward-kinematics pass serves the mass matrix, the bias forces, the
+    // contact Jacobians, and the base integration of this step.
+    let kinematics = model.kinematic.forward_kinematics(q)?;
+    let transforms = kinematics.transforms();
+    let xup = xup_transforms(model, transforms);
+    let mut effective_mass = mass_matrix_from_xup(model, &xup);
+    let bias = rnea_from_xup(model, transforms, &xup, qd, &vec![0.0; nv]);
     let mut generalized_force: Vec<f64> = tau
         .iter()
         .zip(&bias)
@@ -595,9 +606,9 @@ pub fn contact_step(
     let free_velocity: Vec<f64> = qd.iter().zip(&delta).map(|(v, dv)| v + dv).collect();
 
     let count = contacts.len();
-    let (contact_rows, frames, mut friction) = contact_jacobian(model, q, contacts)?;
+    let (contact_rows, frames, mut friction) = contact_jacobian(model, transforms, contacts)?;
     let limits = if config.enforce_joint_limits {
-        active_joint_limits(model, q)
+        active_joint_limits(model, q, &free_velocity, dt)
     } else {
         Vec::new()
     };
@@ -656,7 +667,8 @@ pub fn contact_step(
             }
         }
     }
-    let next_configuration = integrate_configuration(model, q, &next_velocity, dt)?;
+    let next_configuration =
+        integrate_from_base_frame(model, q, &next_velocity, dt, &transforms[0]);
 
     let joint_limits = limits
         .iter()
@@ -717,27 +729,41 @@ fn stack_joint_limits(
 }
 
 /// Returns the columns of `M̃⁻¹ Jᵀ` (one per constraint row, zero for empty
-/// rows) and the Delassus matrix `J M̃⁻¹ Jᵀ`.
+/// rows) and the symmetric Delassus matrix `J M̃⁻¹ Jᵀ`.
 fn delassus_operator(factor: &Cholesky, jacobian: &DenseMatrix) -> (Vec<Vec<f64>>, DenseMatrix) {
     let rows = jacobian.rows();
     let nv = jacobian.cols();
+    let data = jacobian.data();
+    let row_of = |row: usize| &data[row * nv..(row + 1) * nv];
+    let nonzero: Vec<bool> = (0..rows)
+        .map(|row| row_of(row).iter().any(|value| *value != 0.0))
+        .collect();
     let response: Vec<Vec<f64>> = (0..rows)
         .map(|row| {
-            let column: Vec<f64> = (0..nv).map(|dof| jacobian.get(row, dof)).collect();
-            if column.iter().all(|value| *value == 0.0) {
-                column
+            if nonzero[row] {
+                factor.solve(row_of(row))
             } else {
-                factor.solve(&column)
+                vec![0.0; nv]
             }
         })
         .collect();
     let mut delassus = DenseMatrix::zeros(rows, rows);
     for row in 0..rows {
-        for (col, column) in response.iter().enumerate() {
-            let value: f64 = (0..nv)
-                .map(|dof| jacobian.get(row, dof) * column[dof])
+        if !nonzero[row] {
+            continue;
+        }
+        let jacobian_row = row_of(row);
+        for col in row..rows {
+            if !nonzero[col] {
+                continue;
+            }
+            let value: f64 = jacobian_row
+                .iter()
+                .zip(&response[col])
+                .map(|(a, b)| a * b)
                 .sum();
             delassus.set(row, col, value);
+            delassus.set(col, row, value);
         }
     }
     (response, delassus)
@@ -751,20 +777,39 @@ struct LimitRow {
     gap: f64,
 }
 
-/// Every finite joint position limit, lower before upper, in coordinate order.
-fn active_joint_limits(model: &ArticulatedModel, q: &[f64]) -> Vec<LimitRow> {
+/// Joint limits a step can reach, lower before upper, in coordinate order.
+///
+/// A limit is included when it lies within [`LIMIT_ACTIVATION_MARGIN`] or
+/// within twice the distance the unconstrained motion covers toward it in one
+/// step. Limits further away cannot carry an impulse this step, and leaving
+/// them out keeps the Delassus matrix small; a joint pushed past an excluded
+/// limit by other impulses is caught and recovered on the next step.
+fn active_joint_limits(
+    model: &ArticulatedModel,
+    q: &[f64],
+    free_velocity: &[f64],
+    dt: f64,
+) -> Vec<LimitRow> {
     let mut rows = Vec::new();
     for (dof, position) in q.iter().enumerate().skip(model.base_dof()) {
-        if let Some((lower, upper)) = model.joint_position_limits(dof) {
+        let Some((lower, upper)) = model.joint_position_limits(dof) else {
+            continue;
+        };
+        let velocity = free_velocity[dof];
+        let lower_gap = position - lower;
+        if lower_gap + 2.0 * dt * velocity.min(0.0) <= LIMIT_ACTIVATION_MARGIN {
             rows.push(LimitRow {
                 dof,
                 side: JointLimitSide::Lower,
-                gap: position - lower,
+                gap: lower_gap,
             });
+        }
+        let upper_gap = upper - position;
+        if upper_gap - 2.0 * dt * velocity.max(0.0) <= LIMIT_ACTIVATION_MARGIN {
             rows.push(LimitRow {
                 dof,
                 side: JointLimitSide::Upper,
-                gap: upper - position,
+                gap: upper_gap,
             });
         }
     }
@@ -824,7 +869,7 @@ fn fold_implicit_pd(
 #[allow(clippy::type_complexity)]
 fn contact_jacobian(
     model: &ArticulatedModel,
-    q: &[f64],
+    transforms: &[Transform3],
     contacts: &[ContactPoint],
 ) -> Result<(DenseMatrix, Vec<[Vec3; 3]>, Vec<f64>), DynamicsError> {
     let nv = model.nv();
@@ -841,13 +886,20 @@ fn contact_jacobian(
                 "contact normal, gap, and point must be finite and the normal non-zero",
             ));
         }
+        let link_index =
+            model
+                .kinematic
+                .link_index(contact.link)
+                .ok_or(DynamicsError::Kinematics(
+                    rne_robot::KinematicsError::UnknownLink(contact.link),
+                ))?;
         let frame = contact_frame(contact.normal_world);
-        let linear = frame_jacobian(model, q, contact.link, contact.point_local_m)?;
+        let linear = point_linear_jacobian(model, transforms, link_index, contact.point_local_m);
         for (axis, direction) in frame.iter().enumerate() {
             for column in 0..nv {
-                let value = direction.x * linear.get(0, column)
-                    + direction.y * linear.get(1, column)
-                    + direction.z * linear.get(2, column);
+                let value = direction.x * linear[column]
+                    + direction.y * linear[nv + column]
+                    + direction.z * linear[2 * nv + column];
                 jacobian.set(3 * index + axis, column, value);
             }
         }
@@ -884,11 +936,28 @@ pub fn integrate_configuration(
     if !dt.is_finite() {
         return Err(DynamicsError::NonFiniteInput);
     }
+    let kinematics = model.kinematic.forward_kinematics(q)?;
+    Ok(integrate_from_base_frame(
+        model,
+        q,
+        qd,
+        dt,
+        &kinematics.transforms()[0],
+    ))
+}
+
+/// [`integrate_configuration`] with the base link frame at `q` already known.
+fn integrate_from_base_frame(
+    model: &ArticulatedModel,
+    q: &[f64],
+    qd: &[f64],
+    dt: f64,
+    base_frame: &Transform3,
+) -> Vec<f64> {
     let base = model.base_dof();
     let mut next: Vec<f64> = q.iter().zip(qd).map(|(q, qd)| q + dt * qd).collect();
     if base == 6 {
-        let kinematics = model.kinematic.forward_kinematics(q)?;
-        let base_frame = kinematics.transforms()[0];
+        let base_frame = *base_frame;
         let configuration_frame = floating_base_transform(q);
         // Fixed offset between the configured base pose and the base link frame.
         let offset = inverse_transform(&configuration_frame).mul_transform(&base_frame);
@@ -912,7 +981,7 @@ pub fn integrate_configuration(
         next[4] = pitch;
         next[5] = unwrap_angle(yaw, q[5]);
     }
-    Ok(next)
+    next
 }
 
 fn floating_base_transform(q: &[f64]) -> Transform3 {

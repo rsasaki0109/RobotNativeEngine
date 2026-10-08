@@ -145,13 +145,28 @@ fractal terrain with stand-pose implicit PD and checks that all four feet end
 in contact, the contact force carries the weight within 2 %, penetration stays
 under 5 mm, the robot comes to rest, and two runs are bit-for-bit identical.
 
+## Step cost
+
+A step evaluates forward kinematics once and shares it between the mass
+matrix, the bias forces, the contact Jacobians (walked only along each contact
+link's ancestors), and the base integration. The Delassus matrix is filled
+symmetrically and skips empty rows, and a joint limit joins the solve only
+when it lies within 1 mm (or 1 mrad) of the joint or within twice the distance
+the unconstrained motion covers toward it in one step; a joint pushed past a
+limit that was left out is caught and recovered on the next step.
+
+Example 133 (Go2, 18 velocity coordinates, four feet, 24 joint limits) runs at
+about 15 µs per step in a release build, down from about 94 µs when every
+limit was in every solve and each Jacobian and dynamics term redid forward
+kinematics; callgrind counts about 0.30 M instructions per step against 2.8 M.
+
 ## Limitations and follow-ups
 
-- `contact_step` uses a dense `O(n³)` factorization of `M̃`. A sparse,
-  tree-structured factorization (or an ABA-based inverse-inertia operator for
-  the Delassus columns) is the remaining step toward RaiSim's per-step cost.
-- Every finite joint limit is included each step; limits far from their bound
-  are open and cost only Delassus rows. Effort (torque) limits are not enforced
-  on the implicit PD force.
+- `contact_step` uses a dense `O(n³)` factorization of `M̃`, and the Go2's 42
+  links include 29 rigidly attached ones (rotors, feet, covers) that every pass
+  still visits. Folding fixed links into their parents' inertia and a
+  tree-structured factorization are the next steps toward RaiSim's per-step
+  cost.
+- Effort (torque) limits are not enforced on the implicit PD force.
 - No physics backend implements `PhysicsBackend` on top of this step yet; it is
   a dynamics-layer primitive used directly by examples and controllers.

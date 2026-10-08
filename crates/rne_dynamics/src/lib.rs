@@ -32,6 +32,8 @@ pub mod algorithms;
 pub mod contact;
 pub mod model;
 pub mod spatial;
+#[cfg(test)]
+mod test_models;
 
 pub use aba::aba;
 pub use algorithms::{
