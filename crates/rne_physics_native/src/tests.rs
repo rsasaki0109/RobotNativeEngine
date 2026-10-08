@@ -680,6 +680,96 @@ fn a_ball_rests_on_a_free_compound_table() {
     assert!((contact_impulse(&backend, id, table, ball) - weight).abs() < 1.0e-3 * weight);
 }
 
+/// The convex hull of a box's corners, with an interior point.
+fn hull_block(half_m: Vec3) -> ColliderShape {
+    let mut points: Vec<Vec3> = (0..8)
+        .map(|corner| {
+            let sign = |bit: usize, half: f64| if corner & bit == 0 { -half } else { half };
+            Vec3::new(sign(1, half_m.x), sign(2, half_m.y), sign(4, half_m.z))
+        })
+        .collect();
+    points.push(Vec3::new(0.1 * half_m.x, -0.2 * half_m.y, 0.3 * half_m.z));
+    ColliderShape::ConvexHull {
+        points: points.into(),
+    }
+}
+
+#[test]
+fn bodies_rest_on_and_against_convex_hulls() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let floor = ground(&mut world);
+    // A fixed hull slab, a box resting on it, and a ball on a free hull block.
+    let slab = fixed_shape(
+        &mut world,
+        hull_block(Vec3::new(0.5, 0.25, 0.5)),
+        Vec3::new(-1.0, 0.25, 0.0),
+    );
+    let crate_box = free_box(
+        &mut world,
+        Vec3::new(0.2, 0.1, 0.2),
+        Vec3::new(-1.0, 0.65, 0.0),
+    );
+    let block = world
+        .spawn((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape: hull_block(Vec3::new(0.3, 0.1, 0.3)),
+                ..Collider::cuboid(Vec3::ONE)
+            },
+            Transform3::from_translation_rotation(Vec3::new(1.0, 0.102, 0.0), Quat::IDENTITY),
+        ))
+        .id();
+    let ball = free_ball(&mut world, 0.1, Vec3::new(1.1, 0.4, -0.05));
+    for _ in 0..1000 {
+        step(&mut backend, &mut world, id);
+    }
+    let height = |entity: Entity| world.get::<Transform3>(entity).expect("pose").translation.y;
+    assert!(
+        (height(crate_box) - 0.6).abs() < 1.0e-3,
+        "box at {}",
+        height(crate_box)
+    );
+    assert!(
+        (height(block) - 0.1).abs() < 1.0e-3,
+        "block at {}",
+        height(block)
+    );
+    assert!(
+        (height(ball) - 0.3).abs() < 1.0e-3,
+        "ball at {}",
+        height(ball)
+    );
+    let weight = 9.81 / 500.0;
+    let pair = |a: Entity, b: Entity| {
+        if a.index() < b.index() {
+            contact_impulse(&backend, id, a, b)
+        } else {
+            contact_impulse(&backend, id, b, a)
+        }
+    };
+    assert!((pair(slab, crate_box) - weight).abs() < 1.0e-3 * weight);
+    assert!((pair(floor, block) - 2.0 * weight).abs() < 1.0e-3 * weight);
+    assert!((pair(block, ball) - weight).abs() < 1.0e-3 * weight);
+    // Rays hit the hulls: the slab's top from above, zero from inside.
+    let hits = backend
+        .raycast(id, RaycastQuery::downward(Vec3::new(-0.6, 2.0, 0.4), 5.0))
+        .expect("raycast");
+    assert_eq!(hits[0].entity, slab);
+    assert!((hits[0].distance_m - 1.5).abs() < 1.0e-9);
+    assert!((hits[0].normal - Vec3::Y).length() < 1.0e-9);
+    let inside = backend
+        .raycast(id, RaycastQuery::downward(Vec3::new(-1.0, 0.3, 0.0), 5.0))
+        .expect("raycast");
+    assert_eq!((inside[0].entity, inside[0].distance_m), (slab, 0.0));
+}
+
 #[test]
 fn colliding_bodies_exchange_momentum_inelastically() {
     let mut backend = NativeBackend::new();

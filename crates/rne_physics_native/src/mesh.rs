@@ -1,5 +1,6 @@
 //! Bounding-volume tree over a triangle mesh, for contact and ray queries.
 
+use crate::hull::convex_hull;
 use rne_math::Vec3;
 use std::sync::Arc;
 
@@ -59,17 +60,22 @@ struct Node {
     count: u32,
 }
 
-/// A triangle mesh with a bounding-volume tree, built once per mesh.
+/// A triangle mesh with a bounding-volume tree, built once per mesh or
+/// convex hull.
 ///
 /// Triangles wind counter-clockwise seen from outside: their face normals
 /// point out of the mesh, which tells a contact on which side it is.
 #[derive(Debug)]
 pub(crate) struct MeshTree {
     /// The mesh the tree was built from, kept alive so that its allocations
-    /// identify it in a cache.
+    /// identify it in a cache. For a hull, the vertices are the hull's points
+    /// and the indices its triangles.
     source: (Arc<[Vec3]>, Arc<[u32]>),
     triangles: Vec<[Vec3; 3]>,
     nodes: Vec<Node>,
+    /// For a convex hull, its face planes as outward unit normals `n` and
+    /// offsets `d`: the hull is where `n · x <= d` for every plane.
+    planes: Option<Vec<(Vec3, f64)>>,
 }
 
 /// Closest point of a mesh to a query point.
@@ -109,12 +115,43 @@ impl MeshTree {
             source: (vertices.clone(), indices.clone()),
             triangles,
             nodes,
+            planes: None,
         }
     }
 
-    /// Whether the tree was built from exactly these allocations.
+    /// Builds the tree of the convex hull of `points`, with its face planes;
+    /// `None` when the points do not span a volume.
+    pub(crate) fn build_hull(points: &Arc<[Vec3]>) -> Option<Self> {
+        let faces = convex_hull(points)?;
+        let indices: Arc<[u32]> = faces.iter().flatten().copied().collect();
+        let mut tree = Self::build(points, &indices);
+        tree.planes = Some(
+            tree.triangles
+                .iter()
+                .map(|triangle| {
+                    let normal = face_normal(triangle);
+                    (normal, normal.dot(triangle[0]))
+                })
+                .collect(),
+        );
+        Some(tree)
+    }
+
+    /// Whether this is the hull tree of exactly this point allocation.
+    pub(crate) fn is_hull_of(&self, points: &Arc<[Vec3]>) -> bool {
+        self.planes.is_some() && Arc::ptr_eq(&self.source.0, points)
+    }
+
+    /// The face planes of a hull tree, as outward unit normals and offsets.
+    pub(crate) fn planes(&self) -> &[(Vec3, f64)] {
+        self.planes.as_deref().unwrap_or_default()
+    }
+
+    /// Whether this is the mesh tree of exactly these allocations.
     pub(crate) fn is_built_from(&self, vertices: &Arc<[Vec3]>, indices: &Arc<[u32]>) -> bool {
-        Arc::ptr_eq(&self.source.0, vertices) && Arc::ptr_eq(&self.source.1, indices)
+        self.planes.is_none()
+            && Arc::ptr_eq(&self.source.0, vertices)
+            && Arc::ptr_eq(&self.source.1, indices)
     }
 
     fn split(triangles: &mut [[Vec3; 3]], nodes: &mut Vec<Node>, index: usize) {

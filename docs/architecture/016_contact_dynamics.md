@@ -90,13 +90,14 @@ and which it deliberately does not.
    path the asset loader takes — runs unchanged. Moving colliders are sampled
    (spheres exactly, capsules as rows of spheres, boxes, hulls, and meshes
    by their vertices) against static planes, boxes, spheres, capsules, height
-   fields, triangle meshes, and compounds of these; `JointActuation` position, velocity, and effort commands become
+   fields, triangle meshes, convex hulls, and compounds of these; `JointActuation` position, velocity, and effort commands become
    implicit PD and feed-forward forces with their effort limits, and
    `JointPassiveDynamics` adds damping and Coulomb friction. The backend
    advertises `RigidBody`, `Articulation`, `DeterministicStep`,
    `ContactForce`, and `RaycastBatch` and passes the external conformance kit
    for all five. Raycasts hit every non-sensor collider at its current pose:
-   spheres, capsules, boxes, and planes as solids, height fields (the same
+   spheres, capsules, boxes, planes, and convex hulls as solids, height
+   fields (the same
    bilinear surface the contacts use, solved exactly cell by cell) and
    triangle meshes as surfaces, and compounds part by part.
 10. **Batched environments** (`VectorizedEpisode::step_parallel`). raisimGym
@@ -282,7 +283,12 @@ the closest points of their edges. A box rests on a two-triangle floor and a
 ball on a closed mesh cube, each contact carrying its body's weight within
 0.1 %, and a ball rests on a free table made of a compound of five boxes, the
 floor carrying both. The mesh tree's closest points and ray hits match a
-brute-force search over every triangle.
+brute-force search over every triangle. Convex hulls are built incrementally
+from their points (closed, convex, and outward for a cube cloud with interior
+points and a 60-point sphere cloud; none for flat clouds); a sample's gap to
+one is exact above a face, past an edge, and inside, a box rests on a fixed
+hull slab and a ball on a free hull block (each contact within 0.1 % of its
+load), and rays hit hulls as solids.
 
 `examples/137_go2_native_backend` builds the Go2 the way the asset loader does
 and drives it through `PhysicsBackend` on `NativeBackend` and on Rapier: on the
@@ -326,12 +332,12 @@ instructions per step, against 2.8 M originally.
 - Forward kinematics still visits every link, including welded ones, because
   contact points and sensors may sit on any link.
 - `NativeBackend`'s contacts come from samples except between boxes:
-  convex hulls are not contact targets, and a sample near a sharp convex
-  mesh edge (faces turning by more than 90°) can take the wrong side.
+  a sample near a sharp convex mesh edge (faces turning by more than 90°)
+  can take the wrong side of an open or non-convex mesh (convex hulls decide
+  the side by their face planes, so they are exact).
   Compound parts are tested by sampling, not by the box-box test. URDF robots spawned without
   self-collision share one collision group and so do not collide with each
-  other, as in the Rapier backend. Raycasts do not hit convex hulls, and a
-  kinematic body that moves is a moving obstacle for contacts but not a moving anchor
+  other, as in the Rapier backend. A kinematic body that moves is a moving obstacle for contacts but not a moving anchor
   for a fixed-base tree.
 - The floating base's roll-pitch-yaw coordinates have a confined middle angle.
   In RNE's Y-up world that angle is the heading, so turning past a quarter turn
