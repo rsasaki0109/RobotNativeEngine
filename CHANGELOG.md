@@ -132,6 +132,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_physics_native`: a fixed-base tree follows the kinematic body it
+  hangs from, so an arm on a moving cart rides along instead of staying
+  where the cart stood when the tree was built (placement only; the cart's
+  velocity and acceleration do not enter the dynamics).
+  `KinematicModel::set_root_transform` and
+  `ArticulatedModel::set_fixed_base_pose` move a fixed base without
+  rebuilding the model.
+
 - `rne_physics_native`: convex hulls are contact and raycast targets. A
   hull's triangles and face planes are built once per point allocation by
   an incremental hull; a sample's gap is exact inside (by the face planes)

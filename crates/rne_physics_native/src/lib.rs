@@ -15,8 +15,9 @@
 //! - **Bodies.** Dynamic [`RigidBody`] entities, with their
 //!   [`rne_physics::RigidBodyInertia`] or, without one, the solid inertia of
 //!   their collider. A tree whose root joint attaches to a fixed or kinematic
-//!   body has a fixed base posed where that body stood when the tree was
-//!   built.
+//!   body has a fixed base that follows that body: each sync moves the base
+//!   to where the body stands, so an arm on a kinematic cart rides along. The
+//!   cart's velocity and acceleration do not enter the arm's dynamics.
 //! - **Contacts.** Moving colliders are sampled — spheres exactly, capsules as
 //!   a row of spheres, boxes, convex hulls, and triangle meshes by their
 //!   vertices — against the planes, boxes, spheres, capsules, height fields,
@@ -334,6 +335,7 @@ impl PhysicsBackend for NativeBackend {
         // Drop the trees no collider uses any more.
         state.mesh_cache.retain(|tree| Arc::strong_count(tree) > 1);
         for assembly in &mut state.assemblies {
+            assembly.follow_anchor(world);
             assembly.load_commands(world)?;
         }
         Ok(())
