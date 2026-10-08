@@ -221,6 +221,7 @@ impl QuadrupedTerrainSim {
             } else {
                 command.velocities_rad_s.clone()
             },
+            effort_limits: Vec::new(),
         };
         let config = ContactStepConfig {
             step_time_s: self.config.step_time_s,

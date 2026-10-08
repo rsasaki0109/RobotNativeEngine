@@ -21,11 +21,13 @@
 //! # Frames
 //!
 //! RNE's world is Y-up. The floating base of `rne_dynamics` is parameterized
-//! by fixed-axis roll-pitch-yaw `Rz Ry Rx`, whose middle angle is singular at
-//! ±90°; in a Y-up world that middle angle is the heading, so a robot could not
-//! turn past a quarter turn. This crate therefore simulates in a Z-up
-//! *locomotion frame* — RNE's world rotated by +90° about X — where the
-//! heading is the outer yaw angle and only roll and pitch are bounded.
+//! by fixed-axis roll-pitch-yaw `Rz Ry Rx`, whose middle angle is confined to
+//! ±90°. In a Y-up world that middle angle is the heading, so a robot turning
+//! past a quarter turn flips its roll and yaw coordinates by π: the pose stays
+//! right, but the coordinates a controller or an observation reads jump. This
+//! crate therefore simulates in a Z-up *locomotion frame* — RNE's world
+//! rotated by +90° about X — where the heading is the yaw coordinate and roll
+//! and pitch stay small and continuous.
 //! [`world_from_locomotion`] and [`locomotion_from_world`] convert points and
 //! directions between the two frames, and the terrain stays an ordinary Y-up
 //! [`rne_physics::ColliderShape::HeightField`].
