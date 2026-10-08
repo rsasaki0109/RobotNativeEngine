@@ -1,6 +1,6 @@
 //! Ray casts against the colliders of a native world.
 
-use crate::collide::find_tree;
+use crate::collide::{find_hull, find_tree};
 use crate::mesh::{ray_triangle, MeshTree};
 use rne_math::Vec3;
 use rne_physics::{height_field_surface, ColliderShape};
@@ -15,10 +15,10 @@ const PARALLEL: f64 = 1.0e-12;
 /// the frame of `pose`) on `shape` placed at `pose`, with `0 <= t <=
 /// max_distance_m`: the distance and the surface normal, facing the ray.
 ///
-/// Spheres, capsules, boxes, and planes (as half-spaces) are solid: a ray
-/// that starts inside one hits it at distance zero with a zero normal, as
-/// Rapier reports solid hits. Height fields and triangle meshes are surfaces,
-/// hit from either side. Convex hulls are not hit.
+/// Spheres, capsules, boxes, planes (as half-spaces), and convex hulls are
+/// solid: a ray that starts inside one hits it at distance zero with a zero
+/// normal, as Rapier reports solid hits. Height fields and triangle meshes
+/// are surfaces, hit from either side.
 pub(crate) fn cast(
     shape: &ColliderShape,
     pose: &Transform3,
@@ -71,7 +71,11 @@ pub(crate) fn cast(
                 })
                 .min_by(|a, b| a.0.total_cmp(&b.0));
         }
-        ColliderShape::ConvexHull { .. } => None,
+        ColliderShape::ConvexHull { points } => hull(
+            find_hull(meshes, points)?.planes(),
+            local_origin,
+            local_direction,
+        ),
     }?;
     (distance <= max_distance_m).then(|| (distance, pose.rotation * normal))
 }
@@ -237,6 +241,32 @@ fn height_field(
         return Some((t, normal));
     }
     None
+}
+
+/// A ray against the solid convex hull with these face planes.
+fn hull(planes: &[(Vec3, f64)], origin: Vec3, direction: Vec3) -> Option<(f64, Vec3)> {
+    let (mut enter, mut exit, mut normal) = (0.0_f64, f64::INFINITY, Vec3::ZERO);
+    for (plane, offset) in planes {
+        let height = plane.dot(origin) - offset;
+        let rate = plane.dot(direction);
+        if rate.abs() < PARALLEL {
+            if height > 0.0 {
+                return None;
+            }
+            continue;
+        }
+        let t = -height / rate;
+        if rate < 0.0 {
+            if t > enter {
+                enter = t;
+                normal = *plane;
+            }
+        } else {
+            exit = exit.min(t);
+        }
+    }
+    // A ray from inside enters at zero, with a zero normal.
+    (enter <= exit).then_some((enter, normal))
 }
 
 /// Entry and exit distances of a ray through the box `[-half, half]`.

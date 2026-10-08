@@ -132,6 +132,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_physics_native`: convex hulls are contact and raycast targets. A
+  hull's triangles and face planes are built once per point allocation by
+  an incremental hull; a sample's gap is exact inside (by the face planes)
+  and outside (to the closest hull triangle), and rays hit hulls as solids.
+
 - `rne_physics_native`: triangle meshes and compounds are contact targets,
   static or moving, so bodies rest on mesh terrain, inside mesh rooms, and on
   compound furniture instead of falling through. Each mesh gets a

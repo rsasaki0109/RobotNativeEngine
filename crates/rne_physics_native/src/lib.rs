@@ -20,11 +20,12 @@
 //! - **Contacts.** Moving colliders are sampled — spheres exactly, capsules as
 //!   a row of spheres, boxes, convex hulls, and triangle meshes by their
 //!   vertices — against the planes, boxes, spheres, capsules, height fields,
-//!   triangle meshes, and compounds of fixed and kinematic bodies, and
-//!   against the spheres, boxes, capsules, triangle meshes, and compounds of
-//!   other dynamic bodies, including other links of the same robot (except
+//!   triangle meshes, convex hulls, and compounds of fixed and kinematic
+//!   bodies, and against the spheres, boxes, capsules, triangle meshes, convex
+//!   hulls, and compounds of other dynamic bodies, including other links of the same robot (except
 //!   the two sides of a joint). Triangle meshes wind counter-clockwise seen
-//!   from outside, and each gets a bounding-volume tree. A box against a box instead runs the full
+//!   from outside, and each gets a bounding-volume tree; a convex hull is
+//!   built from its points once, with its face planes. A box against a box instead runs the full
 //!   separating-axis test, so crossing edges touch too.
 //!   [`rne_physics::CollisionGroups`] filter every pair.
 //!   Assemblies that touch are solved in one contact problem, as RaiSim solves
@@ -48,15 +49,16 @@
 //! removing bodies or joints rebuilds the assemblies.
 //!
 //! Raycasts hit every non-sensor collider at its current pose and return the
-//! hits by distance. Spheres, capsules, boxes, and planes are solid (a ray
-//! that starts inside one hits it at distance zero with a zero normal, as in
-//! the Rapier backend); height fields and triangle meshes are surfaces;
-//! convex hulls are not hit.
+//! hits by distance. Spheres, capsules, boxes, planes, and convex hulls are
+//! solid (a ray that starts inside one hits it at distance zero with a zero
+//! normal, as in the Rapier backend); height fields and triangle meshes are
+//! surfaces.
 
 #![deny(missing_docs)]
 
 mod assembly;
 mod collide;
+mod hull;
 mod mesh;
 mod raycast;
 mod world_step;

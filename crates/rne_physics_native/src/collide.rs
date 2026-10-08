@@ -138,8 +138,19 @@ pub(crate) fn find_tree<'a>(
         .map(|tree| &**tree)
 }
 
-/// Appends to `out` a tree for every triangle mesh in `shape` (compound
-/// parts included), reusing the trees in `cache` built from the same mesh
+/// The hull tree of the convex hull of `points` among `meshes`.
+pub(crate) fn find_hull<'a>(
+    meshes: &'a [Arc<MeshTree>],
+    points: &Arc<[Vec3]>,
+) -> Option<&'a MeshTree> {
+    meshes
+        .iter()
+        .find(|tree| tree.is_hull_of(points))
+        .map(|tree| &**tree)
+}
+
+/// Appends to `out` a tree for every triangle mesh and convex hull in
+/// `shape` (compound parts included), reusing the trees in `cache` built from the same mesh
 /// allocations and adding the new ones to it.
 pub(crate) fn mesh_trees(
     shape: &ColliderShape,
@@ -155,6 +166,20 @@ pub(crate) fn mesh_trees(
                 Some(tree) => tree.clone(),
                 None => {
                     let tree = Arc::new(MeshTree::build(vertices, indices));
+                    cache.push(tree.clone());
+                    tree
+                }
+            };
+            out.push(tree);
+        }
+        ColliderShape::ConvexHull { points } => {
+            let tree = match cache.iter().find(|tree| tree.is_hull_of(points)) {
+                Some(tree) => tree.clone(),
+                None => {
+                    let Some(tree) = MeshTree::build_hull(points) else {
+                        return;
+                    };
+                    let tree = Arc::new(tree);
                     cache.push(tree.clone());
                     tree
                 }
@@ -234,7 +259,24 @@ fn query_shape(
                 })
                 .min_by(|a, b| a.gap_m.total_cmp(&b.gap_m));
         }
-        ColliderShape::ConvexHull { .. } => return None,
+        ColliderShape::ConvexHull { points } => {
+            let tree = find_hull(meshes, points)?;
+            let (height, plane) = tree
+                .planes()
+                .iter()
+                .map(|(normal, offset)| (normal.dot(local) - offset, *normal))
+                .max_by(|a, b| a.0.total_cmp(&b.0))?;
+            if height <= 0.0 {
+                // Inside: out through the nearest face.
+                (height, plane)
+            } else {
+                let closest = tree.closest(local, radius_m + MESH_REACH_M)?;
+                let normal = (local - closest.point_m)
+                    .try_normalize()
+                    .unwrap_or(closest.face_normal);
+                (closest.distance_m, normal)
+            }
+        }
     };
     let normal = pose.rotation * normal_local;
     Some(Hit {
@@ -591,6 +633,51 @@ mod tests {
             friction: 0.5,
             meshes: Vec::new(),
         }
+    }
+
+    #[test]
+    fn convex_hull_distances_are_exact_outside_inside_and_past_an_edge() {
+        // A 2 x 1 x 2 m block given as a point cloud with interior points.
+        let mut points: Vec<Vec3> = (0..8)
+            .map(|corner| {
+                let sign = |bit: usize, half: f64| if corner & bit == 0 { -half } else { half };
+                Vec3::new(sign(1, 1.0), sign(2, 0.5), sign(4, 1.0))
+            })
+            .collect();
+        points.extend([Vec3::ZERO, Vec3::new(0.3, 0.1, -0.2)]);
+        let shape = ColliderShape::ConvexHull {
+            points: points.into(),
+        };
+        let mut cache = Vec::new();
+        let mut meshes = Vec::new();
+        mesh_trees(&shape, &mut cache, &mut meshes);
+        assert_eq!((cache.len(), meshes.len()), (1, 1));
+        let pose = Transform3::from_translation_rotation(Vec3::new(0.0, 0.0, 2.0), Quat::IDENTITY);
+        let hull = StaticCollider {
+            meshes,
+            ..collider(shape.clone(), pose)
+        };
+        // Above the top face.
+        let hit = hull.query(Vec3::new(0.2, 0.8, 2.3), 0.1).expect("above");
+        assert!((hit.gap_m - 0.2).abs() < 1.0e-12 && (hit.normal - Vec3::Y).length() < 1.0e-12);
+        // Inside, nearest the +x face.
+        let hit = hull.query(Vec3::new(0.9, 0.0, 2.1), 0.0).expect("inside");
+        assert!((hit.gap_m + 0.1).abs() < 1.0e-12 && (hit.normal - Vec3::X).length() < 1.0e-12);
+        // Past the top +x edge, diagonally: the distance to the edge.
+        let hit = hull.query(Vec3::new(1.3, 0.9, 2.0), 0.0).expect("edge");
+        assert!((hit.gap_m - 0.5).abs() < 1.0e-12);
+        assert!((hit.normal - Vec3::new(0.6, 0.8, 0.0)).length() < 1.0e-12);
+        // The same points find the cached tree again; a copy builds another.
+        mesh_trees(&shape, &mut cache, &mut Vec::new());
+        assert_eq!(cache.len(), 1);
+        let copy = ColliderShape::ConvexHull {
+            points: match &shape {
+                ColliderShape::ConvexHull { points } => points.to_vec().into(),
+                _ => unreachable!(),
+            },
+        };
+        mesh_trees(&copy, &mut cache, &mut Vec::new());
+        assert_eq!(cache.len(), 2);
     }
 
     #[test]
