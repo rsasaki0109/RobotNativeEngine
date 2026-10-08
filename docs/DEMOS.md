@@ -172,6 +172,22 @@ cargo run -p dynamics_diagnostics --example 103_dynamics_diagnostics
 
 See [articulated-body dynamics](architecture/012_dynamics.md).
 
+## Hard-contact time stepping on fractal terrain
+
+`rne_dynamics::contact_step` advances an articulated model with unilateral
+contacts and the exact Coulomb cone, solved per contact with bisection in the
+style of RaiSim, and integrates joint PD implicitly so stiff gains stay stable.
+`rne_physics::FractalTerrain` generates seeded RaiSim-style height maps. Example
+133 drops the Go2 onto such terrain, lets it stand on its four feet with
+stand-pose PD only, checks that the contacts carry its weight, and replays the
+run to confirm it is bit-for-bit deterministic.
+
+```bash
+cargo run -p go2_contact_terrain --example 133_go2_contact_terrain
+```
+
+See [hard-contact time stepping](architecture/016_contact_dynamics.md).
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

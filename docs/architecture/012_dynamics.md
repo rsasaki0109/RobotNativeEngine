@@ -97,10 +97,12 @@ base acceleration.
   velocity or acceleration in the dynamics recursion.
 - Only the dense solve is provided; an ABA / articulated-body forward pass and
   analytical derivatives are later work needed for DDP-class solvers.
-- Centroidal momentum matrix, contact constraints, and constrained forward
-  dynamics are deliberate follow-ups.
+- Centroidal momentum matrix is a deliberate follow-up. Unilateral contact
+  with an exact Coulomb cone, implicit joint PD, and a time-stepping loop are
+  in `rne_dynamics::contact` ([016](016_contact_dynamics.md)).
 - The floating-base tangent separation means callers must integrate base pose
-  and base velocity with an explicit mapping rather than `q += qd * dt`.
+  and base velocity with an explicit mapping rather than `q += qd * dt`;
+  `integrate_configuration` is that mapping.
 
 ## Consequences
 

@@ -7,6 +7,7 @@ pub mod components;
 pub mod events;
 pub mod hash;
 pub mod snapshot;
+pub mod terrain;
 
 pub use backend::{
     require_capabilities, PhysicsBackend, PhysicsBackendManifest, PhysicsBackendManifestError,
@@ -30,3 +31,4 @@ pub use snapshot::{
     capture_physics_snapshot, PhysicsBodySnapshot, PhysicsContactSnapshot, PhysicsSnapshot,
     PhysicsSnapshotError, PHYSICS_SNAPSHOT_SCHEMA_VERSION,
 };
+pub use terrain::{height_field_surface, FractalTerrain, HeightFieldSurface};

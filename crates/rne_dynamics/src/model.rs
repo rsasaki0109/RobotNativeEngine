@@ -36,6 +36,9 @@ pub enum DynamicsError {
     /// An internal invariant was violated: a degree of freedom had no owner.
     #[error("internal error: degree of freedom {0} has no owner link")]
     MissingDofOwner(usize),
+    /// A contact, contact-solver, or step parameter was out of range.
+    #[error("invalid contact input: {0}")]
+    InvalidContact(&'static str),
 }
 
 #[derive(Clone, Debug)]

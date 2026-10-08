@@ -71,3 +71,4 @@ See also:
 - [Legged walking templates](013_legged_templates.md)
 - [Whole-body control](014_whole_body_control.md)
 - [Native optimal control](015_native_optimal_control.md)
+- [Hard-contact time stepping](016_contact_dynamics.md)
