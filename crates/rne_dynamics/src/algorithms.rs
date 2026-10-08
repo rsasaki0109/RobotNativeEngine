@@ -146,6 +146,11 @@ pub fn mass_matrix(model: &ArticulatedModel, q: &[f64]) -> Result<DenseMatrix, D
     validate(model, q, "q")?;
     let kinematics = model.kinematic.forward_kinematics(q)?;
     let xup = xup_transforms(model, kinematics.transforms());
+    Ok(mass_matrix_from_xup(model, &xup))
+}
+
+/// Composite-rigid-body mass matrix from precomputed parent-to-child transforms.
+pub(crate) fn mass_matrix_from_xup(model: &ArticulatedModel, xup: &[Mat6]) -> DenseMatrix {
     let mut composite = inertia_matrices(model);
 
     for index in (1..model.link_count()).rev() {
@@ -181,7 +186,7 @@ pub fn mass_matrix(model: &ArticulatedModel, q: &[f64]) -> Result<DenseMatrix, D
             }
         }
     }
-    Ok(matrix)
+    matrix
 }
 
 /// Recursive Newton-Euler inverse dynamics.
@@ -202,6 +207,18 @@ pub fn rnea(
     let kinematics = model.kinematic.forward_kinematics(q)?;
     let transforms = kinematics.transforms();
     let xup = xup_transforms(model, transforms);
+    Ok(rnea_from_xup(model, transforms, &xup, qd, qdd))
+}
+
+/// Recursive Newton-Euler pass from precomputed link and parent-to-child
+/// transforms; see [`rnea`].
+pub(crate) fn rnea_from_xup(
+    model: &ArticulatedModel,
+    transforms: &[Transform3],
+    xup: &[Mat6],
+    qd: &[f64],
+    qdd: &[f64],
+) -> Vec<f64> {
     let inertia = inertia_matrices(model);
     let link_count = model.link_count();
 
@@ -267,7 +284,7 @@ pub fn rnea(
             );
         }
     }
-    Ok(tau)
+    tau
 }
 
 /// Gravity and velocity bias `C(q, qd) qd + g(q)`.
@@ -374,6 +391,39 @@ pub fn frame_jacobian(
         }
     }
     Ok(jacobian)
+}
+
+/// Linear rows (`3 x nv`, row-major) of a link point's Jacobian in the
+/// dynamics convention, from link transforms already computed for `q`.
+///
+/// Equal to the first three rows of [`frame_jacobian`], but walks only the
+/// ancestors of `link_index` and reuses `transforms` instead of recomputing
+/// forward kinematics.
+pub(crate) fn point_linear_jacobian(
+    model: &ArticulatedModel,
+    transforms: &[Transform3],
+    link_index: usize,
+    point_local_m: Vec3,
+) -> Vec<f64> {
+    let nv = model.nv();
+    let mut rows = vec![0.0; 3 * nv];
+    let point = transform_point(&transforms[link_index], point_local_m);
+    let mut current = Some(link_index);
+    while let Some(index) = current {
+        let frame = &transforms[index];
+        let lever = point - frame.translation;
+        for &dof in &model.link_dofs[index] {
+            let s = model.dofs[dof].s;
+            let linear = frame.rotation * Vec3::new(s[0], s[1], s[2]);
+            let angular = frame.rotation * Vec3::new(s[3], s[4], s[5]);
+            let column = linear + angular.cross(lever);
+            rows[dof] = column.x;
+            rows[nv + dof] = column.y;
+            rows[2 * nv + dof] = column.z;
+        }
+        current = model.links[index].parent;
+    }
+    rows
 }
 
 /// Maps a base generalized velocity in the dynamics convention (body linear and
@@ -1156,5 +1206,37 @@ mod tests {
         assert!(acceleration.y.abs() < 1.0e-10);
         assert!(acceleration.z.abs() < 1.0e-10);
         assert_relative_eq!(link1.angular_velocity_world_rad_s.z, 2.0, epsilon = 1.0e-10);
+    }
+
+    #[test]
+    fn point_linear_jacobian_matches_frame_jacobian() {
+        use crate::test_models::{branching_tree, Lcg};
+        for floating in [false, true] {
+            let model = branching_tree(floating, 11);
+            let mut rng = Lcg(23);
+            let nv = model.nv();
+            for _ in 0..10 {
+                let mut q: Vec<f64> = (0..nv).map(|_| rng.next()).collect();
+                if floating {
+                    q[4] *= 0.5;
+                }
+                let kinematics = model.kinematic.forward_kinematics(&q).expect("fk");
+                for index in 0..model.link_count() {
+                    let point = rng.vec3() * 0.2;
+                    let link = model.link_entity(index).expect("link");
+                    let dense = frame_jacobian(&model, &q, link, point).expect("jacobian");
+                    let fast = point_linear_jacobian(&model, kinematics.transforms(), index, point);
+                    for row in 0..3 {
+                        for col in 0..nv {
+                            assert_relative_eq!(
+                                fast[row * nv + col],
+                                dense.get(row, col),
+                                epsilon = 1.0e-10
+                            );
+                        }
+                    }
+                }
+            }
+        }
     }
 }

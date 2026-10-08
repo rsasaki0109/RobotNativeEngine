@@ -23,6 +23,13 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `rne_dynamics::contact_step` is about six times faster on the Go2 (about
+  15 µs instead of 94 µs per step in a release build): forward kinematics runs
+  once per step and feeds the mass matrix, bias forces, contact Jacobians, and
+  base integration; the Delassus matrix is filled symmetrically; and a joint
+  limit joins the solve only when the step can reach it. Results are
+  unchanged: example 133 reports the same stance, forces, and solver sweeps.
+
 - The lifelong SLAM GIF shows the robot's LiDAR as it drives: the scan it
   returns at each drawn pose (not the nearest keyframe), as rays from the
   LiDAR head, an outline joining adjacent returns, and the returns
