@@ -132,6 +132,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `contact_step` clamps actuator torque to each joint's declared effort limit
+  (`ContactStepConfig::enforce_effort_limits`, on by default): a joint whose
+  feed-forward plus implicit PD torque would exceed its limit is held at the
+  limit and the step is solved again. Each step reports the applied
+  `actuator_torques` and the `saturated_joints`;
+  `ArticulatedModel::joint_effort_limit` exposes the bounds.
+- Example 134 trots the Go2 for 8 s over seeded fractal terrain on the native
+  hard-contact step with an open-loop diagonal gait on implicit PD inside the
+  Go2's effort limits, covering about 2.8 m with roll and pitch under 0.15 rad,
+  and replays bit-for-bit.
+
 - `rne_dynamics::aba`: `O(n)` forward dynamics by the articulated-body
   algorithm, matching the dense `forward_dynamics` to round-off on fixed- and
   floating-base trees and on the Go2 (example 103).

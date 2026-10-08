@@ -186,6 +186,14 @@ run to confirm it is bit-for-bit deterministic.
 cargo run -p go2_contact_terrain --example 133_go2_contact_terrain
 ```
 
+Example 134 trots the Go2 across generated terrain on the same step: an
+open-loop diagonal trot on implicit PD inside the Go2's declared actuator effort
+limits, covering about 2.8 m in 8 s with roll and pitch under 0.15 rad.
+
+```bash
+cargo run -p go2_terrain_trot --example 134_go2_terrain_trot
+```
+
 See [hard-contact time stepping](architecture/016_contact_dynamics.md).
 
 ## Native legged walking templates

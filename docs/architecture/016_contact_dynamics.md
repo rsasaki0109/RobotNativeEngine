@@ -68,6 +68,14 @@ and which it deliberately does not.
    RaiSim's per-step forward pass. `aba` matches the dense solve to round-off;
    `contact_step` still factors `M̃` densely, because the Delassus matrix needs
    `M̃⁻¹ Jᵀ` column by column and the implicit PD gains modify `M̃`.
+8. **Actuator effort limits.** RaiSim clamps each joint's generalized force to
+   its actuation limit. With `enforce_effort_limits` (the default), a joint
+   whose feed-forward plus implicit PD torque would exceed its URDF effort
+   (`ArticulatedModel::joint_effort_limit`) is held at the limit: its PD is
+   taken out of the implicit solve, the clamped torque is applied explicitly,
+   and the step is solved again (at most four extra solves). A saturated actuator is
+   a constant torque without PD damping, as on the real motor. Each step reports
+   the applied `actuator_torques` and the `saturated_joints`.
 
 ### Not adopted
 
@@ -128,7 +136,13 @@ Unit tests in `rne_dynamics::contact` pin:
 - a PD target 0.5 rad past the upper limit at `kp = 10⁶`, which holds the joint
   at the limit with a limit torque balancing the PD pull and gravity, and
   reaches the target once limits are disabled;
-- a joint started 0.1 rad past its limit being driven back to it.
+- a joint started 0.1 rad past its limit being driven back to it;
+- a stiff PD pendulum on a 5 N·m actuator that cannot hold 9.81 N·m: the
+  applied torque never exceeds 5 N·m and the arm swings undamped past the
+  angle where 5 N·m balances gravity, while a 20 N·m actuator holds it level
+  with exactly the gravity torque;
+- a 100 N·m feed-forward torque clamped to 5 N·m, giving the corresponding
+  acceleration, and passing through unclamped when limits are disabled.
 
 Unit tests in `rne_dynamics::aba` check the articulated-body algorithm against
 the dense solve at 20 random states on a fixed-base and on a floating-base
@@ -144,6 +158,13 @@ surface sampler.
 fractal terrain with stand-pose implicit PD and checks that all four feet end
 in contact, the contact force carries the weight within 2 %, penetration stays
 under 5 mm, the robot comes to rest, and two runs are bit-for-bit identical.
+
+`examples/134_go2_terrain_trot` trots the Go2 for 8 s over seeded fractal
+terrain with an open-loop diagonal gait on implicit PD, inside the Go2's
+declared effort limits. It covers about 2.8 m (0.35 m/s) with roll and pitch
+under 0.15 rad and the body at least 0.27 m above the ground, saturating an
+actuator in about 1.5 % of the steps, and replays bit-for-bit. Five terrain
+seeds give 2.66–2.80 m.
 
 ## Step cost
 
@@ -174,6 +195,5 @@ instructions per step, against 2.8 M originally.
 
 - Forward kinematics still visits every link, including welded ones, because
   contact points and sensors may sit on any link.
-- Effort (torque) limits are not enforced on the implicit PD force.
 - No physics backend implements `PhysicsBackend` on top of this step yet; it is
   a dynamics-layer primitive used directly by examples and controllers.
