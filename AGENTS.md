@@ -26,9 +26,11 @@ ROS2 is an adapter only. Do not add ROS2, rclrs, rclcpp, DDS, or ROS message dep
 - `crates/rne_legged`: backend-neutral legged walking templates (LIPM/DCM, capture-point foot placement, ZMP preview control, footstep plans)
 - `crates/rne_wbc`: backend-neutral whole-body control (weighted inverse dynamics, contact and friction handling, joint torque recovery)
 - `crates/rne_oc`: backend-neutral multi-contact optimal control (DDP shooting solver, numerical dynamics derivatives, articulated dynamics adapter)
+- `crates/rne_locomotion`: native legged locomotion on generated terrain (quadruped scene and leg kinematics, feedback trot, randomized terrain RL episodes)
 - `crates/rne_physics`: physics backend traits only
 - `crates/rne_physics_rapier`: Rapier implementation
 - `crates/rne_physics_analytic`: deterministic collision-free analytic backend
+- `crates/rne_physics_native`: native articulated backend on `rne_dynamics` hard-contact stepping
 - `crates/rne_planning`: backend-neutral joint-space planning scene, kinematic goal constraints, planners, and planning pipeline
 - `crates/rne_sensor`: sensor traits, specs, outputs, noise models
 - `crates/rne_render`: render traits only
@@ -131,6 +133,8 @@ Allowed dependencies:
 - `rne_legged` may depend on `rne_dynamics`, `rne_robot`, `rne_world`, `rne_ecs`, `rne_math`.
 - `rne_wbc` may depend on `rne_dynamics`, `rne_robot`, `rne_world`, `rne_ecs`, `rne_math`.
 - `rne_oc` may depend on `rne_dynamics`, `rne_robot`, `rne_world`, `rne_ecs`, `rne_math`.
+- `rne_locomotion` may depend on `rne_dynamics`, `rne_physics`, `rne_ai`, `rne_urdf_import`, `rne_robot`, `rne_world`, `rne_ecs`, `rne_math`.
+- `rne_physics_native` may depend on `rne_physics`, `rne_dynamics`, `rne_robot`, `rne_world`, `rne_ecs`, `rne_core`, `rne_math`.
 - `rne_physics_rapier` may depend on `rne_physics` and Rapier.
 - `rne_sensor` may depend on `rne_physics`, `rne_render`, `rne_data`.
 - `rne_render_wgpu` may depend on `rne_render` and wgpu.
@@ -159,6 +163,10 @@ Forbidden:
 - `rne_oc` must not depend on a renderer, physics backend, ROS 2, or an external
   optimal-control/dynamics library (Crocoddyl, Pinocchio, RBDL); it builds on
   `rne_dynamics` types without changing them.
+- `rne_locomotion` must not depend on a renderer, physics backend, or ROS 2; it
+  simulates with `rne_dynamics` directly.
+- `rne_physics_native` must not depend on another physics engine, a renderer,
+  or ROS 2.
 - `rne_sensor` must not require a renderer unless the specific sensor is camera-like.
 - `rne_traffic` must not depend on a renderer, physics backend, geospatial importer,
   robotics adapter, or external traffic simulator.

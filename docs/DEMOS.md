@@ -194,6 +194,32 @@ limits, covering about 2.8 m in 8 s with roll and pitch under 0.15 rad.
 cargo run -p go2_terrain_trot --example 134_go2_terrain_trot
 ```
 
+Example 135 drives the Go2 with the feedback trot of `rne_locomotion` over
+rougher terrain: it tracks 0.4 m/s, turns 2 rad on command, and is level again
+a second after a 250 N lateral push, with example 134's open-loop gait run on
+the same course for comparison.
+
+```bash
+cargo run --release -p go2_feedback_trot --example 135_go2_feedback_trot
+```
+
+Example 136 batches 32 Go2 terrain episodes — each with its own terrain,
+heading, and command — and steps them in parallel with
+`VectorizedEpisode::step_parallel`, the raisimGym pattern, checking that the
+parallel batch replays the serial one bit for bit.
+
+```bash
+cargo run --release -p go2_parallel_rl --example 136_go2_parallel_rl
+```
+
+Example 137 builds the Go2 the way the asset loader does and drives it through
+the backend-neutral `PhysicsBackend` loop on `rne_physics_native`, the native
+backend built on the same step, and on Rapier for comparison.
+
+```bash
+cargo run --release -p go2_native_backend --example 137_go2_native_backend
+```
+
 See [hard-contact time stepping](architecture/016_contact_dynamics.md).
 
 ## Native legged walking templates

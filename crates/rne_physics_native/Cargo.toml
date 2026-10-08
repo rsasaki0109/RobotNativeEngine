@@ -1,0 +1,25 @@
+[package]
+name = "rne_physics_native"
+description = "Native articulated physics backend for Robot Native Engine, built on rne_dynamics hard-contact stepping"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_core = { workspace = true }
+rne_dynamics = { workspace = true }
+rne_ecs = { workspace = true }
+rne_math = { workspace = true }
+rne_physics = { workspace = true }
+rne_robot = { workspace = true }
+rne_world = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+rne_physics_conformance = { workspace = true }

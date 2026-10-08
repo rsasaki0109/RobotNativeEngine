@@ -115,6 +115,7 @@ fn build_scene() -> Scene {
         velocity_gains: vec![VELOCITY_GAIN_NM_S_RAD; actuated],
         target_positions: stand_q[base..].to_vec(),
         target_velocities: vec![0.0; actuated],
+        effort_limits: Vec::new(),
     };
     Scene {
         model,

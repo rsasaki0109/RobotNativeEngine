@@ -286,8 +286,8 @@ never implies acceptance.
 The workspace is split by responsibility:
 
 - `rne_core`/`rne_math`/`rne_ecs`/`rne_world`/`rne_robot`/`rne_sensor`/`rne_ai`/`rne_data`: schedules, ECS, spatial math, entity/robot control, sensors, learning interfaces, typed data streams.
-- `rne_planning`/`rne_dynamics`/`rne_legged`/`rne_wbc`: backend-neutral joint-space planning, articulated dynamics, legged templates, whole-body control.
-- `rne_physics`/`rne_physics_rapier` and `rne_render`/`rne_render_wgpu`: backend-neutral traits plus the Rapier and wgpu implementations.
+- `rne_planning`/`rne_dynamics`/`rne_legged`/`rne_wbc`/`rne_locomotion`: backend-neutral joint-space planning, articulated dynamics, legged templates, whole-body control, and native legged locomotion.
+- `rne_physics`/`rne_physics_rapier`/`rne_physics_native` and `rne_render`/`rne_render_wgpu`: backend-neutral traits plus the Rapier, native articulated, and wgpu implementations.
 - `rne_asset`/`rne_plugin`/`rne_traffic`: assets, plugin interfaces, backend-neutral traffic.
 - `adapters/ros2`: ROS 2 integration; core crates remain ROS 2-free.
 

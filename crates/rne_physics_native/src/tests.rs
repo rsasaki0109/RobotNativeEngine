@@ -1,0 +1,341 @@
+use super::*;
+use rne_math::{Hertz, Quat};
+use rne_physics::{JointActuation, PhysicsMaterial, RevoluteJointDesc};
+use rne_physics_conformance::{
+    run_external_backend_conformance, ExternalPhysicsBackendCheckStatus,
+    ExternalPhysicsBackendConformanceConfig, ExternalPhysicsBackendSubject,
+};
+
+fn dt() -> SimDuration {
+    SimDuration::from_hertz(Hertz::new(500.0))
+}
+
+fn step(backend: &mut NativeBackend, world: &mut World, id: PhysicsWorldId) {
+    backend.sync_from_ecs(world, id).expect("sync from ecs");
+    backend.step(id, dt()).expect("step");
+    backend.sync_to_ecs(world, id).expect("sync to ecs");
+}
+
+fn ground(world: &mut World) -> Entity {
+    world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::new(5.0, 0.5, 5.0)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, -0.5, 0.0), Quat::IDENTITY),
+        ))
+        .id()
+}
+
+#[test]
+fn a_free_body_falls_with_gravity() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let ball = world
+        .spawn((
+            RigidBody {
+                mass_kg: 2.0,
+                linear_velocity_m_s: Vec3::new(1.0, 0.0, 0.0),
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 10.0, 0.0), Quat::IDENTITY),
+        ))
+        .id();
+    for _ in 0..500 {
+        step(&mut backend, &mut world, id);
+    }
+    let pose = world.get::<Transform3>(ball).expect("pose");
+    let body = world.get::<RigidBody>(ball).expect("body");
+    // One second of semi-implicit Euler at 500 Hz.
+    let expected_y = 10.0 - 0.5 * 9.81 * (1.0 + 1.0 / 500.0);
+    assert!(
+        (pose.translation.y - expected_y).abs() < 1.0e-9,
+        "{}",
+        pose.translation.y
+    );
+    assert!((pose.translation.x - 1.0).abs() < 1.0e-9);
+    assert!((body.linear_velocity_m_s.y + 9.81).abs() < 1.0e-9);
+    assert_eq!(backend.assembly_count(id).expect("count"), 1);
+}
+
+#[test]
+fn a_box_rests_on_the_ground_and_reports_its_weight() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let floor = ground(&mut world);
+    let cube = world
+        .spawn((
+            RigidBody {
+                mass_kg: 2.0,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.25)),
+            Transform3::from_translation_rotation(
+                Vec3::new(0.0, 0.3, 0.0),
+                Quat::from_rotation_z(0.2),
+            ),
+        ))
+        .id();
+    for _ in 0..1500 {
+        step(&mut backend, &mut world, id);
+    }
+    let pose = world.get::<Transform3>(cube).expect("pose");
+    // It tipped onto a face and settled with less than a millimeter of
+    // penetration.
+    assert!(
+        (pose.translation.y - 0.25).abs() < 1.0e-3,
+        "{}",
+        pose.translation.y
+    );
+    assert!((pose.rotation * Vec3::Y).y > 1.0 - 1.0e-6);
+    let event = backend
+        .contacts(id)
+        .expect("contacts")
+        .iter()
+        .find(|event| event.entity_a == cube && event.entity_b == floor)
+        .copied()
+        .expect("resting contact");
+    let weight_impulse = 2.0 * 9.81 / 500.0;
+    assert!((f64::from(event.impulse) - weight_impulse).abs() < 1.0e-3 * weight_impulse);
+    assert!((event.normal - Vec3::NEG_Y).length() < 1.0e-9);
+}
+
+fn pendulum(world: &mut World, actuation: JointActuation) -> (Entity, Entity) {
+    let pivot = world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Transform3::from_translation_rotation(Vec3::new(0.0, 2.0, 0.0), Quat::IDENTITY),
+        ))
+        .id();
+    let bob = world
+        .spawn((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            Transform3::from_translation_rotation(Vec3::new(1.0, 2.0, 0.0), Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent: pivot,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::new(-1.0, 0.0, 0.0),
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: Some(-1.0),
+                upper_rad: Some(1.0),
+            },
+            actuation,
+        ))
+        .id();
+    (pivot, bob)
+}
+
+#[test]
+fn a_pendulum_swings_about_its_anchor_and_stops_at_its_limit() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let (pivot, bob) = pendulum(&mut world, JointActuation::Disabled);
+    let mut lowest: f64 = 0.0;
+    for _ in 0..1000 {
+        step(&mut backend, &mut world, id);
+        let angle = world
+            .get::<JointState>(bob)
+            .and_then(|state| state.position_rad())
+            .expect("joint state");
+        lowest = lowest.min(angle);
+        let pose = world.get::<Transform3>(bob).expect("pose");
+        let anchor = pose.translation + pose.rotation * Vec3::new(-1.0, 0.0, 0.0);
+        assert!((anchor - Vec3::new(0.0, 2.0, 0.0)).length() < 1.0e-9);
+    }
+    // Released level, the arm falls clockwise (negative about +Z) and stops
+    // at its −1 rad limit.
+    assert!(lowest > -1.0 - 2.0e-3 && lowest < -0.99, "{lowest}");
+    let (angle, _) = backend.multibody_joint_state(id, bob).expect("joint");
+    assert!((angle + 1.0).abs() < 2.0e-3);
+    assert!(backend.multibody_joint_state(id, pivot).is_none());
+}
+
+#[test]
+fn position_and_effort_commands_drive_the_joint_within_their_limits() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            ..PhysicsWorldDesc::default()
+        })
+        .expect("world");
+    let mut world = World::new();
+    let (_, bob) = pendulum(
+        &mut world,
+        JointActuation::RevolutePosition {
+            target_position_rad: 0.5,
+            stiffness_nm_per_rad: 200.0,
+            damping_nm_s_per_rad: 30.0,
+            max_effort_nm: 100.0,
+        },
+    );
+    for _ in 0..1000 {
+        step(&mut backend, &mut world, id);
+    }
+    let (angle, rate) = backend.multibody_joint_state(id, bob).expect("joint");
+    assert!(
+        (angle - 0.5).abs() < 1.0e-6 && rate.abs() < 1.0e-6,
+        "{angle} {rate}"
+    );
+
+    // A 10 N·m command limited to 1 N·m accelerates the 1 kg·m² arm at 1 rad/s².
+    world
+        .entity_mut(bob)
+        .insert(JointActuation::RevoluteEffort {
+            effort_nm: 10.0,
+            max_effort_nm: 1.0,
+        });
+    for _ in 0..250 {
+        step(&mut backend, &mut world, id);
+    }
+    let (_, rate) = backend.multibody_joint_state(id, bob).expect("joint");
+    assert!((rate - 0.5).abs() < 0.01, "{rate}");
+}
+
+#[test]
+fn an_ecs_pose_edit_teleports_the_body() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let ball = world
+        .spawn((
+            RigidBody::default(),
+            Collider::sphere(0.1),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 5.0, 0.0), Quat::IDENTITY),
+        ))
+        .id();
+    for _ in 0..100 {
+        step(&mut backend, &mut world, id);
+    }
+    world
+        .entity_mut(ball)
+        .insert(Transform3::from_translation_rotation(
+            Vec3::new(3.0, 8.0, 0.0),
+            Quat::IDENTITY,
+        ));
+    world
+        .get_mut::<RigidBody>(ball)
+        .expect("body")
+        .linear_velocity_m_s = Vec3::ZERO;
+    step(&mut backend, &mut world, id);
+    let pose = world.get::<Transform3>(ball).expect("pose");
+    assert!((pose.translation - Vec3::new(3.0, 8.0 - 9.81 / 500.0 / 500.0, 0.0)).length() < 1.0e-9);
+}
+
+#[test]
+fn invalid_actuation_is_rejected() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    pendulum(
+        &mut world,
+        JointActuation::PrismaticEffort {
+            force_n: 1.0,
+            max_force_n: 1.0,
+        },
+    );
+    assert!(matches!(
+        backend.sync_from_ecs(&mut world, id),
+        Err(PhysicsError::InvalidActuation { .. })
+    ));
+}
+
+#[test]
+fn friction_holds_a_box_on_a_slope_only_when_it_exceeds_the_tangent() {
+    for (friction, holds) in [(0.6_f32, true), (0.2, false)] {
+        let mut backend = NativeBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc::default())
+            .expect("world");
+        let mut world = World::new();
+        let slope = Quat::from_rotation_z(0.3);
+        let material = PhysicsMaterial {
+            friction,
+            ..PhysicsMaterial::default()
+        };
+        world.spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider {
+                material,
+                ..Collider::cuboid(Vec3::new(5.0, 0.5, 5.0))
+            },
+            Transform3::from_translation_rotation(slope * Vec3::new(0.0, -0.5, 0.0), slope),
+        ));
+        let cube = world
+            .spawn((
+                RigidBody::default(),
+                Collider {
+                    material,
+                    ..Collider::cuboid(Vec3::splat(0.1))
+                },
+                Transform3::from_translation_rotation(slope * Vec3::new(0.0, 0.1, 0.0), slope),
+            ))
+            .id();
+        for _ in 0..500 {
+            step(&mut backend, &mut world, id);
+        }
+        let moved = world
+            .get::<Transform3>(cube)
+            .expect("pose")
+            .translation
+            .distance(slope * Vec3::new(0.0, 0.1, 0.0));
+        // tan 0.3 ≈ 0.31.
+        assert_eq!(moved < 1.0e-3, holds, "friction {friction}: moved {moved}");
+    }
+}
+
+#[test]
+fn the_backend_passes_external_conformance_for_its_capabilities() {
+    let subject = ExternalPhysicsBackendSubject::from_bytes(
+        "rne_physics_native",
+        b"rne_physics_native conformance subject",
+    )
+    .expect("subject");
+    let report = run_external_backend_conformance::<NativeBackend, _>(
+        ExternalPhysicsBackendConformanceConfig::new(subject, NativeBackend::manifest()),
+        NativeBackend::new,
+    )
+    .expect("report");
+    for check in &report.checks {
+        if let Some(capability) = check.capability {
+            let expected = if CAPABILITIES.contains(&capability) {
+                ExternalPhysicsBackendCheckStatus::Passed
+            } else {
+                ExternalPhysicsBackendCheckStatus::NotAdvertised
+            };
+            assert_eq!(check.status, expected, "{}: {}", check.id, check.detail);
+        }
+    }
+    assert!(
+        report.passed(),
+        "{}",
+        report.to_json_pretty().expect("json")
+    );
+}

@@ -2,7 +2,9 @@
 
 ## Status
 
-Implemented. `rne_dynamics::contact`, `rne_physics::terrain`, example 133.
+Implemented. `rne_dynamics::contact`, `rne_physics::terrain`,
+`rne_physics_native`, `rne_locomotion`, `rne_ai::VectorizedEpisode::step_parallel`,
+examples 133–137.
 
 ## Context
 
@@ -76,22 +78,52 @@ and which it deliberately does not.
    and the step is solved again (at most four extra solves). A saturated actuator is
    a constant torque without PD damping, as on the real motor. Each step reports
    the applied `actuator_torques` and the `saturated_joints`.
+   `JointPdControl::effort_limits` adds a per-command limit; the tighter of it
+   and the URDF limit holds.
+9. **A simulation backend, not only a step** (`rne_physics_native`). RaiSim is a
+   whole simulator; `NativeBackend` makes the step one too, behind
+   `PhysicsBackend`. Every tree of dynamic bodies joined by
+   `RevoluteJointDesc`, `PrismaticJointDesc`, or `FixedJointDesc` becomes one
+   reduced-coordinate model (a lone body is a one-body model with a floating
+   base), so a URDF robot wired by `attach_urdf_document_articulation` — the
+   path the asset loader takes — runs unchanged. Moving colliders are sampled
+   (spheres exactly, capsules as rows of spheres, boxes and hulls by their
+   vertices) against static planes, boxes, spheres, capsules, and height
+   fields; `JointActuation` position, velocity, and effort commands become
+   implicit PD and feed-forward forces with their effort limits, and
+   `JointPassiveDynamics` adds damping and Coulomb friction. The backend
+   advertises `RigidBody`, `Articulation`, `DeterministicStep`, and
+   `ContactForce` and passes the external conformance kit for all four.
+10. **Batched environments** (`VectorizedEpisode::step_parallel`). raisimGym
+    steps many RaiSim worlds with OpenMP. `reset_parallel` and `step_parallel`
+    step any `Episode` batch on scoped threads in contiguous chunks and gather
+    results in environment order, so the result, the automatic resets, and
+    the replay digest are identical to the serial `step` for any thread count.
+11. **A legged locomotion stack on top** (`rne_locomotion`). The pieces RaiSim
+    users build first: a quadruped scene from a Unitree-convention URDF with
+    measured leg geometry and analytic leg kinematics, a feedback trot
+    (level-frame foot plan leaned against the measured tilt, Raibert
+    touchdown, stance feet swept at the command plus a share of its error, an
+    integrated heading, and feed-forward stance torques that carry the
+    weight), and `QuadrupedTerrainEpisode`, an `rne_ai::Episode` that draws a
+    new terrain, heading, and command at every reset and takes a residual
+    joint action on top of the trot (or on top of the stand pose).
 
 ### Not adopted
 
-- **RaiSim's object and collision pipeline, server, and visualizer.** RNE
+- **RaiSim's general collision pipeline, server, and visualizer.** RNE
   already owns collision geometry, rendering, and transport; the contact step
-  takes contact points as input, so any broad phase (Rapier, an analytic
-  ground, a height field sampler) can feed it.
+  takes contact points as input, so any broad phase can feed it. The native
+  backend's sampler covers moving-against-static contact only.
 - **Material-pair tables.** Friction is per contact here; a pair table is a
   scene-level policy that belongs where contacts are generated, not in the
   solver.
 - **Restitution and spring/wire elements.** Inelastic contact is what legged
   locomotion needs; elastic impacts and wire constraints are left for when a
   scene requires them.
-- **A vectorized environment wrapper (raisimGymTorch).** RNE's batched learning
-  surface lives in `rne_ai` and the accelerator contract; this ADR concerns the
-  dynamics only.
+- **raisimGymTorch's Python/PyTorch side.** The batch steps in Rust behind
+  `rne_ai::Episode`; tensor exchange with a learner stays with `rne_py` and the
+  accelerator contract.
 
 ## API
 
@@ -114,6 +146,13 @@ Unchanged from 012: `rne_dynamics` depends only on `rne_math`, `rne_ecs`,
 `rne_world`, `rne_robot`, and `rne_physics` components. The terrain generator
 adds no dependency to `rne_physics`; it is seeded explicitly so callers derive
 the seed from `WorldRandom`.
+
+`rne_physics_native` depends on `rne_physics`, `rne_dynamics`, `rne_robot`,
+`rne_world`, `rne_ecs`, `rne_core`, and `rne_math`, and on no other physics
+engine. `rne_locomotion` adds `rne_ai` (for `Episode`) and `rne_urdf_import`
+(to build its quadruped) and depends on no physics backend or renderer. Both
+are unpublished, like `rne_dynamics`; the published `rne_ai` gains only the
+parallel batch methods.
 
 ## Validation
 
@@ -144,6 +183,9 @@ Unit tests in `rne_dynamics::contact` pin:
 - a 100 N·m feed-forward torque clamped to 5 N·m, giving the corresponding
   acceleration, and passing through unclamped when limits are disabled.
 
+- a 100 N·m feed-forward torque under a per-command limit of 2, 0, 8, and
+  unbounded N·m on a 5 N·m actuator, applying 2, 0, 5, and 5 N·m.
+
 Unit tests in `rne_dynamics::aba` check the articulated-body algorithm against
 the dense solve at 20 random states on a fixed-base and on a floating-base
 branching tree with revolute, prismatic, continuous, and fixed joints, skewed
@@ -159,12 +201,44 @@ fractal terrain with stand-pose implicit PD and checks that all four feet end
 in contact, the contact force carries the weight within 2 %, penetration stays
 under 5 mm, the robot comes to rest, and two runs are bit-for-bit identical.
 
+Unit tests in `rne_physics_native` pin free fall to semi-implicit Euler, a
+tipped box landing flat on a box ground with its contact event carrying
+`m g dt` within 0.1 %, a box held on a 0.3 rad slope by `μ = 0.6` and sliding
+at `μ = 0.2`, a pendulum whose anchor stays put to 1 nm while it falls onto its
+limit, position and limited effort commands, ECS pose edits that teleport a
+body, and rejection of a prismatic command on a revolute joint; one test runs
+the external conformance kit, which passes every advertised capability.
+
+Unit tests in `rne_locomotion` pin the Go2's measured leg geometry against its
+URDF, leg inverse kinematics against forward kinematics on every leg, the base
+state against the integrated motion, the tilt's continuity across the heading
+wrap, standing with the contacts carrying the weight, and the trot tracking
+0.4 m/s on rough terrain, turning past 1.8 rad, and recovering from a push.
+`rne_ai` checks that the parallel batch equals the serial one for 0 to 16
+threads.
+
 `examples/134_go2_terrain_trot` trots the Go2 for 8 s over seeded fractal
 terrain with an open-loop diagonal gait on implicit PD, inside the Go2's
 declared effort limits. It covers about 2.8 m (0.35 m/s) with roll and pitch
 under 0.15 rad and the body at least 0.27 m above the ground, saturating an
 actuator in about 1.5 % of the steps, and replays bit-for-bit. Five terrain
 seeds give 2.66–2.80 m.
+
+`examples/135_go2_feedback_trot` drives the Go2 with the feedback trot over
+0.09 m of fractal relief: 0.36 m/s against a 0.4 m/s command, a 2.08 rad turn
+against a 2.0 rad command, and a 250 N, 0.1 s lateral push after which the
+body is back within 0.023 rad of level one second later (the open-loop gait of
+example 134 is still tilted 0.229 rad and cannot turn).
+
+`examples/136_go2_parallel_rl` runs 32 terrain episodes for 300 control steps:
+none falls with the zero residual, random residuals earn less reward, and the
+parallel batch replays the serial one bit for bit.
+
+`examples/137_go2_native_backend` builds the Go2 the way the asset loader does
+and drives it through `PhysicsBackend` on `NativeBackend` and on Rapier: on the
+native backend it lands on all four feet, its contact events carry its weight
+within 1 %, it comes to rest, and it replays bit for bit, at about 50 µs per
+step including the ECS synchronization.
 
 ## Step cost
 
@@ -195,5 +269,12 @@ instructions per step, against 2.8 M originally.
 
 - Forward kinematics still visits every link, including welded ones, because
   contact points and sensors may sit on any link.
-- No physics backend implements `PhysicsBackend` on top of this step yet; it is
-  a dynamics-layer primitive used directly by examples and controllers.
+- `NativeBackend` resolves contacts between moving and static colliders only:
+  dynamic bodies pass through each other, and a robot does not collide with
+  itself. Raycasts return no hits, and a kinematic body that moves is a
+  moving obstacle for contacts but not a moving anchor for a fixed-base tree.
+- The floating base's roll-pitch-yaw coordinates have a confined middle angle.
+  In RNE's Y-up world that angle is the heading, so turning past a quarter turn
+  flips roll and yaw by π (the pose stays right). `NativeBackend` and
+  `rne_locomotion` therefore simulate in a Z-up frame, where the heading is
+  the yaw coordinate.

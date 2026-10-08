@@ -344,6 +344,127 @@ where
     }
 }
 
+impl<E> VectorizedEpisode<E>
+where
+    E: Episode + Send,
+    E::Action: Clone + Debug + Sync,
+    E::Observation: Debug + Send,
+{
+    /// [`Self::reset`] with the episodes reset on up to `threads` worker
+    /// threads.
+    ///
+    /// Episodes are split into contiguous chunks, one per thread, and the
+    /// results are gathered in environment-index order, so the returned step
+    /// and the replay digest are identical to [`Self::reset`] for any thread
+    /// count. A `threads` of zero or one runs on the calling thread.
+    pub fn reset_parallel(&mut self, threads: usize) -> VectorizedEpisodeStep<E::Observation> {
+        self.action_history.clear();
+        self.has_reset = true;
+        self.replay_digest = initial_digest(self.seed, self.episodes.len());
+        let results = run_chunked(
+            &mut self.episodes,
+            None::<&[E::Action]>,
+            threads,
+            |episode, _| episode.reset(),
+        );
+        let step = collect_step(results.into_iter());
+        self.absorb_step(None, &step);
+        step
+    }
+
+    /// [`Self::step`] with the episodes stepped on up to `threads` worker
+    /// threads.
+    ///
+    /// This is the batched simulation loop of RaiSim's raisimGym: every
+    /// environment advances independently, so the returned step, the
+    /// automatic resets, and the replay digest are identical to [`Self::step`]
+    /// for any thread count.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called before a reset or when the action count does not match
+    /// [`Self::num_envs`].
+    pub fn step_parallel(
+        &mut self,
+        actions: &[E::Action],
+        threads: usize,
+    ) -> VectorizedEpisodeStep<E::Observation> {
+        assert!(self.has_reset, "reset must be called before step");
+        assert_eq!(
+            actions.len(),
+            self.episodes.len(),
+            "action batch size must match num_envs"
+        );
+        let auto_reset = self.auto_reset;
+        let results = run_chunked(
+            &mut self.episodes,
+            Some(actions),
+            threads,
+            |episode, action| {
+                let action = action.expect("an action per environment").clone();
+                let mut result = episode.step(action);
+                if auto_reset && (result.terminated || result.truncated) {
+                    result = episode.reset();
+                }
+                result
+            },
+        );
+        let step = collect_step(results.into_iter());
+        self.action_history.push(actions.to_vec());
+        self.absorb_step(Some(actions), &step);
+        step
+    }
+}
+
+/// Applies `run` to every episode (with its action, when given) on up to
+/// `threads` scoped threads and returns the results in episode order.
+fn run_chunked<E, A, R, F>(
+    episodes: &mut [E],
+    actions: Option<&[A]>,
+    threads: usize,
+    run: F,
+) -> Vec<R>
+where
+    E: Send,
+    A: Sync,
+    R: Send,
+    F: Fn(&mut E, Option<&A>) -> R + Sync,
+{
+    let count = episodes.len();
+    let threads = threads.clamp(1, count.max(1));
+    if threads == 1 {
+        return episodes
+            .iter_mut()
+            .enumerate()
+            .map(|(index, episode)| run(episode, actions.map(|actions| &actions[index])))
+            .collect();
+    }
+    let chunk = count.div_ceil(threads);
+    let run = &run;
+    std::thread::scope(|scope| {
+        let workers: Vec<_> = episodes
+            .chunks_mut(chunk)
+            .enumerate()
+            .map(|(chunk_index, chunk_episodes)| {
+                let start = chunk_index * chunk;
+                scope.spawn(move || {
+                    chunk_episodes
+                        .iter_mut()
+                        .enumerate()
+                        .map(|(offset, episode)| {
+                            run(episode, actions.map(|actions| &actions[start + offset]))
+                        })
+                        .collect::<Vec<R>>()
+                })
+            })
+            .collect();
+        workers
+            .into_iter()
+            .flat_map(|worker| worker.join().expect("episode worker panicked"))
+            .collect()
+    })
+}
+
 fn collect_step<O>(
     results: impl Iterator<Item = crate::episode::EpisodeStep<O>>,
 ) -> VectorizedEpisodeStep<O> {
@@ -461,5 +582,36 @@ mod tests {
         env.step(&[4, 5]);
         env.restore_checkpoint(&checkpoint).unwrap();
         assert_eq!(env.replay_digest(), digest);
+    }
+
+    #[test]
+    fn parallel_batch_matches_the_serial_batch_for_any_thread_count() {
+        let config = VectorizedEpisodeConfig {
+            num_envs: 7,
+            seed: 3,
+            auto_reset: true,
+        };
+        let factory = |seed: u64| ToyEpisode {
+            value: seed as i32,
+            step: 0,
+        };
+        let actions: Vec<Vec<i32>> = (0..6)
+            .map(|step| (0..7).map(|env| step * 10 + env).collect())
+            .collect();
+        let mut serial = VectorizedEpisode::from_seeded(config, factory);
+        let mut serial_steps = vec![serial.reset()];
+        for batch in &actions {
+            serial_steps.push(serial.step(batch));
+        }
+        for threads in [0, 1, 2, 3, 7, 16] {
+            let mut parallel = VectorizedEpisode::from_seeded(config, factory);
+            let mut parallel_steps = vec![parallel.reset_parallel(threads)];
+            for batch in &actions {
+                parallel_steps.push(parallel.step_parallel(batch, threads));
+            }
+            assert_eq!(parallel_steps, serial_steps, "threads {threads}");
+            assert_eq!(parallel.replay_digest(), serial.replay_digest());
+            assert_eq!(parallel.checkpoint(), serial.checkpoint());
+        }
     }
 }

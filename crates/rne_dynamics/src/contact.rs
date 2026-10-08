@@ -454,6 +454,11 @@ pub struct JointPdControl {
     pub target_positions: Vec<f64>,
     /// Velocity target per actuated joint (rad/s or m/s).
     pub target_velocities: Vec<f64>,
+    /// Actuator effort limit per actuated joint (N·m or N), applied with the
+    /// model's own limit ([`ArticulatedModel::joint_effort_limit`]) when
+    /// [`ContactStepConfig::enforce_effort_limits`] is set: the tighter of the
+    /// two holds. Empty, or an infinite entry, leaves the model's limit alone.
+    pub effort_limits: Vec<f64>,
 }
 
 /// Configuration of one [`contact_step`].
@@ -636,7 +641,7 @@ pub fn contact_step(
                 if held[joint].is_some() {
                     continue;
                 }
-                if let Some(limit) = model.joint_effort_limit(model.base_dof() + joint) {
+                if let Some(limit) = effort_limit(model, pd, joint) {
                     if torque.abs() > limit * (1.0 + EFFORT_TOLERANCE) {
                         held[joint] = Some(torque.clamp(-limit, limit));
                         changed = true;
@@ -978,7 +983,40 @@ fn validate_pd(model: &ArticulatedModel, pd: &JointPdControl) -> Result<(), Dyna
             "PD gains must be non-negative",
         ));
     }
+    if !(pd.effort_limits.is_empty() || pd.effort_limits.len() == actuated) {
+        return Err(DynamicsError::DimensionMismatch {
+            provided: pd.effort_limits.len(),
+            expected: actuated,
+        });
+    }
+    if pd
+        .effort_limits
+        .iter()
+        .any(|limit| limit.is_nan() || *limit < 0.0)
+    {
+        return Err(DynamicsError::InvalidContact(
+            "effort limits must be non-negative",
+        ));
+    }
     Ok(())
+}
+
+/// Effective effort limit of actuated joint `joint`: the tighter of the
+/// model's limit and the PD command's.
+fn effort_limit(
+    model: &ArticulatedModel,
+    pd: Option<&JointPdControl>,
+    joint: usize,
+) -> Option<f64> {
+    let model_limit = model.joint_effort_limit(model.base_dof() + joint);
+    let command_limit = pd
+        .and_then(|pd| pd.effort_limits.get(joint).copied())
+        .filter(|limit| limit.is_finite());
+    match (model_limit, command_limit) {
+        (Some(model_limit), Some(command_limit)) => Some(model_limit.min(command_limit)),
+        (model_limit, None) => model_limit,
+        (None, command_limit) => command_limit,
+    }
 }
 
 /// Folds implicit joint PD into the effective mass and generalized force,
@@ -1706,6 +1744,7 @@ mod tests {
             velocity_gains: vec![2.0 * kp.sqrt()],
             target_positions: vec![target],
             target_velocities: vec![0.0],
+            effort_limits: Vec::new(),
         };
         let config = ContactStepConfig {
             step_time_s: 0.01,
@@ -1824,6 +1863,7 @@ mod tests {
             velocity_gains: vec![2.0 * kp.sqrt()],
             target_positions: vec![0.9],
             target_velocities: vec![0.0],
+            effort_limits: Vec::new(),
         };
         let config = ContactStepConfig::default();
         let (angle, _, _, engaged) = swing(&model, 0.0, Some(&pd), &config, 500);
@@ -1926,6 +1966,7 @@ mod tests {
             velocity_gains: vec![40.0],
             target_positions: vec![0.0],
             target_velocities: vec![0.0],
+            effort_limits: Vec::new(),
         };
         let config = ContactStepConfig::default();
         let mut q = vec![0.0];
@@ -1969,6 +2010,46 @@ mod tests {
         assert!(last.saturated_joints.is_empty());
         assert!((last.actuator_torques[0] - 9.81 * q[0].cos()).abs() < 1.0e-6);
         assert!(q[0].abs() < 0.03, "sag {}", q[0]);
+    }
+
+    #[test]
+    fn a_command_effort_limit_tightens_the_model_limit() {
+        let model = effort_limited_pendulum(5.0);
+        let config = ContactStepConfig::default();
+        let command = |limit: f64| JointPdControl {
+            position_gains: vec![0.0],
+            velocity_gains: vec![0.0],
+            target_positions: vec![0.0],
+            target_velocities: vec![0.0],
+            effort_limits: vec![limit],
+        };
+        for (limit, applied) in [(2.0, 2.0), (0.0, 0.0), (8.0, 5.0), (f64::INFINITY, 5.0)] {
+            let step = contact_step(
+                &model,
+                &[0.0],
+                &[0.0],
+                &[100.0],
+                &[],
+                Some(&command(limit)),
+                &config,
+                None,
+            )
+            .expect("step");
+            assert_eq!(step.actuator_torques, vec![applied], "limit {limit}");
+        }
+        assert!(matches!(
+            contact_step(
+                &model,
+                &[0.0],
+                &[0.0],
+                &[0.0],
+                &[],
+                Some(&command(-1.0)),
+                &config,
+                None
+            ),
+            Err(DynamicsError::InvalidContact(_))
+        ));
     }
 
     #[test]

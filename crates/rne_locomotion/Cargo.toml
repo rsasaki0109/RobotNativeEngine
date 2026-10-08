@@ -1,0 +1,23 @@
+[package]
+name = "rne_locomotion"
+description = "Native legged locomotion on generated terrain: quadruped scenes, trot control, and RL episodes for Robot Native Engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_ai = { workspace = true }
+rne_dynamics = { workspace = true }
+rne_ecs = { workspace = true }
+rne_math = { workspace = true }
+rne_physics = { workspace = true }
+rne_robot = { workspace = true }
+rne_urdf_import = { workspace = true }
+rne_world = { workspace = true }
+thiserror = { workspace = true }

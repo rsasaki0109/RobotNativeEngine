@@ -132,6 +132,28 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_physics_native`: a `PhysicsBackend` built on `rne_dynamics::contact_step`.
+  Every tree of dynamic bodies joined by revolute, prismatic, or fixed joint
+  descriptions is one reduced-coordinate model, so a URDF robot wired by
+  `attach_urdf_document_articulation` runs on it unchanged; colliders on
+  dynamic bodies contact static planes, boxes, spheres, capsules, and height
+  fields with the exact friction cone, and `JointActuation`, `JointMotor`, and
+  `JointPassiveDynamics` drive the joints. It advertises `RigidBody`,
+  `Articulation`, `DeterministicStep`, and `ContactForce` and passes the
+  external conformance kit for them. Example 137 stands the Go2 on fractal
+  terrain through it (and through Rapier for comparison).
+- `rne_locomotion`: a Go2-ready quadruped scene in a Z-up locomotion frame,
+  leg kinematics, a feedback trot (Raibert touchdown, stance velocity
+  feedback, heading tracking, tilt-leaned foot plan, feed-forward stance
+  torques), and `QuadrupedTerrainEpisode`, an `rne_ai::Episode` with
+  per-reset terrain and command randomization. Examples 135 (feedback trot
+  with a turn and a push) and 136 (32 parallel terrain episodes).
+- `rne_ai::VectorizedEpisode::reset_parallel` and `step_parallel` step a batch
+  on scoped threads with results, resets, and replay digest identical to the
+  serial calls.
+- `JointPdControl::effort_limits` adds per-command actuator limits to
+  `contact_step`, and `ArticulatedModel::from_robot_with_gravity` is public.
+
 - `contact_step` clamps actuator torque to each joint's declared effort limit
   (`ContactStepConfig::enforce_effort_limits`, on by default): a joint whose
   feed-forward plus implicit PD torque would exceed its limit is held at the
