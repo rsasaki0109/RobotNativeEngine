@@ -111,8 +111,13 @@ impl ArticulatedModel {
         Self::from_robot_with_gravity(world, robot, Vec3::new(0.0, -9.81, 0.0))
     }
 
-    /// Builds an articulated model with an explicit gravity vector.
-    pub(crate) fn from_robot_with_gravity(
+    /// Builds an articulated model with an explicit gravity vector, in
+    /// meters per second squared.
+    ///
+    /// Use it to simulate a model in a frame other than RNE's Y-up world, such
+    /// as a Z-up frame where a floating base's yaw is the outer roll-pitch-yaw
+    /// angle and the base can turn without meeting the pitch singularity.
+    pub fn from_robot_with_gravity(
         world: &World,
         robot: Entity,
         gravity_m_s2: Vec3,
