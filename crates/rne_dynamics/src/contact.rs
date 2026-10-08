@@ -453,6 +453,9 @@ pub struct ContactStepConfig {
     pub penetration_recovery: f64,
     /// Contact solver iteration controls.
     pub solver: ContactSolverConfig,
+    /// Whether bounded revolute and prismatic joints stop at their position
+    /// limits ([`ArticulatedModel::joint_position_limits`]).
+    pub enforce_joint_limits: bool,
 }
 
 impl Default for ContactStepConfig {
@@ -461,8 +464,30 @@ impl Default for ContactStepConfig {
             step_time_s: 0.002,
             penetration_recovery: 0.2,
             solver: ContactSolverConfig::default(),
+            enforce_joint_limits: true,
         }
     }
+}
+
+/// Which end of a joint's range a [`JointLimitOutcome`] refers to.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum JointLimitSide {
+    /// The lower position limit; its impulse pushes the coordinate upward.
+    Lower,
+    /// The upper position limit; its impulse pushes the coordinate downward.
+    Upper,
+}
+
+/// A joint limit that carried an impulse during a [`contact_step`].
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct JointLimitOutcome {
+    /// Velocity coordinate of the limited joint.
+    pub dof: usize,
+    /// Which limit was engaged.
+    pub side: JointLimitSide,
+    /// Magnitude of the generalized limit impulse, in N·m·s (revolute) or N·s
+    /// (prismatic). Divide by the step time for the mean limit torque or force.
+    pub impulse: f64,
 }
 
 /// Result of one contact of a [`contact_step`].
@@ -484,6 +509,8 @@ pub struct ContactStep {
     pub qd: Vec<f64>,
     /// Per-contact impulses and states, in input order.
     pub contacts: Vec<ContactOutcome>,
+    /// Joint limits that carried an impulse, in ascending coordinate order.
+    pub joint_limits: Vec<JointLimitOutcome>,
     /// Sweeps used by the contact solver.
     pub solver_iterations: usize,
     /// Whether the contact solver converged within its sweep budget.
@@ -503,9 +530,13 @@ pub struct ContactStep {
 /// where `λ` comes from [`solve_contact_impulses`] on `G = J M̃⁻¹ Jᵀ`. A
 /// contact with a positive gap may close it within the step before it pushes;
 /// a penetrating contact is driven out at `penetration_recovery` of its depth
-/// per step. `tau` holds one generalized force per velocity coordinate
-/// (including floating-base rows), and `warm_start_n_s` optionally seeds the
-/// contact impulses from a previous step.
+/// per step. With `enforce_joint_limits`, every finite joint position limit is
+/// one more unilateral, frictionless constraint in the same solve, acting on
+/// the joint coordinate itself with the distance to the limit as its gap, so
+/// a joint stops at its limit however stiffly it is driven. `tau` holds one
+/// generalized force per velocity coordinate (including floating-base rows),
+/// and `warm_start_n_s` optionally seeds the contact impulses from a previous
+/// step; joint-limit impulses always start from zero.
 #[allow(clippy::too_many_arguments)]
 pub fn contact_step(
     model: &ArticulatedModel,
@@ -564,24 +595,16 @@ pub fn contact_step(
     let free_velocity: Vec<f64> = qd.iter().zip(&delta).map(|(v, dv)| v + dv).collect();
 
     let count = contacts.len();
-    let (jacobian, frames, friction) = contact_jacobian(model, q, contacts)?;
+    let (contact_rows, frames, mut friction) = contact_jacobian(model, q, contacts)?;
+    let limits = if config.enforce_joint_limits {
+        active_joint_limits(model, q)
+    } else {
+        Vec::new()
+    };
+    let blocks = count + limits.len();
+    let jacobian = stack_joint_limits(&contact_rows, &limits, &mut friction);
 
-    // Columns of M̃⁻¹ Jᵀ, one per contact row.
-    let response: Vec<Vec<f64>> = (0..3 * count)
-        .map(|row| {
-            let column: Vec<f64> = (0..nv).map(|dof| jacobian.get(row, dof)).collect();
-            factor.solve(&column)
-        })
-        .collect();
-    let mut delassus = DenseMatrix::zeros(3 * count, 3 * count);
-    for row in 0..3 * count {
-        for (col, column) in response.iter().enumerate() {
-            let value: f64 = (0..nv)
-                .map(|dof| jacobian.get(row, dof) * column[dof])
-                .sum();
-            delassus.set(row, col, value);
-        }
-    }
+    let (response, delassus) = delassus_operator(&factor, &jacobian);
     let mut contact_velocity = jacobian.mul_vec(&free_velocity);
     for (index, contact) in contacts.iter().enumerate() {
         let allowed_approach = if contact.gap_m >= 0.0 {
@@ -591,13 +614,35 @@ pub fn contact_step(
         };
         contact_velocity[3 * index + 2] += allowed_approach;
     }
+    for (index, limit) in limits.iter().enumerate() {
+        let allowed_approach = if limit.gap >= 0.0 {
+            limit.gap / dt
+        } else {
+            config.penetration_recovery * limit.gap / dt
+        };
+        contact_velocity[3 * (count + index) + 2] += allowed_approach;
+    }
+    let warm_start: Option<Vec<[f64; 3]>> = match warm_start_n_s {
+        Some(seed) if seed.len() != count => {
+            return Err(DynamicsError::DimensionMismatch {
+                provided: seed.len(),
+                expected: count,
+            });
+        }
+        Some(seed) => {
+            let mut full = seed.to_vec();
+            full.resize(blocks, [0.0; 3]);
+            Some(full)
+        }
+        None => None,
+    };
 
     let solution = solve_contact_impulses(
         &delassus,
         &contact_velocity,
         &friction,
         &config.solver,
-        warm_start_n_s,
+        warm_start.as_deref(),
     )?;
 
     let mut next_velocity = free_velocity;
@@ -613,8 +658,17 @@ pub fn contact_step(
     }
     let next_configuration = integrate_configuration(model, q, &next_velocity, dt)?;
 
-    let outcomes = solution
-        .impulses_n_s
+    let joint_limits = limits
+        .iter()
+        .zip(&solution.impulses_n_s[count..])
+        .filter(|(_, impulse)| impulse[2] > 0.0)
+        .map(|(limit, impulse)| JointLimitOutcome {
+            dof: limit.dof,
+            side: limit.side,
+            impulse: impulse[2],
+        })
+        .collect();
+    let outcomes = solution.impulses_n_s[..count]
         .iter()
         .zip(&solution.states)
         .zip(&frames)
@@ -630,9 +684,91 @@ pub fn contact_step(
         q: next_configuration,
         qd: next_velocity,
         contacts: outcomes,
+        joint_limits,
         solver_iterations: solution.iterations,
         solver_converged: solution.converged,
     })
+}
+
+/// Appends one frictionless block per joint limit below the contact rows: its
+/// normal row is `±1` on the joint coordinate and its tangent rows are empty.
+fn stack_joint_limits(
+    contact_rows: &DenseMatrix,
+    limits: &[LimitRow],
+    friction: &mut Vec<f64>,
+) -> DenseMatrix {
+    let nv = contact_rows.cols();
+    let contact_count = contact_rows.rows();
+    let mut jacobian = DenseMatrix::zeros(contact_count + 3 * limits.len(), nv);
+    for row in 0..contact_count {
+        for dof in 0..nv {
+            jacobian.set(row, dof, contact_rows.get(row, dof));
+        }
+    }
+    for (index, limit) in limits.iter().enumerate() {
+        let sign = match limit.side {
+            JointLimitSide::Lower => 1.0,
+            JointLimitSide::Upper => -1.0,
+        };
+        jacobian.set(contact_count + 3 * index + 2, limit.dof, sign);
+        friction.push(0.0);
+    }
+    jacobian
+}
+
+/// Returns the columns of `M̃⁻¹ Jᵀ` (one per constraint row, zero for empty
+/// rows) and the Delassus matrix `J M̃⁻¹ Jᵀ`.
+fn delassus_operator(factor: &Cholesky, jacobian: &DenseMatrix) -> (Vec<Vec<f64>>, DenseMatrix) {
+    let rows = jacobian.rows();
+    let nv = jacobian.cols();
+    let response: Vec<Vec<f64>> = (0..rows)
+        .map(|row| {
+            let column: Vec<f64> = (0..nv).map(|dof| jacobian.get(row, dof)).collect();
+            if column.iter().all(|value| *value == 0.0) {
+                column
+            } else {
+                factor.solve(&column)
+            }
+        })
+        .collect();
+    let mut delassus = DenseMatrix::zeros(rows, rows);
+    for row in 0..rows {
+        for (col, column) in response.iter().enumerate() {
+            let value: f64 = (0..nv)
+                .map(|dof| jacobian.get(row, dof) * column[dof])
+                .sum();
+            delassus.set(row, col, value);
+        }
+    }
+    (response, delassus)
+}
+
+/// A joint position limit considered by one step.
+struct LimitRow {
+    dof: usize,
+    side: JointLimitSide,
+    /// Distance to the limit in the joint's units; negative past the limit.
+    gap: f64,
+}
+
+/// Every finite joint position limit, lower before upper, in coordinate order.
+fn active_joint_limits(model: &ArticulatedModel, q: &[f64]) -> Vec<LimitRow> {
+    let mut rows = Vec::new();
+    for (dof, position) in q.iter().enumerate().skip(model.base_dof()) {
+        if let Some((lower, upper)) = model.joint_position_limits(dof) {
+            rows.push(LimitRow {
+                dof,
+                side: JointLimitSide::Lower,
+                gap: position - lower,
+            });
+            rows.push(LimitRow {
+                dof,
+                side: JointLimitSide::Upper,
+                gap: upper - position,
+            });
+        }
+    }
+    rows
 }
 
 /// Folds implicit joint PD into the effective mass and generalized force.
@@ -1214,6 +1350,10 @@ mod tests {
     }
 
     fn pendulum_model() -> ArticulatedModel {
+        limited_pendulum_model(JointLimits::default())
+    }
+
+    fn limited_pendulum_model(limits: JointLimits) -> ArticulatedModel {
         let mut world = World::new();
         let robot = spawn_named(&mut world, "robot");
         let base = spawn_named(&mut world, "base");
@@ -1256,7 +1396,7 @@ mod tests {
             parent_link: base,
             child_link: link,
             kind: JointKind::Revolute,
-            limits: JointLimits::default(),
+            limits,
             axis: Vec3::Z,
             position: 0.0,
             velocity: 0.0,
@@ -1332,5 +1472,106 @@ mod tests {
             assert!(t1.dot(t2).abs() < 1.0e-12);
             assert!((t1.cross(t2) - n).length() < 1.0e-12);
         }
+    }
+
+    fn limits(lower: f64, upper: f64) -> JointLimits {
+        JointLimits {
+            lower,
+            upper,
+            ..JointLimits::default()
+        }
+    }
+
+    fn swing(
+        model: &ArticulatedModel,
+        start: f64,
+        pd: Option<&JointPdControl>,
+        config: &ContactStepConfig,
+        steps: usize,
+    ) -> (f64, f64, f64, Vec<JointLimitOutcome>) {
+        let mut q = vec![start];
+        let mut qd = vec![0.0];
+        let mut lowest = start;
+        let mut last = Vec::new();
+        for _ in 0..steps {
+            let step = contact_step(model, &q, &qd, &[0.0], &[], pd, config, None).expect("step");
+            q = step.q;
+            qd = step.qd;
+            lowest = lowest.min(q[0]);
+            last = step.joint_limits;
+        }
+        (q[0], qd[0], lowest, last)
+    }
+
+    #[test]
+    fn falling_pendulum_comes_to_rest_on_its_lower_limit() {
+        // Gravity pulls the pendulum toward -π/2; the limit stops it at -0.5.
+        let model = limited_pendulum_model(limits(-0.5, 1.0));
+        assert_eq!(model.joint_position_limits(0), Some((-0.5, 1.0)));
+        let config = ContactStepConfig::default();
+        let (angle, rate, lowest, engaged) = swing(&model, 0.8, None, &config, 1500);
+        assert!(lowest >= -0.5 - 1.0e-9, "passed the limit: {lowest}");
+        assert!((angle + 0.5).abs() < 1.0e-9, "rests at {angle}");
+        assert!(rate.abs() < 1.0e-9, "still moving at {rate}");
+        // The limit carries the gravity torque m g l cos(q).
+        assert_eq!(engaged.len(), 1);
+        assert_eq!(engaged[0].side, JointLimitSide::Lower);
+        let torque = engaged[0].impulse / config.step_time_s;
+        assert!(
+            (torque - 9.81 * 0.5_f64.cos()).abs() < 1.0e-6,
+            "limit torque {torque}"
+        );
+    }
+
+    #[test]
+    fn stiff_pd_past_a_limit_cannot_drive_the_joint_through_it() {
+        // The target lies 0.5 rad beyond the upper limit and the gain is far
+        // past the explicit stability bound; the joint still stops at 0.4.
+        let model = limited_pendulum_model(limits(-0.4, 0.4));
+        let kp = 1.0e6;
+        let pd = JointPdControl {
+            position_gains: vec![kp],
+            velocity_gains: vec![2.0 * kp.sqrt()],
+            target_positions: vec![0.9],
+            target_velocities: vec![0.0],
+        };
+        let config = ContactStepConfig::default();
+        let (angle, _, _, engaged) = swing(&model, 0.0, Some(&pd), &config, 500);
+        assert!((angle - 0.4).abs() < 1.0e-9, "settled at {angle}");
+        assert_eq!(engaged.len(), 1);
+        assert_eq!(engaged[0].side, JointLimitSide::Upper);
+        // The limit balances the PD pull plus gravity at the limit.
+        let torque = engaged[0].impulse / config.step_time_s;
+        let expected = kp * (0.9 - 0.4) - 9.81 * 0.4_f64.cos();
+        assert!(
+            (torque - expected).abs() < 1.0e-6 * expected,
+            "limit torque {torque}"
+        );
+
+        // Without limit enforcement the same command drives it to the target.
+        let free = ContactStepConfig {
+            enforce_joint_limits: false,
+            ..ContactStepConfig::default()
+        };
+        let (angle, _, _, engaged) = swing(&model, 0.0, Some(&pd), &free, 500);
+        assert!((angle - 0.9).abs() < 1.0e-4, "free joint at {angle}");
+        assert!(engaged.is_empty());
+    }
+
+    #[test]
+    fn a_joint_started_past_its_limit_is_recovered() {
+        let model = limited_pendulum_model(limits(0.0, 0.5));
+        let config = ContactStepConfig::default();
+        // Start 0.1 rad below the lower limit with gravity pulling further down.
+        let (angle, _, _, _) = swing(&model, -0.1, None, &config, 200);
+        assert!(angle.abs() < 1.0e-6, "not recovered: {angle}");
+    }
+
+    #[test]
+    fn continuous_and_unbounded_joints_have_no_limits() {
+        let model = pendulum_model();
+        assert_eq!(model.joint_position_limits(0), None);
+        let (box_model, _) = box_model(Vec3::ZERO);
+        assert!((0..6).all(|dof| box_model.joint_position_limits(dof).is_none()));
     }
 }

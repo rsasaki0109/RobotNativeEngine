@@ -118,6 +118,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_dynamics::aba`: `O(n)` forward dynamics by the articulated-body
+  algorithm, matching the dense `forward_dynamics` to round-off on fixed- and
+  floating-base trees and on the Go2 (example 103).
+- `contact_step` enforces joint position limits in the same per-contact solve
+  as contacts (`ContactStepConfig::enforce_joint_limits`, on by default): each
+  finite revolute or prismatic limit is a unilateral, frictionless constraint
+  on the joint coordinate, so a joint stops at its limit even under a stiff PD
+  target past it. Engaged limits and their impulses are reported in
+  `ContactStep::joint_limits`; `ArticulatedModel::joint_position_limits`
+  exposes the limits the model uses.
+
 - Hard-contact time stepping in `rne_dynamics`, taking RaiSim as the
   reference: `solve_contact_impulses` solves unilateral contacts with the exact
   Coulomb cone by per-contact iteration with bisection (Hwangbo et al., RA-L

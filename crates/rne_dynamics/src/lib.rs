@@ -27,11 +27,13 @@
 
 #![deny(missing_docs)]
 
+pub mod aba;
 pub mod algorithms;
 pub mod contact;
 pub mod model;
 pub mod spatial;
 
+pub use aba::aba;
 pub use algorithms::{
     center_of_mass, com_jacobian, constrained_forward_dynamics, forward_dynamics, frame_jacobian,
     gravity_torque, impulse_velocity, link_motions, mass_matrix, non_linear_effects, rnea,
@@ -40,7 +42,7 @@ pub use algorithms::{
 pub use contact::{
     contact_frame, contact_step, integrate_configuration, solve_contact_impulses, ContactOutcome,
     ContactPoint, ContactSolution, ContactSolverConfig, ContactState, ContactStep,
-    ContactStepConfig, JointPdControl,
+    ContactStepConfig, JointLimitOutcome, JointLimitSide, JointPdControl,
 };
 pub use model::{ArticulatedModel, DynamicsError};
 pub use spatial::{SpatialInertia, SpatialVec};

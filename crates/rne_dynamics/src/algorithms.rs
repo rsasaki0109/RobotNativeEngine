@@ -103,7 +103,11 @@ impl DenseMatrix {
     }
 }
 
-fn validate(model: &ArticulatedModel, values: &[f64], name: &str) -> Result<(), DynamicsError> {
+pub(crate) fn validate(
+    model: &ArticulatedModel,
+    values: &[f64],
+    name: &str,
+) -> Result<(), DynamicsError> {
     if values.len() != model.nv() {
         return Err(DynamicsError::DimensionMismatch {
             provided: values.len(),
@@ -117,7 +121,7 @@ fn validate(model: &ArticulatedModel, values: &[f64], name: &str) -> Result<(), 
     Ok(())
 }
 
-fn inertia_matrices(model: &ArticulatedModel) -> Vec<Mat6> {
+pub(crate) fn inertia_matrices(model: &ArticulatedModel) -> Vec<Mat6> {
     model
         .links
         .iter()
@@ -125,7 +129,7 @@ fn inertia_matrices(model: &ArticulatedModel) -> Vec<Mat6> {
         .collect()
 }
 
-fn xup_transforms(model: &ArticulatedModel, transforms: &[Transform3]) -> Vec<Mat6> {
+pub(crate) fn xup_transforms(model: &ArticulatedModel, transforms: &[Transform3]) -> Vec<Mat6> {
     let mut xup = vec![mat6_zero(); model.link_count()];
     for index in 1..model.link_count() {
         if let Some(parent) = model.links[index].parent {
@@ -743,7 +747,7 @@ pub fn impulse_velocity(
     Ok((post_impact, impulses))
 }
 
-fn mat6_transpose(matrix: &Mat6) -> Mat6 {
+pub(crate) fn mat6_transpose(matrix: &Mat6) -> Mat6 {
     let mut out = mat6_zero();
     for row in 0..6 {
         for col in 0..6 {

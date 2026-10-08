@@ -35,7 +35,8 @@ The crate owns:
 - composite-rigid-body mass matrix (`mass_matrix`);
 - recursive Newton-Euler inverse dynamics (`rnea`) and the bias
   (`non_linear_effects`, `gravity_torque`);
-- forward dynamics via a deterministic dense solve (`forward_dynamics`);
+- forward dynamics via a deterministic dense solve (`forward_dynamics`) and by
+  the `O(n)` articulated-body algorithm (`aba`), which agree to round-off;
 - center of mass (`center_of_mass`) and the center-of-mass Jacobian
   (`com_jacobian`);
 - world-frame link motion and bias acceleration (`link_motions`) and a
@@ -95,8 +96,8 @@ base acceleration.
 
 - Mimic joints are folded into kinematics but contribute no independent
   velocity or acceleration in the dynamics recursion.
-- Only the dense solve is provided; an ABA / articulated-body forward pass and
-  analytical derivatives are later work needed for DDP-class solvers.
+- Analytical derivatives are later work needed for DDP-class solvers; the
+  `O(n)` articulated-body forward pass (`aba`) is in place.
 - Centroidal momentum matrix is a deliberate follow-up. Unilateral contact
   with an exact Coulomb cone, implicit joint PD, and a time-stepping loop are
   in `rne_dynamics::contact` ([016](016_contact_dynamics.md)).
