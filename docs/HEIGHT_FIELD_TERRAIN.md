@@ -65,3 +65,26 @@ Giving the height field a skirt or a swept solid volume beneath the sampled
 surface would remove the hazard at the source. Continuous collision detection
 would bound the per-step penetration without raising the whole scene's rate;
 `PhysicsWorldDesc` does not expose it today.
+
+## Generating terrain
+
+`rne_physics::FractalTerrain` builds a height field from a few parameters and a
+seed, in the manner of RaiSim's terrain generator: fractional Brownian motion
+over gradient noise (`frequency_per_m`, `octaves`, `lacunarity`, `gain`),
+scaled to `amplitude_m`, optionally rounded to `step_m` for stair-like ground,
+and shifted by `height_offset_m`. The same spec and seed always give the same
+heights, so randomized terrain is reproducible from the episode's
+`WorldRandom` stream rather than a stored map.
+
+```rust
+let terrain = FractalTerrain { amplitude_m: 0.12, ..FractalTerrain::default() };
+let shape = terrain.height_field(world_random.stream_seed(terrain_stream))?;
+```
+
+`height_field_surface` samples any height field's height and normal at a local
+`(x, z)`, which is how example 133 places foot contacts on generated terrain
+for the native contact step without a physics backend. Native contacts carry a
+signed gap and are resolved as hard constraints, and its joint PD is
+integrated implicitly, so the stiff-motor loss described above does not arise
+there: a foot is never driven through the surface within one step.
+

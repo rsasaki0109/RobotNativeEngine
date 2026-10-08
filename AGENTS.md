@@ -22,7 +22,7 @@ ROS2 is an adapter only. Do not add ROS2, rclrs, rclcpp, DDS, or ROS message dep
 - `crates/rne_ecs`: ECS wrapper and shared entity conventions
 - `crates/rne_world`: world entity, scene index, frame graph
 - `crates/rne_robot`: robot/link/joint/actuator components and systems
-- `crates/rne_dynamics`: backend-neutral articulated-body dynamics (CRBA mass matrix, recursive Newton-Euler inverse dynamics, floating base, center of mass and Jacobians)
+- `crates/rne_dynamics`: backend-neutral articulated-body dynamics (CRBA mass matrix, recursive Newton-Euler inverse dynamics, floating base, center of mass and Jacobians, hard-contact time stepping with an exact friction cone and implicit PD)
 - `crates/rne_legged`: backend-neutral legged walking templates (LIPM/DCM, capture-point foot placement, ZMP preview control, footstep plans)
 - `crates/rne_wbc`: backend-neutral whole-body control (weighted inverse dynamics, contact and friction handling, joint torque recovery)
 - `crates/rne_oc`: backend-neutral multi-contact optimal control (DDP shooting solver, numerical dynamics derivatives, articulated dynamics adapter)

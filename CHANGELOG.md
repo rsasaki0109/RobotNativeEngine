@@ -118,6 +118,18 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Hard-contact time stepping in `rne_dynamics`, taking RaiSim as the
+  reference: `solve_contact_impulses` solves unilateral contacts with the exact
+  Coulomb cone by per-contact iteration with bisection (Hwangbo et al., RA-L
+  2018), and `contact_step` advances an articulated model with those contacts
+  and joint PD integrated implicitly (`M + dt Kd + dt² Kp`), reporting each
+  contact's world impulse and open/sticking/sliding state.
+  `integrate_configuration` advances a floating base on the rigid-body
+  manifold. `rne_physics::FractalTerrain` generates seeded RaiSim-style fractal
+  height fields and `height_field_surface` samples their height and normal.
+  Example 133 drops the Go2 onto generated terrain and lets it stand,
+  deterministically. See `docs/architecture/016_contact_dynamics.md`.
+
 - Example 132's Go2 now turns the door's round knob before pushing the door
   open, and the door latches: a latch modelled in the example holds the leaf
   shut until the knob turns past 0.7 rad and catches it again when the leaf is
