@@ -1,15 +1,13 @@
 //! Articulated assemblies mirrored from the ECS into `rne_dynamics` models.
 
-use crate::collide::{collider_samples, sim_from_world, world_from_sim, Sample, StaticCollider};
-use rne_dynamics::{
-    contact_frame, contact_step, ArticulatedModel, ContactPoint, ContactStepConfig, JointPdControl,
-};
+use crate::collide::{collider_samples, sim_from_world, world_from_sim, Sample};
+use rne_dynamics::{ArticulatedModel, CoupledBody, JointPdControl};
 use rne_ecs::{Entity, World};
 use rne_math::{Quat, Vec3};
 use rne_physics::{
-    Collider, ColliderShape, FixedJointDesc, JointActuation, JointMotor, JointPassiveDynamics,
-    PhysicsError, PrismaticJointDesc, RevoluteJointDesc, RigidBody, RigidBodyInertia,
-    RigidBodyType,
+    Collider, ColliderShape, CollisionGroups, FixedJointDesc, JointActuation, JointMotor,
+    JointPassiveDynamics, PhysicsError, PrismaticJointDesc, RevoluteJointDesc, RigidBody,
+    RigidBodyInertia, RigidBodyType,
 };
 use rne_robot::{FloatingBase, Joint, JointKind, JointLimits, Link, Robot, RobotId};
 use rne_world::{world_transform_of, Transform3};
@@ -98,6 +96,11 @@ pub(crate) struct AssemblyBody {
     pub samples: Vec<Sample>,
     /// Friction coefficient of the body's collider material.
     pub friction: f64,
+    /// Collider shape and its offset in the body frame, for contacts that
+    /// other bodies' samples make with this body.
+    pub collider: Option<(ColliderShape, Transform3)>,
+    /// Collision filtering masks.
+    pub groups: CollisionGroups,
     /// Joint description connecting the body to its parent, if any.
     pub joint: Option<JointDesc>,
 }
@@ -116,8 +119,10 @@ pub(crate) struct AssemblyJoint {
 /// One contact of the last step, for contact events.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct ContactRecord {
+    /// Body whose collider sample made the contact.
     pub body_entity: Entity,
-    pub static_entity: Entity,
+    /// Static or dynamic body it touched.
+    pub other_entity: Entity,
     pub normal: Vec3,
     pub gap_m: f64,
     pub normal_impulse_n_s: f64,
@@ -135,10 +140,8 @@ pub(crate) struct Assembly {
     pub qd: Vec<f64>,
     pd: JointPdControl,
     tau: Vec<f64>,
-    warm: HashMap<(usize, usize, u32), [f64; 3]>,
     /// World pose and velocities last written to each body.
     pub written: Vec<(Transform3, Vec3, Vec3)>,
-    pub contacts: Vec<ContactRecord>,
 }
 
 impl Assembly {
@@ -210,13 +213,18 @@ impl Assembly {
                 }
             };
             model_links.insert(entity, model_link);
-            let (samples, friction) = body_samples(world, entity);
+            let (samples, friction, collider) = body_samples(world, entity);
             bodies.push(AssemblyBody {
                 entity,
                 link_index: 0,
                 model_link,
                 samples,
                 friction,
+                collider,
+                groups: world
+                    .get::<CollisionGroups>(entity)
+                    .copied()
+                    .unwrap_or_default(),
                 joint,
             });
         }
@@ -263,15 +271,13 @@ impl Assembly {
                 effort_limits: vec![f64::INFINITY; actuated],
             },
             tau: vec![0.0; nv],
-            warm: HashMap::new(),
-            contacts: Vec::new(),
         };
         assembly.load_state(world);
         Ok(assembly)
     }
 
     /// Sets the configuration and velocity from the ECS poses and rigid-body
-    /// velocities, and forgets the contact warm start.
+    /// velocities.
     pub(crate) fn load_state(&mut self, world: &World) {
         let base = self.model.base_dof();
         self.q.iter_mut().for_each(|value| *value = 0.0);
@@ -338,7 +344,6 @@ impl Assembly {
             self.q[base + joint.dof] = wrap_revolute(position, joint.prismatic);
             self.qd[base + joint.dof] = rate;
         }
-        self.warm.clear();
     }
 
     /// Reads the joint commands of every driven joint.
@@ -390,88 +395,34 @@ impl Assembly {
         Ok(())
     }
 
-    /// Advances the assembly by `dt_s` against `statics`.
-    pub(crate) fn step(
-        &mut self,
-        statics: &[StaticCollider],
-        config: &ContactStepConfig,
-        margin_m: f64,
-        dt_s: f64,
-    ) -> Result<(), PhysicsError> {
-        let kinematics = self
+    /// The assembly's model, state, and commands for a coupled step.
+    pub(crate) fn coupled_body(&self) -> CoupledBody<'_> {
+        CoupledBody {
+            model: &self.model,
+            q: &self.q,
+            qd: &self.qd,
+            tau: &self.tau,
+            pd: (!self.joints.is_empty()).then_some(&self.pd),
+        }
+    }
+
+    /// Link poses in the simulation frame at the current configuration.
+    pub(crate) fn sim_transforms(&self) -> Result<Vec<Transform3>, PhysicsError> {
+        Ok(self
             .model
             .kinematic()
             .forward_kinematics(&self.q)
-            .map_err(|_| PhysicsError::InitializationFailed)?;
-        let transforms = kinematics.transforms();
-        let mut contacts = Vec::new();
-        let mut keys = Vec::new();
-        let mut records = Vec::new();
-        for (body_index, body) in self.bodies.iter().enumerate() {
-            let pose = transforms[body.link_index];
-            for (sample_index, sample) in body.samples.iter().enumerate() {
-                let center = pose.translation + pose.rotation * sample.center_m;
-                for collider in statics {
-                    let Some(hit) = collider.query(center, sample.radius_m) else {
-                        continue;
-                    };
-                    if hit.gap_m > margin_m {
-                        continue;
-                    }
-                    contacts.push(ContactPoint {
-                        link: body.model_link,
-                        point_local_m: pose.rotation.conjugate() * (hit.point_m - pose.translation),
-                        normal_world: hit.normal,
-                        gap_m: hit.gap_m,
-                        friction_coefficient: 0.5 * (body.friction + collider.friction),
-                    });
-                    keys.push((body_index, sample_index, collider.entity.index()));
-                    records.push(ContactRecord {
-                        body_entity: body.entity,
-                        static_entity: collider.entity,
-                        normal: hit.normal,
-                        gap_m: hit.gap_m,
-                        normal_impulse_n_s: 0.0,
-                    });
-                }
-            }
-        }
-        let warm: Vec<[f64; 3]> = keys
-            .iter()
-            .map(|key| self.warm.get(key).copied().unwrap_or([0.0; 3]))
-            .collect();
-        let config = ContactStepConfig {
-            step_time_s: dt_s,
-            ..*config
-        };
-        let pd = (!self.joints.is_empty()).then_some(&self.pd);
-        let step = contact_step(
-            &self.model,
-            &self.q,
-            &self.qd,
-            &self.tau,
-            &contacts,
-            pd,
-            &config,
-            Some(&warm),
-        )
-        .map_err(|_| PhysicsError::InitializationFailed)?;
-        self.warm.clear();
-        for ((key, contact), (outcome, record)) in keys
-            .iter()
-            .zip(&contacts)
-            .zip(step.contacts.iter().zip(&mut records))
-        {
-            let [t1, t2, n] = contact_frame(contact.normal_world);
-            let impulse = outcome.impulse_world_n_s;
-            self.warm
-                .insert(*key, [impulse.dot(t1), impulse.dot(t2), impulse.dot(n)]);
-            record.normal_impulse_n_s = impulse.dot(n);
-        }
-        self.contacts = records;
-        self.q = step.q;
-        self.qd = step.qd;
-        Ok(())
+            .map_err(|_| PhysicsError::InitializationFailed)?
+            .transforms()
+            .to_vec())
+    }
+
+    /// Whether bodies `first` and `second` of this assembly are joined
+    /// directly by a joint, which keeps them from colliding with each other.
+    pub(crate) fn adjacent(&self, first: usize, second: usize) -> bool {
+        let parent_of = |index: usize| self.bodies[index].joint.map(|desc| desc.parent);
+        parent_of(first) == Some(self.bodies[second].entity)
+            || parent_of(second) == Some(self.bodies[first].entity)
     }
 
     /// World pose of every body at the current configuration.
@@ -688,17 +639,24 @@ fn shape_inertia(mass_kg: f64, collider: Option<&Collider>) -> RigidBodyInertia 
     }
 }
 
-/// Collider samples and friction of an ECS body.
-fn body_samples(world: &World, entity: Entity) -> (Vec<Sample>, f64) {
+/// Collider samples, friction, and shape of an ECS body.
+#[allow(clippy::type_complexity)]
+fn body_samples(
+    world: &World,
+    entity: Entity,
+) -> (Vec<Sample>, f64, Option<(ColliderShape, Transform3)>) {
     let mut samples = Vec::new();
-    let mut friction = 0.5;
-    if let Some(collider) = world.get::<Collider>(entity) {
-        if !collider.sensor {
+    match world.get::<Collider>(entity) {
+        Some(collider) if !collider.sensor => {
             collider_samples(&collider.shape, &collider.local_offset, &mut samples);
-            friction = f64::from(collider.material.friction);
+            (
+                samples,
+                f64::from(collider.material.friction),
+                Some((collider.shape.clone(), collider.local_offset)),
+            )
         }
+        _ => (samples, 0.5, None),
     }
-    (samples, friction)
 }
 
 /// Fixed-axis roll, pitch, and yaw of `rotation = Rz(yaw) Ry(pitch) Rx(roll)`.

@@ -132,6 +132,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_dynamics::contact_step_coupled` steps several articulated models in one
+  contact solve, with contacts between models and between links of one model
+  (self-collision); with one model it matches `contact_step` to round-off.
+  `rne_physics_native` uses it: dynamic bodies now collide with each other and
+  with non-adjacent links of their own robot (filtered by `CollisionGroups`),
+  box pairs get corner-over-face contacts, and touching assemblies are solved
+  as one island. Example 137 adds the Go2 standing on a free crate beside a
+  free five-box tower.
+
 - `rne_physics_native`: a `PhysicsBackend` built on `rne_dynamics::contact_step`.
   Every tree of dynamic bodies joined by revolute, prismatic, or fixed joint
   descriptions is one reduced-coordinate model, so a URDF robot wired by

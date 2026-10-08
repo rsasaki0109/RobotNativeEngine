@@ -18,7 +18,7 @@ use rne_ecs::{Entity, World};
 use rne_math::{Hertz, Quat, Vec3};
 use rne_physics::{
     height_field_surface, Collider, ColliderShape, FractalTerrain, JointActuation, PhysicsBackend,
-    PhysicsMaterial, PhysicsWorldDesc, RigidBody, RigidBodyType,
+    PhysicsMaterial, PhysicsWorldDesc, PhysicsWorldId, RigidBody, RigidBodyType,
 };
 use rne_physics_native::NativeBackend;
 use rne_physics_rapier::RapierBackend;
@@ -60,7 +60,9 @@ struct Report {
     step_us: f64,
 }
 
-fn build_scene(terrain: &ColliderShape) -> Scene {
+/// Spawns the Go2 in its stand pose with its base `base_y_m` above the world
+/// origin and returns it as a scene without ground.
+fn spawn_go2(base_y_m: f64) -> Scene {
     let document = parse_urdf_document(GO2_URDF).expect("parse Go2 URDF");
     let mut world = World::new();
     let config = UrdfSpawnConfig {
@@ -88,12 +90,11 @@ fn build_scene(terrain: &ColliderShape) -> Scene {
         },
     )
     .expect("articulate Go2");
-    let start = height_field_surface(terrain, 0.0, 0.0).expect("origin on terrain");
     // The vendored Go2 URDF is Z-up; rotate the base into RNE's Y-up world.
     world
         .entity_mut(spawned.base_link)
         .insert(Transform3::from_translation_rotation(
-            Vec3::new(0.0, start.height_m + DROP_HEIGHT_M, 0.0),
+            Vec3::new(0.0, base_y_m, 0.0),
             Quat::from_rotation_x(-std::f64::consts::FRAC_PI_2),
         ));
 
@@ -131,23 +132,6 @@ fn build_scene(terrain: &ColliderShape) -> Scene {
         .filter_map(|link| world.get::<RigidBody>(*link))
         .map(|body| body.mass_kg)
         .sum();
-
-    world.spawn((
-        RigidBody {
-            body_type: RigidBodyType::Fixed,
-            ..RigidBody::default()
-        },
-        Collider {
-            shape: terrain.clone(),
-            material: PhysicsMaterial {
-                friction: FRICTION,
-                ..PhysicsMaterial::default()
-            },
-            local_offset: Transform3::default(),
-            sensor: false,
-        },
-        Transform3::default(),
-    ));
     let feet = FOOT_LINKS
         .iter()
         .map(|name| *spawned.links.get(*name).expect("foot link"))
@@ -160,24 +144,59 @@ fn build_scene(terrain: &ColliderShape) -> Scene {
     }
 }
 
-fn simulate<B: PhysicsBackend>(mut backend: B, terrain: &ColliderShape) -> Report {
-    let mut scene = build_scene(terrain);
-    let physics_world = backend
-        .create_world(PhysicsWorldDesc::default())
-        .expect("physics world");
+/// A fixed collider with the example's friction.
+fn fixed_collider(world: &mut World, shape: ColliderShape, pose: Transform3) -> Entity {
+    world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape,
+                material: PhysicsMaterial {
+                    friction: FRICTION,
+                    ..PhysicsMaterial::default()
+                },
+                local_offset: Transform3::default(),
+                sensor: false,
+            },
+            pose,
+        ))
+        .id()
+}
+
+/// Runs `world` for `seconds` through the generic `PhysicsBackend` loop and
+/// returns the mean wall time per step in microseconds.
+fn run<B: PhysicsBackend>(
+    backend: &mut B,
+    world: &mut World,
+    physics_world: PhysicsWorldId,
+    seconds: f64,
+) -> f64 {
     let dt = SimDuration::from_hertz(Hertz::new(STEP_HZ));
-    let steps = (DURATION_S * STEP_HZ).round() as usize;
+    let steps = (seconds * STEP_HZ).round() as usize;
     let started = Instant::now();
     for _ in 0..steps {
         backend
-            .sync_from_ecs(&mut scene.world, physics_world)
+            .sync_from_ecs(world, physics_world)
             .expect("sync from ECS");
         backend.step(physics_world, dt).expect("step");
         backend
-            .sync_to_ecs(&mut scene.world, physics_world)
+            .sync_to_ecs(world, physics_world)
             .expect("sync to ECS");
     }
-    let step_us = started.elapsed().as_secs_f64() * 1.0e6 / steps as f64;
+    started.elapsed().as_secs_f64() * 1.0e6 / steps as f64
+}
+
+fn simulate<B: PhysicsBackend>(mut backend: B, terrain: &ColliderShape) -> Report {
+    let start = height_field_surface(terrain, 0.0, 0.0).expect("origin on terrain");
+    let mut scene = spawn_go2(start.height_m + DROP_HEIGHT_M);
+    fixed_collider(&mut scene.world, terrain.clone(), Transform3::default());
+    let physics_world = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("physics world");
+    let step_us = run(&mut backend, &mut scene.world, physics_world, DURATION_S);
 
     let base_pose = world_transform_of(&scene.world, scene.base_link);
     let ground = height_field_surface(terrain, base_pose.translation.x, base_pose.translation.z)
@@ -210,6 +229,119 @@ fn simulate<B: PhysicsBackend>(mut backend: B, terrain: &ColliderShape) -> Repor
         support_n,
         weight_n: scene.mass_kg * 9.81,
         step_us,
+    }
+}
+
+/// Half extents of the free crate the Go2 stands on, in meters.
+const CRATE_HALF_M: Vec3 = Vec3::new(0.45, 0.1, 0.3);
+const CRATE_MASS_KG: f64 = 8.0;
+/// Half extent and count of the boxes in the free-standing tower.
+const TOWER_HALF_M: f64 = 0.1;
+const TOWER_BOXES: usize = 5;
+
+#[derive(Debug, PartialEq)]
+struct CrateReport {
+    base_pose: Transform3,
+    feet_on_crate: usize,
+    feet_force_n: f64,
+    crate_ground_force_n: f64,
+    go2_weight_n: f64,
+    crate_weight_n: f64,
+    tower_drift_m: f64,
+}
+
+/// The Go2 dropped onto a free crate resting on the ground, beside a tower of
+/// free boxes: every contact between the robot, the crate, the tower, and
+/// the ground is solved together.
+fn simulate_on_crate() -> CrateReport {
+    let crate_top_m = 2.0 * CRATE_HALF_M.y;
+    let mut scene = spawn_go2(crate_top_m + DROP_HEIGHT_M);
+    let world = &mut scene.world;
+    let ground = fixed_collider(
+        world,
+        ColliderShape::Cuboid {
+            half_extents_m: Vec3::new(5.0, 0.5, 5.0),
+        },
+        Transform3::from_translation_rotation(Vec3::new(0.0, -0.5, 0.0), Quat::IDENTITY),
+    );
+    let free_box = |world: &mut World, half: Vec3, mass_kg: f64, center: Vec3| {
+        world
+            .spawn((
+                RigidBody {
+                    mass_kg,
+                    ..RigidBody::default()
+                },
+                Collider {
+                    material: PhysicsMaterial {
+                        friction: FRICTION,
+                        ..PhysicsMaterial::default()
+                    },
+                    ..Collider::cuboid(half)
+                },
+                Transform3::from_translation_rotation(center, Quat::IDENTITY),
+            ))
+            .id()
+    };
+    let crate_box = free_box(
+        world,
+        CRATE_HALF_M,
+        CRATE_MASS_KG,
+        Vec3::new(0.0, CRATE_HALF_M.y, 0.0),
+    );
+    let tower: Vec<Entity> = (0..TOWER_BOXES)
+        .map(|level| {
+            free_box(
+                world,
+                Vec3::splat(TOWER_HALF_M),
+                1.0,
+                Vec3::new(1.2, TOWER_HALF_M * (1.0 + 2.0 * level as f64), 0.0),
+            )
+        })
+        .collect();
+    let mut backend = NativeBackend::new();
+    let physics_world = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("physics world");
+    run(&mut backend, world, physics_world, DURATION_S);
+
+    let contacts = backend.contacts(physics_world).expect("contacts");
+    let vertical = |a: Entity, b: Entity| {
+        contacts
+            .iter()
+            .filter(|event| {
+                (event.entity_a == a && event.entity_b == b)
+                    || (event.entity_a == b && event.entity_b == a)
+            })
+            .map(|event| f64::from(event.impulse) * event.normal.y.abs() * STEP_HZ)
+            .sum::<f64>()
+    };
+    let feet_on_crate = scene
+        .feet
+        .iter()
+        .filter(|foot| vertical(**foot, crate_box) > 0.0)
+        .count();
+    let feet_force_n = scene
+        .feet
+        .iter()
+        .map(|foot| vertical(*foot, crate_box))
+        .sum();
+    let tower_drift_m = tower
+        .iter()
+        .enumerate()
+        .map(|(level, entity)| {
+            let pose = world_transform_of(world, *entity);
+            (pose.translation - Vec3::new(1.2, TOWER_HALF_M * (1.0 + 2.0 * level as f64), 0.0))
+                .length()
+        })
+        .fold(0.0, f64::max);
+    CrateReport {
+        base_pose: world_transform_of(world, scene.base_link),
+        feet_on_crate,
+        feet_force_n,
+        crate_ground_force_n: vertical(crate_box, ground),
+        go2_weight_n: scene.mass_kg * 9.81,
+        crate_weight_n: CRATE_MASS_KG * 9.81,
+        tower_drift_m,
     }
 }
 
@@ -246,7 +378,27 @@ fn main() {
     print_report("rapier", &rapier);
     println!("native deterministic replay: {deterministic}");
 
+    let on_crate = simulate_on_crate();
+    let crate_deterministic = on_crate == simulate_on_crate();
+    println!(
+        "go2 on a free {:.0} kg crate: {} feet on the crate carrying {:.1} N (Go2 weight {:.1} N)",
+        CRATE_MASS_KG, on_crate.feet_on_crate, on_crate.feet_force_n, on_crate.go2_weight_n
+    );
+    println!(
+        "crate on the ground: {:.1} N (Go2 + crate {:.1} N); {TOWER_BOXES}-box tower drifted {:.2} mm; replay identical: {crate_deterministic}",
+        on_crate.crate_ground_force_n,
+        on_crate.go2_weight_n + on_crate.crate_weight_n,
+        1.0e3 * on_crate.tower_drift_m
+    );
+    let crate_total = on_crate.go2_weight_n + on_crate.crate_weight_n;
+    let crate_ok = crate_deterministic
+        && on_crate.feet_on_crate == 4
+        && (on_crate.feet_force_n - on_crate.go2_weight_n).abs() < 0.02 * on_crate.go2_weight_n
+        && (on_crate.crate_ground_force_n - crate_total).abs() < 0.02 * crate_total
+        && on_crate.tower_drift_m < 1.0e-3;
+
     let ok = deterministic
+        && crate_ok
         && native.loaded_feet == 4
         && (native.support_n - native.weight_n).abs() < 0.02 * native.weight_n
         && native.clearance_m > 0.2

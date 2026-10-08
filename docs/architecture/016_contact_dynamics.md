@@ -2,7 +2,8 @@
 
 ## Status
 
-Implemented. `rne_dynamics::contact`, `rne_physics::terrain`,
+Implemented. `rne_dynamics::contact` (with `contact_step_coupled`),
+`rne_physics::terrain`,
 `rne_physics_native`, `rne_locomotion`, `rne_ai::VectorizedEpisode::step_parallel`,
 examples 133–137.
 
@@ -108,13 +109,29 @@ and which it deliberately does not.
     weight), and `QuadrupedTerrainEpisode`, an `rne_ai::Episode` that draws a
     new terrain, heading, and command at every reset and takes a residual
     joint action on top of the trot (or on top of the stand pose).
+12. **One contact problem per world** (`contact_step_coupled`). RaiSim solves
+    every contact of a world in one per-contact iteration, so a robot
+    standing on a box that stands on the ground feels the ground through the
+    box. `contact_step_coupled` steps any number of models together: a
+    contact joins a point on one model's link to the static world or to a
+    point on another link — of another model, or of the same model for
+    self-collision — and its Jacobian is the relative velocity of the two
+    points. The effective mass stays block diagonal (one factored block per
+    model), joint and effort limits work per model as in `contact_step`, and
+    with one model and only world contacts the two agree to round-off.
+    `NativeBackend` builds these contacts between moving bodies (samples
+    against spheres, capsules, and boxes; box pairs by their corners over the
+    separating face), between links of one robot that a joint does not join
+    directly, filters them with `CollisionGroups`, and solves each island of
+    touching assemblies in one call.
 
 ### Not adopted
 
 - **RaiSim's general collision pipeline, server, and visualizer.** RNE
   already owns collision geometry, rendering, and transport; the contact step
   takes contact points as input, so any broad phase can feed it. The native
-  backend's sampler covers moving-against-static contact only.
+  backend's contact generation is a point sampler with a box-box corner
+  test, not a general narrow phase.
 - **Material-pair tables.** Friction is per contact here; a pair table is a
   scene-level policy that belongs where contacts are generated, not in the
   solver.
@@ -234,11 +251,26 @@ example 134 is still tilted 0.229 rad and cannot turn).
 none falls with the zero residual, random residuals earn less reward, and the
 parallel batch replays the serial one bit for bit.
 
+Unit tests in `rne_dynamics::contact` pin the coupled step against
+`contact_step` for one body (a box landing, and a stiff PD pendulum on its
+effort limit, to 1e-12), a box resting on another box with the ground carrying
+both weights and the box between carrying one (to 1e-6), a frictionless
+head-on collision ending at the momentum-conserving common velocity, and a
+self-contact between a pendulum and a floor on its own base. Unit tests in
+`rne_physics_native` add a three-box stack whose contact events carry the
+weight above each interface within 0.1 %, two balls colliding inelastically,
+and a hinged flap folding onto a non-adjacent link of its own chain and
+stopping at the analytic contact angle (and reaching its limit when its
+collision groups filter everything).
+
 `examples/137_go2_native_backend` builds the Go2 the way the asset loader does
 and drives it through `PhysicsBackend` on `NativeBackend` and on Rapier: on the
 native backend it lands on all four feet, its contact events carry its weight
-within 1 %, it comes to rest, and it replays bit for bit, at about 50 µs per
-step including the ECS synchronization.
+within 1 %, it comes to rest, and it replays bit for bit, at about 50–100 µs
+per step including the ECS synchronization. Dropped instead onto a free 8 kg
+crate beside a free five-box tower, it stands on the crate with its feet
+carrying its weight and the crate carrying both onto the ground (each within
+0.1 N), while the tower does not move.
 
 ## Step cost
 
@@ -269,10 +301,13 @@ instructions per step, against 2.8 M originally.
 
 - Forward kinematics still visits every link, including welded ones, because
   contact points and sensors may sit on any link.
-- `NativeBackend` resolves contacts between moving and static colliders only:
-  dynamic bodies pass through each other, and a robot does not collide with
-  itself. Raycasts return no hits, and a kinematic body that moves is a
-  moving obstacle for contacts but not a moving anchor for a fixed-base tree.
+- `NativeBackend`'s contacts come from samples: crossing box edges with no
+  corner over a face, and contacts against convex hulls, meshes, or
+  compounds on moving bodies, are not detected. URDF robots spawned without
+  self-collision share one collision group and so do not collide with each
+  other, as in the Rapier backend. Raycasts return no hits, and a kinematic
+  body that moves is a moving obstacle for contacts but not a moving anchor
+  for a fixed-base tree.
 - The floating base's roll-pitch-yaw coordinates have a confined middle angle.
   In RNE's Y-up world that angle is the heading, so turning past a quarter turn
   flips roll and yaw by π (the pose stays right). `NativeBackend` and
