@@ -146,6 +146,130 @@ impl StaticCollider {
     }
 }
 
+/// Lateral slack, in meters, within which a corner still counts as over a face.
+const FACE_SLACK_M: f64 = 1.0e-4;
+
+/// A corner of one box against a face of the other, from [`box_box`].
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct BoxCorner {
+    /// Whether the corner belongs to the first box.
+    pub on_first: bool,
+    /// Corner index, in [`collider_samples`] order.
+    pub corner: usize,
+    /// Corner position in the simulation frame.
+    pub point_m: Vec3,
+    /// Unit normal from the face's box into the corner's box.
+    pub normal: Vec3,
+    /// Signed distance from the face plane to the corner, in meters.
+    pub gap_m: f64,
+}
+
+/// Corner-on-face contacts between two boxes within `margin_m`.
+///
+/// The face normal is the separating-axis candidate among the six face
+/// normals with the least penetration (or the largest separation). The corners
+/// of each box that lie over the other box's face along that axis become
+/// contacts, so a box resting on a larger or a smaller box, or on one of the
+/// same size, gets its support points; crossing edges with no corner over a
+/// face are not detected.
+pub(crate) fn box_box(
+    first_half: Vec3,
+    first: &Transform3,
+    second_half: Vec3,
+    second: &Transform3,
+    margin_m: f64,
+) -> Vec<BoxCorner> {
+    let axes = |pose: &Transform3| {
+        [
+            pose.rotation * Vec3::X,
+            pose.rotation * Vec3::Y,
+            pose.rotation * Vec3::Z,
+        ]
+    };
+    let (first_axes, second_axes) = (axes(first), axes(second));
+    let radius = |half: Vec3, box_axes: &[Vec3; 3], axis: Vec3| {
+        half.x * box_axes[0].dot(axis).abs()
+            + half.y * box_axes[1].dot(axis).abs()
+            + half.z * box_axes[2].dot(axis).abs()
+    };
+    let offset = first.translation - second.translation;
+    let mut best: Option<(f64, Vec3)> = None;
+    for axis in first_axes.iter().chain(&second_axes) {
+        let separation = offset.dot(*axis).abs()
+            - radius(first_half, &first_axes, *axis)
+            - radius(second_half, &second_axes, *axis);
+        if best.is_none_or(|(best_separation, _)| separation > best_separation + 1.0e-9) {
+            let normal = if offset.dot(*axis) >= 0.0 {
+                *axis
+            } else {
+                -*axis
+            };
+            best = Some((separation, normal));
+        }
+    }
+    let Some((separation, normal)) = best else {
+        return Vec::new();
+    };
+    if separation > margin_m {
+        return Vec::new();
+    }
+    let mut corners = Vec::new();
+    // `normal` points from the second box into the first.
+    for (on_first, corner_half, corner_pose, face_half, face_pose, face_axes, toward) in [
+        (
+            true,
+            first_half,
+            first,
+            second_half,
+            second,
+            &second_axes,
+            normal,
+        ),
+        (
+            false,
+            second_half,
+            second,
+            first_half,
+            first,
+            &first_axes,
+            -normal,
+        ),
+    ] {
+        let face_offset = radius(face_half, face_axes, toward);
+        let mut samples = Vec::with_capacity(8);
+        collider_samples(
+            &ColliderShape::Cuboid {
+                half_extents_m: corner_half,
+            },
+            corner_pose,
+            &mut samples,
+        );
+        for (corner, sample) in samples.iter().enumerate() {
+            let relative = sample.center_m - face_pose.translation;
+            let gap_m = relative.dot(toward) - face_offset;
+            if gap_m > margin_m {
+                continue;
+            }
+            // Over the face: within the box's extent along the other two axes.
+            let over_face = face_axes
+                .iter()
+                .zip([face_half.x, face_half.y, face_half.z])
+                .filter(|(axis, _)| axis.dot(toward).abs() < 0.5)
+                .all(|(axis, half)| relative.dot(*axis).abs() <= half + FACE_SLACK_M);
+            if over_face {
+                corners.push(BoxCorner {
+                    on_first,
+                    corner,
+                    point_m: sample.center_m,
+                    normal: toward,
+                    gap_m,
+                });
+            }
+        }
+    }
+    corners
+}
+
 /// Signed distance and outward normal from a box centered at the origin.
 fn box_distance(local: Vec3, half: Vec3) -> Option<(f64, Vec3)> {
     let clamped = local.clamp(-half, half);
@@ -287,6 +411,40 @@ mod tests {
         assert!(samples
             .iter()
             .any(|sample| sample.center_m == Vec3::new(0.5, 1.5, 0.5)));
+    }
+
+    #[test]
+    fn box_box_finds_the_supporting_face_for_aligned_and_offset_stacks() {
+        let half = Vec3::new(0.2, 0.2, 0.1);
+        let lower = Transform3::from_translation_rotation(Vec3::new(0.0, 0.0, 0.1), Quat::IDENTITY);
+        // Same size, exactly aligned: four bottom corners of the upper box on
+        // the lower box's top face, and four top corners of the lower box
+        // under the upper box's bottom face.
+        let upper =
+            Transform3::from_translation_rotation(Vec3::new(0.0, 0.0, 0.302), Quat::IDENTITY);
+        let corners = box_box(half, &upper, half, &lower, 0.02);
+        assert_eq!(corners.len(), 8);
+        for corner in &corners {
+            assert!((corner.gap_m - 0.002).abs() < 1.0e-12);
+            let expected = if corner.on_first {
+                Vec3::Z
+            } else {
+                Vec3::NEG_Z
+            };
+            assert_eq!(corner.normal, expected);
+        }
+        // A small box on a big one: only its own corners touch.
+        let small = Vec3::new(0.05, 0.05, 0.05);
+        let on_top =
+            Transform3::from_translation_rotation(Vec3::new(0.1, 0.0, 0.25), Quat::IDENTITY);
+        let corners = box_box(small, &on_top, half, &lower, 0.02);
+        assert_eq!(corners.len(), 4);
+        assert!(corners
+            .iter()
+            .all(|corner| corner.on_first && corner.gap_m.abs() < 1.0e-12));
+        // Far apart: nothing.
+        let far = Transform3::from_translation_rotation(Vec3::new(0.0, 0.0, 1.0), Quat::IDENTITY);
+        assert!(box_box(half, &far, half, &lower, 0.02).is_empty());
     }
 
     #[test]

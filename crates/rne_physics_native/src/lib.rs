@@ -1,7 +1,7 @@
 //! Native articulated physics backend for Robot Native Engine.
 //!
 //! [`NativeBackend`] implements [`PhysicsBackend`] on top of
-//! [`rne_dynamics::contact_step`], the RaiSim-style hard-contact step: every
+//! [`rne_dynamics::contact_step_coupled`], the RaiSim-style hard-contact step: every
 //! tree of dynamic bodies joined by [`rne_physics::RevoluteJointDesc`],
 //! [`rne_physics::PrismaticJointDesc`], or [`rne_physics::FixedJointDesc`] is
 //! simulated as one reduced-coordinate articulated model (a lone dynamic body
@@ -17,13 +17,16 @@
 //!   their collider. A tree whose root joint attaches to a fixed or kinematic
 //!   body has a fixed base posed where that body stood when the tree was
 //!   built.
-//! - **Contacts.** Between the colliders of dynamic bodies and the colliders of
-//!   fixed or kinematic bodies. Moving colliders are sampled — spheres
-//!   exactly, capsules as a row of spheres, boxes and convex hulls by their
-//!   vertices — against static planes, boxes, spheres, capsules, and height
-//!   fields. Friction is the mean of the two materials' coefficients;
-//!   restitution is ignored (contacts are inelastic). Dynamic bodies do not
-//!   collide with each other.
+//! - **Contacts.** Moving colliders are sampled — spheres exactly, capsules as
+//!   a row of spheres, boxes and convex hulls by their vertices — against the
+//!   planes, boxes, spheres, capsules, and height fields of fixed and
+//!   kinematic bodies, and against the spheres, boxes, and capsules of other
+//!   dynamic bodies, including other links of the same robot (except the two
+//!   sides of a joint). [`rne_physics::CollisionGroups`] filter every pair.
+//!   Assemblies that touch are solved in one contact problem, as RaiSim solves
+//!   a world; the rest are solved one island each. Friction is the mean of
+//!   the two materials' coefficients; restitution is ignored (contacts are
+//!   inelastic).
 //! - **Actuation.** [`rne_physics::JointActuation`] position, velocity, and
 //!   effort commands become implicit PD gains or feed-forward forces with their
 //!   effort limits, the legacy [`rne_physics::JointMotor`] is read with
@@ -43,6 +46,7 @@
 
 mod assembly;
 mod collide;
+mod world_step;
 
 use assembly::{group_assemblies, Assembly, JointDesc};
 use collide::{sim_from_world, world_to_sim, StaticCollider};
@@ -57,6 +61,7 @@ use rne_physics::{
 };
 use rne_world::{world_transform_of, Transform3};
 use std::collections::{BTreeMap, HashMap};
+use world_step::{step_world, WarmKey};
 
 /// Capabilities of [`NativeBackend`], in [`PhysicsCapability::ALL`] order.
 const CAPABILITIES: &[PhysicsCapability] = &[
@@ -99,13 +104,15 @@ struct NativeWorld {
     assemblies: Vec<Assembly>,
     statics: Vec<StaticCollider>,
     contacts: Vec<ContactEvent>,
+    /// Contact impulses of the last step in contact frames, for warm starts.
+    warm: HashMap<WarmKey, [f64; 3]>,
     /// Assembly index of each simulated body entity.
     body_assembly: HashMap<Entity, usize>,
     last_dt_s: Option<f64>,
 }
 
 /// Physics backend that simulates articulated assemblies with
-/// [`rne_dynamics::contact_step`]. See the crate documentation.
+/// [`rne_dynamics::contact_step_coupled`]. See the crate documentation.
 #[derive(Debug, Default)]
 pub struct NativeBackend {
     config: NativeBackendConfig,
@@ -133,7 +140,7 @@ impl NativeBackend {
             "native",
             env!("CARGO_PKG_VERSION"),
             "rne_dynamics",
-            "contact_step_per_contact_bisection_v1",
+            "coupled_contact_step_per_contact_bisection_v2",
             CAPABILITIES.iter().copied(),
             PhysicsBackendRepeatability::SameRuntimeExact,
         )
@@ -165,6 +172,7 @@ impl NativeBackend {
 impl NativeWorld {
     fn rebuild(&mut self, world: &World, dynamic: &[Entity]) -> Result<(), PhysicsError> {
         let gravity = world_to_sim() * self.gravity_m_s2;
+        self.warm.clear();
         self.assemblies = group_assemblies(world, dynamic)
             .iter()
             .map(|members| Assembly::build(world, members, gravity))
@@ -278,6 +286,7 @@ impl PhysicsBackend for NativeBackend {
                 if changed {
                     assembly.load_state(world);
                     remember_ecs_state(assembly, world);
+                    state.warm.clear();
                 }
             }
         }
@@ -312,29 +321,38 @@ impl PhysicsBackend for NativeBackend {
             return Err(PhysicsError::InitializationFailed);
         }
         let state = self.world_mut(physics_world)?;
+        let records = step_world(
+            &mut state.assemblies,
+            &state.statics,
+            &mut state.warm,
+            &config.contact,
+            config.contact_margin_m,
+            dt_s,
+        )?;
         let mut events: BTreeMap<(u32, u32), ContactEvent> = BTreeMap::new();
         let to_world = world_to_sim().conjugate();
-        for assembly in &mut state.assemblies {
-            assembly.step(
-                &state.statics,
-                &config.contact,
-                config.contact_margin_m,
-                dt_s,
-            )?;
-            for record in &assembly.contacts {
-                if record.normal_impulse_n_s <= 0.0 && record.gap_m > 0.0 {
-                    continue;
-                }
-                let key = (record.body_entity.index(), record.static_entity.index());
-                let event = events.entry(key).or_insert(ContactEvent {
-                    entity_a: record.body_entity,
-                    entity_b: record.static_entity,
-                    // From the moving body (A) toward the static collider (B).
-                    normal: -(to_world * record.normal),
+        for record in &records {
+            if record.normal_impulse_n_s <= 0.0 && record.gap_m > 0.0 {
+                continue;
+            }
+            // One event per pair, A being the lower entity index. The record's
+            // normal points from the touched entity into the sampled body.
+            let normal = to_world * record.normal;
+            let (entity_a, entity_b, normal_a_to_b) =
+                if record.body_entity.index() <= record.other_entity.index() {
+                    (record.body_entity, record.other_entity, -normal)
+                } else {
+                    (record.other_entity, record.body_entity, normal)
+                };
+            let event = events
+                .entry((entity_a.index(), entity_b.index()))
+                .or_insert(ContactEvent {
+                    entity_a,
+                    entity_b,
+                    normal: normal_a_to_b,
                     impulse: 0.0,
                 });
-                event.impulse += record.normal_impulse_n_s.max(0.0) as f32;
-            }
+            event.impulse += record.normal_impulse_n_s.max(0.0) as f32;
         }
         state.contacts = events.into_values().collect();
         state.last_dt_s = Some(dt_s);

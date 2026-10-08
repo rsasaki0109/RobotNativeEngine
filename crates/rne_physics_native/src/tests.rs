@@ -1,6 +1,8 @@
 use super::*;
 use rne_math::{Hertz, Quat};
-use rne_physics::{JointActuation, PhysicsMaterial, RevoluteJointDesc};
+use rne_physics::{
+    CollisionGroups, FixedJointDesc, JointActuation, PhysicsMaterial, RevoluteJointDesc,
+};
 use rne_physics_conformance::{
     run_external_backend_conformance, ExternalPhysicsBackendCheckStatus,
     ExternalPhysicsBackendConformanceConfig, ExternalPhysicsBackendSubject,
@@ -97,16 +99,18 @@ fn a_box_rests_on_the_ground_and_reports_its_weight() {
         pose.translation.y
     );
     assert!((pose.rotation * Vec3::Y).y > 1.0 - 1.0e-6);
+    // One event per pair, A being the lower entity index (the floor).
     let event = backend
         .contacts(id)
         .expect("contacts")
         .iter()
-        .find(|event| event.entity_a == cube && event.entity_b == floor)
+        .find(|event| event.entity_a == floor && event.entity_b == cube)
         .copied()
         .expect("resting contact");
     let weight_impulse = 2.0 * 9.81 / 500.0;
     assert!((f64::from(event.impulse) - weight_impulse).abs() < 1.0e-3 * weight_impulse);
-    assert!((event.normal - Vec3::NEG_Y).length() < 1.0e-9);
+    // The normal points from A (the floor) to B (the cube).
+    assert!((event.normal - Vec3::Y).length() < 1.0e-9);
 }
 
 fn pendulum(world: &mut World, actuation: JointActuation) -> (Entity, Entity) {
@@ -338,4 +342,219 @@ fn the_backend_passes_external_conformance_for_its_capabilities() {
         "{}",
         report.to_json_pretty().expect("json")
     );
+}
+
+fn free_box(world: &mut World, half_m: Vec3, translation: Vec3) -> Entity {
+    world
+        .spawn((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(half_m),
+            Transform3::from_translation_rotation(translation, Quat::IDENTITY),
+        ))
+        .id()
+}
+
+#[test]
+fn a_stack_of_boxes_rests_and_each_contact_carries_the_weight_above_it() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let floor = ground(&mut world);
+    let half = Vec3::new(0.2, 0.1, 0.2);
+    let boxes: Vec<Entity> = (0..3)
+        .map(|level| {
+            free_box(
+                &mut world,
+                half,
+                Vec3::new(0.01 * level as f64, 0.1 + 0.205 * level as f64, 0.0),
+            )
+        })
+        .collect();
+    for _ in 0..1500 {
+        step(&mut backend, &mut world, id);
+    }
+    for (level, entity) in boxes.iter().enumerate() {
+        let pose = world.get::<Transform3>(*entity).expect("pose");
+        assert!(
+            (pose.translation.y - (0.1 + 0.2 * level as f64)).abs() < 1.0e-3,
+            "box {level} at {}",
+            pose.translation.y
+        );
+    }
+    let impulse = |a: Entity, b: Entity| {
+        backend
+            .contacts(id)
+            .expect("contacts")
+            .iter()
+            .find(|event| event.entity_a == a && event.entity_b == b)
+            .map(|event| f64::from(event.impulse))
+            .expect("contact event")
+    };
+    let weight = 9.81 / 500.0;
+    assert!((impulse(floor, boxes[0]) - 3.0 * weight).abs() < 1.0e-3 * weight);
+    assert!((impulse(boxes[0], boxes[1]) - 2.0 * weight).abs() < 1.0e-3 * weight);
+    assert!((impulse(boxes[1], boxes[2]) - weight).abs() < 1.0e-3 * weight);
+    // Separate bodies that touch are solved as one assembly island; the
+    // backend still reports one assembly per body.
+    assert_eq!(backend.assembly_count(id).expect("count"), 3);
+}
+
+#[test]
+fn colliding_bodies_exchange_momentum_inelastically() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            ..PhysicsWorldDesc::default()
+        })
+        .expect("world");
+    let mut world = World::new();
+    let slippery = PhysicsMaterial {
+        friction: 0.0,
+        ..PhysicsMaterial::default()
+    };
+    let ball = |world: &mut World, x: f64, velocity: f64| {
+        world
+            .spawn((
+                RigidBody {
+                    mass_kg: 1.0,
+                    linear_velocity_m_s: Vec3::new(velocity, 0.0, 0.0),
+                    ..RigidBody::default()
+                },
+                Collider {
+                    material: slippery,
+                    ..Collider::sphere(0.1)
+                },
+                Transform3::from_translation_rotation(Vec3::new(x, 1.0, 0.0), Quat::IDENTITY),
+            ))
+            .id()
+    };
+    let left = ball(&mut world, -0.5, 2.0);
+    let right = ball(&mut world, 0.5, 0.0);
+    for _ in 0..500 {
+        step(&mut backend, &mut world, id);
+    }
+    let velocity = |entity| {
+        world
+            .get::<RigidBody>(entity)
+            .expect("body")
+            .linear_velocity_m_s
+    };
+    // Equal masses stick together at half the incoming speed.
+    assert!(
+        (velocity(left) - Vec3::new(1.0, 0.0, 0.0)).length() < 1.0e-6,
+        "{}",
+        velocity(left)
+    );
+    assert!((velocity(right) - Vec3::new(1.0, 0.0, 0.0)).length() < 1.0e-6);
+    let gap = world.get::<Transform3>(right).expect("pose").translation.x
+        - world.get::<Transform3>(left).expect("pose").translation.x;
+    assert!((gap - 0.2).abs() < 1.0e-3, "{gap}");
+}
+
+/// A fixed plate, a welded arm, and a hinged flap that folds back toward the
+/// plate under a constant torque.
+fn folding_chain(world: &mut World, flap_groups: Option<CollisionGroups>) -> Entity {
+    let pivot = world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Transform3::default(),
+        ))
+        .id();
+    let welded = |world: &mut World, parent: Entity, half: Vec3, x: f64| {
+        world
+            .spawn((
+                RigidBody::default(),
+                Collider::cuboid(half),
+                Transform3::from_translation_rotation(Vec3::new(x, 0.0, 0.0), Quat::IDENTITY),
+                FixedJointDesc {
+                    parent,
+                    anchor_parent_m: Vec3::new(x, 0.0, 0.0),
+                    anchor_child_m: Vec3::ZERO,
+                    relative_rotation: Quat::IDENTITY,
+                },
+            ))
+            .id()
+    };
+    let plate = welded(world, pivot, Vec3::new(0.2, 0.08, 0.05), 0.2);
+    let arm = welded(world, plate, Vec3::new(0.2, 0.025, 0.05), 0.2);
+    let flap = world
+        .spawn((
+            RigidBody::default(),
+            Collider::cuboid(Vec3::new(0.3, 0.025, 0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.9, 0.0, 0.0), Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent: arm,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::new(0.2, 0.0, 0.0),
+                anchor_child_m: Vec3::new(-0.3, 0.0, 0.0),
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: Some(0.0),
+                upper_rad: Some(3.1),
+            },
+            JointActuation::RevoluteEffort {
+                effort_nm: 2.0,
+                max_effort_nm: 2.0,
+            },
+        ))
+        .id();
+    if let Some(groups) = flap_groups {
+        world.entity_mut(flap).insert(groups);
+    }
+    flap
+}
+
+#[test]
+fn a_robot_link_collides_with_a_non_adjacent_link_of_the_same_robot() {
+    let run = |groups| {
+        let mut backend = NativeBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                ..PhysicsWorldDesc::default()
+            })
+            .expect("world");
+        let mut world = World::new();
+        let flap = folding_chain(&mut world, groups);
+        for _ in 0..1500 {
+            step(&mut backend, &mut world, id);
+        }
+        assert_eq!(backend.assembly_count(id).expect("count"), 1);
+        backend.multibody_joint_state(id, flap).expect("joint").0
+    };
+    // The flap folds over the arm (its joint neighbor, never tested) until
+    // its underside meets the plate's far top edge at (0.4, 0.08) from the
+    // hinge at (0.6, 0): -0.2 sin θ - 0.08 cos θ = -0.025 (its half thickness).
+    let contact_angle = {
+        let residual = |angle: f64| 0.2 * angle.sin() + 0.08 * angle.cos() - 0.025;
+        let (mut low, mut high) = (2.0_f64, 3.0_f64);
+        for _ in 0..60 {
+            let middle = 0.5 * (low + high);
+            if residual(middle) > 0.0 {
+                low = middle;
+            } else {
+                high = middle;
+            }
+        }
+        low
+    };
+    let blocked = run(None);
+    assert!(
+        (blocked - contact_angle).abs() < 2.0e-3,
+        "{blocked} vs {contact_angle}"
+    );
+    // With the flap's collisions filtered out it folds to its limit.
+    let free = run(Some(CollisionGroups {
+        memberships: 2,
+        filter: 0,
+    }));
+    assert!((free - 3.1).abs() < 2.0e-3, "{free}");
 }

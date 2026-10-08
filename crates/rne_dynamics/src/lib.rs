@@ -42,9 +42,10 @@ pub use algorithms::{
     ContactSpec, DenseMatrix, LinkMotion, CONTACT_REGULARIZATION,
 };
 pub use contact::{
-    contact_frame, contact_step, integrate_configuration, solve_contact_impulses, ContactOutcome,
-    ContactPoint, ContactSolution, ContactSolverConfig, ContactState, ContactStep,
-    ContactStepConfig, JointLimitOutcome, JointLimitSide, JointPdControl,
+    contact_frame, contact_step, contact_step_coupled, integrate_configuration,
+    solve_contact_impulses, ContactAnchor, ContactOutcome, ContactPoint, ContactSolution,
+    ContactSolverConfig, ContactState, ContactStep, ContactStepConfig, CoupledBody, CoupledContact,
+    CoupledStep, JointLimitOutcome, JointLimitSide, JointPdControl,
 };
 pub use model::{ArticulatedModel, DynamicsError};
 pub use spatial::{SpatialInertia, SpatialVec};

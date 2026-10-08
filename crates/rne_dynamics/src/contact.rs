@@ -27,6 +27,10 @@
 //! Every routine here is a pure, deterministic function: contacts are visited
 //! in input order, no hash order participates, and no wall-clock time is read.
 
+mod coupled;
+
+pub use coupled::{contact_step_coupled, ContactAnchor, CoupledBody, CoupledContact, CoupledStep};
+
 use crate::algorithms::{
     mass_matrix_from_xup, point_linear_jacobian, rnea_from_xup, xup_transforms, DenseMatrix,
 };
@@ -2084,5 +2088,299 @@ mod tests {
         .expect("step");
         assert!(step.saturated_joints.is_empty());
         assert!((step.qd[0] / config.step_time_s - (100.0 - 9.81)).abs() < 1.0e-9);
+    }
+
+    fn world_anchor_contacts(contacts: &[ContactPoint]) -> Vec<CoupledContact> {
+        contacts
+            .iter()
+            .map(|contact| CoupledContact {
+                a: ContactAnchor {
+                    body: 0,
+                    link: contact.link,
+                    point_local_m: contact.point_local_m,
+                },
+                b: None,
+                normal_world: contact.normal_world,
+                gap_m: contact.gap_m,
+                friction_coefficient: contact.friction_coefficient,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn coupled_step_matches_contact_step_for_one_body() {
+        // A tilted box landing on the ground.
+        let (model, link) = box_model(Vec3::new(0.0, -9.81, 0.0));
+        let mut q = vec![0.0, HALF_EXTENTS_M[1] + 0.05, 0.0, 0.1, 0.2, -0.05];
+        let mut qd = vec![0.3, 0.0, -0.2, 0.0, 0.5, 0.0];
+        let config = ContactStepConfig::default();
+        for _ in 0..300 {
+            let contacts = box_contacts(&model, link, &q, 0.6);
+            let single = contact_step(&model, &q, &qd, &[0.0; 6], &contacts, None, &config, None)
+                .expect("step");
+            let body = CoupledBody {
+                model: &model,
+                q: &q,
+                qd: &qd,
+                tau: &[0.0; 6],
+                pd: None,
+            };
+            let coupled =
+                contact_step_coupled(&[body], &world_anchor_contacts(&contacts), &config, None)
+                    .expect("coupled");
+            for (a, b) in single
+                .q
+                .iter()
+                .zip(&coupled.bodies[0].q)
+                .chain(single.qd.iter().zip(&coupled.bodies[0].qd))
+            {
+                assert!((a - b).abs() < 1.0e-12, "{a} vs {b}");
+            }
+            for (a, b) in single.contacts.iter().zip(&coupled.contacts) {
+                assert!((a.impulse_world_n_s - b.impulse_world_n_s).length() < 1.0e-12);
+            }
+            q = single.q;
+            qd = single.qd;
+        }
+
+        // A stiff PD pendulum against its limit and its effort limit.
+        let model = effort_limited_pendulum(5.0);
+        let pd = JointPdControl {
+            position_gains: vec![400.0],
+            velocity_gains: vec![40.0],
+            target_positions: vec![0.0],
+            target_velocities: vec![0.0],
+            effort_limits: Vec::new(),
+        };
+        let (mut q, mut qd) = (vec![0.0], vec![0.0]);
+        for _ in 0..300 {
+            let single =
+                contact_step(&model, &q, &qd, &[0.0], &[], Some(&pd), &config, None).expect("step");
+            let body = CoupledBody {
+                model: &model,
+                q: &q,
+                qd: &qd,
+                tau: &[0.0],
+                pd: Some(&pd),
+            };
+            let coupled = contact_step_coupled(&[body], &[], &config, None).expect("coupled");
+            assert!((single.q[0] - coupled.bodies[0].q[0]).abs() < 1.0e-12);
+            assert_eq!(single.saturated_joints, coupled.bodies[0].saturated_joints);
+            assert_eq!(single.actuator_torques, coupled.bodies[0].actuator_torques);
+            q = single.q;
+            qd = single.qd;
+        }
+    }
+
+    /// Bottom corners of `upper` against the top face of `lower`.
+    fn stacked_contacts(
+        upper: (&ArticulatedModel, Entity, &[f64], usize),
+        lower: (&ArticulatedModel, Entity, &[f64], usize),
+        mu: f64,
+    ) -> Vec<CoupledContact> {
+        let pose = |model: &ArticulatedModel, q: &[f64]| {
+            model
+                .kinematic()
+                .forward_kinematics(q)
+                .expect("fk")
+                .transforms()[0]
+        };
+        let top = pose(upper.0, upper.2);
+        let bottom = pose(lower.0, lower.2);
+        let [hx, hy, hz] = HALF_EXTENTS_M;
+        [(-hx, -hz), (hx, -hz), (-hx, hz), (hx, hz)]
+            .into_iter()
+            .map(|(x, z)| {
+                let point_local_m = Vec3::new(x, -hy, z);
+                let world = top.translation + top.rotation * point_local_m;
+                let surface = bottom.translation.y + hy;
+                CoupledContact {
+                    a: ContactAnchor {
+                        body: upper.3,
+                        link: upper.1,
+                        point_local_m,
+                    },
+                    b: Some(ContactAnchor {
+                        body: lower.3,
+                        link: lower.1,
+                        point_local_m: bottom.rotation.conjugate()
+                            * (Vec3::new(world.x, surface, world.z) - bottom.translation),
+                    }),
+                    normal_world: Vec3::Y,
+                    gap_m: world.y - surface,
+                    friction_coefficient: mu,
+                }
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_stacked_box_rests_on_another_and_both_weights_reach_the_ground() {
+        let gravity = Vec3::new(0.0, -9.81, 0.0);
+        let (lower, lower_link) = box_model(gravity);
+        let (upper, upper_link) = box_model(gravity);
+        let hy = HALF_EXTENTS_M[1];
+        let mut q_lower = vec![0.0, hy, 0.0, 0.0, 0.0, 0.0];
+        let mut q_upper = vec![0.02, 3.0 * hy + 0.03, 0.01, 0.0, 0.3, 0.0];
+        let mut qd_lower = vec![0.0; 6];
+        let mut qd_upper = vec![0.0; 6];
+        let config = ContactStepConfig::default();
+        let mut last = None;
+        for _ in 0..1500 {
+            let mut contacts =
+                world_anchor_contacts(&box_contacts(&lower, lower_link, &q_lower, 0.8));
+            contacts.extend(stacked_contacts(
+                (&upper, upper_link, &q_upper, 1),
+                (&lower, lower_link, &q_lower, 0),
+                0.8,
+            ));
+            let bodies = [
+                CoupledBody {
+                    model: &lower,
+                    q: &q_lower,
+                    qd: &qd_lower,
+                    tau: &[0.0; 6],
+                    pd: None,
+                },
+                CoupledBody {
+                    model: &upper,
+                    q: &q_upper,
+                    qd: &qd_upper,
+                    tau: &[0.0; 6],
+                    pd: None,
+                },
+            ];
+            let step = contact_step_coupled(&bodies, &contacts, &config, None).expect("step");
+            q_lower.clone_from(&step.bodies[0].q);
+            qd_lower.clone_from(&step.bodies[0].qd);
+            q_upper.clone_from(&step.bodies[1].q);
+            qd_upper.clone_from(&step.bodies[1].qd);
+            last = Some(step);
+        }
+        let last = last.expect("stepped");
+        let dt = config.step_time_s;
+        let weight = BOX_MASS_KG * 9.81 * dt;
+        let ground: f64 = last.contacts[..4]
+            .iter()
+            .map(|c| c.impulse_world_n_s.y)
+            .sum();
+        let between: f64 = last.contacts[4..]
+            .iter()
+            .map(|c| c.impulse_world_n_s.y)
+            .sum();
+        assert!((ground - 2.0 * weight).abs() < 1.0e-6 * weight, "{ground}");
+        assert!((between - weight).abs() < 1.0e-6 * weight, "{between}");
+        assert!((q_upper[1] - 3.0 * hy).abs() < 1.0e-4, "{}", q_upper[1]);
+        assert!(qd_upper.iter().chain(&qd_lower).all(|v| v.abs() < 1.0e-6));
+    }
+
+    #[test]
+    fn a_frictionless_collision_between_bodies_conserves_momentum() {
+        // Two boxes in zero gravity meet face to face along X.
+        let (left, left_link) = box_model(Vec3::ZERO);
+        let (right, right_link) = box_model(Vec3::ZERO);
+        let hx = HALF_EXTENTS_M[0];
+        let mut q_left = vec![-hx - 0.01, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let mut q_right = vec![hx + 0.01, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let mut qd_left = vec![1.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let mut qd_right = vec![-0.5, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let config = ContactStepConfig::default();
+        for _ in 0..200 {
+            let x_left = q_left[0] + hx;
+            let x_right = q_right[0] - hx;
+            let face = [(0.0, -0.04), (0.0, 0.04), (0.04, 0.0), (-0.04, 0.0)];
+            let contacts: Vec<CoupledContact> = face
+                .iter()
+                .map(|(y, z)| CoupledContact {
+                    a: ContactAnchor {
+                        body: 1,
+                        link: right_link,
+                        point_local_m: Vec3::new(-hx, *y, *z),
+                    },
+                    b: Some(ContactAnchor {
+                        body: 0,
+                        link: left_link,
+                        point_local_m: Vec3::new(hx, *y, *z),
+                    }),
+                    normal_world: Vec3::X,
+                    gap_m: x_right - x_left,
+                    friction_coefficient: 0.0,
+                })
+                .collect();
+            let bodies = [
+                CoupledBody {
+                    model: &left,
+                    q: &q_left,
+                    qd: &qd_left,
+                    tau: &[0.0; 6],
+                    pd: None,
+                },
+                CoupledBody {
+                    model: &right,
+                    q: &q_right,
+                    qd: &qd_right,
+                    tau: &[0.0; 6],
+                    pd: None,
+                },
+            ];
+            let step = contact_step_coupled(&bodies, &contacts, &config, None).expect("step");
+            q_left.clone_from(&step.bodies[0].q);
+            qd_left.clone_from(&step.bodies[0].qd);
+            q_right.clone_from(&step.bodies[1].q);
+            qd_right.clone_from(&step.bodies[1].qd);
+        }
+        // Inelastic: they move together at the momentum-weighted velocity.
+        assert!((qd_left[0] - 0.25).abs() < 1.0e-9, "{qd_left:?}");
+        assert!((qd_right[0] - 0.25).abs() < 1.0e-9, "{qd_right:?}");
+        assert!(q_right[0] - q_left[0] > 2.0 * hx - 1.0e-4);
+    }
+
+    #[test]
+    fn a_self_contact_pushes_two_links_of_one_model_apart() {
+        // The pendulum bob's tip meets a floor fixed to the model's own base
+        // link 0.5 m below the pivot: a contact between two links of one model.
+        let model = pendulum_model();
+        let link = model.link_entity(1).expect("link");
+        let base = model.link_entity(0).expect("base");
+        let config = ContactStepConfig::default();
+        let tip_local = Vec3::new(1.0, 0.0, 0.0);
+        let floor_y = -0.5;
+        let (mut q, mut qd) = (vec![0.0], vec![0.0]);
+        for _ in 0..1000 {
+            let arm = model
+                .kinematic()
+                .forward_kinematics(&q)
+                .expect("fk")
+                .transforms()[1];
+            let tip = arm.translation + arm.rotation * tip_local;
+            let contacts = [CoupledContact {
+                a: ContactAnchor {
+                    body: 0,
+                    link,
+                    point_local_m: tip_local,
+                },
+                b: Some(ContactAnchor {
+                    body: 0,
+                    link: base,
+                    point_local_m: Vec3::new(tip.x, floor_y, tip.z),
+                }),
+                normal_world: Vec3::Y,
+                gap_m: tip.y - floor_y,
+                friction_coefficient: 0.0,
+            }];
+            let body = CoupledBody {
+                model: &model,
+                q: &q,
+                qd: &qd,
+                tau: &[0.0],
+                pd: None,
+            };
+            let step = contact_step_coupled(&[body], &contacts, &config, None).expect("step");
+            q.clone_from(&step.bodies[0].q);
+            qd.clone_from(&step.bodies[0].qd);
+        }
+        // The arm falls from level until its tip rests on the floor 0.5 m down.
+        assert!(((-q[0]).sin() - 0.5).abs() < 1.0e-4, "{}", q[0]);
+        assert!(qd[0].abs() < 1.0e-6);
     }
 }

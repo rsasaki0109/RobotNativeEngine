@@ -214,7 +214,9 @@ cargo run --release -p go2_parallel_rl --example 136_go2_parallel_rl
 
 Example 137 builds the Go2 the way the asset loader does and drives it through
 the backend-neutral `PhysicsBackend` loop on `rne_physics_native`, the native
-backend built on the same step, and on Rapier for comparison.
+backend built on the same step, and on Rapier for comparison. It then drops the
+Go2 onto a free crate beside a free tower of boxes, where the robot, the crate,
+the tower, and the ground share one contact solve.
 
 ```bash
 cargo run --release -p go2_native_backend --example 137_go2_native_backend
