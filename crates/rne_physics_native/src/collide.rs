@@ -148,126 +148,299 @@ impl StaticCollider {
 
 /// Lateral slack, in meters, within which a corner still counts as over a face.
 const FACE_SLACK_M: f64 = 1.0e-4;
+/// Extra separation, in meters, an edge-pair axis needs over the best face
+/// axis to be chosen, so resting faces keep their face contacts.
+const EDGE_AXIS_BIAS_M: f64 = 5.0e-4;
+/// Distance, in meters, below which two box contacts are one.
+const COINCIDENT_M: f64 = 1.0e-3;
+/// First feature index of an edge crossing on the separating faces.
+pub(crate) const CROSSING_FEATURES: usize = 8;
+/// First feature index of an edge-pair contact.
+pub(crate) const EDGE_FEATURES: usize = CROSSING_FEATURES + 16;
 
-/// A corner of one box against a face of the other, from [`box_box`].
+/// A contact between two boxes, from [`box_box`].
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct BoxCorner {
-    /// Whether the corner belongs to the first box.
+pub(crate) struct BoxContact {
+    /// Whether the contact point lies on the first box.
     pub on_first: bool,
-    /// Corner index, in [`collider_samples`] order.
-    pub corner: usize,
-    /// Corner position in the simulation frame.
+    /// A corner (below [`CROSSING_FEATURES`], in [`collider_samples`] order),
+    /// an edge crossing, or an edge pair (from [`EDGE_FEATURES`]).
+    pub feature: usize,
+    /// Contact point on its box, in the simulation frame.
     pub point_m: Vec3,
-    /// Unit normal from the face's box into the corner's box.
+    /// Unit normal from the other box into the point's box.
     pub normal: Vec3,
-    /// Signed distance from the face plane to the corner, in meters.
+    /// Signed distance from the other box's surface to the point, in meters.
     pub gap_m: f64,
 }
 
-/// Corner-on-face contacts between two boxes within `margin_m`.
+impl BoxContact {
+    fn midpoint(&self) -> Vec3 {
+        self.point_m - self.normal * (0.5 * self.gap_m)
+    }
+}
+
+/// A box in the simulation frame.
+#[derive(Clone, Copy)]
+struct OrientedBox {
+    center: Vec3,
+    axes: [Vec3; 3],
+    half: [f64; 3],
+}
+
+impl OrientedBox {
+    fn new(half: Vec3, pose: &Transform3) -> Self {
+        Self {
+            center: pose.translation,
+            axes: [
+                pose.rotation * Vec3::X,
+                pose.rotation * Vec3::Y,
+                pose.rotation * Vec3::Z,
+            ],
+            half: [half.x, half.y, half.z],
+        }
+    }
+
+    /// Half the box's extent along the unit `axis`.
+    fn radius(&self, axis: Vec3) -> f64 {
+        (0..3)
+            .map(|k| self.half[k] * self.axes[k].dot(axis).abs())
+            .sum()
+    }
+
+    /// The edge parallel to axis `k` farthest along `direction`.
+    fn support_edge(&self, k: usize, direction: Vec3) -> (Vec3, Vec3) {
+        let mut middle = self.center;
+        for m in (0..3).filter(|m| *m != k) {
+            middle += self.axes[m] * self.half[m] * self.axes[m].dot(direction).signum();
+        }
+        let along = self.axes[k] * self.half[k];
+        (middle - along, middle + along)
+    }
+
+    /// Corners of the face most along `direction`, in order around it.
+    fn face(&self, direction: Vec3) -> [Vec3; 4] {
+        let k = (0..3)
+            .max_by(|a, b| {
+                let a = self.axes[*a].dot(direction).abs();
+                let b = self.axes[*b].dot(direction).abs();
+                a.total_cmp(&b)
+            })
+            .unwrap_or(0);
+        let sign = self.axes[k].dot(direction).signum();
+        let middle = self.center + self.axes[k] * (sign * self.half[k]);
+        let (u, v) = ((k + 1) % 3, (k + 2) % 3);
+        let (u, v) = (self.axes[u] * self.half[u], self.axes[v] * self.half[v]);
+        [
+            middle + u + v,
+            middle - u + v,
+            middle - u - v,
+            middle + u - v,
+        ]
+    }
+}
+
+/// Contacts between two boxes within `margin_m`, by the separating-axis test.
 ///
-/// The face normal is the separating-axis candidate among the six face
-/// normals with the least penetration (or the largest separation). The corners
-/// of each box that lie over the other box's face along that axis become
-/// contacts, so a box resting on a larger or a smaller box, or on one of the
-/// same size, gets its support points; crossing edges with no corner over a
-/// face are not detected.
+/// The candidate axes are the six face normals and the nine edge-pair
+/// directions; the one with the least penetration (or the largest
+/// separation) wins, with face axes preferred within [`EDGE_AXIS_BIAS_M`].
+/// On a face axis the contacts are the corners of each box over the other
+/// box's face plus the crossings of the two facing faces' edges, so boxes
+/// stacked aligned, offset, or crosswise all get the corners of their
+/// overlap. On an edge-pair axis the contact is the closest points of the two
+/// edges.
 pub(crate) fn box_box(
     first_half: Vec3,
     first: &Transform3,
     second_half: Vec3,
     second: &Transform3,
     margin_m: f64,
-) -> Vec<BoxCorner> {
-    let axes = |pose: &Transform3| {
-        [
-            pose.rotation * Vec3::X,
-            pose.rotation * Vec3::Y,
-            pose.rotation * Vec3::Z,
-        ]
+) -> Vec<BoxContact> {
+    let (a, b) = (
+        OrientedBox::new(first_half, first),
+        OrientedBox::new(second_half, second),
+    );
+    let offset = a.center - b.center;
+    let separation = |axis: Vec3| {
+        let normal = if offset.dot(axis) >= 0.0 { axis } else { -axis };
+        (
+            offset.dot(normal) - a.radius(normal) - b.radius(normal),
+            normal,
+        )
     };
-    let (first_axes, second_axes) = (axes(first), axes(second));
-    let radius = |half: Vec3, box_axes: &[Vec3; 3], axis: Vec3| {
-        half.x * box_axes[0].dot(axis).abs()
-            + half.y * box_axes[1].dot(axis).abs()
-            + half.z * box_axes[2].dot(axis).abs()
-    };
-    let offset = first.translation - second.translation;
-    let mut best: Option<(f64, Vec3)> = None;
-    for axis in first_axes.iter().chain(&second_axes) {
-        let separation = offset.dot(*axis).abs()
-            - radius(first_half, &first_axes, *axis)
-            - radius(second_half, &second_axes, *axis);
-        if best.is_none_or(|(best_separation, _)| separation > best_separation + 1.0e-9) {
-            let normal = if offset.dot(*axis) >= 0.0 {
-                *axis
-            } else {
-                -*axis
-            };
-            best = Some((separation, normal));
+    let mut face: Option<(f64, Vec3)> = None;
+    for axis in a.axes.iter().chain(&b.axes) {
+        let (gap, normal) = separation(*axis);
+        if face.is_none_or(|(best, _)| gap > best + 1.0e-9) {
+            face = Some((gap, normal));
         }
     }
-    let Some((separation, normal)) = best else {
+    let Some((face_gap, face_normal)) = face else {
         return Vec::new();
     };
-    if separation > margin_m {
-        return Vec::new();
-    }
-    let mut corners = Vec::new();
-    // `normal` points from the second box into the first.
-    for (on_first, corner_half, corner_pose, face_half, face_pose, face_axes, toward) in [
-        (
-            true,
-            first_half,
-            first,
-            second_half,
-            second,
-            &second_axes,
-            normal,
-        ),
-        (
-            false,
-            second_half,
-            second,
-            first_half,
-            first,
-            &first_axes,
-            -normal,
-        ),
-    ] {
-        let face_offset = radius(face_half, face_axes, toward);
-        let mut samples = Vec::with_capacity(8);
-        collider_samples(
-            &ColliderShape::Cuboid {
-                half_extents_m: corner_half,
-            },
-            corner_pose,
-            &mut samples,
-        );
-        for (corner, sample) in samples.iter().enumerate() {
-            let relative = sample.center_m - face_pose.translation;
-            let gap_m = relative.dot(toward) - face_offset;
-            if gap_m > margin_m {
+    let mut edge: Option<(f64, Vec3, usize, usize)> = None;
+    for i in 0..3 {
+        for j in 0..3 {
+            let cross = a.axes[i].cross(b.axes[j]);
+            let length = cross.length();
+            // Parallel edges: the face axes already cover the pair.
+            if length < 1.0e-6 {
                 continue;
             }
-            // Over the face: within the box's extent along the other two axes.
-            let over_face = face_axes
-                .iter()
-                .zip([face_half.x, face_half.y, face_half.z])
-                .filter(|(axis, _)| axis.dot(toward).abs() < 0.5)
-                .all(|(axis, half)| relative.dot(*axis).abs() <= half + FACE_SLACK_M);
-            if over_face {
-                corners.push(BoxCorner {
-                    on_first,
-                    corner,
-                    point_m: sample.center_m,
-                    normal: toward,
-                    gap_m,
-                });
+            let (gap, normal) = separation(cross / length);
+            if edge.is_none_or(|(best, ..)| gap > best + 1.0e-9) {
+                edge = Some((gap, normal, i, j));
             }
         }
     }
-    corners
+    if face_gap > margin_m || edge.is_some_and(|(gap, ..)| gap > margin_m) {
+        return Vec::new();
+    }
+    if let Some((gap, normal, i, j)) = edge.filter(|(gap, ..)| *gap > face_gap + EDGE_AXIS_BIAS_M) {
+        return edge_pair(&a, &b, normal, (i, j), margin_m).map_or_else(Vec::new, |point_m| {
+            vec![BoxContact {
+                on_first: true,
+                feature: EDGE_FEATURES + 3 * i + j,
+                point_m,
+                normal,
+                gap_m: gap,
+            }]
+        });
+    }
+    let mut contacts = Vec::new();
+    // `face_normal` points from the second box into the first.
+    corners_over_face(
+        true,
+        (first_half, first),
+        &b,
+        face_normal,
+        margin_m,
+        &mut contacts,
+    );
+    corners_over_face(
+        false,
+        (second_half, second),
+        &a,
+        -face_normal,
+        margin_m,
+        &mut contacts,
+    );
+    let (a_face, b_face) = (a.face(-face_normal), b.face(face_normal));
+    for (i, j) in (0..4).flat_map(|i| (0..4).map(move |j| (i, j))) {
+        let Some((point_m, gap_m)) = crossing(
+            (a_face[i], a_face[(i + 1) % 4]),
+            (b_face[j], b_face[(j + 1) % 4]),
+            face_normal,
+        ) else {
+            continue;
+        };
+        let contact = BoxContact {
+            on_first: true,
+            feature: CROSSING_FEATURES + 4 * i + j,
+            point_m,
+            normal: face_normal,
+            gap_m,
+        };
+        if gap_m <= margin_m
+            && contacts.iter().all(|kept| {
+                kept.midpoint().distance_squared(contact.midpoint()) >= COINCIDENT_M * COINCIDENT_M
+            })
+        {
+            contacts.push(contact);
+        }
+    }
+    contacts
+}
+
+/// Appends the corners of the box `(half, pose)` that lie over `face_box`'s
+/// face toward `toward` (from the face's box into the corner's box) within
+/// `margin_m`.
+fn corners_over_face(
+    on_first: bool,
+    (corner_half, corner_pose): (Vec3, &Transform3),
+    face_box: &OrientedBox,
+    toward: Vec3,
+    margin_m: f64,
+    out: &mut Vec<BoxContact>,
+) {
+    let face_offset = face_box.radius(toward);
+    let mut samples = Vec::with_capacity(8);
+    collider_samples(
+        &ColliderShape::Cuboid {
+            half_extents_m: corner_half,
+        },
+        corner_pose,
+        &mut samples,
+    );
+    for (corner, sample) in samples.iter().enumerate() {
+        let relative = sample.center_m - face_box.center;
+        let gap_m = relative.dot(toward) - face_offset;
+        if gap_m > margin_m {
+            continue;
+        }
+        // Over the face: within the box's extent along the other two axes.
+        let over_face = face_box
+            .axes
+            .iter()
+            .zip(face_box.half)
+            .filter(|(axis, _)| axis.dot(toward).abs() < 0.5)
+            .all(|(axis, half)| relative.dot(*axis).abs() <= half + FACE_SLACK_M);
+        if over_face {
+            out.push(BoxContact {
+                on_first,
+                feature: corner,
+                point_m: sample.center_m,
+                normal: toward,
+                gap_m,
+            });
+        }
+    }
+}
+
+/// Where the edges `first` and `second` cross seen along `normal`: the point
+/// on `first` and its distance along `normal` from `second`.
+fn crossing(first: (Vec3, Vec3), second: (Vec3, Vec3), normal: Vec3) -> Option<(Vec3, f64)> {
+    let flat = |v: Vec3| v - normal * v.dot(normal);
+    let (r, s) = (flat(first.1 - first.0), flat(second.1 - second.0));
+    let cross = r.cross(s).dot(normal);
+    if cross.abs() <= 1.0e-9 * r.length() * s.length() {
+        return None;
+    }
+    let start = flat(second.0 - first.0);
+    let t = start.cross(s).dot(normal) / cross;
+    let w = start.cross(r).dot(normal) / cross;
+    if !(0.0..=1.0).contains(&t) || !(0.0..=1.0).contains(&w) {
+        return None;
+    }
+    let on_first = first.0 + (first.1 - first.0) * t;
+    let on_second = second.0 + (second.1 - second.0) * w;
+    Some((on_first, (on_first - on_second).dot(normal)))
+}
+
+/// The point of the first box's edge `i` closest to the second box's edge
+/// `j`, when both closest points lie inside their edges.
+fn edge_pair(
+    a: &OrientedBox,
+    b: &OrientedBox,
+    normal: Vec3,
+    (i, j): (usize, usize),
+    margin_m: f64,
+) -> Option<Vec3> {
+    let (p0, p1) = a.support_edge(i, -normal);
+    let (q0, q1) = b.support_edge(j, normal);
+    let (d1, d2, r) = (p1 - p0, q1 - q0, p0 - q0);
+    let (aa, bb, cc, dd, ee) = (d1.dot(d1), d1.dot(d2), d2.dot(d2), d1.dot(r), d2.dot(r));
+    let denominator = aa * cc - bb * bb;
+    if denominator <= 1.0e-12 * aa * cc {
+        return None;
+    }
+    let t = (bb * ee - cc * dd) / denominator;
+    let w = (aa * ee - bb * dd) / denominator;
+    let inside = |x: f64| (-1.0e-9..=1.0 + 1.0e-9).contains(&x);
+    let on_first = p0 + d1 * t;
+    (inside(t) && inside(w) && (on_first - (q0 + d2 * w)).dot(normal) <= margin_m)
+        .then_some(on_first)
 }
 
 /// Signed distance and outward normal from a box centered at the origin.
@@ -445,6 +618,63 @@ mod tests {
         // Far apart: nothing.
         let far = Transform3::from_translation_rotation(Vec3::new(0.0, 0.0, 1.0), Quat::IDENTITY);
         assert!(box_box(half, &far, half, &lower, 0.02).is_empty());
+    }
+
+    #[test]
+    fn box_box_finds_crossing_edges_of_boxes_stacked_crosswise() {
+        // A plank along x across a beam along y: no corner of either lies
+        // over the other's face, so the contacts are the four edge crossings.
+        let beam = Transform3::from_translation_rotation(Vec3::new(0.0, 0.0, 0.05), Quat::IDENTITY);
+        let plank =
+            Transform3::from_translation_rotation(Vec3::new(0.0, 0.0, 0.152), Quat::IDENTITY);
+        let contacts = box_box(
+            Vec3::new(0.5, 0.05, 0.05),
+            &plank,
+            Vec3::new(0.05, 0.5, 0.05),
+            &beam,
+            0.02,
+        );
+        assert_eq!(contacts.len(), 4);
+        for contact in &contacts {
+            assert!(contact.on_first);
+            assert!((CROSSING_FEATURES..EDGE_FEATURES).contains(&contact.feature));
+            assert_eq!(contact.normal, Vec3::Z);
+            assert!((contact.gap_m - 0.002).abs() < 1.0e-12);
+            assert!((contact.point_m.x.abs() - 0.05).abs() < 1.0e-12);
+            assert!((contact.point_m.y.abs() - 0.05).abs() < 1.0e-12);
+            assert!((contact.point_m.z - 0.102).abs() < 1.0e-12);
+        }
+    }
+
+    #[test]
+    fn box_box_finds_the_closest_points_of_two_crossed_edges() {
+        // A cube resting on its edge along x, under a cube balanced on its
+        // edge along y: the edges meet at one point, which no face test sees;
+        // the upper edge is offset along x, and its contact point sits over
+        // the lower ridge (y = 0).
+        let half = Vec3::splat(0.1);
+        let ridge = 0.1 * std::f64::consts::SQRT_2;
+        let lower = Transform3::from_translation_rotation(
+            Vec3::ZERO,
+            Quat::from_rotation_x(std::f64::consts::FRAC_PI_4),
+        );
+        let upper = Transform3::from_translation_rotation(
+            Vec3::new(0.01, -0.02, 2.0 * ridge + 0.003),
+            Quat::from_rotation_y(std::f64::consts::FRAC_PI_4),
+        );
+        let contacts = box_box(half, &upper, half, &lower, 0.02);
+        assert_eq!(contacts.len(), 1);
+        let contact = contacts[0];
+        assert!(contact.on_first && contact.feature >= EDGE_FEATURES);
+        assert!((contact.normal - Vec3::Z).length() < 1.0e-12);
+        assert!((contact.gap_m - 0.003).abs() < 1.0e-12);
+        assert!((contact.point_m - Vec3::new(0.01, 0.0, ridge + 0.003)).length() < 1.0e-12);
+        // Lifted clear of the margin: nothing.
+        let apart = Transform3::from_translation_rotation(
+            upper.translation + Vec3::new(0.0, 0.0, 0.05),
+            upper.rotation,
+        );
+        assert!(box_box(half, &apart, half, &lower, 0.02).is_empty());
     }
 
     #[test]

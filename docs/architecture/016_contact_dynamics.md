@@ -120,8 +120,10 @@ and which it deliberately does not.
     model), joint and effort limits work per model as in `contact_step`, and
     with one model and only world contacts the two agree to round-off.
     `NativeBackend` builds these contacts between moving bodies (samples
-    against spheres, capsules, and boxes; box pairs by their corners over the
-    separating face), between links of one robot that a joint does not join
+    against spheres, capsules, and boxes; box pairs by a full separating-axis
+    test over the 6 face and 9 edge-pair axes, with the corners and edge
+    crossings of the overlapping faces on a face axis and the closest points
+    of the two edges on an edge-pair axis), between links of one robot that a joint does not join
     directly, filters them with `CollisionGroups`, and solves each island of
     touching assemblies in one call.
 
@@ -261,7 +263,11 @@ self-contact between a pendulum and a floor on its own base. Unit tests in
 weight above each interface within 0.1 %, two balls colliding inelastically,
 and a hinged flap folding onto a non-adjacent link of its own chain and
 stopping at the analytic contact angle (and reaching its limit when its
-collision groups filter everything).
+collision groups filter everything). A plank laid crosswise on a beam, where
+no corner of either lies over the other's face, rests on the four edge
+crossings with the beam carrying its weight within 0.1 % (before the edge
+tests it fell through the beam), and two cubes balanced edge on edge meet at
+the closest points of their edges.
 
 `examples/137_go2_native_backend` builds the Go2 the way the asset loader does
 and drives it through `PhysicsBackend` on `NativeBackend` and on Rapier: on the
@@ -301,9 +307,9 @@ instructions per step, against 2.8 M originally.
 
 - Forward kinematics still visits every link, including welded ones, because
   contact points and sensors may sit on any link.
-- `NativeBackend`'s contacts come from samples: crossing box edges with no
-  corner over a face, and contacts against convex hulls, meshes, or
-  compounds on moving bodies, are not detected. URDF robots spawned without
+- `NativeBackend`'s contacts come from samples except between boxes:
+  contacts against convex hulls, meshes, or compounds on moving bodies are
+  not detected. URDF robots spawned without
   self-collision share one collision group and so do not collide with each
   other, as in the Rapier backend. Raycasts return no hits, and a kinematic
   body that moves is a moving obstacle for contacts but not a moving anchor

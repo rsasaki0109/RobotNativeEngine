@@ -22,7 +22,9 @@
 //!   planes, boxes, spheres, capsules, and height fields of fixed and
 //!   kinematic bodies, and against the spheres, boxes, and capsules of other
 //!   dynamic bodies, including other links of the same robot (except the two
-//!   sides of a joint). [`rne_physics::CollisionGroups`] filter every pair.
+//!   sides of a joint). A box against a box instead runs the full
+//!   separating-axis test, so crossing edges touch too.
+//!   [`rne_physics::CollisionGroups`] filter every pair.
 //!   Assemblies that touch are solved in one contact problem, as RaiSim solves
 //!   a world; the rest are solved one island each. Friction is the mean of
 //!   the two materials' coefficients; restitution is ignored (contacts are
