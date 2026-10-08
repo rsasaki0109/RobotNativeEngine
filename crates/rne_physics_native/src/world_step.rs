@@ -243,7 +243,7 @@ fn candidate(touch: Touch) -> Candidate {
 /// Feature index of a box corner found from the other box's side.
 const FACE_SIDE_FEATURES: usize = 1000;
 
-/// Box-on-box contacts between `first` (a box) and `second` (a box, or the
+/// Box-box contacts between `first` (a box) and `second` (a box, or the
 /// static world when `second_side` is `None`).
 #[allow(clippy::too_many_arguments)]
 fn push_box_box(
@@ -255,38 +255,38 @@ fn push_box_box(
 ) {
     let (first_side, first_half, first_pose) = first;
     let (second_side, second_entity, second_half, second_pose) = second;
-    for corner in box_box(first_half, &first_pose, second_half, &second_pose, margin_m) {
-        let touch = match (corner.on_first, second_side) {
+    for contact in box_box(first_half, &first_pose, second_half, &second_pose, margin_m) {
+        let touch = match (contact.on_first, second_side) {
             (true, _) => Touch {
                 a: first_side,
                 b: second_side,
                 other_entity: second_entity,
-                point_m: corner.point_m,
-                normal: corner.normal,
-                gap_m: corner.gap_m,
+                point_m: contact.point_m,
+                normal: contact.normal,
+                gap_m: contact.gap_m,
                 friction,
-                feature: corner.corner,
+                feature: contact.feature,
             },
             (false, Some(second_side)) => Touch {
                 a: second_side,
                 b: Some(first_side),
                 other_entity: first_side.entity,
-                point_m: corner.point_m,
-                normal: corner.normal,
-                gap_m: corner.gap_m,
+                point_m: contact.point_m,
+                normal: contact.normal,
+                gap_m: contact.gap_m,
                 friction,
-                feature: corner.corner,
+                feature: contact.feature,
             },
             // A static corner under the box's face: the face is pushed off it.
             (false, None) => Touch {
                 a: first_side,
                 b: None,
                 other_entity: second_entity,
-                point_m: corner.point_m - corner.normal * corner.gap_m,
-                normal: -corner.normal,
-                gap_m: corner.gap_m,
+                point_m: contact.point_m - contact.normal * contact.gap_m,
+                normal: -contact.normal,
+                gap_m: contact.gap_m,
                 friction,
-                feature: FACE_SIDE_FEATURES + corner.corner,
+                feature: FACE_SIDE_FEATURES + contact.feature,
             },
         };
         candidates.push(candidate(touch));

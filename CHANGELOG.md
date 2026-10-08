@@ -132,6 +132,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_physics_native`: box pairs now run the full separating-axis test,
+  including the nine edge-pair axes. Boxes stacked crosswise rest on the
+  crossings of their facing edges, where a plank across a beam used to fall
+  through it, and boxes meeting edge on edge touch at the closest points of
+  the two edges.
+
 - `rne_dynamics::contact_step_coupled` steps several articulated models in one
   contact solve, with contacts between models and between links of one model
   (self-collision); with one model it matches `contact_step` to round-off.

@@ -405,6 +405,54 @@ fn a_stack_of_boxes_rests_and_each_contact_carries_the_weight_above_it() {
 }
 
 #[test]
+fn a_plank_rests_crosswise_on_a_beam_through_their_crossing_edges() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let floor = ground(&mut world);
+    // No corner of the plank lies over the beam's top face, nor a corner of
+    // the beam under the plank's: only the crossing edges hold the plank.
+    let beam = free_box(
+        &mut world,
+        Vec3::new(0.05, 0.05, 0.5),
+        Vec3::new(0.0, 0.05, 0.0),
+    );
+    let plank = free_box(
+        &mut world,
+        Vec3::new(0.5, 0.05, 0.05),
+        Vec3::new(0.0, 0.155, 0.0),
+    );
+    for _ in 0..1000 {
+        step(&mut backend, &mut world, id);
+    }
+    let height = |entity: Entity| world.get::<Transform3>(entity).expect("pose").translation.y;
+    assert!(
+        (height(beam) - 0.05).abs() < 1.0e-3,
+        "beam at {}",
+        height(beam)
+    );
+    assert!(
+        (height(plank) - 0.15).abs() < 1.0e-3,
+        "plank at {}",
+        height(plank)
+    );
+    let impulse = |a: Entity, b: Entity| {
+        backend
+            .contacts(id)
+            .expect("contacts")
+            .iter()
+            .find(|event| event.entity_a == a && event.entity_b == b)
+            .map(|event| f64::from(event.impulse))
+            .expect("contact event")
+    };
+    let weight = 9.81 / 500.0;
+    assert!((impulse(floor, beam) - 2.0 * weight).abs() < 1.0e-3 * weight);
+    assert!((impulse(beam, plank) - weight).abs() < 1.0e-3 * weight);
+}
+
+#[test]
 fn colliding_bodies_exchange_momentum_inelastically() {
     let mut backend = NativeBackend::new();
     let id = backend
