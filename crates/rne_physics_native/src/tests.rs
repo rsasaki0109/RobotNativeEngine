@@ -1,7 +1,8 @@
 use super::*;
 use rne_math::{Hertz, Quat};
 use rne_physics::{
-    CollisionGroups, FixedJointDesc, JointActuation, PhysicsMaterial, RevoluteJointDesc,
+    CollisionGroups, CompoundPart, FixedJointDesc, JointActuation, PhysicsMaterial,
+    RevoluteJointDesc,
 };
 use rne_physics_conformance::{
     run_external_backend_conformance, ExternalPhysicsBackendCheckStatus,
@@ -508,6 +509,175 @@ fn raycasts_hit_fixed_and_moving_bodies_at_their_current_pose() {
         .expect("raycast batch");
     assert_eq!(batch[0], backend.raycast(id, down).expect("raycast"));
     assert_eq!(batch[1], backend.raycast(id, side).expect("raycast"));
+}
+
+/// A fixed collider of `shape` at `translation`.
+fn fixed_shape(world: &mut World, shape: ColliderShape, translation: Vec3) -> Entity {
+    world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape,
+                ..Collider::cuboid(Vec3::ONE)
+            },
+            Transform3::from_translation_rotation(translation, Quat::IDENTITY),
+        ))
+        .id()
+}
+
+/// A 10 x 10 m floor of two triangles facing up.
+fn mesh_floor() -> ColliderShape {
+    ColliderShape::TriMesh {
+        vertices: vec![
+            Vec3::new(-5.0, 0.0, -5.0),
+            Vec3::new(-5.0, 0.0, 5.0),
+            Vec3::new(5.0, 0.0, 5.0),
+            Vec3::new(5.0, 0.0, -5.0),
+        ]
+        .into(),
+        indices: vec![0, 1, 2, 0, 2, 3].into(),
+    }
+}
+
+/// A closed cube of side `2 * half_m` around its origin, wound outward.
+fn mesh_cube(half_m: f64) -> ColliderShape {
+    let vertices: Vec<Vec3> = (0..8)
+        .map(|corner| {
+            let sign = |bit: usize| if corner & bit == 0 { -half_m } else { half_m };
+            Vec3::new(sign(1), sign(2), sign(4))
+        })
+        .collect();
+    ColliderShape::TriMesh {
+        vertices: vertices.into(),
+        indices: vec![
+            0, 2, 1, 1, 2, 3, 4, 5, 6, 5, 7, 6, 0, 1, 4, 1, 5, 4, 2, 6, 3, 3, 6, 7, 0, 4, 2, 2, 4,
+            6, 1, 3, 5, 3, 7, 5,
+        ]
+        .into(),
+    }
+}
+
+fn free_ball(world: &mut World, radius_m: f64, translation: Vec3) -> Entity {
+    world
+        .spawn((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider::sphere(radius_m),
+            Transform3::from_translation_rotation(translation, Quat::IDENTITY),
+        ))
+        .id()
+}
+
+fn contact_impulse(backend: &NativeBackend, id: PhysicsWorldId, a: Entity, b: Entity) -> f64 {
+    backend
+        .contacts(id)
+        .expect("contacts")
+        .iter()
+        .filter(|event| event.entity_a == a && event.entity_b == b)
+        .map(|event| f64::from(event.impulse))
+        .sum()
+}
+
+#[test]
+fn bodies_rest_on_triangle_meshes() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let floor = fixed_shape(&mut world, mesh_floor(), Vec3::ZERO);
+    let block = fixed_shape(&mut world, mesh_cube(0.5), Vec3::new(2.0, 0.5, 0.0));
+    let crate_box = free_box(
+        &mut world,
+        Vec3::new(0.2, 0.1, 0.2),
+        Vec3::new(0.0, 0.15, 0.0),
+    );
+    let ball = free_ball(&mut world, 0.1, Vec3::new(2.3, 1.3, 0.2));
+    for _ in 0..1000 {
+        step(&mut backend, &mut world, id);
+    }
+    let height = |entity: Entity| world.get::<Transform3>(entity).expect("pose").translation.y;
+    assert!(
+        (height(crate_box) - 0.1).abs() < 1.0e-3,
+        "box at {}",
+        height(crate_box)
+    );
+    assert!(
+        (height(ball) - 1.1).abs() < 1.0e-3,
+        "ball at {}",
+        height(ball)
+    );
+    let weight = 9.81 / 500.0;
+    let (low, high) = if floor.index() < crate_box.index() {
+        (floor, crate_box)
+    } else {
+        (crate_box, floor)
+    };
+    assert!((contact_impulse(&backend, id, low, high) - weight).abs() < 1.0e-3 * weight);
+    assert!((contact_impulse(&backend, id, block, ball) - weight).abs() < 1.0e-3 * weight);
+    // Rays meet the meshes through their trees.
+    let hits = backend
+        .raycast(id, RaycastQuery::downward(Vec3::new(2.1, 3.0, -0.3), 5.0))
+        .expect("raycast");
+    assert_eq!(hits.len(), 2);
+    assert_eq!((hits[0].entity, hits[1].entity), (block, floor));
+    assert!((hits[0].distance_m - 2.0).abs() < 1.0e-9);
+    assert!((hits[0].normal - Vec3::Y).length() < 1.0e-9);
+}
+
+#[test]
+fn a_ball_rests_on_a_free_compound_table() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let floor = fixed_shape(&mut world, mesh_floor(), Vec3::ZERO);
+    let part = |half: Vec3, at: Vec3| CompoundPart {
+        shape: ColliderShape::Cuboid {
+            half_extents_m: half,
+        },
+        local_offset: Transform3::from_translation_rotation(at, Quat::IDENTITY),
+    };
+    let leg = Vec3::new(0.05, 0.225, 0.05);
+    let mut parts = vec![part(Vec3::new(0.5, 0.05, 0.5), Vec3::new(0.0, 0.5, 0.0))];
+    for (x, z) in [(0.4, 0.4), (-0.4, 0.4), (0.4, -0.4), (-0.4, -0.4)] {
+        parts.push(part(leg, Vec3::new(x, 0.225, z)));
+    }
+    let table = world
+        .spawn((
+            RigidBody {
+                mass_kg: 2.0,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape: ColliderShape::Compound {
+                    parts: parts.into(),
+                },
+                ..Collider::cuboid(Vec3::ONE)
+            },
+            Transform3::from_translation_rotation(Vec3::new(0.0, 0.002, 0.0), Quat::IDENTITY),
+        ))
+        .id();
+    let ball = free_ball(&mut world, 0.1, Vec3::new(0.1, 0.8, -0.2));
+    for _ in 0..1500 {
+        step(&mut backend, &mut world, id);
+    }
+    let height = |entity: Entity| world.get::<Transform3>(entity).expect("pose").translation.y;
+    assert!(height(table).abs() < 1.0e-3, "table at {}", height(table));
+    assert!(
+        (height(ball) - 0.65).abs() < 1.0e-3,
+        "ball at {}",
+        height(ball)
+    );
+    let weight = 9.81 / 500.0;
+    assert!((contact_impulse(&backend, id, floor, table) - 3.0 * weight).abs() < 1.0e-3 * weight);
+    assert!((contact_impulse(&backend, id, table, ball) - weight).abs() < 1.0e-3 * weight);
 }
 
 #[test]

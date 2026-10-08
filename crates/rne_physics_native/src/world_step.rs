@@ -53,13 +53,13 @@ pub(crate) fn step_world(
         .map(Assembly::sim_transforms)
         .collect::<Result<Vec<_>, _>>()?;
     let moving = moving_colliders(assemblies, &transforms);
-    let candidates = deduplicate(contact_candidates(
+    let candidates = reduce(deduplicate(contact_candidates(
         assemblies,
         &transforms,
         statics,
         &moving,
         margin_m,
-    ));
+    )));
 
     // Islands: assemblies joined by a contact between them.
     let mut parent: Vec<usize> = (0..assemblies.len()).collect();
@@ -173,6 +173,7 @@ fn moving_colliders(
                     shape: shape.clone(),
                     pose,
                     friction: body.friction,
+                    meshes: body.meshes.clone(),
                 },
                 groups: body.groups,
                 radius_m,
@@ -446,6 +447,89 @@ fn deduplicate(candidates: Vec<Candidate>) -> Vec<Candidate> {
         kept.push(candidate);
     }
     kept
+}
+
+/// Most contacts kept between two entities along one normal direction.
+const MAX_PATCH_CONTACTS: usize = 4;
+/// Smallest cosine between normals of one contact patch.
+const PATCH_NORMAL_COSINE: f64 = 0.95;
+
+/// Keeps at most [`MAX_PATCH_CONTACTS`] contacts per patch: contacts between
+/// the same two entities whose normals agree within
+/// [`PATCH_NORMAL_COSINE`]. A patch's deepest contact stays, with the three
+/// that span the widest support around it.
+///
+/// A table on four legs touches the floor at sixteen leg corners; the four
+/// outer ones carry it as well, and the twelve redundant contacts would only
+/// slow the per-contact solver.
+fn reduce(candidates: Vec<Candidate>) -> Vec<Candidate> {
+    // Patches as lists of candidate indices, in candidate order.
+    let mut patches: Vec<((u32, u32), Vec3, Vec<usize>)> = Vec::new();
+    for (index, candidate) in candidates.iter().enumerate() {
+        let (body, other) = (
+            candidate.record.body_entity.index(),
+            candidate.record.other_entity.index(),
+        );
+        // The normal as seen from the lower entity, whichever side sampled.
+        let normal = if body <= other {
+            candidate.contact.normal_world
+        } else {
+            -candidate.contact.normal_world
+        };
+        let pair = (body.min(other), body.max(other));
+        match patches
+            .iter_mut()
+            .find(|(key, first, _)| *key == pair && first.dot(normal) >= PATCH_NORMAL_COSINE)
+        {
+            Some((_, _, members)) => members.push(index),
+            None => patches.push((pair, normal, vec![index])),
+        }
+    }
+    let mut keep = vec![false; candidates.len()];
+    for (_, normal, members) in &patches {
+        for index in support(&candidates, *normal, members) {
+            keep[index] = true;
+        }
+    }
+    candidates
+        .into_iter()
+        .zip(keep)
+        .filter_map(|(candidate, kept)| kept.then_some(candidate))
+        .collect()
+}
+
+/// Up to [`MAX_PATCH_CONTACTS`] members of a patch with normal `normal`: the
+/// deepest, the one farthest from it, the one farthest to one side of the
+/// line through those two, and the one farthest to the other side.
+fn support(candidates: &[Candidate], normal: Vec3, members: &[usize]) -> Vec<usize> {
+    if members.len() <= MAX_PATCH_CONTACTS {
+        return members.to_vec();
+    }
+    let place = |index: usize| candidates[index].place_m;
+    let farthest = |score: &dyn Fn(usize) -> f64| {
+        members
+            .iter()
+            .copied()
+            .max_by(|a, b| score(*a).total_cmp(&score(*b)).then(b.cmp(a)))
+            .expect("a patch has members")
+    };
+    let deepest = farthest(&|index| -candidates[index].contact.gap_m);
+    let across = farthest(&|index| place(index).distance_squared(place(deepest)));
+    let side = |index: usize| {
+        (place(across) - place(deepest))
+            .cross(place(index) - place(deepest))
+            .dot(normal)
+    };
+    let left = farthest(&side);
+    let right = farthest(&|index| -side(index));
+    let mut chosen = vec![deepest, across];
+    for index in [left, right] {
+        if !chosen.contains(&index) {
+            chosen.push(index);
+        }
+    }
+    chosen.sort_unstable();
+    chosen
 }
 
 fn record(body_entity: Entity, other_entity: Entity, normal: Vec3, gap_m: f64) -> ContactRecord {

@@ -1,8 +1,11 @@
 //! Ray casts against the colliders of a native world.
 
+use crate::collide::find_tree;
+use crate::mesh::{ray_triangle, MeshTree};
 use rne_math::Vec3;
 use rne_physics::{height_field_surface, ColliderShape};
 use rne_world::Transform3;
+use std::sync::Arc;
 
 /// Directions with a smaller component than this are parallel to a slab or
 /// a plane.
@@ -19,6 +22,7 @@ const PARALLEL: f64 = 1.0e-12;
 pub(crate) fn cast(
     shape: &ColliderShape,
     pose: &Transform3,
+    meshes: &[Arc<MeshTree>],
     origin: Vec3,
     direction: Vec3,
     max_distance_m: f64,
@@ -39,7 +43,18 @@ pub(crate) fn cast(
             height_field(shape, local_origin, local_direction, max_distance_m)
         }
         ColliderShape::TriMesh { vertices, indices } => {
-            tri_mesh(vertices, indices, local_origin, local_direction)
+            match find_tree(meshes, vertices, indices) {
+                Some(tree) => tree.ray(local_origin, local_direction, max_distance_m),
+                None => tri_mesh(vertices, indices, local_origin, local_direction),
+            }
+            .map(|(t, normal)| {
+                let facing = if normal.dot(local_direction) > 0.0 {
+                    -normal
+                } else {
+                    normal
+                };
+                (t, facing)
+            })
         }
         ColliderShape::Compound { parts } => {
             return parts
@@ -48,6 +63,7 @@ pub(crate) fn cast(
                     cast(
                         &part.shape,
                         &pose.mul_transform(&part.local_offset),
+                        meshes,
                         origin,
                         direction,
                         max_distance_m,
@@ -276,46 +292,28 @@ fn first_root(first: f64, middle: f64, last: f64) -> Option<f64> {
         .min_by(f64::total_cmp)
 }
 
-/// Nearest triangle hit (Möller–Trumbore), from either side.
+/// Nearest triangle hit, without a tree: its distance and face normal.
 fn tri_mesh(
     vertices: &[Vec3],
     indices: &[u32],
     origin: Vec3,
     direction: Vec3,
 ) -> Option<(f64, Vec3)> {
-    let mut best: Option<(f64, Vec3)> = None;
-    for triangle in indices.chunks_exact(3) {
-        let corner = |index: u32| vertices.get(index as usize).copied();
-        let (Some(a), Some(b), Some(c)) = (
-            corner(triangle[0]),
-            corner(triangle[1]),
-            corner(triangle[2]),
-        ) else {
-            continue;
-        };
-        let (edge1, edge2) = (b - a, c - a);
-        let p = direction.cross(edge2);
-        let determinant = edge1.dot(p);
-        if determinant.abs() < PARALLEL * edge1.length() * edge2.length() {
-            continue;
-        }
-        let offset = origin - a;
-        let u = offset.dot(p) / determinant;
-        let q = offset.cross(edge1);
-        let v = direction.dot(q) / determinant;
-        let t = edge2.dot(q) / determinant;
-        if u < 0.0 || v < 0.0 || u + v > 1.0 || t < 0.0 || best.is_some_and(|(near, _)| t >= near) {
-            continue;
-        }
-        let Some(mut normal) = edge1.cross(edge2).try_normalize() else {
-            continue;
-        };
-        if normal.dot(direction) > 0.0 {
-            normal = -normal;
-        }
-        best = Some((t, normal));
-    }
-    best
+    indices
+        .chunks_exact(3)
+        .filter_map(|triangle| {
+            let corner = |index: u32| vertices.get(index as usize).copied();
+            let corners = [
+                corner(triangle[0])?,
+                corner(triangle[1])?,
+                corner(triangle[2])?,
+            ];
+            let normal = (corners[1] - corners[0])
+                .cross(corners[2] - corners[0])
+                .try_normalize()?;
+            Some((ray_triangle(origin, direction, &corners)?, normal))
+        })
+        .min_by(|a, b| a.0.total_cmp(&b.0))
 }
 
 #[cfg(test)]
@@ -329,7 +327,7 @@ mod tests {
     }
 
     fn down(shape: &ColliderShape, pose: &Transform3, origin: Vec3) -> Option<(f64, Vec3)> {
-        cast(shape, pose, origin, Vec3::NEG_Y, 100.0)
+        cast(shape, pose, &[], origin, Vec3::NEG_Y, 100.0)
     }
 
     #[test]
@@ -360,6 +358,7 @@ mod tests {
         let (t, normal) = cast(
             &capsule,
             &at(Vec3::ZERO),
+            &[],
             Vec3::new(2.0, 0.1, 0.0),
             Vec3::NEG_X,
             10.0,
@@ -379,12 +378,20 @@ mod tests {
         assert!((t - 1.5).abs() < 1.0e-12 && (normal - Vec3::Y).length() < 1.0e-12);
         assert!(down(&cuboid, &pose, Vec3::new(1.3, 2.0, 0.0)).is_none());
         // Beyond the maximum distance: nothing.
-        assert!(cast(&cuboid, &pose, Vec3::new(1.1, 2.0, 0.0), Vec3::NEG_Y, 1.4).is_none());
+        assert!(cast(
+            &cuboid,
+            &pose,
+            &[],
+            Vec3::new(1.1, 2.0, 0.0),
+            Vec3::NEG_Y,
+            1.4
+        )
+        .is_none());
 
         let plane = ColliderShape::Plane { normal: Vec3::Y };
         let (t, normal) = down(&plane, &at(Vec3::ZERO), Vec3::new(3.0, 2.0, 1.0)).expect("plane");
         assert!((t - 2.0).abs() < 1.0e-12 && normal == Vec3::Y);
-        assert!(cast(&plane, &at(Vec3::ZERO), Vec3::Y, Vec3::Y, 10.0).is_none());
+        assert!(cast(&plane, &at(Vec3::ZERO), &[], Vec3::Y, Vec3::Y, 10.0).is_none());
     }
 
     #[test]
@@ -403,6 +410,7 @@ mod tests {
         let (t, _) = cast(
             &field,
             &at(Vec3::ZERO),
+            &[],
             Vec3::new(-3.0, 0.6, 0.3),
             Vec3::X,
             10.0,
@@ -425,6 +433,7 @@ mod tests {
         let (_, normal) = cast(
             &mesh,
             &at(Vec3::ZERO),
+            &[],
             Vec3::new(0.0, -1.0, 0.0),
             Vec3::Y,
             5.0,
