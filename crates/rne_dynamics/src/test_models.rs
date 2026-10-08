@@ -81,6 +81,11 @@ pub(crate) fn branching_tree(floating: bool, seed: u64) -> ArticulatedModel {
         (5, JointKind::Revolute),
         (0, JointKind::Prismatic),
         (7, JointKind::Continuous),
+        // A welded chain off the base and a welded leaf, which the dynamics
+        // bodies fold into their moving ancestors.
+        (0, JointKind::Fixed),
+        (9, JointKind::Fixed),
+        (8, JointKind::Fixed),
     ];
     let mut links = vec![base];
     for (child, (parent, kind)) in layout.into_iter().enumerate() {

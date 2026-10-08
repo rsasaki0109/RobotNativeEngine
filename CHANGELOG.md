@@ -23,6 +23,13 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `rne_dynamics` merges links welded by fixed joints into their moving
+  ancestor's spatial inertia when a model is built, so `mass_matrix`, `rnea`,
+  `aba`, and `contact_step` recurse over moving bodies only (13 instead of 42
+  on the Go2), and `contact_step` factors the effective mass with
+  Featherstone's tree-sparse `LᵀL` factorization. Example 133 steps in about
+  9 µs instead of 15–17 µs, with identical output.
+
 - `rne_dynamics::contact_step` is about six times faster on the Go2 (about
   15 µs instead of 94 µs per step in a release build): forward kinematics runs
   once per step and feeds the mass matrix, bias forces, contact Jacobians, and

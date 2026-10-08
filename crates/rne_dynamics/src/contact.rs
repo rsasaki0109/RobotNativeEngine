@@ -599,7 +599,8 @@ pub fn contact_step(
             &mut generalized_force,
         )?;
     }
-    let factor = Cholesky::new(&effective_mass).ok_or(DynamicsError::SingularMassMatrix)?;
+    let factor = Cholesky::new(&effective_mass, model.dof_parents.as_deref())
+        .ok_or(DynamicsError::SingularMassMatrix)?;
 
     let impulse_rhs: Vec<f64> = generalized_force.iter().map(|force| force * dt).collect();
     let delta = factor.solve(&impulse_rhs);
@@ -1014,14 +1015,61 @@ pub fn contact_frame(normal_world: Vec3) -> [Vec3; 3] {
     [tangent_1, tangent_2, normal]
 }
 
-/// Dense Cholesky factor `A = L Lᵀ` of a symmetric positive definite matrix.
+/// Cholesky-type factor of the (effective) mass matrix.
+///
+/// With the coordinate tree `λ` known, the factor is Featherstone's `LᵀL`
+/// factorization, which produces no fill-in outside the branch-induced
+/// sparsity of a mass matrix, so both factoring and solving only walk each
+/// coordinate's ancestors. Without it, a dense `LLᵀ` factor is used.
 struct Cholesky {
     size: usize,
     lower: Vec<f64>,
+    parents: Option<Vec<Option<usize>>>,
 }
 
 impl Cholesky {
-    fn new(matrix: &DenseMatrix) -> Option<Self> {
+    fn new(matrix: &DenseMatrix, parents: Option<&[Option<usize>]>) -> Option<Self> {
+        match parents {
+            Some(parents) if parents.len() == matrix.rows() => Self::tree(matrix, parents),
+            _ => Self::dense(matrix),
+        }
+    }
+
+    /// `H = Lᵀ L` with `L` lower triangular, walking only ancestor chains
+    /// (Featherstone, Rigid Body Dynamics Algorithms, Table 6.3).
+    fn tree(matrix: &DenseMatrix, parents: &[Option<usize>]) -> Option<Self> {
+        let n = matrix.rows();
+        let mut h = matrix.data().to_vec();
+        for k in (0..n).rev() {
+            let diagonal = h[k * n + k];
+            if diagonal <= 0.0 || !diagonal.is_finite() {
+                return None;
+            }
+            let root = diagonal.sqrt();
+            h[k * n + k] = root;
+            let mut i = parents[k];
+            while let Some(row) = i {
+                h[k * n + row] /= root;
+                i = parents[row];
+            }
+            let mut i = parents[k];
+            while let Some(row) = i {
+                let mut j = Some(row);
+                while let Some(col) = j {
+                    h[row * n + col] -= h[k * n + row] * h[k * n + col];
+                    j = parents[col];
+                }
+                i = parents[row];
+            }
+        }
+        Some(Self {
+            size: n,
+            lower: h,
+            parents: Some(parents.to_vec()),
+        })
+    }
+
+    fn dense(matrix: &DenseMatrix) -> Option<Self> {
         let size = matrix.rows();
         let mut lower = vec![0.0; size * size];
         for row in 0..size {
@@ -1040,25 +1088,51 @@ impl Cholesky {
                 }
             }
         }
-        Some(Self { size, lower })
+        Some(Self {
+            size,
+            lower,
+            parents: None,
+        })
     }
 
     fn solve(&self, rhs: &[f64]) -> Vec<f64> {
         let n = self.size;
-        let mut y = rhs.to_vec();
+        let l = &self.lower;
+        let mut x = rhs.to_vec();
+        if let Some(parents) = &self.parents {
+            // Lᵀ y = b, leaves to root.
+            for i in (0..n).rev() {
+                x[i] /= l[i * n + i];
+                let mut j = parents[i];
+                while let Some(col) = j {
+                    x[col] -= l[i * n + col] * x[i];
+                    j = parents[col];
+                }
+            }
+            // L x = y, root to leaves.
+            for i in 0..n {
+                let mut j = parents[i];
+                while let Some(col) = j {
+                    x[i] -= l[i * n + col] * x[col];
+                    j = parents[col];
+                }
+                x[i] /= l[i * n + i];
+            }
+            return x;
+        }
         for row in 0..n {
             for k in 0..row {
-                y[row] -= self.lower[row * n + k] * y[k];
+                x[row] -= l[row * n + k] * x[k];
             }
-            y[row] /= self.lower[row * n + row];
+            x[row] /= l[row * n + row];
         }
         for row in (0..n).rev() {
             for k in (row + 1)..n {
-                y[row] -= self.lower[k * n + row] * y[k];
+                x[row] -= l[k * n + row] * x[k];
             }
-            y[row] /= self.lower[row * n + row];
+            x[row] /= l[row * n + row];
         }
-        y
+        x
     }
 }
 
@@ -1642,5 +1716,48 @@ mod tests {
         assert_eq!(model.joint_position_limits(0), None);
         let (box_model, _) = box_model(Vec3::ZERO);
         assert!((0..6).all(|dof| box_model.joint_position_limits(dof).is_none()));
+    }
+
+    #[test]
+    fn tree_factor_matches_the_dense_factor() {
+        use crate::test_models::{branching_tree, Lcg as TreeLcg};
+        for floating in [false, true] {
+            let model = branching_tree(floating, 17);
+            let parents = model
+                .dof_parents
+                .clone()
+                .expect("parents-first coordinates");
+            let mut rng = TreeLcg(41);
+            let nv = model.nv();
+            for _ in 0..10 {
+                let mut q: Vec<f64> = (0..nv).map(|_| rng.next()).collect();
+                if floating {
+                    q[4] *= 0.5;
+                }
+                let mut matrix = mass_matrix_from_q(&model, &q);
+                // Implicit PD only adds to the diagonal, which keeps the sparsity.
+                for dof in model.base_dof()..nv {
+                    matrix.set(dof, dof, matrix.get(dof, dof) + 0.3 * rng.next().abs());
+                }
+                let rhs: Vec<f64> = (0..nv).map(|_| rng.next()).collect();
+                let tree = Cholesky::new(&matrix, Some(&parents)).expect("tree factor");
+                assert!(tree.parents.is_some());
+                let dense = Cholesky::new(&matrix, None).expect("dense factor");
+                let fast = tree.solve(&rhs);
+                let reference = dense.solve(&rhs);
+                for (a, b) in fast.iter().zip(&reference) {
+                    assert!((a - b).abs() < 1.0e-9 * (1.0 + b.abs()), "{a} vs {b}");
+                }
+                // And it really solves the system.
+                let back = matrix.mul_vec(&fast);
+                for (a, b) in back.iter().zip(&rhs) {
+                    assert!((a - b).abs() < 1.0e-9, "{a} vs {b}");
+                }
+            }
+        }
+    }
+
+    fn mass_matrix_from_q(model: &ArticulatedModel, q: &[f64]) -> DenseMatrix {
+        crate::algorithms::mass_matrix(model, q).expect("mass matrix")
     }
 }

@@ -121,15 +121,35 @@ pub(crate) fn validate(
     Ok(())
 }
 
+/// Spatial inertias of the dynamics bodies (links merged across fixed joints).
 pub(crate) fn inertia_matrices(model: &ArticulatedModel) -> Vec<Mat6> {
-    model
-        .links
-        .iter()
-        .map(|link| link.inertia.matrix())
-        .collect()
+    model.bodies.iter().map(|body| body.inertia).collect()
 }
 
+/// Parent-to-child motion transforms of the dynamics bodies.
 pub(crate) fn xup_transforms(model: &ArticulatedModel, transforms: &[Transform3]) -> Vec<Mat6> {
+    let mut xup = vec![mat6_zero(); model.bodies.len()];
+    for (index, body) in model.bodies.iter().enumerate().skip(1) {
+        if let Some(parent) = body.parent {
+            let parent_frame = &transforms[model.bodies[parent].link];
+            let child_in_parent =
+                inverse_transform(parent_frame).mul_transform(&transforms[body.link]);
+            xup[index] = motion_transform(&inverse_transform(&child_in_parent));
+        }
+    }
+    xup
+}
+
+/// Velocity coordinate driving body `index`, if any.
+pub(crate) fn body_joint_dof(model: &ArticulatedModel, index: usize) -> Option<usize> {
+    if index == 0 {
+        return None;
+    }
+    model.bodies[index].dofs.first().copied()
+}
+
+/// Parent-to-child motion transforms of every kinematic link.
+fn link_xup_transforms(model: &ArticulatedModel, transforms: &[Transform3]) -> Vec<Mat6> {
     let mut xup = vec![mat6_zero(); model.link_count()];
     for index in 1..model.link_count() {
         if let Some(parent) = model.links[index].parent {
@@ -153,8 +173,8 @@ pub fn mass_matrix(model: &ArticulatedModel, q: &[f64]) -> Result<DenseMatrix, D
 pub(crate) fn mass_matrix_from_xup(model: &ArticulatedModel, xup: &[Mat6]) -> DenseMatrix {
     let mut composite = inertia_matrices(model);
 
-    for index in (1..model.link_count()).rev() {
-        if let Some(parent) = model.links[index].parent {
+    for index in (1..model.bodies.len()).rev() {
+        if let Some(parent) = model.bodies[index].parent {
             let transformed = mat6_mul(
                 &mat6_transpose(&xup[index]),
                 &mat6_mul(&composite[index], &xup[index]),
@@ -166,20 +186,20 @@ pub(crate) fn mass_matrix_from_xup(model: &ArticulatedModel, xup: &[Mat6]) -> De
     let nv = model.nv();
     let mut matrix = DenseMatrix::zeros(nv, nv);
     for dof in 0..nv {
-        let link = model.dofs[dof].link;
+        let body = model.dofs[dof].body;
         let column = model.dofs[dof].s;
-        let force = mat6_mul_vec(&composite[link], &column);
-        for &other in &model.link_dofs[link] {
+        let force = mat6_mul_vec(&composite[body], &column);
+        for &other in &model.bodies[body].dofs {
             let value = dot6(&model.dofs[other].s, &force);
             matrix.set(dof, other, value);
             matrix.set(other, dof, value);
         }
-        let mut current = link;
+        let mut current = body;
         let mut force = force;
-        while let Some(parent) = model.links[current].parent {
+        while let Some(parent) = model.bodies[current].parent {
             force = mat6_transpose_mul_vec(&xup[current], &force);
             current = parent;
-            for &other in &model.link_dofs[current] {
+            for &other in &model.bodies[current].dofs {
                 let value = dot6(&model.dofs[other].s, &force);
                 matrix.set(dof, other, value);
                 matrix.set(other, dof, value);
@@ -220,7 +240,7 @@ pub(crate) fn rnea_from_xup(
     qdd: &[f64],
 ) -> Vec<f64> {
     let inertia = inertia_matrices(model);
-    let link_count = model.link_count();
+    let link_count = model.bodies.len();
 
     let base_rotation = crate::spatial::rotation_matrix(transforms[0].rotation);
     let gravity_body = crate::spatial::mat3_mul_vec(
@@ -244,20 +264,18 @@ pub(crate) fn rnea_from_xup(
     }
 
     for index in 1..link_count {
-        let parent = model.links[index]
+        let parent = model.bodies[index]
             .parent
-            .expect("non-root link has a parent");
+            .expect("non-root body has a parent");
         let mut link_velocity = mat6_mul_vec(&xup[index], &velocity[parent]);
         let mut link_acceleration = mat6_mul_vec(&xup[index], &acceleration[parent]);
-        if let Some(joint) = &model.links[index].joint {
-            if let Some(dof) = joint.dof {
-                let subspace = model.dofs[dof].s;
-                let joint_velocity = scale6(&subspace, qd[dof]);
-                let joint_acceleration = scale6(&subspace, qdd[dof]);
-                link_velocity = add6(&link_velocity, &joint_velocity);
-                let bias = cross_motion(&link_velocity, &joint_velocity);
-                link_acceleration = add6(&add6(&link_acceleration, &joint_acceleration), &bias);
-            }
+        if let Some(dof) = body_joint_dof(model, index) {
+            let subspace = model.dofs[dof].s;
+            let joint_velocity = scale6(&subspace, qd[dof]);
+            let joint_acceleration = scale6(&subspace, qdd[dof]);
+            link_velocity = add6(&link_velocity, &joint_velocity);
+            let bias = cross_motion(&link_velocity, &joint_velocity);
+            link_acceleration = add6(&add6(&link_acceleration, &joint_acceleration), &bias);
         }
         velocity[index] = link_velocity;
         acceleration[index] = link_acceleration;
@@ -274,10 +292,10 @@ pub(crate) fn rnea_from_xup(
             ),
             &transmitted[index],
         );
-        for &dof in &model.link_dofs[index] {
+        for &dof in &model.bodies[index].dofs {
             tau[dof] = dot6(&model.dofs[dof].s, &force);
         }
-        if let Some(parent) = model.links[index].parent {
+        if let Some(parent) = model.bodies[index].parent {
             transmitted[parent] = add6(
                 &transmitted[parent],
                 &mat6_transpose_mul_vec(&xup[index], &force),
@@ -561,7 +579,7 @@ pub fn link_motions(
 
     let kinematics = model.kinematic.forward_kinematics(q)?;
     let transforms = kinematics.transforms();
-    let xup = xup_transforms(model, transforms);
+    let xup = link_xup_transforms(model, transforms);
     let link_count = model.link_count();
 
     let mut velocity: Vec<SpatialVec> = vec![[0.0; 6]; link_count];
@@ -1235,6 +1253,135 @@ mod tests {
                             );
                         }
                     }
+                }
+            }
+        }
+    }
+
+    /// Link-by-link CRBA and RNEA without merging welded links, kept as an
+    /// independent reference for the merged dynamics bodies.
+    fn unmerged_reference(
+        model: &ArticulatedModel,
+        q: &[f64],
+        qd: &[f64],
+        qdd: &[f64],
+    ) -> (DenseMatrix, Vec<f64>) {
+        let kinematics = model.kinematic.forward_kinematics(q).expect("fk");
+        let transforms = kinematics.transforms();
+        let xup = link_xup_transforms(model, transforms);
+        let inertia: Vec<Mat6> = model.links.iter().map(|l| l.inertia.matrix()).collect();
+        let n = model.link_count();
+        let nv = model.nv();
+
+        let mut composite = inertia.clone();
+        for index in (1..n).rev() {
+            let parent = model.links[index].parent.expect("parent");
+            let moved = mat6_mul(
+                &mat6_transpose(&xup[index]),
+                &mat6_mul(&composite[index], &xup[index]),
+            );
+            composite[parent] = mat6_add(&composite[parent], &moved);
+        }
+        let mut matrix = DenseMatrix::zeros(nv, nv);
+        for dof in 0..nv {
+            let link = model.dofs[dof].link;
+            let mut force = mat6_mul_vec(&composite[link], &model.dofs[dof].s);
+            let mut current = link;
+            loop {
+                for &other in &model.link_dofs[current] {
+                    let value = dot6(&model.dofs[other].s, &force);
+                    matrix.set(dof, other, value);
+                    matrix.set(other, dof, value);
+                }
+                let Some(parent) = model.links[current].parent else {
+                    break;
+                };
+                force = mat6_transpose_mul_vec(&xup[current], &force);
+                current = parent;
+            }
+        }
+
+        let rotation = crate::spatial::rotation_matrix(transforms[0].rotation);
+        let gravity = crate::spatial::mat3_mul_vec(
+            &crate::spatial::mat3_transpose(&rotation),
+            model.gravity_m_s2,
+        );
+        let mut velocity = vec![[0.0; 6]; n];
+        let mut acceleration = vec![[0.0; 6]; n];
+        if model.base_dof() == 6 {
+            velocity[0].copy_from_slice(&qd[..6]);
+            acceleration[0].copy_from_slice(&qdd[..6]);
+        }
+        for k in 0..3 {
+            acceleration[0][k] -= gravity[k];
+        }
+        for index in 1..n {
+            let parent = model.links[index].parent.expect("parent");
+            let mut v = mat6_mul_vec(&xup[index], &velocity[parent]);
+            let mut a = mat6_mul_vec(&xup[index], &acceleration[parent]);
+            if let Some(&dof) = model.link_dofs[index].first() {
+                let joint_velocity = scale6(&model.dofs[dof].s, qd[dof]);
+                v = add6(&v, &joint_velocity);
+                a = add6(
+                    &add6(&a, &scale6(&model.dofs[dof].s, qdd[dof])),
+                    &cross_motion(&v, &joint_velocity),
+                );
+            }
+            velocity[index] = v;
+            acceleration[index] = a;
+        }
+        let mut transmitted = vec![[0.0; 6]; n];
+        let mut tau = vec![0.0; nv];
+        for index in (0..n).rev() {
+            let momentum = mat6_mul_vec(&inertia[index], &velocity[index]);
+            let force = add6(
+                &add6(
+                    &mat6_mul_vec(&inertia[index], &acceleration[index]),
+                    &cross_force(&velocity[index], &momentum),
+                ),
+                &transmitted[index],
+            );
+            for &dof in &model.link_dofs[index] {
+                tau[dof] = dot6(&model.dofs[dof].s, &force);
+            }
+            if let Some(parent) = model.links[index].parent {
+                transmitted[parent] = add6(
+                    &transmitted[parent],
+                    &mat6_transpose_mul_vec(&xup[index], &force),
+                );
+            }
+        }
+        (matrix, tau)
+    }
+
+    #[test]
+    fn merged_bodies_match_link_by_link_dynamics() {
+        use crate::test_models::{branching_tree, Lcg};
+        for floating in [false, true] {
+            let model = branching_tree(floating, 13);
+            // Four of the eleven non-root links are welded.
+            assert_eq!(model.bodies.len(), model.link_count() - 4);
+            let mut rng = Lcg(31);
+            let nv = model.nv();
+            for _ in 0..10 {
+                let mut q: Vec<f64> = (0..nv).map(|_| rng.next()).collect();
+                if floating {
+                    q[4] *= 0.5;
+                }
+                let qd: Vec<f64> = (0..nv).map(|_| 2.0 * rng.next()).collect();
+                let qdd: Vec<f64> = (0..nv).map(|_| 3.0 * rng.next()).collect();
+                let (reference_mass, reference_tau) = unmerged_reference(&model, &q, &qd, &qdd);
+                let merged_mass = mass_matrix(&model, &q).expect("mass");
+                let merged_tau = rnea(&model, &q, &qd, &qdd).expect("rnea");
+                for row in 0..nv {
+                    for col in 0..nv {
+                        assert_relative_eq!(
+                            merged_mass.get(row, col),
+                            reference_mass.get(row, col),
+                            epsilon = 1.0e-10
+                        );
+                    }
+                    assert_relative_eq!(merged_tau[row], reference_tau[row], epsilon = 1.0e-9);
                 }
             }
         }
