@@ -1896,6 +1896,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "go2_terrain_trot"
+version = "0.4.0"
+dependencies = [
+ "rne_dynamics",
+ "rne_ecs",
+ "rne_math",
+ "rne_physics",
+ "rne_robot",
+ "rne_urdf_import",
+ "rne_world",
+]
+
+[[package]]
 name = "go2_torque_policy"
 version = "0.4.0"
 dependencies = [

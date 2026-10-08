@@ -39,6 +39,12 @@ use rne_world::Transform3;
 /// Number of evenly spaced angles sampled to bracket the sliding direction.
 const SLIDING_BRACKET_SAMPLES: usize = 32;
 
+/// Re-solves allowed per step while joints newly reach their effort limit.
+const MAX_EFFORT_PASSES: usize = 4;
+
+/// Relative slack before an actuator torque counts as over its effort limit.
+const EFFORT_TOLERANCE: f64 = 1.0e-9;
+
 /// Distance to a joint limit, in the joint's units, inside which the limit
 /// always takes part in a step.
 const LIMIT_ACTIVATION_MARGIN: f64 = 1.0e-3;
@@ -462,6 +468,9 @@ pub struct ContactStepConfig {
     /// Whether bounded revolute and prismatic joints stop at their position
     /// limits ([`ArticulatedModel::joint_position_limits`]).
     pub enforce_joint_limits: bool,
+    /// Whether actuator torque (feed-forward plus PD) is clamped to each
+    /// joint's effort limit ([`ArticulatedModel::joint_effort_limit`]).
+    pub enforce_effort_limits: bool,
 }
 
 impl Default for ContactStepConfig {
@@ -471,6 +480,7 @@ impl Default for ContactStepConfig {
             penetration_recovery: 0.2,
             solver: ContactSolverConfig::default(),
             enforce_joint_limits: true,
+            enforce_effort_limits: true,
         }
     }
 }
@@ -517,6 +527,13 @@ pub struct ContactStep {
     pub contacts: Vec<ContactOutcome>,
     /// Joint limits that carried an impulse, in ascending coordinate order.
     pub joint_limits: Vec<JointLimitOutcome>,
+    /// Actuator torque applied to each actuated joint over the step
+    /// (feed-forward plus implicit PD, after effort clamping), in N·m or N.
+    /// Entries follow the velocity coordinates after the floating base.
+    pub actuator_torques: Vec<f64>,
+    /// Actuated joint indices (into `actuator_torques`) held at their effort
+    /// limit this step.
+    pub saturated_joints: Vec<usize>,
     /// Sweeps used by the contact solver.
     pub solver_iterations: usize,
     /// Whether the contact solver converged within its sweep budget.
@@ -576,18 +593,130 @@ pub fn contact_step(
         ));
     }
 
+    if let Some(pd) = pd {
+        validate_pd(model, pd)?;
+    }
+
     // One forward-kinematics pass serves the mass matrix, the bias forces, the
     // contact Jacobians, and the base integration of this step.
     let kinematics = model.kinematic.forward_kinematics(q)?;
     let transforms = kinematics.transforms();
     let xup = xup_transforms(model, transforms);
-    let mut effective_mass = mass_matrix_from_xup(model, &xup);
+    let mass = mass_matrix_from_xup(model, &xup);
     let bias = rnea_from_xup(model, transforms, &xup, qd, &vec![0.0; nv]);
+    let frame = StepFrame {
+        transforms,
+        mass: &mass,
+        bias: &bias,
+    };
+
+    // Joints whose actuator torque would exceed the effort limit are held at
+    // the limit (with their PD taken out of the implicit solve) and the step
+    // is solved again; a few passes settle which joints saturate.
+    let actuated = nv - model.base_dof();
+    let mut held: Vec<Option<f64>> = vec![None; actuated];
+    let mut pass = 0;
+    loop {
+        let mut step = step_with_actuation(
+            model,
+            q,
+            qd,
+            tau,
+            contacts,
+            pd,
+            &held,
+            config,
+            warm_start_n_s,
+            &frame,
+        )?;
+        let torques = actuator_torques(model, q, tau, pd, &held, dt, &step.qd);
+        let mut changed = false;
+        if config.enforce_effort_limits && pass < MAX_EFFORT_PASSES {
+            for (joint, torque) in torques.iter().enumerate() {
+                if held[joint].is_some() {
+                    continue;
+                }
+                if let Some(limit) = model.joint_effort_limit(model.base_dof() + joint) {
+                    if torque.abs() > limit * (1.0 + EFFORT_TOLERANCE) {
+                        held[joint] = Some(torque.clamp(-limit, limit));
+                        changed = true;
+                    }
+                }
+            }
+        }
+        if !changed {
+            step.actuator_torques = torques;
+            step.saturated_joints = (0..actuated).filter(|&j| held[j].is_some()).collect();
+            return Ok(step);
+        }
+        pass += 1;
+    }
+}
+
+/// Quantities of a step that do not depend on the actuator torques.
+struct StepFrame<'a> {
+    transforms: &'a [Transform3],
+    mass: &'a DenseMatrix,
+    bias: &'a [f64],
+}
+
+/// Actuator torque of each actuated joint at the end of a step.
+#[allow(clippy::too_many_arguments)]
+fn actuator_torques(
+    model: &ArticulatedModel,
+    q: &[f64],
+    tau: &[f64],
+    pd: Option<&JointPdControl>,
+    held: &[Option<f64>],
+    dt: f64,
+    next_velocity: &[f64],
+) -> Vec<f64> {
+    let base = model.base_dof();
+    held.iter()
+        .enumerate()
+        .map(|(joint, held)| {
+            if let Some(torque) = held {
+                return *torque;
+            }
+            let dof = base + joint;
+            let feedback = pd.map_or(0.0, |pd| {
+                let next_position = q[dof] + dt * next_velocity[dof];
+                pd.position_gains[joint] * (pd.target_positions[joint] - next_position)
+                    + pd.velocity_gains[joint] * (pd.target_velocities[joint] - next_velocity[dof])
+            });
+            tau[dof] + feedback
+        })
+        .collect()
+}
+
+/// One semi-implicit solve with some joints held at a fixed actuator torque.
+#[allow(clippy::too_many_arguments)]
+fn step_with_actuation(
+    model: &ArticulatedModel,
+    q: &[f64],
+    qd: &[f64],
+    tau: &[f64],
+    contacts: &[ContactPoint],
+    pd: Option<&JointPdControl>,
+    held: &[Option<f64>],
+    config: &ContactStepConfig,
+    warm_start_n_s: Option<&[[f64; 3]]>,
+    frame: &StepFrame<'_>,
+) -> Result<ContactStep, DynamicsError> {
+    let base = model.base_dof();
+    let dt = config.step_time_s;
+    let transforms = frame.transforms;
+    let mut effective_mass = frame.mass.clone();
     let mut generalized_force: Vec<f64> = tau
         .iter()
-        .zip(&bias)
+        .zip(frame.bias)
         .map(|(effort, bias)| effort - bias)
         .collect();
+    for (joint, torque) in held.iter().enumerate() {
+        if let Some(torque) = torque {
+            generalized_force[base + joint] = torque - frame.bias[base + joint];
+        }
+    }
     if let Some(pd) = pd {
         fold_implicit_pd(
             model,
@@ -595,9 +724,10 @@ pub fn contact_step(
             qd,
             dt,
             pd,
+            held,
             &mut effective_mass,
             &mut generalized_force,
-        )?;
+        );
     }
     let factor = Cholesky::new(&effective_mass, model.dof_parents.as_deref())
         .ok_or(DynamicsError::SingularMassMatrix)?;
@@ -698,6 +828,8 @@ pub fn contact_step(
         qd: next_velocity,
         contacts: outcomes,
         joint_limits,
+        actuator_torques: Vec::new(),
+        saturated_joints: Vec::new(),
         solver_iterations: solution.iterations,
         solver_converged: solution.converged,
     })
@@ -817,18 +949,9 @@ fn active_joint_limits(
     rows
 }
 
-/// Folds implicit joint PD into the effective mass and generalized force.
-fn fold_implicit_pd(
-    model: &ArticulatedModel,
-    q: &[f64],
-    qd: &[f64],
-    dt: f64,
-    pd: &JointPdControl,
-    effective_mass: &mut DenseMatrix,
-    generalized_force: &mut [f64],
-) -> Result<(), DynamicsError> {
-    let base = model.base_dof();
-    let actuated = model.nv() - base;
+/// Checks PD vector lengths, finiteness, and gain signs.
+fn validate_pd(model: &ArticulatedModel, pd: &JointPdControl) -> Result<(), DynamicsError> {
+    let actuated = model.nv() - model.base_dof();
     for values in [
         &pd.position_gains,
         &pd.velocity_gains,
@@ -845,14 +968,39 @@ fn fold_implicit_pd(
             return Err(DynamicsError::NonFiniteInput);
         }
     }
-    for joint in 0..actuated {
+    if pd
+        .position_gains
+        .iter()
+        .chain(&pd.velocity_gains)
+        .any(|gain| *gain < 0.0)
+    {
+        return Err(DynamicsError::InvalidContact(
+            "PD gains must be non-negative",
+        ));
+    }
+    Ok(())
+}
+
+/// Folds implicit joint PD into the effective mass and generalized force,
+/// skipping joints held at a fixed actuator torque.
+#[allow(clippy::too_many_arguments)]
+fn fold_implicit_pd(
+    model: &ArticulatedModel,
+    q: &[f64],
+    qd: &[f64],
+    dt: f64,
+    pd: &JointPdControl,
+    held: &[Option<f64>],
+    effective_mass: &mut DenseMatrix,
+    generalized_force: &mut [f64],
+) {
+    let base = model.base_dof();
+    for (joint, held) in held.iter().enumerate() {
+        if held.is_some() {
+            continue;
+        }
         let kp = pd.position_gains[joint];
         let kd = pd.velocity_gains[joint];
-        if kp < 0.0 || kd < 0.0 {
-            return Err(DynamicsError::InvalidContact(
-                "PD gains must be non-negative",
-            ));
-        }
         let dof = base + joint;
         effective_mass.set(
             dof,
@@ -862,7 +1010,6 @@ fn fold_implicit_pd(
         generalized_force[dof] += kp * (pd.target_positions[joint] - q[dof] - dt * qd[dof])
             + kd * (pd.target_velocities[joint] - qd[dof]);
     }
-    Ok(())
 }
 
 /// Stacks the contact-frame Jacobians `[tangent_1; tangent_2; normal]` of all
@@ -1759,5 +1906,102 @@ mod tests {
 
     fn mass_matrix_from_q(model: &ArticulatedModel, q: &[f64]) -> DenseMatrix {
         crate::algorithms::mass_matrix(model, q).expect("mass matrix")
+    }
+
+    fn effort_limited_pendulum(max_effort: f64) -> ArticulatedModel {
+        limited_pendulum_model(JointLimits {
+            max_effort,
+            ..JointLimits::default()
+        })
+    }
+
+    #[test]
+    fn effort_limit_caps_a_stiff_pd_that_cannot_hold_the_load() {
+        // Holding the 1 kg, 1 m pendulum horizontal needs 9.81 N·m; a 5 N·m
+        // actuator saturates and the arm falls toward hanging.
+        let model = effort_limited_pendulum(5.0);
+        assert_eq!(model.joint_effort_limit(0), Some(5.0));
+        let pd = JointPdControl {
+            position_gains: vec![400.0],
+            velocity_gains: vec![40.0],
+            target_positions: vec![0.0],
+            target_velocities: vec![0.0],
+        };
+        let config = ContactStepConfig::default();
+        let mut q = vec![0.0];
+        let mut qd = vec![0.0];
+        let mut saturated_steps = 0;
+        let mut lowest = 0.0_f64;
+        for _ in 0..1000 {
+            let step =
+                contact_step(&model, &q, &qd, &[0.0], &[], Some(&pd), &config, None).expect("step");
+            assert!(step.actuator_torques[0].abs() <= 5.0 + 1.0e-9);
+            if !step.saturated_joints.is_empty() {
+                saturated_steps += 1;
+            }
+            q = step.q;
+            qd = step.qd;
+            lowest = lowest.min(q[0]);
+        }
+        assert!(saturated_steps > 0);
+        // A saturated actuator is a constant torque with no PD damping, so the
+        // arm swings undamped about the angle where 5 N·m balances gravity
+        // (cos q = 5 / 9.81) and passes well below it.
+        let balance = -(5.0_f64 / 9.81).acos();
+        assert!(
+            lowest < balance - 0.5,
+            "lowest {lowest} vs balance {balance}"
+        );
+
+        // A 20 N·m actuator holds the arm level with the gravity torque.
+        let strong = effort_limited_pendulum(20.0);
+        let mut q = vec![0.0];
+        let mut qd = vec![0.0];
+        let mut last = None;
+        for _ in 0..1000 {
+            let step = contact_step(&strong, &q, &qd, &[0.0], &[], Some(&pd), &config, None)
+                .expect("step");
+            q.clone_from(&step.q);
+            qd.clone_from(&step.qd);
+            last = Some(step);
+        }
+        let last = last.expect("steps");
+        assert!(last.saturated_joints.is_empty());
+        assert!((last.actuator_torques[0] - 9.81 * q[0].cos()).abs() < 1.0e-6);
+        assert!(q[0].abs() < 0.03, "sag {}", q[0]);
+    }
+
+    #[test]
+    fn feed_forward_torque_beyond_the_limit_is_clamped() {
+        let model = effort_limited_pendulum(5.0);
+        let config = ContactStepConfig::default();
+        let step =
+            contact_step(&model, &[0.0], &[0.0], &[100.0], &[], None, &config, None).expect("step");
+        assert_eq!(step.saturated_joints, vec![0]);
+        assert_eq!(step.actuator_torques, vec![5.0]);
+        // m l² qdd = 5 - m g l at the horizontal.
+        let acceleration = step.qd[0] / config.step_time_s;
+        assert!(
+            (acceleration - (5.0 - 9.81)).abs() < 1.0e-9,
+            "{acceleration}"
+        );
+
+        let unlimited = ContactStepConfig {
+            enforce_effort_limits: false,
+            ..ContactStepConfig::default()
+        };
+        let step = contact_step(
+            &model,
+            &[0.0],
+            &[0.0],
+            &[100.0],
+            &[],
+            None,
+            &unlimited,
+            None,
+        )
+        .expect("step");
+        assert!(step.saturated_joints.is_empty());
+        assert!((step.qd[0] / config.step_time_s - (100.0 - 9.81)).abs() < 1.0e-9);
     }
 }

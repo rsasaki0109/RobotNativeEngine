@@ -77,6 +77,8 @@ pub(crate) struct DofSpec {
     pub(crate) s: SpatialVec,
     /// Position limits `(lower, upper)` of a bounded revolute or prismatic joint.
     pub(crate) limits: Option<(f64, f64)>,
+    /// Actuator effort bound (N·m or N) of the joint, when finite.
+    pub(crate) max_effort: Option<f64>,
 }
 
 /// A floating- or fixed-base articulated tree with link spatial inertias.
@@ -123,8 +125,9 @@ impl ArticulatedModel {
         let nv = kinematic.dof();
         let link_count = kinematic.link_count();
 
-        let mut joint_by_child: HashMap<Entity, (Entity, JointKind, Vec3, (f64, f64))> =
-            HashMap::new();
+        // Joint entity, kind, axis, and (lower, upper, max effort) by child link.
+        type JointRecord = (Entity, JointKind, Vec3, (f64, f64, f64));
+        let mut joint_by_child: HashMap<Entity, JointRecord> = HashMap::new();
         for entity_ref in world.iter_entities() {
             let Some(joint) = entity_ref.get::<Joint>() else {
                 continue;
@@ -136,7 +139,11 @@ impl ArticulatedModel {
                         entity_ref.id(),
                         joint.kind,
                         joint.axis,
-                        (joint.limits.lower, joint.limits.upper),
+                        (
+                            joint.limits.lower,
+                            joint.limits.upper,
+                            joint.limits.max_effort,
+                        ),
                     ),
                 );
             }
@@ -152,6 +159,7 @@ impl ArticulatedModel {
                 body: 0,
                 s,
                 limits: None,
+                max_effort: None,
             });
             link_dofs[0].push(dof);
         }
@@ -169,26 +177,27 @@ impl ArticulatedModel {
                     joint_by_child.get(&entity),
                     Some((_, JointKind::Fixed, _, _))
                 );
-            let joint =
-                joint_by_child
-                    .get(&entity)
-                    .map(|(joint_entity, kind, axis, (lower, upper))| {
-                        let dof = kinematic
-                            .dof_index_of_joint(*joint_entity)
-                            .map(|joint_dof| base_dof + joint_dof);
-                        if let Some(global_dof) = dof {
-                            if let Some(s) = joint_motion_subspace(*kind, *axis) {
-                                dofs[global_dof] = Some(DofSpec {
-                                    link: index,
-                                    body: 0,
-                                    s,
-                                    limits: position_limits(*kind, *lower, *upper),
-                                });
-                                link_dof.push(global_dof);
-                            }
+            let joint = joint_by_child.get(&entity).map(
+                |(joint_entity, kind, axis, (lower, upper, effort))| {
+                    let dof = kinematic
+                        .dof_index_of_joint(*joint_entity)
+                        .map(|joint_dof| base_dof + joint_dof);
+                    if let Some(global_dof) = dof {
+                        if let Some(s) = joint_motion_subspace(*kind, *axis) {
+                            dofs[global_dof] = Some(DofSpec {
+                                link: index,
+                                body: 0,
+                                s,
+                                limits: position_limits(*kind, *lower, *upper),
+                                max_effort: (effort.is_finite() && *effort > 0.0)
+                                    .then_some(*effort),
+                            });
+                            link_dof.push(global_dof);
                         }
-                        ArticulatedJoint { dof }
-                    });
+                    }
+                    ArticulatedJoint { dof }
+                },
+            );
             links.push(ArticulatedLink {
                 entity,
                 parent,
@@ -264,6 +273,15 @@ impl ArticulatedModel {
     /// joints whose limits are not both finite with `lower <= upper`.
     pub fn joint_position_limits(&self, dof: usize) -> Option<(f64, f64)> {
         self.dofs.get(dof).and_then(|spec| spec.limits)
+    }
+
+    /// Actuator effort bound of velocity coordinate `dof`, in N·m (revolute)
+    /// or N (prismatic).
+    ///
+    /// Returns `None` for floating-base coordinates and joints whose
+    /// `max_effort` is not finite and positive.
+    pub fn joint_effort_limit(&self, dof: usize) -> Option<f64> {
+        self.dofs.get(dof).and_then(|spec| spec.max_effort)
     }
 
     /// Underlying kinematic model used for link ordering and forward kinematics.
