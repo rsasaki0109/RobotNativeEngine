@@ -11,7 +11,9 @@
 //! body-frame twist and twist derivative, and gravity enters as a fictitious
 //! base acceleration.
 
-use crate::algorithms::{inertia_matrices, mat6_transpose, validate, xup_transforms, DenseMatrix};
+use crate::algorithms::{
+    body_joint_dof, inertia_matrices, mat6_transpose, validate, xup_transforms, DenseMatrix,
+};
 use crate::model::{ArticulatedModel, DynamicsError};
 use crate::spatial::{
     add6, cross_force, cross_motion, dot6, mat3_mul_vec, mat3_transpose, mat6_add, mat6_mul,
@@ -43,7 +45,7 @@ pub fn aba(
     let transforms = kinematics.transforms();
     let xup = xup_transforms(model, transforms);
     let inertia = inertia_matrices(model);
-    let link_count = model.link_count();
+    let link_count = model.bodies.len();
     let floating = model.base_dof() == 6;
 
     let base_rotation = rotation_matrix(transforms[0].rotation);
@@ -58,9 +60,9 @@ pub fn aba(
         velocity[0] = [qd[0], qd[1], qd[2], qd[3], qd[4], qd[5]];
     }
     for index in 0..link_count {
-        if let Some(parent) = model.links[index].parent {
+        if let Some(parent) = model.bodies[index].parent {
             let mut link_velocity = mat6_mul_vec(&xup[index], &velocity[parent]);
-            if let Some(dof) = joint_dof(model, index) {
+            if let Some(dof) = body_joint_dof(model, index) {
                 let joint_velocity = scale6(&model.dofs[dof].s, qd[dof]);
                 link_velocity = add6(&link_velocity, &joint_velocity);
                 bias_acceleration[index] = cross_motion(&link_velocity, &joint_velocity);
@@ -76,7 +78,7 @@ pub fn aba(
     let mut joint_d = vec![0.0; link_count];
     let mut joint_force = vec![0.0; link_count];
     for index in (1..link_count).rev() {
-        let parent = model.links[index]
+        let parent = model.bodies[index]
             .parent
             .expect("non-root link has a parent");
         let mut passed_inertia = articulated_inertia[index];
@@ -84,7 +86,7 @@ pub fn aba(
             &articulated_bias[index],
             &mat6_mul_vec(&articulated_inertia[index], &bias_acceleration[index]),
         );
-        if let Some(dof) = joint_dof(model, index) {
+        if let Some(dof) = body_joint_dof(model, index) {
             let subspace = model.dofs[dof].s;
             let u_vec = mat6_mul_vec(&articulated_inertia[index], &subspace);
             let d = dot6(&subspace, &u_vec);
@@ -140,14 +142,14 @@ pub fn aba(
         }
     }
     for index in 1..link_count {
-        let parent = model.links[index]
+        let parent = model.bodies[index]
             .parent
             .expect("non-root link has a parent");
         let mut link_acceleration = add6(
             &mat6_mul_vec(&xup[index], &acceleration[parent]),
             &bias_acceleration[index],
         );
-        if let Some(dof) = joint_dof(model, index) {
+        if let Some(dof) = body_joint_dof(model, index) {
             let value =
                 (joint_force[index] - dot6(&joint_u[index], &link_acceleration)) / joint_d[index];
             qdd[dof] = value;
@@ -156,14 +158,6 @@ pub fn aba(
         acceleration[index] = link_acceleration;
     }
     Ok(qdd)
-}
-
-/// Degree of freedom driven by the joint into link `index`, if any.
-fn joint_dof(model: &ArticulatedModel, index: usize) -> Option<usize> {
-    if index == 0 {
-        return None;
-    }
-    model.link_dofs[index].first().copied()
 }
 
 #[cfg(test)]

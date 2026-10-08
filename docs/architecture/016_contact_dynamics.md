@@ -155,18 +155,25 @@ when it lies within 1 mm (or 1 mrad) of the joint or within twice the distance
 the unconstrained motion covers toward it in one step; a joint pushed past a
 limit that was left out is caught and recovered on the next step.
 
+The recursive algorithms (`mass_matrix`, `rnea`, `aba`, and the step) run on
+dynamics bodies rather than links: every link welded to its parent by a fixed
+joint is folded into the nearest moving ancestor's spatial inertia when the
+model is built, so the Go2's 42 links become 13 bodies. The effective mass
+`M̃` is factored with Featherstone's tree-sparse `LᵀL` factorization, whose
+factor and solves walk only each coordinate's ancestors (`M̃` keeps the
+branch-induced sparsity of `M` because implicit PD only adds to its diagonal).
+
 Example 133 (Go2, 18 velocity coordinates, four feet, 24 joint limits) runs at
-about 15 µs per step in a release build, down from about 94 µs when every
-limit was in every solve and each Jacobian and dynamics term redid forward
-kinematics; callgrind counts about 0.30 M instructions per step against 2.8 M.
+about 9 µs per step in a release build. The first optimization pass (one
+forward-kinematics pass, ancestor-only Jacobians, reachable limits only) took
+it from about 94 µs to 15–17 µs, and merging welded links and the
+tree-sparse factor halved that again; callgrind counts about 0.19 M
+instructions per step, against 2.8 M originally.
 
 ## Limitations and follow-ups
 
-- `contact_step` uses a dense `O(n³)` factorization of `M̃`, and the Go2's 42
-  links include 29 rigidly attached ones (rotors, feet, covers) that every pass
-  still visits. Folding fixed links into their parents' inertia and a
-  tree-structured factorization are the next steps toward RaiSim's per-step
-  cost.
+- Forward kinematics still visits every link, including welded ones, because
+  contact points and sensors may sit on any link.
 - Effort (torque) limits are not enforced on the implicit PD force.
 - No physics backend implements `PhysicsBackend` on top of this step yet; it is
   a dynamics-layer primitive used directly by examples and controllers.

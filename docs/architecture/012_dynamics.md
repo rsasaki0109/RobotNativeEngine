@@ -37,6 +37,8 @@ The crate owns:
   (`non_linear_effects`, `gravity_torque`);
 - forward dynamics via a deterministic dense solve (`forward_dynamics`) and by
   the `O(n)` articulated-body algorithm (`aba`), which agree to round-off;
+- links welded by fixed joints merged into their moving ancestor's spatial
+  inertia, so the recursions run on the moving bodies only;
 - center of mass (`center_of_mass`) and the center-of-mass Jacobian
   (`com_jacobian`);
 - world-frame link motion and bias acceleration (`link_motions`) and a

@@ -1,6 +1,6 @@
 //! Articulated tree model derived from the robot link/joint graph.
 
-use crate::spatial::SpatialVec;
+use crate::spatial::{inverse_transform, mat6_add, mat6_mul, motion_transform, Mat6, SpatialVec};
 use crate::SpatialInertia;
 use rne_ecs::{Entity, World};
 use rne_math::Vec3;
@@ -54,9 +54,26 @@ pub(crate) struct ArticulatedJoint {
     pub(crate) dof: Option<usize>,
 }
 
+/// A rigid body of the dynamics tree: a moving link together with every link
+/// welded to it by a chain of fixed joints.
+#[derive(Clone, Debug)]
+pub(crate) struct DynamicsBody {
+    /// Kinematic link index whose frame is the body frame.
+    pub(crate) link: usize,
+    /// Parent body index.
+    pub(crate) parent: Option<usize>,
+    /// Spatial inertia of the link and its welded links, in the body frame.
+    pub(crate) inertia: Mat6,
+    /// Velocity coordinates of the joint into this body (all base coordinates
+    /// for the root).
+    pub(crate) dofs: Vec<usize>,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct DofSpec {
     pub(crate) link: usize,
+    /// Dynamics body that owns this coordinate.
+    pub(crate) body: usize,
     pub(crate) s: SpatialVec,
     /// Position limits `(lower, upper)` of a bounded revolute or prismatic joint.
     pub(crate) limits: Option<(f64, f64)>,
@@ -77,6 +94,11 @@ pub struct ArticulatedModel {
     pub(crate) links: Vec<ArticulatedLink>,
     pub(crate) dofs: Vec<DofSpec>,
     pub(crate) link_dofs: Vec<Vec<usize>>,
+    /// Links merged across fixed joints; the recursive algorithms run on these.
+    pub(crate) bodies: Vec<DynamicsBody>,
+    /// Parent velocity coordinate of each coordinate in the tree (`λ(i)`), or
+    /// `None` when coordinates are not numbered parents-first.
+    pub(crate) dof_parents: Option<Vec<Option<usize>>>,
     pub(crate) kinematic: KinematicModel,
 }
 
@@ -127,6 +149,7 @@ impl ArticulatedModel {
             s[dof] = 1.0;
             *slot = Some(DofSpec {
                 link: 0,
+                body: 0,
                 s,
                 limits: None,
             });
@@ -134,12 +157,18 @@ impl ArticulatedModel {
         }
 
         let mut links: Vec<ArticulatedLink> = Vec::with_capacity(link_count);
+        let mut welded = vec![false; link_count];
         for (index, link_dof) in link_dofs.iter_mut().enumerate() {
             let entity = kinematic
                 .link_entity(index)
                 .ok_or(DynamicsError::MissingDofOwner(index))?;
             let parent = kinematic.link_parent(index);
             let inertia = link_spatial_inertia(world, entity);
+            welded[index] = parent.is_some()
+                && matches!(
+                    joint_by_child.get(&entity),
+                    Some((_, JointKind::Fixed, _, _))
+                );
             let joint =
                 joint_by_child
                     .get(&entity)
@@ -151,6 +180,7 @@ impl ArticulatedModel {
                             if let Some(s) = joint_motion_subspace(*kind, *axis) {
                                 dofs[global_dof] = Some(DofSpec {
                                     link: index,
+                                    body: 0,
                                     s,
                                     limits: position_limits(*kind, *lower, *upper),
                                 });
@@ -171,6 +201,8 @@ impl ArticulatedModel {
         for (index, slot) in dofs.into_iter().enumerate() {
             resolved.push(slot.ok_or(DynamicsError::MissingDofOwner(index))?);
         }
+        let bodies = build_bodies(&kinematic, &links, &link_dofs, &welded, &mut resolved)?;
+        let dof_parents = dof_parents(&bodies, nv);
 
         Ok(Self {
             robot,
@@ -180,6 +212,8 @@ impl ArticulatedModel {
             links,
             dofs: resolved,
             link_dofs,
+            bodies,
+            dof_parents,
             kinematic,
         })
     }
@@ -236,6 +270,90 @@ impl ArticulatedModel {
     pub fn kinematic(&self) -> &KinematicModel {
         &self.kinematic
     }
+}
+
+/// Merges every link welded by fixed joints into its nearest moving ancestor.
+///
+/// Links arrive in topological order, so a welded link's parent already has a
+/// body. The welded offset is read from forward kinematics at the zero
+/// configuration, which is exact because a chain of fixed joints does not move.
+fn build_bodies(
+    kinematic: &KinematicModel,
+    links: &[ArticulatedLink],
+    link_dofs: &[Vec<usize>],
+    welded: &[bool],
+    dofs: &mut [DofSpec],
+) -> Result<Vec<DynamicsBody>, DynamicsError> {
+    let zero = kinematic.forward_kinematics(&vec![0.0; kinematic.dof()])?;
+    let transforms = zero.transforms();
+    let mut body_of = vec![0; links.len()];
+    let mut bodies: Vec<DynamicsBody> = Vec::new();
+    for (index, link) in links.iter().enumerate() {
+        let inertia = link.inertia.matrix();
+        match link.parent {
+            Some(parent) if welded[index] => {
+                let body = body_of[parent];
+                body_of[index] = body;
+                let frame = transforms[bodies[body].link];
+                let link_in_body = inverse_transform(&frame).mul_transform(&transforms[index]);
+                let to_link = motion_transform(&inverse_transform(&link_in_body));
+                let moved = mat6_mul(&mat6_transpose(&to_link), &mat6_mul(&inertia, &to_link));
+                bodies[body].inertia = mat6_add(&bodies[body].inertia, &moved);
+            }
+            parent => {
+                body_of[index] = bodies.len();
+                bodies.push(DynamicsBody {
+                    link: index,
+                    parent: parent.map(|parent| body_of[parent]),
+                    inertia,
+                    dofs: link_dofs[index].clone(),
+                });
+            }
+        }
+    }
+    for spec in dofs.iter_mut() {
+        spec.body = body_of[spec.link];
+    }
+    Ok(bodies)
+}
+
+/// Parent coordinate `λ(i)` of each velocity coordinate: the previous
+/// coordinate of the same body, else the last coordinate of the nearest
+/// ancestor body that has one. Returns `None` unless every `λ(i) < i`, which
+/// the tree-sparse factorization of the mass matrix relies on.
+fn dof_parents(bodies: &[DynamicsBody], nv: usize) -> Option<Vec<Option<usize>>> {
+    let mut parents = vec![None; nv];
+    let mut last_dof: Vec<Option<usize>> = vec![None; bodies.len()];
+    for (index, body) in bodies.iter().enumerate() {
+        let mut previous = None;
+        let mut ancestor = body.parent;
+        while let Some(parent) = ancestor {
+            if let Some(dof) = last_dof[parent] {
+                previous = Some(dof);
+                break;
+            }
+            ancestor = bodies[parent].parent;
+        }
+        for &dof in &body.dofs {
+            if previous.is_some_and(|parent| parent >= dof) {
+                return None;
+            }
+            parents[dof] = previous;
+            previous = Some(dof);
+        }
+        last_dof[index] = previous;
+    }
+    Some(parents)
+}
+
+fn mat6_transpose(matrix: &Mat6) -> Mat6 {
+    let mut out = [[0.0; 6]; 6];
+    for (row, values) in matrix.iter().enumerate() {
+        for (col, value) in values.iter().enumerate() {
+            out[col][row] = *value;
+        }
+    }
+    out
 }
 
 fn link_spatial_inertia(world: &World, entity: Entity) -> SpatialInertia {
