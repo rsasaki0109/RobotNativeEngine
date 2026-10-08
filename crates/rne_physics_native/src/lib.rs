@@ -42,12 +42,19 @@
 //!
 //! An ECS pose or velocity edit on a simulated body (other than the backend's
 //! own write-back) re-reads that assembly's state from the ECS, and adding or
-//! removing bodies or joints rebuilds the assemblies. Raycasts return no hits.
+//! removing bodies or joints rebuilds the assemblies.
+//!
+//! Raycasts hit every non-sensor collider at its current pose and return the
+//! hits by distance. Spheres, capsules, boxes, and planes are solid (a ray
+//! that starts inside one hits it at distance zero with a zero normal, as in
+//! the Rapier backend); height fields and triangle meshes are surfaces;
+//! convex hulls are not hit.
 
 #![deny(missing_docs)]
 
 mod assembly;
 mod collide;
+mod raycast;
 mod world_step;
 
 use assembly::{group_assemblies, Assembly, JointDesc};
@@ -57,7 +64,7 @@ use rne_dynamics::ContactStepConfig;
 use rne_ecs::{Entity, Parent, World};
 use rne_math::Vec3;
 use rne_physics::{
-    Collider, ContactEvent, JointState, PhysicsBackend, PhysicsBackendManifest,
+    Collider, ColliderShape, ContactEvent, JointState, PhysicsBackend, PhysicsBackendManifest,
     PhysicsBackendRepeatability, PhysicsCapability, PhysicsError, PhysicsWorldDesc, PhysicsWorldId,
     RaycastHit, RaycastQuery, RigidBody, RigidBodyType,
 };
@@ -71,6 +78,7 @@ const CAPABILITIES: &[PhysicsCapability] = &[
     PhysicsCapability::Articulation,
     PhysicsCapability::DeterministicStep,
     PhysicsCapability::ContactForce,
+    PhysicsCapability::RaycastBatch,
 ];
 
 /// Largest pose or velocity change that still counts as the backend's own
@@ -426,10 +434,50 @@ impl PhysicsBackend for NativeBackend {
     fn raycast(
         &self,
         physics_world: PhysicsWorldId,
-        _query: RaycastQuery,
+        query: RaycastQuery,
     ) -> Result<Vec<RaycastHit>, PhysicsError> {
-        self.world(physics_world)?;
-        Ok(Vec::new())
+        let state = self.world(physics_world)?;
+        let Some(direction) = query.direction.try_normalize() else {
+            return Ok(Vec::new());
+        };
+        if !(query.origin_m.is_finite() && query.max_distance_m >= 0.0) {
+            return Ok(Vec::new());
+        }
+        let to_sim = world_to_sim();
+        let (origin, direction) = (to_sim * query.origin_m, to_sim * direction);
+        let mut targets: Vec<(Entity, &ColliderShape, Transform3)> = state
+            .statics
+            .iter()
+            .map(|collider| (collider.entity, &collider.shape, collider.pose))
+            .collect();
+        for assembly in &state.assemblies {
+            let transforms = assembly.sim_transforms()?;
+            for body in &assembly.bodies {
+                if let Some((shape, offset)) = &body.collider {
+                    let pose = transforms[body.link_index].mul_transform(offset);
+                    targets.push((body.entity, shape, pose));
+                }
+            }
+        }
+        let mut hits: Vec<RaycastHit> = targets
+            .into_iter()
+            .filter_map(|(entity, shape, pose)| {
+                let (distance_m, normal) =
+                    raycast::cast(shape, &pose, origin, direction, query.max_distance_m)?;
+                Some(RaycastHit {
+                    entity,
+                    point_m: query.origin_m + to_sim.conjugate() * direction * distance_m,
+                    normal: to_sim.conjugate() * normal,
+                    distance_m,
+                })
+            })
+            .collect();
+        hits.sort_by(|left, right| {
+            left.distance_m
+                .total_cmp(&right.distance_m)
+                .then_with(|| left.entity.index().cmp(&right.entity.index()))
+        });
+        Ok(hits)
     }
 
     fn contacts(&self, physics_world: PhysicsWorldId) -> Result<&[ContactEvent], PhysicsError> {

@@ -453,6 +453,64 @@ fn a_plank_rests_crosswise_on_a_beam_through_their_crossing_edges() {
 }
 
 #[test]
+fn raycasts_hit_fixed_and_moving_bodies_at_their_current_pose() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let floor = ground(&mut world);
+    let crate_box = free_box(
+        &mut world,
+        Vec3::new(0.2, 0.1, 0.2),
+        Vec3::new(0.0, 0.5, 0.0),
+    );
+    backend.sync_from_ecs(&mut world, id).expect("sync");
+    let down = RaycastQuery::downward(Vec3::new(0.05, 2.0, 0.03), 10.0);
+    let hits = backend.raycast(id, down).expect("raycast");
+    // Before any step the box hangs at 0.5 m: its top is 1.4 m below.
+    assert_eq!(hits.len(), 2);
+    assert_eq!((hits[0].entity, hits[1].entity), (crate_box, floor));
+    assert!((hits[0].distance_m - 1.4).abs() < 1.0e-9);
+    assert!((hits[1].distance_m - 2.0).abs() < 1.0e-9);
+    for _ in 0..500 {
+        step(&mut backend, &mut world, id);
+    }
+    // At rest on the ground, the box top is at 0.2 m.
+    let hits = backend.raycast(id, down).expect("raycast");
+    assert_eq!(hits[0].entity, crate_box);
+    assert!((hits[0].distance_m - 1.8).abs() < 1.0e-4);
+    assert!((hits[0].point_m - Vec3::new(0.05, 0.2, 0.03)).length() < 1.0e-4);
+    assert!((hits[0].normal - Vec3::Y).length() < 1.0e-6);
+    // Sideways, at mid height: the box's -x face, and the ground is not hit.
+    let side = RaycastQuery {
+        origin_m: Vec3::new(-2.0, 0.1, 0.0),
+        direction: Vec3::new(2.0, 0.0, 0.0),
+        max_distance_m: 10.0,
+    };
+    let hits = backend.raycast(id, side).expect("raycast");
+    assert_eq!(hits.len(), 1);
+    assert!((hits[0].distance_m - 1.8).abs() < 1.0e-4);
+    assert!((hits[0].normal - Vec3::NEG_X).length() < 1.0e-6);
+    // Too short to reach, or with no direction: nothing.
+    let short = RaycastQuery {
+        max_distance_m: 1.0,
+        ..side
+    };
+    assert!(backend.raycast(id, short).expect("raycast").is_empty());
+    let still = RaycastQuery {
+        direction: Vec3::ZERO,
+        ..side
+    };
+    assert!(backend.raycast(id, still).expect("raycast").is_empty());
+    let batch = backend
+        .raycast_batch(id, &[down, side])
+        .expect("raycast batch");
+    assert_eq!(batch[0], backend.raycast(id, down).expect("raycast"));
+    assert_eq!(batch[1], backend.raycast(id, side).expect("raycast"));
+}
+
+#[test]
 fn colliding_bodies_exchange_momentum_inelastically() {
     let mut backend = NativeBackend::new();
     let id = backend

@@ -93,8 +93,12 @@ and which it deliberately does not.
    fields; `JointActuation` position, velocity, and effort commands become
    implicit PD and feed-forward forces with their effort limits, and
    `JointPassiveDynamics` adds damping and Coulomb friction. The backend
-   advertises `RigidBody`, `Articulation`, `DeterministicStep`, and
-   `ContactForce` and passes the external conformance kit for all four.
+   advertises `RigidBody`, `Articulation`, `DeterministicStep`,
+   `ContactForce`, and `RaycastBatch` and passes the external conformance kit
+   for all five. Raycasts hit every non-sensor collider at its current pose:
+   spheres, capsules, boxes, and planes as solids, height fields (the same
+   bilinear surface the contacts use, solved exactly cell by cell) and
+   triangle meshes as surfaces, and compounds part by part.
 10. **Batched environments** (`VectorizedEpisode::step_parallel`). raisimGym
     steps many RaiSim worlds with OpenMP. `reset_parallel` and `step_parallel`
     step any `Episode` batch on scoped threads in contiguous chunks and gather
@@ -276,7 +280,10 @@ within 1 %, it comes to rest, and it replays bit for bit, at about 50–100 µs
 per step including the ECS synchronization. Dropped instead onto a free 8 kg
 crate beside a free five-box tower, it stands on the crate with its feet
 carrying its weight and the crate carrying both onto the ground (each within
-0.1 N), while the tower does not move.
+0.1 N), while the tower does not move. A ray cast down onto the standing
+Go2's base hits the base, and 81 rays cast onto the terrain land on its
+bilinear surface to round-off on the native backend (Rapier, which
+triangulates each cell, lands within 0.2 mm).
 
 ## Step cost
 
@@ -311,8 +318,8 @@ instructions per step, against 2.8 M originally.
   contacts against convex hulls, meshes, or compounds on moving bodies are
   not detected. URDF robots spawned without
   self-collision share one collision group and so do not collide with each
-  other, as in the Rapier backend. Raycasts return no hits, and a kinematic
-  body that moves is a moving obstacle for contacts but not a moving anchor
+  other, as in the Rapier backend. Raycasts do not hit convex hulls, and a
+  kinematic body that moves is a moving obstacle for contacts but not a moving anchor
   for a fixed-base tree.
 - The floating base's roll-pitch-yaw coordinates have a confined middle angle.
   In RNE's Y-up world that angle is the heading, so turning past a quarter turn

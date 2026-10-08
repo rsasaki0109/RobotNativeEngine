@@ -9,7 +9,8 @@
 //! `sync_to_ecs` — then drives [`rne_physics_native::NativeBackend`] and
 //! `RapierBackend`. The native run must land on all four feet, carry the
 //! robot's weight through its contact events, come to rest level, and replay
-//! bit for bit.
+//! bit for bit. Rays cast down onto the base and onto the terrain check each
+//! backend's raycasts.
 //!
 //! Run with `cargo run --release -p go2_native_backend --example 137_go2_native_backend`.
 
@@ -18,7 +19,7 @@ use rne_ecs::{Entity, World};
 use rne_math::{Hertz, Quat, Vec3};
 use rne_physics::{
     height_field_surface, Collider, ColliderShape, FractalTerrain, JointActuation, PhysicsBackend,
-    PhysicsMaterial, PhysicsWorldDesc, PhysicsWorldId, RigidBody, RigidBodyType,
+    PhysicsMaterial, PhysicsWorldDesc, PhysicsWorldId, RaycastQuery, RigidBody, RigidBodyType,
 };
 use rne_physics_native::NativeBackend;
 use rne_physics_rapier::RapierBackend;
@@ -58,6 +59,10 @@ struct Report {
     support_n: f64,
     weight_n: f64,
     step_us: f64,
+    /// Whether a ray cast down onto the base hits the base first.
+    base_ray_hits_base: bool,
+    /// Largest distance between a terrain ray hit and the bilinear surface.
+    terrain_ray_error_m: f64,
 }
 
 /// Spawns the Go2 in its stand pose with its base `base_y_m` above the world
@@ -192,7 +197,7 @@ fn run<B: PhysicsBackend>(
 fn simulate<B: PhysicsBackend>(mut backend: B, terrain: &ColliderShape) -> Report {
     let start = height_field_surface(terrain, 0.0, 0.0).expect("origin on terrain");
     let mut scene = spawn_go2(start.height_m + DROP_HEIGHT_M);
-    fixed_collider(&mut scene.world, terrain.clone(), Transform3::default());
+    let terrain_entity = fixed_collider(&mut scene.world, terrain.clone(), Transform3::default());
     let physics_world = backend
         .create_world(PhysicsWorldDesc::default())
         .expect("physics world");
@@ -220,6 +225,15 @@ fn simulate<B: PhysicsBackend>(mut backend: B, terrain: &ColliderShape) -> Repor
         .iter()
         .map(|event| f64::from(event.impulse) * -event.normal.y * STEP_HZ)
         .sum();
+    let base_ray_hits_base = backend
+        .raycast(
+            physics_world,
+            RaycastQuery::downward(base_pose.translation + Vec3::new(0.0, 1.0, 0.0), 2.0),
+        )
+        .expect("raycast")
+        .first()
+        .is_some_and(|hit| hit.entity == scene.base_link);
+    let terrain_ray_error_m = terrain_scan(&backend, physics_world, terrain, terrain_entity);
     Report {
         base_pose,
         clearance_m: base_pose.translation.y - ground.height_m,
@@ -229,7 +243,43 @@ fn simulate<B: PhysicsBackend>(mut backend: B, terrain: &ColliderShape) -> Repor
         support_n,
         weight_n: scene.mass_kg * 9.81,
         step_us,
+        base_ray_hits_base,
+        terrain_ray_error_m,
     }
+}
+
+/// Casts a 9 x 9 grid of downward rays over the terrain, away from its edges,
+/// and returns the largest distance between a terrain hit and the bilinear
+/// surface of `height_field_surface`.
+fn terrain_scan<B: PhysicsBackend>(
+    backend: &B,
+    physics_world: PhysicsWorldId,
+    terrain: &ColliderShape,
+    terrain_entity: Entity,
+) -> f64 {
+    let queries: Vec<RaycastQuery> = (0..81)
+        .map(|index| {
+            let x = -2.4 + 0.6 * (index % 9) as f64 + 0.013;
+            let z = -2.4 + 0.6 * (index / 9) as f64 + 0.029;
+            RaycastQuery::downward(Vec3::new(x, 2.0, z), 5.0)
+        })
+        .collect();
+    let hits = backend
+        .raycast_batch(physics_world, &queries)
+        .expect("raycast batch");
+    queries
+        .iter()
+        .zip(&hits)
+        .map(|(query, hits)| {
+            let surface = height_field_surface(terrain, query.origin_m.x, query.origin_m.z)
+                .expect("ray over terrain");
+            hits.iter()
+                .find(|hit| hit.entity == terrain_entity)
+                .map_or(f64::INFINITY, |hit| {
+                    (hit.point_m.y - surface.height_m).abs()
+                })
+        })
+        .fold(0.0, f64::max)
 }
 
 /// Half extents of the free crate the Go2 stands on, in meters.
@@ -354,6 +404,11 @@ fn print_report(name: &str, report: &Report) {
         "{name}: contact support {:.1} N vs weight {:.1} N, {:.0} us per step",
         report.support_n, report.weight_n, report.step_us
     );
+    println!(
+        "{name}: a ray cast down onto the base hits {}; 81 terrain rays within {:.1e} m of the bilinear surface",
+        if report.base_ray_hits_base { "the base" } else { "something else" },
+        report.terrain_ray_error_m
+    );
 }
 
 fn main() {
@@ -403,7 +458,9 @@ fn main() {
         && (native.support_n - native.weight_n).abs() < 0.02 * native.weight_n
         && native.clearance_m > 0.2
         && native.tilt_rad < 0.15
-        && native.speed_m_s < 0.01;
+        && native.speed_m_s < 0.01
+        && native.base_ray_hits_base
+        && native.terrain_ray_error_m < 1.0e-9;
     if !ok {
         eprintln!("go2 native backend: failed");
         std::process::exit(1);
