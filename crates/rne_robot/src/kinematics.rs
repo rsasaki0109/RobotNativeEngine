@@ -412,6 +412,15 @@ impl KinematicModel {
         self.links[self.base_link].entity
     }
 
+    /// Replaces the root link's stored transform, which for a fixed base is
+    /// its world pose; a floating base applies it after its base coordinates.
+    ///
+    /// Use it to carry a fixed-base model on a moving support without
+    /// rebuilding the model.
+    pub fn set_root_transform(&mut self, transform: Transform3) {
+        self.links[self.base_link].local = transform;
+    }
+
     /// Number of links in the model.
     pub fn link_count(&self) -> usize {
         self.links.len()
@@ -2088,6 +2097,24 @@ mod tests {
         let tip_position = state.link_transform(tip).unwrap().translation;
         assert_relative_eq!(tip_position.x, 0.0, epsilon = 1e-9);
         assert_relative_eq!(tip_position.y, 2.0, epsilon = 1e-9);
+    }
+
+    #[test]
+    fn a_new_root_transform_carries_the_whole_chain() {
+        let (mut model, ee, tip) = planar_arm();
+        let q = [FRAC_PI_2, 0.0];
+        model.set_root_transform(Transform3::from_translation_rotation(
+            Vec3::new(3.0, 0.0, -1.0),
+            Quat::from_rotation_z(FRAC_PI_2),
+        ));
+        let state = model.forward_kinematics(&q).unwrap();
+        // The arm points along +y at q, then the base turns it to -x.
+        let end = state.link_transform(ee).unwrap().translation;
+        assert_relative_eq!(end.x, 2.0, epsilon = 1e-9);
+        assert_relative_eq!(end.y, 0.0, epsilon = 1e-9);
+        assert_relative_eq!(end.z, -1.0, epsilon = 1e-9);
+        let tip_position = state.link_transform(tip).unwrap().translation;
+        assert_relative_eq!(tip_position.x, 1.0, epsilon = 1e-9);
     }
 
     #[test]

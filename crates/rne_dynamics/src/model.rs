@@ -7,6 +7,7 @@ use rne_math::Vec3;
 use rne_physics::{RigidBody, RigidBodyInertia};
 use rne_robot::components::Inertial;
 use rne_robot::{Joint, JointKind, KinematicModel, KinematicsError};
+use rne_world::Transform3;
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -230,6 +231,16 @@ impl ArticulatedModel {
             dof_parents,
             kinematic,
         })
+    }
+
+    /// Moves a fixed base to `pose`, in the model's world frame, so the tree
+    /// rides on a moving support. Only the placement changes: the support's
+    /// own velocity and acceleration do not enter the dynamics. Has no effect
+    /// on a floating base, whose pose is its base coordinates.
+    pub fn set_fixed_base_pose(&mut self, pose: Transform3) {
+        if self.base_dof == 0 {
+            self.kinematic.set_root_transform(pose);
+        }
     }
 
     /// Owning robot entity.

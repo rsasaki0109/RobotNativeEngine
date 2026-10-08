@@ -137,6 +137,8 @@ pub(crate) struct ContactRecord {
 pub(crate) struct Assembly {
     model: ArticulatedModel,
     floating: bool,
+    /// The non-dynamic body a fixed base hangs from, which the base follows.
+    anchor: Option<Entity>,
     /// Bodies in parent-first order; the first is the root when floating.
     pub bodies: Vec<AssemblyBody>,
     pub joints: Vec<AssemblyJoint>,
@@ -161,6 +163,7 @@ impl Assembly {
         let root = members[0];
         let root_joint = JointDesc::of(world, root);
         let floating = root_joint.is_none();
+        let anchor = root_joint.map(|desc| desc.parent);
 
         let mut model_world = World::new();
         let robot = model_world.spawn_empty().id();
@@ -191,8 +194,9 @@ impl Assembly {
             insert_inertia(&mut model_world, base_link, world, root)?;
             model_links.insert(root, base_link);
         } else {
-            // The base is the anchor body, fixed where it stands.
-            let anchor = root_joint.expect("a fixed base comes from a joint").parent;
+            // The base is the anchor body, placed where it stands now and
+            // moved with it by `follow_anchor`.
+            let anchor = anchor.expect("a fixed base comes from a joint");
             let pose = sim_from_world(&world_transform_of(world, anchor));
             model_world.entity_mut(base_link).insert(pose);
         }
@@ -268,6 +272,7 @@ impl Assembly {
         let mut assembly = Self {
             model,
             floating,
+            anchor,
             written: vec![(Transform3::IDENTITY, Vec3::ZERO, Vec3::ZERO); bodies.len()],
             bodies,
             joints,
@@ -403,6 +408,19 @@ impl Assembly {
             self.tau[base + index] += command.effort;
         }
         Ok(())
+    }
+
+    /// Moves a fixed base to where its anchor body stands now, so a tree
+    /// hanging from a kinematic body rides along when that body moves. The
+    /// anchor's velocity and acceleration do not enter the dynamics.
+    pub(crate) fn follow_anchor(&mut self, world: &World) {
+        if let Some(anchor) = self
+            .anchor
+            .filter(|entity| world.get_entity(*entity).is_ok())
+        {
+            self.model
+                .set_fixed_base_pose(sim_from_world(&world_transform_of(world, anchor)));
+        }
     }
 
     /// The assembly's model, state, and commands for a coupled step.

@@ -176,6 +176,80 @@ fn a_pendulum_swings_about_its_anchor_and_stops_at_its_limit() {
 }
 
 #[test]
+fn an_arm_on_a_moving_kinematic_cart_rides_along_with_it() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let start = Vec3::new(0.0, 2.0, 0.0);
+    let cart = world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Kinematic,
+                ..RigidBody::default()
+            },
+            Transform3::from_translation_rotation(start, Quat::IDENTITY),
+        ))
+        .id();
+    let shoulder = Vec3::new(0.0, 0.3, 0.0);
+    let arm = world
+        .spawn((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            Transform3::from_translation_rotation(start + shoulder + Vec3::X, Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent: cart,
+                axis: Vec3::Z,
+                anchor_parent_m: shoulder,
+                anchor_child_m: Vec3::new(-1.0, 0.0, 0.0),
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: None,
+                upper_rad: None,
+            },
+            JointActuation::RevolutePosition {
+                target_position_rad: 0.3,
+                stiffness_nm_per_rad: 2000.0,
+                damping_nm_s_per_rad: 100.0,
+                max_effort_nm: 1000.0,
+            },
+        ))
+        .id();
+    // The cart drives 1 m along x while turning a quarter turn about y.
+    let steps = 1000;
+    for index in 1..=steps {
+        let s = (index as f64 / steps as f64).min(1.0);
+        world
+            .entity_mut(cart)
+            .insert(Transform3::from_translation_rotation(
+                start + Vec3::new(s, 0.0, 0.0),
+                Quat::from_rotation_y(s * std::f64::consts::FRAC_PI_2),
+            ));
+        step(&mut backend, &mut world, id);
+        // The shoulder stays on the cart at every step.
+        let cart_pose = *world.get::<Transform3>(cart).expect("cart");
+        let arm_pose = *world.get::<Transform3>(arm).expect("arm");
+        let on_cart = cart_pose.translation + cart_pose.rotation * shoulder;
+        let on_arm = arm_pose.translation + arm_pose.rotation * Vec3::new(-1.0, 0.0, 0.0);
+        assert!((on_cart - on_arm).length() < 1.0e-9, "step {index}");
+    }
+    for _ in 0..500 {
+        step(&mut backend, &mut world, id);
+    }
+    // At rest on the turned cart, the arm holds its angle in the cart's frame.
+    let (angle, _) = backend.multibody_joint_state(id, arm).expect("joint");
+    assert!((angle - 0.3).abs() < 0.01, "angle {angle}");
+    let cart_pose = *world.get::<Transform3>(cart).expect("cart");
+    let arm_pose = *world.get::<Transform3>(arm).expect("arm");
+    let expected = cart_pose.rotation * Quat::from_rotation_z(angle);
+    assert!(arm_pose.rotation.dot(expected).abs() > 1.0 - 1.0e-9);
+    assert!((cart_pose.translation - Vec3::new(1.0, 2.0, 0.0)).length() < 1.0e-12);
+}
+
+#[test]
 fn position_and_effort_commands_drive_the_joint_within_their_limits() {
     let mut backend = NativeBackend::new();
     let id = backend

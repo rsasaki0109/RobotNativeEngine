@@ -288,7 +288,9 @@ from their points (closed, convex, and outward for a cube cloud with interior
 points and a 60-point sphere cloud; none for flat clouds); a sample's gap to
 one is exact above a face, past an edge, and inside, a box rests on a fixed
 hull slab and a ball on a free hull block (each contact within 0.1 % of its
-load), and rays hit hulls as solids.
+load), and rays hit hulls as solids. An arm hanging from a kinematic cart that
+drives 1 m while turning a quarter turn keeps its shoulder on the cart to
+1e-9 m at every step and holds its joint angle in the cart's frame.
 
 `examples/137_go2_native_backend` builds the Go2 the way the asset loader does
 and drives it through `PhysicsBackend` on `NativeBackend` and on Rapier: on the
@@ -337,8 +339,10 @@ instructions per step, against 2.8 M originally.
   the side by their face planes, so they are exact).
   Compound parts are tested by sampling, not by the box-box test. URDF robots spawned without
   self-collision share one collision group and so do not collide with each
-  other, as in the Rapier backend. A kinematic body that moves is a moving obstacle for contacts but not a moving anchor
-  for a fixed-base tree.
+  other, as in the Rapier backend. A fixed-base tree follows the kinematic
+  body it hangs from by placement only: the body's velocity and acceleration
+  do not enter the tree's dynamics, so a fast-accelerating cart does not
+  swing the arm on it.
 - The floating base's roll-pitch-yaw coordinates have a confined middle angle.
   In RNE's Y-up world that angle is the heading, so turning past a quarter turn
   flips roll and yaw by π (the pose stays right). `NativeBackend` and
