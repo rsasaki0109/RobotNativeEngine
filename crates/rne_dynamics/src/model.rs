@@ -3,6 +3,7 @@
 use crate::spatial::{inverse_transform, mat6_add, mat6_mul, motion_transform, Mat6, SpatialVec};
 use crate::SpatialInertia;
 use rne_ecs::{Entity, World};
+use rne_math::Quat;
 use rne_math::Vec3;
 use rne_physics::{RigidBody, RigidBodyInertia};
 use rne_robot::components::Inertial;
@@ -82,6 +83,49 @@ pub(crate) struct DofSpec {
     pub(crate) max_effort: Option<f64>,
 }
 
+/// Prescribed motion of a fixed base, in the model's world frame: the
+/// velocity and acceleration of the base frame's origin and its angular
+/// velocity and acceleration. A base on a moving support uses it so the
+/// support's motion drives the tree, as gravity does.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct BaseMotion {
+    /// Velocity of the base frame's origin, in m/s.
+    pub linear_velocity_m_s: Vec3,
+    /// Angular velocity of the base, in rad/s.
+    pub angular_velocity_rad_s: Vec3,
+    /// Acceleration of the base frame's origin, in m/s².
+    pub linear_acceleration_m_s2: Vec3,
+    /// Angular acceleration of the base, in rad/s².
+    pub angular_acceleration_rad_s2: Vec3,
+}
+
+impl BaseMotion {
+    /// The base's spatial velocity and spatial acceleration (linear part
+    /// first) in its own frame, for a base turned by `rotation`. The spatial
+    /// acceleration is the time derivative of the body-frame velocity, so its
+    /// linear part is the origin's acceleration less `ω × v`.
+    pub(crate) fn body_frame(&self, rotation: Quat) -> (SpatialVec, SpatialVec) {
+        let inverse = rotation.conjugate();
+        let velocity = inverse * self.linear_velocity_m_s;
+        let angular = inverse * self.angular_velocity_rad_s;
+        let acceleration = inverse * self.linear_acceleration_m_s2 - angular.cross(velocity);
+        let angular_acceleration = inverse * self.angular_acceleration_rad_s2;
+        (
+            [
+                velocity.x, velocity.y, velocity.z, angular.x, angular.y, angular.z,
+            ],
+            [
+                acceleration.x,
+                acceleration.y,
+                acceleration.z,
+                angular_acceleration.x,
+                angular_acceleration.y,
+                angular_acceleration.z,
+            ],
+        )
+    }
+}
+
 /// A floating- or fixed-base articulated tree with link spatial inertias.
 ///
 /// The model is a plain value derived from the scene. It owns a
@@ -92,6 +136,8 @@ pub(crate) struct DofSpec {
 pub struct ArticulatedModel {
     pub(crate) robot: Entity,
     pub(crate) gravity_m_s2: Vec3,
+    /// Prescribed motion of a fixed base; zero unless set.
+    pub(crate) base_motion: BaseMotion,
     pub(crate) base_dof: usize,
     pub(crate) nv: usize,
     pub(crate) links: Vec<ArticulatedLink>,
@@ -222,6 +268,7 @@ impl ArticulatedModel {
         Ok(Self {
             robot,
             gravity_m_s2,
+            base_motion: BaseMotion::default(),
             base_dof,
             nv,
             links,
@@ -241,6 +288,22 @@ impl ArticulatedModel {
         if self.base_dof == 0 {
             self.kinematic.set_root_transform(pose);
         }
+    }
+
+    /// Prescribes the motion of a fixed base, in the model's world frame, for
+    /// the dynamics algorithms ([`crate::rnea`], [`crate::aba()`], and the
+    /// contact steps built on them): a base that accelerates or turns drives
+    /// the tree through the inertial forces it causes. Has no effect on a
+    /// floating base.
+    pub fn set_fixed_base_motion(&mut self, motion: BaseMotion) {
+        if self.base_dof == 0 {
+            self.base_motion = motion;
+        }
+    }
+
+    /// The prescribed motion of a fixed base; zero for a floating base.
+    pub fn fixed_base_motion(&self) -> BaseMotion {
+        self.base_motion
     }
 
     /// Owning robot entity.

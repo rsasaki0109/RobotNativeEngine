@@ -258,8 +258,14 @@ pub(crate) fn rnea_from_xup(
             acceleration[0][index] -= gravity_body[index];
         }
     } else {
+        // A fixed base moves as prescribed; gravity enters as a fictitious
+        // upward acceleration of the base.
+        let (base_velocity, base_acceleration) =
+            model.base_motion.body_frame(transforms[0].rotation);
+        velocity[0] = base_velocity;
+        acceleration[0] = base_acceleration;
         for index in 0..3 {
-            acceleration[0][index] = -gravity_body[index];
+            acceleration[0][index] -= gravity_body[index];
         }
     }
 

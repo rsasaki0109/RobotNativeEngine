@@ -47,5 +47,5 @@ pub use contact::{
     ContactSolverConfig, ContactState, ContactStep, ContactStepConfig, CoupledBody, CoupledContact,
     CoupledStep, JointLimitOutcome, JointLimitSide, JointPdControl,
 };
-pub use model::{ArticulatedModel, DynamicsError};
+pub use model::{ArticulatedModel, BaseMotion, DynamicsError};
 pub use spatial::{SpatialInertia, SpatialVec};

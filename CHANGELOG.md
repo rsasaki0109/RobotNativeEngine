@@ -134,8 +134,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 - `rne_physics_native`: a fixed-base tree follows the kinematic body it
   hangs from, so an arm on a moving cart rides along instead of staying
-  where the cart stood when the tree was built (placement only; the cart's
-  velocity and acceleration do not enter the dynamics).
+  where the cart stood when the tree was built; the cart's velocity and
+  acceleration, differenced from its poses, drive the arm's dynamics through
+  `ArticulatedModel::set_fixed_base_motion` (a `BaseMotion` that RNEA and
+  ABA use as a moving fixed base), so a pendulum on an accelerating cart
+  leans back by atan(a / g).
   `KinematicModel::set_root_transform` and
   `ArticulatedModel::set_fixed_base_pose` move a fixed base without
   rebuilding the model.
