@@ -55,6 +55,19 @@ and which it deliberately does not.
    seeded fBm over gradient noise with optional step quantization, producing an
    ordinary `ColliderShape::HeightField`, plus `height_field_surface` to sample
    height and normal without a physics backend.
+6. **Joint limits as constraints in the same solve.** RaiSim treats joint
+   position limits like contacts in its solver rather than as springs.
+   `contact_step` does the same when `enforce_joint_limits` is set (the
+   default): every finite revolute or prismatic limit
+   (`ArticulatedModel::joint_position_limits`) becomes a unilateral,
+   frictionless block whose normal row is `±1` on the joint coordinate, with
+   the distance to the limit as its gap. It shares the speculative-gap and
+   recovery rules of contacts, so a joint stops exactly at its limit even under
+   a PD target far past it, and the step reports each engaged limit's impulse.
+7. **`O(n)` forward dynamics** (`aba`). The articulated-body algorithm is
+   RaiSim's per-step forward pass. `aba` matches the dense solve to round-off;
+   `contact_step` still factors `M̃` densely, because the Delassus matrix needs
+   `M̃⁻¹ Jᵀ` column by column and the implicit PD gains modify `M̃`.
 
 ### Not adopted
 
@@ -109,7 +122,19 @@ Unit tests in `rne_dynamics::contact` pin:
   1 mm of penetration;
 - an implicit PD pendulum at `ω dt ≈ 32`, far beyond the explicit stability
   limit, settling at the target minus the analytic gravity sag;
-- floating-base integration of body-frame velocity and yaw unwrapping.
+- floating-base integration of body-frame velocity and yaw unwrapping;
+- a pendulum falling onto its lower limit that stops there without passing it
+  and whose limit torque equals the gravity torque `m g l cos q`;
+- a PD target 0.5 rad past the upper limit at `kp = 10⁶`, which holds the joint
+  at the limit with a limit torque balancing the PD pull and gravity, and
+  reaches the target once limits are disabled;
+- a joint started 0.1 rad past its limit being driven back to it.
+
+Unit tests in `rne_dynamics::aba` check the articulated-body algorithm against
+the dense solve at 20 random states on a fixed-base and on a floating-base
+branching tree with revolute, prismatic, continuous, and fixed joints, skewed
+axes, offset origins, and full inertia tensors. Example 103 repeats the check
+on the 18-DoF Go2 at a moving state.
 
 Unit tests in `rne_physics::terrain` pin seed reproducibility, the amplitude
 bound, step quantization, input validation, and exact plane recovery by the
@@ -122,10 +147,11 @@ under 5 mm, the robot comes to rest, and two runs are bit-for-bit identical.
 
 ## Limitations and follow-ups
 
-- The step uses dense `O(n³)` factorization of `M̃`; RaiSim's speed also comes
-  from exploiting the tree structure. An articulated-body (ABA) forward pass
-  and a sparse `M̃` factorization are the natural next step.
-- Joint limits are not yet contacts; they can be added as one-sided
-  generalized-coordinate constraints in the same solver.
+- `contact_step` uses a dense `O(n³)` factorization of `M̃`. A sparse,
+  tree-structured factorization (or an ABA-based inverse-inertia operator for
+  the Delassus columns) is the remaining step toward RaiSim's per-step cost.
+- Every finite joint limit is included each step; limits far from their bound
+  are open and cost only Delassus rows. Effort (torque) limits are not enforced
+  on the implicit PD force.
 - No physics backend implements `PhysicsBackend` on top of this step yet; it is
   a dynamics-layer primitive used directly by examples and controllers.

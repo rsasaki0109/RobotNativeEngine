@@ -58,6 +58,8 @@ pub(crate) struct ArticulatedJoint {
 pub(crate) struct DofSpec {
     pub(crate) link: usize,
     pub(crate) s: SpatialVec,
+    /// Position limits `(lower, upper)` of a bounded revolute or prismatic joint.
+    pub(crate) limits: Option<(f64, f64)>,
 }
 
 /// A floating- or fixed-base articulated tree with link spatial inertias.
@@ -99,13 +101,22 @@ impl ArticulatedModel {
         let nv = kinematic.dof();
         let link_count = kinematic.link_count();
 
-        let mut joint_by_child: HashMap<Entity, (Entity, JointKind, Vec3)> = HashMap::new();
+        let mut joint_by_child: HashMap<Entity, (Entity, JointKind, Vec3, (f64, f64))> =
+            HashMap::new();
         for entity_ref in world.iter_entities() {
             let Some(joint) = entity_ref.get::<Joint>() else {
                 continue;
             };
             if joint.robot == robot {
-                joint_by_child.insert(joint.child_link, (entity_ref.id(), joint.kind, joint.axis));
+                joint_by_child.insert(
+                    joint.child_link,
+                    (
+                        entity_ref.id(),
+                        joint.kind,
+                        joint.axis,
+                        (joint.limits.lower, joint.limits.upper),
+                    ),
+                );
             }
         }
 
@@ -114,7 +125,11 @@ impl ArticulatedModel {
         for (dof, slot) in dofs.iter_mut().enumerate().take(base_dof) {
             let mut s = [0.0; 6];
             s[dof] = 1.0;
-            *slot = Some(DofSpec { link: 0, s });
+            *slot = Some(DofSpec {
+                link: 0,
+                s,
+                limits: None,
+            });
             link_dofs[0].push(dof);
         }
 
@@ -125,20 +140,25 @@ impl ArticulatedModel {
                 .ok_or(DynamicsError::MissingDofOwner(index))?;
             let parent = kinematic.link_parent(index);
             let inertia = link_spatial_inertia(world, entity);
-            let joint = joint_by_child
-                .get(&entity)
-                .map(|(joint_entity, kind, axis)| {
-                    let dof = kinematic
-                        .dof_index_of_joint(*joint_entity)
-                        .map(|joint_dof| base_dof + joint_dof);
-                    if let Some(global_dof) = dof {
-                        if let Some(s) = joint_motion_subspace(*kind, *axis) {
-                            dofs[global_dof] = Some(DofSpec { link: index, s });
-                            link_dof.push(global_dof);
+            let joint =
+                joint_by_child
+                    .get(&entity)
+                    .map(|(joint_entity, kind, axis, (lower, upper))| {
+                        let dof = kinematic
+                            .dof_index_of_joint(*joint_entity)
+                            .map(|joint_dof| base_dof + joint_dof);
+                        if let Some(global_dof) = dof {
+                            if let Some(s) = joint_motion_subspace(*kind, *axis) {
+                                dofs[global_dof] = Some(DofSpec {
+                                    link: index,
+                                    s,
+                                    limits: position_limits(*kind, *lower, *upper),
+                                });
+                                link_dof.push(global_dof);
+                            }
                         }
-                    }
-                    ArticulatedJoint { dof }
-                });
+                        ArticulatedJoint { dof }
+                    });
             links.push(ArticulatedLink {
                 entity,
                 parent,
@@ -204,6 +224,14 @@ impl ArticulatedModel {
         self.links.get(index).map(|link| &link.inertia)
     }
 
+    /// Position limits `(lower, upper)` of velocity coordinate `dof`.
+    ///
+    /// Returns `None` for floating-base coordinates, continuous joints, and
+    /// joints whose limits are not both finite with `lower <= upper`.
+    pub fn joint_position_limits(&self, dof: usize) -> Option<(f64, f64)> {
+        self.dofs.get(dof).and_then(|spec| spec.limits)
+    }
+
     /// Underlying kinematic model used for link ordering and forward kinematics.
     pub fn kinematic(&self) -> &KinematicModel {
         &self.kinematic
@@ -231,6 +259,17 @@ fn link_spatial_inertia(world: &World, entity: Entity) -> SpatialInertia {
         .map(|inertial| inertial.center_of_mass_m)
         .unwrap_or(Vec3::ZERO);
     SpatialInertia::point_mass(mass_kg, center_of_mass_m)
+}
+
+fn position_limits(kind: JointKind, lower: f64, upper: f64) -> Option<(f64, f64)> {
+    match kind {
+        JointKind::Revolute | JointKind::Prismatic
+            if lower.is_finite() && upper.is_finite() && lower <= upper =>
+        {
+            Some((lower, upper))
+        }
+        _ => None,
+    }
 }
 
 fn joint_motion_subspace(kind: JointKind, axis: Vec3) -> Option<SpatialVec> {

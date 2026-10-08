@@ -3,13 +3,14 @@
 //! The example spawns the RNE-adapted Go2 URDF with its declared inertial
 //! properties, enables the floating base, builds a backend-neutral
 //! [`rne_dynamics::ArticulatedModel`], and evaluates the mass matrix, gravity
-//! force, center of mass, and a free-fall forward-dynamics step. Everything is
+//! force, center of mass, and a free-fall forward-dynamics step, and checks the
+//! `O(n)` articulated-body algorithm against the dense solve. Everything is
 //! headless and deterministic.
 //!
 //! Run with `cargo run -p dynamics_diagnostics --example 103_dynamics_diagnostics`.
 
 use rne_dynamics::{
-    center_of_mass, forward_dynamics, gravity_torque, mass_matrix, ArticulatedModel,
+    aba, center_of_mass, forward_dynamics, gravity_torque, mass_matrix, ArticulatedModel,
 };
 use rne_ecs::World;
 use rne_robot::{FloatingBase, Robot};
@@ -94,8 +95,22 @@ fn main() {
     );
     println!("equation-of-motion residual = {residual:.3e}");
 
+    // The O(n) articulated-body algorithm must agree with the dense solve at a
+    // generic moving state, not only at rest.
+    let q_moving: Vec<f64> = (0..nv).map(|i| 0.3 * ((i as f64) * 0.7).sin()).collect();
+    let qd_moving: Vec<f64> = (0..nv).map(|i| 1.5 * ((i as f64) * 1.3).cos()).collect();
+    let tau_moving: Vec<f64> = (0..nv).map(|i| 4.0 * ((i as f64) * 0.9).sin()).collect();
+    let dense = forward_dynamics(&model, &q_moving, &qd_moving, &tau_moving).expect("dense");
+    let fast = aba(&model, &q_moving, &qd_moving, &tau_moving).expect("aba");
+    let aba_error = dense
+        .iter()
+        .zip(&fast)
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0_f64, f64::max);
+    println!("aba vs dense forward dynamics: max difference = {aba_error:.3e}");
+
     let finite = qdd.iter().all(|value| value.is_finite()) && com.is_finite();
-    if !(symmetric && positive_diagonal && finite && residual < 1.0e-9) {
+    if !(symmetric && positive_diagonal && finite && residual < 1.0e-9 && aba_error < 1.0e-8) {
         eprintln!("dynamics diagnostics failed");
         std::process::exit(1);
     }
