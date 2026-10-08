@@ -1,9 +1,11 @@
 //! Contact candidates between moving collider samples and static colliders.
 
+use crate::mesh::MeshTree;
 use rne_ecs::Entity;
 use rne_math::{Quat, Vec3};
 use rne_physics::{height_field_surface, ColliderShape};
 use rne_world::Transform3;
+use std::sync::Arc;
 
 /// Most hull vertices sampled from one convex collider.
 const MAX_HULL_SAMPLES: usize = 256;
@@ -22,8 +24,9 @@ pub(crate) struct Sample {
 
 /// Appends the samples of `shape` placed at `offset` in the body frame.
 ///
-/// Spheres are exact; a capsule is a row of spheres along its axis; boxes and
-/// convex hulls contribute their vertices. Other shapes are not sampled.
+/// Spheres are exact; a capsule is a row of spheres along its axis; boxes,
+/// convex hulls, and triangle meshes contribute their vertices. Planes and
+/// height fields are not sampled.
 pub(crate) fn collider_samples(shape: &ColliderShape, offset: &Transform3, out: &mut Vec<Sample>) {
     let place = |point: Vec3| offset.translation + offset.rotation * point;
     match shape {
@@ -72,14 +75,24 @@ pub(crate) fn collider_samples(shape: &ColliderShape, offset: &Transform3, out: 
                 collider_samples(&part.shape, &offset.mul_transform(&part.local_offset), out);
             }
         }
-        ColliderShape::Plane { .. }
-        | ColliderShape::TriMesh { .. }
-        | ColliderShape::HeightField { .. } => {}
+        ColliderShape::TriMesh { vertices, .. } => {
+            // At most MAX_HULL_SAMPLES vertices, evenly strided.
+            let stride = vertices.len().div_ceil(MAX_HULL_SAMPLES).max(1);
+            out.extend(vertices.iter().step_by(stride).map(|vertex| Sample {
+                center_m: place(*vertex),
+                radius_m: 0.0,
+            }));
+        }
+        ColliderShape::Plane { .. } | ColliderShape::HeightField { .. } => {}
     }
 }
 
+/// Distance beyond the sample's radius, in meters, past which a triangle mesh
+/// reports no closest point.
+const MESH_REACH_M: f64 = 1.0;
+
 /// A collider on a fixed or kinematic body, posed in the simulation frame.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub(crate) struct StaticCollider {
     /// Entity carrying the collider.
     pub entity: Entity,
@@ -89,6 +102,8 @@ pub(crate) struct StaticCollider {
     pub pose: Transform3,
     /// Friction coefficient of its material.
     pub friction: f64,
+    /// Trees of the triangle meshes in the shape, from [`mesh_trees`].
+    pub meshes: Vec<Arc<MeshTree>>,
 }
 
 /// Closest approach of a sample sphere to a static collider.
@@ -107,43 +122,126 @@ impl StaticCollider {
     /// radius `radius_m`, or `None` when the shape has no answer there (for
     /// example outside a height field's footprint).
     pub(crate) fn query(&self, center_m: Vec3, radius_m: f64) -> Option<Hit> {
-        let local = self.pose.rotation.conjugate() * (center_m - self.pose.translation);
-        let (distance, normal_local) = match &self.shape {
-            ColliderShape::Plane { normal } => {
-                let normal = normal.try_normalize()?;
-                (local.dot(normal), normal)
-            }
-            ColliderShape::Sphere { radius_m: sphere } => {
-                let length = local.length();
-                (length - sphere, local.try_normalize()?)
-            }
-            ColliderShape::Capsule {
-                half_height_m,
-                radius_m: capsule,
-            } => {
-                let axis = Vec3::new(0.0, local.y.clamp(-half_height_m, *half_height_m), 0.0);
-                let offset = local - axis;
-                (offset.length() - capsule, offset.try_normalize()?)
-            }
-            ColliderShape::Cuboid { half_extents_m } => box_distance(local, *half_extents_m)?,
-            ColliderShape::HeightField { .. } => {
-                let surface = height_field_surface(&self.shape, local.x, local.z)?;
-                (
-                    (local.y - surface.height_m) * surface.normal.y,
-                    surface.normal,
-                )
-            }
-            ColliderShape::ConvexHull { .. }
-            | ColliderShape::TriMesh { .. }
-            | ColliderShape::Compound { .. } => return None,
-        };
-        let normal = self.pose.rotation * normal_local;
-        Some(Hit {
-            gap_m: distance - radius_m,
-            normal,
-            point_m: center_m - normal * radius_m,
-        })
+        query_shape(&self.shape, &self.pose, &self.meshes, center_m, radius_m)
     }
+}
+
+/// The tree of the mesh `(vertices, indices)` among `meshes`.
+pub(crate) fn find_tree<'a>(
+    meshes: &'a [Arc<MeshTree>],
+    vertices: &Arc<[Vec3]>,
+    indices: &Arc<[u32]>,
+) -> Option<&'a MeshTree> {
+    meshes
+        .iter()
+        .find(|tree| tree.is_built_from(vertices, indices))
+        .map(|tree| &**tree)
+}
+
+/// Appends to `out` a tree for every triangle mesh in `shape` (compound
+/// parts included), reusing the trees in `cache` built from the same mesh
+/// allocations and adding the new ones to it.
+pub(crate) fn mesh_trees(
+    shape: &ColliderShape,
+    cache: &mut Vec<Arc<MeshTree>>,
+    out: &mut Vec<Arc<MeshTree>>,
+) {
+    match shape {
+        ColliderShape::TriMesh { vertices, indices } => {
+            let tree = match cache
+                .iter()
+                .find(|tree| tree.is_built_from(vertices, indices))
+            {
+                Some(tree) => tree.clone(),
+                None => {
+                    let tree = Arc::new(MeshTree::build(vertices, indices));
+                    cache.push(tree.clone());
+                    tree
+                }
+            };
+            out.push(tree);
+        }
+        ColliderShape::Compound { parts } => {
+            for part in parts.iter() {
+                mesh_trees(&part.shape, cache, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// [`StaticCollider::query`] for `shape` placed at `pose`.
+fn query_shape(
+    shape: &ColliderShape,
+    pose: &Transform3,
+    meshes: &[Arc<MeshTree>],
+    center_m: Vec3,
+    radius_m: f64,
+) -> Option<Hit> {
+    let local = pose.rotation.conjugate() * (center_m - pose.translation);
+    let (distance, normal_local) = match shape {
+        ColliderShape::Plane { normal } => {
+            let normal = normal.try_normalize()?;
+            (local.dot(normal), normal)
+        }
+        ColliderShape::Sphere { radius_m: sphere } => {
+            let length = local.length();
+            (length - sphere, local.try_normalize()?)
+        }
+        ColliderShape::Capsule {
+            half_height_m,
+            radius_m: capsule,
+        } => {
+            let axis = Vec3::new(0.0, local.y.clamp(-half_height_m, *half_height_m), 0.0);
+            let offset = local - axis;
+            (offset.length() - capsule, offset.try_normalize()?)
+        }
+        ColliderShape::Cuboid { half_extents_m } => box_distance(local, *half_extents_m)?,
+        ColliderShape::HeightField { .. } => {
+            let surface = height_field_surface(shape, local.x, local.z)?;
+            (
+                (local.y - surface.height_m) * surface.normal.y,
+                surface.normal,
+            )
+        }
+        ColliderShape::TriMesh { vertices, indices } => {
+            let closest =
+                find_tree(meshes, vertices, indices)?.closest(local, radius_m + MESH_REACH_M)?;
+            // The nearest face's outward normal tells outside from inside.
+            let away = local - closest.point_m;
+            let side = if away.dot(closest.face_normal) < 0.0 {
+                -1.0
+            } else {
+                1.0
+            };
+            let normal = match away.try_normalize() {
+                Some(direction) if closest.distance_m > 1.0e-12 => direction * side,
+                _ => closest.face_normal,
+            };
+            (side * closest.distance_m, normal)
+        }
+        ColliderShape::Compound { parts } => {
+            return parts
+                .iter()
+                .filter_map(|part| {
+                    query_shape(
+                        &part.shape,
+                        &pose.mul_transform(&part.local_offset),
+                        meshes,
+                        center_m,
+                        radius_m,
+                    )
+                })
+                .min_by(|a, b| a.gap_m.total_cmp(&b.gap_m));
+        }
+        ColliderShape::ConvexHull { .. } => return None,
+    };
+    let normal = pose.rotation * normal_local;
+    Some(Hit {
+        gap_m: distance - radius_m,
+        normal,
+        point_m: center_m - normal * radius_m,
+    })
 }
 
 /// Lateral slack, in meters, within which a corner still counts as over a face.
@@ -491,6 +589,7 @@ mod tests {
             shape,
             pose,
             friction: 0.5,
+            meshes: Vec::new(),
         }
     }
 

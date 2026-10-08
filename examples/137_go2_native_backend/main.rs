@@ -131,10 +131,13 @@ fn spawn_go2(base_y_m: f64) -> Scene {
                 max_effort_nm: joint.limits.max_effort,
             });
     }
-    let mass_kg = spawned
-        .links
-        .values()
-        .filter_map(|link| world.get::<RigidBody>(*link))
+    // Sum in link-name order: the links map's order varies between runs, and
+    // so would the sum's last bits.
+    let mut links: Vec<(&String, &Entity)> = spawned.links.iter().collect();
+    links.sort();
+    let mass_kg = links
+        .into_iter()
+        .filter_map(|(_, link)| world.get::<RigidBody>(*link))
         .map(|body| body.mass_kg)
         .sum();
     let feet = FOOT_LINKS

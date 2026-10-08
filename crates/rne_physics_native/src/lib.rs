@@ -18,15 +18,18 @@
 //!   body has a fixed base posed where that body stood when the tree was
 //!   built.
 //! - **Contacts.** Moving colliders are sampled — spheres exactly, capsules as
-//!   a row of spheres, boxes and convex hulls by their vertices — against the
-//!   planes, boxes, spheres, capsules, and height fields of fixed and
-//!   kinematic bodies, and against the spheres, boxes, and capsules of other
-//!   dynamic bodies, including other links of the same robot (except the two
-//!   sides of a joint). A box against a box instead runs the full
+//!   a row of spheres, boxes, convex hulls, and triangle meshes by their
+//!   vertices — against the planes, boxes, spheres, capsules, height fields,
+//!   triangle meshes, and compounds of fixed and kinematic bodies, and
+//!   against the spheres, boxes, capsules, triangle meshes, and compounds of
+//!   other dynamic bodies, including other links of the same robot (except
+//!   the two sides of a joint). Triangle meshes wind counter-clockwise seen
+//!   from outside, and each gets a bounding-volume tree. A box against a box instead runs the full
 //!   separating-axis test, so crossing edges touch too.
 //!   [`rne_physics::CollisionGroups`] filter every pair.
 //!   Assemblies that touch are solved in one contact problem, as RaiSim solves
-//!   a world; the rest are solved one island each. Friction is the mean of
+//!   a world; the rest are solved one island each. Contacts between two
+//!   entities along one normal are reduced to four that span their support. Friction is the mean of
 //!   the two materials' coefficients; restitution is ignored (contacts are
 //!   inelastic).
 //! - **Actuation.** [`rne_physics::JointActuation`] position, velocity, and
@@ -54,11 +57,13 @@
 
 mod assembly;
 mod collide;
+mod mesh;
 mod raycast;
 mod world_step;
 
 use assembly::{group_assemblies, Assembly, JointDesc};
-use collide::{sim_from_world, world_to_sim, StaticCollider};
+use collide::{mesh_trees, sim_from_world, world_to_sim, StaticCollider};
+use mesh::MeshTree;
 use rne_core::SimDuration;
 use rne_dynamics::ContactStepConfig;
 use rne_ecs::{Entity, Parent, World};
@@ -70,6 +75,7 @@ use rne_physics::{
 };
 use rne_world::{world_transform_of, Transform3};
 use std::collections::{BTreeMap, HashMap};
+use std::sync::Arc;
 use world_step::{step_world, WarmKey};
 
 /// Capabilities of [`NativeBackend`], in [`PhysicsCapability::ALL`] order.
@@ -113,6 +119,8 @@ struct NativeWorld {
     topology: Vec<TopologyEntry>,
     assemblies: Vec<Assembly>,
     statics: Vec<StaticCollider>,
+    /// Trees of the triangle meshes in use, found again by their allocations.
+    mesh_cache: Vec<Arc<MeshTree>>,
     contacts: Vec<ContactEvent>,
     /// Contact impulses of the last step in contact frames, for warm starts.
     warm: HashMap<WarmKey, [f64; 3]>,
@@ -185,7 +193,7 @@ impl NativeWorld {
         self.warm.clear();
         self.assemblies = group_assemblies(world, dynamic)
             .iter()
-            .map(|members| Assembly::build(world, members, gravity))
+            .map(|members| Assembly::build(world, members, gravity, &mut self.mesh_cache))
             .collect::<Result<_, _>>()?;
         self.body_assembly = self
             .assemblies
@@ -310,14 +318,19 @@ impl PhysicsBackend for NativeBackend {
                     return None;
                 }
                 let pose = world_transform_of(world, entity).mul_transform(&collider.local_offset);
+                let mut meshes = Vec::new();
+                mesh_trees(&collider.shape, &mut state.mesh_cache, &mut meshes);
                 Some(StaticCollider {
                     entity,
                     shape: collider.shape.clone(),
                     pose: sim_from_world(&pose),
                     friction: f64::from(collider.material.friction),
+                    meshes,
                 })
             })
             .collect();
+        // Drop the trees no collider uses any more.
+        state.mesh_cache.retain(|tree| Arc::strong_count(tree) > 1);
         for assembly in &mut state.assemblies {
             assembly.load_commands(world)?;
         }
@@ -445,25 +458,38 @@ impl PhysicsBackend for NativeBackend {
         }
         let to_sim = world_to_sim();
         let (origin, direction) = (to_sim * query.origin_m, to_sim * direction);
-        let mut targets: Vec<(Entity, &ColliderShape, Transform3)> = state
+        let mut targets: Vec<(Entity, &ColliderShape, Transform3, &[Arc<MeshTree>])> = state
             .statics
             .iter()
-            .map(|collider| (collider.entity, &collider.shape, collider.pose))
+            .map(|collider| {
+                (
+                    collider.entity,
+                    &collider.shape,
+                    collider.pose,
+                    collider.meshes.as_slice(),
+                )
+            })
             .collect();
         for assembly in &state.assemblies {
             let transforms = assembly.sim_transforms()?;
             for body in &assembly.bodies {
                 if let Some((shape, offset)) = &body.collider {
                     let pose = transforms[body.link_index].mul_transform(offset);
-                    targets.push((body.entity, shape, pose));
+                    targets.push((body.entity, shape, pose, body.meshes.as_slice()));
                 }
             }
         }
         let mut hits: Vec<RaycastHit> = targets
             .into_iter()
-            .filter_map(|(entity, shape, pose)| {
-                let (distance_m, normal) =
-                    raycast::cast(shape, &pose, origin, direction, query.max_distance_m)?;
+            .filter_map(|(entity, shape, pose, meshes)| {
+                let (distance_m, normal) = raycast::cast(
+                    shape,
+                    &pose,
+                    meshes,
+                    origin,
+                    direction,
+                    query.max_distance_m,
+                )?;
                 Some(RaycastHit {
                     entity,
                     point_m: query.origin_m + to_sim.conjugate() * direction * distance_m,

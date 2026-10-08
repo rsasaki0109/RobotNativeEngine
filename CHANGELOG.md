@@ -132,6 +132,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_physics_native`: triangle meshes and compounds are contact targets,
+  static or moving, so bodies rest on mesh terrain, inside mesh rooms, and on
+  compound furniture instead of falling through. Each mesh gets a
+  bounding-volume tree, built once per mesh allocation and shared with
+  raycasts; meshes on moving bodies are sampled by their vertices. Contacts
+  between two entities along one normal are reduced to the four that span
+  their support, which keeps the solver converging under many coplanar
+  points. Example 137 sums the Go2's mass in link-name order, so its crate
+  replay check no longer depends on hash-map order.
+
 - `rne_physics_native`: raycasts. `NativeBackend` now hits every non-sensor
   collider at its current pose (spheres, capsules, boxes, and planes as
   solids; height fields, exactly on the contacts' bilinear surface, and

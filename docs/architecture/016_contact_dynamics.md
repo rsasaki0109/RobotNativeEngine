@@ -88,9 +88,9 @@ and which it deliberately does not.
    reduced-coordinate model (a lone body is a one-body model with a floating
    base), so a URDF robot wired by `attach_urdf_document_articulation` — the
    path the asset loader takes — runs unchanged. Moving colliders are sampled
-   (spheres exactly, capsules as rows of spheres, boxes and hulls by their
-   vertices) against static planes, boxes, spheres, capsules, and height
-   fields; `JointActuation` position, velocity, and effort commands become
+   (spheres exactly, capsules as rows of spheres, boxes, hulls, and meshes
+   by their vertices) against static planes, boxes, spheres, capsules, height
+   fields, triangle meshes, and compounds of these; `JointActuation` position, velocity, and effort commands become
    implicit PD and feed-forward forces with their effort limits, and
    `JointPassiveDynamics` adds damping and Coulomb friction. The backend
    advertises `RigidBody`, `Articulation`, `DeterministicStep`,
@@ -124,12 +124,19 @@ and which it deliberately does not.
     model), joint and effort limits work per model as in `contact_step`, and
     with one model and only world contacts the two agree to round-off.
     `NativeBackend` builds these contacts between moving bodies (samples
-    against spheres, capsules, and boxes; box pairs by a full separating-axis
+    against spheres, capsules, boxes, triangle meshes, and compounds; box pairs by a full separating-axis
     test over the 6 face and 9 edge-pair axes, with the corners and edge
     crossings of the overlapping faces on a face axis and the closest points
     of the two edges on an edge-pair axis), between links of one robot that a joint does not join
     directly, filters them with `CollisionGroups`, and solves each island of
-    touching assemblies in one call.
+    touching assemblies in one call. A triangle mesh gets a bounding-volume
+    tree, built once per mesh allocation and shared by contacts and rays; a
+    sample's gap to it is its distance to the closest triangle, signed by
+    that triangle's outward (counter-clockwise) face normal. Contacts between
+    two entities along one normal are reduced to the deepest and the three
+    that span the widest support around it, so a body standing on many
+    coplanar points (a table's sixteen leg corners) keeps the per-contact
+    solver converging.
 
 ### Not adopted
 
@@ -271,7 +278,11 @@ collision groups filter everything). A plank laid crosswise on a beam, where
 no corner of either lies over the other's face, rests on the four edge
 crossings with the beam carrying its weight within 0.1 % (before the edge
 tests it fell through the beam), and two cubes balanced edge on edge meet at
-the closest points of their edges.
+the closest points of their edges. A box rests on a two-triangle floor and a
+ball on a closed mesh cube, each contact carrying its body's weight within
+0.1 %, and a ball rests on a free table made of a compound of five boxes, the
+floor carrying both. The mesh tree's closest points and ray hits match a
+brute-force search over every triangle.
 
 `examples/137_go2_native_backend` builds the Go2 the way the asset loader does
 and drives it through `PhysicsBackend` on `NativeBackend` and on Rapier: on the
@@ -315,8 +326,9 @@ instructions per step, against 2.8 M originally.
 - Forward kinematics still visits every link, including welded ones, because
   contact points and sensors may sit on any link.
 - `NativeBackend`'s contacts come from samples except between boxes:
-  contacts against convex hulls, meshes, or compounds on moving bodies are
-  not detected. URDF robots spawned without
+  convex hulls are not contact targets, and a sample near a sharp convex
+  mesh edge (faces turning by more than 90°) can take the wrong side.
+  Compound parts are tested by sampling, not by the box-box test. URDF robots spawned without
   self-collision share one collision group and so do not collide with each
   other, as in the Rapier backend. Raycasts do not hit convex hulls, and a
   kinematic body that moves is a moving obstacle for contacts but not a moving anchor

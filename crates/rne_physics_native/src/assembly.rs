@@ -1,6 +1,7 @@
 //! Articulated assemblies mirrored from the ECS into `rne_dynamics` models.
 
-use crate::collide::{collider_samples, sim_from_world, world_from_sim, Sample};
+use crate::collide::{collider_samples, mesh_trees, sim_from_world, world_from_sim, Sample};
+use crate::mesh::MeshTree;
 use rne_dynamics::{ArticulatedModel, CoupledBody, JointPdControl};
 use rne_ecs::{Entity, World};
 use rne_math::{Quat, Vec3};
@@ -12,6 +13,7 @@ use rne_physics::{
 use rne_robot::{FloatingBase, Joint, JointKind, JointLimits, Link, Robot, RobotId};
 use rne_world::{world_transform_of, Transform3};
 use std::collections::{BTreeMap, HashMap};
+use std::sync::Arc;
 
 /// Radius of the inertia sphere assumed for a body with neither an exact
 /// inertia nor a collider, in meters.
@@ -99,6 +101,8 @@ pub(crate) struct AssemblyBody {
     /// Collider shape and its offset in the body frame, for contacts that
     /// other bodies' samples make with this body.
     pub collider: Option<(ColliderShape, Transform3)>,
+    /// Trees of the triangle meshes in the collider.
+    pub meshes: Vec<Arc<MeshTree>>,
     /// Collision filtering masks.
     pub groups: CollisionGroups,
     /// Joint description connecting the body to its parent, if any.
@@ -152,6 +156,7 @@ impl Assembly {
         world: &World,
         members: &[Entity],
         gravity_sim_m_s2: Vec3,
+        mesh_cache: &mut Vec<Arc<MeshTree>>,
     ) -> Result<Self, PhysicsError> {
         let root = members[0];
         let root_joint = JointDesc::of(world, root);
@@ -214,6 +219,10 @@ impl Assembly {
             };
             model_links.insert(entity, model_link);
             let (samples, friction, collider) = body_samples(world, entity);
+            let mut meshes = Vec::new();
+            if let Some((shape, _)) = &collider {
+                mesh_trees(shape, mesh_cache, &mut meshes);
+            }
             bodies.push(AssemblyBody {
                 entity,
                 link_index: 0,
@@ -221,6 +230,7 @@ impl Assembly {
                 samples,
                 friction,
                 collider,
+                meshes,
                 groups: world
                     .get::<CollisionGroups>(entity)
                     .copied()
