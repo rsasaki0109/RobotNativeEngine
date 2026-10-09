@@ -500,3 +500,36 @@ original grasp criteria. Under-squeezed cases remain accepted as intentional
 failures. Contact traces and bounded Noslip/timestep experiments do not
 establish a unique cause or an optimal setting; no solver or task threshold
 changes are included in this control update.
+
+### Rapier prescribed kinematic multibody root motion
+
+The vendored Rapier correction keeps the adapter's public API unchanged. It captures
+position-based kinematic root endpoints before forward kinematics, then follows
+body-origin linear translation and spherical rotation during serial solver
+substeps. COM velocity includes angular transport. Because each interval has a
+constant prescribed origin/angular velocity, boundary velocity changes enter once
+as a generalized momentum correction; repeating that acceleration during the
+interval would be inconsistent with the prescribed pose trajectory. Rotational
+COM centripetal acceleration remains part of the within-interval dynamics.
+
+Generic contact builders include prescribed root point velocity in their normal
+and tangent right-hand sides, including substep updates. Analytic free-slider
+acceleration/deceleration and contact-transfer fixtures pass. A wall fixture with
+nonzero initial relative velocity fails when the prescribed contact term alone is
+removed, so its success requires the contact correction rather than only the
+boundary momentum update. Serial final velocity writeback uses final link poses.
+
+Unchanged example 138 static Native/Rapier physical values match the stored
+pre-investigation values bit for bit. The unchanged moving-cart fixture now passes
+Rapier root following, but all six Rapier grasp cases still fail the original
+criteria; root following does not establish grasp success. Native passes six cases.
+All twelve cart trajectories replay exactly. Additional tests cover actual CCD
+splitting, the island-parallel feature, graph split/append and type transitions,
+and offset-COM rotating step-boundary serialization continuation. Generic
+Jacobians resize per-island buffers in parallel builds; the clean baseline's four
+matrix-bounds test failures are removed. Serialized fields remain unchanged, but
+restoring in the middle of an active integration interval is not supported: a new
+physics step must reconstruct the prescribed root command. Arbitrary in-solver
+graph mutation and broader constrained/armature models remain outside the validated
+scope. Release API audits remain separate checks. See the vendor `RNE_PATCH.md`
+for the repository-build boundary and unchanged upstream provenance.

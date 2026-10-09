@@ -297,6 +297,7 @@ impl VelocitySolver {
                         .generic_solver_vels
                         .rows(multibody.solver_id, multibody.ndofs());
                     multibody.velocities.copy_from(&solver_vels);
+                    multibody.refresh_kinematic_root_velocities(bodies);
                 }
             } else {
                 let rb = bodies.index_mut_internal(*handle);

@@ -17,6 +17,8 @@ use na::DVector;
 pub(crate) struct GenericOneBodyConstraintBuilder {
     link2: MultibodyLinkId,
     ccd_thickness: Real,
+    prescribed_initial: [crate::math::Vector<Real>; MAX_MANIFOLD_POINTS],
+    tangent_initial: [[Real; DIM - 1]; MAX_MANIFOLD_POINTS],
     inner: OneBodyConstraintBuilder,
 }
 
@@ -25,6 +27,8 @@ impl GenericOneBodyConstraintBuilder {
         Self {
             link2: MultibodyLinkId::default(),
             ccd_thickness: 0.0,
+            prescribed_initial: [crate::math::Vector::zeros(); MAX_MANIFOLD_POINTS],
+            tangent_initial: [[0.0; DIM - 1]; MAX_MANIFOLD_POINTS],
             inner: OneBodyConstraintBuilder::invalid(),
         }
     }
@@ -80,7 +84,7 @@ impl GenericOneBodyConstraintBuilder {
         let required_jacobian_len =
             *jacobian_id + manifold.data.solver_contacts.len() * multibodies_ndof * 2 * DIM;
 
-        if jacobians.nrows() < required_jacobian_len && !cfg!(feature = "parallel") {
+        if jacobians.nrows() < required_jacobian_len {
             jacobians.resize_vertically_mut(required_jacobian_len, 0.0);
         }
 
@@ -121,7 +125,7 @@ impl GenericOneBodyConstraintBuilder {
                 constraint.inner.manifold_contact_id[k] = manifold_point.contact_id;
 
                 // Normal part.
-                let normal_rhs_wo_bias;
+                let mut normal_rhs_wo_bias;
                 {
                     let torque_dir2 = dp2.gcross(-force_dir1);
                     let inv_r2 = mb2
@@ -141,12 +145,16 @@ impl GenericOneBodyConstraintBuilder {
 
                     let is_bouncy = manifold_point.is_bouncy() as u32 as Real;
 
+                    let prescribed2 = mb2.prescribed_velocity_at_point(point);
                     let proj_vel1 = vel1.dot(&force_dir1);
                     let proj_vel2 = vel2.dot(&force_dir1);
                     let dvel = proj_vel1 - proj_vel2;
                     // NOTE: we add proj_vel1 since it’s not accessible through solver_vel.
                     normal_rhs_wo_bias =
                         proj_vel1 + (is_bouncy * manifold_point.restitution) * dvel;
+                    if prescribed2 != crate::math::Vector::zeros() {
+                        normal_rhs_wo_bias -= prescribed2.dot(&force_dir1);
+                    }
 
                     constraint.inner.elements[k].normal_part = OneBodyConstraintNormalPart {
                         gcross2: na::zero(), // Unused for generic constraints.
@@ -180,10 +188,14 @@ impl GenericOneBodyConstraintBuilder {
 
                         let r = crate::utils::inv(inv_r2);
 
-                        let rhs_wo_bias = (vel1
+                        let mut rhs_wo_bias = (vel1
                             + flipped_multiplier * manifold_point.tangent_velocity)
                             .dot(&tangents1[j]);
 
+                        let prescribed = mb2.prescribed_velocity_at_point(point);
+                        if prescribed != crate::math::Vector::zeros() {
+                            rhs_wo_bias -= prescribed.dot(&tangents1[j]);
+                        }
                         constraint.inner.elements[k].tangent_part.rhs_wo_bias[j] = rhs_wo_bias;
                         constraint.inner.elements[k].tangent_part.rhs[j] = rhs_wo_bias;
 
@@ -209,6 +221,11 @@ impl GenericOneBodyConstraintBuilder {
                 builder.link2 = link2;
                 builder.ccd_thickness = rb2.ccd.ccd_thickness;
                 builder.inner.infos[k] = infos;
+                builder.prescribed_initial[k] = -mb2.prescribed_velocity_at_point(point);
+                for j in 0..DIM - 1 {
+                    builder.tangent_initial[k][j] =
+                        constraint.inner.elements[k].tangent_part.rhs_wo_bias[j];
+                }
                 constraint.inner.manifold_contact_id[k] = manifold_point.contact_id;
             }
 
@@ -233,6 +250,36 @@ impl GenericOneBodyConstraintBuilder {
 
         self.inner
             .update_with_positions(params, solved_dt, pos2, &mut constraint.inner);
+        for k in 0..constraint.inner.num_contacts as usize {
+            let p2 = pos2 * self.inner.infos[k].local_p2;
+            let delta = -multibodies[self.link2.multibody].prescribed_velocity_at_point(p2)
+                - self.prescribed_initial[k];
+            if delta == crate::math::Vector::zeros()
+                && (0..DIM - 1).all(|j| {
+                    constraint.inner.elements[k].tangent_part.rhs_wo_bias[j]
+                        == self.tangent_initial[k][j]
+                })
+            {
+                continue;
+            }
+            let element = &mut constraint.inner.elements[k];
+            let normal_delta = delta.dot(&constraint.inner.dir1);
+            element.normal_part.rhs += normal_delta;
+            element.normal_part.rhs_wo_bias += normal_delta;
+            #[cfg(feature = "dim3")]
+            let tangents = [
+                constraint.inner.tangent1,
+                constraint.inner.dir1.cross(&constraint.inner.tangent1),
+            ];
+            #[cfg(feature = "dim2")]
+            let tangents = constraint.inner.dir1.orthonormal_basis();
+            for j in 0..DIM - 1 {
+                element.tangent_part.rhs[j] -= element.tangent_part.rhs_wo_bias[j];
+                element.tangent_part.rhs_wo_bias[j] =
+                    self.tangent_initial[k][j] + delta.dot(&tangents[j]);
+                element.tangent_part.rhs[j] += element.tangent_part.rhs_wo_bias[j];
+            }
+        }
     }
 }
 

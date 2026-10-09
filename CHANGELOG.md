@@ -23,6 +23,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Preserve prescribed kinematic multibody root motion in the vendored Rapier
+  backend through solver substeps, account for boundary momentum changes, and
+  include root point velocity in generic contact constraints. Repair per-island
+  generic Jacobian allocation in parallel builds. Add analytic contact and
+  free-slider fixtures, deterministic replay, CCD splitting, graph transitions,
+  and step-boundary restore coverage. Moving-cart root tracking now works, but
+  the investigated moving-cart grasp cases still fail their original criteria.
+  In-step snapshot continuation and arbitrary solver-active graph edits remain
+  unsupported.
+
 - Evaluate ECS-compiled MuJoCo typed joint feedback inside bounded affine
   actuators so implicitfast can account for velocity feedback. Keep caller
   MJCF sampled controls and the legacy motor control law. This improves
