@@ -223,6 +223,18 @@ ray down onto the standing robot's base and a grid of rays onto the terrain.
 cargo run --release -p go2_native_backend --example 137_go2_native_backend
 ```
 
+Example 138 grips, lifts, and holds 5, 20, and 50 kg cubes with a two-finger
+multibody gripper — a palm on a prismatic lift and two pads squeezing with a
+constant effort — on the native backend and on Rapier through the same
+`PhysicsBackend` loop. Squeezed with a 25 % margin over what friction needs,
+every cube rises with the palm; squeezed 35 % short, every cube stays on the
+floor. The native run must hold with no slip and no twist and replay bit for
+bit.
+
+```bash
+cargo run --release -p heavy_grasp --example 138_heavy_grasp
+```
+
 See [hard-contact time stepping](architecture/016_contact_dynamics.md).
 
 ## Native legged walking templates
