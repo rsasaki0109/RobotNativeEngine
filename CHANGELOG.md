@@ -23,6 +23,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Reduce contact-solver sweep overhead without changing the Coulomb cone,
+  tolerances, or arithmetic order: traverse contiguous Delassus rows, reuse
+  sweep scratch buffers, and evaluate sliding brackets lazily in the same
+  deterministic order. Heavy-grasp release timings and the measured bottleneck
+  are recorded in ADR 016; examples 133–138 retain their physical results.
+
 - `rne_dynamics` merges links welded by fixed joints into their moving
   ancestor's spatial inertia when a model is built, so `mass_matrix`, `rnea`,
   `aba`, and `contact_step` recurse over moving bodies only (13 instead of 42

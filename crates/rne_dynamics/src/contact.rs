@@ -239,23 +239,29 @@ pub fn solve_contact_impulses(
     let mut iterations = 0;
     let mut last_change = 0.0;
     let mut converged = count == 0;
+    let mut before = impulses.clone();
+    let mut delta = vec![0.0; size];
     while !converged && iterations < config.max_iterations {
         iterations += 1;
         last_change = 0.0_f64;
-        let before = impulses.clone();
+        before.copy_from_slice(&impulses);
         for contact in 0..count {
             // Velocity of this contact with its own impulse removed.
             let mut bias = [0.0; 3];
             for (axis, value) in bias.iter_mut().enumerate() {
                 let row = 3 * contact + axis;
                 let mut sum = free_velocity_m_s[row];
-                for (other, impulse) in impulses.iter().enumerate() {
+                let coefficients = &delassus.data()[row * size..(row + 1) * size];
+                for (other, (coefficients, impulse)) in
+                    coefficients.chunks_exact(3).zip(&impulses).enumerate()
+                {
                     if other == contact {
                         continue;
                     }
-                    for (component, magnitude) in impulse.iter().enumerate() {
-                        sum += delassus.get(row, 3 * other + component) * magnitude;
-                    }
+                    // Keep the original scalar addition order, including zero terms.
+                    sum += coefficients[0] * impulse[0];
+                    sum += coefficients[1] * impulse[1];
+                    sum += coefficients[2] * impulse[2];
                 }
                 *value = sum;
             }
@@ -280,7 +286,8 @@ pub fn solve_contact_impulses(
             states[contact] = state;
         }
         converged = last_change <= config.tolerance_n_s
-            || sweep_velocity_change(delassus, &impulses, &before) <= config.velocity_tolerance_m_s;
+            || sweep_velocity_change(delassus, &impulses, &before, &mut delta)
+                <= config.velocity_tolerance_m_s;
     }
 
     Ok(ContactSolution {
@@ -302,18 +309,18 @@ fn sweep_velocity_change(
     delassus: &DenseMatrix,
     impulses: &[[f64; 3]],
     before: &[[f64; 3]],
+    delta: &mut [f64],
 ) -> f64 {
-    let delta: Vec<f64> = impulses
-        .iter()
-        .zip(before)
-        .flat_map(|(now, then)| [now[0] - then[0], now[1] - then[1], now[2] - then[2]])
-        .collect();
-    (0..delta.len())
+    for ((now, then), change) in impulses.iter().zip(before).zip(delta.chunks_exact_mut(3)) {
+        change.copy_from_slice(&[now[0] - then[0], now[1] - then[1], now[2] - then[2]]);
+    }
+    delassus
+        .data()
+        .chunks_exact(delta.len())
         .map(|row| {
-            delta
-                .iter()
-                .enumerate()
-                .map(|(col, value)| delassus.get(row, col) * value)
+            row.iter()
+                .zip(delta.iter())
+                .map(|(coefficient, value)| coefficient * value)
                 .sum::<f64>()
                 .abs()
         })
@@ -379,21 +386,22 @@ fn solve_single_contact(
     let evaluate = |angle: f64| sliding_residual(g, b, mu, angle);
 
     let step = std::f64::consts::TAU / SLIDING_BRACKET_SAMPLES as f64;
-    let samples: Vec<Option<SlidingSample>> = (0..=SLIDING_BRACKET_SAMPLES)
-        .map(|index| evaluate(seed_angle + step * index as f64))
-        .collect();
+    // Cache both valid and invalid samples, evaluating only visited brackets.
+    let mut samples = [None; SLIDING_BRACKET_SAMPLES + 1];
+    let mut sample = |index: usize| {
+        *samples[index].get_or_insert_with(|| evaluate(seed_angle + step * index as f64))
+    };
     // Prefer the bracket nearest the sticking direction, searching outward in
     // both directions in a fixed order.
-    let mut order = Vec::with_capacity(SLIDING_BRACKET_SAMPLES);
-    for offset in 0..SLIDING_BRACKET_SAMPLES.div_ceil(2) {
-        order.push(offset);
-        let mirrored = SLIDING_BRACKET_SAMPLES - 1 - offset;
-        if mirrored != offset {
-            order.push(mirrored);
+    let order = (0..SLIDING_BRACKET_SAMPLES).map(|position| {
+        if position % 2 == 0 {
+            position / 2
+        } else {
+            SLIDING_BRACKET_SAMPLES - 1 - position / 2
         }
-    }
+    });
     for index in order {
-        let (Some(low), Some(high)) = (samples[index], samples[index + 1]) else {
+        let (Some(low), Some(high)) = (sample(index), sample(index + 1)) else {
             continue;
         };
         if low.cross.signum() == high.cross.signum() && low.cross != 0.0 && high.cross != 0.0 {
@@ -1603,6 +1611,59 @@ mod tests {
         let total =
             |solution: &ContactSolution| solution.impulses_n_s[0][2] + solution.impulses_n_s[1][2];
         assert!((total(&early) - total(&late)).abs() < 1.0e-5);
+    }
+
+    #[test]
+    fn independent_contact_blocks_match_separate_solves_bit_for_bit() {
+        let count = 12;
+        let mut rng = Lcg(31);
+        let mut delassus = DenseMatrix::zeros(3 * count, 3 * count);
+        let mut free = Vec::new();
+        let mut friction = Vec::new();
+        let mut seed = Vec::new();
+        let mut separate = Vec::new();
+        let config = ContactSolverConfig::default();
+        for contact in 0..count {
+            let block = random_spd(3, &mut rng);
+            for row in 0..3 {
+                for col in 0..3 {
+                    delassus.set(3 * contact + row, 3 * contact + col, block.get(row, col));
+                }
+            }
+            let velocity = [
+                3.0 * rng.next(),
+                3.0 * rng.next(),
+                if contact % 3 == 0 { 0.5 } else { -1.0 },
+            ];
+            let mu = if contact % 3 == 1 { 0.0 } else { 0.3 };
+            let impulse = [rng.next(), rng.next(), rng.next()];
+            separate.push(
+                solve_contact_impulses(&block, &velocity, &[mu], &config, Some(&[impulse]))
+                    .expect("separate solve"),
+            );
+            free.extend(velocity);
+            friction.push(mu);
+            seed.push(impulse);
+        }
+        let solve = || {
+            solve_contact_impulses(&delassus, &free, &friction, &config, Some(&seed))
+                .expect("combined solve")
+        };
+        let combined = solve();
+        assert!(combined.converged);
+        assert_contact_conditions(&delassus, &free, &friction, &combined, 1.0e-9);
+        for (contact, single) in separate.iter().enumerate() {
+            assert_eq!(combined.states[contact], single.states[0]);
+            assert_eq!(
+                combined.impulses_n_s[contact].map(f64::to_bits),
+                single.impulses_n_s[0].map(f64::to_bits)
+            );
+        }
+        let replay = solve();
+        assert_eq!(combined.iterations, replay.iterations);
+        for (first, second) in combined.impulses_n_s.iter().zip(&replay.impulses_n_s) {
+            assert_eq!(first.map(f64::to_bits), second.map(f64::to_bits));
+        }
     }
 
     #[test]
