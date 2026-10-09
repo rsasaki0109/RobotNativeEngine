@@ -10,6 +10,10 @@ on:
       - "crates/rne_physics_mujoco/**"
       - "crates/rne_ai/**"
       - "examples/74_flagship_validation_workflow/**"
+      - "examples/138_heavy_grasp/**"
+      - "scripts/compare_heavy_grasp.py"
+      - "scripts/test_compare_heavy_grasp.py"
+      - "docs/HEAVY_GRASP_COMPARISON.md"
       - "docs/PLAN_MUJOCO_SPIKE.md"
       - "docs/PRODUCT_STRATEGY_2026_2029.md"
       - "docs/ROADMAP.md"
@@ -26,6 +30,10 @@ on:
       - "crates/rne_physics_mujoco/**"
       - "crates/rne_ai/**"
       - "examples/74_flagship_validation_workflow/**"
+      - "examples/138_heavy_grasp/**"
+      - "scripts/compare_heavy_grasp.py"
+      - "scripts/test_compare_heavy_grasp.py"
+      - "docs/HEAVY_GRASP_COMPARISON.md"
       - "docs/PLAN_MUJOCO_SPIKE.md"
       - "docs/PRODUCT_STRATEGY_2026_2029.md"
       - "docs/ROADMAP.md"
@@ -131,6 +139,7 @@ jobs:
           cargo clippy --locked -p rne_physics_conformance_suite --features mujoco --all-targets -- -D warnings
           cargo clippy --locked -p rne_ai --all-targets -- -D warnings
           cargo clippy --locked -p flagship_validation_workflow --features mujoco --all-targets -- -D warnings
+          cargo clippy --locked -p heavy_grasp --features mujoco --all-targets -- -D warnings
 
       - name: MuJoCo feature tests
         run: |
@@ -141,6 +150,26 @@ jobs:
 
       - name: Rapier/MuJoCo flagship TaskSpec evidence
         run: cargo run --locked -p xtask -- flagship --cross-backend
+
+      - name: Static heavy-grasp comparison (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s scripts -p test_compare_heavy_grasp.py
+          cargo build --locked --release -p heavy_grasp --example 138_heavy_grasp --features mujoco
+          python3 scripts/compare_heavy_grasp.py --runs 2 \
+            --runtime-library "$MUJOCO_DYNAMIC_LINK_DIR/libmujoco.so.3.9.0" \
+            --output artifacts/heavy-grasp-comparison.json
+
+      - name: Upload heavy-grasp comparison
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: heavy-grasp-comparison-linux
+          path: artifacts/heavy-grasp-comparison.json
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Cross-backend divergence Failure Capsule
         run: |

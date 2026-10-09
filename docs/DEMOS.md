@@ -235,6 +235,11 @@ bit.
 cargo run --release -p heavy_grasp --example 138_heavy_grasp
 ```
 
+Example 138 also supports `--benchmark-json native|rapier|mujoco`, with
+MuJoCo behind the optional `mujoco` feature. See the
+[heavy-grasp comparison](HEAVY_GRASP_COMPARISON.md) for runtime setup, repeated
+measurements, strict task thresholds, and the retained failed cases.
+
 See [hard-contact time stepping](architecture/016_contact_dynamics.md).
 
 ## Native legged walking templates

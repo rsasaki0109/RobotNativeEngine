@@ -1,0 +1,3019 @@
+{
+  "schema_version": 1,
+  "scope": "static-base example 138; identical ECS scene and commands",
+  "limitations": [
+    "Same-host diagnostic; no claim about latest MuJoCo, GPU batches, or other tasks.",
+    "Final output equality only; not a complete trajectory or cross-platform replay proof.",
+    "Contact models and motor integration differ; failed cases are retained.",
+    "Timing includes first-step model compilation and ECS sync, not only solver work."
+  ],
+  "environment": {
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "python": "3.12.14",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "binary_sha256": "0de804147acde43ac8a135e82d6ab61c1534e81db7956d4d701decef2ca235dc",
+  "mujoco_library_sha256": "526773636a795dad11e094c8655d2375984a5cd7090f254d86bb71074651b852",
+  "mujoco_library_name": "libmujoco.so.3.9.0",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)\nbinary: rustc\ncommit-hash: 59807616e1fa2540724bfbac14d7976d7e4a3860\ncommit-date: 2026-04-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.95.0\nLLVM version: 22.1.2",
+  "git_base_revision": "51629e420300d5637247be71f53d72a052af47e6",
+  "tracked_diff_sha256": "1df8b387648adca3c7c704c5ced54d7191e5d55f054f3d3f2fbe22b097aef77f",
+  "source_sha256": {
+    "examples/138_heavy_grasp/main.rs": "c26e91059b9eec38ca42bc429c318db900a4c02cbac4417ebdc2f8ecb68780da",
+    "examples/138_heavy_grasp/Cargo.toml": "359a891e31d1accd275c2fb42308ce3bb60972a45dbdfdf42f2411c457c96c2e",
+    "Cargo.lock": "d8f31e8ae61327c3217361a177db448a956a30124af250f0c02867b7e90d03c0",
+    "scripts/compare_heavy_grasp.py": "bd141b9d3fc9387647ba334b47e64c5c721b1eecc3bfcf5055586f179734a801"
+  },
+  "run_orders": [
+    [
+      "native",
+      "rapier",
+      "mujoco"
+    ],
+    [
+      "mujoco",
+      "rapier",
+      "native"
+    ],
+    [
+      "native",
+      "rapier",
+      "mujoco"
+    ],
+    [
+      "mujoco",
+      "rapier",
+      "native"
+    ],
+    [
+      "native",
+      "rapier",
+      "mujoco"
+    ]
+  ],
+  "warmup_runs_per_backend": 1,
+  "summary": [
+    {
+      "backend": "native",
+      "mass_kg": 5,
+      "case": "held",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 210.03272719999998,
+      "step_us_min": 204.20929679999998,
+      "step_us_max": 220.19877680000002,
+      "physical": {
+        "accepted": true,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          -0.00011056604591180852,
+          1.3964982245129695e-06,
+          -2.187011167381577e-06,
+          0.9999999938842081
+        ],
+        "cube_translation_m": [
+          -2.4060927146461004e-06,
+          0.24937147767105455,
+          1.2909205623434056e-05
+        ],
+        "lifted_m": 0.19937147767105456,
+        "mass_kg": 5.0,
+        "palm_rise_m": 0.19938639646427453,
+        "slip_m": 1.4682282746009134e-05,
+        "squeeze_n_per_finger": 38.32031192898286,
+        "tilt_rad": 0.00022117534743228715
+      }
+    },
+    {
+      "backend": "native",
+      "mass_kg": 5,
+      "case": "under-squeezed",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 140.2104424,
+      "step_us_min": 136.928696,
+      "step_us_max": 152.044,
+      "physical": {
+        "accepted": true,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          -7.610098717858449e-09,
+          -1.7206698526198713e-07,
+          9.057235973991743e-09,
+          0.9999999999999851
+        ],
+        "cube_translation_m": [
+          7.142719186469378e-07,
+          0.049999803762751954,
+          -2.1753312976437917e-06
+        ],
+        "lifted_m": -1.9623724804851417e-07,
+        "mass_kg": 5.0,
+        "palm_rise_m": 0.19988399334184487,
+        "slip_m": 0.19988394754359393,
+        "squeeze_n_per_finger": 19.92656220307109,
+        "tilt_rad": 2.580956827951785e-08
+      }
+    },
+    {
+      "backend": "native",
+      "mass_kg": 20,
+      "case": "held",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 214.26081360000003,
+      "step_us_min": 209.18132960000003,
+      "step_us_max": 226.46094080000003,
+      "physical": {
+        "accepted": true,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          -0.0002908682063865742,
+          -4.405060901818666e-08,
+          -4.526959669139889e-06,
+          0.9999999576875949
+        ],
+        "cube_translation_m": [
+          1.2305010433190163e-05,
+          0.24787992308894236,
+          2.9183657479968803e-05
+        ],
+        "lifted_m": 0.19787992308894237,
+        "mass_kg": 20.0,
+        "palm_rise_m": 0.1979077070785878,
+        "slip_m": 2.7575228199211432e-05,
+        "squeeze_n_per_finger": 153.28124771593144,
+        "tilt_rad": 0.0005818068720968829
+      }
+    },
+    {
+      "backend": "native",
+      "mass_kg": 20,
+      "case": "under-squeezed",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 213.1715696,
+      "step_us_min": 212.42347200000003,
+      "step_us_max": 217.2500856,
+      "physical": {
+        "accepted": true,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          6.474603408967994e-09,
+          -8.874312026610616e-07,
+          -7.76951694892679e-09,
+          0.9999999999996063
+        ],
+        "cube_translation_m": [
+          -1.0588176512656687e-07,
+          0.049999803799997036,
+          -3.041492142979394e-07
+        ],
+        "lifted_m": -1.9620000296649565e-07,
+        "mass_kg": 20.0,
+        "palm_rise_m": 0.1998720646093038,
+        "slip_m": 0.1998720531422339,
+        "squeeze_n_per_finger": 79.70624881228436,
+        "tilt_rad": 0.0
+      }
+    },
+    {
+      "backend": "native",
+      "mass_kg": 50,
+      "case": "held",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 103.0155432,
+      "step_us_min": 101.2639152,
+      "step_us_max": 107.5777344,
+      "physical": {
+        "accepted": true,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          3.3259050424838676e-07,
+          8.916185420115618e-09,
+          5.190995858370603e-07,
+          0.9999999999998099
+        ],
+        "cube_translation_m": [
+          -2.157127025759768e-07,
+          0.2449594833687419,
+          -3.19156166331703e-08
+        ],
+        "lifted_m": 0.19495948336874191,
+        "mass_kg": 50.0,
+        "palm_rise_m": 0.19495966046015661,
+        "slip_m": -2.3581212427181697e-08,
+        "squeeze_n_per_finger": 383.2031192898285,
+        "tilt_rad": 1.2330204418102247e-06
+      }
+    },
+    {
+      "backend": "native",
+      "mass_kg": 50,
+      "case": "under-squeezed",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 237.1471768,
+      "step_us_min": 235.2070408,
+      "step_us_max": 242.7202856,
+      "physical": {
+        "accepted": true,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          -7.335082374826385e-09,
+          2.810998703224122e-06,
+          8.802147003131142e-09,
+          0.9999999999960492
+        ],
+        "cube_translation_m": [
+          5.521084537054327e-09,
+          0.0499998038000038,
+          1.2187052079198742e-06
+        ],
+        "lifted_m": -1.961999962010741e-07,
+        "mass_kg": 50.0,
+        "palm_rise_m": 0.19986689712977634,
+        "slip_m": 0.19986689252704914,
+        "squeeze_n_per_finger": 199.26562203071086,
+        "tilt_rad": 0.0
+      }
+    },
+    {
+      "backend": "rapier",
+      "mass_kg": 5,
+      "case": "held",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 26.496356799999997,
+      "step_us_min": 26.268949600000003,
+      "step_us_max": 50.878834399999995,
+      "physical": {
+        "accepted": false,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          7.367682054334377e-07,
+          5.052800903665849e-05,
+          -0.000427966279313664,
+          0.9999999071456165
+        ],
+        "cube_translation_m": [
+          0.00022341564181260765,
+          0.2495419830083847,
+          -5.826360848004697e-06
+        ],
+        "lifted_m": 0.19954198300838472,
+        "mass_kg": 5.0,
+        "palm_rise_m": 0.1999642252922058,
+        "slip_m": 0.000180073082447052,
+        "squeeze_n_per_finger": 38.32031192898286,
+        "tilt_rad": 0.0008559338526489971
+      }
+    },
+    {
+      "backend": "rapier",
+      "mass_kg": 5,
+      "case": "under-squeezed",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 25.144107199999997,
+      "step_us_min": 25.055373600000003,
+      "step_us_max": 25.716035199999997,
+      "physical": {
+        "accepted": false,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          -1.3117086375829422e-05,
+          2.7787251369479014e-05,
+          7.674007061512546e-06,
+          0.9999999994984603
+        ],
+        "cube_translation_m": [
+          2.9261636314004136e-07,
+          0.048724252730607986,
+          4.860220542468596e-06
+        ],
+        "lifted_m": -0.0012757472693920163,
+        "mass_kg": 5.0,
+        "palm_rise_m": 0.20018386840820312,
+        "slip_m": 0.20093266293406487,
+        "squeeze_n_per_finger": 19.92656220307109,
+        "tilt_rad": 3.039396025675137e-05
+      }
+    },
+    {
+      "backend": "rapier",
+      "mass_kg": 20,
+      "case": "held",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 26.390124799999995,
+      "step_us_min": 26.248999200000004,
+      "step_us_max": 27.102520000000002,
+      "physical": {
+        "accepted": false,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          -4.453418567724845e-05,
+          8.916843032153443e-05,
+          -0.0001774705269398094,
+          0.9999999792849545
+        ],
+        "cube_translation_m": [
+          0.0003093830309808254,
+          0.2484649121761322,
+          -4.822372375201667e-06
+        ],
+        "lifted_m": 0.1984649121761322,
+        "mass_kg": 20.0,
+        "palm_rise_m": 0.19966566562652588,
+        "slip_m": 0.0005680806934833527,
+        "squeeze_n_per_finger": 153.28124771593144,
+        "tilt_rad": 0.00036594579891677535
+      }
+    },
+    {
+      "backend": "rapier",
+      "mass_kg": 20,
+      "case": "under-squeezed",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 25.5772808,
+      "step_us_min": 25.0478904,
+      "step_us_max": 26.2281832,
+      "physical": {
+        "accepted": false,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          -1.2758356195385462e-05,
+          3.7918754937649495e-05,
+          9.545473395630667e-06,
+          0.9999999991541382
+        ],
+        "cube_translation_m": [
+          2.1897596980124945e-06,
+          0.048724256455898285,
+          6.449675765907159e-06
+        ],
+        "lifted_m": -0.0012757435441017179,
+        "mass_kg": 20.0,
+        "palm_rise_m": 0.20058274269104004,
+        "slip_m": 0.20119274407625198,
+        "squeeze_n_per_finger": 79.70624881228436,
+        "tilt_rad": 3.186795791856129e-05
+      }
+    },
+    {
+      "backend": "rapier",
+      "mass_kg": 50,
+      "case": "held",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 26.456112,
+      "step_us_min": 26.225796000000003,
+      "step_us_max": 27.2506152,
+      "physical": {
+        "accepted": false,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          -8.249657448426976e-05,
+          9.934355209400058e-05,
+          0.0028484833546099375,
+          0.999995934725613
+        ],
+        "cube_translation_m": [
+          0.0017707685474306345,
+          0.24612295627593994,
+          -6.6448292272980325e-06
+        ],
+        "lifted_m": 0.19612295627593995,
+        "mass_kg": 50.0,
+        "palm_rise_m": 0.1985471248626709,
+        "slip_m": 0.0014931485056877136,
+        "squeeze_n_per_finger": 383.2031192898285,
+        "tilt_rad": 0.005699363153234139
+      }
+    },
+    {
+      "backend": "rapier",
+      "mass_kg": 50,
+      "case": "under-squeezed",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 25.364960800000002,
+      "step_us_min": 25.168512,
+      "step_us_max": 25.8060032,
+      "physical": {
+        "accepted": false,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          -1.2640657580732527e-05,
+          2.8096688751143866e-05,
+          9.696783303696652e-06,
+          0.9999999994783813
+        ],
+        "cube_translation_m": [
+          2.9837756301276386e-06,
+          0.048724256455898285,
+          -5.976083912173635e-07
+        ],
+        "lifted_m": -0.0012757435441017179,
+        "mass_kg": 50.0,
+        "palm_rise_m": 0.2009338140487671,
+        "slip_m": 0.20129302889108658,
+        "squeeze_n_per_finger": 199.26562203071086,
+        "tilt_rad": 3.186306277226376e-05
+      }
+    },
+    {
+      "backend": "mujoco",
+      "mass_kg": 5,
+      "case": "held",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 39.9994032,
+      "step_us_min": 38.8958904,
+      "step_us_max": 41.1107928,
+      "physical": {
+        "accepted": false,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          1.7981860914767744e-13,
+          -5.46228186999273e-13,
+          -4.848041118637067e-13,
+          1.0
+        ],
+        "cube_translation_m": [
+          -9.393530305690289e-12,
+          0.04950847646842526,
+          -4.280630523218351e-12
+        ],
+        "lifted_m": -0.0004915235315747432,
+        "mass_kg": 5.0,
+        "palm_rise_m": 0.05783924408436397,
+        "slip_m": 0.055767168193999794,
+        "squeeze_n_per_finger": 38.32031192898286,
+        "tilt_rad": 0.0
+      }
+    },
+    {
+      "backend": "mujoco",
+      "mass_kg": 5,
+      "case": "under-squeezed",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 34.152890400000004,
+      "step_us_min": 33.9562896,
+      "step_us_max": 34.6843248,
+      "physical": {
+        "accepted": true,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          3.535675014752123e-17,
+          2.0012300150362608e-15,
+          -1.626448975513915e-17,
+          1.0
+        ],
+        "cube_translation_m": [
+          3.6669051350912006e-15,
+          0.04994286655244449,
+          -1.142594064766998e-16
+        ],
+        "lifted_m": -5.713344755551436e-05,
+        "mass_kg": 5.0,
+        "palm_rise_m": 0.043064681057962906,
+        "slip_m": 0.04232687869341045,
+        "squeeze_n_per_finger": 19.92656220307109,
+        "tilt_rad": 0.0
+      }
+    },
+    {
+      "backend": "mujoco",
+      "mass_kg": 20,
+      "case": "held",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 40.4903288,
+      "step_us_min": 39.7915616,
+      "step_us_max": 41.1041192,
+      "physical": {
+        "accepted": false,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          4.0463123393626675e-17,
+          -1.48398189570021e-15,
+          -8.473430290651865e-18,
+          1.0
+        ],
+        "cube_translation_m": [
+          2.0656017341025192e-15,
+          0.04994072593588126,
+          2.0716564626158195e-16
+        ],
+        "lifted_m": -5.9274064118743086e-05,
+        "mass_kg": 20.0,
+        "palm_rise_m": 0.33044195435729545,
+        "slip_m": 0.32971686476797507,
+        "squeeze_n_per_finger": 153.28124771593144,
+        "tilt_rad": 0.0
+      }
+    },
+    {
+      "backend": "mujoco",
+      "mass_kg": 20,
+      "case": "under-squeezed",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 39.3549032,
+      "step_us_min": 39.2216624,
+      "step_us_max": 42.3027688,
+      "physical": {
+        "accepted": true,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          -1.3283957305666627e-17,
+          1.133584038471953e-14,
+          4.673199355444596e-17,
+          1.0
+        ],
+        "cube_translation_m": [
+          1.4361376885041618e-12,
+          0.04994286276830277,
+          1.4217249188722948e-12
+        ],
+        "lifted_m": -5.713723169722962e-05,
+        "mass_kg": 20.0,
+        "palm_rise_m": 0.3107948368063397,
+        "slip_m": 0.3107948274022549,
+        "squeeze_n_per_finger": 79.70624881228436,
+        "tilt_rad": 0.0
+      }
+    },
+    {
+      "backend": "mujoco",
+      "mass_kg": 50,
+      "case": "held",
+      "accepted_every_run": false,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 38.6778328,
+      "step_us_min": 38.5829456,
+      "step_us_max": 39.321964799999996,
+      "physical": {
+        "accepted": false,
+        "case": "held",
+        "cube_rotation_xyzw": [
+          2.4990453582578406e-11,
+          6.870013813181227e-13,
+          2.592077781867608e-09,
+          1.0000000000000002
+        ],
+        "cube_translation_m": [
+          1.2844089587966515e-07,
+          0.04983708718967644,
+          -1.3098301574011248e-09
+        ],
+        "lifted_m": -0.00016291281032355942,
+        "mass_kg": 50.0,
+        "palm_rise_m": 0.09420537688843084,
+        "slip_m": 0.09431629520560839,
+        "squeeze_n_per_finger": 383.2031192898285,
+        "tilt_rad": 0.0
+      }
+    },
+    {
+      "backend": "mujoco",
+      "mass_kg": 50,
+      "case": "under-squeezed",
+      "accepted_every_run": true,
+      "exact_final_outputs_repeat": true,
+      "step_us_median": 39.286350399999996,
+      "step_us_min": 38.3134432,
+      "step_us_max": 40.9786896,
+      "physical": {
+        "accepted": true,
+        "case": "under-squeezed",
+        "cube_rotation_xyzw": [
+          -7.779984792444454e-17,
+          7.226719223065818e-19,
+          5.939998493118137e-18,
+          1.0
+        ],
+        "cube_translation_m": [
+          2.2010934408456186e-16,
+          0.049942731627712615,
+          2.625380586156423e-16
+        ],
+        "lifted_m": -5.7268372287387626e-05,
+        "mass_kg": 50.0,
+        "palm_rise_m": 0.32787356439279414,
+        "slip_m": 0.32753331892850523,
+        "squeeze_n_per_finger": 199.26562203071086,
+        "tilt_rad": 0.0
+      }
+    }
+  ],
+  "trials": [
+    {
+      "native": {
+        "backend": "native",
+        "cases": [
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.00011056604591180852,
+              1.3964982245129695e-06,
+              -2.187011167381577e-06,
+              0.9999999938842081
+            ],
+            "cube_translation_m": [
+              -2.4060927146461004e-06,
+              0.24937147767105455,
+              1.2909205623434056e-05
+            ],
+            "lifted_m": 0.19937147767105456,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19938639646427453,
+            "slip_m": 1.4682282746009134e-05,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 210.03272719999998,
+            "tilt_rad": 0.00022117534743228715
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.610098717858449e-09,
+              -1.7206698526198713e-07,
+              9.057235973991743e-09,
+              0.9999999999999851
+            ],
+            "cube_translation_m": [
+              7.142719186469378e-07,
+              0.049999803762751954,
+              -2.1753312976437917e-06
+            ],
+            "lifted_m": -1.9623724804851417e-07,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19988399334184487,
+            "slip_m": 0.19988394754359393,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 141.6580752,
+            "tilt_rad": 2.580956827951785e-08
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.0002908682063865742,
+              -4.405060901818666e-08,
+              -4.526959669139889e-06,
+              0.9999999576875949
+            ],
+            "cube_translation_m": [
+              1.2305010433190163e-05,
+              0.24787992308894236,
+              2.9183657479968803e-05
+            ],
+            "lifted_m": 0.19787992308894237,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1979077070785878,
+            "slip_m": 2.7575228199211432e-05,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 216.18097600000002,
+            "tilt_rad": 0.0005818068720968829
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              6.474603408967994e-09,
+              -8.874312026610616e-07,
+              -7.76951694892679e-09,
+              0.9999999999996063
+            ],
+            "cube_translation_m": [
+              -1.0588176512656687e-07,
+              0.049999803799997036,
+              -3.041492142979394e-07
+            ],
+            "lifted_m": -1.9620000296649565e-07,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1998720646093038,
+            "slip_m": 0.1998720531422339,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 212.4638208,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              3.3259050424838676e-07,
+              8.916185420115618e-09,
+              5.190995858370603e-07,
+              0.9999999999998099
+            ],
+            "cube_translation_m": [
+              -2.157127025759768e-07,
+              0.2449594833687419,
+              -3.19156166331703e-08
+            ],
+            "lifted_m": 0.19495948336874191,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19495966046015661,
+            "slip_m": -2.3581212427181697e-08,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 103.65592640000001,
+            "tilt_rad": 1.2330204418102247e-06
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.335082374826385e-09,
+              2.810998703224122e-06,
+              8.802147003131142e-09,
+              0.9999999999960492
+            ],
+            "cube_translation_m": [
+              5.521084537054327e-09,
+              0.0499998038000038,
+              1.2187052079198742e-06
+            ],
+            "lifted_m": -1.961999962010741e-07,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19986689712977634,
+            "slip_m": 0.19986689252704914,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 242.7202856,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "native",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch"
+          ],
+          "engine_id": "rne_dynamics",
+          "engine_version": "coupled_contact_step_per_contact_bisection_v2",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "rapier": {
+        "backend": "rapier",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              7.367682054334377e-07,
+              5.052800903665849e-05,
+              -0.000427966279313664,
+              0.9999999071456165
+            ],
+            "cube_translation_m": [
+              0.00022341564181260765,
+              0.2495419830083847,
+              -5.826360848004697e-06
+            ],
+            "lifted_m": 0.19954198300838472,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.1999642252922058,
+            "slip_m": 0.000180073082447052,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 27.3105376,
+            "tilt_rad": 0.0008559338526489971
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3117086375829422e-05,
+              2.7787251369479014e-05,
+              7.674007061512546e-06,
+              0.9999999994984603
+            ],
+            "cube_translation_m": [
+              2.9261636314004136e-07,
+              0.048724252730607986,
+              4.860220542468596e-06
+            ],
+            "lifted_m": -0.0012757472693920163,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.20018386840820312,
+            "slip_m": 0.20093266293406487,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 25.716035199999997,
+            "tilt_rad": 3.039396025675137e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -4.453418567724845e-05,
+              8.916843032153443e-05,
+              -0.0001774705269398094,
+              0.9999999792849545
+            ],
+            "cube_translation_m": [
+              0.0003093830309808254,
+              0.2484649121761322,
+              -4.822372375201667e-06
+            ],
+            "lifted_m": 0.1984649121761322,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.19966566562652588,
+            "slip_m": 0.0005680806934833527,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 26.295524799999995,
+            "tilt_rad": 0.00036594579891677535
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2758356195385462e-05,
+              3.7918754937649495e-05,
+              9.545473395630667e-06,
+              0.9999999991541382
+            ],
+            "cube_translation_m": [
+              2.1897596980124945e-06,
+              0.048724256455898285,
+              6.449675765907159e-06
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.20058274269104004,
+            "slip_m": 0.20119274407625198,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 26.2281832,
+            "tilt_rad": 3.186795791856129e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -8.249657448426976e-05,
+              9.934355209400058e-05,
+              0.0028484833546099375,
+              0.999995934725613
+            ],
+            "cube_translation_m": [
+              0.0017707685474306345,
+              0.24612295627593994,
+              -6.6448292272980325e-06
+            ],
+            "lifted_m": 0.19612295627593995,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.1985471248626709,
+            "slip_m": 0.0014931485056877136,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 26.456112,
+            "tilt_rad": 0.005699363153234139
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2640657580732527e-05,
+              2.8096688751143866e-05,
+              9.696783303696652e-06,
+              0.9999999994783813
+            ],
+            "cube_translation_m": [
+              2.9837756301276386e-06,
+              0.048724256455898285,
+              -5.976083912173635e-07
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.2009338140487671,
+            "slip_m": 0.20129302889108658,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 25.7618632,
+            "tilt_rad": 3.186306277226376e-05
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "rapier",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch",
+            "kinematic_body",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "rapier3d",
+          "engine_version": "0.22",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "mujoco": {
+        "backend": "mujoco",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              1.7981860914767744e-13,
+              -5.46228186999273e-13,
+              -4.848041118637067e-13,
+              1.0
+            ],
+            "cube_translation_m": [
+              -9.393530305690289e-12,
+              0.04950847646842526,
+              -4.280630523218351e-12
+            ],
+            "lifted_m": -0.0004915235315747432,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.05783924408436397,
+            "slip_m": 0.055767168193999794,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 39.797547200000004,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              3.535675014752123e-17,
+              2.0012300150362608e-15,
+              -1.626448975513915e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              3.6669051350912006e-15,
+              0.04994286655244449,
+              -1.142594064766998e-16
+            ],
+            "lifted_m": -5.713344755551436e-05,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.043064681057962906,
+            "slip_m": 0.04232687869341045,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 34.1625768,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              4.0463123393626675e-17,
+              -1.48398189570021e-15,
+              -8.473430290651865e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.0656017341025192e-15,
+              0.04994072593588126,
+              2.0716564626158195e-16
+            ],
+            "lifted_m": -5.9274064118743086e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.33044195435729545,
+            "slip_m": 0.32971686476797507,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 41.1041192,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3283957305666627e-17,
+              1.133584038471953e-14,
+              4.673199355444596e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              1.4361376885041618e-12,
+              0.04994286276830277,
+              1.4217249188722948e-12
+            ],
+            "lifted_m": -5.713723169722962e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.3107948368063397,
+            "slip_m": 0.3107948274022549,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 39.2216624,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              2.4990453582578406e-11,
+              6.870013813181227e-13,
+              2.592077781867608e-09,
+              1.0000000000000002
+            ],
+            "cube_translation_m": [
+              1.2844089587966515e-07,
+              0.04983708718967644,
+              -1.3098301574011248e-09
+            ],
+            "lifted_m": -0.00016291281032355942,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.09420537688843084,
+            "slip_m": 0.09431629520560839,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 38.6969496,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.779984792444454e-17,
+              7.226719223065818e-19,
+              5.939998493118137e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.2010934408456186e-16,
+              0.049942731627712615,
+              2.625380586156423e-16
+            ],
+            "lifted_m": -5.7268372287387626e-05,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.32787356439279414,
+            "slip_m": 0.32753331892850523,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 39.374044,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "mujoco",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "contact_force",
+            "raycast_batch",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "mujoco",
+          "engine_version": "3.9.0",
+          "repeatability": "tolerance_bounded",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      }
+    },
+    {
+      "mujoco": {
+        "backend": "mujoco",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              1.7981860914767744e-13,
+              -5.46228186999273e-13,
+              -4.848041118637067e-13,
+              1.0
+            ],
+            "cube_translation_m": [
+              -9.393530305690289e-12,
+              0.04950847646842526,
+              -4.280630523218351e-12
+            ],
+            "lifted_m": -0.0004915235315747432,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.05783924408436397,
+            "slip_m": 0.055767168193999794,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 41.1107928,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              3.535675014752123e-17,
+              2.0012300150362608e-15,
+              -1.626448975513915e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              3.6669051350912006e-15,
+              0.04994286655244449,
+              -1.142594064766998e-16
+            ],
+            "lifted_m": -5.713344755551436e-05,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.043064681057962906,
+            "slip_m": 0.04232687869341045,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 34.6843248,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              4.0463123393626675e-17,
+              -1.48398189570021e-15,
+              -8.473430290651865e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.0656017341025192e-15,
+              0.04994072593588126,
+              2.0716564626158195e-16
+            ],
+            "lifted_m": -5.9274064118743086e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.33044195435729545,
+            "slip_m": 0.32971686476797507,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 39.7915616,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3283957305666627e-17,
+              1.133584038471953e-14,
+              4.673199355444596e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              1.4361376885041618e-12,
+              0.04994286276830277,
+              1.4217249188722948e-12
+            ],
+            "lifted_m": -5.713723169722962e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.3107948368063397,
+            "slip_m": 0.3107948274022549,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 40.0664248,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              2.4990453582578406e-11,
+              6.870013813181227e-13,
+              2.592077781867608e-09,
+              1.0000000000000002
+            ],
+            "cube_translation_m": [
+              1.2844089587966515e-07,
+              0.04983708718967644,
+              -1.3098301574011248e-09
+            ],
+            "lifted_m": -0.00016291281032355942,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.09420537688843084,
+            "slip_m": 0.09431629520560839,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 38.646553600000004,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.779984792444454e-17,
+              7.226719223065818e-19,
+              5.939998493118137e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.2010934408456186e-16,
+              0.049942731627712615,
+              2.625380586156423e-16
+            ],
+            "lifted_m": -5.7268372287387626e-05,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.32787356439279414,
+            "slip_m": 0.32753331892850523,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 39.286350399999996,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "mujoco",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "contact_force",
+            "raycast_batch",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "mujoco",
+          "engine_version": "3.9.0",
+          "repeatability": "tolerance_bounded",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "rapier": {
+        "backend": "rapier",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              7.367682054334377e-07,
+              5.052800903665849e-05,
+              -0.000427966279313664,
+              0.9999999071456165
+            ],
+            "cube_translation_m": [
+              0.00022341564181260765,
+              0.2495419830083847,
+              -5.826360848004697e-06
+            ],
+            "lifted_m": 0.19954198300838472,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.1999642252922058,
+            "slip_m": 0.000180073082447052,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 26.268949600000003,
+            "tilt_rad": 0.0008559338526489971
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3117086375829422e-05,
+              2.7787251369479014e-05,
+              7.674007061512546e-06,
+              0.9999999994984603
+            ],
+            "cube_translation_m": [
+              2.9261636314004136e-07,
+              0.048724252730607986,
+              4.860220542468596e-06
+            ],
+            "lifted_m": -0.0012757472693920163,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.20018386840820312,
+            "slip_m": 0.20093266293406487,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 25.0774624,
+            "tilt_rad": 3.039396025675137e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -4.453418567724845e-05,
+              8.916843032153443e-05,
+              -0.0001774705269398094,
+              0.9999999792849545
+            ],
+            "cube_translation_m": [
+              0.0003093830309808254,
+              0.2484649121761322,
+              -4.822372375201667e-06
+            ],
+            "lifted_m": 0.1984649121761322,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.19966566562652588,
+            "slip_m": 0.0005680806934833527,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 27.102520000000002,
+            "tilt_rad": 0.00036594579891677535
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2758356195385462e-05,
+              3.7918754937649495e-05,
+              9.545473395630667e-06,
+              0.9999999991541382
+            ],
+            "cube_translation_m": [
+              2.1897596980124945e-06,
+              0.048724256455898285,
+              6.449675765907159e-06
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.20058274269104004,
+            "slip_m": 0.20119274407625198,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 25.5772808,
+            "tilt_rad": 3.186795791856129e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -8.249657448426976e-05,
+              9.934355209400058e-05,
+              0.0028484833546099375,
+              0.999995934725613
+            ],
+            "cube_translation_m": [
+              0.0017707685474306345,
+              0.24612295627593994,
+              -6.6448292272980325e-06
+            ],
+            "lifted_m": 0.19612295627593995,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.1985471248626709,
+            "slip_m": 0.0014931485056877136,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 26.6980208,
+            "tilt_rad": 0.005699363153234139
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2640657580732527e-05,
+              2.8096688751143866e-05,
+              9.696783303696652e-06,
+              0.9999999994783813
+            ],
+            "cube_translation_m": [
+              2.9837756301276386e-06,
+              0.048724256455898285,
+              -5.976083912173635e-07
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.2009338140487671,
+            "slip_m": 0.20129302889108658,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 25.8060032,
+            "tilt_rad": 3.186306277226376e-05
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "rapier",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch",
+            "kinematic_body",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "rapier3d",
+          "engine_version": "0.22",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "native": {
+        "backend": "native",
+        "cases": [
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.00011056604591180852,
+              1.3964982245129695e-06,
+              -2.187011167381577e-06,
+              0.9999999938842081
+            ],
+            "cube_translation_m": [
+              -2.4060927146461004e-06,
+              0.24937147767105455,
+              1.2909205623434056e-05
+            ],
+            "lifted_m": 0.19937147767105456,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19938639646427453,
+            "slip_m": 1.4682282746009134e-05,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 210.12106880000002,
+            "tilt_rad": 0.00022117534743228715
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.610098717858449e-09,
+              -1.7206698526198713e-07,
+              9.057235973991743e-09,
+              0.9999999999999851
+            ],
+            "cube_translation_m": [
+              7.142719186469378e-07,
+              0.049999803762751954,
+              -2.1753312976437917e-06
+            ],
+            "lifted_m": -1.9623724804851417e-07,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19988399334184487,
+            "slip_m": 0.19988394754359393,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 139.584176,
+            "tilt_rad": 2.580956827951785e-08
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.0002908682063865742,
+              -4.405060901818666e-08,
+              -4.526959669139889e-06,
+              0.9999999576875949
+            ],
+            "cube_translation_m": [
+              1.2305010433190163e-05,
+              0.24787992308894236,
+              2.9183657479968803e-05
+            ],
+            "lifted_m": 0.19787992308894237,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1979077070785878,
+            "slip_m": 2.7575228199211432e-05,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 214.26081360000003,
+            "tilt_rad": 0.0005818068720968829
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              6.474603408967994e-09,
+              -8.874312026610616e-07,
+              -7.76951694892679e-09,
+              0.9999999999996063
+            ],
+            "cube_translation_m": [
+              -1.0588176512656687e-07,
+              0.049999803799997036,
+              -3.041492142979394e-07
+            ],
+            "lifted_m": -1.9620000296649565e-07,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1998720646093038,
+            "slip_m": 0.1998720531422339,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 213.1715696,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              3.3259050424838676e-07,
+              8.916185420115618e-09,
+              5.190995858370603e-07,
+              0.9999999999998099
+            ],
+            "cube_translation_m": [
+              -2.157127025759768e-07,
+              0.2449594833687419,
+              -3.19156166331703e-08
+            ],
+            "lifted_m": 0.19495948336874191,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19495966046015661,
+            "slip_m": -2.3581212427181697e-08,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 107.5777344,
+            "tilt_rad": 1.2330204418102247e-06
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.335082374826385e-09,
+              2.810998703224122e-06,
+              8.802147003131142e-09,
+              0.9999999999960492
+            ],
+            "cube_translation_m": [
+              5.521084537054327e-09,
+              0.0499998038000038,
+              1.2187052079198742e-06
+            ],
+            "lifted_m": -1.961999962010741e-07,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19986689712977634,
+            "slip_m": 0.19986689252704914,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 239.77098560000002,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "native",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch"
+          ],
+          "engine_id": "rne_dynamics",
+          "engine_version": "coupled_contact_step_per_contact_bisection_v2",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      }
+    },
+    {
+      "native": {
+        "backend": "native",
+        "cases": [
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.00011056604591180852,
+              1.3964982245129695e-06,
+              -2.187011167381577e-06,
+              0.9999999938842081
+            ],
+            "cube_translation_m": [
+              -2.4060927146461004e-06,
+              0.24937147767105455,
+              1.2909205623434056e-05
+            ],
+            "lifted_m": 0.19937147767105456,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19938639646427453,
+            "slip_m": 1.4682282746009134e-05,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 220.19877680000002,
+            "tilt_rad": 0.00022117534743228715
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.610098717858449e-09,
+              -1.7206698526198713e-07,
+              9.057235973991743e-09,
+              0.9999999999999851
+            ],
+            "cube_translation_m": [
+              7.142719186469378e-07,
+              0.049999803762751954,
+              -2.1753312976437917e-06
+            ],
+            "lifted_m": -1.9623724804851417e-07,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19988399334184487,
+            "slip_m": 0.19988394754359393,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 140.2104424,
+            "tilt_rad": 2.580956827951785e-08
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.0002908682063865742,
+              -4.405060901818666e-08,
+              -4.526959669139889e-06,
+              0.9999999576875949
+            ],
+            "cube_translation_m": [
+              1.2305010433190163e-05,
+              0.24787992308894236,
+              2.9183657479968803e-05
+            ],
+            "lifted_m": 0.19787992308894237,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1979077070785878,
+            "slip_m": 2.7575228199211432e-05,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 211.92976639999998,
+            "tilt_rad": 0.0005818068720968829
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              6.474603408967994e-09,
+              -8.874312026610616e-07,
+              -7.76951694892679e-09,
+              0.9999999999996063
+            ],
+            "cube_translation_m": [
+              -1.0588176512656687e-07,
+              0.049999803799997036,
+              -3.041492142979394e-07
+            ],
+            "lifted_m": -1.9620000296649565e-07,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1998720646093038,
+            "slip_m": 0.1998720531422339,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 217.2500856,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              3.3259050424838676e-07,
+              8.916185420115618e-09,
+              5.190995858370603e-07,
+              0.9999999999998099
+            ],
+            "cube_translation_m": [
+              -2.157127025759768e-07,
+              0.2449594833687419,
+              -3.19156166331703e-08
+            ],
+            "lifted_m": 0.19495948336874191,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19495966046015661,
+            "slip_m": -2.3581212427181697e-08,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 102.0399904,
+            "tilt_rad": 1.2330204418102247e-06
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.335082374826385e-09,
+              2.810998703224122e-06,
+              8.802147003131142e-09,
+              0.9999999999960492
+            ],
+            "cube_translation_m": [
+              5.521084537054327e-09,
+              0.0499998038000038,
+              1.2187052079198742e-06
+            ],
+            "lifted_m": -1.961999962010741e-07,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19986689712977634,
+            "slip_m": 0.19986689252704914,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 237.1471768,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "native",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch"
+          ],
+          "engine_id": "rne_dynamics",
+          "engine_version": "coupled_contact_step_per_contact_bisection_v2",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "rapier": {
+        "backend": "rapier",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              7.367682054334377e-07,
+              5.052800903665849e-05,
+              -0.000427966279313664,
+              0.9999999071456165
+            ],
+            "cube_translation_m": [
+              0.00022341564181260765,
+              0.2495419830083847,
+              -5.826360848004697e-06
+            ],
+            "lifted_m": 0.19954198300838472,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.1999642252922058,
+            "slip_m": 0.000180073082447052,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 26.4007,
+            "tilt_rad": 0.0008559338526489971
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3117086375829422e-05,
+              2.7787251369479014e-05,
+              7.674007061512546e-06,
+              0.9999999994984603
+            ],
+            "cube_translation_m": [
+              2.9261636314004136e-07,
+              0.048724252730607986,
+              4.860220542468596e-06
+            ],
+            "lifted_m": -0.0012757472693920163,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.20018386840820312,
+            "slip_m": 0.20093266293406487,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 25.144107199999997,
+            "tilt_rad": 3.039396025675137e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -4.453418567724845e-05,
+              8.916843032153443e-05,
+              -0.0001774705269398094,
+              0.9999999792849545
+            ],
+            "cube_translation_m": [
+              0.0003093830309808254,
+              0.2484649121761322,
+              -4.822372375201667e-06
+            ],
+            "lifted_m": 0.1984649121761322,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.19966566562652588,
+            "slip_m": 0.0005680806934833527,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 26.390124799999995,
+            "tilt_rad": 0.00036594579891677535
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2758356195385462e-05,
+              3.7918754937649495e-05,
+              9.545473395630667e-06,
+              0.9999999991541382
+            ],
+            "cube_translation_m": [
+              2.1897596980124945e-06,
+              0.048724256455898285,
+              6.449675765907159e-06
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.20058274269104004,
+            "slip_m": 0.20119274407625198,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 25.2253736,
+            "tilt_rad": 3.186795791856129e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -8.249657448426976e-05,
+              9.934355209400058e-05,
+              0.0028484833546099375,
+              0.999995934725613
+            ],
+            "cube_translation_m": [
+              0.0017707685474306345,
+              0.24612295627593994,
+              -6.6448292272980325e-06
+            ],
+            "lifted_m": 0.19612295627593995,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.1985471248626709,
+            "slip_m": 0.0014931485056877136,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 26.330386400000002,
+            "tilt_rad": 0.005699363153234139
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2640657580732527e-05,
+              2.8096688751143866e-05,
+              9.696783303696652e-06,
+              0.9999999994783813
+            ],
+            "cube_translation_m": [
+              2.9837756301276386e-06,
+              0.048724256455898285,
+              -5.976083912173635e-07
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.2009338140487671,
+            "slip_m": 0.20129302889108658,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 25.232056800000002,
+            "tilt_rad": 3.186306277226376e-05
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "rapier",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch",
+            "kinematic_body",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "rapier3d",
+          "engine_version": "0.22",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "mujoco": {
+        "backend": "mujoco",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              1.7981860914767744e-13,
+              -5.46228186999273e-13,
+              -4.848041118637067e-13,
+              1.0
+            ],
+            "cube_translation_m": [
+              -9.393530305690289e-12,
+              0.04950847646842526,
+              -4.280630523218351e-12
+            ],
+            "lifted_m": -0.0004915235315747432,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.05783924408436397,
+            "slip_m": 0.055767168193999794,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 39.9994032,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              3.535675014752123e-17,
+              2.0012300150362608e-15,
+              -1.626448975513915e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              3.6669051350912006e-15,
+              0.04994286655244449,
+              -1.142594064766998e-16
+            ],
+            "lifted_m": -5.713344755551436e-05,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.043064681057962906,
+            "slip_m": 0.04232687869341045,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 33.9562896,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              4.0463123393626675e-17,
+              -1.48398189570021e-15,
+              -8.473430290651865e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.0656017341025192e-15,
+              0.04994072593588126,
+              2.0716564626158195e-16
+            ],
+            "lifted_m": -5.9274064118743086e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.33044195435729545,
+            "slip_m": 0.32971686476797507,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 40.4903288,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3283957305666627e-17,
+              1.133584038471953e-14,
+              4.673199355444596e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              1.4361376885041618e-12,
+              0.04994286276830277,
+              1.4217249188722948e-12
+            ],
+            "lifted_m": -5.713723169722962e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.3107948368063397,
+            "slip_m": 0.3107948274022549,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 42.3027688,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              2.4990453582578406e-11,
+              6.870013813181227e-13,
+              2.592077781867608e-09,
+              1.0000000000000002
+            ],
+            "cube_translation_m": [
+              1.2844089587966515e-07,
+              0.04983708718967644,
+              -1.3098301574011248e-09
+            ],
+            "lifted_m": -0.00016291281032355942,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.09420537688843084,
+            "slip_m": 0.09431629520560839,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 39.321964799999996,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.779984792444454e-17,
+              7.226719223065818e-19,
+              5.939998493118137e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.2010934408456186e-16,
+              0.049942731627712615,
+              2.625380586156423e-16
+            ],
+            "lifted_m": -5.7268372287387626e-05,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.32787356439279414,
+            "slip_m": 0.32753331892850523,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 40.9786896,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "mujoco",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "contact_force",
+            "raycast_batch",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "mujoco",
+          "engine_version": "3.9.0",
+          "repeatability": "tolerance_bounded",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      }
+    },
+    {
+      "mujoco": {
+        "backend": "mujoco",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              1.7981860914767744e-13,
+              -5.46228186999273e-13,
+              -4.848041118637067e-13,
+              1.0
+            ],
+            "cube_translation_m": [
+              -9.393530305690289e-12,
+              0.04950847646842526,
+              -4.280630523218351e-12
+            ],
+            "lifted_m": -0.0004915235315747432,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.05783924408436397,
+            "slip_m": 0.055767168193999794,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 38.8958904,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              3.535675014752123e-17,
+              2.0012300150362608e-15,
+              -1.626448975513915e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              3.6669051350912006e-15,
+              0.04994286655244449,
+              -1.142594064766998e-16
+            ],
+            "lifted_m": -5.713344755551436e-05,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.043064681057962906,
+            "slip_m": 0.04232687869341045,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 33.9575712,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              4.0463123393626675e-17,
+              -1.48398189570021e-15,
+              -8.473430290651865e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.0656017341025192e-15,
+              0.04994072593588126,
+              2.0716564626158195e-16
+            ],
+            "lifted_m": -5.9274064118743086e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.33044195435729545,
+            "slip_m": 0.32971686476797507,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 39.867556799999996,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3283957305666627e-17,
+              1.133584038471953e-14,
+              4.673199355444596e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              1.4361376885041618e-12,
+              0.04994286276830277,
+              1.4217249188722948e-12
+            ],
+            "lifted_m": -5.713723169722962e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.3107948368063397,
+            "slip_m": 0.3107948274022549,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 39.2651352,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              2.4990453582578406e-11,
+              6.870013813181227e-13,
+              2.592077781867608e-09,
+              1.0000000000000002
+            ],
+            "cube_translation_m": [
+              1.2844089587966515e-07,
+              0.04983708718967644,
+              -1.3098301574011248e-09
+            ],
+            "lifted_m": -0.00016291281032355942,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.09420537688843084,
+            "slip_m": 0.09431629520560839,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 38.5829456,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.779984792444454e-17,
+              7.226719223065818e-19,
+              5.939998493118137e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.2010934408456186e-16,
+              0.049942731627712615,
+              2.625380586156423e-16
+            ],
+            "lifted_m": -5.7268372287387626e-05,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.32787356439279414,
+            "slip_m": 0.32753331892850523,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 38.584692,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "mujoco",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "contact_force",
+            "raycast_batch",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "mujoco",
+          "engine_version": "3.9.0",
+          "repeatability": "tolerance_bounded",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "rapier": {
+        "backend": "rapier",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              7.367682054334377e-07,
+              5.052800903665849e-05,
+              -0.000427966279313664,
+              0.9999999071456165
+            ],
+            "cube_translation_m": [
+              0.00022341564181260765,
+              0.2495419830083847,
+              -5.826360848004697e-06
+            ],
+            "lifted_m": 0.19954198300838472,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.1999642252922058,
+            "slip_m": 0.000180073082447052,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 26.496356799999997,
+            "tilt_rad": 0.0008559338526489971
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3117086375829422e-05,
+              2.7787251369479014e-05,
+              7.674007061512546e-06,
+              0.9999999994984603
+            ],
+            "cube_translation_m": [
+              2.9261636314004136e-07,
+              0.048724252730607986,
+              4.860220542468596e-06
+            ],
+            "lifted_m": -0.0012757472693920163,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.20018386840820312,
+            "slip_m": 0.20093266293406487,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 25.055373600000003,
+            "tilt_rad": 3.039396025675137e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -4.453418567724845e-05,
+              8.916843032153443e-05,
+              -0.0001774705269398094,
+              0.9999999792849545
+            ],
+            "cube_translation_m": [
+              0.0003093830309808254,
+              0.2484649121761322,
+              -4.822372375201667e-06
+            ],
+            "lifted_m": 0.1984649121761322,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.19966566562652588,
+            "slip_m": 0.0005680806934833527,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 26.6167224,
+            "tilt_rad": 0.00036594579891677535
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2758356195385462e-05,
+              3.7918754937649495e-05,
+              9.545473395630667e-06,
+              0.9999999991541382
+            ],
+            "cube_translation_m": [
+              2.1897596980124945e-06,
+              0.048724256455898285,
+              6.449675765907159e-06
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.20058274269104004,
+            "slip_m": 0.20119274407625198,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 25.7172128,
+            "tilt_rad": 3.186795791856129e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -8.249657448426976e-05,
+              9.934355209400058e-05,
+              0.0028484833546099375,
+              0.999995934725613
+            ],
+            "cube_translation_m": [
+              0.0017707685474306345,
+              0.24612295627593994,
+              -6.6448292272980325e-06
+            ],
+            "lifted_m": 0.19612295627593995,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.1985471248626709,
+            "slip_m": 0.0014931485056877136,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 27.2506152,
+            "tilt_rad": 0.005699363153234139
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2640657580732527e-05,
+              2.8096688751143866e-05,
+              9.696783303696652e-06,
+              0.9999999994783813
+            ],
+            "cube_translation_m": [
+              2.9837756301276386e-06,
+              0.048724256455898285,
+              -5.976083912173635e-07
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.2009338140487671,
+            "slip_m": 0.20129302889108658,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 25.364960800000002,
+            "tilt_rad": 3.186306277226376e-05
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "rapier",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch",
+            "kinematic_body",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "rapier3d",
+          "engine_version": "0.22",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "native": {
+        "backend": "native",
+        "cases": [
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.00011056604591180852,
+              1.3964982245129695e-06,
+              -2.187011167381577e-06,
+              0.9999999938842081
+            ],
+            "cube_translation_m": [
+              -2.4060927146461004e-06,
+              0.24937147767105455,
+              1.2909205623434056e-05
+            ],
+            "lifted_m": 0.19937147767105456,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19938639646427453,
+            "slip_m": 1.4682282746009134e-05,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 204.20929679999998,
+            "tilt_rad": 0.00022117534743228715
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.610098717858449e-09,
+              -1.7206698526198713e-07,
+              9.057235973991743e-09,
+              0.9999999999999851
+            ],
+            "cube_translation_m": [
+              7.142719186469378e-07,
+              0.049999803762751954,
+              -2.1753312976437917e-06
+            ],
+            "lifted_m": -1.9623724804851417e-07,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19988399334184487,
+            "slip_m": 0.19988394754359393,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 136.928696,
+            "tilt_rad": 2.580956827951785e-08
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.0002908682063865742,
+              -4.405060901818666e-08,
+              -4.526959669139889e-06,
+              0.9999999576875949
+            ],
+            "cube_translation_m": [
+              1.2305010433190163e-05,
+              0.24787992308894236,
+              2.9183657479968803e-05
+            ],
+            "lifted_m": 0.19787992308894237,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1979077070785878,
+            "slip_m": 2.7575228199211432e-05,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 209.18132960000003,
+            "tilt_rad": 0.0005818068720968829
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              6.474603408967994e-09,
+              -8.874312026610616e-07,
+              -7.76951694892679e-09,
+              0.9999999999996063
+            ],
+            "cube_translation_m": [
+              -1.0588176512656687e-07,
+              0.049999803799997036,
+              -3.041492142979394e-07
+            ],
+            "lifted_m": -1.9620000296649565e-07,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1998720646093038,
+            "slip_m": 0.1998720531422339,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 212.42347200000003,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              3.3259050424838676e-07,
+              8.916185420115618e-09,
+              5.190995858370603e-07,
+              0.9999999999998099
+            ],
+            "cube_translation_m": [
+              -2.157127025759768e-07,
+              0.2449594833687419,
+              -3.19156166331703e-08
+            ],
+            "lifted_m": 0.19495948336874191,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19495966046015661,
+            "slip_m": -2.3581212427181697e-08,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 101.2639152,
+            "tilt_rad": 1.2330204418102247e-06
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.335082374826385e-09,
+              2.810998703224122e-06,
+              8.802147003131142e-09,
+              0.9999999999960492
+            ],
+            "cube_translation_m": [
+              5.521084537054327e-09,
+              0.0499998038000038,
+              1.2187052079198742e-06
+            ],
+            "lifted_m": -1.961999962010741e-07,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19986689712977634,
+            "slip_m": 0.19986689252704914,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 235.2070408,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "native",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch"
+          ],
+          "engine_id": "rne_dynamics",
+          "engine_version": "coupled_contact_step_per_contact_bisection_v2",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      }
+    },
+    {
+      "native": {
+        "backend": "native",
+        "cases": [
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.00011056604591180852,
+              1.3964982245129695e-06,
+              -2.187011167381577e-06,
+              0.9999999938842081
+            ],
+            "cube_translation_m": [
+              -2.4060927146461004e-06,
+              0.24937147767105455,
+              1.2909205623434056e-05
+            ],
+            "lifted_m": 0.19937147767105456,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19938639646427453,
+            "slip_m": 1.4682282746009134e-05,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 209.5489176,
+            "tilt_rad": 0.00022117534743228715
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.610098717858449e-09,
+              -1.7206698526198713e-07,
+              9.057235973991743e-09,
+              0.9999999999999851
+            ],
+            "cube_translation_m": [
+              7.142719186469378e-07,
+              0.049999803762751954,
+              -2.1753312976437917e-06
+            ],
+            "lifted_m": -1.9623724804851417e-07,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.19988399334184487,
+            "slip_m": 0.19988394754359393,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 152.044,
+            "tilt_rad": 2.580956827951785e-08
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -0.0002908682063865742,
+              -4.405060901818666e-08,
+              -4.526959669139889e-06,
+              0.9999999576875949
+            ],
+            "cube_translation_m": [
+              1.2305010433190163e-05,
+              0.24787992308894236,
+              2.9183657479968803e-05
+            ],
+            "lifted_m": 0.19787992308894237,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1979077070785878,
+            "slip_m": 2.7575228199211432e-05,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 226.46094080000003,
+            "tilt_rad": 0.0005818068720968829
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              6.474603408967994e-09,
+              -8.874312026610616e-07,
+              -7.76951694892679e-09,
+              0.9999999999996063
+            ],
+            "cube_translation_m": [
+              -1.0588176512656687e-07,
+              0.049999803799997036,
+              -3.041492142979394e-07
+            ],
+            "lifted_m": -1.9620000296649565e-07,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.1998720646093038,
+            "slip_m": 0.1998720531422339,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 214.79768719999998,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              3.3259050424838676e-07,
+              8.916185420115618e-09,
+              5.190995858370603e-07,
+              0.9999999999998099
+            ],
+            "cube_translation_m": [
+              -2.157127025759768e-07,
+              0.2449594833687419,
+              -3.19156166331703e-08
+            ],
+            "lifted_m": 0.19495948336874191,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19495966046015661,
+            "slip_m": -2.3581212427181697e-08,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 103.0155432,
+            "tilt_rad": 1.2330204418102247e-06
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.335082374826385e-09,
+              2.810998703224122e-06,
+              8.802147003131142e-09,
+              0.9999999999960492
+            ],
+            "cube_translation_m": [
+              5.521084537054327e-09,
+              0.0499998038000038,
+              1.2187052079198742e-06
+            ],
+            "lifted_m": -1.961999962010741e-07,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.19986689712977634,
+            "slip_m": 0.19986689252704914,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 236.7672512,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "native",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch"
+          ],
+          "engine_id": "rne_dynamics",
+          "engine_version": "coupled_contact_step_per_contact_bisection_v2",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "rapier": {
+        "backend": "rapier",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              7.367682054334377e-07,
+              5.052800903665849e-05,
+              -0.000427966279313664,
+              0.9999999071456165
+            ],
+            "cube_translation_m": [
+              0.00022341564181260765,
+              0.2495419830083847,
+              -5.826360848004697e-06
+            ],
+            "lifted_m": 0.19954198300838472,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.1999642252922058,
+            "slip_m": 0.000180073082447052,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 50.878834399999995,
+            "tilt_rad": 0.0008559338526489971
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3117086375829422e-05,
+              2.7787251369479014e-05,
+              7.674007061512546e-06,
+              0.9999999994984603
+            ],
+            "cube_translation_m": [
+              2.9261636314004136e-07,
+              0.048724252730607986,
+              4.860220542468596e-06
+            ],
+            "lifted_m": -0.0012757472693920163,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.20018386840820312,
+            "slip_m": 0.20093266293406487,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 25.176275999999998,
+            "tilt_rad": 3.039396025675137e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -4.453418567724845e-05,
+              8.916843032153443e-05,
+              -0.0001774705269398094,
+              0.9999999792849545
+            ],
+            "cube_translation_m": [
+              0.0003093830309808254,
+              0.2484649121761322,
+              -4.822372375201667e-06
+            ],
+            "lifted_m": 0.1984649121761322,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.19966566562652588,
+            "slip_m": 0.0005680806934833527,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 26.248999200000004,
+            "tilt_rad": 0.00036594579891677535
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2758356195385462e-05,
+              3.7918754937649495e-05,
+              9.545473395630667e-06,
+              0.9999999991541382
+            ],
+            "cube_translation_m": [
+              2.1897596980124945e-06,
+              0.048724256455898285,
+              6.449675765907159e-06
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.20058274269104004,
+            "slip_m": 0.20119274407625198,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 25.0478904,
+            "tilt_rad": 3.186795791856129e-05
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              -8.249657448426976e-05,
+              9.934355209400058e-05,
+              0.0028484833546099375,
+              0.999995934725613
+            ],
+            "cube_translation_m": [
+              0.0017707685474306345,
+              0.24612295627593994,
+              -6.6448292272980325e-06
+            ],
+            "lifted_m": 0.19612295627593995,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.1985471248626709,
+            "slip_m": 0.0014931485056877136,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 26.225796000000003,
+            "tilt_rad": 0.005699363153234139
+          },
+          {
+            "accepted": false,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.2640657580732527e-05,
+              2.8096688751143866e-05,
+              9.696783303696652e-06,
+              0.9999999994783813
+            ],
+            "cube_translation_m": [
+              2.9837756301276386e-06,
+              0.048724256455898285,
+              -5.976083912173635e-07
+            ],
+            "lifted_m": -0.0012757435441017179,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.2009338140487671,
+            "slip_m": 0.20129302889108658,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 25.168512,
+            "tilt_rad": 3.186306277226376e-05
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "rapier",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "deterministic_step",
+            "contact_force",
+            "raycast_batch",
+            "kinematic_body",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "rapier3d",
+          "engine_version": "0.22",
+          "repeatability": "same_runtime_exact",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      },
+      "mujoco": {
+        "backend": "mujoco",
+        "cases": [
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              1.7981860914767744e-13,
+              -5.46228186999273e-13,
+              -4.848041118637067e-13,
+              1.0
+            ],
+            "cube_translation_m": [
+              -9.393530305690289e-12,
+              0.04950847646842526,
+              -4.280630523218351e-12
+            ],
+            "lifted_m": -0.0004915235315747432,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.05783924408436397,
+            "slip_m": 0.055767168193999794,
+            "squeeze_n_per_finger": 38.32031192898286,
+            "step_us": 40.489976,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              3.535675014752123e-17,
+              2.0012300150362608e-15,
+              -1.626448975513915e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              3.6669051350912006e-15,
+              0.04994286655244449,
+              -1.142594064766998e-16
+            ],
+            "lifted_m": -5.713344755551436e-05,
+            "mass_kg": 5.0,
+            "palm_rise_m": 0.043064681057962906,
+            "slip_m": 0.04232687869341045,
+            "squeeze_n_per_finger": 19.92656220307109,
+            "step_us": 34.152890400000004,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              4.0463123393626675e-17,
+              -1.48398189570021e-15,
+              -8.473430290651865e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.0656017341025192e-15,
+              0.04994072593588126,
+              2.0716564626158195e-16
+            ],
+            "lifted_m": -5.9274064118743086e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.33044195435729545,
+            "slip_m": 0.32971686476797507,
+            "squeeze_n_per_finger": 153.28124771593144,
+            "step_us": 41.030336,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -1.3283957305666627e-17,
+              1.133584038471953e-14,
+              4.673199355444596e-17,
+              1.0
+            ],
+            "cube_translation_m": [
+              1.4361376885041618e-12,
+              0.04994286276830277,
+              1.4217249188722948e-12
+            ],
+            "lifted_m": -5.713723169722962e-05,
+            "mass_kg": 20.0,
+            "palm_rise_m": 0.3107948368063397,
+            "slip_m": 0.3107948274022549,
+            "squeeze_n_per_finger": 79.70624881228436,
+            "step_us": 39.3549032,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": false,
+            "case": "held",
+            "cube_rotation_xyzw": [
+              2.4990453582578406e-11,
+              6.870013813181227e-13,
+              2.592077781867608e-09,
+              1.0000000000000002
+            ],
+            "cube_translation_m": [
+              1.2844089587966515e-07,
+              0.04983708718967644,
+              -1.3098301574011248e-09
+            ],
+            "lifted_m": -0.00016291281032355942,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.09420537688843084,
+            "slip_m": 0.09431629520560839,
+            "squeeze_n_per_finger": 383.2031192898285,
+            "step_us": 38.6778328,
+            "tilt_rad": 0.0
+          },
+          {
+            "accepted": true,
+            "case": "under-squeezed",
+            "cube_rotation_xyzw": [
+              -7.779984792444454e-17,
+              7.226719223065818e-19,
+              5.939998493118137e-18,
+              1.0
+            ],
+            "cube_translation_m": [
+              2.2010934408456186e-16,
+              0.049942731627712615,
+              2.625380586156423e-16
+            ],
+            "lifted_m": -5.7268372287387626e-05,
+            "mass_kg": 50.0,
+            "palm_rise_m": 0.32787356439279414,
+            "slip_m": 0.32753331892850523,
+            "squeeze_n_per_finger": 199.26562203071086,
+            "step_us": 38.3134432,
+            "tilt_rad": 0.0
+          }
+        ],
+        "friction": 0.800000011920929,
+        "manifest": {
+          "adapter_version": "0.4.0",
+          "backend_id": "mujoco",
+          "capabilities": [
+            "rigid_body",
+            "articulation",
+            "contact_force",
+            "raycast_batch",
+            "joint_effort_measurement",
+            "external_body_wrench",
+            "contact_point_kinematics"
+          ],
+          "engine_id": "mujoco",
+          "engine_version": "3.9.0",
+          "repeatability": "tolerance_bounded",
+          "schema_version": 3
+        },
+        "schema_version": 1,
+        "step_hz": 500.0,
+        "steps_per_case": 1250,
+        "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction"
+      }
+    }
+  ]
+}
