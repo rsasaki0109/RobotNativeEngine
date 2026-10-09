@@ -2,7 +2,7 @@ use super::*;
 use rne_math::{Hertz, Quat};
 use rne_physics::{
     CollisionGroups, CompoundPart, FixedJointDesc, JointActuation, PhysicsMaterial,
-    RevoluteJointDesc,
+    PrismaticJointDesc, RevoluteJointDesc,
 };
 use rne_physics_conformance::{
     run_external_backend_conformance, ExternalPhysicsBackendCheckStatus,
@@ -951,13 +951,15 @@ fn colliding_bodies_exchange_momentum_inelastically() {
             .expect("body")
             .linear_velocity_m_s
     };
-    // Equal masses stick together at half the incoming speed.
+    // Equal masses stick together at half the incoming speed: momentum is
+    // conserved exactly, and the contact's regularization leaves them
+    // drifting apart by no more than 1e-3 of it.
+    assert!((velocity(left) + velocity(right) - Vec3::new(2.0, 0.0, 0.0)).length() < 1.0e-9);
     assert!(
-        (velocity(left) - Vec3::new(1.0, 0.0, 0.0)).length() < 1.0e-6,
+        (velocity(left) - Vec3::new(1.0, 0.0, 0.0)).length() < 1.0e-3,
         "{}",
         velocity(left)
     );
-    assert!((velocity(right) - Vec3::new(1.0, 0.0, 0.0)).length() < 1.0e-6);
     let gap = world.get::<Transform3>(right).expect("pose").translation.x
         - world.get::<Transform3>(left).expect("pose").translation.x;
     assert!((gap - 0.2).abs() < 1.0e-3, "{gap}");
@@ -1063,4 +1065,146 @@ fn a_robot_link_collides_with_a_non_adjacent_link_of_the_same_robot() {
         filter: 0,
     }));
     assert!((free - 3.1).abs() < 2.0e-3, "{free}");
+}
+
+/// Outcome of [`grasp_and_lift`].
+#[derive(Debug)]
+struct GraspReport {
+    /// How far the object fell behind the palm while lifted, in meters.
+    slip_m: f64,
+    /// How far the object rose off the floor, in meters.
+    lifted_m: f64,
+    /// Tilt of the object at the end, in radians.
+    tilt_rad: f64,
+}
+
+/// A palm on a vertical lift joint with two fingers on horizontal slides
+/// squeezes a 10 cm cube of `mass_kg` with `squeeze_n` per finger (friction
+/// 0.8), lifts it 0.2 m over 1 s, and holds it for 1 s.
+fn grasp_and_lift(mass_kg: f64, squeeze_n: f64) -> GraspReport {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    ground(&mut world);
+    let collider = |half: Vec3| Collider {
+        material: PhysicsMaterial {
+            friction: 0.8,
+            ..PhysicsMaterial::default()
+        },
+        ..Collider::cuboid(half)
+    };
+    let cube = world
+        .spawn((
+            RigidBody {
+                mass_kg,
+                ..RigidBody::default()
+            },
+            collider(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 0.05, 0.0), Quat::IDENTITY),
+        ))
+        .id();
+    let anchor = world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Transform3::from_translation_rotation(Vec3::new(0.0, 1.0, 0.0), Quat::IDENTITY),
+        ))
+        .id();
+    let palm_y = 0.26;
+    let lift = |target_m: f64| JointActuation::PrismaticPosition {
+        target_position_m: target_m,
+        stiffness_n_per_m: 2.0e4,
+        damping_n_s_per_m: 2.0e3,
+        max_force_n: 2000.0,
+    };
+    let palm = world
+        .spawn((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            collider(Vec3::new(0.12, 0.02, 0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, palm_y, 0.0), Quat::IDENTITY),
+            PrismaticJointDesc {
+                parent: anchor,
+                axis: Vec3::Y,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: Quat::IDENTITY,
+                lower_m: None,
+                upper_m: None,
+            },
+            lift(palm_y - 1.0),
+        ))
+        .id();
+    // Each finger squeezes toward the cube with a constant force.
+    for side in [-1.0, 1.0] {
+        world.spawn((
+            RigidBody {
+                mass_kg: 0.2,
+                ..RigidBody::default()
+            },
+            collider(Vec3::new(0.01, 0.06, 0.04)),
+            Transform3::from_translation_rotation(
+                Vec3::new(side * 0.08, palm_y - 0.19, 0.0),
+                Quat::IDENTITY,
+            ),
+            PrismaticJointDesc {
+                parent: palm,
+                axis: Vec3::X,
+                anchor_parent_m: Vec3::new(0.0, -0.19, 0.0),
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: Quat::IDENTITY,
+                lower_m: Some(-0.1),
+                upper_m: Some(0.1),
+            },
+            JointActuation::PrismaticEffort {
+                force_n: -side * squeeze_n,
+                max_force_n: squeeze_n,
+            },
+        ));
+    }
+    for _ in 0..250 {
+        step(&mut backend, &mut world, id);
+    }
+    let height = |world: &World, entity: Entity| {
+        world.get::<Transform3>(entity).expect("pose").translation.y
+    };
+    let grip = height(&world, cube) - height(&world, palm);
+    for index in 1..=1000 {
+        let s = (index as f64 / 500.0).min(1.0);
+        world.entity_mut(palm).insert(lift(palm_y - 1.0 + 0.2 * s));
+        step(&mut backend, &mut world, id);
+    }
+    let cube_pose = *world.get::<Transform3>(cube).expect("cube");
+    GraspReport {
+        slip_m: grip - (cube_pose.translation.y - height(&world, palm)),
+        lifted_m: cube_pose.translation.y - 0.05,
+        tilt_rad: (cube_pose.rotation * Vec3::Y).y.clamp(-1.0, 1.0).acos(),
+    }
+}
+
+#[test]
+fn a_squeezed_heavy_cube_lifts_without_slipping_or_twisting() {
+    // Friction 0.8 holds the cube when 2 × 0.8 × squeeze exceeds its weight
+    // with margin: 5 kg needs 30.7 N per finger, 20 kg needs 123 N.
+    for (mass_kg, squeeze_n) in [(5.0, 40.0), (20.0, 150.0)] {
+        let report = grasp_and_lift(mass_kg, squeeze_n);
+        assert!(report.lifted_m > 0.189, "{mass_kg} kg: {report:?}");
+        assert!(report.slip_m.abs() < 1.0e-4, "{mass_kg} kg: {report:?}");
+        assert!(report.tilt_rad < 1.0e-3, "{mass_kg} kg: {report:?}");
+    }
+}
+
+#[test]
+fn an_under_squeezed_cube_slips_out_and_stays_on_the_floor() {
+    for (mass_kg, squeeze_n) in [(5.0, 20.0), (20.0, 100.0)] {
+        let report = grasp_and_lift(mass_kg, squeeze_n);
+        assert!(report.lifted_m.abs() < 1.0e-3, "{mass_kg} kg: {report:?}");
+        assert!(report.slip_m > 0.19, "{mass_kg} kg: {report:?}");
+    }
 }

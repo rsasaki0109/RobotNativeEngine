@@ -96,6 +96,18 @@ const CAPABILITIES: &[PhysicsCapability] = &[
 /// write-back rather than an external edit.
 const EDIT_TOLERANCE: f64 = 1.0e-12;
 
+/// Contact regularization of [`NativeBackendConfig::default`]: a normal
+/// compliance relative to each contact's effective inverse mass (see
+/// [`rne_dynamics::ContactSolverConfig::regularization`]).
+///
+/// Without it, a heavy object squeezed between two pads twists and slips in
+/// the grasp: the sweep order decides how each pad's normal load splits among
+/// its corners, and the friction of a lopsided split turns the object. `1e-3`
+/// keeps the split even, so a 20 kg cube held by 150 N pads stays within
+/// 1e-4 rad and slips a few micrometers over a lift, while friction stays
+/// rigid.
+pub const NATIVE_REGULARIZATION: f64 = 1.0e-3;
+
 /// Settings of [`NativeBackend`].
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct NativeBackendConfig {
@@ -108,9 +120,13 @@ pub struct NativeBackendConfig {
 
 impl Default for NativeBackendConfig {
     fn default() -> Self {
+        let mut contact = ContactStepConfig::default();
+        // Spread loads evenly over redundant contacts: a face on four corners,
+        // an object squeezed between two pads. See `NATIVE_REGULARIZATION`.
+        contact.solver.regularization = NATIVE_REGULARIZATION;
         Self {
             contact_margin_m: 0.02,
-            contact: ContactStepConfig::default(),
+            contact,
         }
     }
 }

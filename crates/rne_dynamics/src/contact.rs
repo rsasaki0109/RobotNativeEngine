@@ -86,11 +86,28 @@ pub struct ContactSolverConfig {
     /// Convergence threshold on the largest per-contact impulse change in one
     /// sweep, in newton-seconds.
     pub tolerance_n_s: f64,
+    /// Convergence threshold on the largest contact-velocity change in one
+    /// sweep, `max |G δλ|`, in meters per second. The sweeps also stop when
+    /// the impulses still move but only along `G`'s null space, which
+    /// redundant contacts (a face resting on four corners, an object squeezed
+    /// between two pads) leave wide and which changes no motion.
+    pub velocity_tolerance_m_s: f64,
     /// Relaxation factor in `(0, 1]` blending each new contact impulse with
     /// the previous one. `1.0` is plain Gauss-Seidel.
     pub relaxation: f64,
     /// Bisection steps used to locate the sliding direction on the cone.
     pub bisection_iterations: usize,
+    /// Normal compliance of each contact, relative to its own effective
+    /// inverse mass (the mean diagonal of its Delassus block): each normal
+    /// row solves against `G_nn + ε` with `ε = regularization × mean diag
+    /// G_ii`, as if the surfaces gave slightly. It makes the normal impulses
+    /// unique where contacts are redundant (four corners of a face, two pads
+    /// squeezing an object), spreading the load over them instead of letting
+    /// the sweep order pick a lopsided split, whose friction would twist a
+    /// held object. Friction stays rigid, so a held object does not creep.
+    /// The cost is a normal velocity error of `ε λ_n`, which penetration
+    /// recovery absorbs. `0.0` solves `G` exactly.
+    pub regularization: f64,
 }
 
 impl Default for ContactSolverConfig {
@@ -98,8 +115,10 @@ impl Default for ContactSolverConfig {
         Self {
             max_iterations: 200,
             tolerance_n_s: 1.0e-10,
+            velocity_tolerance_m_s: 1.0e-8,
             relaxation: 1.0,
             bisection_iterations: 60,
+            regularization: 0.0,
         }
     }
 }
@@ -202,8 +221,19 @@ pub fn solve_contact_impulses(
         None => vec![[0.0; 3]; count],
     };
     let mut states = vec![ContactState::Open; count];
+    if !(config.regularization.is_finite() && config.regularization >= 0.0) {
+        return Err(DynamicsError::InvalidContact(
+            "solver regularization must be finite and non-negative",
+        ));
+    }
     let blocks: Vec<[[f64; 3]; 3]> = (0..count)
-        .map(|contact| diagonal_block(delassus, contact))
+        .map(|contact| {
+            let mut block = diagonal_block(delassus, contact);
+            // Normal compliance only (see `ContactSolverConfig::regularization`).
+            let softness = config.regularization * (block[0][0] + block[1][1] + block[2][2]) / 3.0;
+            block[2][2] += softness;
+            block
+        })
         .collect();
 
     let mut iterations = 0;
@@ -212,6 +242,7 @@ pub fn solve_contact_impulses(
     while !converged && iterations < config.max_iterations {
         iterations += 1;
         last_change = 0.0_f64;
+        let before = impulses.clone();
         for contact in 0..count {
             // Velocity of this contact with its own impulse removed.
             let mut bias = [0.0; 3];
@@ -248,7 +279,8 @@ pub fn solve_contact_impulses(
             impulses[contact] = blended;
             states[contact] = state;
         }
-        converged = last_change <= config.tolerance_n_s;
+        converged = last_change <= config.tolerance_n_s
+            || sweep_velocity_change(delassus, &impulses, &before) <= config.velocity_tolerance_m_s;
     }
 
     Ok(ContactSolution {
@@ -258,6 +290,34 @@ pub fn solve_contact_impulses(
         converged,
         last_change_n_s: last_change,
     })
+}
+
+/// Largest change of any contact velocity over one sweep, `max |G δλ|`.
+///
+/// Redundant contacts (more constraint rows than the bodies have degrees of
+/// freedom) leave `G` singular, and the sweeps keep shifting impulse along
+/// its null space long after the motion has settled; that shift changes no
+/// velocity, so this measures the progress that matters.
+fn sweep_velocity_change(
+    delassus: &DenseMatrix,
+    impulses: &[[f64; 3]],
+    before: &[[f64; 3]],
+) -> f64 {
+    let delta: Vec<f64> = impulses
+        .iter()
+        .zip(before)
+        .flat_map(|(now, then)| [now[0] - then[0], now[1] - then[1], now[2] - then[2]])
+        .collect();
+    (0..delta.len())
+        .map(|row| {
+            delta
+                .iter()
+                .enumerate()
+                .map(|(col, value)| delassus.get(row, col) * value)
+                .sum::<f64>()
+                .abs()
+        })
+        .fold(0.0, f64::max)
 }
 
 fn diagonal_block(delassus: &DenseMatrix, contact: usize) -> [[f64; 3]; 3] {
@@ -1462,6 +1522,87 @@ mod tests {
             assert!(solution.converged);
             assert_contact_conditions(&delassus, &free, &mu, &solution, 1.0e-9);
         }
+    }
+
+    /// Two coincident contacts on a unit point mass, approaching at 1 m/s:
+    /// their Delassus matrix `[[I, I], [I, I]]` is singular, so any split of
+    /// the stopping impulse between them is a solution.
+    fn coincident_pair(regularization: f64, velocity_tolerance_m_s: f64) -> ContactSolution {
+        let mut delassus = DenseMatrix::zeros(6, 6);
+        for row in 0..6 {
+            for col in 0..6 {
+                if row % 3 == col % 3 {
+                    delassus.set(row, col, 1.0);
+                }
+            }
+        }
+        let config = ContactSolverConfig {
+            max_iterations: 100_000,
+            regularization,
+            velocity_tolerance_m_s,
+            ..ContactSolverConfig::default()
+        };
+        solve_contact_impulses(
+            &delassus,
+            &[0.0, 0.0, -1.0, 0.0, 0.0, -1.0],
+            &[0.5, 0.5],
+            &config,
+            None,
+        )
+        .expect("solve")
+    }
+
+    #[test]
+    fn regularization_spreads_a_load_over_redundant_contacts() {
+        // Exact: the first contact in the sweep takes the whole impulse.
+        let exact = coincident_pair(0.0, 1.0e-8);
+        assert_eq!(exact.impulses_n_s, vec![[0.0, 0.0, 1.0], [0.0; 3]]);
+        // Compliant: the split evens out, at the cost of a 1e-3 softness.
+        let soft = coincident_pair(1.0e-3, 1.0e-8);
+        assert!(soft.converged);
+        let [first, second] = [soft.impulses_n_s[0][2], soft.impulses_n_s[1][2]];
+        assert!(
+            (first - 0.5).abs() < 0.01 && (second - 0.5).abs() < 0.01,
+            "{first} {second}"
+        );
+        assert!((first + second - 1.0).abs() < 1.0e-3, "{}", first + second);
+        // Friction stays rigid: no tangential impulse appears.
+        assert!(soft
+            .impulses_n_s
+            .iter()
+            .all(|impulse| impulse[0] == 0.0 && impulse[1] == 0.0));
+        assert!(matches!(
+            solve_contact_impulses(
+                &DenseMatrix::zeros(3, 3),
+                &[0.0; 3],
+                &[0.5],
+                &ContactSolverConfig {
+                    regularization: -1.0,
+                    ..ContactSolverConfig::default()
+                },
+                None,
+            ),
+            Err(DynamicsError::InvalidContact(_))
+        ));
+    }
+
+    #[test]
+    fn sweeps_stop_once_the_motion_settles_though_impulses_still_shift() {
+        // With the velocity test, the sweeps stop once `G δλ` is tiny; the
+        // impulse-only test keeps sweeping the null-space drift for longer
+        // without changing the motion.
+        let early = coincident_pair(1.0e-3, 1.0e-8);
+        let late = coincident_pair(1.0e-3, 0.0);
+        assert!(early.converged && late.converged);
+        assert!(
+            early.iterations * 2 < late.iterations,
+            "{} vs {}",
+            early.iterations,
+            late.iterations
+        );
+        let total =
+            |solution: &ContactSolution| solution.impulses_n_s[0][2] + solution.impulses_n_s[1][2];
+        assert!((total(&early) - total(&late)).abs() < 1.0e-5);
     }
 
     #[test]
