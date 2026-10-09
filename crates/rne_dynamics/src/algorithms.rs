@@ -375,7 +375,9 @@ pub fn center_of_mass(model: &ArticulatedModel, q: &[f64]) -> Result<Vec3, Dynam
 /// `[linear; angular]` velocity of the point. It differs from
 /// [`rne_robot::KinematicModel::jacobian`] in the base columns, which use
 /// body-frame twist rather than roll-pitch-yaw rates. The joint columns are
-/// identical.
+/// identical. For a prescribed moving fixed base, add its point velocity
+/// `v_base + omega_base x (point_world - base_origin)` to `J qd` to obtain
+/// the full world velocity; prescribed motion is not a generalized coordinate.
 #[allow(clippy::needless_range_loop)]
 pub fn frame_jacobian(
     model: &ArticulatedModel,

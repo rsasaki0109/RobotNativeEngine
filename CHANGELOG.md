@@ -23,6 +23,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Include a prescribed fixed base's point velocity (`v + omega x r`) in
+  single-model and coupled contact relative velocities. Moving-cart grasp
+  regressions cover acceleration, deceleration, rotation, and exact replay;
+  floating-base and stationary contact arithmetic remain unchanged.
+
 - Reduce contact-solver sweep overhead without changing the Coulomb cone,
   tolerances, or arithmetic order: traverse contiguous Delassus rows, reuse
   sweep scratch buffers, and evaluate sliding brackets lazily in the same

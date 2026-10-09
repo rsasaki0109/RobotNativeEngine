@@ -826,6 +826,11 @@ fn step_with_actuation(
     let (response, delassus) = delassus_operator(&factor, &jacobian);
     let mut contact_velocity = jacobian.mul_vec(&free_velocity);
     for (index, contact) in contacts.iter().enumerate() {
+        let prescribed =
+            prescribed_point_velocity(model, transforms, contact.link, contact.point_local_m);
+        add_prescribed_contact_velocity(&mut contact_velocity, index, &frames[index], prescribed);
+    }
+    for (index, contact) in contacts.iter().enumerate() {
         let allowed_approach = if contact.gap_m >= 0.0 {
             contact.gap_m / dt
         } else {
@@ -1165,6 +1170,46 @@ fn contact_jacobian(
         frames.push(frame);
     }
     Ok((jacobian, frames, friction))
+}
+
+/// World velocity prescribed by a fixed base at a validated contact point.
+/// Floating-base velocity already belongs to the generalized coordinates.
+fn prescribed_point_velocity(
+    model: &ArticulatedModel,
+    transforms: &[Transform3],
+    link: Entity,
+    point_local_m: Vec3,
+) -> Vec3 {
+    let motion = model.fixed_base_motion();
+    if model.base_dof() != 0
+        || (motion.linear_velocity_m_s == Vec3::ZERO && motion.angular_velocity_rad_s == Vec3::ZERO)
+    {
+        return Vec3::ZERO;
+    }
+    let link_index = model
+        .kinematic
+        .link_index(link)
+        .expect("validated contact link");
+    let pose = transforms[link_index];
+    let point_world_m = pose.translation + pose.rotation * point_local_m;
+    motion.linear_velocity_m_s
+        + motion
+            .angular_velocity_rad_s
+            .cross(point_world_m - transforms[0].translation)
+}
+
+/// Add only nonzero prescribed motion, preserving stationary arithmetic.
+fn add_prescribed_contact_velocity(
+    velocity: &mut [f64],
+    index: usize,
+    frame: &[Vec3; 3],
+    prescribed: Vec3,
+) {
+    if prescribed != Vec3::ZERO {
+        for (axis, direction) in frame.iter().enumerate() {
+            velocity[3 * index + axis] += direction.dot(prescribed);
+        }
+    }
 }
 
 /// Integrates a configuration by one step of generalized velocity.
@@ -1936,6 +1981,139 @@ mod tests {
             velocity: 0.0,
         });
         ArticulatedModel::from_robot(&world, robot).expect("model")
+    }
+
+    #[test]
+    fn prescribed_base_translation_and_rotation_enter_single_and_coupled_contacts() {
+        use crate::BaseMotion;
+        let mut model = pendulum_model();
+        model.gravity_m_s2 = Vec3::ZERO;
+        let rotation = Quat::from_rotation_z(0.3);
+        model.set_fixed_base_pose(Transform3::from_translation_rotation(
+            Vec3::new(0.4, -0.2, 0.8),
+            rotation,
+        ));
+        let normal = rotation * Vec3::Y;
+        let link = model.link_entity(1).expect("link");
+        for (linear, angular) in [(1.0, 0.0), (0.0, 1.0), (0.25, 0.75)] {
+            model.set_fixed_base_motion(BaseMotion {
+                linear_velocity_m_s: -linear * normal,
+                angular_velocity_rad_s: -angular * (rotation * Vec3::Z),
+                ..BaseMotion::default()
+            });
+            let contact = ContactPoint {
+                link,
+                point_local_m: Vec3::X,
+                normal_world: normal,
+                gap_m: 0.0,
+                friction_coefficient: 0.0,
+            };
+            let config = ContactStepConfig::default();
+            let single = contact_step(
+                &model,
+                &[0.0],
+                &[0.0],
+                &[0.0],
+                &[contact],
+                None,
+                &config,
+                None,
+            )
+            .expect("single step");
+            let bodies = [CoupledBody {
+                model: &model,
+                q: &[0.0],
+                qd: &[0.0],
+                tau: &[0.0],
+                pd: None,
+            }];
+            let contacts = [CoupledContact {
+                a: ContactAnchor {
+                    body: 0,
+                    link,
+                    point_local_m: Vec3::X,
+                },
+                b: None,
+                normal_world: normal,
+                gap_m: 0.0,
+                friction_coefficient: 0.0,
+            }];
+            let coupled =
+                contact_step_coupled(&bodies, &contacts, &config, None).expect("coupled step");
+            // A unit point mass at radius one approaches at 1 m/s. The
+            // contact impulse induces +1 rad/s, making its world velocity zero.
+            assert!((single.qd[0] - 1.0).abs() < 1.0e-12, "{single:?}");
+            assert!((coupled.bodies[0].qd[0] - 1.0).abs() < 1.0e-12);
+            assert!((single.contacts[0].impulse_world_n_s - normal).length() < 1.0e-12);
+            assert!((coupled.contacts[0].impulse_world_n_s - normal).length() < 1.0e-12);
+        }
+    }
+
+    #[test]
+    fn coupled_contacts_subtract_both_prescribed_base_velocities() {
+        use crate::BaseMotion;
+        let mut left = pendulum_model();
+        let mut right = pendulum_model();
+        left.gravity_m_s2 = Vec3::ZERO;
+        right.gravity_m_s2 = Vec3::ZERO;
+        left.set_fixed_base_motion(BaseMotion {
+            linear_velocity_m_s: -Vec3::Y,
+            ..BaseMotion::default()
+        });
+        for right_speed in [0.0, -1.0] {
+            right.set_fixed_base_motion(BaseMotion {
+                linear_velocity_m_s: right_speed * Vec3::Y,
+                ..BaseMotion::default()
+            });
+            let bodies = [&left, &right].map(|model| CoupledBody {
+                model,
+                q: &[0.0],
+                qd: &[0.0],
+                tau: &[0.0],
+                pd: None,
+            });
+            let contacts = [CoupledContact {
+                a: ContactAnchor {
+                    body: 0,
+                    link: left.link_entity(1).expect("left link"),
+                    point_local_m: Vec3::X,
+                },
+                b: Some(ContactAnchor {
+                    body: 1,
+                    link: right.link_entity(1).expect("right link"),
+                    point_local_m: Vec3::X,
+                }),
+                normal_world: Vec3::Y,
+                gap_m: 0.0,
+                friction_coefficient: 0.0,
+            }];
+            let step =
+                contact_step_coupled(&bodies, &contacts, &ContactStepConfig::default(), None)
+                    .expect("step");
+            let expected = 0.5 * (1.0 + right_speed);
+            assert!((step.bodies[0].qd[0] - expected).abs() < 1.0e-12);
+            assert!((step.bodies[1].qd[0] + expected).abs() < 1.0e-12);
+            assert!((step.contacts[0].impulse_world_n_s.y - expected).abs() < 1.0e-12);
+        }
+    }
+
+    #[test]
+    fn prescribed_motion_does_not_double_count_a_floating_base() {
+        use crate::BaseMotion;
+        let (mut model, link) = box_model(Vec3::ZERO);
+        model.set_fixed_base_motion(BaseMotion {
+            linear_velocity_m_s: Vec3::ONE,
+            angular_velocity_rad_s: Vec3::ONE,
+            ..BaseMotion::default()
+        });
+        let kinematics = model
+            .kinematic
+            .forward_kinematics(&[0.0; 6])
+            .expect("kinematics");
+        assert_eq!(
+            prescribed_point_velocity(&model, kinematics.transforms(), link, Vec3::X),
+            Vec3::ZERO
+        );
     }
 
     #[test]

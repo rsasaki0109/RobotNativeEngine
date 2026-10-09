@@ -11,10 +11,11 @@
 //! models only through shared contacts.
 
 use super::{
-    active_joint_limits, actuator_torques, contact_frame, effort_limit, fold_implicit_pd,
-    integrate_from_base_frame, solve_contact_impulses, validate_pd, Cholesky, ContactOutcome,
-    ContactStep, ContactStepConfig, JointLimitOutcome, JointLimitSide, JointPdControl, LimitRow,
-    EFFORT_TOLERANCE, MAX_EFFORT_PASSES,
+    active_joint_limits, actuator_torques, add_prescribed_contact_velocity, contact_frame,
+    effort_limit, fold_implicit_pd, integrate_from_base_frame, prescribed_point_velocity,
+    solve_contact_impulses, validate_pd, Cholesky, ContactOutcome, ContactStep, ContactStepConfig,
+    JointLimitOutcome, JointLimitSide, JointPdControl, LimitRow, EFFORT_TOLERANCE,
+    MAX_EFFORT_PASSES,
 };
 use crate::algorithms::{
     mass_matrix_from_xup, point_linear_jacobian, rnea_from_xup, xup_transforms, DenseMatrix,
@@ -267,6 +268,23 @@ fn solve(
         coupled_jacobian(bodies, frames, contacts, &limits, total_nv)?;
     let (response, delassus) = block_delassus(&factors, frames, bodies, &jacobian);
     let mut constraint_velocity = jacobian.mul_vec(&free_velocity);
+    for (index, contact) in contacts.iter().enumerate() {
+        let velocity = |anchor: ContactAnchor| {
+            prescribed_point_velocity(
+                bodies[anchor.body].model,
+                frames[anchor.body].kinematics.transforms(),
+                anchor.link,
+                anchor.point_local_m,
+            )
+        };
+        let prescribed = velocity(contact.a) - contact.b.map(velocity).unwrap_or(Vec3::ZERO);
+        add_prescribed_contact_velocity(
+            &mut constraint_velocity,
+            index,
+            &contact_frames[index],
+            prescribed,
+        );
+    }
     let gaps = contacts
         .iter()
         .map(|contact| contact.gap_m)

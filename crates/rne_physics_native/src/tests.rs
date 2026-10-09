@@ -1076,58 +1076,78 @@ struct GraspReport {
     lifted_m: f64,
     /// Tilt of the object at the end, in radians.
     tilt_rad: f64,
+    /// Largest change of the cube pose relative to the palm while the cart moves.
+    cart_error_m: f64,
+    cart_turn_error_rad: f64,
+    replay_digest: u64,
 }
 
 /// A palm on a vertical lift joint with two fingers on horizontal slides
 /// squeezes a 10 cm cube of `mass_kg` with `squeeze_n` per finger (friction
 /// 0.8), lifts it 0.2 m over 1 s, and holds it for 1 s.
 fn grasp_and_lift(mass_kg: f64, squeeze_n: f64) -> GraspReport {
-    let mut backend = NativeBackend::new();
-    let id = backend
-        .create_world(PhysicsWorldDesc::default())
-        .expect("world");
-    let mut world = World::new();
-    ground(&mut world);
-    let collider = |half: Vec3| Collider {
+    grasp_and_lift_on_cart(mass_kg, squeeze_n, None)
+}
+
+#[derive(Debug)]
+struct GraspRig {
+    anchor: Entity,
+    palm: Entity,
+    cube: Entity,
+    fingers: Vec<Entity>,
+}
+
+fn grasp_collider(half: Vec3) -> Collider {
+    Collider {
         material: PhysicsMaterial {
             friction: 0.8,
             ..PhysicsMaterial::default()
         },
         ..Collider::cuboid(half)
-    };
+    }
+}
+
+fn grasp_lift_command(target_m: f64) -> JointActuation {
+    JointActuation::PrismaticPosition {
+        target_position_m: target_m,
+        stiffness_n_per_m: 2.0e4,
+        damping_n_s_per_m: 2.0e3,
+        max_force_n: 2000.0,
+    }
+}
+
+fn spawn_grasp_rig(world: &mut World, mass_kg: f64, squeeze_n: f64, moving_cart: bool) -> GraspRig {
     let cube = world
         .spawn((
             RigidBody {
                 mass_kg,
                 ..RigidBody::default()
             },
-            collider(Vec3::splat(0.05)),
+            grasp_collider(Vec3::splat(0.05)),
             Transform3::from_translation_rotation(Vec3::new(0.0, 0.05, 0.0), Quat::IDENTITY),
         ))
         .id();
     let anchor = world
         .spawn((
             RigidBody {
-                body_type: RigidBodyType::Fixed,
+                body_type: if moving_cart {
+                    RigidBodyType::Kinematic
+                } else {
+                    RigidBodyType::Fixed
+                },
                 ..RigidBody::default()
             },
             Transform3::from_translation_rotation(Vec3::new(0.0, 1.0, 0.0), Quat::IDENTITY),
         ))
         .id();
     let palm_y = 0.26;
-    let lift = |target_m: f64| JointActuation::PrismaticPosition {
-        target_position_m: target_m,
-        stiffness_n_per_m: 2.0e4,
-        damping_n_s_per_m: 2.0e3,
-        max_force_n: 2000.0,
-    };
     let palm = world
         .spawn((
             RigidBody {
                 mass_kg: 1.0,
                 ..RigidBody::default()
             },
-            collider(Vec3::new(0.12, 0.02, 0.05)),
+            grasp_collider(Vec3::new(0.12, 0.02, 0.05)),
             Transform3::from_translation_rotation(Vec3::new(0.0, palm_y, 0.0), Quat::IDENTITY),
             PrismaticJointDesc {
                 parent: anchor,
@@ -1138,36 +1158,120 @@ fn grasp_and_lift(mass_kg: f64, squeeze_n: f64) -> GraspReport {
                 lower_m: None,
                 upper_m: None,
             },
-            lift(palm_y - 1.0),
+            grasp_lift_command(palm_y - 1.0),
         ))
         .id();
-    // Each finger squeezes toward the cube with a constant force.
-    for side in [-1.0, 1.0] {
-        world.spawn((
-            RigidBody {
-                mass_kg: 0.2,
-                ..RigidBody::default()
-            },
-            collider(Vec3::new(0.01, 0.06, 0.04)),
-            Transform3::from_translation_rotation(
-                Vec3::new(side * 0.08, palm_y - 0.19, 0.0),
-                Quat::IDENTITY,
-            ),
-            PrismaticJointDesc {
-                parent: palm,
-                axis: Vec3::X,
-                anchor_parent_m: Vec3::new(0.0, -0.19, 0.0),
-                anchor_child_m: Vec3::ZERO,
-                relative_rotation: Quat::IDENTITY,
-                lower_m: Some(-0.1),
-                upper_m: Some(0.1),
-            },
-            JointActuation::PrismaticEffort {
-                force_n: -side * squeeze_n,
-                max_force_n: squeeze_n,
-            },
-        ));
+    let fingers = spawn_grasp_fingers(world, palm, palm_y, squeeze_n, moving_cart);
+    GraspRig {
+        anchor,
+        palm,
+        cube,
+        fingers,
     }
+}
+
+fn spawn_grasp_fingers(
+    world: &mut World,
+    palm: Entity,
+    palm_y: f64,
+    squeeze_n: f64,
+    moving_cart: bool,
+) -> Vec<Entity> {
+    // Each finger squeezes toward the cube with a constant force.
+    let mut fingers = Vec::new();
+    for side in [-1.0, 1.0] {
+        let finger = world
+            .spawn((
+                RigidBody {
+                    mass_kg: 0.2,
+                    ..RigidBody::default()
+                },
+                grasp_collider(Vec3::new(0.01, 0.06, 0.04)),
+                Transform3::from_translation_rotation(
+                    Vec3::new(side * 0.08, palm_y - 0.19, 0.0),
+                    Quat::IDENTITY,
+                ),
+                PrismaticJointDesc {
+                    parent: palm,
+                    axis: Vec3::X,
+                    anchor_parent_m: Vec3::new(0.0, -0.19, 0.0),
+                    anchor_child_m: Vec3::ZERO,
+                    relative_rotation: Quat::IDENTITY,
+                    lower_m: Some(-0.1),
+                    upper_m: Some(0.1),
+                },
+                if moving_cart {
+                    // Independent position servos keep the jaw center on the cart.
+                    // Equal and opposite effort-only commands leave a free common
+                    // translation along the squeeze axis, unlike a centered gripper.
+                    let stiffness_n_per_m = 1.0e5;
+                    JointActuation::PrismaticPosition {
+                        target_position_m: side * (0.06 - squeeze_n / stiffness_n_per_m),
+                        stiffness_n_per_m,
+                        damping_n_s_per_m: 1.0e3,
+                        max_force_n: 2.0 * squeeze_n,
+                    }
+                } else {
+                    JointActuation::PrismaticEffort {
+                        force_n: -side * squeeze_n,
+                        max_force_n: squeeze_n,
+                    }
+                },
+            ))
+            .id();
+        fingers.push(finger);
+    }
+    fingers
+}
+
+fn hash_grasp_frame(
+    backend: &NativeBackend,
+    world: &World,
+    id: PhysicsWorldId,
+    rig: &GraspRig,
+    digest: &mut u64,
+) {
+    // Fixed entity/component order includes every body and articulated joint.
+    for entity in [rig.anchor, rig.palm, rig.cube]
+        .into_iter()
+        .chain(rig.fingers.iter().copied())
+    {
+        let pose = world.get::<Transform3>(entity).expect("pose");
+        let body = world.get::<RigidBody>(entity).expect("body");
+        for value in pose
+            .translation
+            .to_array()
+            .into_iter()
+            .chain(pose.rotation.to_array())
+            .chain(body.linear_velocity_m_s.to_array())
+            .chain(body.angular_velocity_rad_s.to_array())
+        {
+            *digest ^= value.to_bits();
+            *digest = digest.wrapping_mul(0x100000001b3);
+        }
+        if let Some((q, qd)) = backend.multibody_joint_state(id, entity) {
+            for value in [q, qd] {
+                *digest ^= value.to_bits();
+                *digest = digest.wrapping_mul(0x100000001b3);
+            }
+        }
+    }
+}
+
+fn grasp_and_lift_on_cart(
+    mass_kg: f64,
+    squeeze_n: f64,
+    cart_motion: Option<(Vec3, f64)>,
+) -> GraspReport {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    ground(&mut world);
+    let rig = spawn_grasp_rig(&mut world, mass_kg, squeeze_n, cart_motion.is_some());
+    let (anchor, palm, cube) = (rig.anchor, rig.palm, rig.cube);
+    let palm_y = 0.26;
     for _ in 0..250 {
         step(&mut backend, &mut world, id);
     }
@@ -1175,16 +1279,53 @@ fn grasp_and_lift(mass_kg: f64, squeeze_n: f64) -> GraspReport {
         world.get::<Transform3>(entity).expect("pose").translation.y
     };
     let grip = height(&world, cube) - height(&world, palm);
+    let mut held_pose = None;
+    let mut cart_error_m: f64 = 0.0;
+    let mut cart_turn_error_rad: f64 = 0.0;
+    let mut replay_digest = 0xcbf29ce484222325_u64;
     for index in 1..=1000 {
         let s = (index as f64 / 500.0).min(1.0);
-        world.entity_mut(palm).insert(lift(palm_y - 1.0 + 0.2 * s));
+        world
+            .entity_mut(palm)
+            .insert(grasp_lift_command(palm_y - 1.0 + 0.2 * s));
+        if let Some((displacement, turn_rad)) = cart_motion.filter(|_| index > 500) {
+            // A quintic profile starts and stops at rest, with acceleration and
+            // deceleration during the hold. Rotation also drives the pads.
+            let t = (index - 500) as f64 / 500.0;
+            let travel = t * t * t * (10.0 + t * (-15.0 + 6.0 * t));
+            world
+                .entity_mut(anchor)
+                .insert(Transform3::from_translation_rotation(
+                    Vec3::Y + displacement * travel,
+                    Quat::from_rotation_y(turn_rad * travel),
+                ));
+        }
         step(&mut backend, &mut world, id);
+        let cube_pose = *world.get::<Transform3>(cube).expect("cube");
+        let palm_pose = *world.get::<Transform3>(palm).expect("palm");
+        let relative_position =
+            palm_pose.rotation.conjugate() * (cube_pose.translation - palm_pose.translation);
+        let relative_rotation = palm_pose.rotation.conjugate() * cube_pose.rotation;
+        if index == 500 {
+            held_pose = Some((relative_position, relative_rotation));
+        } else if cart_motion.is_some() && index > 500 {
+            let (position, rotation) = held_pose.expect("lifted pose");
+            cart_error_m = cart_error_m.max((relative_position - position).length());
+            let turn = (rotation.conjugate() * relative_rotation)
+                .to_scaled_axis()
+                .length();
+            cart_turn_error_rad = cart_turn_error_rad.max(turn);
+        }
+        hash_grasp_frame(&backend, &world, id, &rig, &mut replay_digest);
     }
     let cube_pose = *world.get::<Transform3>(cube).expect("cube");
     GraspReport {
         slip_m: grip - (cube_pose.translation.y - height(&world, palm)),
         lifted_m: cube_pose.translation.y - 0.05,
         tilt_rad: (cube_pose.rotation * Vec3::Y).y.clamp(-1.0, 1.0).acos(),
+        cart_error_m,
+        cart_turn_error_rad,
+        replay_digest,
     }
 }
 
@@ -1207,4 +1348,44 @@ fn an_under_squeezed_cube_slips_out_and_stays_on_the_floor() {
         assert!(report.lifted_m.abs() < 1.0e-3, "{mass_kg} kg: {report:?}");
         assert!(report.slip_m > 0.19, "{mass_kg} kg: {report:?}");
     }
+}
+
+fn assert_cart_grasp(displacement: Vec3, turn_rad: f64) {
+    for (mass_kg, squeeze_n) in [(5.0, 80.0), (20.0, 300.0)] {
+        let motion = Some((displacement, turn_rad));
+        let report = grasp_and_lift_on_cart(mass_kg, squeeze_n, motion);
+        assert!(report.lifted_m > 0.189, "{mass_kg} kg: {report:?}");
+        assert!(report.cart_error_m < 0.002, "{mass_kg} kg: {report:?}");
+        assert!(
+            report.cart_turn_error_rad < 0.01,
+            "{mass_kg} kg: {report:?}"
+        );
+        let replay = grasp_and_lift_on_cart(mass_kg, squeeze_n, motion);
+        assert_eq!(report.replay_digest, replay.replay_digest);
+    }
+}
+
+#[test]
+fn a_heavy_grasp_survives_cart_acceleration_and_deceleration() {
+    assert_cart_grasp(Vec3::new(0.15, 0.0, 0.12), 0.0);
+}
+
+#[test]
+fn a_heavy_grasp_survives_cart_turning() {
+    assert_cart_grasp(Vec3::ZERO, 0.4);
+}
+
+#[test]
+fn a_heavy_grasp_survives_cart_acceleration_deceleration_and_turning() {
+    assert_cart_grasp(Vec3::new(0.15, 0.0, 0.12), 0.4);
+}
+
+#[test]
+fn a_heavy_grasp_survives_cart_motion_along_the_squeeze_axis() {
+    assert_cart_grasp(Vec3::new(0.15, 0.0, 0.0), 0.0);
+}
+
+#[test]
+fn a_heavy_grasp_survives_cart_motion_along_the_friction_axis() {
+    assert_cart_grasp(Vec3::new(0.0, 0.0, 0.12), 0.0);
 }
