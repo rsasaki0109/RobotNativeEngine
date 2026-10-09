@@ -242,6 +242,20 @@ measurements, strict task thresholds, and the retained failed cases.
 
 See [hard-contact time stepping](architecture/016_contact_dynamics.md).
 
+Example 139 records dynamic Go2/G1 recovery from prescribed body wrenches,
+checks exact physical replay, and optionally renders a side-by-side kick
+comparison with a CC0 skinned human. The human shifts weight onto its planted
+support foot, chambers the knee, extends and retracts the kicking leg. Go2
+receives 120 N for 0.20 s and G1 50 N for 0.20 s; these are illustrative,
+different impulses on the existing approximate scene mass/inertia models.
+Human-foot contact dynamics are not part of this example.
+
+```bash
+cargo run --release -p kick_comparison --example 139_kick_comparison -- --headless
+```
+
+See [capture, animation checks, and regeneration](../examples/139_kick_comparison/README.md).
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

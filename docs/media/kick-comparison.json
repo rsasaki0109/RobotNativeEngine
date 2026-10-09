@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "scope": "Prescribed body wrenches with a visual human actor; different impulses; approximate scene mass/inertia",
+  "physics": {
+    "cases": [
+      {
+        "canonical_render_frames_exact_repeat": true,
+        "dt_s": 0.016666666,
+        "duration_s": 0.19999999200000002,
+        "force_n": 120.0,
+        "impulse_n_s": 23.99999904,
+        "observed_state_bits_exact_repeat": true,
+        "observed_state_hash": "3522798ee3cb6d9e",
+        "robot": "Go2",
+        "summary": {
+          "final_base_height_m": 0.22666119039058685,
+          "final_contact_feet": 4,
+          "final_pelvis_height_m": 0.22666119039058685,
+          "final_speed_m_s": 0.0048972068752581345,
+          "final_tilt_rad": 0.01750722988697862,
+          "lateral_displacement_m": 0.004667013417929411,
+          "min_contact_feet": 4,
+          "min_height_m": 0.2202463299036026,
+          "peak_tilt_rad": 0.46418510852372336,
+          "recovered": true,
+          "residual_tilt_rad": 0.01750722988697862
+        },
+        "trace": "go2-trace.json"
+      },
+      {
+        "canonical_render_frames_exact_repeat": true,
+        "dt_s": 0.016666666,
+        "duration_s": 0.19999999200000002,
+        "force_n": 50.0,
+        "impulse_n_s": 9.9999996,
+        "observed_state_bits_exact_repeat": true,
+        "observed_state_hash": "012828eb4eeedec9",
+        "robot": "G1",
+        "summary": {
+          "final_base_height_m": 0.7867398262023926,
+          "final_contact_feet": 2,
+          "final_pelvis_height_m": 0.7867398262023926,
+          "final_speed_m_s": 0.05910575412573502,
+          "final_tilt_rad": 0.0031831763124800833,
+          "lateral_displacement_m": -0.008147896733134985,
+          "min_contact_feet": 1,
+          "min_height_m": 0.7847869396209717,
+          "peak_tilt_rad": 0.1733941744873666,
+          "recovered": true,
+          "residual_tilt_rad": 0.0031831763124800833
+        },
+        "trace": "g1-trace.json"
+      }
+    ],
+    "note": "Measured dynamic simulations with different explicit force magnitudes; this is not a common-strength comparison or a simulated human collision."
+  },
+  "artifacts": {
+    "gif_sha256": "da85a5f98ed9e46eb0a555cc8818ada636ecd15d066b986e228a9d07e0ca50c7",
+    "poster_sha256": "51d75bc077394fa825c13e77ffadc770aa6e015a983808375763e5b3ff29706d",
+    "frame_count": 187,
+    "width": 960,
+    "height": 540,
+    "gif_duration_ms": 6230
+  },
+  "source_sha256": {
+    "examples/139_kick_comparison/main.rs": "6fa1a55100e811f9d20c785d37ac5a9e7a47f9e4dfcea55e40b47477c62237c5",
+    "examples/139_kick_comparison/physics.rs": "7c056c0697b0cc35760197487f0b858e1658aa24095e9cd0cb3a968061a24542",
+    "examples/139_kick_comparison/render.rs": "c2ca91357f4b3ebb91542200659559e869ad654a973fc42f8de8a50805f750bb",
+    "examples/139_kick_comparison/encode.py": "ce1cc366ba74ef02f95a90b4908be2a2fac4d4d0e2f84b6e5fb19ef3e2df8695",
+    "crates/rne_render/src/animation.rs": "8faa1c53c7505b82f0c02e25261a7f718fc4165dea384102a152e4d0e903cf2a",
+    "assets/fixtures/kick_human/cc0_sport_human.glb": "f70faa730f77ce1543a8bc772a31622392e85c77fa644ad5ec3a2b32532d2674"
+  },
+  "trace_sha256": {
+    "go2-trace.json": "0b2db83247b144144fef5cc036519492ddbc98a4d023f961928a92506138b7cd",
+    "g1-trace.json": "f58c1ddc1b918b7c2d4b5bd5b504401e580f29835c498e3e6618865c5bcc0347"
+  },
+  "human_provenance": "assets/fixtures/kick_human/source-manifest.json",
+  "human_license": "assets/fixtures/kick_human/LICENSE.CC0.md",
+  "robot_provenance": [
+    "assets/robots/go2_description",
+    "assets/robots/g1_description"
+  ]
+}

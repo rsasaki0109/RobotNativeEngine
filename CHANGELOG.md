@@ -23,6 +23,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Interpolate glTF LINEAR rotations along the shortest quaternion arc, shared
+  by CPU and GPU skinning. Add a Go2/G1 kick comparison with a CC0 anatomical
+  human, forward knee flexion, fixed-length limbs, support-foot planting,
+  weight transfer and continuous rotation keys. Example 139 records and
+  repeats the dynamic robot trajectories headlessly before optional capture;
+  the panels explicitly use different prescribed impulses and approximate
+  scene mass/inertia models. The human remains a visual actor.
+
 - Preserve prescribed kinematic multibody root motion in the vendored Rapier
   backend through solver substeps, account for boundary momentum changes, and
   include root point velocity in generic contact constraints. Repair per-island

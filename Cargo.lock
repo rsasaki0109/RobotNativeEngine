@@ -2423,6 +2423,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
+name = "kick_comparison"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_ai",
+ "rne_math",
+ "rne_physics",
+ "rne_render",
+ "rne_render_wgpu",
+ "rne_robot",
+ "rne_world",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "latency_in_the_loop"
 version = "0.4.0"
 dependencies = [

@@ -65,6 +65,21 @@ camera state; gates and regeneration commands are in
   </tr>
 </table>
 
+## Kick disturbance comparison
+
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="docs/media/kick-comparison.png">
+  <img src="docs/media/kick-comparison.gif" alt="An animated human kicks toward a dynamic Go2 and G1 side by side; both recover from the prescribed disturbances labeled above each panel" width="900">
+</picture>
+
+*Go2: 120 N for 0.20 s; G1: 50 N for 0.20 s.* Both recover with deterministic
+replay. The human uses a CC0 anatomical mesh with a planted support foot,
+knee chamber, extension and retraction. Robot motion comes from prescribed
+body wrenches; the human is a visual actor. These are different impulses on
+approximate scene mass/inertia models, so this is an illustrative experiment.
+[Source and regeneration](examples/139_kick_comparison/README.md) ·
+[metadata](docs/media/kick-comparison.json).
+
 ## Highlights
 
 | Area | Included | Docs |

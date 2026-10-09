@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "source_glb_sha256": "f70faa730f77ce1543a8bc772a31622392e85c77fa644ad5ec3a2b32532d2674",
+  "audit_script_sha256": "f1a9a8774dd3979a3a4310f791612bbb91dcd99a686334aa813eedd538234568",
+  "method": "Independent exported GLB accessors, normalized shortest-arc SLERP, full hierarchy, CPU LBS shoe vertices; 240 Hz plus original keys; not Blender in-memory poses; not a physical human simulation",
+  "scope": "Geometry and interpolated animation measurements; no physical human dynamics or external validator claim.",
+  "reports": [
+    {
+      "animation": "low_kick",
+      "samples_including_original_keys": 1777,
+      "sampling_hz": 240,
+      "negative_adjacent_quaternion_count": 0,
+      "max_nonroot_local_translation_change_m": 0.0,
+      "max_local_scale_change": 0.0,
+      "max_connected_segment_length_variation_m": 7.880872600063427e-07,
+      "peak_local_joint_angular_velocity": {
+        "node": "calf_r",
+        "peak_rad_s": 6.075889271361446,
+        "interval_s": [
+          2.7833333015441895,
+          2.799999952316284
+        ],
+        "max_angle_from_initial_deg": 87.62149663630836
+      },
+      "minimum_knee_forward_up_pole_cosine": 0.9999999767177591,
+      "impact_knee_flexion_deg": 62.291007186197994,
+      "impact_knee_height_minus_ankle_height_m": 0.42070506299537164,
+      "maximum_support_sole_floor_error_m": 3.147659366750082e-05,
+      "shoe_floor_minima_m": {
+        "Shoe_l": -3.147659366750082e-05,
+        "Shoe_r": -1.3852297960783971e-05,
+        "Sole_l": -3.147659366750082e-05,
+        "Sole_r": -1.3852297960783971e-05
+      },
+      "support_foot_world_rotation_change_deg": 0.0013431734587460826
+    },
+    {
+      "animation": "mid_kick",
+      "samples_including_original_keys": 1777,
+      "sampling_hz": 240,
+      "negative_adjacent_quaternion_count": 0,
+      "max_nonroot_local_translation_change_m": 0.0,
+      "max_local_scale_change": 0.0,
+      "max_connected_segment_length_variation_m": 7.938490758085948e-07,
+      "peak_local_joint_angular_velocity": {
+        "node": "calf_r",
+        "peak_rad_s": 11.64800114807248,
+        "interval_s": [
+          2.299999952316284,
+          2.316666603088379
+        ],
+        "max_angle_from_initial_deg": 107.41151473245301
+      },
+      "minimum_knee_forward_up_pole_cosine": 0.9999998465454885,
+      "impact_knee_flexion_deg": 44.56775818953416,
+      "impact_knee_height_minus_ankle_height_m": 0.1527015892340754,
+      "maximum_support_sole_floor_error_m": 7.16071453516354e-05,
+      "shoe_floor_minima_m": {
+        "Shoe_l": -7.16071453516354e-05,
+        "Shoe_r": -1.3852297960783971e-05,
+        "Sole_l": -7.16071453516354e-05,
+        "Sole_r": -1.3852297960783971e-05
+      },
+      "support_foot_world_rotation_change_deg": 0.0013431734587460826
+    }
+  ]
+}

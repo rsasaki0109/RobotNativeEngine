@@ -533,3 +533,19 @@ physics step must reconstruct the prescribed root command. Arbitrary in-solver
 graph mutation and broader constrained/armature models remain outside the validated
 scope. Release API audits remain separate checks. See the vendor `RNE_PATCH.md`
 for the repository-build boundary and unchanged upstream provenance.
+
+### Kick comparison visualization boundary
+
+Example 139 captures the existing dynamic Go2 and G1 Rapier scenes under
+prescribed world-space body wrenches, checks bit-exact replay of ordered link
+poses, velocities, joint state and foot impulses, and renders those recorded
+poses without alteration. The illustrative panels use 120 N and 50 N for
+12 steps respectively, with inherited approximate scene masses and inertias.
+This does not change the native contact solver or establish equal-impulse
+hardware resistance.
+
+The CC0 human is a visual actor with fixed-length rotation-only limb chains,
+support-foot planting and staged knee chamber, extension and retraction.
+Shortest-path glTF LINEAR rotation interpolation is shared by CPU and GPU
+skinning. Human-foot collision impulses are not computed; contact-driven human
+motion and strong common-impulse G1 recovery remain separate work.
