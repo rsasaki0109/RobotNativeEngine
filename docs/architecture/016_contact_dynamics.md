@@ -321,6 +321,14 @@ mass show both additions in isolation: the exact solve gives one contact the
 whole load, the compliant one splits it to within 1 %, and the velocity stop
 reaches the same motion in under half the sweeps.
 
+`examples/138_heavy_grasp` runs the same grasp through `PhysicsBackend`, with
+the gripper as a multibody, on `NativeBackend` and on Rapier, for 5, 20, and
+50 kg cubes. With a 25 % squeeze margin the cubes rise with the palm on both
+backends: natively with slip under 0.03 mm and tilt under 1e-3 rad, on Rapier
+with slip growing to 1.5 mm and tilt to 6e-3 rad at 50 kg. With 35 % too
+little squeeze every cube stays on the floor on both. The native step costs
+0.15–0.4 ms here against Rapier's 35 µs.
+
 `examples/137_go2_native_backend` builds the Go2 the way the asset loader does
 and drives it through `PhysicsBackend` on `NativeBackend` and on Rapier: on the
 native backend it lands on all four feet, its contact events carry its weight

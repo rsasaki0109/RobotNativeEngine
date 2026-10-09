@@ -1,0 +1,23 @@
+[package]
+name = "heavy_grasp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_core = { workspace = true }
+rne_ecs = { workspace = true }
+rne_math = { workspace = true }
+rne_physics = { workspace = true }
+rne_physics_native = { workspace = true }
+rne_physics_rapier = { workspace = true }
+rne_world = { workspace = true }
+
+[[example]]
+name = "138_heavy_grasp"
+path = "main.rs"

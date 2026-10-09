@@ -132,6 +132,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 138 (`heavy_grasp`) squeezes, lifts, and holds 5, 20, and 50 kg
+  cubes with a two-finger multibody gripper through `PhysicsBackend`, on
+  `NativeBackend` and on Rapier. Squeezed with a 25 % margin, every cube
+  rises with the palm on both backends; the native one keeps slip under
+  0.03 mm and twist under 1e-3 rad, where Rapier's 50 kg cube slips 1.5 mm
+  and tilts 6e-3 rad. Squeezed 35 % short, every cube stays on the floor.
+  The native step is about ten times slower here (0.15–0.4 ms against
+  35 µs).
+
 - Heavy grasps on the native backend: `ContactSolverConfig` gains
   `velocity_tolerance_m_s` (stop once `max |G δλ|` per sweep settles,
   default 1e-8 m/s, so redundant contacts no longer sweep their null space
