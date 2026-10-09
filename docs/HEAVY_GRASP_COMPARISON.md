@@ -6,6 +6,13 @@ This is a bounded diagnostic of the existing adapters with unchanged settings,
 not a comparison of each engine's best achievable grasp or steady-state speed.
 The ordinary example still runs without MuJoCo and retains its native checks.
 
+The saved report is historical evidence for the implementation merged in
+`5370520e03705f8c6ae3e7b5bfd5ee740fe13495` (#394). Use that revision to
+reproduce its physical results. Later ECS MuJoCo typed feedback uses bounded
+affine actuators, so a fresh report from current main can differ. The original
+report is retained rather than rewritten; see [ADR 016](architecture/016_contact_dynamics.md)
+for the control change and its unresolved heavy-grasp limitations.
+
 ## Reproduce (Linux x86_64)
 
 The RNE MuJoCo bindings require the 3.9 ABI. This measurement uses the pinned

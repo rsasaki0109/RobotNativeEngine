@@ -470,3 +470,33 @@ and labels timings as setup-inclusive ECS stepping. Native implicit PD,
 Rapier motors, and MuJoCo's explicitly evaluated typed PD have different
 discrete dynamics; equal gains are not proof of equivalent control. The
 recorded run is an adapter diagnostic, not a best-tuned solver ranking.
+
+
+## MuJoCo bounded typed feedback
+
+The recorded static comparison above used explicitly sampled typed PD and
+remains historical evidence. The ECS compiler now uses scalar general
+actuators with fixed gain and affine position/velocity bias for typed
+`JointActuation`. The entire feedback law is force-limited inside MuJoCo,
+so actuator damping remains part of measured `actuator_force`, separate from
+passive joint losses. `implicitfast` can account for velocity feedback; this
+is not the native solver's fully implicit position-and-velocity update.
+
+For typed-actuation updates that leave passive dynamics unchanged, the
+actuator helper updates only coefficients and force ranges under the world's
+data mutex. Model dimensions, signature and transmission remain unchanged.
+Passive-dynamics changes, including returning to a legacy motor with different
+damping, retain the existing model-rebuild path.
+Disabled or zero-limit commands clear both feed-forward
+and feedback. Legacy commands retain zero actuator bias and existing passive
+damping; caller MJCF keeps the sampled-control path. Tests cover high-gain
+lightweight tracking, dynamic commands, force bounds with passive losses,
+model invariants, and bit-exact replay. These single-joint tests do not prove
+heavy-grasp success or bit identity with the previous integration method.
+
+Same-scene example 138 measurements with the official MuJoCo 3.9 runtime
+show improved palm tracking, but all three held-mass cases still fail the
+original grasp criteria. Under-squeezed cases remain accepted as intentional
+failures. Contact traces and bounded Noslip/timestep experiments do not
+establish a unique cause or an optimal setting; no solver or task threshold
+changes are included in this control update.

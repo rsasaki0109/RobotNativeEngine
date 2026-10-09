@@ -23,6 +23,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Evaluate ECS-compiled MuJoCo typed joint feedback inside bounded affine
+  actuators so implicitfast can account for velocity feedback. Keep caller
+  MJCF sampled controls and the legacy motor control law. This improves
+  high-gain tracking; heavy-grasp task success remains unresolved.
+
 - Add machine-readable heavy-grasp results and an optional MuJoCo 3.9
   comparison using the same ECS scene. The reproducible comparison records
   failed task thresholds, final-output repeatability, and setup-inclusive

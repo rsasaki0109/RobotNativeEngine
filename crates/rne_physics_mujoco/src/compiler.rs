@@ -626,7 +626,7 @@ fn write_joint(
             write_range(output, desc.lower_rad, desc.upper_rad);
             output.push_str("/>\n");
             actuators.push(format!(
-                "<motor name=\"{actuator_name}\" joint=\"{joint_name}\" gear=\"1\"/>"
+                "<general name=\"{actuator_name}\" joint=\"{joint_name}\" gear=\"1\" gaintype=\"fixed\" gainprm=\"1\" biastype=\"affine\" biasprm=\"0 0 0\"/>"
             ));
             JointBinding::Revolute {
                 joint_name,
@@ -646,7 +646,7 @@ fn write_joint(
             write_range(output, desc.lower_m, desc.upper_m);
             output.push_str("/>\n");
             actuators.push(format!(
-                "<motor name=\"{actuator_name}\" joint=\"{joint_name}\" gear=\"1\"/>"
+                "<general name=\"{actuator_name}\" joint=\"{joint_name}\" gear=\"1\" gaintype=\"fixed\" gainprm=\"1\" biastype=\"affine\" biasprm=\"0 0 0\"/>"
             ));
             JointBinding::Prismatic {
                 joint_name,
@@ -662,8 +662,8 @@ fn passive_damping(body: &BodyInput) -> Option<f64> {
     if !revolute && !prismatic {
         return None;
     }
-    // Typed actuator damping is part of the bounded actuator law and remains in
-    // `ctrl`; compiling it as passive damping requires an unbounded cancellation
+    // Typed actuator damping stays inside the bounded affine actuator law;
+    // compiling it as passive damping requires an unbounded cancellation
     // motor and makes `actuator_force` exceed the declared actuator limit. Legacy
     // JointMotor keeps its historical implicit damping behavior.
     let actuator_damping = if body.actuation.is_none() {
