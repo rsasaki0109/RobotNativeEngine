@@ -211,7 +211,91 @@ fn print_row(name: &str, report: &Report) {
     );
 }
 
+fn accepted(report: &Report, held: bool) -> bool {
+    if held {
+        (report.lifted_m - report.palm_rise_m).abs() < 1.0e-3
+            && report.palm_rise_m > 0.95 * LIFT_M
+            && report.slip_m.abs() < 1.0e-4
+            && report.tilt_rad < 1.0e-3
+    } else {
+        report.lifted_m.abs() < 1.0e-3
+    }
+}
+
+/// Machine-readable comparison using the same scene and acceptance thresholds.
+/// Failure to meet a task threshold is data, not a reason to omit a backend.
+fn benchmark_json(backend: &str) {
+    let manifest = match backend {
+        "native" => NativeBackend::manifest(),
+        "rapier" => RapierBackend::manifest(),
+        #[cfg(feature = "mujoco")]
+        "mujoco" => rne_physics_mujoco::backend_manifest(),
+        _ => {
+            eprintln!("backend must be native, rapier, or feature-enabled mujoco");
+            std::process::exit(2);
+        }
+    };
+    let mut cases = Vec::new();
+    for mass_kg in CUBE_MASSES_KG {
+        for (label, factor, held) in [("held", 1.25, true), ("under-squeezed", 0.65, false)] {
+            let squeeze_n = factor * holding_squeeze_n(mass_kg);
+            let report = match backend {
+                "native" => grasp(NativeBackend::new(), mass_kg, squeeze_n),
+                "rapier" => grasp(RapierBackend::new(), mass_kg, squeeze_n),
+                #[cfg(feature = "mujoco")]
+                "mujoco" => grasp(
+                    rne_physics_mujoco::MuJoCoBackend::new(SimDuration::from_hertz(Hertz::new(
+                        STEP_HZ,
+                    )))
+                    .expect("compatible MuJoCo runtime"),
+                    mass_kg,
+                    squeeze_n,
+                ),
+                _ => {
+                    eprintln!("backend must be native, rapier, or feature-enabled mujoco");
+                    std::process::exit(2);
+                }
+            };
+            cases.push(serde_json::json!({
+                "mass_kg": mass_kg,
+                "case": label,
+                "squeeze_n_per_finger": squeeze_n,
+                "accepted": accepted(&report, held),
+                "lifted_m": report.lifted_m,
+                "palm_rise_m": report.palm_rise_m,
+                "slip_m": report.slip_m,
+                "tilt_rad": report.tilt_rad,
+                "cube_translation_m": report.cube_pose.translation.to_array(),
+                "cube_rotation_xyzw": report.cube_pose.rotation.to_array(),
+                "step_us": report.step_us,
+            }));
+        }
+    }
+    println!(
+        "{}",
+        serde_json::json!({
+            "schema_version": 1,
+            "backend": backend,
+            "manifest": manifest,
+            "step_hz": STEP_HZ,
+            "steps_per_case": SETTLE_STEPS + LIFT_STEPS + HOLD_STEPS,
+            "friction": FRICTION,
+            "timing_scope": "first ECS sync (including model compilation), step, ECS writeback, and lift command updates; excludes ECS scene construction",
+            "cases": cases,
+        })
+    );
+}
+
 fn main() {
+    let arguments: Vec<_> = std::env::args().skip(1).collect();
+    if !arguments.is_empty() {
+        if arguments.len() == 2 && arguments[0] == "--benchmark-json" {
+            benchmark_json(&arguments[1]);
+            return;
+        }
+        eprintln!("usage: 138_heavy_grasp [--benchmark-json native|rapier|mujoco]");
+        std::process::exit(2);
+    }
     println!(
         "two-finger grasp, friction {FRICTION}, lift {LIFT_M} m over 1 s and hold 1 s at {STEP_HZ:.0} Hz through PhysicsBackend"
     );
@@ -229,14 +313,7 @@ fn main() {
             print_row("native", &native);
             let rapier = grasp(RapierBackend::new(), mass_kg, squeeze_n);
             print_row("rapier", &rapier);
-            ok &= if held {
-                (native.lifted_m - native.palm_rise_m).abs() < 1.0e-3
-                    && native.palm_rise_m > 0.95 * LIFT_M
-                    && native.slip_m.abs() < 1.0e-4
-                    && native.tilt_rad < 1.0e-3
-            } else {
-                native.lifted_m.abs() < 1.0e-3
-            };
+            ok &= accepted(&native, held);
         }
     }
     let heaviest = CUBE_MASSES_KG[CUBE_MASSES_KG.len() - 1];

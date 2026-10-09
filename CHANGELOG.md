@@ -23,6 +23,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Add machine-readable heavy-grasp results and an optional MuJoCo 3.9
+  comparison using the same ECS scene. The reproducible comparison records
+  failed task thresholds, final-output repeatability, and setup-inclusive
+  timings separately; it does not rank engines by successful-task speed.
+
 - Include a prescribed fixed base's point velocity (`v + omega x r`) in
   single-model and coupled contact relative velocities. Moving-cart grasp
   regressions cover acceleration, deceleration, rotation, and exact replay;

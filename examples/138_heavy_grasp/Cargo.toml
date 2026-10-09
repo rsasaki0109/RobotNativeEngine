@@ -9,6 +9,10 @@ publish = false
 [lints]
 workspace = true
 
+[features]
+default = []
+mujoco = ["dep:rne_physics_mujoco", "rne_physics_mujoco/mujoco"]
+
 [dependencies]
 rne_core = { workspace = true }
 rne_ecs = { workspace = true }
@@ -16,7 +20,9 @@ rne_math = { workspace = true }
 rne_physics = { workspace = true }
 rne_physics_native = { workspace = true }
 rne_physics_rapier = { workspace = true }
+rne_physics_mujoco = { workspace = true, optional = true }
 rne_world = { workspace = true }
+serde_json = { workspace = true }
 
 [[example]]
 name = "138_heavy_grasp"

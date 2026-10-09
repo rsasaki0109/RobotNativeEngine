@@ -451,10 +451,22 @@ instructions per step, against 2.8 M originally.
   self-collision share one collision group and so do not collide with each
   other, as in the Rapier backend. A fixed-base tree on a moving kinematic
   body takes the body's motion from its poses between steps, one step
-  behind, so a teleported body kicks the tree once; contact velocities do
-  not include the body's own motion.
+  behind, so a teleported body kicks the tree once. Contact velocities include
+  the prescribed base's own point motion as described above.
 - The floating base's roll-pitch-yaw coordinates have a confined middle angle.
   In RNE's Y-up world that angle is the heading, so turning past a quarter turn
   flips roll and yaw by π (the pose stays right). `NativeBackend` and
   `rne_locomotion` therefore simulate in a Z-up frame, where the heading is
   the yaw coordinate.
+
+
+## Static heavy-grasp comparison evidence
+
+Example 138 exposes `--benchmark-json native|rapier|mujoco`; the optional
+MuJoCo 3.9 adapter compiles the same ECS scene. The repeated
+[comparison](../HEAVY_GRASP_COMPARISON.md) preserves unchanged task thresholds
+and failed cases. It separates final-output repetition from task correctness
+and labels timings as setup-inclusive ECS stepping. Native implicit PD,
+Rapier motors, and MuJoCo's explicitly evaluated typed PD have different
+discrete dynamics; equal gains are not proof of equivalent control. The
+recorded run is an adapter diagnostic, not a best-tuned solver ranking.
