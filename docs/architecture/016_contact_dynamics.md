@@ -482,9 +482,12 @@ so actuator damping remains part of measured `actuator_force`, separate from
 passive joint losses. `implicitfast` can account for velocity feedback; this
 is not the native solver's fully implicit position-and-velocity update.
 
-Runtime command changes update only actuator coefficients and force ranges
-under the world's data mutex. Model dimensions, signature and transmission
-remain unchanged. Disabled or zero-limit commands clear both feed-forward
+For typed-actuation updates that leave passive dynamics unchanged, the
+actuator helper updates only coefficients and force ranges under the world's
+data mutex. Model dimensions, signature and transmission remain unchanged.
+Passive-dynamics changes, including returning to a legacy motor with different
+damping, retain the existing model-rebuild path.
+Disabled or zero-limit commands clear both feed-forward
 and feedback. Legacy commands retain zero actuator bias and existing passive
 damping; caller MJCF keeps the sampled-control path. Tests cover high-gain
 lightweight tracking, dynamic commands, force bounds with passive losses,
