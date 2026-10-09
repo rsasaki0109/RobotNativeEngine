@@ -61,6 +61,17 @@ fn concat_rb_mass_matrix(
     result
 }
 
+#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
+struct KinematicRootMotion {
+    start: Isometry<Real>,
+    end: Isometry<Real>,
+    duration_s: Real,
+    elapsed_s: Real,
+    velocity: RigidBodyVelocity,
+    velocity_jump: Option<RigidBodyVelocity>,
+}
+
 /// An articulated body simulated using the reduced-coordinates approach.
 #[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
@@ -90,6 +101,8 @@ pub struct Multibody {
     pub(crate) root_is_dynamic: bool,
     pub(crate) solver_id: usize,
     self_contacts_enabled: bool,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    kinematic_root_motion: Option<KinematicRootMotion>,
 
     /*
      * Workspaces.
@@ -132,6 +145,7 @@ impl Multibody {
             i_coriolis_dt: Jacobian::zeros(0),
             root_is_dynamic: false,
             self_contacts_enabled,
+            kinematic_root_motion: None,
             // solver_workspace: Some(SolverWorkspace::new()),
         }
     }
@@ -161,7 +175,8 @@ impl Multibody {
                 continue;
             } else if is_new_root {
                 link2mb[i] = result.len();
-                result.push(Multibody::with_self_contacts(self.self_contacts_enabled));
+                let split = Multibody::with_self_contacts(self.self_contacts_enabled);
+                result.push(split);
             } else {
                 link2mb[i] = link2mb[link.parent_internal_id]
             }
@@ -193,7 +208,8 @@ impl Multibody {
                 mb.damping
                     .rows_mut(assembly_id, link_ndofs)
                     .copy_from(&self.damping.rows(link.assembly_id, link_ndofs));
-                mb.armature.rows_mut(assembly_id, link_ndofs)
+                mb.armature
+                    .rows_mut(assembly_id, link_ndofs)
                     .copy_from(&self.armature.rows(link.assembly_id, link_ndofs));
                 mb.accelerations
                     .rows_mut(assembly_id, link_ndofs)
@@ -253,7 +269,8 @@ impl Multibody {
             self.damping
                 .rows_mut(rhs_copy_shift, rhs_copy_ndofs)
                 .copy_from(&rhs.damping.rows(rhs_root_ndofs, rhs_copy_ndofs));
-            self.armature.rows_mut(rhs_copy_shift, rhs_copy_ndofs)
+            self.armature
+                .rows_mut(rhs_copy_shift, rhs_copy_ndofs)
                 .copy_from(&rhs.armature.rows(rhs_root_ndofs, rhs_copy_ndofs));
             self.accelerations
                 .rows_mut(rhs_copy_shift, rhs_copy_ndofs)
@@ -432,6 +449,60 @@ impl Multibody {
             .extend((0..num_jacobians).map(|_| Jacobian::zeros(0)));
     }
 
+    pub(crate) fn prepare_kinematic_root_motion(&mut self, bodies: &RigidBodySet, dt: Real) {
+        self.kinematic_root_motion = None;
+        if !dt.is_finite() || dt <= 0.0 {
+            return;
+        }
+        let Some(link) = self.links.first() else {
+            return;
+        };
+        let rb = &bodies[link.rigid_body];
+        if rb.body_type != RigidBodyType::KinematicPositionBased {
+            return;
+        }
+        // Store world velocity at the body origin, matching origin-linear pose interpolation.
+        let mut velocity = rb
+            .pos
+            .interpolate_velocity(crate::utils::inv(dt), &Point::origin());
+        velocity.linvel =
+            (rb.pos.next_position.translation.vector - rb.pos.position.translation.vector) / dt;
+        // The prior body velocity is serialized and survives graph reconstruction.
+        // Keep no separate history whose loss could alter the boundary impulse.
+        let previous = RigidBodyVelocity {
+            linvel: rb.vels.linvel
+                - rb.vels
+                    .angvel
+                    .gcross(rb.pos.position.rotation * rb.mprops.local_mprops.local_com.coords),
+            angvel: rb.vels.angvel,
+        };
+        let jump = RigidBodyVelocity {
+            linvel: velocity.linvel - previous.linvel,
+            angvel: velocity.angvel - previous.angvel,
+        };
+        if velocity != RigidBodyVelocity::zero() || jump != RigidBodyVelocity::zero() {
+            self.kinematic_root_motion = Some(KinematicRootMotion {
+                start: rb.pos.position,
+                end: rb.pos.next_position,
+                duration_s: dt,
+                elapsed_s: 0.0,
+                velocity,
+                velocity_jump: Some(jump),
+            });
+        }
+    }
+
+    pub(crate) fn prescribed_velocity_at_point(&self, point: Point<Real>) -> Vector<Real> {
+        let Some(motion) = &self.kinematic_root_motion else {
+            return Vector::zeros();
+        };
+        motion.velocity.linvel
+            + motion
+                .velocity
+                .angvel
+                .gcross(point.coords - self.links[0].local_to_world.translation.vector)
+    }
+
     pub(crate) fn update_acceleration(&mut self, bodies: &RigidBodySet) {
         if self.ndofs == 0 {
             return; // Nothing to do.
@@ -444,7 +515,23 @@ impl Multibody {
             let link = &self.links[i];
             let rb = &bodies[link.rigid_body];
 
-            let mut acc = RigidBodyVelocity::zero();
+            let mut acc = if i == 0 {
+                self.kinematic_root_motion
+                    .as_ref()
+                    .map_or(RigidBodyVelocity::zero(), |motion| {
+                        let shift =
+                            link.local_to_world.rotation * rb.mprops.local_mprops.local_com.coords;
+                        RigidBodyVelocity {
+                            linvel: motion
+                                .velocity
+                                .angvel
+                                .gcross(motion.velocity.angvel.gcross(shift)),
+                            angvel: na::zero(),
+                        }
+                    })
+            } else {
+                RigidBodyVelocity::zero()
+            };
 
             if i != 0 {
                 let parent_id = link.parent_internal_id;
@@ -467,8 +554,12 @@ impl Multibody {
                 acc.linvel += self.workspace.accs[parent_id].angvel.gcross(link.shift02);
             }
 
-            acc.linvel += rb.vels.angvel.gcross(rb.vels.angvel.gcross(link.shift23));
-            acc.linvel += acc.angvel.gcross(link.shift23);
+            // A newly split root may retain its former child-frame shift23.
+            // Prescribed-root COM acceleration above already includes this transport.
+            if i != 0 || self.kinematic_root_motion.is_none() {
+                acc.linvel += rb.vels.angvel.gcross(rb.vels.angvel.gcross(link.shift23));
+                acc.linvel += acc.angvel.gcross(link.shift23);
+            }
 
             self.workspace.accs[i] = acc;
 
@@ -509,15 +600,26 @@ impl Multibody {
     }
 
     /// Computes the constant terms of the dynamics.
-    pub(crate) fn update_dynamics(&mut self, dt: Real, bodies: &mut RigidBodySet) {
+    fn update_body_velocities(&mut self, bodies: &mut RigidBodySet) {
         /*
          * Compute velocities.
          * NOTE: this is needed for kinematic bodies too.
          */
         let link = &mut self.links[0];
-        let joint_velocity = link
-            .joint
-            .jacobian_mul_coordinates(&self.velocities.as_slice()[link.assembly_id..]);
+        let joint_velocity = self.kinematic_root_motion.as_ref().map_or_else(
+            || {
+                link.joint
+                    .jacobian_mul_coordinates(&self.velocities.as_slice()[link.assembly_id..])
+            },
+            |motion| {
+                let shift = link.local_to_world.rotation
+                    * bodies[link.rigid_body].mprops.local_mprops.local_com.coords;
+                RigidBodyVelocity {
+                    linvel: motion.velocity.linvel + motion.velocity.angvel.gcross(shift),
+                    angvel: motion.velocity.angvel,
+                }
+            },
+        );
 
         link.joint_velocity = joint_velocity;
         bodies.index_mut_internal(link.rigid_body).vels = link.joint_velocity;
@@ -534,17 +636,61 @@ impl Multibody {
                 &(parent_link.local_to_world.rotation * link.joint.data.local_frame1.rotation),
             );
             let mut new_rb_vels = parent_rb.vels + link.joint_velocity;
-            let shift = rb.mprops.world_com - parent_rb.mprops.world_com;
+            let shift = if self.kinematic_root_motion.is_some() {
+                link.local_to_world * rb.mprops.local_mprops.local_com
+                    - parent_link.local_to_world * parent_rb.mprops.local_mprops.local_com
+            } else {
+                rb.mprops.world_com - parent_rb.mprops.world_com
+            };
             new_rb_vels.linvel += parent_rb.vels.angvel.gcross(shift);
             new_rb_vels.linvel += link.joint_velocity.angvel.gcross(link.shift23);
 
             bodies.index_mut_internal(link.rigid_body).vels = new_rb_vels;
         }
+    }
 
+    pub(crate) fn refresh_kinematic_root_velocities(&mut self, bodies: &mut RigidBodySet) {
+        if self.kinematic_root_motion.is_some() {
+            self.update_body_velocities(bodies);
+        }
+    }
+
+    pub(crate) fn update_dynamics(&mut self, dt: Real, bodies: &mut RigidBodySet) {
+        self.update_body_velocities(bodies);
         /*
          * Update augmented mass matrix.
          */
         self.update_inertias(dt, bodies);
+        let jump = self
+            .kinematic_root_motion
+            .as_mut()
+            .and_then(|motion| motion.velocity_jump.take());
+        if let Some(jump) = jump.filter(|jump| *jump != RigidBodyVelocity::zero()) {
+            // The authored root trajectory is interval-linear, so its velocity
+            // changes at a step boundary. Apply that momentum change once,
+            // rather than inventing an acceleration within the linear interval.
+            self.update_inertias(0.0, bodies);
+            let mut impulse = DVector::zeros(self.ndofs);
+            let origin = self.links[0].local_to_world.translation.vector;
+            for (index, link) in self.links.iter().enumerate() {
+                let rb = &bodies[link.rigid_body];
+                let delta_linear =
+                    jump.linvel + jump.angvel.gcross(rb.mprops.world_com.coords - origin);
+                let force = Force::new(
+                    -rb.mprops.effective_mass().component_mul(&delta_linear),
+                    -(rb.mprops.effective_angular_inertia() * jump.angvel),
+                );
+                impulse.gemv_tr(1.0, &self.body_jacobians[index], force.as_vector(), 1.0);
+            }
+            self.augmented_mass_indices
+                .with_rearranged_rows_mut(&mut impulse, |rhs| {
+                    self.acc_inv_augmented_mass.solve_mut(rhs);
+                });
+            self.velocities += impulse;
+            // Recompute propagated body velocities and the ordinary timestep
+            // mass matrices after the one-shot generalized momentum update.
+            self.update_dynamics(dt, bodies);
+        }
     }
 
     fn update_body_jacobians(&mut self) {
@@ -885,6 +1031,21 @@ impl Multibody {
             rb.joint
                 .integrate(dt, &self.velocities.as_slice()[rb.assembly_id..])
         }
+        if let Some(motion) = &mut self.kinematic_root_motion {
+            motion.elapsed_s = (motion.elapsed_s + dt).min(motion.duration_s);
+            let fraction = motion.elapsed_s / motion.duration_s;
+            let pose = if fraction >= 1.0 {
+                motion.end
+            } else {
+                Isometry::from_parts(
+                    (motion.start.translation.vector * (1.0 - fraction)
+                        + motion.end.translation.vector * fraction)
+                        .into(),
+                    motion.start.rotation.slerp(&motion.end.rotation, fraction),
+                )
+            };
+            self.links[0].joint.data.local_frame1 = pose;
+        }
     }
 
     /// Apply displacements, in generalized coordinates, to this multibody.
@@ -996,7 +1157,7 @@ impl Multibody {
         change_tracking: bool,
     ) {
         // Handle the children. They all have a parent within this multibody.
-        for link in self.links.iter() {
+        for (index, link) in self.links.iter().enumerate() {
             let rb = if change_tracking {
                 bodies.get_mut_internal_with_modification_tracking(link.rigid_body)
             } else {
@@ -1004,6 +1165,13 @@ impl Multibody {
             };
 
             if let Some(rb) = rb {
+                if index == 0 && !update_next_positions_only && self.kinematic_root_motion.is_some()
+                {
+                    if update_mass_properties {
+                        rb.mprops.update_world_mass_properties(&link.local_to_world);
+                    }
+                    continue;
+                }
                 rb.pos.next_position = link.local_to_world;
 
                 if !update_next_positions_only {
@@ -1613,7 +1781,10 @@ mod rne_armature_tests {
     use crate::dynamics::{RevoluteJointBuilder, RigidBodyBuilder};
 
     fn hinge() -> MultibodyJoint {
-        MultibodyJoint::new(RevoluteJointBuilder::new(Vector::z_axis()).build().into(), false)
+        MultibodyJoint::new(
+            RevoluteJointBuilder::new(Vector::z_axis()).build().into(),
+            false,
+        )
     }
 
     #[test]
@@ -1665,13 +1836,21 @@ mod rne_armature_tests {
                 for kind in [RigidBodyType::Fixed, RigidBodyType::Dynamic] {
                     bodies[root].set_body_type(kind, false);
                     mb.forward_kinematics(&bodies, read_pose);
-                    assert!((mb.links[0].local_to_world.translation.vector - pose.translation.vector).norm() < 1.0e-6);
+                    assert!(
+                        (mb.links[0].local_to_world.translation.vector - pose.translation.vector)
+                            .norm()
+                            < 1.0e-6
+                    );
                     assert!(mb.links[0].local_to_world.rotation.angle_to(&pose.rotation) < 1.0e-6);
                 }
                 // Changing the COM convention must not teleport the body.
                 bodies[root].mprops.local_mprops.local_com = Point::new(0.1, 0.2, -0.1);
                 mb.forward_kinematics(&bodies, read_pose);
-                assert!((mb.links[0].local_to_world.translation.vector - pose.translation.vector).norm() < 1.0e-6);
+                assert!(
+                    (mb.links[0].local_to_world.translation.vector - pose.translation.vector)
+                        .norm()
+                        < 1.0e-6
+                );
             }
         }
     }
@@ -1688,5 +1867,175 @@ mod rne_armature_tests {
         }
         assert!(!mb.set_armature(1, 0.0));
         assert_eq!(mb.armature.as_slice(), &[0.01]);
+    }
+}
+
+#[cfg(test)]
+mod rne_kinematic_root_tests {
+    use super::*;
+    use crate::dynamics::{RevoluteJointBuilder, RigidBodyBuilder};
+
+    fn fixture() -> (RigidBodySet, Multibody, RigidBodyHandle) {
+        let mut bodies = RigidBodySet::new();
+        let root = bodies.insert(RigidBodyBuilder::kinematic_position_based().build());
+        let child = bodies.insert(RigidBodyBuilder::dynamic().build());
+        let mut mb = Multibody::with_root(root, false);
+        mb.add_link(
+            Some(0),
+            MultibodyJoint::new(
+                RevoluteJointBuilder::new(Vector::z_axis()).build().into(),
+                false,
+            ),
+            child,
+        );
+        mb.forward_kinematics(&bodies, true);
+        bodies[root].set_next_kinematic_translation(Vector::new(0.01, 0.0, 0.0));
+        mb.prepare_kinematic_root_motion(&bodies, 0.01);
+        (bodies, mb, root)
+    }
+
+    #[test]
+    fn root_type_transitions_clear_ephemeral_motion() {
+        for body_type in [
+            RigidBodyType::Fixed,
+            RigidBodyType::Dynamic,
+            RigidBodyType::KinematicVelocityBased,
+        ] {
+            let (mut bodies, mut mb, root) = fixture();
+            assert!(mb.kinematic_root_motion.is_some());
+            bodies[root].set_body_type(body_type, false);
+            mb.prepare_kinematic_root_motion(&bodies, 0.01);
+            mb.forward_kinematics(&bodies, true);
+            assert!(mb.kinematic_root_motion.is_none());
+            bodies[root].set_body_type(RigidBodyType::KinematicPositionBased, false);
+            mb.prepare_kinematic_root_motion(&bodies, 0.01);
+            mb.forward_kinematics(&bodies, true);
+            mb.integrate(0.01);
+            mb.forward_kinematics(&bodies, false);
+            assert!((mb.links[0].local_to_world.translation.vector.x - 0.01).abs() < 1e-6);
+        }
+    }
+
+    #[test]
+    fn graph_surgery_reconstructs_motion_from_surviving_body_state() {
+        let (bodies, mb, root) = fixture();
+        let mut split = mb.remove_link(1, true);
+        assert_eq!(split.len(), 2);
+        assert!(split
+            .iter()
+            .all(|part| part.kinematic_root_motion.is_none()));
+        split[0].prepare_kinematic_root_motion(&bodies, 0.01);
+        assert_eq!(split[0].links[0].rigid_body, root);
+        assert!(split[0].kinematic_root_motion.is_some());
+        split[1].prepare_kinematic_root_motion(&bodies, 0.01);
+        assert!(split[1].kinematic_root_motion.is_none());
+        split[0].forward_kinematics(&bodies, true);
+        split[1].forward_kinematics(&bodies, true);
+        let rhs = split.pop().unwrap();
+        split[0].append(
+            rhs,
+            0,
+            MultibodyJoint::new(
+                RevoluteJointBuilder::new(Vector::z_axis()).build().into(),
+                false,
+            ),
+        );
+        split[0].prepare_kinematic_root_motion(&bodies, 0.01);
+        assert!(split[0].kinematic_root_motion.is_some());
+        split[0].integrate(0.01);
+        split[0].forward_kinematics(&bodies, false);
+        assert!((split[0].links[0].local_to_world.translation.vector.x - 0.01).abs() < 1e-6);
+    }
+
+    #[test]
+    fn split_child_as_rotating_root_has_only_one_com_centripetal_term() {
+        let (mut bodies, mut original, _) = fixture();
+        let child = original.links[1].rigid_body;
+        let grandchild = bodies.insert(RigidBodyBuilder::dynamic().build());
+        original.add_link(
+            Some(1),
+            MultibodyJoint::new(
+                RevoluteJointBuilder::new(Vector::z_axis()).build().into(),
+                false,
+            ),
+            grandchild,
+        );
+        original.forward_kinematics(&bodies, true);
+        original.links[1].shift23 = Vector::new(0.2, 0.0, 0.0);
+        bodies[child].mprops.local_mprops.local_com = Point::new(0.2, 0.0, 0.0);
+        let mut split = original.remove_link(1, true);
+        let mb = &mut split[1];
+        bodies[child].set_body_type(RigidBodyType::KinematicPositionBased, false);
+        bodies[child].set_next_kinematic_rotation(na::UnitQuaternion::from_axis_angle(
+            &Vector::z_axis(),
+            0.01,
+        ));
+        mb.prepare_kinematic_root_motion(&bodies, 0.01);
+        mb.forward_kinematics(&bodies, true);
+        assert!(mb.set_armature(0, 0.1));
+        mb.update_dynamics(0.01, &mut bodies);
+        mb.update_acceleration(&bodies);
+        assert!(
+            (mb.workspace.accs[0].linvel.x + 0.2).abs() < 1e-5,
+            "root centripetal acceleration {:?}",
+            mb.workspace.accs[0]
+        );
+        assert!(mb.workspace.accs[0].linvel.y.abs() < 1e-5);
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[test]
+    fn serialized_step_boundary_keeps_old_fields_and_exact_next_velocity_jump() {
+        let (mut bodies, mut original, root) = fixture();
+        original.integrate(0.01);
+        original.forward_kinematics(&bodies, false);
+        original.update_rigid_bodies(&mut bodies, true);
+        bodies[root].set_position(*original.links[0].local_to_world(), false);
+        bodies[root].mprops.local_mprops.local_com = Point::new(0.2, 0.1, 0.0);
+        bodies[root].vels.angvel = Vector::new(0.0, 0.0, 0.2);
+        bodies[root].vels.linvel = Vector::new(1.0, 0.0, 0.0)
+            + bodies[root].vels.angvel.gcross(
+                bodies[root].position().rotation
+                    * bodies[root].mprops.local_mprops.local_com.coords,
+            );
+        assert!(original.set_armature(0, 0.1));
+        let serialized = serde_json::to_value(&original).unwrap();
+        assert!(serialized.get("kinematic_root_motion").is_none());
+        let bytes = bincode::serialize(&original).unwrap();
+        let mut restored: Multibody = bincode::deserialize(&bytes).unwrap();
+        assert!(restored.kinematic_root_motion.is_none());
+        bodies[root].set_next_kinematic_translation(Vector::new(0.025, 0.0, 0.0));
+        bodies[root].set_next_kinematic_rotation(na::UnitQuaternion::from_axis_angle(
+            &Vector::z_axis(),
+            0.002,
+        ));
+        original.prepare_kinematic_root_motion(&bodies, 0.01);
+        restored.prepare_kinematic_root_motion(&bodies, 0.01);
+        let a = original.kinematic_root_motion.as_ref().unwrap();
+        let b = restored.kinematic_root_motion.as_ref().unwrap();
+        assert_eq!(a.velocity, b.velocity);
+        assert_eq!(a.velocity_jump, b.velocity_jump);
+        let mut restored_bodies: RigidBodySet =
+            bincode::deserialize(&bincode::serialize(&bodies).unwrap()).unwrap();
+        original.forward_kinematics(&bodies, true);
+        restored.forward_kinematics(&restored_bodies, true);
+        original.update_dynamics(0.01, &mut bodies);
+        restored.update_dynamics(0.01, &mut restored_bodies);
+        original.update_acceleration(&bodies);
+        restored.update_acceleration(&restored_bodies);
+        original.integrate(0.01);
+        restored.integrate(0.01);
+        original.forward_kinematics(&bodies, false);
+        restored.forward_kinematics(&restored_bodies, false);
+        original.refresh_kinematic_root_velocities(&mut bodies);
+        restored.refresh_kinematic_root_velocities(&mut restored_bodies);
+        assert_eq!(
+            bincode::serialize(&bodies).unwrap(),
+            bincode::serialize(&restored_bodies).unwrap()
+        );
+        assert_eq!(
+            bincode::serialize(&original).unwrap(),
+            bincode::serialize(&restored).unwrap()
+        );
     }
 }

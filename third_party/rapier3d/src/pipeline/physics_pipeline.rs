@@ -469,6 +469,9 @@ impl PhysicsPipeline {
         // TODO: do this only on user-change.
         // TODO: do we want some kind of automatic inverse kinematics?
         for multibody in &mut multibody_joints.multibodies {
+            multibody
+                .1
+                .prepare_kinematic_root_motion(bodies, integration_parameters.dt);
             multibody.1.forward_kinematics(bodies, true);
             multibody
                 .1

@@ -1675,6 +1675,473 @@ mod tests {
     use rne_math::Quat;
     use rne_physics::{hash_physics_state, ColliderShape, CollisionGroups};
 
+    fn commanded_root_fixture(
+        axis: Vec3,
+        contacts: bool,
+    ) -> (RapierBackend, PhysicsWorldId, World, Entity, Entity) {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let root = world
+            .spawn((
+                RigidBody {
+                    body_type: RigidBodyType::Kinematic,
+                    ..RigidBody::default()
+                },
+                MultibodyLink,
+                CommandedKinematicPose,
+                Transform3::default(),
+            ))
+            .id();
+        let offset = if contacts { Vec3::ZERO } else { Vec3::X };
+        let child = world
+            .spawn((
+                RigidBody::default(),
+                MultibodyLink,
+                PhysicsOwnedPose,
+                Transform3::from_translation_rotation(offset, Quat::IDENTITY),
+                PrismaticJointDesc {
+                    parent: root,
+                    axis,
+                    anchor_parent_m: offset,
+                    anchor_child_m: Vec3::ZERO,
+                    relative_rotation: Quat::IDENTITY,
+                    lower_m: None,
+                    upper_m: None,
+                },
+            ))
+            .id();
+        if contacts {
+            world
+                .entity_mut(child)
+                .insert(Collider::cuboid(Vec3::splat(0.05)));
+        }
+        (backend, id, world, root, child)
+    }
+
+    #[test]
+    fn commanded_root_pose_and_child_velocity_follow_translation_and_turning() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        for substeps in [1, 4] {
+            let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::Y, false);
+            backend
+                .world_mut(id)
+                .unwrap()
+                .integration_parameters
+                .num_solver_iterations = std::num::NonZeroUsize::new(substeps).unwrap();
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let command = Transform3::from_translation_rotation(
+                Vec3::new(0.002, 0.0, 0.0),
+                Quat::from_rotation_y(0.002),
+            );
+            world.entity_mut(root).insert(command);
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let state = backend.world(id).unwrap();
+            let root_body = &state.bodies[state.entity_to_body[&root]];
+            let child_body = &state.bodies[state.entity_to_body[&child]];
+            assert!((root_body.translation().x - 0.002).abs() < 1e-6);
+            assert!((root_body.rotation().angle() - 0.002).abs() < 1e-6);
+            let expected = command.translation + command.rotation * Vec3::X;
+            assert!(
+                (world.get::<Transform3>(child).unwrap().translation - expected).length() < 1e-5
+            );
+            assert!((root_body.linvel().x - 1.0).abs() < 1e-5);
+            assert!((root_body.angvel().y - 1.0).abs() < 1e-5);
+            assert!((child_body.linvel().x - 1.0).abs() < 0.003);
+            assert!((child_body.linvel().z + 1.0).abs() < 0.003);
+        }
+    }
+
+    #[test]
+    fn rotating_kinematic_root_with_offset_com_has_correct_com_velocity() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::Y, false);
+        world.entity_mut(root).insert(RigidBodyInertia {
+            center_of_mass_local_m: Vec3::new(0.3, 0.2, 0.1),
+            ixx_kg_m2: 0.02,
+            ixy_kg_m2: 0.0,
+            ixz_kg_m2: 0.0,
+            iyy_kg_m2: 0.02,
+            iyz_kg_m2: 0.0,
+            izz_kg_m2: 0.02,
+        });
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::ZERO,
+                Quat::from_rotation_y(0.002),
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let state = backend.world(id).unwrap();
+        let rb = &state.bodies[state.entity_to_body[&root]];
+        assert!(
+            (rb.linvel().x - 0.1).abs() < 0.001,
+            "root velocity {:?}",
+            rb.linvel()
+        );
+        assert!((rb.linvel().z + 0.3).abs() < 0.001);
+        let child_body = &state.bodies[state.entity_to_body[&child]];
+        assert!(child_body.linvel().x.abs() < 0.003);
+        assert!((child_body.linvel().z + 1.0).abs() < 0.003);
+    }
+
+    #[test]
+    fn commanded_root_contact_against_fixed_wall_cancels_base_velocity() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::X, true);
+        world.spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.1, 0.0, 0.0), Quat::IDENTITY),
+        ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        // A nonzero initial relative velocity makes the wall impulse necessary:
+        // the base velocity jump alone only reduces relative velocity to zero.
+        let state = backend.world_mut(id).unwrap();
+        let handle = state.entity_to_multibody_joint[&child];
+        let mb = state.multibody_joints.get_mut(handle).unwrap().0;
+        mb.damping_mut().fill(0.0);
+        mb.generalized_velocity_mut().fill(1.0);
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::X * 0.002,
+                Quat::IDENTITY,
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let qdot = backend.multibody_joint_velocity(id, child).unwrap();
+        assert!(
+            (qdot + 1.0).abs() < 0.01,
+            "wall should cancel 1 m/s base velocity; qdot={qdot}"
+        );
+    }
+
+    #[test]
+    fn accelerating_root_leaves_free_slider_stationary_in_world() {
+        let replay = || {
+            let mut trajectory = Vec::new();
+            let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+            let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::X, false);
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            // This analytic free-slider fixture has no physical/numerical joint damper.
+            let state = backend.world_mut(id).unwrap();
+            let handle = state.entity_to_multibody_joint[&child];
+            state
+                .multibody_joints
+                .get_mut(handle)
+                .unwrap()
+                .0
+                .damping_mut()
+                .fill(0.0);
+            for index in 1..=200 {
+                let t = index as f64 * 0.002;
+                let position = if index <= 100 {
+                    0.5 * t * t
+                } else {
+                    0.02 + 0.2 * (t - 0.2) - 0.5 * (t - 0.2).powi(2)
+                };
+                world
+                    .entity_mut(root)
+                    .insert(Transform3::from_translation_rotation(
+                        Vec3::X * position,
+                        Quat::IDENTITY,
+                    ));
+                backend.sync_from_ecs(&mut world, id).unwrap();
+                backend.step(id, dt).unwrap();
+                backend.sync_to_ecs(&mut world, id).unwrap();
+                for entity in [root, child] {
+                    let transform = world.get::<Transform3>(entity).unwrap();
+                    for value in transform
+                        .translation
+                        .to_array()
+                        .into_iter()
+                        .chain(transform.rotation.to_array())
+                    {
+                        trajectory.push(value.to_bits());
+                    }
+                }
+                trajectory.push(
+                    backend
+                        .multibody_joint_velocity(id, child)
+                        .unwrap()
+                        .to_bits(),
+                );
+                assert!(
+                    (world.get::<Transform3>(child).unwrap().translation.x - 1.0).abs() < 1e-5,
+                    "step {index}, pose {:?}",
+                    world.get::<Transform3>(child).unwrap()
+                );
+            }
+            trajectory
+        };
+        let first = replay();
+        let second = replay();
+        assert_eq!(first, second, "all fixed-order trajectory bits must replay");
+        let hash = |values: &[u64]| {
+            values
+                .iter()
+                .flat_map(|value| value.to_le_bytes())
+                .fold(0xcbf29ce484222325_u64, |hash, byte| {
+                    (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
+                })
+        };
+        assert_eq!(hash(&first), hash(&second));
+    }
+
+    #[test]
+    fn commanded_root_contact_transfers_prescribed_normal_velocity() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, _) = commanded_root_fixture(Vec3::Y, true);
+        let cube = world
+            .spawn((
+                RigidBody::default(),
+                Collider::cuboid(Vec3::splat(0.05)),
+                Transform3::from_translation_rotation(Vec3::new(0.1, 0.0, 0.0), Quat::IDENTITY),
+            ))
+            .id();
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::X * 0.002,
+                Quat::IDENTITY,
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let speed = world.get::<RigidBody>(cube).unwrap().linear_velocity_m_s.x;
+        assert!(
+            (speed - 1.0).abs() < 0.01,
+            "expected 1 m/s prescribed contact speed, got {speed}"
+        );
+    }
+
+    #[test]
+    fn ccd_substeps_preserve_root_endpoint_and_free_slider_world_velocity() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::X, false);
+        let bullet = world
+            .spawn((
+                RigidBody {
+                    linear_velocity_m_s: Vec3::ZERO,
+                    ..RigidBody::default()
+                },
+                Collider::cuboid(Vec3::splat(0.02)),
+                Transform3::from_translation_rotation(Vec3::new(10.0, 0.0, -0.4), Quat::IDENTITY),
+            ))
+            .id();
+        world.spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::new(0.5, 0.5, 0.02)),
+            Transform3::from_translation_rotation(Vec3::new(10.0, 0.0, 0.0), Quat::IDENTITY),
+        ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        world
+            .entity_mut(bullet)
+            .get_mut::<RigidBody>()
+            .unwrap()
+            .linear_velocity_m_s = Vec3::Z * 1000.0;
+        let state = backend.world_mut(id).unwrap();
+        state.bodies[state.entity_to_body[&bullet]].enable_ccd(true);
+        state.integration_parameters.max_ccd_substeps = 4;
+        let handle = state.entity_to_multibody_joint[&child];
+        state
+            .multibody_joints
+            .get_mut(handle)
+            .unwrap()
+            .0
+            .damping_mut()
+            .fill(0.0);
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::X * 0.002,
+                Quat::IDENTITY,
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::X * 0.004,
+                Quat::IDENTITY,
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let state = backend.world(id).unwrap();
+        assert!(
+            state.physics_pipeline.counters.ccd.num_substeps > 1,
+            "fixture must actually split the CCD step: count={}, bullet={:?}, velocity={:?}",
+            state.physics_pipeline.counters.ccd.num_substeps,
+            state.bodies[state.entity_to_body[&bullet]].translation(),
+            state.bodies[state.entity_to_body[&bullet]].linvel()
+        );
+        assert!((state.bodies[state.entity_to_body[&root]].translation().x - 0.004).abs() < 1e-7);
+        assert!((world.get::<Transform3>(child).unwrap().translation.x - 1.0).abs() < 1e-5);
+        assert!(state.bodies[state.entity_to_body[&child]].linvel().norm() < 1e-5);
+    }
+
+    #[test]
+    fn rotating_root_transfers_tangential_velocity_through_friction() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::Y, false);
+        let mut pad = Collider::cuboid(Vec3::new(0.05, 0.4, 0.4));
+        pad.material.friction = 1.0;
+        world.entity_mut(child).insert(pad);
+        let mut cube_shape = Collider::cuboid(Vec3::splat(0.05));
+        cube_shape.material.friction = 1.0;
+        let cube = world
+            .spawn((
+                RigidBody::default(),
+                PhysicsOwnedPose,
+                cube_shape,
+                Transform3::from_translation_rotation(Vec3::new(1.1, 0.0, 0.0), Quat::IDENTITY),
+            ))
+            .id();
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.world_mut(id).unwrap().gravity = Vector3::new(-100.0, 0.0, 0.0);
+        for _ in 0..10 {
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+        }
+        for index in 1..=50 {
+            world
+                .entity_mut(root)
+                .insert(Transform3::from_translation_rotation(
+                    Vec3::ZERO,
+                    Quat::from_rotation_y(index as f64 * 0.002),
+                ));
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+        }
+        let speed = world.get::<RigidBody>(cube).unwrap().linear_velocity_m_s.z;
+        assert!(
+            speed < -0.8,
+            "normal load and rotating pad must transmit tangential speed, got {speed}"
+        );
+    }
+
+    #[test]
+    fn equally_prescribed_multibodies_have_no_relative_contact_velocity() {
+        let check = |speed: f64| {
+            let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+            let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::X, false);
+            world
+                .entity_mut(child)
+                .insert(Collider::cuboid(Vec3::splat(0.05)));
+            let root2 = world
+                .spawn((
+                    RigidBody {
+                        body_type: RigidBodyType::Kinematic,
+                        ..RigidBody::default()
+                    },
+                    MultibodyLink,
+                    CommandedKinematicPose,
+                    Transform3::from_translation_rotation(Vec3::X * 0.1, Quat::IDENTITY),
+                ))
+                .id();
+            let child2 = world
+                .spawn((
+                    RigidBody::default(),
+                    MultibodyLink,
+                    PhysicsOwnedPose,
+                    Collider::cuboid(Vec3::splat(0.05)),
+                    Transform3::from_translation_rotation(Vec3::X * 1.1, Quat::IDENTITY),
+                    PrismaticJointDesc {
+                        parent: root2,
+                        axis: Vec3::X,
+                        anchor_parent_m: Vec3::X,
+                        anchor_child_m: Vec3::ZERO,
+                        relative_rotation: Quat::IDENTITY,
+                        lower_m: None,
+                        upper_m: None,
+                    },
+                ))
+                .id();
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let state = backend.world_mut(id).unwrap();
+            for entity in [child, child2] {
+                let handle = state.entity_to_multibody_joint[&entity];
+                let mb = state.multibody_joints.get_mut(handle).unwrap().0;
+                mb.damping_mut().fill(0.0);
+                mb.generalized_velocity_mut().fill(speed as f32);
+            }
+            for (entity, x) in [(root, speed * 0.002), (root2, 0.1 + speed * 0.002)] {
+                world
+                    .entity_mut(entity)
+                    .insert(Transform3::from_translation_rotation(
+                        Vec3::X * x,
+                        Quat::IDENTITY,
+                    ));
+            }
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let state = backend.world(id).unwrap();
+            for (entity, x) in [
+                (root, (speed * 0.002) as f32),
+                (root2, (0.1 + speed * 0.002) as f32),
+            ] {
+                let body = &state.bodies[state.entity_to_body[&entity]];
+                assert!((body.translation().x - x).abs() < 1e-6);
+                assert!((body.linvel().x - speed as f32).abs() < 1e-5);
+            }
+            assert!(
+                !state.contacts.is_empty(),
+                "fixture must have active contact"
+            );
+            assert!(state
+                .contacts
+                .iter()
+                .all(|contact| contact.impulse.abs() < 1e-5));
+            for entity in [child, child2] {
+                assert!(backend.multibody_joint_velocity(id, entity).unwrap().abs() < 1e-5);
+                assert!(
+                    (state.bodies[state.entity_to_body[&entity]].linvel().x - speed as f32).abs()
+                        < 1e-5
+                );
+            }
+        };
+        for speed in [-1.0, 1.0] {
+            check(speed);
+        }
+    }
+
     fn fixed_step() -> SimDuration {
         SimDuration::from_hertz(rne_math::Hertz::new(60.0))
     }

@@ -17,6 +17,8 @@ pub(crate) struct GenericTwoBodyConstraintBuilder {
     handle1: RigidBodyHandle,
     handle2: RigidBodyHandle,
     ccd_thickness: Real,
+    prescribed_initial: [crate::math::Vector<Real>; MAX_MANIFOLD_POINTS],
+    tangent_initial: [[Real; DIM - 1]; MAX_MANIFOLD_POINTS],
     inner: TwoBodyConstraintBuilder,
 }
 
@@ -26,6 +28,8 @@ impl GenericTwoBodyConstraintBuilder {
             handle1: RigidBodyHandle::invalid(),
             handle2: RigidBodyHandle::invalid(),
             ccd_thickness: Real::MAX,
+            prescribed_initial: [crate::math::Vector::zeros(); MAX_MANIFOLD_POINTS],
+            tangent_initial: [[0.0; DIM - 1]; MAX_MANIFOLD_POINTS],
             inner: TwoBodyConstraintBuilder::invalid(),
         }
     }
@@ -84,7 +88,7 @@ impl GenericTwoBodyConstraintBuilder {
         let required_jacobian_len =
             *jacobian_id + manifold.data.solver_contacts.len() * multibodies_ndof * 2 * DIM;
 
-        if jacobians.nrows() < required_jacobian_len && !cfg!(feature = "parallel") {
+        if jacobians.nrows() < required_jacobian_len {
             jacobians.resize_vertically_mut(required_jacobian_len, 0.0);
         }
 
@@ -124,6 +128,13 @@ impl GenericTwoBodyConstraintBuilder {
                 let dp1 = point - mprops1.world_com;
                 let dp2 = point - mprops2.world_com;
 
+                let prescribed1 = multibody1.map_or(crate::math::Vector::zeros(), |(mb, _)| {
+                    mb.prescribed_velocity_at_point(point)
+                });
+                let prescribed2 = multibody2.map_or(crate::math::Vector::zeros(), |(mb, _)| {
+                    mb.prescribed_velocity_at_point(point)
+                });
+                let prescribed = prescribed1 - prescribed2;
                 let vel1 = vels1.linvel + vels1.angvel.gcross(dp1);
                 let vel2 = vels2.linvel + vels2.angvel.gcross(dp2);
 
@@ -131,7 +142,7 @@ impl GenericTwoBodyConstraintBuilder {
                 constraint.inner.manifold_contact_id[k] = manifold_point.contact_id;
 
                 // Normal part.
-                let normal_rhs_wo_bias;
+                let mut normal_rhs_wo_bias;
                 {
                     let torque_dir1 = dp1.gcross(force_dir1);
                     let torque_dir2 = dp2.gcross(-force_dir1);
@@ -195,6 +206,9 @@ impl GenericTwoBodyConstraintBuilder {
 
                     normal_rhs_wo_bias =
                         (is_bouncy * manifold_point.restitution) * (vel1 - vel2).dot(&force_dir1);
+                    if prescribed != crate::math::Vector::zeros() {
+                        normal_rhs_wo_bias += prescribed.dot(&force_dir1);
+                    }
 
                     constraint.inner.elements[k].normal_part = TwoBodyConstraintNormalPart {
                         gcross1,
@@ -273,7 +287,10 @@ impl GenericTwoBodyConstraintBuilder {
                         };
 
                         let r = crate::utils::inv(inv_r1 + inv_r2);
-                        let rhs_wo_bias = manifold_point.tangent_velocity.dot(&tangents1[j]);
+                        let mut rhs_wo_bias = manifold_point.tangent_velocity.dot(&tangents1[j]);
+                        if prescribed != crate::math::Vector::zeros() {
+                            rhs_wo_bias += prescribed.dot(&tangents1[j]);
+                        }
 
                         constraint.inner.elements[k].tangent_part.rhs_wo_bias[j] = rhs_wo_bias;
                         constraint.inner.elements[k].tangent_part.rhs[j] = rhs_wo_bias;
@@ -304,6 +321,11 @@ impl GenericTwoBodyConstraintBuilder {
                 builder.handle2 = handle2;
                 builder.ccd_thickness = rb1.ccd.ccd_thickness + rb2.ccd.ccd_thickness;
                 builder.inner.infos[k] = infos;
+                builder.prescribed_initial[k] = prescribed;
+                for j in 0..DIM - 1 {
+                    builder.tangent_initial[k][j] =
+                        constraint.inner.elements[k].tangent_part.rhs_wo_bias[j];
+                }
                 constraint.inner.manifold_contact_id[k] = manifold_point.contact_id;
             }
 
@@ -344,6 +366,47 @@ impl GenericTwoBodyConstraintBuilder {
 
         self.inner
             .update_with_positions(params, solved_dt, pos1, pos2, &mut constraint.inner);
+        for k in 0..constraint.inner.num_contacts as usize {
+            let info = &self.inner.infos[k];
+            let p1 = pos1 * info.local_p1;
+            let p2 = pos2 * info.local_p2;
+            let c1 = multibodies
+                .rigid_body_link(self.handle1)
+                .map_or(crate::math::Vector::zeros(), |link| {
+                    multibodies[link.multibody].prescribed_velocity_at_point(p1)
+                });
+            let c2 = multibodies
+                .rigid_body_link(self.handle2)
+                .map_or(crate::math::Vector::zeros(), |link| {
+                    multibodies[link.multibody].prescribed_velocity_at_point(p2)
+                });
+            let delta = c1 - c2 - self.prescribed_initial[k];
+            if delta == crate::math::Vector::zeros()
+                && (0..DIM - 1).all(|j| {
+                    constraint.inner.elements[k].tangent_part.rhs_wo_bias[j]
+                        == self.tangent_initial[k][j]
+                })
+            {
+                continue;
+            }
+            let element = &mut constraint.inner.elements[k];
+            let normal_delta = delta.dot(&constraint.inner.dir1);
+            element.normal_part.rhs += normal_delta;
+            element.normal_part.rhs_wo_bias += normal_delta;
+            #[cfg(feature = "dim3")]
+            let tangents = [
+                constraint.inner.tangent1,
+                constraint.inner.dir1.cross(&constraint.inner.tangent1),
+            ];
+            #[cfg(feature = "dim2")]
+            let tangents = constraint.inner.dir1.orthonormal_basis();
+            for j in 0..DIM - 1 {
+                element.tangent_part.rhs[j] -= element.tangent_part.rhs_wo_bias[j];
+                element.tangent_part.rhs_wo_bias[j] =
+                    self.tangent_initial[k][j] + delta.dot(&tangents[j]);
+                element.tangent_part.rhs[j] += element.tangent_part.rhs_wo_bias[j];
+            }
+        }
     }
 }
 
