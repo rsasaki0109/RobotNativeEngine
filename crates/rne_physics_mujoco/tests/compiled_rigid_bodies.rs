@@ -856,3 +856,118 @@ fn raycast_returns_ordered_hits_for_stacked_cuboids() {
         .expect("miss");
     assert!(miss.is_empty());
 }
+
+#[test]
+fn ecs_high_gain_command_changes_track_and_replay_exactly() {
+    let run = || {
+        let dt = SimDuration::from_hertz(Hertz::new(500.0));
+        let mut backend = MuJoCoBackend::new(dt).unwrap();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_body(
+            &mut world,
+            "parent",
+            RigidBodyType::Fixed,
+            Collider::sphere(0.05),
+            Vec3::ZERO,
+        );
+        let child = spawn_body(
+            &mut world,
+            "child",
+            RigidBodyType::Dynamic,
+            Collider::sphere(0.05),
+            -Vec3::Y,
+        );
+        world.get_mut::<RigidBody>(child).unwrap().mass_kg = 1.0;
+        world.entity_mut(child).insert((
+            PrismaticJointDesc {
+                parent,
+                axis: Vec3::X,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_m: None,
+                upper_m: None,
+            },
+            JointPassiveDynamics::Prismatic {
+                viscous_damping_n_s_per_m: 3.0,
+                coulomb_friction_n: 0.01,
+                coulomb_transition_velocity_m_s: 0.01,
+            },
+        ));
+        let mut trajectory = Vec::new();
+        for (target_m, stiffness_n_per_m) in [(0.2, 1e5), (-0.1, 2e5)] {
+            world
+                .entity_mut(child)
+                .insert(JointActuation::PrismaticPosition {
+                    target_position_m: target_m,
+                    stiffness_n_per_m,
+                    damping_n_s_per_m: 1e4,
+                    max_force_n: 5000.0,
+                });
+            for _ in 0..1000 {
+                backend.sync_from_ecs(&mut world, physics_world).unwrap();
+                backend.step(physics_world, dt).unwrap();
+                backend.sync_to_ecs(&mut world, physics_world).unwrap();
+                let state = *world.get::<JointState>(child).unwrap();
+                let JointEffortMeasurement::Prismatic { measured_force_n } =
+                    *world.get::<JointEffortMeasurement>(child).unwrap()
+                else {
+                    panic!("wrong effort kind")
+                };
+                assert!(measured_force_n.abs() <= 5000.0);
+                let JointState::Prismatic { velocity_m_s, .. } = state else {
+                    panic!("wrong state kind")
+                };
+                trajectory.push([
+                    state.position_m().unwrap().to_bits(),
+                    velocity_m_s.to_bits(),
+                    measured_force_n.to_bits(),
+                ]);
+            }
+            assert!(
+                (world
+                    .get::<JointState>(child)
+                    .unwrap()
+                    .position_m()
+                    .unwrap()
+                    - target_m)
+                    .abs()
+                    < 1e-5
+            );
+        }
+        for command in [
+            JointActuation::Disabled,
+            JointActuation::PrismaticVelocity {
+                target_velocity_m_s: 1.0,
+                gain_n_s_per_m: 1e4,
+                max_force_n: 0.0,
+            },
+        ] {
+            world.entity_mut(child).insert(command);
+            backend.sync_from_ecs(&mut world, physics_world).unwrap();
+            backend.step(physics_world, dt).unwrap();
+            backend.sync_to_ecs(&mut world, physics_world).unwrap();
+            assert_eq!(
+                *world.get::<JointEffortMeasurement>(child).unwrap(),
+                JointEffortMeasurement::Prismatic {
+                    measured_force_n: 0.0
+                }
+            );
+        }
+        let hash = trajectory
+            .iter()
+            .flatten()
+            .flat_map(|bits| bits.to_le_bytes())
+            .fold(0xcbf29ce484222325_u64, |hash, byte| {
+                (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
+            });
+        (hash, trajectory)
+    };
+    assert_eq!(run(), run());
+}

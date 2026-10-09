@@ -682,6 +682,7 @@ fn sync_from_ecs_state(
     data: &mut MjData<Box<MjModel>>,
     bindings: &[BodyBinding],
     world: &World,
+    compiled_actuators: bool,
 ) -> Result<(), MuJoCoError> {
     for binding in bindings {
         match &binding.joint {
@@ -696,7 +697,7 @@ fn sync_from_ecs_state(
                 binding.entity,
                 joint_name,
                 actuator_name,
-                true,
+                (true, compiled_actuators),
                 world,
             )?,
             JointBinding::Prismatic {
@@ -707,7 +708,7 @@ fn sync_from_ecs_state(
                 binding.entity,
                 joint_name,
                 actuator_name,
-                false,
+                (false, compiled_actuators),
                 world,
             )?,
             JointBinding::Fixed => {}
@@ -774,9 +775,10 @@ fn sync_scalar_joint_from_ecs(
     entity: Entity,
     joint_name: &str,
     actuator_name: &str,
-    revolute: bool,
+    configuration: (bool, bool),
     world: &World,
 ) -> Result<(), MuJoCoError> {
+    let (revolute, compiled_actuators) = configuration;
     let joint = data.joint(joint_name).ok_or_else(|| {
         MuJoCoError::UnsupportedFixture(format!("missing compiled joint {joint_name}"))
     })?;
@@ -833,7 +835,16 @@ fn sync_scalar_joint_from_ecs(
         .ok_or_else(|| {
             MuJoCoError::UnsupportedFixture(format!("missing actuator {actuator_name}"))
         })?;
-    data.ctrl_mut()[actuator_id] = control;
+    if compiled_actuators {
+        configure_compiled_actuator(
+            data,
+            actuator_id,
+            world.get::<JointActuation>(entity).copied(),
+            control,
+        )?;
+    } else {
+        data.ctrl_mut()[actuator_id] = control;
+    }
     let mut view = joint.view_mut(data);
     if view.qfrc_applied.len() != 1 {
         return Err(MuJoCoError::UnsupportedFixture(format!(
@@ -841,6 +852,92 @@ fn sync_scalar_joint_from_ecs(
         )));
     }
     view.qfrc_applied[0] = passive_coulomb_effort;
+    Ok(())
+}
+
+/// Updates only scalar actuator coefficients; compiled topology stays immutable.
+fn configure_compiled_actuator(
+    data: &mut MjData<Box<MjModel>>,
+    actuator_id: usize,
+    command: Option<JointActuation>,
+    legacy_control: f64,
+) -> Result<(), MuJoCoError> {
+    let (stiffness, damping, feed_forward, limit) = match command {
+        Some(JointActuation::RevolutePosition {
+            target_position_rad,
+            stiffness_nm_per_rad,
+            damping_nm_s_per_rad,
+            max_effort_nm,
+        }) => (
+            stiffness_nm_per_rad,
+            damping_nm_s_per_rad,
+            stiffness_nm_per_rad * target_position_rad,
+            max_effort_nm,
+        ),
+        Some(JointActuation::PrismaticPosition {
+            target_position_m,
+            stiffness_n_per_m,
+            damping_n_s_per_m,
+            max_force_n,
+        }) => (
+            stiffness_n_per_m,
+            damping_n_s_per_m,
+            stiffness_n_per_m * target_position_m,
+            max_force_n,
+        ),
+        Some(JointActuation::RevoluteVelocity {
+            target_velocity_rad_s,
+            gain_nm_s_per_rad,
+            max_effort_nm,
+        }) => (
+            0.0,
+            gain_nm_s_per_rad,
+            gain_nm_s_per_rad * target_velocity_rad_s,
+            max_effort_nm,
+        ),
+        Some(JointActuation::PrismaticVelocity {
+            target_velocity_m_s,
+            gain_n_s_per_m,
+            max_force_n,
+        }) => (
+            0.0,
+            gain_n_s_per_m,
+            gain_n_s_per_m * target_velocity_m_s,
+            max_force_n,
+        ),
+        Some(JointActuation::RevoluteEffort {
+            effort_nm,
+            max_effort_nm,
+        }) => (0.0, 0.0, effort_nm, max_effort_nm),
+        Some(JointActuation::PrismaticEffort {
+            force_n,
+            max_force_n,
+        }) => (0.0, 0.0, force_n, max_force_n),
+        Some(JointActuation::Disabled) => (0.0, 0.0, 0.0, 0.0),
+        None => (0.0, 0.0, legacy_control, f64::INFINITY),
+    };
+    if !feed_forward.is_finite() {
+        return Err(MuJoCoError::NonFiniteState("actuator feed-forward"));
+    }
+    // A zero limit disables the whole law, including velocity feedback. Keep a
+    // valid non-degenerate range even though force limiting is disabled here.
+    let enabled = limit > 0.0;
+    // SAFETY: MjData uniquely owns its Box<MjModel> and the caller holds the
+    // world's data mutex. Only finite actuator coefficients and a valid force
+    // range are changed; dimensions, signature, and transmission are untouched.
+    let model = unsafe { data.model_mut() };
+    model.actuator_biasprm_mut()[actuator_id][..3].copy_from_slice(&[
+        0.0,
+        if enabled { -stiffness } else { 0.0 },
+        if enabled { -damping } else { 0.0 },
+    ]);
+    model.actuator_forcelimited_mut()[actuator_id] = enabled && limit.is_finite();
+    model.actuator_forcerange_mut()[actuator_id] = if enabled && limit.is_finite() {
+        [-limit, limit]
+    } else {
+        [-1.0, 1.0]
+    };
+    data.ctrl_mut()[actuator_id] = if enabled { feed_forward } else { 0.0 };
     Ok(())
 }
 
@@ -947,7 +1044,8 @@ fn joint_control(
     // damping, which `implicitfast` treats implicitly. Keeping only the target
     // velocity feed-forward here is algebraically the same legacy PD law while
     // avoiding an explicit high-gain damping force on lightweight robot links.
-    // `JointActuation` above remains exact and is used by conformance fixtures.
+    // Caller MJCF keeps the sampled typed law above; ECS-compiled typed
+    // commands instead use bounded affine actuator coefficients.
     let (stiffness, damping) = legacy_motor_gains(*motor, revolute);
     let effort = stiffness * (motor.target_position - position) + damping * motor.velocity_rad_s;
     Ok((
@@ -1072,7 +1170,8 @@ impl PhysicsBackend for MuJoCoBackend {
             let data = data_guard
                 .as_mut()
                 .ok_or(PhysicsError::InitializationFailed)?;
-            sync_from_ecs_state(data, &world_state.bindings, world).map_err(Self::map_error)?;
+            sync_from_ecs_state(data, &world_state.bindings, world, !world_state.caller_mjcf)
+                .map_err(Self::map_error)?;
         }
         Ok(())
     }
@@ -1398,5 +1497,120 @@ impl PhysicsBackend for MuJoCoBackend {
 
     fn capabilities(&self) -> &[PhysicsCapability] {
         CAPABILITIES
+    }
+}
+
+#[cfg(test)]
+mod actuator_tests {
+    use super::*;
+
+    fn slider() -> MjData<Box<MjModel>> {
+        let model = MjModel::from_xml_string(
+            r#"<mujoco><option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast"/><worldbody><body><joint name="slider" type="slide" axis="0 0 1" damping="3"/><geom type="sphere" size="0.05" mass="1"/></body></worldbody><actuator><general joint="slider" gear="1" gaintype="fixed" gainprm="1" biastype="affine" biasprm="0 0 0"/></actuator></mujoco>"#,
+        )
+        .unwrap();
+        MjData::new(Box::new(model))
+    }
+
+    fn position(target_m: f64, stiffness_n_per_m: f64, max_force_n: f64) -> JointActuation {
+        JointActuation::PrismaticPosition {
+            target_position_m: target_m,
+            stiffness_n_per_m,
+            damping_n_s_per_m: 1e4,
+            max_force_n,
+        }
+    }
+
+    #[test]
+    fn bounded_high_gain_slider_tracks_with_bit_exact_replay() {
+        let run = || {
+            let mut data = slider();
+            let mut trajectory = Vec::new();
+            for _ in 0..1000 {
+                configure_compiled_actuator(&mut data, 0, Some(position(0.2, 1e5, 5000.0)), 0.0)
+                    .unwrap();
+                data.step();
+                assert!(data.actuator_force()[0].abs() <= 5000.0);
+                trajectory.push([
+                    data.qpos()[0].to_bits(),
+                    data.qvel()[0].to_bits(),
+                    data.actuator_force()[0].to_bits(),
+                ]);
+            }
+            assert!((data.qpos()[0] - (0.2 - 9.81 / 1e5)).abs() < 1e-8);
+            assert!(data.qvel()[0].abs() < 1e-7);
+            let hash = trajectory
+                .iter()
+                .flatten()
+                .flat_map(|bits| bits.to_le_bytes())
+                .fold(0xcbf29ce484222325_u64, |hash, byte| {
+                    (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
+                });
+            (hash, trajectory)
+        };
+        assert_eq!(run(), run());
+    }
+
+    #[test]
+    fn changing_modes_gains_and_limits_preserves_model_and_realized_force() {
+        let mut data = slider();
+        let invariant = |data: &MjData<Box<MjModel>>| {
+            let model = data.model();
+            (
+                model.signature(),
+                model.nq(),
+                model.nv(),
+                model.nu(),
+                model.actuator_trntype().to_vec(),
+                model.actuator_trnid().to_vec(),
+                model.actuator_gear().to_vec(),
+            )
+        };
+        let initial = invariant(&data);
+        let commands = [
+            position(0.3, 1e5, 2.0),
+            position(-0.1, 2e5, 7.0),
+            JointActuation::PrismaticVelocity {
+                target_velocity_m_s: 1.0,
+                gain_n_s_per_m: 1e4,
+                max_force_n: 3.0,
+            },
+            JointActuation::PrismaticEffort {
+                force_n: 100.0,
+                max_force_n: 4.0,
+            },
+            JointActuation::Disabled,
+            position(0.2, 1e5, 0.0),
+            JointActuation::PrismaticEffort {
+                force_n: -8.0,
+                max_force_n: 6.0,
+            },
+        ];
+        for (command, limit) in commands
+            .into_iter()
+            .zip([2.0, 7.0, 3.0, 4.0, 0.0, 0.0, 6.0])
+        {
+            data.qpos_mut()[0] = 0.0;
+            data.qvel_mut()[0] = 2.0;
+            configure_compiled_actuator(&mut data, 0, Some(command), 0.0).unwrap();
+            data.forward();
+            assert_eq!(invariant(&data), initial);
+            assert!(data.actuator_force()[0].abs() <= limit);
+            match command {
+                JointActuation::Disabled => assert_eq!(data.actuator_force()[0], 0.0),
+                JointActuation::PrismaticEffort { force_n, .. } => {
+                    assert_eq!(data.actuator_force()[0], force_n.clamp(-limit, limit));
+                }
+                _ if limit == 0.0 => assert_eq!(data.actuator_force()[0], 0.0),
+                _ => assert_eq!(data.actuator_force()[0].abs(), limit),
+            }
+            assert_ne!(data.qfrc_passive()[0], 0.0);
+            data.step();
+            assert!(data.actuator_force()[0].abs() <= limit);
+        }
+        configure_compiled_actuator(&mut data, 0, None, 12.0).unwrap();
+        data.forward();
+        assert_eq!(data.actuator_force()[0], 12.0);
+        assert_eq!(invariant(&data), initial);
     }
 }
