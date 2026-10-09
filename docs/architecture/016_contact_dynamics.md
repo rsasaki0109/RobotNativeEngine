@@ -343,6 +343,48 @@ triangulates each cell, lands within 0.2 mm).
 
 ## Step cost
 
+Profiling example 138 with Callgrind 3.24.0 on the #391 baseline attributes
+17.82 billion of 23.04 billion instructions (77.3 %, including the Rapier
+comparison in the total) to `solve_contact_impulses`. The sweep's contact
+velocity sums and sliding-direction sampling dominate this solver; assembling
+the Delassus matrix is outside that measured 77.3 %.
+
+The sweep now traverses contiguous Delassus rows and reuses its previous-impulse
+and velocity-change buffers. Each scalar product and addition remains in the
+original order, including zero terms. Sliding bracket endpoints are cached on
+the stack and evaluated only when their bracket is visited, with the original
+nearest-first order, angles, bisection budget, and degeneracy fallback. This
+removes two allocations and unused trigonometric evaluations per sliding solve;
+it does not add warm starting, reorder contacts, or change convergence settings.
+
+Callgrind counts fall to 16.93 billion for the complete example (26.5 % less),
+with 11.70 billion inside `solve_contact_impulses` (34.3 % less). Ordinary
+release measurements on an AMD EPYC 9V74 cloud host, Rust 1.95.0, are below.
+Each entry is the median of five alternating baseline/candidate runs pinned to
+CPU 0; validation builds were restricted to CPUs 1–4. Times include the
+example's ECS synchronization and all 1250 simulation steps per case, not just
+the solver. The baseline is `82602d22` (#391).
+
+| Cube | Squeeze | Before (µs/step) | After (µs/step) | Reduction |
+|---|---|---:|---:|---:|
+| 5 kg | held | 326 | 248 | 23.9 % |
+| 5 kg | under-squeezed | 208 | 165 | 20.7 % |
+| 20 kg | held | 319 | 254 | 20.4 % |
+| 20 kg | under-squeezed | 323 | 273 | 15.5 % |
+| 50 kg | held | 148 | 129 | 12.8 % |
+| 50 kg | under-squeezed | 361 | 297 | 17.7 % |
+
+Reproduce normal timings with
+`cargo run --locked --release -p heavy_grasp --example 138_heavy_grasp`.
+For instruction counts, build the same target with
+`CARGO_PROFILE_RELEASE_DEBUG=1`, then run
+`valgrind --tool=callgrind --callgrind-out-file=callgrind.out target/release/examples/138_heavy_grasp`
+and inspect `callgrind_annotate --inclusive=yes --auto=no callgrind.out`.
+Examples 133–138 retain their printed physical metrics and replay checks;
+an independent-block solver test compares combined and individual impulses
+bit for bit, including warm seeds, open contacts, frictionless contacts, and
+sliding contacts.
+
 A step evaluates forward kinematics once and shares it between the mass
 matrix, the bias forces, the contact Jacobians (walked only along each contact
 link's ancestors), and the base integration. The Delassus matrix is filled
