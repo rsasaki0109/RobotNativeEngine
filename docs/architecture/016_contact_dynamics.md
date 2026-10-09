@@ -152,6 +152,37 @@ and which it deliberately does not.
     coplanar points (a table's sixteen leg corners) keeps the per-contact
     solver converging.
 
+### Prescribed moving bases in contact
+
+`BaseMotion` supplies the inertial effects of a moving fixed base to RNEA/ABA,
+but its velocity is not an actuated generalized coordinate. Contact stepping
+therefore uses `J qd_free + v_prescribed`, with each point's world velocity
+`v_base + omega_base x (point_world - base_origin)` projected into the contact
+frame. Coupled contacts add this contribution for side `a` and subtract it
+for side `b`. Floating bases already carry their motion in generalized
+coordinates and receive no extra contribution. Joint-limit rows stay relative
+to their joints. Zero prescribed point velocity adds no arithmetic, preserving
+stationary examples and their exact replay.
+
+Analytic unit-point-mass fixtures verify translation and rotation at an offset
+point on a translated, rotated base through both stepping APIs. Two moving
+bases verify the relative signs and cancellation of common motion. Native
+backend regressions grip 5/20 kg cubes, lift them 0.2 m, and then move a
+kinematic cart up to 0.15 m along the squeeze axis and 0.12 m along the friction
+axis, turning up to 0.4 rad. A one-second quintic profile starts and stops at
+rest and exercises acceleration and deceleration. The cube's pose relative to
+the palm stays within 2 mm and 0.01 rad throughout the motion, and repeated
+runs match a fixed-order trajectory digest.
+
+The cart fixtures use centered, independently position-controlled fingers
+(`1e5 N/m`, `1e3 N s/m`, force limits 160/600 N; target closing force 80/300 N
+per finger). Equal-and-opposite effort-only fingers, as in the unchanged static
+grasp fixtures, leave a free common translation along the squeeze axis: moving
+the palm does not mechanically center those fingers or carry the object along
+that axis. Position servos model a centered gripper rather than hiding that
+degree of freedom by altering the solver. Before the velocity fix, all five
+cart-motion regressions fail with these same centered fixtures.
+
 ### Not adopted
 
 - **RaiSim's general collision pipeline, server, and visualizer.** RNE

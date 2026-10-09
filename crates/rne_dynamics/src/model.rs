@@ -293,7 +293,9 @@ impl ArticulatedModel {
     /// Prescribes the motion of a fixed base, in the model's world frame, for
     /// the dynamics algorithms ([`crate::rnea`], [`crate::aba()`], and the
     /// contact steps built on them): a base that accelerates or turns drives
-    /// the tree through the inertial forces it causes. Has no effect on a
+    /// the tree through the inertial forces it causes. Contact steps also
+    /// include its linear and angular point velocities in relative motion.
+    /// Has no effect on a
     /// floating base.
     pub fn set_fixed_base_motion(&mut self, motion: BaseMotion) {
         if self.base_dof == 0 {
