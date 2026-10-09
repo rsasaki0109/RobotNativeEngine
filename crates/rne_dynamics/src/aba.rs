@@ -56,8 +56,11 @@ pub fn aba(
     let mut bias_acceleration: Vec<SpatialVec> = vec![[0.0; 6]; link_count];
     let mut articulated_inertia: Vec<Mat6> = inertia.clone();
     let mut articulated_bias: Vec<SpatialVec> = vec![[0.0; 6]; link_count];
+    let (base_velocity, base_acceleration) = model.base_motion.body_frame(transforms[0].rotation);
     if floating {
         velocity[0] = [qd[0], qd[1], qd[2], qd[3], qd[4], qd[5]];
+    } else {
+        velocity[0] = base_velocity;
     }
     for index in 0..link_count {
         if let Some(parent) = model.bodies[index].parent {
@@ -137,8 +140,9 @@ pub fn aba(
             qdd[k] += gravity_body[k];
         }
     } else {
+        acceleration[0] = base_acceleration;
         for k in 0..3 {
-            acceleration[0][k] = -gravity_body[k];
+            acceleration[0][k] -= gravity_body[k];
         }
     }
     for index in 1..link_count {
@@ -201,6 +205,53 @@ mod tests {
         let model = branching_tree(true, 5);
         assert_eq!(model.base_dof(), 6);
         assert_matches_dense(&model, 29);
+    }
+
+    #[test]
+    fn a_moving_fixed_base_drives_the_tree_like_a_floating_base_in_that_motion() {
+        use crate::{rnea, BaseMotion};
+        use rne_math::Vec3;
+        let floating = branching_tree(true, 7);
+        let mut fixed = branching_tree(false, 7);
+        let mut rng = Lcg(41);
+        let joints = fixed.nv();
+        let mut q: Vec<f64> = (0..6 + joints).map(|_| rng.next()).collect();
+        q[4] *= 0.5;
+        let qd: Vec<f64> = (0..6 + joints).map(|_| 2.0 * rng.next()).collect();
+        let qdd: Vec<f64> = (0..6 + joints).map(|_| 3.0 * rng.next()).collect();
+        // The fixed base stands where the floating one is and moves as it
+        // does: its body-frame twist `qd[..6]` and twist rate `qdd[..6]`.
+        let base = floating
+            .kinematic()
+            .forward_kinematics(&q)
+            .expect("fk")
+            .transforms()[0];
+        fixed.set_fixed_base_pose(base);
+        let vec3 = |values: &[f64]| Vec3::new(values[0], values[1], values[2]);
+        let (velocity, angular) = (vec3(&qd[0..3]), vec3(&qd[3..6]));
+        let rotation = base.rotation;
+        fixed.set_fixed_base_motion(BaseMotion {
+            linear_velocity_m_s: rotation * velocity,
+            angular_velocity_rad_s: rotation * angular,
+            linear_acceleration_m_s2: rotation * (vec3(&qdd[0..3]) + angular.cross(velocity)),
+            angular_acceleration_rad_s2: rotation * vec3(&qdd[3..6]),
+        });
+        let expected = rnea(&floating, &q, &qd, &qdd).expect("floating rnea");
+        let tau = rnea(&fixed, &q[6..], &qd[6..], &qdd[6..]).expect("fixed rnea");
+        let scale = expected.iter().fold(1.0_f64, |m, v| m.max(v.abs()));
+        for (a, b) in tau.iter().zip(&expected[6..]) {
+            assert!((a - b).abs() <= 1.0e-9 * scale, "{tau:?}\n{expected:?}");
+        }
+        // ABA inverts it, and agrees with the dense path, under the motion.
+        let back = aba(&fixed, &q[6..], &qd[6..], &tau).expect("aba");
+        for (a, b) in back.iter().zip(&qdd[6..]) {
+            assert!((a - b).abs() <= 1.0e-9 * scale, "{back:?}");
+        }
+        assert_matches_dense(&fixed, 43);
+        // A floating base ignores a prescribed motion.
+        let mut free = floating.clone();
+        free.set_fixed_base_motion(fixed.fixed_base_motion());
+        assert_eq!(free.fixed_base_motion(), BaseMotion::default());
     }
 
     #[test]

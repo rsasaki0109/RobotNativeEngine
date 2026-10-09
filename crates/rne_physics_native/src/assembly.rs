@@ -2,7 +2,7 @@
 
 use crate::collide::{collider_samples, mesh_trees, sim_from_world, world_from_sim, Sample};
 use crate::mesh::MeshTree;
-use rne_dynamics::{ArticulatedModel, CoupledBody, JointPdControl};
+use rne_dynamics::{ArticulatedModel, BaseMotion, CoupledBody, JointPdControl};
 use rne_ecs::{Entity, World};
 use rne_math::{Quat, Vec3};
 use rne_physics::{
@@ -132,6 +132,18 @@ pub(crate) struct ContactRecord {
     pub normal_impulse_n_s: f64,
 }
 
+/// The anchor of a fixed base at a sync: its pose in the simulation frame,
+/// the world's stepped time then, and the motion differenced from the syncs
+/// before.
+#[derive(Clone, Copy, Debug)]
+struct AnchorTrack {
+    elapsed_s: f64,
+    pose: Transform3,
+    /// Linear and angular velocity, once two syncs are known.
+    velocity: Option<(Vec3, Vec3)>,
+    motion: BaseMotion,
+}
+
 /// A tree of dynamic bodies simulated as one articulated model.
 #[derive(Clone, Debug)]
 pub(crate) struct Assembly {
@@ -139,6 +151,8 @@ pub(crate) struct Assembly {
     floating: bool,
     /// The non-dynamic body a fixed base hangs from, which the base follows.
     anchor: Option<Entity>,
+    /// The anchor's last pose and motion, for differencing.
+    anchor_track: Option<AnchorTrack>,
     /// Bodies in parent-first order; the first is the root when floating.
     pub bodies: Vec<AssemblyBody>,
     pub joints: Vec<AssemblyJoint>,
@@ -273,6 +287,7 @@ impl Assembly {
             model,
             floating,
             anchor,
+            anchor_track: None,
             written: vec![(Transform3::IDENTITY, Vec3::ZERO, Vec3::ZERO); bodies.len()],
             bodies,
             joints,
@@ -411,16 +426,59 @@ impl Assembly {
     }
 
     /// Moves a fixed base to where its anchor body stands now, so a tree
-    /// hanging from a kinematic body rides along when that body moves. The
-    /// anchor's velocity and acceleration do not enter the dynamics.
-    pub(crate) fn follow_anchor(&mut self, world: &World) {
-        if let Some(anchor) = self
+    /// hanging from a kinematic body rides along when that body moves, and
+    /// prescribes the anchor's motion so its acceleration and turning drive
+    /// the tree. The motion is the anchor's pose differenced over the
+    /// simulated time since the last sync after a step (`elapsed_s` is the
+    /// world's total stepped time): its velocity from the second sync, its
+    /// acceleration from the third.
+    pub(crate) fn follow_anchor(&mut self, world: &World, elapsed_s: f64) {
+        let Some(anchor) = self
             .anchor
             .filter(|entity| world.get_entity(*entity).is_ok())
-        {
-            self.model
-                .set_fixed_base_pose(sim_from_world(&world_transform_of(world, anchor)));
-        }
+        else {
+            return;
+        };
+        let pose = sim_from_world(&world_transform_of(world, anchor));
+        self.model.set_fixed_base_pose(pose);
+        let track = match self.anchor_track {
+            // Synced again before a step: keep the motion, take the pose.
+            Some(track) if elapsed_s <= track.elapsed_s => AnchorTrack { pose, ..track },
+            Some(track) => {
+                let dt = elapsed_s - track.elapsed_s;
+                let linear = (pose.translation - track.pose.translation) / dt;
+                let mut turn = pose.rotation * track.pose.rotation.conjugate();
+                if turn.w < 0.0 {
+                    turn = -turn;
+                }
+                let angular = turn.to_scaled_axis() / dt;
+                let (linear_rate, angular_rate) = track.velocity.map_or(
+                    (Vec3::ZERO, Vec3::ZERO),
+                    |(previous, previous_angular)| {
+                        ((linear - previous) / dt, (angular - previous_angular) / dt)
+                    },
+                );
+                AnchorTrack {
+                    elapsed_s,
+                    pose,
+                    velocity: Some((linear, angular)),
+                    motion: BaseMotion {
+                        linear_velocity_m_s: linear,
+                        angular_velocity_rad_s: angular,
+                        linear_acceleration_m_s2: linear_rate,
+                        angular_acceleration_rad_s2: angular_rate,
+                    },
+                }
+            }
+            None => AnchorTrack {
+                elapsed_s,
+                pose,
+                velocity: None,
+                motion: BaseMotion::default(),
+            },
+        };
+        self.model.set_fixed_base_motion(track.motion);
+        self.anchor_track = Some(track);
     }
 
     /// The assembly's model, state, and commands for a coupled step.

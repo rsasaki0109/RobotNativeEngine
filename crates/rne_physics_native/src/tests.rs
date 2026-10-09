@@ -250,6 +250,72 @@ fn an_arm_on_a_moving_kinematic_cart_rides_along_with_it() {
 }
 
 #[test]
+fn a_pendulum_on_an_accelerating_cart_leans_back_by_the_acceleration_angle() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc::default())
+        .expect("world");
+    let mut world = World::new();
+    let start = Vec3::new(0.0, 2.0, 0.0);
+    let cart = world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Kinematic,
+                ..RigidBody::default()
+            },
+            Transform3::from_translation_rotation(start, Quat::IDENTITY),
+        ))
+        .id();
+    // A bob hanging 1 m below a pivot on the cart, swinging about z, with a
+    // viscous damper so it settles.
+    let bob = world
+        .spawn((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            Transform3::from_translation_rotation(start - Vec3::Y, Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent: cart,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: None,
+                upper_rad: None,
+            },
+            JointActuation::RevoluteVelocity {
+                target_velocity_rad_s: 0.0,
+                gain_nm_s_per_rad: 3.0,
+                max_effort_nm: 100.0,
+            },
+        ))
+        .id();
+    // The cart accelerates along +x at 2 m/s² for 6 s.
+    let acceleration = 2.0;
+    let dt = 1.0 / 500.0;
+    for index in 1..=3000 {
+        let t = index as f64 * dt;
+        world
+            .entity_mut(cart)
+            .insert(Transform3::from_translation_rotation(
+                start + Vec3::new(0.5 * acceleration * t * t, 0.0, 0.0),
+                Quat::IDENTITY,
+            ));
+        step(&mut backend, &mut world, id);
+    }
+    // The bob trails the cart: it turns by -atan(a / g) about z.
+    let (angle, rate) = backend.multibody_joint_state(id, bob).expect("joint");
+    let expected = -(acceleration / 9.81_f64).atan();
+    assert!(
+        (angle - expected).abs() < 2.0e-3,
+        "angle {angle}, expected {expected}"
+    );
+    assert!(rate.abs() < 1.0e-2, "rate {rate}");
+}
+
+#[test]
 fn position_and_effort_commands_drive_the_joint_within_their_limits() {
     let mut backend = NativeBackend::new();
     let id = backend

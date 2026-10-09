@@ -16,8 +16,10 @@
 //!   [`rne_physics::RigidBodyInertia`] or, without one, the solid inertia of
 //!   their collider. A tree whose root joint attaches to a fixed or kinematic
 //!   body has a fixed base that follows that body: each sync moves the base
-//!   to where the body stands, so an arm on a kinematic cart rides along. The
-//!   cart's velocity and acceleration do not enter the arm's dynamics.
+//!   to where the body stands, so an arm on a kinematic cart rides along, and
+//!   prescribes the body's motion, differenced from its poses between steps,
+//!   so the cart's acceleration and turning swing the arm (contacts still see
+//!   the arm's links move relative to the cart).
 //! - **Contacts.** Moving colliders are sampled — spheres exactly, capsules as
 //!   a row of spheres, boxes, convex hulls, and triangle meshes by their
 //!   vertices — against the planes, boxes, spheres, capsules, height fields,
@@ -130,6 +132,8 @@ struct NativeWorld {
     /// Assembly index of each simulated body entity.
     body_assembly: HashMap<Entity, usize>,
     last_dt_s: Option<f64>,
+    /// Total simulated time stepped, in seconds.
+    elapsed_s: f64,
 }
 
 /// Physics backend that simulates articulated assemblies with
@@ -335,7 +339,7 @@ impl PhysicsBackend for NativeBackend {
         // Drop the trees no collider uses any more.
         state.mesh_cache.retain(|tree| Arc::strong_count(tree) > 1);
         for assembly in &mut state.assemblies {
-            assembly.follow_anchor(world);
+            assembly.follow_anchor(world, state.elapsed_s);
             assembly.load_commands(world)?;
         }
         Ok(())
@@ -383,6 +387,7 @@ impl PhysicsBackend for NativeBackend {
         }
         state.contacts = events.into_values().collect();
         state.last_dt_s = Some(dt_s);
+        state.elapsed_s += dt_s;
         Ok(())
     }
 
