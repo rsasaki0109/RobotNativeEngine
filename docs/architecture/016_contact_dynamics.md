@@ -36,6 +36,19 @@ and which it deliberately does not.
    on its angle. The cone is the exact Coulomb cone, never a pyramid, and the
    normal condition is a hard Signorini constraint, not a spring. This follows
    "Per-Contact Iteration Method for Solving Contact Dynamics" (IEEE RA-L 2018).
+   Two additions serve heavy, redundant contact such as a grasp, where an
+   object squeezed between two pads gives 24 constraint rows over about nine
+   degrees of freedom and `G` is singular:
+   - The sweeps also stop once the contact velocities settle (`max |G δλ|`
+     per sweep, `velocity_tolerance_m_s`, default 1e-8 m/s): along `G`'s
+     null space the impulses keep shifting long after the motion has
+     converged, and that shift changes no velocity.
+   - An optional normal compliance (`regularization`, relative to each
+     contact's effective inverse mass) makes the normal impulses unique, so
+     a pad's load spreads over its corners instead of following the sweep
+     order. A lopsided split's friction twists a held object. Friction stays
+     rigid, so a held object does not creep. `NativeBackend` uses `1e-3`; the
+     dynamics crate defaults to the exact `0`.
 2. **Implicit PD in generalized coordinates** (`JointPdControl`). RaiSim
    integrates its joint PD controller implicitly by folding the gains into the
    effective mass, `M̃ = M + dt Kd + dt² Kp`. RNE does the same inside
@@ -296,6 +309,17 @@ accelerating at 2 m/s², a damped pendulum settles back at the analytic
 without the base motion). In `rne_dynamics`, a fixed base given the motion of
 a floating base yields that floating base's joint forces to 1e-9, and ABA
 inverts RNEA under the motion.
+
+A palm on a lift joint with two effort-driven finger pads (friction 0.8)
+squeezes a 10 cm cube and lifts it 0.2 m. With 40 N on a 5 kg cube and 150 N
+on a 20 kg cube (needed: 30.7 N and 123 N), the cube rises, slips under
+1e-4 m, and twists under 1e-3 rad; with 20 N and 100 N it slips out and
+stays on the floor. Without the normal compliance, the 5 kg cube twisted
+0.26 rad and slipped 9 mm, and the 20 kg one 1.35 rad. The velocity stop
+cut the step from about 1.6 ms to 0.3 ms. Two coincident contacts on a point
+mass show both additions in isolation: the exact solve gives one contact the
+whole load, the compliant one splits it to within 1 %, and the velocity stop
+reaches the same motion in under half the sweeps.
 
 `examples/137_go2_native_backend` builds the Go2 the way the asset loader does
 and drives it through `PhysicsBackend` on `NativeBackend` and on Rapier: on the

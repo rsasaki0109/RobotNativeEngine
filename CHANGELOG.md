@@ -132,6 +132,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Heavy grasps on the native backend: `ContactSolverConfig` gains
+  `velocity_tolerance_m_s` (stop once `max |G δλ|` per sweep settles,
+  default 1e-8 m/s, so redundant contacts no longer sweep their null space
+  to the cap) and `regularization` (a normal compliance that spreads a
+  pad's load over its corners; `NativeBackend` uses 1e-3). A 20 kg cube
+  squeezed by 150 N pads now lifts with micrometer slip instead of twisting
+  1.35 rad, at about a fifth of the step time.
+
 - `rne_physics_native`: a fixed-base tree follows the kinematic body it
   hangs from, so an arm on a moving cart rides along instead of staying
   where the cart stood when the tree was built; the cart's velocity and
