@@ -533,3 +533,98 @@ physics step must reconstruct the prescribed root command. Arbitrary in-solver
 graph mutation and broader constrained/armature models remain outside the validated
 scope. Release API audits remain separate checks. See the vendor `RNE_PATCH.md`
 for the repository-build boundary and unchanged upstream provenance.
+
+### Kick comparison physical-control and visualization boundaries
+
+Example 139 uses dedicated dynamic Go2/G1 Rapier scenes with source positive
+URDF masses, COM offsets and inertia tensors. Joint-origin rotations, welded
+fixed children and preserved collision parts make the feet part of the plant;
+G1 retains all four spheres on each sole. Frame-only links receive 1e-9 kg and
+diagonal 1e-12 kg·m² inertias to avoid singular numerical marker bodies. Total
+masses are 16.087000011 kg and 34.133857284 kg. Go2's initial thigh/calf stance
+is an equivalent joint-coordinate shift with origin rotations and position
+limits transformed together; its physical geometry and limits are unchanged.
+The fixture generator and source/derived hashes are local to example 139.
+Existing scenes retain their previous model defaults.
+
+Both plants receive a 40 N·s lateral world-space body wrench over 80 ms,
+67% above the earlier 24 N·s README capture.
+Midpoint half-sine samples are normalized by their commanded impulse sum;
+changing the step rate preserves impulse and duration. The application point
+is the current root position plus 0.06 m along world Y, so the backend includes
+the force's moment arm. Default physics uses 1 kHz and 32 solver iterations.
+
+Unit-bearing ForceBased implicit PD enforces each joint's authored effort cap.
+Rate-limited, position-bounded targets hold a wider stance: Go2 hip abduction
+±0.45 rad and G1 hip roll ±0.24 rad. Go2 filtered IMU feedback changes opposing leg
+lengths. A slow stance loop filters normal loads and adjusts bounded,
+zero-sum calf biases toward COM-based shares of a rectangular foot-support
+approximation; this is not general contact-wrench optimization. The Go2
+IMU ablation retains that stance loop. G1 ankle/hip feedback uses COM/DCM
+and body attitude. Its hip correction combines capture-point error with
+opposing pelvis-roll and angular-rate feedback. The hip-attitude gain is
+0.5; the 1.0-gain prototype passed nominal recovery but failed late-onset and
+500 Hz cases. A larger sustained attitude term can reduce static COM support
+margin despite its opposing instantaneous motor reaction. An outward, contralateral
+shoulder-roll reaction responds to measured attitude and rate, holds its
+excursion until observed motion settles, and returns slowly. The same stance,
+motor limits and gains are retained in each feedback-off ablation. These are
+controller design parameters, not identified hardware settings. The example's
+Rapier COM helper sums dynamic robot links in name order at their declared
+COM offsets. Rapier `linvel` already measures body COM velocity; adding an
+angular-offset velocity again would double count it. The controllers consume
+current ideal simulated observations and cannot read the disturbance schedule.
+They neither edit robot poses/velocities nor apply stabilizing body wrenches.
+Recorded motor ceilings describe solver-enforced limits, not torque readback
+or a calibrated hardware actuator model.
+
+Rapier contact evidence composes the collider world pose with the manifold's
+optional compound-child pose before transforming each local witness. The
+world contact point is the midpoint of those witnesses, and relative surface
+velocity is measured at that point. Omitting the child pose misplaces compound
+sole contacts and their angular velocity contribution; a rotated, translated
+compound regression covers both witnesses and canonical entity ordering.
+
+Capture checks plant mass/inertia, attachment integrity, upright recovery and
+foot-only ground support. Every foot must exceed 0.5 N mean normal load
+over the final 0.5 s; instantaneous contact counts are recorded separately.
+Repeated runs compare literal ordered observed
+link poses/scales, linear/angular velocities, joint states and foot impulses
+through settlement and recovery. Hidden backend caches are outside this
+assertion. Rendering uses those recorded poses without altering dynamics.
+The broader `--validate-recovery` matrix retains zero-input, rate, onset,
+reverse-direction, matched feedback-ablation and front/oblique limit cases.
+Ablations keep posture PD, stance, gains, caps and target-rate limits. Whether
+a disabled balance loop recovers is measured rather than assumed. GIF encoding
+requires all 12 required recovery cases in the complete two-plant report.
+The final 40 N·s run passes all 12 with exact observed replay. The full
+18-case report retains three directional failures: both front impacts and
+G1's oblique impact.
+The earlier controllers toppled under the same 40 N·s nominal pulse; the
+wider-stance controllers recover, with roughly 0.545 m lateral base displacement
+for Go2 and 0.008 m for G1. The final G1 nominal probe recovers at 32 N·s
+and falls at 48 N·s, with both outcomes retained. Stronger probes retain
+measured outcomes without establishing a safe maximum. Recovery permits
+translation and does not imply position retention.
+Front/oblique cases retain their measured outcomes as envelope probes.
+Rate checks establish recovery under those discretizations, not convergence
+of the complete trajectory or hardware kick resistance. The native contact
+solver is unchanged by these example-specific controllers and fixtures.
+
+The CC0 human is a visual actor with fixed-length rotation-only limb chains,
+support-foot planting and staged knee chamber, extension and retraction.
+Rotation-only IK generation targets 0.322176/0.826094 m strike heights,
+within 0.01 mm of the final nominal wrench points; a continuous monotone
+time map shortens extension to
+175 ms, holds the strike for the 80 ms force pulse, and retracts over 220 ms.
+The rig, bone lengths and support-foot path remain fixed.
+Shortest-path glTF LINEAR rotation interpolation is shared by CPU and GPU
+skinning. Human-foot collision impulses and reaction-driven human motion are
+not computed. The GIF illustrates a prescribed lateral disturbance experiment;
+it is not a coupled simulation of a human kicking physical hardware.
+
+Compiled trace provenance includes controller, capture, renderer, plant and human
+GLB inputs. The encoder checks those hashes against the current files and
+independently integrates every recorded force sample to verify the common
+impulse, direction, timing and normalized pulse shape. Old rendering inputs or
+mixed-strength validation reports cannot qualify a new public GIF.

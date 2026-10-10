@@ -23,6 +23,29 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Interpolate glTF LINEAR rotations along the shortest quaternion arc, shared
+  by CPU and GPU skinning. Add a Go2/G1 kick comparison with a CC0 anatomical
+  human, forward knee flexion, fixed-length limbs, support-foot planting,
+  weight transfer and continuous rotation keys. Example 139 now uses dedicated
+  URDF-derived plants with declared mass/COM/inertia, welded fixed children,
+  joint-origin rotations and complete foot collision parts. Raise the common
+  impulse from 24 to 40 N·s with wider source-limit-compliant stances and a
+  bounded, observation-driven G1 hip/arm reaction. The common 40 N·s,
+  80 ms lateral pulse exercises torque-capped ForceBased PD and observed-state
+  Go2 IMU/contact-load stance regulation and G1 COM-DCM-IMU feedback at 1 kHz.
+  Gate capture on physical recovery,
+  fixed-attachment integrity, foot-only ground support and exact observed
+  replay; retain onset, rate, zero-force, ablation and direction-limit cases.
+  Add configurable impulse probes with retained failures and exact replay;
+  verify the measured force history and compiled control, render, plant and
+  human-asset hashes before GIF encoding. Retarget the fixed-length human
+  kick to the settled robot heights and retime extension, hold and retraction
+  to 175, 80 and 220 ms. The human remains visual.
+  Hardware resistance, all-direction recovery and
+  full-trajectory numerical convergence are not established.
+  Correct Rapier compound-child contact witness transforms so reported world
+  support points and point-relative velocities include each child pose.
+
 - Preserve prescribed kinematic multibody root motion in the vendored Rapier
   backend through solver substeps, account for boundary momentum changes, and
   include root point velocity in generic contact constraints. Repair per-island

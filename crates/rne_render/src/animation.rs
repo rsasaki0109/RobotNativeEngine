@@ -8,7 +8,8 @@ use thiserror::Error;
 /// The supported interpolation modes for glTF keyframes.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AnimationInterpolation {
-    /// Interpolate between adjacent keyframes.
+    /// Interpolate between adjacent keyframes, using shortest-arc spherical
+    /// interpolation for rotations.
     Linear,
     /// Hold the previous keyframe until the next keyframe.
     Step,
@@ -73,6 +74,24 @@ impl AnimationChannel {
         };
         let start = self.values[previous];
         let end = self.values[next];
+        if self.property == AnimationProperty::Rotation {
+            let start_rotation = Quat::from_array(start.map(f64::from));
+            let end_rotation = Quat::from_array(end.map(f64::from));
+            if start_rotation.is_finite()
+                && end_rotation.is_finite()
+                && start_rotation.length_squared() > 1.0e-12
+                && end_rotation.length_squared() > 1.0e-12
+            {
+                // glTF LINEAR rotations use the short spherical arc. Keep the
+                // stored key signs intact; q and -q describe the same pose.
+                return start_rotation
+                    .normalize()
+                    .slerp(end_rotation.normalize(), f64::from(alpha))
+                    .normalize()
+                    .to_array()
+                    .map(|value| value as f32);
+            }
+        }
         std::array::from_fn(|index| start[index] + (end[index] - start[index]) * alpha)
     }
 }
@@ -669,6 +688,103 @@ mod tests {
                     weights: vec![[1.0, 0.0, 0.0, 0.0]],
                 }),
             }],
+        }
+    }
+
+    fn rotation_channel(start: Quat, end: Quat) -> AnimationChannel {
+        AnimationChannel {
+            node_index: 1,
+            property: AnimationProperty::Rotation,
+            times_s: vec![0.0, 1.0],
+            values: vec![
+                start.to_array().map(|value| value as f32),
+                end.to_array().map(|value| value as f32),
+            ],
+            interpolation: AnimationInterpolation::Linear,
+        }
+    }
+
+    fn sampled_rotation(channel: &AnimationChannel, time_s: f32) -> Quat {
+        let value = channel.sample_value(time_s);
+        Quat::from_array(value.map(f64::from)).normalize()
+    }
+
+    #[test]
+    fn linear_rotation_uses_short_arc_at_constant_angular_speed() {
+        let angle_rad = 150.0_f64.to_radians();
+        let channel = rotation_channel(Quat::IDENTITY, -Quat::from_rotation_z(angle_rad));
+        for time_s in [0.125, 0.25, 0.5, 0.75, 0.875] {
+            let actual = sampled_rotation(&channel, time_s) * Vec3::X;
+            let expected = Quat::from_rotation_z(angle_rad * f64::from(time_s)) * Vec3::X;
+            assert!((actual - expected).length() < 1.0e-6);
+        }
+    }
+
+    #[test]
+    fn identical_and_antipodal_rotation_keys_keep_the_same_pose() {
+        let rotation = Quat::from_rotation_z(0.7);
+        for end in [rotation, -rotation] {
+            let channel = rotation_channel(rotation, end);
+            for time_s in [0.125, 0.5, 0.875] {
+                let sampled = sampled_rotation(&channel, time_s);
+                assert!(sampled.is_finite());
+                assert!((sampled * Vec3::X - rotation * Vec3::X).length() < 1.0e-6);
+            }
+            assert_eq!(channel.sample_value(0.0), channel.values[0]);
+            assert_eq!(channel.sample_value(1.0), channel.values[1]);
+        }
+    }
+
+    #[test]
+    fn nearly_antipodal_rotation_keys_follow_the_small_rotation() {
+        let channel = rotation_channel(Quat::from_rotation_z(0.7), -Quat::from_rotation_z(0.7001));
+        for time_s in [0.125, 0.5, 0.875] {
+            let sampled = sampled_rotation(&channel, time_s);
+            let expected = Quat::from_rotation_z(0.7 + 0.0001 * f64::from(time_s));
+            assert!(sampled.is_finite());
+            assert!((sampled * Vec3::X - expected * Vec3::X).length() < 1.0e-6);
+        }
+    }
+
+    #[test]
+    fn step_rotations_and_linear_vectors_retain_their_keyframe_values() {
+        let mut channel = rotation_channel(Quat::from_rotation_z(0.7), -Quat::IDENTITY);
+        channel.interpolation = AnimationInterpolation::Step;
+        assert_eq!(channel.sample_value(0.5), channel.values[0]);
+        assert_eq!(channel.sample_value(1.0), channel.values[1]);
+        channel.interpolation = AnimationInterpolation::Linear;
+        channel.values = vec![[1.0, 2.0, 3.0, 0.0], [4.0, 8.0, 12.0, 0.0]];
+        for property in [AnimationProperty::Translation, AnimationProperty::Scale] {
+            channel.property = property;
+            assert_eq!(channel.sample_value(0.25), [1.75, 3.5, 5.25, 0.0]);
+        }
+    }
+
+    #[test]
+    fn cpu_and_gpu_skinning_share_antipodal_rotation_samples() {
+        let mut asset = two_node_asset();
+        let rotation = Quat::from_rotation_z(0.7);
+        asset.animations[0].channels = vec![rotation_channel(rotation, -rotation)];
+        asset.parts[0].render_part.mesh.positions[0] = [1.0, 1.0, 0.0];
+        let expected = Vec3::new(0.0, 1.0, 0.0) + rotation * Vec3::X;
+        for time_s in [0.125, 0.5, 0.875] {
+            let player = GltfAnimationPlayer {
+                animation_index: Some(0),
+                time_s,
+                playback_rate: 1.0,
+            };
+            let cpu = player.sample_part_cpu(&asset, 0).expect("CPU sample");
+            let gpu = player.sample_part_for_gpu(&asset, 0).expect("GPU payload");
+            let cpu_vertex = Vec3::from_array(cpu.positions[0].map(f64::from));
+            let gpu_vertex = gpu.skinning.as_ref().expect("skin").joint_matrices[0]
+                .transform_point3(Vec3::new(1.0, 1.0, 0.0));
+            assert!((cpu_vertex - expected).length() < 1.0e-6);
+            assert!((gpu_vertex - expected).length() < 1.0e-6);
+            assert_eq!(cpu, player.sample_part_cpu(&asset, 0).expect("CPU replay"));
+            assert_eq!(
+                gpu,
+                player.sample_part_for_gpu(&asset, 0).expect("GPU replay")
+            );
         }
     }
 

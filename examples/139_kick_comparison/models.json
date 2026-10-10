@@ -1,0 +1,52 @@
+{
+  "models": [
+    {
+      "source": "assets/robots/go2_description/go2_description.rne.urdf",
+      "source_sha256": "521d2f0bac3b22a942745e2fa0cb32ec979146de66f731f7befd806ec1f6ca98",
+      "derived": "assets/robots/go2_description/go2_description.rne.kick.urdf",
+      "derived_sha256": "e30d86803aa95ec7b32404ee6582a44c5070ee0ef8793aea76497b002f884fde",
+      "regularized_frames": [
+        "FL_calflower",
+        "FL_calflower1",
+        "FR_calflower",
+        "FR_calflower1",
+        "RL_calflower",
+        "RL_calflower1",
+        "RR_calflower",
+        "RR_calflower1",
+        "imu",
+        "radar",
+        "front_camera"
+      ],
+      "marker_mass_kg": 1e-09,
+      "marker_inertia_kg_m2": 1e-12,
+      "declared_total_mass_kg": 16.087000011,
+      "physical_angle_offset_rad": {
+        "FL_thigh_joint": 0.8,
+        "FL_calf_joint": -1.5,
+        "FR_thigh_joint": 0.8,
+        "FR_calf_joint": -1.5,
+        "RL_thigh_joint": 0.8,
+        "RL_calf_joint": -1.5,
+        "RR_thigh_joint": 0.8,
+        "RR_calf_joint": -1.5
+      }
+    },
+    {
+      "source": "assets/robots/g1_description/g1_23dof.urdf",
+      "source_sha256": "b462e1367ccb50f148db8c82f93421cb3f47497b10b735e891d2c9d000870cfc",
+      "derived": "assets/robots/g1_description/g1_23dof.kick.urdf",
+      "derived_sha256": "0f862976ed1379ed5b6482582da5cbdaed043357f75b52984db9687de406a7a6",
+      "regularized_frames": [
+        "imu_in_torso",
+        "imu_in_pelvis",
+        "d435_link",
+        "mid360_link"
+      ],
+      "marker_mass_kg": 1e-09,
+      "marker_inertia_kg_m2": 1e-12,
+      "declared_total_mass_kg": 34.133857284,
+      "physical_angle_offset_rad": {}
+    }
+  ]
+}

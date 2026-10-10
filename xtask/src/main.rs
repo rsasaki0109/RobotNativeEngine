@@ -2911,7 +2911,8 @@ fn run_locomotion_smokes() -> anyhow::Result<()> {
     run_step(
         "cargo run --locked -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --smoke",
     )?;
-    run_step("cargo run --locked -p go2_door --example 132_go2_door -- --smoke")
+    run_step("cargo run --locked -p go2_door --example 132_go2_door -- --smoke")?;
+    run_step("cargo run --locked -p kick_comparison --example 139_kick_comparison -- --headless")
 }
 
 fn run_asset_smokes() -> anyhow::Result<()> {
