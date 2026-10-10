@@ -290,9 +290,10 @@ separately authorized bounded live success, and intentional safety-stop run.
 No actuation is authorized by either manifest version.
 
 The typed LeKiwi boundary portion of that migration is now implemented as
-`FlagshipLeKiwiObservationFuserV2`. It preserves the five independently
-timestamped and content-labelled sources, morphology calibration, held-sample
-rules, and unused-physical evidence while emitting the exact 24-value v2 order.
+`FlagshipLeKiwiObservationFuserV2`. It preserves the five separately identified,
+declared tick-stamped and content-labelled sources, morphology calibration,
+held-sample rules, and unused-physical evidence while emitting the exact
+24-value v2 order.
 Yaw and place-target mutation under a reused source sequence fail closed, and a
 unit replay feeds the fused bytes directly into the portable v2 controller.
 Action projection, rate scheduling, typed replay streams, and the enclosing
@@ -370,8 +371,8 @@ Work proceeds in this order, one mergeable slice at a time:
 3. **Delivered:** stage the minimum flagship assets and runner in the native
    release bundle.
 4. **Delivered and version-guarded; tagged evidence pending:** add Windows and
-   Linux archive-install rehearsals for the proof command. The `v0.2.*` tag
-   trigger now matches release `0.2.0`, and both packaging entry points reject
+   Linux archive-install rehearsals for the proof command. The `v0.4.*` tag
+   trigger now matches release `0.4.0`, and both packaging entry points reject
    future workflow/version drift before building an archive.
 5. **Measurement path delivered; independent run pending:** use
    `rne-flagship-proof OUTPUT --cross-backend --measure-on MACHINE
@@ -399,7 +400,7 @@ archive-install reports from expiring Actions artifacts into permanent Release
 assets. A deterministic release-level `SHA256SUMS` covers the four primary
 archive/wheel assets and those four evidence files before publication. The
 release exit gate rejects removal, publication before checksumming, or an
-eight-file partial set. This makes the next `v0.2.0` tag durable enough for the
+eight-file partial set. This makes the next `v0.4.0` tag durable enough for the
 independent operator and the later 183-day readiness audit; it does not create
 the tag or claim an external run occurred.
 

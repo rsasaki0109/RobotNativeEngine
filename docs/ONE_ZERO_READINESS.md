@@ -7,11 +7,13 @@ committed tracker intentionally remains ineligible until those facts exist.
 
 ## Run the progress audit
 
-The date is mandatory so the report never depends on wall-clock time:
+The date is mandatory so the report never depends on wall-clock time. Use the
+actual audit date, at or after `candidate.since` in the selected manifest; an
+earlier date is rejected. The committed candidate starts on 2026-09-26:
 
 ```powershell
 cargo run --locked -p xtask -- release-readiness `
-  --as-of 2026-08-16 `
+  --as-of 2026-10-10 `
   --output E:/RoboSim-readiness/report.json
 ```
 
@@ -227,8 +229,8 @@ The archive-bound install result is separately registered as
 The report check order is fixed and a committed golden captures the current
 honest baseline. `manifest_sha256` binds the complete normalized input,
 including external identities and support fields. The retained 36-check
-compatibility report is byte-for-byte equal to a fresh typed-reader replay and
-the blocker registry is clean, so the committed 2026-08-16 baseline is
+compatibility report matches a fresh typed-reader replay and the blocker
+registry is clean, so the committed 2026-09-26 baseline is
 `eligible=false` with 2 of 10 checks satisfied. The remaining eight checks still
 require real external, physical, signed-release, elapsed-time, or maintainer
 evidence.

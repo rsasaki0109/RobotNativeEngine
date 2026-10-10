@@ -18,8 +18,14 @@ The original 19-value flagship shadow boundary is now explicitly transitional:
 an audit showed that its v1 TaskSpec omitted dynamic base yaw and place target
 values used by the named controller. The additive v2 TaskSpec and
 `FlagshipMobileLiftControllerV2` remove that hidden simulator-state dependency.
-Physical flagship capture must wait for the LeKiwi fuser and manifest to migrate
-to v2; a valid v1 manifest must not be promoted as same-controller evidence.
+The LeKiwi fuser, action projection, rate scheduler, and full-content manifest
+now support v2 and replay its observation-to-controller chain. Physical capture
+still requires five explicit observation sources, including physically sourced
+feedback, localization, and perception, plus morphology calibration and an
+operational capture producer. Policy phase and place target may come from the
+controller and configuration. The base-only session command does not produce
+the full flagship stream. A valid v1 manifest must not be promoted as
+same-controller evidence.
 
 ## Selection
 
@@ -126,6 +132,13 @@ replays fusion and controller execution, cross-links that action to projection
 and rate scheduling, and checks the 60 Hz parent decisions against the held
 30 Hz physical samples. Historical v1 manifests remain readable; mock and
 physical-shadow execution classes are distinct and cannot be relabelled.
+
+This closure verifies the declared inputs and deterministic replay. Source
+contracts do not establish physical origin or measured calibration, and the
+session wire does not retain acquisition timestamps. The nominal replay ticks
+therefore do not prove measured sample rates or latency. Real sensor provenance,
+RGB-D calibration, and acquisition timing need separate retained evidence
+before the result can qualify as a physical capture.
 
 Create a draft containing those twelve relative artifact references, then seal
 and verify it with:
