@@ -23,12 +23,15 @@ NAMES = sorted(REQUIRED | {'balance_off', 'front_limit', 'oblique_limit'})
 def current_manifest():
     names = ['examples/139_kick_comparison/' + name for name in
              ('main.rs', 'physics.rs', 'render.rs', 'model.rs', 'disturbance.rs',
-              'go2_controller.rs', 'g1_controller.rs', 'models.json',
+              'go2_controller.rs', 'g1_controller.rs', 'observation.rs', 'models.json',
               'go2.rne.scene.toml', 'g1.rne.scene.toml',
               'go2.rne.robot.toml', 'g1.rne.robot.toml')]
     models = json.loads((REPO / 'examples/139_kick_comparison/models.json').read_text())
     names += [model['derived'] for model in models['models']]
-    names += ['crates/rne_physics_rapier/src/backend.rs',
+    names += ['crates/rne_data/src/frame.rs', 'crates/rne_data/src/bus.rs',
+              'crates/rne_data/src/stream.rs', 'crates/rne_core/src/rng.rs',
+              'crates/rne_core/src/time.rs', 'crates/rne_world/src/resources.rs',
+              'crates/rne_physics_rapier/src/backend.rs',
               'assets/fixtures/kick_human/cc0_sport_human.glb']
     return {name: hashlib.sha256((REPO / name).read_bytes()).hexdigest() for name in names}
 
@@ -61,6 +64,14 @@ def make_trace(robot, strength, name='nominal'):
             'plant': {'mass_kg': 16.087000011 if robot == 'Go2' else 34.133857284},
             'observed_state_hash': robot + '-' + name,
             'observed_state_bits_exact_repeat': True,
+            'observation_pipeline': {
+                'profile': 'ideal_reference', 'sample_period_ticks': round(dt_s * 1_000_000_000),
+                'latency_ticks': 0, 'phase_offset_ticks': 0,
+                'noise': {key: 0.0 for key in ('attitude_world_x_z_bound_rad',
+                    'angular_velocity_axis_bound_rad_s', 'com_and_foot_position_axis_bound_m',
+                    'com_velocity_axis_bound_m_s', 'go2_foot_normal_load_bound_n')}},
+            'observation_control_state_hash': hashlib.sha256((robot + name).encode()).hexdigest()[:16],
+            'observation_control_state_bits_exact_repeat': True,
             'canonical_render_frames_exact_repeat': True,
             'compiled_source_sha256': {'synthetic_fixture': 'not physical evidence'}}
 
@@ -71,7 +82,8 @@ def summary_for(traces):
         case = {key: trace[key] for key in
                 ('robot', 'force_n', 'dt_s', 'impulse_n_s', 'controller', 'plant',
                  'summary', 'observed_state_hash', 'observed_state_bits_exact_repeat',
-                 'canonical_render_frames_exact_repeat')}
+                 'canonical_render_frames_exact_repeat', 'observation_pipeline',
+                 'observation_control_state_hash', 'observation_control_state_bits_exact_repeat')}
         case['duration_s'] = trace['push_duration_s']
         cases.append(case)
     return {'schema_version': 2, 'cases': cases}
@@ -87,7 +99,8 @@ def make_report(root, strength):
                     ('robot', 'case', 'dt_s', 'impulse_n_s', 'summary',
                      'observed_state_hash', 'observed_state_bits_exact_repeat',
                      'controller', 'plant', 'push_start_s', 'push_duration_s',
-                     'integrated_impulse_world_ns', 'compiled_source_sha256')}
+                     'integrated_impulse_world_ns', 'compiled_source_sha256', 'observation_pipeline',
+                     'observation_control_state_hash', 'observation_control_state_bits_exact_repeat')}
             case['required_recovery'] = name in REQUIRED
             cases.append(case)
             if name == 'nominal':
@@ -126,6 +139,21 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
                 traces[0]['impulse_n_s'] = value
                 with self.assertRaises(ValueError):
                     MODULE.validate_recordings(traces, self.summary)
+
+    def test_nonideal_estimates_and_missing_controller_replay_cannot_qualify_media(self):
+        mutations = (
+            lambda trace: trace['observation_pipeline'].update(profile='combined'),
+            lambda trace: trace['observation_pipeline'].update(sample_period_ticks=4_000_000),
+            lambda trace: trace['observation_pipeline'].update(latency_ticks=5_000_000),
+            lambda trace: trace['observation_pipeline']['noise'].update(attitude_world_x_z_bound_rad=.01),
+            lambda trace: trace.update(observation_control_state_bits_exact_repeat=False),
+            lambda trace: trace.update(observation_control_state_hash=''),
+        )
+        for mutate in mutations:
+            traces = copy.deepcopy(self.traces)
+            mutate(traces[0])
+            with self.assertRaises(ValueError):
+                MODULE.validate_recordings(traces, summary_for(traces))
 
     def test_rejects_mismatched_panels(self):
         self.traces[1] = make_trace('G1', 32.0)
@@ -177,8 +205,10 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
     def test_compiled_manifest_requires_render_and_human_sources(self):
         self.manifest_mock.stop()
         trace = {'compiled_source_sha256': current_manifest()}
-        self.assertEqual(len(MODULE.validate_compiled_sources(trace, REPO)), 16)
+        self.assertEqual(len(MODULE.validate_compiled_sources(trace, REPO)), 23)
         for name in ('examples/139_kick_comparison/render.rs',
+                     'examples/139_kick_comparison/observation.rs',
+                     'crates/rne_data/src/bus.rs', 'crates/rne_core/src/rng.rs',
                      'assets/fixtures/kick_human/cc0_sport_human.glb'):
             with self.subTest(source=name):
                 stale = copy.deepcopy(trace)

@@ -23,6 +23,18 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Add an opt-in Go2/G1 synthetic state-estimate observation probe to example
+  139. Timestamped samples use arrival-respecting reads, held observations,
+  and seeded bounded errors; physics and bounded control still run at 1 kHz.
+  Retain failed recovery and pre-impact settlement results without changing
+  the existing recovery gates, gains, or ideal-observation qualification.
+  These sensitivity settings are not measured hardware sensor specifications;
+  the actuator's inner position PD still uses instantaneous simulated joints.
+  Record the complete 16-case fixed-seed matrix with exact plant/control replay:
+  Go2 recovers in eight profiles; G1 recovers in five, retaining three falls.
+  The original 18 ideal-observation cases preserve literal plant and controller
+  decision behavior against the pre-change revision.
+
 - Repair the fixed-base clutter CEM smoke's approach by tuning the existing
   staged IK controller instead of mapping Cartesian errors directly to joint
   velocities. Keep friction grasping, seed 0, all 128 sampled candidates, the

@@ -10,6 +10,7 @@ mod disturbance;
 mod g1_controller;
 mod go2_controller;
 mod model;
+mod observation;
 mod physics;
 mod render;
 
@@ -100,6 +101,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut validate_recovery = false;
     let mut impulse_sweep = false;
     let mut impulse_probe = false;
+    let mut observation_probe = false;
+    let mut observation_profile: Option<String> = None;
     let mut balance_off = false;
     let mut impulse_ns = physics::DEFAULT_IMPULSE_NS;
     let mut impulse_requested = false;
@@ -114,14 +117,19 @@ fn main() -> Result<(), Box<dyn Error>> {
             "--validate-recovery" => validate_recovery = true,
             "--impulse-sweep" => impulse_sweep = true,
             "--impulse-probe" => impulse_probe = true,
+            "--observation-probe" => observation_probe = true,
             "--balance-off" => balance_off = true,
             "--render" => render = true,
             "--render-only" => {
                 render = true;
                 render_only = true;
             }
-            "--output" | "--start-frame" | "--frame-count" | "--validation-robot"
-            | "--impulse-ns" => {
+            "--output"
+            | "--start-frame"
+            | "--frame-count"
+            | "--validation-robot"
+            | "--impulse-ns"
+            | "--observation-profile" => {
                 let option = &arguments[index];
                 index += 1;
                 let value = arguments.get(index).ok_or("missing option value")?;
@@ -129,6 +137,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "--output" => output = value.into(),
                     "--start-frame" => start_frame = value.parse()?,
                     "--validation-robot" => validation_robot = Some(value.clone()),
+                    "--observation-profile" => observation_profile = Some(value.clone()),
                     "--impulse-ns" => {
                         impulse_ns = value.parse()?;
                         impulse_requested = true;
@@ -145,7 +154,25 @@ fn main() -> Result<(), Box<dyn Error>> {
             "--impulse-ns must be finite and positive (zero is allowed for a probe)".into(),
         );
     }
-    if validation_robot.is_some() && !validate_recovery && !impulse_sweep && !impulse_probe {
+    if observation_probe
+        && (validate_recovery
+            || impulse_sweep
+            || impulse_probe
+            || render
+            || balance_off
+            || impulse_requested)
+    {
+        return Err("--observation-probe is a separate fixed 40 N.s headless diagnostic".into());
+    }
+    if observation_profile.is_some() && !observation_probe {
+        return Err("--observation-profile requires --observation-probe".into());
+    }
+    if validation_robot.is_some()
+        && !validate_recovery
+        && !impulse_sweep
+        && !impulse_probe
+        && !observation_probe
+    {
         return Err("--validation-robot requires validation or an impulse probe/sweep".into());
     }
     if impulse_sweep && (validate_recovery || render || impulse_requested || impulse_probe) {
@@ -161,7 +188,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     validate_human()?;
     if !render_only {
-        if impulse_sweep {
+        if observation_probe {
+            physics::probe_observations(
+                &output,
+                validation_robot.as_deref(),
+                observation_profile.as_deref(),
+            )?;
+        } else if impulse_sweep {
             physics::sweep_impulse(&output, validation_robot.as_deref())?;
         } else if impulse_probe {
             physics::probe_impulse(
@@ -184,6 +217,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             frame_count,
         )?;
     }
-    println!("kick comparison ok: {}", output.display());
+    if observation_probe {
+        println!(
+            "observation probe completed; measured recovery outcomes: {}",
+            output.display()
+        );
+    } else {
+        println!("kick comparison ok: {}", output.display());
+    }
     Ok(())
 }

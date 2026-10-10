@@ -6,7 +6,7 @@
 //! Ground reaction comes from the colliders and contact solver. This controller
 //! cannot read a kick schedule and never applies a base wrench or changes a pose.
 
-use super::model::center_of_mass;
+use super::observation::Observation;
 use rne_ai::{UrdfJointPositionTarget, UrdfSceneSim};
 use rne_math::Vec3;
 use rne_robot::{Joint, JointKind, JointLimits, Link};
@@ -133,26 +133,48 @@ impl Go2Controller {
         })
     }
 
-    /// Measures the plant, commands bounded joints, and advances exactly one tick.
-    pub(super) fn step(&mut self, sim: &mut UrdfSceneSim) -> ControllerResult<()> {
-        let (com_m, com_velocity_m_s, mass_kg) = center_of_mass(sim)?;
-        let base = sim
-            .named_transform("base")
-            .ok_or_else(|| io::Error::other("Go2 base pose is missing"))?;
-        let observation = sim.observe();
-        let up = base.rotation * Vec3::Z;
-        let forward = base.rotation * Vec3::X;
-        let lateral = Vec3::new(forward.x, 0.0, forward.z)
-            .normalize_or_zero()
-            .cross(Vec3::Y);
-        let roll_rad = up.dot(lateral).atan2(up.y);
-        let angular_velocity_rad_s = Vec3::new(
-            observation.base_angular_velocity_x_rad_s,
-            observation.base_angular_velocity_y_rad_s,
-            observation.base_angular_velocity_z_rad_s,
-        );
-        let roll_rate_rad_s = angular_velocity_rad_s.dot(forward);
-        let dt_s = sim.fixed_delta().as_seconds().value();
+    /// Updates bounded joint targets from one delivered observation.
+    ///
+    /// The simulator owns sampling, delivery timing and actuation. Until an
+    /// observation arrives, the controller commands its nominal stance without
+    /// updating IMU or contact-load state.
+    pub(super) fn step_targets(
+        &mut self,
+        observation: Option<&Observation>,
+        dt_s: f64,
+    ) -> ControllerResult<Vec<UrdfJointPositionTarget<'_>>> {
+        if !dt_s.is_finite() || dt_s <= 0.0 {
+            return Err(io::Error::other("Go2 fixed step is invalid").into());
+        }
+        let Some(observation) = observation else {
+            let targets = position_targets(&mut self.servos, [0.0; 4], 0.0, dt_s);
+            self.last_feedback = json!({
+                "no_observation": true,
+                "balance_feedback_enabled": self.balance_feedback_enabled,
+                "imu_feedback_enabled": self.balance_feedback_enabled,
+                "contact_load_regulation_enabled": true,
+                "contact_load_regulation_active": false,
+                "desired_foot_normal_loads_n": null,
+                "foot_order": FOOT_NAMES,
+                "filtered_roll_rate_rad_s": self.filtered_roll_rate_rad_s,
+                "filtered_foot_loads_n": self.filtered_foot_loads_n,
+                "calf_load_trim_rad": self.calf_trim_rad,
+                "opposing_calf_correction_rad": 0.0,
+                "target_rate_limit_rad_s": TARGET_RATE_LIMIT_RAD_S,
+                "joint_position_targets_rad": targets.iter().map(|target| json!({
+                    "link": target.link_name,
+                    "target_rad": target.position,
+                })).collect::<Vec<_>>(),
+            });
+            return Ok(targets);
+        };
+        let com_m = observation.com_world_m;
+        let com_velocity_m_s = observation.com_velocity_world_m_s;
+        let mass_kg = observation.mass_kg;
+        let forward = observation.forward_unit;
+        let lateral = observation.lateral_unit;
+        let roll_rad = observation.roll_rad;
+        let roll_rate_rad_s = observation.roll_rate_rad_s;
         if ![roll_rad, roll_rate_rad_s, dt_s, mass_kg]
             .iter()
             .all(|value| value.is_finite())
@@ -160,6 +182,18 @@ impl Go2Controller {
             || mass_kg <= 0.0
             || !com_m.is_finite()
             || !com_velocity_m_s.is_finite()
+            || !forward.is_finite()
+            || !lateral.is_finite()
+            || observation.foot_positions_world_m.len() != FOOT_NAMES.len()
+            || observation.foot_normal_loads_n.len() != FOOT_NAMES.len()
+            || observation
+                .foot_positions_world_m
+                .iter()
+                .any(|position| !position.is_finite())
+            || observation
+                .foot_normal_loads_n
+                .iter()
+                .any(|load| !load.is_finite())
         {
             return Err(io::Error::other("Go2 feedback or fixed step is invalid").into());
         }
@@ -167,7 +201,8 @@ impl Go2Controller {
         self.filtered_roll_rate_rad_s +=
             gyro_alpha * (roll_rate_rad_s - self.filtered_roll_rate_rad_s);
         let (load_regulation_active, desired_loads_n) = self.update_contact_load_regulation(
-            sim,
+            &observation.foot_positions_world_m,
+            &observation.foot_normal_loads_n,
             LoadRegulationObservation {
                 com_world_m: com_m,
                 com_velocity_world_m_s: com_velocity_m_s,
@@ -191,15 +226,10 @@ impl Go2Controller {
         {
             return Err(io::Error::other("Go2 feedback or fixed step is invalid").into());
         }
-        let measured_joints = measured_joint_states(sim, &self.servos);
+        let measured_joints = measured_joint_states(observation, &self.servos);
         let targets = position_targets(&mut self.servos, self.calf_trim_rad, correction_rad, dt_s);
-        let loads_n: [f64; 4] = FOOT_NAMES.map(|name| {
-            sim.named_body_contact_loads(name)
-                .iter()
-                .map(|(_, normal_force_n)| *normal_force_n)
-                .sum()
-        });
         self.last_feedback = json!({
+            "no_observation": false,
             "balance_feedback_enabled": self.balance_feedback_enabled,
             "imu_feedback_enabled": self.balance_feedback_enabled,
             "contact_load_regulation_enabled": true,
@@ -215,7 +245,7 @@ impl Go2Controller {
             "filtered_foot_loads_n": self.filtered_foot_loads_n,
             "calf_load_trim_rad": self.calf_trim_rad,
             "opposing_calf_correction_rad": correction_rad,
-            "foot_normal_loads_n": loads_n,
+            "foot_normal_loads_n": observation.foot_normal_loads_n,
             "measured_joint_states": measured_joints,
             "target_rate_limit_rad_s": TARGET_RATE_LIMIT_RAD_S,
             "joint_position_targets_rad": targets.iter().map(|target| json!({
@@ -223,13 +253,13 @@ impl Go2Controller {
                 "target_rad": target.position,
             })).collect::<Vec<_>>(),
         });
-        sim.step_joint_position_actuation_targets(&targets);
-        Ok(())
+        Ok(targets)
     }
 
     fn update_contact_load_regulation(
         &mut self,
-        sim: &UrdfSceneSim,
+        feet: &[Vec3],
+        loads_n: &[f64],
         observation: LoadRegulationObservation,
     ) -> ControllerResult<(bool, Option<[f64; 4]>)> {
         let LoadRegulationObservation {
@@ -241,12 +271,7 @@ impl Go2Controller {
             lateral_unit: lateral,
             dt_s,
         } = observation;
-        let observed_loads_n: [f64; 4] = FOOT_NAMES.map(|name| {
-            sim.named_body_contact_loads(name)
-                .iter()
-                .map(|(_, force_n)| force_n.max(0.0))
-                .sum()
-        });
+        let observed_loads_n: [f64; 4] = std::array::from_fn(|index| loads_n[index].max(0.0));
         let load_alpha = dt_s / (LOAD_FILTER_TIME_CONSTANT_S + dt_s);
         for (filtered, observed) in self.filtered_foot_loads_n.iter_mut().zip(observed_loads_n) {
             *filtered += load_alpha * (observed - *filtered);
@@ -262,11 +287,6 @@ impl Go2Controller {
         let mut desired_loads_n = None;
         if load_regulation_active {
             let share_n = total_load_n / 4.0;
-            let feet = FOOT_NAMES.map(|name| {
-                sim.named_transform(name)
-                    .expect("validated Go2 foot pose")
-                    .translation
-            });
             // Bilinear shares place the desired normal-force resultant at the
             // measured CoM projection within the four-foot support rectangle.
             let forward_front_m = ((feet[0] + feet[1]) * 0.5).dot(forward);
@@ -330,9 +350,29 @@ impl Go2Controller {
         }
     }
 
-    /// Returns observations from immediately before the latest completed tick.
+    /// Returns feedback and targets from the latest control update.
     pub(super) fn telemetry(&self) -> Value {
         self.last_feedback.clone()
+    }
+
+    /// Returns ordered controller state words for exact deterministic replay.
+    ///
+    /// Servo targets follow the name ordering established at construction;
+    /// contact-load and trim arrays follow FL, FR, RL, RR. Telemetry formatting
+    /// does not participate in this representation.
+    pub(super) fn replay_words(&self) -> Vec<u64> {
+        let mut words = Vec::with_capacity(self.servos.len() + 11);
+        words.push(u64::from(self.balance_feedback_enabled));
+        words.push(self.servos.len() as u64);
+        words.extend(
+            self.servos
+                .iter()
+                .map(|servo| servo.previous_target_rad.to_bits()),
+        );
+        words.push(self.filtered_roll_rate_rad_s.to_bits());
+        words.extend(self.filtered_foot_loads_n.map(f64::to_bits));
+        words.extend(self.calf_trim_rad.map(f64::to_bits));
+        words
     }
 
     /// Describes solver-enforced torque ceilings without claiming measured effort.
@@ -372,14 +412,18 @@ impl Go2Controller {
     }
 }
 
-fn measured_joint_states(sim: &UrdfSceneSim, servos: &[Servo]) -> Vec<Value> {
+fn measured_joint_states(observation: &Observation, servos: &[Servo]) -> Vec<Value> {
     servos
         .iter()
         .map(|servo| {
+            let measured = observation
+                .joint_states
+                .iter()
+                .find(|joint| joint.link_name == servo.name);
             json!({
                 "link": servo.name,
-                "position_rad": sim.named_joint_position(&servo.name),
-                "velocity_rad_s": sim.named_joint_velocity(&servo.name),
+                "position_rad": measured.and_then(|joint| joint.position_rad),
+                "velocity_rad_s": measured.and_then(|joint| joint.velocity_rad_s),
             })
         })
         .collect()
@@ -444,6 +488,57 @@ mod tests {
     use super::*;
     use rne_robot::KinematicModel;
     use std::path::Path;
+
+    #[test]
+    fn missing_observation_commands_nominal_stance_and_freezes_feedback_state() {
+        let mut sim = UrdfSceneSim::from_scene_path(
+            &Path::new(env!("CARGO_MANIFEST_DIR")).join("go2.rne.scene.toml"),
+        )
+        .expect("dedicated physical Go2 scene");
+        let mut controller = Go2Controller::new(&mut sim, true).expect("Go2 controller");
+        controller.filtered_roll_rate_rad_s = 1.0;
+        controller.filtered_foot_loads_n = [10.0, 20.0, 30.0, 40.0];
+        controller.calf_trim_rad = [0.03, -0.03, 0.02, -0.02];
+        let before = controller.replay_words();
+        let targets = controller
+            .step_targets(None, 0.01)
+            .expect("bounded nominal targets");
+        for target in targets {
+            let expected_rad: f64 = if target.link_name.ends_with("_hip") {
+                if target.link_name.starts_with("FL_") || target.link_name.starts_with("RL_") {
+                    0.06
+                } else {
+                    -0.06
+                }
+            } else {
+                0.0
+            };
+            assert_eq!(target.position, expected_rad);
+        }
+        let after = controller.replay_words();
+        assert_eq!(&before[before.len() - 9..], &after[after.len() - 9..]);
+        let telemetry = controller.telemetry();
+        assert_eq!(telemetry["no_observation"], true);
+        assert_eq!(telemetry["contact_load_regulation_active"], false);
+        assert_eq!(telemetry["opposing_calf_correction_rad"], 0.0);
+        assert!(telemetry["desired_foot_normal_loads_n"].is_null());
+    }
+
+    #[test]
+    fn invalid_step_and_telemetry_format_do_not_change_replay_state() {
+        let mut sim = UrdfSceneSim::from_scene_path(
+            &Path::new(env!("CARGO_MANIFEST_DIR")).join("go2.rne.scene.toml"),
+        )
+        .expect("dedicated physical Go2 scene");
+        let mut controller = Go2Controller::new(&mut sim, false).expect("Go2 controller");
+        let before = controller.replay_words();
+        for dt_s in [0.0, -0.001, f64::NAN, f64::INFINITY] {
+            assert!(controller.step_targets(None, dt_s).is_err());
+            assert_eq!(controller.replay_words(), before);
+        }
+        controller.last_feedback = json!({"unrelated_telemetry": "format"});
+        assert_eq!(controller.replay_words(), before);
+    }
 
     #[test]
     fn wider_stance_fits_imported_joint_limits_and_expands_lateral_support() {

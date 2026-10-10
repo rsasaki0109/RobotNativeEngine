@@ -318,6 +318,25 @@ plants are measured against a matched zero-force baseline. GIF encoding
 requires the complete report with all 12 required cases passing.
 Successful recovery at both rates does not establish
 full-trajectory numerical convergence.
+The separate `--observation-probe` diagnostic measures sampled, delayed and
+deterministically perturbed synthetic state estimates. It keeps physics and
+outer-control evaluation at 1 kHz, reads only arrived DataBus frames, and retains
+failed settlement and recovery cases. These are declared sensitivity bounds,
+not measured hardware sensor specifications. The inner position PD continues
+to use instantaneous simulated joints; the probe does not qualify a new GIF.
+In the fixed-seed eight-profile matrix, Go2 recovered in all eight conditions.
+G1 recovered in five and fell in the 5 ms latency, 20 ms latency and bounded-error
+conditions. Both plants' combined zero-input baselines stayed upright. All 16
+plant and observation/control recordings matched fresh replay. These outcomes
+do not establish a monotone latency/error tolerance or hardware robustness.
+The source-bound results are retained in
+[the observation study](media/kick-observation-study.json).
+
+```bash
+cargo run --release -p kick_comparison --example 139_kick_comparison -- \
+  --observation-probe --output target/rne-kick-observations
+```
+
 See [capture, physical models, validation, and regeneration](../examples/139_kick_comparison/README.md).
 
 ## Native legged walking templates
