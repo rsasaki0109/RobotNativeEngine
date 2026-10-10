@@ -1,0 +1,36 @@
+[package]
+name = "warehouse_fleet"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[features]
+default = []
+capture = ["dep:rne_math", "dep:rne_render", "dep:rne_render_wgpu", "dep:png"]
+
+[dependencies]
+rne_core = { workspace = true }
+rne_nav = { workspace = true }
+rne_world = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+rne_math = { workspace = true, optional = true }
+rne_render = { workspace = true, optional = true }
+rne_render_wgpu = { workspace = true, optional = true }
+png = { workspace = true, optional = true }
+
+[[example]]
+name = "140_warehouse_fleet"
+path = "main.rs"
+test = true
+
+[[example]]
+name = "140_warehouse_fleet_render"
+path = "render.rs"
+required-features = ["capture"]

@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "trace_sha256": "3607055d5621c4993fabed1ac32842f910e4e80d48175d36ee1049fc7fb5ad36",
+  "encoder_sha256": "cad66f7441e77283448fd6ade2c73eda206edf8c3c7ed09dbdf446d30a778ca8",
+  "robot_count": 40,
+  "render_metadata_sha256": "5b0222044176de68685a082d6193fa37a71b280b64cba15bf298eba66951d109",
+  "renderer_source_sha256": "4a722a63379cac8b86a4335cf3dd8e7b1220f0a183b4e7191ef90a5259ed2c85",
+  "simulation_source_provenance": {
+    "format_version": 1,
+    "simulation_source_sha256": "5b153d36375c30bbaff0cffae4cedb58237ee0868c778242695fd201df195079",
+    "package_manifest_sha256": "9b9c5213ede5088271248b7c4011eeb992c30d56705905afc07cb5c0a09250f7",
+    "workspace_manifest_sha256": "d50a0b178d29a5737da4dd659e4a3a1b2e38ea75a639a2452bb43b5ac9853bdf",
+    "workspace_lock_sha256": "2448452ca38a7f55e68b021c595d940e16be86fff88d3048332e80e0f3410c91",
+    "engine_sources_sha256": {
+      "crates/rne_core/Cargo.toml": "fea527b658bf8ebc032d8af518049e6989ca80f2effeea442791d3e239e02b21",
+      "crates/rne_core/src/rng.rs": "5f755568c06088f7bee3cc8d5dce6782c2ce74d113894851f7bee54579c8f1db",
+      "crates/rne_core/src/time.rs": "bb7c020f1c3a53bac4109c3a45d3819c7d4ea0710dacc27a679b584a8e289ddb",
+      "crates/rne_nav/Cargo.toml": "09e95bdf6ab95ba48c6a629b5692df7c1d9eb0ebf39cb1a8ca19bc23e849e50a",
+      "crates/rne_nav/src/coordination.rs": "ee8b1597df236bd16261d8dfec8442485925d1333a4a6d017085271fa01d1206",
+      "crates/rne_nav/src/grid.rs": "e71e1748894d44cae7f0dc1a53832fec5c5e024d3b37b9a951f185eeb1f2d686",
+      "crates/rne_world/Cargo.toml": "72f82b0a9929fe59c63b84023e1c4d72b8eb8b02b5d7d05cf7e18913c6ba1796",
+      "crates/rne_world/src/resources.rs": "d309726376fb6a06f1499bf8a02c0b90aa640291e61c533dcd004e090270f14f"
+    }
+  },
+  "frame_count": 481,
+  "dimensions_px": [
+    1280,
+    800
+  ],
+  "playback_fps": 20,
+  "playback_speed": 5.0,
+  "duration_s": 24.05,
+  "gif": {
+    "sha256": "c3298e1260cfd822b9df1bf031609c68560e4c841e7930b7adfb313cfc43e02d",
+    "bytes": 3235992
+  },
+  "mp4": {
+    "sha256": "bbfacd169baf437c12b7c5e3ea3799cf91c6ca8b012a34dde8e27f1b9556ec62",
+    "bytes": 1696918
+  },
+  "source": "Actual recorded deterministic RNE kinematic fleet simulation; no generated motion.",
+  "simulation_validation": {
+    "passed": true,
+    "model": "bounded-speed kinematic logistics; no wheel/contact dynamics or hardware qualification",
+    "robot_count": 40,
+    "simulation_duration_s": 240.0,
+    "captured_frame_count": 481,
+    "replay_full_state_bit_exact": true,
+    "full_state_sha256": "1bc566a8c11b359d2bbd1c6df89fb87e22f144c12c523961d03eeea0e02e4bc0",
+    "replay_compared_steps": 4801,
+    "replay_compared_words": 21179885,
+    "completed_tasks": 16,
+    "robots_with_task_completions": 16,
+    "assigned_tasks": 32,
+    "waiting_robot_seconds": 988.099999999992,
+    "reservation_denials": 19762,
+    "charge_visits": 5,
+    "completed_charge_visits": 4,
+    "initial_docked_charge_sessions": 4,
+    "routed_charge_visits": 1,
+    "maximum_observed_speed_m_s": 1.2000000000000577,
+    "maximum_observed_yaw_rate_rad_s": 1.0000000000000009,
+    "maximum_observed_acceleration_m_s2": 1.8000000000000038,
+    "speed_limit_m_s": 1.2,
+    "yaw_rate_limit_rad_s": 1.0,
+    "acceleration_limit_m_s2": 1.8,
+    "configured_charge_rate_percent_s": 0.6,
+    "configured_empty_energy_percent_m": 0.018,
+    "configured_loaded_energy_percent_m": 0.026,
+    "configured_drive_energy_percent_s": 0.002,
+    "per_step_swept_interpolation_error_bound_m": 0.0011250000000000001,
+    "conservative_swept_spacing_lower_bound_m": 1.7471895522430745,
+    "captured_frames_with_charging": 92,
+    "captured_frames_with_loaded_transport": 481,
+    "captured_frames_with_active_incident": 180,
+    "total_distance_m": 2208.447007637442,
+    "minimum_swept_robot_spacing_m": 1.7483145522430745,
+    "required_robot_spacing_m": 1.3,
+    "minimum_rack_clearance_m": 0.1499999999999989,
+    "collision_count": 0,
+    "rack_incursion_count": 0,
+    "incident_started_s": 120.0,
+    "incident_ended_s": 165.0,
+    "incident_route_changes": 1,
+    "incident_avoided_edge_entries": 6,
+    "incident_blocked_corridor_entries": 0,
+    "incident_active_occupancy_violations": 0,
+    "incident_passages_without_closure_control": 1,
+    "task_pair_count": 45,
+    "task_queue_remaining": 60,
+    "minimum_battery_percent": 22.165613166765176,
+    "state_hash_scope": "all per-tick robot poses, yaw, speeds, motion progress, controller/dwell/wait state, batteries, loads, goals, full routes, tasks, bookings, coordinator owners and lease expiry, world RNG, graph/racks/stations and controller constants; same-runtime bit identity"
+  },
+  "engine_base_revision": "feed24eaf510f75cc1cd978fb369efef490cdc14",
+  "source_provenance_scope": "Declared example/workspace inputs and eight engine source/manifest files; not complete compiler or GPU attestation.",
+  "capture": {
+    "width_px": 1280,
+    "height_px": 800,
+    "frame_count": 481,
+    "frame_duration_ms": 50,
+    "duration_s": 24.05,
+    "playback_speed": 5,
+    "simulation_interval_s": [
+      100,
+      220
+    ],
+    "poster_frame": 80,
+    "poster_sha256": "8de61ace1a86e9e8590822642fc434df1a6d8cb4f1aa3ec76e7348d448c8093d",
+    "adapter_name": "llvmpipe (LLVM 19.1.7, 256 bits)",
+    "adapter_backend": "Gl",
+    "raw_frame_hashes_verified": 481,
+    "robot_center_projections_in_image": 19240,
+    "max_amr_body_radius_m": 0.6390532039150881
+  },
+  "reproduce_simulation": "cargo run --release --locked -p warehouse_fleet --example 140_warehouse_fleet",
+  "reproduce_capture": "examples/140_warehouse_fleet/CAPTURE.md",
+  "independent_recording_check": {
+    "passed": true,
+    "scope": "Fresh-process byte-identical trace/validation; independent captured-interval conservative geometry and motion checks, plus full-run simulator checks.",
+    "trace_sha256": "3607055d5621c4993fabed1ac32842f910e4e80d48175d36ee1049fc7fb5ad36",
+    "captured_frames": 481,
+    "robots_per_frame": 40,
+    "capture_interval_s": [
+      100.0,
+      220.0
+    ],
+    "minimum_captured_linear_swept_spacing_m": 1.7483145522430747,
+    "minimum_captured_conservative_spacing_m": 1.7201895522430748,
+    "pair_interpolation_error_bound_m": 0.028125,
+    "inflated_rack_conflicts": 0,
+    "maximum_capture_average_speed_m_s": 1.200000000000025,
+    "maximum_capture_average_yaw_rate_rad_s": 1.0,
+    "recorded_docking_events": [
+      {
+        "time_s": 212.3,
+        "kind": "charge_started",
+        "robot_id": 36,
+        "message": "Docked at reserved charger"
+      }
+    ],
+    "same_runtime_only": true
+  },
+  "fresh_process_byte_identical": true,
+  "actual_motion_matches_previous_demo": true,
+  "visual_refactor_pixel_identity": true,
+  "mp4_is_generated_not_committed": true,
+  "licensing": {
+    "original_demo": "MIT OR Apache-2.0",
+    "inspiration": "https://github.com/WayneChou-bot/WareTwin",
+    "upstream_code_or_assets_copied": false
+  }
+}

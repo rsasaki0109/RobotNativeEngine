@@ -628,3 +628,19 @@ GLB inputs. The encoder checks those hashes against the current files and
 independently integrates every recorded force sample to verify the common
 impulse, direction, timing and normalized pulse shape. Old rendering inputs or
 mixed-strength validation reports cannot qualify a new public GIF.
+
+### Warehouse fleet visualization boundary
+
+Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`
+and seeded `rne_world::WorldRandom`. Its directed routing, task dispatch,
+scenario energy accounting, and bounded kinematics are example-local. Traffic
+leases and conservative swept circles provide logistics clearance gates;
+they do not compute wheel traction, contact impulses, or physical load pickup.
+The native contact solver and physics backends are unchanged.
+
+The renderer replays accepted recorded poses and task state. Actual charging
+arrivals, delivery completions, waiting, and closure rerouting drive the HUD.
+Exact full-state replay and source/pixel bindings qualify this simulation
+capture within the tested runtime; they do not establish hardware fleet safety
+or cross-platform bit identity. See the
+[example instructions](../../examples/140_warehouse_fleet/README.md).

@@ -5894,6 +5894,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "warehouse_fleet"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_core",
+ "rne_math",
+ "rne_nav",
+ "rne_render",
+ "rne_render_wgpu",
+ "rne_world",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "warehouse_logistics"
 version = "0.4.0"
 dependencies = [

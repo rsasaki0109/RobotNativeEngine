@@ -2794,6 +2794,9 @@ fn run_media_smokes() -> anyhow::Result<()> {
     run_step("cargo run --locked -p lifelong_slam --example 127_lifelong_slam -- --smoke")?;
     run_step("cargo run --locked -p car_race --example 128_car_race -- --smoke")?;
     run_step("cargo run --locked -p uav_race --example 129_uav_race -- --smoke")?;
+    run_step(
+        "cargo run --locked -p warehouse_fleet --example 140_warehouse_fleet -- target/warehouse-fleet-ci/trace.json target/warehouse-fleet-ci/validation.json",
+    )?;
     Ok(())
 }
 
