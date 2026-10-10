@@ -3,6 +3,7 @@
 | Example | Command | Description |
 |---------|---------|-------------|
 | Hello world | `cargo run -p hello_world --example 00_hello_world` | ECS world + transform propagation |
+| Forty-AMR warehouse fleet | `cargo run --release --locked -p warehouse_fleet --example 140_warehouse_fleet` | Seeded dispatch, directed-lane reservations, charging, aisle-closure rerouting, exact full-state replay and swept clearance; see [capture instructions](140_warehouse_fleet/README.md) for the README GIF |
 | Falling cube | `cargo run -p falling_cube --example 01_falling_cube` | Rapier gravity + physics sync |
 | Diff drive + LiDAR | `cargo run -p diff_drive_lidar --example 01_diff_drive_lidar` | Robot, sensors, DataBus |
 | Render clear | `cargo run -p render_clear --example 02_render_clear` | wgpu off-screen clear render |

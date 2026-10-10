@@ -5,6 +5,38 @@ dynamics / navigation / G1 locomotion highlights. This page holds the rest of
 the demo write-ups: full captions, GIFs, and commands for the pieces that
 used to live under the README's "Selected demos" section.
 
+## Forty-AMR warehouse fleet
+
+<p align="center">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="media/warehouse-fleet.png">
+    <img src="media/warehouse-fleet.gif" alt="Forty warehouse AMRs picking and delivering loads, waiting for reserved lanes, charging, and routing around an aisle closure" width="900">
+  </picture>
+</p>
+
+Example 140 records 40 AMRs under seeded dispatch and non-preemptive RNE
+traffic reservations. The 5× replay shows real task, waiting, and charging
+states with a temporary aisle closure; the HUD reads the recorded telemetry.
+The 240-second run completes 16 deliveries, while the captured 100–220 second
+interval increases the delivery counter from 4 to 15. Four robots begin at
+chargers, and R36 reaches its assigned charger at 212.3 seconds.
+
+Headless validation checks exact full-state replay, swept robot separation,
+rack clearance, bounded translation/rotation/acceleration, and closure
+occupancy. A same-seed control without the closure traverses the affected
+corridor. The directed planner, dispatcher, and scenario battery model are
+local to the example; wheel traction, contact forces, physical pickup,
+sensing errors, and hardware operation are not modelled.
+
+```bash
+cargo run --release --locked -p warehouse_fleet --example 140_warehouse_fleet
+```
+
+[Source and regeneration](../examples/140_warehouse_fleet/README.md) ·
+[metadata](media/warehouse-fleet.json).
+The scenario was inspired by [WareTwin](https://github.com/WayneChou-bot/WareTwin);
+the code, meshes, and media are original.
+
 ## Office AGV delivery
 
 <p align="center">

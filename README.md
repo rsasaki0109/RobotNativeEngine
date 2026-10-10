@@ -184,6 +184,26 @@ A*/DWA/pure-pursuit, multi-robot avoidance, an EKF, 3D ICP, and online 2D
 SLAM with loop closure and AMCL (a ROS 2 adapter maps to Nav2). Details:
 [Navigation](docs/NAVIGATION.md), [SLAM](docs/SLAM.md).
 
+## Warehouse fleet operations
+
+<p align="center">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="docs/media/warehouse-fleet.png">
+    <img src="docs/media/warehouse-fleet.gif" alt="Forty warehouse AMRs carrying loads, coordinating traffic through shared aisles, charging, and routing around a temporary aisle closure" width="900">
+  </picture>
+</p>
+
+Forty AMRs share a warehouse under deterministic task dispatch and cell
+reservations. The capture shows pickup and delivery, traffic waiting, charging,
+and route changes around an aisle closure. Counters and event logs come from the
+recorded simulation; playback runs at 5× speed.
+
+This demo models logistics and bounded robot kinematics. Wheel/contact dynamics
+and physical load pickup are outside its scope. Inspired by
+[WareTwin](https://github.com/WayneChou-bot/WareTwin).
+[Source and regeneration](examples/140_warehouse_fleet/README.md) ·
+[metadata](docs/media/warehouse-fleet.json).
+
 ## Logistics across floors
 
 <p align="center">

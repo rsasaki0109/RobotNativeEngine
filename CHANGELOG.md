@@ -199,6 +199,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Add example 140 and a README GIF showing 40 warehouse AMRs with seeded
+  pickup/delivery dispatch, non-preemptive traffic reservations, charging,
+  and route changes around an aisle closure. Record actual robot states and
+  telemetry with exact full-state replay, swept-spacing/rack-clearance gates,
+  and selected compiled-input/pixel bindings. Separate headless logistics simulation
+  from optional wgpu capture; wheel/contact dynamics and hardware operation
+  are outside this example's scope. WareTwin inspired the scenario; all code
+  and geometry are original.
+
 - Example 138 (`heavy_grasp`) squeezes, lifts, and holds 5, 20, and 50 kg
   cubes with a two-finger multibody gripper through `PhysicsBackend`, on
   `NativeBackend` and on Rapier. Squeezed with a 25 % margin, every cube
