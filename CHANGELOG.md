@@ -23,6 +23,13 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Repair the fixed-base clutter CEM smoke's approach by tuning the existing
+  staged IK controller instead of mapping Cartesian errors directly to joint
+  velocities. Keep friction grasping, seed 0, all 128 sampled candidates, the
+  950-step budget and the raw-reward/grasp gates. Bound arm commands to 0.3
+  rad/s, keep the open-gripper baseline open in every phase, and verify exact
+  observed-trajectory replay plus open-gripper and stopped-arm controls.
+
 - Align external-readiness instructions with the 0.4.0 release workflow and
   the 2026-09-26 candidate baseline. Describe the completed LeKiwi v2 shadow
   boundary separately from the still-required physical sources, calibration,

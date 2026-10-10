@@ -104,6 +104,14 @@ cargo run --release -p locomotion_vectorized --example 66_locomotion_vectorized
 
 See [GO2_LOCOMOTION.md](GO2_LOCOMOTION.md) and [ROADMAP.md](ROADMAP.md).
 
+## Manipulation learning
+
+Example 27's `train_clutter.py --smoke` learns bounded IK tracking scales and
+gripper speed in a fixed-base friction-grasp episode. It checks reward
+improvement, actual grasp, exact observed replay, and failed open-gripper/stopped-arm
+controls; placement is reported separately. See the
+[RL example](../examples/27_mobile_manipulator_rl/README.md) for setup and the learning scope.
+
 ## G1 manipulation and deformables
 
 <p align="center">

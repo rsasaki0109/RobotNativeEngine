@@ -81,6 +81,18 @@ optimizer score. Raw episode reward and complete `(reward, grasped, placed)`
 metrics are still replayed twice exactly. This makes CI cross-platform stable
 without allowing a non-grasping approach-only candidate to outrank task success.
 
+The fixed-base `train_clutter.py` smoke tunes shoulder/elbow tracking scales and
+gripper closing speed around `IkClutterPickPlacePolicy`'s staged IK approach. Arm
+commands stay within 0.3 rad/s; every candidate is sampled with seed 0 (16 policies
+per iteration, eight iterations), without inserting a scripted winner or success
+bonus. The 950-step friction-grasp rollout must beat the open-gripper baseline's
+raw reward by more than 0.5 and actually grasp. Two fresh replays must match both
+task metrics and a SHA-256 of emitted actions, observed poses, rewards and end
+flags. Open-gripper and stopped-arm controls must fail to grasp. Placement is
+reported separately; this remains an IK-assisted grasp-learning smoke rather than
+an end-to-end learned manipulation benchmark. The replay hash covers observed
+outputs in one runtime, not hidden solver state or cross-platform identity.
+
 Vectorized environments can be checkpointed and restored from Python as JSON, which is
 intended for long training jobs that need deterministic resume:
 
