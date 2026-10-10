@@ -23,6 +23,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Align external-readiness instructions with the 0.4.0 release workflow and
+  the 2026-09-26 candidate baseline. Describe the completed LeKiwi v2 shadow
+  boundary separately from the still-required physical sources, calibration,
+  and capture producer. Distinguish declared replay ticks from measured
+  acquisition timing and physical provenance.
+
 - Interpolate glTF LINEAR rotations along the shortest quaternion arc, shared
   by CPU and GPU skinning. Add a Go2/G1 kick comparison with a CC0 anatomical
   human, forward knee flexion, fixed-length limbs, support-foot planting,
