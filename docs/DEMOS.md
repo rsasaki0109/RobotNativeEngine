@@ -339,6 +339,24 @@ cargo run --release -p kick_comparison --example 139_kick_comparison -- \
 
 See [capture, physical models, validation, and regeneration](../examples/139_kick_comparison/README.md).
 
+The separate `--g1-observation-diagnosis` mode pairs four G1 observation
+profiles with zero input and the unchanged 40 N·s wrench. It streams every
+control tick, including settlement, with arrived estimates, evaluator-only
+truth and original bounded joint decisions. Fresh replay and logging-on/off
+comparisons check that the diagnostic itself does not alter behavior. Matched
+zero-input cases distinguish standing instability from a kick-dependent
+failure without changing the controller or recovery predicate.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --g1-observation-diagnosis --output target/rne-g1-observation-diagnosis
+```
+
+All four matched zero-input cases recover; the same 40 N·s wrench reproduces
+the three delayed/bounded-error falls while the ideal reference recovers.
+See the [complete diagnostic evidence](media/g1-observation-diagnosis.json)
+for the eight measured outcomes and replay/compatibility proofs.
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

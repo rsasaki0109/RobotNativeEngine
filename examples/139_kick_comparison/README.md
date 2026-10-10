@@ -240,6 +240,79 @@ replay across the original 18-case matrix. Source/configuration hashes, all 16
 measured summaries and compact compatibility/qualification proofs are retained
 in [the observation study](../../docs/media/kick-observation-study.json).
 
+## Matched G1 observation diagnosis
+
+`--g1-observation-diagnosis` isolates the three failed observation profiles
+with matched zero-input runs. The fixed matrix crosses `ideal_reference`,
+`delay_5ms`, `delay_20ms_limit`, and `bounded_error` with 0 and 40 N·s. Each
+pair uses the same G1 plant, seed 2002, capture schedule and error sequence.
+Physics and outer-control evaluation remain at 1 kHz, with the same two-second
+settlement, 6.2-second recording, 80 ms pulse and complete recovery predicate.
+Controller gains and joint, effort and target-slew limits are unchanged.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --g1-observation-diagnosis --output target/rne-g1-observation-diagnosis
+```
+
+Use `--observation-profile delay_5ms` to select a paired profile, or additionally
+`--diagnosis-input zero` or `kick` to reproduce one input condition. This
+diagnostic is separate from rendering, the impulse sweep and the original
+observation probe. Completion retains failed settlement and recovery rather
+than requiring every diagnostic case to recover.
+
+Every control tick, including settlement, emits a bounded JSONL record of
+capture, arrival and consumer times, the arrived estimate, separately labelled
+evaluator-only current truth, and the original controller feedback and
+requested/limited/issued joint targets. A separate evaluator truth channel at
+the delivered frame's capture tick separates injected error from staleness.
+Contact-force evidence describes the last completed physics step separately
+from the current pre-step pose. Foot samples include all contact counterparts;
+ground-pair impulses are a separate, canonically ordered aggregate.
+Evaluator truth is never supplied to the balance controller. The controller
+continues to consume only arrived frames; the inner position PD still uses
+instantaneous simulated joint feedback.
+JSONL is streamed with limits of 8,200 rows and 64 KiB per row, while capture
+truth uses a 21-row history. Each row describes 23 joints and two feet.
+
+Each case compares two fresh logging-on runs and one logging-off run. Ordered
+plant and observation/controller words and original decision fields must agree
+literally, and the two diagnostic streams must agree byte for byte. Matched
+zero/kick pairs compare 4,000 pre-input steps: decisions through absolute
+3.999 s and completed states through 4.000 s, including settlement. The first
+force-bearing step completes at 4.001 s. These checks exclude
+hidden solver caches and do not assert cross-platform reproducibility.
+
+The complete fixed-seed matrix settles upright in all eight cases. Every
+zero-input case recovers over the full recording; applying the wrench retains
+the three earlier failures:
+
+| Observation profile | 0 N·s recovery | Peak tilt (rad) | 40 N·s recovery | Peak tilt (rad) |
+| --- | --- | ---: | --- | ---: |
+| `ideal_reference` | pass | 0.006694 | pass | 0.289060 |
+| `delay_5ms` | pass | 0.007569 | fail | 1.638381 |
+| `delay_20ms_limit` | pass | 0.011861 | fail | 1.639157 |
+| `bounded_error` | pass | 0.007516 | fail | 1.646449 |
+
+All eight cases pass fresh plant/control/decision replay, logging-on/off
+equality and byte-identical JSONL replay. Within each of the four pairs,
+zero/kick pre-input prefixes match exactly. The four kicked outcomes and the
+ideal zero-input outcome also match the corresponding retained earlier trace
+values. The original
+18-case qualification retains its state/control hashes and trace values,
+with all 12 required recoveries still passing. Exact measured values, source
+bindings and compact audit proofs are in
+[the diagnostic evidence](../../docs/media/g1-observation-diagnosis.json).
+Position and target-speed limiting also occur in successful runs; their counts
+alone do not identify a failure mechanism. The evidence includes descriptive
+counts and signed correction peaks over the same fixed time windows for every
+case.
+
+The comparison asks whether each profile destabilizes standing over the full
+recording or fails only when the wrench is applied. It is a fixed-seed synthetic
+diagnosis, not an identified physical sensor model or a hardware tolerance
+claim. Its evidence is separate from the existing GIF and observation study.
+
 ## Measured stronger kick
 
 The default impulse increases from 24 to 40 N·s, or 67%, with the same 80 ms

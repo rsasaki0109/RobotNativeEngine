@@ -50,7 +50,12 @@ pub(super) struct Observation {
 impl FramePayload for Observation {}
 
 impl Observation {
-    fn capture(sim: &UrdfSceneSim, base_link: &str, feet: &[&str]) -> ObservationResult<Self> {
+    /// Captures one completed world tick; evaluator callers must not feed it back.
+    pub(super) fn capture(
+        sim: &UrdfSceneSim,
+        base_link: &str,
+        feet: &[&str],
+    ) -> ObservationResult<Self> {
         let (com_world_m, com_velocity_world_m_s, mass_kg) = model::center_of_mass(sim)?;
         let base_rotation_world = sim
             .named_transform(base_link)
@@ -210,6 +215,23 @@ impl Observation {
             return Err(io::Error::other("the captured synthetic estimate is invalid").into());
         }
         Ok(())
+    }
+
+    /// Serializes the estimate channels without recapturing or redrawing noise.
+    pub(super) fn diagnostic_fields(&self) -> Value {
+        json!({
+            "com_world_m":self.com_world_m.to_array(),
+            "com_velocity_world_m_s":self.com_velocity_world_m_s.to_array(),
+            "mass_kg":self.mass_kg,"base_rotation_world_xyzw":self.base_rotation_world.to_array(),
+            "up_world":self.up_world.to_array(),"forward_unit":self.forward_unit.to_array(),
+            "lateral_unit":self.lateral_unit.to_array(),"roll_rad":self.roll_rad,
+            "pitch_rad":self.pitch_rad,"roll_rate_rad_s":self.roll_rate_rad_s,
+            "angular_velocity_world_rad_s":self.angular_velocity_world_rad_s.to_array(),
+            "foot_positions_world_m":self.foot_positions_world_m.iter().map(|p|p.to_array()).collect::<Vec<_>>(),
+            "foot_normal_loads_n":self.foot_normal_loads_n,
+            "joint_states":self.joint_states.iter().map(|joint|json!({"link":joint.link_name,
+                "position_rad":joint.position_rad,"velocity_rad_s":joint.velocity_rad_s})).collect::<Vec<_>>()
+        })
     }
 
     pub(super) fn replay_words(&self) -> Vec<u64> {

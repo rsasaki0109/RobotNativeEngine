@@ -6,6 +6,7 @@
 
 #![recursion_limit = "256"]
 
+mod diagnostic;
 mod disturbance;
 mod g1_controller;
 mod go2_controller;
@@ -15,7 +16,10 @@ mod physics;
 mod render;
 
 use rne_render::{load_gltf_scene, AnimationProperty, GltfAnimationPlayer};
-use std::{error::Error, path::PathBuf};
+use std::{
+    error::Error,
+    path::{Path, PathBuf},
+};
 
 const HUMAN_ASSET: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -23,7 +27,7 @@ const HUMAN_ASSET: &str = concat!(
 );
 
 fn validate_human() -> Result<(), Box<dyn Error>> {
-    let asset = load_gltf_scene(std::path::Path::new(HUMAN_ASSET))?;
+    let asset = load_gltf_scene(Path::new(HUMAN_ASSET))?;
     for name in ["low_kick", "mid_kick"] {
         let (index, clip) = asset
             .animations
@@ -94,6 +98,26 @@ fn validate_human() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn validate_impulse(impulse_ns: f64, impulse_probe: bool) -> Result<(), Box<dyn Error>> {
+    if !impulse_ns.is_finite() || impulse_ns < 0.0 || (impulse_ns == 0.0 && !impulse_probe) {
+        return Err(
+            "--impulse-ns must be finite and positive (zero is allowed for a probe)".into(),
+        );
+    }
+    Ok(())
+}
+
+fn report_completion(output: &Path, g1_observation_diagnosis: bool, observation_probe: bool) {
+    let message = if g1_observation_diagnosis {
+        "G1 observation diagnosis completed; measured outcomes"
+    } else if observation_probe {
+        "observation probe completed; measured recovery outcomes"
+    } else {
+        "kick comparison ok"
+    };
+    println!("{message}: {}", output.display());
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments: Vec<_> = std::env::args().skip(1).collect();
     let mut output = PathBuf::from("target/rne-kick-comparison");
@@ -102,6 +126,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut impulse_sweep = false;
     let mut impulse_probe = false;
     let mut observation_probe = false;
+    let mut g1_observation_diagnosis = false;
+    let mut diagnosis_input: Option<String> = None;
     let mut observation_profile: Option<String> = None;
     let mut balance_off = false;
     let mut impulse_ns = physics::DEFAULT_IMPULSE_NS;
@@ -110,6 +136,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut render_only = false;
     let mut start_frame = 0;
     let mut frame_count = usize::MAX;
+    let mut render_frame_options_requested = false;
     let mut index = 0;
     while index < arguments.len() {
         match arguments[index].as_str() {
@@ -118,6 +145,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "--impulse-sweep" => impulse_sweep = true,
             "--impulse-probe" => impulse_probe = true,
             "--observation-probe" => observation_probe = true,
+            "--g1-observation-diagnosis" => g1_observation_diagnosis = true,
             "--balance-off" => balance_off = true,
             "--render" => render = true,
             "--render-only" => {
@@ -129,8 +157,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             | "--frame-count"
             | "--validation-robot"
             | "--impulse-ns"
-            | "--observation-profile" => {
+            | "--observation-profile"
+            | "--diagnosis-input" => {
                 let option = &arguments[index];
+                render_frame_options_requested |=
+                    matches!(option.as_str(), "--start-frame" | "--frame-count");
                 index += 1;
                 let value = arguments.get(index).ok_or("missing option value")?;
                 match option.as_str() {
@@ -138,6 +169,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "--start-frame" => start_frame = value.parse()?,
                     "--validation-robot" => validation_robot = Some(value.clone()),
                     "--observation-profile" => observation_profile = Some(value.clone()),
+                    "--diagnosis-input" => diagnosis_input = Some(value.clone()),
                     "--impulse-ns" => {
                         impulse_ns = value.parse()?;
                         impulse_requested = true;
@@ -149,10 +181,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         index += 1;
     }
-    if !impulse_ns.is_finite() || impulse_ns < 0.0 || (impulse_ns == 0.0 && !impulse_probe) {
-        return Err(
-            "--impulse-ns must be finite and positive (zero is allowed for a probe)".into(),
-        );
+    validate_impulse(impulse_ns, impulse_probe)?;
+    if g1_observation_diagnosis
+        && (observation_probe
+            || validate_recovery
+            || impulse_sweep
+            || impulse_probe
+            || render
+            || balance_off
+            || impulse_requested
+            || render_frame_options_requested
+            || validation_robot.is_some())
+    {
+        return Err("--g1-observation-diagnosis is a separate fixed G1 headless study".into());
+    }
+    if diagnosis_input.is_some() && !g1_observation_diagnosis {
+        return Err("--diagnosis-input requires --g1-observation-diagnosis".into());
     }
     if observation_probe
         && (validate_recovery
@@ -164,8 +208,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         return Err("--observation-probe is a separate fixed 40 N.s headless diagnostic".into());
     }
-    if observation_profile.is_some() && !observation_probe {
-        return Err("--observation-profile requires --observation-probe".into());
+    if observation_profile.is_some() && !observation_probe && !g1_observation_diagnosis {
+        return Err(
+            "--observation-profile requires --observation-probe or --g1-observation-diagnosis"
+                .into(),
+        );
     }
     if validation_robot.is_some()
         && !validate_recovery
@@ -188,7 +235,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     validate_human()?;
     if !render_only {
-        if observation_probe {
+        if g1_observation_diagnosis {
+            physics::diagnose_g1_observations(
+                &output,
+                observation_profile.as_deref(),
+                diagnosis_input.as_deref(),
+            )?;
+        } else if observation_probe {
             physics::probe_observations(
                 &output,
                 validation_robot.as_deref(),
@@ -210,20 +263,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     if render {
-        render::render(
-            &output,
-            std::path::Path::new(HUMAN_ASSET),
-            start_frame,
-            frame_count,
-        )?;
+        render::render(&output, Path::new(HUMAN_ASSET), start_frame, frame_count)?;
     }
-    if observation_probe {
-        println!(
-            "observation probe completed; measured recovery outcomes: {}",
-            output.display()
-        );
-    } else {
-        println!("kick comparison ok: {}", output.display());
-    }
+    report_completion(&output, g1_observation_diagnosis, observation_probe);
     Ok(())
 }
