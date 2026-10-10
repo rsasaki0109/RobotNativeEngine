@@ -23,7 +23,7 @@ NAMES = sorted(REQUIRED | {'balance_off', 'front_limit', 'oblique_limit'})
 def current_manifest():
     names = ['examples/139_kick_comparison/' + name for name in
              ('main.rs', 'physics.rs', 'render.rs', 'model.rs', 'disturbance.rs',
-              'go2_controller.rs', 'g1_controller.rs', 'observation.rs', 'models.json',
+              'go2_controller.rs', 'g1_controller.rs', 'observation.rs', 'diagnostic.rs', 'models.json',
               'go2.rne.scene.toml', 'g1.rne.scene.toml',
               'go2.rne.robot.toml', 'g1.rne.robot.toml')]
     models = json.loads((REPO / 'examples/139_kick_comparison/models.json').read_text())
@@ -155,6 +155,41 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE.validate_recordings(traces, summary_for(traces))
 
+    def test_diagnosis_evidence_cannot_be_relabelled_as_nominal_media(self):
+        # The profile, nominal labels, replay evidence, and clocks remain media-valid.
+        for robots in (('G1',), ('Go2', 'G1')):
+            with self.subTest(capture_robots=robots):
+                traces = copy.deepcopy(self.traces)
+                for trace in traces:
+                    if trace['robot'] in robots:
+                        trace['g1_observation_diagnosis'] = True
+                with self.assertRaisesRegex(ValueError, 'diagnosis evidence cannot qualify'):
+                    MODULE.validate_recordings(traces, summary_for(traces))
+        with tempfile.TemporaryDirectory() as directory:
+            path, report, nominal = make_report(Path(directory), 48.0)
+            self.assertTrue(MODULE.validation_metadata(path, nominal)['required_cases_passed'])
+            marked_nominal = copy.deepcopy(nominal)
+            marked_nominal[1]['g1_observation_diagnosis'] = True
+            with self.assertRaisesRegex(ValueError, 'diagnosis evidence cannot qualify'):
+                MODULE.validation_metadata(path, marked_nominal)
+            marked_report = dict(report, g1_observation_diagnosis=True)
+            path.write_text(json.dumps(marked_report))
+            with self.assertRaisesRegex(ValueError, 'diagnosis evidence cannot qualify'):
+                MODULE.validation_metadata(path, nominal)
+            trace_path = path.parent / 'g1-nominal.json'
+            trace = json.loads(trace_path.read_text())
+            trace['g1_observation_diagnosis'] = True
+            trace_path.write_text(json.dumps(trace))
+            case = next(case for case in report['cases']
+                        if case['robot'] == 'G1' and case['case'] == 'nominal')
+            for marker_in_case in (False, True):
+                with self.subTest(marker_in_validation_case=marker_in_case):
+                    if marker_in_case:
+                        case['g1_observation_diagnosis'] = True
+                    path.write_text(json.dumps(report))
+                    with self.assertRaisesRegex(ValueError, 'diagnosis evidence cannot qualify'):
+                        MODULE.validation_metadata(path, nominal)
+
     def test_rejects_mismatched_panels(self):
         self.traces[1] = make_trace('G1', 32.0)
         with self.assertRaises(ValueError):
@@ -202,12 +237,13 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE.validate_recordings(traces, summary)
 
-    def test_compiled_manifest_requires_render_and_human_sources(self):
+    def test_compiled_manifest_requires_render_human_and_diagnosis_sources(self):
         self.manifest_mock.stop()
         trace = {'compiled_source_sha256': current_manifest()}
-        self.assertEqual(len(MODULE.validate_compiled_sources(trace, REPO)), 23)
+        self.assertEqual(len(MODULE.validate_compiled_sources(trace, REPO)), 24)
         for name in ('examples/139_kick_comparison/render.rs',
                      'examples/139_kick_comparison/observation.rs',
+                     'examples/139_kick_comparison/diagnostic.rs',
                      'crates/rne_data/src/bus.rs', 'crates/rne_core/src/rng.rs',
                      'assets/fixtures/kick_human/cc0_sport_human.glb'):
             with self.subTest(source=name):

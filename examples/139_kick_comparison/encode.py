@@ -26,7 +26,7 @@ def validate_compiled_sources(trace, repo):
     manifest = trace.get("compiled_source_sha256")
     required = {"examples/139_kick_comparison/" + name for name in
                 ("main.rs", "physics.rs", "render.rs", "model.rs", "disturbance.rs", "go2_controller.rs",
-                 "g1_controller.rs", "observation.rs", "models.json", "go2.rne.scene.toml", "g1.rne.scene.toml",
+                 "g1_controller.rs", "observation.rs", "diagnostic.rs", "models.json", "go2.rne.scene.toml", "g1.rne.scene.toml",
                  "go2.rne.robot.toml", "g1.rne.robot.toml")}
     models = json.loads((repo / "examples/139_kick_comparison/models.json").read_text())
     required.update(model["derived"] for model in models["models"])
@@ -57,9 +57,16 @@ def same_scalar(actual, expected, label, abs_tol=1e-9):
         raise ValueError(f"{label} differs from the declared disturbance")
 
 
+def validate_media_scope(record):
+    if record.get("g1_observation_diagnosis", False) is not False:
+        raise ValueError("G1 observation diagnosis evidence cannot qualify public GIF encoding")
+
+
 def common_impulse(traces):
     if len(traces) != 2 or [trace["robot"] for trace in traces] != ["Go2", "G1"]:
         raise ValueError("Expected the ordered Go2/G1 recordings")
+    for trace in traces:
+        validate_media_scope(trace)
     impulse_ns = finite_scalar(traces[0]["impulse_n_s"], "Common impulse")
     if impulse_ns <= 0.0:
         raise ValueError("The common disturbance impulse must be positive")
@@ -114,6 +121,7 @@ def measured_disturbance(trace, impulse_ns, direction, dt_s=0.001, start_s=2.0):
 
 
 def validate_ideal_observation_pipeline(trace):
+    validate_media_scope(trace)
     pipeline = trace.get("observation_pipeline")
     period = round(finite_scalar(trace["dt_s"], "Physics time step") * 1_000_000_000)
     if (not isinstance(pipeline, dict) or pipeline.get("profile") != "ideal_reference"
@@ -136,6 +144,7 @@ def validate_ideal_observation_pipeline(trace):
 
 
 def validate_recordings(traces, summary):
+    validate_media_scope(summary)
     impulse_ns = common_impulse(traces)
     repo = Path(__file__).resolve().parents[2]
     manifests = [validate_compiled_sources(trace, repo) for trace in traces]
@@ -145,6 +154,7 @@ def validate_recordings(traces, summary):
         raise ValueError("Expected schema-2 recovery summary")
     measurements = []
     for trace, case in zip(traces, summary["cases"]):
+        validate_media_scope(case)
         if trace.get("schema_version") != 2 or trace["robot"] != case["robot"]:
             raise ValueError("Trace and summary identities must match")
         validate_ideal_observation_pipeline(trace)
@@ -192,6 +202,7 @@ def validation_metadata(path, nominal_traces):
         raise ValueError("Public GIF encoding requires a complete two-plant validation report")
     impulse_ns = common_impulse(nominal_traces)
     report = json.loads(path.read_text())
+    validate_media_scope(report)
     robots = report.get("robots")
     if robots != ["Go2", "G1"]:
         raise ValueError("Public GIF validation requires the full Go2/G1 report; filtered scope is incomplete")
@@ -202,6 +213,7 @@ def validation_metadata(path, nominal_traces):
     cases = []
     trace_hashes = {}
     for case in report["cases"]:
+        validate_media_scope(case)
         identity = (case["robot"], case["case"])
         if identity not in expected or identity in seen:
             raise ValueError("Validation contains an unknown or duplicate case")

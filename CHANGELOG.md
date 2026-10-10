@@ -23,6 +23,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Add an opt-in eight-case G1 observation diagnosis to example 139. Pair each
+  ideal, delayed, or bounded-error profile with zero input and the unchanged
+  40 N·s wrench. Stream per-tick arrived estimates, separately labelled
+  evaluator truth and bounded controller decisions, including settlement.
+  Verify fresh replay and literal logging-on/off behavior without changing
+  controller gains, limits, recovery gates, or the historical GIF.
+  All four matched zero-input runs recover; applying the wrench reproduces
+  the three delayed/bounded-error falls while the ideal reference recovers.
+  Retain all eight measured outcomes and source-bound audit proofs separately.
+
 - Add an opt-in Go2/G1 synthetic state-estimate observation probe to example
   139. Timestamped samples use arrival-respecting reads, held observations,
   and seeded bounded errors; physics and bounded control still run at 1 kHz.

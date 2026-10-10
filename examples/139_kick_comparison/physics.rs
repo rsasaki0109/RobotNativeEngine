@@ -4,6 +4,7 @@
 //! animated human does not participate in physics, and robot poses are not edited.
 
 use super::{
+    diagnostic::{self, FinishedDiagnostics, RunDiagnostics},
     disturbance::Impact,
     g1_controller::G1Controller,
     go2_controller::Go2Controller,
@@ -146,6 +147,7 @@ struct Controller {
     robot: Robot,
     last_command_words: Vec<u64>,
     last_feedback: Value,
+    diagnostics: Option<RunDiagnostics>,
 }
 
 impl Controller {
@@ -161,6 +163,7 @@ impl Controller {
             robot,
             last_command_words: Vec::new(),
             last_feedback: Value::Null,
+            diagnostics: None,
         })
     }
 
@@ -169,6 +172,24 @@ impl Controller {
             .capture_if_due(sim, self.robot.base_link(), self.robot.feet())?;
         let arrived = self.pipeline.consume(sim.sim_time())?;
         let estimate = arrived.as_ref().map(|frame| &frame.payload);
+        // This extra capture is evaluator-only and exists solely with logging on.
+        // The feedback call below continues to receive only the arrived estimate.
+        let diagnostic_truth = if self
+            .diagnostics
+            .as_ref()
+            .is_some_and(|run| run.writer.is_some())
+        {
+            Some(diagnostic::evaluator_snapshot(sim)?)
+        } else {
+            None
+        };
+        let diagnostic_estimate = if diagnostic_truth.is_some() {
+            estimate
+                .map(|estimate| estimate.diagnostic_fields())
+                .unwrap_or(Value::Null)
+        } else {
+            Value::Null
+        };
         let dt_s = sim.fixed_delta().as_seconds().value();
         // Contact points are driver-only truth telemetry, never decision inputs.
         let support_points: Vec<_> = self
@@ -194,6 +215,14 @@ impl Controller {
         self.last_feedback["observation_timing"] = self.pipeline.telemetry();
         self.last_feedback["actual_support_points_scope"] =
             json!("driver pre-step ground truth; not feedback input");
+        if let Some(run) = &mut self.diagnostics {
+            run.record(
+                self.pipeline.telemetry(),
+                diagnostic_estimate,
+                diagnostic_truth,
+                &self.last_feedback,
+            )?;
+        }
         Ok(())
     }
 
@@ -331,6 +360,10 @@ fn compiled_source_hashes() -> Value {
             include_str!("observation.rs"),
         ),
         (
+            "examples/139_kick_comparison/diagnostic.rs",
+            include_str!("diagnostic.rs"),
+        ),
+        (
             "crates/rne_data/src/frame.rs",
             include_str!("../../crates/rne_data/src/frame.rs"),
         ),
@@ -442,6 +475,7 @@ struct Recording {
     trace: Value,
     state_bits: Vec<Vec<u64>>,
     control_state_words: Vec<Vec<u64>>,
+    diagnostics: Option<FinishedDiagnostics>,
 }
 
 fn ground_body_index(sim: &UrdfSceneSim) -> CaptureResult<u32> {
@@ -793,6 +827,16 @@ fn record_with_profile(
     capture_frames: bool,
     profile: Option<Profile>,
 ) -> CaptureResult<Recording> {
+    record_with_diagnostics(robot, case, capture_frames, profile, None)
+}
+
+fn record_with_diagnostics(
+    robot: Robot,
+    case: Case,
+    capture_frames: bool,
+    profile: Option<Profile>,
+    diagnostics: Option<RunDiagnostics>,
+) -> CaptureResult<Recording> {
     let mut sim = robot.load(case.dt_ticks)?;
     let initial_plant_contract = robot.validate(&sim)?;
     let mut controller = Controller::new(
@@ -801,6 +845,7 @@ fn record_with_profile(
         case.balance_feedback_enabled,
         profile.unwrap_or_else(|| Profile::ideal(case.dt_ticks)),
     )?;
+    controller.diagnostics = diagnostics;
     let dt_s = sim.fixed_delta().as_seconds().value();
     let mut states = Vec::new();
     let mut control_states = Vec::new();
@@ -908,6 +953,11 @@ fn record_with_profile(
     let word_count: usize = states.iter().map(Vec::len).sum();
     let control_hash = stable_hash(&control_states);
     let control_word_count: usize = control_states.iter().map(Vec::len).sum();
+    let diagnostics = controller
+        .diagnostics
+        .take()
+        .map(RunDiagnostics::finish)
+        .transpose()?;
     Ok(Recording {
         trace: json!({"schema_version":2,"robot":robot.name(),"case":case.name,
         "compiled_source_sha256":compiled_source_hashes(),
@@ -930,6 +980,7 @@ fn record_with_profile(
         "observation_control_state_definition":"Each tick including settlement: seed/domain and exact schedule, counters, bounded retained arrival frames and last consumed sample, canonical payload words, controller filters/trims/arms/quiet timer and sorted joint command words. Literal IEEE f64 bits and integer ticks; excludes hidden solver caches."}),
         state_bits: states,
         control_state_words: control_states,
+        diagnostics,
     })
 }
 
@@ -1221,6 +1272,263 @@ pub(super) fn probe_observations(
     Ok(())
 }
 
+#[derive(Debug)]
+struct DiagnosisPrefix {
+    states: Vec<Vec<u64>>,
+    controls: Vec<Vec<u64>>,
+    decisions: Vec<Vec<u64>>,
+    pipeline: Value,
+}
+
+fn diagnosis_prefix_count(recording: &Recording) -> usize {
+    // Completed steps before the first force-bearing step, including settlement.
+    recording
+        .state_bits
+        .len()
+        .min(((SETTLE_S + NOMINAL.start_s) / 1e-3).round() as usize)
+}
+
+impl DiagnosisPrefix {
+    fn from_recording(mut recording: Recording) -> Self {
+        let count = diagnosis_prefix_count(&recording);
+        recording.state_bits.truncate(count);
+        recording.control_state_words.truncate(count);
+        let mut decisions = recording
+            .diagnostics
+            .take()
+            .expect("diagnostics")
+            .decision_words;
+        decisions.truncate(count);
+        Self {
+            states: recording.state_bits,
+            controls: recording.control_state_words,
+            decisions,
+            pipeline: recording.trace["observation_pipeline"].clone(),
+        }
+    }
+
+    fn compare(&self, kick: &Recording, name: &str) -> CaptureResult<Value> {
+        let count = diagnosis_prefix_count(kick);
+        require(
+            self.states.len() == count && self.states == kick.state_bits[..count],
+            "zero/kick pre-input plant prefix differs",
+        )?;
+        require(
+            self.controls == kick.control_state_words[..count],
+            "zero/kick pre-input control prefix differs",
+        )?;
+        require(
+            self.decisions == diagnosis_decisions(kick)?[..count],
+            "zero/kick pre-input decision prefix differs",
+        )?;
+        require(
+            self.pipeline == kick.trace["observation_pipeline"],
+            "zero/kick estimate configuration differs",
+        )?;
+        Ok(json!({"profile":name,"completed_steps":count,
+            "consumer_start_ticks":0,"consumer_last_ticks":count.saturating_sub(1) as u64 * diagnostic::DT_TICKS,
+            "completed_through_ticks":count as u64 * diagnostic::DT_TICKS,
+            "planned_first_force_consumer_ticks":4_000_000_000_u64,
+            "planned_first_force_completed_ticks":4_001_000_000_u64,
+            "plant_words_exact":true,"control_words_exact":true,"existing_decision_fields_exact":true,
+            "observation_pipeline_exact":true,"plant_prefix_hash":stable_hash(&self.states),
+            "control_prefix_hash":stable_hash(&self.controls),"decision_prefix_hash":stable_hash(&self.decisions),
+            "scope":"settlement plus recording prefix before first force-bearing step; impulse is the only case input difference"}))
+    }
+}
+
+fn diagnosis_decisions(recording: &Recording) -> CaptureResult<&[Vec<u64>]> {
+    recording
+        .diagnostics
+        .as_ref()
+        .map(|run| run.decision_words.as_slice())
+        .ok_or_else(|| io::Error::other("missing all-tick diagnosis decision words").into())
+}
+
+fn verify_diagnosis_behavior(first: &Recording, other: &Recording) -> CaptureResult<()> {
+    require(
+        first.state_bits == other.state_bits,
+        "diagnosis changed literal plant words",
+    )?;
+    require(
+        first.control_state_words == other.control_state_words,
+        "diagnosis changed literal observation/control words",
+    )?;
+    require(
+        diagnosis_decisions(first)? == diagnosis_decisions(other)?,
+        "diagnosis changed literal existing decision fields",
+    )?;
+    for key in [
+        "plant",
+        "controller",
+        "observation_pipeline",
+        "observation_metrics",
+        "settlement",
+        "summary",
+        "force_history",
+        "telemetry",
+    ] {
+        require(
+            first.trace[key] == other.trace[key],
+            "diagnosis changed existing trace outcomes or telemetry",
+        )?;
+    }
+    require(
+        first.state_bits.len() == diagnosis_decisions(first)?.len(),
+        "diagnosis missed a control decision",
+    )
+}
+
+fn write_diagnosis_trace(output: &Path, filename: &str, trace: &Value) -> CaptureResult<String> {
+    let bytes = serde_json::to_vec(trace)?;
+    let hash = format!("{:x}", Sha256::digest(&bytes));
+    fs::write(output.join(filename), bytes)?;
+    Ok(hash)
+}
+
+/// Measures the eight predeclared G1 timing/error and zero/kick combinations.
+///
+/// Every case uses two fresh logging-on worlds and a logging-off world. Failure
+/// to recover remains an outcome; exact replay and logging noninterference are
+/// required independently. Only this opt-in path writes all-tick JSONL evidence.
+pub(super) fn diagnose_g1_observations(
+    output: &Path,
+    profile_filter: Option<&str>,
+    input_filter: Option<&str>,
+) -> CaptureResult<()> {
+    let names = diagnostic::profile_names(profile_filter)?;
+    let inputs = diagnostic::inputs(input_filter)?;
+    fs::create_dir_all(output)?;
+    let mut reports = Vec::new();
+    let mut prefixes = Vec::new();
+    for name in &names {
+        let profile = observation::profiles(Some(name))?[0];
+        require(
+            !profile.zero_input && profile.sample_period_ticks == diagnostic::DT_TICKS,
+            "diagnosis must use the unchanged 1 kHz nonzero-input profile configuration",
+        )?;
+        let mut zero_prefix: Option<DiagnosisPrefix> = None;
+        for &(input, impulse_ns) in &inputs {
+            let case = Case {
+                name,
+                impulse_ns,
+                ..NOMINAL
+            };
+            let stem = format!("g1-diagnosis-{name}-{input}");
+            let jsonl_filename = format!("{stem}.jsonl");
+            let jsonl_path = output.join(&jsonl_filename);
+            let repeat_path = output.join(format!("{stem}.repeat.jsonl"));
+            let mut first = record_with_diagnostics(
+                Robot::G1,
+                case,
+                false,
+                Some(profile),
+                Some(RunDiagnostics::enabled(&jsonl_path)?),
+            )?;
+            require(
+                first.trace["observation_pipeline"]["world_seed"] == 2002,
+                "G1 diagnosis seed must be 2002",
+            )?;
+            {
+                let repeat = record_with_diagnostics(
+                    Robot::G1,
+                    case,
+                    false,
+                    Some(profile),
+                    Some(RunDiagnostics::enabled(&repeat_path)?),
+                )?;
+                verify_diagnosis_behavior(&first, &repeat)?;
+                verify_replay(&mut first, &repeat)?;
+                diagnostic::require_same_bytes(&jsonl_path, &repeat_path)?;
+            }
+            fs::remove_file(&repeat_path)?;
+            let off_filename = format!("{stem}.logging-off.json");
+            let off_sha256;
+            {
+                let mut off = record_with_diagnostics(
+                    Robot::G1,
+                    case,
+                    false,
+                    Some(profile),
+                    Some(RunDiagnostics::default()),
+                )?;
+                verify_diagnosis_behavior(&first, &off)?;
+                off.trace["g1_observation_diagnosis"] = json!(true);
+                off.trace["all_tick_diagnostic_logging_enabled"] = json!(false);
+                off_sha256 = write_diagnosis_trace(output, &off_filename, &off.trace)?;
+            }
+            let run = first.diagnostics.as_ref().expect("diagnostic recording");
+            let mut artifact = run.artifact.clone().expect("enabled JSONL artifact");
+            require(
+                artifact["rows"] == first.state_bits.len(),
+                "JSONL did not cover every control tick including settlement",
+            )?;
+            artifact["file"] = json!(jsonl_filename);
+            artifact["bytes_exact_fresh_repeat"] = json!(true);
+            let decisions_hash = stable_hash(&run.decision_words);
+            let decisions_word_count: usize = run.decision_words.iter().map(Vec::len).sum();
+            first.trace["g1_observation_diagnosis"] = json!(true);
+            first.trace["all_tick_diagnostic_logging_enabled"] = json!(true);
+            first.trace["all_tick_diagnostic"] = artifact.clone();
+            first.trace["diagnosis_existing_decision_fields_hash"] = json!(decisions_hash);
+            first.trace["diagnosis_existing_decision_fields_word_count"] =
+                json!(decisions_word_count);
+            first.trace["diagnosis_existing_decision_fields_exact_fresh_repeat"] = json!(true);
+            first.trace["diagnosis_logging_on_off_plant_control_decisions_exact"] = json!(true);
+            let filename = format!("{stem}.json");
+            let trace_sha256 = write_diagnosis_trace(output, &filename, &first.trace)?;
+            reports.push(json!({
+                "g1_observation_diagnosis":true,
+                "robot":"G1","profile":name,"input":input,"impulse_n_s":impulse_ns,
+                "physics_period_ticks":case.dt_ticks,"controller_period_ticks":case.dt_ticks,
+                "trace":filename,"trace_sha256":trace_sha256,
+                "logging_off_trace":off_filename,"logging_off_trace_sha256":off_sha256,
+                "compiled_source_sha256":first.trace["compiled_source_sha256"],
+                "plant":first.trace["plant"],"controller":first.trace["controller"],
+                "observation_pipeline":first.trace["observation_pipeline"],"observation_metrics":first.trace["observation_metrics"],
+                "settlement":first.trace["settlement"],"summary":first.trace["summary"],
+                "planned_integrated_impulse_world_ns":first.trace["planned_integrated_impulse_world_ns"],
+                "actual_applied_impulse_world_ns":first.trace["actual_applied_impulse_world_ns"],
+                "observed_state_hash":first.trace["observed_state_hash"],"observed_state_word_count":first.trace["observed_state_word_count"],
+                "observation_control_state_hash":first.trace["observation_control_state_hash"],"observation_control_state_word_count":first.trace["observation_control_state_word_count"],
+                "observed_state_bits_exact_repeat":true,"observation_control_state_bits_exact_repeat":true,
+                "existing_decision_fields_hash":decisions_hash,"existing_decision_fields_word_count":decisions_word_count,
+                "existing_decision_fields_exact_fresh_repeat":true,"diagnostic_jsonl":artifact,
+                "logging_on_off_plant_words_exact":true,"logging_on_off_control_words_exact":true,
+                "logging_on_off_existing_decision_fields_exact":true,"logging_on_off_existing_trace_outcomes_exact":true,
+                "fresh_world_runs":3,"logging_on_fresh_runs":2,"logging_off_fresh_runs":1
+            }));
+            if inputs.len() == 2 {
+                if input == "zero" {
+                    zero_prefix = Some(DiagnosisPrefix::from_recording(first));
+                } else {
+                    let zero = zero_prefix.take().expect("ordered zero then kick");
+                    prefixes.push(zero.compare(&first, name)?);
+                }
+            }
+        }
+    }
+    fs::write(
+        output.join("g1-observation-diagnosis.json"),
+        serde_json::to_vec_pretty(&json!({
+            "schema_version":1,"g1_observation_diagnosis":true,"diagnostic_completed":true,
+            "complete_matrix":names.len() == 4 && inputs.len() == 2,
+            "predeclared_profiles":diagnostic::PROFILES,"selected_profiles":names,"selected_inputs":inputs.iter().map(|(name,_)|*name).collect::<Vec<_>>(),
+            "predeclared_impulses_n_s":[0.0,40.0],"world_seed":2002,
+            "physics_period_ticks":diagnostic::DT_TICKS,"controller_period_ticks":diagnostic::DT_TICKS,
+            "settlement_s":SETTLE_S,"recording_horizon_s":6.2,"pulse_duration_s":DURATION_S,
+            "maximum_control_rows_per_case":diagnostic::MAX_ROWS,
+            "execution_scope":"cases processed sequentially; at most first and one comparator full literal word recording, plus one bounded pre-input prefix; all-tick JSON streamed with a 21-row evaluator truth history",
+            "scope":"G1 synthetic simulator-derived state-estimate diagnosis. Evaluator truth/support never feed the controller. Inner implicit position PD retains ideal joints. Human is render-only; input remains a prescribed body wrench.",
+            "recovery_required_for_completion":false,"recovery_predicate_changed":false,
+            "controller_behavior_changed":false,"required_nominal_envelope_changed":false,
+            "hardware_validation":false,"identified_sensor_model":false,
+            "matched_zero_kick_prefixes":prefixes,"cases":reports
+        }))?,
+    )?;
+    Ok(())
+}
+
 fn record_case_matrix(
     robots: &[Robot],
     cases: &[Case],
@@ -1285,4 +1593,107 @@ fn validate_robot_cases(
             "observed_state_hash":trace["observed_state_hash"],"observed_state_bits_exact_repeat":true}));
     }
     Ok(reports)
+}
+
+#[cfg(test)]
+mod diagnosis_tests {
+    use super::*;
+
+    #[test]
+    fn all_tick_logging_preserves_real_startup_decisions_and_world_bits() {
+        let output =
+            std::env::temp_dir().join(format!("rne-g1-diagnosis-causal-{}", std::process::id()));
+        fs::create_dir_all(&output).unwrap();
+        for name in diagnostic::PROFILES {
+            let profile = observation::profiles(Some(name)).unwrap()[0];
+            let mut results = Vec::new();
+            for run in 0..3 {
+                let mut sim = Robot::G1.load(diagnostic::DT_TICKS).unwrap();
+                let mut controller = Controller::new(Robot::G1, &mut sim, true, profile).unwrap();
+                controller.diagnostics = Some(if run < 2 {
+                    RunDiagnostics::enabled(&output.join(format!("{name}-{run}.jsonl"))).unwrap()
+                } else {
+                    RunDiagnostics::default()
+                });
+                let impact = Impact::new(23, 80, 1e-3, 40.0, Vec3::Z);
+                let mut states = Vec::new();
+                let mut controls = Vec::new();
+                for step in 1..=25 {
+                    apply_impact(Robot::G1, &mut sim, &impact, step).unwrap();
+                    controller.step(&mut sim).unwrap();
+                    states.push(state_bits(Robot::G1, &sim));
+                    controls.push(controller.replay_words());
+                }
+                let diagnosis = controller.diagnostics.take().unwrap().finish().unwrap();
+                assert_eq!(diagnosis.decision_words.len(), 25);
+                if let Some(artifact) = &diagnosis.artifact {
+                    assert_eq!(artifact["rows"], 25);
+                }
+                results.push((states, controls, diagnosis.decision_words));
+            }
+            assert_eq!(results[0], results[1], "fresh replay {name}");
+            assert_eq!(results[0], results[2], "logging noninterference {name}");
+            let first_path = output.join(format!("{name}-0.jsonl"));
+            diagnostic::require_same_bytes(&first_path, &output.join(format!("{name}-1.jsonl")))
+                .unwrap();
+            let lines: Vec<Value> = fs::read_to_string(first_path)
+                .unwrap()
+                .lines()
+                .map(|line| serde_json::from_str(line).unwrap())
+                .collect();
+            assert_eq!(lines[0]["consumer_ticks"], 0);
+            assert_eq!(lines[0]["evaluator_current_truth"]["consumer_ticks"], 0);
+            assert_eq!(
+                lines[0]["evaluator_current_truth"]["contact_solution_available"],
+                false
+            );
+            assert_eq!(
+                lines[0]["decision"]["joint_feedback"]
+                    .as_array()
+                    .unwrap()
+                    .len(),
+                23
+            );
+            for (index, row) in lines.iter().enumerate() {
+                assert_eq!(row["consumer_ticks"], index as u64 * diagnostic::DT_TICKS);
+                assert_eq!(
+                    row["evaluator_current_truth"]["consumer_ticks"],
+                    row["consumer_ticks"]
+                );
+                assert_eq!(
+                    row["command_completed_ticks"],
+                    (index as u64 + 1) * diagnostic::DT_TICKS
+                );
+                let capture = row["observation_timing"]["capture_ticks"].as_u64();
+                if let Some(capture) = capture {
+                    assert!(capture <= row["consumer_ticks"].as_u64().unwrap());
+                    let captured_truth = &lines[(capture / diagnostic::DT_TICKS) as usize]
+                        ["evaluator_current_truth"]["observation"];
+                    assert_eq!(&row["evaluator_delivered_capture_truth"], captured_truth);
+                    if name != "bounded_error" {
+                        assert_eq!(&row["delivered_estimate"], captured_truth);
+                    }
+                } else {
+                    assert!(row["delivered_estimate"].is_null());
+                    assert!(row["evaluator_delivered_capture_truth"].is_null());
+                    assert_eq!(row["decision"]["no_observation"], true);
+                }
+            }
+            if name == "delay_20ms_limit" {
+                assert!(lines[..20]
+                    .iter()
+                    .all(|row| row["delivered_estimate"].is_null()));
+                assert_eq!(lines[20]["observation_timing"]["capture_ticks"], 0);
+                assert_eq!(
+                    lines[20]["observation_timing"]["observation_age_ticks"],
+                    20 * diagnostic::DT_TICKS
+                );
+                assert_ne!(
+                    lines[20]["evaluator_delivered_capture_truth"],
+                    lines[20]["evaluator_current_truth"]["observation"]
+                );
+            }
+        }
+        fs::remove_dir_all(output).unwrap();
+    }
 }

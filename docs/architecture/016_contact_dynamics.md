@@ -665,6 +665,33 @@ The normal binary's original matrix separately passes all 12 required recoveries
 and exact plant/control replay in all 18 cases. The compact measured proof is
 retained in [the observation study](../media/kick-observation-study.json).
 
+Example 139 additionally provides a matched G1 observation diagnosis. Four
+fixed profiles (ideal, 5 ms delay, 20 ms delay and bounded error) are each run
+with zero input and the same 40 N·s lateral wrench. The plant, seed, capture
+schedule, controller limits and full recovery predicate remain fixed. This
+comparison addresses the missing zero-input controls for the earlier three
+failed profiles rather than changing the public recovery qualification.
+
+The diagnosis streams bounded per-tick JSONL through settlement and recovery.
+Arrived estimates and capture/arrival/consumer times remain the only outer
+feedback available to control. Separately labelled evaluator truth and
+original controller correction/target decisions share the pre-step tick;
+contact-force samples retain their last-completed-step meaning. Evaluator
+truth, disturbance parameters and future frames never become controller
+inputs. Two fresh logging-on runs and a logging-off run compare actual
+ordered plant/control words and original decisions; fresh streams are also
+byte-compared. Paired pre-input trajectories are checked independently of
+post-input recovery. No core API, solver setting or controller gain changes.
+
+All eight measured cases settle upright. All four zero-input recordings
+recover, while only the ideal-observation kicked recording recovers; delayed
+and bounded-error kicked recordings reproduce the three earlier falls. Each
+pair's 4,000-step pre-input prefix matches literally. These results locate the
+failure within this fixed synthetic disturbance experiment without identifying
+a physical sensor tolerance or a unique controller failure mechanism. The
+[compact diagnostic evidence](../media/g1-observation-diagnosis.json) retains
+all eight outcomes and the separate replay and compatibility proofs.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`
