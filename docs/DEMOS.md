@@ -357,6 +357,26 @@ the three delayed/bounded-error falls while the ideal reference recovers.
 See the [complete diagnostic evidence](media/g1-observation-diagnosis.json)
 for the eight measured outcomes and replay/compatibility proofs.
 
+`--g1-orientation-age-experiment` adds an explicit comparison between raw
+feedback and orientation projected from an arrived frame's capture age and
+world gyro. Its 16 cases hold gains, physics and recovery criteria fixed.
+Zero-age feedback is unchanged; all other channels retain captured values.
+The primary test is recovery under 5 ms delay and the same 40 N·s wrench.
+All failed cases remain in this headless experiment's evidence, which is
+separate from public GIF qualification.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --g1-orientation-age-experiment --output target/rne-g1-orientation-age
+```
+
+In the complete fixed-seed matrix, projection restores full-predicate recovery
+for the 5 ms delayed 40 N·s kick, reducing peak tilt from 1.638381 to
+0.309082 rad. The 20 ms delayed and bounded-error kicks still fail, while all
+eight zero-input runs recover. Default feedback remains raw. See the
+[16 measured outcomes and source-bound proofs](media/g1-orientation-age-experiment.json)
+for the full comparison and literal replay scope.
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

@@ -26,7 +26,8 @@ def validate_compiled_sources(trace, repo):
     manifest = trace.get("compiled_source_sha256")
     required = {"examples/139_kick_comparison/" + name for name in
                 ("main.rs", "physics.rs", "render.rs", "model.rs", "disturbance.rs", "go2_controller.rs",
-                 "g1_controller.rs", "observation.rs", "diagnostic.rs", "models.json", "go2.rne.scene.toml", "g1.rne.scene.toml",
+                 "g1_controller.rs", "observation.rs", "diagnostic.rs", "feedback.rs", "models.json",
+                 "go2.rne.scene.toml", "g1.rne.scene.toml",
                  "go2.rne.robot.toml", "g1.rne.robot.toml")}
     models = json.loads((repo / "examples/139_kick_comparison/models.json").read_text())
     required.update(model["derived"] for model in models["models"])
@@ -60,6 +61,14 @@ def same_scalar(actual, expected, label, abs_tol=1e-9):
 def validate_media_scope(record):
     if record.get("g1_observation_diagnosis", False) is not False:
         raise ValueError("G1 observation diagnosis evidence cannot qualify public GIF encoding")
+    if record.get("g1_orientation_age_experiment", False) is not False:
+        raise ValueError("G1 orientation-age experiment evidence cannot qualify public GIF encoding")
+    if record.get("feedback_policy", "raw_reference") != "raw_reference":
+        raise ValueError("Public GIF qualification requires raw-reference feedback policy")
+    for key in ("summary", "controller"):
+        nested = record.get(key)
+        if isinstance(nested, dict):
+            validate_media_scope(nested)
 
 
 def common_impulse(traces):

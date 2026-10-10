@@ -8,6 +8,7 @@
 
 mod diagnostic;
 mod disturbance;
+mod feedback;
 mod g1_controller;
 mod go2_controller;
 mod model;
@@ -118,6 +119,100 @@ fn report_completion(output: &Path, g1_observation_diagnosis: bool, observation_
     println!("{message}: {}", output.display());
 }
 
+fn validate_g1_study_mode(
+    diagnosis: bool,
+    experiment: bool,
+    incompatible: bool,
+    policy: Option<&str>,
+    input: Option<&str>,
+) -> Result<(), Box<dyn Error>> {
+    if (diagnosis || experiment) && (incompatible || (diagnosis && experiment)) {
+        return Err("G1 observation studies are separate fixed headless modes".into());
+    }
+    if policy.is_some() && !experiment {
+        return Err("--feedback-policy requires --g1-orientation-age-experiment".into());
+    }
+    if input.is_some() && !diagnosis && !experiment {
+        return Err("--diagnosis-input requires a G1 observation study".into());
+    }
+    Ok(())
+}
+
+#[derive(Debug)]
+struct HeadlessOptions<'a> {
+    orientation_age_experiment: bool,
+    g1_observation_diagnosis: bool,
+    observation_probe: bool,
+    impulse_sweep: bool,
+    impulse_probe: bool,
+    validate_recovery: bool,
+    balance_off: bool,
+    impulse_ns: f64,
+    validation_robot: Option<&'a str>,
+    feedback_policy: Option<&'a str>,
+    observation_profile: Option<&'a str>,
+    diagnosis_input: Option<&'a str>,
+}
+
+fn run_headless(output: &Path, options: HeadlessOptions<'_>) -> Result<(), Box<dyn Error>> {
+    if options.orientation_age_experiment {
+        physics::experiment_g1_orientation_age(
+            output,
+            options.feedback_policy,
+            options.observation_profile,
+            options.diagnosis_input,
+        )?;
+    } else if options.g1_observation_diagnosis {
+        physics::diagnose_g1_observations(
+            output,
+            options.observation_profile,
+            options.diagnosis_input,
+        )?;
+    } else if options.observation_probe {
+        physics::probe_observations(
+            output,
+            options.validation_robot,
+            options.observation_profile,
+        )?;
+    } else if options.impulse_sweep {
+        physics::sweep_impulse(output, options.validation_robot)?;
+    } else if options.impulse_probe {
+        physics::probe_impulse(
+            output,
+            options.validation_robot,
+            options.impulse_ns,
+            !options.balance_off,
+        )?;
+    } else if options.validate_recovery {
+        physics::validate_recovery(output, options.validation_robot, options.impulse_ns)?;
+    } else {
+        physics::capture(output, options.impulse_ns)?;
+    }
+    Ok(())
+}
+
+fn validate_impulse_modes(
+    sweep: bool,
+    validation: bool,
+    render: bool,
+    explicit_dose: bool,
+    probe: bool,
+    balance_off: bool,
+) -> Result<(), Box<dyn Error>> {
+    if sweep && (validation || render || explicit_dose || probe) {
+        return Err(
+            "--impulse-sweep cannot be combined with rendering, validation or --impulse-ns".into(),
+        );
+    }
+    if probe && (validation || render) {
+        return Err("--impulse-probe cannot be combined with rendering or validation".into());
+    }
+    if balance_off && !probe {
+        return Err("--balance-off requires --impulse-probe".into());
+    }
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments: Vec<_> = std::env::args().skip(1).collect();
     let mut output = PathBuf::from("target/rne-kick-comparison");
@@ -127,6 +222,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut impulse_probe = false;
     let mut observation_probe = false;
     let mut g1_observation_diagnosis = false;
+    let mut orientation_age_experiment = false;
+    let mut feedback_policy: Option<String> = None;
     let mut diagnosis_input: Option<String> = None;
     let mut observation_profile: Option<String> = None;
     let mut balance_off = false;
@@ -146,6 +243,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "--impulse-probe" => impulse_probe = true,
             "--observation-probe" => observation_probe = true,
             "--g1-observation-diagnosis" => g1_observation_diagnosis = true,
+            "--g1-orientation-age-experiment" => orientation_age_experiment = true,
             "--balance-off" => balance_off = true,
             "--render" => render = true,
             "--render-only" => {
@@ -158,6 +256,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             | "--validation-robot"
             | "--impulse-ns"
             | "--observation-profile"
+            | "--feedback-policy"
             | "--diagnosis-input" => {
                 let option = &arguments[index];
                 render_frame_options_requested |=
@@ -170,6 +269,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "--validation-robot" => validation_robot = Some(value.clone()),
                     "--observation-profile" => observation_profile = Some(value.clone()),
                     "--diagnosis-input" => diagnosis_input = Some(value.clone()),
+                    "--feedback-policy" => feedback_policy = Some(value.clone()),
                     "--impulse-ns" => {
                         impulse_ns = value.parse()?;
                         impulse_requested = true;
@@ -182,22 +282,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         index += 1;
     }
     validate_impulse(impulse_ns, impulse_probe)?;
-    if g1_observation_diagnosis
-        && (observation_probe
-            || validate_recovery
-            || impulse_sweep
-            || impulse_probe
-            || render
-            || balance_off
-            || impulse_requested
-            || render_frame_options_requested
-            || validation_robot.is_some())
-    {
-        return Err("--g1-observation-diagnosis is a separate fixed G1 headless study".into());
-    }
-    if diagnosis_input.is_some() && !g1_observation_diagnosis {
-        return Err("--diagnosis-input requires --g1-observation-diagnosis".into());
-    }
+    let incompatible_study_mode = observation_probe
+        || validate_recovery
+        || impulse_sweep
+        || impulse_probe
+        || render
+        || balance_off
+        || impulse_requested
+        || render_frame_options_requested
+        || validation_robot.is_some();
+    validate_g1_study_mode(
+        g1_observation_diagnosis,
+        orientation_age_experiment,
+        incompatible_study_mode,
+        feedback_policy.as_deref(),
+        diagnosis_input.as_deref(),
+    )?;
     if observation_probe
         && (validate_recovery
             || impulse_sweep
@@ -208,9 +308,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         return Err("--observation-probe is a separate fixed 40 N.s headless diagnostic".into());
     }
-    if observation_profile.is_some() && !observation_probe && !g1_observation_diagnosis {
+    if observation_profile.is_some()
+        && !observation_probe
+        && !g1_observation_diagnosis
+        && !orientation_age_experiment
+    {
         return Err(
-            "--observation-profile requires --observation-probe or --g1-observation-diagnosis"
+            "--observation-profile requires --observation-probe, --g1-observation-diagnosis or --g1-orientation-age-experiment"
                 .into(),
         );
     }
@@ -222,49 +326,41 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         return Err("--validation-robot requires validation or an impulse probe/sweep".into());
     }
-    if impulse_sweep && (validate_recovery || render || impulse_requested || impulse_probe) {
-        return Err(
-            "--impulse-sweep cannot be combined with rendering, validation or --impulse-ns".into(),
-        );
-    }
-    if impulse_probe && (validate_recovery || render) {
-        return Err("--impulse-probe cannot be combined with rendering or validation".into());
-    }
-    if balance_off && !impulse_probe {
-        return Err("--balance-off requires --impulse-probe".into());
-    }
+    validate_impulse_modes(
+        impulse_sweep,
+        validate_recovery,
+        render,
+        impulse_requested,
+        impulse_probe,
+        balance_off,
+    )?;
     validate_human()?;
     if !render_only {
-        if g1_observation_diagnosis {
-            physics::diagnose_g1_observations(
-                &output,
-                observation_profile.as_deref(),
-                diagnosis_input.as_deref(),
-            )?;
-        } else if observation_probe {
-            physics::probe_observations(
-                &output,
-                validation_robot.as_deref(),
-                observation_profile.as_deref(),
-            )?;
-        } else if impulse_sweep {
-            physics::sweep_impulse(&output, validation_robot.as_deref())?;
-        } else if impulse_probe {
-            physics::probe_impulse(
-                &output,
-                validation_robot.as_deref(),
+        run_headless(
+            &output,
+            HeadlessOptions {
+                orientation_age_experiment,
+                g1_observation_diagnosis,
+                observation_probe,
+                impulse_sweep,
+                impulse_probe,
+                validate_recovery,
+                balance_off,
                 impulse_ns,
-                !balance_off,
-            )?;
-        } else if validate_recovery {
-            physics::validate_recovery(&output, validation_robot.as_deref(), impulse_ns)?;
-        } else {
-            physics::capture(&output, impulse_ns)?;
-        }
+                validation_robot: validation_robot.as_deref(),
+                feedback_policy: feedback_policy.as_deref(),
+                observation_profile: observation_profile.as_deref(),
+                diagnosis_input: diagnosis_input.as_deref(),
+            },
+        )?;
     }
     if render {
         render::render(&output, Path::new(HUMAN_ASSET), start_frame, frame_count)?;
     }
-    report_completion(&output, g1_observation_diagnosis, observation_probe);
+    report_completion(
+        &output,
+        g1_observation_diagnosis || orientation_age_experiment,
+        observation_probe,
+    );
     Ok(())
 }

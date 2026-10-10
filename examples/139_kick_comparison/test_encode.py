@@ -23,7 +23,8 @@ NAMES = sorted(REQUIRED | {'balance_off', 'front_limit', 'oblique_limit'})
 def current_manifest():
     names = ['examples/139_kick_comparison/' + name for name in
              ('main.rs', 'physics.rs', 'render.rs', 'model.rs', 'disturbance.rs',
-              'go2_controller.rs', 'g1_controller.rs', 'observation.rs', 'diagnostic.rs', 'models.json',
+              'go2_controller.rs', 'g1_controller.rs', 'observation.rs', 'diagnostic.rs',
+              'feedback.rs', 'models.json',
               'go2.rne.scene.toml', 'g1.rne.scene.toml',
               'go2.rne.robot.toml', 'g1.rne.robot.toml')]
     models = json.loads((REPO / 'examples/139_kick_comparison/models.json').read_text())
@@ -190,6 +191,56 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, 'diagnosis evidence cannot qualify'):
                         MODULE.validation_metadata(path, nominal)
 
+    def test_orientation_age_evidence_cannot_be_relabelled_as_public_media(self):
+        # Ideal labels, valid force/replay evidence, and the full 18 cases remain intact.
+        metadata = (
+            ({'g1_orientation_age_experiment': True, 'feedback_policy': 'raw_reference'},
+             'orientation-age experiment evidence cannot qualify'),
+            ({'g1_orientation_age_experiment': True, 'feedback_policy': 'orientation_known_age'},
+             'orientation-age experiment evidence cannot qualify'),
+            ({'feedback_policy': 'orientation_known_age'}, 'raw-reference feedback policy'),
+        )
+        for fields, error in metadata:
+            for entrance in ('trace', 'summary', 'summary_case', 'nested_summary', 'controller'):
+                with self.subTest(fields=fields, capture_entrance=entrance):
+                    traces = copy.deepcopy(self.traces)
+                    summary = summary_for(traces)
+                    target = {'trace': traces[1], 'summary': summary,
+                              'summary_case': summary['cases'][1],
+                              'nested_summary': traces[1]['summary'],
+                              'controller': traces[1]['controller']}[entrance]
+                    target.update(fields)
+                    with self.assertRaisesRegex(ValueError, error):
+                        MODULE.validate_recordings(traces, summary)
+        traces = copy.deepcopy(self.traces)
+        traces[1]['feedback_policy'] = 'raw_reference'
+        traces[1]['g1_orientation_age_experiment'] = False
+        MODULE.validate_recordings(traces, summary_for(traces))
+        traces[1]['controller']['feedback_policy'] = 'orientation_known_age'
+        with self.assertRaisesRegex(ValueError, 'raw-reference feedback policy'):
+            MODULE.validate_recordings(traces, summary_for(traces))
+        with tempfile.TemporaryDirectory() as directory:
+            path, report, nominal = make_report(Path(directory), 48.0)
+            self.assertTrue(MODULE.validation_metadata(path, nominal)['required_cases_passed'])
+            trace_path = path.parent / 'go2-balance_off.json'
+            original_trace = json.loads(trace_path.read_text())
+            for fields, error in metadata:
+                for entrance in ('nominal', 'report', 'case', 'per_case_trace', 'nested_summary'):
+                    with self.subTest(fields=fields, validation_entrance=entrance):
+                        candidate_report = copy.deepcopy(report)
+                        candidate_nominal = copy.deepcopy(nominal)
+                        candidate_trace = copy.deepcopy(original_trace)
+                        target = {'nominal': candidate_nominal[1],
+                                  'report': candidate_report,
+                                  'case': candidate_report['cases'][0],
+                                  'per_case_trace': candidate_trace,
+                                  'nested_summary': candidate_trace['summary']}[entrance]
+                        target.update(fields)
+                        trace_path.write_text(json.dumps(candidate_trace))
+                        path.write_text(json.dumps(candidate_report))
+                        with self.assertRaisesRegex(ValueError, error):
+                            MODULE.validation_metadata(path, candidate_nominal)
+
     def test_rejects_mismatched_panels(self):
         self.traces[1] = make_trace('G1', 32.0)
         with self.assertRaises(ValueError):
@@ -237,13 +288,21 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE.validate_recordings(traces, summary)
 
-    def test_compiled_manifest_requires_render_human_and_diagnosis_sources(self):
+    def test_compiled_manifest_requires_render_human_diagnosis_and_feedback_sources(self):
         self.manifest_mock.stop()
         trace = {'compiled_source_sha256': current_manifest()}
-        self.assertEqual(len(MODULE.validate_compiled_sources(trace, REPO)), 24)
+        self.assertEqual(len(MODULE.validate_compiled_sources(trace, REPO)), 25)
+        extended = copy.deepcopy(trace)
+        extended['compiled_source_sha256']['Cargo.lock'] = hashlib.sha256(
+            (REPO / 'Cargo.lock').read_bytes()).hexdigest()
+        self.assertEqual(len(MODULE.validate_compiled_sources(extended, REPO)), 26)
+        extended['compiled_source_sha256']['Cargo.lock'] = '0' * 64
+        with self.assertRaisesRegex(ValueError, 'Compiled capture source differs'):
+            MODULE.validate_compiled_sources(extended, REPO)
         for name in ('examples/139_kick_comparison/render.rs',
                      'examples/139_kick_comparison/observation.rs',
                      'examples/139_kick_comparison/diagnostic.rs',
+                     'examples/139_kick_comparison/feedback.rs',
                      'crates/rne_data/src/bus.rs', 'crates/rne_core/src/rng.rs',
                      'assets/fixtures/kick_human/cc0_sport_human.glb'):
             with self.subTest(source=name):
