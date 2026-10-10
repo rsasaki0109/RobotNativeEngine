@@ -242,22 +242,28 @@ measurements, strict task thresholds, and the retained failed cases.
 
 See [hard-contact time stepping](architecture/016_contact_dynamics.md).
 
-Example 139 records Go2/G1 recovery under a common 24 N·s, 80 ms lateral
+Example 139 records Go2/G1 recovery under a common 40 N·s, 80 ms lateral
 half-sine body wrench at 1 kHz. Dedicated URDF-derived plants use declared
 masses/COM/inertias, joint-origin rotations, welded fixed children and complete
 foot collision geometry. ForceBased PD respects authored effort caps and
 rate-limited joint targets; Go2 adds IMU leg-length feedback and contact-load
-stance regulation, and G1 adds COM/DCM/IMU
-ankle/hip feedback. Controllers react to current state without reading the
-impact schedule. Physical recovery and exact observed replay gate capture.
+stance regulation with hip abduction ±0.45 rad, and G1 uses a ±0.24 rad
+stance with COM/DCM/IMU ankle/hip feedback and outward-arm reactions.
+Controllers react to current state without reading the impact schedule. Physical recovery and exact observed replay gate capture.
 
 The optional comparison renderer uses a CC0 skinned human with weight
 transfer, forward knee flexion and a planted support foot. The human is a
 visual actor; its foot does not produce simulated collision impulses.
 The measured envelope is lateral recovery, not hardware qualification or
-all-direction resistance. The front probe topples both plants and the oblique
-probe topples G1; those G1 falls also fail the attachment-integrity gate.
-Go2 recovers from the oblique probe with substantial COM translation.
+all-direction resistance. The impulse is 67% above the earlier README capture.
+The same 40 N·s nominal probe toppled both earlier controllers; the wider-stance controllers
+recover without changing mass, inertia, effort ceilings, friction or recovery
+thresholds. The G1 hip-attitude gain is 0.5, preserving support margin in the
+late-onset and 500 Hz cases where the 1.0-gain prototype fell. G1 recovers
+at 32 N·s nominally and falls at 48 N·s. Stronger and directional probes
+retain their outcomes rather than define maximum hardware ratings.
+All 12 required 40 N·s recovery cases pass with exact observed replay;
+the full 18-case report retains both front-impact failures and G1's oblique failure.
 
 ```bash
 cargo run --release -p kick_comparison --example 139_kick_comparison -- --headless
@@ -268,7 +274,8 @@ cargo run --release -p kick_comparison --example 139_kick_comparison -- \
 The broader validation retains zero-force, rate, onset, reverse-direction,
 matched feedback-ablation and front/oblique limit cases with exact replay.
 A feedback-off case can still recover through joint PD and its stance; both
-plants do so in the recorded nominal probe. All 12 required cases pass.
+plants are measured against a matched zero-force baseline. GIF encoding
+requires the complete report with all 12 required cases passing.
 Successful recovery at both rates does not establish
 full-trajectory numerical convergence.
 See [capture, physical models, validation, and regeneration](../examples/139_kick_comparison/README.md).

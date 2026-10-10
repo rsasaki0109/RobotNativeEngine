@@ -72,9 +72,10 @@ camera state; gates and regeneration commands are in
   <img src="docs/media/kick-comparison.gif" alt="An animated human kicks toward a dynamic Go2 and G1 side by side; both recover from the prescribed disturbances labeled above each panel" width="900">
 </picture>
 
-*Both panels: the same 24 N·s lateral impulse over 80 ms.* Dynamic Go2
+*Both panels: the same 40 N·s lateral impulse over 80 ms, 67% above the earlier capture.* Dynamic Go2
 (16.087 kg) and G1 (34.134 kg) use declared URDF inertials, attached feet and
-bounded joint PD with IMU/COM feedback at 1 kHz. The controllers react to
+bounded joint PD with IMU/COM feedback at 1 kHz. Wider joint stances and
+G1 outward-arm feedback keep the targets within the source limits. The controllers react to
 observed motion; capture requires upright recovery and exact observed replay.
 The CC0 human uses a planted support foot, knee chamber, extension and
 retraction. It is a visual actor; the impact is a prescribed body wrench.

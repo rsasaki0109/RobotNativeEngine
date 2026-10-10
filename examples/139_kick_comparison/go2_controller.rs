@@ -15,7 +15,10 @@ use std::{error::Error, io};
 
 type ControllerResult<T> = Result<T, Box<dyn Error>>;
 
-const STANCE_ABDUCTION_RAD: f64 = 0.25;
+// A wider authored-range stance increases lateral support and lowers the
+// naturally settled body. Both the feedback controller and its ablation use
+// this same joint reference; masses, friction and effort limits are unchanged.
+const STANCE_ABDUCTION_RAD: f64 = 0.45;
 const STIFFNESS_NM_PER_RAD: f64 = 100.0;
 const DAMPING_NM_S_PER_RAD: f64 = 4.0;
 const ROLL_LENGTH_GAIN: f64 = 0.8;
@@ -188,6 +191,7 @@ impl Go2Controller {
         {
             return Err(io::Error::other("Go2 feedback or fixed step is invalid").into());
         }
+        let measured_joints = measured_joint_states(sim, &self.servos);
         let targets = position_targets(&mut self.servos, self.calf_trim_rad, correction_rad, dt_s);
         let loads_n: [f64; 4] = FOOT_NAMES.map(|name| {
             sim.named_body_contact_loads(name)
@@ -212,6 +216,7 @@ impl Go2Controller {
             "calf_load_trim_rad": self.calf_trim_rad,
             "opposing_calf_correction_rad": correction_rad,
             "foot_normal_loads_n": loads_n,
+            "measured_joint_states": measured_joints,
             "target_rate_limit_rad_s": TARGET_RATE_LIMIT_RAD_S,
             "joint_position_targets_rad": targets.iter().map(|target| json!({
                 "link": target.link_name,
@@ -351,6 +356,7 @@ impl Go2Controller {
             "motor_gain_model": "ForceBased implicit PD; gains have N m units",
             "balance_feedback_enabled": self.balance_feedback_enabled,
             "stance_hip_abduction_rad": STANCE_ABDUCTION_RAD,
+            "stance_strategy": "same wider joint stance for feedback and ablation; gravity and source geometry determine settled height",
             "stiffness_nm_per_rad": STIFFNESS_NM_PER_RAD,
             "damping_nm_s_per_rad": DAMPING_NM_S_PER_RAD,
             "roll_length_gain": ROLL_LENGTH_GAIN,
@@ -364,6 +370,19 @@ impl Go2Controller {
             })).collect::<Vec<_>>(),
         })
     }
+}
+
+fn measured_joint_states(sim: &UrdfSceneSim, servos: &[Servo]) -> Vec<Value> {
+    servos
+        .iter()
+        .map(|servo| {
+            json!({
+                "link": servo.name,
+                "position_rad": sim.named_joint_position(&servo.name),
+                "velocity_rad_s": sim.named_joint_velocity(&servo.name),
+            })
+        })
+        .collect()
 }
 
 fn position_targets(
@@ -418,4 +437,80 @@ fn position_targets(
         });
     }
     targets
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rne_robot::KinematicModel;
+    use std::path::Path;
+
+    #[test]
+    fn wider_stance_fits_imported_joint_limits_and_expands_lateral_support() {
+        let sim = UrdfSceneSim::from_scene_path(
+            &Path::new(env!("CARGO_MANIFEST_DIR")).join("go2.rne.scene.toml"),
+        )
+        .expect("dedicated physical Go2 scene");
+        let robot = sim
+            .world()
+            .iter_entities()
+            .find_map(|entity| {
+                let link = entity.get::<Link>()?;
+                (link.name == "base").then_some(link.robot)
+            })
+            .expect("Go2 robot");
+        let model = KinematicModel::from_robot(sim.world(), robot).expect("imported Go2 model");
+        let foot_geometry = |hip_abduction_rad: f64| {
+            let mut positions = vec![0.0; model.dof()];
+            for (index, entity) in model.movable_joint_entities().iter().enumerate() {
+                let joint = sim.world().get::<Joint>(*entity).expect("source joint");
+                let name = &sim
+                    .world()
+                    .get::<Link>(joint.child_link)
+                    .expect("child link")
+                    .name;
+                let angle_rad = if name.ends_with("_hip") {
+                    if name.starts_with("FL_") || name.starts_with("RL_") {
+                        hip_abduction_rad
+                    } else {
+                        -hip_abduction_rad
+                    }
+                } else {
+                    0.0
+                };
+                assert!((joint.limits.lower..=joint.limits.upper).contains(&angle_rad));
+                positions[model.base_dof() + index] = angle_rad;
+            }
+            let fk = model
+                .forward_kinematics(&positions)
+                .expect("actual imported FK");
+            let root_y_m = fk
+                .link_transform(model.base_link())
+                .expect("base pose")
+                .translation
+                .y;
+            let feet = FOOT_NAMES.map(|name| {
+                fk.link_transform(model.link_entity_by_name(name).expect("foot"))
+                    .expect("foot pose")
+                    .translation
+            });
+            (root_y_m, feet)
+        };
+        let (root_y_m, wide_feet) = foot_geometry(STANCE_ABDUCTION_RAD);
+        let (_, original_feet) = foot_geometry(0.25);
+        for front_index in [0, 2] {
+            let old_span_m = original_feet[front_index + 1].z - original_feet[front_index].z;
+            let wide_span_m = wide_feet[front_index + 1].z - wide_feet[front_index].z;
+            assert!(wide_span_m > old_span_m + 0.10);
+            assert!(wide_feet[front_index].z < 0.0 && wide_feet[front_index + 1].z > 0.0);
+        }
+        for foot in wide_feet {
+            // The imported foot sphere has radius 0.022 m. Ground contact
+            // requires a base height above the existing recovery threshold;
+            // the test uses geometry, not an assigned simulated base pose.
+            let geometric_contact_base_height_m = 0.022 - (foot.y - root_y_m);
+            assert!(geometric_contact_base_height_m > 0.22);
+            assert!(geometric_contact_base_height_m < 0.30);
+        }
+    }
 }

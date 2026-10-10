@@ -25,12 +25,13 @@ def font(size, bold=False):
 def validate_compiled_sources(trace, repo):
     manifest = trace.get("compiled_source_sha256")
     required = {"examples/139_kick_comparison/" + name for name in
-                ("main.rs", "physics.rs", "model.rs", "disturbance.rs", "go2_controller.rs",
+                ("main.rs", "physics.rs", "render.rs", "model.rs", "disturbance.rs", "go2_controller.rs",
                  "g1_controller.rs", "models.json", "go2.rne.scene.toml", "g1.rne.scene.toml",
                  "go2.rne.robot.toml", "g1.rne.robot.toml")}
     models = json.loads((repo / "examples/139_kick_comparison/models.json").read_text())
     required.update(model["derived"] for model in models["models"])
     required.add("crates/rne_physics_rapier/src/backend.rs")
+    required.add("assets/fixtures/kick_human/cc0_sport_human.glb")
     if not isinstance(manifest, dict) or not required.issubset(manifest):
         raise ValueError("Trace lacks the complete compiled source manifest")
     for name, value in manifest.items():
@@ -42,7 +43,75 @@ def validate_compiled_sources(trace, repo):
     return manifest
 
 
+def finite_scalar(value, label):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise ValueError(f"{label} must be a finite number")
+    return value
+
+
+def same_scalar(actual, expected, label, abs_tol=1e-9):
+    if not math.isclose(finite_scalar(actual, label), expected, rel_tol=0.0, abs_tol=abs_tol):
+        raise ValueError(f"{label} differs from the declared disturbance")
+
+
+def common_impulse(traces):
+    if len(traces) != 2 or [trace["robot"] for trace in traces] != ["Go2", "G1"]:
+        raise ValueError("Expected the ordered Go2/G1 recordings")
+    impulse_ns = finite_scalar(traces[0]["impulse_n_s"], "Common impulse")
+    if impulse_ns <= 0.0:
+        raise ValueError("The common disturbance impulse must be positive")
+    for trace in traces:
+        same_scalar(trace["impulse_n_s"], impulse_ns, "Recording impulse")
+    return impulse_ns
+
+
+def measured_disturbance(trace, impulse_ns, direction, dt_s=0.001, start_s=2.0):
+    """Integrate each recorded force and verify the declared sampled pulse."""
+    same_scalar(trace["impulse_n_s"], impulse_ns, "Trace impulse")
+    same_scalar(trace["dt_s"], dt_s, "Physics time step", abs_tol=1e-12)
+    same_scalar(trace["push_duration_s"], 0.08, "Pulse duration", abs_tol=1e-12)
+    same_scalar(trace["push_start_s"], start_s, "Pulse onset", abs_tol=1e-12)
+    history = trace["force_history"]
+    if not history:
+        raise ValueError("Force history must be present")
+    pulse_steps = round(0.08 / dt_s)
+    start_step = round(start_s / dt_s) + 1
+    weights = [math.sin(math.pi * (index + 0.5) / pulse_steps)
+               for index in range(pulse_steps)]
+    normalization = math.fsum(weights) * dt_s
+    forces = []
+    for step, row in enumerate(history, 1):
+        same_scalar(row["dt_s"], dt_s, "Force-history time step", abs_tol=1e-12)
+        if isinstance(row["step"], bool) or row["step"] != step:
+            raise ValueError("Force history must contain consecutive simulation steps")
+        same_scalar(row["time_s"], step * dt_s, "Force-history clock", abs_tol=1e-12)
+        force = row["force_world_n"]
+        if not isinstance(force, list) or len(force) != 3:
+            raise ValueError("World force must contain three finite components")
+        offset = step - start_step
+        magnitude = (impulse_ns * weights[offset] / normalization
+                     if 0 <= offset < pulse_steps else 0.0)
+        for actual, axis in zip(force, direction):
+            same_scalar(actual, magnitude * axis, "Sampled half-sine force")
+        forces.append(force)
+    if len(history) < start_step + pulse_steps - 1:
+        raise ValueError("Force history must contain the complete pulse")
+    integrated = [math.fsum(force[axis] * dt_s for force in forces) for axis in range(3)]
+    recorded = trace["integrated_impulse_world_ns"]
+    if not isinstance(recorded, list) or len(recorded) != 3:
+        raise ValueError("Recorded impulse must contain three components")
+    for actual, declaration, axis in zip(integrated, recorded, direction):
+        same_scalar(declaration, actual, "Recorded integrated impulse")
+        same_scalar(actual, impulse_ns * axis, "Measured impulse direction and magnitude")
+    peak_n = max(math.sqrt(math.fsum(v * v for v in force)) for force in forces)
+    same_scalar(trace["force_n"], peak_n, "Recorded force peak")
+    return {"robot": trace["robot"], "integrated_impulse_world_ns": integrated,
+            "impulse_n_s": math.sqrt(math.fsum(v * v for v in integrated)),
+            "measured_peak_force_n": peak_n}
+
+
 def validate_recordings(traces, summary):
+    impulse_ns = common_impulse(traces)
     repo = Path(__file__).resolve().parents[2]
     manifests = [validate_compiled_sources(trace, repo) for trace in traces]
     if manifests[0] != manifests[1]:
@@ -53,47 +122,33 @@ def validate_recordings(traces, summary):
     for trace, case in zip(traces, summary["cases"]):
         if trace.get("schema_version") != 2 or trace["robot"] != case["robot"]:
             raise ValueError("Trace and summary identities must match")
-        dt_s = trace["dt_s"]
-        if not math.isclose(dt_s, 0.001, abs_tol=1e-12):
-            raise ValueError("Production recording must run at 1 kHz")
-        if not math.isclose(trace["push_duration_s"], 0.08, abs_tol=1e-12):
-            raise ValueError("Expected an 80 ms disturbance")
-        history = trace["force_history"]
-        if not history or any(not math.isclose(row["dt_s"], dt_s, abs_tol=1e-12)
-                              for row in history):
-            raise ValueError("Invalid force-history time steps")
-        integrated = [math.fsum(row["force_world_n"][axis] * row["dt_s"]
-                                for row in history) for axis in range(3)]
-        peak_n = max(math.sqrt(math.fsum(v*v for v in row["force_world_n"]))
-                     for row in history)
-        if not all(math.isfinite(v) for v in integrated + [peak_n]):
-            raise ValueError("Force measurements must be finite")
-        if any(abs(a-b) > 1e-9 for a, b in
-               zip(integrated, trace["integrated_impulse_world_ns"])):
-            raise ValueError("Integrated force history differs from the recorded impulse")
-        impulse_ns = math.sqrt(math.fsum(v*v for v in integrated))
-        if not math.isclose(impulse_ns, 24.0, abs_tol=1e-9):
-            raise ValueError("Expected a common measured 24 N.s disturbance")
-        for recorded in [trace["force_n"], case["force_n"]]:
-            if not math.isclose(peak_n, recorded, abs_tol=1e-9):
-                raise ValueError("Force peak differs from the measured force history")
+        measurement = measured_disturbance(trace, impulse_ns, [0.0, 0.0, 1.0])
+        same_scalar(case["impulse_n_s"], impulse_ns, "Summary impulse")
+        same_scalar(case["dt_s"], trace["dt_s"], "Summary time step")
+        same_scalar(case["duration_s"], trace["push_duration_s"], "Summary pulse duration")
+        same_scalar(case["force_n"], measurement["measured_peak_force_n"], "Summary force peak")
         if trace["robot"] == "Go2" and trace["controller"].get("contact_load_regulation_enabled") is not True:
             raise ValueError("Go2 nominal recording must use the contact-load regulation controller")
         if trace["controller"] != case["controller"] or trace["plant"] != case["plant"]:
             raise ValueError("Capture controller/model configuration differs from its summary")
         if trace["summary"] != case["summary"]:
             raise ValueError("Trace and summary recovery metrics differ")
-        if not trace["summary"]["recovered"] or not case["observed_state_bits_exact_repeat"]:
+        if trace["observed_state_hash"] != case["observed_state_hash"]:
+            raise ValueError("Trace and summary observable state hashes differ")
+        if (trace["summary"]["recovered"] is not True
+                or case["observed_state_bits_exact_repeat"] is not True):
             raise ValueError("Recovery and deterministic replay must pass before encoding")
-        if not trace.get("observed_state_bits_exact_repeat") or not trace.get("canonical_render_frames_exact_repeat"):
+        if (trace.get("observed_state_bits_exact_repeat") is not True
+                or trace.get("canonical_render_frames_exact_repeat") is not True
+                or case.get("canonical_render_frames_exact_repeat") is not True):
             raise ValueError("Trace state and render replay evidence must be present")
-        measurements.append({"robot": trace["robot"], "integrated_impulse_world_ns": integrated,
-                             "impulse_n_s": impulse_ns, "measured_peak_force_n": peak_n})
+        measurements.append(measurement)
     count = len(traces[0]["frames"])
     if count != 187 or len(traces[1]["frames"]) != count:
         raise ValueError("Expected two synchronized 187-frame traces")
     for index in range(count):
-        times = [trace["frames"][index]["time_s"] - trace["frames"][0]["time_s"]
+        times = [finite_scalar(trace["frames"][index]["time_s"], "Frame clock")
+                 - finite_scalar(trace["frames"][0]["time_s"], "Initial frame clock")
                  for trace in traces]
         if abs(times[0] - times[1]) > 0.001 + 1e-12:
             raise ValueError("Trace clocks are not synchronized within one simulation step")
@@ -105,6 +160,7 @@ def validate_recordings(traces, summary):
 def validation_metadata(path, nominal_traces):
     if path is None:
         raise ValueError("Public GIF encoding requires a complete two-plant validation report")
+    impulse_ns = common_impulse(nominal_traces)
     report = json.loads(path.read_text())
     robots = report.get("robots")
     if robots != ["Go2", "G1"]:
@@ -124,6 +180,8 @@ def validation_metadata(path, nominal_traces):
             raise ValueError("Validation required-case flag differs from the declared envelope")
         if case["observed_state_bits_exact_repeat"] is not True:
             raise ValueError("Validation replay did not pass")
+        if not isinstance(case["summary"]["recovered"], bool):
+            raise ValueError("Validation recovery result must be a boolean")
         trace_path = path.parent / f"{case['robot'].lower()}-{case['case']}.json"
         trace = json.loads(trace_path.read_text())
         for key in ("robot", "case", "dt_s", "impulse_n_s", "summary", "observed_state_hash",
@@ -136,6 +194,15 @@ def validation_metadata(path, nominal_traces):
             raise ValueError("Validation and capture use different compiled sources")
         if trace.get("schema_version") != 2:
             raise ValueError("Validation requires schema-2 per-case traces")
+        name = case["case"]
+        expected_impulse_ns = 0.0 if name in {"zero", "balance_off_zero"} else impulse_ns
+        directions = {"reverse_early": [0.0, 0.0, -1.0],
+                      "front_limit": [1.0, 0.0, 0.0],
+                      "oblique_limit": [math.sqrt(0.5), 0.0, math.sqrt(0.5)]}
+        measured_disturbance(trace, expected_impulse_ns,
+                             directions.get(name, [0.0, 0.0, 1.0]),
+                             dt_s=0.002 if name == "rate_500hz" else 0.001,
+                             start_s={"reverse_early": 1.5, "late": 2.25}.get(name, 2.0))
         if case["case"] == "nominal":
             nominal = next(t for t in nominal_traces if t["robot"] == case["robot"])
             for key in ("controller", "plant", "summary", "observed_state_hash"):
@@ -189,8 +256,8 @@ def main():
             picture.paste(raw.convert("RGB"), (0, 55))
         draw = ImageDraw.Draw(picture)
         for side, (name, label) in enumerate([
-            ("Unitree Go2", f"24 N.s / 80 ms | peak {measurements[0]['measured_peak_force_n']:.0f} N | recovered"),
-            ("Unitree G1", f"24 N.s / 80 ms | peak {measurements[1]['measured_peak_force_n']:.0f} N | recovered"),
+            ("Unitree Go2", f"{measurements[0]['impulse_n_s']:g} N.s / 80 ms | peak {measurements[0]['measured_peak_force_n']:.0f} N | recovered"),
+            ("Unitree G1", f"{measurements[1]['impulse_n_s']:g} N.s / 80 ms | peak {measurements[1]['measured_peak_force_n']:.0f} N | recovered"),
         ]):
             x = side * 480 + 16
             draw.text((x, 7), name, font=bold, fill=(238, 244, 250))
@@ -241,7 +308,7 @@ def main():
                 if path.is_file() and path.suffix in (".py", ".json", ".glb", ".md")]
     metadata = {
         "schema_version": 2,
-        "scope": "Common measured 24 N.s lateral prescribed body wrench, normalized half-sine over 80 ms; declared URDF inertials and torque-bounded feedback. Human animation is visual only; no human contact, all-direction recovery, or hardware qualification claim.",
+        "scope": f"Common measured {measurements[0]['impulse_n_s']:g} N.s lateral prescribed body wrench, normalized half-sine over 80 ms; declared URDF inertials and torque-bounded feedback. Human animation is visual only; no human contact, all-direction recovery, or hardware qualification claim.",
         "compiled_source_sha256": traces[0]["compiled_source_sha256"],
         "measured_disturbances": measurements,
         "model_provenance": models,

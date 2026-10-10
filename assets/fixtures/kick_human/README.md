@@ -27,14 +27,28 @@ lengths and connected joints therefore remain fixed within export precision.
 All quaternion keys have consistent signs, and the runtime samples LINEAR
 rotations on the shortest spherical arc for both CPU and GPU skinning.
 
-The high kick retains about 45 degrees of knee flexion at impact. The left
-sole is planted throughout; subframe interpolation produces less than
-0.08 mm of vertical drift. These are animation/geometry checks, not a
-human musculoskeletal dynamics validation. The toe heights at impact are
-0.361483 m and 0.837800 m; their local front extent is 0.920002 m or less.
-Example 139 matches their height and lateral position to the recorded wrench
-point, with the toe tip about 8 cm behind it as a visual surface offset.
-This positioning does not calculate a foot collision or contact force.
+The low and mid kicks retain about 68.93 and 44.58 degrees of knee flexion
+at impact. The left sole is planted throughout; subframe interpolation
+produces less than 0.08 mm of vertical drift. These are animation/geometry
+checks, not a human musculoskeletal dynamics validation. The toe target
+heights at impact are 0.322176 m and 0.826094 m, rounded from the first
+recorded world wrench points of the robots' wider recovery stances. The
+exported toe heights are within 2 micrometers of the animation targets;
+the final nominal wrench points differ from those targets by less than
+0.01 mm after G1 feedback tuning. Their
+local front extent is 0.920001 m or less. This retargeting rotates joints
+while preserving the rig, bone lengths and planted support sole.
+Example 139 matches the toe's height and lateral position to the recorded
+wrench point, with the toe tip about 8 cm behind it as a visual surface
+offset. This positioning does not calculate a foot collision or contact
+force.
+
+Example 139 continuously retimes these clips along the same checked pose
+path. Extension takes 175 ms, the impact hold lasts 80 ms to match the
+prescribed wrench pulse, and retraction takes 220 ms. Impact still starts
+at simulation time 2.0 s. The renderer and headless animation checker use
+the same time map; these faster visual motions do not determine the robot
+force or simulate human dynamics.
 
 ## Regenerate from verified inputs
 
@@ -48,7 +62,7 @@ cd assets/fixtures/kick_human
 python3 fetch_source.py
 blender -b --python tools/generate_human.py -- \
   --source-dir source --manifest source-manifest.json --output-dir generated \
-  --low-strike-height-m 0.361483 --mid-strike-height-m 0.837800
+  --low-strike-height-m 0.322176 --mid-strike-height-m 0.826094
 python3 tools/ensure_quaternion_continuity.py generated/cc0_sport_human.glb
 blender -b generated/cc0_sport_human.blend --python tools/validate_subframes.py
 python3 tools/summarize_validation.py generated > generated/validation-summary.json

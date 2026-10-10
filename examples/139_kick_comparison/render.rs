@@ -68,6 +68,38 @@ fn floor(scene: &mut RenderScene) {
     });
 }
 
+// Simulation time, then time in the unchanged anatomical animation. Keep each
+// authored phase boundary: the chamber precedes a 175 ms extension, impact
+// starts at the wrench onset, and the held pose ends with its 80 ms pulse.
+const HUMAN_TIME_KNOTS_S: [(f64, f64); 9] = [
+    (0.0, 0.0),
+    (1.2, 1.2),
+    (1.825, 1.65),
+    (2.0, 2.0),
+    (2.08, 2.2),
+    (2.3, 2.5),
+    (2.75, 2.95),
+    (3.3, 3.5),
+    (6.2, 6.2),
+];
+
+/// Retimes the existing kick path without modifying its rig or poses.
+pub(super) fn human_animation_time_s(simulation_time_s: f64) -> f64 {
+    if simulation_time_s <= HUMAN_TIME_KNOTS_S[0].0 {
+        return HUMAN_TIME_KNOTS_S[0].1;
+    }
+    for knots in HUMAN_TIME_KNOTS_S.windows(2) {
+        let [(start_s, asset_start_s), (end_s, asset_end_s)] = knots else {
+            unreachable!("two animation time knots");
+        };
+        if simulation_time_s <= *end_s {
+            let fraction = (simulation_time_s - start_s) / (end_s - start_s);
+            return asset_start_s + fraction * (asset_end_s - asset_start_s);
+        }
+    }
+    HUMAN_TIME_KNOTS_S[HUMAN_TIME_KNOTS_S.len() - 1].1
+}
+
 fn human(scene: &mut RenderScene, asset: &GltfSceneAsset, time_s: f64, origin: Vec3, high: bool) {
     let wanted = if high { "mid_kick" } else { "low_kick" };
     let clip = asset
@@ -77,7 +109,7 @@ fn human(scene: &mut RenderScene, asset: &GltfSceneAsset, time_s: f64, origin: V
         .or_else(|| (!asset.animations.is_empty()).then_some(0));
     let player = GltfAnimationPlayer {
         animation_index: clip,
-        time_s: time_s as f32,
+        time_s: human_animation_time_s(time_s) as f32,
         playback_rate: 1.0,
     };
     for (i, part) in asset.parts.iter().enumerate() {
@@ -228,4 +260,47 @@ pub(super) fn render(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn force_pulse_and_kick_phase_boundaries_stay_synchronized() {
+        // These are the authored chamber, impact, retract and landing times,
+        // expressed at the faster visual kick's simulation phase boundaries.
+        for (simulation_s, asset_s) in [
+            (1.825, 1.65),
+            (2.0, 2.0),
+            (2.08, 2.2),
+            (2.3, 2.5),
+            (2.75, 2.95),
+            (3.3, 3.5),
+        ] {
+            assert!((human_animation_time_s(simulation_s) - asset_s).abs() < 1.0e-12);
+        }
+        // An unchanged 350 ms source extension now takes 175 ms. The final
+        // pose still coincides with the start of the physical wrench pulse.
+        let extension_midpoint_s = (1.825 + 2.0) * 0.5;
+        assert!((human_animation_time_s(extension_midpoint_s) - 1.825).abs() < 1.0e-12);
+    }
+
+    #[test]
+    fn retiming_traverses_the_path_without_reversals_or_time_jumps() {
+        let mut previous_s = human_animation_time_s(0.0);
+        for sample in 1..=7440 {
+            let asset_s = human_animation_time_s(f64::from(sample) / 1200.0);
+            assert!(asset_s > previous_s, "animation time must advance");
+            assert!((0.0..=6.2).contains(&asset_s));
+            previous_s = asset_s;
+        }
+        assert!((previous_s - 6.2).abs() < 1.0e-12);
+        for (simulation_s, asset_s) in HUMAN_TIME_KNOTS_S {
+            let before_s = human_animation_time_s(simulation_s - 1.0e-9);
+            let after_s = human_animation_time_s(simulation_s + 1.0e-9);
+            assert!((before_s - asset_s).abs() < 3.0e-9);
+            assert!((after_s - asset_s).abs() < 3.0e-9);
+        }
+    }
 }

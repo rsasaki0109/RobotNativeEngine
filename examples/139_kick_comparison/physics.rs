@@ -20,6 +20,7 @@ const FRAME_COUNT: usize = 187;
 const FRAME_RATE_HZ: f64 = 30.0;
 const SETTLE_S: f64 = 2.0;
 const DURATION_S: f64 = 0.08;
+pub(super) const DEFAULT_IMPULSE_NS: f64 = 40.0;
 const PUSH_OFFSET_Y_M: f64 = 0.06;
 const SUPPORT_WINDOW_S: f64 = 0.5;
 const SUPPORT_MEAN_LOAD_THRESHOLD_N: f64 = 0.5;
@@ -225,6 +226,10 @@ fn compiled_source_hashes() -> Value {
             include_str!("physics.rs"),
         ),
         (
+            "examples/139_kick_comparison/render.rs",
+            include_str!("render.rs"),
+        ),
+        (
             "examples/139_kick_comparison/model.rs",
             include_str!("model.rs"),
         ),
@@ -273,17 +278,25 @@ fn compiled_source_hashes() -> Value {
             include_str!("../../crates/rne_physics_rapier/src/backend.rs"),
         ),
     ];
-    Value::Object(
-        files
-            .into_iter()
-            .map(|(name, contents)| {
-                (
-                    name.to_owned(),
-                    json!(format!("{:x}", Sha256::digest(contents.as_bytes()))),
-                )
-            })
-            .collect(),
-    )
+    let mut manifest: serde_json::Map<String, Value> = files
+        .into_iter()
+        .map(|(name, contents)| {
+            (
+                name.to_owned(),
+                json!(format!("{:x}", Sha256::digest(contents.as_bytes()))),
+            )
+        })
+        .collect();
+    manifest.insert(
+        "assets/fixtures/kick_human/cc0_sport_human.glb".to_owned(),
+        json!(format!(
+            "{:x}",
+            Sha256::digest(include_bytes!(
+                "../../assets/fixtures/kick_human/cc0_sport_human.glb"
+            ))
+        )),
+    );
+    Value::Object(manifest)
 }
 
 fn frame(sim: &UrdfSceneSim, step: usize, force: Vec3, point: Option<Vec3>) -> Value {
@@ -309,7 +322,7 @@ struct Case {
 const NOMINAL: Case = Case {
     name: "nominal",
     dt_ticks: 1_000_000,
-    impulse_ns: 24.0,
+    impulse_ns: DEFAULT_IMPULSE_NS,
     start_s: 2.0,
     direction: Vec3::Z,
     balance_feedback_enabled: true,
@@ -655,13 +668,20 @@ fn replay(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Value
     Ok(first.trace)
 }
 
-/// Captures both robots at 1 kHz under the same 24 N·s, 80 ms lateral pulse.
-pub(super) fn capture(output: &Path) -> CaptureResult<()> {
+/// Captures both robots at 1 kHz under the same declared 80 ms lateral pulse.
+pub(super) fn capture(output: &Path, impulse_ns: f64) -> CaptureResult<()> {
     fs::create_dir_all(output)?;
     let mut summaries = Vec::new();
     let mut all_recovered = true;
     for robot in [Robot::Go2, Robot::G1] {
-        let trace = replay(robot, NOMINAL, true)?;
+        let trace = replay(
+            robot,
+            Case {
+                impulse_ns,
+                ..NOMINAL
+            },
+            true,
+        )?;
         let filename = format!("{}-trace.json", robot.name().to_lowercase());
         fs::write(output.join(&filename), serde_json::to_vec(&trace)?)?;
         require(
@@ -687,7 +707,7 @@ pub(super) fn capture(output: &Path) -> CaptureResult<()> {
     fs::write(
         output.join("summary.json"),
         serde_json::to_vec_pretty(&json!({"schema_version":2,
-        "note":"Common 24 N.s lateral disturbance; declared URDF inertials and attached feet; torque-bounded feedback. Human is visual, not a simulated collision or hardware validation.",
+        "note":format!("Common {impulse_ns} N.s lateral disturbance; declared URDF inertials and attached feet; torque-bounded feedback. Human is visual, not a simulated collision or hardware validation."),
         "cases":summaries}))?,
     )?;
     require(
@@ -700,83 +720,63 @@ pub(super) fn capture(output: &Path) -> CaptureResult<()> {
 ///
 /// Sideways recovery is the declared envelope. Front/oblique impacts are retained
 /// as observations of the limit, rather than silently included in that claim.
-pub(super) fn validate_recovery(output: &Path, robot_filter: Option<&str>) -> CaptureResult<()> {
+pub(super) fn validate_recovery(
+    output: &Path,
+    robot_filter: Option<&str>,
+    impulse_ns: f64,
+) -> CaptureResult<()> {
     fs::create_dir_all(output)?;
+    let nominal = Case {
+        impulse_ns,
+        ..NOMINAL
+    };
     let cases = [
-        NOMINAL,
+        nominal,
         Case {
             name: "zero",
             impulse_ns: 0.0,
-            ..NOMINAL
+            ..nominal
         },
         Case {
             name: "reverse_early",
             direction: -Vec3::Z,
             start_s: 1.5,
-            ..NOMINAL
+            ..nominal
         },
         Case {
             name: "late",
             start_s: 2.25,
-            ..NOMINAL
+            ..nominal
         },
         Case {
             name: "rate_500hz",
             dt_ticks: 2_000_000,
-            ..NOMINAL
+            ..nominal
         },
         Case {
             name: "balance_off",
             balance_feedback_enabled: false,
-            ..NOMINAL
+            ..nominal
         },
         Case {
             name: "balance_off_zero",
             impulse_ns: 0.0,
             balance_feedback_enabled: false,
-            ..NOMINAL
+            ..nominal
         },
         Case {
             name: "front_limit",
             direction: Vec3::X,
-            ..NOMINAL
+            ..nominal
         },
         Case {
             name: "oblique_limit",
             direction: Vec3::new(1.0, 0.0, 1.0),
-            ..NOMINAL
+            ..nominal
         },
     ];
-    let robots: &[Robot] = match robot_filter {
-        None => &[Robot::Go2, Robot::G1],
-        Some("go2") => &[Robot::Go2],
-        Some("g1") => &[Robot::G1],
-        Some(_) => return Err(io::Error::other("validation robot must be go2 or g1").into()),
-    };
-    // Each worker owns an independent seeded world. Join in robot order so
-    // report ordering is stable; each replay remains sequential within a worker.
-    let results = std::thread::scope(|scope| {
-        let handles: Vec<_> = robots
-            .iter()
-            .copied()
-            .map(|robot| {
-                let cases = &cases;
-                scope.spawn(move || {
-                    validate_robot_cases(robot, cases, output).map_err(|error| error.to_string())
-                })
-            })
-            .collect();
-        handles
-            .into_iter()
-            .map(|handle| {
-                handle
-                    .join()
-                    .map_err(|_| io::Error::other("a recovery validation worker panicked"))?
-                    .map_err(io::Error::other)
-            })
-            .collect::<Result<Vec<_>, _>>()
-    })?;
-    let reports: Vec<_> = results.into_iter().flatten().collect();
+    let robots = selected_robots(robot_filter)?;
+    let reports = record_case_matrix(robots, &cases, output, true)?;
     let all_passed = reports.iter().all(|report| {
         report["required_recovery"] != true || report["summary"]["recovered"] == true
     });
@@ -792,7 +792,113 @@ pub(super) fn validate_recovery(output: &Path, robot_filter: Option<&str>) -> Ca
     )
 }
 
-fn validate_robot_cases(robot: Robot, cases: &[Case], output: &Path) -> CaptureResult<Vec<Value>> {
+/// Measures increasing lateral impulses without requiring the limit probes to recover.
+///
+/// Each strength uses the same plant, controller and 80 ms pulse, with exact replay.
+pub(super) fn sweep_impulse(output: &Path, robot_filter: Option<&str>) -> CaptureResult<()> {
+    fs::create_dir_all(output)?;
+    let cases = [
+        ("impulse_24", 24.0),
+        ("impulse_32", 32.0),
+        ("impulse_40", 40.0),
+        ("impulse_48", 48.0),
+        ("impulse_64", 64.0),
+    ]
+    .map(|(name, impulse_ns)| Case {
+        name,
+        impulse_ns,
+        ..NOMINAL
+    });
+    let robots = selected_robots(robot_filter)?;
+    let reports = record_case_matrix(robots, &cases, output, false)?;
+    fs::write(
+        output.join("impulse-sweep.json"),
+        serde_json::to_vec_pretty(&json!({
+            "schema_version":1,"pulse_duration_s":DURATION_S,
+            "note":"Measured lateral limit probes, not an all-strength recovery claim",
+            "robots":robots.iter().map(|r|r.name()).collect::<Vec<_>>(),"cases":reports
+        }))?,
+    )?;
+    Ok(())
+}
+
+fn selected_robots(robot_filter: Option<&str>) -> CaptureResult<&'static [Robot]> {
+    Ok(match robot_filter {
+        None => &[Robot::Go2, Robot::G1],
+        Some("go2") => &[Robot::Go2],
+        Some("g1") => &[Robot::G1],
+        Some(_) => return Err(io::Error::other("validation robot must be go2 or g1").into()),
+    })
+}
+
+/// Records one selected lateral impulse with exact replay, including failed recovery.
+pub(super) fn probe_impulse(
+    output: &Path,
+    robot_filter: Option<&str>,
+    impulse_ns: f64,
+    balance_feedback_enabled: bool,
+) -> CaptureResult<()> {
+    fs::create_dir_all(output)?;
+    let robots = selected_robots(robot_filter)?;
+    let reports = record_case_matrix(
+        robots,
+        &[Case {
+            impulse_ns,
+            balance_feedback_enabled,
+            ..NOMINAL
+        }],
+        output,
+        false,
+    )?;
+    fs::write(
+        output.join("impulse-probe.json"),
+        serde_json::to_vec_pretty(&json!({
+            "schema_version":1,"cases":reports,
+            "note":"A measured limit probe; recovery is reported, not assumed"
+        }))?,
+    )?;
+    Ok(())
+}
+
+fn record_case_matrix(
+    robots: &[Robot],
+    cases: &[Case],
+    output: &Path,
+    require_recovery: bool,
+) -> CaptureResult<Vec<Value>> {
+    // Each worker owns an independent seeded world. Join in robot order so
+    // report ordering is stable; each replay remains sequential within a worker.
+    let results = std::thread::scope(|scope| {
+        let handles: Vec<_> = robots
+            .iter()
+            .copied()
+            .map(|robot| {
+                let cases = &cases;
+                scope.spawn(move || {
+                    validate_robot_cases(robot, cases, output, require_recovery)
+                        .map_err(|error| error.to_string())
+                })
+            })
+            .collect();
+        handles
+            .into_iter()
+            .map(|handle| {
+                handle
+                    .join()
+                    .map_err(|_| io::Error::other("a recovery validation worker panicked"))?
+                    .map_err(io::Error::other)
+            })
+            .collect::<Result<Vec<_>, _>>()
+    })?;
+    Ok(results.into_iter().flatten().collect())
+}
+
+fn validate_robot_cases(
+    robot: Robot,
+    cases: &[Case],
+    output: &Path,
+    require_recovery: bool,
+) -> CaptureResult<Vec<Value>> {
     let mut reports = Vec::new();
     for &case in cases {
         let trace = replay(robot, case, false)?;
@@ -804,7 +910,8 @@ fn validate_robot_cases(robot: Robot, cases: &[Case], output: &Path) -> CaptureR
             )),
             serde_json::to_vec(&trace)?,
         )?;
-        let required = !matches!(case.name, "balance_off" | "front_limit" | "oblique_limit");
+        let required = require_recovery
+            && !matches!(case.name, "balance_off" | "front_limit" | "oblique_limit");
         reports.push(json!({"robot":robot.name(),"case":case.name,"required_recovery":required,
             "dt_s":trace["dt_s"],"impulse_n_s":trace["impulse_n_s"],"summary":trace["summary"],
             "push_start_s":trace["push_start_s"],"push_duration_s":trace["push_duration_s"],
