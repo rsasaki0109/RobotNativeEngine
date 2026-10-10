@@ -534,18 +534,73 @@ graph mutation and broader constrained/armature models remain outside the valida
 scope. Release API audits remain separate checks. See the vendor `RNE_PATCH.md`
 for the repository-build boundary and unchanged upstream provenance.
 
-### Kick comparison visualization boundary
+### Kick comparison physical-control and visualization boundaries
 
-Example 139 captures the existing dynamic Go2 and G1 Rapier scenes under
-prescribed world-space body wrenches, checks bit-exact replay of ordered link
-poses, velocities, joint state and foot impulses, and renders those recorded
-poses without alteration. The illustrative panels use 120 N and 50 N for
-12 steps respectively, with inherited approximate scene masses and inertias.
-This does not change the native contact solver or establish equal-impulse
-hardware resistance.
+Example 139 uses dedicated dynamic Go2/G1 Rapier scenes with source positive
+URDF masses, COM offsets and inertia tensors. Joint-origin rotations, welded
+fixed children and preserved collision parts make the feet part of the plant;
+G1 retains all four spheres on each sole. Frame-only links receive 1e-9 kg and
+diagonal 1e-12 kg·m² inertias to avoid singular numerical marker bodies. Total
+masses are 16.087000011 kg and 34.133857284 kg. Go2's initial thigh/calf stance
+is an equivalent joint-coordinate shift with origin rotations and position
+limits transformed together; its physical geometry and limits are unchanged.
+The fixture generator and source/derived hashes are local to example 139.
+Existing scenes retain their previous model defaults.
+
+Both plants receive a 24 N·s lateral world-space body wrench over 80 ms.
+Midpoint half-sine samples are normalized by their commanded impulse sum;
+changing the step rate preserves impulse and duration. The application point
+is the current root position plus 0.06 m along world Y, so the backend includes
+the force's moment arm. Default physics uses 1 kHz and 32 solver iterations.
+
+Unit-bearing ForceBased implicit PD enforces each joint's authored effort cap.
+Rate-limited, position-bounded targets hold a wider stance: Go2 hip abduction
+±0.25 rad and G1 hip roll ±0.12 rad. Go2 filtered IMU feedback changes opposing leg
+lengths. A slow stance loop filters normal loads and adjusts bounded,
+zero-sum calf biases toward COM-based shares of a rectangular foot-support
+approximation; this is not general contact-wrench optimization. The Go2
+IMU ablation retains that stance loop. G1 ankle/hip feedback uses COM/DCM
+and body attitude. The example's
+Rapier COM helper sums dynamic robot links in name order at their declared
+COM offsets. Rapier `linvel` already measures body COM velocity; adding an
+angular-offset velocity again would double count it. The controllers consume
+current ideal simulated observations and cannot read the disturbance schedule.
+They neither edit robot poses/velocities nor apply stabilizing body wrenches.
+Recorded motor ceilings describe solver-enforced limits, not torque readback
+or a calibrated hardware actuator model.
+
+Rapier contact evidence composes the collider world pose with the manifold's
+optional compound-child pose before transforming each local witness. The
+world contact point is the midpoint of those witnesses, and relative surface
+velocity is measured at that point. Omitting the child pose misplaces compound
+sole contacts and their angular velocity contribution; a rotated, translated
+compound regression covers both witnesses and canonical entity ordering.
+
+Capture checks plant mass/inertia, attachment integrity, upright recovery and
+foot-only ground support. Every foot must exceed 0.5 N mean normal load
+over the final 0.5 s; instantaneous contact counts are recorded separately.
+Repeated runs compare literal ordered observed
+link poses/scales, linear/angular velocities, joint states and foot impulses
+through settlement and recovery. Hidden backend caches are outside this
+assertion. Rendering uses those recorded poses without altering dynamics.
+The broader `--validate-recovery` matrix retains zero-input, rate, onset,
+reverse-direction, matched feedback-ablation and front/oblique limit cases.
+Ablations keep posture PD, stance, gains, caps and target-rate limits. Whether
+a disabled balance loop recovers is measured rather than assumed; both do
+recover in the recorded 1 kHz nominal probe. The complete matrix passes all
+12 required cases. Lateral ±Z is the recovery envelope. At the same impulse,
+front impacts topple both plants and the oblique impact topples G1. Those G1
+falls include non-foot ground contacts and fixed-attachment rotation errors
+above the declared tolerance. Go2 recovers from the oblique probe while its
+COM translates approximately 0.211 m forward and 0.117 m laterally. These
+observations do not establish position retention or all-direction resistance.
+Rate checks establish recovery under those discretizations, not convergence
+of the complete trajectory or hardware kick resistance. The native contact
+solver is unchanged by these example-specific controllers and fixtures.
 
 The CC0 human is a visual actor with fixed-length rotation-only limb chains,
 support-foot planting and staged knee chamber, extension and retraction.
 Shortest-path glTF LINEAR rotation interpolation is shared by CPU and GPU
-skinning. Human-foot collision impulses are not computed; contact-driven human
-motion and strong common-impulse G1 recovery remain separate work.
+skinning. Human-foot collision impulses and reaction-driven human motion are
+not computed. The GIF illustrates a prescribed lateral disturbance experiment;
+it is not a coupled simulation of a human kicking physical hardware.

@@ -31,7 +31,7 @@ The high kick retains about 45 degrees of knee flexion at impact. The left
 sole is planted throughout; subframe interpolation produces less than
 0.08 mm of vertical drift. These are animation/geometry checks, not a
 human musculoskeletal dynamics validation. The toe heights at impact are
-0.284789 m and 0.846808 m; their local front extent is 0.920002 m or less.
+0.361483 m and 0.837800 m; their local front extent is 0.920002 m or less.
 Example 139 matches their height and lateral position to the recorded wrench
 point, with the toe tip about 8 cm behind it as a visual surface offset.
 This positioning does not calculate a foot collision or contact force.
@@ -47,7 +47,8 @@ reused. No Blender add-on or pre-existing `.blend` file is required.
 cd assets/fixtures/kick_human
 python3 fetch_source.py
 blender -b --python tools/generate_human.py -- \
-  --source-dir source --manifest source-manifest.json --output-dir generated
+  --source-dir source --manifest source-manifest.json --output-dir generated \
+  --low-strike-height-m 0.361483 --mid-strike-height-m 0.837800
 python3 tools/ensure_quaternion_continuity.py generated/cc0_sport_human.glb
 blender -b generated/cc0_sport_human.blend --python tools/validate_subframes.py
 python3 tools/summarize_validation.py generated > generated/validation-summary.json

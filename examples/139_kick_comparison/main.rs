@@ -1,9 +1,13 @@
 //! Records dynamic Go2 and G1 responses and renders a visual human kick.
 //!
 //! The human is an animated mesh. Robot disturbances are prescribed body
-//! wrenches, not simulated human-foot contacts. The panels use different
-//! impulses and the existing approximate scene masses and inertias.
+//! wrenches, not simulated human-foot contacts. The panels use the same
+//! impulse and declared URDF inertials, with bounded sensor-feedback control.
 
+mod disturbance;
+mod g1_controller;
+mod go2_controller;
+mod model;
 mod physics;
 mod render;
 
@@ -91,6 +95,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let arguments: Vec<_> = std::env::args().skip(1).collect();
     let mut output = PathBuf::from("target/rne-kick-comparison");
     let mut render = false;
+    let mut validate_recovery = false;
+    let mut validation_robot: Option<String> = None;
     let mut render_only = false;
     let mut start_frame = 0;
     let mut frame_count = usize::MAX;
@@ -98,18 +104,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     while index < arguments.len() {
         match arguments[index].as_str() {
             "--headless" => {}
+            "--validate-recovery" => validate_recovery = true,
             "--render" => render = true,
             "--render-only" => {
                 render = true;
                 render_only = true;
             }
-            "--output" | "--start-frame" | "--frame-count" => {
+            "--output" | "--start-frame" | "--frame-count" | "--validation-robot" => {
                 let option = &arguments[index];
                 index += 1;
                 let value = arguments.get(index).ok_or("missing option value")?;
                 match option.as_str() {
                     "--output" => output = value.into(),
                     "--start-frame" => start_frame = value.parse()?,
+                    "--validation-robot" => validation_robot = Some(value.clone()),
                     _ => frame_count = value.parse()?,
                 }
             }
@@ -117,9 +125,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         index += 1;
     }
+    if validation_robot.is_some() && !validate_recovery {
+        return Err("--validation-robot requires --validate-recovery".into());
+    }
     validate_human()?;
     if !render_only {
-        physics::capture(&output)?;
+        if validate_recovery {
+            physics::validate_recovery(&output, validation_robot.as_deref())?;
+        } else {
+            physics::capture(&output)?;
+        }
     }
     if render {
         render::render(

@@ -1,67 +1,3541 @@
 {
-  "schema_version": 1,
-  "source_glb_sha256": "f70faa730f77ce1543a8bc772a31622392e85c77fa644ad5ec3a2b32532d2674",
+  "source_glb_sha256": "b152db803096dcab477f314bbbfe3be6ef05b074786b15b9802dec4d2fd6b982",
   "audit_script_sha256": "f1a9a8774dd3979a3a4310f791612bbb91dcd99a686334aa813eedd538234568",
   "method": "Independent exported GLB accessors, normalized shortest-arc SLERP, full hierarchy, CPU LBS shoe vertices; 240 Hz plus original keys; not Blender in-memory poses; not a physical human simulation",
-  "scope": "Geometry and interpolated animation measurements; no physical human dynamics or external validator claim.",
   "reports": [
     {
       "animation": "low_kick",
-      "samples_including_original_keys": 1777,
+      "clip_end_s": 6.0,
       "sampling_hz": 240,
-      "negative_adjacent_quaternion_count": 0,
+      "samples_including_original_keys": 1777,
+      "negative_adjacent_quaternion_dots": [],
+      "max_raw_quaternion_norm_error": 8.767250103680624e-08,
+      "local_joint_angular_velocity": [
+        {
+          "node": "calf_r",
+          "peak_rad_s": 6.075889271361446,
+          "interval_s": [
+            2.7833333015441895,
+            2.799999952316284
+          ],
+          "max_angle_from_initial_deg": 87.62149663630836
+        },
+        {
+          "node": "lowerarm_l",
+          "peak_rad_s": 5.323028635523103,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 95.14596218868276
+        },
+        {
+          "node": "foot_r",
+          "peak_rad_s": 3.989280685712303,
+          "interval_s": [
+            2.3499999046325684,
+            2.366666555404663
+          ],
+          "max_angle_from_initial_deg": 33.30825208975307
+        },
+        {
+          "node": "thigh_r",
+          "peak_rad_s": 3.710902111162459,
+          "interval_s": [
+            2.75,
+            2.7666666507720947
+          ],
+          "max_angle_from_initial_deg": 67.724250409454
+        },
+        {
+          "node": "lowerarm_r",
+          "peak_rad_s": 3.6936781661929388,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 62.09382589858946
+        },
+        {
+          "node": "upperarm_l",
+          "peak_rad_s": 2.7420970806807845,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 47.91812323639632
+        },
+        {
+          "node": "upperarm_r",
+          "peak_rad_s": 2.6384534585112793,
+          "interval_s": [
+            2.3333332538604736,
+            2.3499999046325684
+          ],
+          "max_angle_from_initial_deg": 54.41233104306031
+        },
+        {
+          "node": "thigh_l",
+          "peak_rad_s": 1.3026967439018589,
+          "interval_s": [
+            2.3333332538604736,
+            2.3499999046325684
+          ],
+          "max_angle_from_initial_deg": 21.96524125548329
+        },
+        {
+          "node": "calf_l",
+          "peak_rad_s": 1.0526289356554592,
+          "interval_s": [
+            0.8500000238418579,
+            0.8666666746139526
+          ],
+          "max_angle_from_initial_deg": 17.59400738151422
+        },
+        {
+          "node": "foot_l",
+          "peak_rad_s": 0.861138705487018,
+          "interval_s": [
+            0.8833333253860474,
+            0.8999999761581421
+          ],
+          "max_angle_from_initial_deg": 24.41535540734015
+        },
+        {
+          "node": "head",
+          "peak_rad_s": 0.7475620758836141,
+          "interval_s": [
+            2.3333332538604736,
+            2.3499999046325684
+          ],
+          "max_angle_from_initial_deg": 6.918402085098896
+        },
+        {
+          "node": "pinky_03_l",
+          "peak_rad_s": 0.6814016628032045,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459162798837951
+        },
+        {
+          "node": "index_02_r",
+          "peak_rad_s": 0.6814010511401413,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459168689716677
+        },
+        {
+          "node": "middle_03_r",
+          "peak_rad_s": 0.6814004361777077,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459162231975085
+        },
+        {
+          "node": "middle_02_l",
+          "peak_rad_s": 0.6814000889778445,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459165220872382
+        },
+        {
+          "node": "pinky_02_r",
+          "peak_rad_s": 0.6814000575756763,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459166406506268
+        },
+        {
+          "node": "middle_01_r",
+          "peak_rad_s": 0.6813996502342394,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459167303852833
+        },
+        {
+          "node": "ring_02_l",
+          "peak_rad_s": 0.6813989656666719,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459164670577632
+        },
+        {
+          "node": "ring_02_r",
+          "peak_rad_s": 0.6813989261886566,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459166711829678
+        },
+        {
+          "node": "pinky_02_l",
+          "peak_rad_s": 0.6813983186666196,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163147229182
+        },
+        {
+          "node": "ring_03_r",
+          "peak_rad_s": 0.6813981946202163,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459162416441986
+        },
+        {
+          "node": "ring_03_l",
+          "peak_rad_s": 0.6813981647969893,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163926761258
+        },
+        {
+          "node": "middle_01_l",
+          "peak_rad_s": 0.6813978414315695,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459161783425099
+        },
+        {
+          "node": "pinky_01_l",
+          "peak_rad_s": 0.6813977300196622,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459164476646215
+        },
+        {
+          "node": "index_03_r",
+          "peak_rad_s": 0.6813967823830532,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459164688087625
+        },
+        {
+          "node": "index_03_l",
+          "peak_rad_s": 0.6813967700980452,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163017775083
+        },
+        {
+          "node": "pinky_01_r",
+          "peak_rad_s": 0.6813965995320875,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163753211048
+        },
+        {
+          "node": "middle_02_r",
+          "peak_rad_s": 0.681396455593785,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.45916540772379
+        },
+        {
+          "node": "index_01_l",
+          "peak_rad_s": 0.6813964223566744,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459167089297612
+        },
+        {
+          "node": "middle_03_l",
+          "peak_rad_s": 0.681396065180812,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459164344244956
+        },
+        {
+          "node": "ring_01_l",
+          "peak_rad_s": 0.6813941265355873,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459161290738184
+        },
+        {
+          "node": "index_01_r",
+          "peak_rad_s": 0.681393831140463,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459165506163266
+        },
+        {
+          "node": "ring_01_r",
+          "peak_rad_s": 0.6813937238831422,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459165945191979
+        },
+        {
+          "node": "pinky_03_r",
+          "peak_rad_s": 0.6813936885178326,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163554077744
+        },
+        {
+          "node": "index_02_l",
+          "peak_rad_s": 0.6813932659359088,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.45916332178588
+        },
+        {
+          "node": "spine_03",
+          "peak_rad_s": 0.4959929261736006,
+          "interval_s": [
+            2.3333332538604736,
+            2.3499999046325684
+          ],
+          "max_angle_from_initial_deg": 4.5836588530289974
+        },
+        {
+          "node": "spine_01",
+          "peak_rad_s": 0.23848069497700952,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 4.483918092010547
+        },
+        {
+          "node": "Root",
+          "peak_rad_s": 7.024474751815673e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 2.4148365394514667e-06
+        },
+        {
+          "node": "pelvis",
+          "peak_rad_s": 7.024474751815673e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 2.4148365394514667e-06
+        },
+        {
+          "node": "thumb_01_l",
+          "peak_rad_s": 7.024474751815673e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 2.4148365394514667e-06
+        },
+        {
+          "node": "hand_r",
+          "peak_rad_s": 7.024474751815673e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 2.4148365394514667e-06
+        },
+        {
+          "node": "hand_l",
+          "peak_rad_s": 4.967053731282552e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 1.7075472925031877e-06
+        },
+        {
+          "node": "thumb_01_r",
+          "peak_rad_s": 4.967053731282552e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "spine_02",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "clavicle_l",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "thumb_02_l",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "thumb_03_l",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "clavicle_r",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "thumb_02_r",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 1.7075472925031877e-06
+        },
+        {
+          "node": "thumb_03_r",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "neck_01",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "ball_l",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "ball_r",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        }
+      ],
+      "world_joint_angular_velocity": [
+        {
+          "node": "lowerarm_l",
+          "peak_rad_s": 7.76160399194928,
+          "interval_s": [
+            3.2166666984558105,
+            3.220833333333333
+          ]
+        },
+        {
+          "node": "lowerarm_r",
+          "peak_rad_s": 6.004398046653782,
+          "interval_s": [
+            2.3333333333333335,
+            2.3375
+          ]
+        },
+        {
+          "node": "upperarm_r",
+          "peak_rad_s": 3.034326436898128,
+          "interval_s": [
+            2.35,
+            2.3541666666666665
+          ]
+        },
+        {
+          "node": "upperarm_l",
+          "peak_rad_s": 2.6555929626337127,
+          "interval_s": [
+            0.9291666666666667,
+            0.9333333333333333
+          ]
+        },
+        {
+          "node": "foot_r",
+          "peak_rad_s": 1.5236086598053789,
+          "interval_s": [
+            2.35,
+            2.3541666666666665
+          ]
+        },
+        {
+          "node": "head",
+          "peak_rad_s": 1.0877503166160671,
+          "interval_s": [
+            2.35,
+            2.3541666666666665
+          ]
+        },
+        {
+          "node": "foot_l",
+          "peak_rad_s": 0.004257153839616007,
+          "interval_s": [
+            0.8833333333333333,
+            0.8875
+          ]
+        },
+        {
+          "node": "pelvis",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            0.004166666666666667
+          ]
+        }
+      ],
+      "local_translation_channels": [
+        {
+          "node": "Root",
+          "axis_range_m": [
+            0.1600000113248825,
+            0.054999999701976776,
+            0.2719999849796295
+          ],
+          "max_delta_from_initial_m": 0.32032638144824566
+        },
+        {
+          "node": "pelvis",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "spine_01",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "spine_02",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "spine_03",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "clavicle_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "upperarm_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "lowerarm_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "hand_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "clavicle_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "upperarm_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "lowerarm_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "hand_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "neck_01",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "head",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thigh_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "calf_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "foot_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ball_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thigh_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "calf_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "foot_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ball_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        }
+      ],
+      "scale_channels": [
+        {
+          "node": "Root",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "pelvis",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "spine_01",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 5.960464477539063e-08
+        },
+        {
+          "node": "spine_02",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "spine_03",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "clavicle_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "upperarm_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 5.960464477539063e-08
+        },
+        {
+          "node": "lowerarm_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "hand_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "index_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "index_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "index_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "middle_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "pinky_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "pinky_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "pinky_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "ring_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "ring_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "ring_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "thumb_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "thumb_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "thumb_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "clavicle_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "upperarm_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "lowerarm_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "hand_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "index_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "index_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "index_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "pinky_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "pinky_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "pinky_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.980232238769531e-07
+        },
+        {
+          "node": "ring_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "ring_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "ring_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "thumb_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.980232238769531e-07
+        },
+        {
+          "node": "thumb_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "thumb_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "neck_01",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "head",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "thigh_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.2649765014648438e-06
+        },
+        {
+          "node": "calf_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "foot_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "ball_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "thigh_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.2649765014648438e-06
+        },
+        {
+          "node": "calf_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "foot_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "ball_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        }
+      ],
       "max_nonroot_local_translation_change_m": 0.0,
       "max_local_scale_change": 0.0,
-      "max_connected_segment_length_variation_m": 7.880872600063427e-07,
-      "peak_local_joint_angular_velocity": {
-        "node": "calf_r",
-        "peak_rad_s": 6.075889271361446,
-        "interval_s": [
-          2.7833333015441895,
-          2.799999952316284
-        ],
-        "max_angle_from_initial_deg": 87.62149663630836
+      "connected_segment_length_range_m": {
+        "thigh_l-calf_l": 5.551115123125783e-16,
+        "calf_l-foot_l": 1.8438189319791576e-07,
+        "thigh_r-calf_r": 4.996003610813204e-16,
+        "calf_r-foot_r": 7.880872600063427e-07,
+        "upperarm_l-lowerarm_l": 4.0735923190204915e-08,
+        "lowerarm_l-hand_l": 7.281495500999213e-08,
+        "upperarm_r-lowerarm_r": 2.452623337756421e-08,
+        "lowerarm_r-hand_r": 4.280965087977151e-08
       },
-      "minimum_knee_forward_up_pole_cosine": 0.9999999767177591,
-      "impact_knee_flexion_deg": 62.291007186197994,
-      "impact_knee_height_minus_ankle_height_m": 0.42070506299537164,
-      "maximum_support_sole_floor_error_m": 3.147659366750082e-05,
+      "support_ankle_axis_range_m": [
+        9.092862226917076e-06,
+        3.1218737656324436e-05,
+        1.855970638287019e-06
+      ],
       "shoe_floor_minima_m": {
         "Shoe_l": -3.147659366750082e-05,
         "Shoe_r": -1.3852297960783971e-05,
         "Sole_l": -3.147659366750082e-05,
         "Sole_r": -1.3852297960783971e-05
       },
-      "support_foot_world_rotation_change_deg": 0.0013431734587460826
+      "floor_minimum_times_s": {
+        "Shoe_l": 2.341666666666667,
+        "Shoe_r": 0.9249999999999999,
+        "Sole_l": 2.341666666666667,
+        "Sole_r": 0.9249999999999999
+      },
+      "support_foot_world_rotation_change_deg": 0.0013431734587460826,
+      "right_ankle_max_height_m": 0.4399996488331986,
+      "left_sole_max_abs_floor_error_m": 3.147659366750082e-05,
+      "minimum_knee_forward_up_pole_cosine": 0.9999999767177591,
+      "maximum_knee_flexion_deg": 115.7406292535929,
+      "minimum_knee_above_ankle_during_active_kick_m": 0.31111975792260865,
+      "elbow_flexion_ranges_deg": {
+        "l": [
+          8.801276482358967,
+          100.52728240471627
+        ],
+        "r": [
+          8.801281380613887,
+          69.61338265175421
+        ]
+      },
+      "shoulder_world_from_down_ranges_deg": {
+        "l": [
+          9.593993625015775,
+          51.20629571330467
+        ],
+        "r": [
+          9.346483569199743,
+          53.9279949463594
+        ]
+      },
+      "stage_samples": [
+        {
+          "time_s": 0.0,
+          "hip_yup_m": [
+            -0.10988241431397153,
+            0.9093133857407669,
+            -0.003834105404502638
+          ],
+          "knee_yup_m": [
+            -0.16456823826249067,
+            0.4988410524143477,
+            0.11235777516340133
+          ],
+          "ankle_yup_m": [
+            -0.19656692632127945,
+            0.0724046234068807,
+            0.018934539356614544
+          ],
+          "pelvis_yup_m": [
+            2.910384086507456e-11,
+            0.914789170026779,
+            0.006757227703929155
+          ],
+          "right_knee_flexion_deg": 28.18653229335118,
+          "knee_height_minus_ankle_height_m": 0.426436429007467,
+          "knee_ahead_of_hip_m": 0.11619188056790397,
+          "forward_up_pole_cosine": 0.9999999999822216,
+          "elbow_flexion_deg": {
+            "l": 8.801276482358967,
+            "r": 8.80128138061397
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 9.593993625015775,
+            "r": 9.593965591079156
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.0882181212538516e-07,
+            "Shoe_r": -2.838089981043651e-07,
+            "Sole_l": -4.0882181212538516e-07,
+            "Sole_r": -2.838089981043651e-07
+          }
+        },
+        {
+          "time_s": 1.2,
+          "hip_yup_m": [
+            0.04011759153245152,
+            0.8743133893436588,
+            0.05116589425565185
+          ],
+          "knee_yup_m": [
+            -0.11395912934984236,
+            0.48365410783017887,
+            0.14403310443664624
+          ],
+          "ankle_yup_m": [
+            -0.19656694986835244,
+            0.07240459423894957,
+            0.018934427041318175
+          ],
+          "pelvis_yup_m": [
+            0.1500000058755269,
+            0.8797891736296708,
+            0.06175722736408364
+          ],
+          "right_knee_flexion_deg": 30.763787187814255,
+          "knee_height_minus_ankle_height_m": 0.4112495135912293,
+          "knee_ahead_of_hip_m": 0.09286721018099439,
+          "forward_up_pole_cosine": 0.9999999999857153,
+          "elbow_flexion_deg": {
+            "l": 93.7210723421233,
+            "r": 69.61338260562492
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20626907824398,
+            "r": 30.316964101954955
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.1392604300808535e-07,
+            "Shoe_r": -3.263514878442847e-07,
+            "Sole_l": -4.1392604300808535e-07,
+            "Sole_r": -3.263514878442847e-07
+          }
+        },
+        {
+          "time_s": 1.65,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8643133839382604,
+            0.13616589536392873
+          ],
+          "knee_yup_m": [
+            -0.13494124113720024,
+            0.7511194070381185,
+            0.507540348455756
+          ],
+          "ankle_yup_m": [
+            -0.11999992872523231,
+            0.4399996487483385,
+            0.19999911518039248
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8697891682242724,
+            0.14675722847236053
+          ],
+          "right_knee_flexion_deg": 115.7406292256863,
+          "knee_height_minus_ankle_height_m": 0.31111975828978,
+          "knee_ahead_of_hip_m": 0.37137445309182726,
+          "forward_up_pole_cosine": 0.9999999999998554,
+          "elbow_flexion_deg": {
+            "l": 93.72107241525944,
+            "r": 69.61338261673114
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.206269110590966,
+            "r": 30.31696415530321
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -3.9734805979491887e-07,
+            "Shoe_r": 0.36135773058640824,
+            "Sole_l": -3.9734805979491887e-07,
+            "Sole_r": 0.3588995002772561
+          }
+        },
+        {
+          "time_s": 2.0,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8543133860387901,
+            0.2561658850587542
+          ],
+          "knee_yup_m": [
+            -0.08166443636835401,
+            0.8025652427386409,
+            0.6622868746026258
+          ],
+          "ankle_yup_m": [
+            -0.19656739961878394,
+            0.38111999854852374,
+            0.6902450452531533
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8597891703248022,
+            0.266757218167186
+          ],
+          "right_knee_flexion_deg": 75.1322389737573,
+          "knee_height_minus_ankle_height_m": 0.4214452441901172,
+          "knee_ahead_of_hip_m": 0.4061209895438716,
+          "forward_up_pole_cosine": 0.9999999999987159,
+          "elbow_flexion_deg": {
+            "l": 100.52728240471627,
+            "r": 44.72162586266907
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20629571330465,
+            "r": 53.92799494635939
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -5.083046445964552e-07,
+            "Shoe_r": 0.32040895476801895,
+            "Sole_l": -5.083046445964552e-07,
+            "Sole_r": 0.3107157387280688
+          }
+        },
+        {
+          "time_s": 2.1,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8543133860387901,
+            0.2681658749755804
+          ],
+          "knee_yup_m": [
+            -0.08011902104898062,
+            0.8011057043160856,
+            0.6745966792715151
+          ],
+          "ankle_yup_m": [
+            -0.19656735413442583,
+            0.3811200839671213,
+            0.7152451049479679
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8597891703248022,
+            0.2787572080840122
+          ],
+          "right_knee_flexion_deg": 73.32082468495344,
+          "knee_height_minus_ankle_height_m": 0.4199856203489643,
+          "knee_ahead_of_hip_m": 0.4064308042959347,
+          "forward_up_pole_cosine": 0.9999999999985547,
+          "elbow_flexion_deg": {
+            "l": 100.52728240471627,
+            "r": 44.72162586266907
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20629571330465,
+            "r": 53.92799494635939
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -6.582278399275875e-07,
+            "Shoe_r": 0.3204090541656739,
+            "Sole_l": -6.582278399275875e-07,
+            "Sole_r": 0.31071581934485953
+          }
+        },
+        {
+          "time_s": 2.2,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8543133860387901,
+            0.2561658873586127
+          ],
+          "knee_yup_m": [
+            -0.08166443606211128,
+            0.8025652424921724,
+            0.6622868769704516
+          ],
+          "ankle_yup_m": [
+            -0.19656739961987463,
+            0.3811199985466625,
+            0.6902450500450924
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8597891703248022,
+            0.2667572204670445
+          ],
+          "right_knee_flexion_deg": 75.13223863276426,
+          "knee_height_minus_ankle_height_m": 0.4214452439455099,
+          "knee_ahead_of_hip_m": 0.40612098961183896,
+          "forward_up_pole_cosine": 0.999999999998716,
+          "elbow_flexion_deg": {
+            "l": 100.52728240471627,
+            "r": 44.72162586266907
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20629571330465,
+            "r": 53.92799494635939
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -5.083066420772916e-07,
+            "Shoe_r": 0.32040895476614883,
+            "Sole_l": -5.083066420772916e-07,
+            "Sole_r": 0.31071573872621083
+          }
+        },
+        {
+          "time_s": 2.5,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8693133866348366,
+            0.12616588982712576
+          ],
+          "knee_yup_m": [
+            -0.1295969434185389,
+            0.7579397199708293,
+            0.5007019022014049
+          ],
+          "ankle_yup_m": [
+            -0.12000005041661291,
+            0.4399994663075148,
+            0.19999895694306474
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8747891709208486,
+            0.13675722293555756
+          ],
+          "right_knee_flexion_deg": 114.79074716255379,
+          "knee_height_minus_ankle_height_m": 0.3179402536633145,
+          "knee_ahead_of_hip_m": 0.37453601237427914,
+          "forward_up_pole_cosine": 0.9999999999999741,
+          "elbow_flexion_deg": {
+            "l": 93.72107240546018,
+            "r": 69.61338265175418
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20626911061437,
+            "r": 30.316964124425184
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.1458035049897657e-07,
+            "Shoe_r": 0.36135756484416953,
+            "Sole_l": -4.1458035049897657e-07,
+            "Sole_r": 0.3588993396151574
+          }
+        },
+        {
+          "time_s": 2.95,
+          "hip_yup_m": [
+            0.040117591660263255,
+            0.879313388260226,
+            0.0511658944005278
+          ],
+          "knee_yup_m": [
+            -0.11088852824962687,
+            0.4855307661291354,
+            0.13549280075070883
+          ],
+          "ankle_yup_m": [
+            -0.19656676337985565,
+            0.07240456945451884,
+            0.0189344632553049
+          ],
+          "pelvis_yup_m": [
+            0.15000000600333863,
+            0.884789172546238,
+            0.061757227508959595
+          ],
+          "right_knee_flexion_deg": 28.279410119739502,
+          "knee_height_minus_ankle_height_m": 0.4131261966746166,
+          "knee_ahead_of_hip_m": 0.08432690635018103,
+          "forward_up_pole_cosine": 0.99999999997813,
+          "elbow_flexion_deg": {
+            "l": 93.72107240546018,
+            "r": 69.61338265175418
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20626911061437,
+            "r": 30.316964124425184
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.4286141106159737e-07,
+            "Shoe_r": -3.4668662892821644e-07,
+            "Sole_l": -4.4286141106159737e-07,
+            "Sole_r": -3.4668662892821644e-07
+          }
+        },
+        {
+          "time_s": 3.5,
+          "hip_yup_m": [
+            -0.10988241431397153,
+            0.9093133857407669,
+            -0.003834105404502638
+          ],
+          "knee_yup_m": [
+            -0.16456823826249067,
+            0.4988410524143477,
+            0.11235777516340133
+          ],
+          "ankle_yup_m": [
+            -0.19656692632127945,
+            0.0724046234068807,
+            0.018934539356614544
+          ],
+          "pelvis_yup_m": [
+            2.910384086507456e-11,
+            0.914789170026779,
+            0.006757227703929155
+          ],
+          "right_knee_flexion_deg": 28.18653229335118,
+          "knee_height_minus_ankle_height_m": 0.426436429007467,
+          "knee_ahead_of_hip_m": 0.11619188056790397,
+          "forward_up_pole_cosine": 0.9999999999822216,
+          "elbow_flexion_deg": {
+            "l": 8.801276482358967,
+            "r": 8.80128138061397
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 9.593993625015775,
+            "r": 9.593965591079156
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.0882181212538516e-07,
+            "Shoe_r": -2.838089981043651e-07,
+            "Sole_l": -4.0882181212538516e-07,
+            "Sole_r": -2.838089981043651e-07
+          }
+        },
+        {
+          "time_s": 6.0,
+          "hip_yup_m": [
+            -0.10988241431397153,
+            0.9093133857407669,
+            -0.003834105404502638
+          ],
+          "knee_yup_m": [
+            -0.16456823826249067,
+            0.4988410524143477,
+            0.11235777516340133
+          ],
+          "ankle_yup_m": [
+            -0.19656692632127945,
+            0.0724046234068807,
+            0.018934539356614544
+          ],
+          "pelvis_yup_m": [
+            2.910384086507456e-11,
+            0.914789170026779,
+            0.006757227703929155
+          ],
+          "right_knee_flexion_deg": 28.18653229335118,
+          "knee_height_minus_ankle_height_m": 0.426436429007467,
+          "knee_ahead_of_hip_m": 0.11619188056790397,
+          "forward_up_pole_cosine": 0.9999999999822216,
+          "elbow_flexion_deg": {
+            "l": 8.801276482358967,
+            "r": 8.80128138061397
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 9.593993625015775,
+            "r": 9.593965591079156
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.0882181158631836e-07,
+            "Shoe_r": -2.838089981043651e-07,
+            "Sole_l": -4.0882181158631836e-07,
+            "Sole_r": -2.838089981043651e-07
+          }
+        }
+      ]
     },
     {
       "animation": "mid_kick",
-      "samples_including_original_keys": 1777,
+      "clip_end_s": 6.0,
       "sampling_hz": 240,
-      "negative_adjacent_quaternion_count": 0,
+      "samples_including_original_keys": 1777,
+      "negative_adjacent_quaternion_dots": [],
+      "max_raw_quaternion_norm_error": 9.386771915309566e-08,
+      "local_joint_angular_velocity": [
+        {
+          "node": "calf_r",
+          "peak_rad_s": 11.60477499141982,
+          "interval_s": [
+            2.299999952316284,
+            2.316666603088379
+          ],
+          "max_angle_from_initial_deg": 107.38545560872508
+        },
+        {
+          "node": "foot_r",
+          "peak_rad_s": 10.591535919613259,
+          "interval_s": [
+            2.366666555404663,
+            2.383333444595337
+          ],
+          "max_angle_from_initial_deg": 71.91969109979075
+        },
+        {
+          "node": "thigh_r",
+          "peak_rad_s": 8.55912920657081,
+          "interval_s": [
+            2.4000000953674316,
+            2.4166667461395264
+          ],
+          "max_angle_from_initial_deg": 111.36213347077124
+        },
+        {
+          "node": "lowerarm_l",
+          "peak_rad_s": 5.323028635523103,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 94.44741213293902
+        },
+        {
+          "node": "lowerarm_r",
+          "peak_rad_s": 3.6936781661929388,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 62.09382589858946
+        },
+        {
+          "node": "upperarm_r",
+          "peak_rad_s": 3.546805821022834,
+          "interval_s": [
+            2.3333332538604736,
+            2.3499999046325684
+          ],
+          "max_angle_from_initial_deg": 62.746164878464754
+        },
+        {
+          "node": "upperarm_l",
+          "peak_rad_s": 2.7420970806807845,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 46.0829204234428
+        },
+        {
+          "node": "thigh_l",
+          "peak_rad_s": 1.9239788846847872,
+          "interval_s": [
+            2.3499999046325684,
+            2.366666555404663
+          ],
+          "max_angle_from_initial_deg": 21.09338568196498
+        },
+        {
+          "node": "foot_l",
+          "peak_rad_s": 1.3426893728408218,
+          "interval_s": [
+            2.316666603088379,
+            2.3333332538604736
+          ],
+          "max_angle_from_initial_deg": 19.71936988644958
+        },
+        {
+          "node": "calf_l",
+          "peak_rad_s": 1.0526289356554592,
+          "interval_s": [
+            0.8500000238418579,
+            0.8666666746139526
+          ],
+          "max_angle_from_initial_deg": 21.853783825663307
+        },
+        {
+          "node": "spine_01",
+          "peak_rad_s": 0.7438622692318407,
+          "interval_s": [
+            2.3333332538604736,
+            2.3499999046325684
+          ],
+          "max_angle_from_initial_deg": 7.958564041449341
+        },
+        {
+          "node": "pinky_03_l",
+          "peak_rad_s": 0.6814016628032045,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459161094765847
+        },
+        {
+          "node": "index_02_r",
+          "peak_rad_s": 0.6814010511401413,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459168684305178
+        },
+        {
+          "node": "middle_03_r",
+          "peak_rad_s": 0.6814004361777077,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459160555843274
+        },
+        {
+          "node": "middle_02_l",
+          "peak_rad_s": 0.6814000889778445,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.45916693340577
+        },
+        {
+          "node": "pinky_02_r",
+          "peak_rad_s": 0.6814000575756763,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459166380984096
+        },
+        {
+          "node": "middle_01_r",
+          "peak_rad_s": 0.6813996502342394,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459168369117128
+        },
+        {
+          "node": "ring_02_l",
+          "peak_rad_s": 0.6813989656666719,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459164817487421
+        },
+        {
+          "node": "ring_02_r",
+          "peak_rad_s": 0.6813989261886566,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163490131294
+        },
+        {
+          "node": "pinky_02_l",
+          "peak_rad_s": 0.6813983186666196,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.45916312233921
+        },
+        {
+          "node": "ring_03_r",
+          "peak_rad_s": 0.6813981946202163,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459162427029492
+        },
+        {
+          "node": "ring_03_l",
+          "peak_rad_s": 0.6813981647969893,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163937108803
+        },
+        {
+          "node": "middle_01_l",
+          "peak_rad_s": 0.6813978414315695,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163327876862
+        },
+        {
+          "node": "pinky_01_l",
+          "peak_rad_s": 0.6813977300196622,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459165922474256
+        },
+        {
+          "node": "index_03_r",
+          "peak_rad_s": 0.6813967823830532,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459157985096065
+        },
+        {
+          "node": "index_03_l",
+          "peak_rad_s": 0.6813967700980452,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163005148374
+        },
+        {
+          "node": "pinky_01_r",
+          "peak_rad_s": 0.6813965995320875,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459163753211048
+        },
+        {
+          "node": "middle_02_r",
+          "peak_rad_s": 0.681396455593785,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459165463424076
+        },
+        {
+          "node": "index_01_l",
+          "peak_rad_s": 0.6813964223566744,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459164039755922
+        },
+        {
+          "node": "middle_03_l",
+          "peak_rad_s": 0.681396065180812,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459162681311325
+        },
+        {
+          "node": "ring_01_l",
+          "peak_rad_s": 0.6813941265355873,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.45916436056879
+        },
+        {
+          "node": "index_01_r",
+          "peak_rad_s": 0.681393831140463,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459162167488563
+        },
+        {
+          "node": "ring_01_r",
+          "peak_rad_s": 0.6813937238831422,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459165038209486
+        },
+        {
+          "node": "pinky_03_r",
+          "peak_rad_s": 0.6813936885178326,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.459164399551602
+        },
+        {
+          "node": "index_02_l",
+          "peak_rad_s": 0.6813932659359088,
+          "interval_s": [
+            0.9166666865348816,
+            0.9333333373069763
+          ],
+          "max_angle_from_initial_deg": 11.4591633392449
+        },
+        {
+          "node": "spine_03",
+          "peak_rad_s": 0.4969722426198609,
+          "interval_s": [
+            2.3333332538604736,
+            2.3499999046325684
+          ],
+          "max_angle_from_initial_deg": 4.583659806110198
+        },
+        {
+          "node": "head",
+          "peak_rad_s": 0.31360069090101134,
+          "interval_s": [
+            2.3333332538604736,
+            2.3499999046325684
+          ],
+          "max_angle_from_initial_deg": 2.9311844390415436
+        },
+        {
+          "node": "Root",
+          "peak_rad_s": 7.024474751815673e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 2.4148365394514667e-06
+        },
+        {
+          "node": "pelvis",
+          "peak_rad_s": 7.024474751815673e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 2.4148365394514667e-06
+        },
+        {
+          "node": "thumb_01_l",
+          "peak_rad_s": 7.024474751815673e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 2.4148365394514667e-06
+        },
+        {
+          "node": "hand_r",
+          "peak_rad_s": 7.024474751815673e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 2.4148365394514667e-06
+        },
+        {
+          "node": "hand_l",
+          "peak_rad_s": 4.967053731282552e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 1.7075472925031877e-06
+        },
+        {
+          "node": "thumb_01_r",
+          "peak_rad_s": 4.967053731282552e-09,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "spine_02",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "clavicle_l",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "thumb_02_l",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "thumb_03_l",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "clavicle_r",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "thumb_02_r",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 1.7075472925031877e-06
+        },
+        {
+          "node": "thumb_03_r",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "neck_01",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "ball_l",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        },
+        {
+          "node": "ball_r",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            6.0
+          ],
+          "max_angle_from_initial_deg": 0.0
+        }
+      ],
+      "world_joint_angular_velocity": [
+        {
+          "node": "lowerarm_l",
+          "peak_rad_s": 7.76160399194928,
+          "interval_s": [
+            3.2166666984558105,
+            3.220833333333333
+          ]
+        },
+        {
+          "node": "lowerarm_r",
+          "peak_rad_s": 6.192096132358554,
+          "interval_s": [
+            2.3333333333333335,
+            2.3375
+          ]
+        },
+        {
+          "node": "upperarm_r",
+          "peak_rad_s": 3.2688161193513716,
+          "interval_s": [
+            2.345833333333333,
+            2.3499999046325684
+          ]
+        },
+        {
+          "node": "upperarm_l",
+          "peak_rad_s": 2.6555929626337127,
+          "interval_s": [
+            0.9291666666666667,
+            0.9333333333333333
+          ]
+        },
+        {
+          "node": "foot_r",
+          "peak_rad_s": 1.5711982768141,
+          "interval_s": [
+            2.35,
+            2.3541666666666665
+          ]
+        },
+        {
+          "node": "head",
+          "peak_rad_s": 0.6200030515007785,
+          "interval_s": [
+            2.345833333333333,
+            2.3499999046325684
+          ]
+        },
+        {
+          "node": "foot_l",
+          "peak_rad_s": 0.004257153839616007,
+          "interval_s": [
+            0.8833333333333333,
+            0.8875
+          ]
+        },
+        {
+          "node": "pelvis",
+          "peak_rad_s": 0.0,
+          "interval_s": [
+            0.0,
+            0.004166666666666667
+          ]
+        }
+      ],
+      "local_translation_channels": [
+        {
+          "node": "Root",
+          "axis_range_m": [
+            0.1600000113248825,
+            0.054999999701976776,
+            0.21000000089406967
+          ],
+          "max_delta_from_initial_m": 0.21731313624218943
+        },
+        {
+          "node": "pelvis",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "spine_01",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "spine_02",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "spine_03",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "clavicle_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "upperarm_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "lowerarm_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "hand_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_01_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_02_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_03_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "clavicle_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "upperarm_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "lowerarm_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "hand_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "index_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "middle_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "pinky_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ring_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_01_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_02_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thumb_03_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "neck_01",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "head",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thigh_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "calf_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "foot_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ball_l",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "thigh_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "calf_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "foot_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        },
+        {
+          "node": "ball_r",
+          "axis_range_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max_delta_from_initial_m": 0.0
+        }
+      ],
+      "scale_channels": [
+        {
+          "node": "Root",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "pelvis",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "spine_01",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 5.960464477539063e-08
+        },
+        {
+          "node": "spine_02",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "spine_03",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "clavicle_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "upperarm_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 5.960464477539063e-08
+        },
+        {
+          "node": "lowerarm_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "hand_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "index_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "index_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "index_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "middle_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "pinky_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "pinky_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "pinky_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "ring_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "ring_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "ring_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "thumb_01_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "thumb_02_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "thumb_03_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "clavicle_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "upperarm_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "lowerarm_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "hand_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "index_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "index_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "index_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "middle_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "pinky_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "pinky_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "pinky_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.980232238769531e-07
+        },
+        {
+          "node": "ring_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "ring_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "ring_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "thumb_01_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.980232238769531e-07
+        },
+        {
+          "node": "thumb_02_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "thumb_03_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "neck_01",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "head",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.7881393432617188e-07
+        },
+        {
+          "node": "thigh_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.2649765014648438e-06
+        },
+        {
+          "node": "calf_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "foot_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.384185791015625e-07
+        },
+        {
+          "node": "ball_l",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "thigh_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 2.2649765014648438e-06
+        },
+        {
+          "node": "calf_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        },
+        {
+          "node": "foot_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 0.0
+        },
+        {
+          "node": "ball_r",
+          "max_delta_from_initial": 0.0,
+          "max_delta_from_one": 1.1920928955078125e-07
+        }
+      ],
       "max_nonroot_local_translation_change_m": 0.0,
       "max_local_scale_change": 0.0,
-      "max_connected_segment_length_variation_m": 7.938490758085948e-07,
-      "peak_local_joint_angular_velocity": {
-        "node": "calf_r",
-        "peak_rad_s": 11.64800114807248,
-        "interval_s": [
-          2.299999952316284,
-          2.316666603088379
-        ],
-        "max_angle_from_initial_deg": 107.41151473245301
+      "connected_segment_length_range_m": {
+        "thigh_l-calf_l": 5.551115123125783e-16,
+        "calf_l-foot_l": 2.6003270076069285e-07,
+        "thigh_r-calf_r": 4.996003610813204e-16,
+        "calf_r-foot_r": 7.938490758085948e-07,
+        "upperarm_l-lowerarm_l": 3.9169363197366636e-08,
+        "lowerarm_l-hand_l": 7.281495500999213e-08,
+        "upperarm_r-lowerarm_r": 2.733934068022137e-08,
+        "lowerarm_r-hand_r": 4.280965087977151e-08
       },
-      "minimum_knee_forward_up_pole_cosine": 0.9999998465454885,
-      "impact_knee_flexion_deg": 44.56775818953416,
-      "impact_knee_height_minus_ankle_height_m": 0.1527015892340754,
-      "maximum_support_sole_floor_error_m": 7.16071453516354e-05,
+      "support_ankle_axis_range_m": [
+        9.141348778746172e-06,
+        7.131872124627181e-05,
+        1.2717991239336035e-05
+      ],
       "shoe_floor_minima_m": {
         "Shoe_l": -7.16071453516354e-05,
         "Shoe_r": -1.3852297960783971e-05,
         "Sole_l": -7.16071453516354e-05,
         "Sole_r": -1.3852297960783971e-05
       },
-      "support_foot_world_rotation_change_deg": 0.0013431734587460826
+      "floor_minimum_times_s": {
+        "Shoe_l": 2.3583333333333334,
+        "Shoe_r": 0.9249999999999999,
+        "Sole_l": 2.3583333333333334,
+        "Sole_r": 0.9249999999999999
+      },
+      "support_foot_world_rotation_change_deg": 0.0013431734587460826,
+      "right_ankle_max_height_m": 0.8574379468679305,
+      "left_sole_max_abs_floor_error_m": 7.16071453516354e-05,
+      "minimum_knee_forward_up_pole_cosine": 0.9999998531611679,
+      "maximum_knee_flexion_deg": 135.56684643294247,
+      "minimum_knee_above_ankle_during_active_kick_m": 0.1421695122121922,
+      "elbow_flexion_ranges_deg": {
+        "l": [
+          8.801276482358967,
+          100.52729527458837
+        ],
+        "r": [
+          8.801281380613887,
+          69.61338265175421
+        ]
+      },
+      "shoulder_world_from_down_ranges_deg": {
+        "l": [
+          9.593993625015775,
+          51.20630713780212
+        ],
+        "r": [
+          9.346483569199743,
+          53.92800142511304
+        ]
+      },
+      "stage_samples": [
+        {
+          "time_s": 0.0,
+          "hip_yup_m": [
+            -0.10988241431397153,
+            0.9093133857407669,
+            -0.003834105404502638
+          ],
+          "knee_yup_m": [
+            -0.16456823826249067,
+            0.4988410524143477,
+            0.11235777516340133
+          ],
+          "ankle_yup_m": [
+            -0.19656692632127945,
+            0.0724046234068807,
+            0.018934539356614544
+          ],
+          "pelvis_yup_m": [
+            2.910384086507456e-11,
+            0.914789170026779,
+            0.006757227703929155
+          ],
+          "right_knee_flexion_deg": 28.18653229335118,
+          "knee_height_minus_ankle_height_m": 0.426436429007467,
+          "knee_ahead_of_hip_m": 0.11619188056790397,
+          "forward_up_pole_cosine": 0.9999999999822216,
+          "elbow_flexion_deg": {
+            "l": 8.801276482358967,
+            "r": 8.80128138061397
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 9.593993625015775,
+            "r": 9.593965591079156
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.0882181212538516e-07,
+            "Shoe_r": -2.838089981043651e-07,
+            "Sole_l": -4.0882181212538516e-07,
+            "Sole_r": -2.838089981043651e-07
+          }
+        },
+        {
+          "time_s": 1.2,
+          "hip_yup_m": [
+            0.04011759153245152,
+            0.8743133893436588,
+            0.05116589425565185
+          ],
+          "knee_yup_m": [
+            -0.11395912934984236,
+            0.48365410783017887,
+            0.14403310443664624
+          ],
+          "ankle_yup_m": [
+            -0.19656694986835244,
+            0.07240459423894957,
+            0.018934427041318175
+          ],
+          "pelvis_yup_m": [
+            0.1500000058755269,
+            0.8797891736296708,
+            0.06175722736408364
+          ],
+          "right_knee_flexion_deg": 30.763787187814255,
+          "knee_height_minus_ankle_height_m": 0.4112495135912293,
+          "knee_ahead_of_hip_m": 0.09286721018099439,
+          "forward_up_pole_cosine": 0.9999999999857153,
+          "elbow_flexion_deg": {
+            "l": 93.7210723421233,
+            "r": 69.61338260562492
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20626907824398,
+            "r": 30.316964101954955
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.1392604300808535e-07,
+            "Shoe_r": -3.263514878442847e-07,
+            "Sole_l": -4.1392604300808535e-07,
+            "Sole_r": -3.263514878442847e-07
+          }
+        },
+        {
+          "time_s": 1.65,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8643133839382604,
+            0.1361658948898968
+          ],
+          "knee_yup_m": [
+            -0.15050581223154208,
+            0.8917638111768759,
+            0.5156067421436757
+          ],
+          "ankle_yup_m": [
+            -0.12000006607190022,
+            0.5899999339681677,
+            0.19999933543097004
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8697891682242724,
+            0.1467572279983286
+          ],
+          "right_knee_flexion_deg": 135.44850557614595,
+          "knee_height_minus_ankle_height_m": 0.3017638772087081,
+          "knee_ahead_of_hip_m": 0.3794408472537789,
+          "forward_up_pole_cosine": 0.999999999999887,
+          "elbow_flexion_deg": {
+            "l": 93.72107241525175,
+            "r": 69.61338261672802
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20626911062232,
+            "r": 30.316964155309968
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -3.973481297823664e-07,
+            "Shoe_r": 0.5113578825691646,
+            "Sole_l": -3.973481297823664e-07,
+            "Sole_r": 0.5088996163514691
+          }
+        },
+        {
+          "time_s": 2.0,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8543133860387901,
+            -0.07383410570252585
+          ],
+          "knee_yup_m": [
+            -0.03133605368900845,
+            1.0149070950125905,
+            0.3167469930855122
+          ],
+          "ankle_yup_m": [
+            -0.19656641141332448,
+            0.8574368117137783,
+            0.6902467786582365
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8597891703248022,
+            -0.06324277259409407
+          ],
+          "right_knee_flexion_deg": 44.597553169657246,
+          "knee_height_minus_ankle_height_m": 0.15747028329881219,
+          "knee_ahead_of_hip_m": 0.39058109878803804,
+          "forward_up_pole_cosine": 0.9999999999967786,
+          "elbow_flexion_deg": {
+            "l": 100.52729527458837,
+            "r": 44.72164259557109
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.206284996699765,
+            "r": 53.92800142511299
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -7.0329234615551e-07,
+            "Shoe_r": 0.7967257668465175,
+            "Sole_l": -7.0329234615551e-07,
+            "Sole_r": 0.7870325902204965
+          }
+        },
+        {
+          "time_s": 2.1,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8543133860387901,
+            -0.061834108335246954
+          ],
+          "knee_yup_m": [
+            -0.03578743662598044,
+            0.999607162474367,
+            0.33375238683663333
+          ],
+          "ankle_yup_m": [
+            -0.19656635554379132,
+            0.8574376440446257,
+            0.7152467620948161
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8597891703248022,
+            -0.05124277522681516
+          ],
+          "right_knee_flexion_deg": 40.06921427431721,
+          "knee_height_minus_ankle_height_m": 0.14216951842974124,
+          "knee_ahead_of_hip_m": 0.39558649517188027,
+          "forward_up_pole_cosine": 0.9999999999931104,
+          "elbow_flexion_deg": {
+            "l": 100.52729527458837,
+            "r": 44.72164259557109
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.206284996699765,
+            "r": 53.92800142511299
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -6.513359664563593e-07,
+            "Shoe_r": 0.7967266407252983,
+            "Sole_l": -6.513359664563593e-07,
+            "Sole_r": 0.7870334017944457
+          }
+        },
+        {
+          "time_s": 2.2,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8543133860387901,
+            -0.0738341034026887
+          ],
+          "knee_yup_m": [
+            -0.03133605451228133,
+            1.0149070922424406,
+            0.31674699635265186
+          ],
+          "ankle_yup_m": [
+            -0.1965664114173444,
+            0.8574368117151935,
+            0.6902467834562984
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8597891703248022,
+            -0.0632427702942569
+          ],
+          "right_knee_flexion_deg": 44.59755234180927,
+          "knee_height_minus_ankle_height_m": 0.1574702805272471,
+          "knee_ahead_of_hip_m": 0.39058109975534056,
+          "forward_up_pole_cosine": 0.9999999999967782,
+          "elbow_flexion_deg": {
+            "l": 100.52729527458835,
+            "r": 44.72164259557108
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.206284996699765,
+            "r": 53.92800142511299
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -7.032933053995992e-07,
+            "Shoe_r": 0.796725766847973,
+            "Sole_l": -7.032933053995992e-07,
+            "Sole_r": 0.7870325902218958
+          }
+        },
+        {
+          "time_s": 2.5,
+          "hip_yup_m": [
+            0.05011758210974977,
+            0.8693133866348366,
+            0.12616588982712576
+          ],
+          "knee_yup_m": [
+            -0.14262385686355727,
+            0.898673673402994,
+            0.5095290859488455
+          ],
+          "ankle_yup_m": [
+            -0.11999993516995774,
+            0.5899999334731649,
+            0.1999991751416586
+          ],
+          "pelvis_yup_m": [
+            0.15999999645282514,
+            0.8747891709208486,
+            0.13675722293555756
+          ],
+          "right_knee_flexion_deg": 134.5564970128788,
+          "knee_height_minus_ankle_height_m": 0.30867373992982905,
+          "knee_ahead_of_hip_m": 0.38336319612171976,
+          "forward_up_pole_cosine": 0.9999999999998596,
+          "elbow_flexion_deg": {
+            "l": 93.72107240546018,
+            "r": 69.61338265175418
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20626911061437,
+            "r": 30.316964124425184
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.1458035049897657e-07,
+            "Shoe_r": 0.5113578159518215,
+            "Sole_l": -4.1458035049897657e-07,
+            "Sole_r": 0.5088995304406074
+          }
+        },
+        {
+          "time_s": 2.95,
+          "hip_yup_m": [
+            0.040117591660263255,
+            0.879313388260226,
+            0.0511658944005278
+          ],
+          "knee_yup_m": [
+            -0.11088852838080294,
+            0.48553076625805497,
+            0.13549280111782577
+          ],
+          "ankle_yup_m": [
+            -0.1965667633800414,
+            0.07240456965990782,
+            0.01893446325509307
+          ],
+          "pelvis_yup_m": [
+            0.15000000600333863,
+            0.884789172546238,
+            0.061757227508959595
+          ],
+          "right_knee_flexion_deg": 28.279410226170143,
+          "knee_height_minus_ankle_height_m": 0.41312619659814714,
+          "knee_ahead_of_hip_m": 0.08432690671729798,
+          "forward_up_pole_cosine": 0.9999999999781303,
+          "elbow_flexion_deg": {
+            "l": 93.72107240546018,
+            "r": 69.61338265175418
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 51.20626911061437,
+            "r": 30.316964124425184
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.4286141106159737e-07,
+            "Shoe_r": -3.464812441068529e-07,
+            "Sole_l": -4.4286141106159737e-07,
+            "Sole_r": -3.464812441068529e-07
+          }
+        },
+        {
+          "time_s": 3.5,
+          "hip_yup_m": [
+            -0.10988241431397153,
+            0.9093133857407669,
+            -0.003834105404502638
+          ],
+          "knee_yup_m": [
+            -0.16456823826249067,
+            0.4988410524143477,
+            0.11235777516340133
+          ],
+          "ankle_yup_m": [
+            -0.19656692632127945,
+            0.0724046234068807,
+            0.018934539356614544
+          ],
+          "pelvis_yup_m": [
+            2.910384086507456e-11,
+            0.914789170026779,
+            0.006757227703929155
+          ],
+          "right_knee_flexion_deg": 28.18653229335118,
+          "knee_height_minus_ankle_height_m": 0.426436429007467,
+          "knee_ahead_of_hip_m": 0.11619188056790397,
+          "forward_up_pole_cosine": 0.9999999999822216,
+          "elbow_flexion_deg": {
+            "l": 8.801276482358967,
+            "r": 8.80128138061397
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 9.593993625015775,
+            "r": 9.593965591079156
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.0882181212538516e-07,
+            "Shoe_r": -2.838089981043651e-07,
+            "Sole_l": -4.0882181212538516e-07,
+            "Sole_r": -2.838089981043651e-07
+          }
+        },
+        {
+          "time_s": 6.0,
+          "hip_yup_m": [
+            -0.10988241431397153,
+            0.9093133857407669,
+            -0.003834105404502638
+          ],
+          "knee_yup_m": [
+            -0.16456823826249067,
+            0.4988410524143477,
+            0.11235777516340133
+          ],
+          "ankle_yup_m": [
+            -0.19656692632127945,
+            0.0724046234068807,
+            0.018934539356614544
+          ],
+          "pelvis_yup_m": [
+            2.910384086507456e-11,
+            0.914789170026779,
+            0.006757227703929155
+          ],
+          "right_knee_flexion_deg": 28.18653229335118,
+          "knee_height_minus_ankle_height_m": 0.426436429007467,
+          "knee_ahead_of_hip_m": 0.11619188056790397,
+          "forward_up_pole_cosine": 0.9999999999822216,
+          "elbow_flexion_deg": {
+            "l": 8.801276482358967,
+            "r": 8.80128138061397
+          },
+          "shoulder_world_angle_from_down_deg": {
+            "l": 9.593993625015775,
+            "r": 9.593965591079156
+          },
+          "shoe_min_y_m": {
+            "Shoe_l": -4.0882181158631836e-07,
+            "Shoe_r": -2.838089981043651e-07,
+            "Sole_l": -4.0882181158631836e-07,
+            "Sole_r": -2.838089981043651e-07
+          }
+        }
+      ]
     }
-  ]
+  ],
+  "schema_version": 1,
+  "scope": "Geometry and interpolated animation measurements; no physical human dynamics or external validator claim."
 }

@@ -72,11 +72,14 @@ camera state; gates and regeneration commands are in
   <img src="docs/media/kick-comparison.gif" alt="An animated human kicks toward a dynamic Go2 and G1 side by side; both recover from the prescribed disturbances labeled above each panel" width="900">
 </picture>
 
-*Go2: 120 N for 0.20 s; G1: 50 N for 0.20 s.* Both recover with deterministic
-replay. The human uses a CC0 anatomical mesh with a planted support foot,
-knee chamber, extension and retraction. Robot motion comes from prescribed
-body wrenches; the human is a visual actor. These are different impulses on
-approximate scene mass/inertia models, so this is an illustrative experiment.
+*Both panels: the same 24 N·s lateral impulse over 80 ms.* Dynamic Go2
+(16.087 kg) and G1 (34.134 kg) use declared URDF inertials, attached feet and
+bounded joint PD with IMU/COM feedback at 1 kHz. The controllers react to
+observed motion; capture requires upright recovery and exact observed replay.
+The CC0 human uses a planted support foot, knee chamber, extension and
+retraction. It is a visual actor; the impact is a prescribed body wrench.
+This measured lateral simulation does not establish hardware kick resistance
+or recovery from every direction.
 [Source and regeneration](examples/139_kick_comparison/README.md) ·
 [metadata](docs/media/kick-comparison.json).
 

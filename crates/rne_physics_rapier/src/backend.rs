@@ -550,13 +550,26 @@ impl PhysicsBackend for RapierBackend {
             let dt_s = f64::from(state.integration_parameters.dt);
             for manifold in &contact_pair.manifolds {
                 let native_normal = vec3_from_rapier(manifold.data.normal);
+                // Compound manifold witnesses are in the child shape's frame.
+                let shape_a_position = manifold
+                    .subshape_pos1
+                    .as_ref()
+                    .map_or(*collider_a.position(), |child| {
+                        collider_a.position() * child
+                    });
+                let shape_b_position = manifold
+                    .subshape_pos2
+                    .as_ref()
+                    .map_or(*collider_b.position(), |child| {
+                        collider_b.position() * child
+                    });
                 for point in &manifold.points {
                     let normal_impulse_n_s = f64::from(point.data.impulse.max(0.0));
                     if normal_impulse_n_s == 0.0 || dt_s <= 0.0 {
                         continue;
                     }
-                    let point_a = collider_a.position() * point.local_p1;
-                    let point_b = collider_b.position() * point.local_p2;
+                    let point_a = shape_a_position * point.local_p1;
+                    let point_b = shape_b_position * point.local_p2;
                     let point_world = Point::from((point_a.coords + point_b.coords) * 0.5);
                     let velocity_a = body_a
                         .map(|body| body.velocity_at_point(&point_world))
@@ -2527,6 +2540,134 @@ mod tests {
             backend.sync_from_ecs(&mut world, id),
             Err(PhysicsError::InitializationFailed)
         ));
+    }
+
+    #[test]
+    fn compound_child_contact_points_and_relative_velocities_use_world_frames() {
+        for dynamic_first in [false, true] {
+            let mut backend = RapierBackend::new();
+            let id = backend
+                .create_world(PhysicsWorldDesc {
+                    gravity_m_s2: Vec3::ZERO,
+                    ..PhysicsWorldDesc::default()
+                })
+                .unwrap();
+            let mut world = World::new();
+            let (fixed, moving) = if dynamic_first {
+                let moving = spawn_named(&mut world, "moving");
+                (spawn_named(&mut world, "fixed"), moving)
+            } else {
+                let fixed = spawn_named(&mut world, "fixed");
+                (fixed, spawn_named(&mut world, "moving"))
+            };
+            let fixed_offset = Transform3::from_translation_rotation(
+                Vec3::new(0.7, -0.2, 0.4),
+                Quat::from_rotation_y(0.7) * Quat::from_rotation_x(-0.4),
+            );
+            let moving_offset = Transform3::from_translation_rotation(
+                Vec3::new(-0.3, 0.6, -0.5),
+                Quat::from_rotation_x(0.8) * Quat::from_rotation_z(-0.5),
+            );
+            for (entity, kind, center_m, rotation, offset) in [
+                (
+                    fixed,
+                    RigidBodyType::Fixed,
+                    Vec3::new(3.0, 1.0, -2.0),
+                    Quat::from_rotation_z(0.6),
+                    fixed_offset,
+                ),
+                (
+                    moving,
+                    RigidBodyType::Dynamic,
+                    Vec3::new(3.97, 1.0, -2.0),
+                    Quat::from_rotation_y(-0.4),
+                    moving_offset,
+                ),
+            ] {
+                world.entity_mut(entity).insert((
+                    RigidBody {
+                        body_type: kind,
+                        linear_velocity_m_s: if kind == RigidBodyType::Dynamic {
+                            Vec3::new(-0.2, 0.05, 0.0)
+                        } else {
+                            Vec3::ZERO
+                        },
+                        angular_velocity_rad_s: if kind == RigidBodyType::Dynamic {
+                            Vec3::new(0.0, 0.75, -0.6)
+                        } else {
+                            Vec3::ZERO
+                        },
+                        ..RigidBody::default()
+                    },
+                    Collider {
+                        shape: ColliderShape::Sphere { radius_m: 0.5 },
+                        ..Collider::default()
+                    },
+                    CompoundCollider {
+                        parts: vec![rne_physics::ColliderPart {
+                            shape: ColliderShape::Sphere { radius_m: 0.5 },
+                            local_offset: offset,
+                        }],
+                    },
+                    Transform3::from_translation_rotation(
+                        center_m - rotation * offset.translation,
+                        rotation,
+                    ),
+                ));
+            }
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend
+                .step(id, SimDuration::from_hertz(rne_math::Hertz::new(1000.0)))
+                .unwrap();
+            let samples = backend.contact_points(id).unwrap();
+            assert_eq!(samples.len(), 1);
+            let sample = &samples[0];
+            let state = backend.world(id).unwrap();
+            assert!(state.narrow_phase.contact_pairs().any(|pair| {
+                pair.manifolds.iter().any(|manifold| {
+                    manifold.subshape_pos1.is_some() && manifold.subshape_pos2.is_some()
+                })
+            }));
+            let fixed_body = &state.bodies[state.entity_to_body[&fixed]];
+            let moving_body = &state.bodies[state.entity_to_body[&moving]];
+            let fixed_center_m =
+                vec3_from_point(fixed_body.position() * vec3_to_point(fixed_offset.translation));
+            let moving_center_m =
+                vec3_from_point(moving_body.position() * vec3_to_point(moving_offset.translation));
+            // Equal spheres touch at the midpoint of their surface witnesses.
+            // Allow the small separation between the manifold and final poses.
+            let expected_point_m = (fixed_center_m + moving_center_m) * 0.5;
+            assert!(
+                (sample.point_world_m - expected_point_m).length() < 0.002,
+                "reported point {:?}, sphere midpoint {expected_point_m:?}",
+                sample.point_world_m
+            );
+            let (entity_a, entity_b) = if dynamic_first {
+                (moving, fixed)
+            } else {
+                (fixed, moving)
+            };
+            assert_eq!((sample.entity_a, sample.entity_b), (entity_a, entity_b));
+            let velocity_at_point = |entity: Entity, point_m: Vec3| {
+                let body = &state.bodies[state.entity_to_body[&entity]];
+                vec3_from_rapier(*body.linvel())
+                    + vec3_from_rapier(*body.angvel())
+                        .cross(point_m - vec3_from_point(*body.center_of_mass()))
+            };
+            let expected_velocity_m_s = velocity_at_point(entity_b, expected_point_m)
+                - velocity_at_point(entity_a, expected_point_m);
+            assert!(
+                (sample.velocity_b_relative_to_a_world_m_s - expected_velocity_m_s).length()
+                    < 0.003,
+                "reported relative velocity {:?}, expected {expected_velocity_m_s:?}",
+                sample.velocity_b_relative_to_a_world_m_s
+            );
+            let exact_velocity_m_s = velocity_at_point(entity_b, sample.point_world_m)
+                - velocity_at_point(entity_a, sample.point_world_m);
+            assert!(
+                (sample.velocity_b_relative_to_a_world_m_s - exact_velocity_m_s).length() < 1.0e-6
+            );
+        }
     }
 
     #[test]

@@ -10,6 +10,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--source-dir', type=pathlib.Path, required=True)
 parser.add_argument('--manifest', type=pathlib.Path, required=True)
 parser.add_argument('--output-dir', type=pathlib.Path, required=True)
+parser.add_argument('--low-strike-height-m', type=float, default=0.361483)
+parser.add_argument('--mid-strike-height-m', type=float, default=0.8378)
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:])
 S = args.source_dir.resolve()
 O = args.output_dir.resolve()
@@ -279,7 +281,7 @@ front = max((-v.y for v in restpoints))
 band = [v for v in restpoints if -v.y > front - 0.008]
 toe_offset_y = sum((v.z for v in band)) / len(band)
 toe_offset_x = sum((v.x for v in band)) / len(band)
-TARGETS = {name: Vector((-0.1965676 - toe_offset_x, -(0.92 - front), height - toe_offset_y)) for name, height in [('low_kick', 0.284789), ('mid_kick', 0.8468078)]}
+TARGETS = {name: Vector((-0.1965676 - toe_offset_x, -(0.92 - front), height - toe_offset_y)) for name, height in [('low_kick', args.low_strike_height_m), ('mid_kick', args.mid_strike_height_m)]}
 
 def path(t, name):
     impact_shift = Vector((0.16, 0.07 if name == "mid_kick" else -0.26, -0.08))
@@ -431,7 +433,7 @@ for name in ['low_kick', 'mid_kick']:
     allrows[name] = rows
 assert max_gap < 2e-05 and max_length_error < 2e-05 and (max_nonroot_location == 0) and (max_scale_error == 0)
 (P / 'v5-pose-samples.json').write_text(json.dumps(allrows, indent=2) + '\n')
-(P / 'v5-pre-export-checks.json').write_text(json.dumps({'contact_and_stage_probes': contacts, 'max_connected_joint_gap_m': max_gap, 'max_bone_length_error_m': max_length_error, 'max_nonroot_local_translation_m': max_nonroot_location, 'max_scale_error': max_scale_error, 'minimum_floor_y_m': min_floor, 'maximum_reach_ratio': max_reach, 'maximum_knee_flexion_rad': max_flex, 'minimum_adjacent_quaternion_dot': minimum_quat_dot, 'shoe_strike_angle_deg': 10.0, 'target_ankles_blender_m': {k: list(v) for k, v in TARGETS.items()}, 'motion_fps': 60, 'time_origin_s': 0.0, 'visual_animation_only': True}, indent=2) + '\n')
+(P / 'v5-pre-export-checks.json').write_text(json.dumps({'contact_and_stage_probes': contacts, 'max_connected_joint_gap_m': max_gap, 'max_bone_length_error_m': max_length_error, 'max_nonroot_local_translation_m': max_nonroot_location, 'max_scale_error': max_scale_error, 'minimum_floor_y_m': min_floor, 'maximum_reach_ratio': max_reach, 'maximum_knee_flexion_rad': max_flex, 'minimum_adjacent_quaternion_dot': minimum_quat_dot, 'shoe_strike_angle_deg': 10.0, 'strike_heights_m': {'low_kick': args.low_strike_height_m, 'mid_kick': args.mid_strike_height_m}, 'target_ankles_blender_m': {k: list(v) for k, v in TARGETS.items()}, 'motion_fps': 60, 'time_origin_s': 0.0, 'visual_animation_only': True}, indent=2) + '\n')
 arm.animation_data.action = None
 for tr in arm.animation_data.nla_tracks:
     tr.mute = False

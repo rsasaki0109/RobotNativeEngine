@@ -242,19 +242,36 @@ measurements, strict task thresholds, and the retained failed cases.
 
 See [hard-contact time stepping](architecture/016_contact_dynamics.md).
 
-Example 139 records dynamic Go2/G1 recovery from prescribed body wrenches,
-checks exact physical replay, and optionally renders a side-by-side kick
-comparison with a CC0 skinned human. The human shifts weight onto its planted
-support foot, chambers the knee, extends and retracts the kicking leg. Go2
-receives 120 N for 0.20 s and G1 50 N for 0.20 s; these are illustrative,
-different impulses on the existing approximate scene mass/inertia models.
-Human-foot contact dynamics are not part of this example.
+Example 139 records Go2/G1 recovery under a common 24 N·s, 80 ms lateral
+half-sine body wrench at 1 kHz. Dedicated URDF-derived plants use declared
+masses/COM/inertias, joint-origin rotations, welded fixed children and complete
+foot collision geometry. ForceBased PD respects authored effort caps and
+rate-limited joint targets; Go2 adds IMU leg-length feedback and contact-load
+stance regulation, and G1 adds COM/DCM/IMU
+ankle/hip feedback. Controllers react to current state without reading the
+impact schedule. Physical recovery and exact observed replay gate capture.
+
+The optional comparison renderer uses a CC0 skinned human with weight
+transfer, forward knee flexion and a planted support foot. The human is a
+visual actor; its foot does not produce simulated collision impulses.
+The measured envelope is lateral recovery, not hardware qualification or
+all-direction resistance. The front probe topples both plants and the oblique
+probe topples G1; those G1 falls also fail the attachment-integrity gate.
+Go2 recovers from the oblique probe with substantial COM translation.
 
 ```bash
 cargo run --release -p kick_comparison --example 139_kick_comparison -- --headless
+cargo run --release -p kick_comparison --example 139_kick_comparison -- \
+  --validate-recovery --output target/rne-kick-validation
 ```
 
-See [capture, animation checks, and regeneration](../examples/139_kick_comparison/README.md).
+The broader validation retains zero-force, rate, onset, reverse-direction,
+matched feedback-ablation and front/oblique limit cases with exact replay.
+A feedback-off case can still recover through joint PD and its stance; both
+plants do so in the recorded nominal probe. All 12 required cases pass.
+Successful recovery at both rates does not establish
+full-trajectory numerical convergence.
+See [capture, physical models, validation, and regeneration](../examples/139_kick_comparison/README.md).
 
 ## Native legged walking templates
 
