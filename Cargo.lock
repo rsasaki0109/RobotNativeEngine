@@ -2429,6 +2429,8 @@ dependencies = [
  "png",
  "rne_ai",
  "rne_core",
+ "rne_data",
+ "rne_ecs",
  "rne_math",
  "rne_physics",
  "rne_render",

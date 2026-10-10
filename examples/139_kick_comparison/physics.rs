@@ -4,7 +4,11 @@
 //! animated human does not participate in physics, and robot poses are not edited.
 
 use super::{
-    disturbance::Impact, g1_controller::G1Controller, go2_controller::Go2Controller, model,
+    disturbance::Impact,
+    g1_controller::G1Controller,
+    go2_controller::Go2Controller,
+    model,
+    observation::{self, Pipeline, Profile},
 };
 use rne_ai::{build_visual_render_scene, UrdfSceneSim};
 use rne_core::SimDuration;
@@ -104,22 +108,16 @@ impl Robot {
 }
 
 #[derive(Debug)]
-enum Controller {
+enum Feedback {
     Go2(Go2Controller),
     G1(G1Controller),
 }
-impl Controller {
+impl Feedback {
     fn new(robot: Robot, sim: &mut UrdfSceneSim, enabled: bool) -> CaptureResult<Self> {
         Ok(match robot {
             Robot::Go2 => Self::Go2(Go2Controller::new(sim, enabled)?),
             Robot::G1 => Self::G1(G1Controller::new(sim, enabled)?),
         })
-    }
-    fn step(&mut self, sim: &mut UrdfSceneSim) -> CaptureResult<()> {
-        match self {
-            Self::Go2(c) => c.step(sim),
-            Self::G1(c) => c.step(sim),
-        }
     }
     fn telemetry(&self) -> Value {
         match self {
@@ -132,6 +130,89 @@ impl Controller {
             Self::Go2(c) => c.configuration(),
             Self::G1(c) => c.configuration(),
         }
+    }
+    fn replay_words(&self) -> Vec<u64> {
+        match self {
+            Self::Go2(c) => c.replay_words(),
+            Self::G1(c) => c.replay_words(),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Controller {
+    feedback: Feedback,
+    pipeline: Pipeline,
+    robot: Robot,
+    last_command_words: Vec<u64>,
+    last_feedback: Value,
+}
+
+impl Controller {
+    fn new(
+        robot: Robot,
+        sim: &mut UrdfSceneSim,
+        enabled: bool,
+        profile: Profile,
+    ) -> CaptureResult<Self> {
+        Ok(Self {
+            feedback: Feedback::new(robot, sim, enabled)?,
+            pipeline: Pipeline::new(profile, sim)?,
+            robot,
+            last_command_words: Vec::new(),
+            last_feedback: Value::Null,
+        })
+    }
+
+    fn step(&mut self, sim: &mut UrdfSceneSim) -> CaptureResult<()> {
+        self.pipeline
+            .capture_if_due(sim, self.robot.base_link(), self.robot.feet())?;
+        let arrived = self.pipeline.consume(sim.sim_time())?;
+        let estimate = arrived.as_ref().map(|frame| &frame.payload);
+        let dt_s = sim.fixed_delta().as_seconds().value();
+        // Contact points are driver-only truth telemetry, never decision inputs.
+        let support_points: Vec<_> = self
+            .robot
+            .feet()
+            .iter()
+            .flat_map(|name| sim.named_body_contact_points_m(name))
+            .map(|point| point.to_array())
+            .collect();
+        let targets = match &mut self.feedback {
+            Feedback::Go2(c) => c.step_targets(estimate, dt_s)?,
+            Feedback::G1(c) => c.step_targets(estimate, dt_s)?,
+        };
+        self.last_command_words = targets
+            .iter()
+            .map(|target| target.position.to_bits())
+            .collect();
+        sim.step_joint_position_actuation_targets(&targets);
+        self.last_feedback = self.feedback.telemetry();
+        if matches!(self.robot, Robot::G1) {
+            self.last_feedback["actual_support_points_world_m"] = json!(support_points);
+        }
+        self.last_feedback["observation_timing"] = self.pipeline.telemetry();
+        self.last_feedback["actual_support_points_scope"] =
+            json!("driver pre-step ground truth; not feedback input");
+        Ok(())
+    }
+
+    fn telemetry(&self) -> Value {
+        self.last_feedback.clone()
+    }
+
+    fn configuration(&self) -> Value {
+        self.feedback.configuration()
+    }
+
+    fn replay_words(&self) -> Vec<u64> {
+        let mut words = self.pipeline.replay_words();
+        let feedback = self.feedback.replay_words();
+        words.push(feedback.len() as u64);
+        words.extend(feedback);
+        words.push(self.last_command_words.len() as u64);
+        words.extend(&self.last_command_words);
+        words
     }
 }
 
@@ -246,6 +327,34 @@ fn compiled_source_hashes() -> Value {
             include_str!("g1_controller.rs"),
         ),
         (
+            "examples/139_kick_comparison/observation.rs",
+            include_str!("observation.rs"),
+        ),
+        (
+            "crates/rne_data/src/frame.rs",
+            include_str!("../../crates/rne_data/src/frame.rs"),
+        ),
+        (
+            "crates/rne_data/src/bus.rs",
+            include_str!("../../crates/rne_data/src/bus.rs"),
+        ),
+        (
+            "crates/rne_data/src/stream.rs",
+            include_str!("../../crates/rne_data/src/stream.rs"),
+        ),
+        (
+            "crates/rne_core/src/rng.rs",
+            include_str!("../../crates/rne_core/src/rng.rs"),
+        ),
+        (
+            "crates/rne_core/src/time.rs",
+            include_str!("../../crates/rne_core/src/time.rs"),
+        ),
+        (
+            "crates/rne_world/src/resources.rs",
+            include_str!("../../crates/rne_world/src/resources.rs"),
+        ),
+        (
             "examples/139_kick_comparison/go2.rne.robot.toml",
             include_str!("go2.rne.robot.toml"),
         ),
@@ -332,6 +441,7 @@ const NOMINAL: Case = Case {
 struct Recording {
     trace: Value,
     state_bits: Vec<Vec<u64>>,
+    control_state_words: Vec<Vec<u64>>,
 }
 
 fn ground_body_index(sim: &UrdfSceneSim) -> CaptureResult<u32> {
@@ -355,27 +465,122 @@ fn settle(
     sim: &mut UrdfSceneSim,
     controller: &mut Controller,
     states: &mut Vec<Vec<u64>>,
-) -> CaptureResult<(Value, f64, f64)> {
+    control_states: &mut Vec<Vec<u64>>,
+    diagnostic_initial_plant: Option<&Value>,
+    settlement_telemetry: &mut Vec<Value>,
+) -> CaptureResult<Settlement> {
     let dt_s = sim.fixed_delta().as_seconds().value();
+    let settlement_steps = (SETTLE_S / dt_s).round() as usize;
+    let initial_root = sim
+        .named_link_position_m(robot.base_link())
+        .expect("validated root");
+    let ground_index = diagnostic_initial_plant
+        .map(|_| ground_body_index(sim))
+        .transpose()?;
+    let mut ground_truth = diagnostic_initial_plant
+        .map(|_| Metrics::new(robot, sim, (0.0, 0.0)))
+        .transpose()?;
     let mut max_fixed_position_error_m: f64 = 0.0;
     let mut max_fixed_rotation_error_rad: f64 = 0.0;
-    for _ in 0..(SETTLE_S / dt_s).round() as usize {
+    for step in 1..=settlement_steps {
         controller.step(sim)?;
         let (position, rotation) = model::fixed_joint_error(sim)?;
         max_fixed_position_error_m = max_fixed_position_error_m.max(position);
         max_fixed_rotation_error_rad = max_fixed_rotation_error_rad.max(rotation);
         states.push(state_bits(robot, sim));
+        control_states.push(controller.replay_words());
+        if let Some(metrics) = &mut ground_truth {
+            metrics.measure(
+                robot,
+                sim,
+                step,
+                settlement_steps,
+                ground_index.expect("diagnostic ground"),
+            )?;
+        }
+        if diagnostic_initial_plant.is_some() && step % (0.02 / dt_s).round() as usize == 0 {
+            let mut measurement = measured_telemetry(
+                robot,
+                sim,
+                controller,
+                step as f64 * dt_s,
+                robot.tilt_rad(sim)?,
+                robot.height_m(sim)?,
+            )?;
+            measurement["phase"] = json!("settlement");
+            measurement["completed_sim_ticks"] = json!(sim.sim_time().ticks());
+            settlement_telemetry.push(measurement);
+        }
     }
-    let plant = robot.validate(sim)?;
-    require(
-        robot.tilt_rad(sim)? < 0.15 && robot.height_m(sim)? > robot.minimum_height_m(),
-        "the physical plant did not settle upright before the disturbance",
-    )?;
-    Ok((
+    let fixed_attachments_preserved =
+        max_fixed_position_error_m <= 1e-4 && max_fixed_rotation_error_rad <= 5e-4;
+    // The initial plant contract was already validated strictly. A physical
+    // attachment failure in a probe is retained instead of reclassified as input error.
+    let plant = if !fixed_attachments_preserved {
+        if let Some(initial) = diagnostic_initial_plant {
+            initial.clone()
+        } else {
+            robot.validate(sim)?
+        }
+    } else {
+        robot.validate(sim)?
+    };
+    let settled_upright = robot.tilt_rad(sim)? < 0.15
+        && robot.height_m(sim)? > robot.minimum_height_m()
+        && (diagnostic_initial_plant.is_none() || fixed_attachments_preserved)
+        && ground_truth
+            .as_ref()
+            .is_none_or(|metrics| !metrics.ever_fallen && !metrics.nonfoot_ground_contact);
+    let ground_truth = ground_truth
+        .map(|metrics| {
+            metrics.summary(
+                robot,
+                sim,
+                Case {
+                    name: "settlement",
+                    impulse_ns: 0.0,
+                    dt_ticks: sim.fixed_delta().ticks(),
+                    ..NOMINAL
+                },
+                initial_root,
+            )
+        })
+        .transpose()?;
+    Ok(Settlement {
         plant,
         max_fixed_position_error_m,
         max_fixed_rotation_error_rad,
-    ))
+        settled_upright,
+        ground_truth,
+    })
+}
+
+#[derive(Debug)]
+struct Settlement {
+    plant: Value,
+    max_fixed_position_error_m: f64,
+    max_fixed_rotation_error_rad: f64,
+    settled_upright: bool,
+    ground_truth: Option<Value>,
+}
+
+fn settlement_metadata(
+    robot: Robot,
+    sim: &UrdfSceneSim,
+    controller: &Controller,
+    settlement: &Settlement,
+    telemetry: Vec<Value>,
+    impulse_ns: f64,
+) -> CaptureResult<Value> {
+    Ok(json!({"settled_upright":settlement.settled_upright,
+        "impact_applied":settlement.settled_upright && impulse_ns > 0.0,
+        "failure_phase":if settlement.settled_upright {None::<&str>} else {Some("settlement")},
+        "maximum_fixed_position_error_m":settlement.max_fixed_position_error_m,
+        "maximum_fixed_rotation_error_rad":settlement.max_fixed_rotation_error_rad,
+        "final_ground_truth_tilt_rad":robot.tilt_rad(sim)?,
+        "final_ground_truth_root_height_m":robot.height_m(sim)?,
+        "completed_sim_ticks":sim.sim_time().ticks(),"ground_truth":settlement.ground_truth,
+        "last_delivered_feedback":controller.telemetry(),"telemetry":telemetry}))
 }
 
 #[derive(Debug)]
@@ -556,14 +761,81 @@ fn measured_telemetry(
 }
 
 fn record(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Recording> {
+    record_with_profile(robot, case, capture_frames, None)
+}
+
+fn apply_impact(
+    robot: Robot,
+    sim: &mut UrdfSceneSim,
+    impact: &Impact,
+    step: usize,
+) -> CaptureResult<(Vec3, Option<Vec3>)> {
+    let force = impact.force_world_n(step);
+    let point = if force.length_squared() > 0.0 {
+        let point = sim
+            .named_link_position_m(robot.base_link())
+            .expect("validated root")
+            + Vec3::Y * PUSH_OFFSET_Y_M;
+        require(
+            sim.apply_named_link_wrench(robot.base_link(), point, force, Vec3::ZERO),
+            "the dynamic root rejected the disturbance wrench",
+        )?;
+        Some(point)
+    } else {
+        None
+    };
+    Ok((force, point))
+}
+
+fn record_with_profile(
+    robot: Robot,
+    case: Case,
+    capture_frames: bool,
+    profile: Option<Profile>,
+) -> CaptureResult<Recording> {
     let mut sim = robot.load(case.dt_ticks)?;
-    robot.validate(&sim)?;
-    let mut controller = Controller::new(robot, &mut sim, case.balance_feedback_enabled)?;
+    let initial_plant_contract = robot.validate(&sim)?;
+    let mut controller = Controller::new(
+        robot,
+        &mut sim,
+        case.balance_feedback_enabled,
+        profile.unwrap_or_else(|| Profile::ideal(case.dt_ticks)),
+    )?;
     let dt_s = sim.fixed_delta().as_seconds().value();
     let mut states = Vec::new();
+    let mut control_states = Vec::new();
+    let mut settlement_telemetry = Vec::new();
     let ground_index = ground_body_index(&sim)?;
-    let (plant, initial_fixed_position_error_m, initial_fixed_rotation_error_rad) =
-        settle(robot, &mut sim, &mut controller, &mut states)?;
+    let settlement = settle(
+        robot,
+        &mut sim,
+        &mut controller,
+        &mut states,
+        &mut control_states,
+        profile.map(|_| &initial_plant_contract),
+        &mut settlement_telemetry,
+    )?;
+    let settlement_summary = settlement_metadata(
+        robot,
+        &sim,
+        &controller,
+        &settlement,
+        settlement_telemetry,
+        case.impulse_ns,
+    )?;
+    let Settlement {
+        plant,
+        max_fixed_position_error_m: initial_fixed_position_error_m,
+        max_fixed_rotation_error_rad: initial_fixed_rotation_error_rad,
+        settled_upright,
+        ground_truth: _,
+    } = settlement;
+    if profile.is_none() {
+        require(
+            settled_upright,
+            "the physical plant did not settle upright before the disturbance",
+        )?;
+    }
     let initial_root = sim
         .named_link_position_m(robot.base_link())
         .expect("validated root");
@@ -588,25 +860,17 @@ fn record(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Recor
             initial_fixed_rotation_error_rad,
         ),
     )?;
-    let steps = (((FRAME_COUNT - 1) as f64 / FRAME_RATE_HZ) / dt_s).round() as usize;
+    let steps = if settled_upright {
+        (((FRAME_COUNT - 1) as f64 / FRAME_RATE_HZ) / dt_s).round() as usize
+    } else {
+        0
+    };
     for step in 1..=steps {
-        let force = impact.force_world_n(step);
-        let point = if force.length_squared() > 0.0 {
-            let point = sim
-                .named_link_position_m(robot.base_link())
-                .expect("validated root")
-                + Vec3::Y * PUSH_OFFSET_Y_M;
-            require(
-                sim.apply_named_link_wrench(robot.base_link(), point, force, Vec3::ZERO),
-                "the dynamic root rejected the disturbance wrench",
-            )?;
-            Some(point)
-        } else {
-            None
-        };
+        let (force, point) = apply_impact(robot, &mut sim, &impact, step)?;
         controller.step(&mut sim)?;
         let (tilt, height) = metrics.measure(robot, &sim, step, steps, ground_index)?;
         states.push(state_bits(robot, &sim));
+        control_states.push(controller.replay_words());
         force_history.push(json!({"step":step,"time_s":step as f64*dt_s,"dt_s":dt_s,
             "force_world_n":force.to_array(),"application_point_world_m":point.map(|p|p.to_array())}));
         if step % (0.02 / dt_s).round() as usize == 0 {
@@ -626,7 +890,15 @@ fn record(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Recor
             frames.push(frame(&sim, step, force, point));
         }
     }
-    let summary = metrics.summary(robot, &sim, case, initial_root)?;
+    let mut summary = if settled_upright {
+        metrics.summary(robot, &sim, case, initial_root)?
+    } else {
+        json!({"recovered":false,"post_impact_evaluated":false,
+            "unavailable_reason":"failed settlement; no impact applied",
+            "peak_tilt_rad":null,"min_height_m":null,"ever_fallen":null,"nonfoot_ground_contact":null})
+    };
+    summary["settled_upright"] = json!(settled_upright);
+    summary["impact_applied"] = json!(settled_upright && case.impulse_ns > 0.0);
     let roots: Vec<_> = sim
         .mesh_package_roots()
         .iter()
@@ -634,30 +906,48 @@ fn record(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Recor
         .collect();
     let hash = stable_hash(&states);
     let word_count: usize = states.iter().map(Vec::len).sum();
+    let control_hash = stable_hash(&control_states);
+    let control_word_count: usize = control_states.iter().map(Vec::len).sum();
     Ok(Recording {
         trace: json!({"schema_version":2,"robot":robot.name(),"case":case.name,
         "compiled_source_sha256":compiled_source_hashes(),
         "backend":"Rapier through UrdfSceneSim","coordinate_system":"Y-up","dt_s":dt_s,
         "solver_iterations":32,"push_start_s":case.start_s,"push_duration_s":impact.duration_s(),
         "force_n":impact.peak_force_n(),"impulse_n_s":case.impulse_ns,
-        "integrated_impulse_world_ns":impact.integrated_impulse_ns().to_array(),
+        "integrated_impulse_world_ns":if settled_upright {impact.integrated_impulse_ns().to_array()} else {Vec3::ZERO.to_array()},
+        "planned_integrated_impulse_world_ns":impact.integrated_impulse_ns().to_array(),
+        "actual_applied_impulse_world_ns":if settled_upright {impact.integrated_impulse_ns().to_array()} else {Vec3::ZERO.to_array()},
         "force_link":robot.base_link(),"application_offset_m":[0.0,PUSH_OFFSET_Y_M,0.0],
         "pulse":"midpoint half-sine, normalized to the declared impulse",
         "plant":plant,"controller":controller.configuration(),"balance_feedback_enabled":case.balance_feedback_enabled,
+        "observation_pipeline":controller.pipeline.configuration(),"observation_metrics":controller.pipeline.telemetry(),
+        "settlement":settlement_summary,
         "mesh_package_roots":roots,"mechanism":"Prescribed external wrench; human is render-only; no edited robot poses",
         "summary":summary,"force_history":force_history,"telemetry":telemetry,"frames":frames,
         "observed_state_definition":"Link-name order: world pose/scale, body COM linear/angular velocity, joint q/qd with presence tags; fixed foot order normal impulse. Literal IEEE f64 bits, including settlement; excludes hidden solver caches.",
-        "observed_state_hash":hash,"observed_state_word_count":word_count}),
+        "observed_state_hash":hash,"observed_state_word_count":word_count,
+        "observation_control_state_hash":control_hash,"observation_control_state_word_count":control_word_count,
+        "observation_control_state_definition":"Each tick including settlement: seed/domain and exact schedule, counters, bounded retained arrival frames and last consumed sample, canonical payload words, controller filters/trims/arms/quiet timer and sorted joint command words. Literal IEEE f64 bits and integer ticks; excludes hidden solver caches."}),
         state_bits: states,
+        control_state_words: control_states,
     })
 }
 
 fn replay(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Value> {
     let mut first = record(robot, case, capture_frames)?;
     let repeat = record(robot, case, capture_frames)?;
+    verify_replay(&mut first, &repeat)?;
+    Ok(first.trace)
+}
+
+fn verify_replay(first: &mut Recording, repeat: &Recording) -> CaptureResult<()> {
     require(
         first.state_bits == repeat.state_bits,
         "the observed replay differs bit for bit",
+    )?;
+    require(
+        first.control_state_words == repeat.control_state_words,
+        "the observation/control pipeline replay differs bit for bit",
     )?;
     require(
         first.trace["frames"] == repeat.trace["frames"],
@@ -665,7 +955,8 @@ fn replay(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Value
     )?;
     first.trace["observed_state_bits_exact_repeat"] = json!(true);
     first.trace["canonical_render_frames_exact_repeat"] = json!(true);
-    Ok(first.trace)
+    first.trace["observation_control_state_bits_exact_repeat"] = json!(true);
+    Ok(())
 }
 
 /// Captures both robots at 1 kHz under the same declared 80 ms lateral pulse.
@@ -702,6 +993,9 @@ pub(super) fn capture(output: &Path, impulse_ns: f64) -> CaptureResult<()> {
             "dt_s":trace["dt_s"],"duration_s":trace["push_duration_s"],"impulse_n_s":trace["impulse_n_s"],
             "summary":trace["summary"],"plant":trace["plant"],"controller":trace["controller"],
             "observed_state_hash":trace["observed_state_hash"],"observed_state_bits_exact_repeat":true,
+            "observation_pipeline":trace["observation_pipeline"],
+            "observation_control_state_hash":trace["observation_control_state_hash"],
+            "observation_control_state_bits_exact_repeat":true,
             "canonical_render_frames_exact_repeat":true}));
     }
     fs::write(
@@ -860,6 +1154,73 @@ pub(super) fn probe_impulse(
     Ok(())
 }
 
+/// Records fixed, predeclared synthetic estimate profiles without requiring recovery.
+pub(super) fn probe_observations(
+    output: &Path,
+    robot_filter: Option<&str>,
+    profile_filter: Option<&str>,
+) -> CaptureResult<()> {
+    fs::create_dir_all(output)?;
+    let robots = selected_robots(robot_filter)?;
+    let profiles = observation::profiles(profile_filter)?;
+    let results = std::thread::scope(|scope| {
+        let workers: Vec<_> = robots.iter().copied().map(|robot| {
+            let profiles = &profiles;
+            scope.spawn(move || {
+                let mut reports = Vec::new();
+                for &profile in profiles {
+                    let case = Case {
+                        name: profile.name,
+                        impulse_ns: if profile.zero_input {0.0} else {DEFAULT_IMPULSE_NS},
+                        ..NOMINAL
+                    };
+                    let mut first = record_with_profile(robot, case, false, Some(profile))
+                        .map_err(|error| error.to_string())?;
+                    let repeat = record_with_profile(robot, case, false, Some(profile))
+                        .map_err(|error| error.to_string())?;
+                    verify_replay(&mut first, &repeat).map_err(|error| error.to_string())?;
+                    let filename = format!("{}-observation-{}.json", robot.name().to_lowercase(), profile.name);
+                    let trace_bytes = serde_json::to_vec(&first.trace).map_err(|error| error.to_string())?;
+                    let trace_sha256 = format!("{:x}", Sha256::digest(&trace_bytes));
+                    fs::write(output.join(&filename), &trace_bytes).map_err(|error| error.to_string())?;
+                    reports.push(json!({"robot":robot.name(),"profile":profile.name,"trace":filename,"trace_sha256":trace_sha256,
+                        "impulse_n_s":case.impulse_ns,"physics_period_ticks":case.dt_ticks,
+                        "controller_period_ticks":case.dt_ticks,"observation_pipeline":first.trace["observation_pipeline"],
+                        "observation_metrics":first.trace["observation_metrics"],"settlement":first.trace["settlement"],
+                        "summary":first.trace["summary"],"compiled_source_sha256":first.trace["compiled_source_sha256"],
+                        "actual_applied_impulse_world_ns":first.trace["actual_applied_impulse_world_ns"],
+                        "observed_state_hash":first.trace["observed_state_hash"],"observed_state_bits_exact_repeat":true,
+                        "observation_control_state_hash":first.trace["observation_control_state_hash"],
+                        "observation_control_state_bits_exact_repeat":true}));
+                }
+                Ok::<_, String>(reports)
+            })
+        }).collect();
+        workers
+            .into_iter()
+            .map(|worker| {
+                worker
+                    .join()
+                    .map_err(|_| io::Error::other("an observation probe worker panicked"))?
+                    .map_err(io::Error::other)
+            })
+            .collect::<Result<Vec<_>, _>>()
+    })?;
+    let cases: Vec<_> = results.into_iter().flatten().collect();
+    fs::write(
+        output.join("observation-probe.json"),
+        serde_json::to_vec_pretty(&json!({
+            "schema_version":1,"diagnostic_completed":true,"complete_matrix":robots.len() == 2 && profiles.len() == 8,
+            "robots":robots.iter().map(|robot| robot.name()).collect::<Vec<_>>(),
+            "profiles":profiles.iter().map(|profile| profile.name).collect::<Vec<_>>(),
+            "scope":"Synthetic simulator-derived state-estimate timing and bounded-error sensitivity at unchanged 1 kHz physics and controller evaluation. Inner implicit position PD retains ideal joint feedback. Human remains render-only and disturbance a prescribed body wrench.",
+            "required_nominal_envelope_changed":false,"hardware_validation":false,"identified_sensor_model":false,
+            "recovery_required_for_probe_completion":false,"cases":cases
+        }))?,
+    )?;
+    Ok(())
+}
+
 fn record_case_matrix(
     robots: &[Robot],
     cases: &[Case],
@@ -918,6 +1279,9 @@ fn validate_robot_cases(
             "integrated_impulse_world_ns":trace["integrated_impulse_world_ns"],
             "plant":trace["plant"],"controller":trace["controller"],
             "compiled_source_sha256":trace["compiled_source_sha256"],
+            "observation_pipeline":trace["observation_pipeline"],
+            "observation_control_state_hash":trace["observation_control_state_hash"],
+            "observation_control_state_bits_exact_repeat":true,
             "observed_state_hash":trace["observed_state_hash"],"observed_state_bits_exact_repeat":true}));
     }
     Ok(reports)

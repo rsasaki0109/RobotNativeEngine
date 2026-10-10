@@ -1,0 +1,1763 @@
+{
+  "schema_version": 1,
+  "scope": "Synthetic simulator-derived state-estimate timing and bounded-error sensitivity at unchanged 1 kHz physics and controller evaluation. Inner implicit position PD retains ideal joint feedback. Human remains render-only and disturbance a prescribed body wrench.",
+  "hardware_validation": false,
+  "identified_sensor_model": false,
+  "probabilistic_reliability_claim": false,
+  "baseline_revision": "5508b8a279e8a043dd30f338ced7518983cae5f4",
+  "normal_binary_sha256": "44d28e9a074b7250f3ce033d27c725256187851721e99a9bd14f88f310bc46ae",
+  "runtime_input_manifest_sha256": "658c9df9d5c7f2187edea663b08c7865cb3cabf5037b80cd3dde03942cb00ed6",
+  "runtime_input_manifest_scope": "924 repository Rust sources, root and example Cargo manifests, Cargo.lock, and the two encoder Python files; compiled_source_sha256 separately binds the listed scene/model/URDF/GLB inputs. Inputs unchanged during measurement.",
+  "cargo_lock_sha256": "d09e337e9ee976ce4746a0e6cef2617b89dc5e09ba839223141c120fc19c0ccc",
+  "compiled_source_sha256": {
+    "assets/fixtures/kick_human/cc0_sport_human.glb": "e8f5785610437f8778d1d03a111b09562160d9e5cc2f5463d48603b608d64d3e",
+    "assets/robots/g1_description/g1_23dof.kick.urdf": "0f862976ed1379ed5b6482582da5cbdaed043357f75b52984db9687de406a7a6",
+    "assets/robots/go2_description/go2_description.rne.kick.urdf": "e30d86803aa95ec7b32404ee6582a44c5070ee0ef8793aea76497b002f884fde",
+    "crates/rne_core/src/rng.rs": "5f755568c06088f7bee3cc8d5dce6782c2ce74d113894851f7bee54579c8f1db",
+    "crates/rne_core/src/time.rs": "bb7c020f1c3a53bac4109c3a45d3819c7d4ea0710dacc27a679b584a8e289ddb",
+    "crates/rne_data/src/bus.rs": "2550747535291d4cb4548c99dc729428a6097f2a1ae3bb545fe7d502bb1bd15f",
+    "crates/rne_data/src/frame.rs": "349509aa362840ff8bc2d55796bc3d0323c070f99822d4b1011f1705910af4cc",
+    "crates/rne_data/src/stream.rs": "4365a2535a7c1089d560ab802c9d332a286698d9339391ecb2acf781b5dfb900",
+    "crates/rne_physics_rapier/src/backend.rs": "da7a1faf35931e69d0baed31fe92baabd05c8687b4d94fc1c26753643e3fdf7a",
+    "crates/rne_world/src/resources.rs": "d309726376fb6a06f1499bf8a02c0b90aa640291e61c533dcd004e090270f14f",
+    "examples/139_kick_comparison/disturbance.rs": "48047f34efb03361db13ccaacea943ce7059d810e6b47709f3b41e7342e63400",
+    "examples/139_kick_comparison/g1.rne.robot.toml": "767c1718e4d7a543ffde944a348d081181a8aab6b2f8d4341f22643d1f8ac7f8",
+    "examples/139_kick_comparison/g1.rne.scene.toml": "4fba4a42f9c0e89c0a9c528e10b9c2ca61ab589df254b89aadd386dfbee9d2bb",
+    "examples/139_kick_comparison/g1_controller.rs": "f73b160a61ec234d8c65326c425bfb46635a249a12b65cdaab4c0b8903515a89",
+    "examples/139_kick_comparison/go2.rne.robot.toml": "41e29b412bed2ce9be0abc72be3baab5162360d0cb7f5563e27e1ab969972d0b",
+    "examples/139_kick_comparison/go2.rne.scene.toml": "f2c97a0a86e86a98ff0652264d8a0ebff5eb2e522b3c039b1bd9aabe1a26dc27",
+    "examples/139_kick_comparison/go2_controller.rs": "1a62433ba6a3f56fddbdf09522ba55ab5e999854efd997c79bb24b95441c5eea",
+    "examples/139_kick_comparison/main.rs": "15df0c14a05a712dad057fecf5da3373b73137d009591bfd861c9e34202faf7c",
+    "examples/139_kick_comparison/model.rs": "a250aae71893eeec974c1cbc61f9da898a7d604ebf8b370e793173e8ad49d642",
+    "examples/139_kick_comparison/models.json": "b095dbba1a97583b91d95023bf0eb161a0abd245eb98f02d95c946742b9b4d64",
+    "examples/139_kick_comparison/observation.rs": "b9ee8b5b611ac68d0f768b4ed39ebeb7d078a7ac16b1516ba05dd2786a01d021",
+    "examples/139_kick_comparison/physics.rs": "9b9f52d0f19eb18be0297fc0624f08e9f3f7003f9344e142d14f315cf37b73e6",
+    "examples/139_kick_comparison/render.rs": "cab084d37ddd0e655a392d0ecb852ec80b758fe932379af3c86bf85d066806b2"
+  },
+  "predeclared_matrix_sha256": "102419f6955015aef8d05fcef75a6bab776a38d1e18c9e4d59ebafbddf3afd10",
+  "predeclared_settings": {
+    "schema_version": 1,
+    "scope": "Predeclared synthetic outer state-estimate sensitivity experiment; no hardware parameters or outcome claims",
+    "physics_rate_hz": 1000,
+    "outer_controller_rate_hz": 1000,
+    "pulse_duration_s": 0.08,
+    "default_impulse_ns": 40,
+    "world_seeds": {
+      "Go2": 2003,
+      "G1": 2002
+    },
+    "noise_domain_hex": "4b49434b45535431",
+    "noise_distribution": "independent signed uniform before load clipping",
+    "noise_bounds": {
+      "attitude_world_x_z_rad": 0.01,
+      "angular_velocity_axis_rad_s": 0.02,
+      "com_and_foot_position_axis_m": 0.005,
+      "com_velocity_axis_m_s": 0.02,
+      "go2_normal_load_n": 2
+    },
+    "profiles": [
+      {
+        "name": "ideal_reference",
+        "capture_period_ms": 1,
+        "arrival_latency_ms": 0,
+        "error_enabled": false,
+        "zero_input": false
+      },
+      {
+        "name": "sample_500hz",
+        "capture_period_ms": 2,
+        "arrival_latency_ms": 0,
+        "error_enabled": false,
+        "zero_input": false
+      },
+      {
+        "name": "sample_250hz",
+        "capture_period_ms": 4,
+        "arrival_latency_ms": 0,
+        "error_enabled": false,
+        "zero_input": false
+      },
+      {
+        "name": "delay_5ms",
+        "capture_period_ms": 1,
+        "arrival_latency_ms": 5,
+        "error_enabled": false,
+        "zero_input": false
+      },
+      {
+        "name": "delay_20ms_limit",
+        "capture_period_ms": 1,
+        "arrival_latency_ms": 20,
+        "error_enabled": false,
+        "zero_input": false
+      },
+      {
+        "name": "bounded_error",
+        "capture_period_ms": 1,
+        "arrival_latency_ms": 0,
+        "error_enabled": true,
+        "zero_input": false
+      },
+      {
+        "name": "combined",
+        "capture_period_ms": 4,
+        "arrival_latency_ms": 5,
+        "error_enabled": true,
+        "zero_input": false
+      },
+      {
+        "name": "combined_zero_input",
+        "capture_period_ms": 4,
+        "arrival_latency_ms": 5,
+        "error_enabled": true,
+        "zero_input": true
+      }
+    ],
+    "unchanged_recovery_predicate": {
+      "maximum_final_tilt_rad": 0.2,
+      "maximum_final_com_speed_m_s": 0.1,
+      "final_mean_each_foot_load_above_n": 0.5,
+      "go2_final_height_above_m": 0.22,
+      "g1_final_height_above_m": 0.7,
+      "no_fall": true,
+      "no_nonfoot_ground_contact": true,
+      "fixed_attachments_preserved": true
+    },
+    "ideal_baseline_revision": "5508b8a279e8a043dd30f338ced7518983cae5f4"
+  },
+  "probe_report_sha256": "3126516f0c5c30b7fa4595245c89b595a4a227d5a11c7172d1fe09e56e75fbda",
+  "sparse_clock_hash_predicate_audit_sha256": "93b51a166ef03fccaccb8cae563386d2d46ebfd6f0f53611089d61d04d0f750a",
+  "independent_probe_audit_sha256": "f305b2e4aa8cd446fad8112800181c1971f095cc58d7984f0992e8cc38b0112b",
+  "independent_old_new_literal_audit_sha256": "e96f8a1f7fda83ae6bf82c51c5a99f847558ec21279c7bf95b44f1756c106d5e",
+  "raw_trace_note": "Large raw traces and comparison files remain external validation artifacts. Their hashes bind this summary; rerun the documented headless commands to produce new traces. Absolute workspace paths inside traces may change their file hashes.",
+  "fresh_replay_scope": "Within the tested runtime, two independent seeded runs per profile compare every tick of literal ordered plant state and observation/controller/pending state; hidden solver caches and cross-platform equality are outside this assertion.",
+  "cases": [
+    {
+      "robot": "Go2",
+      "profile": "ideal_reference",
+      "trace": "go2-observation-ideal_reference.json",
+      "trace_sha256": "b1d04c1f7227bfb70a23127b6e3cee2e6dd4d2622bd8c96fbd9bcaeca444b2ea",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.2621154487133026,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.2621154487133026,
+        "final_speed_m_s": 0.02098613730112344,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          40.97868571797153,
+          45.23082352470374,
+          37.577739323620335,
+          33.74395199592982
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.006945704193773095,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.5454899819451384,
+        "max_authored_speed_ratio": 0.20092165747354196,
+        "max_fixed_position_error_m": 7.329436967591916e-07,
+        "max_fixed_rotation_error_rad": 1.5196262340524156e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.2529194951057434,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.06949980150290128,
+        "recovered": true,
+        "residual_tilt_rad": 0.006945704193773095,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.26223236322402954,
+        "final_ground_truth_tilt_rad": 0.0026920885558305322
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8199000000,
+        "capture_sequence": 8200,
+        "capture_ticks": 8199000000,
+        "captures": 8200,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 0,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 0,
+        "no_observation_decisions": 0,
+        "observation_age_ticks": 0
+      },
+      "observed_state_hash": "9b1acb3ae6f49772",
+      "observed_state_word_count": 7248800,
+      "observation_control_state_hash": "0d8469311d8cc28e",
+      "observation_control_state_word_count": 3681800,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "Go2",
+      "profile": "sample_500hz",
+      "trace": "go2-observation-sample_500hz.json",
+      "trace_sha256": "aeac907cd9ced6d73fd9d3ba1f276072e25e6df13ddfa3342209b296fbb1bd70",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.26211047172546387,
+        "final_contact_feet": 1,
+        "final_pelvis_height_m": 0.26211047172546387,
+        "final_speed_m_s": 0.027247495920157298,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          47.472591424244456,
+          38.24417272943538,
+          31.13731634522992,
+          41.24021828683908
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.010630507578784334,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.5433024771045893,
+        "max_authored_speed_ratio": 0.20499885280266947,
+        "max_fixed_position_error_m": 8.627458403717429e-07,
+        "max_fixed_rotation_error_rad": 1.5485740967710712e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.2532847821712494,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.06789372218909523,
+        "recovered": true,
+        "residual_tilt_rad": 0.010630507578784334,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.2621033489704132,
+        "final_ground_truth_tilt_rad": 0.001443806551380285
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8198000000,
+        "capture_sequence": 4100,
+        "capture_ticks": 8198000000,
+        "captures": 4100,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 4100,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 1000000,
+        "no_observation_decisions": 0,
+        "observation_age_ticks": 1000000
+      },
+      "observed_state_hash": "51d9311106225a18",
+      "observed_state_word_count": 7248800,
+      "observation_control_state_hash": "f77b5f445bd0e2da",
+      "observation_control_state_word_count": 3681800,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "Go2",
+      "profile": "sample_250hz",
+      "trace": "go2-observation-sample_250hz.json",
+      "trace_sha256": "90191cd3825996073d6e57eace6258a8a172a1d6cad628192ef0a14804eba936",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.26241543889045715,
+        "final_contact_feet": 1,
+        "final_pelvis_height_m": 0.26241543889045715,
+        "final_speed_m_s": 0.02270580380756056,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          36.76889483965658,
+          48.306604771350976,
+          42.31716311557102,
+          30.639191919675795
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.0009658079244650893,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.5377828923519701,
+        "max_authored_speed_ratio": 0.19544357477232466,
+        "max_fixed_position_error_m": 8.083569387292984e-07,
+        "max_fixed_rotation_error_rad": 1.6049041769309358e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.2525603175163269,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.06675387310209943,
+        "recovered": true,
+        "residual_tilt_rad": 0.0009658079244650893,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.262064129114151,
+        "final_ground_truth_tilt_rad": 0.0015973156377530392
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8196000000,
+        "capture_sequence": 2050,
+        "capture_ticks": 8196000000,
+        "captures": 2050,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 6150,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 3000000,
+        "no_observation_decisions": 0,
+        "observation_age_ticks": 3000000
+      },
+      "observed_state_hash": "336d3664061e45c6",
+      "observed_state_word_count": 7248800,
+      "observation_control_state_hash": "6537f82d9ca5c83e",
+      "observation_control_state_word_count": 3681800,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "Go2",
+      "profile": "delay_5ms",
+      "trace": "go2-observation-delay_5ms.json",
+      "trace_sha256": "904ededfe3eae5624f9df88d534f49d62960c07cc3a62049220715f8640f6060",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.26222559809684753,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.26222559809684753,
+        "final_speed_m_s": 0.011797937728701616,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          44.0966501494986,
+          41.98285363292962,
+          34.354406689686584,
+          36.97883998825273
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.008398052809811065,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.5379241842310876,
+        "max_authored_speed_ratio": 0.19272956341208017,
+        "max_fixed_position_error_m": 9.641552260184224e-07,
+        "max_fixed_rotation_error_rad": 1.5485740967710712e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.25315338373184204,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.0645737479504636,
+        "recovered": true,
+        "residual_tilt_rad": 0.008398052809811065,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.26215502619743347,
+        "final_ground_truth_tilt_rad": 0.0022322677701221063
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8199000000,
+        "capture_sequence": 8195,
+        "capture_ticks": 8194000000,
+        "captures": 8200,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 0,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 5000000,
+        "no_observation_decisions": 5,
+        "observation_age_ticks": 5000000
+      },
+      "observed_state_hash": "2590573932aa4e05",
+      "observed_state_word_count": 7248800,
+      "observation_control_state_hash": "759b368718701fa4",
+      "observation_control_state_word_count": 11672900,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "Go2",
+      "profile": "delay_20ms_limit",
+      "trace": "go2-observation-delay_20ms_limit.json",
+      "trace_sha256": "55d54aaf06402ba7521d5b833dc8e86080b37b242d3577d2894f2165b631eace",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.2623961567878723,
+        "final_contact_feet": 1,
+        "final_pelvis_height_m": 0.2623961567878723,
+        "final_speed_m_s": 0.014991523179039654,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          46.239389908412704,
+          39.718534516847285,
+          32.38901916354371,
+          39.46095433456321
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.010174033250923599,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.5451013145502657,
+        "max_authored_speed_ratio": 0.2044820785522461,
+        "max_fixed_position_error_m": 8.755562317299391e-07,
+        "max_fixed_rotation_error_rad": 1.5196262340524156e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.25143519043922424,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.07217024614875908,
+        "recovered": true,
+        "residual_tilt_rad": 0.010174033250923599,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.2624364495277405,
+        "final_ground_truth_tilt_rad": 0.004474481096855283
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8199000000,
+        "capture_sequence": 8180,
+        "capture_ticks": 8179000000,
+        "captures": 8200,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 0,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 20000000,
+        "no_observation_decisions": 20,
+        "observation_age_ticks": 20000000
+      },
+      "observed_state_hash": "0d7923c259455a1d",
+      "observed_state_word_count": 7248800,
+      "observation_control_state_hash": "9835b1c759feccdd",
+      "observation_control_state_word_count": 35616950,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "Go2",
+      "profile": "bounded_error",
+      "trace": "go2-observation-bounded_error.json",
+      "trace_sha256": "134dbace37d2b750afde4100f0ebb1df412560d4bbdad43c71ac0194462c1a84",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.2621128559112549,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.2621128559112549,
+        "final_speed_m_s": 0.019215109439789917,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          47.26394859729771,
+          38.989749159285566,
+          31.431028963124845,
+          40.55653259101382
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.005518148654153493,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.5512975747697055,
+        "max_authored_speed_ratio": 0.2002225286540795,
+        "max_fixed_position_error_m": 1.2257760612460314e-06,
+        "max_fixed_rotation_error_rad": 1.5769906706002898e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.2527722120285034,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.06921507042701378,
+        "recovered": true,
+        "residual_tilt_rad": 0.005518148654153493,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.26212796568870544,
+        "final_ground_truth_tilt_rad": 0.0012641790056311163
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8199000000,
+        "capture_sequence": 8200,
+        "capture_ticks": 8199000000,
+        "captures": 8200,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 0,
+        "load_saturations": 10489,
+        "max_observation_age_ticks": 0,
+        "no_observation_decisions": 0,
+        "observation_age_ticks": 0
+      },
+      "observed_state_hash": "b5b4f604947ff68a",
+      "observed_state_word_count": 7248800,
+      "observation_control_state_hash": "99e62546b1bad9f6",
+      "observation_control_state_word_count": 3681800,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "Go2",
+      "profile": "combined",
+      "trace": "go2-observation-combined.json",
+      "trace_sha256": "90996ba81a0875525154839b874a1056d5ef8f1d1087745e13135fb496ec0f11",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.2617937922477722,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.2617937922477722,
+        "final_speed_m_s": 0.01910039561709299,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          47.97898113242627,
+          38.84211522748228,
+          31.040224558266345,
+          40.06120284726785
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.019844833513476375,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.5430010324344039,
+        "max_authored_speed_ratio": 0.20600890796445928,
+        "max_fixed_position_error_m": 9.8770437003382e-07,
+        "max_fixed_rotation_error_rad": 1.5196262340524156e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.25213924050331116,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.07291236286966486,
+        "recovered": true,
+        "residual_tilt_rad": 0.019844833513476375,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.2619716227054596,
+        "final_ground_truth_tilt_rad": 0.010600412258584328
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8197000000,
+        "capture_sequence": 2049,
+        "capture_ticks": 8192000000,
+        "captures": 2050,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 6146,
+        "load_saturations": 2573,
+        "max_observation_age_ticks": 8000000,
+        "no_observation_decisions": 5,
+        "observation_age_ticks": 7000000
+      },
+      "observed_state_hash": "3cd14b35dc73c477",
+      "observed_state_word_count": 7248800,
+      "observation_control_state_hash": "e01ac976f083c09d",
+      "observation_control_state_word_count": 6876485,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "Go2",
+      "profile": "combined_zero_input",
+      "trace": "go2-observation-combined_zero_input.json",
+      "trace_sha256": "6e90885e3e6ad61f69dc11018ca9127b0288a15128b288abba21b75797bfa081",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.2620212435722351,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.2620212435722351,
+        "final_speed_m_s": 0.031265059092872326,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          48.22108815975662,
+          38.66392050485592,
+          30.462832864977827,
+          39.85638814793856
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.017418000484043034,
+        "fixed_attachments_preserved": true,
+        "impact_applied": false,
+        "lateral_displacement_m": -0.0028932197019457817,
+        "max_authored_speed_ratio": 0.05266654263636109,
+        "max_fixed_position_error_m": 9.226014789376304e-07,
+        "max_fixed_rotation_error_rad": 1.5196262340524156e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.26162558794021606,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.020220072599051085,
+        "recovered": true,
+        "residual_tilt_rad": 0.017418000484043034,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": false,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.2619716227054596,
+        "final_ground_truth_tilt_rad": 0.010600412258584328
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "observation_metrics": {
+        "available_ticks": 8197000000,
+        "capture_sequence": 2049,
+        "capture_ticks": 8192000000,
+        "captures": 2050,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 6146,
+        "load_saturations": 2620,
+        "max_observation_age_ticks": 8000000,
+        "no_observation_decisions": 5,
+        "observation_age_ticks": 7000000
+      },
+      "observed_state_hash": "3fd04420cdd8ac5b",
+      "observed_state_word_count": 7248800,
+      "observation_control_state_hash": "e0ad8193a5ba4126",
+      "observation_control_state_word_count": 6876485,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "G1",
+      "profile": "ideal_reference",
+      "trace": "g1-observation-ideal_reference.json",
+      "trace_sha256": "c7689b5e4ad9d33e12f811fa723e204a13fb949a9260cb924d81d2ffa78b0a7a",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.7660996913909912,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.7660996913909912,
+        "final_speed_m_s": 0.015803188077363344,
+        "final_support_feet": 2,
+        "final_support_mean_loads_n": [
+          169.80160258887918,
+          166.81787142136272
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.0056296136606783795,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.007999141933396459,
+        "max_authored_speed_ratio": 0.5850561141967774,
+        "max_fixed_position_error_m": 3.3521531864551507e-06,
+        "max_fixed_rotation_error_rad": 5.4358088053231654e-05,
+        "min_contact_feet": 0,
+        "min_height_m": 0.7659140825271606,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.28905954712046583,
+        "recovered": true,
+        "residual_tilt_rad": 0.0056296136606783795,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.7660517692565918,
+        "final_ground_truth_tilt_rad": 0.006031240997520252
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8199000000,
+        "capture_sequence": 8200,
+        "capture_ticks": 8199000000,
+        "captures": 8200,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 0,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 0,
+        "no_observation_decisions": 0,
+        "observation_age_ticks": 0
+      },
+      "observed_state_hash": "2993de22c82f1dca",
+      "observed_state_word_count": 5682600,
+      "observation_control_state_hash": "6f54d11005bd0c1e",
+      "observation_control_state_word_count": 10766600,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "G1",
+      "profile": "sample_500hz",
+      "trace": "g1-observation-sample_500hz.json",
+      "trace_sha256": "12370c15bea39ecab2d78fc7e2d72fca00c59cf46464179061702de2e0dc1209",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.7660986185073853,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.7660986185073853,
+        "final_speed_m_s": 0.009428293192167094,
+        "final_support_feet": 2,
+        "final_support_mean_loads_n": [
+          170.64900398057944,
+          165.53426327826037
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.0062071996473771155,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.002709904219955206,
+        "max_authored_speed_ratio": 0.4693713823954264,
+        "max_fixed_position_error_m": 2.283899144058202e-06,
+        "max_fixed_rotation_error_rad": 8.077094668811448e-05,
+        "min_contact_feet": 0,
+        "min_height_m": 0.7658804655075073,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.30625736664225767,
+        "recovered": true,
+        "residual_tilt_rad": 0.0062071996473771155,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.7660331130027771,
+        "final_ground_truth_tilt_rad": 0.005953482953368107
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8198000000,
+        "capture_sequence": 4100,
+        "capture_ticks": 8198000000,
+        "captures": 4100,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 4100,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 1000000,
+        "no_observation_decisions": 0,
+        "observation_age_ticks": 1000000
+      },
+      "observed_state_hash": "b48dcc412ad63ebc",
+      "observed_state_word_count": 5682600,
+      "observation_control_state_hash": "9ad5c1a4c5e3d05b",
+      "observation_control_state_word_count": 10766600,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "G1",
+      "profile": "sample_250hz",
+      "trace": "g1-observation-sample_250hz.json",
+      "trace_sha256": "87f3054eea1704148a1a5dbf650bb788d3887745e12880e74def09e6670b498f",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.7661257982254028,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.7661257982254028,
+        "final_speed_m_s": 0.008347602571532506,
+        "final_support_feet": 2,
+        "final_support_mean_loads_n": [
+          173.97201058360224,
+          162.30434847942888
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.005875243719167059,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.00202982866903767,
+        "max_authored_speed_ratio": 0.5793609619140625,
+        "max_fixed_position_error_m": 2.1437440227418536e-06,
+        "max_fixed_rotation_error_rad": 5.9335608086155004e-05,
+        "min_contact_feet": 0,
+        "min_height_m": 0.7658392786979675,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.32506870623970735,
+        "recovered": true,
+        "residual_tilt_rad": 0.005875243719167059,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.766086757183075,
+        "final_ground_truth_tilt_rad": 0.005322627624239277
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8196000000,
+        "capture_sequence": 2050,
+        "capture_ticks": 8196000000,
+        "captures": 2050,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 6150,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 3000000,
+        "no_observation_decisions": 0,
+        "observation_age_ticks": 3000000
+      },
+      "observed_state_hash": "e6d6f5fc1f6e3219",
+      "observed_state_word_count": 5682600,
+      "observation_control_state_hash": "2cc8519239d5ab2c",
+      "observation_control_state_word_count": 10766600,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "G1",
+      "profile": "delay_5ms",
+      "trace": "g1-observation-delay_5ms.json",
+      "trace_sha256": "9964939728b197b8d2b04896c1a79e637d15bb526fe6f89cef49a0f0af58dbe2",
+      "summary": {
+        "ever_fallen": true,
+        "final_base_height_m": 0.03695716708898544,
+        "final_contact_feet": 1,
+        "final_pelvis_height_m": 0.03695716708898544,
+        "final_speed_m_s": 0.001946035335457883,
+        "final_support_feet": 1,
+        "final_support_mean_loads_n": [
+          0.0,
+          109.67388965177815
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 1.5842904295435913,
+        "fixed_attachments_preserved": false,
+        "impact_applied": true,
+        "lateral_displacement_m": 1.132273269817233,
+        "max_authored_speed_ratio": 1.7724792892868455,
+        "max_fixed_position_error_m": 1.955719626885632e-05,
+        "max_fixed_rotation_error_rad": 0.004945788043163658,
+        "min_contact_feet": 0,
+        "min_height_m": 0.036953091621398926,
+        "nonfoot_ground_contact": true,
+        "nonfoot_ground_links": [
+          "left_shoulder_pitch_link",
+          "right_shoulder_pitch_link",
+          "right_shoulder_roll_link"
+        ],
+        "peak_tilt_rad": 1.638381479393607,
+        "recovered": false,
+        "residual_tilt_rad": 1.5842904295435913,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.7661314010620117,
+        "final_ground_truth_tilt_rad": 0.005139893524435146
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8199000000,
+        "capture_sequence": 8195,
+        "capture_ticks": 8194000000,
+        "captures": 8200,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 0,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 5000000,
+        "no_observation_decisions": 5,
+        "observation_age_ticks": 5000000
+      },
+      "observed_state_hash": "8d4bc7f750815642",
+      "observed_state_word_count": 5682600,
+      "observation_control_state_hash": "5e465306c994c805",
+      "observation_control_state_word_count": 36133220,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "G1",
+      "profile": "delay_20ms_limit",
+      "trace": "g1-observation-delay_20ms_limit.json",
+      "trace_sha256": "f87c7aeb2069a3aad6ff028286fae58fd90f53435cf0355bba2773408223c5ec",
+      "summary": {
+        "ever_fallen": true,
+        "final_base_height_m": 0.03585105761885643,
+        "final_contact_feet": 1,
+        "final_pelvis_height_m": 0.03585105761885643,
+        "final_speed_m_s": 0.0019337450034400592,
+        "final_support_feet": 1,
+        "final_support_mean_loads_n": [
+          0.0,
+          109.55963141145185
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 1.5804888902206746,
+        "fixed_attachments_preserved": false,
+        "impact_applied": true,
+        "lateral_displacement_m": 1.1274162004701793,
+        "max_authored_speed_ratio": 1.72572491620038,
+        "max_fixed_position_error_m": 1.934238633664209e-05,
+        "max_fixed_rotation_error_rad": 0.004882790057355893,
+        "min_contact_feet": 0,
+        "min_height_m": 0.03581814840435982,
+        "nonfoot_ground_contact": true,
+        "nonfoot_ground_links": [
+          "left_shoulder_pitch_link",
+          "right_shoulder_pitch_link",
+          "right_shoulder_roll_link"
+        ],
+        "peak_tilt_rad": 1.6391571788960622,
+        "recovered": false,
+        "residual_tilt_rad": 1.5804888902206746,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.7663164138793945,
+        "final_ground_truth_tilt_rad": 0.0031723742881204415
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8199000000,
+        "capture_sequence": 8180,
+        "capture_ticks": 8179000000,
+        "captures": 8200,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 0,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 20000000,
+        "no_observation_decisions": 20,
+        "observation_age_ticks": 20000000
+      },
+      "observed_state_hash": "954ca79a02f3f953",
+      "observed_state_word_count": 5682600,
+      "observation_control_state_hash": "f2baf9dc2b7ae5a1",
+      "observation_control_state_word_count": 112140230,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "G1",
+      "profile": "bounded_error",
+      "trace": "g1-observation-bounded_error.json",
+      "trace_sha256": "4e2ddd11bbaa305c52220c96eea8054bfabc0baec0903effbe70da7fc12eb04f",
+      "summary": {
+        "ever_fallen": true,
+        "final_base_height_m": 0.038140978664159775,
+        "final_contact_feet": 1,
+        "final_pelvis_height_m": 0.038140978664159775,
+        "final_speed_m_s": 0.0060505945140879105,
+        "final_support_feet": 1,
+        "final_support_mean_loads_n": [
+          0.0,
+          109.55275978375721
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 1.5882520111363039,
+        "fixed_attachments_preserved": false,
+        "impact_applied": true,
+        "lateral_displacement_m": 1.1338817668147385,
+        "max_authored_speed_ratio": 1.7215211198136613,
+        "max_fixed_position_error_m": 1.994719561491298e-05,
+        "max_fixed_rotation_error_rad": 0.005030829684984805,
+        "min_contact_feet": 0,
+        "min_height_m": 0.037834908813238144,
+        "nonfoot_ground_contact": true,
+        "nonfoot_ground_links": [
+          "left_shoulder_pitch_link",
+          "right_shoulder_pitch_link",
+          "right_shoulder_roll_link"
+        ],
+        "peak_tilt_rad": 1.6464493503168864,
+        "recovered": false,
+        "residual_tilt_rad": 1.5882520111363039,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.7660135626792908,
+        "final_ground_truth_tilt_rad": 0.006141788946334533
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8199000000,
+        "capture_sequence": 8200,
+        "capture_ticks": 8199000000,
+        "captures": 8200,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 0,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 0,
+        "no_observation_decisions": 0,
+        "observation_age_ticks": 0
+      },
+      "observed_state_hash": "9fd657d07518336a",
+      "observed_state_word_count": 5682600,
+      "observation_control_state_hash": "fa3078dd5a58d1dd",
+      "observation_control_state_word_count": 10766600,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "G1",
+      "profile": "combined",
+      "trace": "g1-observation-combined.json",
+      "trace_sha256": "2c496363ed5b523a2ef2de1e4dc7034a777dd72420364ba1b30f63737a1f6c46",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.7662091851234436,
+        "final_contact_feet": 1,
+        "final_pelvis_height_m": 0.7662091851234436,
+        "final_speed_m_s": 0.020899465653571342,
+        "final_support_feet": 2,
+        "final_support_mean_loads_n": [
+          167.0020602325385,
+          166.33310257001722
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.005363256225507964,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.010757583659142256,
+        "max_authored_speed_ratio": 0.6440536499023437,
+        "max_fixed_position_error_m": 2.121888683750832e-06,
+        "max_fixed_rotation_error_rad": 7.02732252918874e-05,
+        "min_contact_feet": 0,
+        "min_height_m": 0.7657293081283569,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.3051269242959291,
+        "recovered": true,
+        "residual_tilt_rad": 0.005363256225507964,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": true,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.7660744190216064,
+        "final_ground_truth_tilt_rad": 0.007394139163292629
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        40.00000000000003
+      ],
+      "observation_metrics": {
+        "available_ticks": 8197000000,
+        "capture_sequence": 2049,
+        "capture_ticks": 8192000000,
+        "captures": 2050,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 6146,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 8000000,
+        "no_observation_decisions": 5,
+        "observation_age_ticks": 7000000
+      },
+      "observed_state_hash": "902388bbe70d2127",
+      "observed_state_word_count": 5682600,
+      "observation_control_state_hash": "a87fbf34dc07209a",
+      "observation_control_state_word_count": 20907677,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    },
+    {
+      "robot": "G1",
+      "profile": "combined_zero_input",
+      "trace": "g1-observation-combined_zero_input.json",
+      "trace_sha256": "2132b9195c447175faf27721a69783d77b197436a5e75df76c983f543a09a2ed",
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.7661662101745605,
+        "final_contact_feet": 1,
+        "final_pelvis_height_m": 0.7661662101745605,
+        "final_speed_m_s": 0.02791569334397812,
+        "final_support_feet": 2,
+        "final_support_mean_loads_n": [
+          168.13834123889683,
+          166.6842595438502
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.005276042902146166,
+        "fixed_attachments_preserved": true,
+        "impact_applied": false,
+        "lateral_displacement_m": 0.008999203331768513,
+        "max_authored_speed_ratio": 0.1067489782969157,
+        "max_fixed_position_error_m": 1.6695674801011947e-06,
+        "max_fixed_rotation_error_rad": 3.814719384529846e-05,
+        "min_contact_feet": 0,
+        "min_height_m": 0.7657037973403931,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.009499166699912385,
+        "recovered": true,
+        "residual_tilt_rad": 0.005276042902146166,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "settlement": {
+        "settled_upright": true,
+        "failure_phase": null,
+        "impact_applied": false,
+        "completed_sim_ticks": 2000000000,
+        "final_ground_truth_root_height_m": 0.7660744190216064,
+        "final_ground_truth_tilt_rad": 0.007394139163292629
+      },
+      "actual_applied_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "observation_metrics": {
+        "available_ticks": 8197000000,
+        "capture_sequence": 2049,
+        "capture_ticks": 8192000000,
+        "captures": 2050,
+        "consumer_ticks": 8199000000,
+        "decisions": 8200,
+        "held_decisions": 6146,
+        "load_saturations": 0,
+        "max_observation_age_ticks": 8000000,
+        "no_observation_decisions": 5,
+        "observation_age_ticks": 7000000
+      },
+      "observed_state_hash": "e86b82834f6cfbf2",
+      "observed_state_word_count": 5682600,
+      "observation_control_state_hash": "20d62b54cfa2f88e",
+      "observation_control_state_word_count": 20907677,
+      "observed_state_bits_exact_repeat": true,
+      "observation_control_state_bits_exact_repeat": true
+    }
+  ],
+  "ideal_baseline_literal_comparison": {
+    "proof_sha256": "e75b702657e9cfbe5d0041968f6851d5e5bf3e119f1395263818e38891a97123",
+    "scope": "Actual literal byte/IEEE-bit comparisons of ordered post-step plant state and all pre-change controller decision fields including numeric values, null/key presence, boolean decisions and link/foot array names/order; includes settlement. Hidden solver caches and new-only observation queue metadata are outside old/new equality assertion.",
+    "run_scope": "One serialization-only instrumented run of each old and new case; fresh replay is separately established by normal qualification.",
+    "cases_compared": 18,
+    "required_cases_compared": 12,
+    "plant_rows_compared": 139400,
+    "plant_words_compared": 109916900,
+    "all_plant_and_controller_decisions_literal_equal": true,
+    "cases": [
+      {
+        "robot": "go2",
+        "case": "balance_off",
+        "required_recovery": false,
+        "plant_rows": 8200,
+        "plant_words": 7248800,
+        "old_plant_file_sha256": "d344f9b461044556b3a1c0fe4ae1ff36064621325d0c0dc63526a6f3100cd340",
+        "new_plant_file_sha256": "d344f9b461044556b3a1c0fe4ae1ff36064621325d0c0dc63526a6f3100cd340",
+        "controller_compared_value_counts": {
+          "numeric": 522544,
+          "bool": 32800,
+          "text": 229600,
+          "null": 564
+        },
+        "passed": true
+      },
+      {
+        "robot": "go2",
+        "case": "balance_off_zero",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 7248800,
+        "old_plant_file_sha256": "b14c8a68a3be3a454c1e9cf012af3cf0d96f93b26b8b0581e1f2337813dbb816",
+        "new_plant_file_sha256": "b14c8a68a3be3a454c1e9cf012af3cf0d96f93b26b8b0581e1f2337813dbb816",
+        "controller_compared_value_counts": {
+          "numeric": 524408,
+          "bool": 32800,
+          "text": 229600,
+          "null": 98
+        },
+        "passed": true
+      },
+      {
+        "robot": "go2",
+        "case": "front_limit",
+        "required_recovery": false,
+        "plant_rows": 8200,
+        "plant_words": 7248800,
+        "old_plant_file_sha256": "ec3d43689d6e884b7055e21ad2b36ca8373b466c2a968c440eece658ee1c2d45",
+        "new_plant_file_sha256": "ec3d43689d6e884b7055e21ad2b36ca8373b466c2a968c440eece658ee1c2d45",
+        "controller_compared_value_counts": {
+          "numeric": 507664,
+          "bool": 32800,
+          "text": 229600,
+          "null": 4284
+        },
+        "passed": true
+      },
+      {
+        "robot": "go2",
+        "case": "late",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 7248800,
+        "old_plant_file_sha256": "9c19927203ac6153eb7f400e1b87a769618b72b41193ee1fce979ed7cecf9208",
+        "new_plant_file_sha256": "9c19927203ac6153eb7f400e1b87a769618b72b41193ee1fce979ed7cecf9208",
+        "controller_compared_value_counts": {
+          "numeric": 522528,
+          "bool": 32800,
+          "text": 229600,
+          "null": 568
+        },
+        "passed": true
+      },
+      {
+        "robot": "go2",
+        "case": "nominal",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 7248800,
+        "old_plant_file_sha256": "5f9353a13c79f6cde51c02f9980db22ede279b373fc7fe7bb5bb1936bc2ce6a2",
+        "new_plant_file_sha256": "5f9353a13c79f6cde51c02f9980db22ede279b373fc7fe7bb5bb1936bc2ce6a2",
+        "controller_compared_value_counts": {
+          "numeric": 522532,
+          "bool": 32800,
+          "text": 229600,
+          "null": 567
+        },
+        "passed": true
+      },
+      {
+        "robot": "go2",
+        "case": "oblique_limit",
+        "required_recovery": false,
+        "plant_rows": 8200,
+        "plant_words": 7248800,
+        "old_plant_file_sha256": "516e268b616b7d16d1805b3d722d42f7b806754ac47073f71439fac877991dbd",
+        "new_plant_file_sha256": "516e268b616b7d16d1805b3d722d42f7b806754ac47073f71439fac877991dbd",
+        "controller_compared_value_counts": {
+          "numeric": 522520,
+          "bool": 32800,
+          "text": 229600,
+          "null": 570
+        },
+        "passed": true
+      },
+      {
+        "robot": "go2",
+        "case": "rate_500hz",
+        "required_recovery": true,
+        "plant_rows": 4100,
+        "plant_words": 3624400,
+        "old_plant_file_sha256": "113bd98ce7b32f49fd9f195fbde18c09c478b5f6d6f96cc1aa0ad3c799c980a9",
+        "new_plant_file_sha256": "113bd98ce7b32f49fd9f195fbde18c09c478b5f6d6f96cc1aa0ad3c799c980a9",
+        "controller_compared_value_counts": {
+          "numeric": 261260,
+          "bool": 16400,
+          "text": 114800,
+          "null": 285
+        },
+        "passed": true
+      },
+      {
+        "robot": "go2",
+        "case": "reverse_early",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 7248800,
+        "old_plant_file_sha256": "e32f0f8fb2f9d8cb92cbc987091281486e2551c109583e907d8bf0d239a7d2c5",
+        "new_plant_file_sha256": "e32f0f8fb2f9d8cb92cbc987091281486e2551c109583e907d8bf0d239a7d2c5",
+        "controller_compared_value_counts": {
+          "numeric": 522532,
+          "bool": 32800,
+          "text": 229600,
+          "null": 567
+        },
+        "passed": true
+      },
+      {
+        "robot": "go2",
+        "case": "zero",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 7248800,
+        "old_plant_file_sha256": "3433d5438c922348d0475d4ca753aaabcc6d18fcb23eaac3fbd3b86eae7655a4",
+        "new_plant_file_sha256": "3433d5438c922348d0475d4ca753aaabcc6d18fcb23eaac3fbd3b86eae7655a4",
+        "controller_compared_value_counts": {
+          "numeric": 524408,
+          "bool": 32800,
+          "text": 229600,
+          "null": 98
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "balance_off",
+        "required_recovery": false,
+        "plant_rows": 8200,
+        "plant_words": 5682600,
+        "old_plant_file_sha256": "776bf1714cec34c2acd83a3a6994c7b76e51baa887462bcc72c6ef1835853155",
+        "new_plant_file_sha256": "776bf1714cec34c2acd83a3a6994c7b76e51baa887462bcc72c6ef1835853155",
+        "controller_compared_value_counts": {
+          "numeric": 1172600,
+          "bool": 385400,
+          "text": 188600,
+          "null": 0
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "balance_off_zero",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 5682600,
+        "old_plant_file_sha256": "9d51cf33b9ba5f1085830b6f0600c26fff20786ecafb9b64a2422e868232f5c5",
+        "new_plant_file_sha256": "9d51cf33b9ba5f1085830b6f0600c26fff20786ecafb9b64a2422e868232f5c5",
+        "controller_compared_value_counts": {
+          "numeric": 1172600,
+          "bool": 385400,
+          "text": 188600,
+          "null": 0
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "front_limit",
+        "required_recovery": false,
+        "plant_rows": 8200,
+        "plant_words": 5682600,
+        "old_plant_file_sha256": "d0e8cd700ecac43c5a5301b57e186d505877dd26bab4d57158047a0f89c057b1",
+        "new_plant_file_sha256": "d0e8cd700ecac43c5a5301b57e186d505877dd26bab4d57158047a0f89c057b1",
+        "controller_compared_value_counts": {
+          "numeric": 1172600,
+          "bool": 385400,
+          "text": 188600,
+          "null": 0
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "late",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 5682600,
+        "old_plant_file_sha256": "521dab18e0e2b28d445fc58b32b37b0e98c806bd49e36f70a41ea0cd43ffe900",
+        "new_plant_file_sha256": "521dab18e0e2b28d445fc58b32b37b0e98c806bd49e36f70a41ea0cd43ffe900",
+        "controller_compared_value_counts": {
+          "numeric": 1172600,
+          "bool": 385400,
+          "text": 188600,
+          "null": 0
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "nominal",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 5682600,
+        "old_plant_file_sha256": "0485fff6822ad65540f5d95bf28c3f1b845ef19947c2b7c963757a3b08e4f774",
+        "new_plant_file_sha256": "0485fff6822ad65540f5d95bf28c3f1b845ef19947c2b7c963757a3b08e4f774",
+        "controller_compared_value_counts": {
+          "numeric": 1172600,
+          "bool": 385400,
+          "text": 188600,
+          "null": 0
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "oblique_limit",
+        "required_recovery": false,
+        "plant_rows": 8200,
+        "plant_words": 5682600,
+        "old_plant_file_sha256": "a0820e815471fa53aa59c9a463a2fe023dc674123eadd0ea0daa0cbf4169de8c",
+        "new_plant_file_sha256": "a0820e815471fa53aa59c9a463a2fe023dc674123eadd0ea0daa0cbf4169de8c",
+        "controller_compared_value_counts": {
+          "numeric": 1172600,
+          "bool": 385400,
+          "text": 188600,
+          "null": 0
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "rate_500hz",
+        "required_recovery": true,
+        "plant_rows": 4100,
+        "plant_words": 2841300,
+        "old_plant_file_sha256": "51f9813c60b10b119c71b695f3e225415f5e48d3644d74ce62171f5190b0b537",
+        "new_plant_file_sha256": "51f9813c60b10b119c71b695f3e225415f5e48d3644d74ce62171f5190b0b537",
+        "controller_compared_value_counts": {
+          "numeric": 586300,
+          "bool": 192700,
+          "text": 94300,
+          "null": 0
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "reverse_early",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 5682600,
+        "old_plant_file_sha256": "7053c4712675b3fed42814bbcc80e75988fe4dea6b3767324cea31d241720f1e",
+        "new_plant_file_sha256": "7053c4712675b3fed42814bbcc80e75988fe4dea6b3767324cea31d241720f1e",
+        "controller_compared_value_counts": {
+          "numeric": 1172600,
+          "bool": 385400,
+          "text": 188600,
+          "null": 0
+        },
+        "passed": true
+      },
+      {
+        "robot": "g1",
+        "case": "zero",
+        "required_recovery": true,
+        "plant_rows": 8200,
+        "plant_words": 5682600,
+        "old_plant_file_sha256": "e9f6e1da6783694c327a9acc4014974410651cdc7307a9317496852cee8a8862",
+        "new_plant_file_sha256": "e9f6e1da6783694c327a9acc4014974410651cdc7307a9317496852cee8a8862",
+        "controller_compared_value_counts": {
+          "numeric": 1172600,
+          "bool": 385400,
+          "text": 188600,
+          "null": 0
+        },
+        "passed": true
+      }
+    ]
+  },
+  "ideal_fresh_recovery_qualification": {
+    "report_sha256": "6c732d64af53243dbb71d7f2bb6e0ab767c0729e828cb2eb84e5c8e024818644",
+    "cases": 18,
+    "required_cases": 12,
+    "required_recoveries": 12,
+    "all_plant_and_control_state_replays_exact": true,
+    "non_required_outcomes": [
+      {
+        "robot": "Go2",
+        "case": "balance_off",
+        "summary": {
+          "ever_fallen": false,
+          "final_base_height_m": 0.2620168924331665,
+          "final_contact_feet": 2,
+          "final_pelvis_height_m": 0.2620168924331665,
+          "final_speed_m_s": 0.008591742909331965,
+          "final_support_feet": 4,
+          "final_support_mean_loads_n": [
+            44.30334688353469,
+            41.87348045880208,
+            34.61660492015835,
+            37.39253452754019
+          ],
+          "final_support_window_s": 0.5,
+          "final_tilt_rad": 0.0076370527450672614,
+          "fixed_attachments_preserved": true,
+          "impact_applied": true,
+          "lateral_displacement_m": 0.5424437022593338,
+          "max_authored_speed_ratio": 0.1963722349401328,
+          "max_fixed_position_error_m": 1.250604091620901e-06,
+          "max_fixed_rotation_error_rad": 1.5196262340524156e-07,
+          "min_contact_feet": 0,
+          "min_height_m": 0.2539386451244354,
+          "nonfoot_ground_contact": false,
+          "nonfoot_ground_links": [],
+          "peak_tilt_rad": 0.09510461349329209,
+          "recovered": true,
+          "residual_tilt_rad": 0.0076370527450672614,
+          "settled_upright": true,
+          "support_mean_load_threshold_n": 0.5
+        }
+      },
+      {
+        "robot": "Go2",
+        "case": "front_limit",
+        "summary": {
+          "ever_fallen": true,
+          "final_base_height_m": 0.0828024297952652,
+          "final_contact_feet": 0,
+          "final_pelvis_height_m": 0.0828024297952652,
+          "final_speed_m_s": 0.0015122676319625854,
+          "final_support_feet": 0,
+          "final_support_mean_loads_n": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "final_support_window_s": 0.5,
+          "final_tilt_rad": 3.1415641896414637,
+          "fixed_attachments_preserved": true,
+          "impact_applied": true,
+          "lateral_displacement_m": -0.0002876531798392534,
+          "max_authored_speed_ratio": 0.804460185348608,
+          "max_fixed_position_error_m": 1.6078236542800015e-06,
+          "max_fixed_rotation_error_rad": 1.632340423778195e-07,
+          "min_contact_feet": 0,
+          "min_height_m": 0.08160755038261414,
+          "nonfoot_ground_contact": true,
+          "nonfoot_ground_links": [
+            "FL_hip",
+            "FR_hip",
+            "Head_lower",
+            "Head_upper",
+            "RL_hip",
+            "RR_hip"
+          ],
+          "peak_tilt_rad": 3.1415923019097614,
+          "recovered": false,
+          "residual_tilt_rad": 3.1415641896414637,
+          "settled_upright": true,
+          "support_mean_load_threshold_n": 0.5
+        }
+      },
+      {
+        "robot": "Go2",
+        "case": "oblique_limit",
+        "summary": {
+          "ever_fallen": false,
+          "final_base_height_m": 0.2619825601577759,
+          "final_contact_feet": 0,
+          "final_pelvis_height_m": 0.2619825601577759,
+          "final_speed_m_s": 0.0180295522541077,
+          "final_support_feet": 4,
+          "final_support_mean_loads_n": [
+            44.85266407410745,
+            41.6702074984787,
+            33.969757685263176,
+            37.19460876712401
+          ],
+          "final_support_window_s": 0.5,
+          "final_tilt_rad": 0.00959669294184106,
+          "fixed_attachments_preserved": true,
+          "impact_applied": true,
+          "lateral_displacement_m": 0.37032412010012195,
+          "max_authored_speed_ratio": 0.1862295114310684,
+          "max_fixed_position_error_m": 1.3200569637816108e-06,
+          "max_fixed_rotation_error_rad": 1.5196262340524156e-07,
+          "min_contact_feet": 0,
+          "min_height_m": 0.2604495882987976,
+          "nonfoot_ground_contact": false,
+          "nonfoot_ground_links": [],
+          "peak_tilt_rad": 0.07415417976865328,
+          "recovered": true,
+          "residual_tilt_rad": 0.00959669294184106,
+          "settled_upright": true,
+          "support_mean_load_threshold_n": 0.5
+        }
+      },
+      {
+        "robot": "G1",
+        "case": "balance_off",
+        "summary": {
+          "ever_fallen": false,
+          "final_base_height_m": 0.7655985355377197,
+          "final_contact_feet": 2,
+          "final_pelvis_height_m": 0.7655985355377197,
+          "final_speed_m_s": 0.03813483088255987,
+          "final_support_feet": 2,
+          "final_support_mean_loads_n": [
+            164.3634015651478,
+            172.58784795738757
+          ],
+          "final_support_window_s": 0.5,
+          "final_tilt_rad": 0.012596708862086494,
+          "fixed_attachments_preserved": true,
+          "impact_applied": true,
+          "lateral_displacement_m": 0.029850507155060768,
+          "max_authored_speed_ratio": 0.20995184580485027,
+          "max_fixed_position_error_m": 2.0559113988917353e-06,
+          "max_fixed_rotation_error_rad": 4.124895505649186e-05,
+          "min_contact_feet": 0,
+          "min_height_m": 0.7608931660652161,
+          "nonfoot_ground_contact": false,
+          "nonfoot_ground_links": [],
+          "peak_tilt_rad": 0.3674715121871769,
+          "recovered": true,
+          "residual_tilt_rad": 0.012596708862086494,
+          "settled_upright": true,
+          "support_mean_load_threshold_n": 0.5
+        }
+      },
+      {
+        "robot": "G1",
+        "case": "front_limit",
+        "summary": {
+          "ever_fallen": true,
+          "final_base_height_m": 0.08151771873235703,
+          "final_contact_feet": 1,
+          "final_pelvis_height_m": 0.08151771873235703,
+          "final_speed_m_s": 0.036308264519436695,
+          "final_support_feet": 2,
+          "final_support_mean_loads_n": [
+            47.035357426153496,
+            61.917102157487534
+          ],
+          "final_support_window_s": 0.5,
+          "final_tilt_rad": 1.7371510618644974,
+          "fixed_attachments_preserved": false,
+          "impact_applied": true,
+          "lateral_displacement_m": -0.001089249039068818,
+          "max_authored_speed_ratio": 0.3657876253128052,
+          "max_fixed_position_error_m": 5.925644666031554e-06,
+          "max_fixed_rotation_error_rad": 0.0014864269530976242,
+          "min_contact_feet": 0,
+          "min_height_m": 0.004034391604363918,
+          "nonfoot_ground_contact": true,
+          "nonfoot_ground_links": [
+            "left_shoulder_pitch_link",
+            "right_shoulder_pitch_link"
+          ],
+          "peak_tilt_rad": 1.747619037003221,
+          "recovered": false,
+          "residual_tilt_rad": 1.7371510618644974,
+          "settled_upright": true,
+          "support_mean_load_threshold_n": 0.5
+        }
+      },
+      {
+        "robot": "G1",
+        "case": "oblique_limit",
+        "summary": {
+          "ever_fallen": true,
+          "final_base_height_m": 0.08059762418270111,
+          "final_contact_feet": 1,
+          "final_pelvis_height_m": 0.08059762418270111,
+          "final_speed_m_s": 0.0012598968129030697,
+          "final_support_feet": 1,
+          "final_support_mean_loads_n": [
+            0.0,
+            107.25528042169753
+          ],
+          "final_support_window_s": 0.5,
+          "final_tilt_rad": 1.7339982895785044,
+          "fixed_attachments_preserved": false,
+          "impact_applied": true,
+          "lateral_displacement_m": 0.2349188190419227,
+          "max_authored_speed_ratio": 1.171123607738598,
+          "max_fixed_position_error_m": 7.565413641580021e-05,
+          "max_fixed_rotation_error_rad": 0.019085650115093906,
+          "min_contact_feet": 0,
+          "min_height_m": 0.030950572341680527,
+          "nonfoot_ground_contact": true,
+          "nonfoot_ground_links": [
+            "left_shoulder_pitch_link",
+            "right_shoulder_pitch_link",
+            "right_shoulder_roll_link"
+          ],
+          "peak_tilt_rad": 1.7541981300818383,
+          "recovered": false,
+          "residual_tilt_rad": 1.7339982895785044,
+          "settled_upright": true,
+          "support_mean_load_threshold_n": 0.5
+        }
+      }
+    ]
+  }
+}

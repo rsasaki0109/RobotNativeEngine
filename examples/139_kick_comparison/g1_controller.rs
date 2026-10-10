@@ -4,7 +4,7 @@
 //! hardware-qualified whole-body controller. The stance creates a measured
 //! support polygon; the DCM and IMU feedback respond to observed motion only.
 
-use super::model::center_of_mass;
+use super::observation::Observation;
 use rne_ai::{UrdfJointPositionTarget, UrdfSceneSim};
 use rne_math::Vec3;
 use rne_robot::{Joint, JointKind, JointLimits, Link};
@@ -32,6 +32,7 @@ const ARM_PREDICTION_DEADBAND_RAD: f64 = 0.02;
 const ARM_CORRECTION_LIMIT_RAD: f64 = 1.0;
 const ARM_RETURN_RATE_RAD_S: f64 = 0.5;
 const ARM_QUIET_DURATION_S: f64 = 0.3;
+#[cfg(test)]
 const FOOT_NAMES: [&str; 2] = ["left_ankle_roll_link", "right_ankle_roll_link"];
 
 #[derive(Debug)]
@@ -112,59 +113,84 @@ impl G1Controller {
         })
     }
 
-    /// Measures the current state, updates bounded targets, and advances one tick.
+    /// Updates bounded targets from a previously captured observation.
     ///
     /// No disturbance timing, force magnitude, render data, or future state is
-    /// available to this controller. The simulation owns its current fixed step.
-    pub(super) fn step(&mut self, sim: &mut UrdfSceneSim) -> ControllerResult<()> {
-        let (com_m, com_velocity_m_s, _) = center_of_mass(sim)?;
-        let pelvis = sim
-            .named_transform("pelvis")
-            .ok_or_else(|| io::Error::other("G1 pelvis is missing"))?;
-        let feet: Vec<_> = FOOT_NAMES
-            .iter()
-            .map(|name| {
-                sim.named_transform(name)
-                    .map(|transform| transform.translation)
-                    .ok_or_else(|| io::Error::other("G1 foot is missing"))
-            })
-            .collect::<Result<_, _>>()?;
-        let stance_center_m = (feet[0] + feet[1]) * 0.5;
+    /// available to this controller. Missing observations request the bounded
+    /// nominal stance with zero ankle, hip, and arm corrections.
+    pub(super) fn step_targets(
+        &mut self,
+        observation: Option<&Observation>,
+        dt_s: f64,
+    ) -> ControllerResult<Vec<UrdfJointPositionTarget<'_>>> {
+        if !dt_s.is_finite() || dt_s <= 0.0 {
+            return Err(io::Error::other("the G1 control step must be finite and positive").into());
+        }
+        let no_observation = observation.is_none();
+        let (
+            com_m,
+            com_velocity_m_s,
+            stance_center_m,
+            up_world,
+            roll_rad,
+            pitch_rad,
+            angular_velocity_world_rad_s,
+        ) = match observation {
+            Some(observation) => {
+                if observation.foot_positions_world_m.len() != 2 {
+                    return Err(io::Error::other("the G1 observation requires two feet").into());
+                }
+                (
+                    observation.com_world_m,
+                    observation.com_velocity_world_m_s,
+                    (observation.foot_positions_world_m[0] + observation.foot_positions_world_m[1])
+                        * 0.5,
+                    observation.up_world,
+                    observation.roll_rad,
+                    observation.pitch_rad,
+                    observation.angular_velocity_world_rad_s,
+                )
+            }
+            None => (
+                Vec3::ZERO,
+                Vec3::ZERO,
+                Vec3::ZERO,
+                Vec3::ZERO,
+                0.0,
+                0.0,
+                Vec3::ZERO,
+            ),
+        };
         let omega_rad_s = (9.81 / com_m.y.max(0.4)).sqrt();
         let dcm_m = com_m + com_velocity_m_s / omega_rad_s;
         let capture_point_m = Vec3::new(dcm_m.x, 0.0, dcm_m.z);
         let capture_error_m = capture_point_m - stance_center_m;
-        let observation = sim.observe();
-        let up_world = pelvis.rotation * Vec3::Z;
-        let enabled = if self.balance_feedback_enabled {
-            1.0
-        } else {
-            0.0
-        };
-        let roll_rad = up_world.z.atan2(up_world.y);
+        let feedback_enabled = self.balance_feedback_enabled && !no_observation;
+        let enabled = if feedback_enabled { 1.0 } else { 0.0 };
         let hip_lateral_rad = lateral_hip_correction_rad(
             capture_error_m.z,
             roll_rad,
-            observation.base_angular_velocity_x_rad_s,
-            self.balance_feedback_enabled,
+            angular_velocity_world_rad_s.x,
+            feedback_enabled,
         );
         let hip_forward_rad = (enabled * FORWARD_CAPTURE_GAIN_RAD_PER_M * capture_error_m.x)
             .clamp(-ANKLE_CORRECTION_LIMIT_RAD, ANKLE_CORRECTION_LIMIT_RAD);
         let ankle_lateral_rad = (enabled
             * ATTITUDE_GAIN
-            * (roll_rad + ANGULAR_RATE_HORIZON_S * observation.base_angular_velocity_x_rad_s))
+            * (roll_rad + ANGULAR_RATE_HORIZON_S * angular_velocity_world_rad_s.x))
             .clamp(-ANKLE_CORRECTION_LIMIT_RAD, ANKLE_CORRECTION_LIMIT_RAD);
         let ankle_forward_rad = (enabled
             * ATTITUDE_GAIN
-            * (up_world.x.atan2(up_world.y)
-                - ANGULAR_RATE_HORIZON_S * observation.base_angular_velocity_z_rad_s))
+            * (pitch_rad - ANGULAR_RATE_HORIZON_S * angular_velocity_world_rad_s.z))
             .clamp(-ANKLE_CORRECTION_LIMIT_RAD, ANKLE_CORRECTION_LIMIT_RAD);
-        let step_s = sim.fixed_delta().as_seconds().value();
+        let step_s = dt_s;
         let arm_quiet = capture_error_m.z.abs() < 0.05
             && com_velocity_m_s.length() < 0.10
             && roll_rad.abs() < 0.05
-            && observation.base_angular_velocity_x_rad_s.abs() < 0.20;
-        self.arm_quiet_duration_s = if arm_quiet {
+            && angular_velocity_world_rad_s.x.abs() < 0.20;
+        self.arm_quiet_duration_s = if no_observation {
+            0.0
+        } else if arm_quiet {
             self.arm_quiet_duration_s + step_s
         } else {
             0.0
@@ -172,10 +198,10 @@ impl G1Controller {
         update_arm_targets_rad(
             &mut self.arm_roll_targets_rad,
             roll_rad,
-            observation.base_angular_velocity_x_rad_s,
+            angular_velocity_world_rad_s.x,
             self.arm_quiet_duration_s >= ARM_QUIET_DURATION_S,
             step_s,
-            self.balance_feedback_enabled,
+            feedback_enabled,
         );
         let arm_targets_rad = self.arm_roll_targets_rad;
         let mut joint_feedback = Vec::with_capacity(self.servos.len());
@@ -197,10 +223,16 @@ impl G1Controller {
                     servo.previous_target_rad - rate_rad_s * step_s,
                     servo.previous_target_rad + rate_rad_s * step_s,
                 );
+                let joint_observation = observation.and_then(|observation| {
+                    observation
+                        .joint_states
+                        .iter()
+                        .find(|joint| joint.link_name == servo.name)
+                });
                 joint_feedback.push(json!({
                     "link":servo.name,
-                    "position_rad":sim.named_joint_position(&servo.name),
-                    "velocity_rad_s":sim.named_joint_velocity(&servo.name),
+                    "position_rad":joint_observation.and_then(|joint| joint.position_rad),
+                    "velocity_rad_s":joint_observation.and_then(|joint| joint.velocity_rad_s),
                     "requested_position_rad":requested_rad,
                     "position_limited_target_rad":position_limited_rad,
                     "target_position_rad":position_rad,
@@ -214,25 +246,20 @@ impl G1Controller {
                 }
             })
             .collect();
-        let support_points: Vec<_> = FOOT_NAMES
-            .iter()
-            .flat_map(|name| sim.named_body_contact_points_m(name))
-            .map(|point| point.to_array())
-            .collect();
         self.last_feedback = json!({
             "balance_feedback_enabled": self.balance_feedback_enabled,
-            "com_world_m": com_m.to_array(),
-            "com_velocity_world_m_s": com_velocity_m_s.to_array(),
-            "capture_point_world_m": capture_point_m.to_array(),
-            "stance_center_world_m": stance_center_m.to_array(),
-            "actual_support_points_world_m": support_points,
-            "pelvis_up_world": up_world.to_array(),
-            "pelvis_roll_world_x_rad": roll_rad,
-            "pelvis_angular_velocity_world_x_rad_s": observation.base_angular_velocity_x_rad_s,
+            "no_observation": no_observation,
+            "com_world_m": observation.map(|_| com_m.to_array()),
+            "com_velocity_world_m_s": observation.map(|_| com_velocity_m_s.to_array()),
+            "capture_point_world_m": observation.map(|_| capture_point_m.to_array()),
+            "stance_center_world_m": observation.map(|_| stance_center_m.to_array()),
+            "pelvis_up_world": observation.map(|_| up_world.to_array()),
+            "pelvis_roll_world_x_rad": observation.map(|_| roll_rad),
+            "pelvis_angular_velocity_world_x_rad_s": observation.map(|_| angular_velocity_world_rad_s.x),
             "hip_capture_term_rad": enabled * LATERAL_CAPTURE_GAIN_RAD_PER_M * capture_error_m.z,
             "hip_attitude_term_rad": -enabled * HIP_ATTITUDE_GAIN * roll_rad,
             "hip_angular_rate_term_rad": -enabled * HIP_ANGULAR_RATE_HORIZON_S
-                * observation.base_angular_velocity_x_rad_s,
+                * angular_velocity_world_rad_s.x,
             "arm_roll_targets_rad": arm_targets_rad,
             "arm_quiet_duration_s": self.arm_quiet_duration_s,
             "hip_lateral_correction_rad": hip_lateral_rad,
@@ -242,13 +269,27 @@ impl G1Controller {
             "target_rate_limit_rad_s": TARGET_RATE_LIMIT_RAD_S,
             "joint_feedback": joint_feedback,
         });
-        sim.step_joint_position_actuation_targets(&targets);
-        Ok(())
+        Ok(targets)
     }
 
     /// Returns the last observed feedback; the values precede the completed tick.
     pub(super) fn telemetry(&self) -> Value {
         self.last_feedback.clone()
+    }
+
+    /// Encodes every mutable control state used by a later feedback step.
+    pub(super) fn replay_words(&self) -> Vec<u64> {
+        let mut words = Vec::with_capacity(self.servos.len() + 5);
+        words.push(u64::from(self.balance_feedback_enabled));
+        words.push(self.servos.len() as u64);
+        words.extend(
+            self.servos
+                .iter()
+                .map(|servo| servo.previous_target_rad.to_bits()),
+        );
+        words.extend(self.arm_roll_targets_rad.map(f64::to_bits));
+        words.push(self.arm_quiet_duration_s.to_bits());
+        words
     }
 
     /// Describes solver-enforced servo limits without claiming measured torque.
@@ -391,6 +432,54 @@ mod tests {
     use rne_physics::{RigidBody, RigidBodyInertia};
     use rne_robot::KinematicModel;
     use std::path::Path;
+
+    #[test]
+    fn missing_observation_resets_feedback_and_keeps_nominal_targets_bounded() {
+        let limits = JointLimits {
+            lower: -0.2,
+            upper: 0.2,
+            max_velocity: 6.0,
+            max_effort: 20.0,
+        };
+        let mut controller = G1Controller {
+            servos: [
+                "left_hip_roll_link",
+                "left_shoulder_roll_link",
+                "right_ankle_roll_link",
+            ]
+            .map(|name| Servo {
+                name: name.to_owned(),
+                limits,
+                previous_target_rad: 0.1,
+            })
+            .into(),
+            balance_feedback_enabled: true,
+            arm_roll_targets_rad: [0.8, -0.7],
+            arm_quiet_duration_s: 1.0,
+            last_feedback: Value::Null,
+        };
+        let targets = controller
+            .step_targets(None, 0.001)
+            .expect("missing observations retain a bounded nominal stance");
+        for target in targets {
+            assert!((limits.lower..=limits.upper).contains(&target.position));
+            let target_step_rad = TARGET_RATE_LIMIT_RAD_S * 0.001;
+            assert!((0.1 - target_step_rad..=0.1 + target_step_rad).contains(&target.position));
+        }
+        assert_eq!(controller.arm_roll_targets_rad, [0.0; 2]);
+        assert_eq!(controller.arm_quiet_duration_s, 0.0);
+        let telemetry = controller.telemetry();
+        assert_eq!(telemetry["no_observation"], true);
+        assert_eq!(telemetry["com_world_m"], Value::Null);
+        for key in [
+            "hip_lateral_correction_rad",
+            "hip_forward_correction_rad",
+            "ankle_lateral_correction_rad",
+            "ankle_forward_correction_rad",
+        ] {
+            assert_eq!(telemetry[key], 0.0);
+        }
+    }
 
     fn mass_and_foot_geometry(
         sim: &UrdfSceneSim,

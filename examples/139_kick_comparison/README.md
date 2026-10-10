@@ -57,8 +57,10 @@ schedule, future force or animation pose. They apply joint commands; recovery
 comes through contact with the ground. Robot poses and velocities are never
 corrected directly, and controllers do not apply stabilizing body wrenches.
 
-The observations are ideal simulator state. The model omits sensor-estimation
-error, actuator thermal and power limits, detailed transmissions and robot
+Default observations are ideal simulator state. The opt-in observation probe
+below introduces synthetic estimate errors and timing separately. The model
+omits an actual sensor-fusion estimator, actuator thermal and power limits,
+detailed transmissions and robot
 self-collision. Floor friction and primitive contact proxies are simulator
 assumptions, not measured hardware contact properties. The recorded effort ceilings are enforced by the solver;
 applied motor torque is not read back. This controller is not Unitree firmware
@@ -137,6 +139,106 @@ ablation observations; their outcomes appear in the generated metadata.
 Passing recovery at 500/1,000 Hz does not establish convergence of the full
 trajectory. Final values are in the generated summary and
 [README capture metadata](../../docs/media/kick-comparison.json).
+
+## Synthetic observation sensitivity
+
+`--observation-probe` runs a separate headless sensitivity matrix for the same
+40 N·s, 80 ms lateral wrench. It changes the observations available to the
+outer balance controller. Physics, target slew, filters and controller evaluation
+remain at 1 kHz; a 250 Hz capture profile holds a sample for four control ticks.
+This differs from `rate_500hz` in the existing recovery matrix, which changes
+the physics step itself.
+
+One captured state estimate contains attitude/rates, COM position and velocity,
+foot positions and Go2 normal loads from the same completed physics tick.
+The controller reads only arrived timestamped frames from the DataBus. Pending
+frames cannot supply feedback. A held frame retains its sample identity and
+error draw. Before the first arrival, bounded nominal stance targets apply
+without a current-truth fallback. Capture timing continues through settlement
+and the disturbance.
+
+The profiles are declared before measurement:
+
+| Profile | Capture period | Arrival latency | Bounded synthetic errors |
+| --- | --- | --- | --- |
+| `ideal_reference` | 1 ms | 0 ms | none |
+| `sample_500hz` | 2 ms | 0 ms | none |
+| `sample_250hz` | 4 ms | 0 ms | none |
+| `delay_5ms` | 1 ms | 5 ms | none |
+| `delay_20ms_limit` | 1 ms | 20 ms | none |
+| `bounded_error` | 1 ms | 0 ms | enabled |
+| `combined` | 4 ms | 5 ms | enabled |
+| `combined_zero_input` | 4 ms | 5 ms | enabled, zero disturbance |
+
+Attitude error is a pair of world-X/world-Z rotations bounded by ±0.01 rad
+each, applied to the captured orientation. Body axes, roll/pitch and gyro
+projection use that same perturbed orientation; derived roll/pitch error is
+not independently bounded by those rotation amplitudes. Other amplitudes are
+±0.02 rad/s world angular rate, ±0.005 m COM/foot position and ±0.02 m/s
+COM velocity per world-axis component, plus ±2 N Go2 foot load.
+Independent signed-uniform draws use each scene's explicit WorldRandom seed
+(Go2: 2003, G1: 2002), fixed domains and ordered channels;
+loads saturate at zero with saturation recorded. These amplitudes are engineering
+sensitivity bounds, not measured Unitree specifications or Gaussian standard
+deviations. One fixed-seed result does not establish probabilistic reliability.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --observation-probe --output target/rne-kick-observations
+```
+
+Use `--validation-robot go2` or `g1` and `--observation-profile combined`
+to repeat a selected plant/profile. The report declares its selected scope.
+The diagnostic uses the fixed 40 N·s matrix (including its zero-input profile)
+and does not combine with rendering, impulse overrides or the qualification matrix.
+
+Each profile is replayed from a fresh seeded plant. The diagnostic retains
+failed recoveries and pre-impact settlement failures in its separate report,
+including whether the disturbance was applied. Ground-truth evaluation uses
+the unchanged recovery predicate. Observation timing, held/startup decisions,
+and controller/pipeline words are checked separately from the ordered plant
+state. Observation capture, arrival and consumer timestamps are absolute
+simulation ticks, including settlement; recovery `time_s` is relative to the end
+of settlement. The diagnostic does not qualify a new public GIF or expand the existing
+12-case ideal-observation recovery claim.
+
+The implicit position-PD actuator still uses instantaneous simulated joint
+state. The probe degrades the outer state estimate, not that inner motor loop.
+It contains no raw IMU/encoder fusion, identified sensor statistics, physical
+human-foot collision or real-hardware validation. The published GIF retains
+its recorded ideal-observation source revision; probe evidence belongs to its
+own compiled input and trace hashes.
+
+The fixed-seed matrix produced these results. Each row completed settlement;
+each plant and observation/control recording matched its independent fresh replay.
+Maximum observation age includes zero-order hold. Peak tilt is measured over
+the post-settlement trajectory, including the zero-input baseline.
+
+| Profile | Maximum observation age (ms) | Go2 recovered / peak tilt (rad) | G1 recovered / peak tilt (rad) |
+| --- | --- | --- | --- |
+| `ideal_reference` | 0 | yes / 0.069500 | yes / 0.289060 |
+| `sample_500hz` | 1 | yes / 0.067894 | yes / 0.306257 |
+| `sample_250hz` | 3 | yes / 0.066754 | yes / 0.325069 |
+| `delay_5ms` | 5 | yes / 0.064574 | no / 1.638381 |
+| `delay_20ms_limit` | 20 | yes / 0.072170 | no / 1.639157 |
+| `bounded_error` | 0 | yes / 0.069215 | no / 1.646449 |
+| `combined` | 8 | yes / 0.072912 | yes / 0.305127 |
+| `combined_zero_input` | 8 | yes / 0.020220 | yes / 0.009499 |
+
+G1's three failed profiles retain the measured fall, nonfoot contact and fixed
+attachment errors. The combined profile's success alongside those failures
+shows that this small fixed-seed matrix is not a monotone tolerance search;
+it establishes no maximum safe latency or sensor-error bound.
+
+Across all 18 existing ideal-observation qualification cases, serialization-only
+old/new runs matched every ordered plant word and original controller decision,
+including settlement: 139,400 completed physics steps and 109,916,900 plant words.
+This checks compatibility separately from fresh replay. Hidden solver caches and newly
+introduced pipeline state are outside the old/new equality assertion.
+The normal binary also passes all 12 required recoveries and exact plant/control
+replay across the original 18-case matrix. Source/configuration hashes, all 16
+measured summaries and compact compatibility/qualification proofs are retained
+in [the observation study](../../docs/media/kick-observation-study.json).
 
 ## Measured stronger kick
 

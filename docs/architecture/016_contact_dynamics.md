@@ -629,6 +629,42 @@ independently integrates every recorded force sample to verify the common
 impulse, direction, timing and normalized pulse shape. Old rendering inputs or
 mixed-strength validation reports cannot qualify a new public GIF.
 
+Example 139 also has an opt-in synthetic state-estimate observation probe.
+An example-local collector captures all active outer-control inputs from one
+completed physics tick: attitude/rates, mass-weighted COM position/velocity,
+foot positions and Go2 normal loads. The existing timestamped `Frame`/`DataBus`
+boundary supplies only arrived samples. Feedback calculations accept the captured
+estimate without reading current world state. Sample identity and keyed error
+remain fixed during zero-order hold; no arrived startup frame means bounded
+nominal stance without an oracle fallback. The schedule, queue and sample index
+continue across settlement and the presentation-time origin.
+
+The probe varies capture period, fixed arrival latency and bounded signed-uniform
+estimate errors while physics and controller integration remain at 1 kHz.
+World-seeded keyed draws and canonical channel ordering preserve replay without
+depending on hash-map iteration. The ideal profile preserves the existing
+arithmetic and the 500 Hz qualification still uses its original physics step.
+Diagnostic results retain failures, including pre-impact settlement failure,
+and use the same physical recovery predicate. Replay includes literal plant
+words and separate observation/controller/pending-state words. No generic
+sensor component, backend interface or core dependency boundary changes.
+
+These are declared simulation sensitivity settings, not measured Unitree noise
+or latency. Instantaneous simulated joint feedback remains inside implicit
+position PD; raw sensor fusion and motor-loop degradation are outside this
+probe. Its evidence is separate from the ideal-observation GIF qualification,
+with compiled inputs and trace hashes rather than relabelled historical media.
+The measured fixed-seed matrix retains three G1 failures (5 ms latency, 20 ms
+latency and bounded error); Go2 recovers in all eight profiles. Both combined
+zero-input baselines recover, and all 16 plant/control recordings match fresh
+replay. Combined-profile success does not imply a monotone tolerance boundary.
+Serialization-only old/new runs across the original 18 ideal-observation cases
+also match all ordered plant words and original controller decisions, including
+settlement, while excluding hidden solver caches and new-only pipeline state.
+The normal binary's original matrix separately passes all 12 required recoveries
+and exact plant/control replay in all 18 cases. The compact measured proof is
+retained in [the observation study](../media/kick-observation-study.json).
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

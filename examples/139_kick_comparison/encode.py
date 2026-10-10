@@ -26,11 +26,14 @@ def validate_compiled_sources(trace, repo):
     manifest = trace.get("compiled_source_sha256")
     required = {"examples/139_kick_comparison/" + name for name in
                 ("main.rs", "physics.rs", "render.rs", "model.rs", "disturbance.rs", "go2_controller.rs",
-                 "g1_controller.rs", "models.json", "go2.rne.scene.toml", "g1.rne.scene.toml",
+                 "g1_controller.rs", "observation.rs", "models.json", "go2.rne.scene.toml", "g1.rne.scene.toml",
                  "go2.rne.robot.toml", "g1.rne.robot.toml")}
     models = json.loads((repo / "examples/139_kick_comparison/models.json").read_text())
     required.update(model["derived"] for model in models["models"])
     required.add("crates/rne_physics_rapier/src/backend.rs")
+    required.update(("crates/rne_data/src/frame.rs", "crates/rne_data/src/bus.rs",
+                     "crates/rne_data/src/stream.rs", "crates/rne_core/src/rng.rs",
+                     "crates/rne_core/src/time.rs", "crates/rne_world/src/resources.rs"))
     required.add("assets/fixtures/kick_human/cc0_sport_human.glb")
     if not isinstance(manifest, dict) or not required.issubset(manifest):
         raise ValueError("Trace lacks the complete compiled source manifest")
@@ -110,6 +113,28 @@ def measured_disturbance(trace, impulse_ns, direction, dt_s=0.001, start_s=2.0):
             "measured_peak_force_n": peak_n}
 
 
+def validate_ideal_observation_pipeline(trace):
+    pipeline = trace.get("observation_pipeline")
+    period = round(finite_scalar(trace["dt_s"], "Physics time step") * 1_000_000_000)
+    if (not isinstance(pipeline, dict) or pipeline.get("profile") != "ideal_reference"
+            or any(type(pipeline.get(key)) is not int for key in
+                   ("sample_period_ticks", "latency_ticks", "phase_offset_ticks"))
+            or pipeline.get("sample_period_ticks") != period
+            or pipeline.get("latency_ticks") != 0 or pipeline.get("phase_offset_ticks") != 0):
+        raise ValueError("Public GIF qualification requires ideal observations at each physics tick")
+    noise = pipeline.get("noise")
+    keys = ("attitude_world_x_z_bound_rad", "angular_velocity_axis_bound_rad_s",
+            "com_and_foot_position_axis_bound_m", "com_velocity_axis_bound_m_s",
+            "go2_foot_normal_load_bound_n")
+    if not isinstance(noise, dict) or any(finite_scalar(noise.get(key), key) != 0 for key in keys):
+        raise ValueError("Public GIF qualification requires zero synthetic estimate error")
+    state_hash = trace.get("observation_control_state_hash")
+    if (trace.get("observation_control_state_bits_exact_repeat") is not True
+            or not isinstance(state_hash, str) or len(state_hash) != 16
+            or any(character not in "0123456789abcdef" for character in state_hash)):
+        raise ValueError("Observation/controller exact replay evidence is missing or invalid")
+
+
 def validate_recordings(traces, summary):
     impulse_ns = common_impulse(traces)
     repo = Path(__file__).resolve().parents[2]
@@ -122,6 +147,11 @@ def validate_recordings(traces, summary):
     for trace, case in zip(traces, summary["cases"]):
         if trace.get("schema_version") != 2 or trace["robot"] != case["robot"]:
             raise ValueError("Trace and summary identities must match")
+        validate_ideal_observation_pipeline(trace)
+        for key in ("observation_pipeline", "observation_control_state_hash",
+                    "observation_control_state_bits_exact_repeat"):
+            if trace[key] != case.get(key):
+                raise ValueError("Capture observation/controller evidence differs from its summary")
         measurement = measured_disturbance(trace, impulse_ns, [0.0, 0.0, 1.0])
         same_scalar(case["impulse_n_s"], impulse_ns, "Summary impulse")
         same_scalar(case["dt_s"], trace["dt_s"], "Summary time step")
@@ -184,9 +214,12 @@ def validation_metadata(path, nominal_traces):
             raise ValueError("Validation recovery result must be a boolean")
         trace_path = path.parent / f"{case['robot'].lower()}-{case['case']}.json"
         trace = json.loads(trace_path.read_text())
+        validate_ideal_observation_pipeline(trace)
         for key in ("robot", "case", "dt_s", "impulse_n_s", "summary", "observed_state_hash",
                     "observed_state_bits_exact_repeat", "controller", "plant", "push_start_s",
-                    "push_duration_s", "integrated_impulse_world_ns", "compiled_source_sha256"):
+                    "push_duration_s", "integrated_impulse_world_ns", "compiled_source_sha256",
+                    "observation_pipeline", "observation_control_state_hash",
+                    "observation_control_state_bits_exact_repeat"):
             if trace[key] != case[key]:
                 raise ValueError("Validation report differs from its per-case trace")
         manifest = validate_compiled_sources(trace, Path(__file__).resolve().parents[2])
@@ -205,7 +238,8 @@ def validation_metadata(path, nominal_traces):
                              start_s={"reverse_early": 1.5, "late": 2.25}.get(name, 2.0))
         if case["case"] == "nominal":
             nominal = next(t for t in nominal_traces if t["robot"] == case["robot"])
-            for key in ("controller", "plant", "summary", "observed_state_hash"):
+            for key in ("controller", "plant", "summary", "observed_state_hash", "observation_pipeline",
+                        "observation_control_state_hash", "observation_control_state_bits_exact_repeat"):
                 if trace[key] != nominal[key]:
                     raise ValueError("Validation nominal differs from the GIF capture")
         trace_hashes[trace_path.name] = digest(trace_path)
@@ -213,7 +247,8 @@ def validation_metadata(path, nominal_traces):
                       ("robot", "case", "required_recovery", "dt_s", "impulse_n_s",
                        "summary", "observed_state_hash", "observed_state_bits_exact_repeat",
                        "controller", "plant", "push_start_s", "push_duration_s",
-                       "integrated_impulse_world_ns")})
+                       "integrated_impulse_world_ns", "observation_pipeline", "observation_control_state_hash",
+                       "observation_control_state_bits_exact_repeat")})
     if seen != expected:
         raise ValueError("Full validation requires exactly nine cases per robot")
     passed = all(not c["required_recovery"] or c["summary"]["recovered"] for c in cases)
