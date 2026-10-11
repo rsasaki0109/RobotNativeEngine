@@ -397,6 +397,23 @@ pub trait PhysicsBackend: Send + Sync + 'static {
         physics_world: PhysicsWorldId,
     ) -> Result<(), PhysicsError>;
 
+    /// Enables or disables optional completed-step position-motor diagnostics.
+    ///
+    /// Supporting backends return `true` and publish
+    /// [`crate::JointPositionMotorDiagnostics`] only for qualifying completed
+    /// samples while enabled. Disabled diagnostics must leave that component
+    /// absent. The default returns `Ok(false)` for unsupported diagnostics with
+    /// no backend or ECS side effects. That result does not validate whether
+    /// `physics_world` exists and must not be interpreted as world validation.
+    fn configure_position_motor_diagnostics(
+        &mut self,
+        _world: &mut World,
+        _physics_world: PhysicsWorldId,
+        _enabled: bool,
+    ) -> Result<bool, PhysicsError> {
+        Ok(false)
+    }
+
     /// Executes a raycast query.
     ///
     /// Implementations return every hit ordered by increasing distance, with
@@ -480,7 +497,9 @@ pub trait PhysicsBackend: Send + Sync + 'static {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::components::{Collider, RigidBody};
+    use crate::components::{
+        Collider, JointEffortMeasurement, JointPositionMotorDiagnostics, RigidBody,
+    };
     use rne_ecs::spawn_named;
     use rne_world::Transform3;
 
@@ -763,6 +782,36 @@ mod tests {
                 missing: vec![PhysicsCapability::ContactPointKinematics]
             }
         );
+    }
+
+    #[test]
+    fn unsupported_motor_diagnostics_do_not_validate_world_ids_or_mutate_ecs() {
+        #[derive(rne_ecs::Resource, Debug, PartialEq)]
+        struct Sentinel(u32);
+
+        let mut backend = MockBackend::new();
+        let mut world = World::new();
+        world.insert_resource(Sentinel(17));
+        let body = RigidBody::default();
+        let effort = JointEffortMeasurement::Revolute {
+            measured_effort_nm: 7.5,
+        };
+        let entity = world.spawn((body, effort)).id();
+        let entity_count = world.iter_entities().count();
+        for physics_world in [PhysicsWorldId::DEFAULT, PhysicsWorldId(u32::MAX)] {
+            for enabled in [true, false] {
+                assert!(!backend
+                    .configure_position_motor_diagnostics(&mut world, physics_world, enabled)
+                    .expect("unsupported diagnostics are not world-existence validation"));
+                assert_eq!(world.iter_entities().count(), entity_count);
+                assert_eq!(world.get::<RigidBody>(entity), Some(&body));
+                assert_eq!(world.get::<JointEffortMeasurement>(entity), Some(&effort));
+                assert!(world.get::<JointPositionMotorDiagnostics>(entity).is_none());
+                assert_eq!(world.resource::<Sentinel>(), &Sentinel(17));
+                assert!(backend.worlds.is_empty());
+                assert!(backend.contacts.is_empty());
+            }
+        }
     }
 
     #[test]

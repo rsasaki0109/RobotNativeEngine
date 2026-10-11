@@ -23,6 +23,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Add opt-in backend-neutral completed position-motor diagnostics and example
+  139's headless `--motor-effort-diagnostics` evaluator. Enable the default-off
+  `position-motor-diagnostics` feature explicitly; unsupported builds fail clearly.
+  Read signed motor impulse, actual solver-time interval means, effective ceilings,
+  and FINAL finite-positive-bound exposure after each completed step. Missing data
+  stays unavailable. Keep readback/replay separate from feedback and reject its
+  evidence from rendering/GIF encoding. Preserve existing control and qualification;
+  this is simulated solver readback, not hardware saturation or a fall-cause claim.
+  Retain all 16 fixed G1 outcomes (11 recovered, five failures) and all 23 joints
+  in [source-bound interval/window evidence](docs/media/g1-motor-effort-diagnostics.json).
+
 - Add an opt-in 16-case G1 lateral-gyro experiment with a fixed 5 ms EMA on
   positive-age world gyro X. Keep orientation projection on the original
   captured gyro, use capture spacing for updates, and replay initialized

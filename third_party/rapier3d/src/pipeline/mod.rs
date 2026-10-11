@@ -2,6 +2,11 @@
 
 pub use collision_pipeline::CollisionPipeline;
 pub use event_handler::{ActiveEvents, ChannelEventCollector, EventHandler};
+pub(crate) use multibody_motor_impulse::InternalMotorImpulseSample;
+pub use multibody_motor_impulse::{
+    MultibodyMotorImpulseRecord, MultibodyMotorImpulseSlice, MultibodyMotorImpulseTelemetry,
+    MultibodyMotorImpulseValue,
+};
 pub use physics_hooks::{ActiveHooks, ContactModificationContext, PairFilterContext, PhysicsHooks};
 pub use physics_pipeline::PhysicsPipeline;
 pub use query_pipeline::{
@@ -16,6 +21,7 @@ pub use self::debug_render_pipeline::{
 
 mod collision_pipeline;
 mod event_handler;
+mod multibody_motor_impulse;
 mod physics_hooks;
 mod physics_pipeline;
 mod query_pipeline;

@@ -14,6 +14,9 @@ workspace = true
 # Requires the repository's Rapier patch; default builds also compile against
 # unmodified crates.io Rapier. See ADR 030 before enabling in another workspace.
 experimental-armature = []
+# Opt-in completed-step motor telemetry requires the repository's Rapier patch.
+# Default builds retain compatibility with unmodified crates.io Rapier.
+position-motor-diagnostics = []
 
 [dependencies]
 rapier3d = { workspace = true }

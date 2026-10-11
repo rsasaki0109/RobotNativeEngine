@@ -26,12 +26,23 @@ def validate_compiled_sources(trace, repo):
     manifest = trace.get("compiled_source_sha256")
     required = {"examples/139_kick_comparison/" + name for name in
                 ("main.rs", "physics.rs", "render.rs", "model.rs", "disturbance.rs", "go2_controller.rs",
-                 "g1_controller.rs", "observation.rs", "diagnostic.rs", "feedback.rs", "models.json",
+                 "g1_controller.rs", "observation.rs", "diagnostic.rs", "feedback.rs", "motor_diagnostics.rs", "models.json", "Cargo.toml",
                  "go2.rne.scene.toml", "g1.rne.scene.toml",
                  "go2.rne.robot.toml", "g1.rne.robot.toml")}
     models = json.loads((repo / "examples/139_kick_comparison/models.json").read_text())
     required.update(model["derived"] for model in models["models"])
     required.add("crates/rne_physics_rapier/src/backend.rs")
+    required.update(("crates/rne_physics/src/components.rs", "crates/rne_physics/src/lib.rs",
+                     "crates/rne_physics/src/backend.rs", "crates/rne_ai/src/env/urdf_scene/mod.rs",
+                     "crates/rne_physics_rapier/Cargo.toml", "crates/rne_ai/Cargo.toml"))
+    required.update("third_party/rapier3d/src/" + name for name in (
+        "dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+        "dynamics/solver/island_solver.rs",
+        "dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+        "dynamics/solver/velocity_solver.rs", "pipeline/mod.rs", "pipeline/physics_pipeline.rs",
+        "pipeline/multibody_motor_impulse.rs",
+        "dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+        "dynamics/joint/multibody_joint/multibody.rs", "dynamics/joint/motor_model.rs"))
     required.update(("crates/rne_data/src/frame.rs", "crates/rne_data/src/bus.rs",
                      "crates/rne_data/src/stream.rs", "crates/rne_core/src/rng.rs",
                      "crates/rne_core/src/time.rs", "crates/rne_world/src/resources.rs"))
@@ -70,6 +81,8 @@ def validate_media_scope(record):
         raise ValueError("G1 orientation-age experiment evidence cannot qualify public GIF encoding")
     if record.get("g1_lateral_gyro_experiment", False) is not False:
         raise ValueError("G1 lateral-gyro experiment evidence cannot qualify public GIF encoding")
+    if record.get("motor_effort_diagnostics", False) is not False or "position_motor_diagnostic" in record:
+        raise ValueError("Evaluator-only motor diagnostics cannot qualify public GIF encoding")
     if record.get("feedback_policy", "raw_reference") != "raw_reference":
         raise ValueError("Public GIF qualification requires raw-reference feedback policy")
     if "feedback_policy_configuration" in record:

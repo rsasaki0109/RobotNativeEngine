@@ -10,6 +10,7 @@ use super::{
     g1_controller::G1Controller,
     go2_controller::Go2Controller,
     model,
+    motor_diagnostics::{FinishedMotorDiagnostics, MotorRun},
     observation::{self, Pipeline, Profile},
 };
 use rne_ai::{build_visual_render_scene, UrdfSceneSim};
@@ -455,7 +456,10 @@ fn stable_hash(states: &[Vec<u64>]) -> String {
     format!("{hash:016x}")
 }
 
-/// Identifies the control and plant inputs present when this binary was built.
+/// Identifies selected release control, plant, and motor-readback source inputs.
+///
+/// This is not an exhaustive dependency closure. Test-only qualification sources
+/// and the complete build/configuration scope are bound by external run manifests.
 fn compiled_source_hashes() -> Value {
     let files = [
         (
@@ -497,6 +501,30 @@ fn compiled_source_hashes() -> Value {
         (
             "examples/139_kick_comparison/feedback.rs",
             include_str!("feedback.rs"),
+        ),
+        (
+            "examples/139_kick_comparison/motor_diagnostics.rs",
+            include_str!("motor_diagnostics.rs"),
+        ),
+        (
+            "crates/rne_physics/src/components.rs",
+            include_str!("../../crates/rne_physics/src/components.rs"),
+        ),
+        (
+            "crates/rne_physics/src/lib.rs",
+            include_str!("../../crates/rne_physics/src/lib.rs"),
+        ),
+        (
+            "crates/rne_physics/src/backend.rs",
+            include_str!("../../crates/rne_physics/src/backend.rs"),
+        ),
+        (
+            "crates/rne_ai/src/env/urdf_scene/mod.rs",
+            include_str!("../../crates/rne_ai/src/env/urdf_scene/mod.rs"),
+        ),
+        (
+            "crates/rne_physics_rapier/Cargo.toml",
+            include_str!("../../crates/rne_physics_rapier/Cargo.toml"),
         ),
         (
             "crates/rne_data/src/frame.rs",
@@ -557,6 +585,7 @@ fn compiled_source_hashes() -> Value {
     ];
     let mut manifest: serde_json::Map<String, Value> = files
         .into_iter()
+        .chain(motor_readback_support_sources())
         .map(|(name, contents)| {
             (
                 name.to_owned(),
@@ -574,6 +603,59 @@ fn compiled_source_hashes() -> Value {
         )),
     );
     Value::Object(manifest)
+}
+
+fn motor_readback_support_sources() -> [(&'static str, &'static str); 12] {
+    [
+        (
+            "examples/139_kick_comparison/Cargo.toml",
+            include_str!("Cargo.toml"),
+        ),
+        (
+            "crates/rne_ai/Cargo.toml",
+            include_str!("../../crates/rne_ai/Cargo.toml"),
+        ),
+        (
+            "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+            include_str!("../../third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+            include_str!("../../third_party/rapier3d/src/dynamics/solver/island_solver.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+            include_str!("../../third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+            include_str!("../../third_party/rapier3d/src/dynamics/solver/velocity_solver.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/pipeline/mod.rs",
+            include_str!("../../third_party/rapier3d/src/pipeline/mod.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+            include_str!("../../third_party/rapier3d/src/pipeline/physics_pipeline.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs",
+            include_str!("../../third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+            include_str!("../../third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+            include_str!("../../third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs"),
+        ),
+        (
+            "third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+            include_str!("../../third_party/rapier3d/src/dynamics/joint/motor_model.rs"),
+        ),
+    ]
 }
 
 fn frame(sim: &UrdfSceneSim, step: usize, force: Vec3, point: Option<Vec3>) -> Value {
@@ -611,6 +693,27 @@ struct Recording {
     state_bits: Vec<Vec<u64>>,
     control_state_words: Vec<Vec<u64>>,
     diagnostics: Option<FinishedDiagnostics>,
+    motor_diagnostics: Option<FinishedMotorDiagnostics>,
+}
+
+#[derive(Debug)]
+enum MotorCapture {
+    Default,
+    Enabled(Box<MotorRun>),
+    DisabledComparator,
+}
+
+fn step_with_motor_diagnostics(
+    controller: &mut Controller,
+    sim: &mut UrdfSceneSim,
+    motor: &mut Option<MotorRun>,
+) -> CaptureResult<()> {
+    let consumer_ticks = sim.sim_time().ticks();
+    controller.step(sim)?;
+    if let Some(run) = motor {
+        run.record(sim, consumer_ticks)?;
+    }
+    Ok(())
 }
 
 fn ground_body_index(sim: &UrdfSceneSim) -> CaptureResult<u32> {
@@ -636,8 +739,9 @@ fn settle(
     states: &mut Vec<Vec<u64>>,
     control_states: &mut Vec<Vec<u64>>,
     diagnostic_initial_plant: Option<&Value>,
-    settlement_telemetry: &mut Vec<Value>,
+    evaluation: (&mut Vec<Value>, &mut Option<MotorRun>),
 ) -> CaptureResult<Settlement> {
+    let (settlement_telemetry, motor) = evaluation;
     let dt_s = sim.fixed_delta().as_seconds().value();
     let settlement_steps = (SETTLE_S / dt_s).round() as usize;
     let initial_root = sim
@@ -652,7 +756,7 @@ fn settle(
     let mut max_fixed_position_error_m: f64 = 0.0;
     let mut max_fixed_rotation_error_rad: f64 = 0.0;
     for step in 1..=settlement_steps {
-        controller.step(sim)?;
+        step_with_motor_diagnostics(controller, sim, motor)?;
         let (position, rotation) = model::fixed_joint_error(sim)?;
         max_fixed_position_error_m = max_fixed_position_error_m.max(position);
         max_fixed_rotation_error_rad = max_fixed_rotation_error_rad.max(rotation);
@@ -904,6 +1008,26 @@ impl Metrics {
         );
         Ok(summary)
     }
+
+    fn recording_summary(
+        &self,
+        robot: Robot,
+        sim: &UrdfSceneSim,
+        case: Case,
+        initial_root: Vec3,
+        settled_upright: bool,
+    ) -> CaptureResult<Value> {
+        let mut summary = if settled_upright {
+            self.summary(robot, sim, case, initial_root)?
+        } else {
+            json!({"recovered":false,"post_impact_evaluated":false,
+                "unavailable_reason":"failed settlement; no impact applied",
+                "peak_tilt_rad":null,"min_height_m":null,"ever_fallen":null,"nonfoot_ground_contact":null})
+        };
+        summary["settled_upright"] = json!(settled_upright);
+        summary["impact_applied"] = json!(settled_upright && case.impulse_ns > 0.0);
+        Ok(summary)
+    }
 }
 
 fn measured_telemetry(
@@ -1004,6 +1128,26 @@ fn record_with_experiment(
     diagnostics: Option<RunDiagnostics>,
     feedback: Option<ExperimentFeedback>,
 ) -> CaptureResult<Recording> {
+    record_with_motor(
+        robot,
+        case,
+        capture_frames,
+        profile,
+        diagnostics,
+        feedback,
+        MotorCapture::Default,
+    )
+}
+
+fn record_with_motor(
+    robot: Robot,
+    case: Case,
+    capture_frames: bool,
+    profile: Option<Profile>,
+    diagnostics: Option<RunDiagnostics>,
+    feedback: Option<ExperimentFeedback>,
+    motor_capture: MotorCapture,
+) -> CaptureResult<Recording> {
     let mut sim = robot.load(case.dt_ticks)?;
     let initial_plant_contract = robot.validate(&sim)?;
     let mut controller = Controller::new(
@@ -1017,6 +1161,7 @@ fn record_with_experiment(
     controller.orientation_age_experiment = feedback.is_some();
     controller.lateral_gyro_experiment =
         feedback.is_some_and(|feedback| feedback.mode == ExperimentMode::LateralGyro);
+    let (mut motor, explicit_motor_off) = configure_motor_capture(&mut sim, motor_capture)?;
     let dt_s = sim.fixed_delta().as_seconds().value();
     let mut states = Vec::new();
     let mut control_states = Vec::new();
@@ -1029,7 +1174,7 @@ fn record_with_experiment(
         &mut states,
         &mut control_states,
         profile.map(|_| &initial_plant_contract),
-        &mut settlement_telemetry,
+        (&mut settlement_telemetry, &mut motor),
     )?;
     let settlement_summary = settlement_metadata(
         robot,
@@ -1083,7 +1228,7 @@ fn record_with_experiment(
     };
     for step in 1..=steps {
         let (force, point) = apply_impact(robot, &mut sim, &impact, step)?;
-        controller.step(&mut sim)?;
+        step_with_motor_diagnostics(&mut controller, &mut sim, &mut motor)?;
         let (tilt, height) = metrics.measure(robot, &sim, step, steps, ground_index)?;
         states.push(state_bits(robot, &sim));
         control_states.push(controller.replay_words());
@@ -1106,15 +1251,7 @@ fn record_with_experiment(
             frames.push(frame(&sim, step, force, point));
         }
     }
-    let mut summary = if settled_upright {
-        metrics.summary(robot, &sim, case, initial_root)?
-    } else {
-        json!({"recovered":false,"post_impact_evaluated":false,
-            "unavailable_reason":"failed settlement; no impact applied",
-            "peak_tilt_rad":null,"min_height_m":null,"ever_fallen":null,"nonfoot_ground_contact":null})
-    };
-    summary["settled_upright"] = json!(settled_upright);
-    summary["impact_applied"] = json!(settled_upright && case.impulse_ns > 0.0);
+    let summary = metrics.recording_summary(robot, &sim, case, initial_root, settled_upright)?;
     let roots: Vec<_> = sim
         .mesh_package_roots()
         .iter()
@@ -1129,6 +1266,7 @@ fn record_with_experiment(
         .take()
         .map(RunDiagnostics::finish)
         .transpose()?;
+    let motor_diagnostics = motor.map(MotorRun::finish).transpose()?;
     let recording = Recording {
         trace: json!({"schema_version":2,"robot":robot.name(),"case":case.name,
         "compiled_source_sha256":compiled_source_hashes(),
@@ -1152,8 +1290,56 @@ fn record_with_experiment(
         state_bits: states,
         control_state_words: control_states,
         diagnostics,
+        motor_diagnostics,
     };
+    let recording = annotate_motor_recording(recording, explicit_motor_off)?;
     Ok(annotate_feedback_recording(recording, feedback))
+}
+
+fn configure_motor_capture(
+    sim: &mut UrdfSceneSim,
+    capture: MotorCapture,
+) -> CaptureResult<(Option<MotorRun>, bool)> {
+    let explicit_off = matches!(&capture, MotorCapture::DisabledComparator);
+    let motor = match capture {
+        MotorCapture::Default => None,
+        MotorCapture::DisabledComparator => {
+            require(
+                sim.configure_position_motor_diagnostics(false)?,
+                "the motor diagnostics backend-disabled comparator requires a supported backend",
+            )?;
+            None
+        }
+        MotorCapture::Enabled(run) => {
+            require(
+                sim.configure_position_motor_diagnostics(true)?,
+                "--motor-effort-diagnostics requires a supported backend built with --features position-motor-diagnostics",
+            )?;
+            Some(*run)
+        }
+    };
+    Ok((motor, explicit_off))
+}
+
+fn annotate_motor_recording(
+    mut recording: Recording,
+    explicit_motor_off: bool,
+) -> CaptureResult<Recording> {
+    if let Some(run) = &mut recording.motor_diagnostics {
+        require(
+            run.words.len() == recording.state_bits.len(),
+            "motor readback missed a completed step",
+        )?;
+        run.metadata["replay_hash"] = json!(stable_hash(&run.words));
+        run.metadata["replay_word_count"] = json!(run.words.iter().map(Vec::len).sum::<usize>());
+        run.metadata["backend_configuration_accepted"] = json!(true);
+        recording.trace["motor_effort_diagnostics"] = json!(true);
+        recording.trace["position_motor_diagnostic"] = run.metadata.clone();
+    }
+    if explicit_motor_off {
+        mark_motor_off(&mut recording.trace);
+    }
+    Ok(recording)
 }
 
 fn annotate_feedback_recording(
@@ -1217,22 +1403,204 @@ fn verify_replay(first: &mut Recording, repeat: &Recording) -> CaptureResult<()>
     first.trace["observed_state_bits_exact_repeat"] = json!(true);
     first.trace["canonical_render_frames_exact_repeat"] = json!(true);
     first.trace["observation_control_state_bits_exact_repeat"] = json!(true);
+    match (&first.motor_diagnostics, &repeat.motor_diagnostics) {
+        (Some(first_motor), Some(repeat_motor)) => {
+            require(
+                first_motor.words == repeat_motor.words,
+                "the separate motor diagnostic replay differs bit for bit",
+            )?;
+            first.trace["position_motor_diagnostic"]["replay_bits_exact_fresh_repeat"] =
+                json!(true);
+        }
+        (None, None) => {}
+        _ => return Err(io::Error::other("motor diagnostic replay enablement differs").into()),
+    }
+    Ok(())
+}
+
+fn verify_motor_off(first: &mut Recording, off: &Recording) -> CaptureResult<()> {
+    require(
+        first.motor_diagnostics.is_some() && off.motor_diagnostics.is_none(),
+        "motor ON/OFF comparison did not toggle backend instrumentation",
+    )?;
+    require(
+        off.trace["position_motor_diagnostic"]["backend_configuration_accepted"] == true
+            && off.trace["position_motor_diagnostic"]["enabled"] == false,
+        "motor comparator did not explicitly disable backend collection",
+    )?;
+    require(
+        first.state_bits == off.state_bits,
+        "motor instrumentation changed literal plant words",
+    )?;
+    require(
+        first.control_state_words == off.control_state_words,
+        "motor instrumentation changed literal observation/control words",
+    )?;
+    for key in [
+        "plant",
+        "controller",
+        "observation_pipeline",
+        "observation_metrics",
+        "settlement",
+        "summary",
+        "force_history",
+        "telemetry",
+        "frames",
+    ] {
+        require(
+            first.trace[key] == off.trace[key],
+            "motor instrumentation changed existing outcomes or render-frame data",
+        )?;
+    }
+    let decisions_exact = if first.diagnostics.is_some() || off.diagnostics.is_some() {
+        require(
+            diagnosis_decisions(first)? == diagnosis_decisions(off)?,
+            "motor instrumentation changed literal old decision fields",
+        )?;
+        Some(true)
+    } else {
+        None
+    };
+    first.trace["position_motor_diagnostic"]
+        ["backend_on_off_legacy_plant_control_outcomes_exact"] = json!(true);
+    first.trace["position_motor_diagnostic"]["backend_on_off_old_decision_fields_exact"] =
+        json!(decisions_exact);
+    first.trace["position_motor_diagnostic"]["fresh_backend_enabled_worlds"] = json!(2);
+    first.trace["position_motor_diagnostic"]["fresh_backend_disabled_worlds"] = json!(1);
+    first.trace["position_motor_diagnostic"]["motor_file_writer_on_off_tested_separately"] =
+        json!(false);
+    Ok(())
+}
+
+fn motor_run(
+    output: &Path,
+    stem: &str,
+    enabled: bool,
+    repeat: bool,
+) -> CaptureResult<MotorCapture> {
+    if enabled {
+        Ok(MotorCapture::Enabled(Box::new(MotorRun::enabled(
+            &output.join(format!(
+                "{stem}.motor{}.jsonl",
+                if repeat { ".repeat" } else { "" }
+            )),
+        )?)))
+    } else {
+        Ok(MotorCapture::Default)
+    }
+}
+
+fn finish_motor_repeat(
+    first: &mut Recording,
+    output: &Path,
+    stem: &str,
+    enabled: bool,
+) -> CaptureResult<()> {
+    if enabled {
+        let path = output.join(format!("{stem}.motor.jsonl"));
+        let repeat = output.join(format!("{stem}.motor.repeat.jsonl"));
+        diagnostic::require_same_bytes(&path, &repeat)?;
+        first.trace["position_motor_diagnostic"]["jsonl_bytes_exact_fresh_repeat"] = json!(true);
+        fs::remove_file(repeat)?;
+    }
+    Ok(())
+}
+
+fn mark_motor_off(trace: &mut Value) {
+    trace["motor_effort_diagnostics"] = json!(true);
+    trace["position_motor_diagnostic"] = json!({"enabled":false,"backend_configuration_accepted":true,"scope":"evaluator-only comparator after explicitly disabling backend collection; missing diagnostic data are unavailable, not zero effort"});
+}
+
+fn replay_with_motor(
+    robot: Robot,
+    case: Case,
+    capture_frames: bool,
+    output: &Path,
+    stem: &str,
+    enabled: bool,
+) -> CaptureResult<Value> {
+    if !enabled {
+        return replay(robot, case, capture_frames);
+    }
+    let mut first = record_with_motor(
+        robot,
+        case,
+        capture_frames,
+        None,
+        None,
+        None,
+        motor_run(output, stem, true, false)?,
+    )?;
+    {
+        let repeat = record_with_motor(
+            robot,
+            case,
+            capture_frames,
+            None,
+            None,
+            None,
+            motor_run(output, stem, true, true)?,
+        )?;
+        verify_replay(&mut first, &repeat)?;
+        finish_motor_repeat(&mut first, output, stem, true)?;
+    }
+    {
+        let off = record_with_motor(
+            robot,
+            case,
+            capture_frames,
+            None,
+            None,
+            None,
+            MotorCapture::DisabledComparator,
+        )?;
+        verify_motor_off(&mut first, &off)?;
+        write_diagnosis_trace(output, &format!("{stem}.motor-off.json"), &off.trace)?;
+    }
+    Ok(first.trace)
+}
+
+fn copy_motor_metadata(report: &mut Value, trace: &Value) {
+    if trace["motor_effort_diagnostics"] == true {
+        report["motor_effort_diagnostics"] = json!(true);
+        report["position_motor_diagnostic"] = trace["position_motor_diagnostic"].clone();
+        if report.get("case").is_none() {
+            report["case"] = trace["case"].clone();
+        }
+    }
+}
+
+fn write_motor_report(output: &Path, cases: &[Value], enabled: bool) -> CaptureResult<()> {
+    if enabled {
+        let report = json!({"schema_version":1,"motor_effort_diagnostics":true,
+            "scope":"headless evaluator-only completed position-motor intervals; no hardware validation, controller feedback change, candidate promotion, or fall-cause claim",
+            "compiled_source_binding_scope":"selected actual release control/plant/readback inputs, not every transitive dependency; test-only qualification and exhaustive runtime/build inputs are separately bound by run manifests",
+            "compiled_source_sha256":compiled_source_hashes(),
+            "cases":cases});
+        fs::write(
+            output.join("motor-effort-diagnostics.json"),
+            serde_json::to_vec_pretty(&report)?,
+        )?;
+    }
     Ok(())
 }
 
 /// Captures both robots at 1 kHz under the same declared 80 ms lateral pulse.
-pub(super) fn capture(output: &Path, impulse_ns: f64) -> CaptureResult<()> {
+pub(super) fn capture(output: &Path, impulse_ns: f64, motor_enabled: bool) -> CaptureResult<()> {
     fs::create_dir_all(output)?;
     let mut summaries = Vec::new();
     let mut all_recovered = true;
     for robot in [Robot::Go2, Robot::G1] {
-        let trace = replay(
+        let trace = replay_with_motor(
             robot,
             Case {
                 impulse_ns,
                 ..NOMINAL
             },
             true,
+            output,
+            &format!("{}-nominal", robot.name().to_lowercase()),
+            motor_enabled,
         )?;
         let filename = format!("{}-trace.json", robot.name().to_lowercase());
         fs::write(output.join(&filename), serde_json::to_vec(&trace)?)?;
@@ -1258,7 +1626,9 @@ pub(super) fn capture(output: &Path, impulse_ns: f64) -> CaptureResult<()> {
             "observation_control_state_hash":trace["observation_control_state_hash"],
             "observation_control_state_bits_exact_repeat":true,
             "canonical_render_frames_exact_repeat":true}));
+        copy_motor_metadata(summaries.last_mut().expect("new nominal summary"), &trace);
     }
+    write_motor_report(output, &summaries, motor_enabled)?;
     fs::write(
         output.join("summary.json"),
         serde_json::to_vec_pretty(&json!({"schema_version":2,
@@ -1279,6 +1649,7 @@ pub(super) fn validate_recovery(
     output: &Path,
     robot_filter: Option<&str>,
     impulse_ns: f64,
+    motor_enabled: bool,
 ) -> CaptureResult<()> {
     fs::create_dir_all(output)?;
     let nominal = Case {
@@ -1331,7 +1702,8 @@ pub(super) fn validate_recovery(
         },
     ];
     let robots = selected_robots(robot_filter)?;
-    let reports = record_case_matrix(robots, &cases, output, true)?;
+    let reports = record_case_matrix(robots, &cases, output, true, motor_enabled)?;
+    write_motor_report(output, &reports, motor_enabled)?;
     let all_passed = reports.iter().all(|report| {
         report["required_recovery"] != true || report["summary"]["recovered"] == true
     });
@@ -1350,7 +1722,11 @@ pub(super) fn validate_recovery(
 /// Measures increasing lateral impulses without requiring the limit probes to recover.
 ///
 /// Each strength uses the same plant, controller and 80 ms pulse, with exact replay.
-pub(super) fn sweep_impulse(output: &Path, robot_filter: Option<&str>) -> CaptureResult<()> {
+pub(super) fn sweep_impulse(
+    output: &Path,
+    robot_filter: Option<&str>,
+    motor_enabled: bool,
+) -> CaptureResult<()> {
     fs::create_dir_all(output)?;
     let cases = [
         ("impulse_24", 24.0),
@@ -1365,7 +1741,8 @@ pub(super) fn sweep_impulse(output: &Path, robot_filter: Option<&str>) -> Captur
         ..NOMINAL
     });
     let robots = selected_robots(robot_filter)?;
-    let reports = record_case_matrix(robots, &cases, output, false)?;
+    let reports = record_case_matrix(robots, &cases, output, false, motor_enabled)?;
+    write_motor_report(output, &reports, motor_enabled)?;
     fs::write(
         output.join("impulse-sweep.json"),
         serde_json::to_vec_pretty(&json!({
@@ -1392,6 +1769,7 @@ pub(super) fn probe_impulse(
     robot_filter: Option<&str>,
     impulse_ns: f64,
     balance_feedback_enabled: bool,
+    motor_enabled: bool,
 ) -> CaptureResult<()> {
     fs::create_dir_all(output)?;
     let robots = selected_robots(robot_filter)?;
@@ -1404,7 +1782,9 @@ pub(super) fn probe_impulse(
         }],
         output,
         false,
+        motor_enabled,
     )?;
+    write_motor_report(output, &reports, motor_enabled)?;
     fs::write(
         output.join("impulse-probe.json"),
         serde_json::to_vec_pretty(&json!({
@@ -1420,6 +1800,7 @@ pub(super) fn probe_observations(
     output: &Path,
     robot_filter: Option<&str>,
     profile_filter: Option<&str>,
+    motor_enabled: bool,
 ) -> CaptureResult<()> {
     fs::create_dir_all(output)?;
     let robots = selected_robots(robot_filter)?;
@@ -1435,11 +1816,20 @@ pub(super) fn probe_observations(
                         impulse_ns: if profile.zero_input {0.0} else {DEFAULT_IMPULSE_NS},
                         ..NOMINAL
                     };
-                    let mut first = record_with_profile(robot, case, false, Some(profile))
+                    let stem = format!("{}-observation-{}", robot.name().to_lowercase(), profile.name);
+                    let mut first = record_with_motor(robot, case, false, Some(profile), None, None, motor_run(output,&stem,motor_enabled,false).map_err(|error|error.to_string())?)
                         .map_err(|error| error.to_string())?;
-                    let repeat = record_with_profile(robot, case, false, Some(profile))
-                        .map_err(|error| error.to_string())?;
-                    verify_replay(&mut first, &repeat).map_err(|error| error.to_string())?;
+                    {
+                        let repeat = record_with_motor(robot, case, false, Some(profile), None, None, motor_run(output,&stem,motor_enabled,true).map_err(|error|error.to_string())?)
+                            .map_err(|error| error.to_string())?;
+                        verify_replay(&mut first, &repeat).map_err(|error| error.to_string())?;
+                        finish_motor_repeat(&mut first,output,&stem,motor_enabled).map_err(|error|error.to_string())?;
+                    }
+                    if motor_enabled {
+                        let off = record_with_motor(robot,case,false,Some(profile),None,None,MotorCapture::DisabledComparator).map_err(|error|error.to_string())?;
+                        verify_motor_off(&mut first,&off).map_err(|error|error.to_string())?;
+                        write_diagnosis_trace(output,&format!("{stem}.motor-off.json"),&off.trace).map_err(|error|error.to_string())?;
+                    }
                     let filename = format!("{}-observation-{}.json", robot.name().to_lowercase(), profile.name);
                     let trace_bytes = serde_json::to_vec(&first.trace).map_err(|error| error.to_string())?;
                     let trace_sha256 = format!("{:x}", Sha256::digest(&trace_bytes));
@@ -1453,6 +1843,7 @@ pub(super) fn probe_observations(
                         "observed_state_hash":first.trace["observed_state_hash"],"observed_state_bits_exact_repeat":true,
                         "observation_control_state_hash":first.trace["observation_control_state_hash"],
                         "observation_control_state_bits_exact_repeat":true}));
+                    copy_motor_metadata(reports.last_mut().expect("new observation report"),&first.trace);
                 }
                 Ok::<_, String>(reports)
             })
@@ -1468,6 +1859,7 @@ pub(super) fn probe_observations(
             .collect::<Result<Vec<_>, _>>()
     })?;
     let cases: Vec<_> = results.into_iter().flatten().collect();
+    write_motor_report(output, &cases, motor_enabled)?;
     fs::write(
         output.join("observation-probe.json"),
         serde_json::to_vec_pretty(&json!({
@@ -1605,6 +1997,7 @@ pub(super) fn diagnose_g1_observations(
     output: &Path,
     profile_filter: Option<&str>,
     input_filter: Option<&str>,
+    motor_enabled: bool,
 ) -> CaptureResult<()> {
     let names = diagnostic::profile_names(profile_filter)?;
     let inputs = diagnostic::inputs(input_filter)?;
@@ -1628,41 +2021,55 @@ pub(super) fn diagnose_g1_observations(
             let jsonl_filename = format!("{stem}.jsonl");
             let jsonl_path = output.join(&jsonl_filename);
             let repeat_path = output.join(format!("{stem}.repeat.jsonl"));
-            let mut first = record_with_diagnostics(
+            let mut first = record_with_motor(
                 Robot::G1,
                 case,
                 false,
                 Some(profile),
                 Some(RunDiagnostics::enabled(&jsonl_path)?),
+                None,
+                motor_run(output, &stem, motor_enabled, false)?,
             )?;
             require(
                 first.trace["observation_pipeline"]["world_seed"] == 2002,
                 "G1 diagnosis seed must be 2002",
             )?;
             {
-                let repeat = record_with_diagnostics(
+                let repeat = record_with_motor(
                     Robot::G1,
                     case,
                     false,
                     Some(profile),
                     Some(RunDiagnostics::enabled(&repeat_path)?),
+                    None,
+                    motor_run(output, &stem, motor_enabled, true)?,
                 )?;
                 verify_diagnosis_behavior(&first, &repeat)?;
                 verify_replay(&mut first, &repeat)?;
                 diagnostic::require_same_bytes(&jsonl_path, &repeat_path)?;
+                finish_motor_repeat(&mut first, output, &stem, motor_enabled)?;
             }
             fs::remove_file(&repeat_path)?;
             let off_filename = format!("{stem}.logging-off.json");
             let off_sha256;
             {
-                let mut off = record_with_diagnostics(
+                let mut off = record_with_motor(
                     Robot::G1,
                     case,
                     false,
                     Some(profile),
                     Some(RunDiagnostics::default()),
+                    None,
+                    if motor_enabled {
+                        MotorCapture::DisabledComparator
+                    } else {
+                        MotorCapture::Default
+                    },
                 )?;
                 verify_diagnosis_behavior(&first, &off)?;
+                if motor_enabled {
+                    verify_motor_off(&mut first, &off)?;
+                }
                 off.trace["g1_observation_diagnosis"] = json!(true);
                 off.trace["all_tick_diagnostic_logging_enabled"] = json!(false);
                 off_sha256 = write_diagnosis_trace(output, &off_filename, &off.trace)?;
@@ -1708,6 +2115,10 @@ pub(super) fn diagnose_g1_observations(
                 "logging_on_off_existing_decision_fields_exact":true,"logging_on_off_existing_trace_outcomes_exact":true,
                 "fresh_world_runs":3,"logging_on_fresh_runs":2,"logging_off_fresh_runs":1
             }));
+            copy_motor_metadata(
+                reports.last_mut().expect("new diagnosis report"),
+                &first.trace,
+            );
             if inputs.len() == 2 {
                 if input == "zero" {
                     zero_prefix = Some(DiagnosisPrefix::from_recording(first));
@@ -1718,6 +2129,7 @@ pub(super) fn diagnose_g1_observations(
             }
         }
     }
+    write_motor_report(output, &reports, motor_enabled)?;
     fs::write(
         output.join("g1-observation-diagnosis.json"),
         serde_json::to_vec_pretty(&json!({
@@ -1794,6 +2206,7 @@ fn feedback_experiment_case(
     impulse_ns: f64,
     policy: Policy,
     mode: ExperimentMode,
+    motor_enabled: bool,
 ) -> CaptureResult<(Recording, Value)> {
     let case = Case {
         name: profile.name,
@@ -1805,44 +2218,55 @@ fn feedback_experiment_case(
     let jsonl_path = output.join(&jsonl_filename);
     let repeat_path = output.join(format!("{stem}.repeat.jsonl"));
     let feedback = Some(ExperimentFeedback { policy, mode });
-    let mut first = record_with_experiment(
+    let mut first = record_with_motor(
         Robot::G1,
         case,
         false,
         Some(profile),
         Some(RunDiagnostics::enabled(&jsonl_path)?),
         feedback,
+        motor_run(output, &stem, motor_enabled, false)?,
     )?;
     require(
         first.trace["observation_pipeline"]["world_seed"] == 2002,
         "G1 experiment seed must be 2002",
     )?;
     {
-        let repeat = record_with_experiment(
+        let repeat = record_with_motor(
             Robot::G1,
             case,
             false,
             Some(profile),
             Some(RunDiagnostics::enabled(&repeat_path)?),
             feedback,
+            motor_run(output, &stem, motor_enabled, true)?,
         )?;
         verify_diagnosis_behavior(&first, &repeat)?;
         verify_replay(&mut first, &repeat)?;
         diagnostic::require_same_bytes(&jsonl_path, &repeat_path)?;
+        finish_motor_repeat(&mut first, output, &stem, motor_enabled)?;
     }
     fs::remove_file(&repeat_path)?;
     let off_filename = format!("{stem}.logging-off.json");
     let off_sha256;
     {
-        let mut off = record_with_experiment(
+        let mut off = record_with_motor(
             Robot::G1,
             case,
             false,
             Some(profile),
             Some(RunDiagnostics::default()),
             feedback,
+            if motor_enabled {
+                MotorCapture::DisabledComparator
+            } else {
+                MotorCapture::Default
+            },
         )?;
         verify_diagnosis_behavior(&first, &off)?;
+        if motor_enabled {
+            verify_motor_off(&mut first, &off)?;
+        }
         off.trace["all_tick_diagnostic_logging_enabled"] = json!(false);
         off_sha256 = write_diagnosis_trace(output, &off_filename, &off.trace)?;
     }
@@ -1897,6 +2321,7 @@ fn feedback_experiment_case(
     if mode == ExperimentMode::LateralGyro {
         report["g1_lateral_gyro_experiment"] = json!(true);
     }
+    copy_motor_metadata(&mut report, &first.trace);
     Ok((first, report))
 }
 
@@ -1994,6 +2419,7 @@ pub(super) fn experiment_g1_orientation_age(
     policy_filter: Option<&str>,
     profile_filter: Option<&str>,
     input_filter: Option<&str>,
+    motor_enabled: bool,
 ) -> CaptureResult<()> {
     experiment_g1_feedback(
         output,
@@ -2001,6 +2427,7 @@ pub(super) fn experiment_g1_orientation_age(
         profile_filter,
         input_filter,
         ExperimentMode::OrientationAge,
+        motor_enabled,
     )
 }
 
@@ -2010,6 +2437,7 @@ pub(super) fn experiment_g1_lateral_gyro(
     policy_filter: Option<&str>,
     profile_filter: Option<&str>,
     input_filter: Option<&str>,
+    motor_enabled: bool,
 ) -> CaptureResult<()> {
     experiment_g1_feedback(
         output,
@@ -2017,6 +2445,7 @@ pub(super) fn experiment_g1_lateral_gyro(
         profile_filter,
         input_filter,
         ExperimentMode::LateralGyro,
+        motor_enabled,
     )
 }
 
@@ -2026,6 +2455,7 @@ fn experiment_g1_feedback(
     profile_filter: Option<&str>,
     input_filter: Option<&str>,
     mode: ExperimentMode,
+    motor_enabled: bool,
 ) -> CaptureResult<()> {
     let policies = mode.policies(policy_filter)?;
     let profiles = diagnostic::profile_names(profile_filter)?;
@@ -2044,8 +2474,15 @@ fn experiment_g1_feedback(
             )?;
             let mut zero_prefix: Option<DiagnosisPrefix> = None;
             for &(input, impulse_ns) in &inputs {
-                let (first, report) =
-                    feedback_experiment_case(output, profile, input, impulse_ns, *policy, mode)?;
+                let (first, report) = feedback_experiment_case(
+                    output,
+                    profile,
+                    input,
+                    impulse_ns,
+                    *policy,
+                    mode,
+                    motor_enabled,
+                )?;
                 if policies.len() == 2
                     && *policy == mode.candidate()
                     && ["ideal_reference", "bounded_error"].contains(name)
@@ -2118,6 +2555,11 @@ fn experiment_g1_feedback(
         report["g1_lateral_gyro_experiment"] = json!(true);
         report["execution_scope"] = json!("orientation-known-age eight before fixed lateral-gyro EMA eight; sequential worlds, first and one comparator full literal recording plus one bounded zero/kick prefix; streamed JSONL; zero-age cross-policy literal sidecars on disk");
     }
+    write_motor_report(
+        output,
+        report["cases"].as_array().expect("experiment cases"),
+        motor_enabled,
+    )?;
     fs::write(
         output.join(format!("{}-experiment.json", mode.stem())),
         serde_json::to_vec_pretty(&report)?,
@@ -2130,6 +2572,7 @@ fn record_case_matrix(
     cases: &[Case],
     output: &Path,
     require_recovery: bool,
+    motor_enabled: bool,
 ) -> CaptureResult<Vec<Value>> {
     // Each worker owns an independent seeded world. Join in robot order so
     // report ordering is stable; each replay remains sequential within a worker.
@@ -2140,7 +2583,7 @@ fn record_case_matrix(
             .map(|robot| {
                 let cases = &cases;
                 scope.spawn(move || {
-                    validate_robot_cases(robot, cases, output, require_recovery)
+                    validate_robot_cases(robot, cases, output, require_recovery, motor_enabled)
                         .map_err(|error| error.to_string())
                 })
             })
@@ -2163,10 +2606,18 @@ fn validate_robot_cases(
     cases: &[Case],
     output: &Path,
     require_recovery: bool,
+    motor_enabled: bool,
 ) -> CaptureResult<Vec<Value>> {
     let mut reports = Vec::new();
     for &case in cases {
-        let trace = replay(robot, case, false)?;
+        let trace = replay_with_motor(
+            robot,
+            case,
+            false,
+            output,
+            &format!("{}-{}", robot.name().to_lowercase(), case.name),
+            motor_enabled,
+        )?;
         fs::write(
             output.join(format!(
                 "{}-{}.json",
@@ -2187,6 +2638,7 @@ fn validate_robot_cases(
             "observation_control_state_hash":trace["observation_control_state_hash"],
             "observation_control_state_bits_exact_repeat":true,
             "observed_state_hash":trace["observed_state_hash"],"observed_state_bits_exact_repeat":true}));
+        copy_motor_metadata(reports.last_mut().expect("new recovery case"), &trace);
     }
     Ok(reports)
 }
@@ -2194,6 +2646,108 @@ fn validate_robot_cases(
 #[cfg(test)]
 mod diagnosis_tests {
     use super::*;
+
+    #[test]
+    fn motor_readback_is_post_step_and_leaves_old_plant_control_decisions_exact() {
+        let output =
+            std::env::temp_dir().join(format!("rne-g1-motor-readback-{}", std::process::id()));
+        fs::create_dir_all(&output).unwrap();
+        let mut capability_probe = Robot::G1.load(diagnostic::DT_TICKS).unwrap();
+        if !capability_probe
+            .configure_position_motor_diagnostics(true)
+            .unwrap()
+        {
+            assert_eq!(capability_probe.sim_time().ticks(), 0);
+            let error = record_with_motor(
+                Robot::G1,
+                NOMINAL,
+                false,
+                None,
+                None,
+                None,
+                MotorCapture::Enabled(Box::new(
+                    MotorRun::enabled(&output.join("unsupported.motor.jsonl")).unwrap(),
+                )),
+            )
+            .unwrap_err();
+            assert!(error
+                .to_string()
+                .contains("--features position-motor-diagnostics"));
+            fs::remove_dir_all(output).unwrap();
+            return;
+        }
+        let mut legacy = Vec::new();
+        let mut motor_words = Vec::new();
+        for (index, enabled) in [true, true, false].into_iter().enumerate() {
+            let mut sim = Robot::G1.load(diagnostic::DT_TICKS).unwrap();
+            let mut controller = Controller::new(
+                Robot::G1,
+                &mut sim,
+                true,
+                Profile::ideal(diagnostic::DT_TICKS),
+            )
+            .unwrap();
+            controller.diagnostics = Some(RunDiagnostics::default());
+            assert!(sim.configure_position_motor_diagnostics(enabled).unwrap());
+            assert_eq!(sim.sim_time().ticks(), 0);
+            let path = output.join(format!("world-{index}.motor.jsonl"));
+            let mut motor = enabled.then(|| MotorRun::enabled(&path).unwrap());
+            let mut states = Vec::new();
+            let mut controls = Vec::new();
+            for _ in 0..3 {
+                step_with_motor_diagnostics(&mut controller, &mut sim, &mut motor).unwrap();
+                states.push(state_bits(Robot::G1, &sim));
+                controls.push(controller.replay_words());
+            }
+            let decisions = controller
+                .diagnostics
+                .take()
+                .unwrap()
+                .finish()
+                .unwrap()
+                .decision_words;
+            legacy.push((states, controls, decisions));
+            if let Some(motor) = motor {
+                let run = motor.finish().unwrap();
+                assert_eq!(run.words.len(), 3);
+                let rows: Vec<Value> = fs::read_to_string(&path)
+                    .unwrap()
+                    .lines()
+                    .map(|row| serde_json::from_str(row).unwrap())
+                    .collect();
+                for (row_index, row) in rows.iter().enumerate() {
+                    assert_eq!(
+                        row["command_consumer_ticks"],
+                        row_index as u64 * diagnostic::DT_TICKS
+                    );
+                    assert_eq!(
+                        row["completed_interval_end_ticks"],
+                        (row_index as u64 + 1) * diagnostic::DT_TICKS
+                    );
+                    let samples = row["samples"].as_array().unwrap();
+                    assert_eq!(samples.len(), 23);
+                    assert!(samples
+                        .iter()
+                        .any(|sample| sample["availability"] == "available"));
+                    assert!(samples
+                        .windows(2)
+                        .all(|pair| pair[0]["link"].as_str() < pair[1]["link"].as_str()));
+                }
+                motor_words.push(run.words);
+            } else {
+                assert!(!path.exists());
+            }
+        }
+        assert_eq!(legacy[0], legacy[1]);
+        assert_eq!(legacy[0], legacy[2]);
+        assert_eq!(motor_words[0], motor_words[1]);
+        diagnostic::require_same_bytes(
+            &output.join("world-0.motor.jsonl"),
+            &output.join("world-1.motor.jsonl"),
+        )
+        .unwrap();
+        fs::remove_dir_all(output).unwrap();
+    }
 
     #[test]
     fn experiment_modes_validate_fixed_filters_before_creating_outputs() {
@@ -2206,9 +2760,10 @@ mod diagnosis_tests {
                 (None, Some("unknown"), None),
                 (None, None, Some("unknown")),
             ] {
-                assert!(
-                    experiment_g1_feedback(&output, filters.0, filters.1, filters.2, mode).is_err()
-                );
+                assert!(experiment_g1_feedback(
+                    &output, filters.0, filters.1, filters.2, mode, false
+                )
+                .is_err());
                 assert!(!output.exists());
             }
         }
@@ -2370,6 +2925,7 @@ mod diagnosis_tests {
                     state_bits: states,
                     control_state_words: controls,
                     diagnostics: Some(controller.diagnostics.take().unwrap().finish().unwrap()),
+                    motor_diagnostics: None,
                 };
                 let sidecar = write_orientation_words(&output, &stem, &recording).unwrap();
                 let bytes = fs::read(output.join(sidecar["file"].as_str().unwrap())).unwrap();

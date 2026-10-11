@@ -10,7 +10,11 @@ use crate::dynamics::{
     GenericJoint, ImpulseJoint, IntegrationParameters, JointIndex, Multibody, MultibodyJointSet,
     MultibodyLinkId, RigidBodySet,
 };
+use crate::dynamics::{JointAxis, MultibodyJointHandle};
 use crate::math::{Real, Vector, ANG_DIM, DIM, SPATIAL_DIM};
+use crate::pipeline::{
+    InternalMotorImpulseSample, MultibodyMotorImpulseSlice, MultibodyMotorImpulseValue,
+};
 use crate::utils;
 use crate::utils::IndexMut2;
 use crate::utils::SimdDot;
@@ -234,6 +238,87 @@ pub struct JointGenericVelocityOneBodyInternalConstraintBuilder {
 }
 
 impl JointGenericOneBodyConstraintBuilder {
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn append_internal_motor_impulse_samples(
+        &self,
+        multibodies: &MultibodyJointSet,
+        constraints: &[JointGenericOneBodyConstraint],
+        partition: usize,
+        ordinal: usize,
+        expected: usize,
+        duration: Real,
+        samples: &mut Vec<InternalMotorImpulseSample>,
+    ) {
+        let Self::Internal(builder) = self else {
+            return;
+        };
+        let multibody = &multibodies[builder.link.multibody];
+        let link = multibody.link(builder.link.id).unwrap();
+        let joint = link.joint();
+        if joint.ndofs() != 1 || !duration.is_finite() || duration <= 0.0 {
+            return;
+        }
+        let axes = [
+            JointAxis::LinX,
+            JointAxis::LinY,
+            #[cfg(feature = "dim3")]
+            JointAxis::LinZ,
+            JointAxis::AngX,
+            #[cfg(feature = "dim3")]
+            JointAxis::AngY,
+            #[cfg(feature = "dim3")]
+            JointAxis::AngZ,
+        ];
+        let mut free = axes
+            .into_iter()
+            .filter(|axis| !joint.data.locked_axes.contains((*axis).into()));
+        let Some(axis) = free.next() else {
+            return;
+        };
+        if free.next().is_some() || !joint.data.motor_axes.contains(axis.into()) {
+            return;
+        }
+        let ceiling = joint.data.motors[axis as usize].max_force;
+        if ceiling.is_nan() || ceiling < 0.0 {
+            return;
+        }
+        let end = builder.constraint_id + joint.num_velocity_constraints();
+        for constraint in &constraints[builder.constraint_id..end] {
+            if !matches!(constraint.writeback_id, WritebackId::Motor(0))
+                || constraint.joint_id != usize::MAX
+                || !constraint.impulse.is_finite()
+            {
+                continue;
+            }
+            let bound = constraint.impulse_bounds[1];
+            if bound.is_nan() || bound < 0.0 || constraint.impulse_bounds[0] != -bound {
+                continue;
+            }
+            let eligible = bound.is_finite() && bound > 0.0;
+            let active = eligible && (constraint.impulse == bound || constraint.impulse == -bound);
+            samples.push(InternalMotorImpulseSample {
+                joint_handle: MultibodyJointHandle(link.rigid_body_handle().0),
+                link_id: builder.link.id,
+                joint_dof_id: 0,
+                axis,
+                slice: MultibodyMotorImpulseSlice {
+                    ccd_partition_index: partition,
+                    internal_slice_index: ordinal,
+                    expected_internal_slice_count: expected,
+                    duration_s: f64::from(duration),
+                    impulse: MultibodyMotorImpulseValue::from_solver(
+                        axis,
+                        constraint.impulse,
+                        ceiling,
+                        bound,
+                    ),
+                    finite_positive_bound_eligible: eligible,
+                    finite_positive_bound_active: active,
+                },
+            });
+        }
+    }
+
     pub fn invalid() -> Self {
         Self::Empty
     }

@@ -12,6 +12,7 @@ mod feedback;
 mod g1_controller;
 mod go2_controller;
 mod model;
+mod motor_diagnostics;
 mod observation;
 mod physics;
 mod render;
@@ -144,6 +145,7 @@ fn validate_g1_study_mode(
 
 #[derive(Debug)]
 struct HeadlessOptions<'a> {
+    motor_effort_diagnostics: bool,
     orientation_age_experiment: bool,
     lateral_gyro_experiment: bool,
     g1_observation_diagnosis: bool,
@@ -166,6 +168,7 @@ fn run_headless(output: &Path, options: HeadlessOptions<'_>) -> Result<(), Box<d
             options.feedback_policy,
             options.observation_profile,
             options.diagnosis_input,
+            options.motor_effort_diagnostics,
         )?;
     } else if options.orientation_age_experiment {
         physics::experiment_g1_orientation_age(
@@ -173,32 +176,45 @@ fn run_headless(output: &Path, options: HeadlessOptions<'_>) -> Result<(), Box<d
             options.feedback_policy,
             options.observation_profile,
             options.diagnosis_input,
+            options.motor_effort_diagnostics,
         )?;
     } else if options.g1_observation_diagnosis {
         physics::diagnose_g1_observations(
             output,
             options.observation_profile,
             options.diagnosis_input,
+            options.motor_effort_diagnostics,
         )?;
     } else if options.observation_probe {
         physics::probe_observations(
             output,
             options.validation_robot,
             options.observation_profile,
+            options.motor_effort_diagnostics,
         )?;
     } else if options.impulse_sweep {
-        physics::sweep_impulse(output, options.validation_robot)?;
+        physics::sweep_impulse(
+            output,
+            options.validation_robot,
+            options.motor_effort_diagnostics,
+        )?;
     } else if options.impulse_probe {
         physics::probe_impulse(
             output,
             options.validation_robot,
             options.impulse_ns,
             !options.balance_off,
+            options.motor_effort_diagnostics,
         )?;
     } else if options.validate_recovery {
-        physics::validate_recovery(output, options.validation_robot, options.impulse_ns)?;
+        physics::validate_recovery(
+            output,
+            options.validation_robot,
+            options.impulse_ns,
+            options.motor_effort_diagnostics,
+        )?;
     } else {
-        physics::capture(output, options.impulse_ns)?;
+        physics::capture(output, options.impulse_ns, options.motor_effort_diagnostics)?;
     }
     Ok(())
 }
@@ -238,6 +254,30 @@ fn validate_observation_profile(
     Ok(())
 }
 
+fn validate_motor_render(enabled: bool, requested: bool) -> Result<(), Box<dyn Error>> {
+    if enabled && requested {
+        return Err("--motor-effort-diagnostics is headless evaluator-only and cannot be used for rendering".into());
+    }
+    Ok(())
+}
+
+fn render_if_requested(
+    output: &Path,
+    requested: bool,
+    start_frame: usize,
+    frame_count: usize,
+) -> Result<(), Box<dyn Error>> {
+    if requested {
+        for name in ["go2-trace.json", "g1-trace.json"] {
+            let trace: serde_json::Value =
+                serde_json::from_reader(std::fs::File::open(output.join(name))?)?;
+            motor_diagnostics::validate_render_evidence(&trace)?;
+        }
+        render::render(output, Path::new(HUMAN_ASSET), start_frame, frame_count)?;
+    }
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments: Vec<_> = std::env::args().skip(1).collect();
     let mut output = PathBuf::from("target/rne-kick-comparison");
@@ -249,6 +289,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut g1_observation_diagnosis = false;
     let mut orientation_age_experiment = false;
     let mut lateral_gyro_experiment = false;
+    let mut motor_effort_diagnostics = false;
     let mut feedback_policy: Option<String> = None;
     let mut diagnosis_input: Option<String> = None;
     let mut observation_profile: Option<String> = None;
@@ -271,6 +312,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "--g1-observation-diagnosis" => g1_observation_diagnosis = true,
             "--g1-orientation-age-experiment" => orientation_age_experiment = true,
             "--g1-lateral-gyro-experiment" => lateral_gyro_experiment = true,
+            "--motor-effort-diagnostics" => motor_effort_diagnostics = true,
             "--balance-off" => balance_off = true,
             "--render" => render = true,
             "--render-only" => {
@@ -309,6 +351,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         index += 1;
     }
     validate_impulse(impulse_ns, impulse_probe)?;
+    validate_motor_render(
+        motor_effort_diagnostics,
+        render || render_frame_options_requested,
+    )?;
     let g1_study =
         g1_observation_diagnosis || orientation_age_experiment || lateral_gyro_experiment;
     let incompatible_study_mode = observation_probe
@@ -363,6 +409,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         run_headless(
             &output,
             HeadlessOptions {
+                motor_effort_diagnostics,
                 orientation_age_experiment,
                 lateral_gyro_experiment,
                 g1_observation_diagnosis,
@@ -379,9 +426,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             },
         )?;
     }
-    if render {
-        render::render(&output, Path::new(HUMAN_ASSET), start_frame, frame_count)?;
-    }
+    render_if_requested(&output, render, start_frame, frame_count)?;
     report_completion(&output, g1_study, observation_probe);
     Ok(())
 }

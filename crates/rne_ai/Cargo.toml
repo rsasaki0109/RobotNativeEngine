@@ -11,6 +11,10 @@ repository.workspace = true
 # this crate-wide lint pass (parallel PR owns that tree) and would fail
 # missing_debug_implementations/too_many_lines there.
 
+[features]
+# Optional readback requires the repository's Rapier patch and stays disabled by default.
+position-motor-diagnostics = ["rne_physics_rapier/position-motor-diagnostics"]
+
 [dependencies]
 bevy_ecs = { workspace = true }
 rne_assets = { workspace = true }

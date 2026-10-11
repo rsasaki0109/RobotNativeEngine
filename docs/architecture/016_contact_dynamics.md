@@ -759,6 +759,48 @@ Earlier reference fields/hashes/counts and default qualification remain
 compatible. The candidate is not promoted; the
 [compact evidence](../media/g1-lateral-gyro-experiment.json) retains all failures.
 
+### Opt-in completed position-motor readback
+
+The optional neutral `JointPositionMotorDiagnostics` child-link component records
+Rapier ForceBased single-DoF multibody position-motor impulse after completed
+physics. `UrdfSceneSim::configure_position_motor_diagnostics` returns whether the
+backend supports collection without advancing the clock. The default-off feature
+is forwarded from example 139 through `rne_ai` to the Rapier backend; default
+builds retain compatibility with the upstream dependency.
+
+Example 139's orthogonal headless `--motor-effort-diagnostics` flag reads the
+component after stepping, binding command-consumer `t` to completion `t+dt`.
+Revolute N·m·s/N·m and prismatic N·s/N remain distinct. Both observed and
+qualified-completed means divide signed impulse by actual observed solver time;
+completed means require integer native CCD-partition/solver-slice coverage.
+Nominal ticks, numerical outer duration, and observed durations are separate.
+Missing samples are unavailable; zero ceilings and unbounded ceilings retain
+distinct semantics. FINAL positive-finite-bound counts/durations describe actual
+motor solver slices, independently of position/rate target clipping.
+
+The evaluator sorts child-link names, streams a separate motor JSONL/hash, and
+never adds readback to observations or controller replay words. Two fresh ON
+worlds compare new motor words and actual stream bytes; the third explicitly OFF
+world compares existing plant/control/decision values. Existing studies reuse
+their logging-OFF third world; this does not separately test a motor-writer OFF
+world. Recursive encoder and render-only guards reject this private evidence.
+
+Fixed consumer windows `[2,4)`, `[4,4.08)`, and `[4.08,8.2)` report all 23 G1
+joints. Interval means can cancel despite frequent FINAL bound occupancy; these
+statistics are not within-slice torque peaks, hardware validation, or proof of a
+fall cause. Actual source hashes/build receipts, not the baseline commit alone,
+bind the opt-in readback. Default qualification and historical media remain exact.
+
+The fixed 16-case/48-world instrumentation matrix preserves the prior 11 recovered
+and five failed outcomes; no existing policy is promoted. An internal read-only
+audit preserves actual old/new legacy rows and retained exposed values. All
+131,200 first-ON rows contain 23 available full-step-qualified motor records;
+measured zero interval means remain distinct from unavailable data. The
+[compact interval/window evidence](../media/g1-motor-effort-diagnostics.json)
+retains every joint, case, and support denominator. Original analysis paths are
+historical context; current bindings distinguish 24 lossless gzip streams from
+eight uncompressed streams with separate raw/stored digests and byte lengths.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

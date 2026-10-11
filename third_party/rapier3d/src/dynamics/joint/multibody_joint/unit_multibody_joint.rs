@@ -120,7 +120,8 @@ pub fn unit_joint_motor_constraint(
         inv_lhs: crate::utils::inv(lhs),
         rhs: rhs_wo_bias,
         rhs_wo_bias,
-        writeback_id: WritebackId::Limit(dof_id),
+        // Metadata only: MAX still prevents internal impulse writeback.
+        writeback_id: WritebackId::Motor(dof_id),
     };
 
     constraints[*insert_at] = constraint;

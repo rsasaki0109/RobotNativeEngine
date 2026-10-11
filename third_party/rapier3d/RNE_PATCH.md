@@ -65,3 +65,54 @@ split/append and type-transition fixtures pass, including a former child root's
 centripetal acceleration, but arbitrary graph edits during an active solver step
 are not validated. Arbitrary locked axes, armature, and joint limits also need
 broader physical coverage. Release API audits remain separate checks.
+
+## Optional internal motor impulse diagnostics
+
+The repository adapter's `position-motor-diagnostics` feature is disabled by
+default, preserving its API compatibility with unmodified upstream Rapier. The
+vendor `PhysicsPipeline` additionally requires an explicit runtime opt-in through
+`set_multibody_motor_impulse_telemetry_enabled`; its completed getter remains
+unavailable before the next completed step and clears on a configuration toggle.
+The adapter qualifies explicit ForceBased single-DoF position motors. The vendor
+collector observes only solved internal single-DoF motor constraints, excluding
+contact and hard joint-limit impulses. Missing, inactive, or sleeping observations
+remain unavailable; a solved zero-capacity motor is distinguishable as measured
+zero and is ineligible for positive-bound activity.
+
+Each final net motor impulse is captured exactly once after the small step's
+PGS and stabilization passes. Applied generalized impulse has the opposite sign
+from the internal constraint accumulator (`-impulse`); signed revolute/prismatic
+fixtures and momentum checks qualify this convention. The collector never writes
+its values into a motor accumulator or a future solve. The internal motor's
+previously unused writeback tag now distinguishes Motor from Limit, while the
+existing MAX joint-ID guard still prevents internal impulse writeback.
+
+The completed report preserves the native outer dt, actual CCD partition
+intervals, and each actual small-step duration/impulse/rounded bound promoted to
+f64. Per-motor sums follow slice time order, with deterministic island-buffer
+drain after a parallel join. Observed mean effort divides net impulse by summed
+observed solver duration, separately from nominal ECS ticks. Full-step mean is
+qualified only by exact-once integer slice coverage of every actual CCD partition,
+including island-specific additional iterations. Final bound activity means
+exact equality with a finite strictly positive native impulse bound; it does not
+claim an attempted clip or explain a fall. Unknown infinite capacity remains
+explicit, and malformed or nonfinite samples do not become measured zeros.
+
+Observation state is ephemeral pipeline/solver workspace. It is disabled by
+default and does not alter physics arithmetic, constraint order, warm starts,
+serialized body/joint fields, or the step-boundary snapshot schema. The upstream
+provenance and license remain unchanged; this section describes the additional
+repository patch, not upstream functionality.
+
+## Reconnecting a kinematic tree with a free-root subtree
+
+A narrow integer-index repair lets a zero-DoF kinematic tree reconnect a free-root
+subtree through a one-DoF joint without an intermediate unsigned subtraction.
+Descendant assembly indices use their offset after the removed root coordinates.
+Representable legacy damping views retain exactly their previous placement and
+values. Only a negative mathematical legacy view start uses the new root joint's
+bounded damping view; the old wrapped view was invalid and is not a result to
+preserve. The general legacy damping placement remains unchanged for existing
+defined cases. Regression tests cover the formerly invalid reconnection and the
+literal damping values of a defined legacy append. This repair changes no solver
+floating-point formula, motor gains, or constraint ordering.

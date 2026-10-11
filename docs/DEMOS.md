@@ -403,6 +403,30 @@ compatibility checks pass independently of these failed recovery outcomes.
 The candidate is not promoted; see the
 [16 measured outcomes and compact proofs](media/g1-lateral-gyro-experiment.json).
 
+Example 139 also offers private completed-motor evidence without changing its
+controllers or public GIF:
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison \
+  --features position-motor-diagnostics -- --headless --g1-lateral-gyro-experiment \
+  --motor-effort-diagnostics --output target/rne-g1-motor-effort
+```
+
+The default-off feature is forwarded through AI to the Rapier backend. Separate
+motor JSONL/report data contain signed impulse, actual solver-time interval means,
+effective ceilings, availability/coverage, and FINAL positive-finite-bound
+exposure. Three fresh worlds retain existing replay/outcomes and compare readback
+ON repeats against a backend-OFF legacy comparison. All 23 G1 joints are reported
+in fixed consumer windows; high slice-bound occupancy is distinct from an
+interval-mean torque peak and does not identify hardware saturation or a fall
+cause. Diagnostics are headless-only and rejected by render/encoder admission.
+
+The 16 fixed cases/48 fresh worlds retain 11 recoveries and five failed outcomes;
+this adds observation, not a new recovery policy. All 23 joint records are
+available and full-step-qualified in the 131,200 first-ON rows, with measured
+zeros retained. See [all cases/joints and source-bound proofs](media/g1-motor-effort-diagnostics.json)
+and [method and output scope](../examples/139_kick_comparison/README.md#completed-position-motor-diagnostics).
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

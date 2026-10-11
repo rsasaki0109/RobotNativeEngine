@@ -1,4 +1,5 @@
 /target
+/third_party/rapier3d/target/
 /fuzz/target/
 /artifacts/
 .venv/

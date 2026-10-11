@@ -7,6 +7,7 @@ use crate::dynamics::{
 };
 use crate::geometry::{ContactManifold, ContactManifoldIndex};
 use crate::math::Real;
+use crate::pipeline::InternalMotorImpulseSample;
 use crate::prelude::RigidBodyVelocity;
 use crate::utils::SimdAngularInertia;
 use na::DVector;
@@ -18,6 +19,8 @@ pub(crate) struct VelocitySolver {
     pub generic_solver_vels: DVector<Real>,
     pub generic_solver_vels_increment: DVector<Real>,
     pub multibody_roots: Vec<MultibodyLinkId>,
+    pub(crate) motor_impulse_samples: Option<Vec<InternalMotorImpulseSample>>,
+    pub(crate) motor_impulse_partition_index: usize,
 }
 
 impl VelocitySolver {
@@ -29,6 +32,8 @@ impl VelocitySolver {
             generic_solver_vels: DVector::zeros(0),
             generic_solver_vels_increment: DVector::zeros(0),
             multibody_roots: Vec::new(),
+            motor_impulse_samples: None,
+            motor_impulse_partition_index: 0,
         }
     }
 
@@ -217,6 +222,21 @@ impl VelocitySolver {
 
                 contact_constraints
                     .solve_friction(&mut self.solver_vels, &mut self.generic_solver_vels);
+            }
+
+            // Observe final net impulses once, after all stabilization passes.
+            if let Some(samples) = &mut self.motor_impulse_samples {
+                for builder in &joint_constraints.generic_velocity_one_body_constraints_builder {
+                    builder.append_internal_motor_impulse_samples(
+                        multibodies,
+                        &joint_constraints.generic_velocity_one_body_constraints,
+                        self.motor_impulse_partition_index,
+                        substep_id,
+                        num_substeps,
+                        params.dt,
+                        samples,
+                    );
+                }
             }
         }
     }

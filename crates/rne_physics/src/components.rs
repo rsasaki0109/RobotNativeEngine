@@ -851,6 +851,197 @@ impl JointEffortMeasurement {
     }
 }
 
+/// Time scope and exact coverage counters of completed position-motor samples.
+///
+/// Numerical durations describe the backend's executed solver intervals; the
+/// nominal tick count describes the requested engine step. They may differ by
+/// numeric representation. Producers establish full coverage from exact
+/// per-partition and per-slice counts, never from approximately equal durations.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PositionMotorDiagnosticInterval {
+    /// Owning physics-world identifier within this backend instance.
+    ///
+    /// This namespace is not globally unique and must not be compared across
+    /// different backend instances or backend implementations.
+    pub physics_world_id: u32,
+    /// Requested outer physics-step duration in nanosecond simulation ticks.
+    pub nominal_step_ticks: u64,
+    /// Backend numerical duration of the outer physics step, in seconds.
+    pub numerical_outer_interval_s: f64,
+    /// Numerical durations of executed CCD partitions, in execution order.
+    pub ccd_partition_durations_s: Vec<f64>,
+    /// Sum of the durations of qualifying observed motor solver slices.
+    ///
+    /// This is the denominator of the observed-interval mean effort or force.
+    pub observed_solver_interval_s: f64,
+    /// Number of qualifying completed motor solver slices actually observed.
+    pub observed_solver_slice_count: u64,
+    /// Whether exact integer coverage includes every outer-step partition/slice.
+    ///
+    /// A floating duration match alone must never set this flag.
+    pub full_step_coverage: bool,
+    /// Number of executed CCD partitions containing qualifying observed slices.
+    pub observed_partition_count: u64,
+    /// Observed slices with a finite, strictly positive motor impulse bound.
+    pub finite_positive_bound_eligible_slice_count: u64,
+    /// Sum of the durations of finite-positive-bound eligible slices, in seconds.
+    pub finite_positive_bound_eligible_duration_s: f64,
+    /// Eligible slices whose completed motor impulse magnitude reached the bound.
+    ///
+    /// This counts solver-bound activity, not target clipping or total joint load.
+    pub finite_positive_bound_active_slice_count: u64,
+    /// Sum of the durations of finite-positive-bound active slices, in seconds.
+    pub finite_positive_bound_active_duration_s: f64,
+}
+
+impl PositionMotorDiagnosticInterval {
+    /// Checks finite durations and nested sample-counter/duration consistency.
+    ///
+    /// This structural check cannot prove a producer's per-slice coverage claim
+    /// and does not infer full coverage from numerical duration equality.
+    pub fn has_valid_values(&self) -> bool {
+        let partition_count = self.ccd_partition_durations_s.len() as u64;
+        self.nominal_step_ticks > 0
+            && self.numerical_outer_interval_s.is_finite()
+            && self.numerical_outer_interval_s > 0.0
+            && partition_count > 0
+            && self
+                .ccd_partition_durations_s
+                .iter()
+                .all(|duration| duration.is_finite() && *duration > 0.0)
+            && self.observed_solver_slice_count > 0
+            && self.observed_partition_count > 0
+            && self.observed_partition_count <= partition_count
+            && self.observed_partition_count <= self.observed_solver_slice_count
+            && (!self.full_step_coverage || self.observed_partition_count == partition_count)
+            && sample_duration_is_valid(
+                self.observed_solver_slice_count,
+                self.observed_solver_interval_s,
+            )
+            && sample_duration_is_valid(
+                self.finite_positive_bound_eligible_slice_count,
+                self.finite_positive_bound_eligible_duration_s,
+            )
+            && sample_duration_is_valid(
+                self.finite_positive_bound_active_slice_count,
+                self.finite_positive_bound_active_duration_s,
+            )
+            && self.finite_positive_bound_eligible_slice_count <= self.observed_solver_slice_count
+            && self.finite_positive_bound_active_slice_count
+                <= self.finite_positive_bound_eligible_slice_count
+            && self.finite_positive_bound_eligible_duration_s <= self.observed_solver_interval_s
+            && self.finite_positive_bound_active_duration_s
+                <= self.finite_positive_bound_eligible_duration_s
+    }
+}
+
+/// Optional backend-observed position-motor impulses from a completed step.
+///
+/// The component describes motor-row realization, not a command, total joint
+/// reaction, target clipping, or hardware measurement. It is separate from
+/// [`JointEffortMeasurement`]. Absence means unsupported or inactive diagnostics,
+/// a sleeping motor, or no qualifying completed motor sample; it is not zero.
+/// A ceiling of `Some(0.0)` is a measured zero bound. A ceiling of `None` means
+/// positive infinity, never a missing motor measurement.
+///
+/// A new [`crate::PhysicsBackend::sync_from_ecs`] clears the owning world's old
+/// completed diagnostic data before accepting new inputs. An invalid sync must
+/// not retain an earlier successful sample. Data becomes available again only
+/// after a qualifying completed step and physics-to-ECS publication.
+#[derive(Component, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum JointPositionMotorDiagnostics {
+    /// Completed angular position-motor impulses with torque units.
+    Revolute {
+        /// Signed sum of observed completed motor impulses, in N·m·s.
+        applied_motor_impulse_nm_s: f64,
+        /// Signed impulse divided by the observed solver interval, in N·m.
+        mean_observed_motor_effort_nm: f64,
+        /// Observed-interval mean effort qualified by full coverage, in N·m.
+        ///
+        /// Present only when exact full partition/slice coverage is established.
+        /// The denominator remains `observed_solver_interval_s`; the numerical
+        /// outer interval is separate metadata, never this mean's denominator.
+        mean_completed_motor_effort_nm: Option<f64>,
+        /// Effective symmetric motor torque ceiling in N·m; `None` is unbounded.
+        effective_effort_ceiling_nm: Option<f64>,
+        /// Completed solver timing, coverage, and finite-bound activity.
+        interval: PositionMotorDiagnosticInterval,
+    },
+    /// Completed linear position-motor impulses with force units.
+    Prismatic {
+        /// Signed sum of observed completed motor impulses, in N·s.
+        applied_motor_impulse_n_s: f64,
+        /// Signed impulse divided by the observed solver interval, in newtons.
+        mean_observed_motor_force_n: f64,
+        /// Observed-interval mean force qualified by full coverage, in newtons.
+        ///
+        /// Present only when exact full partition/slice coverage is established.
+        /// The denominator remains `observed_solver_interval_s`; the numerical
+        /// outer interval is separate metadata, never this mean's denominator.
+        mean_completed_motor_force_n: Option<f64>,
+        /// Effective symmetric motor force ceiling in newtons; `None` is unbounded.
+        effective_force_ceiling_n: Option<f64>,
+        /// Completed solver timing, coverage, and finite-bound activity.
+        interval: PositionMotorDiagnosticInterval,
+    },
+}
+
+impl JointPositionMotorDiagnostics {
+    /// Checks finite measured values, ceiling semantics, and interval structure.
+    ///
+    /// A completed-step mean requires full integer coverage. A zero ceiling
+    /// requires measured zero and no finite-positive-bound eligible slices.
+    /// This check does not independently establish the physical observation or
+    /// recompute a producer's signed impulse accumulation.
+    pub fn has_valid_values(&self) -> bool {
+        let (impulse, observed_mean, completed_mean, ceiling, interval) = match self {
+            Self::Revolute {
+                applied_motor_impulse_nm_s,
+                mean_observed_motor_effort_nm,
+                mean_completed_motor_effort_nm,
+                effective_effort_ceiling_nm,
+                interval,
+            } => (
+                *applied_motor_impulse_nm_s,
+                *mean_observed_motor_effort_nm,
+                *mean_completed_motor_effort_nm,
+                *effective_effort_ceiling_nm,
+                interval,
+            ),
+            Self::Prismatic {
+                applied_motor_impulse_n_s,
+                mean_observed_motor_force_n,
+                mean_completed_motor_force_n,
+                effective_force_ceiling_n,
+                interval,
+            } => (
+                *applied_motor_impulse_n_s,
+                *mean_observed_motor_force_n,
+                *mean_completed_motor_force_n,
+                *effective_force_ceiling_n,
+                interval,
+            ),
+        };
+        impulse.is_finite()
+            && observed_mean.is_finite()
+            && completed_mean.is_none_or(|mean| mean.is_finite() && interval.full_step_coverage)
+            && ceiling.is_none_or(non_negative)
+            && interval.has_valid_values()
+            && (ceiling != Some(0.0)
+                || (impulse == 0.0
+                    && observed_mean == 0.0
+                    && completed_mean.is_none_or(|mean| mean == 0.0)
+                    && interval.finite_positive_bound_eligible_slice_count == 0))
+    }
+}
+
+fn sample_duration_is_valid(count: u64, duration_s: f64) -> bool {
+    non_negative(duration_s)
+        && ((count == 0 && duration_s == 0.0) || (count > 0 && duration_s > 0.0))
+}
+
 fn non_negative(value: f64) -> bool {
     value.is_finite() && value >= 0.0
 }
@@ -917,9 +1108,203 @@ impl Default for JointMotor {
 
 #[cfg(test)]
 mod tests {
-    use super::{Collider, ColliderShape, JointActuation, JointPassiveDynamics, RigidBodyInertia};
+    use super::{
+        Collider, ColliderShape, JointActuation, JointPassiveDynamics,
+        JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval, RigidBodyInertia,
+    };
     use rne_math::Vec3;
     use std::sync::Arc;
+
+    fn completed_motor_interval() -> PositionMotorDiagnosticInterval {
+        PositionMotorDiagnosticInterval {
+            physics_world_id: 4,
+            nominal_step_ticks: 1_000_000,
+            numerical_outer_interval_s: 0.001,
+            ccd_partition_durations_s: vec![0.0004, 0.0006],
+            observed_solver_interval_s: 0.001,
+            observed_solver_slice_count: 4,
+            full_step_coverage: true,
+            observed_partition_count: 2,
+            finite_positive_bound_eligible_slice_count: 4,
+            finite_positive_bound_eligible_duration_s: 0.001,
+            finite_positive_bound_active_slice_count: 2,
+            finite_positive_bound_active_duration_s: 0.0004,
+        }
+    }
+
+    #[test]
+    fn position_motor_measured_zero_and_unbounded_ceiling_are_distinct() {
+        let mut interval = completed_motor_interval();
+        interval.finite_positive_bound_eligible_slice_count = 0;
+        interval.finite_positive_bound_eligible_duration_s = 0.0;
+        interval.finite_positive_bound_active_slice_count = 0;
+        interval.finite_positive_bound_active_duration_s = 0.0;
+        let zero = JointPositionMotorDiagnostics::Revolute {
+            applied_motor_impulse_nm_s: 0.0,
+            mean_observed_motor_effort_nm: 0.0,
+            mean_completed_motor_effort_nm: Some(0.0),
+            effective_effort_ceiling_nm: Some(0.0),
+            interval: interval.clone(),
+        };
+        assert!(zero.has_valid_values());
+        let unbounded = JointPositionMotorDiagnostics::Revolute {
+            applied_motor_impulse_nm_s: -0.003,
+            mean_observed_motor_effort_nm: -3.0,
+            mean_completed_motor_effort_nm: Some(-3.0),
+            effective_effort_ceiling_nm: None,
+            interval,
+        };
+        assert!(unbounded.has_valid_values());
+        let zero_json = serde_json::to_value(zero).expect("measured zero serializes");
+        let unbounded_json = serde_json::to_value(unbounded).expect("unbounded sample serializes");
+        assert_eq!(zero_json["effective_effort_ceiling_nm"], 0.0);
+        assert_eq!(
+            unbounded_json["effective_effort_ceiling_nm"],
+            serde_json::Value::Null
+        );
+        assert_eq!(unbounded_json["mean_observed_motor_effort_nm"], -3.0);
+        assert_ne!(zero_json, serde_json::Value::Null);
+        assert_ne!(unbounded_json, serde_json::Value::Null);
+    }
+
+    #[test]
+    fn partial_motor_coverage_cannot_report_a_completed_step_mean() {
+        let mut interval = completed_motor_interval();
+        interval.full_step_coverage = false;
+        // Equal numerical durations do not establish exact solver-slice coverage.
+        let mut sample = JointPositionMotorDiagnostics::Prismatic {
+            applied_motor_impulse_n_s: 0.003,
+            mean_observed_motor_force_n: 3.0,
+            mean_completed_motor_force_n: None,
+            effective_force_ceiling_n: Some(10.0),
+            interval,
+        };
+        assert!(sample.has_valid_values());
+        if let JointPositionMotorDiagnostics::Prismatic {
+            mean_completed_motor_force_n,
+            ..
+        } = &mut sample
+        {
+            *mean_completed_motor_force_n = Some(3.0);
+        }
+        assert!(!sample.has_valid_values());
+    }
+
+    #[test]
+    fn position_motor_values_reject_nonfinite_negative_or_false_zero_bounds() {
+        for ceiling in [Some(f64::INFINITY), Some(f64::NAN), Some(-1.0), Some(0.0)] {
+            assert!(!JointPositionMotorDiagnostics::Revolute {
+                applied_motor_impulse_nm_s: 0.003,
+                mean_observed_motor_effort_nm: 3.0,
+                mean_completed_motor_effort_nm: Some(3.0),
+                effective_effort_ceiling_nm: ceiling,
+                interval: completed_motor_interval(),
+            }
+            .has_valid_values());
+        }
+        for (impulse, observed, completed) in [
+            (f64::NAN, 3.0, Some(3.0)),
+            (0.003, f64::INFINITY, Some(3.0)),
+            (0.003, 3.0, Some(f64::NEG_INFINITY)),
+        ] {
+            assert!(!JointPositionMotorDiagnostics::Prismatic {
+                applied_motor_impulse_n_s: impulse,
+                mean_observed_motor_force_n: observed,
+                mean_completed_motor_force_n: completed,
+                effective_force_ceiling_n: Some(10.0),
+                interval: completed_motor_interval(),
+            }
+            .has_valid_values());
+        }
+        assert!(
+            !JointPositionMotorDiagnostics::Revolute {
+                applied_motor_impulse_nm_s: 0.0,
+                mean_observed_motor_effort_nm: 0.0,
+                mean_completed_motor_effort_nm: Some(0.0),
+                effective_effort_ceiling_nm: Some(0.0),
+                interval: completed_motor_interval(),
+            }
+            .has_valid_values(),
+            "zero bounds must not claim positive-bound eligibility"
+        );
+    }
+
+    #[test]
+    fn motor_interval_counters_and_duration_subsets_must_agree() {
+        let valid = completed_motor_interval();
+        assert!(valid.has_valid_values());
+        let mutators: [fn(&mut PositionMotorDiagnosticInterval); 13] = [
+            |interval| interval.nominal_step_ticks = 0,
+            |interval| interval.numerical_outer_interval_s = f64::NAN,
+            |interval| interval.ccd_partition_durations_s[0] = 0.0,
+            |interval| interval.observed_solver_slice_count = 0,
+            |interval| interval.observed_partition_count = 1,
+            |interval| interval.observed_partition_count = 3,
+            |interval| interval.finite_positive_bound_eligible_slice_count = 5,
+            |interval| interval.finite_positive_bound_active_slice_count = 5,
+            |interval| interval.finite_positive_bound_eligible_slice_count = 0,
+            |interval| interval.finite_positive_bound_eligible_duration_s = 0.0,
+            |interval| interval.finite_positive_bound_active_duration_s = 0.002,
+            |interval| interval.finite_positive_bound_active_duration_s = -0.1,
+            |interval| interval.finite_positive_bound_active_duration_s = f64::INFINITY,
+        ];
+        for mutate in mutators {
+            let mut invalid = valid.clone();
+            mutate(&mut invalid);
+            assert!(!invalid.has_valid_values());
+        }
+        let partial = PositionMotorDiagnosticInterval {
+            full_step_coverage: false,
+            observed_partition_count: 1,
+            observed_solver_slice_count: 2,
+            observed_solver_interval_s: 0.0004,
+            finite_positive_bound_eligible_slice_count: 2,
+            finite_positive_bound_eligible_duration_s: 0.0004,
+            finite_positive_bound_active_slice_count: 1,
+            finite_positive_bound_active_duration_s: 0.0002,
+            ..valid
+        };
+        assert!(partial.has_valid_values());
+    }
+
+    #[test]
+    fn position_motor_diagnostics_round_trip_units_and_reject_unknown_fields() {
+        for sample in [
+            JointPositionMotorDiagnostics::Revolute {
+                applied_motor_impulse_nm_s: -0.003,
+                mean_observed_motor_effort_nm: -3.0,
+                mean_completed_motor_effort_nm: Some(-3.0),
+                effective_effort_ceiling_nm: Some(10.0),
+                interval: completed_motor_interval(),
+            },
+            JointPositionMotorDiagnostics::Prismatic {
+                applied_motor_impulse_n_s: 0.003,
+                mean_observed_motor_force_n: 3.0,
+                mean_completed_motor_force_n: Some(3.0),
+                effective_force_ceiling_n: Some(10.0),
+                interval: completed_motor_interval(),
+            },
+        ] {
+            let value = serde_json::to_value(&sample).expect("serialize motor diagnostics");
+            let decoded: JointPositionMotorDiagnostics =
+                serde_json::from_value(value.clone()).expect("deserialize motor diagnostics");
+            assert_eq!(decoded, sample);
+            assert!(decoded.has_valid_values());
+            assert_eq!(value["interval"]["physics_world_id"], 4);
+            assert!(matches!(
+                value["kind"].as_str(),
+                Some("revolute" | "prismatic")
+            ));
+            let mut unknown = value.clone();
+            unknown["total_joint_reaction"] = serde_json::json!(1.0);
+            assert!(serde_json::from_value::<JointPositionMotorDiagnostics>(unknown).is_err());
+            let mut unknown_interval = value;
+            unknown_interval["interval"]["estimated_full_coverage"] = serde_json::json!(true);
+            assert!(
+                serde_json::from_value::<JointPositionMotorDiagnostics>(unknown_interval).is_err()
+            );
+        }
+    }
 
     #[test]
     fn convex_hull_collider_round_trips_through_serde() {

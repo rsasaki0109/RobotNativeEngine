@@ -4,6 +4,7 @@ use crate::dynamics::solver::contact_constraint::ContactConstraintsSet;
 use crate::dynamics::IslandManager;
 use crate::dynamics::{IntegrationParameters, JointGraphEdge, JointIndex, RigidBodySet};
 use crate::geometry::{ContactManifold, ContactManifoldIndex};
+use crate::pipeline::InternalMotorImpulseSample;
 use crate::prelude::MultibodyJointSet;
 use parry::math::Real;
 
@@ -26,6 +27,18 @@ impl IslandSolver {
             joint_constraints: JointConstraintsSet::new(),
             velocity_solver: VelocitySolver::new(),
         }
+    }
+
+    pub(crate) fn prepare_motor_impulse_telemetry(&mut self, enabled: bool, partition: usize) {
+        self.velocity_solver.motor_impulse_samples = enabled.then(Vec::new);
+        self.velocity_solver.motor_impulse_partition_index = partition;
+    }
+
+    pub(crate) fn take_motor_impulse_samples(&mut self) -> Vec<InternalMotorImpulseSample> {
+        self.velocity_solver
+            .motor_impulse_samples
+            .take()
+            .unwrap_or_default()
     }
 
     pub fn init_and_solve(

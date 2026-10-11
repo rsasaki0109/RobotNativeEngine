@@ -234,6 +234,11 @@ impl Multibody {
 
     pub(crate) fn append(&mut self, mut rhs: Multibody, parent: usize, joint: MultibodyJoint) {
         let rhs_root_ndofs = rhs.links[0].joint.ndofs();
+        let lhs_ndofs = self.velocities.len();
+        let new_joint_ndofs = joint.ndofs();
+        // Preserve every representable legacy damping view. A negative mathematical
+        // start was invalid, even when unsigned release arithmetic wrapped it.
+        let legacy_damping_start = (lhs_ndofs + new_joint_ndofs).checked_sub(rhs_root_ndofs);
         // Values for rhs will be copied into the buffers of `self` starting at this index.
         let rhs_copy_shift = self.ndofs + joint.ndofs();
         // Number of dofs to copy from rhs. The root’s dofs isn’t included because it will be
@@ -241,12 +246,11 @@ impl Multibody {
         let rhs_copy_ndofs = rhs.ndofs - rhs_root_ndofs;
 
         // Adjust the ids of all the rhs links except the first one.
-        let base_assembly_id = self.velocities.len() - rhs_root_ndofs + joint.ndofs();
         let base_internal_id = self.links.len() + 1;
         let base_parent_id = self.links.len();
 
         for link in &mut rhs.links.0[1..] {
-            link.assembly_id += base_assembly_id;
+            link.assembly_id = (link.assembly_id - rhs_root_ndofs) + lhs_ndofs + new_joint_ndofs;
             link.internal_id += base_internal_id;
             link.parent_internal_id += base_parent_id;
         }
@@ -277,9 +281,13 @@ impl Multibody {
                 .copy_from(&rhs.accelerations.rows(rhs_root_ndofs, rhs_copy_ndofs));
         }
 
+        let (damping_start, damping_ndofs) = match legacy_damping_start {
+            Some(start) => (start, rhs_root_ndofs),
+            None => (lhs_ndofs, new_joint_ndofs),
+        };
         rhs.links[0]
             .joint
-            .default_damping(&mut self.damping.rows_mut(base_assembly_id, rhs_root_ndofs));
+            .default_damping(&mut self.damping.rows_mut(damping_start, damping_ndofs));
 
         self.links.append(&mut rhs.links);
         self.ndofs = self.velocities.len();
@@ -1940,11 +1948,48 @@ mod rne_kinematic_root_tests {
                 false,
             ),
         );
+        assert_eq!(split[0].ndofs(), 1);
+        assert_eq!(split[0].links[1].assembly_id, 0);
+        assert_eq!(split[0].damping.as_slice(), &[0.1]);
         split[0].prepare_kinematic_root_motion(&bodies, 0.01);
         assert!(split[0].kinematic_root_motion.is_some());
         split[0].integrate(0.01);
         split[0].forward_kinematics(&bodies, false);
         assert!((split[0].links[0].local_to_world.translation.vector.x - 0.01).abs() < 1e-6);
+    }
+
+    #[test]
+    fn append_preserves_defined_legacy_damping_placement() {
+        let mut bodies = RigidBodySet::new();
+        let lhs_root = bodies.insert(RigidBodyBuilder::dynamic().build());
+        let rhs_root = bodies.insert(RigidBodyBuilder::dynamic().build());
+        let mut lhs = Multibody::with_root(lhs_root, false);
+        let rhs = Multibody::with_root(rhs_root, false);
+        let original = [0.02, 0.04, 0.06, 0.08, 0.10, 0.12];
+        lhs.damping.as_mut_slice().copy_from_slice(&original);
+        lhs.append(
+            rhs,
+            0,
+            MultibodyJoint::new(
+                RevoluteJointBuilder::new(Vector::z_axis()).build().into(),
+                false,
+            ),
+        );
+        // The old, defined view writes angular damping into coordinate 1.
+        // Relocating it to the appended root would alter existing model behavior.
+        let expected = [0.02_f32, 0.1, 0.06, 0.08, 0.10, 0.12, 0.0];
+        assert_eq!(
+            lhs.damping
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+            expected
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+        );
+        assert_eq!(lhs.links[1].assembly_id, 6);
+        assert_eq!(lhs.ndofs(), 7);
     }
 
     #[test]

@@ -5,6 +5,8 @@ use crate::convert::{
     transform_to_isometry, vec3_from_point, vec3_from_rapier, vec3_to_point, vec3_to_rapier,
 };
 use rapier3d::na::{Matrix3, Translation3, Unit, UnitQuaternion, Vector3};
+#[cfg(feature = "position-motor-diagnostics")]
+use rapier3d::pipeline::MultibodyMotorImpulseValue;
 use rapier3d::pipeline::{PhysicsPipeline, QueryPipeline};
 use rapier3d::prelude::*;
 use rne_core::SimDuration;
@@ -22,6 +24,8 @@ use rne_physics::{
     PrismaticJointDesc, RaycastHit, RaycastQuery, RevoluteJointDesc, RigidBody, RigidBodyInertia,
     RigidBodyType,
 };
+#[cfg(feature = "position-motor-diagnostics")]
+use rne_physics::{JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval};
 use rne_world::{world_transform_of, Transform3};
 use std::collections::HashMap;
 
@@ -85,6 +89,27 @@ struct RapierWorldState {
     pending_joint_efforts: HashMap<Entity, JointEffortMeasurement>,
     /// Native force/torque increments retained from the completed step.
     completed_joint_efforts: HashMap<Entity, JointEffortMeasurement>,
+    #[cfg(feature = "position-motor-diagnostics")]
+    position_motor_diagnostics_enabled: bool,
+    #[cfg(feature = "position-motor-diagnostics")]
+    position_motor_diagnostics_world_id: PhysicsWorldId,
+    #[cfg(feature = "position-motor-diagnostics")]
+    published_position_motor_diagnostics: Vec<Entity>,
+    #[cfg(feature = "position-motor-diagnostics")]
+    pending_position_motor_diagnostics: Vec<PositionMotorDiagnosticTarget>,
+    #[cfg(feature = "position-motor-diagnostics")]
+    completed_position_motor_diagnostics: HashMap<Entity, JointPositionMotorDiagnostics>,
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+#[derive(Clone, Copy, Debug)]
+struct PositionMotorDiagnosticTarget {
+    entity: Entity,
+    joint_handle: MultibodyJointHandle,
+    link_id: usize,
+    axis: JointAxis,
+    revolute: bool,
+    effort_ceiling: Option<f64>,
 }
 
 impl RapierBackend {
@@ -264,6 +289,199 @@ fn multibody_joint_coordinate(state: &RapierWorldState, entity: Entity) -> Optio
     Some((position, multibody.joint_velocity(link)[0] as f64))
 }
 
+#[cfg(feature = "position-motor-diagnostics")]
+fn position_motor_diagnostic_target(
+    world: &World,
+    state: &RapierWorldState,
+    entity: Entity,
+) -> Option<PositionMotorDiagnosticTarget> {
+    if world.get::<MultibodyLink>(entity).is_none()
+        || world.get::<JointMotorGainModel>(entity) != Some(&JointMotorGainModel::ForceBased)
+    {
+        return None;
+    }
+    let command = world.get::<JointActuation>(entity)?;
+    let revolute = match command {
+        JointActuation::RevolutePosition { .. } => true,
+        JointActuation::PrismaticPosition { .. } => false,
+        _ => return None,
+    };
+    if !command.has_valid_values() {
+        return None;
+    }
+    let joint_handle = *state.entity_to_multibody_joint.get(&entity)?;
+    let (multibody, link_id) = state.multibody_joints.get(joint_handle)?;
+    let link = multibody.link(link_id)?;
+    if link.joint.ndofs() != 1 {
+        return None;
+    }
+    let axis = motor_axis_for_entity(world, entity)?;
+    if revolute != (axis == JointAxis::AngX) {
+        return None;
+    }
+    let motor = &link.joint.data.motors[axis as usize];
+    if motor.model != MotorModel::ForceBased || motor.max_force.is_nan() || motor.max_force < 0.0 {
+        return None;
+    }
+    Some(PositionMotorDiagnosticTarget {
+        entity,
+        joint_handle,
+        link_id,
+        axis,
+        revolute,
+        effort_ceiling: motor
+            .max_force
+            .is_finite()
+            .then(|| f64::from(motor.max_force)),
+    })
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn diagnostic_world_id(diagnostic: &JointPositionMotorDiagnostics) -> u32 {
+    match diagnostic {
+        JointPositionMotorDiagnostics::Revolute { interval, .. }
+        | JointPositionMotorDiagnostics::Prismatic { interval, .. } => interval.physics_world_id,
+    }
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn remove_position_motor_diagnostic_components(world: &mut World, state: &mut RapierWorldState) {
+    for entity in state.published_position_motor_diagnostics.drain(..) {
+        if world
+            .get::<JointPositionMotorDiagnostics>(entity)
+            .is_some_and(|measurement| {
+                diagnostic_world_id(measurement) == state.position_motor_diagnostics_world_id.0
+            })
+        {
+            world
+                .entity_mut(entity)
+                .remove::<JointPositionMotorDiagnostics>();
+        }
+    }
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn sync_position_motor_diagnostic_targets(world: &mut World, state: &mut RapierWorldState) {
+    if !state.position_motor_diagnostics_enabled {
+        return;
+    }
+    state.pending_position_motor_diagnostics = sorted_entities(world)
+        .into_iter()
+        .filter_map(|entity| position_motor_diagnostic_target(world, state, entity))
+        .collect();
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn collect_completed_position_motor_diagnostics(state: &mut RapierWorldState, dt: SimDuration) {
+    if !state.position_motor_diagnostics_enabled {
+        return;
+    }
+    let Some(report) = state.physics_pipeline.completed_multibody_motor_impulses() else {
+        return;
+    };
+    for target in &state.pending_position_motor_diagnostics {
+        let Some(sample) = report.motors.iter().find(|sample| {
+            sample.joint_handle == target.joint_handle
+                && sample.link_id == target.link_id
+                && sample.joint_dof_id == 0
+                && sample.axis == target.axis
+        }) else {
+            continue;
+        };
+        let interval = PositionMotorDiagnosticInterval {
+            physics_world_id: state.position_motor_diagnostics_world_id.0,
+            nominal_step_ticks: dt.ticks(),
+            numerical_outer_interval_s: report.numerical_outer_interval_s,
+            ccd_partition_durations_s: report.ccd_partition_durations_s.clone(),
+            observed_solver_interval_s: sample.observed_solver_interval_s,
+            observed_solver_slice_count: sample.observed_solver_slice_count as u64,
+            full_step_coverage: sample.full_step_coverage,
+            observed_partition_count: sample.observed_partition_count as u64,
+            finite_positive_bound_eligible_slice_count: sample
+                .finite_positive_bound_eligible_slice_count
+                as u64,
+            finite_positive_bound_eligible_duration_s: sample
+                .finite_positive_bound_eligible_duration_s,
+            finite_positive_bound_active_slice_count: sample
+                .finite_positive_bound_active_slice_count
+                as u64,
+            finite_positive_bound_active_duration_s: sample.finite_positive_bound_active_duration_s,
+        };
+        let measurement = match &sample.impulse {
+            MultibodyMotorImpulseValue::Revolute {
+                applied_impulse_nm_s,
+                effective_effort_ceiling_nm,
+                ..
+            } if target.revolute && *effective_effort_ceiling_nm == target.effort_ceiling => {
+                let mean = *applied_impulse_nm_s / interval.observed_solver_interval_s;
+                JointPositionMotorDiagnostics::Revolute {
+                    applied_motor_impulse_nm_s: *applied_impulse_nm_s,
+                    mean_observed_motor_effort_nm: mean,
+                    mean_completed_motor_effort_nm: interval.full_step_coverage.then_some(mean),
+                    effective_effort_ceiling_nm: *effective_effort_ceiling_nm,
+                    interval,
+                }
+            }
+            MultibodyMotorImpulseValue::Prismatic {
+                applied_impulse_n_s,
+                effective_force_ceiling_n,
+                ..
+            } if !target.revolute && *effective_force_ceiling_n == target.effort_ceiling => {
+                let mean = *applied_impulse_n_s / interval.observed_solver_interval_s;
+                JointPositionMotorDiagnostics::Prismatic {
+                    applied_motor_impulse_n_s: *applied_impulse_n_s,
+                    mean_observed_motor_force_n: mean,
+                    mean_completed_motor_force_n: interval.full_step_coverage.then_some(mean),
+                    effective_force_ceiling_n: *effective_force_ceiling_n,
+                    interval,
+                }
+            }
+            _ => continue,
+        };
+        if measurement.has_valid_values() {
+            state
+                .completed_position_motor_diagnostics
+                .insert(target.entity, measurement);
+        }
+    }
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn sync_position_motor_diagnostics_to_ecs(world: &mut World, state: &mut RapierWorldState) {
+    let mut entities = state.published_position_motor_diagnostics.clone();
+    entities.extend(state.completed_position_motor_diagnostics.keys().copied());
+    entities.sort_unstable();
+    entities.dedup();
+    let mut published = Vec::new();
+    for entity in entities {
+        let eligible = state.position_motor_diagnostics_enabled
+            && position_motor_diagnostic_target(world, state, entity).is_some();
+        if !eligible {
+            state.completed_position_motor_diagnostics.remove(&entity);
+            state
+                .pending_position_motor_diagnostics
+                .retain(|target| target.entity != entity);
+        }
+        if let Some(measurement) = eligible
+            .then(|| state.completed_position_motor_diagnostics.get(&entity))
+            .flatten()
+        {
+            world.entity_mut(entity).insert(measurement.clone());
+            published.push(entity);
+        } else if world
+            .get::<JointPositionMotorDiagnostics>(entity)
+            .is_some_and(|measurement| {
+                diagnostic_world_id(measurement) == state.position_motor_diagnostics_world_id.0
+            })
+        {
+            world
+                .entity_mut(entity)
+                .remove::<JointPositionMotorDiagnostics>();
+        }
+    }
+    state.published_position_motor_diagnostics = published;
+}
+
 fn joint_coordinate_value(rel: &Isometry<f32>, dof: usize) -> f64 {
     if dof < 3 {
         rel.translation.vector[dof] as f64
@@ -329,6 +547,16 @@ impl PhysicsBackend for RapierBackend {
                 impulse_forced: Vec::new(),
                 pending_joint_efforts: HashMap::new(),
                 completed_joint_efforts: HashMap::new(),
+                #[cfg(feature = "position-motor-diagnostics")]
+                position_motor_diagnostics_enabled: false,
+                #[cfg(feature = "position-motor-diagnostics")]
+                position_motor_diagnostics_world_id: id,
+                #[cfg(feature = "position-motor-diagnostics")]
+                published_position_motor_diagnostics: Vec::new(),
+                #[cfg(feature = "position-motor-diagnostics")]
+                pending_position_motor_diagnostics: Vec::new(),
+                #[cfg(feature = "position-motor-diagnostics")]
+                completed_position_motor_diagnostics: HashMap::new(),
             },
         );
 
@@ -341,6 +569,12 @@ impl PhysicsBackend for RapierBackend {
         physics_world: PhysicsWorldId,
     ) -> Result<(), PhysicsError> {
         let state = self.world_mut(physics_world)?;
+        #[cfg(feature = "position-motor-diagnostics")]
+        if state.position_motor_diagnostics_enabled {
+            state.pending_position_motor_diagnostics.clear();
+            state.completed_position_motor_diagnostics.clear();
+            remove_position_motor_diagnostic_components(world, state);
+        }
 
         // Iterate in a stable entity order so Rapier handle assignment and the
         // resulting solver order are deterministic regardless of ECS archetype
@@ -469,6 +703,8 @@ impl PhysicsBackend for RapierBackend {
 
         sync_joints_from_ecs(world, state)?;
         apply_joint_motors(world, state)?;
+        #[cfg(feature = "position-motor-diagnostics")]
+        sync_position_motor_diagnostic_targets(world, state);
         state.query_pipeline.update(&state.colliders);
 
         Ok(())
@@ -479,6 +715,8 @@ impl PhysicsBackend for RapierBackend {
         state.integration_parameters.dt = dt.as_seconds().value() as f32;
         state.contacts.clear();
         state.contact_points.clear();
+        #[cfg(feature = "position-motor-diagnostics")]
+        state.completed_position_motor_diagnostics.clear();
 
         state.physics_pipeline.step(
             &state.gravity,
@@ -497,6 +735,8 @@ impl PhysicsBackend for RapierBackend {
         );
 
         state.completed_joint_efforts = std::mem::take(&mut state.pending_joint_efforts);
+        #[cfg(feature = "position-motor-diagnostics")]
+        collect_completed_position_motor_diagnostics(state, dt);
 
         // One-step disturbance wrenches have done their work; clear both linear
         // and angular parts so direct joint effort and revolute Coulomb friction
@@ -641,6 +881,9 @@ impl PhysicsBackend for RapierBackend {
         world: &mut World,
         physics_world: PhysicsWorldId,
     ) -> Result<(), PhysicsError> {
+        #[cfg(feature = "position-motor-diagnostics")]
+        let state = self.world_mut(physics_world)?;
+        #[cfg(not(feature = "position-motor-diagnostics"))]
         let state = self.world(physics_world)?;
 
         // Write back in a stable parent-before-child order (entities are created
@@ -738,8 +981,30 @@ impl PhysicsBackend for RapierBackend {
                 world.entity_mut(entity).remove::<JointEffortMeasurement>();
             }
         }
+        #[cfg(feature = "position-motor-diagnostics")]
+        sync_position_motor_diagnostics_to_ecs(world, state);
 
         Ok(())
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn configure_position_motor_diagnostics(
+        &mut self,
+        world: &mut World,
+        physics_world: PhysicsWorldId,
+        enabled: bool,
+    ) -> Result<bool, PhysicsError> {
+        let state = self.world_mut(physics_world)?;
+        if state.position_motor_diagnostics_enabled != enabled {
+            state.position_motor_diagnostics_enabled = enabled;
+            state.pending_position_motor_diagnostics.clear();
+            state.completed_position_motor_diagnostics.clear();
+            state
+                .physics_pipeline
+                .set_multibody_motor_impulse_telemetry_enabled(enabled);
+            remove_position_motor_diagnostic_components(world, state);
+        }
+        Ok(true)
     }
 
     fn raycast(
@@ -1687,6 +1952,629 @@ mod tests {
     use rne_ecs::spawn_named;
     use rne_math::Quat;
     use rne_physics::{hash_physics_state, ColliderShape, CollisionGroups};
+
+    #[cfg(not(feature = "position-motor-diagnostics"))]
+    #[test]
+    fn position_motor_diagnostics_are_unsupported_without_the_patch_feature() {
+        let mut backend = RapierBackend::new();
+        let mut world = World::new();
+        let entity = world.spawn_empty().id();
+        assert!(!backend
+            .configure_position_motor_diagnostics(&mut world, PhysicsWorldId(u32::MAX), true)
+            .unwrap());
+        assert_eq!(world.iter_entities().count(), 1);
+        assert!(world
+            .get::<rne_physics::JointPositionMotorDiagnostics>(entity)
+            .is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn diagnostic_position_command(revolute: bool, target: f64, cap: f64) -> JointActuation {
+        if revolute {
+            JointActuation::RevolutePosition {
+                target_position_rad: target,
+                stiffness_nm_per_rad: 1_000_000.0,
+                damping_nm_s_per_rad: 100_000.0,
+                max_effort_nm: cap,
+            }
+        } else {
+            JointActuation::PrismaticPosition {
+                target_position_m: target,
+                stiffness_n_per_m: 1_000_000.0,
+                damping_n_s_per_m: 100_000.0,
+                max_force_n: cap,
+            }
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn motor_diagnostic_fixture(
+        revolute: bool,
+        target: f64,
+        cap: f64,
+    ) -> (RapierBackend, PhysicsWorldId, World, Entity) {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent_rotation = Quat::from_rotation_x(0.43);
+        let origin_rotation = Quat::from_rotation_y(-0.37);
+        let anchor = -Vec3::Y;
+        let parent = world
+            .spawn((
+                RigidBody {
+                    body_type: RigidBodyType::Fixed,
+                    ..RigidBody::default()
+                },
+                MultibodyLink,
+                Transform3::from_translation_rotation(Vec3::ZERO, parent_rotation),
+            ))
+            .id();
+        let child = world
+            .spawn((
+                RigidBody {
+                    mass_kg: 2.0,
+                    ..RigidBody::default()
+                },
+                Collider::cuboid(Vec3::splat(0.05)),
+                MultibodyLink,
+                PhysicsOwnedPose,
+                Transform3::from_translation_rotation(
+                    parent_rotation * anchor,
+                    parent_rotation * origin_rotation,
+                ),
+                JointMotorGainModel::ForceBased,
+                diagnostic_position_command(revolute, target, cap),
+            ))
+            .id();
+        if revolute {
+            world.entity_mut(child).insert(RevoluteJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: anchor,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: origin_rotation,
+                lower_rad: None,
+                upper_rad: None,
+            });
+        } else {
+            world.entity_mut(child).insert(PrismaticJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: anchor,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: origin_rotation,
+                lower_m: None,
+                upper_m: None,
+            });
+        }
+        (backend, id, world, child)
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn diagnostic_parts(
+        measurement: &JointPositionMotorDiagnostics,
+    ) -> (
+        f64,
+        f64,
+        Option<f64>,
+        Option<f64>,
+        &PositionMotorDiagnosticInterval,
+    ) {
+        match measurement {
+            JointPositionMotorDiagnostics::Revolute {
+                applied_motor_impulse_nm_s,
+                mean_observed_motor_effort_nm,
+                mean_completed_motor_effort_nm,
+                effective_effort_ceiling_nm,
+                interval,
+            } => (
+                *applied_motor_impulse_nm_s,
+                *mean_observed_motor_effort_nm,
+                *mean_completed_motor_effort_nm,
+                *effective_effort_ceiling_nm,
+                interval,
+            ),
+            JointPositionMotorDiagnostics::Prismatic {
+                applied_motor_impulse_n_s,
+                mean_observed_motor_force_n,
+                mean_completed_motor_force_n,
+                effective_force_ceiling_n,
+                interval,
+            } => (
+                *applied_motor_impulse_n_s,
+                *mean_observed_motor_force_n,
+                *mean_completed_motor_force_n,
+                *effective_force_ceiling_n,
+                interval,
+            ),
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn diagnostic_joint_coordinate(state: JointState) -> (f64, f64) {
+        match state {
+            JointState::Revolute {
+                position_rad,
+                velocity_rad_s,
+            } => (position_rad, velocity_rad_s),
+            JointState::Prismatic {
+                position_m,
+                velocity_m_s,
+            } => (position_m, velocity_m_s),
+            JointState::Fixed => panic!("the fixture has one free joint coordinate"),
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn diagnostic_literal_words(measurement: &JointPositionMotorDiagnostics) -> Vec<u64> {
+        let (impulse, mean, completed, ceiling, interval) = diagnostic_parts(measurement);
+        let mut words = vec![
+            u64::from(matches!(
+                measurement,
+                JointPositionMotorDiagnostics::Revolute { .. }
+            )),
+            impulse.to_bits(),
+            mean.to_bits(),
+            u64::from(completed.is_some()),
+            completed.map(f64::to_bits).unwrap_or(0),
+            u64::from(ceiling.is_some()),
+            ceiling.map(f64::to_bits).unwrap_or(0),
+            u64::from(interval.physics_world_id),
+            interval.nominal_step_ticks,
+            interval.numerical_outer_interval_s.to_bits(),
+            interval.ccd_partition_durations_s.len() as u64,
+        ];
+        words.extend(
+            interval
+                .ccd_partition_durations_s
+                .iter()
+                .map(|duration| duration.to_bits()),
+        );
+        words.extend([
+            interval.observed_solver_interval_s.to_bits(),
+            interval.observed_solver_slice_count,
+            u64::from(interval.full_step_coverage),
+            interval.observed_partition_count,
+            interval.finite_positive_bound_eligible_slice_count,
+            interval.finite_positive_bound_eligible_duration_s.to_bits(),
+            interval.finite_positive_bound_active_slice_count,
+            interval.finite_positive_bound_active_duration_s.to_bits(),
+        ]);
+        words
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn position_motor_impulses_keep_generalized_sign_units_and_actual_interval() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(1000.0));
+        for revolute in [true, false] {
+            for sign in [-1.0, 1.0] {
+                let (mut backend, id, mut world, child) =
+                    motor_diagnostic_fixture(revolute, sign * 0.4, 2.0);
+                assert!(backend
+                    .configure_position_motor_diagnostics(&mut world, id, true)
+                    .unwrap());
+                backend.sync_from_ecs(&mut world, id).unwrap();
+                let state = backend.world_mut(id).unwrap();
+                let body_handle = state.entity_to_body[&child];
+                state
+                    .bodies
+                    .get_mut(body_handle)
+                    .unwrap()
+                    .set_additional_solver_iterations(3);
+                backend.sync_to_ecs(&mut world, id).unwrap();
+                assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+                backend.step(id, dt).unwrap();
+                backend.sync_to_ecs(&mut world, id).unwrap();
+                let measurement = world.get::<JointPositionMotorDiagnostics>(child).unwrap();
+                assert_eq!(
+                    matches!(measurement, JointPositionMotorDiagnostics::Revolute { .. }),
+                    revolute
+                );
+                let (impulse, mean, completed, ceiling, interval) = diagnostic_parts(measurement);
+                assert!(impulse * sign > 0.0);
+                assert!(
+                    diagnostic_joint_coordinate(*world.get::<JointState>(child).unwrap()).1 * sign
+                        > 0.0
+                );
+                assert_eq!(ceiling, Some(2.0));
+                assert_eq!(
+                    mean.to_bits(),
+                    (impulse / interval.observed_solver_interval_s).to_bits()
+                );
+                assert_eq!(completed.map(f64::to_bits), Some(mean.to_bits()));
+                assert_eq!(interval.physics_world_id, id.0);
+                assert_eq!(interval.nominal_step_ticks, dt.ticks());
+                assert_eq!(
+                    interval.numerical_outer_interval_s.to_bits(),
+                    f64::from(dt.as_seconds().value() as f32).to_bits()
+                );
+                assert!(interval.full_step_coverage);
+                assert_ne!(
+                    interval.observed_solver_interval_s.to_bits(),
+                    interval.numerical_outer_interval_s.to_bits()
+                );
+                assert!(interval.observed_solver_slice_count > 0);
+                assert_eq!(
+                    interval.finite_positive_bound_eligible_slice_count,
+                    interval.observed_solver_slice_count
+                );
+                assert_eq!(
+                    interval.finite_positive_bound_active_slice_count,
+                    interval.observed_solver_slice_count
+                );
+                assert_eq!(
+                    interval.finite_positive_bound_active_duration_s.to_bits(),
+                    interval.observed_solver_interval_s.to_bits()
+                );
+                let state = backend.world(id).unwrap();
+                let report = state
+                    .physics_pipeline
+                    .completed_multibody_motor_impulses()
+                    .unwrap();
+                let h = report.motors[0].slices[0].duration_s as f32;
+                let (multibody, _) = state
+                    .multibody_joints
+                    .get(state.entity_to_multibody_joint[&child])
+                    .unwrap();
+                assert_eq!(multibody.ndofs(), 1);
+                let mut inverse_mass = DVector::from_element(1, 1.0_f32);
+                assert!(multibody.inv_augmented_mass().solve_mut(&mut inverse_mass));
+                let generalized_mass = 1.0 / inverse_mass[0];
+                let (erp_inv_dt, _, cfm_gain) =
+                    MotorModel::ForceBased.combine_coefficients(h, 1_000_000.0, 100_000.0);
+                // These fixed fixture gains keep the existing internal recurrence
+                // contractive; the bounded target still demands more than cap2
+                // can realize during this single interval, for the actual inertia.
+                assert!(cfm_gain * generalized_mass < 1.0);
+                let outer = interval.numerical_outer_interval_s as f32;
+                let maximum_velocity = 2.0 * outer / generalized_mass;
+                let maximum_position = 2.0 * outer * outer / generalized_mass;
+                assert!(
+                    erp_inv_dt * (0.4 - maximum_position) > maximum_velocity + cfm_gain * 2.0 * h
+                );
+                assert_relative_eq!(mean, sign * 2.0, epsilon = 1.0e-5);
+            }
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn a_solved_zero_cap_is_measured_zero_without_positive_bound_occupancy() {
+        for revolute in [true, false] {
+            let (mut backend, id, mut world, child) = motor_diagnostic_fixture(revolute, 10.0, 0.0);
+            backend
+                .configure_position_motor_diagnostics(&mut world, id, true)
+                .unwrap();
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            let (impulse, mean, completed, ceiling, interval) =
+                diagnostic_parts(world.get::<JointPositionMotorDiagnostics>(child).unwrap());
+            assert_eq!(impulse, 0.0);
+            assert_eq!(mean, 0.0);
+            assert_eq!(completed, Some(0.0));
+            assert_eq!(ceiling, Some(0.0));
+            assert!(interval.observed_solver_slice_count > 0);
+            assert_eq!(interval.finite_positive_bound_eligible_slice_count, 0);
+            assert_eq!(interval.finite_positive_bound_active_slice_count, 0);
+            assert_eq!(interval.finite_positive_bound_eligible_duration_s, 0.0);
+            assert_eq!(interval.finite_positive_bound_active_duration_s, 0.0);
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn position_motor_diagnostics_are_fresh_idempotent_and_cleared_on_invalid_sync() {
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        assert!(matches!(
+            backend.configure_position_motor_diagnostics(
+                &mut world,
+                PhysicsWorldId(u32::MAX),
+                true
+            ),
+            Err(PhysicsError::WorldNotFound)
+        ));
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        let completed = world
+            .get::<JointPositionMotorDiagnostics>(child)
+            .unwrap()
+            .clone();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert_eq!(
+            world.get::<JointPositionMotorDiagnostics>(child),
+            Some(&completed)
+        );
+        world
+            .entity_mut(child)
+            .insert(diagnostic_position_command(true, -10.0, 3.0));
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert_eq!(
+            world.get::<JointPositionMotorDiagnostics>(child),
+            Some(&completed)
+        );
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend.step(id, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let (impulse, _, _, ceiling, _) =
+            diagnostic_parts(world.get::<JointPositionMotorDiagnostics>(child).unwrap());
+        assert!(impulse < 0.0);
+        assert_eq!(ceiling, Some(3.0));
+        world
+            .entity_mut(child)
+            .insert(diagnostic_position_command(true, f64::NAN, 3.0));
+        assert!(backend.sync_from_ecs(&mut world, id).is_err());
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn ineligible_readback_cannot_resurrect_a_previous_completed_motor_interval() {
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 0.4, 2.0);
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_some());
+        world.entity_mut(child).insert(JointActuation::Disabled);
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        world
+            .entity_mut(child)
+            .insert(diagnostic_position_command(true, 0.4, 2.0));
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend.step(id, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_some());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn position_motor_diagnostics_clear_on_disable_sleep_and_unwiring() {
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_some());
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, false)
+            .unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        let state = backend.world_mut(id).unwrap();
+        let body = state.entity_to_body[&child];
+        state.bodies.get_mut(body).unwrap().sleep();
+        backend.step(id, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        let state = backend.world_mut(id).unwrap();
+        state.bodies.get_mut(body).unwrap().wake_up(true);
+        backend.step(id, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_some());
+        world.entity_mut(child).remove::<MultibodyLink>();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn unsupported_motor_modes_do_not_replace_direct_effort_feedback() {
+        let modes = [
+            JointActuation::Disabled,
+            JointActuation::RevoluteVelocity {
+                target_velocity_rad_s: 1.0,
+                gain_nm_s_per_rad: 10.0,
+                max_effort_nm: 2.0,
+            },
+            JointActuation::RevoluteEffort {
+                effort_nm: 2.0,
+                max_effort_nm: 2.0,
+            },
+        ];
+        for mode in modes {
+            let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+            backend
+                .configure_position_motor_diagnostics(&mut world, id, true)
+                .unwrap();
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            world.entity_mut(child).insert(mode);
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+            if matches!(mode, JointActuation::RevoluteEffort { .. }) {
+                assert!(
+                    matches!(world.get::<JointEffortMeasurement>(child), Some(JointEffortMeasurement::Revolute { measured_effort_nm }) if *measured_effort_nm == 2.0)
+                );
+            }
+        }
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        world
+            .entity_mut(child)
+            .insert(JointMotorGainModel::AccelerationBased);
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        world.entity_mut(child).remove::<JointActuation>();
+        world.entity_mut(child).insert((
+            JointMotorGainModel::ForceBased,
+            JointMotor {
+                target_position: 10.0,
+                stiffness: 1000.0,
+                max_force: 2.0,
+                ..JointMotor::default()
+            },
+        ));
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        world.entity_mut(child).remove::<MultibodyLink>();
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn native_infinite_ceiling_is_unbounded_measurement_not_missing_or_bound_active() {
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(false, 0.01, f64::MAX);
+        world.get_mut::<RigidBody>(child).unwrap().mass_kg = 1.0;
+        world
+            .entity_mut(child)
+            .insert(JointActuation::PrismaticPosition {
+                target_position_m: 0.01,
+                stiffness_n_per_m: 100.0,
+                damping_n_s_per_m: 10_000.0,
+                max_force_n: f64::MAX,
+            });
+        backend
+            .world_mut(id)
+            .unwrap()
+            .integration_parameters
+            .num_solver_iterations = std::num::NonZeroUsize::new(4).unwrap();
+        // At the 0.25 ms native slice, the existing ForceBased recurrence has
+        // cfm_gain * mass below one; this fixture does not rely on a finite cap.
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(1000.0));
+        step_physics(&mut backend, &mut world, id, dt).unwrap();
+        let (impulse, mean, completed, ceiling, interval) =
+            diagnostic_parts(world.get::<JointPositionMotorDiagnostics>(child).unwrap());
+        assert!(impulse.is_finite() && impulse > 0.0 && mean.is_finite());
+        assert_eq!(completed, Some(mean));
+        assert_eq!(ceiling, None);
+        assert_eq!(interval.finite_positive_bound_eligible_slice_count, 0);
+        assert_eq!(interval.finite_positive_bound_active_slice_count, 0);
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn two_physics_worlds_keep_diagnostic_cleanup_scoped_to_the_last_writer() {
+        let (mut backend, first, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        let second = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        backend
+            .configure_position_motor_diagnostics(&mut world, first, true)
+            .unwrap();
+        backend
+            .configure_position_motor_diagnostics(&mut world, second, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, first, fixed_step()).unwrap();
+        assert_eq!(
+            diagnostic_world_id(world.get::<JointPositionMotorDiagnostics>(child).unwrap()),
+            first.0
+        );
+        step_physics(&mut backend, &mut world, second, fixed_step()).unwrap();
+        let last_writer = world
+            .get::<JointPositionMotorDiagnostics>(child)
+            .unwrap()
+            .clone();
+        assert_eq!(diagnostic_world_id(&last_writer), second.0);
+        backend
+            .configure_position_motor_diagnostics(&mut world, first, false)
+            .unwrap();
+        assert_eq!(
+            world.get::<JointPositionMotorDiagnostics>(child),
+            Some(&last_writer)
+        );
+        backend
+            .configure_position_motor_diagnostics(&mut world, second, false)
+            .unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn diagnostic_collection_preserves_literal_physical_state_and_replays() {
+        fn rollout(enabled: bool, revolute: bool) -> (Vec<Vec<u64>>, Vec<Vec<u64>>) {
+            let (mut backend, id, mut world, child) = motor_diagnostic_fixture(revolute, 10.0, 2.0);
+            backend
+                .configure_position_motor_diagnostics(&mut world, id, enabled)
+                .unwrap();
+            let mut physical = Vec::new();
+            let mut measurements = Vec::new();
+            for index in 0..20 {
+                world.entity_mut(child).insert(diagnostic_position_command(
+                    revolute,
+                    if index < 10 { 10.0 } else { -10.0 },
+                    2.0,
+                ));
+                step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+                let state = backend.world(id).unwrap();
+                let body = &state.bodies[state.entity_to_body[&child]];
+                let (multibody, link_id) = state
+                    .multibody_joints
+                    .get(state.entity_to_multibody_joint[&child])
+                    .unwrap();
+                let mut words = body
+                    .position()
+                    .to_homogeneous()
+                    .iter()
+                    .copied()
+                    .chain(body.linvel().iter().copied())
+                    .chain(body.angvel().iter().copied())
+                    .map(|v| u64::from(v.to_bits()))
+                    .collect::<Vec<_>>();
+                words.extend(
+                    multibody
+                        .joint_velocity(multibody.link(link_id).unwrap())
+                        .iter()
+                        .map(|v| u64::from(v.to_bits())),
+                );
+                let (position, velocity) =
+                    diagnostic_joint_coordinate(*world.get::<JointState>(child).unwrap());
+                words.extend([
+                    position.to_bits(),
+                    velocity.to_bits(),
+                    hash_physics_state(&world),
+                ]);
+                physical.push(words);
+                if let Some(measurement) = world.get::<JointPositionMotorDiagnostics>(child) {
+                    measurements.push(diagnostic_literal_words(measurement));
+                }
+            }
+            (physical, measurements)
+        }
+        for revolute in [true, false] {
+            let first = rollout(true, revolute);
+            let repeat = rollout(true, revolute);
+            let disabled = rollout(false, revolute);
+            assert_eq!(first.0, repeat.0);
+            assert_eq!(first.0, disabled.0);
+            assert_eq!(first.1, repeat.1);
+            assert_eq!(first.1.len(), 20);
+            assert!(disabled.1.is_empty());
+        }
+    }
 
     fn commanded_root_fixture(
         axis: Vec3,

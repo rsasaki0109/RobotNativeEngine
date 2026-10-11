@@ -633,6 +633,25 @@ impl UrdfSceneSim {
         &self.world
     }
 
+    /// Enables optional completed-step position-motor diagnostics without stepping.
+    ///
+    /// Returns `Ok(true)` when the backend accepts the setting and `Ok(false)`
+    /// when unsupported. Rapier requires its repository-only
+    /// `position-motor-diagnostics` feature. Startup has no measurement; toggling
+    /// a supported collector removes previous diagnostic components immediately.
+    /// Inactive or unsampled motors remain unavailable, distinct from measured
+    /// zero. Diagnostics are separate from direct joint-effort feedback sensors.
+    pub fn configure_position_motor_diagnostics(
+        &mut self,
+        enabled: bool,
+    ) -> Result<bool, rne_physics::PhysicsError> {
+        self.backend.configure_position_motor_diagnostics(
+            &mut self.world,
+            self.physics_world,
+            enabled,
+        )
+    }
+
     /// Returns the ECS world mutably.
     ///
     /// Mutating simulation components (for example inserting
@@ -2455,6 +2474,26 @@ pub fn unitree_g1_dex3_scene_path() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn optional_position_motor_diagnostics_do_not_advance_the_scene_clock() {
+        let mut sim =
+            UrdfSceneSim::from_scene_path(&UrdfSceneSim::so101_scene_path()).expect("spawn so101");
+        let before = sim.sim_time();
+        let supported = sim.configure_position_motor_diagnostics(true).unwrap();
+        assert_eq!(sim.sim_time(), before);
+        assert!(sim.world().iter_entities().all(|entity| entity
+            .get::<rne_physics::JointPositionMotorDiagnostics>()
+            .is_none()));
+        assert_eq!(
+            sim.configure_position_motor_diagnostics(false).unwrap(),
+            supported
+        );
+        assert_eq!(sim.sim_time(), before);
+        assert!(sim.world().iter_entities().all(|entity| entity
+            .get::<rne_physics::JointPositionMotorDiagnostics>()
+            .is_none()));
+    }
 
     #[test]
     fn world_mut_exposes_the_ecs_world() {

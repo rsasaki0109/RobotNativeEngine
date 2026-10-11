@@ -18,9 +18,10 @@ pub use backend::{
 pub use components::{
     Collider, ColliderPart, ColliderShape, CollisionGroups, CommandedKinematicPose,
     CompoundCollider, CompoundPart, ConvexCollider, FixedJointDesc, GravityScale, JointActuation,
-    JointEffortMeasurement, JointMotor, JointMotorGainModel, JointPassiveDynamics, JointState,
-    MultibodyLink, PhysicsMaterial, PhysicsOwnedPose, PrismaticJointDesc, RevoluteJointArmature,
-    RevoluteJointDesc, RigidBody, RigidBodyInertia, RigidBodyType,
+    JointEffortMeasurement, JointMotor, JointMotorGainModel, JointPassiveDynamics,
+    JointPositionMotorDiagnostics, JointState, MultibodyLink, PhysicsMaterial, PhysicsOwnedPose,
+    PositionMotorDiagnosticInterval, PrismaticJointDesc, RevoluteJointArmature, RevoluteJointDesc,
+    RigidBody, RigidBodyInertia, RigidBodyType,
 };
 pub use events::{
     ContactEvent, ContactPointSample, ContactSeparationSample, ExternalBodyWrench, RaycastHit,

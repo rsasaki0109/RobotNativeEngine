@@ -9,6 +9,10 @@ publish = false
 [lints]
 workspace = true
 
+[features]
+# The headless evaluator explicitly opts into patched Rapier motor readback.
+position-motor-diagnostics = ["rne_ai/position-motor-diagnostics"]
+
 [dependencies]
 sha2.workspace = true
 png = { workspace = true }

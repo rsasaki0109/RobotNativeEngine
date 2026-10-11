@@ -2916,6 +2916,10 @@ fn run_locomotion_smokes() -> anyhow::Result<()> {
     )?;
     run_step("cargo run --locked -p go2_door --example 132_go2_door -- --smoke")?;
     run_step("cargo test --locked -p kick_comparison --example 139_kick_comparison")?;
+    run_step("cargo test --locked -p rne_physics_rapier --features position-motor-diagnostics")?;
+    run_step(
+        "cargo test --locked -p kick_comparison --example 139_kick_comparison --features position-motor-diagnostics",
+    )?;
     run_step("cargo run --locked -p kick_comparison --example 139_kick_comparison -- --headless")
 }
 

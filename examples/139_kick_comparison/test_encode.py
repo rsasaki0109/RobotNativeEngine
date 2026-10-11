@@ -24,7 +24,7 @@ def current_manifest():
     names = ['examples/139_kick_comparison/' + name for name in
              ('main.rs', 'physics.rs', 'render.rs', 'model.rs', 'disturbance.rs',
               'go2_controller.rs', 'g1_controller.rs', 'observation.rs', 'diagnostic.rs',
-              'feedback.rs', 'models.json',
+              'feedback.rs', 'motor_diagnostics.rs', 'models.json', 'Cargo.toml',
               'go2.rne.scene.toml', 'g1.rne.scene.toml',
               'go2.rne.robot.toml', 'g1.rne.robot.toml')]
     models = json.loads((REPO / 'examples/139_kick_comparison/models.json').read_text())
@@ -33,7 +33,18 @@ def current_manifest():
               'crates/rne_data/src/stream.rs', 'crates/rne_core/src/rng.rs',
               'crates/rne_core/src/time.rs', 'crates/rne_world/src/resources.rs',
               'crates/rne_physics_rapier/src/backend.rs',
+              'crates/rne_physics/src/components.rs', 'crates/rne_physics/src/lib.rs',
+              'crates/rne_physics/src/backend.rs', 'crates/rne_ai/src/env/urdf_scene/mod.rs',
+              'crates/rne_physics_rapier/Cargo.toml', 'crates/rne_ai/Cargo.toml',
               'assets/fixtures/kick_human/cc0_sport_human.glb']
+    names += ['third_party/rapier3d/src/' + name for name in (
+        'dynamics/joint/multibody_joint/unit_multibody_joint.rs',
+        'dynamics/solver/island_solver.rs',
+        'dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs',
+        'dynamics/solver/velocity_solver.rs', 'pipeline/mod.rs', 'pipeline/physics_pipeline.rs',
+        'pipeline/multibody_motor_impulse.rs',
+        'dynamics/solver/joint_constraint/joint_generic_constraint.rs',
+        'dynamics/joint/multibody_joint/multibody.rs', 'dynamics/joint/motor_model.rs')]
     return {name: hashlib.sha256((REPO / name).read_bytes()).hexdigest() for name in names}
 
 
@@ -411,14 +422,69 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE.validate_recordings(traces, summary)
 
+    def test_completed_motor_evidence_cannot_be_relabelled_as_public_media(self):
+        # A backend-disabled comparator is still private evaluator evidence.
+        fields = ({'motor_effort_diagnostics': True},
+                  {'motor_effort_diagnostics': False,
+                   'position_motor_diagnostic': {'enabled': False,
+                                                'scope': 'backend-disabled evaluator comparator'}})
+        error = 'Evaluator-only motor diagnostics cannot qualify'
+        for metadata in fields:
+            for entrance in ('trace', 'summary', 'summary_case', 'nested_summary',
+                             'controller', 'nested_list'):
+                with self.subTest(metadata=metadata, capture_entrance=entrance):
+                    traces = copy.deepcopy(self.traces)
+                    summary = summary_for(traces)
+                    target = {'trace': traces[1], 'summary': summary,
+                              'summary_case': summary['cases'][1],
+                              'nested_summary': traces[1]['summary'],
+                              'controller': traces[1]['controller'],
+                              'nested_list': traces[1]['controller']}[entrance]
+                    if entrance == 'nested_list':
+                        target['evaluator'] = {'completed_intervals': [copy.deepcopy(metadata)]}
+                    else:
+                        target.update(copy.deepcopy(metadata))
+                    with self.assertRaisesRegex(ValueError, error):
+                        MODULE.validate_recordings(traces, summary)
+        traces = copy.deepcopy(self.traces)
+        for trace in traces:
+            trace['motor_effort_diagnostics'] = False
+        MODULE.validate_recordings(traces, summary_for(traces))
+        with tempfile.TemporaryDirectory() as directory:
+            path, report, nominal = make_report(Path(directory), 48.0)
+            report['motor_effort_diagnostics'] = False
+            path.write_text(json.dumps(report))
+            self.assertTrue(MODULE.validation_metadata(path, nominal)['required_cases_passed'])
+            trace_path = path.parent / 'go2-balance_off.json'
+            original_trace = json.loads(trace_path.read_text())
+            for metadata in fields:
+                for entrance in ('nominal', 'report', 'case', 'per_case_trace',
+                                 'nested_summary', 'nested_list'):
+                    with self.subTest(metadata=metadata, validation_entrance=entrance):
+                        candidate_report = copy.deepcopy(report)
+                        candidate_nominal = copy.deepcopy(nominal)
+                        candidate_trace = copy.deepcopy(original_trace)
+                        target = {'nominal': candidate_nominal[1], 'report': candidate_report,
+                                  'case': candidate_report['cases'][0], 'per_case_trace': candidate_trace,
+                                  'nested_summary': candidate_trace['summary'],
+                                  'nested_list': candidate_trace['controller']}[entrance]
+                        if entrance == 'nested_list':
+                            target['evaluator'] = {'completed_intervals': [copy.deepcopy(metadata)]}
+                        else:
+                            target.update(copy.deepcopy(metadata))
+                        trace_path.write_text(json.dumps(candidate_trace))
+                        path.write_text(json.dumps(candidate_report))
+                        with self.assertRaisesRegex(ValueError, error):
+                            MODULE.validation_metadata(path, candidate_nominal)
+
     def test_compiled_manifest_requires_render_human_diagnosis_and_feedback_sources(self):
         self.manifest_mock.stop()
         trace = {'compiled_source_sha256': current_manifest()}
-        self.assertEqual(len(MODULE.validate_compiled_sources(trace, REPO)), 25)
+        self.assertEqual(len(MODULE.validate_compiled_sources(trace, REPO)), len(current_manifest()))
         extended = copy.deepcopy(trace)
         extended['compiled_source_sha256']['Cargo.lock'] = hashlib.sha256(
             (REPO / 'Cargo.lock').read_bytes()).hexdigest()
-        self.assertEqual(len(MODULE.validate_compiled_sources(extended, REPO)), 26)
+        self.assertEqual(len(MODULE.validate_compiled_sources(extended, REPO)), len(current_manifest()) + 1)
         extended['compiled_source_sha256']['Cargo.lock'] = '0' * 64
         with self.assertRaisesRegex(ValueError, 'Compiled capture source differs'):
             MODULE.validate_compiled_sources(extended, REPO)
@@ -426,6 +492,15 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
                      'examples/139_kick_comparison/observation.rs',
                      'examples/139_kick_comparison/diagnostic.rs',
                      'examples/139_kick_comparison/feedback.rs',
+                     'examples/139_kick_comparison/motor_diagnostics.rs',
+                     'examples/139_kick_comparison/Cargo.toml',
+                     'crates/rne_physics/src/components.rs',
+                     'crates/rne_ai/src/env/urdf_scene/mod.rs',
+                     'crates/rne_ai/Cargo.toml',
+                     'crates/rne_physics_rapier/Cargo.toml',
+                     'third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs',
+                     'third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs',
+                     'third_party/rapier3d/src/dynamics/joint/motor_model.rs',
                      'crates/rne_data/src/bus.rs', 'crates/rne_core/src/rng.rs',
                      'assets/fixtures/kick_human/cc0_sport_human.glb'):
             with self.subTest(source=name):

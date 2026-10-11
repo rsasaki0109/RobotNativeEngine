@@ -63,7 +63,8 @@ omits an actual sensor-fusion estimator, actuator thermal and power limits,
 detailed transmissions and robot
 self-collision. Floor friction and primitive contact proxies are simulator
 assumptions, not measured hardware contact properties. The recorded effort ceilings are enforced by the solver;
-applied motor torque is not read back. This controller is not Unitree firmware
+default captures do not read motor impulse or interval effort back. The opt-in
+evaluator below adds post-step readback. This controller is not Unitree firmware
 or a hardware-qualified whole-body controller.
 
 ## Headless checks
@@ -479,6 +480,91 @@ and compatibility separately from the failed recovery advancement gates.
 The EMA remains opt-in and is not promoted. The
 [complete outcomes and compact proofs](../../docs/media/g1-lateral-gyro-experiment.json)
 retain both failed gates and the unchanged negative control without tuning.
+
+## Completed position-motor diagnostics
+
+`--motor-effort-diagnostics` adds headless evaluator evidence to normal captures,
+validation/probes, and the existing G1 studies. Their selectors retain their
+mutual exclusions. Enable the default-off example feature explicitly; it forwards
+through `rne_ai` to the Rapier backend. Unsupported builds reject the flag clearly.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison \
+  --features position-motor-diagnostics -- --headless --g1-lateral-gyro-experiment \
+  --motor-effort-diagnostics --output target/rne-g1-motor-effort
+cargo test --locked -p kick_comparison --example 139_kick_comparison \
+  --features position-motor-diagnostics
+python3 -m unittest discover -s examples/139_kick_comparison -p test_encode.py -v
+```
+
+The evaluator reads the optional neutral child-link component after physics.
+Each row binds command-consumer tick `t` to completed end `t+dt`, with nominal
+integer ticks, numerical outer duration, CCD partitions, and observed solver
+duration/count retained separately. Revolute impulse/effort use N·m·s/N·m;
+prismatic impulse/force use N·s/N. Both observed and qualified-completed means
+divide signed impulse by actual observed solver duration. Completed means require
+integer full-step coverage; partial means are not extrapolated to the full step.
+
+Missing samples remain unavailable, not zero. An observed zero ceiling is
+explicit; a null effective ceiling denotes an observed unbounded cap. Only
+finite positive caps enter the FINAL motor-bound exposure denominator. Bound
+counts/durations record final solved impulse at its native bound, independently
+of requested position/rate clipping. A recorded interval-mean peak is not a
+within-slice torque peak or a total joint reaction.
+
+Ascending child-link names make `{case-stem}.motor.jsonl` and its dedicated replay
+words deterministic. Readback never enters arrived observations, controller
+decisions, or existing plant/control replay vectors. Two fresh backend-ON worlds
+compare old replay, motor words, and literal motor JSONL bytes; a third explicitly
+backend-OFF world compares existing values/outcomes. Existing G1 studies reuse
+their legacy logger-OFF world. This combined comparison does not independently
+test the motor file writer ON/OFF. With the flag absent, old schemas/world counts
+remain unchanged. No gains, plant, caps, policy, dose, or recovery predicate change.
+
+Analysis uses fixed command-consumer windows `[2,4)`, `[4,4.08)`, and `[4.08,8.2)`
+and retains all 23 G1 joints, with availability/coverage and bound denominators.
+For the orientation-only ideal profile, the matched zero/40 N·s pair illustrates
+why signed interval means and FINAL solver-slice bound exposure differ. Both rows
+below refer to `left_ankle_pitch_link` in `[4,4.08)`, with 80 full-step-qualified
+samples; zero denotes no applied input during the same scheduled window.
+
+| Input | Peak absolute completed interval mean (N·m) | Signed solver-time mean (N·m) | FINAL finite-positive-bound duration fraction | Exactly zero completed means |
+| --- | ---: | ---: | ---: | ---: |
+| 0 N·s | 34.999998 | -0.108627 | 99.4922% | 43/80 |
+| 40 N·s | 26.249999 | 0.447297 | 98.5547% | 49/80 |
+
+Frequent bound occupancy already occurs without the kick, while signed impulses
+can cancel in interval means. These descriptive aggregates do not establish a
+fall cause, calibrated hardware torque, actuator identification, or reliability.
+
+The fixed 16-case/48-world matrix preserves 11 recoveries and five failures.
+All eight zeros and both ideal kicks recover, as does the orientation-only 5 ms
+kick; both 20 ms and bounded-error kicks and the EMA 5 ms kick still fail. No
+policy is promoted. An internal read-only audit preserves all actual old/new
+legacy rows and retained exposed values. The 131,200 first-ON rows contain 23
+available full-step-qualified records each; unavailable/partial/zero-cap/unbounded
+counts are zero in this matrix, while measured-zero interval means remain explicit.
+[All cases and joints](../../docs/media/g1-motor-effort-diagnostics.json) retain
+three fixed-window groups plus whole-record statistics and their support.
+
+`motor-effort-diagnostics.json` and the per-case motor files remain separate from
+public media. Recursive encoder and render-only guards reject markers or actual
+diagnostic metadata even when relabelled or nested. No GIF/PNG is regenerated.
+Losslessly archived NEW streams retain raw SHA/bytes and stored gzip SHA/bytes in
+reconstruction-verified ledgers; uncompressed raw-file presence is not implied.
+
+Evidence is bound to the actual modified source snapshot and explicit feature
+build, not the bare baseline commit. Selected release-source inputs and the
+broader pre-publication extension-filtered repository map are distinct; neither is
+an exhaustive compiler/dependency closure. CI binds 2,393 inputs; the separate
+measurement/current guard adds 31 existing GLB assets for 2,424 inputs. Publication
+compares the 43 selected inputs and five other changed code/configuration inputs
+exactly. Canonical-map publication changes are derived from actual input maps;
+Markdown edits and `.gitignore` are outside that snapshot's scope and are listed
+separately from the added compact JSON. No final repository-wide identity with
+the immutable pre-publication map is claimed.
+Default 18-case/12-required qualification, six
+release examples, normal encoder admission, and 11 historical media are preserved.
 
 ## Measured stronger kick
 
