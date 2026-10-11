@@ -692,6 +692,34 @@ a physical sensor tolerance or a unique controller failure mechanism. The
 [compact diagnostic evidence](../media/g1-observation-diagnosis.json) retains
 all eight outcomes and the separate replay and compatibility proofs.
 
+The separate known-age orientation experiment crosses those eight conditions
+with raw and projected feedback. Projection is an example-local stateless
+operation on the original arrived payload: integrate the captured world gyro
+over capture age, left-multiply its quaternion, and recompute only orientation
+axes and roll/pitch. Exact identity paths preserve zero-age and zero-rotation
+observations; unsupported timestamps fail explicitly. Translation, rates,
+feet, loads and joints retain their captured time scope. Raw and effective
+feedback are separately labelled, and no evaluator truth or disturbance
+schedule is admitted. No dynamics, contact solver, control gain, actuation
+limit or core API changes are needed.
+
+The predeclared primary gate is complete physical recovery for the 5 ms delayed
+40 N·s case. All zero-input controls, zero-age cross-policy literal equality,
+fresh replay, logging noninterference, matched prefixes and default recovery
+qualification remain separate checks. A candidate that reduces orientation
+error without passing this physical gate is not promoted. The candidate stays
+an explicit opt-in software experiment; it is not a measured sensor model.
+
+The completed 16-case fixed-seed experiment passes the primary gate: raw
+feedback falls under the 5 ms delayed 40 N·s wrench, while the candidate
+recovers with peak tilt 0.309082 rad instead of 1.638381 rad. Both policies
+recover in all four zero-input profiles. The 20 ms delayed and bounded-error
+kicked cases still fail. Literal full-trajectory words agree in all four
+zero-age cross-policy conditions, and all eight matched pre-input prefixes
+agree. Default feedback remains raw even after this primary success.
+The [compact experiment evidence](../media/g1-orientation-age-experiment.json)
+binds all 16 outcomes, replay/audit scopes and unchanged default qualification.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

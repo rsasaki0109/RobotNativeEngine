@@ -313,6 +313,70 @@ recording or fails only when the wrench is applied. It is a fixed-seed synthetic
 diagnosis, not an identified physical sensor model or a hardware tolerance
 claim. Its evidence is separate from the existing GIF and observation study.
 
+## Known-age orientation experiment
+
+`--g1-orientation-age-experiment` compares `raw_reference` with
+`orientation_known_age` over the same four profiles and two input doses:
+16 fixed-seed cases. The default controller and the earlier eight-case
+diagnosis keep raw feedback. The candidate uses only an arrived frame's
+capture timestamp and captured world angular velocity. At positive ages up
+to 20 ms, it computes `delta_q * captured_q`, where `delta_q` represents
+`age_s * captured_angular_velocity_world`. World-frame rates require this
+left product. It updates orientation and its derived axes, roll and pitch;
+rates, COM, feet, loads and joint observations remain captured values.
+
+Zero age and zero angular rotation preserve the original payload exactly.
+Future timestamps and ages above 20 ms are errors. Each decision starts from
+the original arrived payload, including during settlement; a held sample is
+never projected twice. Missing observations retain bounded nominal stance.
+Raw delivered estimates and effective orientation feedback have separate
+telemetry and time scopes. Projected orientation is an estimate, not another
+measurement. Evaluator truth, contact evidence and the prescribed input do
+not enter the policy; the inner position PD retains instantaneous joints.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --g1-orientation-age-experiment --output target/rne-g1-orientation-age
+```
+
+Use `--feedback-policy raw_reference` or `orientation_known_age` to select
+one policy, and the existing profile/input filters to reproduce a case.
+The fixed primary comparison is full-predicate recovery under 5 ms delay
+and 40 N·s, not a reduction in estimated pose error. Plant parameters,
+control gains, horizons, actuator bounds and recovery criteria stay fixed.
+All outcomes remain in the report, including failed recovery. Each case
+has two fresh logging-on worlds and one logging-off world with literal
+plant/control/decision comparison and byte-identical diagnostic replay.
+Each policy/profile also compares the 4,000-step zero/kick prefix.
+Zero-age profiles compare actual cross-policy words through canonical
+binary sidecars rather than relying solely on matching hashes.
+The experiment cannot qualify public GIF encoding.
+
+The completed fixed-seed matrix passes the primary gate: under 5 ms delay and
+40 N·s, raw feedback falls while orientation projection recovers. Every case
+settles upright and all eight zero-input runs recover. Each cell below shows
+full-predicate recovery and peak tilt in radians:
+
+| Observation profile | Raw, 0 N·s | Projected, 0 N·s | Raw, 40 N·s | Projected, 40 N·s |
+| --- | --- | --- | --- | --- |
+| `ideal_reference` | pass; 0.006694 | pass; 0.006694 | pass; 0.289060 | pass; 0.289060 |
+| `delay_5ms` | pass; 0.007569 | pass; 0.007666 | fail; 1.638381 | pass; 0.309082 |
+| `delay_20ms_limit` | pass; 0.011861 | pass; 0.011404 | fail; 1.639157 | fail; 1.639460 |
+| `bounded_error` | pass; 0.007516 | pass; 0.007516 | fail; 1.646449 | fail; 1.646449 |
+
+Projection still fails the 20 ms kicked case. The zero-age bounded-error
+negative control retains its earlier failure. The four zero-age conditions
+match literal plant/control/old-decision words across policies for their full
+trajectories, including settlement. All 16 cases pass fresh replay,
+logging-on/off equality and byte-identical JSONL replay; all eight zero/kick
+prefixes match through the 4,000 pre-input steps. The original 18-case
+qualification and all 12 required recoveries also pass.
+Exact outcomes, source bindings and compact audit proofs are retained in
+[the orientation experiment evidence](../../docs/media/g1-orientation-age-experiment.json).
+The default remains raw and the candidate remains explicit opt-in. These
+fixed-seed software results establish no maximum safe latency, measured
+hardware sensor model or cross-platform reproducibility.
+
 ## Measured stronger kick
 
 The default impulse increases from 24 to 40 N·s, or 67%, with the same 80 ms

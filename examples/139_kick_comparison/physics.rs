@@ -6,6 +6,7 @@
 use super::{
     diagnostic::{self, FinishedDiagnostics, RunDiagnostics},
     disturbance::Impact,
+    feedback::Policy,
     g1_controller::G1Controller,
     go2_controller::Go2Controller,
     model,
@@ -19,7 +20,12 @@ use rne_robot::{Joint, JointKind, Link};
 use rne_world::world_transform_of;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
-use std::{error::Error, fs, io, path::Path};
+use std::{
+    error::Error,
+    fs,
+    io::{self, Write},
+    path::Path,
+};
 
 const FRAME_COUNT: usize = 187;
 const FRAME_RATE_HZ: f64 = 30.0;
@@ -148,6 +154,8 @@ struct Controller {
     last_command_words: Vec<u64>,
     last_feedback: Value,
     diagnostics: Option<RunDiagnostics>,
+    feedback_policy: Policy,
+    orientation_age_experiment: bool,
 }
 
 impl Controller {
@@ -164,6 +172,8 @@ impl Controller {
             last_command_words: Vec::new(),
             last_feedback: Value::Null,
             diagnostics: None,
+            feedback_policy: Policy::default(),
+            orientation_age_experiment: false,
         })
     }
 
@@ -171,7 +181,11 @@ impl Controller {
         self.pipeline
             .capture_if_due(sim, self.robot.base_link(), self.robot.feet())?;
         let arrived = self.pipeline.consume(sim.sim_time())?;
-        let estimate = arrived.as_ref().map(|frame| &frame.payload);
+        let raw_estimate = arrived.as_ref().map(|frame| &frame.payload);
+        let effective = self
+            .feedback_policy
+            .effective(arrived.as_ref(), sim.sim_time())?;
+        let estimate = effective.as_deref();
         // This extra capture is evaluator-only and exists solely with logging on.
         // The feedback call below continues to receive only the arrived estimate.
         let diagnostic_truth = if self
@@ -184,12 +198,24 @@ impl Controller {
             None
         };
         let diagnostic_estimate = if diagnostic_truth.is_some() {
-            estimate
+            raw_estimate
                 .map(|estimate| estimate.diagnostic_fields())
                 .unwrap_or(Value::Null)
         } else {
             Value::Null
         };
+        let diagnostic_feedback = (diagnostic_truth.is_some() && self.orientation_age_experiment).then(||
+            json!({"g1_orientation_age_experiment":true,"feedback_policy":self.feedback_policy.name(),
+                "effective_feedback_estimate":estimate.map(|estimate|estimate.diagnostic_fields()),
+                "feedback_policy_configuration":self.feedback_policy.configuration(),
+                "feedback_channel_time_scope":{
+                    "raw_capture_ticks":arrived.as_ref().map(|frame|frame.capture_time.ticks()),
+                    "consumer_ticks":sim.sim_time().ticks(),
+                    "orientation_reference_ticks":arrived.as_ref().map(|frame|
+                        if self.feedback_policy == Policy::OrientationKnownAge {sim.sim_time().ticks()} else {frame.capture_time.ticks()}),
+                    "non_orientation_channel_ticks":arrived.as_ref().map(|frame|frame.capture_time.ticks()),
+                    "orientation_is_fresh_measurement":false,"captured_gyro_and_roll_rate_unchanged":true
+                }}));
         let dt_s = sim.fixed_delta().as_seconds().value();
         // Contact points are driver-only truth telemetry, never decision inputs.
         let support_points: Vec<_> = self
@@ -216,12 +242,22 @@ impl Controller {
         self.last_feedback["actual_support_points_scope"] =
             json!("driver pre-step ground truth; not feedback input");
         if let Some(run) = &mut self.diagnostics {
-            run.record(
-                self.pipeline.telemetry(),
-                diagnostic_estimate,
-                diagnostic_truth,
-                &self.last_feedback,
-            )?;
+            if self.orientation_age_experiment {
+                run.record_with_feedback(
+                    self.pipeline.telemetry(),
+                    diagnostic_estimate,
+                    diagnostic_truth,
+                    &self.last_feedback,
+                    diagnostic_feedback,
+                )?;
+            } else {
+                run.record(
+                    self.pipeline.telemetry(),
+                    diagnostic_estimate,
+                    diagnostic_truth,
+                    &self.last_feedback,
+                )?;
+            }
         }
         Ok(())
     }
@@ -362,6 +398,10 @@ fn compiled_source_hashes() -> Value {
         (
             "examples/139_kick_comparison/diagnostic.rs",
             include_str!("diagnostic.rs"),
+        ),
+        (
+            "examples/139_kick_comparison/feedback.rs",
+            include_str!("feedback.rs"),
         ),
         (
             "crates/rne_data/src/frame.rs",
@@ -837,6 +877,17 @@ fn record_with_diagnostics(
     profile: Option<Profile>,
     diagnostics: Option<RunDiagnostics>,
 ) -> CaptureResult<Recording> {
+    record_with_feedback_policy(robot, case, capture_frames, profile, diagnostics, None)
+}
+
+fn record_with_feedback_policy(
+    robot: Robot,
+    case: Case,
+    capture_frames: bool,
+    profile: Option<Profile>,
+    diagnostics: Option<RunDiagnostics>,
+    feedback_policy: Option<Policy>,
+) -> CaptureResult<Recording> {
     let mut sim = robot.load(case.dt_ticks)?;
     let initial_plant_contract = robot.validate(&sim)?;
     let mut controller = Controller::new(
@@ -846,6 +897,8 @@ fn record_with_diagnostics(
         profile.unwrap_or_else(|| Profile::ideal(case.dt_ticks)),
     )?;
     controller.diagnostics = diagnostics;
+    controller.feedback_policy = feedback_policy.unwrap_or_default();
+    controller.orientation_age_experiment = feedback_policy.is_some();
     let dt_s = sim.fixed_delta().as_seconds().value();
     let mut states = Vec::new();
     let mut control_states = Vec::new();
@@ -958,7 +1011,7 @@ fn record_with_diagnostics(
         .take()
         .map(RunDiagnostics::finish)
         .transpose()?;
-    Ok(Recording {
+    let recording = Recording {
         trace: json!({"schema_version":2,"robot":robot.name(),"case":case.name,
         "compiled_source_sha256":compiled_source_hashes(),
         "backend":"Rapier through UrdfSceneSim","coordinate_system":"Y-up","dt_s":dt_s,
@@ -981,7 +1034,24 @@ fn record_with_diagnostics(
         state_bits: states,
         control_state_words: control_states,
         diagnostics,
-    })
+    };
+    Ok(annotate_orientation_recording(recording, feedback_policy))
+}
+
+fn annotate_orientation_recording(mut recording: Recording, policy: Option<Policy>) -> Recording {
+    if let Some(policy) = policy {
+        mark_orientation_experiment(&mut recording.trace, policy);
+    }
+    recording
+}
+
+fn mark_orientation_experiment(trace: &mut Value, policy: Policy) {
+    trace["g1_orientation_age_experiment"] = json!(true);
+    trace["g1_observation_diagnosis"] = json!(true);
+    trace["feedback_policy"] = json!(policy.name());
+    trace["feedback_policy_configuration"] = policy.configuration();
+    trace["summary"]["g1_orientation_age_experiment"] = json!(true);
+    trace["summary"]["feedback_policy"] = json!(policy.name());
 }
 
 fn replay(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Value> {
@@ -1529,6 +1599,280 @@ pub(super) fn diagnose_g1_observations(
     Ok(())
 }
 
+fn write_orientation_words(
+    output: &Path,
+    stem: &str,
+    recording: &Recording,
+) -> CaptureResult<Value> {
+    let decisions = diagnosis_decisions(recording)?;
+    require(
+        recording.state_bits.len() == recording.control_state_words.len()
+            && decisions.len() == recording.state_bits.len(),
+        "orientation sidecar row counts differ",
+    )?;
+    let filename = format!("{stem}.words.bin");
+    let mut writer = io::BufWriter::new(fs::File::create(output.join(&filename))?);
+    let mut hash = Sha256::new();
+    let mut bytes_count = 0;
+    let mut write = |bytes: &[u8]| -> io::Result<()> {
+        writer.write_all(bytes)?;
+        hash.update(bytes);
+        bytes_count += bytes.len();
+        Ok(())
+    };
+    write(b"RNE_G1_WORDS_V1\0")?;
+    write(&(recording.state_bits.len() as u64).to_le_bytes())?;
+    for ((state, control), decision) in recording
+        .state_bits
+        .iter()
+        .zip(&recording.control_state_words)
+        .zip(decisions)
+    {
+        for words in [state, control, decision] {
+            require(
+                words.len() <= 4096,
+                "zero-age literal sidecar vector exceeds 4096 words",
+            )?;
+            write(&(words.len() as u64).to_le_bytes())?;
+            let bytes: Vec<_> = words.iter().flat_map(|word| word.to_le_bytes()).collect();
+            write(&bytes)?;
+        }
+    }
+    writer.flush()?;
+    Ok(
+        json!({"file":filename,"sha256":format!("{:x}",hash.finalize()),"bytes":bytes_count,
+        "rows":recording.state_bits.len(),"maximum_rows":diagnostic::MAX_ROWS,"maximum_words_per_vector":4096,
+        "format":"16-byte RNE_G1_WORDS_V1 NUL header, little-endian u64 row count; each row has plant/control/old-decision vectors, each prefixed by u64 word count followed by literal u64 words",
+        "scope":"full trajectory including settlement; immutable policy is bound separately and does not pollute mutable control words or old decision fields"}),
+    )
+}
+
+fn orientation_experiment_case(
+    output: &Path,
+    profile: Profile,
+    input: &str,
+    impulse_ns: f64,
+    policy: Policy,
+) -> CaptureResult<(Recording, Value)> {
+    let case = Case {
+        name: profile.name,
+        impulse_ns,
+        ..NOMINAL
+    };
+    let stem = format!(
+        "g1-orientation-age-{}-{}-{input}",
+        policy.name(),
+        profile.name
+    );
+    let jsonl_filename = format!("{stem}.jsonl");
+    let jsonl_path = output.join(&jsonl_filename);
+    let repeat_path = output.join(format!("{stem}.repeat.jsonl"));
+    let mut first = record_with_feedback_policy(
+        Robot::G1,
+        case,
+        false,
+        Some(profile),
+        Some(RunDiagnostics::enabled(&jsonl_path)?),
+        Some(policy),
+    )?;
+    require(
+        first.trace["observation_pipeline"]["world_seed"] == 2002,
+        "G1 experiment seed must be 2002",
+    )?;
+    {
+        let repeat = record_with_feedback_policy(
+            Robot::G1,
+            case,
+            false,
+            Some(profile),
+            Some(RunDiagnostics::enabled(&repeat_path)?),
+            Some(policy),
+        )?;
+        verify_diagnosis_behavior(&first, &repeat)?;
+        verify_replay(&mut first, &repeat)?;
+        diagnostic::require_same_bytes(&jsonl_path, &repeat_path)?;
+    }
+    fs::remove_file(&repeat_path)?;
+    let off_filename = format!("{stem}.logging-off.json");
+    let off_sha256;
+    {
+        let mut off = record_with_feedback_policy(
+            Robot::G1,
+            case,
+            false,
+            Some(profile),
+            Some(RunDiagnostics::default()),
+            Some(policy),
+        )?;
+        verify_diagnosis_behavior(&first, &off)?;
+        off.trace["all_tick_diagnostic_logging_enabled"] = json!(false);
+        off_sha256 = write_diagnosis_trace(output, &off_filename, &off.trace)?;
+    }
+    let run = first.diagnostics.as_ref().expect("experiment diagnostics");
+    let mut artifact = run.artifact.clone().expect("experiment JSONL");
+    require(
+        artifact["rows"] == first.state_bits.len(),
+        "experiment JSONL missed a control tick",
+    )?;
+    artifact["file"] = json!(jsonl_filename);
+    artifact["bytes_exact_fresh_repeat"] = json!(true);
+    let decision_hash = stable_hash(&run.decision_words);
+    let decision_word_count: usize = run.decision_words.iter().map(Vec::len).sum();
+    let literal_sidecar = if ["ideal_reference", "bounded_error"].contains(&profile.name) {
+        Some(write_orientation_words(output, &stem, &first)?)
+    } else {
+        None
+    };
+    first.trace["all_tick_diagnostic_logging_enabled"] = json!(true);
+    first.trace["all_tick_diagnostic"] = artifact.clone();
+    first.trace["diagnosis_existing_decision_fields_hash"] = json!(decision_hash);
+    first.trace["diagnosis_existing_decision_fields_word_count"] = json!(decision_word_count);
+    first.trace["diagnosis_existing_decision_fields_exact_fresh_repeat"] = json!(true);
+    first.trace["diagnosis_logging_on_off_plant_control_decisions_exact"] = json!(true);
+    first.trace["zero_age_literal_words"] = json!(literal_sidecar);
+    let filename = format!("{stem}.json");
+    let trace_sha256 = write_diagnosis_trace(output, &filename, &first.trace)?;
+    let settlement_rows = first.state_bits.len().min(2000);
+    let report = json!({
+        "g1_orientation_age_experiment":true,"g1_observation_diagnosis":true,
+        "robot":"G1","feedback_policy":policy.name(),"feedback_policy_configuration":policy.configuration(),
+        "profile":profile.name,"input":input,"impulse_n_s":impulse_ns,
+        "physics_period_ticks":case.dt_ticks,"controller_period_ticks":case.dt_ticks,
+        "trace":filename,"trace_sha256":trace_sha256,"logging_off_trace":off_filename,"logging_off_trace_sha256":off_sha256,
+        "compiled_source_sha256":first.trace["compiled_source_sha256"],"plant":first.trace["plant"],"controller":first.trace["controller"],
+        "observation_pipeline":first.trace["observation_pipeline"],"observation_metrics":first.trace["observation_metrics"],
+        "settlement":first.trace["settlement"],"summary":first.trace["summary"],
+        "planned_integrated_impulse_world_ns":first.trace["planned_integrated_impulse_world_ns"],
+        "actual_applied_impulse_world_ns":first.trace["actual_applied_impulse_world_ns"],
+        "observed_state_hash":first.trace["observed_state_hash"],"observed_state_word_count":first.trace["observed_state_word_count"],
+        "observation_control_state_hash":first.trace["observation_control_state_hash"],"observation_control_state_word_count":first.trace["observation_control_state_word_count"],
+        "observed_state_bits_exact_repeat":true,"observation_control_state_bits_exact_repeat":true,
+        "existing_decision_fields_hash":decision_hash,"existing_decision_fields_word_count":decision_word_count,
+        "existing_decision_fields_exact_fresh_repeat":true,"diagnostic_jsonl":artifact,"zero_age_literal_words":literal_sidecar,
+        "settlement_state_hash":stable_hash(&first.state_bits[..settlement_rows]),
+        "settlement_control_hash":stable_hash(&first.control_state_words[..settlement_rows]),
+        "settlement_decision_hash":stable_hash(&run.decision_words[..settlement_rows]),
+        "logging_on_off_plant_words_exact":true,"logging_on_off_control_words_exact":true,
+        "logging_on_off_existing_decision_fields_exact":true,"logging_on_off_existing_trace_outcomes_exact":true,
+        "fresh_world_runs":3,"logging_on_fresh_runs":2,"logging_off_fresh_runs":1
+    });
+    Ok((first, report))
+}
+
+fn orientation_outcome_gates(cases: &[Value], complete: bool, cross_policy: &[Value]) -> Value {
+    let outcome = |policy, profile, input| {
+        cases
+            .iter()
+            .find(|case| {
+                case["feedback_policy"] == policy
+                    && case["profile"] == profile
+                    && case["input"] == input
+            })
+            .and_then(|case| case["summary"]["recovered"].as_bool())
+    };
+    let primary = match (
+        outcome("raw_reference", "delay_5ms", "kick"),
+        outcome("orientation_known_age", "delay_5ms", "kick"),
+    ) {
+        (Some(raw), Some(candidate)) => Some(!raw && candidate),
+        _ => None,
+    };
+    let zero_preserved = complete.then(|| {
+        diagnostic::PROFILES.iter().all(|profile| {
+            outcome("raw_reference", profile, "zero") == Some(true)
+                && outcome("orientation_known_age", profile, "zero") == Some(true)
+        })
+    });
+    json!({"primary_delay_5ms_kick_failure_to_recovery":primary,"all_four_zero_input_recoveries_preserved":zero_preserved,
+        "zero_age_four_cases_literal_plant_control_old_decisions_exact":complete.then(||cross_policy.len() == 4 && cross_policy.iter().all(|case|case["bytes_exact"] == true)),
+        "secondary_delay_20ms_kick_recovered":outcome("orientation_known_age","delay_20ms_limit","kick"),
+        "bounded_error_kick_unchanged_negative_control":match (outcome("raw_reference","bounded_error","kick"),outcome("orientation_known_age","bounded_error","kick")) {
+            (Some(raw),Some(candidate))=>Some(!raw && !candidate),_=>None},
+        "default_policy":"raw_reference","candidate_promoted":false,
+        "scope":"physical recovery uses the unchanged complete predicate; primary failure and zero regressions remain outcomes, and no result promotes this opt-in candidate"})
+}
+
+/// Evaluates the fixed orientation-only candidate without changing default feedback.
+pub(super) fn experiment_g1_orientation_age(
+    output: &Path,
+    policy_filter: Option<&str>,
+    profile_filter: Option<&str>,
+    input_filter: Option<&str>,
+) -> CaptureResult<()> {
+    let policies = Policy::selected(policy_filter)?;
+    let profiles = diagnostic::profile_names(profile_filter)?;
+    let inputs = diagnostic::inputs(input_filter)?;
+    fs::create_dir_all(output)?;
+    let mut cases = Vec::new();
+    let mut prefixes = Vec::new();
+    let mut cross_policy = Vec::new();
+    // The full study always completes all eight raw references before candidates.
+    for policy in &policies {
+        for name in &profiles {
+            let profile = observation::profiles(Some(name))?[0];
+            require(
+                !profile.zero_input && profile.sample_period_ticks == diagnostic::DT_TICKS,
+                "experiment profile configuration changed",
+            )?;
+            let mut zero_prefix: Option<DiagnosisPrefix> = None;
+            for &(input, impulse_ns) in &inputs {
+                let (first, report) =
+                    orientation_experiment_case(output, profile, input, impulse_ns, *policy)?;
+                if policies.len() == 2
+                    && *policy == Policy::OrientationKnownAge
+                    && ["ideal_reference", "bounded_error"].contains(name)
+                {
+                    let raw_filename =
+                        format!("g1-orientation-age-raw_reference-{name}-{input}.words.bin");
+                    let candidate_filename = report["zero_age_literal_words"]["file"]
+                        .as_str()
+                        .expect("zero-age sidecar");
+                    diagnostic::require_same_bytes(
+                        &output.join(&raw_filename),
+                        &output.join(candidate_filename),
+                    )?;
+                    cross_policy.push(json!({"profile":name,"input":input,"bytes_exact":true,
+                        "raw_file":raw_filename,"candidate_file":candidate_filename,
+                        "rows":first.state_bits.len(),"scope":"full plant/control/typed old-decision vectors compared literally, including settlement; no policy/context fields in these words"}));
+                }
+                cases.push(report);
+                if inputs.len() == 2 {
+                    if input == "zero" {
+                        zero_prefix = Some(DiagnosisPrefix::from_recording(first));
+                    } else {
+                        let mut prefix = zero_prefix
+                            .take()
+                            .expect("zero first")
+                            .compare(&first, name)?;
+                        prefix["feedback_policy"] = json!(policy.name());
+                        prefixes.push(prefix);
+                    }
+                }
+            }
+        }
+    }
+    let complete = policies.len() == 2 && profiles.len() == 4 && inputs.len() == 2;
+    let gates = orientation_outcome_gates(&cases, complete, &cross_policy);
+    fs::write(
+        output.join("g1-orientation-age-experiment.json"),
+        serde_json::to_vec_pretty(&json!({
+            "schema_version":1,"g1_orientation_age_experiment":true,"g1_observation_diagnosis":true,
+            "experiment_completed":true,"complete_matrix":complete,"predeclared_policies":["raw_reference","orientation_known_age"],
+            "selected_policies":policies.iter().map(Policy::name).collect::<Vec<_>>(),"selected_profiles":profiles,
+            "selected_inputs":inputs.iter().map(|(name,_)|*name).collect::<Vec<_>>(),
+            "world_seed":2002,"physics_period_ticks":diagnostic::DT_TICKS,"controller_period_ticks":diagnostic::DT_TICKS,
+            "settlement_s":SETTLE_S,"recording_horizon_s":6.2,"pulse_duration_s":DURATION_S,
+            "maximum_control_rows_per_case":diagnostic::MAX_ROWS,
+            "execution_scope":"raw eight before candidate eight; sequential worlds, first and one comparator full literal recording plus one bounded zero/kick prefix; streamed JSONL; zero-age cross-policy literal sidecars on disk",
+            "recovery_required_for_completion":false,"recovery_predicate_changed":false,"default_policy_changed":false,
+            "hardware_validation":false,"identified_sensor_model":false,"inner_pd_feedback":"ideal instantaneous joint coordinates unchanged",
+            "matched_zero_kick_prefixes":prefixes,"zero_age_across_policy_literal_comparisons":cross_policy,
+            "measured_outcome_gates":gates,"cases":cases
+        }))?,
+    )?;
+    Ok(())
+}
+
 fn record_case_matrix(
     robots: &[Robot],
     cases: &[Case],
@@ -1598,6 +1942,73 @@ fn validate_robot_cases(
 #[cfg(test)]
 mod diagnosis_tests {
     use super::*;
+
+    #[test]
+    fn zero_age_policies_preserve_literal_world_control_and_old_decision_sidecars() {
+        let output = std::env::temp_dir().join(format!("rne-g1-zero-age-{}", std::process::id()));
+        fs::create_dir_all(&output).unwrap();
+        for name in ["ideal_reference", "bounded_error"] {
+            let profile = observation::profiles(Some(name)).unwrap()[0];
+            let mut records = Vec::new();
+            for policy in Policy::selected(None).unwrap() {
+                let mut sim = Robot::G1.load(diagnostic::DT_TICKS).unwrap();
+                let mut controller = Controller::new(Robot::G1, &mut sim, true, profile).unwrap();
+                controller.feedback_policy = policy;
+                controller.orientation_age_experiment = true;
+                let stem = format!("{}-{name}", policy.name());
+                controller.diagnostics =
+                    Some(RunDiagnostics::enabled(&output.join(format!("{stem}.jsonl"))).unwrap());
+                let mut states = Vec::new();
+                let mut controls = Vec::new();
+                for _ in 0..3 {
+                    controller.step(&mut sim).unwrap();
+                    states.push(state_bits(Robot::G1, &sim));
+                    controls.push(controller.replay_words());
+                }
+                let recording = Recording {
+                    trace: Value::Null,
+                    state_bits: states,
+                    control_state_words: controls,
+                    diagnostics: Some(controller.diagnostics.take().unwrap().finish().unwrap()),
+                };
+                let sidecar = write_orientation_words(&output, &stem, &recording).unwrap();
+                let bytes = fs::read(output.join(sidecar["file"].as_str().unwrap())).unwrap();
+                assert_eq!(&bytes[..16], b"RNE_G1_WORDS_V1\0");
+                assert_eq!(u64::from_le_bytes(bytes[16..24].try_into().unwrap()), 3);
+                assert_eq!(sidecar["sha256"], format!("{:x}", Sha256::digest(&bytes)));
+                let lines: Vec<Value> = fs::read_to_string(output.join(format!("{stem}.jsonl")))
+                    .unwrap()
+                    .lines()
+                    .map(|line| serde_json::from_str(line).unwrap())
+                    .collect();
+                for row in lines {
+                    assert_eq!(row["feedback_policy"], policy.name());
+                    assert_eq!(
+                        row["delivered_estimate"],
+                        row["effective_feedback_estimate"]
+                    );
+                    assert_eq!(row["observation_timing"]["observation_age_ticks"], 0);
+                    assert!(row["decision"].get("feedback_policy").is_none());
+                }
+                records.push(recording);
+            }
+            assert_eq!(records[0].state_bits, records[1].state_bits);
+            assert_eq!(
+                records[0].control_state_words,
+                records[1].control_state_words
+            );
+            assert_eq!(
+                diagnosis_decisions(&records[0]).unwrap(),
+                diagnosis_decisions(&records[1]).unwrap()
+            );
+            diagnostic::require_same_bytes(
+                &output.join(format!("raw_reference-{name}.words.bin")),
+                &output.join(format!("orientation_known_age-{name}.words.bin")),
+            )
+            .unwrap();
+        }
+        fs::remove_dir_all(output).unwrap();
+    }
 
     #[test]
     fn all_tick_logging_preserves_real_startup_decisions_and_world_bits() {

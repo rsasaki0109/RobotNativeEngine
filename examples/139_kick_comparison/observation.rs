@@ -13,7 +13,7 @@ use rne_math::{Quat, Vec3};
 use rne_robot::{Joint, JointKind, Link};
 use rne_world::WorldRandom;
 use serde_json::{json, Value};
-use std::{collections::VecDeque, error::Error, io};
+use std::{borrow::Cow, collections::VecDeque, error::Error, io};
 
 type ObservationResult<T> = Result<T, Box<dyn Error>>;
 const ESTIMATE_STREAM: StreamId = StreamId::new(0x139);
@@ -141,6 +141,29 @@ impl Observation {
         } else {
             self.angular_velocity_world_rad_s.x
         };
+    }
+
+    /// Projects only orientation from the original captured world angular rate.
+    ///
+    /// The caller validates capture age. Zero age or zero angular rotation
+    /// returns the original payload without quaternion arithmetic. Other
+    /// channels, including captured roll rate, retain their original bits.
+    pub(super) fn orientation_projected(&self, age_ticks: u64) -> Cow<'_, Self> {
+        if age_ticks == 0 {
+            return Cow::Borrowed(self);
+        }
+        let rotation_vector_rad = self.angular_velocity_world_rad_s * (age_ticks as f64 * 1.0e-9);
+        if rotation_vector_rad == Vec3::ZERO {
+            return Cow::Borrowed(self);
+        }
+        let mut projected = self.clone();
+        // A world-frame angular increment acts on the left of the body pose.
+        projected.base_rotation_world =
+            Quat::from_scaled_axis(rotation_vector_rad) * self.base_rotation_world;
+        projected.derive_orientation();
+        // Reusing the established pose convention must not project rate channels.
+        projected.roll_rate_rad_s = self.roll_rate_rad_s;
+        Cow::Owned(projected)
     }
 
     fn perturb(&mut self, bounds: NoiseBounds, random: &KeyedRandom, sequence: u64) {
@@ -637,8 +660,222 @@ fn frame_words(words: &mut Vec<u64>, frame: &Frame<Observation>) {
 
 #[cfg(test)]
 mod tests {
+    use super::super::feedback::Policy;
     use super::*;
     use std::path::Path;
+
+    fn pure_orientation_fixture(go2: bool, rotation: Quat, gyro: Vec3) -> Observation {
+        let mut observation = Observation {
+            com_world_m: Vec3::new(0.21, 0.78, -0.0),
+            com_velocity_world_m_s: Vec3::new(-0.02, -0.0, 0.03),
+            mass_kg: 33.4,
+            up_world: Vec3::ZERO,
+            forward_unit: Vec3::ZERO,
+            lateral_unit: Vec3::ZERO,
+            roll_rad: 0.0,
+            pitch_rad: 0.0,
+            angular_velocity_world_rad_s: gyro,
+            roll_rate_rad_s: 0.0,
+            foot_positions_world_m: vec![Vec3::new(0.1, -0.0, -0.2), Vec3::new(0.1, 0.0, 0.2)],
+            foot_normal_loads_n: vec![12.0, 18.0],
+            joint_states: vec![JointObservation {
+                link_name: "left_hip_roll_link".to_owned(),
+                position_rad: Some(-0.0),
+                velocity_rad_s: None,
+            }],
+            base_rotation_world: rotation,
+            go2,
+            load_saturations: 3,
+        };
+        observation.derive_orientation();
+        observation
+    }
+
+    fn pure_frame(
+        observation: Observation,
+        capture_ticks: u64,
+        latency_ticks: u64,
+    ) -> Frame<Observation> {
+        let mut world = rne_ecs::World::new();
+        Frame::new(
+            ESTIMATE_STREAM,
+            world.spawn_empty().id(),
+            7,
+            SimTime::from_ticks(capture_ticks),
+            observation,
+        )
+        .with_latency(SimDuration::from_ticks(latency_ticks))
+    }
+
+    fn upright_g1(gyro: Vec3) -> Observation {
+        pure_orientation_fixture(
+            false,
+            Quat::from_rotation_x(-std::f64::consts::FRAC_PI_2),
+            gyro,
+        )
+    }
+
+    #[test]
+    fn orientation_feedback_uses_capture_age_instead_of_arrival_age() {
+        let frame = pure_frame(upright_g1(Vec3::X * 2.0), 1_000_000, 5_000_000);
+        let effective = Policy::OrientationKnownAge
+            .effective(Some(&frame), SimTime::from_ticks(7_000_000))
+            .expect("arrived frame")
+            .expect("effective orientation");
+        // Six milliseconds since capture, although arrival was one millisecond ago.
+        assert!((effective.roll_rad - 0.012).abs() < 1.0e-12);
+        assert!((effective.roll_rad - 0.002).abs() > 0.009);
+        assert_eq!(frame.sim_time.ticks(), 6_000_000);
+    }
+
+    #[test]
+    fn missing_then_first_arrived_frame_has_no_truth_fallback() {
+        for policy in [Policy::RawReference, Policy::OrientationKnownAge] {
+            assert!(policy
+                .effective(None, SimTime::ZERO)
+                .expect("missing observations")
+                .is_none());
+        }
+        let frame = pure_frame(upright_g1(Vec3::X * 2.0), 0, 5_000_000);
+        assert!(Policy::OrientationKnownAge
+            .effective(Some(&frame), SimTime::from_ticks(4_000_000))
+            .is_err());
+        let first = Policy::OrientationKnownAge
+            .effective(Some(&frame), SimTime::from_ticks(5_000_000))
+            .expect("first arrived frame")
+            .expect("effective first frame");
+        assert!((first.roll_rad - 0.01).abs() < 1.0e-12);
+    }
+
+    #[test]
+    fn orientation_feedback_rejects_future_times_and_unsupported_age() {
+        let future_capture = pure_frame(upright_g1(Vec3::X), u64::MAX, 0);
+        assert!(Policy::OrientationKnownAge
+            .effective(Some(&future_capture), SimTime::ZERO)
+            .is_err());
+        let future_arrival = pure_frame(upright_g1(Vec3::X), 0, 5_000_000);
+        assert!(Policy::OrientationKnownAge
+            .effective(Some(&future_arrival), SimTime::from_ticks(4_999_999))
+            .is_err());
+        assert!(Policy::OrientationKnownAge
+            .effective(Some(&future_arrival), SimTime::from_ticks(20_000_000))
+            .is_ok());
+        assert!(Policy::OrientationKnownAge
+            .effective(Some(&future_arrival), SimTime::from_ticks(20_000_001))
+            .is_err());
+    }
+
+    #[test]
+    fn raw_zero_age_and_zero_angular_rotation_borrow_exact_original_words() {
+        let moving = pure_frame(upright_g1(Vec3::new(1.2, -0.4, 3.1)), 0, 0);
+        let stationary = pure_frame(upright_g1(Vec3::new(0.0, -0.0, 0.0)), 0, 0);
+        for (policy, frame, now) in [
+            (Policy::RawReference, &moving, 20_000_000),
+            (Policy::OrientationKnownAge, &moving, 0),
+            (Policy::OrientationKnownAge, &stationary, 20_000_000),
+        ] {
+            let effective = policy
+                .effective(Some(frame), SimTime::from_ticks(now))
+                .expect("identity feedback")
+                .expect("original observation");
+            match effective {
+                Cow::Borrowed(payload) => {
+                    assert!(std::ptr::eq(payload, &frame.payload));
+                    assert_eq!(payload.replay_words(), frame.payload.replay_words());
+                }
+                Cow::Owned(_) => panic!("identity paths must not clone or recompute the payload"),
+            }
+        }
+    }
+
+    #[test]
+    fn world_gyro_projection_uses_noncommuting_left_rotation() {
+        let raw = upright_g1(Vec3::Z * 4.0);
+        let projected = raw.orientation_projected(20_000_000);
+        let delta = Quat::from_rotation_z(0.08);
+        let expected_up = delta * (raw.base_rotation_world * Vec3::Z);
+        let body_frame_up = raw.base_rotation_world * (delta * Vec3::Z);
+        assert!((projected.up_world - expected_up).length() < 1.0e-12);
+        assert!((projected.up_world - body_frame_up).length() > 0.07);
+        assert!((projected.pitch_rad + 0.08).abs() < 1.0e-12);
+    }
+
+    #[test]
+    fn projected_quaternion_preserves_xyzw_and_y_up_orientation_conventions() {
+        let raw = upright_g1(Vec3::X * 5.0);
+        let projected = raw.orientation_projected(20_000_000);
+        let half_angle = (-std::f64::consts::FRAC_PI_2 + 0.1) * 0.5;
+        let expected_xyzw = [half_angle.sin(), 0.0, 0.0, half_angle.cos()];
+        for (actual, expected) in projected
+            .base_rotation_world
+            .to_array()
+            .into_iter()
+            .zip(expected_xyzw)
+        {
+            assert!((actual - expected).abs() < 1.0e-12);
+        }
+        assert!((projected.roll_rad - 0.1).abs() < 1.0e-12);
+        assert!(projected.pitch_rad.abs() < 1.0e-12);
+        assert!(
+            (projected.up_world - Vec3::new(0.0, 0.1_f64.cos(), 0.1_f64.sin())).length() < 1.0e-12
+        );
+        assert!((projected.forward_unit - Vec3::X).length() < 1.0e-12);
+        assert!((projected.lateral_unit - Vec3::Z).length() < 1.0e-12);
+    }
+
+    #[test]
+    fn orientation_projection_preserves_every_non_orientation_channel_word() {
+        let raw = pure_orientation_fixture(
+            true,
+            Quat::from_rotation_x(-std::f64::consts::FRAC_PI_2) * Quat::from_rotation_z(0.37),
+            Vec3::new(1.7, -0.2, 3.1),
+        );
+        let mut restored = raw.orientation_projected(7_000_000).into_owned();
+        assert_ne!(restored.base_rotation_world, raw.base_rotation_world);
+        restored.base_rotation_world = raw.base_rotation_world;
+        restored.up_world = raw.up_world;
+        restored.forward_unit = raw.forward_unit;
+        restored.lateral_unit = raw.lateral_unit;
+        restored.roll_rad = raw.roll_rad;
+        restored.pitch_rad = raw.pitch_rad;
+        // This covers gyro, roll rate, signed zeros, optional joints and metadata.
+        assert_eq!(restored.replay_words(), raw.replay_words());
+    }
+
+    #[test]
+    fn held_frame_projection_recomputes_from_original_without_compounding() {
+        let frame = pure_frame(upright_g1(Vec3::X * 2.0), 1_000_000, 5_000_000);
+        let original_words = frame.payload.replay_words();
+        let original_metadata = (
+            frame.sim_time,
+            frame.capture_time,
+            frame.available_time,
+            frame.sequence,
+            frame.entity,
+        );
+        let first = Policy::OrientationKnownAge
+            .effective(Some(&frame), SimTime::from_ticks(6_000_000))
+            .expect("first arrived use")
+            .expect("effective first frame");
+        let held = Policy::OrientationKnownAge
+            .effective(Some(&frame), SimTime::from_ticks(8_000_000))
+            .expect("held original sample")
+            .expect("effective held frame");
+        assert!((first.roll_rad - 0.01).abs() < 1.0e-12);
+        assert!((held.roll_rad - 0.014).abs() < 1.0e-12);
+        assert!((held.roll_rad - 0.024).abs() > 0.009);
+        assert_eq!(frame.payload.replay_words(), original_words);
+        assert_eq!(
+            (
+                frame.sim_time,
+                frame.capture_time,
+                frame.available_time,
+                frame.sequence,
+                frame.entity,
+            ),
+            original_metadata
+        );
+    }
 
     fn fixture() -> (UrdfSceneSim, Observation) {
         let sim = UrdfSceneSim::from_scene_path_with_solver_iterations_and_fixed_delta(

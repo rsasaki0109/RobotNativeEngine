@@ -245,6 +245,7 @@ impl JsonlWriter {
         estimate: Value,
         truth: Value,
         decision: &Value,
+        feedback: Option<Value>,
     ) -> DiagnosticResult<()> {
         let ticks = timing["consumer_ticks"]
             .as_u64()
@@ -275,7 +276,7 @@ impl JsonlWriter {
             ),
             None => None,
         };
-        let row = json!({
+        let mut row = json!({
             "schema_version":1,"g1_observation_diagnosis":true,
             "decision_index":self.rows,"phase":if ticks < SETTLE_TICKS {"settlement"} else {"recording"},
             "consumer_ticks":ticks,"command_completed_ticks":ticks + DT_TICKS,
@@ -285,6 +286,11 @@ impl JsonlWriter {
             "comparison_scope":"estimate versus current truth includes staleness and bounded error; estimate versus delivered-capture truth isolates injected estimate error. Both truth channels are evaluator-only.",
             "decision":decision
         });
+        if let Some(feedback) = feedback {
+            row.as_object_mut()
+                .expect("diagnostic row")
+                .extend(feedback.as_object().expect("feedback context").clone());
+        }
         let mut bytes = serde_json::to_vec(&row)?;
         bytes.push(b'\n');
         if bytes.len() > MAX_ROW_BYTES {
@@ -335,6 +341,18 @@ impl RunDiagnostics {
         truth: Option<Value>,
         decision: &Value,
     ) -> DiagnosticResult<()> {
+        self.record_with_feedback(timing, estimate, truth, decision, None)
+    }
+
+    /// Adds experiment-only estimator context without changing old decision words.
+    pub(super) fn record_with_feedback(
+        &mut self,
+        timing: Value,
+        estimate: Value,
+        truth: Option<Value>,
+        decision: &Value,
+        feedback: Option<Value>,
+    ) -> DiagnosticResult<()> {
         if self.decision_words.len() >= MAX_ROWS {
             return Err(io::Error::other("diagnosis decision words exceeded 8200 ticks").into());
         }
@@ -349,6 +367,7 @@ impl RunDiagnostics {
                 estimate,
                 truth.ok_or_else(|| io::Error::other("missing aligned evaluator truth"))?,
                 decision,
+                feedback,
             )?;
         }
         Ok(())
@@ -445,6 +464,7 @@ mod tests {
                 Value::Null,
                 truth.clone(),
                 &json!({}),
+                None,
             )
             .unwrap();
         assert!(writer
@@ -452,7 +472,8 @@ mod tests {
                 json!({"consumer_ticks":2*DT_TICKS,"capture_ticks":null}),
                 Value::Null,
                 truth.clone(),
-                &json!({})
+                &json!({}),
+                None,
             )
             .is_err());
         assert!(writer
@@ -460,7 +481,8 @@ mod tests {
                 json!({"consumer_ticks":DT_TICKS,"capture_ticks":null}),
                 Value::Null,
                 truth.clone(),
-                &json!({"oversized":"x".repeat(MAX_ROW_BYTES)})
+                &json!({"oversized":"x".repeat(MAX_ROW_BYTES)}),
+                None,
             )
             .is_err());
         let artifact = writer.finish().unwrap();

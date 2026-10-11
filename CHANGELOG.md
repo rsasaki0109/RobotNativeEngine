@@ -23,6 +23,18 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Add a separate 16-case known-age G1 orientation experiment to example 139.
+  Compare raw feedback with capture-age projection using the captured world
+  gyro, while preserving plant parameters, control gains, actuator limits and
+  the complete recovery predicate. Keep zero-age payloads and default raw
+  behavior unchanged, separate raw/effective telemetry, and verify fresh
+  replay, logging noninterference and literal zero-age cross-policy words.
+  Experimental evidence remains outside public GIF qualification.
+  In the fixed-seed matrix, projection restores recovery for the 5 ms delayed
+  40 N·s kick, with peak tilt 1.638381 -> 0.309082 rad. All eight zero-input
+  runs recover; the 20 ms delayed and bounded-error kicks still fail.
+  Retain all 16 outcomes and source-bound proofs separately.
+
 - Add an opt-in eight-case G1 observation diagnosis to example 139. Pair each
   ideal, delayed, or bounded-error profile with zero input and the unchanged
   40 N·s wrench. Stream per-tick arrived estimates, separately labelled
