@@ -23,6 +23,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Retain the rejected ForceBased inverse-diagonal experiment, including its
+  fixed 72-world matrix, independent oracle, exact source patch and admission
+  receipts. The candidate passes all four primary isolated calibration cases
+  but changes example 138's Rapier grasp results, failing the preregistered
+  numerical preservation gate. Roll back all candidate code and confirm that
+  examples 133–138 return to their original physical outputs. Keep production
+  physics, current CI verification and both earlier reports unchanged. See the
+  [complete historical evidence](docs/evidence/position-motor-diagonal-experiment/README.md).
+
 - Add example 141's fixed single-DOF position-motor calibration: compare both
   unchanged G1 gain pairs with an independently derived first-slice fixed point
   across 24 conditions and 72 fresh one-millisecond worlds. Retain every failed

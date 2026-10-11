@@ -1,0 +1,122 @@
+[
+  {
+    "example": "133_go2_contact_terrain",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--release",
+      "-p",
+      "go2_contact_terrain",
+      "--example",
+      "133_go2_contact_terrain"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.35653234999335837,
+    "ended_utc": "2026-10-11T18:38:40.299719+00:00",
+    "has_ok": true,
+    "physical_stdout_matches_baseline": true,
+    "baseline_stdout_sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974",
+    "physical_stdout_sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+  },
+  {
+    "example": "134_go2_terrain_trot",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--release",
+      "-p",
+      "go2_terrain_trot",
+      "--example",
+      "134_go2_terrain_trot"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.8717666150041623,
+    "ended_utc": "2026-10-11T18:38:41.171719+00:00",
+    "has_ok": true,
+    "physical_stdout_matches_baseline": true,
+    "baseline_stdout_sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6",
+    "physical_stdout_sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+  },
+  {
+    "example": "135_go2_feedback_trot",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--release",
+      "-p",
+      "go2_feedback_trot",
+      "--example",
+      "135_go2_feedback_trot"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 38.280897618999006,
+    "ended_utc": "2026-10-11T18:39:19.452965+00:00",
+    "has_ok": true,
+    "physical_stdout_matches_baseline": true,
+    "baseline_stdout_sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba",
+    "physical_stdout_sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+  },
+  {
+    "example": "136_go2_parallel_rl",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--release",
+      "-p",
+      "go2_parallel_rl",
+      "--example",
+      "136_go2_parallel_rl"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 5.4817257190006785,
+    "ended_utc": "2026-10-11T18:39:24.935269+00:00",
+    "has_ok": true,
+    "physical_stdout_matches_baseline": true,
+    "baseline_stdout_sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b",
+    "physical_stdout_sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+  },
+  {
+    "example": "137_go2_native_backend",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--release",
+      "-p",
+      "go2_native_backend",
+      "--example",
+      "137_go2_native_backend"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 2.833776931001921,
+    "ended_utc": "2026-10-11T18:39:27.769599+00:00",
+    "has_ok": true,
+    "physical_stdout_matches_baseline": true,
+    "baseline_stdout_sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f",
+    "physical_stdout_sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+  },
+  {
+    "example": "138_heavy_grasp",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--release",
+      "-p",
+      "heavy_grasp",
+      "--example",
+      "138_heavy_grasp"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 16.44859666400589,
+    "ended_utc": "2026-10-11T18:39:44.218924+00:00",
+    "has_ok": true,
+    "physical_stdout_matches_baseline": true,
+    "baseline_stdout_sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8",
+    "physical_stdout_sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+  }
+]

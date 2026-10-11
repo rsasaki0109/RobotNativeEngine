@@ -1,0 +1,37 @@
+{
+  "started_utc": "2026-10-11T18:21:13.852932+00:00",
+  "ended_utc": "2026-10-11T18:21:14.791643+00:00",
+  "actual_exit_code": 0,
+  "elapsed_seconds": 0.9384911550005199,
+  "command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/audit_candidate_report.py",
+    "--report",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/raw-report.json",
+    "--report-sha256",
+    "010576c088b8916c29e2cfcf7af40abfc636508bff1496aacd793a9ba5826816",
+    "--binary-binding",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/frozen-binary-binding.json",
+    "--binary-binding-sha256",
+    "c7cccc666b5208fbf99e7b0962a3e65a20839ca2ffc689a8182c1002a458f29b",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/independent-generation3-exact-fraction-audit.json"
+  ],
+  "stdout": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/actual-poststudy-audit-command.stdout.txt",
+    "bytes": 2632,
+    "sha256": "f9dfef537d92307576ddeed16f3ff57ad9086e9c20df6474801e3615ee8f4882"
+  },
+  "stderr": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/actual-poststudy-audit-command.stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "auditor_sha256": "46121fdec42c45ef3588ae0cf6b26fb0c5b108ae2b32b032719fc50943cac270",
+  "proof": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/independent-generation3-exact-fraction-audit.json",
+    "bytes": 148535,
+    "sha256": "7311d98d43470b1bc0ef8cf120307c6417dc213719238484872c650077770611"
+  },
+  "native_worlds_builds_tests_checkout_edits": 0
+}

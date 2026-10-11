@@ -1,0 +1,16 @@
+{
+  "started_utc": "2026-10-11T18:20:56.703043+00:00",
+  "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--manifest-path",
+    "third_party/rapier3d/Cargo.toml",
+    "--lib",
+    "--no-run"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": null
+}

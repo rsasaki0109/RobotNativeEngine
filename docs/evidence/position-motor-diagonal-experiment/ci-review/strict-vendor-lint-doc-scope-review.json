@@ -1,0 +1,432 @@
+{
+  "schema_version": 1,
+  "read_only_checkout_review": true,
+  "cargo_commands_run": 0,
+  "checkout_edits": 0,
+  "historical_strict_clippy_doc_records": [
+    {
+      "started_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/physics-core-doc/started.json",
+      "started_sha256": "da41429885119fd4cf4254c150cdf526b2963590b49d279fd7835d07ee3ff88d",
+      "command": [
+        "cargo",
+        "doc",
+        "--locked",
+        "-p",
+        "rne_physics",
+        "--no-deps"
+      ],
+      "terminal_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/physics-core-doc/terminal.json",
+      "terminal": {
+        "ended_utc": "2026-10-11T04:45:45.552544+00:00",
+        "exit_code": 0,
+        "runtime_s": 2.8578840310001397,
+        "source_inputs_unchanged": true,
+        "changed_inputs": [],
+        "log_sha256": "6146510b7fd521fc9742f9f1efaeac16e93f4724ef785f46d9e4c24172342ab4",
+        "before_manifest_sha256": "d58414853d01c36ef79d03f8014818d50dbccb7447519f0d4bcfc7c1be857545",
+        "after_manifest_sha256": "d58414853d01c36ef79d03f8014818d50dbccb7447519f0d4bcfc7c1be857545"
+      }
+    },
+    {
+      "started_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-clippy-final/started.json",
+      "started_sha256": "1d9a1b2cc1bad4fc227f72f9854de9b3a13eb1176ad95884bf9440c44a163510",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "rne_physics",
+        "-p",
+        "rne_ai",
+        "-p",
+        "rne_physics_rapier",
+        "-p",
+        "kick_comparison",
+        "-p",
+        "xtask",
+        "--features",
+        "rne_physics_rapier/position-motor-diagnostics",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "terminal_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-clippy-final/terminal.json",
+      "terminal": {
+        "ended_utc": "2026-10-11T05:12:01.035514+00:00",
+        "exit_code": 0,
+        "runtime_s": 12.522637673995632,
+        "source_inputs_unchanged": true,
+        "changed_inputs": [],
+        "log_sha256": "f771f4f3bdf630191ddd19a2327dbf7015c3a1957b5b2c7017e385c4e14ee132",
+        "before_manifest_sha256": "50055dc1520d5fdcf67115d2061f955bb1b5a7aa68477d9c5d07ca5acc89ed5f",
+        "after_manifest_sha256": "50055dc1520d5fdcf67115d2061f955bb1b5a7aa68477d9c5d07ca5acc89ed5f"
+      }
+    },
+    {
+      "started_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/physics-core-clippy/started.json",
+      "started_sha256": "a547403f86cf788927f2b277f84232c0143532ab8aff05f3156276811e983810",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "rne_physics",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "terminal_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/physics-core-clippy/terminal.json",
+      "terminal": {
+        "ended_utc": "2026-10-11T04:45:42.653569+00:00",
+        "exit_code": 0,
+        "runtime_s": 2.102528766001342,
+        "source_inputs_unchanged": true,
+        "changed_inputs": [],
+        "log_sha256": "448a4cc70a2bc1f2ee88bec8a088f9015809da4b69607dcdb83ef9ab35e5e674",
+        "before_manifest_sha256": "d58414853d01c36ef79d03f8014818d50dbccb7447519f0d4bcfc7c1be857545",
+        "after_manifest_sha256": "d58414853d01c36ef79d03f8014818d50dbccb7447519f0d4bcfc7c1be857545"
+      }
+    },
+    {
+      "started_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-clippy-forward-final/started.json",
+      "started_sha256": "ad468b4bfb7284326c9f44a13e379d15c79ccb917e83135d456fc153a182326a",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "rne_physics",
+        "-p",
+        "rne_ai",
+        "-p",
+        "rne_physics_rapier",
+        "-p",
+        "kick_comparison",
+        "-p",
+        "xtask",
+        "--features",
+        "rne_ai/position-motor-diagnostics",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "terminal_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-clippy-forward-final/terminal.json",
+      "terminal": {
+        "ended_utc": "2026-10-11T05:17:27.896106+00:00",
+        "exit_code": 0,
+        "runtime_s": 26.053956521995133,
+        "source_inputs_unchanged": true,
+        "changed_inputs": [],
+        "log_sha256": "81bf16852dab5ac97e964ce9f1f89f426b7fd6dfeb961a15e8af6247bc16ff3d",
+        "before_manifest_sha256": "c0276762f7faff7ee6b75917e8342ed962e31487af2f9dc8feccb0b3e6469988",
+        "after_manifest_sha256": "c0276762f7faff7ee6b75917e8342ed962e31487af2f9dc8feccb0b3e6469988"
+      }
+    },
+    {
+      "started_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-clippy-first/started.json",
+      "started_sha256": "0369e8bdbc9d8799a4410475081db09bac5a2b20ed2403f6a03b31475923a62b",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "rne_physics",
+        "-p",
+        "rne_ai",
+        "-p",
+        "rne_physics_rapier",
+        "-p",
+        "kick_comparison",
+        "-p",
+        "xtask",
+        "--features",
+        "rne_physics_rapier/position-motor-diagnostics",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "terminal_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-clippy-first/terminal.json",
+      "terminal": {
+        "ended_utc": "2026-10-11T05:05:55.030369+00:00",
+        "exit_code": 101,
+        "runtime_s": 28.996599979000166,
+        "source_inputs_unchanged": true,
+        "changed_inputs": [],
+        "log_sha256": "11afbcfc5ed7e207beb5f578de00a10e820516bca3ee792d783252a365a19a62",
+        "before_manifest_sha256": "e62db48d6b7f4d6bdddc760b4447d781ecbfefaba407be7142a86c2139b0e6f4",
+        "after_manifest_sha256": "e62db48d6b7f4d6bdddc760b4447d781ecbfefaba407be7142a86c2139b0e6f4"
+      }
+    },
+    {
+      "started_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-doc-forward-final/started.json",
+      "started_sha256": "4526f42d319e83051a73d06cd202995a5f2dce65df5064a33c5ca30e0bddc839",
+      "command": [
+        "cargo",
+        "doc",
+        "--locked",
+        "-p",
+        "rne_physics",
+        "-p",
+        "rne_ai",
+        "-p",
+        "rne_physics_rapier",
+        "-p",
+        "xtask",
+        "--features",
+        "rne_ai/position-motor-diagnostics",
+        "--no-deps"
+      ],
+      "terminal_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-doc-forward-final/terminal.json",
+      "terminal": {
+        "ended_utc": "2026-10-11T05:20:06.223288+00:00",
+        "exit_code": 0,
+        "runtime_s": 20.410044764001213,
+        "source_inputs_unchanged": true,
+        "changed_inputs": [],
+        "log_sha256": "a968238cec56c14fae682eb3af618cfa869d1df4bdb6b2f564b9d9ea7d3ce237",
+        "before_manifest_sha256": "c0276762f7faff7ee6b75917e8342ed962e31487af2f9dc8feccb0b3e6469988",
+        "after_manifest_sha256": "c0276762f7faff7ee6b75917e8342ed962e31487af2f9dc8feccb0b3e6469988"
+      }
+    }
+  ],
+  "direct_vendor_strict_clippy_or_doc_found": false,
+  "baseline_log_path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/checks/changed-crates-feature-clippy-final/command.log",
+  "baseline_log_sha256": "f771f4f3bdf630191ddd19a2327dbf7015c3a1957b5b2c7017e385c4e14ee132",
+  "nineteen_existing_vendor_compiler_warnings": [
+    {
+      "message": "unnecessary parentheses around closure body",
+      "location": "third_party/rapier3d/src/pipeline/query_pipeline/mod.rs:490:22",
+      "log_line": 1,
+      "rust_lint_help": [
+        "= note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default"
+      ]
+    },
+    {
+      "message": "`#[must_use]` attribute cannot be used on trait methods in impl blocks",
+      "location": "third_party/rapier3d/src/dynamics/rigid_body_components.rs:694:5",
+      "log_line": 14,
+      "rust_lint_help": [
+        "= note: `#[warn(unused_attributes)]` (part of `#[warn(unused)]`) on by default"
+      ]
+    },
+    {
+      "message": "`#[must_use]` attribute cannot be used on trait methods in impl blocks",
+      "location": "third_party/rapier3d/src/dynamics/rigid_body_components.rs:706:5",
+      "log_line": 24,
+      "rust_lint_help": []
+    },
+    {
+      "message": "struct `Externals` is never constructed",
+      "location": "third_party/rapier3d/src/data/graph.rs:521:12",
+      "log_line": 33,
+      "rust_lint_help": [
+        "= note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default"
+      ]
+    },
+    {
+      "message": "struct `Neighbors` is never constructed",
+      "location": "third_party/rapier3d/src/data/graph.rs:555:12",
+      "log_line": 41,
+      "rust_lint_help": []
+    },
+    {
+      "message": "struct `NodeReferences` is never constructed",
+      "location": "third_party/rapier3d/src/data/graph.rs:788:12",
+      "log_line": 47,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/data/arena.rs:701:17",
+      "log_line": 53,
+      "rust_lint_help": [
+        "= note: `#[warn(mismatched_lifetime_syntaxes)]` on by default"
+      ]
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/data/arena.rs:728:21",
+      "log_line": 68,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/data/arena.rs:760:18",
+      "log_line": 82,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/data/graph.rs:392:18",
+      "log_line": 96,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/data/graph.rs:407:27",
+      "log_line": 110,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/data/graph.rs:595:12",
+      "log_line": 122,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1004:27",
+      "log_line": 137,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1014:37",
+      "log_line": 151,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1020:33",
+      "log_line": 165,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1032:37",
+      "log_line": 179,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs:203:9",
+      "log_line": 193,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/dynamics/solver/solver_vel.rs:25:28",
+      "log_line": 210,
+      "rust_lint_help": []
+    },
+    {
+      "message": "hiding a lifetime that's elided elsewhere is confusing",
+      "location": "third_party/rapier3d/src/dynamics/solver/solver_vel.rs:29:32",
+      "log_line": 224,
+      "rust_lint_help": []
+    }
+  ],
+  "warning_source_comparison_to_merged406": [
+    {
+      "path": "third_party/rapier3d/src/data/arena.rs",
+      "current_sha256": "5566fd26f55069b79e20801fb0cba8452367617f67cd56c9eb0b0471e35c61d9",
+      "merged406_sha256": "5566fd26f55069b79e20801fb0cba8452367617f67cd56c9eb0b0471e35c61d9",
+      "unchanged": true
+    },
+    {
+      "path": "third_party/rapier3d/src/data/graph.rs",
+      "current_sha256": "6b3d9a62f449f06a4d065f77fa0b4da9c86076baca049a4a172787d8b6825d9a",
+      "merged406_sha256": "6b3d9a62f449f06a4d065f77fa0b4da9c86076baca049a4a172787d8b6825d9a",
+      "unchanged": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "current_sha256": "f55eb8031c8433908f5f8b21d66d7260a97e76027e69065e204594dbc5c8701f",
+      "merged406_sha256": "f55eb8031c8433908f5f8b21d66d7260a97e76027e69065e204594dbc5c8701f",
+      "unchanged": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/rigid_body_components.rs",
+      "current_sha256": "3f584a56f9e920261484ab5accae06c5d28a291644d93b441306ffad3b7a17f7",
+      "merged406_sha256": "3f584a56f9e920261484ab5accae06c5d28a291644d93b441306ffad3b7a17f7",
+      "unchanged": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "current_sha256": "ca380c6853464aa4eba1944d8bf7f781692fcc315fc38b1abdf544a109dc224c",
+      "merged406_sha256": "ca380c6853464aa4eba1944d8bf7f781692fcc315fc38b1abdf544a109dc224c",
+      "unchanged": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_vel.rs",
+      "current_sha256": "517cb21aab562962c163350e91eaf8af613ff1c37d0a77e21c62f1233c0649b3",
+      "merged406_sha256": "517cb21aab562962c163350e91eaf8af613ff1c37d0a77e21c62f1233c0649b3",
+      "unchanged": true
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/query_pipeline/mod.rs",
+      "current_sha256": "8dbfd6b885a828bdc7601e40cbe5d01be9d483d88b3393da1f75221e68bbb234",
+      "merged406_sha256": "8dbfd6b885a828bdc7601e40cbe5d01be9d483d88b3393da1f75221e68bbb234",
+      "unchanged": true
+    }
+  ],
+  "proposed_explicit_commands_not_executed": [
+    [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--manifest-path",
+      "third_party/rapier3d/Cargo.toml",
+      "-p",
+      "rapier3d",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--manifest-path",
+      "third_party/rapier3d/Cargo.toml",
+      "-p",
+      "rapier3d",
+      "--all-targets",
+      "--features",
+      "parallel,serde-serialize",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    [
+      "cargo",
+      "doc",
+      "--locked",
+      "--manifest-path",
+      "third_party/rapier3d/Cargo.toml",
+      "-p",
+      "rapier3d",
+      "--no-deps"
+    ],
+    [
+      "cargo",
+      "doc",
+      "--locked",
+      "--manifest-path",
+      "third_party/rapier3d/Cargo.toml",
+      "-p",
+      "rapier3d",
+      "--features",
+      "parallel,serde-serialize",
+      "--no-deps"
+    ]
+  ],
+  "doc_environment": {
+    "RUSTDOCFLAGS": "-D warnings"
+  },
+  "reuse_cache_environment": {
+    "CARGO_TARGET_DIR": "/workspace/RobotNativeEngine/target"
+  },
+  "truth_scope": [
+    "No invented vendor lint/documentation exemption. Root successful strict consumer Clippy is not direct-vendor strict Clippy.",
+    "Existing warnings alone prevent unchanged direct vendor Clippy -D warnings; extra Clippy-only all-target warnings are unknown until actual invocation.",
+    "The strict documentation outcome is not established from compiler-warning logs; run it and preserve actual result.",
+    "Do not use cap-lints allow/warn or suppress existing lints to report a strict pass.",
+    "Lint hygiene edits to any of the 17 selected input files invalidate generation-3 report binding; preregister/recollect or keep an explicitly failed check, never rewrite old hashes."
+  ]
+}

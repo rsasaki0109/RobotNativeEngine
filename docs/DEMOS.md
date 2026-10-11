@@ -466,6 +466,15 @@ retain the failed results from both 72-world generations. Exposed IEEE state and
 ordered telemetry match exactly; the current verifier rejects old schemas and
 stale source bindings. The migration adds no dependency-policy exception.
 
+The [rejected inverse-diagonal experiment](evidence/position-motor-diagonal-experiment/README.md)
+adds a separate historical 72-world report: its four primary calibration cases
+pass, but example 138's Rapier grasp numbers change and fail the preregistered
+compatibility gate. All candidate code is rolled back, and a new release run
+restores examples 133–138's complete physical outputs. This historical report
+has a different source binding and is intentionally rejected by the current
+example 141 verifier. The existing report and default calibration FAIL remain
+the current CI input; no G1 or hardware recovery is established.
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

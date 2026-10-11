@@ -166,3 +166,22 @@ This comparison does not establish equality of every private field across codecs
 See the [migration receipt](../../docs/media/position-motor-calibration-codec-migration.json).
 Pure unit tests and retained-report verification construct no physics worlds.
 Production solver/control files and prior kick/GIF evidence remain unchanged.
+
+## Rejected inverse-diagonal candidate
+
+One separately preregistered generation changes the internal single-DOF
+ForceBased row from `inv(w)` to `inv(fl32(w + g))`, using the existing CFM gain.
+It retains this fixture, gains, limits, counts and tolerance, with one fresh
+72-world matrix and independent oracle tools frozen before execution. Primary
+calibration passes 4/4 and all nonzero conditions pass 16/16; zero controls and
+within-build exact replay still qualify.
+
+The candidate fails the separate requirement to preserve examples 133–138's
+physical output: example 138 changes four Rapier grasp rows even though it prints
+`ok`. All candidate code is rolled back, and a new release run restores all six
+original baselines. The [historical report](../../docs/media/position-motor-diagonal-calibration.json)
+and [source-bound evidence and rejection receipts](../../docs/evidence/position-motor-diagonal-experiment/README.md)
+remain separate from the unchanged current generation-2 report. The current
+verifier must reject the candidate's stale source binding; it is not a new default
+calibration PASS. Attempted candidate unit tests fail to compile and provide no
+passing qualification. No retuning, G1 recovery or hardware claim follows.

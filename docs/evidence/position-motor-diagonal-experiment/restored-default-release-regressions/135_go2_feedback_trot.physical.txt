@@ -1,0 +1,9 @@
+terrain: 10x10 m, seed 135, relief 0.092 m
+feedback trot: straight 0.36 m/s (command 0.4), turned 2.08 rad (command 2.0), max tilt 0.292 rad
+feedback trot: 250 N push for 0.1 s -> 0.27 m sideways, tilt 0.023 rad one second later
+feedback trot: min clearance 0.321 m, deepest penetration 0.01 mm, peak torque 100 % of the limit
+open-loop trot: straight 0.41 m/s (command 0.4), turned -0.12 rad (command 2.0), max tilt 0.422 rad
+open-loop trot: 250 N push for 0.1 s -> 0.22 m sideways, tilt 0.229 rad one second later
+open-loop trot: min clearance 0.262 m, deepest penetration 0.03 mm, peak torque 100 % of the limit
+deterministic replay: true
+go2 feedback trot: ok

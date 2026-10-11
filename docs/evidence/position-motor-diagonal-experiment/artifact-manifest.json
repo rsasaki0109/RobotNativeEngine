@@ -1,0 +1,507 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-10-11T20:37:11.981470+00:00",
+  "scope": "Literal historical experiment artifacts and post-rollback release receipts; hashes do not substitute for admission or source/binary qualification",
+  "admission": "REJECTED",
+  "production_code_changes": 0,
+  "candidate_matrix_worlds": 72,
+  "prior_generations_matrix_worlds": 144,
+  "candidate_new_unit_test_worlds": 0,
+  "files": [
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/.gitattributes",
+      "bytes": 103,
+      "sha256": "3a6d4bea98fe732e9153672c6e384203193249605c5c14391f3a711b6364b630"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/README.md",
+      "bytes": 5282,
+      "sha256": "292612d8c82af7b74a4f19e11d752dddb9e2bc21083105fe2db5ab1feaa2af0a"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/archived-candidate-reconstruction-and-current-default-proof.json",
+      "bytes": 47858,
+      "sha256": "eafa41536ed4e37f288eb28bcce040e618772789cf2f9af7491ff28fdeb9a523"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/133_go2_contact_terrain.stdout",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/134_go2_terrain_trot.stdout",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/135_go2_feedback_trot.stdout",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/136_go2_parallel_rl.stdout",
+      "bytes": 569,
+      "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/137_go2_native_backend.stdout",
+      "bytes": 854,
+      "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/138_heavy_grasp.stdout",
+      "bytes": 1647,
+      "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/candidate-application.json",
+      "bytes": 431,
+      "sha256": "0d7e6916eab8690f4a826353b121ecd6e9dadc6fb64384bce68ddc3b64847666"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/ci-review/strict-vendor-lint-doc-scope-review.json",
+      "bytes": 16070,
+      "sha256": "f66f4f218ab9f45f56db4d0cf8884f8c11b27d1a8a7dcc7c347c798e8df8e9ae"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/command.log",
+      "bytes": 112,
+      "sha256": "f7ea0d7a48ff57dc6f94e505e54f2ce6e81aada21060940bd9f6d374ae492a65"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/started.json",
+      "bytes": 487,
+      "sha256": "c3641e9b3fd582ff376ec4a529075b01b0961ea99c1f1696f54982df4a8cfd54"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/terminal.json",
+      "bytes": 441,
+      "sha256": "ffd6b0393473237d25b96179fe9d2c737f6af0965728b8da2631664431d72b26"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/command.log",
+      "bytes": 11756,
+      "sha256": "c459b3e23070207ad7b3ea09a48466ee4a2cdaf23f5b7db92d01ab4bfa947f01"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/started.json",
+      "bytes": 354,
+      "sha256": "215f3b0de14ed8cc5fcc4be18c3bc91cf0961848fd5cbf17b9873250d4862b42"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/terminal.json",
+      "bytes": 440,
+      "sha256": "e0cab997a221b88c81142c26b158607cd4e9b37d3c4532fa5c7792947054325f"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/command.log",
+      "bytes": 2980,
+      "sha256": "bcaa1d6415e53dba0b82c26aa9086b732192547a365882908ebaaddcc4dc916f"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/started.json",
+      "bytes": 337,
+      "sha256": "ddac28f75d4b85d19d0f014e2b4dd3328bb4e6958fd255f5aeaeeda88442cdcf"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/terminal.json",
+      "bytes": 441,
+      "sha256": "3028268ebf666b9f1a63d773c39c57e64e5c49d2cd2f2826153b146aa892cf8d"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/command.log",
+      "bytes": 2981,
+      "sha256": "428504fd7b3341032a79e7d7667226fe2cb6d47ea116a483e489d40ad916a3d8"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/started.json",
+      "bytes": 353,
+      "sha256": "a3de4bf40f375f03af2ee1dd01b7ae769d8a494fe47d39a5a7f87fb57cb88ed3"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/terminal.json",
+      "bytes": 440,
+      "sha256": "8cdcc42ff77f16d13981ff0e6c1592767f69ded958dd05fab1af63b5276b56ce"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/command.log",
+      "bytes": 3291,
+      "sha256": "b7cdd16d5483a3430b2578ca93391a6a22d0e65d8452d9a809a4705a6743279f"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/started.json",
+      "bytes": 327,
+      "sha256": "69d58a00fb667fd20d28a99eb8bb970ab11aa5197d77b0a0dc8991a743b5ab20"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/terminal.json",
+      "bytes": 443,
+      "sha256": "6bd410bee6b89d0ec738e45cf9508a5ad0a388a5f4ae2f604a2d391faa5f1d41"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/complete-rejected-candidate.patch",
+      "bytes": 15075,
+      "sha256": "08b5932ec3ac3271709c3e665ed631b76bbb51190abe86117333f19ea1b1f3c7"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/frozen-binary-binding.json",
+      "bytes": 1516,
+      "sha256": "c7cccc666b5208fbf99e7b0962a3e65a20839ca2ffc689a8182c1002a458f29b"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.json",
+      "bytes": 2019,
+      "sha256": "18309e2a1b28a4dc416edd51f5a2bf115f1c7b8b67853580ca5f08114ea2ac7e"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.stdout.txt",
+      "bytes": 2632,
+      "sha256": "f9dfef537d92307576ddeed16f3ff57ad9086e9c20df6474801e3615ee8f4882"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/admission-rejected-release133-138-independent-proof.json",
+      "bytes": 50108,
+      "sha256": "989dcd6169b73374292404376b031b462be8b4f4a639b9b353f5dbd4ec0360c6"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/all24-generation2-vs3-descriptive-metrics.json",
+      "bytes": 46585,
+      "sha256": "63bbd9b951b1dc2ad8b79b7e488ca0ef404d88b482d78760a43ea8ac316f6e4e"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/audit_candidate_report.py",
+      "bytes": 32054,
+      "sha256": "46121fdec42c45ef3588ae0cf6b26fb0c5b108ae2b32b032719fc50943cac270"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/audit_release_admission_readonly.py",
+      "bytes": 14330,
+      "sha256": "9d998d7b086229658e8052b582a02acb725931f3d45b61de2e86eea8d64a52d4"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/frozen_candidate_row_oracle.py",
+      "bytes": 12728,
+      "sha256": "10a148a918f192c15979a79aaefe2b32212f3ac04d86980246f87fafdff8eea3"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/independent-generation3-exact-fraction-audit.json",
+      "bytes": 148535,
+      "sha256": "7311d98d43470b1bc0ef8cf120307c6417dc213719238484872c650077770611"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-independent-tool-freeze.json",
+      "bytes": 8462,
+      "sha256": "6be7550fd0c3fe3eb7894d9ebd70b99fc827ca27a9d8386fa2c0300f739c004d"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-pure-oracle-tests-attempt-1.json",
+      "bytes": 13974,
+      "sha256": "11fb39bd050aeb17ce2642f39ae2448c1ec4b1eb14eca7616de4afd091d22558"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-pure-oracle-tests.json",
+      "bytes": 13974,
+      "sha256": "64c4c6bd23200e9cb1a409d353757a6087563fb9a01d28c8592ca47b48a8bc11"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/preregistered-diagonal-intervention-protocol.json",
+      "bytes": 16437,
+      "sha256": "72fb721272e7f42c38e67560f551dfe041f9b7102219f546906596fcd4868457"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/independent-oracle/test_candidate_oracle_pure.py",
+      "bytes": 7908,
+      "sha256": "0a91fd5712529bcc011c759c93641e71d21aa25fbd8def57b9ad19fb72c19bb1"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regression-reader-freeze.json",
+      "bytes": 642,
+      "sha256": "2ce259b00432f3f0426169a7604c05c71067f5c1d316f0f2786068b89f3fb2ce"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain-process.json",
+      "bytes": 139,
+      "sha256": "a8284b88058ac0c2a6114e436ae701a2f21fe82f8a5a819478818f8611f56f33"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.physical.txt",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.stderr",
+      "bytes": 1119,
+      "sha256": "bf82d0de3c8e84be107bdbee4c3e2f701bd68c41df95341522ef74b704451cdc"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.stdout",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot-process.json",
+      "bytes": 133,
+      "sha256": "9df7f53d47a8bc3ea4ed87b614839bf461aebffe375e4bc131a79f1a1aa8eec5"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.physical.txt",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.stderr",
+      "bytes": 220,
+      "sha256": "d40abf242d725a80b99d12f2f9572c7c25af54fd17ac5bf88de0c3aed8d50cb4"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.stdout",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot-process.json",
+      "bytes": 135,
+      "sha256": "6e3b60ec1029b82a5b3aefa1c827505802018136b936e7988d0afbede9e4a09b"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.physical.txt",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.stderr",
+      "bytes": 12759,
+      "sha256": "b7b8109013c23eaac161318b2c3ed0c6e36ebd62b4e9648e1a29e895068d3321"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.stdout",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl-process.json",
+      "bytes": 131,
+      "sha256": "09324f37050f91c7efb581714d91af7f2a22db3acca3bdc46d8c242d37a8d6c8"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.physical.txt",
+      "bytes": 501,
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.stderr",
+      "bytes": 11052,
+      "sha256": "82bbdba2f8fa325ada6ac724d4a286f6cd694e60d14ad60f50ef01b01c91ad32"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.stdout",
+      "bytes": 569,
+      "sha256": "48f511e3d035f7cf3ccfbfdced0301ba48b02c3f29e17949c36b964894be1b05"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend-process.json",
+      "bytes": 137,
+      "sha256": "4517c8f7a268e298c9958a21a4bca4debc7245aeaa8aa5a68634a5a93b63a394"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.physical.txt",
+      "bytes": 820,
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.stderr",
+      "bytes": 11158,
+      "sha256": "8e43cd03c60fd9c0295bb6bfdc5a1028d167bd7d43a7afe94188c629075d4c03"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.stdout",
+      "bytes": 854,
+      "sha256": "582b5f785d217b286525d236537ad6d9adc94ce9cc0aa915e5adbf29fe83b2d7"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp-process.json",
+      "bytes": 123,
+      "sha256": "6d4a76d36f00586d519fba254760f88a30763e8f3ded89f99e2b57d939144915"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.physical.txt",
+      "bytes": 1431,
+      "sha256": "34ee5085d2c024721cff3d44d25726d0b64cd2bff18d2719cee44b919f9313c6"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.stderr",
+      "bytes": 11331,
+      "sha256": "12cc161ac82fb25bf55b5cc6cf3babfbfc5e87cf6af243d915cff646709841cd"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.stdout",
+      "bytes": 1647,
+      "sha256": "9acfe393a77fe2b705b5c5cc33662fcbad5c8e7c7703efe09bf39b6862d31cf1"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/release-regressions/results.json",
+      "bytes": 3565,
+      "sha256": "2ab7e727f7353cec525e30cb09276122a304a730851e1380aaab6ab8f42f3f0b"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/resolved-feature-tree.txt",
+      "bytes": 24547,
+      "sha256": "420aedcae8a03bd3405a20a0dc8fb689cd6c0888585a48564a6fd9e2aee5fc28"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain-process.json",
+      "bytes": 139,
+      "sha256": "5003fdfea0578468a4f575c74c73248444b0dd6aa264ef5489edb3046736a3ce"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.physical.txt",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.stderr",
+      "bytes": 125,
+      "sha256": "e4b70399c0de513d529390357d20d4763ad7fa80efc4f018cc1ebaee6dedaa5a"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.stdout",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot-process.json",
+      "bytes": 133,
+      "sha256": "6eefd271b2f1f78f4e2378fe68fe33d1cdc923c87bf3fb8f08909e57b16e9dca"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.physical.txt",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.stderr",
+      "bytes": 122,
+      "sha256": "c99a1cf693c03e8eccc004bf073da5c6e36cf95f0efc84c1019c3142a497fca8"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.stdout",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot-process.json",
+      "bytes": 135,
+      "sha256": "7a90ec54dd555088144c622905597c144bf422a1637dcf708c336ec562a5cfcf"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.physical.txt",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.stderr",
+      "bytes": 11397,
+      "sha256": "1842749f6ac3a8e8b02696b35323f70012c43306cd39c8de2a64e5a821cdfc5c"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.stdout",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl-process.json",
+      "bytes": 131,
+      "sha256": "08ff09d1910ddedb628e0626aae6ed319934499e2fd2eb5cb90e2e6741c85b5d"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.physical.txt",
+      "bytes": 501,
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.stderr",
+      "bytes": 11052,
+      "sha256": "2f56b47090c94ebc4646fa872fb1f54eefe961db32368dd1eda8101b49a12b9f"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.stdout",
+      "bytes": 571,
+      "sha256": "ec72e23cd8d90863f293477613461cfa00e51841b93e46e51ab2e871b42318a6"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend-process.json",
+      "bytes": 137,
+      "sha256": "f0a9c7d06225798f1bce30c899cef18322529209e900eb590572f318ad4758fa"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.physical.txt",
+      "bytes": 820,
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.stderr",
+      "bytes": 11061,
+      "sha256": "b73fa2d61bc363e8823dfe40386a1d756a76062d53b6a9c11bc2429e94721f37"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.stdout",
+      "bytes": 853,
+      "sha256": "4e807e8b2302f46854890b3a9adc06114e9c8cb84adb64cebd5670a0e9ec638a"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp-process.json",
+      "bytes": 123,
+      "sha256": "e76f23c2e434317f25c80874512a711ce1357775c4161a537a7f7630bab7fe4d"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.physical.txt",
+      "bytes": 1431,
+      "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.stderr",
+      "bytes": 11219,
+      "sha256": "7d9df6d460beb92e0acc5925d8e3d23121a98efd819c3785062917d89c78f0bb"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.stdout",
+      "bytes": 1647,
+      "sha256": "3af6f020d696ebb963bade812ff2b1143532b289693f5e650116bf5080df50f3"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/results.json",
+      "bytes": 3566,
+      "sha256": "08aae8cf1b94630277bf9daf6ff3cc8df26aeb755622676ffe6e2247b5330e22"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/rollback-to-merged-default.json",
+      "bytes": 2396,
+      "sha256": "ca142b3e63dd6636614a7eba736ffcfbdfd5604321216237bccb5c1c31881930"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/run_release_regressions.py",
+      "bytes": 2554,
+      "sha256": "0157b6fb5cf43f8d46c3eee1be76a38c6478d9d9195a80dfa61d3ea4a85cb65a"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/run_restored_default_release_regressions.py",
+      "bytes": 2571,
+      "sha256": "7af7ac54d2facdd7176b7fde658823b58b344c4eb34d66aebfa7c3876681214e"
+    },
+    {
+      "path": "docs/evidence/position-motor-diagonal-experiment/source-compiler-protocol.json",
+      "bytes": 18497,
+      "sha256": "16c085e73638c360126c57d05bd00ee67f3173c5a790ea17b4af528b39642aa8"
+    },
+    {
+      "path": "docs/media/position-motor-diagonal-calibration.json",
+      "bytes": 8190750,
+      "sha256": "010576c088b8916c29e2cfcf7af40abfc636508bff1496aacd793a9ba5826816"
+    }
+  ]
+}

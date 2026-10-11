@@ -1,0 +1,17 @@
+{
+  "started_utc": "2026-10-11T18:18:08.140353+00:00",
+  "command": [
+    "cargo",
+    "build",
+    "--locked",
+    "--release",
+    "-p",
+    "position_motor_calibration",
+    "--example",
+    "141_position_motor_calibration"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": null,
+  "rustdocflags": null
+}

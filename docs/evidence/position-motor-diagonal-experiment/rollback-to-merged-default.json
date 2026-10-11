@@ -1,0 +1,38 @@
+{
+  "restored_utc": "2026-10-11T18:38:34.251383+00:00",
+  "base_commit": "b0bf79eaf765596fede4130111596ac1d721262e",
+  "reason": "Required example138 literal physical compatibility failure; no retuning or threshold change",
+  "admission_sha256": "989dcd6169b73374292404376b031b462be8b4f4a639b9b353f5dbd4ec0360c6",
+  "archived_complete_patch_sha256": "08b5932ec3ac3271709c3e665ed631b76bbb51190abe86117333f19ea1b1f3c7",
+  "restored_owned_files": [
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "candidate_sha256": "5cdacfb67dfa186fd513354e693b4efc7d4f1ebd400d9f08ea8598f57135e9b5",
+      "merged_default_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+      "restored_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe"
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs",
+      "candidate_sha256": "228a03845e9a62209911155eeeac5ce1e02c244dd8c86313325a9b6a1cb595ba",
+      "merged_default_sha256": "9a3c4cbcde20a7957ad3c2b9b38f8a9a2861c396c0c7cbb692c1407c65ff156e",
+      "restored_sha256": "9a3c4cbcde20a7957ad3c2b9b38f8a9a2861c396c0c7cbb692c1407c65ff156e"
+    },
+    {
+      "path": "xtask/src/main.rs",
+      "candidate_sha256": "a2a2c74123e96fc680e4fbe259925682cdc1deb73dec56381b2f143da4fa351b",
+      "merged_default_sha256": "f7cc2f2c011c630b62569321de17da0c9c18d55440012d7a7ebb01b29308e00f",
+      "restored_sha256": "f7cc2f2c011c630b62569321de17da0c9c18d55440012d7a7ebb01b29308e00f"
+    }
+  ],
+  "checkout_clean_after_rollback": true,
+  "test_only_visibility_fix_applied": false,
+  "candidate_matrix_worlds_executed": 72,
+  "candidate_test_worlds_executed": 0,
+  "historical_current_reports_preserved": {
+    "docs/media/position-motor-calibration.json": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a",
+    "docs/media/position-motor-calibration-bincode-generation-1.json": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca",
+    "docs/media/position-motor-calibration-codec-migration.json": "257c8ddc628764625980be05bccdc1bd98e73517305ada82db62e98374e880e1",
+    "examples/141_position_motor_calibration/lib.rs": "e36a14f545bcdbb64c5a43cbc9c1bb4cc089fc4487dfef039ad6e43191479df2",
+    "third_party/rapier3d/Cargo.lock": "70724dc8640dbe8f2012087a550dd2286f18e2d8713f67a9562477fd6733c35a"
+  }
+}

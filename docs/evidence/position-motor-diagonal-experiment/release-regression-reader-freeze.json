@@ -1,0 +1,10 @@
+{
+  "source": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/run_release_regressions.py",
+  "source_sha256": "d7341d11319284849a261d4c30d585bf8c7e7cdf1ad615f13ef5df971f38be5e",
+  "reader": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/run_release_regressions.py",
+  "reader_sha256": "0157b6fb5cf43f8d46c3eee1be76a38c6478d9d9195a80dfa61d3ea4a85cb65a",
+  "only_output_directory_changed": true,
+  "physical_comparison": "literal whole stdout after same3timingregex exclusions",
+  "examples": "133 through138",
+  "native_examples_executed_before_freeze": 0
+}

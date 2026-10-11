@@ -1,0 +1,1444 @@
+{
+  "status": "PASS_INDEPENDENT_ADMISSION_REJECTION_AUDIT",
+  "admission_decision": "REJECTED_DO_NOT_PROMOTE_ROLL_BACK_CANDIDATE",
+  "audited_utc": "2026-10-11T18:38:00.295902+00:00",
+  "auditor": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/audit_release_admission_readonly.py",
+    "bytes": 14330,
+    "sha256": "9d998d7b086229658e8052b582a02acb725931f3d45b61de2e86eea8d64a52d4"
+  },
+  "reason": "Frozen whole physical stdout gate fails for example138 despite program exit0 and ok. Root wrapper correctly exits1. Preserve numerical primary4/4 success separately; it does not override failed compatibility.",
+  "actual_release_program_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "actual_release_programs_has_ok": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "physical_stdout_literal_matches": 5,
+  "required_physical_stdout_literal_matches": 6,
+  "wrapper_actual_exit_code": 1,
+  "protocol": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/preregistered-diagonal-intervention-protocol.json",
+    "bytes": 16437,
+    "sha256": "72fb721272e7f42c38e67560f551dfe041f9b7102219f546906596fcd4868457"
+  },
+  "protocol_required_literal_physical_preservation_and_rollback": true,
+  "exact_existing_three_timing_exclusions": [
+    {
+      "regex": ",\\s*[0-9.]+ us per step",
+      "replacement": ""
+    },
+    {
+      "regex": "\\d+ env steps/s \\(\\d+ sim steps/s\\)",
+      "replacement": "<throughput>"
+    },
+    {
+      "regex": "parallel speedup [0-9.]+x",
+      "replacement": "parallel speedup <timing>"
+    }
+  ],
+  "reader": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/run_release_regressions.py",
+    "bytes": 2554,
+    "sha256": "0157b6fb5cf43f8d46c3eee1be76a38c6478d9d9195a80dfa61d3ea4a85cb65a"
+  },
+  "reader_freeze": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regression-reader-freeze.json",
+    "bytes": 642,
+    "sha256": "2ce259b00432f3f0426169a7604c05c71067f5c1d316f0f2786068b89f3fb2ce"
+  },
+  "source_runner": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/run_release_regressions.py",
+    "bytes": 2548,
+    "sha256": "d7341d11319284849a261d4c30d585bf8c7e7cdf1ad615f13ef5df971f38be5e"
+  },
+  "reader_only_output_directory_changed": true,
+  "baseline_guard": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-ci-audit/fresh-baseline-guard.json",
+    "bytes": 221380,
+    "sha256": "82a2c44c5cb73b4ed8ccd9a9bfc97e45f1f847d9d907dde22d9aecee44952fc3"
+  },
+  "started": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen3-release-regressions/started.json",
+    "bytes": 337,
+    "sha256": "ddac28f75d4b85d19d0f014e2b4dd3328bb4e6958fd255f5aeaeeda88442cdcf"
+  },
+  "terminal": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen3-release-regressions/terminal.json",
+    "bytes": 441,
+    "sha256": "3028268ebf666b9f1a63d773c39c57e64e5c49d2cd2f2826153b146aa892cf8d"
+  },
+  "actual_terminal": {
+    "ended_utc": "2026-10-11T18:28:20.032256+00:00",
+    "exit_code": 1,
+    "runtime_s": 443.39024567999877,
+    "source_inputs_unchanged": true,
+    "changed_inputs": [],
+    "log_sha256": "bcaa1d6415e53dba0b82c26aa9086b732192547a365882908ebaaddcc4dc916f",
+    "before_manifest_sha256": "c7077cf9f2f3e716804c6bd17e3975bba881260d332f6fb6c03a7907f1d56a0e",
+    "after_manifest_sha256": "5411d10d888cfff442d005d42e96c6842d0ff04d75a0c00283c0293987feafb7"
+  },
+  "log": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen3-release-regressions/command.log",
+    "bytes": 2980,
+    "sha256": "bcaa1d6415e53dba0b82c26aa9086b732192547a365882908ebaaddcc4dc916f"
+  },
+  "inputs_before": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen3-release-regressions/inputs-before.json",
+    "bytes": 305457,
+    "sha256": "c7077cf9f2f3e716804c6bd17e3975bba881260d332f6fb6c03a7907f1d56a0e"
+  },
+  "inputs_after": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen3-release-regressions/inputs-after.json",
+    "bytes": 305351,
+    "sha256": "5411d10d888cfff442d005d42e96c6842d0ff04d75a0c00283c0293987feafb7"
+  },
+  "all2289_execution_inputs_before_after_current_literal_match": true,
+  "all118_candidate_source_inputs_current_literal_match_before_after": true,
+  "source_guard": {
+    "source_freeze": {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/source-compiler-protocol.json",
+      "bytes": 18497,
+      "sha256": "16c085e73638c360126c57d05bd00ee67f3173c5a790ea17b4af528b39642aa8"
+    },
+    "frozen_binding": {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/frozen-binary-binding.json",
+      "bytes": 1516,
+      "sha256": "c7cccc666b5208fbf99e7b0962a3e65a20839ca2ffc689a8182c1002a458f29b"
+    },
+    "frozen_binary": {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/frozen-141-force-based-diagonal",
+      "bytes": 2969832,
+      "sha256": "329215b1507993c1ce604c6b9a5089912c241c2e46d56d8cea969cde37bbdb2a"
+    },
+    "all118_current_source_bindings_match": true
+  },
+  "actual_results": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/results.json",
+    "bytes": 3565,
+    "sha256": "2ab7e727f7353cec525e30cb09276122a304a730851e1380aaab6ab8f42f3f0b"
+  },
+  "all6_release_receipts": [
+    {
+      "example": "133_go2_contact_terrain",
+      "actual_command": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_contact_terrain",
+        "--example",
+        "133_go2_contact_terrain"
+      ],
+      "actual_exit_code": 0,
+      "has_ok": true,
+      "whole_physical_stdout_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/133_go2_contact_terrain.stdout",
+        "bytes": 445,
+        "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/133_go2_contact_terrain.stderr",
+        "bytes": 1119,
+        "sha256": "bf82d0de3c8e84be107bdbee4c3e2f701bd68c41df95341522ef74b704451cdc"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/133_go2_contact_terrain.physical.txt",
+        "bytes": 445,
+        "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+      },
+      "baseline_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain.stdout",
+        "bytes": 445,
+        "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+      },
+      "preserved_baseline_physical": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain.physical.txt",
+        "bytes": 445,
+        "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+      },
+      "child_process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/133_go2_contact_terrain-process.json",
+        "bytes": 139,
+        "sha256": "a8284b88058ac0c2a6114e436ae701a2f21fe82f8a5a819478818f8611f56f33"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "134_go2_terrain_trot",
+      "actual_command": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_terrain_trot",
+        "--example",
+        "134_go2_terrain_trot"
+      ],
+      "actual_exit_code": 0,
+      "has_ok": true,
+      "whole_physical_stdout_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/134_go2_terrain_trot.stdout",
+        "bytes": 387,
+        "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/134_go2_terrain_trot.stderr",
+        "bytes": 220,
+        "sha256": "d40abf242d725a80b99d12f2f9572c7c25af54fd17ac5bf88de0c3aed8d50cb4"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/134_go2_terrain_trot.physical.txt",
+        "bytes": 387,
+        "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+      },
+      "baseline_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot.stdout",
+        "bytes": 387,
+        "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+      },
+      "preserved_baseline_physical": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot.physical.txt",
+        "bytes": 387,
+        "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+      },
+      "child_process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/134_go2_terrain_trot-process.json",
+        "bytes": 133,
+        "sha256": "9df7f53d47a8bc3ea4ed87b614839bf461aebffe375e4bc131a79f1a1aa8eec5"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "135_go2_feedback_trot",
+      "actual_command": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_feedback_trot",
+        "--example",
+        "135_go2_feedback_trot"
+      ],
+      "actual_exit_code": 0,
+      "has_ok": true,
+      "whole_physical_stdout_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/135_go2_feedback_trot.stdout",
+        "bytes": 664,
+        "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/135_go2_feedback_trot.stderr",
+        "bytes": 12759,
+        "sha256": "b7b8109013c23eaac161318b2c3ed0c6e36ebd62b4e9648e1a29e895068d3321"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/135_go2_feedback_trot.physical.txt",
+        "bytes": 664,
+        "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+      },
+      "baseline_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot.stdout",
+        "bytes": 664,
+        "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+      },
+      "preserved_baseline_physical": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot.physical.txt",
+        "bytes": 664,
+        "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+      },
+      "child_process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/135_go2_feedback_trot-process.json",
+        "bytes": 135,
+        "sha256": "6e3b60ec1029b82a5b3aefa1c827505802018136b936e7988d0afbede9e4a09b"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "136_go2_parallel_rl",
+      "actual_command": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_parallel_rl",
+        "--example",
+        "136_go2_parallel_rl"
+      ],
+      "actual_exit_code": 0,
+      "has_ok": true,
+      "whole_physical_stdout_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/136_go2_parallel_rl.stdout",
+        "bytes": 569,
+        "sha256": "48f511e3d035f7cf3ccfbfdced0301ba48b02c3f29e17949c36b964894be1b05"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/136_go2_parallel_rl.stderr",
+        "bytes": 11052,
+        "sha256": "82bbdba2f8fa325ada6ac724d4a286f6cd694e60d14ad60f50ef01b01c91ad32"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/136_go2_parallel_rl.physical.txt",
+        "bytes": 501,
+        "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+      },
+      "baseline_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl.stdout",
+        "bytes": 569,
+        "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+      },
+      "preserved_baseline_physical": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl.physical.txt",
+        "bytes": 501,
+        "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+      },
+      "child_process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/136_go2_parallel_rl-process.json",
+        "bytes": 131,
+        "sha256": "09324f37050f91c7efb581714d91af7f2a22db3acca3bdc46d8c242d37a8d6c8"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "137_go2_native_backend",
+      "actual_command": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_native_backend",
+        "--example",
+        "137_go2_native_backend"
+      ],
+      "actual_exit_code": 0,
+      "has_ok": true,
+      "whole_physical_stdout_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/137_go2_native_backend.stdout",
+        "bytes": 854,
+        "sha256": "582b5f785d217b286525d236537ad6d9adc94ce9cc0aa915e5adbf29fe83b2d7"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/137_go2_native_backend.stderr",
+        "bytes": 11158,
+        "sha256": "8e43cd03c60fd9c0295bb6bfdc5a1028d167bd7d43a7afe94188c629075d4c03"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/137_go2_native_backend.physical.txt",
+        "bytes": 820,
+        "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+      },
+      "baseline_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend.stdout",
+        "bytes": 854,
+        "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+      },
+      "preserved_baseline_physical": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend.physical.txt",
+        "bytes": 820,
+        "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+      },
+      "child_process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/137_go2_native_backend-process.json",
+        "bytes": 137,
+        "sha256": "4517c8f7a268e298c9958a21a4bca4debc7245aeaa8aa5a68634a5a93b63a394"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "138_heavy_grasp",
+      "actual_command": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "heavy_grasp",
+        "--example",
+        "138_heavy_grasp"
+      ],
+      "actual_exit_code": 0,
+      "has_ok": true,
+      "whole_physical_stdout_literal_match": false,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/138_heavy_grasp.stdout",
+        "bytes": 1647,
+        "sha256": "9acfe393a77fe2b705b5c5cc33662fcbad5c8e7c7703efe09bf39b6862d31cf1"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/138_heavy_grasp.stderr",
+        "bytes": 11331,
+        "sha256": "12cc161ac82fb25bf55b5cc6cf3babfbfc5e87cf6af243d915cff646709841cd"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/138_heavy_grasp.physical.txt",
+        "bytes": 1431,
+        "sha256": "34ee5085d2c024721cff3d44d25726d0b64cd2bff18d2719cee44b919f9313c6"
+      },
+      "baseline_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp.stdout",
+        "bytes": 1647,
+        "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+      },
+      "preserved_baseline_physical": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp.physical.txt",
+        "bytes": 1431,
+        "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+      },
+      "child_process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/release-regressions/138_heavy_grasp-process.json",
+        "bytes": 123,
+        "sha256": "6d4a76d36f00586d519fba254760f88a30763e8f3ded89f99e2b57d939144915"
+      },
+      "unified_physical_diff": [
+        "--- baseline",
+        "+++ candidate",
+        "@@ -1,19 +1,19 @@",
+        " two-finger grasp, friction 0.8, lift 0.2 m over 1 s and hold 1 s at 500 Hz through PhysicsBackend",
+        " 5 kg cube, 38 N per finger (held; holding needs 31 N):",
+        "   native: lifted  0.199 m (palm 0.199 m), slip   1.5e-5 m, tilt  2.2e-4 rad",
+        "-  rapier: lifted  0.200 m (palm 0.200 m), slip   1.8e-4 m, tilt  8.6e-4 rad",
+        "+  rapier: lifted  0.199 m (palm 0.200 m), slip   3.7e-5 m, tilt  5.6e-4 rad",
+        " 5 kg cube, 20 N per finger (under-squeezed; holding needs 31 N):",
+        "   native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt  2.6e-8 rad",
+        "-  rapier: lifted -0.001 m (palm 0.200 m), slip   2.0e-1 m, tilt  3.0e-5 rad",
+        "+  rapier: lifted -0.001 m (palm 0.200 m), slip   2.0e-1 m, tilt  3.1e-5 rad",
+        " 20 kg cube, 153 N per finger (held; holding needs 123 N):",
+        "   native: lifted  0.198 m (palm 0.198 m), slip   2.8e-5 m, tilt  5.8e-4 rad",
+        "-  rapier: lifted  0.198 m (palm 0.200 m), slip   5.7e-4 m, tilt  3.7e-4 rad",
+        "+  rapier: lifted  0.196 m (palm 0.198 m), slip   1.0e-3 m, tilt  8.8e-3 rad",
+        " 20 kg cube, 80 N per finger (under-squeezed; holding needs 123 N):",
+        "   native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt   0.0e0 rad",
+        "   rapier: lifted -0.001 m (palm 0.201 m), slip   2.0e-1 m, tilt  3.2e-5 rad",
+        " 50 kg cube, 383 N per finger (held; holding needs 307 N):",
+        "   native: lifted  0.195 m (palm 0.195 m), slip  -2.4e-8 m, tilt  1.2e-6 rad",
+        "-  rapier: lifted  0.196 m (palm 0.199 m), slip   1.5e-3 m, tilt  5.7e-3 rad",
+        "+  rapier: lifted  0.191 m (palm 0.195 m), slip   3.1e-3 m, tilt  2.3e-2 rad",
+        " 50 kg cube, 199 N per finger (under-squeezed; holding needs 307 N):",
+        "   native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt   0.0e0 rad",
+        "   rapier: lifted -0.001 m (palm 0.201 m), slip   2.0e-1 m, tilt  3.2e-5 rad"
+      ]
+    }
+  ],
+  "example138_all6_native_rows_literal_unchanged": [
+    {
+      "condition": {
+        "mass_kg": 5,
+        "per_finger_force_n": 38,
+        "mode": "held",
+        "nominal_holding_force_n": 31
+      },
+      "backend": "native",
+      "physical_line_literal_unchanged": true,
+      "baseline": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 38,
+          "mode": "held",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted  0.199 m (palm 0.199 m), slip   1.5e-5 m, tilt  2.2e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.199",
+          "palm_lift_m": "0.199",
+          "slip_m": "1.5e-5",
+          "tilt_rad": "2.2e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.199,
+          "palm_lift_m": 0.199,
+          "slip_m": 1.5e-05,
+          "tilt_rad": 0.00022
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 38,
+          "mode": "held",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted  0.199 m (palm 0.199 m), slip   1.5e-5 m, tilt  2.2e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.199",
+          "palm_lift_m": "0.199",
+          "slip_m": "1.5e-5",
+          "tilt_rad": "2.2e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.199,
+          "palm_lift_m": 0.199,
+          "slip_m": 1.5e-05,
+          "tilt_rad": 0.00022
+        }
+      },
+      "changed_displayed_metrics": {}
+    },
+    {
+      "condition": {
+        "mass_kg": 5,
+        "per_finger_force_n": 20,
+        "mode": "under-squeezed",
+        "nominal_holding_force_n": 31
+      },
+      "backend": "native",
+      "physical_line_literal_unchanged": true,
+      "baseline": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 20,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt  2.6e-8 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.000",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "2.6e-8"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.0,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 2.6e-08
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 20,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt  2.6e-8 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.000",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "2.6e-8"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.0,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 2.6e-08
+        }
+      },
+      "changed_displayed_metrics": {}
+    },
+    {
+      "condition": {
+        "mass_kg": 20,
+        "per_finger_force_n": 153,
+        "mode": "held",
+        "nominal_holding_force_n": 123
+      },
+      "backend": "native",
+      "physical_line_literal_unchanged": true,
+      "baseline": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 153,
+          "mode": "held",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted  0.198 m (palm 0.198 m), slip   2.8e-5 m, tilt  5.8e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.198",
+          "palm_lift_m": "0.198",
+          "slip_m": "2.8e-5",
+          "tilt_rad": "5.8e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.198,
+          "palm_lift_m": 0.198,
+          "slip_m": 2.8e-05,
+          "tilt_rad": 0.00058
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 153,
+          "mode": "held",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted  0.198 m (palm 0.198 m), slip   2.8e-5 m, tilt  5.8e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.198",
+          "palm_lift_m": "0.198",
+          "slip_m": "2.8e-5",
+          "tilt_rad": "5.8e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.198,
+          "palm_lift_m": 0.198,
+          "slip_m": 2.8e-05,
+          "tilt_rad": 0.00058
+        }
+      },
+      "changed_displayed_metrics": {}
+    },
+    {
+      "condition": {
+        "mass_kg": 20,
+        "per_finger_force_n": 80,
+        "mode": "under-squeezed",
+        "nominal_holding_force_n": 123
+      },
+      "backend": "native",
+      "physical_line_literal_unchanged": true,
+      "baseline": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 80,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt   0.0e0 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.000",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "0.0e0"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.0,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 0.0
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 80,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt   0.0e0 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.000",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "0.0e0"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.0,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 0.0
+        }
+      },
+      "changed_displayed_metrics": {}
+    },
+    {
+      "condition": {
+        "mass_kg": 50,
+        "per_finger_force_n": 383,
+        "mode": "held",
+        "nominal_holding_force_n": 307
+      },
+      "backend": "native",
+      "physical_line_literal_unchanged": true,
+      "baseline": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 383,
+          "mode": "held",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted  0.195 m (palm 0.195 m), slip  -2.4e-8 m, tilt  1.2e-6 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.195",
+          "palm_lift_m": "0.195",
+          "slip_m": "-2.4e-8",
+          "tilt_rad": "1.2e-6"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.195,
+          "palm_lift_m": 0.195,
+          "slip_m": -2.4e-08,
+          "tilt_rad": 1.2e-06
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 383,
+          "mode": "held",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted  0.195 m (palm 0.195 m), slip  -2.4e-8 m, tilt  1.2e-6 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.195",
+          "palm_lift_m": "0.195",
+          "slip_m": "-2.4e-8",
+          "tilt_rad": "1.2e-6"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.195,
+          "palm_lift_m": 0.195,
+          "slip_m": -2.4e-08,
+          "tilt_rad": 1.2e-06
+        }
+      },
+      "changed_displayed_metrics": {}
+    },
+    {
+      "condition": {
+        "mass_kg": 50,
+        "per_finger_force_n": 199,
+        "mode": "under-squeezed",
+        "nominal_holding_force_n": 307
+      },
+      "backend": "native",
+      "physical_line_literal_unchanged": true,
+      "baseline": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 199,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt   0.0e0 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.000",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "0.0e0"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.0,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 0.0
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 199,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "native",
+        "literal_physical_line": "  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt   0.0e0 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.000",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "0.0e0"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.0,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 0.0
+        }
+      },
+      "changed_displayed_metrics": {}
+    }
+  ],
+  "example138_all6_rapier_rows": [
+    {
+      "condition": {
+        "mass_kg": 5,
+        "per_finger_force_n": 38,
+        "mode": "held",
+        "nominal_holding_force_n": 31
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": false,
+      "baseline": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 38,
+          "mode": "held",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.200 m (palm 0.200 m), slip   1.8e-4 m, tilt  8.6e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.200",
+          "palm_lift_m": "0.200",
+          "slip_m": "1.8e-4",
+          "tilt_rad": "8.6e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.2,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.00018,
+          "tilt_rad": 0.00086
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 38,
+          "mode": "held",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.199 m (palm 0.200 m), slip   3.7e-5 m, tilt  5.6e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.199",
+          "palm_lift_m": "0.200",
+          "slip_m": "3.7e-5",
+          "tilt_rad": "5.6e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.199,
+          "palm_lift_m": 0.2,
+          "slip_m": 3.7e-05,
+          "tilt_rad": 0.00056
+        }
+      },
+      "changed_displayed_metrics": {
+        "lift_m": {
+          "baseline": "0.200",
+          "candidate": "0.199"
+        },
+        "slip_m": {
+          "baseline": "1.8e-4",
+          "candidate": "3.7e-5"
+        },
+        "tilt_rad": {
+          "baseline": "8.6e-4",
+          "candidate": "5.6e-4"
+        }
+      }
+    },
+    {
+      "condition": {
+        "mass_kg": 5,
+        "per_finger_force_n": 20,
+        "mode": "under-squeezed",
+        "nominal_holding_force_n": 31
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": false,
+      "baseline": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 20,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted -0.001 m (palm 0.200 m), slip   2.0e-1 m, tilt  3.0e-5 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.001",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "3.0e-5"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.001,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 3e-05
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 20,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted -0.001 m (palm 0.200 m), slip   2.0e-1 m, tilt  3.1e-5 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.001",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "3.1e-5"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.001,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 3.1e-05
+        }
+      },
+      "changed_displayed_metrics": {
+        "tilt_rad": {
+          "baseline": "3.0e-5",
+          "candidate": "3.1e-5"
+        }
+      }
+    },
+    {
+      "condition": {
+        "mass_kg": 20,
+        "per_finger_force_n": 153,
+        "mode": "held",
+        "nominal_holding_force_n": 123
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": false,
+      "baseline": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 153,
+          "mode": "held",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.198 m (palm 0.200 m), slip   5.7e-4 m, tilt  3.7e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.198",
+          "palm_lift_m": "0.200",
+          "slip_m": "5.7e-4",
+          "tilt_rad": "3.7e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.198,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.00057,
+          "tilt_rad": 0.00037
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 153,
+          "mode": "held",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.196 m (palm 0.198 m), slip   1.0e-3 m, tilt  8.8e-3 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.196",
+          "palm_lift_m": "0.198",
+          "slip_m": "1.0e-3",
+          "tilt_rad": "8.8e-3"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.196,
+          "palm_lift_m": 0.198,
+          "slip_m": 0.001,
+          "tilt_rad": 0.0088
+        }
+      },
+      "changed_displayed_metrics": {
+        "lift_m": {
+          "baseline": "0.198",
+          "candidate": "0.196"
+        },
+        "palm_lift_m": {
+          "baseline": "0.200",
+          "candidate": "0.198"
+        },
+        "slip_m": {
+          "baseline": "5.7e-4",
+          "candidate": "1.0e-3"
+        },
+        "tilt_rad": {
+          "baseline": "3.7e-4",
+          "candidate": "8.8e-3"
+        }
+      }
+    },
+    {
+      "condition": {
+        "mass_kg": 20,
+        "per_finger_force_n": 80,
+        "mode": "under-squeezed",
+        "nominal_holding_force_n": 123
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": true,
+      "baseline": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 80,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted -0.001 m (palm 0.201 m), slip   2.0e-1 m, tilt  3.2e-5 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.001",
+          "palm_lift_m": "0.201",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "3.2e-5"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.001,
+          "palm_lift_m": 0.201,
+          "slip_m": 0.2,
+          "tilt_rad": 3.2e-05
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 80,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted -0.001 m (palm 0.201 m), slip   2.0e-1 m, tilt  3.2e-5 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.001",
+          "palm_lift_m": "0.201",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "3.2e-5"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.001,
+          "palm_lift_m": 0.201,
+          "slip_m": 0.2,
+          "tilt_rad": 3.2e-05
+        }
+      },
+      "changed_displayed_metrics": {}
+    },
+    {
+      "condition": {
+        "mass_kg": 50,
+        "per_finger_force_n": 383,
+        "mode": "held",
+        "nominal_holding_force_n": 307
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": false,
+      "baseline": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 383,
+          "mode": "held",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.196 m (palm 0.199 m), slip   1.5e-3 m, tilt  5.7e-3 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.196",
+          "palm_lift_m": "0.199",
+          "slip_m": "1.5e-3",
+          "tilt_rad": "5.7e-3"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.196,
+          "palm_lift_m": 0.199,
+          "slip_m": 0.0015,
+          "tilt_rad": 0.0057
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 383,
+          "mode": "held",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.191 m (palm 0.195 m), slip   3.1e-3 m, tilt  2.3e-2 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.191",
+          "palm_lift_m": "0.195",
+          "slip_m": "3.1e-3",
+          "tilt_rad": "2.3e-2"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.191,
+          "palm_lift_m": 0.195,
+          "slip_m": 0.0031,
+          "tilt_rad": 0.023
+        }
+      },
+      "changed_displayed_metrics": {
+        "lift_m": {
+          "baseline": "0.196",
+          "candidate": "0.191"
+        },
+        "palm_lift_m": {
+          "baseline": "0.199",
+          "candidate": "0.195"
+        },
+        "slip_m": {
+          "baseline": "1.5e-3",
+          "candidate": "3.1e-3"
+        },
+        "tilt_rad": {
+          "baseline": "5.7e-3",
+          "candidate": "2.3e-2"
+        }
+      }
+    },
+    {
+      "condition": {
+        "mass_kg": 50,
+        "per_finger_force_n": 199,
+        "mode": "under-squeezed",
+        "nominal_holding_force_n": 307
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": true,
+      "baseline": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 199,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted -0.001 m (palm 0.201 m), slip   2.0e-1 m, tilt  3.2e-5 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.001",
+          "palm_lift_m": "0.201",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "3.2e-5"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.001,
+          "palm_lift_m": 0.201,
+          "slip_m": 0.2,
+          "tilt_rad": 3.2e-05
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 199,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted -0.001 m (palm 0.201 m), slip   2.0e-1 m, tilt  3.2e-5 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.001",
+          "palm_lift_m": "0.201",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "3.2e-5"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.001,
+          "palm_lift_m": 0.201,
+          "slip_m": 0.2,
+          "tilt_rad": 3.2e-05
+        }
+      },
+      "changed_displayed_metrics": {}
+    }
+  ],
+  "example138_all4_differing_rapier_rows": [
+    {
+      "condition": {
+        "mass_kg": 5,
+        "per_finger_force_n": 38,
+        "mode": "held",
+        "nominal_holding_force_n": 31
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": false,
+      "baseline": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 38,
+          "mode": "held",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.200 m (palm 0.200 m), slip   1.8e-4 m, tilt  8.6e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.200",
+          "palm_lift_m": "0.200",
+          "slip_m": "1.8e-4",
+          "tilt_rad": "8.6e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.2,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.00018,
+          "tilt_rad": 0.00086
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 38,
+          "mode": "held",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.199 m (palm 0.200 m), slip   3.7e-5 m, tilt  5.6e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.199",
+          "palm_lift_m": "0.200",
+          "slip_m": "3.7e-5",
+          "tilt_rad": "5.6e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.199,
+          "palm_lift_m": 0.2,
+          "slip_m": 3.7e-05,
+          "tilt_rad": 0.00056
+        }
+      },
+      "changed_displayed_metrics": {
+        "lift_m": {
+          "baseline": "0.200",
+          "candidate": "0.199"
+        },
+        "slip_m": {
+          "baseline": "1.8e-4",
+          "candidate": "3.7e-5"
+        },
+        "tilt_rad": {
+          "baseline": "8.6e-4",
+          "candidate": "5.6e-4"
+        }
+      }
+    },
+    {
+      "condition": {
+        "mass_kg": 5,
+        "per_finger_force_n": 20,
+        "mode": "under-squeezed",
+        "nominal_holding_force_n": 31
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": false,
+      "baseline": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 20,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted -0.001 m (palm 0.200 m), slip   2.0e-1 m, tilt  3.0e-5 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.001",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "3.0e-5"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.001,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 3e-05
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 5,
+          "per_finger_force_n": 20,
+          "mode": "under-squeezed",
+          "nominal_holding_force_n": 31
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted -0.001 m (palm 0.200 m), slip   2.0e-1 m, tilt  3.1e-5 rad",
+        "displayed_metric_strings": {
+          "lift_m": "-0.001",
+          "palm_lift_m": "0.200",
+          "slip_m": "2.0e-1",
+          "tilt_rad": "3.1e-5"
+        },
+        "displayed_metric_values": {
+          "lift_m": -0.001,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.2,
+          "tilt_rad": 3.1e-05
+        }
+      },
+      "changed_displayed_metrics": {
+        "tilt_rad": {
+          "baseline": "3.0e-5",
+          "candidate": "3.1e-5"
+        }
+      }
+    },
+    {
+      "condition": {
+        "mass_kg": 20,
+        "per_finger_force_n": 153,
+        "mode": "held",
+        "nominal_holding_force_n": 123
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": false,
+      "baseline": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 153,
+          "mode": "held",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.198 m (palm 0.200 m), slip   5.7e-4 m, tilt  3.7e-4 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.198",
+          "palm_lift_m": "0.200",
+          "slip_m": "5.7e-4",
+          "tilt_rad": "3.7e-4"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.198,
+          "palm_lift_m": 0.2,
+          "slip_m": 0.00057,
+          "tilt_rad": 0.00037
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 20,
+          "per_finger_force_n": 153,
+          "mode": "held",
+          "nominal_holding_force_n": 123
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.196 m (palm 0.198 m), slip   1.0e-3 m, tilt  8.8e-3 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.196",
+          "palm_lift_m": "0.198",
+          "slip_m": "1.0e-3",
+          "tilt_rad": "8.8e-3"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.196,
+          "palm_lift_m": 0.198,
+          "slip_m": 0.001,
+          "tilt_rad": 0.0088
+        }
+      },
+      "changed_displayed_metrics": {
+        "lift_m": {
+          "baseline": "0.198",
+          "candidate": "0.196"
+        },
+        "palm_lift_m": {
+          "baseline": "0.200",
+          "candidate": "0.198"
+        },
+        "slip_m": {
+          "baseline": "5.7e-4",
+          "candidate": "1.0e-3"
+        },
+        "tilt_rad": {
+          "baseline": "3.7e-4",
+          "candidate": "8.8e-3"
+        }
+      }
+    },
+    {
+      "condition": {
+        "mass_kg": 50,
+        "per_finger_force_n": 383,
+        "mode": "held",
+        "nominal_holding_force_n": 307
+      },
+      "backend": "rapier",
+      "physical_line_literal_unchanged": false,
+      "baseline": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 383,
+          "mode": "held",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.196 m (palm 0.199 m), slip   1.5e-3 m, tilt  5.7e-3 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.196",
+          "palm_lift_m": "0.199",
+          "slip_m": "1.5e-3",
+          "tilt_rad": "5.7e-3"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.196,
+          "palm_lift_m": 0.199,
+          "slip_m": 0.0015,
+          "tilt_rad": 0.0057
+        }
+      },
+      "candidate": {
+        "condition": {
+          "mass_kg": 50,
+          "per_finger_force_n": 383,
+          "mode": "held",
+          "nominal_holding_force_n": 307
+        },
+        "backend": "rapier",
+        "literal_physical_line": "  rapier: lifted  0.191 m (palm 0.195 m), slip   3.1e-3 m, tilt  2.3e-2 rad",
+        "displayed_metric_strings": {
+          "lift_m": "0.191",
+          "palm_lift_m": "0.195",
+          "slip_m": "3.1e-3",
+          "tilt_rad": "2.3e-2"
+        },
+        "displayed_metric_values": {
+          "lift_m": 0.191,
+          "palm_lift_m": 0.195,
+          "slip_m": 0.0031,
+          "tilt_rad": 0.023
+        }
+      },
+      "changed_displayed_metrics": {
+        "lift_m": {
+          "baseline": "0.196",
+          "candidate": "0.191"
+        },
+        "palm_lift_m": {
+          "baseline": "0.199",
+          "candidate": "0.195"
+        },
+        "slip_m": {
+          "baseline": "1.5e-3",
+          "candidate": "3.1e-3"
+        },
+        "tilt_rad": {
+          "baseline": "5.7e-3",
+          "candidate": "2.3e-2"
+        }
+      }
+    }
+  ],
+  "independent_primary4of4_pass_proof_retained": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/independent-generation3-exact-fraction-audit.json",
+    "bytes": 148535,
+    "sha256": "7311d98d43470b1bc0ef8cf120307c6417dc213719238484872c650077770611"
+  },
+  "displayed_metrics_scope": "Numbers are displayed rounded stdout values; no unrecorded native precision inferred. Native6 rows unchanged, Rapier4 changed and2 unchanged after timing exclusion.",
+  "limitations": [
+    "No new physics, builds, tests, oracle rerun, source changes, rollback, retuning, process control or promotion by this auditor",
+    "No causal claim for coupled heavy-grasp differences or G1 kick recovery",
+    "Full CI and AccelerationBased baseline/candidate replay are not qualified by this receipt"
+  ],
+  "auditor_native_worlds_builds_tests_checkout_edits_process_control": 0
+}

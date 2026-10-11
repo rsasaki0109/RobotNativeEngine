@@ -1,0 +1,24 @@
+{
+  "frozen_utc": "2026-10-11T18:20:23.362686+00:00",
+  "measurement_generation": 3,
+  "generation_3_native_worlds_executed_before_freeze": 0,
+  "selected_source_count": 118,
+  "binary_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/frozen-141-force-based-diagonal",
+  "binary_sha256": "329215b1507993c1ce604c6b9a5089912c241c2e46d56d8cea969cde37bbdb2a",
+  "binary_bytes": 2969832,
+  "source_compiler_protocol": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/source-compiler-protocol.json",
+    "sha256": "16c085e73638c360126c57d05bd00ee67f3173c5a790ea17b4af528b39642aa8"
+  },
+  "build_terminal": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen3-build-release/terminal.json",
+    "sha256": "e0cab997a221b88c81142c26b158607cd4e9b37d3c4532fa5c7792947054325f"
+  },
+  "planned_generation_3_matrix_worlds": 72,
+  "prior_generations_matrix_worlds_retained": 144,
+  "resolved_features_sha256": "420aedcae8a03bd3405a20a0dc8fb689cd6c0888585a48564a6fd9e2aee5fc28",
+  "predeclared_protocol_sha256": "72fb721272e7f42c38e67560f551dfe041f9b7102219f546906596fcd4868457",
+  "independent_oracle_sha256": "10a148a918f192c15979a79aaefe2b32212f3ac04d86980246f87fafdff8eea3",
+  "independent_auditor_sha256": "46121fdec42c45ef3588ae0cf6b26fb0c5b108ae2b32b032719fc50943cac270",
+  "pre_world_independent_tool_freeze_sha256": "6be7550fd0c3fe3eb7894d9ebd70b99fc827ca27a9d8386fa2c0300f739c004d"
+}

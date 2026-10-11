@@ -875,6 +875,37 @@ prove every private field identical across codecs. The
 records both reports, source/binary bindings and the pre-measurement comparison
 tool. The current verifier explicitly rejects old schemas and stale sources.
 
+### Rejected ForceBased inverse-diagonal intervention
+
+A separately preregistered candidate changes only the internal single-DOF
+ForceBased inverse diagonal from `inv(w)` to `inv(fl32(w + g))`, using the existing
+CFM gain `g`. AccelerationBased retains its original expression. The unchanged
+example 141 fixture executes one new 72-world matrix with frozen independent
+oracle/audit tools and source/compiler/binary bindings. Primary calibration passes
+4/4, all nonzero cases pass 16/16, and zero controls remain motionless 8/8. Exact
+ON/fresh/OFF state and ON/fresh telemetry qualify within the candidate build.
+
+Admission also requires examples 133–138's complete physical stdout to match the
+declared baselines after only the existing three timing exclusions. All six
+programs print `ok`; 133–137 match, but four Rapier grasp rows in 138 differ.
+For the 50 kg held cube, lift changes 0.196 to 0.191 m and tilt changes 0.0057 to
+0.023 rad. Native grasp rows are unchanged. This is a required compatibility
+failure, so all three candidate files are rolled back without retuning or
+relaxing the gate. A fresh post-rollback release run restores all six baselines.
+
+The [historical evidence](../evidence/position-motor-diagonal-experiment/README.md)
+retains the full matrix, exact rejected patch, failed unit compilation and
+independent admission rejection. The attempted vendor unit tests execute no
+worlds: compilation fails with private-module imports. Direct strict vendor lint
+and docs do not have a passing receipt. These limitations are separate from the
+rejected physical gate and from validation of the final evidence-only change.
+
+The original two report files remain byte-identical to their published versions;
+the candidate adds a third generation without replacing them. The current
+source-bound verifier deliberately rejects this historical candidate report after
+rollback, and current CI still verifies the original calibration FAIL. A passing
+scalar calibration supplies no coupled G1 recovery, hardware or maturity claim.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

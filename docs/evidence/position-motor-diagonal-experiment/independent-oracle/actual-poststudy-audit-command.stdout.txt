@@ -1,0 +1,70 @@
+{
+  "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/independent-generation3-exact-fraction-audit.json",
+  "sha256": "7311d98d43470b1bc0ef8cf120307c6417dc213719238484872c650077770611",
+  "status": "PASS_INDEPENDENT_GENERATION3_DATA_REPLAY_AND_ORACLE_CALCULATION_QUALIFICATION",
+  "actual_primary": {
+    "status": "PASS",
+    "passed": 4,
+    "required": 4,
+    "zero_controls_passed": 8,
+    "zero_controls_required": 8,
+    "scope": "Source-bound isolated ForceBased diagonal intervention; outcome read from this new report only, no G1/hardware/recovery conclusion"
+  },
+  "counts": {
+    "worlds": 72,
+    "state_snapshots": 144,
+    "native_entity_snapshots": 432,
+    "native_serialized_state_bytes": 247248,
+    "state_canonical_words": 42264,
+    "telemetry_worlds": 48,
+    "telemetry_canonical_words": 10704,
+    "ordered_slices": 792,
+    "coefficient_native_oracle_matches": 24,
+    "complete_coverage_worlds": 48,
+    "zero_controls": 8,
+    "zero_control_passes": 8,
+    "validated_scalar_wrappers": 4626
+  },
+  "primary_values": [
+    {
+      "case_index": 2,
+      "gain": "G1Posture",
+      "target_position_rad": -0.0010000000474974513,
+      "actual_first_impulse_nm_s": -8.570856152800843e-06,
+      "fixed_point_impulse_nm_s": -8.57085571563837e-06,
+      "absolute_error_nm_s": 4.371624725630144e-13,
+      "declared_tolerance_nm_s": 8.570855715638371e-08,
+      "numerical_tolerance_pass": true
+    },
+    {
+      "case_index": 10,
+      "gain": "G1Posture",
+      "target_position_rad": 0.0010000000474974513,
+      "actual_first_impulse_nm_s": 8.570856152800843e-06,
+      "fixed_point_impulse_nm_s": 8.57085571563837e-06,
+      "absolute_error_nm_s": 4.371624725630144e-13,
+      "declared_tolerance_nm_s": 8.570855715638371e-08,
+      "numerical_tolerance_pass": true
+    },
+    {
+      "case_index": 14,
+      "gain": "G1Ankle",
+      "target_position_rad": -0.0010000000474974513,
+      "actual_first_impulse_nm_s": -7.352519787673373e-06,
+      "fixed_point_impulse_nm_s": -7.352519911735038e-06,
+      "absolute_error_nm_s": 1.240616648718858e-13,
+      "declared_tolerance_nm_s": 7.352519911735038e-08,
+      "numerical_tolerance_pass": true
+    },
+    {
+      "case_index": 22,
+      "gain": "G1Ankle",
+      "target_position_rad": 0.0010000000474974513,
+      "actual_first_impulse_nm_s": 7.352519787673373e-06,
+      "fixed_point_impulse_nm_s": 7.352519911735038e-06,
+      "absolute_error_nm_s": 1.240616648718858e-13,
+      "declared_tolerance_nm_s": 7.352519911735038e-08,
+      "numerical_tolerance_pass": true
+    }
+  ]
+}

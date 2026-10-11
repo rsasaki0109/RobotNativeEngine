@@ -1,0 +1,10 @@
+{
+  "ended_utc": "2026-10-11T18:28:20.032256+00:00",
+  "exit_code": 1,
+  "runtime_s": 443.39024567999877,
+  "source_inputs_unchanged": true,
+  "changed_inputs": [],
+  "log_sha256": "bcaa1d6415e53dba0b82c26aa9086b732192547a365882908ebaaddcc4dc916f",
+  "before_manifest_sha256": "c7077cf9f2f3e716804c6bd17e3975bba881260d332f6fb6c03a7907f1d56a0e",
+  "after_manifest_sha256": "5411d10d888cfff442d005d42e96c6842d0ff04d75a0c00283c0293987feafb7"
+}

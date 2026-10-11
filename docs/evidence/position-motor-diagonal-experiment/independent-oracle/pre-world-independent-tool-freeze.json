@@ -1,0 +1,171 @@
+{
+  "status": "FROZEN_BEFORE_GENERATION3_MATRIX; no generation3 outcomes or success assumed",
+  "frozen_utc": "2026-10-11T18:17:03.746585+00:00",
+  "measurement_generation": 3,
+  "generation_3_native_worlds_executed_at_tool_freeze": 0,
+  "frozen_tools": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/preregistered-diagonal-intervention-protocol.json",
+      "bytes": 16437,
+      "sha256": "72fb721272e7f42c38e67560f551dfe041f9b7102219f546906596fcd4868457"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/frozen_candidate_row_oracle.py",
+      "bytes": 12728,
+      "sha256": "10a148a918f192c15979a79aaefe2b32212f3ac04d86980246f87fafdff8eea3"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/audit_candidate_report.py",
+      "bytes": 32054,
+      "sha256": "46121fdec42c45ef3588ae0cf6b26fb0c5b108ae2b32b032719fc50943cac270"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/test_candidate_oracle_pure.py",
+      "bytes": 7908,
+      "sha256": "0a91fd5712529bcc011c759c93641e71d21aa25fbd8def57b9ad19fb72c19bb1"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/pre-world-pure-oracle-tests.json",
+      "bytes": 13974,
+      "sha256": "64c4c6bd23200e9cb1a409d353757a6087563fb9a01d28c8592ca47b48a8bc11"
+    }
+  ],
+  "actual_pure_command": {
+    "argv": [
+      "python3",
+      "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/test_candidate_oracle_pure.py"
+    ],
+    "actual_exit_code": 0,
+    "pure_arithmetic_rows": 24,
+    "reference_field_comparisons": 168,
+    "native_worlds": 0,
+    "native_builds": 0,
+    "cargo_tests": 0,
+    "checkout_edits": 0
+  },
+  "pre_freeze_preparation_correction": {
+    "first_freeze_preflight": "An assertion rejected the auditor expected byte-pattern indentation before any freeze receipt was written; native arithmetic source was correct and unchanged",
+    "correction": "Auditor byte pattern corrected to exact existing source indentation; pure qualification rerun actual0 before final freeze",
+    "earlier_pure_receipt_retained": {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/pre-world-pure-oracle-tests-attempt-1.json",
+      "bytes": 13974,
+      "sha256": "11fb39bd050aeb17ce2642f39ae2448c1ec4b1eb14eca7616de4afd091d22558"
+    },
+    "outcome": "No production edit, source mutation, world, build or outcome-selection caused by this correction"
+  },
+  "candidate_source_expression_read_only_preflight": {
+    "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+    "sha256": "5cdacfb67dfa186fd513354e693b4efc7d4f1ebd400d9f08ea8598f57135e9b5",
+    "unique_declared_branch": true,
+    "replace_declared_branch_with_original_restores_full_source_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe"
+  },
+  "required_parent_freeze_fields": {
+    "source_compiler_protocol": [
+      "measurement_generation=3",
+      "generation_3_native_worlds_executed_before_freeze=0",
+      "base_commit=b0bf79eaf765596fede4130111596ac1d721262e",
+      "files map exactly118 bound local source/config inputs",
+      "predeclared_protocol_sha256",
+      "independent_oracle_sha256",
+      "independent_auditor_sha256",
+      "pre_world_independent_tool_freeze_sha256",
+      "compiler/Cargo/lock/features/buildcommand recorded"
+    ],
+    "binary_binding": [
+      "measurement_generation=3",
+      "generation_3_native_worlds_executed_before_freeze=0",
+      "binary_path",
+      "binary_sha256",
+      "source_compiler_protocol {path,sha256}",
+      "selected_source_count=118",
+      "predeclared_protocol_sha256",
+      "independent_oracle_sha256",
+      "independent_auditor_sha256",
+      "pre_world_independent_tool_freeze_sha256",
+      "actual successful build terminal binding"
+    ]
+  },
+  "future_audit_command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/audit_candidate_report.py",
+    "--report",
+    "<new-generation3-raw-report-path>",
+    "--report-sha256",
+    "<actual-report-sha256>",
+    "--binary-binding",
+    "<root-frozen-binary-binding.json>",
+    "--binary-binding-sha256",
+    "<actual-binding-sha256>",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/independent-generation3-exact-fraction-audit.json"
+  ],
+  "future_audit_outcome": "Not executed; primary and matrix outcome unavailable before parent authoritative run",
+  "admission_required_separate_from_motor_report": "Required existing regressions/default recovery/fullCI and133-138 physical stdout exactly baseline after original three timing exclusions; any fail prevents promotion/retuning",
+  "all_prior_bindings_rechecked_before_tool_freeze": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/preregistered-protocol-v2.json",
+      "bytes": 7295,
+      "sha256": "d7e909e30859e712b2748a0fd593599414eeff3270529e27934d60e940bd0395"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/measurement/raw-report.json",
+      "bytes": 10140453,
+      "sha256": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/frozen-141",
+      "bytes": 2982856,
+      "sha256": "4804366a897a6ca335a0a40acaf24a5f58d6cd03e227abb8566994ee8fd8a042"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/frozen_row_oracle.py",
+      "bytes": 11895,
+      "sha256": "a37286052adfaac1f3e749cf63c5db3d0766684142e80f2c7479324092b8cdae"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/audit_authoritative_report.py",
+      "bytes": 26669,
+      "sha256": "4abbc653ebc6da37da1ac0734540a9f4e5101a021b5304285bbfa935255c64bb"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/independent-poststudy-exact-fraction-audit.json",
+      "bytes": 122701,
+      "sha256": "ee22355b037278cb5a407e92bbeea375c8a865d65176f6eb5a608cf814c7c1d7"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/preregistered-codec-migration-protocol.json",
+      "bytes": 3208,
+      "sha256": "4a19981667153e947baba4a2bf302936948595c06d1031de4f4526c89ad71d5e"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/raw-report.json",
+      "bytes": 8192861,
+      "sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/frozen-141-postcard",
+      "bytes": 2969664,
+      "sha256": "f1d8c7af4488ca0921fe38c3eeed20d8a77e97afcf155465e66f6141a211c8e7"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/independent-cross-generation/cross-generation-audit.json",
+      "bytes": 10358,
+      "sha256": "eea40431fb8bfee54fbe0c51697a0dc447d8aa69d6aedf89b59c836866278241"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/solver-diagonal-proposal.md",
+      "bytes": 11000,
+      "sha256": "c231a77b988001d5ea64aeab08c9d162da6b099d7c11266dcec8be832551905e"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/prepared-candidate/verification-notes.md",
+      "bytes": 7816,
+      "sha256": "4989404873d37c2be34031292f7c9872a71a9e4e9544548220602550c605adb6"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/prepared-candidate/future-candidate.patch",
+      "bytes": 860,
+      "sha256": "fb80083cfa5ce00296d760a47033f9a086ef81553735982319b71d34a650be17"
+    }
+  ]
+}

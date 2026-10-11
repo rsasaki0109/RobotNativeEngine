@@ -1,0 +1,11 @@
+{
+  "started_utc": "2026-10-11T18:38:39.912331+00:00",
+  "command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/run_restored_default_release_regressions.py"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": null
+}

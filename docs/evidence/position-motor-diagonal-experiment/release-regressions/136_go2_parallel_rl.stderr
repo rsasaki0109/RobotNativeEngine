@@ -1,0 +1,241 @@
+warning: unnecessary parentheses around closure body
+   --> third_party/rapier3d/src/pipeline/query_pipeline/mod.rs:490:22
+    |
+490 |             .map(|h| (h.1 .0))
+    |                      ^      ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+490 -             .map(|h| (h.1 .0))
+490 +             .map(|h| h.1 .0 )
+    |
+
+warning: `#[must_use]` attribute cannot be used on trait methods in impl blocks
+   --> third_party/rapier3d/src/dynamics/rigid_body_components.rs:694:5
+    |
+694 |     #[must_use]
+    |     ^^^^^^^^^^^
+    |
+    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+    = help: `#[must_use]` can be applied to data types, foreign functions, functions, inherent methods, provided trait methods, required trait methods, and traits
+    = note: `#[warn(unused_attributes)]` (part of `#[warn(unused)]`) on by default
+
+warning: `#[must_use]` attribute cannot be used on trait methods in impl blocks
+   --> third_party/rapier3d/src/dynamics/rigid_body_components.rs:706:5
+    |
+706 |     #[must_use]
+    |     ^^^^^^^^^^^
+    |
+    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+    = help: `#[must_use]` can be applied to data types, foreign functions, functions, inherent methods, provided trait methods, required trait methods, and traits
+
+warning: struct `Externals` is never constructed
+   --> third_party/rapier3d/src/data/graph.rs:521:12
+    |
+521 | pub struct Externals<'a, N: 'a> {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Neighbors` is never constructed
+   --> third_party/rapier3d/src/data/graph.rs:555:12
+    |
+555 | pub struct Neighbors<'a, E: 'a> {
+    |            ^^^^^^^^^
+
+warning: struct `NodeReferences` is never constructed
+   --> third_party/rapier3d/src/data/graph.rs:788:12
+    |
+788 | pub struct NodeReferences<'a, N: 'a> {
+    |            ^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> third_party/rapier3d/src/data/arena.rs:701:17
+    |
+701 |     pub fn iter(&self) -> Iter<T> {
+    |                 ^^^^^     ^^^^^^^ the same lifetime is hidden here
+    |                 |
+    |                 the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+    = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+    |
+701 |     pub fn iter(&self) -> Iter<'_, T> {
+    |                                +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> third_party/rapier3d/src/data/arena.rs:728:21
+    |
+728 |     pub fn iter_mut(&mut self) -> IterMut<T> {
+    |                     ^^^^^^^^^     ^^^^^^^^^^ the same lifetime is hidden here
+    |                     |
+    |                     the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+728 |     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+    |                                           +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> third_party/rapier3d/src/data/arena.rs:760:18
+    |
+760 |     pub fn drain(&mut self) -> Drain<T> {
+    |                  ^^^^^^^^^     ^^^^^^^^ the same lifetime is hidden here
+    |                  |
+    |                  the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+760 |     pub fn drain(&mut self) -> Drain<'_, T> {
+    |                                      +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> third_party/rapier3d/src/data/graph.rs:392:18
+    |
+392 |     pub fn edges(&self, a: NodeIndex) -> Edges<E> {
+    |                  ^^^^^                   ^^^^^^^^ the same lifetime is hidden here
+    |                  |
+    |                  the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+392 |     pub fn edges(&self, a: NodeIndex) -> Edges<'_, E> {
+    |                                                +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> third_party/rapier3d/src/data/graph.rs:407:27
+    |
+407 |     pub fn edges_directed(&self, a: NodeIndex, dir: Direction) -> Edges<E> {
+    |                           ^^^^^ the lifetime is elided here       ^^^^^^^^ the same lifetime is hidden here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+407 |     pub fn edges_directed(&self, a: NodeIndex, dir: Direction) -> Edges<'_, E> {
+    |                                                                         +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> third_party/rapier3d/src/data/graph.rs:595:12
+    |
+595 |     edges: &mut [Edge<E>],
+    |            ^^^^^^^^^^^^^^ the lifetime is elided here
+...
+598 | ) -> EdgesWalkerMut<E> {
+    |      ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+598 | ) -> EdgesWalkerMut<'_, E> {
+    |                     +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1004:27
+     |
+1004 |     pub fn joint_velocity(&self, link: &MultibodyLink) -> DVectorView<Real> {
+     |                           ^^^^^                           ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+     |                           |
+     |                           the lifetime is elided here
+     |
+     = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+     |
+1004 |     pub fn joint_velocity(&self, link: &MultibodyLink) -> DVectorView<'_, Real> {
+     |                                                                       +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1014:37
+     |
+1014 |     pub fn generalized_acceleration(&self) -> DVectorView<Real> {
+     |                                     ^^^^^     ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+     |                                     |
+     |                                     the lifetime is elided here
+     |
+     = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+     |
+1014 |     pub fn generalized_acceleration(&self) -> DVectorView<'_, Real> {
+     |                                                           +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1020:33
+     |
+1020 |     pub fn generalized_velocity(&self) -> DVectorView<Real> {
+     |                                 ^^^^^     ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+     |                                 |
+     |                                 the lifetime is elided here
+     |
+     = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+     |
+1020 |     pub fn generalized_velocity(&self) -> DVectorView<'_, Real> {
+     |                                                       +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1032:37
+     |
+1032 |     pub fn generalized_velocity_mut(&mut self) -> DVectorViewMut<Real> {
+     |                                     ^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+     |                                     |
+     |                                     the lifetime is elided here
+     |
+     = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+     |
+1032 |     pub fn generalized_velocity_mut(&mut self) -> DVectorViewMut<'_, Real> {
+     |                                                                  +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs:203:9
+    |
+203 |         &mut self,
+    |         ^^^^^^^^^ the lifetime is elided here
+204 |     ) -> (
+205 |         &DVector<Real>,
+    |         ^^^^^^^^^^^^^^ the same lifetime is elided here
+206 |         impl Iterator<Item = AnyConstraintMut<Constraints>>,
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+206 |         impl Iterator<Item = AnyConstraintMut<'_, Constraints>>,
+    |                                               +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> third_party/rapier3d/src/dynamics/solver/solver_vel.rs:25:28
+   |
+25 |     pub fn as_vector_slice(&self) -> DVectorView<N> {
+   |                            ^^^^^     ^^^^^^^^^^^^^^ the same lifetime is hidden here
+   |                            |
+   |                            the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+   |
+25 |     pub fn as_vector_slice(&self) -> DVectorView<'_, N> {
+   |                                                  +++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> third_party/rapier3d/src/dynamics/solver/solver_vel.rs:29:32
+   |
+29 |     pub fn as_vector_slice_mut(&mut self) -> DVectorViewMut<N> {
+   |                                ^^^^^^^^^     ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+   |                                |
+   |                                the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+   |
+29 |     pub fn as_vector_slice_mut(&mut self) -> DVectorViewMut<'_, N> {
+   |                                                             +++
+
+warning: `rapier3d` (lib) generated 19 warnings (run `cargo fix --lib -p rapier3d` to apply 16 suggestions)
+   Compiling go2_parallel_rl v0.4.0 (/workspace/RobotNativeEngine/examples/136_go2_parallel_rl)
+    Finished `release` profile [optimized] target(s) in 1.94s
+     Running `target/release/examples/136_go2_parallel_rl`

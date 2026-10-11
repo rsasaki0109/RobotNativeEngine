@@ -1,0 +1,545 @@
+{
+  "status": "PASS_PURE_ORACLE_AND_RETAINED_STRUCTURE_CHECKS_ONLY",
+  "created_utc": "2026-10-11T18:16:33.771957+00:00",
+  "scope": "24 independently constructed arithmetic fixture rows; .004 literal f32 inertia, no candidate measured state and no generation3 result",
+  "native_worlds_builds_cargo_tests_checkout_edits": 0,
+  "unchanged_original_reference_field_comparisons": 168,
+  "counts": {
+    "historical_state_structures": 144,
+    "historical_telemetry_structures": 48,
+    "historical_scalar_wrappers": 4626
+  },
+  "pure24calculations": [
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": -0.001,
+      "small_steps": 1,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1134929536,
+        "hex": "43a5a680",
+        "promoted_f64": 331.30078125
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 994431088,
+        "hex": "3b45d070",
+        "promoted_f64": 0.0030184052884578705
+      },
+      "unchanged_fixed_point": -7.36196384478953e-05,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": -0.001,
+      "small_steps": 1,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1134929536,
+        "hex": "43a5a680",
+        "promoted_f64": 331.30078125
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 994431088,
+        "hex": "3b45d070",
+        "promoted_f64": 0.0030184052884578705
+      },
+      "unchanged_fixed_point": -7.36196384478953e-05,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": -0.001,
+      "small_steps": 32,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1161177436,
+        "hex": "4536295c",
+        "promoted_f64": 2914.5849609375
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 968090208,
+        "hex": "39b3e260",
+        "promoted_f64": 0.00034310203045606613
+      },
+      "unchanged_fixed_point": -8.570855805380739e-06,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": -0.001,
+      "small_steps": 32,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1161177436,
+        "hex": "4536295c",
+        "promoted_f64": 2914.5849609375
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 968090208,
+        "hex": "39b3e260",
+        "promoted_f64": 0.00034310203045606613
+      },
+      "unchanged_fixed_point": -8.570855805380739e-06,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": 0,
+      "small_steps": 1,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1134929536,
+        "hex": "43a5a680",
+        "promoted_f64": 331.30078125
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 994431088,
+        "hex": "3b45d070",
+        "promoted_f64": 0.0030184052884578705
+      },
+      "unchanged_fixed_point": 0.0,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": 0,
+      "small_steps": 1,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1134929536,
+        "hex": "43a5a680",
+        "promoted_f64": 331.30078125
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 994431088,
+        "hex": "3b45d070",
+        "promoted_f64": 0.0030184052884578705
+      },
+      "unchanged_fixed_point": 0.0,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": 0,
+      "small_steps": 32,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1161177436,
+        "hex": "4536295c",
+        "promoted_f64": 2914.5849609375
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 968090208,
+        "hex": "39b3e260",
+        "promoted_f64": 0.00034310203045606613
+      },
+      "unchanged_fixed_point": 0.0,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": 0,
+      "small_steps": 32,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1161177436,
+        "hex": "4536295c",
+        "promoted_f64": 2914.5849609375
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 968090208,
+        "hex": "39b3e260",
+        "promoted_f64": 0.00034310203045606613
+      },
+      "unchanged_fixed_point": 0.0,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": 0.001,
+      "small_steps": 1,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1134929536,
+        "hex": "43a5a680",
+        "promoted_f64": 331.30078125
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 994431088,
+        "hex": "3b45d070",
+        "promoted_f64": 0.0030184052884578705
+      },
+      "unchanged_fixed_point": 7.36196384478953e-05,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": 0.001,
+      "small_steps": 1,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1134929536,
+        "hex": "43a5a680",
+        "promoted_f64": 331.30078125
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 994431088,
+        "hex": "3b45d070",
+        "promoted_f64": 0.0030184052884578705
+      },
+      "unchanged_fixed_point": 7.36196384478953e-05,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": 0.001,
+      "small_steps": 32,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1161177436,
+        "hex": "4536295c",
+        "promoted_f64": 2914.5849609375
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 968090208,
+        "hex": "39b3e260",
+        "promoted_f64": 0.00034310203045606613
+      },
+      "unchanged_fixed_point": 8.570855805380739e-06,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        300,
+        12
+      ],
+      "target": 0.001,
+      "small_steps": 32,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1161177436,
+        "hex": "4536295c",
+        "promoted_f64": 2914.5849609375
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 968090208,
+        "hex": "39b3e260",
+        "promoted_f64": 0.00034310203045606613
+      },
+      "unchanged_fixed_point": 8.570855805380739e-06,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": -0.001,
+      "small_steps": 1,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1136237350,
+        "hex": "43b99b26",
+        "promoted_f64": 371.21209716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 993037253,
+        "hex": "3b308bc5",
+        "promoted_f64": 0.002693877788260579
+      },
+      "unchanged_fixed_point": -8.163266412154826e-05,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": -0.001,
+      "small_steps": 1,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1136237350,
+        "hex": "43b99b26",
+        "promoted_f64": 371.21209716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 993037253,
+        "hex": "3b308bc5",
+        "promoted_f64": 0.002693877788260579
+      },
+      "unchanged_fixed_point": -8.163266412154826e-05,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": -0.001,
+      "small_steps": 32,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1166323911,
+        "hex": "4584b0c7",
+        "promoted_f64": 4246.09716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 964096855,
+        "hex": "3976f357",
+        "promoted_f64": 0.0002355103933950886
+      },
+      "unchanged_fixed_point": -7.3525199645791184e-06,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": -0.001,
+      "small_steps": 32,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1166323911,
+        "hex": "4584b0c7",
+        "promoted_f64": 4246.09716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 964096855,
+        "hex": "3976f357",
+        "promoted_f64": 0.0002355103933950886
+      },
+      "unchanged_fixed_point": -7.3525199645791184e-06,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": 0,
+      "small_steps": 1,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1136237350,
+        "hex": "43b99b26",
+        "promoted_f64": 371.21209716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 993037253,
+        "hex": "3b308bc5",
+        "promoted_f64": 0.002693877788260579
+      },
+      "unchanged_fixed_point": 0.0,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": 0,
+      "small_steps": 1,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1136237350,
+        "hex": "43b99b26",
+        "promoted_f64": 371.21209716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 993037253,
+        "hex": "3b308bc5",
+        "promoted_f64": 0.002693877788260579
+      },
+      "unchanged_fixed_point": 0.0,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": 0,
+      "small_steps": 32,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1166323911,
+        "hex": "4584b0c7",
+        "promoted_f64": 4246.09716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 964096855,
+        "hex": "3976f357",
+        "promoted_f64": 0.0002355103933950886
+      },
+      "unchanged_fixed_point": 0.0,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": 0,
+      "small_steps": 32,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1166323911,
+        "hex": "4584b0c7",
+        "promoted_f64": 4246.09716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 964096855,
+        "hex": "3976f357",
+        "promoted_f64": 0.0002355103933950886
+      },
+      "unchanged_fixed_point": 0.0,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": 0.001,
+      "small_steps": 1,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1136237350,
+        "hex": "43b99b26",
+        "promoted_f64": 371.21209716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 993037253,
+        "hex": "3b308bc5",
+        "promoted_f64": 0.002693877788260579
+      },
+      "unchanged_fixed_point": 8.163266412154826e-05,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": 0.001,
+      "small_steps": 1,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1136237350,
+        "hex": "43b99b26",
+        "promoted_f64": 371.21209716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 993037253,
+        "hex": "3b308bc5",
+        "promoted_f64": 0.002693877788260579
+      },
+      "unchanged_fixed_point": 8.163266412154826e-05,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": 0.001,
+      "small_steps": 32,
+      "PGS_passes": 1,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1166323911,
+        "hex": "4584b0c7",
+        "promoted_f64": 4246.09716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 964096855,
+        "hex": "3976f357",
+        "promoted_f64": 0.0002355103933950886
+      },
+      "unchanged_fixed_point": 7.3525199645791184e-06,
+      "measured_outcome": null
+    },
+    {
+      "gain": [
+        250,
+        8
+      ],
+      "target": 0.001,
+      "small_steps": 32,
+      "PGS_passes": 2,
+      "candidate_diagonal_sum": {
+        "bits_u32": 1166323911,
+        "hex": "4584b0c7",
+        "promoted_f64": 4246.09716796875
+      },
+      "candidate_inverse_diagonal": {
+        "bits_u32": 964096855,
+        "hex": "3976f357",
+        "promoted_f64": 0.0002355103933950886
+      },
+      "unchanged_fixed_point": 7.3525199645791184e-06,
+      "measured_outcome": null
+    }
+  ],
+  "tools": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/frozen_row_oracle.py",
+      "bytes": 11895,
+      "sha256": "a37286052adfaac1f3e749cf63c5db3d0766684142e80f2c7479324092b8cdae"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/frozen_candidate_row_oracle.py",
+      "bytes": 12728,
+      "sha256": "10a148a918f192c15979a79aaefe2b32212f3ac04d86980246f87fafdff8eea3"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/audit_candidate_report.py",
+      "bytes": 32054,
+      "sha256": "46121fdec42c45ef3588ae0cf6b26fb0c5b108ae2b32b032719fc50943cac270"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/test_candidate_oracle_pure.py",
+      "bytes": 7908,
+      "sha256": "0a91fd5712529bcc011c759c93641e71d21aa25fbd8def57b9ad19fb72c19bb1"
+    }
+  ],
+  "historical_read_only_report": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/raw-report.json",
+    "bytes": 8192861,
+    "sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-11T18:10:59.543464+00:00",
+  "base": "b0bf79eaf765596fede4130111596ac1d721262e",
+  "candidate_patch_sha256": "fb80083cfa5ce00296d760a47033f9a086ef81553735982319b71d34a650be17",
+  "before_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+  "after_sha256": "5cdacfb67dfa186fd513354e693b4efc7d4f1ebd400d9f08ea8598f57135e9b5",
+  "CRLF_retained": true,
+  "calibration_worlds_executed": 0
+}

@@ -1,0 +1,2 @@
+# Preserve the exact bytes of the hash-bound historical patch.
+complete-rejected-candidate.patch -text

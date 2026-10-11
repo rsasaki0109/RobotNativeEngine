@@ -1,0 +1,8 @@
+terrain: 8.0x4.0 m, seed 2024, relief 0.039 m
+trot: 0.36 s period over 8.0 s, 2.80 m forward (0.35 m/s), 0.27 m lateral drift
+body: min clearance 0.276 m, max roll/pitch 0.134 rad
+feet: deepest penetration 0.02 mm
+actuators: peak torque 100 % of the effort limit, saturated in 65 of 4500 steps
+solver: mean 3.0 sweeps, unconverged steps 0
+deterministic replay: true
+go2 terrain trot: ok

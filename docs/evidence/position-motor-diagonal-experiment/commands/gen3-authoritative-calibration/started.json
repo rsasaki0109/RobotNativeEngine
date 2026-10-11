@@ -1,0 +1,13 @@
+{
+  "started_utc": "2026-10-11T18:20:24.367947+00:00",
+  "command": [
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/frozen-141-force-based-diagonal",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/raw-report.json",
+    "--require-calibration"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": null,
+  "rustdocflags": null
+}

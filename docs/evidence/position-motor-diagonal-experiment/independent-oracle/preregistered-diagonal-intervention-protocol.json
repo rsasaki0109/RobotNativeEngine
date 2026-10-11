@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "measurement_generation": 3,
+  "registered_utc": "2026-10-11T18:11:59.563898+00:00",
+  "status": "PREDECLARED before any generation-3 matrix execution; no outcome inferred",
+  "approved_parent": {
+    "pr": 406,
+    "squash_main_commit": "b0bf79eaf765596fede4130111596ac1d721262e"
+  },
+  "original_physical_protocol": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/preregistered-protocol-v2.json",
+    "bytes": 7295,
+    "sha256": "d7e909e30859e712b2748a0fd593599414eeff3270529e27934d60e940bd0395"
+  },
+  "fixture": {
+    "topology": "fixed parent + one dynamic uniform sphere at coincident pivot; one revolute DOF about X",
+    "mass_kg": 1.0,
+    "sphere_radius_m": 0.1,
+    "nominal_inertia_kg_m2": 0.004,
+    "actual_inertia_contract": "Before stepping, recompute native body mass properties from its collider and read effective angular Ixx. For a fixed identity parent / coincident pivot / uniform isotropic sphere / X DOF / COM zero / passive damping and armature zero, independently derive first-row w=1/Ixx. The public post-step LU.solve([1]) is recorded separately as the latest dynamics cache, never described as an actual captured first-slice LU. Check prederived/post inverse mass with existing momentum tolerance abs1e-8, relative2e-5; retain any disagreement.",
+    "initial_joint_position_rad": 0.0,
+    "initial_joint_velocity_rad_s": 0.0,
+    "target_velocity_rad_s": 0.0,
+    "effort_cap_nm": 2.0,
+    "motor_model": "ForceBased",
+    "passive_joint_damping_nm_s_per_rad": 0.0,
+    "rigid_body_linear_and_angular_damping": 0.0,
+    "armature": 0.0,
+    "gravity_m_s2": [
+      0,
+      0,
+      0
+    ],
+    "contacts": false,
+    "hard_joint_limits": false,
+    "ccd": false,
+    "additional_island_solver_iterations": 0,
+    "outer_interval_s": 0.001,
+    "outer_completed_steps": 1,
+    "public_preparation_without_clock_advance": [
+      "recompute child mass properties from colliders",
+      "multibody.forward_kinematics(&bodies,true) to establish fixed root and one DOF",
+      "fill generalized damping with zero and set angular armature to zero",
+      "check zero initial coordinate and generalized velocity, unit mass, COM/pivot/axis and body damping",
+      "read pre-step native effective angular Ixx; no extra pipeline step and no private API or solver change"
+    ]
+  },
+  "factors": {
+    "gains": [
+      {
+        "label": "G1_posture",
+        "stiffness_nm_per_rad": 300.0,
+        "damping_nm_s_per_rad": 12.0
+      },
+      {
+        "label": "G1_ankle",
+        "stiffness_nm_per_rad": 250.0,
+        "damping_nm_s_per_rad": 8.0
+      }
+    ],
+    "target_position_rad": [
+      -0.001,
+      0.0,
+      0.001
+    ],
+    "solver_small_steps": [
+      1,
+      32
+    ],
+    "internal_pgs_passes": [
+      1,
+      2
+    ],
+    "stabilization_passes": 2
+  },
+  "case_order": "Cartesian product G1Posture/G1Ankle, target -0.001/0/+0.001, N1/N32, PGS1/PGS2; within cell ON, fresh ON, fresh OFF",
+  "case_count": 24,
+  "fresh_worlds_per_case": {
+    "telemetry_enabled": 2,
+    "telemetry_disabled": 1
+  },
+  "planned_generation_3_worlds": 72,
+  "retained_prior_worlds": 144,
+  "planned_total_across_generations": 216,
+  "one_intervention": {
+    "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+    "branch": "internal single-DOF ForceBased motor rows only",
+    "old": "inv_lhs = rapier_inv(w)",
+    "candidate": "inv_lhs = rapier_inv(fl32(w + g))",
+    "AccelerationBased": "Exact existing inv(w) expression and arithmetic retained",
+    "excluded": "No changes to gamma/a/RHS/bounds/native h/J/M/integration/stabilization/collector/limits/controllers/gains/recovery predicates"
+  },
+  "oracle": {
+    "file": {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/independent-oracle/frozen_candidate_row_oracle.py",
+      "bytes": 12728,
+      "sha256": "10a148a918f192c15979a79aaefe2b32212f3ac04d86980246f87fafdff8eea3"
+    },
+    "method": "Exact Fraction binary32 RN ties-to-even per scalar source operation; signed zero and guarded reciprocal explicit",
+    "candidate_diagonal": "Independent binary32 w=fl32(1/pre-native-Ixx); s=fl32(w+g); D=rapier_inv(s). This is source-derived, never called directly measured inv_lhs. Both s and D plus legacy D are retained separately.",
+    "fixed_point": "Original unchanged projected p*=clip(-(rhs+v0)/(w+g), -native_bound,+native_bound); coefficient operands promoted to f64 before denominator; exact rational derivation cross-check; candidate rounded diagonal sum does not replace reference denominator.",
+    "finite_pass": "No exact one-pass IEEE replay or coupled convergence claim; reporting after PGS plus stabilization2 keeps declared timing.",
+    "post_LU": "Latest post-step LU is a separately acquired cache cross-check, never substituted for pre-native effective Ixx or called direct first-slice measurement."
+  },
+  "primary_criterion": "Current production numerical combination N32/PGS1/stabilization2, both gains and both nonzero signs: compare final first-slice applied impulse p to p*=clip(- (a*(q0-qt)+v0)/(1/I+g), -cap*h, +cap*h), a=k/(h*k+d),g=1/(h*h*k+h*d), frozen native first-slice h and coefficients; pass only if every primary cell has |p-p*| <= max(1e-8 Nm.s,0.01*|p*|), finite state and complete integer slice coverage. Zero targets must retain zero applied impulse and no target-induced motion.",
+  "numeric_gate": {
+    "primary_members": 4,
+    "membership": "N32/PGS1, both gains, both nonzero signs",
+    "require_primary_passes": 4,
+    "absolute_impulse_floor_nm_s": 1e-08,
+    "relative_impulse_tolerance": 0.01,
+    "motionless_zero_controls_required": 8,
+    "finite_state": "all retained exposed native scalars",
+    "coverage": "complete actual integer ordinals/counts/identities and durations for all 48 ON runs"
+  },
+  "secondary_descriptive_metrics": [
+    "all native ordered final slice impulses/durations/bounds/coverage ordinals",
+    "signed total and sum of absolute slice impulses; cancellation ratio undefined when all impulses zero",
+    "sign reversal count in ordered nonzero final slices",
+    "positive finite final bound-active duration fraction",
+    "final generalized qdot and actual joint coordinate, kinetic energy 0.5*I*qdot^2",
+    "first-slice fixed-point residual (a*(q0-qt)+v0)-(1/I+g)*lambda, lambda=-p",
+    "N1/N32 and PGS1/PGS2 differences with no best-setting selection"
+  ],
+  "within_build_replay": "Full actual ordered known-entity native bytes and canonical IEEE words ON/fresh/OFF; complete actual ON/fresh telemetry IEEE/type/presence/identity/slice-order equality. No whole HashMap iteration. OFF telemetry absent. Private pipeline/cache state not comprehensively serialized.",
+  "cross_generation": "ForceBased state changes are the intended intervention; do not require old/current equality and do not filter differences. AccelerationBased unchanged-path compatibility requires separate baseline/candidate execution proof. This Python oracle does not create those worlds or establish their outcome.",
+  "serialization": "Postcard schema2/wire1 raw exact-consumption unchanged from generation2. Actual Rust typed roundtrip/readback qualification separate; Python reconstructs bytes/hash/canonical words and exposed q/qdot only.",
+  "same_input_uncapped_regression": {
+    "inputs": "Existing prismatic fixture with target0.01, cap+inf, mass1 sphere, k100/d1, outer1ms,N4,PGS7,stabilization3 unchanged",
+    "predeclared_candidate_expectation": "Finite actual generalized velocity and retained motor impulse, full four-slice integer coverage and finite positive durations; None for unbounded finite ceiling/bound, zero finite-positive bound eligibility/activity",
+    "legacy_failure": "Old expected overflow/partial-coverage retained as historical evidence; change expected outcome only, no retuning. Synthetic invalid/missing/nonfinite collector tests retained."
+  },
+  "admission": "Any primary or required compatibility failure prevents promotion; retain report/exit and roll back instead of post-outcome retuning. G1 recovery is a separate future unchanged-policy experiment, not implied by motor-only pass.",
+  "execution": "Exactly one frozen candidate release binary matrix with --require-calibration; new non-overwriting raw-report.json saved before failure exit; loaded-report verification adds zero worlds. Actual command0 only if gates pass; command2 preserved on accuracy failure; collection/replay failures distinct.",
+  "freeze_order": [
+    "1 Freeze this protocol, exact candidate independent oracle/auditor and pure-tests/tool receipt before calibration.",
+    "2 Root records current bounded118source snapshot, compiler/Cargo/lock/resolvedfeatures/environment/buildcommand, source-freeze binds independent protocol/oracle/auditor/tool receipt digests.",
+    "3 Root builds once and freezes copied binary with its digest, source-freeze digest, successful actual build terminal, zero generation3 worlds before freeze. Bind protocol/oracle/auditor/toolreceipt digests and118 selected_source_count.",
+    "4 Root executes the declared72matrix once into fresh generation3 raw-report. Preserve actual terminal exit, log, report digest before independent audit.",
+    "5 Independently audit exact report SHA using frozen auditor, binary-binding SHA and source guard. Retain rejection receipt on any nonfinite/missing/malformed/binding/coverage failure; do not overwrite measurements or infer missing values.",
+    "6 Required backend/default/recovery/regression/133-138/fullCI qualifications remain separate actual commands."
+  ],
+  "immutable_prior_bindings": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/preregistered-protocol-v2.json",
+      "bytes": 7295,
+      "sha256": "d7e909e30859e712b2748a0fd593599414eeff3270529e27934d60e940bd0395"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/measurement/raw-report.json",
+      "bytes": 10140453,
+      "sha256": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/frozen-141",
+      "bytes": 2982856,
+      "sha256": "4804366a897a6ca335a0a40acaf24a5f58d6cd03e227abb8566994ee8fd8a042"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/frozen_row_oracle.py",
+      "bytes": 11895,
+      "sha256": "a37286052adfaac1f3e749cf63c5db3d0766684142e80f2c7479324092b8cdae"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/audit_authoritative_report.py",
+      "bytes": 26669,
+      "sha256": "4abbc653ebc6da37da1ac0734540a9f4e5101a021b5304285bbfa935255c64bb"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/independent-poststudy-exact-fraction-audit.json",
+      "bytes": 122701,
+      "sha256": "ee22355b037278cb5a407e92bbeea375c8a865d65176f6eb5a608cf814c7c1d7"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/preregistered-codec-migration-protocol.json",
+      "bytes": 3208,
+      "sha256": "4a19981667153e947baba4a2bf302936948595c06d1031de4f4526c89ad71d5e"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/raw-report.json",
+      "bytes": 8192861,
+      "sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/frozen-141-postcard",
+      "bytes": 2969664,
+      "sha256": "f1d8c7af4488ca0921fe38c3eeed20d8a77e97afcf155465e66f6141a211c8e7"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/independent-cross-generation/cross-generation-audit.json",
+      "bytes": 10358,
+      "sha256": "eea40431fb8bfee54fbe0c51697a0dc447d8aa69d6aedf89b59c836866278241"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/solver-diagonal-proposal.md",
+      "bytes": 11000,
+      "sha256": "c231a77b988001d5ea64aeab08c9d162da6b099d7c11266dcec8be832551905e"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/prepared-candidate/verification-notes.md",
+      "bytes": 7816,
+      "sha256": "4989404873d37c2be34031292f7c9872a71a9e4e9544548220602550c605adb6"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/prepared-candidate/future-candidate.patch",
+      "bytes": 860,
+      "sha256": "fb80083cfa5ce00296d760a47033f9a086ef81553735982319b71d34a650be17"
+    }
+  ],
+  "truth_boundary": "No observation profile/controller/evaluator truth/known kick schedule is fed to a controller. This is a motor-only initial-state calibration and has no kick or recovery claim.",
+  "auditor_effects": "Outside-checkout Python exact arithmetic and retained-file verification only; no builds/tests/native worlds/git/source edits or hardware validation.",
+  "release_133_138_admission": {
+    "required": "All six release commands actual0 with ok; full physical stdout must exactly match declared pre-intervention baselines after only the three already registered timing substitutions. Example138 explicitly uses ForceBased; a real physical change there is a compatibility failure, even if its loose ok passes. Preserve all candidate results and prohibit promotion/retuning if any physical stdout differs.",
+    "unchanged_timing_exclusions": [
+      {
+        "regex": ",\\s*[0-9.]+ us per step",
+        "replacement": ""
+      },
+      {
+        "regex": "\\d+ env steps/s \\(\\d+ sim steps/s\\)",
+        "replacement": "<throughput>"
+      },
+      {
+        "regex": "parallel speedup [0-9.]+x",
+        "replacement": "parallel speedup <timing>"
+      }
+    ],
+    "existing_generation2_runner": {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/run_release_regressions.py",
+      "sha256": "d7341d11319284849a261d4c30d585bf8c7e7cdf1ad615f13ef5df971f38be5e"
+    },
+    "independent_audit_scope": "Motor-report audit does not execute or verify release example command outcomes; root/final CI auditor must bind actual separate release receipts and unchanged baselines before admission."
+  },
+  "additional_unit_qualification_scope": {
+    "test_source_at_registration": {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs",
+      "bytes": 36461,
+      "sha256": "228a03845e9a62209911155eeeac5ce1e02c244dd8c86313325a9b6a1cb595ba"
+    },
+    "source_review": "Read-only source review; no test suite run or new native fixture constructed by independent oracle preparation",
+    "per_invocation_new_tests": [
+      {
+        "name": "force_based_first_slice_matches_the_projected_fixed_point_for_both_signs",
+        "fresh_fixtures_created": 4,
+        "fixtures_stepped": 4,
+        "scope": "Two gains, both signs, same original primary counts and tolerance; distinct from authoritative matrix worlds"
+      },
+      {
+        "name": "internal_motor_diagonal_changes_only_the_force_based_model",
+        "fresh_fixtures_created": 1,
+        "fixtures_stepped": 1,
+        "scope": "One prismatic fixture initialized by one step, then directly query native ForceBased/AccelerationBased row arithmetic; not baseline-vs-candidate state replay proof"
+      },
+      {
+        "name": "invalid_native_motor_samples_are_rejected_without_manufacturing_coverage",
+        "fresh_fixtures_created": 1,
+        "fixtures_stepped": 0,
+        "scope": "Actual collector rejection with synthetic malformed sample/duration/bound/ceiling; construction only, no physics step"
+      }
+    ],
+    "uncapped_existing_regression": "Same valid fixture inputs, one stepped world per test invocation retained separately; expected finite/full coverage instead of bug-dependent overflow. Not an additional calibration matrix or retuned motor.",
+    "repeat_count": "Each later targeted/default/feature/workspace test invocation can repeat fixtures; actual CI receipt counts must keep repeated qualification separate. This protocol does not preclaim total qualification-world executions."
+  }
+}
