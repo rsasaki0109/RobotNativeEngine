@@ -377,6 +377,32 @@ eight zero-input runs recover. Default feedback remains raw. See the
 [16 measured outcomes and source-bound proofs](media/g1-orientation-age-experiment.json)
 for the full comparison and literal replay scope.
 
+`--g1-lateral-gyro-experiment` compares that orientation policy with a fixed
+5 ms EMA on positive-age world gyro X. Orientation still uses the original
+captured gyro; capture spacing drives EMA updates. Held/missing frames leave
+history unchanged, and zero-age payloads retain their original bits. Its
+16 cases keep plant, gains, actuator caps and recovery criteria fixed.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --g1-lateral-gyro-experiment --output target/rne-g1-lateral-gyro
+```
+
+The primary gate is complete recovery under 20 ms delay and 40 N·s, together
+with preserved standing, 5 ms recovery, replay and compatibility. Failed
+settlement/recovery remain outcomes. Default feedback remains raw; the
+candidate stays opt-in and cannot qualify public GIF evidence. The study
+does not establish hardware reliability. See the
+[method and selectors](../examples/139_kick_comparison/README.md#fixed-lateral-gyro-experiment).
+
+The completed matrix fails candidate advancement: the 20 ms kicked case still
+falls, and the EMA loses the earlier 5 ms kicked recovery (peak tilt
+0.309082 -> 1.638850 rad). All eight zero-input runs recover, with zero-age
+equality and the bounded-error negative control preserved. Replay and
+compatibility checks pass independently of these failed recovery outcomes.
+The candidate is not promoted; see the
+[16 measured outcomes and compact proofs](media/g1-lateral-gyro-experiment.json).
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

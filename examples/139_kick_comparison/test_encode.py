@@ -241,6 +241,129 @@ class EncoderStrongerImpulseTests(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError, error):
                             MODULE.validation_metadata(path, candidate_nominal)
 
+    def test_lateral_gyro_evidence_cannot_be_relabelled_as_public_media(self):
+        # Both panels and the full qualification report keep ideal labels and valid replay evidence.
+        reference = {'g1_observation_diagnosis': False,
+                     'g1_orientation_age_experiment': False,
+                     'g1_lateral_gyro_experiment': False, 'feedback_policy': 'raw_reference'}
+        metadata = (
+            (dict(reference, g1_lateral_gyro_experiment=True),
+             'lateral-gyro experiment evidence cannot qualify'),
+            (dict(reference, feedback_policy='orientation_known_age_lateral_gyro_ema_5ms'),
+             'raw-reference feedback policy'),
+        )
+        for fields, error in metadata:
+            for entrance in ('trace', 'summary', 'summary_case', 'nested_summary',
+                             'controller', 'nested_feedback_metadata'):
+                with self.subTest(fields=fields, capture_entrance=entrance):
+                    traces = copy.deepcopy(self.traces)
+                    summary = summary_for(traces)
+                    target = {'trace': traces[1], 'summary': summary,
+                              'summary_case': summary['cases'][1],
+                              'nested_summary': traces[1]['summary'],
+                              'controller': traces[1]['controller'],
+                              'nested_feedback_metadata': traces[1]['controller']}[entrance]
+                    if entrance == 'nested_feedback_metadata':
+                        target['feedback_metadata'] = {'captures': [dict(fields)]}
+                    else:
+                        target.update(fields)
+                    with self.assertRaisesRegex(ValueError, error):
+                        MODULE.validate_recordings(traces, summary)
+        traces = copy.deepcopy(self.traces)
+        for trace in traces:
+            trace.update(reference)
+            trace['controller']['feedback_metadata'] = {'captures': [dict(reference)]}
+        MODULE.validate_recordings(traces, summary_for(traces))
+        with tempfile.TemporaryDirectory() as directory:
+            path, report, nominal = make_report(Path(directory), 48.0)
+            report.update(reference)
+            path.write_text(json.dumps(report))
+            self.assertTrue(MODULE.validation_metadata(path, nominal)['required_cases_passed'])
+            trace_path = path.parent / 'go2-balance_off.json'
+            original_trace = json.loads(trace_path.read_text())
+            for fields, error in metadata:
+                for entrance in ('nominal', 'report', 'case', 'per_case_trace',
+                                 'nested_summary', 'nested_feedback_metadata'):
+                    with self.subTest(fields=fields, validation_entrance=entrance):
+                        candidate_report = copy.deepcopy(report)
+                        candidate_nominal = copy.deepcopy(nominal)
+                        candidate_trace = copy.deepcopy(original_trace)
+                        target = {'nominal': candidate_nominal[1], 'report': candidate_report,
+                                  'case': candidate_report['cases'][0],
+                                  'per_case_trace': candidate_trace,
+                                  'nested_summary': candidate_trace['summary'],
+                                  'nested_feedback_metadata': candidate_trace['controller']}[entrance]
+                        if entrance == 'nested_feedback_metadata':
+                            target['feedback_metadata'] = {'captures': [dict(fields)]}
+                        else:
+                            target.update(fields)
+                        trace_path.write_text(json.dumps(candidate_trace))
+                        path.write_text(json.dumps(candidate_report))
+                        with self.assertRaisesRegex(ValueError, error):
+                            MODULE.validation_metadata(path, candidate_nominal)
+
+    def test_actual_nested_policy_configuration_survives_marker_relabelling(self):
+        # The Rust metadata names this inner selector "policy", not "feedback_policy".
+        reference = {'g1_observation_diagnosis': False,
+                     'g1_orientation_age_experiment': False,
+                     'g1_lateral_gyro_experiment': False, 'feedback_policy': 'raw_reference'}
+        configurations = ({'policy': policy, 'stateful': stateful}
+                          for policy, stateful in (
+                              ('orientation_known_age', False),
+                              ('orientation_known_age_lateral_gyro_ema_5ms', True)))
+        error = 'raw-reference feedback policy configuration'
+        for configuration in configurations:
+            for entrance in ('trace', 'summary', 'summary_case', 'controller', 'nested_metadata'):
+                with self.subTest(configuration=configuration, capture_entrance=entrance):
+                    traces = copy.deepcopy(self.traces)
+                    summary = summary_for(traces)
+                    target = {'trace': traces[1], 'summary': summary,
+                              'summary_case': summary['cases'][1],
+                              'controller': traces[1]['controller'],
+                              'nested_metadata': traces[1]['summary']}[entrance]
+                    target.update(reference)
+                    configuration_record = {'feedback_policy_configuration': configuration}
+                    if entrance == 'nested_metadata':
+                        target['feedback_metadata'] = [configuration_record]
+                    else:
+                        target.update(configuration_record)
+                    with self.assertRaisesRegex(ValueError, error):
+                        MODULE.validate_recordings(traces, summary)
+            with tempfile.TemporaryDirectory() as directory:
+                path, report, nominal = make_report(Path(directory), 48.0)
+                trace_path = path.parent / 'go2-balance_off.json'
+                original_trace = json.loads(trace_path.read_text())
+                for entrance in ('nominal', 'report', 'case', 'per_case_trace', 'nested_metadata'):
+                    with self.subTest(configuration=configuration, validation_entrance=entrance):
+                        candidate_report = copy.deepcopy(report)
+                        candidate_nominal = copy.deepcopy(nominal)
+                        candidate_trace = copy.deepcopy(original_trace)
+                        target = {'nominal': candidate_nominal[1], 'report': candidate_report,
+                                  'case': candidate_report['cases'][0],
+                                  'per_case_trace': candidate_trace,
+                                  'nested_metadata': candidate_trace['controller']}[entrance]
+                        target.update(reference)
+                        configuration_record = {'feedback_policy_configuration': configuration}
+                        if entrance == 'nested_metadata':
+                            target['feedback_metadata'] = [configuration_record]
+                        else:
+                            target.update(configuration_record)
+                        trace_path.write_text(json.dumps(candidate_trace))
+                        path.write_text(json.dumps(candidate_report))
+                        with self.assertRaisesRegex(ValueError, error):
+                            MODULE.validation_metadata(path, candidate_nominal)
+        traces = copy.deepcopy(self.traces)
+        for trace in traces:
+            trace.update(reference)
+            trace['feedback_policy_configuration'] = {'policy': 'raw_reference', 'stateful': False}
+            trace['plant']['policy'] = 'unrelated plant metadata'
+        MODULE.validate_recordings(traces, summary_for(traces))
+        with tempfile.TemporaryDirectory() as directory:
+            path, report, nominal = make_report(Path(directory), 48.0)
+            report['feedback_policy_configuration'] = {'policy': 'raw_reference', 'stateful': False}
+            path.write_text(json.dumps(report))
+            self.assertTrue(MODULE.validation_metadata(path, nominal)['required_cases_passed'])
+
     def test_rejects_mismatched_panels(self):
         self.traces[1] = make_trace('G1', 32.0)
         with self.assertRaises(ValueError):

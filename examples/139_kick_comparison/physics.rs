@@ -6,7 +6,7 @@
 use super::{
     diagnostic::{self, FinishedDiagnostics, RunDiagnostics},
     disturbance::Impact,
-    feedback::Policy,
+    feedback::{Estimator, Policy},
     g1_controller::G1Controller,
     go2_controller::Go2Controller,
     model,
@@ -38,6 +38,48 @@ const SUPPORT_MEAN_LOAD_THRESHOLD_N: f64 = 0.5;
 const GO2_FEET: [&str; 4] = ["FL_foot", "FR_foot", "RL_foot", "RR_foot"];
 const G1_FEET: [&str; 2] = ["left_ankle_roll_link", "right_ankle_roll_link"];
 type CaptureResult<T> = Result<T, Box<dyn Error>>;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ExperimentMode {
+    OrientationAge,
+    LateralGyro,
+}
+
+impl ExperimentMode {
+    fn stem(self) -> &'static str {
+        match self {
+            Self::OrientationAge => "g1-orientation-age",
+            Self::LateralGyro => "g1-lateral-gyro",
+        }
+    }
+
+    fn policies(self, filter: Option<&str>) -> CaptureResult<Vec<Policy>> {
+        match self {
+            Self::OrientationAge => Policy::selected(filter),
+            Self::LateralGyro => Policy::selected_lateral(filter),
+        }
+    }
+
+    fn reference(self) -> Policy {
+        match self {
+            Self::OrientationAge => Policy::RawReference,
+            Self::LateralGyro => Policy::OrientationKnownAge,
+        }
+    }
+
+    fn candidate(self) -> Policy {
+        match self {
+            Self::OrientationAge => Policy::OrientationKnownAge,
+            Self::LateralGyro => Policy::OrientationKnownAgeLateralGyroEma5ms,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ExperimentFeedback {
+    policy: Policy,
+    mode: ExperimentMode,
+}
 
 #[derive(Clone, Copy, Debug)]
 enum Robot {
@@ -156,6 +198,8 @@ struct Controller {
     diagnostics: Option<RunDiagnostics>,
     feedback_policy: Policy,
     orientation_age_experiment: bool,
+    lateral_gyro_experiment: bool,
+    estimator: Estimator,
 }
 
 impl Controller {
@@ -174,6 +218,8 @@ impl Controller {
             diagnostics: None,
             feedback_policy: Policy::default(),
             orientation_age_experiment: false,
+            lateral_gyro_experiment: false,
+            estimator: Estimator::default(),
         })
     }
 
@@ -182,9 +228,12 @@ impl Controller {
             .capture_if_due(sim, self.robot.base_link(), self.robot.feet())?;
         let arrived = self.pipeline.consume(sim.sim_time())?;
         let raw_estimate = arrived.as_ref().map(|frame| &frame.payload);
-        let effective = self
-            .feedback_policy
-            .effective(arrived.as_ref(), sim.sim_time())?;
+        let filter_before = self
+            .lateral_gyro_experiment
+            .then(|| self.estimator.diagnostic_state());
+        let effective =
+            self.estimator
+                .effective(self.feedback_policy, arrived.as_ref(), sim.sim_time())?;
         let estimate = effective.as_deref();
         // This extra capture is evaluator-only and exists solely with logging on.
         // The feedback call below continues to receive only the arrived estimate.
@@ -204,7 +253,7 @@ impl Controller {
         } else {
             Value::Null
         };
-        let diagnostic_feedback = (diagnostic_truth.is_some() && self.orientation_age_experiment).then(||
+        let mut diagnostic_feedback = (diagnostic_truth.is_some() && self.orientation_age_experiment).then(||
             json!({"g1_orientation_age_experiment":true,"feedback_policy":self.feedback_policy.name(),
                 "effective_feedback_estimate":estimate.map(|estimate|estimate.diagnostic_fields()),
                 "feedback_policy_configuration":self.feedback_policy.configuration(),
@@ -212,7 +261,7 @@ impl Controller {
                     "raw_capture_ticks":arrived.as_ref().map(|frame|frame.capture_time.ticks()),
                     "consumer_ticks":sim.sim_time().ticks(),
                     "orientation_reference_ticks":arrived.as_ref().map(|frame|
-                        if self.feedback_policy == Policy::OrientationKnownAge {sim.sim_time().ticks()} else {frame.capture_time.ticks()}),
+                        if self.feedback_policy != Policy::RawReference {sim.sim_time().ticks()} else {frame.capture_time.ticks()}),
                     "non_orientation_channel_ticks":arrived.as_ref().map(|frame|frame.capture_time.ticks()),
                     "orientation_is_fresh_measurement":false,"captured_gyro_and_roll_rate_unchanged":true
                 }}));
@@ -241,6 +290,9 @@ impl Controller {
         self.last_feedback["observation_timing"] = self.pipeline.telemetry();
         self.last_feedback["actual_support_points_scope"] =
             json!("driver pre-step ground truth; not feedback input");
+        if self.lateral_gyro_experiment {
+            self.add_lateral_diagnostics(&mut diagnostic_feedback, filter_before)?;
+        }
         if let Some(run) = &mut self.diagnostics {
             if self.orientation_age_experiment {
                 run.record_with_feedback(
@@ -262,6 +314,47 @@ impl Controller {
         Ok(())
     }
 
+    fn add_lateral_diagnostics(
+        &self,
+        context: &mut Option<Value>,
+        filter_before: Option<Value>,
+    ) -> CaptureResult<()> {
+        let Some(context) = context else {
+            return Ok(());
+        };
+        let control_words = self.replay_words();
+        let suffix = self.estimator.replay_words();
+        let suffix_start = control_words.len() - suffix.len();
+        require(
+            control_words[suffix_start..] == suffix,
+            "EMA state missing from control replay",
+        )?;
+        context["g1_lateral_gyro_experiment"] = json!(true);
+        context["g1_observation_diagnosis"] = json!(true);
+        context["lateral_gyro_filter_before"] = json!(filter_before);
+        context["lateral_gyro_filter_after"] = self.estimator.diagnostic_state();
+        context["lateral_gyro_control_replay"] = json!({
+            "suffix_start_word":suffix_start,"full_control_word_count":control_words.len(),
+            "suffix_words":&control_words[suffix_start..],
+            "scope":"actual post-step Controller::replay_words; filter updates at this row's pre-step consumer tick and does not mutate during the plant step"
+        });
+        context["feedback_channel_time_scope"]
+            .as_object_mut()
+            .expect("feedback scope")
+            .remove("captured_gyro_and_roll_rate_unchanged");
+        context["feedback_channel_time_scope"]["raw_captured_gyro_unchanged"] = json!(true);
+        context["feedback_channel_time_scope"]["captured_roll_rate_unchanged"] = json!(true);
+        context["feedback_channel_time_scope"]["orientation_projection_gyro"] =
+            json!("original captured world angular velocity; never EMA output");
+        context["feedback_channel_time_scope"]["effective_world_gyro_x"] = json!("EMA policy at positive capture age: capture-time EMA; otherwise original captured value");
+        context["feedback_channel_time_scope"]["effective_world_gyro_yz_and_roll_rate"] =
+            json!("original capture time, unchanged");
+        context["feedback_channel_time_scope"]["non_orientation_channel_ticks_scope"] = json!(
+            "capture time for unchanged channels; filtered gyro X spans delivered capture history"
+        );
+        Ok(())
+    }
+
     fn telemetry(&self) -> Value {
         self.last_feedback.clone()
     }
@@ -277,6 +370,8 @@ impl Controller {
         words.extend(feedback);
         words.push(self.last_command_words.len() as u64);
         words.extend(&self.last_command_words);
+        // No marker or length word is added until the opt-in filter initializes.
+        words.extend(self.estimator.replay_words());
         words
     }
 }
@@ -888,6 +983,27 @@ fn record_with_feedback_policy(
     diagnostics: Option<RunDiagnostics>,
     feedback_policy: Option<Policy>,
 ) -> CaptureResult<Recording> {
+    record_with_experiment(
+        robot,
+        case,
+        capture_frames,
+        profile,
+        diagnostics,
+        feedback_policy.map(|policy| ExperimentFeedback {
+            policy,
+            mode: ExperimentMode::OrientationAge,
+        }),
+    )
+}
+
+fn record_with_experiment(
+    robot: Robot,
+    case: Case,
+    capture_frames: bool,
+    profile: Option<Profile>,
+    diagnostics: Option<RunDiagnostics>,
+    feedback: Option<ExperimentFeedback>,
+) -> CaptureResult<Recording> {
     let mut sim = robot.load(case.dt_ticks)?;
     let initial_plant_contract = robot.validate(&sim)?;
     let mut controller = Controller::new(
@@ -897,8 +1013,10 @@ fn record_with_feedback_policy(
         profile.unwrap_or_else(|| Profile::ideal(case.dt_ticks)),
     )?;
     controller.diagnostics = diagnostics;
-    controller.feedback_policy = feedback_policy.unwrap_or_default();
-    controller.orientation_age_experiment = feedback_policy.is_some();
+    controller.feedback_policy = feedback.map_or_else(Policy::default, |feedback| feedback.policy);
+    controller.orientation_age_experiment = feedback.is_some();
+    controller.lateral_gyro_experiment =
+        feedback.is_some_and(|feedback| feedback.mode == ExperimentMode::LateralGyro);
     let dt_s = sim.fixed_delta().as_seconds().value();
     let mut states = Vec::new();
     let mut control_states = Vec::new();
@@ -1035,7 +1153,19 @@ fn record_with_feedback_policy(
         control_state_words: control_states,
         diagnostics,
     };
-    Ok(annotate_orientation_recording(recording, feedback_policy))
+    Ok(annotate_feedback_recording(recording, feedback))
+}
+
+fn annotate_feedback_recording(
+    recording: Recording,
+    feedback: Option<ExperimentFeedback>,
+) -> Recording {
+    let mut recording =
+        annotate_orientation_recording(recording, feedback.map(|feedback| feedback.policy));
+    if feedback.is_some_and(|feedback| feedback.mode == ExperimentMode::LateralGyro) {
+        mark_lateral_experiment(&mut recording.trace);
+    }
+    recording
 }
 
 fn annotate_orientation_recording(mut recording: Recording, policy: Option<Policy>) -> Recording {
@@ -1052,6 +1182,16 @@ fn mark_orientation_experiment(trace: &mut Value, policy: Policy) {
     trace["feedback_policy_configuration"] = policy.configuration();
     trace["summary"]["g1_orientation_age_experiment"] = json!(true);
     trace["summary"]["feedback_policy"] = json!(policy.name());
+}
+
+fn mark_lateral_experiment(trace: &mut Value) {
+    for scope in ["summary", "controller"] {
+        trace[scope]["g1_lateral_gyro_experiment"] = json!(true);
+        trace[scope]["g1_orientation_age_experiment"] = json!(true);
+        trace[scope]["g1_observation_diagnosis"] = json!(true);
+        trace[scope]["feedback_policy"] = trace["feedback_policy"].clone();
+    }
+    trace["g1_lateral_gyro_experiment"] = json!(true);
 }
 
 fn replay(robot: Robot, case: Case, capture_frames: bool) -> CaptureResult<Value> {
@@ -1647,46 +1787,44 @@ fn write_orientation_words(
     )
 }
 
-fn orientation_experiment_case(
+fn feedback_experiment_case(
     output: &Path,
     profile: Profile,
     input: &str,
     impulse_ns: f64,
     policy: Policy,
+    mode: ExperimentMode,
 ) -> CaptureResult<(Recording, Value)> {
     let case = Case {
         name: profile.name,
         impulse_ns,
         ..NOMINAL
     };
-    let stem = format!(
-        "g1-orientation-age-{}-{}-{input}",
-        policy.name(),
-        profile.name
-    );
+    let stem = format!("{}-{}-{}-{input}", mode.stem(), policy.name(), profile.name);
     let jsonl_filename = format!("{stem}.jsonl");
     let jsonl_path = output.join(&jsonl_filename);
     let repeat_path = output.join(format!("{stem}.repeat.jsonl"));
-    let mut first = record_with_feedback_policy(
+    let feedback = Some(ExperimentFeedback { policy, mode });
+    let mut first = record_with_experiment(
         Robot::G1,
         case,
         false,
         Some(profile),
         Some(RunDiagnostics::enabled(&jsonl_path)?),
-        Some(policy),
+        feedback,
     )?;
     require(
         first.trace["observation_pipeline"]["world_seed"] == 2002,
         "G1 experiment seed must be 2002",
     )?;
     {
-        let repeat = record_with_feedback_policy(
+        let repeat = record_with_experiment(
             Robot::G1,
             case,
             false,
             Some(profile),
             Some(RunDiagnostics::enabled(&repeat_path)?),
-            Some(policy),
+            feedback,
         )?;
         verify_diagnosis_behavior(&first, &repeat)?;
         verify_replay(&mut first, &repeat)?;
@@ -1696,13 +1834,13 @@ fn orientation_experiment_case(
     let off_filename = format!("{stem}.logging-off.json");
     let off_sha256;
     {
-        let mut off = record_with_feedback_policy(
+        let mut off = record_with_experiment(
             Robot::G1,
             case,
             false,
             Some(profile),
             Some(RunDiagnostics::default()),
-            Some(policy),
+            feedback,
         )?;
         verify_diagnosis_behavior(&first, &off)?;
         off.trace["all_tick_diagnostic_logging_enabled"] = json!(false);
@@ -1733,7 +1871,7 @@ fn orientation_experiment_case(
     let filename = format!("{stem}.json");
     let trace_sha256 = write_diagnosis_trace(output, &filename, &first.trace)?;
     let settlement_rows = first.state_bits.len().min(2000);
-    let report = json!({
+    let mut report = json!({
         "g1_orientation_age_experiment":true,"g1_observation_diagnosis":true,
         "robot":"G1","feedback_policy":policy.name(),"feedback_policy_configuration":policy.configuration(),
         "profile":profile.name,"input":input,"impulse_n_s":impulse_ns,
@@ -1756,6 +1894,9 @@ fn orientation_experiment_case(
         "logging_on_off_existing_decision_fields_exact":true,"logging_on_off_existing_trace_outcomes_exact":true,
         "fresh_world_runs":3,"logging_on_fresh_runs":2,"logging_off_fresh_runs":1
     });
+    if mode == ExperimentMode::LateralGyro {
+        report["g1_lateral_gyro_experiment"] = json!(true);
+    }
     Ok((first, report))
 }
 
@@ -1792,6 +1933,61 @@ fn orientation_outcome_gates(cases: &[Value], complete: bool, cross_policy: &[Va
         "scope":"physical recovery uses the unchanged complete predicate; primary failure and zero regressions remain outcomes, and no result promotes this opt-in candidate"})
 }
 
+fn lateral_gyro_outcome_gates(cases: &[Value], complete: bool, cross_policy: &[Value]) -> Value {
+    let outcome = |policy, profile, input| {
+        cases
+            .iter()
+            .find(|case| {
+                case["feedback_policy"] == policy
+                    && case["profile"] == profile
+                    && case["input"] == input
+            })
+            .and_then(|case| case["summary"]["recovered"].as_bool())
+    };
+    let reference = Policy::OrientationKnownAge.name();
+    let candidate = Policy::OrientationKnownAgeLateralGyroEma5ms.name();
+    let primary = match (
+        outcome(reference, "delay_20ms_limit", "kick"),
+        outcome(candidate, "delay_20ms_limit", "kick"),
+    ) {
+        (Some(reference), Some(candidate)) => Some(!reference && candidate),
+        _ => None,
+    };
+    let delay_5ms = match (
+        outcome(reference, "delay_5ms", "kick"),
+        outcome(candidate, "delay_5ms", "kick"),
+    ) {
+        (Some(reference), Some(candidate)) => Some(reference && candidate),
+        _ => None,
+    };
+    let zeros = complete.then(|| {
+        diagnostic::PROFILES.iter().all(|profile| {
+            outcome(reference, profile, "zero") == Some(true)
+                && outcome(candidate, profile, "zero") == Some(true)
+        })
+    });
+    let age_zero = complete.then(|| {
+        cross_policy.len() == 4 && cross_policy.iter().all(|case| case["bytes_exact"] == true)
+    });
+    let negative = match (
+        outcome(reference, "bounded_error", "kick"),
+        outcome(candidate, "bounded_error", "kick"),
+    ) {
+        (Some(reference), Some(candidate)) => Some(!reference && !candidate),
+        _ => None,
+    };
+    json!({
+        "primary_delay_20ms_kick_failure_to_recovery":primary,
+        "delay_5ms_kick_recovery_preserved":delay_5ms,
+        "all_four_zero_input_recoveries_preserved":zeros,
+        "zero_age_four_cases_literal_plant_control_old_decisions_exact":age_zero,
+        "bounded_error_kick_unchanged_negative_control":negative,
+        "candidate_advancement_gates_passed":complete.then(|| [primary,delay_5ms,zeros,age_zero,negative].iter().all(|gate| *gate == Some(true))),
+        "default_policy":"raw_reference","candidate_promoted":false,
+        "scope":"unchanged complete physical recovery predicate; failures are retained and completion does not require recovery; no gain, time constant, plant, cap, horizon or predicate tuning"
+    })
+}
+
 /// Evaluates the fixed orientation-only candidate without changing default feedback.
 pub(super) fn experiment_g1_orientation_age(
     output: &Path,
@@ -1799,14 +1995,46 @@ pub(super) fn experiment_g1_orientation_age(
     profile_filter: Option<&str>,
     input_filter: Option<&str>,
 ) -> CaptureResult<()> {
-    let policies = Policy::selected(policy_filter)?;
+    experiment_g1_feedback(
+        output,
+        policy_filter,
+        profile_filter,
+        input_filter,
+        ExperimentMode::OrientationAge,
+    )
+}
+
+/// Evaluates a fixed capture-time gyro filter without promoting it to default.
+pub(super) fn experiment_g1_lateral_gyro(
+    output: &Path,
+    policy_filter: Option<&str>,
+    profile_filter: Option<&str>,
+    input_filter: Option<&str>,
+) -> CaptureResult<()> {
+    experiment_g1_feedback(
+        output,
+        policy_filter,
+        profile_filter,
+        input_filter,
+        ExperimentMode::LateralGyro,
+    )
+}
+
+fn experiment_g1_feedback(
+    output: &Path,
+    policy_filter: Option<&str>,
+    profile_filter: Option<&str>,
+    input_filter: Option<&str>,
+    mode: ExperimentMode,
+) -> CaptureResult<()> {
+    let policies = mode.policies(policy_filter)?;
     let profiles = diagnostic::profile_names(profile_filter)?;
     let inputs = diagnostic::inputs(input_filter)?;
     fs::create_dir_all(output)?;
     let mut cases = Vec::new();
     let mut prefixes = Vec::new();
     let mut cross_policy = Vec::new();
-    // The full study always completes all eight raw references before candidates.
+    // Each mode's full study completes all eight fixed references before candidates.
     for policy in &policies {
         for name in &profiles {
             let profile = observation::profiles(Some(name))?[0];
@@ -1817,13 +2045,16 @@ pub(super) fn experiment_g1_orientation_age(
             let mut zero_prefix: Option<DiagnosisPrefix> = None;
             for &(input, impulse_ns) in &inputs {
                 let (first, report) =
-                    orientation_experiment_case(output, profile, input, impulse_ns, *policy)?;
+                    feedback_experiment_case(output, profile, input, impulse_ns, *policy, mode)?;
                 if policies.len() == 2
-                    && *policy == Policy::OrientationKnownAge
+                    && *policy == mode.candidate()
                     && ["ideal_reference", "bounded_error"].contains(name)
                 {
-                    let raw_filename =
-                        format!("g1-orientation-age-raw_reference-{name}-{input}.words.bin");
+                    let raw_filename = format!(
+                        "{}-{}-{name}-{input}.words.bin",
+                        mode.stem(),
+                        mode.reference().name()
+                    );
                     let candidate_filename = report["zero_age_literal_words"]["file"]
                         .as_str()
                         .expect("zero-age sidecar");
@@ -1845,6 +2076,16 @@ pub(super) fn experiment_g1_orientation_age(
                             .expect("zero first")
                             .compare(&first, name)?;
                         prefix["feedback_policy"] = json!(policy.name());
+                        if mode == ExperimentMode::LateralGyro {
+                            prefix["planned_prefix_completed_steps"] = json!(4000);
+                            prefix["full_pre_input_prefix_evaluated"] =
+                                json!(prefix["completed_steps"] == 4000);
+                            prefix["unavailable_reason"] = if prefix["completed_steps"] == 4000 {
+                                Value::Null
+                            } else {
+                                json!("failed settlement; only existing pre-input rows compared")
+                            };
+                        }
                         prefixes.push(prefix);
                     }
                 }
@@ -1852,23 +2093,34 @@ pub(super) fn experiment_g1_orientation_age(
         }
     }
     let complete = policies.len() == 2 && profiles.len() == 4 && inputs.len() == 2;
-    let gates = orientation_outcome_gates(&cases, complete, &cross_policy);
+    let gates = match mode {
+        ExperimentMode::OrientationAge => {
+            orientation_outcome_gates(&cases, complete, &cross_policy)
+        }
+        ExperimentMode::LateralGyro => lateral_gyro_outcome_gates(&cases, complete, &cross_policy),
+    };
+    let mut report = json!({
+        "schema_version":1,"g1_orientation_age_experiment":true,"g1_observation_diagnosis":true,
+        "experiment_completed":true,"complete_matrix":complete,
+        "predeclared_policies":[mode.reference().name(),mode.candidate().name()],
+        "selected_policies":policies.iter().map(Policy::name).collect::<Vec<_>>(),"selected_profiles":profiles,
+        "selected_inputs":inputs.iter().map(|(name,_)|*name).collect::<Vec<_>>(),
+        "world_seed":2002,"physics_period_ticks":diagnostic::DT_TICKS,"controller_period_ticks":diagnostic::DT_TICKS,
+        "settlement_s":SETTLE_S,"recording_horizon_s":6.2,"pulse_duration_s":DURATION_S,
+        "maximum_control_rows_per_case":diagnostic::MAX_ROWS,
+        "execution_scope":"raw eight before candidate eight; sequential worlds, first and one comparator full literal recording plus one bounded zero/kick prefix; streamed JSONL; zero-age cross-policy literal sidecars on disk",
+        "recovery_required_for_completion":false,"recovery_predicate_changed":false,"default_policy_changed":false,
+        "hardware_validation":false,"identified_sensor_model":false,"inner_pd_feedback":"ideal instantaneous joint coordinates unchanged",
+        "matched_zero_kick_prefixes":prefixes,"zero_age_across_policy_literal_comparisons":cross_policy,
+        "measured_outcome_gates":gates,"cases":cases
+    });
+    if mode == ExperimentMode::LateralGyro {
+        report["g1_lateral_gyro_experiment"] = json!(true);
+        report["execution_scope"] = json!("orientation-known-age eight before fixed lateral-gyro EMA eight; sequential worlds, first and one comparator full literal recording plus one bounded zero/kick prefix; streamed JSONL; zero-age cross-policy literal sidecars on disk");
+    }
     fs::write(
-        output.join("g1-orientation-age-experiment.json"),
-        serde_json::to_vec_pretty(&json!({
-            "schema_version":1,"g1_orientation_age_experiment":true,"g1_observation_diagnosis":true,
-            "experiment_completed":true,"complete_matrix":complete,"predeclared_policies":["raw_reference","orientation_known_age"],
-            "selected_policies":policies.iter().map(Policy::name).collect::<Vec<_>>(),"selected_profiles":profiles,
-            "selected_inputs":inputs.iter().map(|(name,_)|*name).collect::<Vec<_>>(),
-            "world_seed":2002,"physics_period_ticks":diagnostic::DT_TICKS,"controller_period_ticks":diagnostic::DT_TICKS,
-            "settlement_s":SETTLE_S,"recording_horizon_s":6.2,"pulse_duration_s":DURATION_S,
-            "maximum_control_rows_per_case":diagnostic::MAX_ROWS,
-            "execution_scope":"raw eight before candidate eight; sequential worlds, first and one comparator full literal recording plus one bounded zero/kick prefix; streamed JSONL; zero-age cross-policy literal sidecars on disk",
-            "recovery_required_for_completion":false,"recovery_predicate_changed":false,"default_policy_changed":false,
-            "hardware_validation":false,"identified_sensor_model":false,"inner_pd_feedback":"ideal instantaneous joint coordinates unchanged",
-            "matched_zero_kick_prefixes":prefixes,"zero_age_across_policy_literal_comparisons":cross_policy,
-            "measured_outcome_gates":gates,"cases":cases
-        }))?,
+        output.join(format!("{}-experiment.json", mode.stem())),
+        serde_json::to_vec_pretty(&report)?,
     )?;
     Ok(())
 }
@@ -1942,6 +2194,154 @@ fn validate_robot_cases(
 #[cfg(test)]
 mod diagnosis_tests {
     use super::*;
+
+    #[test]
+    fn experiment_modes_validate_fixed_filters_before_creating_outputs() {
+        let output =
+            std::env::temp_dir().join(format!("rne-g1-rejected-study-{}", std::process::id()));
+        assert!(!output.exists());
+        for mode in [ExperimentMode::OrientationAge, ExperimentMode::LateralGyro] {
+            for filters in [
+                (Some("unknown"), None, None),
+                (None, Some("unknown"), None),
+                (None, None, Some("unknown")),
+            ] {
+                assert!(
+                    experiment_g1_feedback(&output, filters.0, filters.1, filters.2, mode).is_err()
+                );
+                assert!(!output.exists());
+            }
+        }
+        assert!(ExperimentMode::OrientationAge
+            .policies(Some("orientation_known_age_lateral_gyro_ema_5ms"))
+            .is_err());
+        assert!(ExperimentMode::LateralGyro
+            .policies(Some("raw_reference"))
+            .is_err());
+    }
+
+    #[test]
+    fn lateral_markers_are_explicit_and_do_not_change_old_orientation_metadata() {
+        let mut old = json!({"summary":{"recovered":false},"controller":{"existing":true}});
+        mark_orientation_experiment(&mut old, Policy::OrientationKnownAge);
+        assert!(old.get("g1_lateral_gyro_experiment").is_none());
+        assert_eq!(old["controller"], json!({"existing":true}));
+        let mut lateral = old.clone();
+        mark_lateral_experiment(&mut lateral);
+        for scope in [&lateral, &lateral["summary"], &lateral["controller"]] {
+            for marker in [
+                "g1_lateral_gyro_experiment",
+                "g1_orientation_age_experiment",
+                "g1_observation_diagnosis",
+            ] {
+                assert_eq!(scope[marker], true);
+            }
+            assert_eq!(scope["feedback_policy"], "orientation_known_age");
+        }
+        assert_eq!(lateral["summary"]["recovered"], false);
+        assert_eq!(lateral["controller"]["existing"], true);
+    }
+
+    #[test]
+    fn lateral_gyro_zero_age_keeps_literal_world_control_and_old_decisions() {
+        let output =
+            std::env::temp_dir().join(format!("rne-g1-gyro-age-zero-{}", std::process::id()));
+        fs::create_dir_all(&output).unwrap();
+        for name in ["ideal_reference", "bounded_error"] {
+            let profile = observation::profiles(Some(name)).unwrap()[0];
+            let mut results = Vec::new();
+            for policy in Policy::selected_lateral(None).unwrap() {
+                let mut sim = Robot::G1.load(diagnostic::DT_TICKS).unwrap();
+                let mut controller = Controller::new(Robot::G1, &mut sim, true, profile).unwrap();
+                controller.feedback_policy = policy;
+                controller.orientation_age_experiment = true;
+                controller.lateral_gyro_experiment = true;
+                let path = output.join(format!("{}-{name}.jsonl", policy.name()));
+                controller.diagnostics = Some(RunDiagnostics::enabled(&path).unwrap());
+                let mut states = Vec::new();
+                let mut controls = Vec::new();
+                for _ in 0..3 {
+                    controller.step(&mut sim).unwrap();
+                    assert!(controller.estimator.replay_words().is_empty());
+                    states.push(state_bits(Robot::G1, &sim));
+                    controls.push(controller.replay_words());
+                }
+                let run = controller.diagnostics.take().unwrap().finish().unwrap();
+                for row in fs::read_to_string(&path).unwrap().lines() {
+                    let row: Value = serde_json::from_str(row).unwrap();
+                    assert_eq!(row["g1_lateral_gyro_experiment"], true);
+                    assert_eq!(row["g1_orientation_age_experiment"], true);
+                    assert_eq!(row["g1_observation_diagnosis"], true);
+                    assert_eq!(
+                        row["delivered_estimate"],
+                        row["effective_feedback_estimate"]
+                    );
+                    assert_eq!(
+                        row["lateral_gyro_control_replay"]["suffix_words"],
+                        json!([])
+                    );
+                    assert!(row["decision"].get("lateral_gyro_filter_after").is_none());
+                }
+                results.push((states, controls, run.decision_words));
+            }
+            assert_eq!(results[0], results[1]);
+        }
+        fs::remove_dir_all(output).unwrap();
+    }
+
+    #[test]
+    fn lateral_gyro_diagnostic_suffix_is_actual_control_state_and_logging_is_causal() {
+        let output =
+            std::env::temp_dir().join(format!("rne-g1-gyro-causal-{}", std::process::id()));
+        fs::create_dir_all(&output).unwrap();
+        let profile = observation::profiles(Some("delay_20ms_limit")).unwrap()[0];
+        let mut results = Vec::new();
+        for index in 0..3 {
+            let mut sim = Robot::G1.load(diagnostic::DT_TICKS).unwrap();
+            let mut controller = Controller::new(Robot::G1, &mut sim, true, profile).unwrap();
+            controller.feedback_policy = Policy::OrientationKnownAgeLateralGyroEma5ms;
+            controller.orientation_age_experiment = true;
+            controller.lateral_gyro_experiment = true;
+            let path = output.join(format!("run-{index}.jsonl"));
+            controller.diagnostics = Some(if index < 2 {
+                RunDiagnostics::enabled(&path).unwrap()
+            } else {
+                RunDiagnostics::default()
+            });
+            let mut states = Vec::new();
+            let mut controls = Vec::new();
+            for tick in 0..25 {
+                controller.step(&mut sim).unwrap();
+                assert_eq!(controller.estimator.replay_words().is_empty(), tick < 20);
+                states.push(state_bits(Robot::G1, &sim));
+                controls.push(controller.replay_words());
+            }
+            let run = controller.diagnostics.take().unwrap().finish().unwrap();
+            if index < 2 {
+                for (tick, line) in fs::read_to_string(&path).unwrap().lines().enumerate() {
+                    let row: Value = serde_json::from_str(line).unwrap();
+                    let replay = &row["lateral_gyro_control_replay"];
+                    let start = replay["suffix_start_word"].as_u64().unwrap() as usize;
+                    let suffix: Vec<u64> = replay["suffix_words"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|word| word.as_u64().unwrap())
+                        .collect();
+                    assert_eq!(replay["full_control_word_count"], controls[tick].len());
+                    assert_eq!(suffix, controls[tick][start..]);
+                    assert_eq!(suffix.is_empty(), tick < 20);
+                    assert!(row["decision"].get("lateral_gyro_filter_after").is_none());
+                }
+            }
+            results.push((states, controls, run.decision_words));
+        }
+        assert_eq!(results[0], results[1]);
+        assert_eq!(results[0], results[2]);
+        diagnostic::require_same_bytes(&output.join("run-0.jsonl"), &output.join("run-1.jsonl"))
+            .unwrap();
+        fs::remove_dir_all(output).unwrap();
+    }
 
     #[test]
     fn zero_age_policies_preserve_literal_world_control_and_old_decision_sidecars() {

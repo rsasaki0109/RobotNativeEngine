@@ -204,7 +204,8 @@ impl Observation {
         }
     }
 
-    fn validate(&self) -> ObservationResult<()> {
+    /// Rejects nonfinite or invalid captured channels without changing them.
+    pub(super) fn validate(&self) -> ObservationResult<()> {
         if !self.com_world_m.is_finite()
             || !self.com_velocity_world_m_s.is_finite()
             || !self.angular_velocity_world_rad_s.is_finite()
@@ -660,7 +661,7 @@ fn frame_words(words: &mut Vec<u64>, frame: &Frame<Observation>) {
 
 #[cfg(test)]
 mod tests {
-    use super::super::feedback::Policy;
+    use super::super::feedback::{Estimator, Policy};
     use super::*;
     use std::path::Path;
 
@@ -713,6 +714,317 @@ mod tests {
             Quat::from_rotation_x(-std::f64::consts::FRAC_PI_2),
             gyro,
         )
+    }
+
+    const LATERAL_POLICY: Policy = Policy::OrientationKnownAgeLateralGyroEma5ms;
+
+    fn lateral_frame(capture_ticks: u64, sequence: u64, gyro: Vec3) -> Frame<Observation> {
+        let mut frame = pure_frame(upright_g1(gyro), capture_ticks, 5_000_000);
+        frame.sequence = sequence;
+        frame
+    }
+
+    fn lateral_effective<'a>(
+        estimator: &mut Estimator,
+        frame: &'a Frame<Observation>,
+        now_ticks: u64,
+    ) -> Cow<'a, Observation> {
+        estimator
+            .effective(LATERAL_POLICY, Some(frame), SimTime::from_ticks(now_ticks))
+            .expect("valid lateral-gyro feedback")
+            .expect("effective observation")
+    }
+
+    #[test]
+    fn lateral_ema_first_arrival_initializes_exact_raw_rate_and_missing_keeps_history() {
+        let mut estimator = Estimator::default();
+        assert!(estimator.replay_words().is_empty());
+        assert!(estimator
+            .effective(LATERAL_POLICY, None, SimTime::ZERO)
+            .expect("missing first observation")
+            .is_none());
+        assert!(estimator.replay_words().is_empty());
+        let frame = lateral_frame(1_000_000, 7, Vec3::new(-0.0, 0.25, -0.4));
+        let effective = lateral_effective(&mut estimator, &frame, 6_000_000);
+        assert_eq!(
+            effective.angular_velocity_world_rad_s.x.to_bits(),
+            (-0.0_f64).to_bits()
+        );
+        assert_eq!(
+            effective.replay_words(),
+            frame
+                .payload
+                .orientation_projected(5_000_000)
+                .replay_words()
+        );
+        let words = estimator.replay_words();
+        let state = estimator.diagnostic_state();
+        assert_eq!(state["initialized"], true);
+        assert_eq!(state["capture_sequence"], 7);
+        assert_eq!(state["capture_spacing_ticks"], Value::Null);
+        assert_eq!(state["update_alpha"], Value::Null);
+        assert!(estimator
+            .effective(LATERAL_POLICY, None, SimTime::from_ticks(9_000_000))
+            .expect("missing later observation")
+            .is_none());
+        assert_eq!(estimator.replay_words(), words);
+        assert_eq!(estimator.diagnostic_state(), state);
+    }
+
+    #[test]
+    fn held_lateral_capture_keeps_ema_bits_and_reprojects_original_orientation() {
+        let first = lateral_frame(0, 1, Vec3::ZERO);
+        let next = lateral_frame(1_000_000, 2, Vec3::new(10.0, 0.3, 0.7));
+        let original_words = next.payload.replay_words();
+        let mut estimator = Estimator::default();
+        lateral_effective(&mut estimator, &first, 5_000_000);
+        let arrived = lateral_effective(&mut estimator, &next, 6_000_000);
+        let state = estimator.replay_words();
+        let diagnostic = estimator.diagnostic_state();
+        let held = lateral_effective(&mut estimator, &next, 8_000_000);
+        assert_eq!(
+            arrived.angular_velocity_world_rad_s.x.to_bits(),
+            held.angular_velocity_world_rad_s.x.to_bits()
+        );
+        assert!(
+            (held.angular_velocity_world_rad_s.x - 10.0 * (1.0 - (-0.2_f64).exp())).abs() < 1.0e-12
+        );
+        assert_eq!(estimator.replay_words(), state);
+        assert_eq!(estimator.diagnostic_state(), diagnostic);
+        let mut restored = held.into_owned();
+        restored.angular_velocity_world_rad_s.x = next.payload.angular_velocity_world_rad_s.x;
+        assert_eq!(
+            restored.replay_words(),
+            next.payload.orientation_projected(7_000_000).replay_words()
+        );
+        assert_ne!(arrived.up_world, restored.up_world);
+        assert_eq!(next.payload.replay_words(), original_words);
+    }
+
+    #[test]
+    fn lateral_ema_uses_capture_spacing_instead_of_consumer_spacing() {
+        let first = lateral_frame(0, 1, Vec3::X);
+        let next = lateral_frame(2_000_000, 4, Vec3::X * 9.0);
+        let mut early = Estimator::default();
+        let mut late = Estimator::default();
+        lateral_effective(&mut early, &first, 5_000_000);
+        lateral_effective(&mut late, &first, 10_000_000);
+        let early_result = lateral_effective(&mut early, &next, 7_000_000);
+        let late_result = lateral_effective(&mut late, &next, 15_000_000);
+        let expected = 1.0 + (1.0 - (-0.4_f64).exp()) * 8.0;
+        assert!((early_result.angular_velocity_world_rad_s.x - expected).abs() < 1.0e-12);
+        assert_eq!(
+            early_result.angular_velocity_world_rad_s.x.to_bits(),
+            late_result.angular_velocity_world_rad_s.x.to_bits()
+        );
+        assert_eq!(early.replay_words(), late.replay_words());
+        assert_eq!(early.diagnostic_state()["capture_spacing_ticks"], 2_000_000);
+        assert_ne!(early_result.up_world, late_result.up_world);
+    }
+
+    #[test]
+    fn lateral_zero_age_borrows_signed_zero_words_without_initializing_or_advancing_history() {
+        let mut estimator = Estimator::default();
+        let raw = pure_frame(upright_g1(Vec3::new(-0.0, 0.25, -0.0)), 0, 0);
+        let zero_age = lateral_effective(&mut estimator, &raw, 0);
+        assert!(matches!(zero_age, Cow::Borrowed(_)));
+        assert!(std::ptr::eq(zero_age.as_ref(), &raw.payload));
+        assert_eq!(zero_age.replay_words(), raw.payload.replay_words());
+        assert!(estimator.replay_words().is_empty());
+        let delayed = lateral_frame(1_000_000, 8, Vec3::X * 2.0);
+        lateral_effective(&mut estimator, &delayed, 6_000_000);
+        let initialized = estimator.replay_words();
+        let mut fresh = pure_frame(upright_g1(Vec3::new(-0.0, 0.1, -0.0)), 7_000_000, 0);
+        fresh.sequence = 9;
+        let bypassed = lateral_effective(&mut estimator, &fresh, 7_000_000);
+        assert!(std::ptr::eq(bypassed.as_ref(), &fresh.payload));
+        assert_eq!(bypassed.replay_words(), fresh.payload.replay_words());
+        assert_eq!(estimator.replay_words(), initialized);
+    }
+
+    #[test]
+    fn lateral_timing_errors_are_transactional_and_twenty_milliseconds_is_inclusive() {
+        let frame = lateral_frame(10_000_000, 7, Vec3::X);
+        let mut estimator = Estimator::default();
+        lateral_effective(&mut estimator, &frame, 15_000_000);
+        let before = estimator.replay_words();
+        let mut future_capture = frame.clone();
+        future_capture.capture_time = SimTime::from_ticks(16_000_000);
+        future_capture.available_time = future_capture.capture_time;
+        future_capture.sim_time = future_capture.available_time;
+        let mut future_arrival = frame.clone();
+        future_arrival.available_time = SimTime::from_ticks(16_000_000);
+        future_arrival.sim_time = future_arrival.available_time;
+        let mut early_arrival = frame.clone();
+        early_arrival.available_time = SimTime::from_ticks(9_000_000);
+        early_arrival.sim_time = early_arrival.available_time;
+        let mut inconsistent_time = frame.clone();
+        inconsistent_time.sim_time = SimTime::from_ticks(14_000_000);
+        for (invalid, consumer_ticks) in [
+            (&future_capture, 15_000_000),
+            (&future_arrival, 15_000_000),
+            (&early_arrival, 15_000_000),
+            (&inconsistent_time, 15_000_000),
+            (&frame, 30_000_001),
+        ] {
+            assert!(estimator
+                .effective(
+                    LATERAL_POLICY,
+                    Some(invalid),
+                    SimTime::from_ticks(consumer_ticks)
+                )
+                .is_err());
+            assert_eq!(estimator.replay_words(), before);
+        }
+        lateral_effective(&mut estimator, &frame, 30_000_000);
+        assert_eq!(estimator.replay_words(), before);
+    }
+
+    #[test]
+    fn lateral_held_payload_identity_and_capture_progress_are_validated_transactionally() {
+        let frame = lateral_frame(1_000_000, 7, Vec3::X);
+        let mut estimator = Estimator::default();
+        lateral_effective(&mut estimator, &frame, 6_000_000);
+        let before = estimator.replay_words();
+        let mut changed_x = frame.clone();
+        changed_x.payload.angular_velocity_world_rad_s.x = 2.0;
+        let mut changed_y = frame.clone();
+        changed_y.payload.angular_velocity_world_rad_s.y = 0.2;
+        let mut changed_joint = frame.clone();
+        changed_joint.payload.joint_states[0].position_rad = Some(0.1);
+        let mut changed_capture = frame.clone();
+        changed_capture.capture_time = SimTime::from_ticks(2_000_000);
+        let mut changed_arrival = frame.clone();
+        changed_arrival.available_time = SimTime::from_ticks(5_000_000);
+        changed_arrival.sim_time = changed_arrival.available_time;
+        let mut same_capture_new_sequence = frame.clone();
+        same_capture_new_sequence.sequence = 8;
+        let mut old_sequence = frame.clone();
+        old_sequence.sequence = 6;
+        let mut old_capture = frame.clone();
+        old_capture.sequence = 8;
+        old_capture.capture_time = SimTime::ZERO;
+        let mut old_arrival = frame.clone();
+        old_arrival.sequence = 8;
+        old_arrival.capture_time = SimTime::from_ticks(2_000_000);
+        old_arrival.available_time = SimTime::from_ticks(5_000_000);
+        old_arrival.sim_time = old_arrival.available_time;
+        let mut changed_stream = frame.clone();
+        changed_stream.stream_id = StreamId::new(0x140);
+        let mut changed_source = frame.clone();
+        let mut world = rne_ecs::World::new();
+        world.spawn_empty();
+        changed_source.entity = world.spawn_empty().id();
+        for invalid in [
+            changed_x,
+            changed_y,
+            changed_joint,
+            changed_capture,
+            changed_arrival,
+            same_capture_new_sequence,
+            old_sequence,
+            old_capture,
+            old_arrival,
+            changed_stream,
+            changed_source,
+        ] {
+            assert!(estimator
+                .effective(
+                    LATERAL_POLICY,
+                    Some(&invalid),
+                    SimTime::from_ticks(6_000_000)
+                )
+                .is_err());
+            assert_eq!(estimator.replay_words(), before);
+        }
+    }
+
+    #[test]
+    fn lateral_nonfinite_and_projection_overflow_errors_leave_history_untouched() {
+        let mut estimator = Estimator::default();
+        let first = lateral_frame(0, 1, Vec3::X);
+        for initialized in [false, true] {
+            if initialized {
+                lateral_effective(&mut estimator, &first, 5_000_000);
+            }
+            let before = estimator.replay_words();
+            let mut invalid_gyro = lateral_frame(1_000_000, 2, Vec3::X);
+            invalid_gyro.payload.angular_velocity_world_rad_s.x = f64::NAN;
+            let mut invalid_com = lateral_frame(1_000_000, 2, Vec3::X);
+            invalid_com.payload.com_world_m.y = f64::INFINITY;
+            let overflow = lateral_frame(1_000_000, 2, Vec3::X * f64::MAX);
+            for invalid in [invalid_gyro, invalid_com, overflow] {
+                assert!(estimator
+                    .effective(
+                        LATERAL_POLICY,
+                        Some(&invalid),
+                        SimTime::from_ticks(6_000_000)
+                    )
+                    .is_err());
+                assert_eq!(estimator.replay_words(), before);
+            }
+        }
+    }
+
+    #[test]
+    fn lateral_filter_changes_only_gyro_x_after_original_gyro_orientation_projection() {
+        let first = lateral_frame(0, 1, Vec3::ZERO);
+        let next = lateral_frame(1_000_000, 2, Vec3::new(4.0, 0.3, -0.2));
+        let original_words = next.payload.replay_words();
+        let mut estimator = Estimator::default();
+        lateral_effective(&mut estimator, &first, 5_000_000);
+        let mut effective = lateral_effective(&mut estimator, &next, 6_000_000).into_owned();
+        assert!(effective.angular_velocity_world_rad_s.x > 0.0);
+        assert!(
+            effective.angular_velocity_world_rad_s.x < next.payload.angular_velocity_world_rad_s.x
+        );
+        effective.angular_velocity_world_rad_s.x = next.payload.angular_velocity_world_rad_s.x;
+        assert_eq!(
+            effective.replay_words(),
+            next.payload.orientation_projected(5_000_000).replay_words()
+        );
+        assert_eq!(next.payload.replay_words(), original_words);
+    }
+
+    #[test]
+    fn zero_raw_rotation_clones_only_when_nonzero_ema_feedback_is_needed() {
+        let first = lateral_frame(0, 1, Vec3::X * 10.0);
+        let next = lateral_frame(1_000_000, 2, Vec3::new(-0.0, -0.0, 0.0));
+        let original_words = next.payload.replay_words();
+        assert!(matches!(
+            next.payload.orientation_projected(5_000_000),
+            Cow::Borrowed(_)
+        ));
+        let mut estimator = Estimator::default();
+        lateral_effective(&mut estimator, &first, 5_000_000);
+        let effective = lateral_effective(&mut estimator, &next, 6_000_000);
+        assert!(matches!(effective, Cow::Owned(_)));
+        assert!(effective.angular_velocity_world_rad_s.x > 8.0);
+        assert_eq!(effective.roll_rate_rad_s.to_bits(), (-0.0_f64).to_bits());
+        let mut restored = effective.into_owned();
+        restored.angular_velocity_world_rad_s.x = next.payload.angular_velocity_world_rad_s.x;
+        assert_eq!(restored.replay_words(), original_words);
+        assert_eq!(next.payload.replay_words(), original_words);
+    }
+
+    #[test]
+    fn old_estimator_policies_delegate_without_arithmetic_or_history_changes() {
+        let frame = lateral_frame(0, 1, Vec3::new(1.0, 0.2, -0.3));
+        let mut estimator = Estimator::default();
+        lateral_effective(&mut estimator, &frame, 5_000_000);
+        let before = estimator.replay_words();
+        for policy in [Policy::RawReference, Policy::OrientationKnownAge] {
+            let expected = policy
+                .effective(Some(&frame), SimTime::from_ticks(6_000_000))
+                .expect("old policy")
+                .expect("old payload");
+            let actual = estimator
+                .effective(policy, Some(&frame), SimTime::from_ticks(6_000_000))
+                .expect("delegated policy")
+                .expect("delegated payload");
+            assert_eq!(actual.replay_words(), expected.replay_words());
+            assert_eq!(estimator.replay_words(), before);
+        }
     }
 
     #[test]

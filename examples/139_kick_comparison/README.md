@@ -377,6 +377,109 @@ The default remains raw and the candidate remains explicit opt-in. These
 fixed-seed software results establish no maximum safe latency, measured
 hardware sensor model or cross-platform reproducibility.
 
+## Fixed lateral-gyro experiment
+
+`--g1-lateral-gyro-experiment` compares `orientation_known_age` with
+`orientation_known_age_lateral_gyro_ema_5ms`. Both policies cross
+`ideal_reference`, `delay_5ms`, `delay_20ms_limit`, and `bounded_error` with
+0 and 40 N·s: 16 fixed cases using G1 seed 2002. Physics and outer control
+remain at 1 kHz, with 2 s settlement and a requested 6.2 s recording horizon.
+The input remains the prescribed 80 ms lateral body wrench.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --g1-lateral-gyro-experiment --output target/rne-g1-lateral-gyro
+```
+
+Use `--feedback-policy orientation_known_age` or
+`orientation_known_age_lateral_gyro_ema_5ms` to select a policy,
+`--observation-profile` to select a profile, and `--diagnosis-input zero` or
+`kick` to select an input. This fixed headless mode is separate from rendering
+and the earlier raw-versus-orientation experiment. Default feedback remains raw.
+
+Both policies project orientation using the original arrived quaternion and
+`rotation_vector_quaternion(captured_world_gyro * capture_age_s) * captured_q`.
+The candidate never substitutes filtered gyro into this projection. Only
+controller-facing world angular velocity X is filtered at positive supported
+capture age. Gyro Y/Z, captured roll rate, CoM, feet, loads, mass and joint
+observations retain their captured values; inner position PD retains
+instantaneous simulated joints. Plant parameters, gains, actuator caps,
+horizons and the complete recovery predicate stay fixed.
+
+The EMA time constant is predeclared as 0.005 s. The first positive-age capture
+initializes filtered X to raw X exactly. Each later new capture uses
+`alpha = 1 - exp(-capture_spacing_s / 0.005)` and
+`filtered_x += alpha * (raw_x - filtered_x)`. Spacing comes from successive
+capture timestamps, not the number of control evaluations or current age.
+A held capture reuses cached filtered X and reprojects its original payload
+without another EMA update. Missing frames leave history unchanged and retain
+bounded nominal stance. Zero-age feedback borrows the original payload without
+projection, filtering or history updates.
+
+The estimator has constant-size state owned by one controller/source stream.
+Future/not-yet-arrived frames, ages above 20 ms, inconsistent identities,
+modified held payloads and invalid arithmetic fail without state mutation.
+Uninitialized state adds zero replay words; initialized state adds exactly
+20 words covering identity, raw fingerprint, raw/filtered X, previous capture
+time, spacing and alpha. Raw estimates, effective feedback and evaluator truth
+have separate telemetry. Control uses arrived estimates only; evaluator truth,
+input dose and future frames do not feed the policy. Filtered gyro is an
+estimate over past captures, not a current gyro measurement.
+
+Each case uses two fresh logging-on worlds and one logging-off world. The
+checks compare literal plant/control/original typed decisions, repeated JSONL
+bytes and the actual filter replay suffix. Ideal and bounded-error profiles
+require full-run literal cross-policy equality because capture age is zero.
+Each policy/profile also compares its matched zero/kick prefix through the
+planned first 4,000 completed steps, ending at absolute 4.000 s before the
+first force-bearing step at 4.001 s. If settlement fails, only the available
+prefix (at most 4,000 steps) can be compared; actual applied dose is zero and
+post-impact metrics are unavailable. Planned dose and failed settlement/recovery
+remain in the report rather than implying that a complete pulse was applied.
+
+The primary gate asks whether the orientation-only failure under 20 ms delay
+and 40 N·s changes to full-predicate recovery. Advancement also requires
+preserved 5 ms kicked recovery, all eight zero-input recoveries, unchanged
+zero-age literal words and bounded-error negative control, fresh replay,
+logging noninterference, complete matched prefixes and prior orientation
+references. The original 18-case qualification, all 12 required recoveries and
+examples 133–138 must remain compatible. Completion does not imply recovery
+or promotion: the candidate remains opt-in. A changed time constant or filter
+requires another predeclared experiment.
+
+`g1-lateral-gyro-experiment.json` retains the separate study report. Experiment
+markers and non-raw policy values, including nested
+`feedback_policy_configuration.policy`, are rejected by public GIF qualification,
+even after ideal/nominal relabelling.
+The existing GIF and earlier measured studies keep their original scope.
+These synthetic methods establish no identified hardware sensor model,
+physical human-foot contact result or reliability estimate.
+
+The completed fixed-seed matrix fails candidate advancement: the EMA still
+falls under the 20 ms kick and loses the earlier 5 ms kicked recovery. All
+16 cases settle upright and all eight zero-input runs recover. Each cell
+shows full-predicate recovery and peak tilt in radians:
+
+| Observation profile | Orientation, 0 N·s | EMA, 0 N·s | Orientation, 40 N·s | EMA, 40 N·s |
+| --- | --- | --- | --- | --- |
+| `ideal_reference` | pass; 0.006694 | pass; 0.006694 | pass; 0.289060 | pass; 0.289060 |
+| `delay_5ms` | pass; 0.007666 | pass; 0.007690 | pass; 0.309082 | fail; 1.638850 |
+| `delay_20ms_limit` | pass; 0.011404 | pass; 0.011635 | fail; 1.639460 | fail; 1.635945 |
+| `bounded_error` | pass; 0.007516 | pass; 0.007516 | fail; 1.646449 | fail; 1.646449 |
+
+All 16 cases pass literal fresh replay, logging-on/off equality and repeated
+JSONL byte comparison. Four zero-age conditions retain literal cross-policy
+words; all eight matched prefixes agree through the full 4,000 steps.
+An internal read-only audit checks all 131,200 control rows. The eight orientation-only
+references preserve earlier retained values, state/control hashes and counts;
+old/new literal full words are compared only for the four zero-age references.
+The original 18-case qualification, all 12 required recoveries and examples
+133–138 also pass compatibility checks. These checks establish reproducibility
+and compatibility separately from the failed recovery advancement gates.
+The EMA remains opt-in and is not promoted. The
+[complete outcomes and compact proofs](../../docs/media/g1-lateral-gyro-experiment.json)
+retain both failed gates and the unchanged negative control without tuning.
+
 ## Measured stronger kick
 
 The default impulse increases from 24 to 40 N·s, or 67%, with the same 80 ms

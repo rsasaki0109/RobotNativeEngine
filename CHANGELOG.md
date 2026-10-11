@@ -23,6 +23,19 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Add an opt-in 16-case G1 lateral-gyro experiment with a fixed 5 ms EMA on
+  positive-age world gyro X. Keep orientation projection on the original
+  captured gyro, use capture spacing for updates, and replay initialized
+  filter state without changing zero-age/default feedback or physical gates.
+  Advancement gates require 20 ms recovery together with standing, 5 ms
+  recovery, replay and compatibility; completion retains failed outcomes.
+  Reject experiment markers and nested non-raw policy configurations from
+  public GIF qualification. No hardware or reliability claim is added.
+  The complete fixed-seed matrix fails the 20 ms advancement gate and loses
+  5 ms kicked recovery (peak tilt 0.309082 -> 1.638850 rad). All eight zero-input
+  runs recover and zero-age equality is preserved; the candidate is not promoted.
+  Retain the [16 outcomes and source-bound proofs](docs/media/g1-lateral-gyro-experiment.json).
+
 - Add a separate 16-case known-age G1 orientation experiment to example 139.
   Compare raw feedback with capture-age projection using the captured world
   gyro, while preserving plant parameters, control gains, actuator limits and

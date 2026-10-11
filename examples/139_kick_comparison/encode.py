@@ -59,15 +59,25 @@ def same_scalar(actual, expected, label, abs_tol=1e-9):
 
 
 def validate_media_scope(record):
+    if isinstance(record, list):
+        for nested in record:
+            if isinstance(nested, (dict, list)):
+                validate_media_scope(nested)
+        return
     if record.get("g1_observation_diagnosis", False) is not False:
         raise ValueError("G1 observation diagnosis evidence cannot qualify public GIF encoding")
     if record.get("g1_orientation_age_experiment", False) is not False:
         raise ValueError("G1 orientation-age experiment evidence cannot qualify public GIF encoding")
+    if record.get("g1_lateral_gyro_experiment", False) is not False:
+        raise ValueError("G1 lateral-gyro experiment evidence cannot qualify public GIF encoding")
     if record.get("feedback_policy", "raw_reference") != "raw_reference":
         raise ValueError("Public GIF qualification requires raw-reference feedback policy")
-    for key in ("summary", "controller"):
-        nested = record.get(key)
-        if isinstance(nested, dict):
+    if "feedback_policy_configuration" in record:
+        configuration = record["feedback_policy_configuration"]
+        if not isinstance(configuration, dict) or configuration.get("policy") != "raw_reference":
+            raise ValueError("Public GIF qualification requires raw-reference feedback policy configuration")
+    for nested in record.values():
+        if isinstance(nested, (dict, list)):
             validate_media_scope(nested)
 
 

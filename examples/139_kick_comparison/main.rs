@@ -122,17 +122,21 @@ fn report_completion(output: &Path, g1_observation_diagnosis: bool, observation_
 fn validate_g1_study_mode(
     diagnosis: bool,
     experiment: bool,
+    lateral_gyro: bool,
     incompatible: bool,
     policy: Option<&str>,
     input: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
-    if (diagnosis || experiment) && (incompatible || (diagnosis && experiment)) {
+    let modes = [diagnosis, experiment, lateral_gyro];
+    if modes.iter().any(|enabled| *enabled)
+        && (incompatible || modes.iter().filter(|enabled| **enabled).count() > 1)
+    {
         return Err("G1 observation studies are separate fixed headless modes".into());
     }
-    if policy.is_some() && !experiment {
-        return Err("--feedback-policy requires --g1-orientation-age-experiment".into());
+    if policy.is_some() && !experiment && !lateral_gyro {
+        return Err("--feedback-policy requires a G1 feedback experiment".into());
     }
-    if input.is_some() && !diagnosis && !experiment {
+    if input.is_some() && !diagnosis && !experiment && !lateral_gyro {
         return Err("--diagnosis-input requires a G1 observation study".into());
     }
     Ok(())
@@ -141,6 +145,7 @@ fn validate_g1_study_mode(
 #[derive(Debug)]
 struct HeadlessOptions<'a> {
     orientation_age_experiment: bool,
+    lateral_gyro_experiment: bool,
     g1_observation_diagnosis: bool,
     observation_probe: bool,
     impulse_sweep: bool,
@@ -155,7 +160,14 @@ struct HeadlessOptions<'a> {
 }
 
 fn run_headless(output: &Path, options: HeadlessOptions<'_>) -> Result<(), Box<dyn Error>> {
-    if options.orientation_age_experiment {
+    if options.lateral_gyro_experiment {
+        physics::experiment_g1_lateral_gyro(
+            output,
+            options.feedback_policy,
+            options.observation_profile,
+            options.diagnosis_input,
+        )?;
+    } else if options.orientation_age_experiment {
         physics::experiment_g1_orientation_age(
             output,
             options.feedback_policy,
@@ -213,6 +225,19 @@ fn validate_impulse_modes(
     Ok(())
 }
 
+fn validate_observation_profile(
+    profile: Option<&str>,
+    supported_mode: bool,
+) -> Result<(), Box<dyn Error>> {
+    if profile.is_some() && !supported_mode {
+        return Err(
+            "--observation-profile requires --observation-probe, --g1-observation-diagnosis, --g1-orientation-age-experiment or --g1-lateral-gyro-experiment"
+                .into(),
+        );
+    }
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments: Vec<_> = std::env::args().skip(1).collect();
     let mut output = PathBuf::from("target/rne-kick-comparison");
@@ -223,6 +248,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut observation_probe = false;
     let mut g1_observation_diagnosis = false;
     let mut orientation_age_experiment = false;
+    let mut lateral_gyro_experiment = false;
     let mut feedback_policy: Option<String> = None;
     let mut diagnosis_input: Option<String> = None;
     let mut observation_profile: Option<String> = None;
@@ -244,6 +270,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "--observation-probe" => observation_probe = true,
             "--g1-observation-diagnosis" => g1_observation_diagnosis = true,
             "--g1-orientation-age-experiment" => orientation_age_experiment = true,
+            "--g1-lateral-gyro-experiment" => lateral_gyro_experiment = true,
             "--balance-off" => balance_off = true,
             "--render" => render = true,
             "--render-only" => {
@@ -282,6 +309,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         index += 1;
     }
     validate_impulse(impulse_ns, impulse_probe)?;
+    let g1_study =
+        g1_observation_diagnosis || orientation_age_experiment || lateral_gyro_experiment;
     let incompatible_study_mode = observation_probe
         || validate_recovery
         || impulse_sweep
@@ -294,6 +323,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     validate_g1_study_mode(
         g1_observation_diagnosis,
         orientation_age_experiment,
+        lateral_gyro_experiment,
         incompatible_study_mode,
         feedback_policy.as_deref(),
         diagnosis_input.as_deref(),
@@ -308,16 +338,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         return Err("--observation-probe is a separate fixed 40 N.s headless diagnostic".into());
     }
-    if observation_profile.is_some()
-        && !observation_probe
-        && !g1_observation_diagnosis
-        && !orientation_age_experiment
-    {
-        return Err(
-            "--observation-profile requires --observation-probe, --g1-observation-diagnosis or --g1-orientation-age-experiment"
-                .into(),
-        );
-    }
+    validate_observation_profile(
+        observation_profile.as_deref(),
+        observation_probe || g1_study,
+    )?;
     if validation_robot.is_some()
         && !validate_recovery
         && !impulse_sweep
@@ -340,6 +364,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             &output,
             HeadlessOptions {
                 orientation_age_experiment,
+                lateral_gyro_experiment,
                 g1_observation_diagnosis,
                 observation_probe,
                 impulse_sweep,
@@ -357,10 +382,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     if render {
         render::render(&output, Path::new(HUMAN_ASSET), start_frame, frame_count)?;
     }
-    report_completion(
-        &output,
-        g1_observation_diagnosis || orientation_age_experiment,
-        observation_probe,
-    );
+    report_completion(&output, g1_study, observation_probe);
     Ok(())
 }

@@ -720,6 +720,45 @@ agree. Default feedback remains raw even after this primary success.
 The [compact experiment evidence](../media/g1-orientation-age-experiment.json)
 binds all 16 outcomes, replay/audit scopes and unchanged default qualification.
 
+The separate lateral-gyro experiment compares orientation-only feedback with
+a predeclared 5 ms EMA on controller-facing world gyro X at positive capture
+age. Orientation projection still uses the original captured world gyro.
+The controller owns constant-size state: first capture initializes raw X,
+later updates use capture spacing, and held/missing frames leave history
+unchanged. Zero-age feedback borrows the original payload. Other captured
+channels, inner position PD, plant, gains, caps and recovery criteria stay fixed.
+
+Initialized filter state contributes exactly 20 canonical control replay words;
+uninitialized state contributes zero. Identity, raw fingerprint and numerical
+state are replayed. Invalid timestamps, source transitions, held payloads or
+arithmetic fail without committing state. Arrived estimates remain the only
+outer feedback; evaluator truth and the prescribed input are excluded.
+
+The 16-case primary gate requires full recovery at 20 ms delay and 40 N·s,
+plus preserved 5 ms recovery, all eight zero-input recoveries, zero-age literal
+equality/negative control, prior orientation references and default qualification
+(18 cases, 12 required recoveries, examples 133–138). Replay, logging
+noninterference and matched pre-input prefixes are separate gates. Failed
+settlement retains only the available prefix, at most the planned 4,000 steps,
+with zero actual applied dose and unavailable post-impact metrics.
+
+Completion does not promote the candidate. Default raw feedback and the earlier
+orientation mode retain their behavior. Experiment markers and non-raw nested
+`feedback_policy_configuration.policy` cannot qualify public GIF encoding.
+The study establishes no hardware sensor model or reliability claim.
+
+The completed matrix fails both recovery advancement gates. At 20 ms and
+40 N·s, both policies fall (peak tilt 1.639460 vs 1.635945 rad). At 5 ms,
+the orientation reference recovers at peak tilt 0.309082 rad, while the EMA
+falls at 1.638850 rad. All eight zero-input cases recover; four zero-age
+conditions preserve literal cross-policy words and the bounded-error kicked
+negative control remains unchanged. All 16 cases pass fresh replay and
+logging noninterference; eight prefixes reach the full 4,000-step comparison.
+An internal read-only 131,200-row audit verifies the recorded decisions and outcomes.
+Earlier reference fields/hashes/counts and default qualification remain
+compatible. The candidate is not promoted; the
+[compact evidence](../media/g1-lateral-gyro-experiment.json) retains all failures.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`
