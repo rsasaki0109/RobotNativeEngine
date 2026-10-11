@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "scope": "Actual local dependency-policy correction and independently qualified serialization migration; same-team audit, no external or hardware validation",
+  "cause": {
+    "confirmed_local_pinned_cargo_deny": "RUSTSEC-2025-0141: bincode 1.3.3 unmaintained",
+    "policy_exception_added": false,
+    "generation_1_GitHub_release_failure_detail": "Failed bundle assembly step observed; blocked raw job log was not obtained, so identical cause is not asserted."
+  },
+  "generations": [
+    {
+      "number": 1,
+      "repository_report": "docs/media/position-motor-calibration-bincode-generation-1.json",
+      "report_sha256": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca",
+      "binary_sha256": "4804366a897a6ca335a0a40acaf24a5f58d6cd03e227abb8566994ee8fd8a042",
+      "worlds": 72,
+      "authoritative_actual_exit_code": 2,
+      "primary_passes": 0,
+      "primary_cells": 4
+    },
+    {
+      "number": 2,
+      "repository_report": "docs/media/position-motor-calibration.json",
+      "report_sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a",
+      "binary_sha256": "f1d8c7af4488ca0921fe38c3eeed20d8a77e97afcf155465e66f6141a211c8e7",
+      "worlds": 72,
+      "authoritative_actual_exit_code": 2,
+      "primary_passes": 0,
+      "primary_cells": 4
+    }
+  ],
+  "total_measured_worlds_across_generations": 144,
+  "before_measurement_bindings": {
+    "generation_2_migration_protocol_sha256": "4a19981667153e947baba4a2bf302936948595c06d1031de4f4526c89ad71d5e",
+    "generation_2_source_compiler_protocol_sha256": "c6a02291286bf35c353847d186c977f3dc920fba221d8a698e59eb9566d332c8",
+    "generation_2_frozen_binary_binding_sha256": "ed1a3ff87c0f517d73be7c58cb8cddff5de0049c6474c08b612885e27b5a4bc9",
+    "independent_comparison_tool_freeze_sha256": "10eff42dd66c27e572ecb1cd06d614b4ce1cab2556fa457911d9d4a0d4ac4b18"
+  },
+  "actual_completed_qualification": {
+    "gen2-fmt": {
+      "actual_exit_code": 0,
+      "terminal_sha256": "6af5793ea7f9f9e95c929d2a10979474b27b112444045fe1abdb3d19691e0545",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_inputs_unchanged": true
+    },
+    "gen2-clippy": {
+      "actual_exit_code": 0,
+      "terminal_sha256": "68962f62f535fa4bdd11982b0587c8179e65c97253f9b9b9b71e3e57047bbd19",
+      "log_sha256": "8fc263e2594436b15a50a3eb2a52b0511eedf65e795d7dd1e056176cf5eeef81",
+      "source_inputs_unchanged": true
+    },
+    "gen2-unit-pure": {
+      "actual_exit_code": 0,
+      "terminal_sha256": "9475e037a96605ef5d2b5b443096953ec68d476bb4c5e657c73d41f362b64e55",
+      "log_sha256": "932d4ee3a4c21ed17d86493a3daa9de2f1d851f08893d82412e49db69222af46",
+      "source_inputs_unchanged": true
+    },
+    "gen2-rustdoc": {
+      "actual_exit_code": 0,
+      "terminal_sha256": "11ebdde37d7c35f2ef3acd9e6a83590712d5b995c64d0e3ead58d1f2b63a2f0d",
+      "log_sha256": "fce0b5df966f4a5bd8ba718cb5e10459a7f77d43842878358625bf93d419061e",
+      "source_inputs_unchanged": true
+    },
+    "gen2-build-release": {
+      "actual_exit_code": 0,
+      "terminal_sha256": "9fc733e749c4334d58e35ce211db269e277c85d276976e158fae678d578d0f25",
+      "log_sha256": "b20c917e32c4ff7333c3910341e4b15de5ad3ba929d44031aa0a0f628917b776",
+      "source_inputs_unchanged": true
+    },
+    "gen2-authoritative-72": {
+      "actual_exit_code": 2,
+      "terminal_sha256": "5be6717c690ba3978d9cea5e22171c7352045c2be9e2bbf3d5e9019a544998e4",
+      "log_sha256": "5b0c9d9b174967aa5e2fa7d09e928e0b7551a5924538ca5a7eeafa189f82f587",
+      "source_inputs_unchanged": true
+    },
+    "gen2-verify-retained": {
+      "actual_exit_code": 0,
+      "terminal_sha256": "8921616a96eeba329f54acc85e5514845e7fe275842b0f69ad87abbce7dc802d",
+      "log_sha256": "3ae2e9b0866d608c474b010517cedafcb1261f8e90aa75a9716c2125a34e5aa5",
+      "source_inputs_unchanged": true
+    },
+    "gen2-cargo-deny": {
+      "actual_exit_code": 0,
+      "terminal_sha256": "4cfeaacb45fbc751efb7b6da0c280c22c72c10da642d1159a2cbcf4fb90f465f",
+      "log_sha256": "f1a0fca39d4280363937aabd77783990ea6480bd9ca257816de3b68fc8efa845",
+      "source_inputs_unchanged": true
+    },
+    "gen2-supply-chain": {
+      "actual_exit_code": 0,
+      "terminal_sha256": "752f914b15301cc94fa7b5b69719334562763f06e82353491dffc4fa468729e7",
+      "log_sha256": "61c46c4dc1aea15cb2b4a122191a54bad65c6cb57c6ca7916eb638dfca7e9117",
+      "source_inputs_unchanged": true
+    }
+  },
+  "cross_generation_audit_original_sha256": "eea40431fb8bfee54fbe0c51697a0dc447d8aa69d6aedf89b59c836866278241",
+  "cross_generation_audit": {
+    "inputs_before": [
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/measurement/raw-report.json",
+        "bytes": 10140453,
+        "sha256": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/raw-report.json",
+        "bytes": 8192861,
+        "sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/preregistered-codec-migration-protocol.json",
+        "bytes": 3208,
+        "sha256": "4a19981667153e947baba4a2bf302936948595c06d1031de4f4526c89ad71d5e"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/independent-poststudy-exact-fraction-audit.json",
+        "bytes": 122701,
+        "sha256": "ee22355b037278cb5a407e92bbeea375c8a865d65176f6eb5a608cf814c7c1d7"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/frozen-binary-binding.json",
+        "bytes": 1155,
+        "sha256": "ed1a3ff87c0f517d73be7c58cb8cddff5de0049c6474c08b612885e27b5a4bc9"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/frozen_row_oracle.py",
+        "bytes": 11895,
+        "sha256": "a37286052adfaac1f3e749cf63c5db3d0766684142e80f2c7479324092b8cdae"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/final-poststudy-audit-provenance.json",
+        "bytes": 7519,
+        "sha256": "70890c458c456a2fa84daf5dbaae9c4570128016dc4643ad6db50c64c8b0f5ef"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/frozen-binary-binding.json",
+        "bytes": 1668,
+        "sha256": "30806f0183c18324c04a2c6b1bc9036311a747eabc1e44b73f369ea712f0f7aa"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/frozen-141",
+        "bytes": 2982856,
+        "sha256": "4804366a897a6ca335a0a40acaf24a5f58d6cd03e227abb8566994ee8fd8a042"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/independent-cross-generation/compare_generations.py",
+        "bytes": 25859,
+        "sha256": "27ac610555f0698ce9e57519dbbdf7ebeab84a3d409b8a0ee96ead874bb3db87"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/independent-cross-generation/pre-world-tool-freeze.json",
+        "bytes": 2595,
+        "sha256": "10eff42dd66c27e572ecb1cd06d614b4ce1cab2556fa457911d9d4a0d4ac4b18"
+      }
+    ],
+    "inputs_after": [
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/measurement/raw-report.json",
+        "bytes": 10140453,
+        "sha256": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/raw-report.json",
+        "bytes": 8192861,
+        "sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/preregistered-codec-migration-protocol.json",
+        "bytes": 3208,
+        "sha256": "4a19981667153e947baba4a2bf302936948595c06d1031de4f4526c89ad71d5e"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/independent-poststudy-exact-fraction-audit.json",
+        "bytes": 122701,
+        "sha256": "ee22355b037278cb5a407e92bbeea375c8a865d65176f6eb5a608cf814c7c1d7"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/frozen-binary-binding.json",
+        "bytes": 1155,
+        "sha256": "ed1a3ff87c0f517d73be7c58cb8cddff5de0049c6474c08b612885e27b5a4bc9"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/frozen_row_oracle.py",
+        "bytes": 11895,
+        "sha256": "a37286052adfaac1f3e749cf63c5db3d0766684142e80f2c7479324092b8cdae"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/independent-oracle/final-poststudy-audit-provenance.json",
+        "bytes": 7519,
+        "sha256": "70890c458c456a2fa84daf5dbaae9c4570128016dc4643ad6db50c64c8b0f5ef"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/frozen-binary-binding.json",
+        "bytes": 1668,
+        "sha256": "30806f0183c18324c04a2c6b1bc9036311a747eabc1e44b73f369ea712f0f7aa"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/frozen-141",
+        "bytes": 2982856,
+        "sha256": "4804366a897a6ca335a0a40acaf24a5f58d6cd03e227abb8566994ee8fd8a042"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/independent-cross-generation/compare_generations.py",
+        "bytes": 25859,
+        "sha256": "27ac610555f0698ce9e57519dbbdf7ebeab84a3d409b8a0ee96ead874bb3db87"
+      },
+      {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/independent-cross-generation/pre-world-tool-freeze.json",
+        "bytes": 2595,
+        "sha256": "10eff42dd66c27e572ecb1cd06d614b4ce1cab2556fa457911d9d4a0d4ac4b18"
+      }
+    ],
+    "new_source_binary_bindings": {
+      "selected_changes": [
+        {
+          "path": "Cargo.lock",
+          "generation_1": "43c532918bc1e7a8ba027fb38ebeb67431469c091c2d223a02cf6b5c7b3cf713",
+          "generation_2": "a4a0d04bd29eba1b486145d051b2b6e873129cba839ba7ec983a3a63930f52b9"
+        },
+        {
+          "path": "examples/141_position_motor_calibration/Cargo.toml",
+          "generation_1": "733fdbd4c93921f1a75406693af9bd49694a8d58e3f8069a71d6cf3814fbbe3f",
+          "generation_2": "da10d51813c520fbbfd65bacc33a4054f79b67cf56aab39964355091a046c6c3"
+        },
+        {
+          "path": "examples/141_position_motor_calibration/lib.rs",
+          "generation_1": "7163adb16081d63d69e43d9b522c21af877f624f401af596a21ae7266bca1079",
+          "generation_2": "e36a14f545bcdbb64c5a43cbc9c1bb4cc089fc4487dfef039ad6e43191479df2"
+        }
+      ],
+      "full_local_source_count": 118,
+      "source_compiler_protocol": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/source-compiler-protocol.json",
+        "bytes": 17635,
+        "sha256": "c6a02291286bf35c353847d186c977f3dc920fba221d8a698e59eb9566d332c8"
+      },
+      "frozen_binary": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/frozen-141-postcard",
+        "bytes": 2969664,
+        "sha256": "f1d8c7af4488ca0921fe38c3eeed20d8a77e97afcf155465e66f6141a211c8e7"
+      }
+    },
+    "unchanged_numerical_summary": {
+      "collection_complete": true,
+      "worlds_attempted": 72,
+      "worlds_created": 72,
+      "completed_worlds": 72,
+      "replay_qualification_pass": true,
+      "primary_calibration_pass": false,
+      "primary_nonzero_cells": 4,
+      "primary_nonzero_passes": 0,
+      "zero_target_cells": 8,
+      "zero_target_passes": 8
+    },
+    "explicit_allowed_metadata": {
+      "generation_1_schema_and_state_header": 1,
+      "generation_2_schema_and_state_header": 2,
+      "generation_2_protocol_native_entity_codec": {
+        "crate": "postcard",
+        "wire_format_version": 1,
+        "framing": "raw_exact_consumption",
+        "features": [
+          "alloc"
+        ]
+      },
+      "generation_1_state_scope": "known rigid bodies sorted by handle and single native Multibody serialized individually with bincode1; private coords retained through source-bound serde layout; not all private pipeline state",
+      "generation_2_state_scope": "known rigid bodies sorted by handle and single native Multibody serialized individually with postcard raw wire format v1; private coords retained through source-bound serde layout; not all private pipeline state",
+      "snapshot_byte_fields": [
+        "native_entities/*/bytes",
+        "native_entities/*/sha256"
+      ],
+      "state_word_scope": "Native byte-derived prefix/header differs; full 63 exposed IEEE suffix compares literally"
+    },
+    "scope": {
+      "full_144_snapshot_exposed63_ieee_and_typed_q_v_I_LU": true,
+      "full_48_on_telemetry_typed_canonical_ordered_slice_comparison": true,
+      "full_24_off_absence_and_all_cells_oracle_metrics_sensitivity_summary": true,
+      "same_generation_complete_native_bytes_ON_fresh_OFF_literal_equality": true,
+      "native_byte_envelopes_and_SHA_canonical_encoding_verified": true,
+      "python_decoded_private_native_codec_fields": false,
+      "full_private_native_fields_or_pipeline_cache_cross_generation_equality": false,
+      "source_bound_Rust_serde_roundtrip_requires_separate_receipt": true,
+      "new_worlds_builds_Rust_tests_repo_edits_Git_network": 0,
+      "owned_persistent_sessions_or_workers": 0
+    },
+    "created_utc": "2026-10-11T12:57:28.248744+00:00",
+    "status": "PASS",
+    "scope_of_status": "Codec migration data-equivalence/replay qualification; not motor-calibration numerical success",
+    "counts": {
+      "snapshot_pairs": 144,
+      "exposed_state_ieee_word_pairs": 9072,
+      "native_entity_identity_pairs": 432,
+      "on_telemetry_pairs": 48,
+      "on_telemetry_canonical_word_pairs": 10704,
+      "ordered_slice_pairs": 792,
+      "off_absence_pairs": 24,
+      "case_pairs": 24,
+      "generation_1": {
+        "snapshots": 144,
+        "serialized_entity_bytes": 331200,
+        "state_canonical_words": 52776,
+        "scalar_wrappers": 4626
+      },
+      "generation_2": {
+        "snapshots": 144,
+        "serialized_entity_bytes": 247248,
+        "state_canonical_words": 42264,
+        "scalar_wrappers": 4626
+      }
+    },
+    "typed_exact_compared_leaves": 534931,
+    "mismatch_count": 0,
+    "mismatch_log": {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/independent-cross-generation/cross-generation-mismatches.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "tool": {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/independent-cross-generation/compare_generations.py",
+      "bytes": 25859,
+      "sha256": "27ac610555f0698ce9e57519dbbdf7ebeab84a3d409b8a0ee96ead874bb3db87"
+    }
+  },
+  "limits": "Local audit input paths identify the retained execution workspace. Native byte encodings and byte-derived state words differ across codecs. Exposed IEEE/typed data and telemetry equality does not establish all private fields/pipeline cache equality. Numerical calibration remains FAIL; full local/GitHub CI are qualified separately."
+}

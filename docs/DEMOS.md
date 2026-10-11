@@ -459,6 +459,13 @@ accuracy requirement; `--require-calibration` therefore exits 2. Loaded-report
 verification exits 0 while printing `primary_calibration=FAIL`. This fixture changes
 no production solver or control settings and makes no kick-recovery or hardware claim.
 
+The current schema-2 report uses postcard 1.1.3. The
+[original schema-1 report](media/position-motor-calibration-bincode-generation-1.json)
+and [codec migration receipt](media/position-motor-calibration-codec-migration.json)
+retain the failed results from both 72-world generations. Exposed IEEE state and
+ordered telemetry match exactly; the current verifier rejects old schemas and
+stale source bindings. The migration adds no dependency-policy exception.
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

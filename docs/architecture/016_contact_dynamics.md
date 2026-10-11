@@ -860,6 +860,21 @@ controls are retained without selecting a production setting. The full
 serialized byte, replay word and ordered slice. Collection/verification success
 does not replace the failed numerical criterion or establish a cause of G1 falls.
 
+Schema 2 uses postcard 1.1.3 with strict whole-input consumption for native entity
+bytes. Dependency policy rejected the initial bincode version as unmaintained;
+no advisory exception was added. The original
+[schema-1 report](../media/position-motor-calibration-bincode-generation-1.json)
+remains byte-identical and retains its original source/binary binding. One new
+preregistered 72-world generation changes only serialization and provenance.
+All 9,072 exposed state IEEE words, actual joint/inertia/LU Scalars, 48 ON
+telemetry records with 792 ordered slices, absence and numerical outcomes match
+exactly across generations. Complete native bytes are independently roundtripped
+and compared ON/fresh/OFF within each generation; differing byte encodings do not
+prove every private field identical across codecs. The
+[migration receipt](../media/position-motor-calibration-codec-migration.json)
+records both reports, source/binary bindings and the pre-measurement comparison
+tool. The current verifier explicitly rejects old schemas and stale sources.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

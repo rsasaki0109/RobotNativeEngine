@@ -67,6 +67,11 @@ source-bound, byte-roundtripped serde projection. Generalized velocity comes fro
 `Multibody::joint_velocity`, rather than attached-body velocity. This captures
 serialized native entity fields, not every private pipeline cache.
 
+Schema 2 uses postcard 1.1.3's raw wire format with exact input consumption;
+trailing bytes are rejected. Full native byte roundtrips preserve infinities,
+NaN payloads, signed zero and absence. The current verifier rejects schema 1
+and stale source bindings rather than silently reinterpreting historical bytes.
+
 All three worlds retain full native state bytes and canonical words; both ON
 worlds retain full ordered telemetry and words, including every final slice,
 duration, rounded bound and coverage ordinal. ON/fresh and ON/OFF state comparisons
@@ -130,13 +135,34 @@ conditions record 30 nonzero-slice sign reversals over 32 final slices. These fi
 slice observations do not expose within-pass iterates, peak hardware torque or
 the cause of a G1 fall.
 
-The run starts from main base `0098eda761af0cbcc211bb7608c5f0cc4715127e` plus the
-modified source snapshot explicitly recorded in the report. Its locked release
-build uses Rust 1.95.0 (`59807616e`, LLVM 22.1.2) on
+Both measurement generations descend from main base
+`0098eda761af0cbcc211bb7608c5f0cc4715127e`; each report records its selected source
+snapshot. The locked release builds use Rust 1.95.0 (`59807616e`, LLVM 22.1.2) on
 `x86_64-unknown-linux-gnu`, with the direct Rapier `serde-serialize` feature.
-The binary SHA256 is `4804366a897a6ca335a0a40acaf24a5f58d6cd03e227abb8566994ee8fd8a042`;
-report SHA256 is `a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca`.
-The matrix was executed once; the two ON runs already provide the fresh replay.
-Compilation corrections and pure unit tests before that run constructed no
-physics worlds. Production solver/control files and prior kick/GIF evidence
-remain unchanged.
+The current generation-2 binary SHA256 is
+`f1d8c7af4488ca0921fe38c3eeed20d8a77e97afcf155465e66f6141a211c8e7`;
+report SHA256 is `0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a`.
+
+The original [schema-1 report](../../docs/media/position-motor-calibration-bincode-generation-1.json)
+is retained byte for byte (SHA256
+`a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca`).
+Its source is commit `925a0ef2d921e873487c5af0c15a791332a285c7` and its separately
+retained frozen binary has SHA256
+`4804366a897a6ca335a0a40acaf24a5f58d6cd03e227abb8566994ee8fd8a042`.
+Pinned cargo-deny rejected its bincode 1.3.3 dependency as unmaintained
+(`RUSTSEC-2025-0141`). The example migrated to postcard without adding a policy
+exception or changing physics, gains, settings or accuracy requirements.
+
+The migration required one new preregistered 72-world matrix with a new source
+binding: two generations, 144 worlds total. Each matrix ran once and returned
+exit 2 after preserving its failed criterion. A comparison reader fixed before
+the second measurement found exact equality of all 144 paired initial/final
+snapshots' 9,072 exposed IEEE words, actual coordinate/velocity/inertia/LU Scalars,
+all 48 ON telemetry records (10,704 canonical words and 792 ordered slices),
+24 OFF absences, and all cell/oracle/metric/outcome fields. Native serialized bytes
+and their canonical-word prefixes differ between codecs; each generation
+separately qualifies complete native-byte ON/fresh/OFF equality and typed readback.
+This comparison does not establish equality of every private field across codecs.
+See the [migration receipt](../../docs/media/position-motor-calibration-codec-migration.json).
+Pure unit tests and retained-report verification construct no physics worlds.
+Production solver/control files and prior kick/GIF evidence remain unchanged.

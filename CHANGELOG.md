@@ -31,6 +31,10 @@ All notable changes to Robot Native Engine are documented in this file.
   remain motionless. The four primary N32/PGS1 nonzero conditions fail the fixed
   accuracy requirement, and are retained as failures. Production physics and
   control are unchanged; this is no recovery or hardware accuracy claim.
+  Replace the initial unmaintained bincode dependency with postcard 1.1.3 without
+  a policy exception. Preserve the original full report and one new 72-world
+  measurement generation; exposed physical IEEE state, ordered telemetry and all
+  numerical outcomes match exactly across the two generations.
 
 - Add opt-in backend-neutral completed position-motor diagnostics and example
   139's headless `--motor-effort-diagnostics` evaluator. Enable the default-off

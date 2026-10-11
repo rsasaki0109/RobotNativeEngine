@@ -6,7 +6,7 @@
 use rapier3d::math::{Rotation, SpacialVector, Vector};
 use rapier3d::na::DVector;
 use rapier3d::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
@@ -207,7 +207,8 @@ fn fixed_cells() -> Vec<Cell> {
 
 fn protocol() -> Value {
     json!({
-        "schema_version": 1, "fixture": "fixed parent plus coincident 1 kg, radius 0.1 m isotropic sphere; revolute X",
+        "schema_version": 2, "fixture": "fixed parent plus coincident 1 kg, radius 0.1 m isotropic sphere; revolute X",
+        "native_entity_codec": {"crate": "postcard", "wire_format_version": 1, "framing": "raw_exact_consumption", "features": ["alloc"]},
         "outer_dt_s": Scalar::f32(OUTER_DT_S), "outer_steps": 1, "effort_cap_nm": Scalar::f32(CAP_NM),
         "initial_q_rad": 0, "initial_v_rad_s": 0, "target_v_rad_s": 0,
         "gravity": [0,0,0], "passive_joint_damping": 0, "body_damping": 0, "armature": 0,
@@ -221,7 +222,7 @@ fn protocol() -> Value {
         "impulse_tolerance": {"absolute_nm_s": 1.0e-8, "relative": 0.01},
         "fixed_point": "clip(-(independently f32-rounded rhs + pre native v)/(independently f32-rounded inverse I + independently f32-rounded g), native rounded +/-bound); native a/g bits compared separately; denominator evaluated after promotion to f64",
         "source_scope": "selected local source/configuration inputs, not an exhaustive compiler/dependency closure; lock/compiler/protocol are also bound externally before execution",
-        "state_scope": "known rigid bodies sorted by handle and single native Multibody serialized individually with bincode1; private coords retained through source-bound serde layout; not all private pipeline state",
+        "state_scope": "known rigid bodies sorted by handle and single native Multibody serialized individually with postcard raw wire format v1; private coords retained through source-bound serde layout; not all private pipeline state",
         "truth_boundary": "motor-only numerical calibration; no G1 contact, controller, kick, hardware or reliability inference"
     })
 }
@@ -442,7 +443,7 @@ fn entity_bytes(
     handle: RigidBodyHandle,
     value: &impl Serialize,
 ) -> Result<EntityBytes> {
-    let bytes = bincode::serialize(value)?;
+    let bytes = encode_native(value)?;
     let (index, generation) = handle.into_raw_parts();
     Ok(EntityBytes {
         kind: kind.to_owned(),
@@ -452,8 +453,20 @@ fn entity_bytes(
     })
 }
 
+fn encode_native(value: &impl Serialize) -> Result<Vec<u8>> {
+    postcard::to_allocvec(value)
+        .map_err(|error| format!("native postcard encoding failed: {error}").into())
+}
+
+fn decode_native<T: DeserializeOwned>(bytes: &[u8]) -> Result<T> {
+    let (value, remainder) = postcard::take_from_bytes(bytes)
+        .map_err(|error| format!("native postcard decoding failed: {error}"))?;
+    ensure(remainder.is_empty(), "native postcard trailing bytes")?;
+    Ok(value)
+}
+
 fn state_words(entities: &[EntityBytes], exposed: &[u32]) -> Vec<u64> {
-    let mut words = vec![1, entities.len() as u64];
+    let mut words = vec![2, entities.len() as u64];
     for entity in entities {
         words.extend([
             u64::from(entity.kind == "multibody"),
@@ -490,10 +503,10 @@ fn state_from_native(
         link.rigid_body_handle() == bodies[1].0,
         "serialized child handle differs",
     )?;
-    let joint_bytes = bincode::serialize(link.joint())?;
-    let joint: SerializedJoint = bincode::deserialize(&joint_bytes)?;
+    let joint_bytes = encode_native(link.joint())?;
+    let joint: SerializedJoint = decode_native(&joint_bytes)?;
     ensure(
-        bincode::serialize(&joint)? == joint_bytes,
+        encode_native(&joint)? == joint_bytes,
         "native joint serde layout differs from declared projection",
     )?;
     let mut entities = Vec::new();
@@ -522,8 +535,7 @@ fn state_from_native(
             .map(|value| value.to_bits()),
     );
     for native_link in multibody.links() {
-        let projection: SerializedJoint =
-            bincode::deserialize(&bincode::serialize(native_link.joint())?)?;
+        let projection: SerializedJoint = decode_native(&encode_native(native_link.joint())?)?;
         exposed.extend(projection.coords.iter().map(|value| value.to_bits()));
         exposed.extend(
             native_link
@@ -665,9 +677,9 @@ fn verify_state(state: &State, completed: bool) -> Result<()> {
             "serialized entity digest differs",
         )?;
     }
-    let parent: RigidBody = bincode::deserialize(&entities[0].bytes)?;
-    let child: RigidBody = bincode::deserialize(&entities[1].bytes)?;
-    let multibody: Multibody = bincode::deserialize(&entities[2].bytes)?;
+    let parent: RigidBody = decode_native(&entities[0].bytes)?;
+    let child: RigidBody = decode_native(&entities[1].bytes)?;
+    let multibody: Multibody = decode_native(&entities[2].bytes)?;
     let parent_handle =
         RigidBodyHandle::from_raw_parts(entities[0].handle[0], entities[0].handle[1]);
     let child_handle =
@@ -1495,7 +1507,7 @@ fn collect_report() -> Report {
         })
         .collect();
     Report {
-        schema_version: 1,
+        schema_version: 2,
         protocol: protocol(),
         selected_source_sha256: selected_sources(),
         summary: summarize(&cases),
@@ -1506,7 +1518,7 @@ fn collect_report() -> Report {
 
 fn verify_report(report: &Report) -> Result<()> {
     ensure(
-        report.schema_version == 1 && report.protocol == protocol(),
+        report.schema_version == 2 && report.protocol == protocol(),
         "report protocol differs from the fixed fixture",
     )?;
     ensure(
@@ -1626,6 +1638,97 @@ mod tests {
     }
 
     #[test]
+    fn native_codec_preserves_special_ieee_bits_and_options_with_strict_framing() {
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Values {
+            f32_values: [f32; 6],
+            f64_values: [f64; 6],
+            unavailable: Option<f32>,
+            measured_zero: Option<f32>,
+        }
+        let original = Values {
+            f32_values: [
+                0.0,
+                -0.0,
+                f32::INFINITY,
+                f32::NEG_INFINITY,
+                f32::from_bits(0x7fc00025),
+                f32::from_bits(0xffc00031),
+            ],
+            f64_values: [
+                0.0,
+                -0.0,
+                f64::INFINITY,
+                f64::NEG_INFINITY,
+                f64::from_bits(0x7ff8000000000025),
+                f64::from_bits(0xfff8000000000031),
+            ],
+            unavailable: None,
+            measured_zero: Some(-0.0),
+        };
+        let bytes = encode_native(&original).unwrap();
+        let loaded: Values = decode_native(&bytes).unwrap();
+        assert_eq!(
+            loaded.f32_values.map(f32::to_bits),
+            original.f32_values.map(f32::to_bits)
+        );
+        assert_eq!(
+            loaded.f64_values.map(f64::to_bits),
+            original.f64_values.map(f64::to_bits)
+        );
+        assert_eq!(loaded.unavailable, None);
+        assert_eq!(
+            loaded.measured_zero.map(f32::to_bits),
+            Some((-0.0_f32).to_bits())
+        );
+        assert_eq!(encode_native(&loaded).unwrap(), bytes);
+        let mut trailing = bytes.clone();
+        trailing.push(0);
+        assert!(decode_native::<Values>(&trailing)
+            .unwrap_err()
+            .to_string()
+            .contains("trailing"));
+        assert!(decode_native::<Values>(&bytes[..bytes.len() - 1]).is_err());
+    }
+
+    #[test]
+    fn native_joint_projection_preserves_private_coordinate_bits_and_full_typed_bytes() {
+        let original = SerializedJoint {
+            data: fixture_joint(&fixed_cells()[0]).data,
+            kinematic: false,
+            coords: SpacialVector::from_row_slice(&[
+                -0.0,
+                f32::INFINITY,
+                f32::NEG_INFINITY,
+                f32::from_bits(0x7fc00025),
+                f32::from_bits(0xffc00031),
+                0.0,
+            ]),
+            joint_rot: Rotation::identity(),
+        };
+        let bytes = encode_native(&original).unwrap();
+        let native: MultibodyJoint = decode_native(&bytes).unwrap();
+        assert_eq!(encode_native(&native).unwrap(), bytes);
+        let projected: SerializedJoint = decode_native(&encode_native(&native).unwrap()).unwrap();
+        assert_eq!(
+            projected
+                .coords
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+            original
+                .coords
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+        );
+        assert_eq!(encode_native(&projected).unwrap(), bytes);
+        let mut trailing = bytes;
+        trailing.push(1);
+        assert!(decode_native::<MultibodyJoint>(&trailing).is_err());
+    }
+
+    #[test]
     fn fixed_point_tolerance_is_not_replaced_with_cap_or_sign_qualification() {
         let expected = 1.0e-6_f64;
         let tolerance = 1.0e-8_f64.max(0.01 * expected.abs());
@@ -1666,7 +1769,7 @@ mod tests {
     #[test]
     fn verifier_rejects_stale_sources_missing_cells_and_forged_summary_without_worlds() {
         let mut report = Report {
-            schema_version: 1,
+            schema_version: 2,
             protocol: protocol(),
             selected_source_sha256: selected_sources(),
             cases: Vec::new(),
@@ -1674,6 +1777,18 @@ mod tests {
             summary: summarize(&[]),
         };
         assert!(verify_report(&report).is_err());
+        report.schema_version = 1;
+        assert!(verify_report(&report)
+            .unwrap_err()
+            .to_string()
+            .contains("protocol"));
+        report.schema_version = 2;
+        report.protocol["native_entity_codec"]["crate"] = json!("bincode");
+        assert!(verify_report(&report)
+            .unwrap_err()
+            .to_string()
+            .contains("protocol"));
+        report.protocol = protocol();
         report
             .selected_source_sha256
             .insert("Cargo.lock".into(), "stale".into());
@@ -1808,7 +1923,7 @@ mod tests {
             })
             .collect();
         let mut report = Report {
-            schema_version: 1,
+            schema_version: 2,
             protocol: protocol(),
             selected_source_sha256: selected_sources(),
             summary: summarize(&cases),
