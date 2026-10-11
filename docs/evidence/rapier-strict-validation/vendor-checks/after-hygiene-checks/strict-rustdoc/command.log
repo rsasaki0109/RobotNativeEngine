@@ -1,0 +1,34 @@
+ Documenting rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+error: unresolved link to `Self::forward_kinematics_single_link̦`
+    --> src/dynamics/joint/multibody_joint/multibody.rs:1302:66
+     |
+1302 |     /// In general, this method shouldn’t be used directly and [`Self::forward_kinematics_single_link`̦]
+     |                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the struct `Multibody` has no field or associated item named `forward_kinematics_single_link̦`
+     |
+     = note: `-D rustdoc::broken-intra-doc-links` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(rustdoc::broken_intra_doc_links)]`
+
+error: unresolved link to `collider.set_internal_broad_phase_proxy_index`
+  --> src/geometry/broad_phase.rs:24:11
+   |
+24 |     /// [`collider.set_internal_broad_phase_proxy_index`]. Other properties of the collider should
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no item named `collider.set_internal_broad_phase_proxy_index` in scope
+   |
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+error: unexpected character `.`
+  --> src/dynamics/joint/multibody_joint/multibody_joint_set.rs:56:1
+   |
+56 | / /// Indexes usable to get a multibody link from a `MultibodyJointSet`.
+57 | | ///
+58 | | /// ```.skip
+59 | | /// // With:
+...  |
+62 | | /// let multibody = &multibody_joint_set[multibody_link_id.multibody];
+63 | | /// let link = multibody.link(multibody_link_id.id).expect("Link not found.");
+   | |______________________________________________________________________________^
+   |
+   = note: `-D rustdoc::invalid-codeblock-attributes` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(rustdoc::invalid_codeblock_attributes)]`
+
+error: could not document `rapier3d`

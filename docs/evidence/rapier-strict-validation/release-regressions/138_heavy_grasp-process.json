@@ -1,0 +1,1 @@
+{"pid": 401738, "command": ["cargo", "run", "--locked", "--release", "-p", "heavy_grasp", "--example", "138_heavy_grasp"]}

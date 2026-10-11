@@ -1,0 +1,10 @@
+{
+  "created_utc": "2026-10-11T22:32:52.180235+00:00",
+  "base_commit": "febe966d2d24b3808180e415f0376f628b90b9b6",
+  "owned_vendor_files": 13,
+  "selected_report_source_changes": 2,
+  "new_calibration_worlds": 72,
+  "contact_stage_worlds": 0,
+  "current_primary_calibration_pass": false,
+  "scope": "Mechanical strict-vendor cleanup and unchanged numerical source transition. Full local CI and GitHub CI are separate qualifications. Archived tools retain original absolute paths and are not portable current verifiers. Frozen executable is retained locally and represented by its literal digest, not distributed in this bundle."
+}

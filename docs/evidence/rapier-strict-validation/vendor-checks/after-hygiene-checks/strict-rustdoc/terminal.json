@@ -1,0 +1,17 @@
+{
+  "name": "strict-rustdoc",
+  "ended_utc": "2026-10-11T22:19:10.944572+00:00",
+  "exit_code": 101,
+  "runtime_s": 1.779290390011738,
+  "vendor_inputs_unchanged": true,
+  "changed_vendor_inputs": [],
+  "log_sha256": "85e8861b5c7b51f2d35660cc49295286a37460aff1cceb875fbb770d7d3ee329",
+  "log_bytes": 1860,
+  "capacity_failure": false,
+  "lock_graph_failure": false,
+  "disk_after_bytes": {
+    "/workspace": 265367552,
+    "/tmp": 3603582976
+  },
+  "native_tests_worlds": 0
+}

@@ -1,0 +1,13 @@
+{
+  "started_utc": "2026-10-11T22:24:48.307475+00:00",
+  "command": [
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/frozen-current-141-binary",
+    "--verify-report",
+    "/workspace/RobotNativeEngine/docs/media/position-motor-calibration.json"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": null,
+  "cargo_target_dir": "/tmp/rne-final-ci-cache"
+}

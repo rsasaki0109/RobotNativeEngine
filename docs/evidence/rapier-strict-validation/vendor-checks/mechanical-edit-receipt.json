@@ -1,0 +1,116 @@
+{
+  "status": "APPLIED_NARROW_VENDOR_WARNING_HYGIENE_NO_TESTS_WORLDS",
+  "created_utc": "2026-10-11T22:17:48.429804+00:00",
+  "base_commit": "febe966d2d24b3808180e415f0376f628b90b9b6",
+  "preexisting_parent_changed_paths_preserved": [
+    "CHANGELOG.md",
+    "docs/DEMOS.md",
+    "docs/architecture/016_contact_dynamics.md",
+    "examples/141_position_motor_calibration/README.md",
+    "xtask/src/main.rs"
+  ],
+  "baseline_inventory_sha256": "702429553d90ad0962474d9dda55fa8eb4d8d4ba43c02a8f43c3a56853bcb02b",
+  "files": [
+    {
+      "path": "third_party/rapier3d/src/data/arena.rs",
+      "before_sha256": "5566fd26f55069b79e20801fb0cba8452367617f67cd56c9eb0b0471e35c61d9",
+      "after_sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/data/graph.rs",
+      "before_sha256": "6b3d9a62f449f06a4d065f77fa0b4da9c86076baca049a4a172787d8b6825d9a",
+      "after_sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "before_sha256": "f55eb8031c8433908f5f8b21d66d7260a97e76027e69065e204594dbc5c8701f",
+      "after_sha256": "34f240e19e23acaf96b39b321300cfe6bc74eb8d11a904d3906b31015d2881b9",
+      "bare_LF_count_before": 2086,
+      "bare_LF_count_after": 2086,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/spherical_joint.rs",
+      "before_sha256": "8b2e76a6546cb594230c75493f48b1b517134be704862e82daf7ea7c9cb753cc",
+      "after_sha256": "05ad4cd2cc2cfb85de6a25de43208a6294174a5d154fa7ee0c8dbe77e2563dbb",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/rigid_body_components.rs",
+      "before_sha256": "3f584a56f9e920261484ab5accae06c5d28a291644d93b441306ffad3b7a17f7",
+      "after_sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs",
+      "before_sha256": "f69710dada6d4e8467267b9399d5aa16153a666c10275aec4bab09807366b549",
+      "after_sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "before_sha256": "ca380c6853464aa4eba1944d8bf7f781692fcc315fc38b1abdf544a109dc224c",
+      "after_sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_vel.rs",
+      "before_sha256": "517cb21aab562962c163350e91eaf8af613ff1c37d0a77e21c62f1233c0649b3",
+      "after_sha256": "8e10277211c04ce06c004a18f2aaf2445ead09ab55edd6ea7d5439ffd8f4e402",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs",
+      "before_sha256": "3cf8be953cbfe90233bc34ded34f864d1c03c8f234e3ac4bee94a95ba89f263a",
+      "after_sha256": "ee77333ab190cc1629665c01481fc8e2b839d8b2b1835e6b1cdf6ac4623a1432",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/event_handler.rs",
+      "before_sha256": "600047c4f6e35b1d82beea234f1d1f63a287b48f56c306cd153d6a0b700f87c3",
+      "after_sha256": "9820d4432914cfab9573c4795ddfcf4d2554c765197e72496b44ce91f9d4b2b9",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/query_pipeline/mod.rs",
+      "before_sha256": "8dbfd6b885a828bdc7601e40cbe5d01be9d483d88b3393da1f75221e68bbb234",
+      "after_sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332",
+      "bare_LF_count_before": 0,
+      "bare_LF_count_after": 0,
+      "existing_unmodified_line_endings_preserved": true
+    }
+  ],
+  "private_dead_iterator_removal": {
+    "types": [
+      "Externals",
+      "Neighbors",
+      "NodeReferences"
+    ],
+    "graph_visibility": "pub(crate)",
+    "only_definition_references_found": true
+  },
+  "Default_equivalence": "Derived tuple-builder Default calls SphericalJoint::default(), whose unchanged implementation calls SphericalJoint::new(); same contained constructor as removed manual builder Default.",
+  "integer_equivalence": "For usize len and unchanged positive MAX_MANIFOLD_POINTS (dim3=4, dim2=2), len % MAX != 0 equals !len.is_multiple_of(MAX). Quotient/addition/contact ordering remain unchanged. Workspace MSRV1.88 compile remains a final-check obligation.",
+  "other_changes": "Explicit already-elided return lifetimes; ineffective trait-impl must_use annotations removed; same-u32 cast removed; identical tuple field projection without parentheses; doc-comment indentation only.",
+  "source_binding_transition": "Two original141 inputs change: multibody.rs lifetimes and rigid_body_components.rs annotations. Root explicitly authorized a separately named fresh source-bound 72-world matrix before CI verification. Historical media reports unchanged."
+}

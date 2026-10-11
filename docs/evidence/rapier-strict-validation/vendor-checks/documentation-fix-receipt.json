@@ -1,0 +1,31 @@
+{
+  "status": "APPLIED_THREE_ACTUAL_DOCUMENTATION_DIAGNOSTIC_FIXES",
+  "created_utc": "2026-10-11T22:20:58.581967+00:00",
+  "files": [
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "before_sha256": "34f240e19e23acaf96b39b321300cfe6bc74eb8d11a904d3906b31015d2881b9",
+      "after_sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "existing_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/geometry/broad_phase.rs",
+      "before_sha256": "a5c759626a273c86deb6f5a02f484c90b10ed2ed245abd8e1e879baa719810ed",
+      "after_sha256": "c9e2e4d70e8a99c879660dee99fd2e15f14b6b235989142032958c418cdcc49d",
+      "existing_line_endings_preserved": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "before_sha256": "ec4bd5dca8329345133cac5077838bd7f89081fc9ca2efad6f6a017d82ec74aa",
+      "after_sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+      "existing_line_endings_preserved": true
+    }
+  ],
+  "fix_scope": "Strip combining character in public method link; link actual public Collider method by qualified target; change invalid intended-skip incomplete-placeholder snippet fence to valid rust,ignore and close its block. No runnable example, solver method, or native test logic changed.",
+  "scope_total_warning_files": 13,
+  "original_141_selected17_intersections": [
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+    "third_party/rapier3d/src/dynamics/rigid_body_components.rs"
+  ],
+  "prior_failed_doc_log_preserved_sha256": "85e8861b5c7b51f2d35660cc49295286a37460aff1cceb875fbb770d7d3ee329"
+}

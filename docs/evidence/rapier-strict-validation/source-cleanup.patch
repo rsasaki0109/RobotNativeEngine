@@ -1,0 +1,447 @@
+diff --git a/third_party/rapier3d/src/data/arena.rs b/third_party/rapier3d/src/data/arena.rs
+index 81cb28a1..22dbac40 100644
+--- a/third_party/rapier3d/src/data/arena.rs
++++ b/third_party/rapier3d/src/data/arena.rs
+@@ -698,7 +698,7 @@ impl<T> Arena<T> {
+     ///     println!("{} is at index {:?}", value, idx);
+     /// }
+     /// ```
+-    pub fn iter(&self) -> Iter<T> {
++    pub fn iter(&self) -> Iter<'_, T> {
+         Iter {
+             len: self.len,
+             inner: self.items.iter().enumerate(),
+@@ -725,7 +725,7 @@ impl<T> Arena<T> {
+     ///     *value += 5;
+     /// }
+     /// ```
+-    pub fn iter_mut(&mut self) -> IterMut<T> {
++    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+         IterMut {
+             len: self.len,
+             inner: self.items.iter_mut().enumerate(),
+@@ -757,7 +757,7 @@ impl<T> Arena<T> {
+     /// assert!(arena.get(idx_1).is_none());
+     /// assert!(arena.get(idx_2).is_none());
+     /// ```
+-    pub fn drain(&mut self) -> Drain<T> {
++    pub fn drain(&mut self) -> Drain<'_, T> {
+         Drain {
+             inner: self.items.drain(..).enumerate(),
+         }
+diff --git a/third_party/rapier3d/src/data/graph.rs b/third_party/rapier3d/src/data/graph.rs
+index e3c1e0d4..186c54d8 100644
+--- a/third_party/rapier3d/src/data/graph.rs
++++ b/third_party/rapier3d/src/data/graph.rs
+@@ -389,7 +389,7 @@ impl<N, E> Graph<N, E> {
+     ///
+     /// Produces an empty iterator if the node doesn't exist.<br>
+     /// Iterator element type is `EdgeReference<E, Ix>`.
+-    pub fn edges(&self, a: NodeIndex) -> Edges<E> {
++    pub fn edges(&self, a: NodeIndex) -> Edges<'_, E> {
+         self.edges_directed(a, Direction::Outgoing)
+     }
+ 
+@@ -404,7 +404,7 @@ impl<N, E> Graph<N, E> {
+     ///
+     /// Produces an empty iterator if the node `a` doesn't exist.<br>
+     /// Iterator element type is `EdgeReference<E, Ix>`.
+-    pub fn edges_directed(&self, a: NodeIndex, dir: Direction) -> Edges<E> {
++    pub fn edges_directed(&self, a: NodeIndex, dir: Direction) -> Edges<'_, E> {
+         Edges {
+             skip_start: a,
+             edges: &self.edges,
+@@ -517,74 +517,6 @@ impl<N, E> Graph<N, E> {
+     }
+ }
+ 
+-/// An iterator over either the nodes without edges to them or from them.
+-pub struct Externals<'a, N: 'a> {
+-    iter: std::iter::Enumerate<std::slice::Iter<'a, Node<N>>>,
+-    dir: Direction,
+-}
+-
+-impl<'a, N: 'a> Iterator for Externals<'a, N> {
+-    type Item = NodeIndex;
+-    fn next(&mut self) -> Option<NodeIndex> {
+-        let k = self.dir as usize;
+-        loop {
+-            match self.iter.next() {
+-                None => return None,
+-                Some((index, node)) => {
+-                    if node.next[k] == EdgeIndex::end() && node.next[1 - k] == EdgeIndex::end() {
+-                        return Some(NodeIndex::new(index as u32));
+-                    } else {
+-                        continue;
+-                    }
+-                }
+-            }
+-        }
+-    }
+-}
+-
+-/// Iterator over the neighbors of a node.
+-///
+-/// Iterator element type is `NodeIndex`.
+-///
+-/// Created with [`.neighbors()`][1], [`.neighbors_directed()`][2] or
+-/// [`.neighbors_undirected()`][3].
+-///
+-/// [1]: struct.Graph.html#method.neighbors
+-/// [2]: struct.Graph.html#method.neighbors_directed
+-/// [3]: struct.Graph.html#method.neighbors_undirected
+-pub struct Neighbors<'a, E: 'a> {
+-    /// starting node to skip over
+-    skip_start: NodeIndex,
+-    edges: &'a [Edge<E>],
+-    next: [EdgeIndex; 2],
+-}
+-
+-impl<'a, E> Iterator for Neighbors<'a, E> {
+-    type Item = NodeIndex;
+-
+-    fn next(&mut self) -> Option<NodeIndex> {
+-        // First any outgoing edges
+-        match self.edges.get(self.next[0].index()) {
+-            None => {}
+-            Some(edge) => {
+-                self.next[0] = edge.next[0];
+-                return Some(edge.node[1]);
+-            }
+-        }
+-        // Then incoming edges
+-        // For an "undirected" iterator (traverse both incoming
+-        // and outgoing edge lists), make sure we don't double
+-        // count selfloops by skipping them in the incoming list.
+-        while let Some(edge) = self.edges.get(self.next[1].index()) {
+-            self.next[1] = edge.next[1];
+-            if edge.node[0] != self.skip_start {
+-                return Some(edge.node[0]);
+-            }
+-        }
+-        None
+-    }
+-}
+-
+ struct EdgesWalkerMut<'a, E: 'a> {
+     edges: &'a mut [Edge<E>],
+     next: EdgeIndex,
+@@ -595,7 +527,7 @@ fn edges_walker_mut<E>(
+     edges: &mut [Edge<E>],
+     next: EdgeIndex,
+     dir: Direction,
+-) -> EdgesWalkerMut<E> {
++) -> EdgesWalkerMut<'_, E> {
+     EdgesWalkerMut { edges, next, dir }
+ }
+ 
+@@ -784,31 +716,3 @@ where
+     }
+ }
+ 
+-/// Iterator over all nodes of a graph.
+-pub struct NodeReferences<'a, N: 'a> {
+-    iter: std::iter::Enumerate<std::slice::Iter<'a, Node<N>>>,
+-}
+-
+-impl<'a, N> Iterator for NodeReferences<'a, N> {
+-    type Item = (NodeIndex, &'a N);
+-
+-    fn next(&mut self) -> Option<Self::Item> {
+-        self.iter
+-            .next()
+-            .map(|(i, node)| (NodeIndex::new(i as u32), &node.weight))
+-    }
+-
+-    fn size_hint(&self) -> (usize, Option<usize>) {
+-        self.iter.size_hint()
+-    }
+-}
+-
+-impl<'a, N> DoubleEndedIterator for NodeReferences<'a, N> {
+-    fn next_back(&mut self) -> Option<Self::Item> {
+-        self.iter
+-            .next_back()
+-            .map(|(i, node)| (NodeIndex::new(i as u32), &node.weight))
+-    }
+-}
+-
+-impl<'a, N> ExactSizeIterator for NodeReferences<'a, N> {}
+diff --git a/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs b/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs
+index 1c91039e..bb35feef 100644
+--- a/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs
++++ b/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs
+@@ -1001,7 +1001,7 @@ impl Multibody {
+ 
+     /// The generalized velocity at the multibody_joint of the given link.
+     #[inline]
+-    pub fn joint_velocity(&self, link: &MultibodyLink) -> DVectorView<Real> {
++    pub fn joint_velocity(&self, link: &MultibodyLink) -> DVectorView<'_, Real> {
+         let ndofs = link.joint().ndofs();
+         DVectorView::from_slice(
+             &self.velocities.as_slice()[link.assembly_id..link.assembly_id + ndofs],
+@@ -1011,13 +1011,13 @@ impl Multibody {
+ 
+     /// The generalized accelerations of this multibodies.
+     #[inline]
+-    pub fn generalized_acceleration(&self) -> DVectorView<Real> {
++    pub fn generalized_acceleration(&self) -> DVectorView<'_, Real> {
+         self.accelerations.rows(0, self.ndofs)
+     }
+ 
+     /// The generalized velocities of this multibodies.
+     #[inline]
+-    pub fn generalized_velocity(&self) -> DVectorView<Real> {
++    pub fn generalized_velocity(&self) -> DVectorView<'_, Real> {
+         self.velocities.rows(0, self.ndofs)
+     }
+ 
+@@ -1029,7 +1029,7 @@ impl Multibody {
+ 
+     /// The mutable generalized velocities of this multibodies.
+     #[inline]
+-    pub fn generalized_velocity_mut(&mut self) -> DVectorViewMut<Real> {
++    pub fn generalized_velocity_mut(&mut self) -> DVectorViewMut<'_, Real> {
+         self.velocities.rows_mut(0, self.ndofs)
+     }
+ 
+@@ -1299,7 +1299,7 @@ impl Multibody {
+     /// - All the indices must be part of the same kinematic branch.
+     /// - If a link is `branch[i]`, then `branch[i - 1]` must be its parent.
+     ///
+-    /// In general, this method shouldn’t be used directly and [`Self::forward_kinematics_single_link`̦]
++    /// In general, this method shouldn’t be used directly and [`Self::forward_kinematics_single_link`]
+     /// should be preferred since it computes the branch indices automatically.
+     ///
+     /// If you want to calculate the branch indices manually, see [`Self::kinematic_branch`].
+diff --git a/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs b/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs
+index 3ce4f32c..f531b181 100644
+--- a/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs
++++ b/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs
+@@ -55,12 +55,13 @@ impl IndexedData for MultibodyJointHandle {
+ #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+ /// Indexes usable to get a multibody link from a `MultibodyJointSet`.
+ ///
+-/// ```.skip
++/// ```rust,ignore
+ /// // With:
+ /// //     multibody_joint_set: MultibodyJointSet
+ /// //     multibody_link_id: MultibodyLinkId
+ /// let multibody = &multibody_joint_set[multibody_link_id.multibody];
+ /// let link = multibody.link(multibody_link_id.id).expect("Link not found.");
++/// ```
+ pub struct MultibodyLinkId {
+     pub(crate) graph_id: RigidBodyGraphIndex,
+     /// The multibody index to be used as `&multibody_joint_set[multibody]` to
+diff --git a/third_party/rapier3d/src/dynamics/joint/spherical_joint.rs b/third_party/rapier3d/src/dynamics/joint/spherical_joint.rs
+index c2a41595..2299d5c2 100644
+--- a/third_party/rapier3d/src/dynamics/joint/spherical_joint.rs
++++ b/third_party/rapier3d/src/dynamics/joint/spherical_joint.rs
+@@ -172,15 +172,9 @@ impl From<SphericalJoint> for GenericJoint {
+ 
+ /// Create spherical joints using the builder pattern.
+ #[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
+-#[derive(Copy, Clone, Debug, PartialEq)]
++#[derive(Copy, Clone, Debug, Default, PartialEq)]
+ pub struct SphericalJointBuilder(pub SphericalJoint);
+ 
+-impl Default for SphericalJointBuilder {
+-    fn default() -> Self {
+-        Self(SphericalJoint::new())
+-    }
+-}
+-
+ impl SphericalJointBuilder {
+     /// Creates a new builder for spherical joints.
+     pub fn new() -> Self {
+diff --git a/third_party/rapier3d/src/dynamics/rigid_body_components.rs b/third_party/rapier3d/src/dynamics/rigid_body_components.rs
+index 6e83e0be..5a0e239d 100644
+--- a/third_party/rapier3d/src/dynamics/rigid_body_components.rs
++++ b/third_party/rapier3d/src/dynamics/rigid_body_components.rs
+@@ -691,7 +691,6 @@ impl RigidBodyVelocity {
+ impl std::ops::Mul<Real> for RigidBodyVelocity {
+     type Output = Self;
+ 
+-    #[must_use]
+     fn mul(self, rhs: Real) -> Self {
+         RigidBodyVelocity {
+             linvel: self.linvel * rhs,
+@@ -703,7 +702,6 @@ impl std::ops::Mul<Real> for RigidBodyVelocity {
+ impl std::ops::Add<RigidBodyVelocity> for RigidBodyVelocity {
+     type Output = Self;
+ 
+-    #[must_use]
+     fn add(self, rhs: Self) -> Self {
+         RigidBodyVelocity {
+             linvel: self.linvel + rhs.linvel,
+diff --git a/third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs b/third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs
+index 96d17ea0..c7cc4e03 100644
+--- a/third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs
++++ b/third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs
+@@ -34,7 +34,11 @@ pub struct ConstraintsCounts {
+ 
+ impl ConstraintsCounts {
+     pub fn from_contacts(manifold: &ContactManifold) -> Self {
+-        let rest = manifold.data.solver_contacts.len() % MAX_MANIFOLD_POINTS != 0;
++        let rest = !manifold
++            .data
++            .solver_contacts
++            .len()
++            .is_multiple_of(MAX_MANIFOLD_POINTS);
+         Self {
+             num_constraints: manifold.data.solver_contacts.len() / MAX_MANIFOLD_POINTS
+                 + rest as usize,
+diff --git a/third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs b/third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs
+index 4368bb37..325d5505 100644
+--- a/third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs
++++ b/third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs
+@@ -203,7 +203,7 @@ impl<Constraints: ConstraintTypes> SolverConstraintsSet<Constraints> {
+         &mut self,
+     ) -> (
+         &DVector<Real>,
+-        impl Iterator<Item = AnyConstraintMut<Constraints>>,
++        impl Iterator<Item = AnyConstraintMut<'_, Constraints>>,
+     ) {
+         let jac = &self.generic_jacobians;
+         let a = self
+diff --git a/third_party/rapier3d/src/dynamics/solver/solver_vel.rs b/third_party/rapier3d/src/dynamics/solver/solver_vel.rs
+index ba4e8b43..e72d908c 100644
+--- a/third_party/rapier3d/src/dynamics/solver/solver_vel.rs
++++ b/third_party/rapier3d/src/dynamics/solver/solver_vel.rs
+@@ -22,11 +22,11 @@ impl<N: Scalar + Copy> SolverVel<N> {
+         unsafe { std::mem::transmute(self) }
+     }
+ 
+-    pub fn as_vector_slice(&self) -> DVectorView<N> {
++    pub fn as_vector_slice(&self) -> DVectorView<'_, N> {
+         DVectorView::from_slice(&self.as_slice()[..], SPATIAL_DIM)
+     }
+ 
+-    pub fn as_vector_slice_mut(&mut self) -> DVectorViewMut<N> {
++    pub fn as_vector_slice_mut(&mut self) -> DVectorViewMut<'_, N> {
+         DVectorViewMut::from_slice(&mut self.as_mut_slice()[..], SPATIAL_DIM)
+     }
+ }
+diff --git a/third_party/rapier3d/src/geometry/broad_phase.rs b/third_party/rapier3d/src/geometry/broad_phase.rs
+index f9a472eb..f91555c5 100644
+--- a/third_party/rapier3d/src/geometry/broad_phase.rs
++++ b/third_party/rapier3d/src/geometry/broad_phase.rs
+@@ -21,8 +21,8 @@ pub trait BroadPhase: Send + Sync + 'static {
+     /// but can result in a slight computational overhead.
+     ///
+     /// The `colliders` set is mutable only to provide access to
+-    /// [`collider.set_internal_broad_phase_proxy_index`]. Other properties of the collider should
+-    /// **not** be modified during the broad-phase update.
++    /// [`Collider::set_internal_broad_phase_proxy_index`](crate::geometry::Collider::set_internal_broad_phase_proxy_index).
++    /// Other properties of the collider should **not** be modified during the broad-phase update.
+     ///
+     /// # Parameters
+     /// - `prediction_distance`: colliders that are not exactly touching, but closer to this
+diff --git a/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs b/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs
+index fa1d1c72..cacb6d2d 100644
+--- a/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs
++++ b/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs
+@@ -204,7 +204,7 @@ impl SAPLayer {
+                     SAPProxy::subregion(region, region_bounds, self.layer_id, self.depth);
+                 let region_proxy_id = proxies.insert(region_proxy);
+                 // Push this region's proxy ID to the set of created regions.
+-                self.created_regions.push(region_proxy_id as u32);
++                self.created_regions.push(region_proxy_id);
+                 // Insert the new region to this layer's region hashmap.
+                 let _ = vacant.insert(region_proxy_id);
+                 region_proxy_id
+diff --git a/third_party/rapier3d/src/pipeline/event_handler.rs b/third_party/rapier3d/src/pipeline/event_handler.rs
+index 6bf8d21f..8255d06f 100644
+--- a/third_party/rapier3d/src/pipeline/event_handler.rs
++++ b/third_party/rapier3d/src/pipeline/event_handler.rs
+@@ -38,8 +38,8 @@ pub trait EventHandler: Send + Sync {
+     /// * `bodies` - The set of rigid-bodies.
+     /// * `colliders` - The set of colliders.
+     /// * `contact_pair` - The current state of contacts between the two colliders. This is set to `None`
+-    ///                    if at least one of the collider is a sensor (in which case no contact information
+-    ///                    is ever computed).
++    ///   if at least one of the collider is a sensor (in which case no contact information
++    ///   is ever computed).
+     fn handle_collision_event(
+         &self,
+         bodies: &RigidBodySet,
+diff --git a/third_party/rapier3d/src/pipeline/query_pipeline/mod.rs b/third_party/rapier3d/src/pipeline/query_pipeline/mod.rs
+index abaac4e5..0d05009f 100644
+--- a/third_party/rapier3d/src/pipeline/query_pipeline/mod.rs
++++ b/third_party/rapier3d/src/pipeline/query_pipeline/mod.rs
+@@ -365,8 +365,8 @@ impl QueryPipeline {
+     /// * `max_toi`: the maximum time-of-impact that can be reported by this cast. This effectively
+     ///   limits the length of the ray to `ray.dir.norm() * max_toi`. Use `Real::MAX` for an unbounded ray.
+     /// * `solid`: if this is `true` an impact at time 0.0 (i.e. at the ray origin) is returned if
+-    ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+-    ///            even if its starts inside of it.
++    ///   it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
++    ///   even if its starts inside of it.
+     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
+     pub fn cast_ray(
+         &self,
+@@ -392,8 +392,8 @@ impl QueryPipeline {
+     /// * `max_toi`: the maximum time-of-impact that can be reported by this cast. This effectively
+     ///   limits the length of the ray to `ray.dir.norm() * max_toi`. Use `Real::MAX` for an unbounded ray.
+     /// * `solid`: if this is `true` an impact at time 0.0 (i.e. at the ray origin) is returned if
+-    ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+-    ///            even if its starts inside of it.
++    ///   it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
++    ///   even if its starts inside of it.
+     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
+     pub fn cast_ray_and_get_normal(
+         &self,
+@@ -423,12 +423,12 @@ impl QueryPipeline {
+     /// * `max_toi`: the maximum time-of-impact that can be reported by this cast. This effectively
+     ///   limits the length of the ray to `ray.dir.norm() * max_toi`. Use `Real::MAX` for an unbounded ray.
+     /// * `solid`: if this is `true` an impact at time 0.0 (i.e. at the ray origin) is returned if
+-    ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+-    ///            even if its starts inside of it.
++    ///   it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
++    ///   even if its starts inside of it.
+     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
+     /// * `callback`: function executed on each collider for which a ray intersection has been found.
+-    ///               There is no guarantees on the order the results will be yielded. If this callback returns `false`,
+-    ///               this method will exit early, ignore any further raycast.
++    ///   There is no guarantees on the order the results will be yielded. If this callback returns `false`,
++    ///   this method will exit early, ignore any further raycast.
+     pub fn intersections_with_ray<'a>(
+         &self,
+         bodies: &'a RigidBodySet,
+@@ -487,7 +487,7 @@ impl QueryPipeline {
+ 
+         self.qbvh
+             .traverse_best_first(&mut visitor)
+-            .map(|h| (h.1 .0))
++            .map(|h| h.1 .0)
+     }
+ 
+     /// Find the projection of a point on the closest collider.
+@@ -525,7 +525,7 @@ impl QueryPipeline {
+     /// * `point` - The point used for the containment test.
+     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
+     /// * `callback` - A function called with each collider with a shape
+-    ///                containing the `point`.
++    ///   containing the `point`.
+     pub fn intersections_with_point(
+         &self,
+         bodies: &RigidBodySet,
+@@ -638,12 +638,12 @@ impl QueryPipeline {
+     /// * `start_time` - The starting time of the interval where the motion takes place.
+     /// * `end_time` - The end time of the interval where the motion takes place.
+     /// * `stop_at_penetration` - If the casted shape starts in a penetration state with any
+-    ///    collider, two results are possible. If `stop_at_penetration` is `true` then, the
+-    ///    result will have a `toi` equal to `start_time`. If `stop_at_penetration` is `false`
+-    ///    then the nonlinear shape-casting will see if further motion with respect to the penetration normal
+-    ///    would result in tunnelling. If it does not (i.e. we have a separating velocity along
+-    ///    that normal) then the nonlinear shape-casting will attempt to find another impact,
+-    ///    at a time `> start_time` that could result in tunnelling.
++    ///   collider, two results are possible. If `stop_at_penetration` is `true` then, the
++    ///   result will have a `toi` equal to `start_time`. If `stop_at_penetration` is `false`
++    ///   then the nonlinear shape-casting will see if further motion with respect to the penetration normal
++    ///   would result in tunnelling. If it does not (i.e. we have a separating velocity along
++    ///   that normal) then the nonlinear shape-casting will attempt to find another impact,
++    ///   at a time `> start_time` that could result in tunnelling.
+     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
+     pub fn nonlinear_cast_shape(
+         &self,

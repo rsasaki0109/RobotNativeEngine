@@ -34,7 +34,11 @@ pub struct ConstraintsCounts {
 
 impl ConstraintsCounts {
     pub fn from_contacts(manifold: &ContactManifold) -> Self {
-        let rest = manifold.data.solver_contacts.len() % MAX_MANIFOLD_POINTS != 0;
+        let rest = !manifold
+            .data
+            .solver_contacts
+            .len()
+            .is_multiple_of(MAX_MANIFOLD_POINTS);
         Self {
             num_constraints: manifold.data.solver_contacts.len() / MAX_MANIFOLD_POINTS
                 + rest as usize,

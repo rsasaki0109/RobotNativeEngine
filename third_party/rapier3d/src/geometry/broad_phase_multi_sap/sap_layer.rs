@@ -204,7 +204,7 @@ impl SAPLayer {
                     SAPProxy::subregion(region, region_bounds, self.layer_id, self.depth);
                 let region_proxy_id = proxies.insert(region_proxy);
                 // Push this region's proxy ID to the set of created regions.
-                self.created_regions.push(region_proxy_id as u32);
+                self.created_regions.push(region_proxy_id);
                 // Insert the new region to this layer's region hashmap.
                 let _ = vacant.insert(region_proxy_id);
                 region_proxy_id

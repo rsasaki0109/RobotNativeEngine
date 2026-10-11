@@ -1,0 +1,464 @@
+    Checking libm v0.2.16
+    Checking crossbeam-utils v0.8.21
+    Checking bytemuck v1.25.0
+    Checking safe_arch v0.7.4
+    Checking num-traits v0.2.19
+    Checking byteorder v1.5.0
+    Checking hash32 v0.3.1
+    Checking wide v0.7.33
+    Checking approx v0.5.1
+    Checking num-complex v0.4.6
+    Checking num-integer v0.1.46
+    Checking equivalent v1.0.2
+    Checking stable_deref_trait v1.2.1
+    Checking foldhash v0.2.0
+    Checking allocator-api2 v0.2.21
+    Checking rawpointer v0.2.1
+    Checking smallvec v1.15.2
+    Checking hashbrown v0.16.1
+    Checking matrixmultiply v0.3.10
+    Checking simba v0.9.1
+    Checking heapless v0.8.0
+    Checking num-rational v0.4.2
+    Checking crossbeam-epoch v0.9.20
+    Checking robust v1.2.0
+    Checking log v0.4.32
+    Checking typenum v1.20.1
+    Checking ena v0.14.4
+    Checking spade v2.15.1
+    Checking nalgebra v0.33.3
+    Checking thiserror v1.0.69
+    Checking crossbeam-deque v0.8.6
+    Checking rstar v0.12.2
+    Checking ordered-float v4.6.0
+    Checking crossbeam-queue v0.3.12
+    Checking crossbeam-channel v0.5.15
+    Checking arrayvec v0.7.6
+    Checking rustc-hash v2.1.2
+    Checking bitflags v2.13.0
+    Checking slab v0.4.12
+    Checking either v1.16.0
+    Checking downcast-rs v1.2.1
+    Checking crossbeam v0.8.4
+    Checking bit-vec v0.7.0
+    Checking parry3d v0.17.6
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+error: unnecessary parentheses around closure body
+   --> src/pipeline/query_pipeline/mod.rs:490:22
+    |
+490 |             .map(|h| (h.1 .0))
+    |                      ^      ^
+    |
+    = note: `-D unused-parens` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_parens)]`
+help: remove these parentheses
+    |
+490 -             .map(|h| (h.1 .0))
+490 +             .map(|h| h.1 .0 )
+    |
+
+error: `#[must_use]` attribute cannot be used on trait methods in impl blocks
+   --> src/dynamics/rigid_body_components.rs:694:5
+    |
+694 |     #[must_use]
+    |     ^^^^^^^^^^^
+    |
+    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+    = help: `#[must_use]` can be applied to data types, foreign functions, functions, inherent methods, provided trait methods, required trait methods, and traits
+    = note: `-D unused-attributes` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_attributes)]`
+
+error: `#[must_use]` attribute cannot be used on trait methods in impl blocks
+   --> src/dynamics/rigid_body_components.rs:706:5
+    |
+706 |     #[must_use]
+    |     ^^^^^^^^^^^
+    |
+    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+    = help: `#[must_use]` can be applied to data types, foreign functions, functions, inherent methods, provided trait methods, required trait methods, and traits
+
+error: struct `Externals` is never constructed
+   --> src/data/graph.rs:521:12
+    |
+521 | pub struct Externals<'a, N: 'a> {
+    |            ^^^^^^^^^
+    |
+    = note: `-D dead-code` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: struct `Neighbors` is never constructed
+   --> src/data/graph.rs:555:12
+    |
+555 | pub struct Neighbors<'a, E: 'a> {
+    |            ^^^^^^^^^
+
+error: struct `NodeReferences` is never constructed
+   --> src/data/graph.rs:788:12
+    |
+788 | pub struct NodeReferences<'a, N: 'a> {
+    |            ^^^^^^^^^^^^^^
+
+error: this `impl` can be derived
+   --> src/dynamics/joint/spherical_joint.rs:178:1
+    |
+178 | / impl Default for SphericalJointBuilder {
+179 | |     fn default() -> Self {
+180 | |         Self(SphericalJoint::new())
+181 | |     }
+182 | | }
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#derivable_impls
+    = note: `-D clippy::derivable-impls` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::derivable_impls)]`
+help: replace the manual implementation with a derive attribute
+    |
+176 + #[derive(Default)]
+177 | pub struct SphericalJointBuilder(pub SphericalJoint);
+    |
+
+error: manual implementation of `.is_multiple_of()`
+  --> src/dynamics/solver/contact_constraint/contact_constraints_set.rs:37:20
+   |
+37 |         let rest = manifold.data.solver_contacts.len() % MAX_MANIFOLD_POINTS != 0;
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `!manifold.data.solver_contacts.len().is_multiple_of(MAX_MANIFOLD_POINTS)`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#manual_is_multiple_of
+   = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`
+
+error: casting to the same type is unnecessary (`u32` -> `u32`)
+   --> src/geometry/broad_phase_multi_sap/sap_layer.rs:207:43
+    |
+207 |                 self.created_regions.push(region_proxy_id as u32);
+    |                                           ^^^^^^^^^^^^^^^^^^^^^^ help: try: `region_proxy_id`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#unnecessary_cast
+    = note: `-D clippy::unnecessary-cast` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_cast)]`
+
+error: doc list item overindented
+  --> src/pipeline/event_handler.rs:41:9
+   |
+41 |     ///                    if at least one of the collider is a sensor (in which case no contact information
+   |         ^^^^^^^^^^^^^^^^^^^ help: try using `  ` (2 spaces)
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+   = note: `-D clippy::doc-overindented-list-items` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_overindented_list_items)]`
+
+error: doc list item overindented
+  --> src/pipeline/event_handler.rs:42:9
+   |
+42 |     ///                    is ever computed).
+   |         ^^^^^^^^^^^^^^^^^^^ help: try using `  ` (2 spaces)
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:368:9
+    |
+368 |     ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+    |         ^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:369:9
+    |
+369 |     ///            even if its starts inside of it.
+    |         ^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:395:9
+    |
+395 |     ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+    |         ^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:396:9
+    |
+396 |     ///            even if its starts inside of it.
+    |         ^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:426:9
+    |
+426 |     ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+    |         ^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:427:9
+    |
+427 |     ///            even if its starts inside of it.
+    |         ^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:430:9
+    |
+430 |     ///               There is no guarantees on the order the results will be yielded. If this callback returns `false`,
+    |         ^^^^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:431:9
+    |
+431 |     ///               this method will exit early, ignore any further raycast.
+    |         ^^^^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:528:9
+    |
+528 |     ///                containing the `point`.
+    |         ^^^^^^^^^^^^^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:641:9
+    |
+641 |     ///    collider, two results are possible. If `stop_at_penetration` is `true` then, the
+    |         ^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:642:9
+    |
+642 |     ///    result will have a `toi` equal to `start_time`. If `stop_at_penetration` is `false`
+    |         ^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:643:9
+    |
+643 |     ///    then the nonlinear shape-casting will see if further motion with respect to the penetration normal
+    |         ^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:644:9
+    |
+644 |     ///    would result in tunnelling. If it does not (i.e. we have a separating velocity along
+    |         ^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:645:9
+    |
+645 |     ///    that normal) then the nonlinear shape-casting will attempt to find another impact,
+    |         ^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: doc list item overindented
+   --> src/pipeline/query_pipeline/mod.rs:646:9
+    |
+646 |     ///    at a time `> start_time` that could result in tunnelling.
+    |         ^^^ help: try using `  ` (2 spaces)
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#doc_overindented_list_items
+
+error: hiding a lifetime that's elided elsewhere is confusing
+   --> src/data/arena.rs:701:17
+    |
+701 |     pub fn iter(&self) -> Iter<T> {
+    |                 ^^^^^     ^^^^^^^ the same lifetime is hidden here
+    |                 |
+    |                 the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+    = note: `-D mismatched-lifetime-syntaxes` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(mismatched_lifetime_syntaxes)]`
+help: use `'_` for type paths
+    |
+701 |     pub fn iter(&self) -> Iter<'_, T> {
+    |                                +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+   --> src/data/arena.rs:728:21
+    |
+728 |     pub fn iter_mut(&mut self) -> IterMut<T> {
+    |                     ^^^^^^^^^     ^^^^^^^^^^ the same lifetime is hidden here
+    |                     |
+    |                     the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+728 |     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+    |                                           +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+   --> src/data/arena.rs:760:18
+    |
+760 |     pub fn drain(&mut self) -> Drain<T> {
+    |                  ^^^^^^^^^     ^^^^^^^^ the same lifetime is hidden here
+    |                  |
+    |                  the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+760 |     pub fn drain(&mut self) -> Drain<'_, T> {
+    |                                      +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+   --> src/data/graph.rs:392:18
+    |
+392 |     pub fn edges(&self, a: NodeIndex) -> Edges<E> {
+    |                  ^^^^^                   ^^^^^^^^ the same lifetime is hidden here
+    |                  |
+    |                  the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+392 |     pub fn edges(&self, a: NodeIndex) -> Edges<'_, E> {
+    |                                                +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+   --> src/data/graph.rs:407:27
+    |
+407 |     pub fn edges_directed(&self, a: NodeIndex, dir: Direction) -> Edges<E> {
+    |                           ^^^^^ the lifetime is elided here       ^^^^^^^^ the same lifetime is hidden here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+407 |     pub fn edges_directed(&self, a: NodeIndex, dir: Direction) -> Edges<'_, E> {
+    |                                                                         +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+   --> src/data/graph.rs:595:12
+    |
+595 |     edges: &mut [Edge<E>],
+    |            ^^^^^^^^^^^^^^ the lifetime is elided here
+...
+598 | ) -> EdgesWalkerMut<E> {
+    |      ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+598 | ) -> EdgesWalkerMut<'_, E> {
+    |                     +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+    --> src/dynamics/joint/multibody_joint/multibody.rs:1004:27
+     |
+1004 |     pub fn joint_velocity(&self, link: &MultibodyLink) -> DVectorView<Real> {
+     |                           ^^^^^                           ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+     |                           |
+     |                           the lifetime is elided here
+     |
+     = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+     |
+1004 |     pub fn joint_velocity(&self, link: &MultibodyLink) -> DVectorView<'_, Real> {
+     |                                                                       +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+    --> src/dynamics/joint/multibody_joint/multibody.rs:1014:37
+     |
+1014 |     pub fn generalized_acceleration(&self) -> DVectorView<Real> {
+     |                                     ^^^^^     ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+     |                                     |
+     |                                     the lifetime is elided here
+     |
+     = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+     |
+1014 |     pub fn generalized_acceleration(&self) -> DVectorView<'_, Real> {
+     |                                                           +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+    --> src/dynamics/joint/multibody_joint/multibody.rs:1020:33
+     |
+1020 |     pub fn generalized_velocity(&self) -> DVectorView<Real> {
+     |                                 ^^^^^     ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+     |                                 |
+     |                                 the lifetime is elided here
+     |
+     = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+     |
+1020 |     pub fn generalized_velocity(&self) -> DVectorView<'_, Real> {
+     |                                                       +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+    --> src/dynamics/joint/multibody_joint/multibody.rs:1032:37
+     |
+1032 |     pub fn generalized_velocity_mut(&mut self) -> DVectorViewMut<Real> {
+     |                                     ^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+     |                                     |
+     |                                     the lifetime is elided here
+     |
+     = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+     |
+1032 |     pub fn generalized_velocity_mut(&mut self) -> DVectorViewMut<'_, Real> {
+     |                                                                  +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+   --> src/dynamics/solver/solver_constraints_set.rs:203:9
+    |
+203 |         &mut self,
+    |         ^^^^^^^^^ the lifetime is elided here
+204 |     ) -> (
+205 |         &DVector<Real>,
+    |         ^^^^^^^^^^^^^^ the same lifetime is elided here
+206 |         impl Iterator<Item = AnyConstraintMut<Constraints>>,
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+206 |         impl Iterator<Item = AnyConstraintMut<'_, Constraints>>,
+    |                                               +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+  --> src/dynamics/solver/solver_vel.rs:25:28
+   |
+25 |     pub fn as_vector_slice(&self) -> DVectorView<N> {
+   |                            ^^^^^     ^^^^^^^^^^^^^^ the same lifetime is hidden here
+   |                            |
+   |                            the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+   |
+25 |     pub fn as_vector_slice(&self) -> DVectorView<'_, N> {
+   |                                                  +++
+
+error: hiding a lifetime that's elided elsewhere is confusing
+  --> src/dynamics/solver/solver_vel.rs:29:32
+   |
+29 |     pub fn as_vector_slice_mut(&mut self) -> DVectorViewMut<N> {
+   |                                ^^^^^^^^^     ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+   |                                |
+   |                                the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+   |
+29 |     pub fn as_vector_slice_mut(&mut self) -> DVectorViewMut<'_, N> {
+   |                                                             +++
+
+error: could not compile `rapier3d` (lib) due to 39 previous errors

@@ -1,0 +1,11 @@
+go2 on seeded fractal terrain (seed 2018), dropped 0.42 m, 2 s at 500 Hz through PhysicsBackend
+native: base clearance 0.327 m, tilt 0.133 rad, speed 3.1e-4 m/s, 4 feet loaded
+native: contact support 263.4 N vs weight 265.7 N, 83 us per step
+native: a ray cast down onto the base hits the base; 81 terrain rays within 5.4e-16 m of the bilinear surface
+rapier: base clearance 0.220 m, tilt 0.426 rad, speed 3.6e-3 m/s, 2 feet loaded
+rapier: contact support 486.2 N vs weight 265.7 N, 1011 us per step
+rapier: a ray cast down onto the base hits the base; 81 terrain rays within 2.0e-4 m of the bilinear surface
+native deterministic replay: true
+go2 on a free 8 kg crate: 4 feet on the crate carrying 265.7 N (Go2 weight 265.7 N)
+crate on the ground: 344.2 N (Go2 + crate 344.2 N); 5-box tower drifted 0.00 mm; replay identical: true
+go2 native backend: ok

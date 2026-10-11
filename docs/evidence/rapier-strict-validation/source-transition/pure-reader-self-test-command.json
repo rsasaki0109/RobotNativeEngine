@@ -1,0 +1,14 @@
+{
+  "command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/audit_vendor_lint_report.py",
+    "--self-test"
+  ],
+  "actual_exit": 0,
+  "ended_utc": "2026-10-11T22:20:35.391844+00:00",
+  "reader_sha256": "819d72bd9771e6f1cdf6cac0678c4f763dacf03cccc849a29494e7599c2b76ef",
+  "stdout_sha256": "f257cdc69f46b0e6189bee2b99ead4298a1b5f982117e72a4becf2db523f6bc8",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "new_worlds_builds_physics_tests": 0,
+  "new_report_audits": 0
+}

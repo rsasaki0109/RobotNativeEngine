@@ -1,0 +1,3 @@
+   Compiling go2_parallel_rl v0.4.0 (/workspace/RobotNativeEngine/examples/136_go2_parallel_rl)
+    Finished `release` profile [optimized] target(s) in 1.31s
+     Running `/tmp/rne-final-ci-cache/release/examples/136_go2_parallel_rl`

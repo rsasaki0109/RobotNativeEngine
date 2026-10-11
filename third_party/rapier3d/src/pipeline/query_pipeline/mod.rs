@@ -365,8 +365,8 @@ impl QueryPipeline {
     /// * `max_toi`: the maximum time-of-impact that can be reported by this cast. This effectively
     ///   limits the length of the ray to `ray.dir.norm() * max_toi`. Use `Real::MAX` for an unbounded ray.
     /// * `solid`: if this is `true` an impact at time 0.0 (i.e. at the ray origin) is returned if
-    ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
-    ///            even if its starts inside of it.
+    ///   it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+    ///   even if its starts inside of it.
     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
     pub fn cast_ray(
         &self,
@@ -392,8 +392,8 @@ impl QueryPipeline {
     /// * `max_toi`: the maximum time-of-impact that can be reported by this cast. This effectively
     ///   limits the length of the ray to `ray.dir.norm() * max_toi`. Use `Real::MAX` for an unbounded ray.
     /// * `solid`: if this is `true` an impact at time 0.0 (i.e. at the ray origin) is returned if
-    ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
-    ///            even if its starts inside of it.
+    ///   it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+    ///   even if its starts inside of it.
     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
     pub fn cast_ray_and_get_normal(
         &self,
@@ -423,12 +423,12 @@ impl QueryPipeline {
     /// * `max_toi`: the maximum time-of-impact that can be reported by this cast. This effectively
     ///   limits the length of the ray to `ray.dir.norm() * max_toi`. Use `Real::MAX` for an unbounded ray.
     /// * `solid`: if this is `true` an impact at time 0.0 (i.e. at the ray origin) is returned if
-    ///            it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
-    ///            even if its starts inside of it.
+    ///   it starts inside of a shape. If this `false` then the ray will hit the shape's boundary
+    ///   even if its starts inside of it.
     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
     /// * `callback`: function executed on each collider for which a ray intersection has been found.
-    ///               There is no guarantees on the order the results will be yielded. If this callback returns `false`,
-    ///               this method will exit early, ignore any further raycast.
+    ///   There is no guarantees on the order the results will be yielded. If this callback returns `false`,
+    ///   this method will exit early, ignore any further raycast.
     pub fn intersections_with_ray<'a>(
         &self,
         bodies: &'a RigidBodySet,
@@ -487,7 +487,7 @@ impl QueryPipeline {
 
         self.qbvh
             .traverse_best_first(&mut visitor)
-            .map(|h| (h.1 .0))
+            .map(|h| h.1 .0)
     }
 
     /// Find the projection of a point on the closest collider.
@@ -525,7 +525,7 @@ impl QueryPipeline {
     /// * `point` - The point used for the containment test.
     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
     /// * `callback` - A function called with each collider with a shape
-    ///                containing the `point`.
+    ///   containing the `point`.
     pub fn intersections_with_point(
         &self,
         bodies: &RigidBodySet,
@@ -638,12 +638,12 @@ impl QueryPipeline {
     /// * `start_time` - The starting time of the interval where the motion takes place.
     /// * `end_time` - The end time of the interval where the motion takes place.
     /// * `stop_at_penetration` - If the casted shape starts in a penetration state with any
-    ///    collider, two results are possible. If `stop_at_penetration` is `true` then, the
-    ///    result will have a `toi` equal to `start_time`. If `stop_at_penetration` is `false`
-    ///    then the nonlinear shape-casting will see if further motion with respect to the penetration normal
-    ///    would result in tunnelling. If it does not (i.e. we have a separating velocity along
-    ///    that normal) then the nonlinear shape-casting will attempt to find another impact,
-    ///    at a time `> start_time` that could result in tunnelling.
+    ///   collider, two results are possible. If `stop_at_penetration` is `true` then, the
+    ///   result will have a `toi` equal to `start_time`. If `stop_at_penetration` is `false`
+    ///   then the nonlinear shape-casting will see if further motion with respect to the penetration normal
+    ///   would result in tunnelling. If it does not (i.e. we have a separating velocity along
+    ///   that normal) then the nonlinear shape-casting will attempt to find another impact,
+    ///   at a time `> start_time` that could result in tunnelling.
     /// * `filter`: set of rules used to determine which collider is taken into account by this scene query.
     pub fn nonlinear_cast_shape(
         &self,

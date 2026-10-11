@@ -1,0 +1,21 @@
+two-finger grasp, friction 0.8, lift 0.2 m over 1 s and hold 1 s at 500 Hz through PhysicsBackend
+5 kg cube, 38 N per finger (held; holding needs 31 N):
+  native: lifted  0.199 m (palm 0.199 m), slip   1.5e-5 m, tilt  2.2e-4 rad,  390 us per step
+  rapier: lifted  0.200 m (palm 0.200 m), slip   1.8e-4 m, tilt  8.6e-4 rad,   35 us per step
+5 kg cube, 20 N per finger (under-squeezed; holding needs 31 N):
+  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt  2.6e-8 rad,  169 us per step
+  rapier: lifted -0.001 m (palm 0.200 m), slip   2.0e-1 m, tilt  3.0e-5 rad,   38 us per step
+20 kg cube, 153 N per finger (held; holding needs 123 N):
+  native: lifted  0.198 m (palm 0.198 m), slip   2.8e-5 m, tilt  5.8e-4 rad,  262 us per step
+  rapier: lifted  0.198 m (palm 0.200 m), slip   5.7e-4 m, tilt  3.7e-4 rad,   25 us per step
+20 kg cube, 80 N per finger (under-squeezed; holding needs 123 N):
+  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt   0.0e0 rad,  305 us per step
+  rapier: lifted -0.001 m (palm 0.201 m), slip   2.0e-1 m, tilt  3.2e-5 rad,   24 us per step
+50 kg cube, 383 N per finger (held; holding needs 307 N):
+  native: lifted  0.195 m (palm 0.195 m), slip  -2.4e-8 m, tilt  1.2e-6 rad,   84 us per step
+  rapier: lifted  0.196 m (palm 0.199 m), slip   1.5e-3 m, tilt  5.7e-3 rad,   27 us per step
+50 kg cube, 199 N per finger (under-squeezed; holding needs 307 N):
+  native: lifted -0.000 m (palm 0.200 m), slip   2.0e-1 m, tilt   0.0e0 rad,  204 us per step
+  rapier: lifted -0.001 m (palm 0.201 m), slip   2.0e-1 m, tilt  3.2e-5 rad,   24 us per step
+native deterministic replay: true
+heavy grasp: ok

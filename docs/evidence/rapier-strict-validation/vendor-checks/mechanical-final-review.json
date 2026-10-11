@@ -1,0 +1,89 @@
+{
+  "status": "PASS_MECHANICAL_VENDOR_HYGIENE_DEFAULT_STRICT_QUALIFICATION",
+  "created_utc": "2026-10-11T22:22:07.385819+00:00",
+  "changed_vendor_paths": [
+    {
+      "path": "third_party/rapier3d/src/data/arena.rs",
+      "sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb"
+    },
+    {
+      "path": "third_party/rapier3d/src/data/graph.rs",
+      "sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/spherical_joint.rs",
+      "sha256": "05ad4cd2cc2cfb85de6a25de43208a6294174a5d154fa7ee0c8dbe77e2563dbb"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/rigid_body_components.rs",
+      "sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs",
+      "sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_vel.rs",
+      "sha256": "8e10277211c04ce06c004a18f2aaf2445ead09ab55edd6ea7d5439ffd8f4e402"
+    },
+    {
+      "path": "third_party/rapier3d/src/geometry/broad_phase.rs",
+      "sha256": "c9e2e4d70e8a99c879660dee99fd2e15f14b6b235989142032958c418cdcc49d"
+    },
+    {
+      "path": "third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs",
+      "sha256": "ee77333ab190cc1629665c01481fc8e2b839d8b2b1835e6b1cdf6ac4623a1432"
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/event_handler.rs",
+      "sha256": "9820d4432914cfab9573c4795ddfcf4d2554c765197e72496b44ce91f9d4b2b9"
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/query_pipeline/mod.rs",
+      "sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332"
+    }
+  ],
+  "actual_default_all_target_clippy_exit": 0,
+  "actual_default_strict_rustdoc_exit": 0,
+  "final_checks_source_guard_count": 116,
+  "final_check_receipt_sha256": "56058ce46c5a6f63bf32493f6a079da3deb25ccac3e2d9a83505acae52326ed8",
+  "current_sources_match_actual_final_check_inputs": true,
+  "source_binding_changed17": [
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+    "third_party/rapier3d/src/dynamics/rigid_body_components.rs"
+  ],
+  "historical_reports_and_standalone_lock_unchanged": true,
+  "baseline_actual_results_preserved_sha256": "7b4477a2794010f1d7f0ccd6463c20f37fa79c13090c87284acffd9edb149483",
+  "first_after39_documentation_failure_preserved_sha256": "2693e771599c4be720ffa8dd038019a36cae966b63cc77af3fd9631241d7a444",
+  "edit_receipts": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/mechanical-edit-receipt.json",
+      "sha256": "93edf6bfac81c008f512d8cb40848b1bc135f479863ddc24bbcaf92591f21feb"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/documentation-fix-receipt.json",
+      "sha256": "b12df067170aa149d02cc145cb1e0ffb68a6f39d42824f602c0eb882052e2718"
+    }
+  ],
+  "not_qualified": [
+    "Parallel+serde feature mask",
+    "MSRV1.88 compilation",
+    "Unit/native runtime or doctest execution",
+    "Release133-138 physical compatibility",
+    "Fresh source-bound72-world matrix",
+    "Full local or GitHub CI on changed source"
+  ],
+  "native_tests_worlds_run_by_agent": 0
+}

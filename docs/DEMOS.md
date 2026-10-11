@@ -448,18 +448,18 @@ overwritten. Checking the retained report executes no new worlds:
 ```bash
 cargo run --locked -p position_motor_calibration \
   --example 141_position_motor_calibration -- \
-  --verify-report docs/media/position-motor-calibration.json
+  --verify-report docs/media/position-motor-calibration-vendor-lint.json
 ```
 
 See [the fixed protocol and output contract](../examples/141_position_motor_calibration/README.md)
-and [all retained conditions](media/position-motor-calibration.json). The retained
+and [all current-source conditions](media/position-motor-calibration-vendor-lint.json). The retained
 run completes 72/72 worlds with exact ON/fresh/OFF state replay and 8/8 motionless
 zero targets. Its four primary N32/PGS1 nonzero conditions all fail the predeclared
 accuracy requirement; `--require-calibration` therefore exits 2. Loaded-report
 verification exits 0 while printing `primary_calibration=FAIL`. This fixture changes
 no production solver or control settings and makes no kick-recovery or hardware claim.
 
-The current schema-2 report uses postcard 1.1.3. The
+The schema-2 reports use postcard 1.1.3. The
 [original schema-1 report](media/position-motor-calibration-bincode-generation-1.json)
 and [codec migration receipt](media/position-motor-calibration-codec-migration.json)
 retain the failed results from both 72-world generations. Exposed IEEE state and
@@ -472,8 +472,16 @@ pass, but example 138's Rapier grasp numbers change and fail the preregistered
 compatibility gate. All candidate code is rolled back, and a new release run
 restores examples 133–138's complete physical outputs. This historical report
 has a different source binding and is intentionally rejected by the current
-example 141 verifier. The existing report and default calibration FAIL remain
-the current CI input; no G1 or hardware recovery is established.
+example 141 verifier. Its rejected admission and the default calibration FAIL
+remain unchanged; no G1 or hardware recovery is established.
+
+Strict vendored Rapier lint cleanup later changes lifetime spelling, a malformed
+documentation link and ineffective annotations in two selected source files. The
+[original schema-2 report](media/position-motor-calibration.json) remains
+byte-identical historical evidence. A new fixed 72-world current-source run
+allows only those two source hashes to differ and requires every other report
+byte to match; CI verifies this new report through the unchanged verifier.
+See the [source-transition and strict validation receipts](evidence/rapier-strict-validation/README.md).
 
 ## Native legged walking templates
 

@@ -1,0 +1,30 @@
+{
+  "status": "PASS_PURE_READER_SELF_TEST",
+  "synthetic_allowed_two_hash_changes_accepted": true,
+  "tamper_classes_rejected": [
+    "third_selected_hash",
+    "missing_selected_path",
+    "forged_accuracy_PASS",
+    "numeric_signed_zero_spelling",
+    "native_byte_tamper",
+    "canonical_word_tamper",
+    "formatting_changed",
+    "duplicate_JSON_key"
+  ],
+  "immutable_baseline_structure": {
+    "cells": 24,
+    "worlds": 72,
+    "native_states": 144,
+    "native_entities": 432,
+    "native_entity_bytes": 247248,
+    "native_state_canonical_words": 42264,
+    "enabled_telemetry_runs": 48,
+    "ordered_telemetry_slices": 792,
+    "telemetry_canonical_words": 10704,
+    "primary_nonzero_passes": 0,
+    "all_nonzero_tolerance_passes": 0,
+    "zero_target_passes": 8
+  },
+  "worlds_builds_physics_tests": 0,
+  "new_report_audit_executed": false
+}

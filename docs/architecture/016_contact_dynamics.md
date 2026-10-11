@@ -903,8 +903,36 @@ rejected physical gate and from validation of the final evidence-only change.
 The original two report files remain byte-identical to their published versions;
 the candidate adds a third generation without replacing them. The current
 source-bound verifier deliberately rejects this historical candidate report after
-rollback, and current CI still verifies the original calibration FAIL. A passing
+rollback; that evidence-only change verifies the original calibration FAIL. A passing
 scalar calibration supplies no coupled G1 recovery, hardware or maturity claim.
+
+### Strict validation of the vendored solver
+
+Before adding stage observations for coupled grasp, direct warning-denied
+validation of the unchanged vendored Rapier reproduces 39 Clippy diagnostics
+and a rustdoc failure. Workspace dependency builds cap upstream warnings, so
+their success alone does not establish standalone vendor qualification.
+Mechanical cleanup removes ineffective annotations and unused private graph
+helpers, spells elided return lifetimes explicitly, fixes documentation layout,
+and uses equivalent derived defaults and integer predicates. Motor and contact
+equations, iteration order and solver settings are unchanged.
+
+Two cleanup files participate in example 141's selected-source binding:
+`multibody.rs` changes lifetime spelling and a malformed documentation link;
+`rigid_body_components.rs` removes
+ineffective `must_use` attributes. Preserve the published reports byte for byte;
+the unchanged verifier must reject their stale source binding. A separate
+[current-source report](../media/position-motor-calibration-vendor-lint.json)
+collects the unchanged fixed 24 conditions and 72 worlds. A comparison reader
+frozen before collection permits only those two source hashes to change; every
+other report field must match the original schema-2 report literally. CI verifies
+the new report through the same verifier and unchanged numerical criteria.
+
+This source-transition qualification is separate from the proposed contact-stage
+measurement. It changes no calibration outcome, identifies no coupled failure
+cause, and supplies no recovery, hardware or maturity claim. Validation commands
+and actual outcomes are retained in the
+[strict-vendor evidence](../evidence/rapier-strict-validation/README.md).
 
 ### Warehouse fleet visualization boundary
 

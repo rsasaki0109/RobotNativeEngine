@@ -1,0 +1,10 @@
+    Checking serde_core v1.0.228
+    Checking zmij v1.0.21
+    Checking itoa v1.0.18
+    Checking memchr v2.8.2
+    Checking oorandom v11.1.5
+    Checking serde v1.0.228
+    Checking serde_json v1.0.150
+    Checking bincode v1.3.3
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Finished `dev` profile [unoptimized] target(s) in 5.69s

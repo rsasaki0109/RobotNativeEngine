@@ -22,11 +22,11 @@ impl<N: Scalar + Copy> SolverVel<N> {
         unsafe { std::mem::transmute(self) }
     }
 
-    pub fn as_vector_slice(&self) -> DVectorView<N> {
+    pub fn as_vector_slice(&self) -> DVectorView<'_, N> {
         DVectorView::from_slice(&self.as_slice()[..], SPATIAL_DIM)
     }
 
-    pub fn as_vector_slice_mut(&mut self) -> DVectorViewMut<N> {
+    pub fn as_vector_slice_mut(&mut self) -> DVectorViewMut<'_, N> {
         DVectorViewMut::from_slice(&mut self.as_mut_slice()[..], SPATIAL_DIM)
     }
 }

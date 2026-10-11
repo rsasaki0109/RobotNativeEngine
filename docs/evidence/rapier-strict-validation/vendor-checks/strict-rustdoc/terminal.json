@@ -1,0 +1,33 @@
+{
+  "name": "strict-rustdoc",
+  "ended_utc": "2026-10-11T22:12:46.841565+00:00",
+  "exit_code": 101,
+  "runtime_s": 1.3272966820077272,
+  "source_inputs_unchanged": true,
+  "changed_inputs": [],
+  "checkout_clean": true,
+  "head_unchanged": true,
+  "log_sha256": "7da73d42fc0dedd5d308c5236e83ec76cece6f876e25939144075a0ddf578f93",
+  "log_bytes": 545,
+  "before_manifest_sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c",
+  "after_manifest_sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c",
+  "disk_after": {
+    "/workspace": {
+      "available_bytes": 265801728,
+      "capacity_bytes": 33770192896
+    },
+    "/tmp": {
+      "available_bytes": 3613151232,
+      "capacity_bytes": 17871892480
+    }
+  },
+  "capacity_failure": false,
+  "capacity_guard_terminated_owned_command": false,
+  "locked_dependency_graph_failure": false,
+  "native_tests_worlds": 0,
+  "started_receipt": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/strict-rustdoc/started.json",
+    "bytes": 1089,
+    "sha256": "1f3cf4b45ac084e02b3fa6e0c56e3279d07bb6f9541b82c2030f2a1fe96b62cd"
+  }
+}

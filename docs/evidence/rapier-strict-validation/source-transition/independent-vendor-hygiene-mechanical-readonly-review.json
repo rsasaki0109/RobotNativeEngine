@@ -1,0 +1,105 @@
+{
+  "status": "PASS_BOUNDED_READ_ONLY_VENDOR_13_HYGIENE_STATIC_REVIEW",
+  "reviewed_utc": "2026-10-11T22:23:21.961070+00:00",
+  "base_commit": "febe966d2d24b3808180e415f0376f628b90b9b6",
+  "owned_source_before_after": [
+    {
+      "path": "third_party/rapier3d/src/data/arena.rs",
+      "before_sha256": "5566fd26f55069b79e20801fb0cba8452367617f67cd56c9eb0b0471e35c61d9",
+      "after_sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb"
+    },
+    {
+      "path": "third_party/rapier3d/src/data/graph.rs",
+      "before_sha256": "6b3d9a62f449f06a4d065f77fa0b4da9c86076baca049a4a172787d8b6825d9a",
+      "after_sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "before_sha256": "f55eb8031c8433908f5f8b21d66d7260a97e76027e69065e204594dbc5c8701f",
+      "after_sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "before_sha256": "ec4bd5dca8329345133cac5077838bd7f89081fc9ca2efad6f6a017d82ec74aa",
+      "after_sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/spherical_joint.rs",
+      "before_sha256": "8b2e76a6546cb594230c75493f48b1b517134be704862e82daf7ea7c9cb753cc",
+      "after_sha256": "05ad4cd2cc2cfb85de6a25de43208a6294174a5d154fa7ee0c8dbe77e2563dbb"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/rigid_body_components.rs",
+      "before_sha256": "3f584a56f9e920261484ab5accae06c5d28a291644d93b441306ffad3b7a17f7",
+      "after_sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs",
+      "before_sha256": "f69710dada6d4e8467267b9399d5aa16153a666c10275aec4bab09807366b549",
+      "after_sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "before_sha256": "ca380c6853464aa4eba1944d8bf7f781692fcc315fc38b1abdf544a109dc224c",
+      "after_sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313"
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_vel.rs",
+      "before_sha256": "517cb21aab562962c163350e91eaf8af613ff1c37d0a77e21c62f1233c0649b3",
+      "after_sha256": "8e10277211c04ce06c004a18f2aaf2445ead09ab55edd6ea7d5439ffd8f4e402"
+    },
+    {
+      "path": "third_party/rapier3d/src/geometry/broad_phase.rs",
+      "before_sha256": "a5c759626a273c86deb6f5a02f484c90b10ed2ed245abd8e1e879baa719810ed",
+      "after_sha256": "c9e2e4d70e8a99c879660dee99fd2e15f14b6b235989142032958c418cdcc49d"
+    },
+    {
+      "path": "third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs",
+      "before_sha256": "3cf8be953cbfe90233bc34ded34f864d1c03c8f234e3ac4bee94a95ba89f263a",
+      "after_sha256": "ee77333ab190cc1629665c01481fc8e2b839d8b2b1835e6b1cdf6ac4623a1432"
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/event_handler.rs",
+      "before_sha256": "600047c4f6e35b1d82beea234f1d1f63a287b48f56c306cd153d6a0b700f87c3",
+      "after_sha256": "9820d4432914cfab9573c4795ddfcf4d2554c765197e72496b44ce91f9d4b2b9"
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/query_pipeline/mod.rs",
+      "before_sha256": "8dbfd6b885a828bdc7601e40cbe5d01be9d483d88b3393da1f75221e68bbb234",
+      "after_sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332"
+    }
+  ],
+  "reviewed_diff": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/reviewed-vendor-hygiene-13.patch",
+    "bytes": 21551,
+    "sha256": "4d5527610ceda6ba463fcade04290bf77acc9b9feaeae77ef25ed21574a8c5db"
+  },
+  "exactly_13_owned_vendor_paths_plus_xtask_routing_changed_within_historical118": true,
+  "exactly_two_selected17_source_changes": [
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+    "third_party/rapier3d/src/dynamics/rigid_body_components.rs"
+  ],
+  "other_15_selected_sources_collector_Cargo_and_lock_literal_unchanged": true,
+  "xtask_change_literal_new_report_path_only": true,
+  "static_findings": {
+    "lifetime_underscores": "Existing elided receiver/unique input lifetimes made explicit; function bodies unchanged.",
+    "must_use": "Two ineffective trait-impl annotations removed; both arithmetic bodies unchanged.",
+    "Default": "Derived non-generic one-field SphericalJointBuilder Default invokes existing SphericalJoint::default, which invokes the same SphericalJoint::new as the removed manual implementation.",
+    "integer_remainder": "For the source constants MAX_MANIFOLD_POINTS=4(dim3) and 2(dim2), !len.is_multiple_of(divisor) is mathematically the same nonzero-remainder predicate; divisor is positive and existing constraint-count division/addition unchanged. Zero-divisor semantics are irrelevant to these fixed constants.",
+    "private_dead_types": "Removed Externals/Neighbors/NodeReferences were inside pub(crate) graph, with current whole-vendor references absent; no retained graph iterator body reordered.",
+    "u32_cast_and_parentheses": "Self-type u32 cast and closure projection parentheses removed only.",
+    "docs": "List indentation, link typo/stray combining character, and pre-existing intended skipped incomplete snippet corrected; no executable fixture or solver expressions changed.",
+    "MSRV": "Repository declares1.88.0; usize::is_multiple_of stabilization1.87 is below that declared version; this static review does not claim an actual MSRV compiler run."
+  },
+  "original_four_reports_literal_preserved": true,
+  "existing_partial_strict_receipts_not_relabelled": "Actual final strict compilation/doc qualification remains parent/CI agent receipt scope; this review neither executes nor predicts it.",
+  "fresh_72_world_report_not_collected_or_audited_by_this_review": true,
+  "independent_frozen_reader_protocol": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/pre-world-independent-reader-freeze.json",
+    "bytes": 3359,
+    "sha256": "7c3daf4e83aaa75fcbdf695be602949f8aba1d4e9d79d1e547df512e7634d9a0"
+  },
+  "generation3_candidate_admission": "REJECTED unchanged",
+  "coupled_cause_motor_accuracy_hardware_maturity_claims": false,
+  "new_worlds_builds_tests_checkout_edits": 0
+}

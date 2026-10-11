@@ -1,0 +1,17 @@
+{
+  "name": "clippy-lib",
+  "ended_utc": "2026-10-11T22:19:03.351242+00:00",
+  "exit_code": 0,
+  "runtime_s": 2.895897103997413,
+  "vendor_inputs_unchanged": true,
+  "changed_vendor_inputs": [],
+  "log_sha256": "a2b4bc851367774e2658a996f241da47b8364d4573c38814b69365af64c0928e",
+  "log_bytes": 142,
+  "capacity_failure": false,
+  "lock_graph_failure": false,
+  "disk_after_bytes": {
+    "/workspace": 265400320,
+    "/tmp": 3609677824
+  },
+  "native_tests_worlds": 0
+}

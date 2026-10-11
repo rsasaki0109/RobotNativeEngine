@@ -1,0 +1,310 @@
+{
+  "status": "PASS_READ_ONLY_INDEPENDENT_MECHANICAL_SOURCE_REVIEW",
+  "created_utc": "2026-10-11T22:25:53.743098+00:00",
+  "merged_base": "febe966d2d24b3808180e415f0376f628b90b9b6",
+  "reviewed_vendor_file_count": 13,
+  "reviewed_diff": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/mechanical-source-independent-review.diff",
+    "sha256": "8a975683c8f4864531a12d49c04196fca3d018904f4f440afd3b1f2ff43b491e",
+    "bytes": 25320
+  },
+  "file_bindings": {
+    "third_party/rapier3d/src/data/arena.rs": {
+      "base_sha256": "5566fd26f55069b79e20801fb0cba8452367617f67cd56c9eb0b0471e35c61d9",
+      "current_sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb",
+      "current_bytes": 35182
+    },
+    "third_party/rapier3d/src/data/graph.rs": {
+      "base_sha256": "6b3d9a62f449f06a4d065f77fa0b4da9c86076baca049a4a172787d8b6825d9a",
+      "current_sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044",
+      "current_bytes": 23167
+    },
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs": {
+      "base_sha256": "f55eb8031c8433908f5f8b21d66d7260a97e76027e69065e204594dbc5c8701f",
+      "current_sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "current_bytes": 81559
+    },
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs": {
+      "base_sha256": "ec4bd5dca8329345133cac5077838bd7f89081fc9ca2efad6f6a017d82ec74aa",
+      "current_sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+      "current_bytes": 18345
+    },
+    "third_party/rapier3d/src/dynamics/joint/spherical_joint.rs": {
+      "base_sha256": "8b2e76a6546cb594230c75493f48b1b517134be704862e82daf7ea7c9cb753cc",
+      "current_sha256": "05ad4cd2cc2cfb85de6a25de43208a6294174a5d154fa7ee0c8dbe77e2563dbb",
+      "current_bytes": 9472
+    },
+    "third_party/rapier3d/src/dynamics/rigid_body_components.rs": {
+      "base_sha256": "3f584a56f9e920261484ab5accae06c5d28a291644d93b441306ffad3b7a17f7",
+      "current_sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "current_bytes": 40728
+    },
+    "third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs": {
+      "base_sha256": "f69710dada6d4e8467267b9399d5aa16153a666c10275aec4bab09807366b549",
+      "current_sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70",
+      "current_bytes": 19202
+    },
+    "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs": {
+      "base_sha256": "ca380c6853464aa4eba1944d8bf7f781692fcc315fc38b1abdf544a109dc224c",
+      "current_sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+      "current_bytes": 9066
+    },
+    "third_party/rapier3d/src/dynamics/solver/solver_vel.rs": {
+      "base_sha256": "517cb21aab562962c163350e91eaf8af613ff1c37d0a77e21c62f1233c0649b3",
+      "current_sha256": "8e10277211c04ce06c004a18f2aaf2445ead09ab55edd6ea7d5439ffd8f4e402",
+      "current_bytes": 1848
+    },
+    "third_party/rapier3d/src/geometry/broad_phase.rs": {
+      "base_sha256": "a5c759626a273c86deb6f5a02f484c90b10ed2ed245abd8e1e879baa719810ed",
+      "current_sha256": "c9e2e4d70e8a99c879660dee99fd2e15f14b6b235989142032958c418cdcc49d",
+      "current_bytes": 2931
+    },
+    "third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs": {
+      "base_sha256": "3cf8be953cbfe90233bc34ded34f864d1c03c8f234e3ac4bee94a95ba89f263a",
+      "current_sha256": "ee77333ab190cc1629665c01481fc8e2b839d8b2b1835e6b1cdf6ac4623a1432",
+      "current_bytes": 16921
+    },
+    "third_party/rapier3d/src/pipeline/event_handler.rs": {
+      "base_sha256": "600047c4f6e35b1d82beea234f1d1f63a287b48f56c306cd153d6a0b700f87c3",
+      "current_sha256": "9820d4432914cfab9573c4795ddfcf4d2554c765197e72496b44ce91f9d4b2b9",
+      "current_bytes": 4742
+    },
+    "third_party/rapier3d/src/pipeline/query_pipeline/mod.rs": {
+      "base_sha256": "8dbfd6b885a828bdc7601e40cbe5d01be9d483d88b3393da1f75221e68bbb234",
+      "current_sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332",
+      "current_bytes": 29798
+    }
+  },
+  "enumerated_static_change_proofs": [
+    {
+      "path": "third_party/rapier3d/src/data/arena.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Only explicit placeholder lifetimes; bodies exactly preserved."
+    },
+    {
+      "path": "third_party/rapier3d/src/data/graph.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Remove only three unconstructed crate-private graph iterator definitions and add placeholder lifetimes."
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Four placeholder lifetimes; remove only stray combining character in rustdoc link."
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Only repair previously malformed illustrative fence; explicitly ignored undefined-context doc example, no runtime code."
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/spherical_joint.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Derive Default for sole SphericalJoint field whose Default calls the unchanged new constructor."
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/rigid_body_components.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Only two ineffective trait-implementation must_use annotations removed; float operation bodies exact."
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Equivalent usize positive-divisor predicate; all allocation and count arithmetic otherwise exact."
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Only explicit placeholder lifetime in iterator associated item."
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_vel.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Only two explicit placeholder lifetimes; all access/unsafe code exact."
+    },
+    {
+      "path": "third_party/rapier3d/src/geometry/broad_phase.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Only correct intra-doc link and wrap; public method/type/runtime body unchanged."
+    },
+    {
+      "path": "third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs",
+      "verification": "literal_bytes_exact_after_enumerated_substitutions",
+      "reason": "Remove identity cast: insert result and vector element are BroadPhaseProxyIndex=u32."
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/event_handler.rs",
+      "verification": "non_doc_text_exact",
+      "reason": "Only documentation-list indentation; all non-doc bytes/text exact."
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/query_pipeline/mod.rs",
+      "verification": "non_doc_text_exact_after_single_substitution",
+      "reason": "Only redundant tuple-field parentheses plus doc-list indentation; non-doc code exact after one substitution."
+    }
+  ],
+  "graph_visibility_and_use_proof": {
+    "module": "pub(crate) mod graph",
+    "baseline_only_defining_references": [
+      "febe966d2d24b3808180e415f0376f628b90b9b6:third_party/rapier3d/src/data/graph.rs:521:pub struct Externals<'a, N: 'a> {",
+      "febe966d2d24b3808180e415f0376f628b90b9b6:third_party/rapier3d/src/data/graph.rs:526:impl<'a, N: 'a> Iterator for Externals<'a, N> {",
+      "febe966d2d24b3808180e415f0376f628b90b9b6:third_party/rapier3d/src/data/graph.rs:555:pub struct Neighbors<'a, E: 'a> {",
+      "febe966d2d24b3808180e415f0376f628b90b9b6:third_party/rapier3d/src/data/graph.rs:562:impl<'a, E> Iterator for Neighbors<'a, E> {",
+      "febe966d2d24b3808180e415f0376f628b90b9b6:third_party/rapier3d/src/data/graph.rs:788:pub struct NodeReferences<'a, N: 'a> {",
+      "febe966d2d24b3808180e415f0376f628b90b9b6:third_party/rapier3d/src/data/graph.rs:792:impl<'a, N> Iterator for NodeReferences<'a, N> {",
+      "febe966d2d24b3808180e415f0376f628b90b9b6:third_party/rapier3d/src/data/graph.rs:806:impl<'a, N> DoubleEndedIterator for NodeReferences<'a, N> {",
+      "febe966d2d24b3808180e415f0376f628b90b9b6:third_party/rapier3d/src/data/graph.rs:814:impl<'a, N> ExactSizeIterator for NodeReferences<'a, N> {}"
+    ],
+    "no_external_named_API_removed": true,
+    "unconstructed_removed_types": [
+      "Externals",
+      "Neighbors",
+      "NodeReferences"
+    ],
+    "remaining_graph_bodies_exact_after_explicit_lifetimes": true
+  },
+  "spherical_default_proof": "Builder has one SphericalJoint field; derived Default calls the unchanged SphericalJoint::default, which explicitly calls new. Old builder Default also called SphericalJoint::new.",
+  "usize_predicate_proof": {
+    "positive_divisors_dim2_dim3": [
+      2,
+      4
+    ],
+    "all_usize_values_equivalent": "Official is_multiple_of returns self%rhs==0 for nonzero rhs; logical negation equals old !=0. No runtime enumeration or arithmetic experiment was executed.",
+    "workspace_msrv": "1.88.0",
+    "official_unsigned_method_stable_since": "1.87.0",
+    "official_source_read": {
+      "sha256": "8664b3c08977cd4f3536b38fe92f00a1d14527fb6c8a27b1cd0fceb35189931b",
+      "bytes": 2643
+    },
+    "unavailable_html_read_retained": {
+      "sha256": "8b35bd9c710f6483ee231ae5e088313a59b8c62c82a15519fca4df4c41f0dc9d",
+      "bytes": 346
+    },
+    "MSRV_compilation_performed": false
+  },
+  "floating_arithmetic_and_solver_order": "No float-expression, native constraint/CFM/motor recurrence, solver-pass order, iteration/gain/cap or observation change in the reviewed vendor patch. This is a source-only conclusion, not a physical or performance result.",
+  "protected_exact_base_bindings": {
+    "Cargo.toml": {
+      "sha256": "26592e7a61314192daa0f29644bc07118be1f2516ea8c2a5eaacc04af8a5503d",
+      "bytes": 12498,
+      "literal_equal_merged_base": true
+    },
+    "Cargo.lock": {
+      "sha256": "a4a0d04bd29eba1b486145d051b2b6e873129cba839ba7ec983a3a63930f52b9",
+      "bytes": 141098,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/Cargo.toml": {
+      "sha256": "01d5f1b47c6002e2390a81e15d9ada9dfd92e53dde390f19eb0a5940b112f563",
+      "bytes": 3127,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/Cargo.lock": {
+      "sha256": "70724dc8640dbe8f2012087a550dd2286f18e2d8713f67a9562477fd6733c35a",
+      "bytes": 19492,
+      "base_comparison": "ignored/untracked vendor lock, current receipt only"
+    },
+    "examples/141_position_motor_calibration/lib.rs": {
+      "sha256": "e36a14f545bcdbb64c5a43cbc9c1bb4cc089fc4487dfef039ad6e43191479df2",
+      "bytes": 73382,
+      "literal_equal_merged_base": true
+    },
+    "examples/141_position_motor_calibration/main.rs": {
+      "sha256": "a302bedd163f14b7c5fc9dcf4bd9836bd6f20a6039ff83dbe3a8b39fa50e4645",
+      "bytes": 282,
+      "literal_equal_merged_base": true
+    },
+    "examples/141_position_motor_calibration/Cargo.toml": {
+      "sha256": "da10d51813c520fbbfd65bacc33a4054f79b67cf56aab39964355091a046c6c3",
+      "bytes": 521,
+      "literal_equal_merged_base": true
+    },
+    "docs/media/position-motor-calibration.json": {
+      "sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a",
+      "bytes": 8192861,
+      "literal_equal_merged_base": true
+    },
+    "docs/media/position-motor-calibration-bincode-generation-1.json": {
+      "sha256": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca",
+      "bytes": 10140453,
+      "literal_equal_merged_base": true
+    },
+    "docs/media/position-motor-calibration-codec-migration.json": {
+      "sha256": "257c8ddc628764625980be05bccdc1bd98e73517305ada82db62e98374e880e1",
+      "bytes": 15762,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs": {
+      "sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+      "bytes": 4272,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/src/dynamics/joint/motor_model.rs": {
+      "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "bytes": 1488,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs": {
+      "sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "bytes": 17536,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs": {
+      "sha256": "5be8d350bac8dace2635571ac51dc3c63728a55f63ae8f59e818349c5eead8e6",
+      "bytes": 46865,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs": {
+      "sha256": "8438959037034a1f52af90dfbbc14ddd87a8e28f91fd9db15b1ccd200a8a5f88",
+      "bytes": 14500,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/src/pipeline/physics_pipeline.rs": {
+      "sha256": "ed048f72530c3286156e33212671db59828069c20358de99b957ec957e06eb6d",
+      "bytes": 40410,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs": {
+      "sha256": "d361abd9f84a0fca60ee1ef0256c6af7399a835f91b5b59138b7c61c58c9ccd2",
+      "bytes": 12621,
+      "literal_equal_merged_base": true
+    },
+    "third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs": {
+      "sha256": "9a3c4cbcde20a7957ad3c2b9b38f8a9a2861c396c0c7cbb692c1407c65ff156e",
+      "bytes": 25838,
+      "literal_equal_merged_base": true
+    }
+  },
+  "selected_141_source_binding_scope": {
+    "original_count": 17,
+    "changed_count": 2,
+    "changed_paths": [
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "third_party/rapier3d/src/dynamics/rigid_body_components.rs"
+    ],
+    "remaining15_source_hashes_equal_old_report": true,
+    "old_report_current_source_stale": true,
+    "do_not_rebind_original_report": true,
+    "fresh72_and_independent_frozen_twohash_only_comparison_owned_by_parent": true,
+    "calibration_FAIL_must_not_be_reclassified": true
+  },
+  "other_agent_mechanical_receipt": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/mechanical-final-review.json",
+    "sha256": "4081bd17561e1322196f0443b66370b5a95e9e0fc1e2018a7370489998d2a6b1",
+    "bytes": 4019,
+    "scope": "Existence/hash recorded only; this independent review does not claim its builds as own execution."
+  },
+  "scope": {
+    "source_guards_before_after_exact": true,
+    "checkout_edits": 0,
+    "builds_tests_or_worlds_by_this_review": 0,
+    "performance_measurements": 0,
+    "stageobserver_promoted_or_implemented": false,
+    "new_maturity_or_physics_cause_claim": false
+  },
+  "limitations": [
+    "No MSRV1.88 compile, runtime or performance experiment performed by this review",
+    "Malformed illustrative rustdoc fence is now explicitly ignored, not a newly passing executed doctest",
+    "All reviewed changes are static mechanical equivalence; fresh source-bound calibration, backend/feature/runtime/workspace/release checks remain separate parent-owned qualifications",
+    "The standalone vendor Cargo.lock is untracked, so no merged-base Git byte comparison is asserted for it"
+  ]
+}

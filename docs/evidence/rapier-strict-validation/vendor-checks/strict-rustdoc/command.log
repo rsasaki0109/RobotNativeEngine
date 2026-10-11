@@ -1,0 +1,16 @@
+ Documenting rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+error: unnecessary parentheses around closure body
+   --> src/pipeline/query_pipeline/mod.rs:490:22
+    |
+490 |             .map(|h| (h.1 .0))
+    |                      ^      ^
+    |
+    = note: `-D unused-parens` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_parens)]`
+help: remove these parentheses
+    |
+490 -             .map(|h| (h.1 .0))
+490 +             .map(|h| h.1 .0 )
+    |
+
+error: could not document `rapier3d`

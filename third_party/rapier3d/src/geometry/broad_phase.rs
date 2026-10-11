@@ -21,8 +21,8 @@ pub trait BroadPhase: Send + Sync + 'static {
     /// but can result in a slight computational overhead.
     ///
     /// The `colliders` set is mutable only to provide access to
-    /// [`collider.set_internal_broad_phase_proxy_index`]. Other properties of the collider should
-    /// **not** be modified during the broad-phase update.
+    /// [`Collider::set_internal_broad_phase_proxy_index`](crate::geometry::Collider::set_internal_broad_phase_proxy_index).
+    /// Other properties of the collider should **not** be modified during the broad-phase update.
     ///
     /// # Parameters
     /// - `prediction_distance`: colliders that are not exactly touching, but closer to this

@@ -1,0 +1,33 @@
+{
+  "name": "clippy-lib",
+  "ended_utc": "2026-10-11T22:12:44.950287+00:00",
+  "exit_code": 101,
+  "runtime_s": 15.027620893000858,
+  "source_inputs_unchanged": true,
+  "changed_inputs": [],
+  "checkout_clean": true,
+  "head_unchanged": true,
+  "log_sha256": "ac1f7b867b9a894b234363701be91b873172bcebef62692b7935c664f4840d5e",
+  "log_bytes": 20513,
+  "before_manifest_sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c",
+  "after_manifest_sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c",
+  "disk_after": {
+    "/workspace": {
+      "available_bytes": 266432512,
+      "capacity_bytes": 33770192896
+    },
+    "/tmp": {
+      "available_bytes": 3613163520,
+      "capacity_bytes": 17871892480
+    }
+  },
+  "capacity_failure": false,
+  "capacity_guard_terminated_owned_command": false,
+  "locked_dependency_graph_failure": false,
+  "native_tests_worlds": 0,
+  "started_receipt": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/clippy-lib/started.json",
+    "bytes": 1115,
+    "sha256": "7eb10ab0144e0d1cd763bf7f82e587659985b973723281f11e5d212b76635868"
+  }
+}

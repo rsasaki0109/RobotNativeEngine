@@ -1,0 +1,17 @@
+{
+  "name": "clippy-all-targets",
+  "ended_utc": "2026-10-11T22:19:09.157014+00:00",
+  "exit_code": 0,
+  "runtime_s": 5.796138905992848,
+  "vendor_inputs_unchanged": true,
+  "changed_vendor_inputs": [],
+  "log_sha256": "2ebb043d51110b95413fa38ffa98e06368fe7aec21d2c5515238392f0ee5d603",
+  "log_bytes": 373,
+  "capacity_failure": false,
+  "lock_graph_failure": false,
+  "disk_after_bytes": {
+    "/workspace": 265383936,
+    "/tmp": 3603587072
+  },
+  "native_tests_worlds": 0
+}

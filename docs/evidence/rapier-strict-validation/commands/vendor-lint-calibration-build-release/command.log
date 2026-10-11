@@ -1,0 +1,3 @@
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+   Compiling position_motor_calibration v0.4.0 (/workspace/RobotNativeEngine/examples/141_position_motor_calibration)
+    Finished `release` profile [optimized] target(s) in 22.43s

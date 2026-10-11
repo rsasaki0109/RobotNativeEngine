@@ -1,0 +1,12 @@
+{
+  "started_utc": "2026-10-11T22:26:30.349290+00:00",
+  "command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/run_required_release_regressions.py"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": null,
+  "cargo_target_dir": "/tmp/rne-final-ci-cache"
+}

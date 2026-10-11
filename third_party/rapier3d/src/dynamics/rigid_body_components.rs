@@ -691,7 +691,6 @@ impl RigidBodyVelocity {
 impl std::ops::Mul<Real> for RigidBodyVelocity {
     type Output = Self;
 
-    #[must_use]
     fn mul(self, rhs: Real) -> Self {
         RigidBodyVelocity {
             linvel: self.linvel * rhs,
@@ -703,7 +702,6 @@ impl std::ops::Mul<Real> for RigidBodyVelocity {
 impl std::ops::Add<RigidBodyVelocity> for RigidBodyVelocity {
     type Output = Self;
 
-    #[must_use]
     fn add(self, rhs: Self) -> Self {
         RigidBodyVelocity {
             linvel: self.linvel + rhs.linvel,

@@ -1,0 +1,26 @@
+{
+  "started_utc": "2026-10-11T22:28:04.506503+00:00",
+  "command": [
+    "cargo",
+    "doc",
+    "--locked",
+    "-p",
+    "xtask",
+    "-p",
+    "position_motor_calibration",
+    "-p",
+    "rne_physics_rapier",
+    "-p",
+    "rne_dynamics",
+    "-p",
+    "rne_physics_native",
+    "-p",
+    "rne_locomotion",
+    "--no-deps"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": "-D warnings",
+  "cargo_target_dir": "/tmp/rne-final-ci-cache"
+}

@@ -1,0 +1,622 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-11T22:37:19.321255+00:00",
+  "scope": "Strict vendored Rapier cleanup and separately source-bound unchanged calibration; not hardware, accuracy improvement, stage-coupling or exhaustive compiler closure",
+  "base_commit": "febe966d2d24b3808180e415f0376f628b90b9b6",
+  "owned_vendor_source_files": 13,
+  "new_fixed_calibration_worlds": 72,
+  "contact_stage_worlds": 0,
+  "current_primary_accuracy": "FAIL (0/4)",
+  "files": [
+    {
+      "path": "docs/evidence/rapier-strict-validation/.gitattributes",
+      "bytes": 92,
+      "sha256": "05f6d0bbce2ddea46f075ef7f444a5d53e721770a293280deac906ee4c7990c4"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/README.md",
+      "bytes": 5596,
+      "sha256": "b73a73626a283766cb7084c0beb8eb984990f1a1674894ef646c422a682c72e6"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/baseline-release-regressions/133_go2_contact_terrain.stdout",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/baseline-release-regressions/134_go2_terrain_trot.stdout",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/baseline-release-regressions/135_go2_feedback_trot.stdout",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/baseline-release-regressions/136_go2_parallel_rl.stdout",
+      "bytes": 569,
+      "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/baseline-release-regressions/137_go2_native_backend.stdout",
+      "bytes": 854,
+      "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/baseline-release-regressions/138_heavy_grasp.stdout",
+      "bytes": 1647,
+      "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/command.log",
+      "bytes": 112,
+      "sha256": "5b0c9d9b174967aa5e2fa7d09e928e0b7551a5924538ca5a7eeafa189f82f587"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/inputs-after.json",
+      "bytes": 313608,
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/inputs-before.json",
+      "bytes": 313714,
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/started.json",
+      "bytes": 525,
+      "sha256": "0fe3a4f29dc7320905f36f9518bcbff8d32328082175c8505f024e2c588c1afa"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/terminal.json",
+      "bytes": 441,
+      "sha256": "76f5ff33ef0fc62ff4a9d86825616a7f716ea116498d283c5d4de8817f813beb"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/command.log",
+      "bytes": 263,
+      "sha256": "529f845ed7f97c8e977bce5138188ac097797631d2365e21b5a0e771a6b7d958"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/inputs-after.json",
+      "bytes": 313608,
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/inputs-before.json",
+      "bytes": 313714,
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/started.json",
+      "bytes": 402,
+      "sha256": "e49b23a91522a784b2f4e2e786243da5e733c23788909e6512285450d456b81a"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/terminal.json",
+      "bytes": 440,
+      "sha256": "44e32a01b6b68c06c2259113fe4106c36e47c690a01f37746913a9a0f7c39e30"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/command.log",
+      "bytes": 68,
+      "sha256": "fd1da9cab545501f81688742a0d652c6f084dabf5840c934af4f1648a3634766"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/inputs-after.json",
+      "bytes": 313608,
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/inputs-before.json",
+      "bytes": 313714,
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/started.json",
+      "bytes": 478,
+      "sha256": "a6fe793285ca410fa5d1f7866009044e3d388854d01166e5b626e8aaaafed8ea"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/terminal.json",
+      "bytes": 441,
+      "sha256": "a5f0dbf6fd3a9ad6add93a28ff77a4d76fc45575758ce2ac945ece4d57e381f4"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/command.log",
+      "bytes": 2980,
+      "sha256": "dbf172b87f72ed9e8db2ab52af46647f2b0d13f91c83c09ba3dab6d73396aad6"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/inputs-after.json",
+      "bytes": 313608,
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/inputs-before.json",
+      "bytes": 313714,
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/started.json",
+      "bytes": 401,
+      "sha256": "fe0ecdd64f38578cd995fcefe17a72e15b762c0a3b3c0ce15f8aa26fe588f6bb"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/terminal.json",
+      "bytes": 440,
+      "sha256": "99fcc36f24cfa3e5d9abead36f6d767326dc177916fcb0246b96122849fbbf51"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/command.log",
+      "bytes": 5085,
+      "sha256": "9c518c958ad960cbe5a1b0ad0f60f300a4bea63920d72d5b893a02c5eaaac60a"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/inputs-after.json",
+      "bytes": 313738,
+      "sha256": "9635b8648f18e12e9df6d3213cc797afb85e63beb8efb2a1ef318b671246dc3f"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/inputs-before.json",
+      "bytes": 313844,
+      "sha256": "c68ff86cab2c0ef8f193e35169308fbc807d53c48b7e7abcb802c1dffe962de5"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/started.json",
+      "bytes": 511,
+      "sha256": "451f6d13cd34b2b658587a6d1c7bb844decf3f3f92f13b2075581775f5f518f8"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/terminal.json",
+      "bytes": 439,
+      "sha256": "2a0b610bd18265854bad9d3d0fdcd27910ff278c2d28cb45fca48bc7c3ff2060"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/command.log",
+      "bytes": 4188,
+      "sha256": "2e84c60941f29042e262d8ab0d05861653dd5d29991fd95cd5d6ff53da40ca88"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/inputs-after.json",
+      "bytes": 326976,
+      "sha256": "48847f87ccdc998d03ba75013072db71b7056a597b02f23cb7f0d9601dacbd78"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/inputs-before.json",
+      "bytes": 327082,
+      "sha256": "ebb50e5cca4f45e6e6c8c6300e64389c62bd5dab3ec487f4ceddc11f6d0c802c"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/started.json",
+      "bytes": 401,
+      "sha256": "8c30e94c495764d125c2ae7d36815ecefc9021e22dfa3405707e513324643354"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/terminal.json",
+      "bytes": 440,
+      "sha256": "bd8378bda05b36331aef0a09fb0f42b0f2172f4b81a64cf5ac4760224739f16d"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/publication-boundary.json",
+      "bytes": 632,
+      "sha256": "13a80b521031868cd2418c13e25dea5467ffb91a65f4eb7a5111f2418586e86b"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain-process.json",
+      "bytes": 139,
+      "sha256": "42ff01f27869105a17443422794889eaaee6bfc8074fdf17e47e7a51e2b246f7"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.physical.txt",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.stderr",
+      "bytes": 142,
+      "sha256": "5af8695fc8c764789fe319580e683c8276180bb91095222b9fb739f203619585"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.stdout",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot-process.json",
+      "bytes": 133,
+      "sha256": "0f22037343cb748d402e5278c45b4d86d54f0d3ab53fe51aeab9b5128f51ebcd"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.physical.txt",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.stderr",
+      "bytes": 139,
+      "sha256": "71bd69d606baa2949b08e0e58acfc6aea49aabe878097205e8b6f8d446c6cb81"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.stdout",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot-process.json",
+      "bytes": 135,
+      "sha256": "4b87a77c4d55d50d1032c343be513542153cc627aa70ea5ad12607a303cb68d7"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.physical.txt",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.stderr",
+      "bytes": 579,
+      "sha256": "3e31d5516167c65f06ac4efd2cf5f0a8035c6c72049d54f30d3ee40afbcd5fad"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.stdout",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl-process.json",
+      "bytes": 131,
+      "sha256": "117efce85e88aae09b4314ce1ce799c3ef6f36082ee7a2b1af6c228abcd4a210"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.physical.txt",
+      "bytes": 501,
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.stderr",
+      "bytes": 234,
+      "sha256": "5a94cb143645f5df058688d02a8b8823db6e520560b3b0e1c6d74cfe80b82e8e"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.stdout",
+      "bytes": 569,
+      "sha256": "5bfd31a9da6d3871806e014d9951349796fdb244c6a35925d9109a8ee2d6dfd5"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend-process.json",
+      "bytes": 137,
+      "sha256": "1a744d23dd03950daa0c8ec82c99b28a2875b28033e2ecf435df3486451ee989"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.physical.txt",
+      "bytes": 820,
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.stderr",
+      "bytes": 243,
+      "sha256": "d699d2c37437d35073cf8ccb811d5140567ab3ad27e3dde8d61a6421a1fd682d"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.stdout",
+      "bytes": 853,
+      "sha256": "7e81dc1956585638a2e435baa92e439bb6342190955b60c7b2213407a460f810"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp-process.json",
+      "bytes": 123,
+      "sha256": "5abd8c35244b55660fbbd5ae865e17fd8ec06a631217d285769b8030a36cf774"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.physical.txt",
+      "bytes": 1431,
+      "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.stderr",
+      "bytes": 401,
+      "sha256": "a2aedb2fe47027635a409a71fd6573042eb5b2dd2b59e00f3dbbe2de170f9923"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.stdout",
+      "bytes": 1647,
+      "sha256": "f192f19d90ab30f2a168c44d672ebb26e0d4d60070a22fcd3ad1ee68c04f5516"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/release-regressions/results.json",
+      "bytes": 3565,
+      "sha256": "c9ffb04d0021f3f4a3c1c872d434b67cecab938b316e6f82987479d08db678ef"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-cleanup.patch",
+      "bytes": 21551,
+      "sha256": "4d5527610ceda6ba463fcade04290bf77acc9b9feaeae77ef25ed21574a8c5db"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/actual-72-world-collection-receipt.json",
+      "bytes": 1819,
+      "sha256": "1782f6530a924c6fe106a66adfd4d71758e87e53da438a33f0a3d7bb59697ac5"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/actual-independent-72-world-audit-command.json",
+      "bytes": 2766,
+      "sha256": "c376577e2e985ff9947024d9aa75f88c425139a498711dd02d7f4b877249d4c2"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/actual-independent-72-world-audit.json",
+      "bytes": 4567,
+      "sha256": "8c5ddfdc7b804588c5f9d2545cc9713a6b9932e99015fde7b15202a6c4c08e43"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/audit_vendor_lint_report.py",
+      "bytes": 18203,
+      "sha256": "819d72bd9771e6f1cdf6cac0678c4f763dacf03cccc849a29494e7599c2b76ef"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/binding-preflight-attempt1-error.json",
+      "bytes": 532,
+      "sha256": "20ae43382268643a2b177d45d7c07554d899569f614d4a03edfb46b7d8265cf2"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/frozen-current-source-binary-binding.json",
+      "bytes": 24046,
+      "sha256": "5674fc8586f0832ab1870964eba2afea6c45ab2c09c599525b69a8538442d5dc"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/independent-vendor-hygiene-mechanical-readonly-review.json",
+      "bytes": 6638,
+      "sha256": "e2984863efac9bdba3b1400354a19be4bfd8d9e4514e493c4be93a2cb403d9c9"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/mechanical-source-independent-review.json",
+      "bytes": 16122,
+      "sha256": "26abf929497ea849c206b15b05d79098377518522a7f6289f60cf0314a779782"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/pre-world-independent-reader-freeze.json",
+      "bytes": 3359,
+      "sha256": "7c3daf4e83aaa75fcbdf695be602949f8aba1d4e9d79d1e547df512e7634d9a0"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/preregistered-vendor-lint-report-transition-protocol.json",
+      "bytes": 26234,
+      "sha256": "63bc23022227140e658b2c118a5be94aa6f8343e33565f1fd077e4951a61dbb6"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/pure-reader-self-test-command.json",
+      "bytes": 588,
+      "sha256": "36cad963067359349aabeb2c2aaf4f68c2924ea7a79ce57b12c14c2ff4a867c2"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/pure-reader-self-test.stdout.json",
+      "bytes": 855,
+      "sha256": "f257cdc69f46b0e6189bee2b99ead4298a1b5f982117e72a4becf2db523f6bc8"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/required-release-reader-freeze.json",
+      "bytes": 719,
+      "sha256": "9c2e76e8c3b984d9da4bc0f4a13719e38eaee35cec13c2a12386e43e6a907900"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/resolved-release-features.json",
+      "bytes": 33443,
+      "sha256": "ced05d09fa6820ae993650eb269261f38ce2d3b263e8d2adeb8ac7eba474e3df"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/run_required_release_regressions.py",
+      "bytes": 2565,
+      "sha256": "80a8ae77e2739c89485e2ddc982e0726ccd0172a86920e907f76b73b1d7b12dd"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/unfrozen-preflight-reader-before-tamper-fixture-fix.py",
+      "bytes": 17890,
+      "sha256": "e45fb8d1714a9050a06784a6c91c1c020bcffd7d03f78dd136f74939be3fa82e"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/unfrozen-preflight-tamper-fixture-failure.json",
+      "bytes": 786,
+      "sha256": "915807388488874b549a112c24d591840bb817c6a0ae456d0e2c67ec8e3f5769"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/usize-is-multiple-of-official-msrv-read.json",
+      "bytes": 346,
+      "sha256": "8b35bd9c710f6483ee231ae5e088313a59b8c62c82a15519fca4df4c41f0dc9d"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/source-transition/usize-is-multiple-of-official-rust-1-87-source-read.json",
+      "bytes": 2643,
+      "sha256": "8664b3c08977cd4f3536b38fe92f00a1d14527fb6c8a27b1cd0fceb35189931b"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/actual-baseline-results.json",
+      "bytes": 4474,
+      "sha256": "7b4477a2794010f1d7f0ccd6463c20f37fa79c13090c87284acffd9edb149483"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/actual-results.json",
+      "bytes": 2964,
+      "sha256": "56058ce46c5a6f63bf32493f6a079da3deb25ccac3e2d9a83505acae52326ed8"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/command.log",
+      "bytes": 142,
+      "sha256": "4c8a379ce69d2c593de1803c7a92b3e44b121f16d87d8b300163cefda24ec78f"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/started.json",
+      "bytes": 769,
+      "sha256": "71fcc085070abc043f86ac369b14808b451d8dc01e7389878a564ef81b247412"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/terminal.json",
+      "bytes": 477,
+      "sha256": "acbb3e103c24afcc27b1e9acf7f7fec567f5833aeff5a8c1e5cebeb48d199bda"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/command.log",
+      "bytes": 203,
+      "sha256": "427df98e80e90a479ad079e2c16c90097db3588f0e1011ce7efc26cb261e6429"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/started.json",
+      "bytes": 735,
+      "sha256": "122cd7e71f01fe5f8f7c3900588ba1b7ec753cc515e422acaf82573f6cde67f8"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/terminal.json",
+      "bytes": 473,
+      "sha256": "a63d843d6f4d67ec300960af7d195adffefc4eb02045bf818154c5f7ed14a4b1"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/vendor-inputs-after-checks.json",
+      "bytes": 16017,
+      "sha256": "be0ef8e205269cdf3737d20c170bb412b76bf0433f3b78e869e3b38d51004955"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/vendor-inputs-before-checks.json",
+      "bytes": 16017,
+      "sha256": "be0ef8e205269cdf3737d20c170bb412b76bf0433f3b78e869e3b38d51004955"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/actual-results.json",
+      "bytes": 3776,
+      "sha256": "2693e771599c4be720ffa8dd038019a36cae966b63cc77af3fd9631241d7a444"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/command.log",
+      "bytes": 373,
+      "sha256": "2ebb043d51110b95413fa38ffa98e06368fe7aec21d2c5515238392f0ee5d603"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/started.json",
+      "bytes": 769,
+      "sha256": "5853cfa1f15bd18c35e1a36d239dc3e6de9749512e46a4b00e4f05af1c3beea1"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/terminal.json",
+      "bytes": 477,
+      "sha256": "73c8cbe403c46689175b59eb59de9ee15dba1570b1b78fdf3fb3574ef61762f2"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/command.log",
+      "bytes": 142,
+      "sha256": "a2b4bc851367774e2658a996f241da47b8364d4573c38814b69365af64c0928e"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/started.json",
+      "bytes": 761,
+      "sha256": "68323f77e4c461821905532c8d1739c09b61b1834f5f9dc903bbbf4cfd2c760d"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/terminal.json",
+      "bytes": 469,
+      "sha256": "392182dab76337e7d2b3620d37b1ee4ac46cc67c3f4789879c0fcd5208685455"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/command.log",
+      "bytes": 1860,
+      "sha256": "85e8861b5c7b51f2d35660cc49295286a37460aff1cceb875fbb770d7d3ee329"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/started.json",
+      "bytes": 735,
+      "sha256": "09339ff4a524839ed92267c4d9eca86e5d7d26e13a63c87acd71b6e5ec7cfa8b"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/terminal.json",
+      "bytes": 476,
+      "sha256": "54ac2a4dfd6c8b0ab24c4a7851366413a1b4f0cc9f72d99bd8323b7f600c1d04"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/vendor-inputs-after-checks.json",
+      "bytes": 16017,
+      "sha256": "577424c6b7d3df8a49a50b5c77a80c68c022f3d103dba808271df3590c0a612c"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/vendor-inputs-before-checks.json",
+      "bytes": 16017,
+      "sha256": "577424c6b7d3df8a49a50b5c77a80c68c022f3d103dba808271df3590c0a612c"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/baseline-diagnostic-inventory.json",
+      "bytes": 23676,
+      "sha256": "702429553d90ad0962474d9dda55fa8eb4d8d4ba43c02a8f43c3a56853bcb02b"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/command.log",
+      "bytes": 20513,
+      "sha256": "ac1f7b867b9a894b234363701be91b873172bcebef62692b7935c664f4840d5e"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/inputs-after.json",
+      "bytes": 305643,
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/inputs-before.json",
+      "bytes": 305643,
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/started.json",
+      "bytes": 1115,
+      "sha256": "7eb10ab0144e0d1cd763bf7f82e587659985b973723281f11e5d212b76635868"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/terminal.json",
+      "bytes": 1185,
+      "sha256": "9eb3bdf2f264006163242eb0a5737348699e46bf035b3e4d71ba1043350c45c3"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/documentation-fix-receipt.json",
+      "bytes": 1742,
+      "sha256": "b12df067170aa149d02cc145cb1e0ffb68a6f39d42824f602c0eb882052e2718"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/inputs-baseline.json",
+      "bytes": 305643,
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/mechanical-edit-receipt.json",
+      "bytes": 6028,
+      "sha256": "93edf6bfac81c008f512d8cb40848b1bc135f479863ddc24bbcaf92591f21feb"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/mechanical-final-review.json",
+      "bytes": 4019,
+      "sha256": "4081bd17561e1322196f0443b66370b5a95e9e0fc1e2018a7370489998d2a6b1"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/command.log",
+      "bytes": 545,
+      "sha256": "7da73d42fc0dedd5d308c5236e83ec76cece6f876e25939144075a0ddf578f93"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/inputs-after.json",
+      "bytes": 305643,
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/inputs-before.json",
+      "bytes": 305643,
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/started.json",
+      "bytes": 1089,
+      "sha256": "1f3cf4b45ac084e02b3fa6e0c56e3279d07bb6f9541b82c2030f2a1fe96b62cd"
+    },
+    {
+      "path": "docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/terminal.json",
+      "bytes": 1191,
+      "sha256": "c32ba035452d4b8f8a924ec9ae8b9aa310068432937d76575181a17a208274b8"
+    },
+    {
+      "path": "docs/media/position-motor-calibration-vendor-lint.json",
+      "bytes": 8192861,
+      "sha256": "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1"
+    }
+  ]
+}

@@ -203,7 +203,7 @@ impl<Constraints: ConstraintTypes> SolverConstraintsSet<Constraints> {
         &mut self,
     ) -> (
         &DVector<Real>,
-        impl Iterator<Item = AnyConstraintMut<Constraints>>,
+        impl Iterator<Item = AnyConstraintMut<'_, Constraints>>,
     ) {
         let jac = &self.generic_jacobians;
         let a = self

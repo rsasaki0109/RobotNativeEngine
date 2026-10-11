@@ -1,0 +1,2 @@
+# Preserve the exact bytes of the source-bound historical patch.
+source-cleanup.patch -text

@@ -23,6 +23,13 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Restore warning-denied Clippy and rustdoc validation for the vendored Rapier
+  library before adding further solver diagnostics. Apply mechanical lifetime,
+  annotation, documentation and equivalent default/integer cleanups without
+  changing contact or motor equations. Preserve the earlier motor reports and
+  qualify the two changed source bindings with a separately retained fixed
+  72-world calibration run; its failed accuracy result remains a failure.
+
 - Retain the rejected ForceBased inverse-diagonal experiment, including its
   fixed 72-world matrix, independent oracle, exact source patch and admission
   receipts. The candidate passes all four primary isolated calibration cases

@@ -1,0 +1,66 @@
+{
+  "status": "INDEPENDENT_READER_AND_TRANSITION_CRITERIA_FROZEN_PRE_WORLD",
+  "registered_utc": "2026-10-11T22:21:49.771456+00:00",
+  "protocol": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/preregistered-vendor-lint-report-transition-protocol.json",
+    "bytes": 26234,
+    "sha256": "63bc23022227140e658b2c118a5be94aa6f8343e33565f1fd077e4951a61dbb6"
+  },
+  "reader": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/audit_vendor_lint_report.py",
+    "bytes": 18203,
+    "sha256": "819d72bd9771e6f1cdf6cac0678c4f763dacf03cccc849a29494e7599c2b76ef"
+  },
+  "source_binary_template": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/source-binary-binding-template.json",
+    "bytes": 22021,
+    "sha256": "849b639f58c65e6a224da2de6fa8ea7648c681eff132386b6d3f412b23ef1851"
+  },
+  "actual_collection_template": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/actual-collection-receipt-template.json",
+    "bytes": 752,
+    "sha256": "ea88d9385482ceffa1f3b7bf82b242a87df4cd9705ea66404b321ce79f35d107"
+  },
+  "pure_test_actual_exit": 0,
+  "pure_test": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/pure-reader-self-test-command.json",
+    "bytes": 588,
+    "sha256": "36cad963067359349aabeb2c2aaf4f68c2924ea7a79ce57b12c14c2ff4a867c2"
+  },
+  "pure_test_stdout": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/pure-reader-self-test.stdout.json",
+    "bytes": 855,
+    "sha256": "f257cdc69f46b0e6189bee2b99ead4298a1b5f982117e72a4becf2db523f6bc8"
+  },
+  "retained_unfrozen_preflight_failure": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/unfrozen-preflight-tamper-fixture-failure.json",
+    "bytes": 786,
+    "sha256": "915807388488874b549a112c24d591840bb817c6a0ae456d0e2c67ec8e3f5769"
+  },
+  "no_new_report_audit_or_worlds_builds": true,
+  "source_and_binary_freeze_pending_root_final13_hashes": true,
+  "new_public_report": "docs/media/position-motor-calibration-vendor-lint.json",
+  "required_after_collection_command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/audit_vendor_lint_report.py",
+    "--protocol",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/preregistered-vendor-lint-report-transition-protocol.json",
+    "--protocol-sha256",
+    "63bc23022227140e658b2c118a5be94aa6f8343e33565f1fd077e4951a61dbb6",
+    "--binding",
+    "<ACTUAL_FROZEN_BINDING_JSON>",
+    "--binding-sha256",
+    "<LITERAL_SHA256>",
+    "--report",
+    "<ACTUAL_RAW_NEW_REPORT_JSON>",
+    "--report-sha256",
+    "<LITERAL_SHA256>",
+    "--collection",
+    "<ACTUAL_COLLECTION_RECEIPT_JSON>",
+    "--collection-sha256",
+    "<LITERAL_SHA256>",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/actual-independent-new-report-qualification.json"
+  ],
+  "publication_or_maturity_or_coupled_cause_claim": false
+}

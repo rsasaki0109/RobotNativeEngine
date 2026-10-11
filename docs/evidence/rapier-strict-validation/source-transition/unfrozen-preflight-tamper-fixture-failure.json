@@ -1,0 +1,15 @@
+{
+  "recorded_utc": "2026-10-11T22:20:32.681667+00:00",
+  "actual_command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/audit_vendor_lint_report.py",
+    "--self-test"
+  ],
+  "actual_exit": 1,
+  "source_sha256": "e45fb8d1714a9050a06784a6c91c1c020bcffd7d03f78dd136f74939be3fa82e",
+  "actual_error": "ValueError: tamper not rejected: native_byte_tamper",
+  "diagnosis": "Unfrozen self-test attempted literal replacement with wrong native byte indentation, producing an unchanged synthetic input. This tests the fixture rather than a new report. Fix regex mutation before any reader/protocol freeze.",
+  "new_report_audits": 0,
+  "worlds_builds_physics_tests": 0,
+  "failure_preserved_not_reinterpreted": true
+}

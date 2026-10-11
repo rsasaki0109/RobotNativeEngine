@@ -1,0 +1,65 @@
+{
+  "status": "ACTUAL_POST_HYGIENE_STRICT_CHECKS",
+  "completed_utc": "2026-10-11T22:21:07.687743+00:00",
+  "vendor_source_guard_count": 116,
+  "vendor_inputs_before": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/after-documentation-fixes-checks/vendor-inputs-before-checks.json",
+    "bytes": 16017,
+    "sha256": "be0ef8e205269cdf3737d20c170bb412b76bf0433f3b78e869e3b38d51004955"
+  },
+  "vendor_inputs_after": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/after-documentation-fixes-checks/vendor-inputs-after-checks.json",
+    "bytes": 16017,
+    "sha256": "be0ef8e205269cdf3737d20c170bb412b76bf0433f3b78e869e3b38d51004955"
+  },
+  "before_after_source_maps_equal": true,
+  "results": [
+    {
+      "name": "clippy-all-targets",
+      "ended_utc": "2026-10-11T22:21:05.080203+00:00",
+      "exit_code": 0,
+      "runtime_s": 6.154184949991759,
+      "vendor_inputs_unchanged": true,
+      "changed_vendor_inputs": [],
+      "log_sha256": "4c8a379ce69d2c593de1803c7a92b3e44b121f16d87d8b300163cefda24ec78f",
+      "log_bytes": 142,
+      "capacity_failure": false,
+      "lock_graph_failure": false,
+      "disk_after_bytes": {
+        "/workspace": 264568832,
+        "/tmp": 3603582976
+      },
+      "native_tests_worlds": 0,
+      "terminal_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/after-documentation-fixes-checks/clippy-all-targets/terminal.json",
+        "bytes": 477,
+        "sha256": "acbb3e103c24afcc27b1e9acf7f7fec567f5833aeff5a8c1e5cebeb48d199bda"
+      }
+    },
+    {
+      "name": "strict-rustdoc",
+      "ended_utc": "2026-10-11T22:21:07.667222+00:00",
+      "exit_code": 0,
+      "runtime_s": 2.565615503990557,
+      "vendor_inputs_unchanged": true,
+      "changed_vendor_inputs": [],
+      "log_sha256": "427df98e80e90a479ad079e2c16c90097db3588f0e1011ce7efc26cb261e6429",
+      "log_bytes": 203,
+      "capacity_failure": false,
+      "lock_graph_failure": false,
+      "disk_after_bytes": {
+        "/workspace": 264552448,
+        "/tmp": 3576311808
+      },
+      "native_tests_worlds": 0,
+      "terminal_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/after-documentation-fixes-checks/strict-rustdoc/terminal.json",
+        "bytes": 473,
+        "sha256": "a63d843d6f4d67ec300960af7d195adffefc4eb02045bf818154c5f7ed14a4b1"
+      }
+    }
+  ],
+  "all_requested_checks_passed": true,
+  "scope": "Standalone default dim3/f32 feature lib/all-target Clippy and no-deps rustdoc; no unit/native test/world execution, no lint suppression, no source edits by this check helper",
+  "parallel_serde_checks": "Not run by this helper; require separate actual qualification if included in final change scope."
+}

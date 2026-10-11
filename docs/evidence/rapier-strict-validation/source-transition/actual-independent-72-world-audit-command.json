@@ -1,0 +1,51 @@
+{
+  "status": "ACTUAL_ONCE_FROZEN_INDEPENDENT_READER_COMMAND",
+  "started_utc": "2026-10-11T22:26:13.165589+00:00",
+  "ended_utc": "2026-10-11T22:26:14.072740+00:00",
+  "command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/audit_vendor_lint_report.py",
+    "--protocol",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/preregistered-vendor-lint-report-transition-protocol.json",
+    "--protocol-sha256",
+    "63bc23022227140e658b2c118a5be94aa6f8343e33565f1fd077e4951a61dbb6",
+    "--binding",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/frozen-current-source-binary-binding.json",
+    "--binding-sha256",
+    "5674fc8586f0832ab1870964eba2afea6c45ab2c09c599525b69a8538442d5dc",
+    "--report",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/current-source-report.json",
+    "--report-sha256",
+    "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1",
+    "--collection",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/actual-72-world-collection-receipt.json",
+    "--collection-sha256",
+    "1782f6530a924c6fe106a66adfd4d71758e87e53da438a33f0a3d7bb59697ac5",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/actual-independent-72-world-audit.json"
+  ],
+  "actual_exit": 0,
+  "stdout": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/actual-independent-72-world-audit-command.stdout.txt",
+    "bytes": 243,
+    "sha256": "79552297ef6158019b74a35a8d81c22cb05a027bbcfb572e7364c8907d24922f"
+  },
+  "stderr": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/actual-independent-72-world-audit-command.stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "reader": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/audit_vendor_lint_report.py",
+    "bytes": 18203,
+    "sha256": "819d72bd9771e6f1cdf6cac0678c4f763dacf03cccc849a29494e7599c2b76ef"
+  },
+  "audit": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/actual-independent-72-world-audit.json",
+    "bytes": 4567,
+    "sha256": "8c5ddfdc7b804588c5f9d2545cc9713a6b9932e99015fde7b15202a6c4c08e43"
+  },
+  "reader_or_protocol_edits": 0,
+  "worlds_builds_tests": 0,
+  "new_report_auditor_executions": 1
+}

@@ -1001,7 +1001,7 @@ impl Multibody {
 
     /// The generalized velocity at the multibody_joint of the given link.
     #[inline]
-    pub fn joint_velocity(&self, link: &MultibodyLink) -> DVectorView<Real> {
+    pub fn joint_velocity(&self, link: &MultibodyLink) -> DVectorView<'_, Real> {
         let ndofs = link.joint().ndofs();
         DVectorView::from_slice(
             &self.velocities.as_slice()[link.assembly_id..link.assembly_id + ndofs],
@@ -1011,13 +1011,13 @@ impl Multibody {
 
     /// The generalized accelerations of this multibodies.
     #[inline]
-    pub fn generalized_acceleration(&self) -> DVectorView<Real> {
+    pub fn generalized_acceleration(&self) -> DVectorView<'_, Real> {
         self.accelerations.rows(0, self.ndofs)
     }
 
     /// The generalized velocities of this multibodies.
     #[inline]
-    pub fn generalized_velocity(&self) -> DVectorView<Real> {
+    pub fn generalized_velocity(&self) -> DVectorView<'_, Real> {
         self.velocities.rows(0, self.ndofs)
     }
 
@@ -1029,7 +1029,7 @@ impl Multibody {
 
     /// The mutable generalized velocities of this multibodies.
     #[inline]
-    pub fn generalized_velocity_mut(&mut self) -> DVectorViewMut<Real> {
+    pub fn generalized_velocity_mut(&mut self) -> DVectorViewMut<'_, Real> {
         self.velocities.rows_mut(0, self.ndofs)
     }
 
@@ -1299,7 +1299,7 @@ impl Multibody {
     /// - All the indices must be part of the same kinematic branch.
     /// - If a link is `branch[i]`, then `branch[i - 1]` must be its parent.
     ///
-    /// In general, this method shouldn’t be used directly and [`Self::forward_kinematics_single_link`̦]
+    /// In general, this method shouldn’t be used directly and [`Self::forward_kinematics_single_link`]
     /// should be preferred since it computes the branch indices automatically.
     ///
     /// If you want to calculate the branch indices manually, see [`Self::kinematic_branch`].

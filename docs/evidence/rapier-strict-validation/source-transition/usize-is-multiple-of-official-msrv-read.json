@@ -1,0 +1,8 @@
+{
+  "url": "https://doc.rust-lang.org/1.88.0/std/primitive.usize.html",
+  "at_utc": "2026-10-11T22:22:15.516524+00:00",
+  "operations": "read-only documentation request; no build/test/world",
+  "status": "official_documentation_read_unavailable",
+  "error_type": "URLError",
+  "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+}

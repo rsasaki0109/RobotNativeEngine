@@ -1,0 +1,89 @@
+    Checking serde v1.0.228
+    Checking zerocopy v0.8.52
+    Checking smallvec v1.15.2
+    Checking glam v0.29.3
+    Checking ahash v0.8.12
+    Checking hashbrown v0.14.5
+    Checking bevy_utils v0.15.3
+    Checking bevy_reflect v0.15.3
+    Checking rne_math v0.4.0 (/workspace/RobotNativeEngine/crates/rne_math)
+    Checking uuid v1.12.1
+    Checking rne_core v0.4.0 (/workspace/RobotNativeEngine/crates/rne_core)
+    Checking bytemuck v1.25.0
+    Checking equator v0.4.2
+    Checking aligned-vec v0.6.4
+    Checking v_frame v0.3.9
+    Checking av-scenechange v0.14.1
+    Checking profiling v1.0.18
+    Checking av1-grain v0.2.5
+    Checking safe_arch v0.7.4
+    Checking half v2.7.1
+    Checking rav1e v0.8.1
+    Checking bevy_ecs v0.15.4
+    Checking wide v0.7.33
+    Checking num-complex v0.4.6
+    Checking ravif v0.13.0
+    Checking exr v1.74.0
+    Checking rne_ecs v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ecs)
+    Checking rne_world v0.4.0 (/workspace/RobotNativeEngine/crates/rne_world)
+    Checking rne_physics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics)
+    Checking tiff v0.11.3
+    Checking rne_robot v0.4.0 (/workspace/RobotNativeEngine/crates/rne_robot)
+    Checking simba v0.9.1
+    Checking qoi v0.4.1
+    Checking serde_spanned v0.6.9
+    Checking toml_datetime v0.6.11
+    Checking spade v2.15.1
+    Checking nalgebra v0.33.3
+    Checking toml_edit v0.22.27
+    Checking image v0.25.10
+    Checking rstar v0.12.2
+    Checking gltf-json v1.4.1
+    Checking gltf v1.4.1
+    Checking toml v0.8.23
+    Checking bit-vec v0.7.0
+    Checking parry3d v0.17.6
+    Checking rne_render v0.4.0 (/workspace/RobotNativeEngine/crates/rne_render)
+    Checking rne_data v0.4.0 (/workspace/RobotNativeEngine/crates/rne_data)
+    Checking rne_collision_bake v0.4.0 (/workspace/RobotNativeEngine/crates/rne_collision_bake)
+    Checking rne_urdf_import v0.4.0 (/workspace/RobotNativeEngine/crates/rne_urdf_import)
+    Checking rne_sensor v0.4.0 (/workspace/RobotNativeEngine/crates/rne_sensor)
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Checking rne_deformable v0.4.0 (/workspace/RobotNativeEngine/crates/rne_deformable)
+    Checking rne_assets v0.4.0 (/workspace/RobotNativeEngine/crates/rne_assets)
+    Checking rne_log v0.4.0 (/workspace/RobotNativeEngine/crates/rne_log)
+    Checking rne_traffic v0.4.0 (/workspace/RobotNativeEngine/crates/rne_traffic)
+    Checking rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+    Checking rne_openscenario v0.4.0 (/workspace/RobotNativeEngine/crates/rne_openscenario)
+    Checking rne_ai v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ai)
+    Checking rne_physics_analytic v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_analytic)
+    Checking rne_plugin_sdk v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin_sdk)
+    Checking rne_plugin v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin)
+    Checking rne_sumo v0.4.0 (/workspace/RobotNativeEngine/crates/rne_sumo)
+    Checking rne_physics_conformance v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_conformance)
+    Checking linux-raw-sys v0.12.1
+    Checking rustix v1.1.4
+    Checking clap v4.6.1
+    Checking rne_physics_conformance_suite v0.4.0 (/workspace/RobotNativeEngine/tests/physics_conformance)
+    Checking rne_traci v0.4.0 (/workspace/RobotNativeEngine/crates/rne_traci)
+    Checking rne_sdf v0.4.0 (/workspace/RobotNativeEngine/crates/rne_sdf)
+    Checking rne_mjcf v0.4.0 (/workspace/RobotNativeEngine/crates/rne_mjcf)
+    Checking rne_dynamics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_dynamics)
+    Checking rne_usd v0.4.0 (/workspace/RobotNativeEngine/crates/rne_usd)
+    Checking cobs v0.3.0
+    Checking postcard v1.1.3
+    Checking rne_fuzz_smoke v0.4.0 (/workspace/RobotNativeEngine/tests/fuzz_smoke)
+    Checking tempfile v3.27.0
+    Checking rne_hardware_gateway v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_gateway)
+    Checking rne_accelerator_contract v0.4.0 (/workspace/RobotNativeEngine/crates/rne_accelerator_contract)
+ Documenting rne_locomotion v0.4.0 (/workspace/RobotNativeEngine/crates/rne_locomotion)
+    Checking rne_hardware_lekiwi v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_lekiwi)
+    Checking rne_asset_cli v0.4.0 (/workspace/RobotNativeEngine/tools/rne_asset_cli)
+    Checking rne_compatibility_suite v0.4.0 (/workspace/RobotNativeEngine/tests/compatibility)
+ Documenting position_motor_calibration v0.4.0 (/workspace/RobotNativeEngine/examples/141_position_motor_calibration)
+ Documenting rne_physics_native v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_native)
+ Documenting xtask v0.4.0 (/workspace/RobotNativeEngine/xtask)
+ Documenting rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+ Documenting rne_dynamics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_dynamics)
+    Finished `dev` profile [optimized] target(s) in 49.42s
+   Generated /tmp/rne-final-ci-cache/doc/position_motor_calibration/index.html and 5 other files

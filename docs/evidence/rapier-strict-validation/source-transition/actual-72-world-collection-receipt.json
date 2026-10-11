@@ -1,0 +1,36 @@
+{
+  "status": "ACTUAL_VENDOR_LINT_72_WORLD_COLLECTION_COMPLETE",
+  "started_utc": "2026-10-11T22:24:55.316159+00:00",
+  "ended_utc": "2026-10-11T22:24:55.980244+00:00",
+  "exit_code": 0,
+  "source_inputs_unchanged": true,
+  "binding_sha256": "5674fc8586f0832ab1870964eba2afea6c45ab2c09c599525b69a8538442d5dc",
+  "report_sha256": "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1",
+  "stdout": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/vendor-lint-authoritative-calibration/command.log",
+    "bytes": 112,
+    "sha256": "5b0c9d9b174967aa5e2fa7d09e928e0b7551a5924538ca5a7eeafa189f82f587"
+  },
+  "source_guard_before": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/vendor-lint-authoritative-calibration/inputs-before.json",
+    "bytes": 313714,
+    "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+  },
+  "source_guard_after": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/vendor-lint-authoritative-calibration/inputs-after.json",
+    "bytes": 313608,
+    "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+  },
+  "actual_command": [
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/frozen-current-141-binary",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/current-source-report.json"
+  ],
+  "wrapper_terminal": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/vendor-lint-authoritative-calibration/terminal.json",
+    "bytes": 441,
+    "sha256": "76f5ff33ef0fc62ff4a9d86825616a7f716ea116498d283c5d4de8817f813beb"
+  },
+  "actual_scientific_matrix_worlds": 72,
+  "contact_stage_worlds": 0
+}

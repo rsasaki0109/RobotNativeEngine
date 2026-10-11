@@ -1,0 +1,9 @@
+{
+  "frozen_utc": "2026-10-11T22:26:29.615395+00:00",
+  "source": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/run_restored_default_release_regressions.py",
+  "source_sha256": "7af7ac54d2facdd7176b7fde658823b58b344c4eb34d66aebfa7c3876681214e",
+  "adapted": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/run_required_release_regressions.py",
+  "adapted_sha256": "80a8ae77e2739c89485e2ddc982e0726ccd0172a86920e907f76b73b1d7b12dd",
+  "sole_change": "Unique output directory; commands, baselines, three exact timing regexes and fail-on-difference criteria unchanged",
+  "release_example_worlds_before_helper_freeze": 0
+}

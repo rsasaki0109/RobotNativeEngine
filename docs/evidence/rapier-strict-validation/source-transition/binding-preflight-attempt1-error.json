@@ -1,0 +1,13 @@
+{
+  "observed_after_utc": "2026-10-11T22:24:27.962861+00:00",
+  "actual_tool_exit_code": 1,
+  "error_type": "KeyError",
+  "missing_key": "allowed_selected_source_hash_changes",
+  "source_binary_binding_created": false,
+  "authoritative_worlds_created": 0,
+  "retained_partial_artifacts": [
+    "resolved-release-features.json",
+    "frozen-current-141-binary"
+  ],
+  "resolution": "Read actual frozen protocol field allowed_report_field_changes.selected_source_sha256; preserve prior frozen artifacts and finalize a new binding."
+}

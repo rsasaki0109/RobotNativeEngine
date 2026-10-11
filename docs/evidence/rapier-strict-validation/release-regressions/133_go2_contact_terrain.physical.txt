@@ -1,0 +1,8 @@
+terrain: 61x61 samples over 6.0x6.0 m, seed 2018, relief 0.131 m
+go2: nv=18 dropped 0.42 m, simulated 2.0 s at 500 Hz
+stance: [Sticking, Sticking, Sticking, Sticking], base clearance 0.327 m, residual speed 1.45e-3
+support: vertical contact force 265.73 N vs weight 265.72 N
+contacts: deepest penetration 0.00 mm, max joint error 0.0736 rad
+solver: mean 3.1 / max 5 sweeps, unconverged steps 0
+deterministic replay: true
+go2 contact terrain: ok

@@ -1,0 +1,105 @@
+{
+  "status": "ACTUAL_STANDALONE_VENDOR_STRICT_BASELINE_RESULTS",
+  "completed_utc": "2026-10-11T22:12:46.866924+00:00",
+  "base_commit": "febe966d2d24b3808180e415f0376f628b90b9b6",
+  "baseline_inputs": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/inputs-baseline.json",
+    "bytes": 305643,
+    "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+  },
+  "source_guard_count": 2310,
+  "environment": {
+    "CARGO_HOME": "/workspace/.rne-tools/cargo",
+    "RUSTUP_HOME": "/workspace/.rne-tools/rustup",
+    "CARGO_TARGET_DIR": "/tmp/rne-final-ci-cache",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+  "results": [
+    {
+      "name": "clippy-lib",
+      "ended_utc": "2026-10-11T22:12:44.950287+00:00",
+      "exit_code": 101,
+      "runtime_s": 15.027620893000858,
+      "source_inputs_unchanged": true,
+      "changed_inputs": [],
+      "checkout_clean": true,
+      "head_unchanged": true,
+      "log_sha256": "ac1f7b867b9a894b234363701be91b873172bcebef62692b7935c664f4840d5e",
+      "log_bytes": 20513,
+      "before_manifest_sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c",
+      "after_manifest_sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c",
+      "disk_after": {
+        "/workspace": {
+          "available_bytes": 266432512,
+          "capacity_bytes": 33770192896
+        },
+        "/tmp": {
+          "available_bytes": 3613163520,
+          "capacity_bytes": 17871892480
+        }
+      },
+      "capacity_failure": false,
+      "capacity_guard_terminated_owned_command": false,
+      "locked_dependency_graph_failure": false,
+      "native_tests_worlds": 0,
+      "started_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/clippy-lib/started.json",
+        "bytes": 1115,
+        "sha256": "7eb10ab0144e0d1cd763bf7f82e587659985b973723281f11e5d212b76635868"
+      },
+      "terminal_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/clippy-lib/terminal.json",
+        "bytes": 1185,
+        "sha256": "9eb3bdf2f264006163242eb0a5737348699e46bf035b3e4d71ba1043350c45c3"
+      }
+    },
+    {
+      "name": "strict-rustdoc",
+      "ended_utc": "2026-10-11T22:12:46.841565+00:00",
+      "exit_code": 101,
+      "runtime_s": 1.3272966820077272,
+      "source_inputs_unchanged": true,
+      "changed_inputs": [],
+      "checkout_clean": true,
+      "head_unchanged": true,
+      "log_sha256": "7da73d42fc0dedd5d308c5236e83ec76cece6f876e25939144075a0ddf578f93",
+      "log_bytes": 545,
+      "before_manifest_sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c",
+      "after_manifest_sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c",
+      "disk_after": {
+        "/workspace": {
+          "available_bytes": 265801728,
+          "capacity_bytes": 33770192896
+        },
+        "/tmp": {
+          "available_bytes": 3613151232,
+          "capacity_bytes": 17871892480
+        }
+      },
+      "capacity_failure": false,
+      "capacity_guard_terminated_owned_command": false,
+      "locked_dependency_graph_failure": false,
+      "native_tests_worlds": 0,
+      "started_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/strict-rustdoc/started.json",
+        "bytes": 1089,
+        "sha256": "1f3cf4b45ac084e02b3fa6e0c56e3279d07bb6f9541b82c2030f2a1fe96b62cd"
+      },
+      "terminal_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/vendor-strict-baseline/strict-rustdoc/terminal.json",
+        "bytes": 1191,
+        "sha256": "c32ba035452d4b8f8a924ec9ae8b9aa310068432937d76575181a17a208274b8"
+      }
+    }
+  ],
+  "all_requested_commands_executed": true,
+  "all_requested_checks_passed": false,
+  "scope": "Actual default-feature lib Clippy and no-deps strict rustdoc only; not all-target or parallel qualification",
+  "no_tests_worlds_source_edits_lock_changes_lint_suppression_cache_cleanup": true
+}

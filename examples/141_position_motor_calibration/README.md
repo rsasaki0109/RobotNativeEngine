@@ -139,7 +139,7 @@ Both measurement generations descend from main base
 `0098eda761af0cbcc211bb7608c5f0cc4715127e`; each report records its selected source
 snapshot. The locked release builds use Rust 1.95.0 (`59807616e`, LLVM 22.1.2) on
 `x86_64-unknown-linux-gnu`, with the direct Rapier `serde-serialize` feature.
-The current generation-2 binary SHA256 is
+The historical generation-2 binary SHA256 is
 `f1d8c7af4488ca0921fe38c3eeed20d8a77e97afcf155465e66f6141a211c8e7`;
 report SHA256 is `0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a`.
 
@@ -181,7 +181,28 @@ physical output: example 138 changes four Rapier grasp rows even though it print
 `ok`. All candidate code is rolled back, and a new release run restores all six
 original baselines. The [historical report](../../docs/media/position-motor-diagonal-calibration.json)
 and [source-bound evidence and rejection receipts](../../docs/evidence/position-motor-diagonal-experiment/README.md)
-remain separate from the unchanged current generation-2 report. The current
+remain separate from the unchanged historical generation-2 report. The current
 verifier must reject the candidate's stale source binding; it is not a new default
 calibration PASS. Attempted candidate unit tests fail to compile and provide no
 passing qualification. No retuning, G1 recovery or hardware claim follows.
+
+## Current-source qualification after vendor lint cleanup
+
+Standalone strict Rapier lint and documentation cleanup changes two selected
+source files, without changing motor/contact arithmetic or this collector.
+Earlier reports remain byte-identical historical evidence; their stale-source
+rejection remains enforced. The separately collected
+[current-source report](../../docs/media/position-motor-calibration-vendor-lint.json)
+uses the same schema, 24 conditions, 72 worlds, codec, state scope and criteria.
+A comparison reader frozen before collection allows only the two changed source
+hashes and requires literal equality of every other field with generation 2.
+Collection/replay qualification is independent of the still-failed motor accuracy
+criterion. This run measures no contact-stage coupling or hardware behavior.
+
+```bash
+cargo run --locked -p position_motor_calibration \
+  --example 141_position_motor_calibration -- \
+  --verify-report docs/media/position-motor-calibration-vendor-lint.json
+```
+
+See the [source transition and strict validation receipts](../../docs/evidence/rapier-strict-validation/README.md).

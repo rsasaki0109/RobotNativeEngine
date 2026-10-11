@@ -1,0 +1,37 @@
+{
+  "started_utc": "2026-10-11T22:12:45.514268+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "command": [
+    "cargo",
+    "doc",
+    "--locked",
+    "--manifest-path",
+    "third_party/rapier3d/Cargo.toml",
+    "--no-deps"
+  ],
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+  "selected_nonsecret_environment": {
+    "CARGO_HOME": "/workspace/.rne-tools/cargo",
+    "RUSTUP_HOME": "/workspace/.rne-tools/rustup",
+    "CARGO_TARGET_DIR": "/tmp/rne-final-ci-cache",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "RUSTDOCFLAGS": "-D warnings",
+  "disk_before": {
+    "/workspace": {
+      "available_bytes": 266117120,
+      "capacity_bytes": 33770192896
+    },
+    "/tmp": {
+      "available_bytes": 3613163520,
+      "capacity_bytes": 17871892480
+    }
+  },
+  "native_tests_worlds": 0,
+  "scope": "Standalone default dim3/f32 vendor; Clippy lib-only and strict no-deps rustdoc are separate actual commands"
+}

@@ -1,0 +1,13 @@
+{
+  "url": "https://api.github.com/repos/rust-lang/rust/contents/library/core/src/num/uint_macros.rs?ref=1.87.0",
+  "at_utc": "2026-10-11T22:22:50.423495+00:00",
+  "operations": "read-only public official Rust source; no build/test/world",
+  "http_status": 200,
+  "status": "source_method_found",
+  "source_sha256": "986c6e4ac15ba899105237a77e00bd9314d7b9c1d846671783352c1c429b8f29",
+  "git_blob_sha": "1b2acdc5a0df140157738cdad9864c8e1dff90e5",
+  "source_bytes": 150130,
+  "excerpt_sha256": "545f1f3286b0ae4d51a6f3da769aef411790760dd580bbd35ab273998bea7eca",
+  "stable_1_87_annotation": true,
+  "excerpt": "1.73.0\")]\n        #[must_use = \"this returns the result of the operation, \\\n                      without modifying the original\"]\n        #[inline]\n        pub const fn checked_next_multiple_of(self, rhs: Self) -> Option<Self> {\n            match try_opt!(self.checked_rem(rhs)) {\n                0 => Some(self),\n                // rhs - r cannot overflow because r is smaller than rhs\n                r => self.checked_add(rhs - r)\n            }\n        }\n\n        /// Returns `true` if `self` is an integer multiple of `rhs`, and false otherwise.\n        ///\n        /// This function is equivalent to `self % rhs == 0`, except that it will not panic\n        /// for `rhs == 0`. Instead, `0.is_multiple_of(0) == true`, and for any non-zero `n`,\n        /// `n.is_multiple_of(0) == false`.\n        ///\n        /// # Examples\n        ///\n        /// Basic usage:\n        ///\n        /// ```\n        #[doc = concat!(\"assert!(6_\", stringify!($SelfT), \".is_multiple_of(2));\")]\n        #[doc = concat!(\"assert!(!5_\", stringify!($SelfT), \".is_multiple_of(2));\")]\n        ///\n        #[doc = concat!(\"assert!(0_\", stringify!($SelfT), \".is_multiple_of(0));\")]\n        #[doc = concat!(\"assert!(!6_\", stringify!($SelfT), \".is_multiple_of(0));\")]\n        /// ```\n        #[stable(feature = \"unsigned_is_multiple_of\", since = \"1.87.0\")]\n        #[rustc_const_stable(feature = \"unsigned_is_multiple_of\", since = \"1.87.0\")]\n        #[must_use]\n        #[inline]\n        #[rustc_inherit_overflow_checks]\n        pub const fn is_multiple_of(self, rhs: Self) -> bool {\n            match rhs {\n                0 => self == 0,\n                _ => self % rhs == 0,\n            }\n        }\n\n        /// Returns `true` if and only if `self == 2^k` for some `k`.\n        ///\n        /// # Examples\n        ///\n        /// Basic usage:\n        ///\n        /// ```\n        #[doc = concat!(\"assert!(16\", stringify!($SelfT), \".is_power_of_two());\")]\n        #[doc = concat!"
+}
