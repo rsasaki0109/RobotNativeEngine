@@ -768,6 +768,13 @@ backend supports collection without advancing the clock. The default-off feature
 is forwarded from example 139 through `rne_ai` to the Rapier backend; default
 builds retain compatibility with the upstream dependency.
 
+CI's isolated API-comparison workspaces do not inherit the root manifest's Rapier
+patch. An owned temporary Cargo config supplies that same checkout fork to both
+current and immutable-baseline API builds. Existing configuration is never
+overwritten, and cleanup removes only the generated file. Feature selection,
+baseline identity, and release checks remain unchanged. This consistent dependency
+context checks API compatibility; it does not replay baseline physics or dependencies.
+
 Example 139's orthogonal headless `--motor-effort-diagnostics` flag reads the
 component after stepping, binding command-consumer `t` to completion `t+dt`.
 Revolute N·m·s/N·m and prismatic N·s/N remain distinct. Both observed and

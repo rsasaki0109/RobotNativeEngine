@@ -33,6 +33,8 @@ All notable changes to Robot Native Engine are documented in this file.
   this is simulated solver readback, not hardware saturation or a fall-cause claim.
   Retain all 16 fixed G1 outcomes (11 recovered, five failures) and all 23 joints
   in [source-bound interval/window evidence](docs/media/g1-motor-effort-diagnostics.json).
+  Give isolated CI API-comparison builds the repository Rapier patch through an
+  owned temporary Cargo config, retaining all feature and frozen-baseline checks.
 
 - Add an opt-in 16-case G1 lateral-gyro experiment with a fixed 5 ms EMA on
   positive-age world gyro X. Keep orientation projection on the original

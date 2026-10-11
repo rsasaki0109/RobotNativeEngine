@@ -348,6 +348,38 @@ jobs:
             exit 0
           fi
 
+          # Isolated rustdoc workspaces do not inherit the root manifest's patch.
+          # Compare both APIs with the same repository dependency context while
+          # retaining the frozen baseline, feature selection, and release checks.
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import os
+          import tomllib
+
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          manifest = tomllib.loads((checkout / "Cargo.toml").read_text())
+          override = manifest["patch"]["crates-io"]["rapier3d"]
+          if set(override) != {"path"}:
+              raise SystemExit("expected the repository's path-only Rapier patch")
+          patch = (checkout / override["path"]).resolve(strict=True)
+          if not patch.is_relative_to(checkout) or not (patch / "Cargo.toml").is_file():
+              raise SystemExit("Rapier patch must remain inside the checkout")
+          config_dir = checkout / ".cargo"
+          if config_dir.is_symlink() or any(
+              (config_dir / name).exists() or (config_dir / name).is_symlink()
+              for name in ("config", "config.toml")
+          ):
+              raise SystemExit("refusing to replace an existing Cargo config")
+          config_dir.mkdir(exist_ok=True)
+          with (config_dir / "config.toml").open("x") as config:
+              config.write(
+                  "[patch.crates-io]\nrapier3d = { path = "
+                  + json.dumps(str(patch)) + " }\n"
+              )
+          PY
+          # Arm cleanup only after creating our own config successfully.
+          trap 'rm -f -- .cargo/config.toml' EXIT
           cargo semver-checks check-release "${packages[@]}" --baseline-rev "$baseline" --release-type patch
 
   behavior_ci:
