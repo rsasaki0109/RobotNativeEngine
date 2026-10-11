@@ -427,6 +427,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bincode"
+version = "1.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -440,6 +449,9 @@ name = "bit-vec"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2c54ff287cfc0a34f38a6b832ea1bd8e448a330b3e40a50859e6488bee07f22"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "bit-vec"
@@ -2932,6 +2944,7 @@ dependencies = [
  "num-complex",
  "num-rational",
  "num-traits",
+ "serde",
  "simba",
  "typenum",
 ]
@@ -3103,6 +3116,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495"
 dependencies = [
  "num-traits",
+ "serde",
 ]
 
 [[package]]
@@ -3486,6 +3500,7 @@ dependencies = [
  "ordered-float",
  "rstar",
  "rustc-hash 2.1.2",
+ "serde",
  "simba",
  "slab",
  "smallvec",
@@ -3676,6 +3691,17 @@ name = "portable-atomic"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c33a9471896f1c69cecef8d20cbe2f7accd12527ce60845ff44c153bb2a21b49"
+
+[[package]]
+name = "position_motor_calibration"
+version = "0.4.0"
+dependencies = [
+ "bincode",
+ "rapier3d",
+ "serde",
+ "serde_json",
+ "sha2",
+]
 
 [[package]]
 name = "ppv-lite86"
@@ -3930,6 +3956,7 @@ dependencies = [
  "ordered-float",
  "parry3d",
  "rustc-hash 2.1.2",
+ "serde",
  "simba",
  "thiserror 1.0.69",
 ]

@@ -427,6 +427,38 @@ available and full-step-qualified in the 131,200 first-ON rows, with measured
 zeros retained. See [all cases/joints and source-bound proofs](media/g1-motor-effort-diagnostics.json)
 and [method and output scope](../examples/139_kick_comparison/README.md#completed-position-motor-diagnostics).
 
+## Isolated position-motor calibration
+
+Example 141 compares a contact-free one-DOF sphere motor with an independent
+first-slice fixed point. The fixed 24 conditions use the unchanged G1 gain pairs,
+small signed/zero targets, one/32 small steps, and one/two PGS passes. Each condition
+executes two fresh readback-ON worlds and one OFF world for exact replay checks.
+
+```bash
+cargo run --locked --release -p position_motor_calibration \
+  --example 141_position_motor_calibration -- \
+  --output target/position-motor-calibration.json --require-calibration
+```
+
+The command retains every condition before returning a failing exit if the
+predeclared numerical requirement is unmet. Collection completeness, exact replay
+and calibration accuracy have separate outcomes. Existing output is never
+overwritten. Checking the retained report executes no new worlds:
+
+```bash
+cargo run --locked -p position_motor_calibration \
+  --example 141_position_motor_calibration -- \
+  --verify-report docs/media/position-motor-calibration.json
+```
+
+See [the fixed protocol and output contract](../examples/141_position_motor_calibration/README.md)
+and [all retained conditions](media/position-motor-calibration.json). The retained
+run completes 72/72 worlds with exact ON/fresh/OFF state replay and 8/8 motionless
+zero targets. Its four primary N32/PGS1 nonzero conditions all fail the predeclared
+accuracy requirement; `--require-calibration` therefore exits 2. Loaded-report
+verification exits 0 while printing `primary_calibration=FAIL`. This fixture changes
+no production solver or control settings and makes no kick-recovery or hardware claim.
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

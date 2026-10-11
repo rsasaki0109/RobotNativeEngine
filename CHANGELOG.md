@@ -23,6 +23,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Add example 141's fixed single-DOF position-motor calibration: compare both
+  unchanged G1 gain pairs with an independently derived first-slice fixed point
+  across 24 conditions and 72 fresh one-millisecond worlds. Retain every failed
+  condition, full ordered motor observations, and exact ON/OFF/repeat state
+  comparisons. All 72 worlds complete and replay exactly; all eight zero targets
+  remain motionless. The four primary N32/PGS1 nonzero conditions fail the fixed
+  accuracy requirement, and are retained as failures. Production physics and
+  control are unchanged; this is no recovery or hardware accuracy claim.
+
 - Add opt-in backend-neutral completed position-motor diagnostics and example
   139's headless `--motor-effort-diagnostics` evaluator. Enable the default-off
   `position-motor-diagnostics` feature explicitly; unsupported builds fail clearly.

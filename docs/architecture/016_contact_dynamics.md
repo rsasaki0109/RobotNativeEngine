@@ -808,6 +808,58 @@ retains every joint, case, and support denominator. Original analysis paths are
 historical context; current bindings distinguish 24 lossless gzip streams from
 eight uncompressed streams with separate raw/stored digests and byte lengths.
 
+### Isolated position-motor calibration
+
+Example 141 isolates one ForceBased revolute motor on a uniform sphere, with a
+fixed coincident parent, zero gravity/contact/passive damping/armature, a 2 N m
+ceiling and a single 1 ms outer interval. Its fixed 24 conditions combine the
+existing G1 posture/ankle gains, three small position targets, one/32 small steps,
+and one/two PGS passes; two stabilization passes remain fixed. Two fresh ON worlds
+and one OFF world per condition qualify observation and exact repeatability.
+
+The first final slice is compared with the constrained fixed point of the
+independently derived scalar row. Native-compatible f32 coefficients and RHS
+are evaluated in the declared order and promoted for the independent comparison.
+The predeclared requirement is an impulse error no larger than the greater of
+1e-8 N m s and 1% of the reference magnitude. No gain or setting is selected from
+the results. All failed, partial or nonfinite observations remain in the report.
+
+Public mass recomputation and fixed-root kinematics initialize the fixture without
+advancing time. Pre-step native effective angular inertia yields the scalar
+inverse inertia for this coincident isotropic model. The public post-step LU is a
+separate latest-cache observation, not a captured first-slice matrix; its agreement
+is checked separately. Neither inference applies to G1's coupled contact problem.
+Actual serialized native joint coordinates and ordered native state/telemetry
+words preserve signed zero, nonfinite bits, integer coverage and absence.
+
+Collection, replay qualification and numerical calibration have separate outcomes.
+`--require-calibration` retains the complete report before returning a failing exit
+when the numerical requirement is unmet. Verifying a retained report runs no new
+worlds. This experiment does not alter the solver, production gains, G1 model,
+recovery predicates, or prior kick/GIF evidence, and supplies no hardware claim.
+
+The retained run completes all 72 worlds; all 24 conditions have finite exposed
+state, qualified actual slice coverage, matching independently rounded/native
+coefficients and the separately acquired inertia cross-check. ON/fresh/OFF native
+entity state is exactly equal and ON/fresh telemetry is exactly equal. All eight
+zero targets remain motionless. Every nonzero condition fails the fixed first-slice
+tolerance, including all four primary N32/PGS1 conditions:
+
+| Gain pair (k,d) | Target (rad) | Fixed-point impulse (N m s) | Measured final first-slice impulse (N m s) | Absolute error (N m s) | Allowed error (N m s) |
+|---|---:|---:|---:|---:|---:|
+| (300,12) | -0.001 | -8.570856e-6 | -6.250000e-5 | 5.392915e-5 | 8.570856e-8 |
+| (300,12) | +0.001 | +8.570856e-6 | +6.250000e-5 | 5.392915e-5 | 8.570856e-8 |
+| (250,8) | -0.001 | -7.352520e-6 | -6.250000e-5 | 5.514748e-5 | 7.352520e-8 |
+| (250,8) | +0.001 | +7.352520e-6 | +6.250000e-5 | 5.514748e-5 | 7.352520e-8 |
+
+These are the vendored Rapier internal ForceBased position motor's isolated
+finite-sweep results, not a change to the RNE native contact solver. N32/PGS2
+also retains a wrong-sign first impulse for both gains and signs; N1 sensitivity
+controls are retained without selecting a production setting. The full
+[report](../media/position-motor-calibration.json) preserves every case, run, native
+serialized byte, replay word and ordered slice. Collection/verification success
+does not replace the failed numerical criterion or establish a cause of G1 falls.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`
