@@ -1,0 +1,202 @@
+--- current143/lib.rs
++++ collector/lib.rs
+@@ -1,4 +1,4 @@
+-//! Prospective one-interval isolated motor-construction collector.
++//! Prospective one-interval isolated motor visitation-placement collector.
+ //!
+ //! This package is preparation only. Its collector must not be invoked with a
+ //! valid output until source/compiler/binary/schema/reader/workload registration
+@@ -38,14 +38,14 @@
+ pub fn run_cli(args: impl IntoIterator<Item = String>) -> Result<u8> {
+     let args: Vec<String> = args.into_iter().collect();
+     if args == ["--help"] {
+-        println!("--target negative|positive --observer on|off --label LABEL --output ABSOLUTE_NEW_FILE.jsonl.gz");
++        println!("--profile split_1_2|early_1_0|early_3_0 --target negative|positive --observer on|off --label LABEL --output ABSOLUTE_NEW_FILE.jsonl.gz");
+         return Ok(0);
+     }
+     let options = Options::parse(args)?;
+     run_claimed(&options, |writer, progress| {
+         collect_native(&options, writer, progress)
+     })?;
+-    println!("isolated motor construction collection: complete (1 outer interval)");
++    println!("motor visitation-placement collection: complete (1 outer interval)");
+     Ok(0)
+ }
+ 
+@@ -65,8 +65,30 @@
+     }
+ }
+ 
++#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
++#[serde(rename_all = "snake_case")]
++enum Profile {
++    #[serde(rename = "split_1_2")]
++    Split1_2,
++    #[serde(rename = "early_1_0")]
++    Early1_0,
++    #[serde(rename = "early_3_0")]
++    Early3_0,
++}
++
++impl Profile {
++    fn passes(self) -> (usize, usize) {
++        match self {
++            Self::Split1_2 => (1, 2),
++            Self::Early1_0 => (1, 0),
++            Self::Early3_0 => (3, 0),
++        }
++    }
++}
++
+ #[derive(Debug)]
+ struct Options {
++    profile: Profile,
+     target: Target,
+     observer_enabled: bool,
+     label: String,
+@@ -75,13 +97,21 @@
+ 
+ impl Options {
+     fn parse(args: impl IntoIterator<Item = String>) -> Result<Self> {
+-        let (mut target, mut observer, mut label, mut output) = (None, None, None, None);
++        let (mut profile, mut target, mut observer, mut label, mut output) = (None, None, None, None, None);
+         let mut args = args.into_iter();
+         while let Some(arg) = args.next() {
+             let value = args
+                 .next()
+                 .ok_or_else(|| format!("missing value for {arg}"))?;
+             match arg.as_str() {
++                "--profile" if profile.is_none() => {
++                    profile = Some(match value.as_str() {
++                        "split_1_2" => Profile::Split1_2,
++                        "early_1_0" => Profile::Early1_0,
++                        "early_3_0" => Profile::Early3_0,
++                        _ => return Err("profile must be split_1_2, early_1_0 or early_3_0".into()),
++                    });
++                }
+                 "--target" if target.is_none() => {
+                     target = Some(match value.as_str() {
+                         "negative" => Target::Negative,
+@@ -119,6 +149,7 @@
+             }
+         }
+         Ok(Self {
++            profile: profile.ok_or("--profile is required")?,
+             target: target.ok_or("--target is required")?,
+             observer_enabled: observer.ok_or("--observer is required")?,
+             label: label.ok_or("--label is required")?,
+@@ -141,6 +172,8 @@
+ 
+ #[derive(Serialize)]
+ struct RunStart<'a> {
++    study_id: &'static str,
++    profile: Profile,
+     kind: &'static str,
+     schema_version: u32,
+     run_label: &'a str,
+@@ -177,7 +210,8 @@
+ }
+ 
+ impl Conditions {
+-    fn fixed() -> Self {
++    fn fixed(profile: Profile) -> Self {
++        let (pgs_passes, stabilization_passes) = profile.passes();
+         Self {
+             sphere_radius_m_word: 0.1_f32.to_bits(),
+             sphere_mass_kg_word: 1.0_f32.to_bits(),
+@@ -191,8 +225,8 @@
+             passive_damping_word: 0,
+             armature_word: 0,
+             small_steps: 32,
+-            pgs_passes: 1,
+-            stabilization_passes: 2,
++            pgs_passes,
++            stabilization_passes,
+             contacts_enabled: false,
+             sleep_enabled: false,
+             ccd_enabled: false,
+@@ -222,6 +256,8 @@
+             records_written: 0,
+         };
+         writer.record(&RunStart {
++            study_id: "motor_visit_placement_v1",
++            profile: options.profile,
+             kind: "run_start",
+             schema_version: 1,
+             run_label: &options.label,
+@@ -232,7 +268,7 @@
+             native_scalar_bits: 32,
+             state_codec: "postcard-1.1.3-raw-exact-consumption",
+             state_scope: STATE_SCOPE,
+-            declared_conditions: Conditions::fixed(),
++            declared_conditions: Conditions::fixed(options.profile),
+         })?;
+         Ok(writer)
+     }
+@@ -353,7 +389,7 @@
+ }
+ 
+ impl Fixture {
+-    fn new(target: Target, observer_enabled: bool) -> Result<Self> {
++    fn new(profile: Profile, target: Target, observer_enabled: bool) -> Result<Self> {
+         let mut bodies = RigidBodySet::new();
+         let parent = bodies.insert(RigidBodyBuilder::fixed());
+         let child = bodies.insert(
+@@ -392,8 +428,8 @@
+             parameters: IntegrationParameters {
+                 dt: DT_S,
+                 num_solver_iterations: NonZeroUsize::new(32).ok_or("zero small-step count")?,
+-                num_internal_pgs_iterations: 1,
+-                num_internal_stabilization_iterations: 2,
++                num_internal_pgs_iterations: profile.passes().0,
++                num_internal_stabilization_iterations: profile.passes().1,
+                 max_ccd_substeps: 1,
+                 ..IntegrationParameters::default()
+             },
+@@ -834,7 +870,7 @@
+ 
+ fn collect_native(options: &Options, writer: &mut Recorder, progress: &mut Progress) -> Result<()> {
+     progress.fixture_construction_started = true;
+-    let mut fixture = Fixture::new(options.target, options.observer_enabled)?;
++    let mut fixture = Fixture::new(options.profile, options.target, options.observer_enabled)?;
+     progress.fixture_constructed = true;
+     let initial = fixture.checkpoint()?;
+     writer.record(&Initial {
+--- current143/tests.rs
++++ collector/tests.rs
+@@ -20,6 +20,7 @@
+ 
+ fn options(path: &Path) -> Options {
+     Options {
++        profile: Profile::Split1_2,
+         target: Target::Negative,
+         observer_enabled: true,
+         label: "SYNTHETIC_NO_NATIVE_WORLD".to_owned(),
+@@ -44,6 +45,8 @@
+     for target in ["negative", "positive"] {
+         let parsed = Options::parse(
+             [
++                "--profile",
++                "split_1_2",
+                 "--target",
+                 target,
+                 "--observer",
+@@ -216,3 +219,18 @@
+     assert_eq!(observed.effort_ceiling_word, None);
+     assert_eq!(observed.rounded_bound_word, Some(1));
+ }
++
++#[test]
++fn profile_parser_and_headers_use_only_registered_counts() {
++    for (name, expected) in [("split_1_2", (1, 2)), ("early_1_0", (1, 0)), ("early_3_0", (3, 0))] {
++        let parsed = Options::parse(["--profile", name, "--target", "positive", "--observer", "on", "--label", "pure", "--output", "/workspace/unused-pure.gz"].map(str::to_owned)).expect("pure parse");
++        assert_eq!(parsed.profile.passes(), expected);
++        let conditions = Conditions::fixed(parsed.profile);
++        assert_eq!((conditions.pgs_passes, conditions.stabilization_passes), expected);
++        assert_eq!(conditions.small_steps, 32);
++        assert_eq!(serde_json::to_value(parsed.profile).expect("profile encoding"), name);
++    }
++    for name in ["", "1", "early_2_0", "pgs1_s2"] {
++        assert!(Options::parse(["--profile", name].map(str::to_owned)).is_err());
++    }
++}

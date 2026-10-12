@@ -1,0 +1,2588 @@
+{
+  "kind": "fixed_case_frozen_input_guard",
+  "schema_version": 1,
+  "phase": "after",
+  "case": {
+    "profile": "early_3_0",
+    "target": "positive",
+    "observer": "on",
+    "label": "early_3_0_positive_fresh"
+  },
+  "attempt_index": 16,
+  "verified_utc": "2026-10-12T20:54:04.751802+00:00",
+  "binary": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "sha256": "941cd9577ceeb85f5732e304fc2023db585e591b972aa7db71bb9da38ef460a5",
+    "bytes": 2856088
+  },
+  "frozen_inputs": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/PREREGISTRATION.md",
+      "sha256": "15afbf88257f4d7a56687429f30e2cb93df376f962807dc499c84b629ebcf70e",
+      "bytes": 6489
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/preregistration-fields-template.json",
+      "sha256": "8c2c34bb5a8a05d2c94b3053807f4c9248cbe83d131d814def34f65c0faf3f17",
+      "bytes": 8952
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-correction-workflow-plan/outer-launcher-source-review.json",
+      "sha256": "00f95c2003e592919cf00c71124a334b00d368a1fca9acc99124613632e84edd",
+      "bytes": 1697
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-correction-workflow-plan/selected-diagnostic18-workflow-plan.md",
+      "sha256": "824483f00d23bc74dca91917b67441ef0f62999e43f72cfff88cb001adfdc540",
+      "bytes": 4948
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/producer_review.json",
+      "sha256": "7a96c4362a29c75122d1ee82cbbe69bd4c1add6a50c0b2dff752c2be36f18c21",
+      "bytes": 8871
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/pure_tests_review.json",
+      "sha256": "e4fbc3ffde5c9f8fe1e92500b182151004ccc47977ed1bf2f96b722badfc76d5",
+      "bytes": 3489
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/source-order-and-conditional-predictions.md",
+      "sha256": "c9df3a527361b08ab12201b04dd87c775846e8c0005d0896d193fb1bb185985e",
+      "bytes": 5981
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/README.md",
+      "sha256": "c061d9142d2ee849acdf08c4dc5a433e742d6474e2cc94d22356e5bf586aee96",
+      "bytes": 7168
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/actual-pure-command-completion.json",
+      "sha256": "ffcc1fa5622b8d479249e0e6b4a54bed5a7ed657c138e94f6a14a2f4aa2d8d01",
+      "bytes": 889
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/candidate-template.json",
+      "sha256": "9f144baf453046334bb9a58ca900bc7d517d2f2db457525f11a4d565c628c12d",
+      "bytes": 3661
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/case-order.json",
+      "sha256": "f32d5e9c12002035245bfef195280e57f53229f2f5a9e53769f81bbaf574f471",
+      "bytes": 2229
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/checked_driver.py",
+      "sha256": "88311df0fd6d216deb54ecd9f10c439687742dc2c8ba58d3719ce7cc2d765da5",
+      "bytes": 6233
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/cohort_contract.py",
+      "sha256": "6cddcaf6cb7e00c80e49b3c7e7a789454c43cd449d1f01e00bb4946ee3b85b0f",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/cohort_driver.py",
+      "sha256": "74607a168ecc9c8639c09c915e93894afad7e9675229df6f429e6d67b235ce07",
+      "bytes": 12838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/final-driver-source-manifest.json",
+      "sha256": "2b87b761222099b8be4d8a243053018d6c10032eae731f42ab33d7aeec7944e4",
+      "bytes": 2021
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/handoff.json",
+      "sha256": "9086185442a7838fe5db65ac98ca04b885194074a84d5b5389f5b61cf07a781e",
+      "bytes": 2722
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/protocol-draft.json",
+      "sha256": "9ed8fe1f7e05c3e2a26dc29a76b8964afd3cac7ccf8e6a3a4c5d2b0a9162453c",
+      "bytes": 4336
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/proven-source-copy-inputs.json",
+      "sha256": "7ad6eb406dda981e5e53986f9e6cc46febe3ca48861a7e38a39d2bb2bbc361b0",
+      "bytes": 867
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/shared-contract-draft.json",
+      "sha256": "50c370d1e3262f4196ea7e070c78b0266ca6b1fca19b0cfa2fe5282b543ede53",
+      "bytes": 5760
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/strict_io.py",
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+      "bytes": 3739
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/actual-pure-tests.json",
+      "sha256": "a35fef4367e5bc3c98d1aca218235610c6f4e2affd0f9a6d6eafd0934f48ae6f",
+      "bytes": 3696
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_1_0_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/early_3_0_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_all18_fake_receipts_index_and_no_resume-x5dsmkfx/collection/split_1_2_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_checked_nonzero_exit_is_preserved_even_positive_stdout-2q6ct_8h/checked-driver/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_checked_nonzero_exit_is_preserved_even_positive_stdout-2q6ct_8h/checked-driver/stdout.log",
+      "sha256": "86b0518ee14937a946130146c819ba0a5fbaa17dc34fdef5591f2cbf367f999c",
+      "bytes": 56
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_1_0_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/early_3_0_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_driver_terminal_enospc_cannot_claim_completed-yx6mdbd8/collection/split_1_2_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_interrupted_wait_retains_original_child_exit-clervlts/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_interrupted_wait_retains_original_child_exit-clervlts/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_late_process_terminal_enospc_keeps_actual_start_exit-x5vmjn4o/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_late_process_terminal_enospc_keeps_actual_start_exit-x5vmjn4o/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_native_timeout_retains_original_negative_exit-jc7l5g81/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_native_timeout_retains_original_negative_exit-jc7l5g81/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_original_nonzero_stop_one_and_retain_all_reservations-mki1n2k9/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_original_nonzero_stop_one_and_retain_all_reservations-mki1n2k9/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_outer_final_receipt_storage_failure_propagates-61cw2p2_/checked-driver/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_outer_final_receipt_storage_failure_propagates-61cw2p2_/checked-driver/stdout.log",
+      "sha256": "86b0518ee14937a946130146c819ba0a5fbaa17dc34fdef5591f2cbf367f999c",
+      "bytes": 56
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_outer_group_grace_timeout_signals_sigkill_and_preserves_exit-9byf8wzw/checked-driver/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_outer_group_grace_timeout_signals_sigkill_and_preserves_exit-9byf8wzw/checked-driver/stdout.log",
+      "sha256": "86b0518ee14937a946130146c819ba0a5fbaa17dc34fdef5591f2cbf367f999c",
+      "bytes": 56
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_outer_interrupt_signals_owned_whole_group_and_preserves_exit-23pc42hh/checked-driver/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_outer_interrupt_signals_owned_whole_group_and_preserves_exit-23pc42hh/checked-driver/stdout.log",
+      "sha256": "86b0518ee14937a946130146c819ba0a5fbaa17dc34fdef5591f2cbf367f999c",
+      "bytes": 56
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_1_0_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/early_3_0_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_negative_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_negative_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_negative_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_negative_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_positive_fresh/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_positive_fresh/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_positive_off/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_positive_off/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_positive_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_parent_all18_claims_and_root_barrier_precede_spawn-2j0yt68r/collection/split_1_2_positive_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_popen_outcome_unknown_never_claims_verified_zero-ro8amk9m/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_popen_outcome_unknown_never_claims_verified_zero-ro8amk9m/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_process_started_receipt_fault_reaps_actual_child-kmtxrx1q/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_process_started_receipt_fault_reaps_actual_child-kmtxrx1q/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_source_mutation_after_first_mock_stops-flzwoi0q/collection/split_1_2_negative_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/test_source_mutation_after_first_mock_stops-flzwoi0q/collection/split_1_2_negative_on/stdout.log",
+      "sha256": "bdcb30fe34d2f1654652a2a8907a9965740641ef0c0e9d8b4730185e51bb019f",
+      "bytes": 30
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/test_driver_pure.py",
+      "sha256": "10cf3aa2bb6584f5ceace09deb66aa7f0846aebc5b2ca9ef218c7cafda03e2a1",
+      "bytes": 20090
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/wrapper-template.json",
+      "sha256": "2f147ce5aa5ed1431fb42d0cab6b7f3de502a22d222594c58b68c0fa3278323c",
+      "bytes": 119
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding.json",
+      "sha256": "51b60eecd05340730648b29780bfea9209b1f145c1904d03510beed34a7cdf83",
+      "bytes": 46457
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/cargo-actual.json",
+      "sha256": "bae7d996a0928a0e31b79a944f2a078d9c74f7f76356a8b0e29f5fbb36eef6fb",
+      "bytes": 249
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/cargo-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/cargo-stdout.log",
+      "sha256": "c6cd47fb28b137d9450165b5b0796de3dfdac887c91ea225c53506f3fc5f6add",
+      "bytes": 328
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/cc-actual.json",
+      "sha256": "2a2a7203b259d631147a43f1f2c423edd059cab06c633fbc88e47cbef9a237ac",
+      "bytes": 252
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/cc-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/cc-stdout.log",
+      "sha256": "78fc11ae2c3ff7c235eb18ed90989d18f6cc864fb27027f839368cd0888deebc",
+      "bytes": 231
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/features-actual.json",
+      "sha256": "4c1a44fb9abf9d177e066eb4cb819f1562e82068e3619e73f57bccc9c25ee339",
+      "bytes": 292
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/features-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/features-stdout.log",
+      "sha256": "273dc6bf6b87563c9f24538299ef4f12eb4972891340f3b16d7c4033291421be",
+      "bytes": 24042
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/guarded-release-build-actual.json",
+      "sha256": "21a79f85dedd292dd3b6b6f3ba2a2130ea9ab0b0c30b881a2ea0ba1a7974a71d",
+      "bytes": 326
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/guarded-release-build-stderr.log",
+      "sha256": "90c8a1a69c0155761cff4bfe0e61bbee007961d2b96729d2127c2e0c291489dd",
+      "bytes": 62
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/guarded-release-build-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/ld-actual.json",
+      "sha256": "3515f52c44e777d5ae25415537fb8a16344145db214dea7e087a6d7dc69e8f12",
+      "bytes": 252
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/ld-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/ld-stdout.log",
+      "sha256": "cfff299abc32f737f1cb856667d31ff328f3755d06d98bc093a3ed8e98d4339e",
+      "bytes": 281
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/metadata-actual.json",
+      "sha256": "c457843ea20ea1d83c201288dfdc610956d38579126fbd220eb27877f1474a2f",
+      "bytes": 303
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/metadata-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/metadata-stdout.log",
+      "sha256": "29792e4b34213addaebf65aed0a831b18992a85caf723af5280de9ee50385325",
+      "bytes": 316086
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/rustc-actual.json",
+      "sha256": "0aeb98ab8d30efde40ceee3a13a9884f4c94b6bf60cef5f7d579de51e4a55956",
+      "bytes": 249
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/rustc-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/rustc-stdout.log",
+      "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+      "bytes": 196
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/sources-after.json",
+      "sha256": "56a8af63cc728bf6bdfa83a3f395aa143a5c9532e3a8e4227ee921925f2c5bde",
+      "bytes": 33080
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/sources-before.json",
+      "sha256": "56a8af63cc728bf6bdfa83a3f395aa143a5c9532e3a8e4227ee921925f2c5bde",
+      "bytes": 33080
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/target-cfg-actual.json",
+      "sha256": "1d0b5d5dea217652be1296ecf8892769fe6b02b0689180fc8890d9bec4ebb2b3",
+      "bytes": 264
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/target-cfg-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding/target-cfg-stdout.log",
+      "sha256": "fc10eb20a7d7b72645bb1bca51c110fe8af01944a91935dfac9a9cc6a8fb53a5",
+      "bytes": 381
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification.json",
+      "sha256": "07fd57f6698056383d68187bc08ecf766c0f1d81d31d886f0405d0a9c142cd35",
+      "bytes": 1053
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification/cargo-actual-version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification/cargo-actual-version.stdout.log",
+      "sha256": "c6cd47fb28b137d9450165b5b0796de3dfdac887c91ea225c53506f3fc5f6add",
+      "bytes": 328
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification/cargo-which.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification/cargo-which.stdout.log",
+      "sha256": "f0a14a33154720c5a0e9a2fa05aeac05a82840b32b61dab3f8a835066757a266",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification/rustc-actual-version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification/rustc-actual-version.stdout.log",
+      "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+      "bytes": 196
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification/rustc-which.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification/rustc-which.stdout.log",
+      "sha256": "a05a70d1a2f6620c94fd8e3c9b1f249aacfe0b381f793794b7036dae3f24a58e",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector-source-delta.patch",
+      "sha256": "feb1504113e111307cfe8904874cfd01eae39c6514ff227b2085e018d73cb063",
+      "bytes": 7717
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/Cargo.lock",
+      "sha256": "6c558405780ccaced6a6374a82d3493d2e06b3b2b928b556344b223fa5004509",
+      "bytes": 17149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/Cargo.toml",
+      "sha256": "78a0bf74d5fd1d8194d0d40c00dd7a73d83a0aee6d617e6cf6ec34e500b2f2d9",
+      "bytes": 783
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/clippy.toml",
+      "sha256": "2e5a56898feafc9072d010eb802c24f8a05fce44ae8c4454c3fed13cb9c1444a",
+      "bytes": 67
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/lib.rs",
+      "sha256": "5cd48496717cc2bd6ab48ad6154f13287c259443ca6734278c53bee1b94f536c",
+      "bytes": 34964
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/main.rs",
+      "sha256": "3e96f0da7ea080a0a74ed99960b3be4f7404f4f9bedb0ba02cdc9152341614fe",
+      "bytes": 339
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/tests.rs",
+      "sha256": "bd5f979eccec5b2c023239fd70471ec50614d3290f030e019ca20da2aae8e70f",
+      "bytes": 8814
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/fixed-protocol.json",
+      "sha256": "9496a91e13a71b6759105907abf2a11ddcd2726a27b6141b977d05657d41b161",
+      "bytes": 7807
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/freeze_actual_build.py",
+      "sha256": "f7abd0549a4cd8eee7f6c1e78da1191afe3dbc84804ae93815010193ee2db401",
+      "bytes": 5146
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/freeze_candidate.py",
+      "sha256": "1c728695d9177bc7096e7b23f7b07d0e21b5a853eb8c308466b9fe0764c4a4e0",
+      "bytes": 4288
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/prepare_protocol_sources.py",
+      "sha256": "af816a44b2364882cb55d39b20075240373c8ce1ead453afafeae00098136f7d",
+      "bytes": 6531
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/.gitattributes",
+      "sha256": "7348042733449d91fd3d3c1c086cdf5a8f5a713706897bcc7d6c275f591003e9",
+      "bytes": 376
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/Cargo.toml",
+      "sha256": "01d5f1b47c6002e2390a81e15d9ada9dfd92e53dde390f19eb0a5940b112f563",
+      "bytes": 3127
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/Cargo.toml.orig",
+      "sha256": "37223145bbb2e2e5deb616bafb83f54ed76b2aafa7663a1af05c6ad3938da998",
+      "bytes": 2457
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/LICENSE",
+      "sha256": "86ae51c591e742d80ce56823d35e2e176b53e38a99bd8499c85dae31ef4fe1f7",
+      "bytes": 11548
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/README.md",
+      "sha256": "7459f6035574cc777115cdbf566626a84293202eb4e9b2f06223a5cba824c677",
+      "bytes": 2805
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/RNE.patch",
+      "sha256": "9b63afccf0b02e8d461add58edb007cdf1f15b50062db15c5b83c876c6517c6c",
+      "bytes": 11057
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/RNE_PATCH.md",
+      "sha256": "d24b109067bfc3033bae18edbb680bb6ea038ed7e275c8409d3c93af086ba199",
+      "bytes": 9583
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/RNE_UPSTREAM_SHA256.json",
+      "sha256": "77ec485ce27993c69f7f044543ce34079b9f38f9071a1c221a4a41e0167df31f",
+      "bytes": 12867
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/control/character_controller.rs",
+      "sha256": "f4eb3f1d420e6e0c460f9301e40c6547b670c4de65e961ba562272504c203f27",
+      "bytes": 35890
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/control/mod.rs",
+      "sha256": "872afd3082ef48b5bf5d5820712e844c26fbf825592ebdb207cb086c8443df4f",
+      "bytes": 469
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/control/ray_cast_vehicle_controller.rs",
+      "sha256": "bf33eff305668348edf9cc48473325c418403a28c3058e7345d83b9ff3b83727",
+      "bytes": 32159
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/counters/ccd_counters.rs",
+      "sha256": "69fac9dfcfaf19be624f037f9e34d0cc886125ac80d2bf69bd2a1d7ce7080b9e",
+      "bytes": 1838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/counters/collision_detection_counters.rs",
+      "sha256": "4d0eaed2c797dc66e6e76275a8848eacd365fcfafb5502513133321212ffcd12",
+      "bytes": 1316
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/counters/mod.rs",
+      "sha256": "954a057e5fe76ddacc7adb502be7677ffeca50108f54b1b9fcb019874864bc00",
+      "bytes": 6292
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/counters/solver_counters.rs",
+      "sha256": "bc50fa8637c6566a70939f35aa55b0f788c53794e9bc575b73ca364c89a57990",
+      "bytes": 2179
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/counters/stages_counters.rs",
+      "sha256": "9d92325aedc1131f3755225e250ae4ef38855dc04b01b7d19af5568f7c737424",
+      "bytes": 2510
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/counters/timer.rs",
+      "sha256": "3adc13e371fd59fc1e7bf01f5f810f7b266f2d959a58bb5adba546952356e879",
+      "bytes": 1482
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/data/arena.rs",
+      "sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb",
+      "bytes": 35182
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/data/coarena.rs",
+      "sha256": "310a2f7d9473b37fcd0b018cfe5fd5a08d8d2cbde6994a1dd9c76ccc2efd65e5",
+      "bytes": 4730
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/data/graph.rs",
+      "sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044",
+      "bytes": 23167
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/data/mod.rs",
+      "sha256": "21d21acf9f300023d719072c540ceeef1eb00064f44d951d3e7471a967d95271",
+      "bytes": 237
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/data/pubsub.rs",
+      "sha256": "2f206f65738a3744bbe50d3b90d67c17e9167ceb1d2143e9db37614f8a352d2a",
+      "bytes": 4973
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/ccd/ccd_solver.rs",
+      "sha256": "07122413e9024e33b26a4267488a7310163838789ba257d610c948819add724b",
+      "bytes": 23101
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/ccd/mod.rs",
+      "sha256": "c22415ffd9f49e825b4f54d25b8bfbf5c5e2025d14e211bd020fed810b38a3c9",
+      "bytes": 298
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/ccd/toi_entry.rs",
+      "sha256": "ba28a8bbf7bcef80447929e99e39c67472bed2d5eceac2f41e8924a96c61a5b9",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/coefficient_combine_rule.rs",
+      "sha256": "ab1065b104c00157c0c26cc9079ae17d4d2ecfa8ed316e9b28b627f6a6d0efd7",
+      "bytes": 1211
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/integration_parameters.rs",
+      "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+      "bytes": 14726
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/island_manager.rs",
+      "sha256": "587343081ba5cb45585ab18d222f5c137b1d4fae9805e4aaa88878756c0288c4",
+      "bytes": 14286
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/fixed_joint.rs",
+      "sha256": "f171a8cce1913a7ff2cf2410ec7fa5810a13fd9f01fe33622d88e009fe064ebb",
+      "bytes": 4809
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/generic_joint.rs",
+      "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+      "bytes": 27313
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/impulse_joint/impulse_joint.rs",
+      "sha256": "8aab2c18afc4196d7bd04f6502b1bf5ff44c40df8fa3b53440ae490eab21b949",
+      "bytes": 759
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/impulse_joint/impulse_joint_set.rs",
+      "sha256": "b75a72e35ebefaea73773c2779d8c939b1a5e30db88bff83a8ea735624c2321b",
+      "bytes": 14846
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/impulse_joint/mod.rs",
+      "sha256": "1cba596a795a55e24936bd9af61aa57ea34366c7f8b267bc7c97e696ecd98689",
+      "bytes": 234
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/mod.rs",
+      "sha256": "4769f5564b300c113cebda78ef976ad135cbd67386801afddaecfd258dd2e26c",
+      "bytes": 595
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/motor_model.rs",
+      "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "bytes": 1488
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/mod.rs",
+      "sha256": "c537ae187ad2e0ae80e2fa9ab2cc66a329e2258d22a0331ed04f0fb92b625740",
+      "bytes": 649
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "bytes": 81559
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/multibody_ik.rs",
+      "sha256": "f95c748523ab6b3e1ec4d8536f249b716e76094ff1817c753f4f39bfe5c377e6",
+      "bytes": 10006
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "sha256": "e16bc16254459b84534d7a48157ebdb19deae0d0f8461ed8fc0a4e395d5c82da",
+      "bytes": 15921
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+      "bytes": 18345
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/multibody_link.rs",
+      "sha256": "19dbfdf2af1a803631424acdc3597633b7e754104bc91a2c7ab2bb090d538109",
+      "bytes": 4149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/multibody_workspace.rs",
+      "sha256": "0c2c4c20bb8205aafbac5a0de6be115a95cc1f83fe2863e82ee6e84e605dd573",
+      "bytes": 830
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "2bde94532c22dd1a010c5b018fdb2e6a4314b2cf993bc56003523d5156b61857",
+      "bytes": 7380
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+      "sha256": "f0f400cf4fa7d4e3be5d489b9f2d87325089682b7a8c5ce69d4fa2779b9b5811",
+      "bytes": 5817
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/prismatic_joint.rs",
+      "sha256": "00fd5ed682feda771dd4dc4c18883715eaf6970e9a0b604c2145f16db0704604",
+      "bytes": 9208
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/revolute_joint.rs",
+      "sha256": "ef831e469cfc9dd28c57d4f0b84383a00e6616f68a0f3b9ba0a38a997ff7eab4",
+      "bytes": 11090
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/rope_joint.rs",
+      "sha256": "f1ecb6a4ef0703ebed737c347e6c83b2f717ff1994d84f4702a98217e053cc36",
+      "bytes": 7641
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/spherical_joint.rs",
+      "sha256": "05ad4cd2cc2cfb85de6a25de43208a6294174a5d154fa7ee0c8dbe77e2563dbb",
+      "bytes": 9472
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/joint/spring_joint.rs",
+      "sha256": "1743bf8327e3e11a30ada01addad5336d09d5bd019db070847b1e9c6655e4237",
+      "bytes": 6701
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/mod.rs",
+      "sha256": "5b35f68f31913d3bbb069d1f5c4aa4a014d153b6e5248178a524152b017422d0",
+      "bytes": 946
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/rigid_body.rs",
+      "sha256": "d4c0803bb0f24a9fad3f54e73c5603cba9dcec31f6ad3df8544e6e96b68bebf7",
+      "bytes": 59050
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/rigid_body_components.rs",
+      "sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "bytes": 40728
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/rigid_body_set.rs",
+      "sha256": "9bcdfcfcf34b97c1ec4b93b8571e1f94fe2f8b4243561d1ffb52641cf6e96079",
+      "bytes": 9724
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/categorization.rs",
+      "sha256": "3341ed381cf843085cf4c672fdd5d3b3165424e3efaa719c437a1d026c377865",
+      "bytes": 2555
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs",
+      "sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70",
+      "bytes": 19202
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/generic_one_body_constraint.rs",
+      "sha256": "cf0e796e3ae5c4257f7fefa30fb9d9a3ea873603839f839fd5d8f5861e427b01",
+      "bytes": 13969
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/generic_one_body_constraint_element.rs",
+      "sha256": "d0f472cc412f133e9c21993c5e6840336e25ff1e57bfd06e8eaeea7d33efbfc9",
+      "bytes": 6922
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/generic_two_body_constraint.rs",
+      "sha256": "7243bd963781ecb156a098961c95b1b0ca20601f8df97f22c9934c9af01b3d59",
+      "bytes": 22283
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/generic_two_body_constraint_element.rs",
+      "sha256": "1fc07787b70e8478760a331cf8868ae4df80a33f879875b212411a8ccf3e3dc3",
+      "bytes": 16307
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/mod.rs",
+      "sha256": "e84c0974d0e9d7594c7e9ae629293182a97ba5a8f9004159ef3fd0079b698e46",
+      "bytes": 1109
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint.rs",
+      "sha256": "788a8339d73296e43f19134d6c4e844353934e731a984e99d13b842081d24814",
+      "bytes": 16961
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint_element.rs",
+      "sha256": "4ad8e1a4364135176c56093db6b0bfe24758229915ceb58a60b22c8c59d3bf40",
+      "bytes": 10736
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint_simd.rs",
+      "sha256": "9bd7de1376037f288f5885441810a8c90821d3559fa3233260c61137052f45b5",
+      "bytes": 18804
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint.rs",
+      "sha256": "38efa0ceb763d2ac96b2c499f7a6e93d772e135b3cc12a3d6600aaff460e0451",
+      "bytes": 21977
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint_element.rs",
+      "sha256": "ea51fabe761507f2649008b8f443835ee2b1ab35fc8eca549f2fc4f1fee35c71",
+      "bytes": 15519
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint_simd.rs",
+      "sha256": "81856a02ab15e8b25f1392ef171a459a9a19669ee0006aec08919bb8f8f5eef8",
+      "bytes": 19812
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/interaction_groups.rs",
+      "sha256": "3094f78156c6f7b7c819ccff507eb9d58415e834242d3af99868d5818ec94b22",
+      "bytes": 19677
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/island_solver.rs",
+      "sha256": "f16339e703e0ad8ed13b0a27f53f7a0956d9400114af8f7f1b2e94c8967c601a",
+      "bytes": 5528
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/joint_constraint/any_joint_constraint.rs",
+      "sha256": "ed15ed8800f32fefc2b7a1808f2187ec173f7d999429989a2d017317501c9b47",
+      "bytes": 4136
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs",
+      "sha256": "b197dfd33145401d3d4b7239c6b02cb4299ce34013564fd7ce29e1103c8cc2c7",
+      "bytes": 53890
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "sha256": "7707ce8e2abe6e7747e513b317f0cf3909756e2082f381191784282cb88a2da7",
+      "bytes": 20338
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "bytes": 17536
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "sha256": "46f3aedde8bc1d057de77342967142eae1e3c313e855630c84640df9ccf84867",
+      "bytes": 50987
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs",
+      "sha256": "42a091f95f10dbd267c90ec7bfe0a151a55e95a5586cb1c30261a23774a0855c",
+      "bytes": 26413
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/joint_constraint/mod.rs",
+      "sha256": "37c1abf96e0161c2f3689edf254242a03d4094dfe53fb5c24404bcf833d44dbe",
+      "bytes": 795
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/mod.rs",
+      "sha256": "bfe85fbefa20c7ccec9e0aa09dba289c02f335a9f7091addf8f1ec4477afb23b",
+      "bytes": 1659
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/parallel_island_solver.rs",
+      "sha256": "87bb21020cc26852eb40dc1acbccfdd0673f99ff8505804ed37bc7fdb12cf81c",
+      "bytes": 15621
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/parallel_solver_constraints.rs",
+      "sha256": "30554ef140c780ed412de171ebd31c7873053d8a201ace297828d286c807d0e9",
+      "bytes": 20262
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/parallel_velocity_solver.rs",
+      "sha256": "8c52c6da3c2246f222f9e44fa9f97bb2ee1f916d2cec54b49eb2c843c8c8309c",
+      "bytes": 13959
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/solver_body.rs",
+      "sha256": "7fca3fb5066986c6a2895860ac1abffeda5c438079b122199f5254feb8a5eaf4",
+      "bytes": 1970
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+      "bytes": 9066
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/solver_vel.rs",
+      "sha256": "8e10277211c04ce06c004a18f2aaf2445ead09ab55edd6ea7d5439ffd8f4e402",
+      "bytes": 1848
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "sha256": "6701f1c231691d8c2bb871eef43996b5c3333db027b880c8c2b3aa9c20435921",
+      "bytes": 33943
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase.rs",
+      "sha256": "c9e2e4d70e8a99c879660dee99fd2e15f14b6b235989142032958c418cdcc49d",
+      "bytes": 2931
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/broad_phase_multi_sap.rs",
+      "sha256": "23f5fa77e2d17278a2cb5819d0c9a370db76770bc5667385c60316046ea3cf23",
+      "bytes": 31085
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/broad_phase_pair_event.rs",
+      "sha256": "0aae56147926a6a8d34795a56179807209f997b07d271a56800ee060a8a98b0f",
+      "bytes": 1481
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/mod.rs",
+      "sha256": "1b93d3f5ce020eeb6717e415a5d83b66a17cdca478fc1f534694ac85f822c71f",
+      "bytes": 447
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/sap_axis.rs",
+      "sha256": "8cb82483f89ab60991cb0a3752f44522d36f0fb2407ff6c7d0eb6a4621c0ca59",
+      "bytes": 10555
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/sap_endpoint.rs",
+      "sha256": "3b3271fb7b1d9f793c81dfd1f07632ee6451e3f5445d3b8cb070ddcaa48af61f",
+      "bytes": 1540
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs",
+      "sha256": "ee77333ab190cc1629665c01481fc8e2b839d8b2b1835e6b1cdf6ac4623a1432",
+      "bytes": 16921
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/sap_proxy.rs",
+      "sha256": "1edc0dec088aa2160dc325370a2827183704fdda29d637ea09e11e2fbb77e9f7",
+      "bytes": 4041
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/sap_region.rs",
+      "sha256": "9b12949a4f876bcafc6ad193a21edec8970fe387ffd473b93bc4ccb52e5a797b",
+      "bytes": 9778
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_multi_sap/sap_utils.rs",
+      "sha256": "0fd422f004d410dbcaf49d0bfc51abb4a794b86a64690d3373efc6c8984dc45e",
+      "bytes": 2238
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/broad_phase_qbvh.rs",
+      "sha256": "d412638e9773c8f89b6e250b1ca69a5c4474dc9e7387584594dc498b6b043b96",
+      "bytes": 2796
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/collider.rs",
+      "sha256": "a9be8b5eba41a6f08acfa9b6cb2a9d289f19626a138b8ebb15e7fd0ecbea909e",
+      "bytes": 43255
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/collider_components.rs",
+      "sha256": "210a17becb2d69e2d64c41f32ca0da07f1a7c5dfab210febe6e918e97634e5ae",
+      "bytes": 17840
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/collider_set.rs",
+      "sha256": "af08b39dcba35e759955462a6f12d9074939f0bcc9c62b21593d2142037224bd",
+      "bytes": 12139
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/contact_pair.rs",
+      "sha256": "ea83b390d843d1d8ff7a4b6d9f2e896e256f6c07d055d4e25b1764db6f719c3a",
+      "bytes": 13612
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/interaction_graph.rs",
+      "sha256": "414647bf53526ca7e5713669fc4d6e3508ad6612872e43d839e11aa455121747",
+      "bytes": 9691
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/interaction_groups.rs",
+      "sha256": "39a949af9236f697aa53ee3fd46191135c8a68c151cfe88e008ff631eac241c8",
+      "bytes": 5350
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/mesh_converter.rs",
+      "sha256": "95ba603f7221ead75bce7d9ba5bf8c297d0c11a18b28f781d5a4fa70720f96a7",
+      "bytes": 3585
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/mod.rs",
+      "sha256": "41992ea284c2444f3c94775ddfba0c877730bd1dc391aa22498e90400501f35e",
+      "bytes": 8127
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/geometry/narrow_phase.rs",
+      "sha256": "e9c56dd64e27edf8ac5d45673a41c655c569972d8792faac50882dd687304353",
+      "bytes": 51225
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/lib.rs",
+      "sha256": "6985bc3241fd187fdff91232813ea75a341867416aa3c09685aa55c393ebac30",
+      "bytes": 6967
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/collision_pipeline.rs",
+      "sha256": "2eb844ab886a044a5d88eadf300aeae4cd3b03c4296c63dd69471758aca21f0f",
+      "bytes": 8806
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/debug_render_pipeline/debug_render_backend.rs",
+      "sha256": "7c24f7c24da2d2c7b26e1c8f89b01f622b71e3a4bee8c34752ed09fce4fdc8df",
+      "bytes": 3253
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/debug_render_pipeline/debug_render_pipeline.rs",
+      "sha256": "b0ffeca067494ade98d13476fdafb6dd4a3a7e07a4c76bc705f699745be4ca8f",
+      "bytes": 24768
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/debug_render_pipeline/debug_render_style.rs",
+      "sha256": "5341ead11fae42210775af22b17f28f6c30f58c302a35f7aa3b70ab4a71fb5ec",
+      "bytes": 3748
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/debug_render_pipeline/mod.rs",
+      "sha256": "b19c81775729cff87021de5a109d0bf9e68c657e9c2724d0751a5dda98896ded",
+      "bytes": 320
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/debug_render_pipeline/outlines.rs",
+      "sha256": "d07bde2f73f851edb5de5eff3790c7a2ae62df4f89dcf09842cfb7f49bb652a7",
+      "bytes": 1180
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/event_handler.rs",
+      "sha256": "9820d4432914cfab9573c4795ddfcf4d2554c765197e72496b44ce91f9d4b2b9",
+      "bytes": 4742
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/mod.rs",
+      "sha256": "a172e71d180a2397422ae490abc4abaf60ef012d139ee42f5165e9811dbe13ce",
+      "bytes": 1936
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/multibody_motor_construction.rs",
+      "sha256": "03f417ee1b848ab1b2e3d1e5ca1aad29065e9b80c0ebf4f803f718fe39aa9e5e",
+      "bytes": 7972
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/multibody_motor_impulse.rs",
+      "sha256": "d361abd9f84a0fca60ee1ef0256c6af7399a835f91b5b59138b7c61c58c9ccd2",
+      "bytes": 12621
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs",
+      "sha256": "9a3c4cbcde20a7957ad3c2b9b38f8a9a2861c396c0c7cbb692c1407c65ff156e",
+      "bytes": 25838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+      "bytes": 9594
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/multibody_motor_stage/tests.rs",
+      "sha256": "036fb87df8d9c18cd79ce37b15856e79da02fd0e170393db891bf55547aa7499",
+      "bytes": 22817
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/physics_hooks.rs",
+      "sha256": "d4339ef3704471574c2c57379dc6b7c44b5aae98abc3ad7443c1d293733c30a4",
+      "bytes": 12422
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/physics_pipeline.rs",
+      "sha256": "86fbfe05994120617346ae30538837fd0bf96cdfc83f0bfe6043766e975f11b7",
+      "bytes": 47838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/query_pipeline/generators.rs",
+      "sha256": "6902e47cd8e9fbc234ac30bb3b31e4f523dd4ff7bcfaa878ff8750bee5426048",
+      "bytes": 4195
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/query_pipeline/mod.rs",
+      "sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332",
+      "bytes": 29798
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/pipeline/user_changes.rs",
+      "sha256": "c83e9fdf86677c9c9db3d11ff9e484f562b450e869e41e3e3c6a803e39a16720",
+      "bytes": 11422
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d/src/utils.rs",
+      "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7",
+      "bytes": 24173
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/run_registered_once.py",
+      "sha256": "125b4063c2c4dd8787aada492359a3ed3ec9b0aac2316601c4307befb54786ad",
+      "bytes": 6371
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/selected-source-manifest.json",
+      "sha256": "74c7d2335af748abd9984bb1a40a70bed876a168aede4e91dc8628f390438fca",
+      "bytes": 99364
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unchanged-vendor-copy.json",
+      "sha256": "b52717ad57b7c74184f477a1c31020c6791a6bcc66ba8c6ed071e23cfa55a5b0",
+      "bytes": 53607
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validate_and_build.py",
+      "sha256": "30f76aefae1f8d98b6d1eb6bf88252ef644e08d85d1fd2ab81150cd6c40b90c3",
+      "bytes": 2625
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/clippy-actual.json",
+      "sha256": "69fdbe6d296ad7d853188f0dd97f0c08dfa6e108fb4b29d0bd7580466bcc3054",
+      "bytes": 254
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/clippy-command.json",
+      "sha256": "40ea556217c1208b53c190da6a9275765ea8fc630abdf2c40d6ce76b0b703cfd",
+      "bytes": 607
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/clippy-stderr.log",
+      "sha256": "dae311b636cee1ff25398c8cb513374183e8e49f261ae1435010a779a5ef5490",
+      "bytes": 333
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/clippy-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/fmt-check-actual.json",
+      "sha256": "eba6e65651af416f26375ef23878ad40f2386d5996897196642447bab2358850",
+      "bytes": 258
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/fmt-check-command.json",
+      "sha256": "b0e1b0015a487c26cdea6bcaa2dc43bc9325cb72b3ba0da6b1cb97f057c0c1d6",
+      "bytes": 611
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/fmt-check-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/fmt-check-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/format-actual.json",
+      "sha256": "26567f0602de85a7ae335b76ebe19ffc16f6384992a6dde9e6f347deb3ac72b2",
+      "bytes": 243
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/format-command.json",
+      "sha256": "f5b72b1de615649d051f75a8070bd594d6003d0ec8d6cb24335b8056e5860277",
+      "bytes": 596
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/format-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/format-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/pure-tests-actual.json",
+      "sha256": "b3ec9ae74b59cebcd6760efdad81a4386482e0830f9227a691c29d9da6f5dee8",
+      "bytes": 208
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/pure-tests-command.json",
+      "sha256": "abcb1dc7e8256f11845b660fa69d4981b87d448dc41af2f39ca3e7a18a955690",
+      "bytes": 561
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/pure-tests-stderr.log",
+      "sha256": "5ad8c416bb59a2169455d6aee592eb360362a0d4215fa128382a5ec4211aac59",
+      "bytes": 462
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/pure-tests-stdout.log",
+      "sha256": "3a531d94cdfd581b3ec0873bc5cdc29becf0c87f4653351a4acdff6f4b4136da",
+      "bytes": 717
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/release-build-actual.json",
+      "sha256": "03ef89970a545e8ad18278e7a06e08ef7074dc7dbf4da17d12eb5f4950938e3e",
+      "bytes": 255
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/release-build-command.json",
+      "sha256": "056db186496351d32cd16e2d81b0a02f162179cd085b37002baae231b07abe43",
+      "bytes": 608
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/release-build-stderr.log",
+      "sha256": "f530786b63f95d6d112b68672cef437a7c5e27e1a7287730ebb515051c578176",
+      "bytes": 336
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/release-build-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/rustdoc-actual.json",
+      "sha256": "9d6d35495be12da2078348152233b3fc0b3c88cc0ccaf880934cb879e32fbaa6",
+      "bytes": 211
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/rustdoc-command.json",
+      "sha256": "9b7633989d9f63a5abb2e47ca6fd51215d9e19bea4c429ef1d3feebce9d472fe",
+      "bytes": 564
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/rustdoc-stderr.log",
+      "sha256": "fd51dd4fcae96d75086305922ccffb0036c1810f0dc34b0a4e5a1826bac41c1d",
+      "bytes": 469
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/rustdoc-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/README.md",
+      "sha256": "3b40de5e5d9d7bc750901d7584ad8275bbe41f37c792e5b41c07ca4d10864976",
+      "bytes": 4161
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_contract.py",
+      "sha256": "6cddcaf6cb7e00c80e49b3c7e7a789454c43cd449d1f01e00bb4946ee3b85b0f",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_reader.py",
+      "sha256": "64ee44b5b16532ad9c3b272de986c7bad42c335b8bba81b3b7211367ab5b09aa",
+      "bytes": 27119
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/final-source-manifest.json",
+      "sha256": "807cd75dfbb84430dd699c86e26665d7192705a162597884438f7141b5b48234",
+      "bytes": 6423
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/handoff.json",
+      "sha256": "83ecbbc6e0f357b5ae60508c5fac9363a352fbc94622087972ffbc50faf6d179",
+      "bytes": 6231
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-1/receipt.json",
+      "sha256": "ca2b608d617efbc8877e98f1ebecda1f93d0fccd9bff6975a3fcc3098aa05854",
+      "bytes": 1992
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-1/stderr.log",
+      "sha256": "a13f15e1f66cecc5fe235611077e0eb49cfc8a939490e609998588257f86c6f4",
+      "bytes": 2985
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-1/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-2/receipt.json",
+      "sha256": "e3a8fc4099660966b15a9855ff68f790dc9171f6a36b0b5621f5649376e2d012",
+      "bytes": 2668
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-2/stderr.log",
+      "sha256": "c769b0d21f9dd44df53d96d22a49cb311035552d8940c501bc5cd9362bbfb991",
+      "bytes": 6799
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-2/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/receipt.json",
+      "sha256": "306c6096a1af397f191b5ceb86d58b57ed683183175b8fd3e4698f3aba443d8a",
+      "bytes": 2668
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/stderr.log",
+      "sha256": "17253405b4f4e38d4da5bd2144f5a2862af4b72946ba47fab4f941b647d76fc6",
+      "bytes": 4080
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/run_schema.py",
+      "sha256": "4c1b1c20f64898b385ea61695b628384bf9502290724219cbd3568f762d64a18",
+      "bytes": 32057
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/source-reuse-provenance.json",
+      "sha256": "a63b1fecf984c0923025a5c4bc94681a743f0052cc246cafb4695df9cb7b1c50",
+      "bytes": 2014
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/strict_io.py",
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+      "bytes": 3739
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/synthetic_fixtures.py",
+      "sha256": "1a3c879a85d74896cffa26e8ac2b7b5dc2937567417b17c2275ceacc45455c79",
+      "bytes": 9421
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/test_cohort_reader.py",
+      "sha256": "c373b9548a5e829684b7351aaf11e72e084f3d290d826731ad3e99527d65717b",
+      "bytes": 10690
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/test_physical_reference.py",
+      "sha256": "9a3cb1fe0335e6cae11b3bd343fa4701dd92f2dc3270e4f6f8891309804519f5",
+      "bytes": 4061
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/test_run_schema.py",
+      "sha256": "7e8c82a9d508240843aa4a24d46c39186763039144ac065a495852ae7d24a34e",
+      "bytes": 5659
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/prepare_visit_placement.py",
+      "sha256": "7fb1c758119afd9eeb9f7b8ec4615b7509fe3692c3f90992ebc9a6ed4fec5a40",
+      "bytes": 7212
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/AGENTS.md",
+      "sha256": "2e3caf6cea6e1a7d26cdb5794abe8a906dd9a50d6475a009759393e824b28b44",
+      "bytes": 10126
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/Cargo.lock",
+      "sha256": "bd1a2fd03beb12f3c24731a7ee8dd70d44bb65123f70a4e16adaa5a320b434ed",
+      "bytes": 141500
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/Cargo.toml",
+      "sha256": "d5aa604f219d313d42a39b68779a13bde80dd73d4750b7f5ab7310e663c9ed25",
+      "bytes": 12574
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/clippy.toml",
+      "sha256": "2e5a56898feafc9072d010eb802c24f8a05fce44ae8c4454c3fed13cb9c1444a",
+      "bytes": 67
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/Cargo.toml",
+      "sha256": "8d2b86968245d8c1fc63a7fb58e97b1443b0814228ea62d230bdcb56bd2fbeb9",
+      "bytes": 520
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/lib.rs",
+      "sha256": "f73732b13546625a7b53af1e07c1a0873a937a1746e800175647fcf85dd910c7",
+      "bytes": 33595
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/main.rs",
+      "sha256": "97962b1e7cb0182547c8fef5a19c1603524150e12ae5ef487a38b3a85203f821",
+      "bytes": 346
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/tests.rs",
+      "sha256": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063",
+      "bytes": 7539
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/.gitattributes",
+      "sha256": "7348042733449d91fd3d3c1c086cdf5a8f5a713706897bcc7d6c275f591003e9",
+      "bytes": 376
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/Cargo.toml",
+      "sha256": "01d5f1b47c6002e2390a81e15d9ada9dfd92e53dde390f19eb0a5940b112f563",
+      "bytes": 3127
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/Cargo.toml.orig",
+      "sha256": "37223145bbb2e2e5deb616bafb83f54ed76b2aafa7663a1af05c6ad3938da998",
+      "bytes": 2457
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/LICENSE",
+      "sha256": "86ae51c591e742d80ce56823d35e2e176b53e38a99bd8499c85dae31ef4fe1f7",
+      "bytes": 11548
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/README.md",
+      "sha256": "7459f6035574cc777115cdbf566626a84293202eb4e9b2f06223a5cba824c677",
+      "bytes": 2805
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/RNE.patch",
+      "sha256": "9b63afccf0b02e8d461add58edb007cdf1f15b50062db15c5b83c876c6517c6c",
+      "bytes": 11057
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/RNE_PATCH.md",
+      "sha256": "d24b109067bfc3033bae18edbb680bb6ea038ed7e275c8409d3c93af086ba199",
+      "bytes": 9583
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/RNE_UPSTREAM_SHA256.json",
+      "sha256": "77ec485ce27993c69f7f044543ce34079b9f38f9071a1c221a4a41e0167df31f",
+      "bytes": 12867
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/control/character_controller.rs",
+      "sha256": "f4eb3f1d420e6e0c460f9301e40c6547b670c4de65e961ba562272504c203f27",
+      "bytes": 35890
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/control/mod.rs",
+      "sha256": "872afd3082ef48b5bf5d5820712e844c26fbf825592ebdb207cb086c8443df4f",
+      "bytes": 469
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/control/ray_cast_vehicle_controller.rs",
+      "sha256": "bf33eff305668348edf9cc48473325c418403a28c3058e7345d83b9ff3b83727",
+      "bytes": 32159
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/counters/ccd_counters.rs",
+      "sha256": "69fac9dfcfaf19be624f037f9e34d0cc886125ac80d2bf69bd2a1d7ce7080b9e",
+      "bytes": 1838
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/counters/collision_detection_counters.rs",
+      "sha256": "4d0eaed2c797dc66e6e76275a8848eacd365fcfafb5502513133321212ffcd12",
+      "bytes": 1316
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/counters/mod.rs",
+      "sha256": "954a057e5fe76ddacc7adb502be7677ffeca50108f54b1b9fcb019874864bc00",
+      "bytes": 6292
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/counters/solver_counters.rs",
+      "sha256": "bc50fa8637c6566a70939f35aa55b0f788c53794e9bc575b73ca364c89a57990",
+      "bytes": 2179
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/counters/stages_counters.rs",
+      "sha256": "9d92325aedc1131f3755225e250ae4ef38855dc04b01b7d19af5568f7c737424",
+      "bytes": 2510
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/counters/timer.rs",
+      "sha256": "3adc13e371fd59fc1e7bf01f5f810f7b266f2d959a58bb5adba546952356e879",
+      "bytes": 1482
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/data/arena.rs",
+      "sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb",
+      "bytes": 35182
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/data/coarena.rs",
+      "sha256": "310a2f7d9473b37fcd0b018cfe5fd5a08d8d2cbde6994a1dd9c76ccc2efd65e5",
+      "bytes": 4730
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/data/graph.rs",
+      "sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044",
+      "bytes": 23167
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/data/mod.rs",
+      "sha256": "21d21acf9f300023d719072c540ceeef1eb00064f44d951d3e7471a967d95271",
+      "bytes": 237
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/data/pubsub.rs",
+      "sha256": "2f206f65738a3744bbe50d3b90d67c17e9167ceb1d2143e9db37614f8a352d2a",
+      "bytes": 4973
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/ccd/ccd_solver.rs",
+      "sha256": "07122413e9024e33b26a4267488a7310163838789ba257d610c948819add724b",
+      "bytes": 23101
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/ccd/mod.rs",
+      "sha256": "c22415ffd9f49e825b4f54d25b8bfbf5c5e2025d14e211bd020fed810b38a3c9",
+      "bytes": 298
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/ccd/toi_entry.rs",
+      "sha256": "ba28a8bbf7bcef80447929e99e39c67472bed2d5eceac2f41e8924a96c61a5b9",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/coefficient_combine_rule.rs",
+      "sha256": "ab1065b104c00157c0c26cc9079ae17d4d2ecfa8ed316e9b28b627f6a6d0efd7",
+      "bytes": 1211
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/integration_parameters.rs",
+      "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+      "bytes": 14726
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/island_manager.rs",
+      "sha256": "587343081ba5cb45585ab18d222f5c137b1d4fae9805e4aaa88878756c0288c4",
+      "bytes": 14286
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/fixed_joint.rs",
+      "sha256": "f171a8cce1913a7ff2cf2410ec7fa5810a13fd9f01fe33622d88e009fe064ebb",
+      "bytes": 4809
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+      "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+      "bytes": 27313
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/impulse_joint/impulse_joint.rs",
+      "sha256": "8aab2c18afc4196d7bd04f6502b1bf5ff44c40df8fa3b53440ae490eab21b949",
+      "bytes": 759
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/impulse_joint/impulse_joint_set.rs",
+      "sha256": "b75a72e35ebefaea73773c2779d8c939b1a5e30db88bff83a8ea735624c2321b",
+      "bytes": 14846
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/impulse_joint/mod.rs",
+      "sha256": "1cba596a795a55e24936bd9af61aa57ea34366c7f8b267bc7c97e696ecd98689",
+      "bytes": 234
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/mod.rs",
+      "sha256": "4769f5564b300c113cebda78ef976ad135cbd67386801afddaecfd258dd2e26c",
+      "bytes": 595
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "bytes": 1488
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/mod.rs",
+      "sha256": "c537ae187ad2e0ae80e2fa9ab2cc66a329e2258d22a0331ed04f0fb92b625740",
+      "bytes": 649
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "bytes": 81559
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_ik.rs",
+      "sha256": "f95c748523ab6b3e1ec4d8536f249b716e76094ff1817c753f4f39bfe5c377e6",
+      "bytes": 10006
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "sha256": "e16bc16254459b84534d7a48157ebdb19deae0d0f8461ed8fc0a4e395d5c82da",
+      "bytes": 15921
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+      "bytes": 18345
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_link.rs",
+      "sha256": "19dbfdf2af1a803631424acdc3597633b7e754104bc91a2c7ab2bb090d538109",
+      "bytes": 4149
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_workspace.rs",
+      "sha256": "0c2c4c20bb8205aafbac5a0de6be115a95cc1f83fe2863e82ee6e84e605dd573",
+      "bytes": 830
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "2bde94532c22dd1a010c5b018fdb2e6a4314b2cf993bc56003523d5156b61857",
+      "bytes": 7380
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+      "sha256": "f0f400cf4fa7d4e3be5d489b9f2d87325089682b7a8c5ce69d4fa2779b9b5811",
+      "bytes": 5817
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/prismatic_joint.rs",
+      "sha256": "00fd5ed682feda771dd4dc4c18883715eaf6970e9a0b604c2145f16db0704604",
+      "bytes": 9208
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/revolute_joint.rs",
+      "sha256": "ef831e469cfc9dd28c57d4f0b84383a00e6616f68a0f3b9ba0a38a997ff7eab4",
+      "bytes": 11090
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/rope_joint.rs",
+      "sha256": "f1ecb6a4ef0703ebed737c347e6c83b2f717ff1994d84f4702a98217e053cc36",
+      "bytes": 7641
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/spherical_joint.rs",
+      "sha256": "05ad4cd2cc2cfb85de6a25de43208a6294174a5d154fa7ee0c8dbe77e2563dbb",
+      "bytes": 9472
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/spring_joint.rs",
+      "sha256": "1743bf8327e3e11a30ada01addad5336d09d5bd019db070847b1e9c6655e4237",
+      "bytes": 6701
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/mod.rs",
+      "sha256": "5b35f68f31913d3bbb069d1f5c4aa4a014d153b6e5248178a524152b017422d0",
+      "bytes": 946
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/rigid_body.rs",
+      "sha256": "d4c0803bb0f24a9fad3f54e73c5603cba9dcec31f6ad3df8544e6e96b68bebf7",
+      "bytes": 59050
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/rigid_body_components.rs",
+      "sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "bytes": 40728
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/rigid_body_set.rs",
+      "sha256": "9bcdfcfcf34b97c1ec4b93b8571e1f94fe2f8b4243561d1ffb52641cf6e96079",
+      "bytes": 9724
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/categorization.rs",
+      "sha256": "3341ed381cf843085cf4c672fdd5d3b3165424e3efaa719c437a1d026c377865",
+      "bytes": 2555
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs",
+      "sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70",
+      "bytes": 19202
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/generic_one_body_constraint.rs",
+      "sha256": "cf0e796e3ae5c4257f7fefa30fb9d9a3ea873603839f839fd5d8f5861e427b01",
+      "bytes": 13969
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/generic_one_body_constraint_element.rs",
+      "sha256": "d0f472cc412f133e9c21993c5e6840336e25ff1e57bfd06e8eaeea7d33efbfc9",
+      "bytes": 6922
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/generic_two_body_constraint.rs",
+      "sha256": "7243bd963781ecb156a098961c95b1b0ca20601f8df97f22c9934c9af01b3d59",
+      "bytes": 22283
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/generic_two_body_constraint_element.rs",
+      "sha256": "1fc07787b70e8478760a331cf8868ae4df80a33f879875b212411a8ccf3e3dc3",
+      "bytes": 16307
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/mod.rs",
+      "sha256": "e84c0974d0e9d7594c7e9ae629293182a97ba5a8f9004159ef3fd0079b698e46",
+      "bytes": 1109
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint.rs",
+      "sha256": "788a8339d73296e43f19134d6c4e844353934e731a984e99d13b842081d24814",
+      "bytes": 16961
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint_element.rs",
+      "sha256": "4ad8e1a4364135176c56093db6b0bfe24758229915ceb58a60b22c8c59d3bf40",
+      "bytes": 10736
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint_simd.rs",
+      "sha256": "9bd7de1376037f288f5885441810a8c90821d3559fa3233260c61137052f45b5",
+      "bytes": 18804
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint.rs",
+      "sha256": "38efa0ceb763d2ac96b2c499f7a6e93d772e135b3cc12a3d6600aaff460e0451",
+      "bytes": 21977
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint_element.rs",
+      "sha256": "ea51fabe761507f2649008b8f443835ee2b1ab35fc8eca549f2fc4f1fee35c71",
+      "bytes": 15519
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint_simd.rs",
+      "sha256": "81856a02ab15e8b25f1392ef171a459a9a19669ee0006aec08919bb8f8f5eef8",
+      "bytes": 19812
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/interaction_groups.rs",
+      "sha256": "3094f78156c6f7b7c819ccff507eb9d58415e834242d3af99868d5818ec94b22",
+      "bytes": 19677
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "sha256": "f16339e703e0ad8ed13b0a27f53f7a0956d9400114af8f7f1b2e94c8967c601a",
+      "bytes": 5528
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/any_joint_constraint.rs",
+      "sha256": "ed15ed8800f32fefc2b7a1808f2187ec173f7d999429989a2d017317501c9b47",
+      "bytes": 4136
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs",
+      "sha256": "b197dfd33145401d3d4b7239c6b02cb4299ce34013564fd7ce29e1103c8cc2c7",
+      "bytes": 53890
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "sha256": "7707ce8e2abe6e7747e513b317f0cf3909756e2082f381191784282cb88a2da7",
+      "bytes": 20338
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "bytes": 17536
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "sha256": "46f3aedde8bc1d057de77342967142eae1e3c313e855630c84640df9ccf84867",
+      "bytes": 50987
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs",
+      "sha256": "42a091f95f10dbd267c90ec7bfe0a151a55e95a5586cb1c30261a23774a0855c",
+      "bytes": 26413
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/mod.rs",
+      "sha256": "37c1abf96e0161c2f3689edf254242a03d4094dfe53fb5c24404bcf833d44dbe",
+      "bytes": 795
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/mod.rs",
+      "sha256": "bfe85fbefa20c7ccec9e0aa09dba289c02f335a9f7091addf8f1ec4477afb23b",
+      "bytes": 1659
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/parallel_island_solver.rs",
+      "sha256": "87bb21020cc26852eb40dc1acbccfdd0673f99ff8505804ed37bc7fdb12cf81c",
+      "bytes": 15621
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/parallel_solver_constraints.rs",
+      "sha256": "30554ef140c780ed412de171ebd31c7873053d8a201ace297828d286c807d0e9",
+      "bytes": 20262
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/parallel_velocity_solver.rs",
+      "sha256": "8c52c6da3c2246f222f9e44fa9f97bb2ee1f916d2cec54b49eb2c843c8c8309c",
+      "bytes": 13959
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/solver_body.rs",
+      "sha256": "7fca3fb5066986c6a2895860ac1abffeda5c438079b122199f5254feb8a5eaf4",
+      "bytes": 1970
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+      "bytes": 9066
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/solver_vel.rs",
+      "sha256": "8e10277211c04ce06c004a18f2aaf2445ead09ab55edd6ea7d5439ffd8f4e402",
+      "bytes": 1848
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "sha256": "6701f1c231691d8c2bb871eef43996b5c3333db027b880c8c2b3aa9c20435921",
+      "bytes": 33943
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase.rs",
+      "sha256": "c9e2e4d70e8a99c879660dee99fd2e15f14b6b235989142032958c418cdcc49d",
+      "bytes": 2931
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/broad_phase_multi_sap.rs",
+      "sha256": "23f5fa77e2d17278a2cb5819d0c9a370db76770bc5667385c60316046ea3cf23",
+      "bytes": 31085
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/broad_phase_pair_event.rs",
+      "sha256": "0aae56147926a6a8d34795a56179807209f997b07d271a56800ee060a8a98b0f",
+      "bytes": 1481
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/mod.rs",
+      "sha256": "1b93d3f5ce020eeb6717e415a5d83b66a17cdca478fc1f534694ac85f822c71f",
+      "bytes": 447
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_axis.rs",
+      "sha256": "8cb82483f89ab60991cb0a3752f44522d36f0fb2407ff6c7d0eb6a4621c0ca59",
+      "bytes": 10555
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_endpoint.rs",
+      "sha256": "3b3271fb7b1d9f793c81dfd1f07632ee6451e3f5445d3b8cb070ddcaa48af61f",
+      "bytes": 1540
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_layer.rs",
+      "sha256": "ee77333ab190cc1629665c01481fc8e2b839d8b2b1835e6b1cdf6ac4623a1432",
+      "bytes": 16921
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_proxy.rs",
+      "sha256": "1edc0dec088aa2160dc325370a2827183704fdda29d637ea09e11e2fbb77e9f7",
+      "bytes": 4041
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_region.rs",
+      "sha256": "9b12949a4f876bcafc6ad193a21edec8970fe387ffd473b93bc4ccb52e5a797b",
+      "bytes": 9778
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_multi_sap/sap_utils.rs",
+      "sha256": "0fd422f004d410dbcaf49d0bfc51abb4a794b86a64690d3373efc6c8984dc45e",
+      "bytes": 2238
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/broad_phase_qbvh.rs",
+      "sha256": "d412638e9773c8f89b6e250b1ca69a5c4474dc9e7387584594dc498b6b043b96",
+      "bytes": 2796
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/collider.rs",
+      "sha256": "a9be8b5eba41a6f08acfa9b6cb2a9d289f19626a138b8ebb15e7fd0ecbea909e",
+      "bytes": 43255
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/collider_components.rs",
+      "sha256": "210a17becb2d69e2d64c41f32ca0da07f1a7c5dfab210febe6e918e97634e5ae",
+      "bytes": 17840
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/collider_set.rs",
+      "sha256": "af08b39dcba35e759955462a6f12d9074939f0bcc9c62b21593d2142037224bd",
+      "bytes": 12139
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/contact_pair.rs",
+      "sha256": "ea83b390d843d1d8ff7a4b6d9f2e896e256f6c07d055d4e25b1764db6f719c3a",
+      "bytes": 13612
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/interaction_graph.rs",
+      "sha256": "414647bf53526ca7e5713669fc4d6e3508ad6612872e43d839e11aa455121747",
+      "bytes": 9691
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/interaction_groups.rs",
+      "sha256": "39a949af9236f697aa53ee3fd46191135c8a68c151cfe88e008ff631eac241c8",
+      "bytes": 5350
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/mesh_converter.rs",
+      "sha256": "95ba603f7221ead75bce7d9ba5bf8c297d0c11a18b28f781d5a4fa70720f96a7",
+      "bytes": 3585
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/mod.rs",
+      "sha256": "41992ea284c2444f3c94775ddfba0c877730bd1dc391aa22498e90400501f35e",
+      "bytes": 8127
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/geometry/narrow_phase.rs",
+      "sha256": "e9c56dd64e27edf8ac5d45673a41c655c569972d8792faac50882dd687304353",
+      "bytes": 51225
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/lib.rs",
+      "sha256": "6985bc3241fd187fdff91232813ea75a341867416aa3c09685aa55c393ebac30",
+      "bytes": 6967
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/collision_pipeline.rs",
+      "sha256": "2eb844ab886a044a5d88eadf300aeae4cd3b03c4296c63dd69471758aca21f0f",
+      "bytes": 8806
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/debug_render_pipeline/debug_render_backend.rs",
+      "sha256": "7c24f7c24da2d2c7b26e1c8f89b01f622b71e3a4bee8c34752ed09fce4fdc8df",
+      "bytes": 3253
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/debug_render_pipeline/debug_render_pipeline.rs",
+      "sha256": "b0ffeca067494ade98d13476fdafb6dd4a3a7e07a4c76bc705f699745be4ca8f",
+      "bytes": 24768
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/debug_render_pipeline/debug_render_style.rs",
+      "sha256": "5341ead11fae42210775af22b17f28f6c30f58c302a35f7aa3b70ab4a71fb5ec",
+      "bytes": 3748
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/debug_render_pipeline/mod.rs",
+      "sha256": "b19c81775729cff87021de5a109d0bf9e68c657e9c2724d0751a5dda98896ded",
+      "bytes": 320
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/debug_render_pipeline/outlines.rs",
+      "sha256": "d07bde2f73f851edb5de5eff3790c7a2ae62df4f89dcf09842cfb7f49bb652a7",
+      "bytes": 1180
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/event_handler.rs",
+      "sha256": "9820d4432914cfab9573c4795ddfcf4d2554c765197e72496b44ce91f9d4b2b9",
+      "bytes": 4742
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/mod.rs",
+      "sha256": "a172e71d180a2397422ae490abc4abaf60ef012d139ee42f5165e9811dbe13ce",
+      "bytes": 1936
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+      "sha256": "03f417ee1b848ab1b2e3d1e5ca1aad29065e9b80c0ebf4f803f718fe39aa9e5e",
+      "bytes": 7972
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs",
+      "sha256": "d361abd9f84a0fca60ee1ef0256c6af7399a835f91b5b59138b7c61c58c9ccd2",
+      "bytes": 12621
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs",
+      "sha256": "9a3c4cbcde20a7957ad3c2b9b38f8a9a2861c396c0c7cbb692c1407c65ff156e",
+      "bytes": 25838
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+      "bytes": 9594
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_stage/tests.rs",
+      "sha256": "036fb87df8d9c18cd79ce37b15856e79da02fd0e170393db891bf55547aa7499",
+      "bytes": 22817
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/physics_hooks.rs",
+      "sha256": "d4339ef3704471574c2c57379dc6b7c44b5aae98abc3ad7443c1d293733c30a4",
+      "bytes": 12422
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+      "sha256": "86fbfe05994120617346ae30538837fd0bf96cdfc83f0bfe6043766e975f11b7",
+      "bytes": 47838
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/query_pipeline/generators.rs",
+      "sha256": "6902e47cd8e9fbc234ac30bb3b31e4f523dd4ff7bcfaa878ff8750bee5426048",
+      "bytes": 4195
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/query_pipeline/mod.rs",
+      "sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332",
+      "bytes": 29798
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/user_changes.rs",
+      "sha256": "c83e9fdf86677c9c9db3d11ff9e484f562b450e869e41e3e3c6a803e39a16720",
+      "bytes": 11422
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/utils.rs",
+      "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7",
+      "bytes": 24173
+    }
+  ],
+  "registration_artifacts": {
+    "protocol": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/fixed-protocol.json",
+      "sha256": "9496a91e13a71b6759105907abf2a11ddcd2726a27b6141b977d05657d41b161",
+      "bytes": 7807
+    },
+    "collector_source_manifest": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/selected-source-manifest.json",
+      "sha256": "74c7d2335af748abd9984bb1a40a70bed876a168aede4e91dc8628f390438fca",
+      "bytes": 99364
+    },
+    "compiler_feature_receipt": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding.json",
+      "sha256": "51b60eecd05340730648b29780bfea9209b1f145c1904d03510beed34a7cdf83",
+      "bytes": 46457
+    },
+    "producer_review": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/producer_review.json",
+      "sha256": "7a96c4362a29c75122d1ee82cbbe69bd4c1add6a50c0b2dff752c2be36f18c21",
+      "bytes": 8871
+    },
+    "pure_tests_review": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/pure_tests_review.json",
+      "sha256": "e4fbc3ffde5c9f8fe1e92500b182151004ccc47977ed1bf2f96b722badfc76d5",
+      "bytes": 3489
+    }
+  },
+  "registered_spec_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e"
+}

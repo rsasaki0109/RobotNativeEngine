@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "cargo",
+    "build",
+    "--locked",
+    "--release",
+    "--bin",
+    "motor_visit_placement"
+  ],
+  "original_exit": 0,
+  "start_unix_ns": 1791837434388887806,
+  "end_unix_ns": 1791837452948418745,
+  "native_fixture_invoked": false
+}

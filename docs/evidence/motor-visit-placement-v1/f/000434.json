@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "cargo",
+    "doc",
+    "--locked",
+    "--no-deps"
+  ],
+  "original_exit": 0,
+  "start_unix_ns": 1791837151218278031,
+  "end_unix_ns": 1791837152860225668,
+  "native_fixture_invoked": false
+}

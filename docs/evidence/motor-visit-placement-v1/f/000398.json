@@ -1,0 +1,36 @@
+{
+  "kind": "independent_prepared_inline_whole_bundle_byte_review",
+  "status": "PASS_LOCAL_BUNDLE_READY_WHOLE_BYTE_RETENTION",
+  "schema_version": 1,
+  "created_utc": "2026-10-12T21:05:44.961463+00:00",
+  "manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-publication/prepared-inline-bundle/manifest.json",
+    "sha256": "5f6691486ac0ccf78dcd7570dc26b71386b856039adfec320320f1795cad8950",
+    "bytes": 443052
+  },
+  "aliases_verified": 716,
+  "payloads_verified": 396,
+  "total_payload_stored_bytes": 9669691,
+  "threshold_bytes_per_stored_file": 1048576,
+  "all_payloads_regular_non_symlink_and_at_or_below_threshold": true,
+  "all702_ledger_origins_covered": true,
+  "current_postreview_whole_files_covered": 14,
+  "all508_frozen_source_tool_review_origins_covered": true,
+  "all18_native_raw_gzip_files_included_whole_exact": true,
+  "whole_audit_lossless_restoration_verified": true,
+  "compressed_audit_representation_bytes": 886291,
+  "original_audit_bytes": 5447072,
+  "only_two_host_compiled_executable_bindings_local_only": [
+    "/usr/bin/python3",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native"
+  ],
+  "raw_dataset_omissions": 0,
+  "native_reader_math_Git_Release_or_publication_actions": 0,
+  "public_retention_completed": false,
+  "limits": [
+    "This is local preparation of an ordinary future PR, not evidence of public download/recovery or merge permission.",
+    "All original scientific outcomes and fixed budgets are unchanged; compressed audit retains complete original bytes without splitting/truncation/selection.",
+    "The stored compressed representation satisfies current ADR034 size rule; no decompressed-size requirement is imposed."
+  ],
+  "issues": []
+}

@@ -1050,6 +1050,51 @@ old report bytes, numerical criteria and the rejected inverse-diagonal candidate
 remain unchanged. Pre-data storage-fault reviews and corrected once-only drivers
 are retained separately from the actual successful collections.
 
+### Motor visit placement under public solver counts
+
+A separate external study derived from example 143 varies only the public
+internal PGS/stabilization counts: 1/2 (`split_1_2`), 1/0 (`early_1_0`) and
+3/0 (`early_3_0`). It uses the unchanged source at PR #410 head `5e8e3627` and
+the same isolated ForceBased fixture. Each profile/sign has ON, fresh ON and
+OFF, giving eighteen original processes in a new cohort. The collector remains
+an external study prototype; no new workspace example or invocation is added.
+
+All original native/collection exits and the one frozen audit exit are zero.
+The audit accounts for 2,572 construction-companion events, 8,192 v1 stage events
+and 896 immediate motor visits, with 384 constructor and 384 coordinate-advance
+checks in the declared source-ordered normal/zero domain. Captured ON/fresh/OFF
+checkpoints match exactly within each profile/sign; fresh ON completed records
+match literally and OFF observations are absent. There are no arithmetic
+exclusions or mismatches. The preregistered first-slice discriminator is
+INCONCLUSIVE for both signs; an unequal first-slice result was not required for
+the fidelity gate.
+
+The positive target's last slice (31) of the one 1 ms interval records:
+
+| Profile (PGS/stabilization) | Coordinate after interval (rad) | Integration input (rad/s) | Final writeback (rad/s) |
+|---|---:|---:|---:|
+| `split_1_2` (1/2) | 2.43952054e-5 | 0.0243901238 | 0.0312500075 |
+| `early_1_0` (1/0) | 2.43952054e-5 | 0.0243901238 | 0.0243901238 |
+| `early_3_0` (3/0) | 2.34375093e-5 | 0.0312500075 | 0.0312500075 |
+
+In this fixed fixture the no-stabilization one-PGS profile preserves the captured
+coordinate and makes writeback equal the integration input. The three-PGS
+profile has a different coordinate endpoint and equal integration/writeback
+velocities. The recorded visit phases and bias-removal stages remain part of
+these comparisons; they do not establish a general coupled-contact cause or
+justify replacing production settings. Physical SI references are diagnostics
+only. Calibration FAIL 0/4 and the inverse-(w+g) candidate's rejection remain
+unchanged; this study recollects no earlier scalar worlds and changes no vendor
+equation, controller or selected example-141 source binding.
+
+The [whole evidence and provenance](../evidence/motor-visit-placement-v1/README.md)
+retain all eighteen full raw streams. The complete 5,447,072-byte audit is retained
+losslessly as one 886,291-byte gzip member; full restoration is bound to the
+original audit SHA/length, without splitting or selecting fields. Public
+retention is prepared separately from the scientific qualification. Captured
+state/source arithmetic do not qualify full private caches, runtime floating-point
+modes, physical motor accuracy, hardware behavior or increased practical maturity.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

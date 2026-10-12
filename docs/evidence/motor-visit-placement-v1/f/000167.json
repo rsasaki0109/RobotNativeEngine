@@ -1,0 +1,58 @@
+{
+  "actual_pure_completion": {
+    "bytes": 889,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/actual-pure-command-completion.json",
+    "sha256": "ffcc1fa5622b8d479249e0e6b4a54bed5a7ed657c138e94f6a14a2f4aa2d8d01"
+  },
+  "actual_signal_calls": 0,
+  "candidate_template": {
+    "bytes": 3661,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/candidate-template.json",
+    "sha256": "9f144baf453046334bb9a58ca900bc7d517d2f2db457525f11a4d565c628c12d"
+  },
+  "case_order": {
+    "bytes": 2229,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/case-order.json",
+    "sha256": "f32d5e9c12002035245bfef195280e57f53229f2f5a9e53769f81bbaf574f471"
+  },
+  "contract": {
+    "bytes": 6444,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/cohort_contract.py",
+    "sha256": "6cddcaf6cb7e00c80e49b3c7e7a789454c43cd449d1f01e00bb4946ee3b85b0f"
+  },
+  "driver_processes_native_worlds_started": 0,
+  "fixed_native_budget": 18,
+  "kind": "new_fixed18_driver_review_handoff",
+  "protocol_draft": {
+    "bytes": 4336,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/protocol-draft.json",
+    "sha256": "9ed8fe1f7e05c3e2a26dc29a76b8964afd3cac7ccf8e6a3a4c5d2b0a9162453c"
+  },
+  "pure_tests": {
+    "bytes": 3696,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/actual-pure-tests.json",
+    "sha256": "a35fef4367e5bc3c98d1aca218235610c6f4e2affd0f9a6d6eafd0934f48ae6f"
+  },
+  "readme": {
+    "bytes": 7168,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/README.md",
+    "sha256": "c061d9142d2ee849acdf08c4dc5a433e742d6474e2cc94d22356e5bf586aee96"
+  },
+  "schema_version": 1,
+  "shared_schema": {
+    "bytes": 5760,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/shared-contract-draft.json",
+    "sha256": "50c370d1e3262f4196ea7e070c78b0266ca6b1fca19b0cfa2fe5282b543ede53"
+  },
+  "source_manifest": {
+    "bytes": 2021,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/final-driver-source-manifest.json",
+    "sha256": "2b87b761222099b8be4d8a243053018d6c10032eae731f42ab33d7aeec7944e4"
+  },
+  "status": "READY_FOR_INDEPENDENT_PRE_DATA_REVIEW_NOT_NATIVE_AUTHORIZED",
+  "wrapper_template": {
+    "bytes": 119,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/wrapper-template.json",
+    "sha256": "2f147ce5aa5ed1431fb42d0cab6b7f3de502a22d222594c58b68c0fa3278323c"
+  }
+}

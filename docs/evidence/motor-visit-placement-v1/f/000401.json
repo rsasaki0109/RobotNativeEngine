@@ -1,0 +1,54 @@
+{
+  "kind": "independent_pure_test_source_actual_receipt_review",
+  "status": "PASS_PURE_ONLY_SUPERSEDED_SOURCE_BUILD",
+  "rejected_build_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding.json",
+    "sha256": "5c9279955cd6e15406303ea06dc60a81b0face9b29343565072015cf637a64f5",
+    "bytes": 46457
+  },
+  "source_test_file": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/tests.rs",
+    "sha256": "bd5f979eccec5b2c023239fd70471ec50614d3290f030e019ca20da2aae8e70f",
+    "bytes": 8814
+  },
+  "original_test_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/pure-tests-actual.json",
+    "sha256": "ee747f95b61fec77e924ce365fa2c738ae8d51067a98fcb726bfc1b4f8fc4a9d",
+    "bytes": 208
+  },
+  "original_exit": 0,
+  "stdout_log": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/pure-tests-stdout.log",
+    "sha256": "3a531d94cdfd581b3ec0873bc5cdc29becf0c87f4653351a4acdff6f4b4136da",
+    "bytes": 717
+  },
+  "stderr_log": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/pure-tests-stderr.log",
+    "sha256": "38d63f808c28f309599e5adc6a36072ab5b23ab3a5606277096b46a91cb43d40",
+    "bytes": 813
+  },
+  "original_passed_test_names": [
+    "fixed_cli_accepts_both_signs_and_rejects_tuning_or_ambiguity",
+    "existing_claim_blocks_before_callback_without_overwrite",
+    "exclusive_header_precedes_stub_callback_and_keeps_error_terminal",
+    "stub_panic_is_retained_and_empty_success_is_not_collected",
+    "synthetic_completed_framing_is_deterministic",
+    "postcard_opaque_f32_words_preserve_zero_nan_and_infinity",
+    "impulse_promoted_f64_words_keep_signed_zero_and_absence",
+    "profile_parser_and_headers_use_only_registered_counts"
+  ],
+  "tests_passed": 8,
+  "native_entrypoint_calls_absent_in_test_source": true,
+  "reviewer_reruns": 0,
+  "scope": "Parser, claim callback stubs, synthetic framing and opaque serialization only. No Fixture/pipeline invoked by any test.",
+  "limitations": [
+    "This archived pass is attached to the superseded normalized vendor build. It is not the final restored-source qualification.",
+    "No physics accuracy, convergence, ON/OFF neutrality or profile outcome is established."
+  ],
+  "actions": {
+    "native_worlds": 0,
+    "cargo_build_or_test_commands": 0,
+    "source_edits": 0,
+    "old_numeric_data_reads": 0
+  }
+}

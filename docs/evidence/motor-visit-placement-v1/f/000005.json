@@ -1,0 +1,75 @@
+{
+  "kind": "independent_pure_tests_source_and_actual_receipt_review",
+  "schema_version": 1,
+  "reviewer": "/root/motor_diagonal_tests",
+  "created_utc": "2026-10-12T20:39:39.410595+00:00",
+  "status": "PASS_PURE_ONLY_AFTER_RESTORATION",
+  "baseline_head": "5e8e3627cd91df767ae41e8364f9401a8cd4e2d7",
+  "actual_build_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding.json",
+    "sha256": "51b60eecd05340730648b29780bfea9209b1f145c1904d03510beed34a7cdf83",
+    "bytes": 46457
+  },
+  "producer_review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/producer_review.json",
+    "sha256": "7a96c4362a29c75122d1ee82cbbe69bd4c1add6a50c0b2dff752c2be36f18c21",
+    "bytes": 8871
+  },
+  "test_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/tests.rs",
+    "sha256": "bd5f979eccec5b2c023239fd70471ec50614d3290f030e019ca20da2aae8e70f",
+    "bytes": 8814
+  },
+  "original_test_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/pure-tests-actual.json",
+    "sha256": "b3ec9ae74b59cebcd6760efdad81a4386482e0830f9227a691c29d9da6f5dee8",
+    "bytes": 208
+  },
+  "original_argv": [
+    "cargo",
+    "test",
+    "--locked",
+    "--lib"
+  ],
+  "original_exit": 0,
+  "stdout_log": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/pure-tests-stdout.log",
+    "sha256": "3a531d94cdfd581b3ec0873bc5cdc29becf0c87f4653351a4acdff6f4b4136da",
+    "bytes": 717
+  },
+  "stderr_log": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/pure-tests-stderr.log",
+    "sha256": "5ad8c416bb59a2169455d6aee592eb360362a0d4215fa128382a5ec4211aac59",
+    "bytes": 462
+  },
+  "tests_passed_in_retained_root_execution": 8,
+  "test_names": [
+    "fixed_cli_accepts_both_signs_and_rejects_tuning_or_ambiguity",
+    "existing_claim_blocks_before_callback_without_overwrite",
+    "exclusive_header_precedes_stub_callback_and_keeps_error_terminal",
+    "stub_panic_is_retained_and_empty_success_is_not_collected",
+    "synthetic_completed_framing_is_deterministic",
+    "postcard_opaque_f32_words_preserve_zero_nan_and_infinity",
+    "impulse_promoted_f64_words_keep_signed_zero_and_absence",
+    "profile_parser_and_headers_use_only_registered_counts"
+  ],
+  "native_entrypoint_calls_absent": true,
+  "agent_tests_rerun": 0,
+  "scope": "Parser, exclusive claim/error/panic stub callbacks, synthetic framing/gzip and opaque postcard/IEEE serializers only. No test invokes Fixture::new, step, collect_native or run_cli. Synthetic progress flags never represent a native measurement.",
+  "historical_superseded_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/pure_tests_review_attempt1_SUPERSEDED.json",
+    "sha256": "86e54ac0acc7cbc537ac089c8416b6a37ccd22d20598e34c1dd1155e9bac9c19",
+    "bytes": 2758
+  },
+  "limits": [
+    "Original final tests executed by root; reviewer inspected actual source and receipt/logs only.",
+    "Pure tests establish no ON/fresh/OFF native neutrality, accuracy, convergence or profile outcome."
+  ],
+  "actions": {
+    "native_worlds": 0,
+    "cargo_build_or_test_commands": 0,
+    "main_edits": 0,
+    "old_native_data_reads": 0
+  },
+  "issues": []
+}

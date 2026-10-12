@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "cargo",
+    "test",
+    "--locked",
+    "--lib"
+  ],
+  "original_exit": 0,
+  "start_unix_ns": 1791837114191557641,
+  "end_unix_ns": 1791837133984521802,
+  "native_fixture_invoked": false
+}

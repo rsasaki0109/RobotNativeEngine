@@ -1,0 +1,36 @@
+test_alias_cannot_point_at_missing_or_conflicting_payload (__main__.PortableEvidenceTests.test_alias_cannot_point_at_missing_or_conflicting_payload) ... ok
+test_archive_python_bytes_are_never_imported_or_executed (__main__.PortableEvidenceTests.test_archive_python_bytes_are_never_imported_or_executed) ... ok
+test_bool_and_float_numeric_fields_are_rejected (__main__.PortableEvidenceTests.test_bool_and_float_numeric_fields_are_rejected) ... ok
+test_casefold_directory_collision_rejected (__main__.PortableEvidenceTests.test_casefold_directory_collision_rejected) ... ok
+test_casefold_file_collision_rejected (__main__.PortableEvidenceTests.test_casefold_file_collision_rejected) ... ok
+test_corrupt_stored_bytes_rejected (__main__.PortableEvidenceTests.test_corrupt_stored_bytes_rejected) ... ok
+test_duplicate_json_keys_rejected (__main__.PortableEvidenceTests.test_duplicate_json_keys_rejected) ... ok
+test_duplicate_origins_and_local_only_overlap_rejected (__main__.PortableEvidenceTests.test_duplicate_origins_and_local_only_overlap_rejected) ... ok
+test_duplicate_payload_and_unreferenced_payload_rejected (__main__.PortableEvidenceTests.test_duplicate_payload_and_unreferenced_payload_rejected) ... ok
+test_exact_attributes_and_unknown_schema_keys_rejected (__main__.PortableEvidenceTests.test_exact_attributes_and_unknown_schema_keys_rejected) ... ok
+test_full_repository_relative_windows_length_boundary (__main__.PortableEvidenceTests.test_full_repository_relative_windows_length_boundary) ... ok
+test_gzip_declared_restored_size_and_sha_must_match (__main__.PortableEvidenceTests.test_gzip_declared_restored_size_and_sha_must_match) ... ok
+test_gzip_excess_restored_bytes_are_bounded_and_rejected (__main__.PortableEvidenceTests.test_gzip_excess_restored_bytes_are_bounded_and_rejected) ... ok
+test_gzip_truncation_and_crc_corruption_rejected_after_hash_rebinding (__main__.PortableEvidenceTests.test_gzip_truncation_and_crc_corruption_rejected_after_hash_rebinding) ... ok
+test_local_only_schema_requires_reason_without_claiming_recovery (__main__.PortableEvidenceTests.test_local_only_schema_requires_reason_without_claiming_recovery) ... ok
+test_manifest_nan_and_json_float_rejected (__main__.PortableEvidenceTests.test_manifest_nan_and_json_float_rejected) ... ok
+test_missing_and_undeclared_payloads_rejected (__main__.PortableEvidenceTests.test_missing_and_undeclared_payloads_rejected) ... ok
+test_parent_directory_symlink_rejected (__main__.PortableEvidenceTests.test_parent_directory_symlink_rejected) ... ok
+test_payload_symlink_rejected (__main__.PortableEvidenceTests.test_payload_symlink_rejected) ... ok
+test_restoration_receipt_must_be_retained_whole_and_not_local_only (__main__.PortableEvidenceTests.test_restoration_receipt_must_be_retained_whole_and_not_local_only) ... ok
+test_sha_requires_lowercase_exact_hex (__main__.PortableEvidenceTests.test_sha_requires_lowercase_exact_hex) ... ok
+test_sidecar_and_bundle_root_symlink_rejected (__main__.PortableEvidenceTests.test_sidecar_and_bundle_root_symlink_rejected) ... ok
+test_single_member_rejects_extra_member_and_trailing_data (__main__.PortableEvidenceTests.test_single_member_rejects_extra_member_and_trailing_data) ... ok
+test_stored_file_and_manifest_inline_limits_rejected (__main__.PortableEvidenceTests.test_stored_file_and_manifest_inline_limits_rejected) ... ok
+test_success_distinguishes_missing_local_only_from_recoverable_bytes (__main__.PortableEvidenceTests.test_success_distinguishes_missing_local_only_from_recoverable_bytes) ... ok
+test_unsafe_and_noncanonical_payload_paths_rejected (__main__.PortableEvidenceTests.test_unsafe_and_noncanonical_payload_paths_rejected) ... ok
+test_whole_alias_original_hash_and_size_must_equal_payload (__main__.PortableEvidenceTests.test_whole_alias_original_hash_and_size_must_equal_payload) ... ok
+test_whole_original_larger_than_inline_limit_is_valid_as_small_gzip (__main__.PortableEvidenceTests.test_whole_original_larger_than_inline_limit_is_valid_as_small_gzip) ... ok
+test_windows_reserved_and_trailing_dot_space_rejected (__main__.PortableEvidenceTests.test_windows_reserved_and_trailing_dot_space_rejected) ... ok
+test_wrong_stored_sha_rejected (__main__.PortableEvidenceTests.test_wrong_stored_sha_rejected) ... ok
+test_wrong_stored_size_rejected (__main__.PortableEvidenceTests.test_wrong_stored_size_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 0.129s
+
+OK

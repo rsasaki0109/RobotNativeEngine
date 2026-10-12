@@ -1,0 +1,8 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-postreview/postreview_retention.py"
+  ],
+  "created_utc": "2026-10-12T20:58:17.996181+00:00"
+}

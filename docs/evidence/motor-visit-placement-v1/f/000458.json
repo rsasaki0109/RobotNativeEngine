@@ -1,0 +1,523 @@
+{
+  "kind": "inactive_predata_preparation_retention",
+  "schema_version": 1,
+  "whole_added_files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/producer_review_attempt1_BLOCKED.json",
+      "sha256": "bcba1cc34d9f3ca4c2ac70651e6e2cfd2de20b66b85f9e768e8a2e30646a89db",
+      "bytes": 4847
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/pure_tests_review_attempt1_SUPERSEDED.json",
+      "sha256": "86e54ac0acc7cbc537ac089c8416b6a37ccd22d20598e34c1dd1155e9bac9c19",
+      "bytes": 2758
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/dependency-resolution-correction.json",
+      "sha256": "6558b1fcf8d453b133439ff5d517483afc2eacb95274159821718c0599ef7388",
+      "bytes": 425
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/cargo-actual.json",
+      "sha256": "bff82e620acc2766094a4dfe8d65459276f5aa63e225e43d664b5a140e5f4592",
+      "bytes": 249
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/cargo-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/cargo-stdout.log",
+      "sha256": "c6cd47fb28b137d9450165b5b0796de3dfdac887c91ea225c53506f3fc5f6add",
+      "bytes": 328
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/cc-actual.json",
+      "sha256": "1804c88686ff9183fb3094680690e6771901e58f87c475f91cb4e066e0b6e420",
+      "bytes": 252
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/cc-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/cc-stdout.log",
+      "sha256": "78fc11ae2c3ff7c235eb18ed90989d18f6cc864fb27027f839368cd0888deebc",
+      "bytes": 231
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/features-actual.json",
+      "sha256": "a30df5276035e9730f647fa35ca0aea78df356c377836c98e5b98c7f365484ef",
+      "bytes": 292
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/features-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/features-stdout.log",
+      "sha256": "273dc6bf6b87563c9f24538299ef4f12eb4972891340f3b16d7c4033291421be",
+      "bytes": 24042
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/guarded-release-build-actual.json",
+      "sha256": "0481a0e964d9ad66e9e4e0d0806a999ea8eb8ddb28067a3062860e864e2c13a7",
+      "bytes": 326
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/guarded-release-build-stderr.log",
+      "sha256": "90c8a1a69c0155761cff4bfe0e61bbee007961d2b96729d2127c2e0c291489dd",
+      "bytes": 62
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/guarded-release-build-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/ld-actual.json",
+      "sha256": "f974830567bfa253298a0dca29c521642259cd733174a6fdc3cc4dd85f773f82",
+      "bytes": 252
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/ld-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/ld-stdout.log",
+      "sha256": "cfff299abc32f737f1cb856667d31ff328f3755d06d98bc093a3ed8e98d4339e",
+      "bytes": 281
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/metadata-actual.json",
+      "sha256": "a05362534adb27f78086937f759f6702c5555040fbe7099c8ab0fb5ab8221917",
+      "bytes": 303
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/metadata-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/metadata-stdout.log",
+      "sha256": "29792e4b34213addaebf65aed0a831b18992a85caf723af5280de9ee50385325",
+      "bytes": 316086
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/rustc-actual.json",
+      "sha256": "f35bb2511dc95fe59e757f3663b40431e962e04fc35a80ccc7ac56bcef173ba9",
+      "bytes": 249
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/rustc-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/rustc-stdout.log",
+      "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+      "bytes": 196
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/sources-after.json",
+      "sha256": "b8113929d991cb536c37e71f7cb2bb2c7c0f686091f577d46ea19eaa82d82199",
+      "bytes": 33080
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/sources-before.json",
+      "sha256": "b8113929d991cb536c37e71f7cb2bb2c7c0f686091f577d46ea19eaa82d82199",
+      "bytes": 33080
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/target-cfg-actual.json",
+      "sha256": "1862e6299bafa46893575385404dcfef2a5ce870e18fb033a40246f7dc61755d",
+      "bytes": 264
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/target-cfg-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding/target-cfg-stdout.log",
+      "sha256": "fc10eb20a7d7b72645bb1bca51c110fe8af01944a91935dfac9a9cc6a8fb53a5",
+      "bytes": 381
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding.json",
+      "sha256": "5c9279955cd6e15406303ea06dc60a81b0face9b29343565072015cf637a64f5",
+      "bytes": 46457
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification/cargo-actual-version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification/cargo-actual-version.stdout.log",
+      "sha256": "c6cd47fb28b137d9450165b5b0796de3dfdac887c91ea225c53506f3fc5f6add",
+      "bytes": 328
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification/cargo-which.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification/cargo-which.stdout.log",
+      "sha256": "f0a14a33154720c5a0e9a2fa05aeac05a82840b32b61dab3f8a835066757a266",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification/rustc-actual-version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification/rustc-actual-version.stdout.log",
+      "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+      "bytes": 196
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification/rustc-which.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification/rustc-which.stdout.log",
+      "sha256": "a05a70d1a2f6620c94fd8e3c9b1f249aacfe0b381f793794b7036dae3f24a58e",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-toolchain-executable-qualification.json",
+      "sha256": "323e9696244c490058c4c20435c4d0f51f28d4796e3fbc340231eaaa4d4ce28c",
+      "bytes": 1037
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/altered-vendor-source/src/data/graph.rs",
+      "sha256": "b96ac9b832fce3435c81dc6531bd3eab88e55632882b3973cda5ea2780327942",
+      "bytes": 22448
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/altered-vendor-source/src/pipeline/query_pipeline/mod.rs",
+      "sha256": "4951b12c1559fc2a63d019a9202f275611997fbbc846643b118e0ab7cc7dc4aa",
+      "bytes": 29058
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/fixed-protocol.json",
+      "sha256": "aca10ee2fcaa088597cbb954bcc4ed79e194d40332360c9639d1af38dbbaf82f",
+      "bytes": 7825
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/freeze_actual_build.py",
+      "sha256": "f7abd0549a4cd8eee7f6c1e78da1191afe3dbc84804ae93815010193ee2db401",
+      "bytes": 5146
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/prepare_protocol_sources.py",
+      "sha256": "4e6f2ea1596aa5a11bf9592c9387493d4d547d9d6806ea38113c13d4dc4aa62f",
+      "bytes": 6534
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/rejection-and-restoration.json",
+      "sha256": "769ecfade95e64a4fa40b0eae5de8848edca6219e41263f5b510a105661abfc4",
+      "bytes": 689
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/selected-source-manifest.json",
+      "sha256": "15fa2f1e31d334525918fb4ec83960d53fb1cddb778ac4df41c022bae2734b33",
+      "bytes": 99364
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validate_and_build.py",
+      "sha256": "ff149f148eaf9697318908ffd3c1f4a1f9401e255427a77cbc4a0b544d5b3328",
+      "bytes": 2551
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/clippy-actual.json",
+      "sha256": "9d423d2b519cd2cf529cca0ccf7acb16edca247a788adbef66ec53c13f8a66d8",
+      "bytes": 254
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/clippy-command.json",
+      "sha256": "29f87cb25306b729efbd240ee74a06a98ad4b822336742e4020966fc65eb0e24",
+      "bytes": 607
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/clippy-stderr.log",
+      "sha256": "5aa8a33ea5c05398839dd2f7c40367b347b0fafcb6ee1d77d31aa5a862427372",
+      "bytes": 1514
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/clippy-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/fmt-check-actual.json",
+      "sha256": "267385ed349ec250611686d897e78efdaff790714931ce35340f9cac4cf6ffd9",
+      "bytes": 216
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/fmt-check-command.json",
+      "sha256": "0899dc340e5e70c536754fda4d2e5ddbc55668c2b48398c44abad2e717194d5b",
+      "bytes": 569
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/fmt-check-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/fmt-check-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/format-actual.json",
+      "sha256": "6484bac3d79a48a108bd4866fe70015dbebcbb840fc57b757b9e8d1206f83a11",
+      "bytes": 191
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/format-command.json",
+      "sha256": "2c62fc2049aa94dd80655db193712a18a0206fb52beb78914ecc386314aeca29",
+      "bytes": 544
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/format-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/format-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/pure-tests-actual.json",
+      "sha256": "ee747f95b61fec77e924ce365fa2c738ae8d51067a98fcb726bfc1b4f8fc4a9d",
+      "bytes": 208
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/pure-tests-command.json",
+      "sha256": "eb322f317dcc85ec517737687495e7e128bd022b2ee124dd23374440a29b7149",
+      "bytes": 561
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/pure-tests-stderr.log",
+      "sha256": "38d63f808c28f309599e5adc6a36072ab5b23ab3a5606277096b46a91cb43d40",
+      "bytes": 813
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/pure-tests-stdout.log",
+      "sha256": "3a531d94cdfd581b3ec0873bc5cdc29becf0c87f4653351a4acdff6f4b4136da",
+      "bytes": 717
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/release-build-actual.json",
+      "sha256": "f4008e04d42d7636c3f57e1e233dcbfd6b8070498e859e56e181c19555427681",
+      "bytes": 255
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/release-build-command.json",
+      "sha256": "a410c3c2de755cb820a4e0e671718a95598e1d97e38072b837fb0c913e89d7e8",
+      "bytes": 608
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/release-build-stderr.log",
+      "sha256": "68132450500ad60c1ce78de52e91ea77a32355c1e8d61626633150f83d6402aa",
+      "bytes": 336
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/release-build-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/rustdoc-actual.json",
+      "sha256": "b7cdd6526b79e4171742ef817dbe4de04196bf40b47ca115091d5aed5f1c80c1",
+      "bytes": 211
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/rustdoc-command.json",
+      "sha256": "8b1af6ff20c701c3f126cf6104a7e6679dfef904d0ac76bddc9ff329e1e13d4a",
+      "bytes": 564
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/rustdoc-stderr.log",
+      "sha256": "a7535931d09dd37afb5f49596fd921c025dcc336e6e3632d60bd2a0535876ab0",
+      "bytes": 469
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/validation/rustdoc-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/actual-Cargo.lock",
+      "sha256": "898908dfc4c61921651d7654046140ac859d5f35e0fa280c7930faef9f5d657e",
+      "bytes": 17438
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/actual-helper-source.py",
+      "sha256": "44fc028ab4f410ffe6bd7e2a0a6fcec01816acc1c487c63c3b39e9cf9d4c2471",
+      "bytes": 2610
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/clippy-actual.json",
+      "sha256": "f9ae16855d5b527d059c4a0c5341471e8f506e9fd8bcf3499902142522046426",
+      "bytes": 254
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/clippy-command.json",
+      "sha256": "e0b7999034a4c55aae14c7453f87c02ca8579b950e99c93a52791b9f6e281efe",
+      "bytes": 607
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/clippy-stderr.log",
+      "sha256": "2e6e0d98bfbba5734e79f911fb0ee71a4f456da7a871111536bb5211f5338c38",
+      "bytes": 2117
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/clippy-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/fmt-check-actual.json",
+      "sha256": "63052a7805017480ed88bad176203eed998200f96c1f52b80282494942418bae",
+      "bytes": 216
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/fmt-check-command.json",
+      "sha256": "67a52468eb281b798d8cb3f35ad23ef4184917c42dac145ff401c37390c4b98e",
+      "bytes": 569
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/fmt-check-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/fmt-check-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/format-actual.json",
+      "sha256": "f4d9feb0b38e3248b54e3c9969b713e176b607458a08107c114ea1d04a9a9386",
+      "bytes": 191
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/format-command.json",
+      "sha256": "74233fa6e54bebe83b04bd5fdb7e1bc9703b6c2946e9aec43d621c2a7a6f2dc6",
+      "bytes": 544
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/format-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/format-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/lock-actual.json",
+      "sha256": "80aa253fe947a25d98a0975018c9cac2bb5afb45c2d336d27cc744f41cf3a05e",
+      "bytes": 209
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/lock-command.json",
+      "sha256": "a6a3f76867ae844b2b62e3ff327e2369895fc93a4efedd761aa10513a820149c",
+      "bytes": 562
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/lock-stderr.log",
+      "sha256": "ce851c0d99dc38da5a63aefd73607ebe47fb0b71762d49c5a80a9c8cc11fb6ec",
+      "bytes": 320
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/lock-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/pure-tests-actual.json",
+      "sha256": "af217482a6222e5d0c159206118533a5c2796f2ad564baf6446cc2c2cf2d5016",
+      "bytes": 208
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/pure-tests-command.json",
+      "sha256": "a07a3a1117525a5872f9d096f969cf55a68d4ae84b1d8b240365b1e590c8b96e",
+      "bytes": 561
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/pure-tests-stderr.log",
+      "sha256": "1858055ebdfb5d4765f2d939c329abbba76a935898a0b0cab83e715182dc3abe",
+      "bytes": 1788
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/pure-tests-stdout.log",
+      "sha256": "3a531d94cdfd581b3ec0873bc5cdc29becf0c87f4653351a4acdff6f4b4136da",
+      "bytes": 717
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/release-build-actual.json",
+      "sha256": "b7ba6096e517994d6ce0ca96ef8b0da42733182715a21df8cdc5197134a1d228",
+      "bytes": 255
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/release-build-command.json",
+      "sha256": "3eca61d3f1bfc1af0ad8ba0a265084a0b0c2fe0888627a687dd9a48e3e37e0b9",
+      "bytes": 608
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/release-build-stderr.log",
+      "sha256": "52e81b6e11c4458366983688979b5ce0f8562acd99ad95d9fcd9635ff7342b05",
+      "bytes": 1268
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/release-build-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/rustdoc-actual.json",
+      "sha256": "036b33518c353a9dc1cdea097a109976c0071c42c14ce3383f0a51e4c9bf9721",
+      "bytes": 211
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/rustdoc-command.json",
+      "sha256": "62185c8892fb602ca8ad32b6e2d7e46978ddf477e15af335e28f5f6a077fe953",
+      "bytes": 564
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/rustdoc-stderr.log",
+      "sha256": "bcbe7e0aaacb50973fd7f1f65b5208702429064269db7de6e66aa3415627678c",
+      "bytes": 469
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation-preliminary-updated-deps/rustdoc-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "inactive_compiled_executables_local_only": [
+    {
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/motor_visit_placement.native",
+        "sha256": "941cd9577ceeb85f5732e304fc2023db585e591b972aa7db71bb9da38ef460a5",
+        "bytes": 2856088
+      },
+      "reason": "Inactive unadmitted compiled preparation executable; never invoked for any native world. Whole original retained locally."
+    }
+  ],
+  "native_worlds_from_these_preparations": 0,
+  "source_scope": "These superseded/blocked checks and source snapshots preceded any new study data. They are historical preparation records, not the admitted compiler inputs or successful scientific audit. No failed outcome is relabeled."
+}

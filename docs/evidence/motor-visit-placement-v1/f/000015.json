@@ -1,0 +1,16 @@
+{
+  "kind": "exclusive_checked_driver_command_claim",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/cohort_driver.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/admitted-wrapper.json",
+    "--spec-sha256",
+    "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+    "--launch-native"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "created_utc": "2026-10-12T20:54:02.733593+00:00",
+  "registered_wrapper_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e"
+}

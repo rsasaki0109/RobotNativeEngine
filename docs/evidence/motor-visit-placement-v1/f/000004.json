@@ -1,0 +1,226 @@
+{
+  "kind": "independent_producer_source_review",
+  "schema_version": 1,
+  "reviewer": "/root/motor_diagonal_tests",
+  "created_utc": "2026-10-12T20:39:39.408936+00:00",
+  "status": "PASS_SOURCE_SCOPE_ONLY_AFTER_RESTORATION",
+  "baseline_head": "5e8e3627cd91df767ae41e8364f9401a8cd4e2d7",
+  "source_bindings": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/source-bindings-restored-final.json",
+    "sha256": "d0e73ba542ad09d7217b501d65c6a3299d0e19bcd8ee1f9faba2e046c4623897",
+    "bytes": 113318
+  },
+  "actual_build_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-build-binding.json",
+    "sha256": "51b60eecd05340730648b29780bfea9209b1f145c1904d03510beed34a7cdf83",
+    "bytes": 46457
+  },
+  "actual_toolchain_executable_qualification": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/actual-toolchain-executable-qualification.json",
+    "sha256": "07fd57f6698056383d68187bc08ecf766c0f1d81d31d886f0405d0a9c142cd35",
+    "bytes": 1053
+  },
+  "toolchain_binary_hashes_checked_and_version_match_recorded": true,
+  "native_binary_hashed_not_executed": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "sha256": "941cd9577ceeb85f5732e304fc2023db585e591b972aa7db71bb9da38ef460a5",
+    "bytes": 2856088
+  },
+  "source129_matches_final_guarded_build": true,
+  "vendor123_copy_matches_baseline_original_bytes": true,
+  "root_lock_noncollector_version_checksum_differences": [],
+  "bound_collector_files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/Cargo.toml",
+      "sha256": "78a0bf74d5fd1d8194d0d40c00dd7a73d83a0aee6d617e6cf6ec34e500b2f2d9",
+      "bytes": 783
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/Cargo.lock",
+      "sha256": "6c558405780ccaced6a6374a82d3493d2e06b3b2b928b556344b223fa5004509",
+      "bytes": 17149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/lib.rs",
+      "sha256": "5cd48496717cc2bd6ab48ad6154f13287c259443ca6734278c53bee1b94f536c",
+      "bytes": 34964
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/main.rs",
+      "sha256": "3e96f0da7ea080a0a74ed99960b3be4f7404f4f9bedb0ba02cdc9152341614fe",
+      "bytes": 339
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/tests.rs",
+      "sha256": "bd5f979eccec5b2c023239fd70471ec50614d3290f030e019ca20da2aae8e70f",
+      "bytes": 8814
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/clippy.toml",
+      "sha256": "2e5a56898feafc9072d010eb802c24f8a05fce44ae8c4454c3fed13cb9c1444a",
+      "bytes": 67
+    }
+  ],
+  "profiles": {
+    "split_1_2": [
+      1,
+      2
+    ],
+    "early_1_0": [
+      1,
+      0
+    ],
+    "early_3_0": [
+      3,
+      0
+    ]
+  },
+  "checks": [
+    {
+      "check": "plant exact after profile signature and two count assignments normalized",
+      "pass": true,
+      "lines": "collector/lib.rs:376-484",
+      "baseline_region_sha256": "783d0d8dfab78559613ece4b5416ef9eb4410e451af7f5a6497bbd4e8db0b5b3"
+    },
+    {
+      "check": "all checkpoint serializers/physics words/telemetry struct definitions unchanged",
+      "pass": true,
+      "lines": "collector/lib.rs:486-869",
+      "baseline_region_sha256": "0cb60628370f4168f90b0c3d27e215d145490b4802bef4bdf06d06ac5908ae0d"
+    },
+    {
+      "check": "gzip record/footer/error terminal logic unchanged",
+      "pass": true,
+      "lines": "collector/lib.rs:277-374",
+      "baseline_region_sha256": "b393321473513cf97caa77e7e309a796dd9ba6ebfd013bb0f85b1359c4ecbcc8"
+    },
+    {
+      "check": "one interval collection/partial/success/availability unchanged after profile threading",
+      "pass": true,
+      "lines": "collector/lib.rs:872-953",
+      "baseline_region_sha256": "5476125a084454068a58e4106a88636bd94f964ac8ca25efdc53deca72080b4c"
+    },
+    {
+      "check": "mandatory exact profile names, unknown/repeated argument rejection",
+      "pass": true,
+      "lines": "collector/lib.rs:99-159"
+    },
+    {
+      "check": "header and actual parameters derive counts from same Profile::passes",
+      "pass": true,
+      "lines": "collector/lib.rs:68-87,214-235,259-272,429-435"
+    },
+    {
+      "check": "plant gains/axis/mass/damping/cap/32 slices and all3 observer flags unchanged",
+      "pass": true,
+      "lines": "collector/lib.rs:25-28,393-484"
+    }
+  ],
+  "producer_delta": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/producer-delta-vs-current143.diff",
+    "sha256": "10a74eb34579040e4a5ba542b72898bb8ceb60edb3d18fe5d238207d7ba6852d",
+    "bytes": 6178
+  },
+  "retained_final_root_validation": [
+    {
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/pure-tests-actual.json",
+        "sha256": "b3ec9ae74b59cebcd6760efdad81a4386482e0830f9227a691c29d9da6f5dee8",
+        "bytes": 208
+      },
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib"
+      ],
+      "original_exit": 0
+    },
+    {
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/fmt-check-actual.json",
+        "sha256": "eba6e65651af416f26375ef23878ad40f2386d5996897196642447bab2358850",
+        "bytes": 258
+      },
+      "argv": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "lib.rs",
+        "main.rs",
+        "tests.rs"
+      ],
+      "original_exit": 0
+    },
+    {
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/clippy-actual.json",
+        "sha256": "69fdbe6d296ad7d853188f0dd97f0c08dfa6e108fb4b29d0bd7580466bcc3054",
+        "bytes": 254
+      },
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "original_exit": 0
+    },
+    {
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/rustdoc-actual.json",
+        "sha256": "9d6d35495be12da2078348152233b3fc0b3c88cc0ccaf880934cb879e32fbaa6",
+        "bytes": 211
+      },
+      "argv": [
+        "cargo",
+        "doc",
+        "--locked",
+        "--no-deps"
+      ],
+      "original_exit": 0
+    },
+    {
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/validation/release-build-actual.json",
+        "sha256": "03ef89970a545e8ad18278e7a06e08ef7074dc7dbf4da17d12eb5f4950938e3e",
+        "bytes": 255
+      },
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "--bin",
+        "motor_visit_placement"
+      ],
+      "original_exit": 0
+    }
+  ],
+  "historical_rejection": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-stabilization-source-study/producer_review_attempt1_BLOCKED.json",
+    "sha256": "bcba1cc34d9f3ca4c2ac70651e6e2cfd2de20b66b85f9e768e8a2e30646a89db",
+    "bytes": 4847
+  },
+  "previous_rejection_resolution": "Both accidentally normalized files were restored to original main bytes; independent comparison of all123 vendor files and current129 build source descriptors passed. Root reran qualifications/rebuilt before data. The first blocked receipt remains retained.",
+  "limits": [
+    "This receipt reviews source, hashes and actual command receipts only; no native runtime neutrality, calibration accuracy or profile outcome claim.",
+    "Prospective18 launch/reader/protocol full admission is owned separately.",
+    "New study_id and mandatory profile require new reader admission; older schema_version1 alone does not qualify this workload.",
+    "Cross-profile first-slice comparisons require admitted row/cache/V words; whole native checkpoint parameters intentionally differ by profile.",
+    "Checkpoint state excludes full-set metadata, broad/narrow phase and private pipeline/solver/contact caches.",
+    "Compiler/linker internal-library closure and runtime rounding/FTZ/DAZ remain outside toolchain executable receipt scope."
+  ],
+  "actions": {
+    "agent_native_worlds": 0,
+    "agent_cargo_build_or_test_commands": 0,
+    "agent_main_edits": 0,
+    "old_native_report_reads": 0,
+    "git_remote_mutations": 0
+  },
+  "issues": []
+}

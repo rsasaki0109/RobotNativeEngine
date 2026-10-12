@@ -1,0 +1,274 @@
+{
+  "kind": "independent_new18_retention_lineage_postcollection_review",
+  "schema_version": 1,
+  "status": "PASS_RETAINED_LINEAGE_ORIGINAL_EXITS_FIXED_BUDGET_AND_WORD_BINDINGS",
+  "created_utc": "2026-10-12T20:58:18.399848+00:00",
+  "candidate": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/frozen-candidate.json",
+    "sha256": "14566a9ffbe6a6e89b1ead544385f85c22782d26ce9a9b3514e9f8bc2a6d558c",
+    "bytes": 144580
+  },
+  "admission": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-admission/final-predata-admission.json",
+    "sha256": "d258b81d19d83a4c1d8b1d65c798a55fb1e63e7dc279cd010039a7e7005dfa2f",
+    "bytes": 3750
+  },
+  "wrapper": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/admitted-wrapper.json",
+    "sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+    "bytes": 561
+  },
+  "audit": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/actual-cohort-audit.json",
+    "sha256": "d7022bb982ab997862da1f3aabbfa4306a6fa568b4707a2b2a9aa0bd9581acfe",
+    "bytes": 5447072
+  },
+  "whole_ledger": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-postreview/whole-file-ledger.json",
+    "sha256": "d234afa9442a3b60c9034dbbc54b48b0319da528019dd757a768ee2afe85f00a",
+    "bytes": 189083
+  },
+  "whole_ledger_files": 702,
+  "all508_frozen_inputs_and_binary_unchanged": true,
+  "main_readonly_git_records": [
+    {
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1"
+      ],
+      "cwd": "/workspace/RobotNativeEngine",
+      "original_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/workspace/RobotNativeEngine",
+      "original_exit": 0,
+      "stdout": "5e8e3627cd91df767ae41e8364f9401a8cd4e2d7\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "cwd": "/workspace/RobotNativeEngine",
+      "original_exit": 0,
+      "stdout": "1e1a12da95768a61baa4109cbb7fb815adb79ae9\n",
+      "stderr": ""
+    }
+  ],
+  "actual_original_native_exits": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "original_coordinator_exit": 0,
+  "original_checked_CLI_exit": 0,
+  "original_root_reader_CLI_exit": 0,
+  "native_processes": 18,
+  "outer_intervals": 18,
+  "scientific_reader_invocations": 1,
+  "retries": 0,
+  "resumed": false,
+  "constructor_status_bindings": 384,
+  "coordinate_status_bindings": 384,
+  "motor_solve_status_bindings": 896,
+  "construction_event_counts": 2572,
+  "stage_event_counts": 8192,
+  "coordinate_velocity_word_bindings": 1536,
+  "all18_whole_gzip_single_member_complete": true,
+  "captured_ON_fresh_OFF_checkpoint_equal": true,
+  "ON_fresh_completed_record_literal_equal": true,
+  "OFF_all_observers_null": true,
+  "first_slice_captured_word_bindings": [
+    {
+      "case": {
+        "label": "split_1_2_negative_on",
+        "observer": "on",
+        "profile": "split_1_2",
+        "target": "negative"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 3036877424,
+      "integration_input_velocity_rad_s_word": 3162505217,
+      "final_slice_generic_velocity_rad_s_word": 3162505217
+    },
+    {
+      "case": {
+        "label": "split_1_2_negative_fresh",
+        "observer": "on",
+        "profile": "split_1_2",
+        "target": "negative"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 3036877424,
+      "integration_input_velocity_rad_s_word": 3162505217,
+      "final_slice_generic_velocity_rad_s_word": 3162505217
+    },
+    {
+      "case": {
+        "label": "split_1_2_positive_on",
+        "observer": "on",
+        "profile": "split_1_2",
+        "target": "positive"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 889393776,
+      "integration_input_velocity_rad_s_word": 1015021569,
+      "final_slice_generic_velocity_rad_s_word": 1015021569
+    },
+    {
+      "case": {
+        "label": "split_1_2_positive_fresh",
+        "observer": "on",
+        "profile": "split_1_2",
+        "target": "positive"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 889393776,
+      "integration_input_velocity_rad_s_word": 1015021569,
+      "final_slice_generic_velocity_rad_s_word": 1015021569
+    },
+    {
+      "case": {
+        "label": "early_1_0_negative_on",
+        "observer": "on",
+        "profile": "early_1_0",
+        "target": "negative"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 3036877424,
+      "integration_input_velocity_rad_s_word": 3162505217,
+      "final_slice_generic_velocity_rad_s_word": 3162505217
+    },
+    {
+      "case": {
+        "label": "early_1_0_negative_fresh",
+        "observer": "on",
+        "profile": "early_1_0",
+        "target": "negative"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 3036877424,
+      "integration_input_velocity_rad_s_word": 3162505217,
+      "final_slice_generic_velocity_rad_s_word": 3162505217
+    },
+    {
+      "case": {
+        "label": "early_1_0_positive_on",
+        "observer": "on",
+        "profile": "early_1_0",
+        "target": "positive"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 889393776,
+      "integration_input_velocity_rad_s_word": 1015021569,
+      "final_slice_generic_velocity_rad_s_word": 1015021569
+    },
+    {
+      "case": {
+        "label": "early_1_0_positive_fresh",
+        "observer": "on",
+        "profile": "early_1_0",
+        "target": "positive"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 889393776,
+      "integration_input_velocity_rad_s_word": 1015021569,
+      "final_slice_generic_velocity_rad_s_word": 1015021569
+    },
+    {
+      "case": {
+        "label": "early_3_0_negative_on",
+        "observer": "on",
+        "profile": "early_3_0",
+        "target": "negative"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 3036877424,
+      "integration_input_velocity_rad_s_word": 3162505217,
+      "final_slice_generic_velocity_rad_s_word": 3162505217
+    },
+    {
+      "case": {
+        "label": "early_3_0_negative_fresh",
+        "observer": "on",
+        "profile": "early_3_0",
+        "target": "negative"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 3036877424,
+      "integration_input_velocity_rad_s_word": 3162505217,
+      "final_slice_generic_velocity_rad_s_word": 3162505217
+    },
+    {
+      "case": {
+        "label": "early_3_0_positive_on",
+        "observer": "on",
+        "profile": "early_3_0",
+        "target": "positive"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 889393776,
+      "integration_input_velocity_rad_s_word": 1015021569,
+      "final_slice_generic_velocity_rad_s_word": 1015021569
+    },
+    {
+      "case": {
+        "label": "early_3_0_positive_fresh",
+        "observer": "on",
+        "profile": "early_3_0",
+        "target": "positive"
+      },
+      "q_before_rad_word": 0,
+      "q_after_rad_word": 889393776,
+      "integration_input_velocity_rad_s_word": 1015021569,
+      "final_slice_generic_velocity_rad_s_word": 1015021569
+    }
+  ],
+  "first_slice_discriminator": [
+    {
+      "target": "negative",
+      "status": "INCONCLUSIVE_NO_CAPTURED_FIRST_SLICE_DIFFERENCE"
+    },
+    {
+      "target": "positive",
+      "status": "INCONCLUSIVE_NO_CAPTURED_FIRST_SLICE_DIFFERENCE"
+    }
+  ],
+  "physical_SI_status": "DIAGNOSTICS_ONLY_NO_ACCURACY_VERDICT",
+  "audit_arithmetic_or_SI_recomputed": false,
+  "native_or_scientific_reader_launched_by_review": 0,
+  "old_numerical_data_read": false,
+  "main_source_or_frozen_input_edits": false,
+  "public_retention": "Whole audit5447072B and complete cohort retained locally; publication/recovery from public storage unverified. No Release/Git publication authorized by this review.",
+  "limits": [
+    "Reported audit fidelity is bound to the once-only actual reader, not independently recomputed here.",
+    "First-slice INCONCLUSIVE does not assert identical all32 profiles or improved physical accuracy.",
+    "Full private caches/runtime hardware float mode/compiler-runtime closure and external/hardware validation remain unmeasured."
+  ],
+  "issues": []
+}

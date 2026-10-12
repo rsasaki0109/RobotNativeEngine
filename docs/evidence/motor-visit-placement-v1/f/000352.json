@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "rustfmt",
+    "--edition",
+    "2021",
+    "--check",
+    "lib.rs",
+    "main.rs",
+    "tests.rs"
+  ],
+  "original_exit": 0,
+  "start_unix_ns": 1791837422001411004,
+  "end_unix_ns": 1791837422035510724,
+  "native_fixture_invoked": false
+}

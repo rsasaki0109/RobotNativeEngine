@@ -1,0 +1,110 @@
+{
+  "kind": "independent_producer_source_review",
+  "schema_version": 1,
+  "reviewer": "/root/motor_diagonal_tests",
+  "created_utc": "2026-10-12T20:37:59.932097+00:00",
+  "status": "BLOCKED_EXACT_VENDOR_SOURCE_COPY_SUPERSEDED_PREPARATION",
+  "baseline_head": "5e8e3627cd91df767ae41e8364f9401a8cd4e2d7",
+  "rejected_build_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/actual-build-binding.json",
+    "sha256": "5c9279955cd6e15406303ea06dc60a81b0face9b29343565072015cf637a64f5",
+    "bytes": 46457
+  },
+  "rejected_binary": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/motor_visit_placement.native",
+    "sha256": "941cd9577ceeb85f5732e304fc2023db585e591b972aa7db71bb9da38ef460a5",
+    "bytes": 2856088
+  },
+  "source_copy_claim": "123 vendor files byte-identical to main5e8",
+  "claim_failed_on_two_files": [
+    {
+      "relative_path": "src/data/graph.rs",
+      "baseline": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/data/graph.rs",
+        "sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044",
+        "bytes": 23167
+      },
+      "archived_altered_bytes": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/altered-vendor-source/src/data/graph.rs",
+        "sha256": "b96ac9b832fce3435c81dc6531bd3eab88e55632882b3973cda5ea2780327942",
+        "bytes": 22448
+      },
+      "difference_is_whitespace_only": true,
+      "line_diff": [
+        "--- \n",
+        "+++ \n",
+        "@@ -715,4 +715,3 @@\n",
+        "         self.index == rhs.index && self.weight == rhs.weight",
+        "     }",
+        " }",
+        "-"
+      ]
+    },
+    {
+      "relative_path": "src/pipeline/query_pipeline/mod.rs",
+      "baseline": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/query_pipeline/mod.rs",
+        "sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332",
+        "bytes": 29798
+      },
+      "archived_altered_bytes": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/altered-vendor-source/src/pipeline/query_pipeline/mod.rs",
+        "sha256": "4951b12c1559fc2a63d019a9202f275611997fbbc846643b118e0ab7cc7dc4aa",
+        "bytes": 29058
+      },
+      "difference_is_whitespace_only": true,
+      "line_diff": [
+        "--- \n",
+        "+++ \n",
+        "@@ -485,9 +485,7 @@\n",
+        "                 shape,",
+        "             );",
+        " ",
+        "-        self.qbvh",
+        "-            .traverse_best_first(&mut visitor)",
+        "-            .map(|h| h.1 .0)",
+        "+        self.qbvh.traverse_best_first(&mut visitor).map(|h| h.1 .0)",
+        "     }",
+        " ",
+        "     /// Find the projection of a point on the closest collider."
+      ]
+    }
+  ],
+  "collector_profile_only_review": "PASS_SOURCE_SCOPE",
+  "collector_library": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector/lib.rs",
+    "sha256": "5cd48496717cc2bd6ab48ad6154f13287c259443ca6734278c53bee1b94f536c",
+    "bytes": 34964
+  },
+  "original143_library": {
+    "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/lib.rs",
+    "sha256": "f73732b13546625a7b53af1e07c1a0873a937a1746e800175647fcf85dd910c7",
+    "bytes": 33595
+  },
+  "plant_exact_except_signature_and_two_profile_count_assignments": true,
+  "observation_checkpoint_error_framing_logic_unchanged": true,
+  "reported_to_parent_before_native_data": true,
+  "root_restoration_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/unadmitted-normalized-vendor-preparation/rejection-and-restoration.json",
+    "sha256": "769ecfade95e64a4fa40b0eae5de8848edca6219e41263f5b510a105661abfc4",
+    "bytes": 689
+  },
+  "root_restored_and_rebuild_pending": "Parent restored exact baseline bytes before data; this rejection remains historical and must not be overwritten by the new admission.",
+  "first_review_generation_failed": {
+    "exit": 1,
+    "exception": "AssertionError: src/data/graph.rs",
+    "receipt_files_written_before_exception": false
+  },
+  "second_receipt_generation_failed": {
+    "exit": 1,
+    "exception": "FileNotFoundError: actual-build-binding.json moved to unadmitted archive during parent restoration",
+    "receipt_files_written_before_exception": false
+  },
+  "actions": {
+    "native_worlds": 0,
+    "cargo_build_or_test_commands": 0,
+    "source_edits": 0,
+    "old_numeric_data_reads": 0,
+    "git_remote_mutations": 0
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "builds": 0,
+  "initial_material_findings": [
+    "New invocation-directory entry parent not fsynced before first spawn.",
+    "Audit accepted child original_exit0 without rejecting root collect-invocation error/source failure or wrapper mismatch."
+  ],
+  "launcher_executions": 0,
+  "lifecycle_source_review": "Known child SIGINT cleanup request with bounded30s grace; unobserved exits remain null/unknown and CLI returns failure; no retry/resume/relabel path. Collection checked child owns native group cleanup.",
+  "limits": [
+    "Read-only source inspection only; launcher not executed and no actual fault test is claimed.",
+    "Uncatchable termination or unreaped child remains incomplete evidence, not success or permission to replace a case.",
+    "This review is not independent final candidate/source/binary/reader admission."
+  ],
+  "native_worlds": 0,
+  "old_raw_numerical_data_read": false,
+  "recorded_at": "2026-10-12T20:47:15.224187+00:00",
+  "source": {
+    "bytes": 6371,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/run_registered_once.py",
+    "sha256": "125b4063c2c4dd8787aada492359a3ed3ec9b0aac2316601c4307befb54786ad"
+  },
+  "source_edits_by_reviewer": 0,
+  "status": "PASS_BOUNDED_SOURCE_REVIEW_OF_UPDATED_ORIGINAL_ONCE_ONLY_OUTER_LAUNCHER",
+  "updated_source_resolutions": [
+    "Explicit invocation folder.parent fsync before claim/Popen.",
+    "Audit collect-receipt gate requires original_exit0,source_inputs_unchanged true,error null,collect mode and matching wrapper SHA.",
+    "Actual retained outer collect receipt path/SHA passed to frozen reader.",
+    "Original stdout/stderr descriptors retained."
+  ]
+}

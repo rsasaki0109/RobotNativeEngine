@@ -1,0 +1,39 @@
+{
+  "kind": "SOURCE_ONLY_LITERAL_HELPER_REUSE_FOR_NEW_COHORT",
+  "native_or_old_numeric_data_reads": 0,
+  "helpers": [
+    {
+      "origin_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/strict_io.py",
+      "new_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/strict_io.py",
+      "bytes": 3739,
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+      "literal_copy": true
+    },
+    {
+      "origin_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/stage_numeric.py",
+      "new_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/stage_numeric.py",
+      "bytes": 11149,
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "literal_copy": true
+    },
+    {
+      "origin_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/construction_oracle.py",
+      "new_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/construction_oracle.py",
+      "bytes": 6177,
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "literal_copy": true
+    },
+    {
+      "origin_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/integration_oracle.py",
+      "new_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/integration_oracle.py",
+      "bytes": 4010,
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "literal_copy": true
+    }
+  ],
+  "run_schema_derived_from_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/cohort_reader.py",
+    "sha256": "71c8af5157df36ddfb0447cf52e8acffe0b814e0d74bec7cd33443af7c953310"
+  },
+  "status": "PRE_DATA_IMPLEMENTATION_INCOMPLETE_NOT_FROZEN"
+}

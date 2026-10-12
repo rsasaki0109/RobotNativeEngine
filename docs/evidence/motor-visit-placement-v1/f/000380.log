@@ -1,0 +1,32 @@
+test_complete_all_profiles_and_both_signs_synthetic (test_run_schema.RunTests.test_complete_all_profiles_and_both_signs_synthetic) ... ok
+test_malformed_row_axis_handle_block_and_schedule_fail_closed (test_run_schema.RunTests.test_malformed_row_axis_handle_block_and_schedule_fail_closed) ... ok
+test_native_solve_mismatch_is_retained_not_reinterpreted (test_run_schema.RunTests.test_native_solve_mismatch_is_retained_not_reinterpreted) ... ok
+test_off_has_three_nulls_and_can_not_smuggle_observer (test_run_schema.RunTests.test_off_has_three_nulls_and_can_not_smuggle_observer) ... ok
+test_solve_pair_has_hand_derived_half_response (test_run_schema.RunTests.test_solve_pair_has_hand_derived_half_response) ... ok
+test_solve_rounding_domain_excluded_not_passed (test_run_schema.RunTests.test_solve_rounding_domain_excluded_not_passed) ... ok
+test_source_derived_schedule_counts (test_run_schema.RunTests.test_source_derived_schedule_counts) ... ok
+test_truncated_multiple_member_float_and_duplicate_json_fail (test_run_schema.RunTests.test_truncated_multiple_member_float_and_duplicate_json_fail) ... ok
+test_velocity_substitution_and_cache_mutation_fail (test_run_schema.RunTests.test_velocity_substitution_and_cache_mutation_fail) ... ok
+test_wrong_profile_or_false_boolean_words_fail (test_run_schema.RunTests.test_wrong_profile_or_false_boolean_words_fail) ... ok
+test_cap_is_torque_times_duration (test_physical_reference.PhysicalReferenceTests.test_cap_is_torque_times_duration) ... ok
+test_current_uncapped_residual_multiplier_is_minus_g_over_w (test_physical_reference.PhysicalReferenceTests.test_current_uncapped_residual_multiplier_is_minus_g_over_w) ... ok
+test_ideal_uniform_sphere_inertia_is_two_fifths_m_radius_squared (test_physical_reference.PhysicalReferenceTests.test_ideal_uniform_sphere_inertia_is_two_fifths_m_radius_squared) ... ok
+test_invalid_physical_inputs_fail (test_physical_reference.PhysicalReferenceTests.test_invalid_physical_inputs_fail) ... ok
+test_nonzero_incoming_velocity_is_part_of_the_reference (test_physical_reference.PhysicalReferenceTests.test_nonzero_incoming_velocity_is_part_of_the_reference) ... ok
+test_normalized_scalar_fixed_point_equals_backward_euler (test_physical_reference.PhysicalReferenceTests.test_normalized_scalar_fixed_point_equals_backward_euler) ... ok
+test_repeated_visits_share_one_slice_cap (test_physical_reference.PhysicalReferenceTests.test_repeated_visits_share_one_slice_cap) ... ok
+test_same_visit_count_different_integration_boundary (test_physical_reference.PhysicalReferenceTests.test_same_visit_count_different_integration_boundary) ... ok
+test_sign_symmetry (test_physical_reference.PhysicalReferenceTests.test_sign_symmetry) ... ok
+test_uncapped_hand_solution_satisfies_implicit_si_equations (test_physical_reference.PhysicalReferenceTests.test_uncapped_hand_solution_satisfies_implicit_si_equations) ... ok
+test_exclusive_audit_claim_blocks_new_output_after_failure (test_cohort_reader.CohortTests.test_exclusive_audit_claim_blocks_new_output_after_failure) ... ok
+test_first_third_odd_cycle_and_clipped_equality_is_valid (test_cohort_reader.CohortTests.test_first_third_odd_cycle_and_clipped_equality_is_valid) ... ok
+test_missing_index_wrong_original_exit_and_guard_fail (test_cohort_reader.CohortTests.test_missing_index_wrong_original_exit_and_guard_fail) ... ok
+test_no_difference_discriminator_can_be_inconclusive (test_cohort_reader.CohortTests.test_no_difference_discriminator_can_be_inconclusive) ... ok
+test_outer_checked_cli_original_failure_can_not_be_hidden_by_child_success (test_cohort_reader.CohortTests.test_outer_checked_cli_original_failure_can_not_be_hidden_by_child_success) ... ok
+test_outer_memory_and_disk_receipt_must_agree (test_cohort_reader.CohortTests.test_outer_memory_and_disk_receipt_must_agree) ... ok
+test_whole_eighteen_synthetic_original_receipts_and_arithmetic (test_cohort_reader.CohortTests.test_whole_eighteen_synthetic_original_receipts_and_arithmetic) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 10.375s
+
+OK

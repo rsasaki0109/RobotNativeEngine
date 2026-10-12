@@ -1,0 +1,25 @@
+{
+  "kind": "exclusive_original_cli_claim",
+  "mode": "collect",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/checked_driver.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/admitted-wrapper.json",
+    "--spec-sha256",
+    "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+    "--launch-native"
+  ],
+  "registered_wrapper_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+  "created_utc": "2026-10-12T20:54:02.577506+00:00",
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "retries": 0,
+  "resume": false,
+  "process_started": true,
+  "pid": 136668,
+  "original_exit": null,
+  "launch_outcome": "known_started_exit_unknown",
+  "error": null,
+  "start_unix_ns": 1791838442578615021
+}

@@ -1,0 +1,46 @@
+{
+  "kind": "original_process_terminal",
+  "case": {
+    "profile": "early_3_0",
+    "target": "negative",
+    "observer": "on",
+    "label": "early_3_0_negative_on"
+  },
+  "attempt_index": 12,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "--profile",
+    "early_3_0",
+    "--target",
+    "negative",
+    "--observer",
+    "on",
+    "--label",
+    "early_3_0_negative_on",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on/raw.jsonl.gz"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "started_utc": "2026-10-12T20:54:04.259316+00:00",
+  "native_process_started": true,
+  "actual_exit_code": 0,
+  "timed_out": false,
+  "error": null,
+  "pid": 136682,
+  "ended_utc": "2026-10-12T20:54:04.278753+00:00",
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on/stdout.log",
+    "sha256": "968c8727325b7f5220dfec50a7f3f91a3a2aa56b919a3649d18b29cb5391c97b",
+    "bytes": 67
+  },
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "raw_output": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on/raw.jsonl.gz",
+    "sha256": "f59a5ae54731918ee6c9b893a6f1a5a2f9b369e97153c13f5e08f9871244f500",
+    "bytes": 13956
+  }
+}

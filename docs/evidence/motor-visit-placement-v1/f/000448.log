@@ -1,0 +1,6 @@
+     Locking 75 packages to latest compatible versions
+      Adding flate2 v1.1.9 (available: v1.1.10)
+      Adding serde v1.0.228 (available: v1.0.229)
+      Adding serde_core v1.0.228 (available: v1.0.229)
+      Adding serde_derive v1.0.228 (available: v1.0.229)
+      Adding serde_json v1.0.150 (available: v1.0.152)

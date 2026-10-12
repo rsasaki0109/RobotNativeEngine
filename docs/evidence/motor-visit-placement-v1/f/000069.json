@@ -1,0 +1,34 @@
+{
+  "kind": "original_process_terminal",
+  "case": {
+    "profile": "early_3_0",
+    "target": "negative",
+    "observer": "on",
+    "label": "early_3_0_negative_fresh"
+  },
+  "attempt_index": 13,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "--profile",
+    "early_3_0",
+    "--target",
+    "negative",
+    "--observer",
+    "on",
+    "--label",
+    "early_3_0_negative_fresh",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_fresh/raw.jsonl.gz"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "started_utc": "2026-10-12T20:54:04.369611+00:00",
+  "native_process_started": true,
+  "actual_exit_code": null,
+  "timed_out": false,
+  "error": null,
+  "pid": 136683,
+  "ended_utc": null,
+  "stdout": null,
+  "stderr": null,
+  "raw_output": null
+}

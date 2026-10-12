@@ -1,0 +1,152 @@
+{
+  "argv": [
+    "FROZEN_BINARY",
+    "--profile",
+    "CASE_PROFILE",
+    "--target",
+    "CASE_TARGET",
+    "--observer",
+    "CASE_OBSERVER",
+    "--label",
+    "CASE_LABEL",
+    "--output",
+    "ABS_NEW_CASE_RAW_GZ"
+  ],
+  "baseline_head": "5e8e3627cd91df767ae41e8364f9401a8cd4e2d7",
+  "case_order": [
+    {
+      "label": "split_1_2_negative_on",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_negative_fresh",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_negative_off",
+      "observer": "off",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_positive_on",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "split_1_2_positive_fresh",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "split_1_2_positive_off",
+      "observer": "off",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_negative_on",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_negative_fresh",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_negative_off",
+      "observer": "off",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_positive_on",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_positive_fresh",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_positive_off",
+      "observer": "off",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_negative_on",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_negative_fresh",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_negative_off",
+      "observer": "off",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_positive_on",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_positive_fresh",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_positive_off",
+      "observer": "off",
+      "profile": "early_3_0",
+      "target": "positive"
+    }
+  ],
+  "cohort": "NEW_SEPARATE18_NOT_EXTENSION_OR_REPLACEMENT",
+  "collection_policy": "Exclusive cohort/18cases/index/claims before any process; source/binary/helper/registration guards before and after each process; stop first failure; no rerun/resume/replacement; original unknown/started/actual-exit accounting survives storage faults.",
+  "fixture": "Same143 physical fixture, small_steps32; only public pgs_passes/stabilization_passes selected by declared profile. All other settings/gains/effort/target/gravity/contact/initial-state conditions unchanged.",
+  "kind": "prospective_motor_visit_placement_diagnostic",
+  "native_processes_and_worlds": 18,
+  "new_release_authorization": false,
+  "one_outer_interval_per_process": 1,
+  "preserved_history": "Old six/18/72 cohorts, bf6a current141 report, all old accuracy failures/rejections remain literal and are not re-read, extended or reclassified.",
+  "profiles": {
+    "early_1_0": {
+      "pgs_passes": 1,
+      "stabilization_passes": 0
+    },
+    "early_3_0": {
+      "pgs_passes": 3,
+      "stabilization_passes": 0
+    },
+    "split_1_2": {
+      "pgs_passes": 1,
+      "stabilization_passes": 2
+    }
+  },
+  "qualification": "New reader frozen and invoked once after full original collection/checked coordinator/root exits0; source-derived variable PGS/stabilization grammar and complete profile coverage; full gzip/CRC/EOF/schema/native-word/source/captured state scope; source arithmetic and visitation diagnostic only.",
+  "schema_version": 1,
+  "status": "DRAFT_NOT_FROZEN_NOT_NATIVE_ADMITTED",
+  "vendor_changes": 0
+}

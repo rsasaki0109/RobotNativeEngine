@@ -1,0 +1,4 @@
+   Compiling rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d)
+   Compiling motor_visit_placement_collector v0.1.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector)
+    Finished `test` profile [unoptimized] target(s) in 6.19s
+     Running unittests lib.rs (/workspace/RobotNativeEngine/target/debug/deps/motor_visit_placement_collector-0a84b327bef1e8cf)

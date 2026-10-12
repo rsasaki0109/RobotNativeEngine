@@ -1,0 +1,10 @@
+{
+  "kind": "observed_original_whole_audit_compression_inspection_CLI",
+  "command": ["/usr/bin/python3", "-B", "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-postreview/review_whole_audit_compression.py"],
+  "original_exit_code": 0,
+  "completion_chunk_id": "eb26af",
+  "native_or_scientific_reader_invocations": 0,
+  "mathematical_reinterpretations": 0,
+  "result_sha256": "cef099eae9dec51922ff05a89c44fc09913f210e9e4efd112a113e983c2dec29",
+  "result_bytes": 2706
+}

@@ -1,0 +1,23 @@
+{
+  "kind": "original_new_portable_byte_check_command",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/test_verify_literals.py"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier",
+  "original_exit_code": 0,
+  "start_unix_ns": 1791840766794763350,
+  "end_unix_ns": 1791840766999942174,
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/pure-tests-stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/pure-tests-stderr.log",
+    "sha256": "e82a76803056431243a04adf66e9a1b4cd2d079bb9f5408b2027bca1622196cb",
+    "bytes": 4463
+  },
+  "native_scientific_reader_or_archived_helper_invocations": 0
+}

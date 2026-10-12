@@ -1,0 +1,23 @@
+{
+  "kind": "source_only_historical_driver_copy_inventory",
+  "inputs": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/strict_io.py",
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+      "bytes": 3739
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/cohort_driver.py",
+      "sha256": "1522fce043a58e800c5a1b16047a1433f6056bc5bb1c84593084869eeda0db92",
+      "bytes": 10669
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/checked_driver.py",
+      "sha256": "9e1f51bc1cb794762f0eb2e6d2c42c6b3d07e39dae425474df7ac75ffdfcdcaf",
+      "bytes": 4881
+    }
+  ],
+  "old_data_read": false,
+  "old_tools_executed": false,
+  "native_worlds": 0
+}

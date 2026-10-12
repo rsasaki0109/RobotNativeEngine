@@ -1,0 +1,16 @@
+{
+  "reason": "cargo fmt --all traversed path dependency and normalized two vendor files; exact unchanged source claim rejected before data",
+  "changed_files": [
+    {
+      "relative_path": "src/data/graph.rs",
+      "altered_sha256": "b96ac9b832fce3435c81dc6531bd3eab88e55632882b3973cda5ea2780327942",
+      "baseline_sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044"
+    },
+    {
+      "relative_path": "src/pipeline/query_pipeline/mod.rs",
+      "altered_sha256": "4951b12c1559fc2a63d019a9202f275611997fbbc846643b118e0ab7cc7dc4aa",
+      "baseline_sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332"
+    }
+  ],
+  "native_worlds": 0
+}

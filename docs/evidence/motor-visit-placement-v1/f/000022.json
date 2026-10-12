@@ -1,0 +1,499 @@
+{
+  "kind": "fixed_motor_visit_placement_collection_index",
+  "schema_version": 1,
+  "registered_spec_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+  "registered_candidate_sha256": "14566a9ffbe6a6e89b1ead544385f85c22782d26ce9a9b3514e9f8bc2a6d558c",
+  "binary": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "sha256": "941cd9577ceeb85f5732e304fc2023db585e591b972aa7db71bb9da38ef460a5",
+    "bytes": 2856088
+  },
+  "entries": [
+    {
+      "attempt_index": 0,
+      "case": {
+        "profile": "split_1_2",
+        "target": "negative",
+        "observer": "on",
+        "label": "split_1_2_negative_on"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "split_1_2",
+        "--target",
+        "negative",
+        "--observer",
+        "on",
+        "--label",
+        "split_1_2_negative_on",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_on/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_on",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_on/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_on/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_on/process-terminal.json"
+    },
+    {
+      "attempt_index": 1,
+      "case": {
+        "profile": "split_1_2",
+        "target": "negative",
+        "observer": "on",
+        "label": "split_1_2_negative_fresh"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "split_1_2",
+        "--target",
+        "negative",
+        "--observer",
+        "on",
+        "--label",
+        "split_1_2_negative_fresh",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_fresh/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_fresh",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_fresh/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_fresh/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_fresh/process-terminal.json"
+    },
+    {
+      "attempt_index": 2,
+      "case": {
+        "profile": "split_1_2",
+        "target": "negative",
+        "observer": "off",
+        "label": "split_1_2_negative_off"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "split_1_2",
+        "--target",
+        "negative",
+        "--observer",
+        "off",
+        "--label",
+        "split_1_2_negative_off",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_off/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_off",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_off/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_off/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_off/process-terminal.json"
+    },
+    {
+      "attempt_index": 3,
+      "case": {
+        "profile": "split_1_2",
+        "target": "positive",
+        "observer": "on",
+        "label": "split_1_2_positive_on"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "split_1_2",
+        "--target",
+        "positive",
+        "--observer",
+        "on",
+        "--label",
+        "split_1_2_positive_on",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_on/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_on",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_on/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_on/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_on/process-terminal.json"
+    },
+    {
+      "attempt_index": 4,
+      "case": {
+        "profile": "split_1_2",
+        "target": "positive",
+        "observer": "on",
+        "label": "split_1_2_positive_fresh"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "split_1_2",
+        "--target",
+        "positive",
+        "--observer",
+        "on",
+        "--label",
+        "split_1_2_positive_fresh",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_fresh/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_fresh",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_fresh/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_fresh/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_fresh/process-terminal.json"
+    },
+    {
+      "attempt_index": 5,
+      "case": {
+        "profile": "split_1_2",
+        "target": "positive",
+        "observer": "off",
+        "label": "split_1_2_positive_off"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "split_1_2",
+        "--target",
+        "positive",
+        "--observer",
+        "off",
+        "--label",
+        "split_1_2_positive_off",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_off/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_off",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_off/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_off/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_off/process-terminal.json"
+    },
+    {
+      "attempt_index": 6,
+      "case": {
+        "profile": "early_1_0",
+        "target": "negative",
+        "observer": "on",
+        "label": "early_1_0_negative_on"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_1_0",
+        "--target",
+        "negative",
+        "--observer",
+        "on",
+        "--label",
+        "early_1_0_negative_on",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_on/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_on",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_on/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_on/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_on/process-terminal.json"
+    },
+    {
+      "attempt_index": 7,
+      "case": {
+        "profile": "early_1_0",
+        "target": "negative",
+        "observer": "on",
+        "label": "early_1_0_negative_fresh"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_1_0",
+        "--target",
+        "negative",
+        "--observer",
+        "on",
+        "--label",
+        "early_1_0_negative_fresh",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_fresh/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_fresh",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_fresh/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_fresh/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_fresh/process-terminal.json"
+    },
+    {
+      "attempt_index": 8,
+      "case": {
+        "profile": "early_1_0",
+        "target": "negative",
+        "observer": "off",
+        "label": "early_1_0_negative_off"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_1_0",
+        "--target",
+        "negative",
+        "--observer",
+        "off",
+        "--label",
+        "early_1_0_negative_off",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_off/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_off",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_off/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_off/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_negative_off/process-terminal.json"
+    },
+    {
+      "attempt_index": 9,
+      "case": {
+        "profile": "early_1_0",
+        "target": "positive",
+        "observer": "on",
+        "label": "early_1_0_positive_on"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_1_0",
+        "--target",
+        "positive",
+        "--observer",
+        "on",
+        "--label",
+        "early_1_0_positive_on",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_on/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_on",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_on/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_on/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_on/process-terminal.json"
+    },
+    {
+      "attempt_index": 10,
+      "case": {
+        "profile": "early_1_0",
+        "target": "positive",
+        "observer": "on",
+        "label": "early_1_0_positive_fresh"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_1_0",
+        "--target",
+        "positive",
+        "--observer",
+        "on",
+        "--label",
+        "early_1_0_positive_fresh",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_fresh/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_fresh",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_fresh/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_fresh/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_fresh/process-terminal.json"
+    },
+    {
+      "attempt_index": 11,
+      "case": {
+        "profile": "early_1_0",
+        "target": "positive",
+        "observer": "off",
+        "label": "early_1_0_positive_off"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_1_0",
+        "--target",
+        "positive",
+        "--observer",
+        "off",
+        "--label",
+        "early_1_0_positive_off",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_off/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_off",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_off/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_off/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_off/process-terminal.json"
+    },
+    {
+      "attempt_index": 12,
+      "case": {
+        "profile": "early_3_0",
+        "target": "negative",
+        "observer": "on",
+        "label": "early_3_0_negative_on"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_3_0",
+        "--target",
+        "negative",
+        "--observer",
+        "on",
+        "--label",
+        "early_3_0_negative_on",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_on/process-terminal.json"
+    },
+    {
+      "attempt_index": 13,
+      "case": {
+        "profile": "early_3_0",
+        "target": "negative",
+        "observer": "on",
+        "label": "early_3_0_negative_fresh"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_3_0",
+        "--target",
+        "negative",
+        "--observer",
+        "on",
+        "--label",
+        "early_3_0_negative_fresh",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_fresh/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_fresh",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_fresh/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_fresh/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_fresh/process-terminal.json"
+    },
+    {
+      "attempt_index": 14,
+      "case": {
+        "profile": "early_3_0",
+        "target": "negative",
+        "observer": "off",
+        "label": "early_3_0_negative_off"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_3_0",
+        "--target",
+        "negative",
+        "--observer",
+        "off",
+        "--label",
+        "early_3_0_negative_off",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_off/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_off",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_off/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_off/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_negative_off/process-terminal.json"
+    },
+    {
+      "attempt_index": 15,
+      "case": {
+        "profile": "early_3_0",
+        "target": "positive",
+        "observer": "on",
+        "label": "early_3_0_positive_on"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_3_0",
+        "--target",
+        "positive",
+        "--observer",
+        "on",
+        "--label",
+        "early_3_0_positive_on",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_on/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_on",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_on/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_on/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_on/process-terminal.json"
+    },
+    {
+      "attempt_index": 16,
+      "case": {
+        "profile": "early_3_0",
+        "target": "positive",
+        "observer": "on",
+        "label": "early_3_0_positive_fresh"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_3_0",
+        "--target",
+        "positive",
+        "--observer",
+        "on",
+        "--label",
+        "early_3_0_positive_fresh",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_fresh/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_fresh",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_fresh/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_fresh/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_fresh/process-terminal.json"
+    },
+    {
+      "attempt_index": 17,
+      "case": {
+        "profile": "early_3_0",
+        "target": "positive",
+        "observer": "off",
+        "label": "early_3_0_positive_off"
+      },
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+        "--profile",
+        "early_3_0",
+        "--target",
+        "positive",
+        "--observer",
+        "off",
+        "--label",
+        "early_3_0_positive_off",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_off/raw.jsonl.gz"
+      ],
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+      "folder": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_off",
+      "raw_output_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_off/raw.jsonl.gz",
+      "launch_claim_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_off/launch-claim.json",
+      "process_terminal_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_3_0_positive_off/process-terminal.json"
+    }
+  ]
+}

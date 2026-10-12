@@ -1,0 +1,24 @@
+{
+  "kind": "actual_toolchain_executable_qualification",
+  "created_unix_ns": 1791837498052689238,
+  "executables": {
+    "rustc": {
+      "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/bin/rustc",
+      "sha256": "bff349e72704ff70bc08a234a3847338e797065bbedde5e556808bc87b7bf7c6",
+      "bytes": 644784,
+      "which_original_exit": 0,
+      "version_original_exit": 0,
+      "version_literal_same_as_build_receipt": true
+    },
+    "cargo": {
+      "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/bin/cargo",
+      "sha256": "841072d1d92f9e841d9ba5b0814182a0adf064acf4527cd120967b7bc49dcb66",
+      "bytes": 42185192,
+      "which_original_exit": 0,
+      "version_original_exit": 0,
+      "version_literal_same_as_build_receipt": true
+    }
+  },
+  "scope": "Read-only rustup resolution after restored-source guarded build; actual executable versions equal captured compiler versions. Full compiler/linker dynamic/internal-library closure remains unmeasured.",
+  "native_worlds": 0
+}

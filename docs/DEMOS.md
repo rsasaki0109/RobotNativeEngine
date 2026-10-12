@@ -500,6 +500,20 @@ these diagnostics do not turn the scalar accuracy failure into a pass.
 See [the collector and fixed fixture](../examples/143_motor_construction/README.md)
 and [whole retained data and provenance](evidence/motor-construction-v1/README.md).
 
+A separate external visitation study derived from example 143 compares public
+PGS/stabilization counts 1/2, 1/0 and 3/0 in eighteen fixed sign/ON/fresh/OFF
+processes. All original exits and the one frozen audit pass, with exact captured
+replay and 384 constructor, 384 coordinate and 896 motor-visit checks without
+arithmetic exclusions. Both first-slice discriminators remain inconclusive.
+For the positive target at the last slice, the 1/2 profile integrates at
+0.0243901238 rad/s and writes back 0.0312500075 rad/s. The 1/0 profile preserves
+the captured coordinate with both velocities at 0.0243901238 rad/s; the 3/0
+profile changes the coordinate endpoint and has both velocities at 0.0312500075
+rad/s. This external prototype adds no workspace CLI or production setting.
+See [the whole retained study](evidence/motor-visit-placement-v1/README.md).
+The scalar 0/4 failure and rejected inverse-diagonal candidate remain unchanged;
+these observations establish no motor-accuracy or hardware improvement.
+
 The schema-2 reports use postcard 1.1.3. The
 [original schema-1 report](media/position-motor-calibration-bincode-generation-1.json)
 and [codec migration receipt](media/position-motor-calibration-codec-migration.json)

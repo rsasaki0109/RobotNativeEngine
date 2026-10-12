@@ -1,0 +1,14 @@
+{
+  "kind": "admitted_motor_visit_placement_cohort",
+  "schema_version": 1,
+  "candidate": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/frozen-candidate.json",
+    "sha256": "14566a9ffbe6a6e89b1ead544385f85c22782d26ce9a9b3514e9f8bc2a6d558c",
+    "bytes": 144580
+  },
+  "admission": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-admission/final-predata-admission.json",
+    "sha256": "d258b81d19d83a4c1d8b1d65c798a55fb1e63e7dc279cd010039a7e7005dfa2f",
+    "bytes": 3750
+  }
+}

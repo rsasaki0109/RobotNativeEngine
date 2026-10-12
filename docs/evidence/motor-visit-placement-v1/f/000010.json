@@ -1,0 +1,44 @@
+{
+  "kind": "exclusive_original_cli_claim",
+  "mode": "audit",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_reader.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/admitted-wrapper.json",
+    "--spec-sha256",
+    "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+    "--result-root",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/actual-cohort-audit.json",
+    "--checked-outer-receipt",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collect-invocation/actual-command.json",
+    "--checked-outer-sha256",
+    "26c12d5edecb1743a20068d21a217b8bdaf74cffad51a51c4fcf2637dc445c0d"
+  ],
+  "registered_wrapper_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+  "created_utc": "2026-10-12T20:54:34.670764+00:00",
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "retries": 0,
+  "resume": false,
+  "process_started": true,
+  "pid": 136703,
+  "original_exit": 0,
+  "launch_outcome": "known_started_exit_observed",
+  "error": null,
+  "start_unix_ns": 1791838474671838979,
+  "end_unix_ns": 1791838476115753093,
+  "source_inputs_unchanged": true,
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/audit-invocation/stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/audit-invocation/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  }
+}

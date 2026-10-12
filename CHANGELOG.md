@@ -288,6 +288,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Retain a separate eighteen-process ForceBased motor-visitation study derived
+  from example 143. Compare public internal PGS/stabilization counts 1/2, 1/0
+  and 3/0 with fixed signed targets and ON/fresh ON/OFF replay. All original
+  exits and the one frozen audit pass, including 384 constructor checks,
+  384 coordinate checks and 896 motor visits without arithmetic exclusions.
+  The first-slice discriminator remains inconclusive; later captured coordinate
+  and integration/writeback velocities differ by profile. Preserve the scalar
+  calibration failure (0/4), rejected inverse-diagonal candidate and production
+  solver/controller. Retain the [whole study and provenance](docs/evidence/motor-visit-placement-v1/README.md).
+
 - Add a default-disabled Rapier motor-construction companion and example 143's
   isolated diagnostic collector. Capture actual constructor inputs and separate
   coordinate-integration velocity from stabilization and final writeback.

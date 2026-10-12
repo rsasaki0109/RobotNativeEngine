@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "gh",
+    "pr",
+    "view",
+    "410",
+    "--repo",
+    "rsasaki0109/RobotNativeEngine",
+    "--json",
+    "state,isDraft,headRefOid,mergeStateStatus,statusCheckRollup,url,title"
+  ],
+  "original_exit": 0,
+  "observed_unix_ns": 1791838268939970743
+}

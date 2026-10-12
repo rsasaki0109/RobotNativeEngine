@@ -1,0 +1,103 @@
+{
+  "kind": "new_portable_verifier_original_pure_and_actual_copy_checks",
+  "created_utc": "2026-10-12T21:32:47.381440+00:00",
+  "status": "PASS_NEW_PURE_TESTS_AND_ACTUAL_PORTABLE_LITERAL_COPY",
+  "pure_tests": {
+    "kind": "original_new_portable_byte_check_command",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/test_verify_literals.py"
+    ],
+    "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier",
+    "original_exit_code": 0,
+    "start_unix_ns": 1791840766794763350,
+    "end_unix_ns": 1791840766999942174,
+    "stdout": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/pure-tests-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "stderr": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/pure-tests-stderr.log",
+      "sha256": "e82a76803056431243a04adf66e9a1b4cd2d079bb9f5408b2027bca1622196cb",
+      "bytes": 4463
+    },
+    "native_scientific_reader_or_archived_helper_invocations": 0
+  },
+  "actual_prepared_copy": {
+    "kind": "original_new_portable_byte_check_command",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/final-prepared-copy/verify_literals.py",
+      "--root",
+      "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/final-prepared-copy"
+    ],
+    "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier",
+    "original_exit_code": 0,
+    "start_unix_ns": 1791840767188134583,
+    "end_unix_ns": 1791840767330891379,
+    "stdout": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/actual-prepared-copy-stdout.log",
+      "sha256": "c1083649e165565b51d2398539ec29fdd5affb1c1f524e0279706b002348afba",
+      "bytes": 666
+    },
+    "stderr": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/actual-prepared-copy-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "native_scientific_reader_or_archived_helper_invocations": 0
+  },
+  "source_inputs_unchanged": true,
+  "sources": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/verify_literals.py",
+      "sha256": "2b6b33b8dc714c2e04edd495b67ee57e6e67cbe5ffd16e222578512b28856fe9",
+      "bytes": 12829
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/test_verify_literals.py",
+      "sha256": "5f05383650e90b2e3a0a47c96e1bf0c5c7a766349f186504652df815f9709db0",
+      "bytes": 13904
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/README.md",
+      "sha256": "c30ce05d9edd1a95c3744e47530bf7aee1de62ad9bc23e910b9c6848875459f8",
+      "bytes": 1473
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/run_pure_checks.py",
+      "sha256": "718bdf66a1dcdefd50e3d1ca8adda5ba74466e867ec53f028826c7f405bb8dcd",
+      "bytes": 3106
+    }
+  ],
+  "original_copy_inputs_unchanged": true,
+  "source_copy_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-pr-preparation/patch-tree/docs/evidence/motor-visit-placement-v1/manifest.json",
+    "sha256": "81868f17ec2430e6f2c5df7bb426289ef13e61c2e68379ce0faa81357fae16e5",
+    "bytes": 511193
+  },
+  "owned_copy_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/final-prepared-copy/manifest.json",
+    "sha256": "81868f17ec2430e6f2c5df7bb426289ef13e61c2e68379ce0faa81357fae16e5",
+    "bytes": 511193
+  },
+  "actual_scoped_result": {
+    "aliases": 822,
+    "gzip_original_representations": 1,
+    "local_only_bindings": 2,
+    "local_only_scope": "Historical executable/hash metadata only; no absent original bytes read, fetched or recovered.",
+    "manifest_bytes": 511193,
+    "manifest_sha256": "81868f17ec2430e6f2c5df7bb426289ef13e61c2e68379ce0faa81357fae16e5",
+    "native_invocations": 0,
+    "numerical_reanalysis": false,
+    "qualification_scope": "Declared local payload/whole restoration bytes only; no scientific accuracy, production adoption, complete historical coverage or public availability verdict.",
+    "scientific_reader_invocations": 0,
+    "status": "PASS_DECLARED_PORTABLE_LITERAL_BYTES_ONLY",
+    "unique_payloads": 459
+  },
+  "new_native_or_scientific_reader_invocations": 0,
+  "outputs_stored_outside_evidence": true
+}

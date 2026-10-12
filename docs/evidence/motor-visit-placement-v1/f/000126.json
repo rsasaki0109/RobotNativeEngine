@@ -1,0 +1,25 @@
+{
+  "kind": "durable_launch_intent",
+  "case": {
+    "profile": "split_1_2",
+    "target": "negative",
+    "observer": "on",
+    "label": "split_1_2_negative_on"
+  },
+  "attempt_index": 0,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "--profile",
+    "split_1_2",
+    "--target",
+    "negative",
+    "--observer",
+    "on",
+    "--label",
+    "split_1_2_negative_on",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_negative_on/raw.jsonl.gz"
+  ],
+  "created_utc": "2026-10-12T20:54:02.991158+00:00",
+  "registered_spec_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e"
+}

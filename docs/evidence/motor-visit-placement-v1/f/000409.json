@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "rustc",
+    "-Vv"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "original_exit": 0,
+  "start_unix_ns": 1791837224727586807,
+  "end_unix_ns": 1791837224747667609
+}

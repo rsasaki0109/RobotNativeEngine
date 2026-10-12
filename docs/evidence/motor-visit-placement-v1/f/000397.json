@@ -1,0 +1,9 @@
+{
+  "kind": "observed_original_local_bundle_byte_inspection_CLI",
+  "command": ["/usr/bin/python3", "-B", "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-bundle-review/inspect_prepared_bundle.py"],
+  "original_exit_code": 0,
+  "completion_chunk_id": "c7f706",
+  "native_scientific_reader_math_Git_Release_or_publication_actions": 0,
+  "result_sha256": "44ac36c14abf9f06c94284d6adb6836584df8171aeecd2a95c0cb8c31b7ed61e",
+  "result_bytes": 1806
+}

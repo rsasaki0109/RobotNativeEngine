@@ -1,0 +1,43 @@
+{
+  "kind": "independent_presentation_only_word_and_existing_rational_display_binding",
+  "status": "PASS_CAPTURED_AUDIT_DISPLAY_BINDINGS",
+  "created_utc": "2026-10-12T20:59:25.698618+00:00",
+  "audit": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/actual-cohort-audit.json",
+    "sha256": "d7022bb982ab997862da1f3aabbfa4306a6fa568b4707a2b2a9aa0bd9581acfe",
+    "bytes": 5447072
+  },
+  "presentation_whole_files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/make_result_summary.py",
+      "sha256": "db753469afbdfd19701c94dc76f78bd198f466ce263a001cfb153c1950cf56ae",
+      "bytes": 5497
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/result-summary.json",
+      "sha256": "13f315cafac021b55896af03cd06d27d42aa4cb333b6aad0253be05ca1cccf62",
+      "bytes": 6469
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/README.md",
+      "sha256": "757e89fbed0960472c95698cb938aba959f0b35ae07ca156322022b06c942450",
+      "bytes": 2608
+    }
+  ],
+  "already_in_primary_whole_ledger": true,
+  "representative_rows": 6,
+  "fixed_slice_index": 31,
+  "native_word_displays_verified": 18,
+  "existing_rational_displays_verified": 24,
+  "README_positive_rows_verified": 3,
+  "first_slice_INCONCLUSIVE_claim_preserved": true,
+  "native_or_scientific_reader_reruns": 0,
+  "physical_equations_or_SI_trajectories_rederived": false,
+  "new_scientific_predicates_or_selection": false,
+  "limits": [
+    "Only formatting already captured words and existing exact-rational audit values; no new physical model, accuracy verdict or adoption.",
+    "Descriptive last-slice differences do not change first-slice INCONCLUSIVE or prove all32 profiles identical.",
+    "Public retention remains unverified; no Git/Release action."
+  ],
+  "issues": []
+}

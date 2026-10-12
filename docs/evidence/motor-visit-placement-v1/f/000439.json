@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "original_exit": 0,
+  "start_unix_ns": 1791837020719760781,
+  "end_unix_ns": 1791837040153390886,
+  "native_fixture_invoked": false
+}

@@ -1,0 +1,37 @@
+{
+  "kind": "exclusive_original_cli_claim",
+  "mode": "collect",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/checked_driver.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/admitted-wrapper.json",
+    "--spec-sha256",
+    "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+    "--launch-native"
+  ],
+  "registered_wrapper_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+  "created_utc": "2026-10-12T20:54:02.577506+00:00",
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "retries": 0,
+  "resume": false,
+  "process_started": true,
+  "pid": 136668,
+  "original_exit": 0,
+  "launch_outcome": "known_started_exit_observed",
+  "error": null,
+  "start_unix_ns": 1791838442578615021,
+  "end_unix_ns": 1791838445009429992,
+  "source_inputs_unchanged": true,
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collect-invocation/stdout.log",
+    "sha256": "4bf03e014f6ecd6af03c3a4a153ea197c17fbcd12c99f28ea405a4d34c877f8b",
+    "bytes": 1466
+  },
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collect-invocation/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  }
+}

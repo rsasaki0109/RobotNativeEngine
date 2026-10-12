@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "cargo",
+    "metadata",
+    "--locked",
+    "--format-version",
+    "1"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "original_exit": 0,
+  "start_unix_ns": 1791837224797459229,
+  "end_unix_ns": 1791837224854042131
+}

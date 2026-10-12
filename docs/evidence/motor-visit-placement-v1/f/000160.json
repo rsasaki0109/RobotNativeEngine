@@ -1,0 +1,24 @@
+{
+  "actual_driver_subprocesses": 0,
+  "actual_process_signals": 0,
+  "argv": [
+    "/usr/bin/python3",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/test_driver_pure.py"
+  ],
+  "attestation": "Actual tool completion observed; not an external execution attestation.",
+  "completion_chunk_id": "58a4be",
+  "environment_selector": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "kind": "observed_pure_driver_test_command_completion",
+  "native_worlds": 0,
+  "original_exit_code": 0,
+  "recorded_at": "2026-10-12T20:42:39.100097+00:00",
+  "session_id": 10602,
+  "test_receipt": {
+    "bytes": 3696,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/actual-pure-tests.json",
+    "sha256": "a35fef4367e5bc3c98d1aca218235610c6f4e2affd0f9a6d6eafd0934f48ae6f"
+  },
+  "tests": 20
+}

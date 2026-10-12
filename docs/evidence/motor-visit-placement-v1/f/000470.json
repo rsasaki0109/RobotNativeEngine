@@ -1,0 +1,22 @@
+[
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/verify_literals.py",
+    "sha256": "2b6b33b8dc714c2e04edd495b67ee57e6e67cbe5ffd16e222578512b28856fe9",
+    "bytes": 12829
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/test_verify_literals.py",
+    "sha256": "5f05383650e90b2e3a0a47c96e1bf0c5c7a766349f186504652df815f9709db0",
+    "bytes": 13904
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/README.md",
+    "sha256": "c30ce05d9edd1a95c3744e47530bf7aee1de62ad9bc23e910b9c6848875459f8",
+    "bytes": 1473
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/run_pure_checks.py",
+    "sha256": "718bdf66a1dcdefd50e3d1ca8adda5ba74466e867ec53f028826c7f405bb8dcd",
+    "bytes": 3106
+  }
+]

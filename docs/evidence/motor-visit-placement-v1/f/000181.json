@@ -1,0 +1,10 @@
+{
+  "kind": "observed_original_presentation_only_binding_inspection_CLI",
+  "command": ["/usr/bin/python3", "-B", "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-postreview/presentation_binding_review.py"],
+  "original_exit_code": 0,
+  "completion_chunk_id": "4d9953",
+  "native_or_scientific_reader_invocations": 0,
+  "SI_trajectories_rederived": false,
+  "result_sha256": "a30c27172ff419b79d90225e5267084de5cfa157f177ff1e94f7908514781f0b",
+  "result_bytes": 1930
+}

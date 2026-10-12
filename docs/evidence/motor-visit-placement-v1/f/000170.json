@@ -1,0 +1,204 @@
+{
+  "admission_required_fields": {
+    "binary": "literal candidate binary descriptor",
+    "frozen_inputs_sha256": "SHA256(strict_io.canonical(candidate.frozen_inputs))",
+    "reviewed_candidate_sha256": "literal candidate SHA256",
+    "status": "PASS_PRE_DATA_SOURCE_PROTOCOL_AND_DRIVER"
+  },
+  "binary_binding_role": "registration_artifacts.compiler_feature_receipt binds root actual standalone compiler/features/build/binary/source receipts; same binary descriptor for all18. Independent admission confirms source-to-build relationship.",
+  "candidate_exact_keys": [
+    "kind",
+    "schema_version",
+    "registered_utc",
+    "collection_worlds_before_registration",
+    "cases",
+    "binary",
+    "cwd",
+    "output_root",
+    "frozen_inputs",
+    "registration_artifacts",
+    "source_scope",
+    "environment",
+    "timeout_seconds",
+    "process_failure_policy",
+    "driver_run_receipt_path",
+    "driver_interpreter",
+    "checked_driver_source"
+  ],
+  "candidate_kind": "frozen_motor_visit_placement_cohort",
+  "cases": [
+    {
+      "label": "split_1_2_negative_on",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_negative_fresh",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_negative_off",
+      "observer": "off",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_positive_on",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "split_1_2_positive_fresh",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "split_1_2_positive_off",
+      "observer": "off",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_negative_on",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_negative_fresh",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_negative_off",
+      "observer": "off",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_positive_on",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_positive_fresh",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_positive_off",
+      "observer": "off",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_negative_on",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_negative_fresh",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_negative_off",
+      "observer": "off",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_positive_on",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_positive_fresh",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_positive_off",
+      "observer": "off",
+      "profile": "early_3_0",
+      "target": "positive"
+    }
+  ],
+  "checked_driver_outer_actual_exit_required": 0,
+  "cohort_claim_kind": "exclusive_fixed_eighteen_cohort_claim",
+  "collection_index_entry_exact_keys": [
+    "attempt_index",
+    "case",
+    "argv",
+    "cwd",
+    "folder",
+    "raw_output_path",
+    "launch_claim_path",
+    "process_terminal_path"
+  ],
+  "collection_index_exact_keys": [
+    "kind",
+    "schema_version",
+    "registered_spec_sha256",
+    "registered_candidate_sha256",
+    "binary",
+    "entries"
+  ],
+  "collection_index_kind": "fixed_motor_visit_placement_collection_index",
+  "descriptor_exact_keys": [
+    "path",
+    "sha256",
+    "bytes"
+  ],
+  "driver_complete_status": "all_eighteen_processes_completed",
+  "driver_terminal_kind": "fixed_eighteen_process_driver_terminal",
+  "driver_terminal_schema_version": 2,
+  "durability_field": "all_eighteen_claims_durable",
+  "frozen_path_requirements": "Unique frozen cohort_driver.py descriptor; checked_driver_source is its sibling; actual loaded contract and strict_io paths plus all actually loaded reader helpers/source are frozen. Contracts may be literal copied into separate reader/driver directories.",
+  "kind": "motor_visit_placement_contract_draft",
+  "native_process_budget": 18,
+  "native_worlds_before_registration": 0,
+  "prior_data_extension": false,
+  "profiles": {
+    "early_1_0": {
+      "pgs_passes": 1,
+      "stabilization_passes": 0
+    },
+    "early_3_0": {
+      "pgs_passes": 3,
+      "stabilization_passes": 0
+    },
+    "split_1_2": {
+      "pgs_passes": 1,
+      "stabilization_passes": 2
+    }
+  },
+  "raw_output_per_case": "COLLECTION_ROOT/PROFILE_SIGN_SUFFIX/raw.jsonl.gz",
+  "reader_input_gate": "Original checked-coordinator exit0, stdout final JSON == driver-terminal.json, all18 original native exits0, complete lifecycle/durability/source/hash bindings; root separately retains checked_driver CLI actual exit0.",
+  "registration_artifact_exact_roles": [
+    "protocol",
+    "collector_source_manifest",
+    "compiler_feature_receipt",
+    "producer_review",
+    "pure_tests_review"
+  ],
+  "schema_version": 1,
+  "source_guard_per_case": [
+    "source-guard-before.json",
+    "source-guard-after.json"
+  ],
+  "status": "DRAFT_NOT_FROZEN_NOT_NATIVE_AUTHORIZED",
+  "wrapper_kind": "admitted_motor_visit_placement_cohort"
+}

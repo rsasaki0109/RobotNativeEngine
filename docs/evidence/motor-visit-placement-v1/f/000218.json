@@ -1,0 +1,203 @@
+{
+  "kind": "rne_fixed_eighteen_motor_visit_placement_protocol",
+  "schema_version": 1,
+  "study_id": "motor_visit_placement_v1",
+  "created_utc": "2026-10-12T20:38:18.085290+00:00",
+  "native_processes_before_registration": 0,
+  "maximum_native_processes": 18,
+  "outer_intervals_per_world": 1,
+  "cases": [
+    {
+      "profile": "split_1_2",
+      "label": "split_1_2_negative_on",
+      "target": "negative",
+      "observer": "on"
+    },
+    {
+      "profile": "split_1_2",
+      "label": "split_1_2_negative_fresh",
+      "target": "negative",
+      "observer": "on"
+    },
+    {
+      "profile": "split_1_2",
+      "label": "split_1_2_negative_off",
+      "target": "negative",
+      "observer": "off"
+    },
+    {
+      "profile": "split_1_2",
+      "label": "split_1_2_positive_on",
+      "target": "positive",
+      "observer": "on"
+    },
+    {
+      "profile": "split_1_2",
+      "label": "split_1_2_positive_fresh",
+      "target": "positive",
+      "observer": "on"
+    },
+    {
+      "profile": "split_1_2",
+      "label": "split_1_2_positive_off",
+      "target": "positive",
+      "observer": "off"
+    },
+    {
+      "profile": "early_1_0",
+      "label": "early_1_0_negative_on",
+      "target": "negative",
+      "observer": "on"
+    },
+    {
+      "profile": "early_1_0",
+      "label": "early_1_0_negative_fresh",
+      "target": "negative",
+      "observer": "on"
+    },
+    {
+      "profile": "early_1_0",
+      "label": "early_1_0_negative_off",
+      "target": "negative",
+      "observer": "off"
+    },
+    {
+      "profile": "early_1_0",
+      "label": "early_1_0_positive_on",
+      "target": "positive",
+      "observer": "on"
+    },
+    {
+      "profile": "early_1_0",
+      "label": "early_1_0_positive_fresh",
+      "target": "positive",
+      "observer": "on"
+    },
+    {
+      "profile": "early_1_0",
+      "label": "early_1_0_positive_off",
+      "target": "positive",
+      "observer": "off"
+    },
+    {
+      "profile": "early_3_0",
+      "label": "early_3_0_negative_on",
+      "target": "negative",
+      "observer": "on"
+    },
+    {
+      "profile": "early_3_0",
+      "label": "early_3_0_negative_fresh",
+      "target": "negative",
+      "observer": "on"
+    },
+    {
+      "profile": "early_3_0",
+      "label": "early_3_0_negative_off",
+      "target": "negative",
+      "observer": "off"
+    },
+    {
+      "profile": "early_3_0",
+      "label": "early_3_0_positive_on",
+      "target": "positive",
+      "observer": "on"
+    },
+    {
+      "profile": "early_3_0",
+      "label": "early_3_0_positive_fresh",
+      "target": "positive",
+      "observer": "on"
+    },
+    {
+      "profile": "early_3_0",
+      "label": "early_3_0_positive_off",
+      "target": "positive",
+      "observer": "off"
+    }
+  ],
+  "profiles": [
+    {
+      "profile": "split_1_2",
+      "small_steps": 32,
+      "pgs_passes": 1,
+      "stabilization_passes": 2,
+      "expected_constructor_checks": 32,
+      "expected_coordinate_advances": 32,
+      "expected_motor_visits": 96,
+      "expected_companion_events": 257,
+      "expected_stage_events": 832
+    },
+    {
+      "profile": "early_1_0",
+      "small_steps": 32,
+      "pgs_passes": 1,
+      "stabilization_passes": 0,
+      "expected_constructor_checks": 32,
+      "expected_coordinate_advances": 32,
+      "expected_motor_visits": 32,
+      "expected_companion_events": 193,
+      "expected_stage_events": 416
+    },
+    {
+      "profile": "early_3_0",
+      "small_steps": 32,
+      "pgs_passes": 3,
+      "stabilization_passes": 0,
+      "expected_constructor_checks": 32,
+      "expected_coordinate_advances": 32,
+      "expected_motor_visits": 96,
+      "expected_companion_events": 193,
+      "expected_stage_events": 800
+    }
+  ],
+  "fixed_fixture": {
+    "radius_m_word": 1036831949,
+    "mass_kg_word": 1065353216,
+    "stiffness_nm_rad_word": 1133903872,
+    "damping_nm_s_rad_word": 1094713344,
+    "ceiling_nm_word": 1073741824,
+    "target_negative_rad_word": 3129152111,
+    "target_positive_rad_word": 981668463,
+    "outer_dt_s_word": 981668463,
+    "slice_dt_s_word": 939725423,
+    "target_velocity_word": 0,
+    "initial_coordinate_word": 0,
+    "initial_velocity_word": 0,
+    "gravity_words": [
+      0,
+      0,
+      0
+    ],
+    "armature_word": 0,
+    "passive_damping_word": 0,
+    "contacts": false,
+    "sleep": false,
+    "ccd": false,
+    "identity_coincident_x_revolute_frames": true
+  },
+  "collection_policy": "One new fixture and one interval per fresh process. Preclaim all18 cases; preserve actual exits/whole output/error/partial/unlaunched cases. Stop on first failure; never retry, resume, replace, retune or append cases.",
+  "reader_policy": "One frozen scientific reader execution after complete cohort; failures retained. Pure synthetic tests do not construct native worlds or read any completed old dataset.",
+  "fidelity_gate": "Exact all-event identity/cache/phase/visit coverage and source-ordered f32 constructor/motor-visit/coordinate advancement reconstruction. Normal/zero arithmetic required; exclusions or incomplete/extra events make fidelity fail rather than become a successful physical result.",
+  "neutrality_gate": "Within each profile/sign captured initial/final checkpoints are exact ON/fresh ON/OFF; complete ON/fresh completed record literal bytes equal; OFF construction/stage/impulse null. Different profile configuration metadata is never normalized to assert whole-checkpoint equality.",
+  "conditional_first_slice_hypotheses": [
+    "After admitting matching constructor/cache/incomingV inputs, split_1_2 and early_1_0 share the first motor visit and integration input.",
+    "After admitting matching fixed-row/cache map and no intervening genericV writer, split_1_2 and early_3_0 share three total visits but integrate after one versus three.",
+    "Clamping, projected fixed points, odd cycles or native rounding may make first and third visits equal; unequal coordinate/velocity is not a PASS requirement.",
+    "Later slices may have distinct native incoming states; first-slice identities are not extrapolated to all slices without actual conditions."
+  ],
+  "interpretation": "Fidelity may PASS while profile discriminator is INCONCLUSIVE. Record SI diagnostics separately with declared sphere inertia 2*m*R^2/5, independent backward-Euler trajectory and distinctly labeled native-incoming one-step counterfactuals. Row-derived1/w is not independent geometric inertia validation.",
+  "arithmetic_and_state_limits": "Runtime MXCSR/rounding/FTZ/DAZ, full compiler/linker/registry closure, full-set metadata/private pipeline/solver/contact caches and observer buffers remain unmeasured. Source-bound postcard roundtrip is not an independent hidden-state decoder. External-force inputs and mass-matrix/LU construction are not fully captured.",
+  "old_evidence_policy": "Completed six/72/18 cohorts, old calibration thresholds/results and rejected inverse(w+g) candidate remain immutable and are not re-executed or numerically reanalyzed.",
+  "adoption": "No solver/vendor normalization intervention, tuning, production adoption or accuracy improvement is selected by this diagnostic. Main branch remains unchanged pending explicit #410 merge; any later implementation retains all required regression/CI gates.",
+  "physical_reference_preregistration": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/PREREGISTRATION.md",
+    "sha256": "15afbf88257f4d7a56687429f30e2cb93df376f962807dc499c84b629ebcf70e",
+    "bytes": 6489
+  },
+  "physical_reference_fields": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/preregistration-fields-template.json",
+    "sha256": "8c2c34bb5a8a05d2c94b3053807f4c9248cbe83d131d814def34f65c0faf3f17",
+    "bytes": 8952
+  }
+}

@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "kind": "PROSPECTIVE_VISITATION_PLACEMENT_FIELDS_TEMPLATE",
+  "created_utc": "2026-10-12T20:27:15.410079+00:00",
+  "status": "ROOT_SELECTED_BUDGET_PENDING_CONCRETE_SOURCE_BINARY_READER_FREEZE_ADMISSION",
+  "cohort_id": "isolated-motor-visitation-placement-18",
+  "actual_native_processes_launched": 0,
+  "actual_authoritative_worlds_before_freeze": 0,
+  "native_reference_head": "5e8e3627cd91df767ae41e8364f9401a8cd4e2d7",
+  "normalization_intervention": false,
+  "profiles": [
+    {
+      "id": "pgs1_s2",
+      "pgs": 1,
+      "stabilization": 2,
+      "source_conditional_expected_on_counts": {
+        "constructor_observations": 32,
+        "coordinate_advances": 32,
+        "preintegration_motor_visits": 32,
+        "postintegration_motor_visits": 64,
+        "companion_events": 257,
+        "stage_v1_events": 832
+      }
+    },
+    {
+      "id": "pgs1_s0",
+      "pgs": 1,
+      "stabilization": 0,
+      "source_conditional_expected_on_counts": {
+        "constructor_observations": 32,
+        "coordinate_advances": 32,
+        "preintegration_motor_visits": 32,
+        "postintegration_motor_visits": 0,
+        "companion_events": 193,
+        "stage_v1_events": 416
+      }
+    },
+    {
+      "id": "pgs3_s0",
+      "pgs": 3,
+      "stabilization": 0,
+      "source_conditional_expected_on_counts": {
+        "constructor_observations": 32,
+        "coordinate_advances": 32,
+        "preintegration_motor_visits": 96,
+        "postintegration_motor_visits": 0,
+        "companion_events": 193,
+        "stage_v1_events": 800
+      }
+    }
+  ],
+  "fixed_case_order": [
+    {
+      "order": 1,
+      "label": "pgs1_s2_negative_on",
+      "profile": "pgs1_s2",
+      "target": "negative",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 2,
+      "label": "pgs1_s2_negative_fresh_on",
+      "profile": "pgs1_s2",
+      "target": "negative",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 3,
+      "label": "pgs1_s2_negative_off",
+      "profile": "pgs1_s2",
+      "target": "negative",
+      "observer": "off",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 4,
+      "label": "pgs1_s2_positive_on",
+      "profile": "pgs1_s2",
+      "target": "positive",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 5,
+      "label": "pgs1_s2_positive_fresh_on",
+      "profile": "pgs1_s2",
+      "target": "positive",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 6,
+      "label": "pgs1_s2_positive_off",
+      "profile": "pgs1_s2",
+      "target": "positive",
+      "observer": "off",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 7,
+      "label": "pgs1_s0_negative_on",
+      "profile": "pgs1_s0",
+      "target": "negative",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 8,
+      "label": "pgs1_s0_negative_fresh_on",
+      "profile": "pgs1_s0",
+      "target": "negative",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 9,
+      "label": "pgs1_s0_negative_off",
+      "profile": "pgs1_s0",
+      "target": "negative",
+      "observer": "off",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 10,
+      "label": "pgs1_s0_positive_on",
+      "profile": "pgs1_s0",
+      "target": "positive",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 11,
+      "label": "pgs1_s0_positive_fresh_on",
+      "profile": "pgs1_s0",
+      "target": "positive",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 12,
+      "label": "pgs1_s0_positive_off",
+      "profile": "pgs1_s0",
+      "target": "positive",
+      "observer": "off",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 13,
+      "label": "pgs3_s0_negative_on",
+      "profile": "pgs3_s0",
+      "target": "negative",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 14,
+      "label": "pgs3_s0_negative_fresh_on",
+      "profile": "pgs3_s0",
+      "target": "negative",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 15,
+      "label": "pgs3_s0_negative_off",
+      "profile": "pgs3_s0",
+      "target": "negative",
+      "observer": "off",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 16,
+      "label": "pgs3_s0_positive_on",
+      "profile": "pgs3_s0",
+      "target": "positive",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 17,
+      "label": "pgs3_s0_positive_fresh_on",
+      "profile": "pgs3_s0",
+      "target": "positive",
+      "observer": "on",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    },
+    {
+      "order": 18,
+      "label": "pgs3_s0_positive_off",
+      "profile": "pgs3_s0",
+      "target": "positive",
+      "observer": "off",
+      "fresh_process_required": true,
+      "declared_outer_intervals": 1
+    }
+  ],
+  "declared_budget": {
+    "fresh_processes": 18,
+    "fixtures_per_process": 1,
+    "outer_intervals_per_process": 1,
+    "small_steps_per_process": 32,
+    "no_retries_replacements_additions": true
+  },
+  "fixture_input_f32_words": {
+    "sphere_radius_m": 1036831949,
+    "sphere_mass_kg": 1065353216,
+    "stiffness_nm_per_rad": 1133903872,
+    "damping_nm_s_per_rad": 1094713344,
+    "ceiling_nm": 1073741824,
+    "outer_duration_s": 981668463,
+    "negative_target_rad": 3129152111,
+    "positive_target_rad": 981668463,
+    "initial_coordinate_velocity_gravity_damping_armature": 0
+  },
+  "source_conditional_expected_count_requirements": {
+    "supported_motor_rows": 1,
+    "warmstart_coefficient_word": 1065353216,
+    "additional_friction": 0,
+    "ccd_partitions": 1,
+    "small_steps": 32,
+    "extra_rows_or_changed_defaults": "FAILED_UNQUALIFIED"
+  },
+  "observer_schemas": "existing stage-v1/impulse-v1/construction-companion-v1 unchanged",
+  "primary_accuracy_criterion": "unchanged; this new diagnostic does not reclassify previous four primary cases",
+  "scope": "source-only exact-real independent reference and prospective fields; no native-f32 proof or scientific process admission",
+  "required_classifications": [
+    "PASS_DECLARED_FIDELITY_WITH_SEPARATE_DIAGNOSTIC_RESULTS",
+    "INCONCLUSIVE_VISITATION_DISCRIMINATOR",
+    "FAILED_UNQUALIFIED"
+  ],
+  "references": {
+    "preregistration": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/PREREGISTRATION.md",
+      "sha256": "15afbf88257f4d7a56687429f30e2cb93df376f962807dc499c84b629ebcf70e",
+      "bytes": 6489
+    },
+    "reference_helper": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800
+    },
+    "pure_tests": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/test_physical_reference.py",
+      "sha256": "9a3cb1fe0335e6cae11b3bd343fa4701dd92f2dc3270e4f6f8891309804519f5",
+      "bytes": 4061
+    },
+    "actual_pure_test_receipt": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/pure-test-receipt.json",
+      "sha256": "a40ed1b1178e2d6a96ec5f05ee0da136322a6f99b654379b1e05a006f4525e65",
+      "bytes": 1301
+    },
+    "initial_source_study": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-actuation-reference-study/source-binding-and-proposal-receipt.json",
+      "sha256": "2f4c83deda61f31cb505b3016d6cfd7d07fbae02b296200a3a930a9805773f97",
+      "bytes": 3754
+    }
+  },
+  "pending_literal_bindings": [
+    "source manifest and scope",
+    "actual collector/profile framing",
+    "reader and native f32 operation schedule",
+    "binary/compiler/target/features/flags/lockfile/native-float limitations",
+    "exact argv/output claim paths",
+    "independent pre-data admission"
+  ],
+  "source_input_extra": {
+    "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/integration_parameters.rs",
+    "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+    "bytes": 14726
+  }
+}

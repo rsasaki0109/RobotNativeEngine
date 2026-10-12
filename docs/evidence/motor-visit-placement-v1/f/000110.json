@@ -1,0 +1,17 @@
+{
+  "kind": "exclusive_once_only_visit_placement_audit",
+  "schema_version": 1,
+  "created_utc": "2026-10-12T20:54:34.725829+00:00",
+  "spec_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/admitted-wrapper.json",
+  "externally_supplied_wrapper_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e",
+  "result_root": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection",
+  "output": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/actual-cohort-audit.json",
+  "checked_outer_receipt": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collect-invocation/actual-command.json",
+  "checked_outer_sha256": "26c12d5edecb1743a20068d21a217b8bdaf74cffad51a51c4fcf2637dc445c0d",
+  "reader_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_reader.py",
+    "sha256": "64ee44b5b16532ad9c3b272de986c7bad42c335b8bba81b3b7211367ab5b09aa",
+    "bytes": 27119
+  },
+  "native_processes_launched": 0
+}

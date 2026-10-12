@@ -1,0 +1,22 @@
+{
+  "kind": "lossless_whole_audit_gzip_publication_preparation",
+  "schema_version": 1,
+  "created_unix_ns": 1791838769637540217,
+  "original": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/actual-cohort-audit.json",
+    "sha256": "d7022bb982ab997862da1f3aabbfa4306a6fa568b4707a2b2a9aa0bd9581acfe",
+    "bytes": 5447072
+  },
+  "compressed_representation": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-publication/actual-cohort-audit.json.gz",
+    "sha256": "4611f3fbeb711e83c749b986b71081c6297b7fd4e4f196b8ea18c4eea3d6c2c0",
+    "bytes": 886291
+  },
+  "gzip_members": 1,
+  "gzip_mtime": 0,
+  "roundtrip_original_bytes_exact": true,
+  "full_rows_fields_rational_digits_and_whitespace_retained": true,
+  "compressed_size_at_or_below_inline_threshold": true,
+  "new_native_or_scientific_reader_invocations": 0,
+  "scope": "Lossless single whole-file representation, without row selection, splitting, truncation or reformatting. Original JSON retained locally; decompression restores its exact hash and byte count. No Git/Release/publication action performed."
+}

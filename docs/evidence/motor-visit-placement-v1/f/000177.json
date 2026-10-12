@@ -1,0 +1,23 @@
+{
+  "kind": "original_independent_postcollection_inspection_CLI",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-postreview/postreview_retention.py"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-postreview",
+  "original_exit_code": 0,
+  "start_unix_ns": 1791838697996257945,
+  "end_unix_ns": 1791838698470411848,
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-postreview/stdout.log",
+    "sha256": "e0f4e614ae8c26f141219479bf080129fdf6d6c75a7ddfff2eadd6cbc359e82a",
+    "bytes": 465
+  },
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-postreview/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "native_or_scientific_reader_invocations": 0
+}

@@ -9,3 +9,6 @@ docs/evidence/** linguist-generated=true
 # Literal motor-construction provenance preserves original patches and logs.
 docs/evidence/motor-construction-v1/f/** -diff -whitespace
 docs/evidence/motor-construction-v1/source-review-diff.patch -diff -whitespace
+
+# Literal visitation-placement data and provenance retain original bytes.
+docs/evidence/motor-visit-placement-v1/f/** -diff -whitespace

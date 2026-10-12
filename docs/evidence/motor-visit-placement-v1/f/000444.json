@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "cargo",
+    "fmt",
+    "--all"
+  ],
+  "original_exit": 0,
+  "start_unix_ns": 1791836991285091220,
+  "end_unix_ns": 1791836991792965919,
+  "native_fixture_invoked": false
+}

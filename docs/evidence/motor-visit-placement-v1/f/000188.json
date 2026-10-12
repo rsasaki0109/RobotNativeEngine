@@ -1,0 +1,52 @@
+{
+  "kind": "independent_lossless_whole_audit_compressed_representation_review",
+  "schema_version": 1,
+  "status": "PASS_WHOLE_BYTES_ROUNDTRIP_AND_LITERAL_ADR034_STORED_FILE_ELIGIBILITY",
+  "created_utc": "2026-10-12T21:01:06.026230+00:00",
+  "original": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/actual-cohort-audit.json",
+    "sha256": "d7022bb982ab997862da1f3aabbfa4306a6fa568b4707a2b2a9aa0bd9581acfe",
+    "bytes": 5447072
+  },
+  "compressed_representation": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-publication/actual-cohort-audit.json.gz",
+    "sha256": "4611f3fbeb711e83c749b986b71081c6297b7fd4e4f196b8ea18c4eea3d6c2c0",
+    "bytes": 886291
+  },
+  "root_preparation_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-publication/whole-audit-compression-receipt.json",
+    "sha256": "972d05238b0469557457977a721bb46a937d252771f4e311db620477f4c34459",
+    "bytes": 1145
+  },
+  "policy_sources": [
+    {
+      "path": "/workspace/RobotNativeEngine/docs/adr/034-external-large-evidence-retention.md",
+      "sha256": "100441eb60d43bed59a4d00eb264cf0838c5ad2f33ee2f496cde7bc22f7dedd5",
+      "bytes": 4954
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/xtask/src/docs_evidence_retention.rs",
+      "sha256": "04f6a0d0a65f0e592511eae53476046db9d10aca67c209d99af308f93d425ece",
+      "bytes": 17550
+    }
+  ],
+  "gzip_members": 1,
+  "gzip_mtime": 0,
+  "complete_single_member_no_trailing_data": true,
+  "decompressed_byte_length": 5447072,
+  "decompressed_original_sha256": "d7022bb982ab997862da1f3aabbfa4306a6fa568b4707a2b2a9aa0bd9581acfe",
+  "bytewise_entire_original_identical": true,
+  "rational_digits_whitespace_fields_rows_preserved_by_byte_identity": true,
+  "stored_file_bytes": 886291,
+  "inline_threshold_bytes": 1048576,
+  "literal_eligibility": "A regular non-symlink whole .json.gz file of886291 stored bytes can be added under docs/evidence without a pointer/allowlist under current ADR034 and metadata.len-based enforcement. The policy does not impose a decompressed-size threshold.",
+  "new_native_worlds_or_scientific_reader_or_math_reinterpretations": 0,
+  "Git_Release_publication_actions": 0,
+  "public_retention_completed": false,
+  "existing_study_README_not_modified": true,
+  "limits": [
+    "Only local lossless representation preparation is verified. Ordinary future PR must retain these exact compressed bytes, original SHA/length and documented decompression/recovery; public retrieval remains unverified.",
+    "This review does not authorize #410 merge, production adoption, or a Release publication."
+  ],
+  "issues": []
+}

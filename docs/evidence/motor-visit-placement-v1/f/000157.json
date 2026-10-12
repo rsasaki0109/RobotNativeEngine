@@ -1,0 +1,169 @@
+{
+  "kind": "presentation_of_fixed_registered_audit_only",
+  "schema_version": 1,
+  "audit_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/actual-cohort-audit.json",
+    "bytes": 5447072,
+    "sha256": "d7022bb982ab997862da1f3aabbfa4306a6fa568b4707a2b2a9aa0bd9581acfe"
+  },
+  "fidelity_status": "PASS_COMPLETE_DECLARED_SCOPE",
+  "original_processes": 18,
+  "constructor_checks": 384,
+  "coordinate_checks": 384,
+  "motor_solve_checks": 896,
+  "first_slice_discriminator": [
+    {
+      "target": "negative",
+      "source_conditional_same_first_row_and_initial_physics": true,
+      "baseline_early1_first_integration_equal": true,
+      "baseline_early3_first_final_equal": true,
+      "baseline_early3_first_q_different": false,
+      "baseline_early1_first_final_different": false,
+      "status": "INCONCLUSIVE_NO_CAPTURED_FIRST_SLICE_DIFFERENCE",
+      "unequal_q_required_for_fidelity": false,
+      "accuracy_verified": false
+    },
+    {
+      "target": "positive",
+      "source_conditional_same_first_row_and_initial_physics": true,
+      "baseline_early1_first_integration_equal": true,
+      "baseline_early3_first_final_equal": true,
+      "baseline_early3_first_q_different": false,
+      "baseline_early1_first_final_different": false,
+      "status": "INCONCLUSIVE_NO_CAPTURED_FIRST_SLICE_DIFFERENCE",
+      "unequal_q_required_for_fidelity": false,
+      "accuracy_verified": false
+    }
+  ],
+  "last_slice_rows": [
+    {
+      "case": {
+        "profile": "split_1_2",
+        "target": "negative",
+        "observer": "on",
+        "label": "split_1_2_negative_on"
+      },
+      "internal_slice_index": 31,
+      "native_words": {
+        "q_after_rad_word": 3083641934,
+        "integration_input_velocity_rad_s_word": 3167210956,
+        "final_writeback_velocity_rad_s_word": 3170893826
+      },
+      "q_rad": "-2.43952054e-05",
+      "integration_velocity_rad_s": "-0.0243901238",
+      "writeback_velocity_rad_s": "-0.0312500075",
+      "independent_SI_q_rad": "-1.70492777e-05",
+      "independent_SI_v_rad_s": "-0.0233156732",
+      "native_q_minus_independent_SI_rad": "-7.34592773e-06",
+      "native_writeback_v_minus_independent_SI_rad_s": "-0.00793433425"
+    },
+    {
+      "case": {
+        "profile": "split_1_2",
+        "target": "positive",
+        "observer": "on",
+        "label": "split_1_2_positive_on"
+      },
+      "internal_slice_index": 31,
+      "native_words": {
+        "q_after_rad_word": 936158286,
+        "integration_input_velocity_rad_s_word": 1019727308,
+        "final_writeback_velocity_rad_s_word": 1023410178
+      },
+      "q_rad": "2.43952054e-05",
+      "integration_velocity_rad_s": "0.0243901238",
+      "writeback_velocity_rad_s": "0.0312500075",
+      "independent_SI_q_rad": "1.70492777e-05",
+      "independent_SI_v_rad_s": "0.0233156732",
+      "native_q_minus_independent_SI_rad": "7.34592773e-06",
+      "native_writeback_v_minus_independent_SI_rad_s": "0.00793433425"
+    },
+    {
+      "case": {
+        "profile": "early_1_0",
+        "target": "negative",
+        "observer": "on",
+        "label": "early_1_0_negative_on"
+      },
+      "internal_slice_index": 31,
+      "native_words": {
+        "q_after_rad_word": 3083641934,
+        "integration_input_velocity_rad_s_word": 3167210956,
+        "final_writeback_velocity_rad_s_word": 3167210956
+      },
+      "q_rad": "-2.43952054e-05",
+      "integration_velocity_rad_s": "-0.0243901238",
+      "writeback_velocity_rad_s": "-0.0243901238",
+      "independent_SI_q_rad": "-1.70492777e-05",
+      "independent_SI_v_rad_s": "-0.0233156732",
+      "native_q_minus_independent_SI_rad": "-7.34592773e-06",
+      "native_writeback_v_minus_independent_SI_rad_s": "-0.00107445059"
+    },
+    {
+      "case": {
+        "profile": "early_1_0",
+        "target": "positive",
+        "observer": "on",
+        "label": "early_1_0_positive_on"
+      },
+      "internal_slice_index": 31,
+      "native_words": {
+        "q_after_rad_word": 936158286,
+        "integration_input_velocity_rad_s_word": 1019727308,
+        "final_writeback_velocity_rad_s_word": 1019727308
+      },
+      "q_rad": "2.43952054e-05",
+      "integration_velocity_rad_s": "0.0243901238",
+      "writeback_velocity_rad_s": "0.0243901238",
+      "independent_SI_q_rad": "1.70492777e-05",
+      "independent_SI_v_rad_s": "0.0233156732",
+      "native_q_minus_independent_SI_rad": "7.34592773e-06",
+      "native_writeback_v_minus_independent_SI_rad_s": "0.00107445059"
+    },
+    {
+      "case": {
+        "profile": "early_3_0",
+        "target": "negative",
+        "observer": "on",
+        "label": "early_3_0_negative_on"
+      },
+      "internal_slice_index": 31,
+      "native_words": {
+        "q_after_rad_word": 3083115435,
+        "integration_input_velocity_rad_s_word": 3170893826,
+        "final_writeback_velocity_rad_s_word": 3170893826
+      },
+      "q_rad": "-2.34375093e-05",
+      "integration_velocity_rad_s": "-0.0312500075",
+      "writeback_velocity_rad_s": "-0.0312500075",
+      "independent_SI_q_rad": "-1.70492777e-05",
+      "independent_SI_v_rad_s": "-0.0233156732",
+      "native_q_minus_independent_SI_rad": "-6.38823163e-06",
+      "native_writeback_v_minus_independent_SI_rad_s": "-0.00793433425"
+    },
+    {
+      "case": {
+        "profile": "early_3_0",
+        "target": "positive",
+        "observer": "on",
+        "label": "early_3_0_positive_on"
+      },
+      "internal_slice_index": 31,
+      "native_words": {
+        "q_after_rad_word": 935631787,
+        "integration_input_velocity_rad_s_word": 1023410178,
+        "final_writeback_velocity_rad_s_word": 1023410178
+      },
+      "q_rad": "2.34375093e-05",
+      "integration_velocity_rad_s": "0.0312500075",
+      "writeback_velocity_rad_s": "0.0312500075",
+      "independent_SI_q_rad": "1.70492777e-05",
+      "independent_SI_v_rad_s": "0.0233156732",
+      "native_q_minus_independent_SI_rad": "6.38823163e-06",
+      "native_writeback_v_minus_independent_SI_rad_s": "0.00793433425"
+    }
+  ],
+  "scope": "Nine significant digit displays of captured native words and existing exact-rational audit values for the last slice of every profile/sign representative ON. Fresh ON and OFF remain retained and already qualified by the one registered reader. No new model derivation, acceptance threshold, resampling, reader execution or accuracy verdict.",
+  "physical_accuracy_verified": false,
+  "production_adoption": false
+}

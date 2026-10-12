@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "kind": "FINAL_PRE_DATA_FIXED18_READER_SOURCE_CLOSURE",
+  "created_utc": "2026-10-12T20:49:50.800156+00:00",
+  "files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_contract.py",
+      "sha256": "6cddcaf6cb7e00c80e49b3c7e7a789454c43cd449d1f01e00bb4946ee3b85b0f",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_reader.py",
+      "sha256": "64ee44b5b16532ad9c3b272de986c7bad42c335b8bba81b3b7211367ab5b09aa",
+      "bytes": 27119
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/run_schema.py",
+      "sha256": "4c1b1c20f64898b385ea61695b628384bf9502290724219cbd3568f762d64a18",
+      "bytes": 32057
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/strict_io.py",
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+      "bytes": 3739
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/synthetic_fixtures.py",
+      "sha256": "1a3c879a85d74896cffa26e8ac2b7b5dc2937567417b17c2275ceacc45455c79",
+      "bytes": 9421
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/test_cohort_reader.py",
+      "sha256": "c373b9548a5e829684b7351aaf11e72e084f3d290d826731ad3e99527d65717b",
+      "bytes": 10690
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/test_physical_reference.py",
+      "sha256": "9a3cb1fe0335e6cae11b3bd343fa4701dd92f2dc3270e4f6f8891309804519f5",
+      "bytes": 4061
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/test_run_schema.py",
+      "sha256": "7e8c82a9d508240843aa4a24d46c39186763039144ac065a495852ae7d24a34e",
+      "bytes": 5659
+    }
+  ],
+  "runtime_files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_reader.py",
+      "sha256": "64ee44b5b16532ad9c3b272de986c7bad42c335b8bba81b3b7211367ab5b09aa",
+      "bytes": 27119
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_contract.py",
+      "sha256": "6cddcaf6cb7e00c80e49b3c7e7a789454c43cd449d1f01e00bb4946ee3b85b0f",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/run_schema.py",
+      "sha256": "4c1b1c20f64898b385ea61695b628384bf9502290724219cbd3568f762d64a18",
+      "bytes": 32057
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/strict_io.py",
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+      "bytes": 3739
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800
+    }
+  ],
+  "scientific_data_used": false,
+  "native_worlds": 0,
+  "pycache_and_synthetic_test_data_excluded": true,
+  "README": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/README.md",
+    "sha256": "3b40de5e5d9d7bc750901d7584ad8275bbe41f37c792e5b41c07ca4d10864976",
+    "bytes": 4161
+  },
+  "provenance": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/source-reuse-provenance.json",
+    "sha256": "a63b1fecf984c0923025a5c4bc94681a743f0052cc246cafb4695df9cb7b1c50",
+    "bytes": 2014
+  },
+  "actual_final_pure_tests": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/receipt.json",
+    "sha256": "306c6096a1af397f191b5ceb86d58b57ed683183175b8fd3e4698f3aba443d8a",
+    "bytes": 2668
+  },
+  "pure_test_logs": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/stderr.log",
+      "sha256": "17253405b4f4e38d4da5bd2144f5a2862af4b72946ba47fab4f941b647d76fc6",
+      "bytes": 4080
+    }
+  ],
+  "retained_failed_attempt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-2/receipt.json",
+    "sha256": "e3a8fc4099660966b15a9855ff68f790dc9171f6a36b0b5621f5649376e2d012",
+    "bytes": 2668
+  }
+}

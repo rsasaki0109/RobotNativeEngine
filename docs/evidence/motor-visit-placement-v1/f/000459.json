@@ -1,0 +1,118 @@
+{
+  "kind": "portable_visit_literal_verifier_handoff",
+  "schema_version": 1,
+  "status": "SOURCE_SEALED_PURE31_AND_ACTUAL_AUGMENTED_COPY_PASS",
+  "created_utc": "2026-10-12T21:33:20.602526+00:00",
+  "verifier": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/verify_literals.py",
+    "sha256": "2b6b33b8dc714c2e04edd495b67ee57e6e67cbe5ffd16e222578512b28856fe9",
+    "bytes": 12829
+  },
+  "pure_test_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/test_verify_literals.py",
+    "sha256": "5f05383650e90b2e3a0a47c96e1bf0c5c7a766349f186504652df815f9709db0",
+    "bytes": 13904
+  },
+  "README": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/README.md",
+    "sha256": "c30ce05d9edd1a95c3744e47530bf7aee1de62ad9bc23e910b9c6848875459f8",
+    "bytes": 1473
+  },
+  "runner_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/run_pure_checks.py",
+    "sha256": "718bdf66a1dcdefd50e3d1ca8adda5ba74466e867ec53f028826c7f405bb8dcd",
+    "bytes": 3106
+  },
+  "actual_checks": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/checks-complete.json",
+    "sha256": "b7eda754a97180f698e285d98a943ef5d4465e71d864f3dbb0b39c8a64094225",
+    "bytes": 4803
+  },
+  "pure_tests": 31,
+  "pure_original_exit": 0,
+  "actual_literal_CLI_original_exit": 0,
+  "actual_source_guard_unchanged": true,
+  "original_prepared_source_copy_unchanged": true,
+  "actual_augmented_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-pr-preparation/patch-tree/docs/evidence/motor-visit-placement-v1/manifest.json",
+    "sha256": "81868f17ec2430e6f2c5df7bb426289ef13e61c2e68379ce0faa81357fae16e5",
+    "bytes": 511193
+  },
+  "actual_scope": {
+    "aliases": 822,
+    "gzip_original_representations": 1,
+    "local_only_bindings": 2,
+    "local_only_scope": "Historical executable/hash metadata only; no absent original bytes read, fetched or recovered.",
+    "manifest_bytes": 511193,
+    "manifest_sha256": "81868f17ec2430e6f2c5df7bb426289ef13e61c2e68379ce0faa81357fae16e5",
+    "native_invocations": 0,
+    "numerical_reanalysis": false,
+    "qualification_scope": "Declared local payload/whole restoration bytes only; no scientific accuracy, production adoption, complete historical coverage or public availability verdict.",
+    "scientific_reader_invocations": 0,
+    "status": "PASS_DECLARED_PORTABLE_LITERAL_BYTES_ONLY",
+    "unique_payloads": 459
+  },
+  "validation_receipt_artifacts": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/actual-copy-original-files.json",
+      "sha256": "9c82ed4d1cae1c5f0acc812ab5dd35d8b5f68e8ac6fdcf8f903b2ee2946b0bcc",
+      "bytes": 119423
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/actual-prepared-copy-actual-command.json",
+      "sha256": "7db893c76e69e0ceb45b07d48fc02535c9d4356b240ff04a3d49e9f457e5f0a9",
+      "bytes": 1118
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/actual-prepared-copy-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/actual-prepared-copy-stdout.log",
+      "sha256": "c1083649e165565b51d2398539ec29fdd5affb1c1f524e0279706b002348afba",
+      "bytes": 666
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/checks-complete.json",
+      "sha256": "b7eda754a97180f698e285d98a943ef5d4465e71d864f3dbb0b39c8a64094225",
+      "bytes": 4803
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/pure-tests-actual-command.json",
+      "sha256": "2d131e3448c1dcabfeb01fe39a0b6849297af72e57bfa1140ea84758c52cbd9b",
+      "bytes": 969
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/pure-tests-stderr.log",
+      "sha256": "e82a76803056431243a04adf66e9a1b4cd2d079bb9f5408b2027bca1622196cb",
+      "bytes": 4463
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/pure-tests-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/source-after.json",
+      "sha256": "82b7010bd0c0bad28e0f6719fcb18a0b401fd976cbb9b489b3ad176729e0583e",
+      "bytes": 869
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/validation-attempt-1/source-before.json",
+      "sha256": "82b7010bd0c0bad28e0f6719fcb18a0b401fd976cbb9b489b3ad176729e0583e",
+      "bytes": 869
+    }
+  ],
+  "owned_prepared_copy": "/workspace/.rne-onboarding/recovery-20261012/next-visit-portable-verifier/final-prepared-copy",
+  "test_artifacts_scope": "Invented bytes only. Stored outside evidence; all synthetic tampered copies preserved. No native worlds or scientific reader/module executions.",
+  "new_native_or_scientific_reader_or_archived_helper_invocations": 0,
+  "main_Git_remote_mutations": 0,
+  "public_retention_completed": false,
+  "limits": [
+    "Verifier proves only the bytes declared by its manifest; historical origin labels are not opened or fetched.",
+    "Local-only executable/hash metadata is not described as available or recovered.",
+    "No scientific accuracy, historical completeness, public download, adoption or merge verdict."
+  ],
+  "issues": []
+}

@@ -1,0 +1,51 @@
+{
+  "kind": "independent_fixed18_motor_visit_placement_predata_admission",
+  "schema_version": 1,
+  "status": "PASS_PRE_DATA_SOURCE_PROTOCOL_AND_DRIVER",
+  "reviewer": "/root/visit_placement_admission",
+  "created_utc": "2026-10-12T20:53:03.241775+00:00",
+  "reviewed_candidate_sha256": "14566a9ffbe6a6e89b1ead544385f85c22782d26ce9a9b3514e9f8bc2a6d558c",
+  "candidate": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/frozen-candidate.json",
+    "sha256": "14566a9ffbe6a6e89b1ead544385f85c22782d26ce9a9b3514e9f8bc2a6d558c",
+    "bytes": 144580
+  },
+  "binary": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "sha256": "941cd9577ceeb85f5732e304fc2023db585e591b972aa7db71bb9da38ef460a5",
+    "bytes": 2856088
+  },
+  "frozen_inputs_sha256": "dedb98157952a82c75943decfa9de00916f0a3ec06238465f9c2534fffa7a089",
+  "frozen_input_whole_files_verified": 508,
+  "actual_build_source_files_verified": 129,
+  "baseline_vendor_whole_files_verified": 123,
+  "prospectively_registered_native_budget": 18,
+  "native_worlds_started_by_this_review": 0,
+  "native_scientific_audits_run_by_this_review": 0,
+  "old_numerical_data_read_by_this_review": false,
+  "cargo_build_test_or_git_remote_mutations_by_this_review": 0,
+  "pure_checks": {
+    "collector": 8,
+    "driver_fault_tests": 20,
+    "reader_synthetic_tests": 27,
+    "all_original_final_exits": 0
+  },
+  "checks": [
+    "Exact final candidate schema/order/unique case labels and all508 whole-byte bindings; exclusive native/checked/reader outputs still absent.",
+    "Final actual locked build, features,129source before/after guard and123 exact baseline copies; compiler executable supplement and preserved superseded failures.",
+    "Mandatory finite CLI profiles and unchanged one-interval native fixture/observer schemas, native f32 words/checkpoint framing/progress source reviewed.",
+    "All18 prelaunch reservations and directory barriers; actual source/module/registration guards, original child/coordinator/checked-CLI exits and durable unknown/failure accounting; no retry/resume/replacement.",
+    "Checked-owned process group contains native child; bounded whole-group interruption cleanup and original exit retention reviewed with20 fake fault cases.",
+    "Reader strict all-event schedules/cache/identity/constructor/solve/integration/writeback, normal-zero source arithmetic, captured ON/fresh/OFF equality and OFF-null gates; independent once-only reader claim.",
+    "First-slice comparisons conditional on same native row/cache/incoming state; clamping/odd cycles allow INCONCLUSIVE. Independent SI trajectory and native-incoming counterfactual diagnostics remain separate.",
+    "No prior calibration reclassification, normalization intervention, solver correction/adoption or practical maturity claim."
+  ],
+  "limits": [
+    "Pre-data admission authorizes only this exact new fixed18 and its once-only frozen reader; it establishes no observed native outcome.",
+    "Runtime MXCSR/rounding/FTZ/DAZ, full registry/compiler/linker/runtime closure and private full-set/pipeline/contact caches are unmeasured.",
+    "External acceleration and mass-matrix/LU construction are not replayed; impulse-v1 promoted aggregates are schema/captured-replay qualified, not full f64 aggregate arithmetic proof.",
+    "Geometric backward-Euler reference is diagnostic, not hardware/external-user verification, old four-case calibration passing, physical accuracy improvement or production adoption.",
+    "Root launcher must retain this registered environment and actual original outer exits; a failed/partial study is preserved with no replacement."
+  ],
+  "issues": []
+}

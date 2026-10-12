@@ -1,0 +1,25 @@
+{
+  "kind": "durable_launch_intent",
+  "case": {
+    "profile": "early_1_0",
+    "target": "positive",
+    "observer": "on",
+    "label": "early_1_0_positive_on"
+  },
+  "attempt_index": 9,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "--profile",
+    "early_1_0",
+    "--target",
+    "positive",
+    "--observer",
+    "on",
+    "--label",
+    "early_1_0_positive_on",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/early_1_0_positive_on/raw.jsonl.gz"
+  ],
+  "created_utc": "2026-10-12T20:54:03.957635+00:00",
+  "registered_spec_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e"
+}

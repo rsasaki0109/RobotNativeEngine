@@ -1,0 +1,6 @@
+{
+  "reason": "generate-lockfile updated indirect dependencies before data; preserve initial passing build/checks as unadmitted preparation and use root-lock-preserving resolution for final build",
+  "preliminary_binary_native_invocations": 0,
+  "root_lock_resolution_actual": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/root-lock-resolution/full-actual.json",
+  "native_worlds": 0
+}

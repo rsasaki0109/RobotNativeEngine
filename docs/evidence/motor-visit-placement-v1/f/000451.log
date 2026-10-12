@@ -1,0 +1,47 @@
+   Compiling syn v2.0.119
+   Compiling serde v1.0.228
+   Compiling crossbeam-utils v0.8.23
+   Compiling bytemuck v1.25.2
+   Compiling safe_arch v0.7.4
+   Compiling wide v0.7.33
+   Compiling num-integer v0.1.47
+   Compiling syn v3.0.8
+   Compiling serde_derive v1.0.228
+   Compiling smallvec v1.16.3
+   Compiling thiserror v2.0.21
+   Compiling matrixmultiply v0.3.11
+   Compiling thiserror-impl v2.0.21
+   Compiling num-complex v0.4.6
+   Compiling nalgebra-macros v0.2.2
+   Compiling simba v0.9.1
+   Compiling thiserror-impl v1.0.69
+   Compiling num-rational v0.4.2
+   Compiling crossbeam-epoch v0.9.21
+   Compiling log v0.4.34
+   Compiling spade v2.15.1
+   Compiling ena v0.14.4
+   Compiling crossbeam-deque v0.8.8
+   Compiling thiserror v1.0.69
+   Compiling rstar v0.12.2
+   Compiling nalgebra v0.33.3
+   Compiling num-derive v0.4.2
+   Compiling crossbeam-channel v0.5.17
+   Compiling crossbeam-queue v0.3.14
+   Compiling bitflags v2.13.2
+   Compiling arrayvec v0.7.8
+   Compiling simd-adler32 v0.3.10
+   Compiling rustc-hash v2.1.3
+   Compiling either v1.19.0
+   Compiling crc32fast v1.5.2
+   Compiling miniz_oxide v0.8.9
+   Compiling crossbeam v0.8.5
+   Compiling cobs v0.3.0
+   Compiling bit-vec v0.7.0
+   Compiling serde_json v1.0.150
+   Compiling postcard v1.1.3
+   Compiling flate2 v1.1.9
+   Compiling parry3d v0.17.6
+   Compiling rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/rapier3d)
+   Compiling motor_visit_placement_collector v0.1.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector)
+    Finished `test` profile [unoptimized] target(s) in 28.16s
+     Running unittests lib.rs (/workspace/RobotNativeEngine/target/debug/deps/motor_visit_placement_collector-f0dfbf020b8038e5)

@@ -1,0 +1,9 @@
+{
+  "kind": "completed_prelaunch_directory_barriers",
+  "schema_version": 2,
+  "root_parent": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18",
+  "cohort_root": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection",
+  "completed_utc": "2026-10-12T20:54:02.944199+00:00",
+  "all_eighteen_claims_durable": true,
+  "registered_spec_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e"
+}

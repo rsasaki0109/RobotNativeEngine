@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "kind": "FINAL_PRE_DATA_FIXED18_READER_HANDOFF",
+  "status": "SOURCE_READY_PURE27_PASS_PENDING_CONCRETE_ADMISSION",
+  "created_utc": "2026-10-12T20:49:50.800704+00:00",
+  "final_source_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/final-source-manifest.json",
+    "sha256": "807cd75dfbb84430dd699c86e26665d7192705a162597884438f7141b5b48234",
+    "bytes": 6423
+  },
+  "source_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/final-source-manifest.json",
+    "sha256": "807cd75dfbb84430dd699c86e26665d7192705a162597884438f7141b5b48234",
+    "bytes": 6423
+  },
+  "reader": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_reader.py",
+    "sha256": "64ee44b5b16532ad9c3b272de986c7bad42c335b8bba81b3b7211367ab5b09aa",
+    "bytes": 27119
+  },
+  "runtime_source_closure": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_reader.py",
+      "sha256": "64ee44b5b16532ad9c3b272de986c7bad42c335b8bba81b3b7211367ab5b09aa",
+      "bytes": 27119
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_contract.py",
+      "sha256": "6cddcaf6cb7e00c80e49b3c7e7a789454c43cd449d1f01e00bb4946ee3b85b0f",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/run_schema.py",
+      "sha256": "4c1b1c20f64898b385ea61695b628384bf9502290724219cbd3568f762d64a18",
+      "bytes": 32057
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/strict_io.py",
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+      "bytes": 3739
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800
+    }
+  ],
+  "pure_tests": {
+    "actual_exit_code": 0,
+    "passed": 27,
+    "failed": 0,
+    "source_unchanged": true,
+    "receipt": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/receipt.json",
+      "sha256": "306c6096a1af397f191b5ceb86d58b57ed683183175b8fd3e4698f3aba443d8a",
+      "bytes": 2668
+    },
+    "logs": [
+      {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-3/stderr.log",
+        "sha256": "17253405b4f4e38d4da5bd2144f5a2862af4b72946ba47fab4f941b647d76fc6",
+        "bytes": 4080
+      }
+    ]
+  },
+  "shared_driver_contract": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/cohort_contract.py",
+    "sha256": "6cddcaf6cb7e00c80e49b3c7e7a789454c43cd449d1f01e00bb4946ee3b85b0f",
+    "bytes": 6444
+  },
+  "README": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/README.md",
+    "sha256": "3b40de5e5d9d7bc750901d7584ad8275bbe41f37c792e5b41c07ca4d10864976",
+    "bytes": 4161
+  },
+  "failed_predata_pure_attempt_retained": {
+    "receipt": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-2/receipt.json",
+      "sha256": "e3a8fc4099660966b15a9855ff68f790dc9171f6a36b0b5621f5649376e2d012",
+      "bytes": 2668
+    },
+    "logs": [
+      {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-2/stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/pure-attempt-2/stderr.log",
+        "sha256": "c769b0d21f9dd44df53d96d22a49cb311035552d8940c501bc5cd9362bbfb991",
+        "bytes": 6799
+      }
+    ],
+    "diagnosis": "enum/iteration key collision between PGS and stabilization in first incoming velocity lookup",
+    "correction": "first ordered actual solve-pair input; immediate names excluded from aggregate dictionary",
+    "arithmetic_or_tolerances_changed": false
+  },
+  "statuses_separate": [
+    "fidelity_status",
+    "discriminator per target (INCONCLUSIVE allowed)",
+    "physical_SI_status diagnostics only no accuracy verdict"
+  ],
+  "native_worlds_actual_scientific_audits_old_numeric_data_reads_main_git_GH_Cargo": 0,
+  "mandatory_original_checked_CLI_exit": {
+    "cli_flags": [
+      "--checked-outer-receipt",
+      "--checked-outer-sha256"
+    ],
+    "schema": "root exclusive_original_cli_claim/mode collect exact success keys, original_exit0 and stdio == inner checked receipt",
+    "child_coordinator_exit_is_not_sufficient": true
+  },
+  "once_only_audit_claim": "fixed registered cohort-root/reader-audit-claim.json; new output filename cannot retry",
+  "scope_exclusions": [
+    "runtime rounding/MXCSR/FTZ/DAZ",
+    "mass-matrix/LU/external acceleration construction",
+    "promoted-f64 impulse aggregate arithmetic",
+    "private native full-set/pipeline/contact caches",
+    "physical SI accuracy/adoption/maturity"
+  ]
+}

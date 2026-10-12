@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "cargo",
+    "generate-lockfile",
+    "--offline"
+  ],
+  "original_exit": 0,
+  "start_unix_ns": 1791836991793245032,
+  "end_unix_ns": 1791836991959477680,
+  "native_fixture_invoked": false
+}

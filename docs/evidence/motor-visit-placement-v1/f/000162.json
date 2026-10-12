@@ -1,0 +1,110 @@
+[
+  {
+    "label": "split_1_2_negative_on",
+    "observer": "on",
+    "profile": "split_1_2",
+    "target": "negative"
+  },
+  {
+    "label": "split_1_2_negative_fresh",
+    "observer": "on",
+    "profile": "split_1_2",
+    "target": "negative"
+  },
+  {
+    "label": "split_1_2_negative_off",
+    "observer": "off",
+    "profile": "split_1_2",
+    "target": "negative"
+  },
+  {
+    "label": "split_1_2_positive_on",
+    "observer": "on",
+    "profile": "split_1_2",
+    "target": "positive"
+  },
+  {
+    "label": "split_1_2_positive_fresh",
+    "observer": "on",
+    "profile": "split_1_2",
+    "target": "positive"
+  },
+  {
+    "label": "split_1_2_positive_off",
+    "observer": "off",
+    "profile": "split_1_2",
+    "target": "positive"
+  },
+  {
+    "label": "early_1_0_negative_on",
+    "observer": "on",
+    "profile": "early_1_0",
+    "target": "negative"
+  },
+  {
+    "label": "early_1_0_negative_fresh",
+    "observer": "on",
+    "profile": "early_1_0",
+    "target": "negative"
+  },
+  {
+    "label": "early_1_0_negative_off",
+    "observer": "off",
+    "profile": "early_1_0",
+    "target": "negative"
+  },
+  {
+    "label": "early_1_0_positive_on",
+    "observer": "on",
+    "profile": "early_1_0",
+    "target": "positive"
+  },
+  {
+    "label": "early_1_0_positive_fresh",
+    "observer": "on",
+    "profile": "early_1_0",
+    "target": "positive"
+  },
+  {
+    "label": "early_1_0_positive_off",
+    "observer": "off",
+    "profile": "early_1_0",
+    "target": "positive"
+  },
+  {
+    "label": "early_3_0_negative_on",
+    "observer": "on",
+    "profile": "early_3_0",
+    "target": "negative"
+  },
+  {
+    "label": "early_3_0_negative_fresh",
+    "observer": "on",
+    "profile": "early_3_0",
+    "target": "negative"
+  },
+  {
+    "label": "early_3_0_negative_off",
+    "observer": "off",
+    "profile": "early_3_0",
+    "target": "negative"
+  },
+  {
+    "label": "early_3_0_positive_on",
+    "observer": "on",
+    "profile": "early_3_0",
+    "target": "positive"
+  },
+  {
+    "label": "early_3_0_positive_fresh",
+    "observer": "on",
+    "profile": "early_3_0",
+    "target": "positive"
+  },
+  {
+    "label": "early_3_0_positive_off",
+    "observer": "off",
+    "profile": "early_3_0",
+    "target": "positive"
+  }
+]

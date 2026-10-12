@@ -1,0 +1,31 @@
+{
+  "kind": "exclusive_process_claim",
+  "case": {
+    "profile": "split_1_2",
+    "target": "positive",
+    "observer": "off",
+    "label": "split_1_2_positive_off"
+  },
+  "attempt_index": 5,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "--profile",
+    "split_1_2",
+    "--target",
+    "positive",
+    "--observer",
+    "off",
+    "--label",
+    "split_1_2_positive_off",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection/split_1_2_positive_off/raw.jsonl.gz"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "binary": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/motor_visit_placement.native",
+    "sha256": "941cd9577ceeb85f5732e304fc2023db585e591b972aa7db71bb9da38ef460a5",
+    "bytes": 2856088
+  },
+  "created_utc": "2026-10-12T20:54:02.930622+00:00",
+  "registered_spec_sha256": "552f76408fb4abe82793e66aa75d685185709b9c3676d096d7d0bcce78c16f1e"
+}

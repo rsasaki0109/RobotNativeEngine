@@ -1,0 +1,28 @@
+{
+  "kind": "NEW18_READER_PURE_SYNTHETIC_PRE_DATA_CHECK",
+  "argv": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_run_schema",
+    "test_physical_reference"
+  ],
+  "started_utc": "2026-10-12T20:36:43.005105+00:00",
+  "ended_utc": "2026-10-12T20:36:45.568850+00:00",
+  "actual_exit_code": 0,
+  "source_inputs": {
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/integration_oracle.py": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/physical_reference.py": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/run_schema.py": "57fe97f20fda2c48e563db3eee4ed5ff0a0bfc3ea2a3c3b6af26dfb8f6478538",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/synthetic_fixtures.py": "1a3c879a85d74896cffa26e8ac2b7b5dc2937567417b17c2275ceacc45455c79",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/strict_io.py": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/test_physical_reference.py": "9a3cb1fe0335e6cae11b3bd343fa4701dd92f2dc3270e4f6f8891309804519f5",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/stage_numeric.py": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/construction_oracle.py": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/test_run_schema.py": "7e8c82a9d508240843aa4a24d46c39186763039144ac065a495852ae7d24a34e"
+  },
+  "sources_unchanged": true,
+  "native_worlds_old_numeric_reads_actual_audits": 0
+}

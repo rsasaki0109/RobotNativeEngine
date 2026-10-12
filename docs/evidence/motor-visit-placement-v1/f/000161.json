@@ -1,0 +1,143 @@
+{
+  "binary": null,
+  "cases": [
+    {
+      "label": "split_1_2_negative_on",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_negative_fresh",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_negative_off",
+      "observer": "off",
+      "profile": "split_1_2",
+      "target": "negative"
+    },
+    {
+      "label": "split_1_2_positive_on",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "split_1_2_positive_fresh",
+      "observer": "on",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "split_1_2_positive_off",
+      "observer": "off",
+      "profile": "split_1_2",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_negative_on",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_negative_fresh",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_negative_off",
+      "observer": "off",
+      "profile": "early_1_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_1_0_positive_on",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_positive_fresh",
+      "observer": "on",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_1_0_positive_off",
+      "observer": "off",
+      "profile": "early_1_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_negative_on",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_negative_fresh",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_negative_off",
+      "observer": "off",
+      "profile": "early_3_0",
+      "target": "negative"
+    },
+    {
+      "label": "early_3_0_positive_on",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_positive_fresh",
+      "observer": "on",
+      "profile": "early_3_0",
+      "target": "positive"
+    },
+    {
+      "label": "early_3_0_positive_off",
+      "observer": "off",
+      "profile": "early_3_0",
+      "target": "positive"
+    }
+  ],
+  "checked_driver_source": null,
+  "collection_worlds_before_registration": 0,
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-preparation/collector",
+  "driver_interpreter": {
+    "bytes": 6812336,
+    "path": "/usr/bin/python3",
+    "sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1"
+  },
+  "driver_run_receipt_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/checked-driver/actual-command.json",
+  "environment": {
+    "CARGO_ENCODED_RUSTFLAGS": null,
+    "RUSTDOCFLAGS": null,
+    "RUSTFLAGS": null,
+    "RUST_TEST_THREADS": null
+  },
+  "frozen_inputs": [],
+  "kind": "frozen_motor_visit_placement_cohort",
+  "output_root": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-18/collection",
+  "process_failure_policy": "stop_on_first_failure_no_resume_or_replacement",
+  "registered_utc": null,
+  "registration_artifacts": {
+    "collector_source_manifest": null,
+    "compiler_feature_receipt": null,
+    "producer_review": null,
+    "protocol": null,
+    "pure_tests_review": null
+  },
+  "schema_version": 1,
+  "source_scope": null,
+  "timeout_seconds": 120
+}

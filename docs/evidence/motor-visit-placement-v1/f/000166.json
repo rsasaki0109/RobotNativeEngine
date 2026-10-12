@@ -1,0 +1,47 @@
+{
+  "builds": 0,
+  "historical_sources_unchanged": true,
+  "kind": "new_fixed18_driver_source_manifest",
+  "main_checkout_edits": 0,
+  "native_processes_and_worlds": 0,
+  "old_raw_numerical_data_read": false,
+  "original_command_completion": {
+    "bytes": 889,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/actual-pure-command-completion.json",
+    "sha256": "ffcc1fa5622b8d479249e0e6b4a54bed5a7ed657c138e94f6a14a2f4aa2d8d01"
+  },
+  "pure_tests": {
+    "bytes": 3696,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/synthetic-tests/20261012T203939713063Z/actual-pure-tests.json",
+    "sha256": "a35fef4367e5bc3c98d1aca218235610c6f4e2affd0f9a6d6eafd0934f48ae6f"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "bytes": 3739,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/strict_io.py",
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc"
+    },
+    {
+      "bytes": 6444,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/cohort_contract.py",
+      "sha256": "6cddcaf6cb7e00c80e49b3c7e7a789454c43cd449d1f01e00bb4946ee3b85b0f"
+    },
+    {
+      "bytes": 12838,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/cohort_driver.py",
+      "sha256": "74607a168ecc9c8639c09c915e93894afad7e9675229df6f429e6d67b235ce07"
+    },
+    {
+      "bytes": 6233,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/checked_driver.py",
+      "sha256": "88311df0fd6d216deb54ecd9f10c439687742dc2c8ba58d3719ce7cc2d765da5"
+    },
+    {
+      "bytes": 20090,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-driver/test_driver_pure.py",
+      "sha256": "10cf3aa2bb6584f5ceace09deb66aa7f0846aebc5b2ca9ef218c7cafda03e2a1"
+    }
+  ],
+  "status": "REVIEW_READY_SOURCE_STOPPED_BEFORE_NATIVE_ADMISSION"
+}
