@@ -1,0 +1,32 @@
+{
+  "collector_original_exit_code": 2,
+  "collector_processes_started": 1,
+  "finished_at": "2026-10-12T10:08:05.826491+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_complete_one_collection_and_three_zero_world_gates/frozen/frozen-bindings.json",
+    "sha256": "cd858f439734af4fbf6baddf1899ac22f614549fd62d5bb35b9173cdb7efb4b4",
+    "size_bytes": 16205
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 3,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_complete_one_collection_and_three_zero_world_gates/once-only-attempt/report.json",
+    "sha256": "37533df6ab4ec1001df09bb6dfdb98e2f83dd4b6e7d1cf41ce08f5fe666282bf",
+    "size_bytes": 25302
+  },
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:08:05.652036+00:00",
+  "status": "PASS_FIXED72_LITERAL_SOURCE_TRANSITION_RETAINED_FAIL0_OF4",
+  "world_accounting": {
+    "case_count_retained": 24,
+    "status": "COMPLETE_FIXED72_FAIL0_OF4",
+    "world_counts": {
+      "completed_worlds": 72,
+      "worlds_attempted": 72,
+      "worlds_created": 72
+    }
+  }
+}

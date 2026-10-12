@@ -1,0 +1,33 @@
+{
+  "actual_review_command": [
+    "python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/independent-postcollection-review/verify_retained_metadata_and_literal_bytes.py"
+  ],
+  "actual_review_exit_code": 0,
+  "additional_worlds": 0,
+  "cargo_invocations": 0,
+  "checkout_modifications": 0,
+  "execution_evidence": "Parent functions exec_command returned original exit_code=0 and PASS summary; no native process was invoked.",
+  "finished_at": "2026-10-12T10:58:56.486355+00:00",
+  "kind": "rne_independent_postcollection_review_handoff",
+  "native_binary_invocations": 0,
+  "network_mutations": 0,
+  "review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/independent-postcollection-review/independent-postcollection-source-transition-review.json",
+    "sha256": "12b08d6018456e9b2a9fbf5959da8ad6e79f2dc3714f602428308990549d060d",
+    "size_bytes": 31777
+  },
+  "review_tool": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/independent-postcollection-review/verify_retained_metadata_and_literal_bytes.py",
+    "sha256": "25d3b79c01ad567c3e8a71f54bfa302cb266ebf962ca8790fed1005e5e6c5e3f",
+    "size_bytes": 18620
+  },
+  "schema_version": 1,
+  "status": "PASS_READ_ONLY_RETAINED_EVIDENCE_REVIEW",
+  "summary": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/independent-postcollection-review/summary.md",
+    "sha256": "9f74bfd862e3ca660e76fa6ffaf22a23adfe681a3bdd698521216b53537f5598",
+    "size_bytes": 1751
+  }
+}

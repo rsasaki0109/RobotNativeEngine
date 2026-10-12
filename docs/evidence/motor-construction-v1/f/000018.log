@@ -1,0 +1,12 @@
+
+running 7 tests
+test tests::existing_claim_blocks_before_callback_without_overwrite ... ok
+test tests::fixed_cli_accepts_both_signs_and_rejects_tuning_or_ambiguity ... ok
+test tests::impulse_promoted_f64_words_keep_signed_zero_and_absence ... ok
+test tests::postcard_opaque_f32_words_preserve_zero_nan_and_infinity ... ok
+test tests::exclusive_header_precedes_stub_callback_and_keeps_error_terminal ... ok
+test tests::synthetic_completed_framing_is_deterministic ... ok
+test tests::stub_panic_is_retained_and_empty_success_is_not_collected ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

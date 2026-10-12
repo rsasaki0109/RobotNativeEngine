@@ -1,9 +1,13 @@
 #![allow(missing_docs)] // For downcast.
 
 use crate::dynamics::joint::MultibodyLink;
-use crate::dynamics::solver::{JointGenericOneBodyConstraint, WritebackId};
-use crate::dynamics::{IntegrationParameters, JointMotor, Multibody};
+use crate::dynamics::solver::{JointGenericOneBodyConstraint, MotorParameters, WritebackId};
+use crate::dynamics::{IntegrationParameters, JointMotor, Multibody, MultibodyJointHandle};
 use crate::math::Real;
+use crate::pipeline::{
+    motor_stage_word, InternalMotorConstructionRowRecorder, InternalMotorStageBinding,
+    MultibodyMotorConstructionRow,
+};
 use na::DVector;
 
 /// Initializes and generate the velocity constraints applicable to the multibody links attached
@@ -78,6 +82,36 @@ pub fn unit_joint_motor_constraint(
     constraints: &mut [JointGenericOneBodyConstraint],
     insert_at: &mut usize,
 ) {
+    unit_joint_motor_constraint_with_construction_inputs(
+        params,
+        multibody,
+        link,
+        motor,
+        curr_pos,
+        limits,
+        dof_id,
+        j_id,
+        jacobians,
+        constraints,
+        insert_at,
+        None,
+    );
+}
+
+pub(crate) fn unit_joint_motor_constraint_with_construction_inputs(
+    params: &IntegrationParameters,
+    multibody: &Multibody,
+    link: &MultibodyLink,
+    motor: &JointMotor,
+    curr_pos: Real,
+    limits: Option<[Real; 2]>,
+    dof_id: usize,
+    j_id: &mut usize,
+    jacobians: &mut DVector<Real>,
+    constraints: &mut [JointGenericOneBodyConstraint],
+    insert_at: &mut usize,
+    recorder: Option<InternalMotorConstructionRowRecorder<'_>>,
+) {
     let inv_dt = params.inv_dt();
     let ndofs = multibody.ndofs();
     let motor_params = motor.motor_params(params.dt);
@@ -124,8 +158,66 @@ pub fn unit_joint_motor_constraint(
         writeback_id: WritebackId::Motor(dof_id),
     };
 
+    if let Some(recorder) = recorder {
+        recorder.capture(
+            crate::dynamics::MultibodyJointHandle(link.rigid_body_handle().0),
+            motor,
+            &motor_params,
+            curr_pos,
+            params.dt,
+            inv_dt,
+            limits,
+            target_vel,
+            &constraint,
+            jacobians,
+        );
+    }
+
     constraints[*insert_at] = constraint;
     *insert_at += 1;
 
     *j_id += 2 * ndofs;
 }
+impl InternalMotorConstructionRowRecorder<'_> {
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn capture(
+        self,
+        joint_handle: MultibodyJointHandle,
+        motor: &JointMotor,
+        motor_params: &MotorParameters<Real>,
+        coordinate: Real,
+        duration: Real,
+        inverse_duration: Real,
+        limits: Option<[Real; 2]>,
+        effective_target_velocity: Real,
+        constraint: &JointGenericOneBodyConstraint,
+        jacobians: &DVector<Real>,
+    ) {
+        let row = InternalMotorStageBinding {
+            joint_handle,
+            link_id: self.link_id,
+            axis: self.axis,
+            gain_model: motor.model,
+            constraint_index: self.constraint_index,
+            // Same descriptor used by motor.motor_params in the constructor.
+            effort_ceiling: motor.max_force,
+        }
+        .snapshot(constraint, jacobians);
+        self.rows.push(MultibodyMotorConstructionRow {
+            row,
+            coordinate_word: motor_stage_word(coordinate),
+            target_position_word: motor_stage_word(motor.target_pos),
+            target_velocity_word: motor_stage_word(motor.target_vel),
+            stiffness_word: motor_stage_word(motor.stiffness),
+            damping_word: motor_stage_word(motor.damping),
+            duration_word: motor_stage_word(duration),
+            inverse_duration_word: motor_stage_word(inverse_duration),
+            limits_words: limits.map(|values| values.map(motor_stage_word)),
+            effective_target_velocity_word: motor_stage_word(effective_target_velocity),
+            erp_inverse_duration_word: motor_stage_word(motor_params.erp_inv_dt),
+        });
+    }
+}
+
+#[cfg(test)]
+mod rne_motor_construction_tests;

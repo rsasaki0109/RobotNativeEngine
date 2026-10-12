@@ -1,0 +1,255 @@
+{
+  "141_metadata_only_transition": {
+    "current_full_sha256": "15993f5ee96380c06cf20f97eee90efd325ec8267e699cef110766fc69d70a9c",
+    "exact_change": "Four-line source!(new companion) added to selected_sources only. Unique literal removal reconstructs entire prior source SHA; read-only git diff confirmed one hunk.",
+    "fixture_math_schema_CLI_unchanged": true,
+    "fresh_registration_must_bind_current141": true,
+    "historical_reference_not_current_binding": true,
+    "old_full_sha256": "d52c33ef90beb2393c42f43cbbc59fb2ca43ae55b2351da69f2642c2bbd90576"
+  },
+  "current141_source": {
+    "bytes": 74281,
+    "path": "/workspace/RobotNativeEngine/examples/141_position_motor_calibration/lib.rs",
+    "sha256": "15993f5ee96380c06cf20f97eee90efd325ec8267e699cef110766fc69d70a9c"
+  },
+  "durability_framing_failure_review": {
+    "before_fixture": "CLI parsed first; create_new file, file+parent sync then run_start gzipJSON flush/filesync before FnOnce callback Fixture. Existing output blocks before callback.",
+    "failure": "Original collector error/unwind progress preserved; failedterminal and finalization separately attempted. Pipeline unwind best-effort partialcurrentcheckpoint or explicit error, actualcompletedobserveravailability, no invented successfulstate. Partial-writefailure preservesprimaryerror. CLI actual1 on any collector/terminal/finish failure, no retry/resume/repair/delete.",
+    "hard_interruption": "Abort/OOM/kill/ENOSPC can leave incomplete claim/terminal/footer; externaldriver preservesoriginal/uncertain process status and neverretries.",
+    "path_scope": "Collector validatesabsolute file only; prospective driver must enforce canonicalpersistent /workspace newpaths/no symlinkparents/transienttmp aliases.",
+    "reader_gate": "run_end collected precedes gzipfinish; finalizationfail actualexit1 evenifterminalcollected. Future reader must require actualoriginalexit0+gzipCRC/EOF/framing/count/sourcebindings, neverterminalalone.",
+    "success": "run_start/initial_state/completed_interval/run_end fixedorder, gzipmtime0 OS255; perrecord flush/filesync and footer/filesync/parentsync after terminal."
+  },
+  "fixture_source_equivalence": {
+    "evidence": "Independent stripped-comment/whitespace token comparison of Fixture::new after fixed141cell substitutions and removal of two extra observer flags passed; fixture_joint after G1Posture constants and actual step body token equality passed.",
+    "fixed_cell": "141 G1Posture k300/d12,targets\u00b1.001,cap2,dt.001,N32,PGS1,stabilization2; same native defaults",
+    "geometry": "Fixed parent/coincident1kg radius.1 sphere child, identityX/ForceBased; no sleep/CCD/contacts/body/passive damping/armature/initialgenV/gravity; only stage+construction added to same impulse observerflag",
+    "runtime_equality": "Not executed or qualified",
+    "status": "PASS"
+  },
+  "historical141_fixture_excerpt": {
+    "bytes": 4364,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/reference-fixture-141.rs.txt",
+    "sha256": "ddec5ee3a8c2b3efe64831abacc2dc29b7fe2c55f4f092b49c2178f80d4754a5"
+  },
+  "historical141_reference_receipt": {
+    "bytes": 674,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/fixture-reference-receipt.json",
+    "sha256": "b9ebce4f3da351b6c4cfcdda88883227edee76d1280486543dc187083f27a618"
+  },
+  "integrated4_file_guards": [
+    {
+      "bytes": 33595,
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/lib.rs",
+      "sha256": "f73732b13546625a7b53af1e07c1a0873a937a1746e800175647fcf85dd910c7"
+    },
+    {
+      "bytes": 346,
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/main.rs",
+      "sha256": "97962b1e7cb0182547c8fef5a19c1603524150e12ae5ef487a38b3a85203f821"
+    },
+    {
+      "bytes": 7539,
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/tests.rs",
+      "sha256": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063"
+    },
+    {
+      "bytes": 520,
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/Cargo.toml",
+      "sha256": "8d2b86968245d8c1fc63a7fb58e97b1443b0814228ea62d230bdcb56bd2fbeb9"
+    }
+  ],
+  "kind": "independent_integrated_example143_collector_predata_source_review",
+  "material_blockers": [],
+  "native_capture_review": {
+    "actual_queries": "Current position/linvel/angvel/userforce/usertorque/mass nativepublic queries directly f32.to_bits; no oracle/poststep ECS substitution.",
+    "gyro": "Angvel/inertia and opaque actual nativeobjects retained, not a computed gyrotorque/zero/residual claim; future source-bound reader must interpret within captured scope.",
+    "inertia": "Actual native effective_angular_inertia query; raw symmetric Sdp m11,m12,m13,m12,m22,m23,m13,m23,m33 column-major field-copy and to_bits, no additional matrix arithmetic or inferred private solver inertia.",
+    "roundtrip": "Every real Body/Collider/uniqueMultibody/IntegrationParameters/nativeJoint directly postcard1.1.3 serialized, decoded same actual native type, exact consumption+reencode bytes required. Joint SerializedJoint actual field-order data/kinematic/coords/joint_rot projection exact consumption/reencode, currentnativecoordinates/rotation/descriptorimpulse.",
+    "scope": "Coordinates from source-bound public serialization, not public coords getter. Roundtrip is source-bound captured serializable-field integrity, not independent hidden-layout decoder or complete native state. Fullset metadata/broadnarrowphase/privatepipeline/ordinarysolver-contactcache/observerbuffers/runtimeMXCSR-rounding excluded."
+  },
+  "observer_words_order_review": {
+    "IEEE": "Native checkpoint f32/u32/scalar32; actualconstruction/stage nativeintegerwords. Existing promoted/aggregate impulsef64 fields to_bits/u64/scalar64 and Optionnull preserved, no floatingJSON normalization/reaggregation.",
+    "ON_OFF": "Onebool all3 pipeline observers; actualcompletedaccessor refs, ONallSome/OFFallNone enforced. Mismatch payload retained thenfailedterminal/actual1. Empty/unsupported reports not measuredzero.",
+    "determinism": "Body/collider handles index-generation sorted, uniqueMB BTreeMap index-generation, native linksorder, fixedBody/Collider/MB groups. Gzip deterministic synthetic test, no HashMap summation/workerfinishorder."
+  },
+  "preexisting_owned_validation_checks": [
+    {
+      "exit": 0,
+      "label": "check-attempt-3",
+      "receipt": {
+        "bytes": 27653,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/check-attempt-3/receipt.json",
+        "sha256": "4ba1350886461ae5801d236e3b58cc97ff4f6af97b1d82bb37877bc47d56e6fe"
+      }
+    },
+    {
+      "exit": 0,
+      "label": "clippy-attempt-1",
+      "receipt": {
+        "bytes": 27693,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/clippy-attempt-1/receipt.json",
+        "sha256": "4fceee8610997545bd10a3ea1636a41fb09e02512c7c505ddccee0a49d4a1690"
+      }
+    },
+    {
+      "exit": 0,
+      "label": "rustdoc-attempt-1",
+      "receipt": {
+        "bytes": 27662,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/rustdoc-attempt-1/receipt.json",
+        "sha256": "5666ba93596db6027f7de814715a6186eef1f005db5a8a2787524f5624c5f035"
+      }
+    },
+    {
+      "exit": 0,
+      "label": "pure-tests-attempt-1",
+      "receipt": {
+        "bytes": 27662,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/pure-tests-attempt-1/receipt.json",
+        "sha256": "213647752e8275ea6e09d77b4831ecc283ad03803bfbbce7c4ee760a0cf3f924"
+      }
+    },
+    {
+      "exit": 0,
+      "label": "final-scoped-rustfmt-after-fix",
+      "receipt": {
+        "bytes": 27774,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-scoped-rustfmt-after-fix/receipt.json",
+        "sha256": "9988a4be1fbfa66aeeb161c641c50c42e3a9176dcde01c65eb5429d8d8c7125e"
+      }
+    },
+    {
+      "exit": 0,
+      "label": "final-toolchain",
+      "receipt": {
+        "bytes": 27597,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-toolchain/receipt.json",
+        "sha256": "98cfd05687461e51430bafdf93ab0ee4fb61294fac1f51ed9ff867bfbe08bed8"
+      }
+    },
+    {
+      "exit": 0,
+      "label": "final-resolved-features",
+      "receipt": {
+        "bytes": 27683,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-resolved-features/receipt.json",
+        "sha256": "3e7e2e992450550afc600096377e8228711bf54b1e937ec432b88b69a0ae79ee"
+      }
+    }
+  ],
+  "producer_current12_guards": [
+    {
+      "bytes": 9254,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/RNE_PATCH.md",
+      "sha256": "ada06e874021e6310795838a0adaecb5a63ff27aef2fdf6e2d1a31b415bd9d3e"
+    },
+    {
+      "bytes": 15921,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "sha256": "e16bc16254459b84534d7a48157ebdb19deae0d0f8461ed8fc0a4e395d5c82da"
+    },
+    {
+      "bytes": 5817,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+      "sha256": "f0f400cf4fa7d4e3be5d489b9f2d87325089682b7a8c5ce69d4fa2779b9b5811"
+    },
+    {
+      "bytes": 7380,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "2bde94532c22dd1a010c5b018fdb2e6a4314b2cf993bc56003523d5156b61857"
+    },
+    {
+      "bytes": 19677,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/interaction_groups.rs",
+      "sha256": "3094f78156c6f7b7c819ccff507eb9d58415e834242d3af99868d5818ec94b22"
+    },
+    {
+      "bytes": 5528,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "sha256": "f16339e703e0ad8ed13b0a27f53f7a0956d9400114af8f7f1b2e94c8967c601a"
+    },
+    {
+      "bytes": 20338,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "sha256": "7707ce8e2abe6e7747e513b317f0cf3909756e2082f381191784282cb88a2da7"
+    },
+    {
+      "bytes": 50987,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "sha256": "46f3aedde8bc1d057de77342967142eae1e3c313e855630c84640df9ccf84867"
+    },
+    {
+      "bytes": 33943,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "sha256": "6701f1c231691d8c2bb871eef43996b5c3333db027b880c8c2b3aa9c20435921"
+    },
+    {
+      "bytes": 1936,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/mod.rs",
+      "sha256": "a172e71d180a2397422ae490abc4abaf60ef012d139ee42f5165e9811dbe13ce"
+    },
+    {
+      "bytes": 7972,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+      "sha256": "03f417ee1b848ab1b2e3d1e5ca1aad29065e9b80c0ebf4f803f718fe39aa9e5e"
+    },
+    {
+      "bytes": 47838,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+      "sha256": "86fbfe05994120617346ae30538837fd0bf96cdfc83f0bfe6043766e975f11b7"
+    }
+  ],
+  "producer_historical_export": {
+    "bytes": 7461,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/final-changed-files-and-patches-v2.json",
+    "sha256": "8370cb378d2d1db94fef5d32d737595b4b22d7691115309ba0ec68c57e9412ca"
+  },
+  "qualification": "Source-only predata admission PASS; no runtime observer neutrality/calibration/native replay/gyro numerical/maturity gain. Ready to review final prospective reader/driver registration before data, no launch.",
+  "required_prospective_reader_driver_gates": [
+    "Currentmain fullsource/compiler/features/lock/binary/schema/reader/workload freeze before sixcells.",
+    "Fixedpersistentcanonical onceclaims/original signedexit/sourceguards/fullgzipCRC-fourframing-progresscounts, no retries/numericselection.",
+    "Sourceboundnativeprojection decoder/rawquery/IEEEwidth/ON_OFF/null checks and expectedrowset; captured replay/arithmetic within measuredscope only."
+  ],
+  "reviewed_utc": "2026-10-12T10:18:09.435483+00:00",
+  "reviewer_actions": {
+    "Cargo_commands": 0,
+    "GitHub_calls": 0,
+    "checkout_edits": 0,
+    "config_edits": 0,
+    "native_worlds": 0,
+    "old_numeric_report_or_raw_reads": 0,
+    "readonly_source_git_diff": 1,
+    "scientific_replays": 0,
+    "source_copy_edits": 0
+  },
+  "root_doc_only_after_prior_review": [
+    {
+      "current": {
+        "bytes": 9254,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/RNE_PATCH.md",
+        "sha256": "ada06e874021e6310795838a0adaecb5a63ff27aef2fdf6e2d1a31b415bd9d3e"
+      },
+      "historical_sha256": "5a58990397fd767c74691b60e8307e76cff93773881d4c95262bffa7c4b9705e",
+      "scope": "Root documentation location correction after producer source review; historical export preserved, eleven implementation files unchanged"
+    }
+  ],
+  "root_integrated_build_binding": {
+    "bytes": 8411,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/actual-build-binding.json",
+    "sha256": "1161a1155252976e6a9979beae8869027a68aa5210a2666872b55e9c56274450"
+  },
+  "schema_version": 1,
+  "source_guard_before_after": "Current4collector+12producer+141 bytes rechecked unchanged at end; historical141/doc-only changes explicitly scoped above.",
+  "stable_owned_source_receipt": {
+    "bytes": 12250,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/final-source-stable-receipt.json",
+    "sha256": "fda909c3d7a7972c1a4a847cbb960dc1b3881a216bdf5b7aba192601cf056202"
+  },
+  "status": "PASS_SOURCE_ONLY",
+  "tests_API_manifest_review": {
+    "Cargo": "workspace version/edition/rustversion/license/lints, publishfalse, lib+143example, exact flate2/postcard, workspace rapier serde. run_cli docs distinguish completeness/finalization from calibration.",
+    "pure7": "Only Options/parser/exclusivefilesystem/gzip/stub callback failure/panic/framing and synthetic OpaqueProbe rawbits/f64impulse. No Fixture/pipeline/collect_native/validrun_cli in tests. CustomNaN/infinity/signedzero/absentlimit payload preserved. No nativeworld or observerneutrality qualification.",
+    "root_validation": "Prior seven ownedcopy receipt/log hashes verified, source matches literal3src. Root integrated buildbinding metadata verified; broader main compile/clippy/doc/features/Cargo.lock/finalregistration remain root-owned, no reader launch here."
+  }
+}

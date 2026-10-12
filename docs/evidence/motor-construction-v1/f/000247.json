@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/SYNTHETIC-STUB-NOT-PHYSICS",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/once-only-attempt/report.json",
+    "--require-calibration"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/synthetic-source",
+  "environment": {
+    "STUB_BASELINE": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/SYNTHETIC-baseline-report.json",
+    "STUB_CURRENT": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/SYNTHETIC-current-template.json",
+    "STUB_EVENTS": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/SYNTHETIC-process-events.jsonl",
+    "STUB_MODE": "success",
+    "STUB_SOURCE": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/synthetic-source/Cargo.lock"
+  },
+  "finished_at": "2026-10-12T10:10:09.444027+00:00",
+  "kind": "rne_141_process_start",
+  "launch_error": null,
+  "original_exit_code": 2,
+  "pid_receipt_error": "OSError: SYNTHETIC storage fault",
+  "process_count": 1,
+  "process_launched": true,
+  "started_at": "2026-10-12T10:10:09.413147+00:00",
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/once-only-attempt/collection/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  },
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/once-only-attempt/collection/stdout.log",
+    "sha256": "5b0c9d9b174967aa5e2fa7d09e928e0b7551a5924538ca5a7eeafa189f82f587",
+    "size_bytes": 112
+  },
+  "world_role": "one collector; internal fixed24 x ON/fresh_ON/OFF; max72 world attempts"
+}

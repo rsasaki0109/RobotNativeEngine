@@ -1,0 +1,90 @@
+{
+  "actual_report_comparisons": 0,
+  "actual_report_reads": 0,
+  "builds_run": 0,
+  "checkout_or_source_copy_edits": 0,
+  "files": {
+    "compare_scalar_source_transition.py": {
+      "sha256": "699c654d4925e8870e67723863dc173e91a5e2e828af34e1a7d947970d99242e",
+      "size_bytes": 11517
+    },
+    "prepare_draft_registration.py": {
+      "sha256": "9086e5b2d4c20cced4d564e7a27470427c6f8b13088a10a063078b82d49fd78b",
+      "size_bytes": 7751
+    },
+    "prospective-arm-and-ci-plan.md": {
+      "sha256": "ddbe9ac34136d2d299d73f4dac2a87bbe0206ded6214f77bc171599f1385c01f",
+      "size_bytes": 11078
+    },
+    "prospective-registration-draft.json": {
+      "sha256": "c8abb752560e0fb17d2d2bf2022e87b659dd2d54c6aed62bc9c1ced2fd2019ab",
+      "size_bytes": 13870
+    },
+    "run_synthetic_tests.py": {
+      "sha256": "5793435da1c6c982325bfe0c8bcc86e1d39855eb3ab4258cd47e9021c7e43699",
+      "size_bytes": 2294
+    },
+    "source-only-inspection-receipt.json": {
+      "sha256": "a1754ce48eb03831497949c4e0629908aea5e44c0b3c098c1eda42911a9a1d89",
+      "size_bytes": 2682
+    },
+    "synthetic-test-attempt-1/command.log": {
+      "sha256": "02f329b8051fa5358141ae634963dc6fc90a9c7d9e8d24fe59b0964ce6cd8e52",
+      "size_bytes": 132
+    },
+    "synthetic-test-attempt-1/inputs-after.json": {
+      "sha256": "71becf9f7859b30d82b431de9cce7c478879c308f42322a291456020ea9770e1",
+      "size_bytes": 315
+    },
+    "synthetic-test-attempt-1/inputs-before.json": {
+      "sha256": "71becf9f7859b30d82b431de9cce7c478879c308f42322a291456020ea9770e1",
+      "size_bytes": 315
+    },
+    "synthetic-test-attempt-1/terminal.json": {
+      "sha256": "99267d29d8a151c5c866f978869c1910feb7cdf83a95c173d04015c2e181642f",
+      "size_bytes": 782
+    },
+    "synthetic-test-attempt-2-after-independent-reference-test/command.log": {
+      "sha256": "8ba894197afef71138df4c5de8b9b7ad50c1b8ec0e7816e4e562b591b69dc29e",
+      "size_bytes": 133
+    },
+    "synthetic-test-attempt-2-after-independent-reference-test/inputs-after.json": {
+      "sha256": "67c151fab67c4a10eb599ed12af8f59b4ceb6ffc13c2b7fd3f1ee319605f27e3",
+      "size_bytes": 315
+    },
+    "synthetic-test-attempt-2-after-independent-reference-test/inputs-before.json": {
+      "sha256": "67c151fab67c4a10eb599ed12af8f59b4ceb6ffc13c2b7fd3f1ee319605f27e3",
+      "size_bytes": 315
+    },
+    "synthetic-test-attempt-2-after-independent-reference-test/terminal.json": {
+      "sha256": "4e43601051c740b82d71599a558df2955ff5717b4aea2221f24181c8506f17ed",
+      "size_bytes": 782
+    },
+    "test_compare_scalar_source_transition.py": {
+      "sha256": "d23dae9ca5205c270baffcf7320d891e633803e82d2e7f809180eb090e04007c",
+      "size_bytes": 9877
+    }
+  },
+  "frozen_actual_source_maps_pending": true,
+  "independent_predata_review_pending": true,
+  "kind": "rne_motor_construction_source_transition_draft_handoff",
+  "network_writes": 0,
+  "numerical_reanalyses": 0,
+  "parent_next_actions": [
+    "Complete 143/manifest/lock/features integration and final producer scope review",
+    "Derive literal actual 21-before/22-after source maps and exact declared changes",
+    "Freeze actual protocol/tool/binary/source/reader/independent review before 72 and 6 arms",
+    "Register 72 one-attempt durable outputs separately from six construction worlds",
+    "Run actual byte comparator only after authenticated freeze and completed authoritative collection",
+    "Re-derive actual workflow/job scope from final changed paths"
+  ],
+  "prior_synthetic_attempt_1_retained": true,
+  "publication_claim": false,
+  "schema_version": 1,
+  "scope": "source-only prospective 141 transition; synthetic comparator tests only",
+  "status": "REVIEW_READY_DRAFT_NOT_FROZEN",
+  "synthetic_source_inputs_unchanged": true,
+  "synthetic_test_count_actual": 34,
+  "synthetic_test_exit_actual": 0,
+  "worlds_run": 0
+}

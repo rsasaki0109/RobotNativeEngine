@@ -1,0 +1,53 @@
+{
+  "acceptance_fields_intentionally_absent": true,
+  "actual_native_processes_started_by_review": 0,
+  "actual_numeric_report_decodes": 0,
+  "actual_worlds_started_by_review": 0,
+  "all_1412_frozen_inputs_current_hashed": true,
+  "binary_observed": {
+    "bytes": 2851808,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+    "sha256": "8dff35933d8ecd6ce7a4f1165fffaba0f2560076476142ab29510b2bf0806618"
+  },
+  "candidate": {
+    "bytes": 301335,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/candidate.json",
+    "sha256": "c8d7286cb65e65b1dfb4e6f77ec7b0c33217e4c32cf032513f849af08dcd37ba"
+  },
+  "checkout_or_frozen_source_edits": 0,
+  "independent_admission": "NOT_GRANTED",
+  "input_hash_ledger": {
+    "bytes": 671517,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-predata-review/candidate-v1-frozen-input-hash-ledger.json",
+    "sha256": "3601d4f405d634a385c966991d1d79cb9dbfb871d5414d86abe3a0b3cd7f1317"
+  },
+  "issues": [
+    {
+      "evidence": "root.mkdir has no following parent directory fsync. write_exclusive cohort-claim fsyncs root before case directories exist; each launch-claim fsyncs its own folder, but after all six folder entries are created there is no cohort-root fsync before first spawn. Parent/child directory entries therefore lack the stated complete durable prelaunch guarantee.",
+      "id": "six-root-and-parent-directory-durability",
+      "required_fix": "In new immutable tool revision, fsync output_root.parent after mkdir; after all six directories/claims are created/fsynced, fsync output_root before any spawn. Preserve old inputs and receipts.",
+      "severity": "BLOCKER_BEFORE_NATIVE_LAUNCH",
+      "source": "next-motor-construction-cohort-reader/cohort_driver.py:40-55; strict_io.py:91-102"
+    },
+    {
+      "evidence": "started increments before process-started receipt, but receipt appends to results only after process-terminal write. If late process-terminal storage raises after child exit, outer finally writes started=1 and len(results)=0, then derives unlaunched_case_labels from CASES[len(results):], falsely listing actual launched first case as unlaunched. Original actual exit can also be omitted from global cases despite existing logs/raw file.",
+      "id": "six-late-terminal-write-accounting",
+      "required_fix": "Track durable reservation/actual launch/result state independently of successful terminal serialization, retain actual exit where available, classify lost information as UNKNOWN rather than unlaunched, add late-terminal/interrupt fault tests and matched reader schema in new revision.",
+      "severity": "BLOCKER_BEFORE_NATIVE_LAUNCH",
+      "source": "next-motor-construction-cohort-reader/cohort_driver.py:63-121"
+    }
+  ],
+  "kind": "independent_fixed_six_predata_blocked_review",
+  "next_action": "Parent preserves c8d7 candidate and v1 tools/18 pure receipts; producer creates pre-data v2 correction and new candidate/review; no retry or actual cohort has occurred.",
+  "review_scope": "Independent read-only source/driver/parser/protocol review; stopped on material durability/accounting blockers, not scientific qualification",
+  "reviewed_at": "2026-10-12T10:25:17.248766+00:00",
+  "schema_version": 1,
+  "source_findings_partial": {
+    "float_helper_scope": "Normal/zero RN source-order helper; explicit subnormal/nonfinite/tiny/overflow exclusions; no runtime MXCSR/FTZ/DAZ measurement or full solver replay/accuracy/cause/adoption claim",
+    "raw_framing": "Fixed GzBuilder header, complete one gzip member/CRC/EOF, bounded raw/compressed bytes, JSONL LF, duplicate-key/nonfinite/float JSON rejection",
+    "registered_budget": "Fixed six distinct processes: negative on/fresh_on/off then positive on/fresh_on/off; no G5 or separate14172 extension",
+    "source_context": "Actual constructor fields captured before row assignment; actual generic V copied into MB V before coordinate integration; stabilized generic V must remain distinguished from stored MB V until writeback",
+    "typed_capture": "Native word widths and row/handle/cache topology validated; canonical typed equality and complete fresh-ON record literal equality"
+  },
+  "status": "BLOCKED_PRE_DATA_SOURCE_PROTOCOL_AND_DRIVER"
+}

@@ -1,0 +1,13 @@
+{
+  "source": "/workspace/RobotNativeEngine/examples/141_position_motor_calibration/lib.rs",
+  "source_sha256": "d52c33ef90beb2393c42f43cbbc59fb2ca43ae55b2351da69f2642c2bbd90576",
+  "reference_excerpt_sha256": "ddec5ee3a8c2b3efe64831abacc2dc29b7fe2c55f4f092b49c2178f80d4754a5",
+  "scope": "Source-only exact Fixture::new, step and fixture_joint reference; no original collector or native fixture executed",
+  "physical_changes": "None; fixed G1Posture k=300,d=12,targets only negative/positive .001, N=32,PGS=1,stabilization=2",
+  "added_observation_flags": [
+    "impulse-v1",
+    "stage-v1",
+    "construction-companion-schema1"
+  ],
+  "native_worlds_old_data_reads": 0
+}

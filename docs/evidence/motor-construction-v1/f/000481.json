@@ -1,0 +1,25 @@
+{
+  "kind": "literal_unchanged_pure_helpers_copied_to_new_v2",
+  "copies": [
+    {
+      "v1_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/construction_oracle.py",
+      "v2_copy": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177
+    },
+    {
+      "v1_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/integration_oracle.py",
+      "v2_copy": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010
+    },
+    {
+      "v1_source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/stage_numeric.py",
+      "v2_copy": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    }
+  ],
+  "native_worlds": 0,
+  "v1_all_20_files_still_exact": true
+}

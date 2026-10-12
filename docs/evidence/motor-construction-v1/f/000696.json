@@ -1,0 +1,33 @@
+{
+  "kind": "rne_six_tool_pure_validation_binding",
+  "status": "PASS_PURE_PREREQUISITES_NOT_CONCRETE_ADMISSION",
+  "whole_reader_driver_test_terminal": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/pure-tests-final-attempt-1/terminal.json",
+    "sha256": "dbe458601272470bfb8a339784abe5f50c9c866bc892205f07335607ab0b1d99",
+    "bytes": 3118
+  },
+  "whole_reader_driver_actual_tests": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/pure-tests-final-attempt-1/actual-pure-tests.json",
+    "sha256": "6dca969c3d78879a797936d656525fafd49aa4c50ba18f8f7e4e127d0cd08e0b",
+    "bytes": 287
+  },
+  "pure_methods_passed": 18,
+  "source_only_schema_schedule_review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/source-only-schema-schedule-review.json",
+    "sha256": "d2f208e5cd5f8918ad17fbefe625c8a7a93e37af910d8ebf24a67b2c3e154d99",
+    "bytes": 3858
+  },
+  "tool_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/final-tool-source-manifest.json",
+    "sha256": "08a38821e4fbc8b453d30ea9a09cac505d3d4bcc178bd025e8ee36a21a2133b9",
+    "bytes": 3025
+  },
+  "prior_independent_prototype_review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/independent-final-prototype-source-review.json",
+    "sha256": "f560d9381a52f104365b6b90091420d38fbea29fa4b9867baf4a3233b1118711",
+    "bytes": 9268
+  },
+  "native_worlds": 0,
+  "native_processes": 0,
+  "scope": "Actual pure synthetic/mock tests and prior prototype math/source review; concrete independent admission still required"
+}

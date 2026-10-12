@@ -1,0 +1,324 @@
+{
+  "kind": "bounded_source_and_pure_receipt_snapshot",
+  "actual_compiler_dependency_closure": false,
+  "capture_after_pure_probes": true,
+  "entries": [
+    {
+      "group": "prototype",
+      "relative_path": "construction_oracle.py",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/construction_oracle.py",
+        "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+        "bytes": 6177
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/construction_oracle.py",
+        "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+        "bytes": 6177
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "integration_oracle.py",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/integration_oracle.py",
+        "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+        "bytes": 4010
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/integration_oracle.py",
+        "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+        "bytes": 4010
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "test_construction_oracle.py",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/test_construction_oracle.py",
+        "sha256": "a2ac9f668d6255480051f8068695d1c0364acc750d9dd46963789fe602746b9d",
+        "bytes": 6462
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/test_construction_oracle.py",
+        "sha256": "a2ac9f668d6255480051f8068695d1c0364acc750d9dd46963789fe602746b9d",
+        "bytes": 6462
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "test_integration_oracle.py",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/test_integration_oracle.py",
+        "sha256": "faf7e4ee4cc39cb66fa7bc456f1a70a4c5db1862a4dddc463c2baa3c1c9cb110",
+        "bytes": 3756
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/test_integration_oracle.py",
+        "sha256": "faf7e4ee4cc39cb66fa7bc456f1a70a4c5db1862a4dddc463c2baa3c1c9cb110",
+        "bytes": 3756
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "stage_numeric.py",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/stage_numeric.py",
+        "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+        "bytes": 11149
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/stage_numeric.py",
+        "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+        "bytes": 11149
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "numeric-helper-source.json",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/numeric-helper-source.json",
+        "sha256": "bfbaed2dfd9f7bb1f8b3541d429f633263b103d34196e32a392b92903b51ad8d",
+        "bytes": 463
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/numeric-helper-source.json",
+        "sha256": "bfbaed2dfd9f7bb1f8b3541d429f633263b103d34196e32a392b92903b51ad8d",
+        "bytes": 463
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "README.md",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/README.md",
+        "sha256": "91b06eeec27130150d623eda71278a9bd0d355d320c4f7670277e70f7e416488",
+        "bytes": 6774
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/README.md",
+        "sha256": "91b06eeec27130150d623eda71278a9bd0d355d320c4f7670277e70f7e416488",
+        "bytes": 6774
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "pure-construction-tests-attempt-3/actual-pure-tests.json",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-construction-tests-attempt-3/actual-pure-tests.json",
+        "sha256": "2dcb556fc0434ee3caefb4081c6ceac7b3638968a89cdb22dfc2f9435a8e8ba5",
+        "bytes": 200
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/pure-construction-tests-attempt-3/actual-pure-tests.json",
+        "sha256": "2dcb556fc0434ee3caefb4081c6ceac7b3638968a89cdb22dfc2f9435a8e8ba5",
+        "bytes": 200
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "pure-construction-tests-attempt-3/actual-tests.stdout.log",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-construction-tests-attempt-3/actual-tests.stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/pure-construction-tests-attempt-3/actual-tests.stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "pure-construction-tests-attempt-3/actual-tests.stderr.log",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-construction-tests-attempt-3/actual-tests.stderr.log",
+        "sha256": "e9cb49d448e286a14dcb1427fdf0995ceb101fda0787d547b7c87a1efefe128d",
+        "bytes": 1579
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/pure-construction-tests-attempt-3/actual-tests.stderr.log",
+        "sha256": "e9cb49d448e286a14dcb1427fdf0995ceb101fda0787d547b7c87a1efefe128d",
+        "bytes": 1579
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "pure-integration-tests-attempt-2/actual-pure-tests.json",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-integration-tests-attempt-2/actual-pure-tests.json",
+        "sha256": "55abc3dccb5b61dc9a268d83de6225af34e43464dc9176f9b12b0feead565346",
+        "bytes": 198
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/pure-integration-tests-attempt-2/actual-pure-tests.json",
+        "sha256": "55abc3dccb5b61dc9a268d83de6225af34e43464dc9176f9b12b0feead565346",
+        "bytes": 198
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "pure-integration-tests-attempt-2/actual-tests.stdout.log",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-integration-tests-attempt-2/actual-tests.stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/pure-integration-tests-attempt-2/actual-tests.stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "group": "prototype",
+      "relative_path": "pure-integration-tests-attempt-2/actual-tests.stderr.log",
+      "original": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-integration-tests-attempt-2/actual-tests.stderr.log",
+        "sha256": "e4df67d3f7779d43bdbfc4ae791f3d6d4cba6277ca4cd5a904d12602d3eba4e8",
+        "bytes": 1072
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/pure-integration-tests-attempt-2/actual-tests.stderr.log",
+        "sha256": "e4df67d3f7779d43bdbfc4ae791f3d6d4cba6277ca4cd5a904d12602d3eba4e8",
+        "bytes": 1072
+      }
+    },
+    {
+      "group": "source",
+      "relative_path": "AGENTS.md",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/AGENTS.md",
+        "sha256": "2e3caf6cea6e1a7d26cdb5794abe8a906dd9a50d6475a009759393e824b28b44",
+        "bytes": 10126
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/AGENTS.md",
+        "sha256": "2e3caf6cea6e1a7d26cdb5794abe8a906dd9a50d6475a009759393e824b28b44",
+        "bytes": 10126
+      },
+      "exact_historical_E_git_blob_bytes": true
+    },
+    {
+      "group": "source",
+      "relative_path": "third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+        "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+        "bytes": 1488
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+        "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+        "bytes": 1488
+      },
+      "exact_historical_E_git_blob_bytes": true
+    },
+    {
+      "group": "source",
+      "relative_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+        "sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+        "bytes": 4272
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+        "sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+        "bytes": 4272
+      },
+      "exact_historical_E_git_blob_bytes": true
+    },
+    {
+      "group": "source",
+      "relative_path": "third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+        "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+        "bytes": 27313
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+        "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+        "bytes": 27313
+      },
+      "exact_historical_E_git_blob_bytes": true
+    },
+    {
+      "group": "source",
+      "relative_path": "third_party/rapier3d/src/utils.rs",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/utils.rs",
+        "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7",
+        "bytes": 24173
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/third_party/rapier3d/src/utils.rs",
+        "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7",
+        "bytes": 24173
+      },
+      "exact_historical_E_git_blob_bytes": true
+    },
+    {
+      "group": "source",
+      "relative_path": "third_party/rapier3d/src/dynamics/integration_parameters.rs",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/integration_parameters.rs",
+        "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+        "bytes": 14726
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/third_party/rapier3d/src/dynamics/integration_parameters.rs",
+        "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+        "bytes": 14726
+      },
+      "exact_historical_E_git_blob_bytes": true
+    },
+    {
+      "group": "source",
+      "relative_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+        "sha256": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a",
+        "bytes": 13676
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+        "sha256": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a",
+        "bytes": 13676
+      },
+      "exact_historical_E_git_blob_bytes": true
+    },
+    {
+      "group": "source",
+      "relative_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+        "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+        "bytes": 81559
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+        "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+        "bytes": 81559
+      },
+      "exact_historical_E_git_blob_bytes": true
+    },
+    {
+      "group": "source",
+      "relative_path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "original": {
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+        "sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+        "bytes": 22436
+      },
+      "preserved_copy": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/source/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+        "sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+        "bytes": 22436
+      },
+      "exact_historical_E_git_blob_bytes": true
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "collector_launch_state": {
+    "actual_process_launched": true,
+    "launch_reserved": true,
+    "observed_pid": 56297,
+    "observed_wait_return": 2,
+    "returned_terminal": null,
+    "terminal_written": false
+  },
+  "collector_original_exit_code": null,
+  "collector_processes_started": null,
+  "collector_receipt_recovery": "UNKNOWN_ON_RESERVED_ATTEMPT",
+  "error": "KeyboardInterrupt: SYNTHETIC interrupt before formed receipt",
+  "finished_at": "2026-10-12T10:31:24.103328+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_unknown_after_child_exit_cannot_claim_zero_or_not_launched/frozen/frozen-bindings.json",
+    "sha256": "62b304a72aea6dd952dd93b87afca772e4cd19e332e0f839c901f191f6cebdb5",
+    "size_bytes": 16403
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_unknown_after_child_exit_cannot_claim_zero_or_not_launched/once-only-attempt/report.json",
+    "sha256": "37533df6ab4ec1001df09bb6dfdb98e2f83dd4b6e7d1cf41ce08f5fe666282bf",
+    "size_bytes": 25302
+  },
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:31:24.042733+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "retained_report_observation": {
+      "case_count_retained": 24,
+      "status": "COMPLETE_FIXED72_FAIL0_OF4",
+      "world_counts": {
+        "completed_worlds": 72,
+        "worlds_attempted": 72,
+        "worlds_created": 72
+      }
+    },
+    "status": "UNKNOWN_ON_RESERVED_ATTEMPT",
+    "world_counts": null
+  }
+}

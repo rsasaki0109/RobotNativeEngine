@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/strict_io.py",
+    "sha256": "b201061e45beb1b180279edd9f74004ce9cc97706fbdecd2dd102b552a77fe3b",
+    "bytes": 3606
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/cohort_reader.py",
+    "sha256": "624c5de8ab60d409ab355af71b5aebc8a5904fbc74d38eec6b238090ffde11f0",
+    "bytes": 36239
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/cohort_driver.py",
+    "sha256": "02b212b84adbeb012a5c80932d445e65029399b08cb079d232dee8d0b2ec2cc4",
+    "bytes": 6810
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/construction_oracle.py",
+    "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+    "bytes": 6177
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/integration_oracle.py",
+    "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+    "bytes": 4010
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/stage_numeric.py",
+    "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "bytes": 11149
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/test_cohort_tools.py",
+    "sha256": "5d3e288c966d59d94682867636c7a69868450903064ac6bed1fb62e626ca6cee",
+    "bytes": 17554
+  }
+]

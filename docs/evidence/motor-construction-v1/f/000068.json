@@ -1,0 +1,94 @@
+{
+  "actual_native_binary_invocations": 0,
+  "actual_numeric_report_reads": 0,
+  "actual_worlds": 0,
+  "artifacts": {
+    "comparator_source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/compare_scalar_source_transition.py",
+      "sha256": "699c654d4925e8870e67723863dc173e91a5e2e828af34e1a7d947970d99242e",
+      "size_bytes": 11517
+    },
+    "driver_source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/driver.py",
+      "sha256": "4c1362e62ffb666413c140e686c880c342dad8adaa0aca017bc7516f1641331b",
+      "size_bytes": 31138
+    },
+    "instructions": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/README.md",
+      "sha256": "d2a25d8647080e319d3492d16bfb06d791998cd620ece9fd0c8fad0708488fb5",
+      "size_bytes": 10669
+    },
+    "prior_attempt_receipt": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/terminal.json",
+      "sha256": "03315745b38906b5fd064e72b49bdcad57bf7aac455961615857f637d8a5c170",
+      "size_bytes": 1534
+    },
+    "pure_test_log": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/command.log",
+      "sha256": "d7059bb77b84ae95ad1067c05ec4f764459218e09261ed070cbb7df99c4a0357",
+      "size_bytes": 2923
+    },
+    "pure_test_receipt": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/terminal.json",
+      "sha256": "f0484140bdf1970c234cdb75b6b3f22c0b169dd7c6bd2ce7da590970e2e3a2ff",
+      "size_bytes": 1604
+    },
+    "pure_tools_after": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/tools-after.json",
+      "sha256": "7c8f2f9b78324dee3a08a4728ab4daa3c96a817503859fee2d38ec10d62be9be",
+      "size_bytes": 1075
+    },
+    "pure_tools_before": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/tools-before.json",
+      "sha256": "7c8f2f9b78324dee3a08a4728ab4daa3c96a817503859fee2d38ec10d62be9be",
+      "size_bytes": 1075
+    },
+    "test_runner_source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/run_tests.py",
+      "sha256": "e2bb5ef303a4686b41e401b9e3d108b117fb8514a749af03bef7ee2a9d4ff398",
+      "size_bytes": 2730
+    },
+    "test_source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/test_driver.py",
+      "sha256": "07ec5970d0b5c277cafd459d9542b738a61ce66f73a1799f784f9a0e209f6962",
+      "size_bytes": 17695
+    }
+  },
+  "broader_guard_scope": "required before/after during one attempt; retained as historical literal snapshots after terminal, not retroactively matched to future xtask/docs tree",
+  "checkout_or_source_copy_edits": 0,
+  "collector_contract": {
+    "CLI": [
+      "--output",
+      "<new-report>",
+      "--require-calibration"
+    ],
+    "exclusive_claim_no_retry": true,
+    "expected_original_exit": 2,
+    "expected_primary_result": "FAIL0/4",
+    "fixed24_conditions_times_ON_freshON_OFF": 72,
+    "one_collector_process": true,
+    "postcollection_loaded_process_exits": [
+      0,
+      2,
+      1
+    ],
+    "postcollection_worlds": 0
+  },
+  "frozen_expected_sha_required_for_run": true,
+  "kind": "rne_concrete_separate72_source_transition_driver_handoff",
+  "next_steps": [
+    "Parent supplies/hash-pins final actual binding artifacts and creates prepare receipt",
+    "Independent reviewer authenticates exact prepared bytes/provenance/tool closure",
+    "Parent freezes then retains full frozen SHA externally",
+    "Parent alone executes one explicit run after admission; no current execution authorization inferred by this handoff"
+  ],
+  "prior_attempt_retained": true,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "root_supplied_actual_map_status": "before21/after22; eleven precisely permitted existing changes plus one new module; parent owns admission",
+  "schema_version": 1,
+  "source_only_build_metadata_read": true,
+  "status": "READY_FOR_INDEPENDENT_PRE_DATA_REVIEW_NOT_EXECUTED",
+  "synthetic_original_exit_actual": 0,
+  "synthetic_tests_actual": 20,
+  "synthetic_tool_guard_unchanged": true
+}

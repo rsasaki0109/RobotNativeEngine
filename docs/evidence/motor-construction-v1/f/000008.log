@@ -1,0 +1,433 @@
+$ cargo test --locked -p robot_workbench --no-default-features
+
+running 7 tests
+test project::tests::malformed_scene_and_future_schema_are_rejected ... ok
+test project::tests::complete_project_roundtrips_with_saved_pose_and_scene ... ok
+test project::tests::saved_pose_is_bound_to_robot_and_names ... ok
+test project::tests::rejected_pose_never_partially_changes_current_targets ... ok
+test project::tests::supported_mjcf_uses_same_named_joint_catalog ... ok
+test simulation::tests::scene_obstacle_changes_real_raycast_scan ... ok
+test simulation::tests::native_servo_moves_and_replay_is_deterministic ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+$ cargo run --locked -p robot_workbench --no-default-features -- --smoke
+workbench smoke passed: URDF servo, MJCF articulation, pose/project roundtrip, visuals, LiDAR; state=ce9ffb703e7c882e
+$ cargo test --locked -p rne_render --lib
+
+running 53 tests
+test animation::tests::animation_samples_translation_and_loops ... ok
+test animation::tests::animation_player_advances_gpu_pose_deterministically ... ok
+test animation::tests::gpu_skinning_sample_keeps_bind_pose_and_updates_joint_matrices ... ok
+test animation::tests::cpu_and_gpu_skinning_share_antipodal_rotation_samples ... ok
+test animation::tests::identical_and_antipodal_rotation_keys_keep_the_same_pose ... ok
+test animation::tests::linear_rotation_uses_short_arc_at_constant_angular_speed ... ok
+test animation::tests::nearly_antipodal_rotation_keys_follow_the_small_rotation ... ok
+test animation::tests::skinning_applies_joint_delta_without_accumulating ... ok
+test animation::tests::step_rotations_and_linear_vectors_retain_their_keyframe_values ... ok
+test depth::tests::depth_hash_is_stable ... ok
+test environment::tests::disabled_default_does_not_enable_environment ... ok
+test depth::tests::scene_depth_probe_reports_nearest_item ... ok
+test environment::tests::lighting_sanitization_keeps_map_and_clamps_controls ... ok
+test environment::tests::rgba32f_map_validates_dimensions_and_pixels ... ok
+test gaussian_splat::tests::manifest_quaternion_rotation_is_normalized_and_applied ... ok
+test gaussian_splat::tests::kenkyugakuen_manifest_falls_back_to_fixture_standin ... ok
+test gaussian_splat::tests::ply_override_clears_standin_flag ... ok
+test gaussian_splat::tests::tsukuba_confirmation_fixture_manifest_loads ... ok
+test gaussian_splat_validation::tests::metric_anchor_recomputes_scale_and_rejects_forged_derivation ... ok
+test gaussian_splat_validation::tests::multiview_depth_contract_rejects_declared_metric_tampering ... ok
+test gaussian_splat_validation::tests::sparse_depth_contract_rejects_declared_metric_tampering ... ok
+test grid_mesh::tests::a_degenerate_specification_draws_nothing_rather_than_failing ... ok
+test grid_mesh::tests::cell_centres_are_reported_for_placing_labels_and_markers ... ok
+test grid_mesh::tests::fill_insets_each_cell_without_moving_its_centre ... ok
+test grid_mesh::tests::only_selected_cells_become_quads_and_the_order_is_row_major ... ok
+test grid_mesh::tests::quads_sit_flat_at_the_requested_height_and_face_up ... ok
+test headless::tests::clear_color_is_uniform ... ok
+test headless::tests::headless_camera_is_deterministic ... ok
+test lidar::tests::append_lidar_points_adds_sphere_items ... ok
+test material::tests::default_material_is_non_metallic_and_rough ... ok
+test material::tests::sanitization_clamps_invalid_shader_inputs ... ok
+test material::tests::texture_maps_are_preserved_through_sanitization ... ok
+test mesh::tests::ascii_stl_loads_triangles ... ok
+test mesh::tests::fixture_stl_loads ... ok
+test mesh::tests::generic_mesh_loader_rejects_unknown_extensions ... ok
+test mesh::tests::glb_imports_embedded_triangle_buffer ... ok
+test mesh::tests::gltf_imports_scene_transforms_and_pbr_material_maps ... ok
+test mesh::tests::gltf_scene_preserves_skin_and_animation_data ... ok
+test mesh::tests::obj_material_parts_preserve_uvs_and_decode_diffuse_texture ... ok
+test mesh::tests::obj_models_merge_and_generate_normals_deterministically ... ok
+test mesh::tests::shipped_mm_mobile_lift_glbs_load_pbr_parts ... ok
+test mesh_cache::tests::a_mirrored_visual_gets_its_triangle_winding_reversed ... ok
+test mesh_cache::tests::an_evenly_negated_scale_is_a_rotation_and_keeps_its_winding ... ok
+test mesh_cache::tests::cache_preserves_material_parts_and_pbr_values ... ok
+test mesh_cache::tests::cache_reuses_loaded_mesh ... ok
+test path::tests::file_uri_maps_to_absolute_path ... ok
+test path::tests::package_uri_strips_package_name ... ok
+test path::tests::relative_uri_joins_package_root ... ok
+test scene::tests::box_visual_applies_size_scale ... ok
+test scene::tests::dynamic_mesh_item_keeps_generated_geometry ... ok
+test scene::tests::resolve_mesh_assets_loads_stl ... ok
+test scene::tests::visual_item_accepts_explicit_material ... ok
+test gaussian_splat_validation::tests::drjohnson_fixture_exposes_exact_remaining_contracts ... ok
+
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+$ cargo test --locked -p rne_sensor --lib
+
+running 101 tests
+test allan::feedback::tests::actual_frontend_clipping_is_not_accepted_as_noise_evidence ... ok
+test allan::feedback::tests::actual_frontend_faults_and_corrupt_metadata_are_rejected ... ok
+test allan::tests::direct_mean_oracle_and_offset_scale_invariance ... ok
+test allan::feedback::tests::actual_frontend_latency_does_not_change_capture_statistics ... ok
+test allan::tests::hand_computed_constant_ramp_and_alternating_samples ... ok
+test allan::tests::invalid_inputs_are_not_trimmed_or_resampled ... ok
+test allan::timed::tests::irregular_direct_oracle_handles_offsets_and_recovery_after_gaps ... ok
+test allan::timed::tests::trailing_errors_and_insufficient_coverage_fail ... ok
+test allan::timed::tests::uniform_bridge_and_irregular_empty_windows ... ok
+test allan::timed::tests::invalid_grids_overflow_and_resource_limits_fail_closed ... ok
+test camera::tests::auto_exposure_drives_mean_luminance_toward_the_target ... ok
+test camera::tests::auto_exposure_respects_the_stop_limit ... ok
+test camera::tests::band_rendering_composites_each_band_from_its_own_pose ... ok
+test camera::tests::band_rows_tile_the_frame_without_gaps_or_overlap ... ok
+test camera::tests::barrel_distortion_samples_inward_and_pincushion_outward ... ok
+test camera::tests::brown_conrady_matches_a_hand_computed_sample ... ok
+test camera::tests::camera_sensor_returns_image_payload ... ok
+test camera::tests::default_spec_is_an_exact_no_op ... ok
+test camera::tests::distortion_changes_the_image_but_preserves_its_size ... ok
+test camera::tests::exposure_scales_brightness_monotonically ... ok
+test camera::tests::legacy_serialized_spec_deserializes_with_ideal_defaults ... ok
+test camera::tests::rolling_shutter_reduces_to_a_global_shutter_when_stationary ... ok
+test camera::tests::row_readout_times_span_the_configured_window ... ok
+test camera::tests::sensor_noise_is_repeatable_and_key_dependent ... ok
+test camera::tests::shot_noise_grows_with_signal_but_read_noise_does_not ... ok
+test camera::tests::vignette_darkens_corners_more_than_the_centre ... ok
+test camera::tests::zero_distortion_is_the_identity_mapping ... ok
+test imu::gravity_tests::stateless_and_stateful_imu_use_world_gravity ... ok
+test imu::tests::accelerometer_reports_proper_acceleration_not_velocity ... ok
+test imu::tests::bias_instability_stays_bounded_while_rate_random_walk_grows ... ok
+test imu::tests::diagnostic_reports_per_axis_saturation_after_mount_kinematics ... ok
+test imu::tests::drift_is_repeatable_for_the_same_key_sequence ... ok
+test imu::tests::gauss_markov_bias_decays_toward_zero_without_new_driving_noise ... ok
+test imu::tests::ideal_spec_leaves_the_measurement_untouched ... ok
+test imu::tests::invalid_mount_fails_before_sampling ... ok
+test imu::tests::measurements_are_reported_in_the_body_frame ... ok
+test imu::tests::mounted_truth_uses_the_sensor_axes_without_claiming_orientation_as_measurement ... ok
+test imu::tests::offset_mount_includes_centripetal_and_tangential_acceleration ... ok
+test imu::tests::saturation_applies_before_quantization ... ok
+test imu::tests::saturation_clips_and_quantization_rounds ... ok
+test imu::tests::scale_factor_and_misalignment_form_a_small_angle_matrix ... ok
+test imu::tests::static_imu_reports_upward_specific_force ... ok
+test imu::tests::turn_on_bias_offsets_every_sample_identically ... ok
+test imu::tests::white_noise_scales_down_with_a_longer_sample_interval ... ok
+test lidar::tests::beam_footprint_straddling_an_edge_reports_a_mixed_pixel ... ok
+test lidar::tests::bloom_lifts_dim_neighbours_of_a_saturated_column ... ok
+test lidar::tests::detection_sharpness_controls_the_transition_width ... ok
+test lidar::tests::elevation_table_spans_the_configured_vertical_field_of_view ... ok
+test lidar::tests::explicit_rays_in_grid_order_reproduce_the_grid_scan ... ok
+test lidar::tests::failure_behavior_can_drop_ray_or_scan ... ok
+test lidar::tests::fog_backscatter_adds_returns_in_front_of_the_surface ... ok
+test lidar::tests::glass_transmits_energy_to_a_second_return ... ok
+test lidar::tests::intensity_follows_inverse_square_range_falloff ... ok
+test lidar::tests::keyed_noise_and_weather_are_repeatable ... ok
+test lidar::tests::lidar_ray_directions_are_normalized ... ok
+test lidar::tests::multi_channel_scan_covers_every_ring ... ok
+test lidar::tests::near_field_overlap_suppresses_returns_inside_the_crossover_range ... ok
+test lidar::tests::occlusion_ignores_fog_and_dust_but_not_precipitation ... ok
+test lidar::tests::rain_occlusion_drops_distant_returns ... ok
+test lidar::tests::ray_drop_is_driven_by_return_strength ... ok
+test lidar::tests::retroreflective_sheeting_saturates_and_blooms_into_neighbours ... ok
+test lidar::tests::sweeping_the_sensor_distorts_the_cloud_and_stamps_emission_times ... ok
+test livox::tests::frames_hold_whole_packets_at_ten_hertz ... ok
+test livox::tests::local_angle_conversion_round_trips ... ok
+test livox::tests::rays_stay_inside_the_field_of_view_and_emission_window ... ok
+test allan_imu_validation::allan_actual_imu_white_walk_and_markov_match_discrete_expectations ... ok
+test noise::tests::keyed_imu_noise_changes_by_sample_index ... ok
+test noise::tests::keyed_imu_noise_is_repeatable ... ok
+test resources::tests::gravity_rejects_non_finite_values_but_allows_free_fall ... ok
+test systems::tests::camera_sensor_publishes_image ... ok
+test systems::tests::imu_feedback_capture_advances_with_sampling_jitter ... ok
+test systems::tests::imu_feedback_drop_creates_a_gap_but_advances_physical_state ... ok
+test systems::tests::imu_feedback_exposes_mount_schedule_latency_units_and_status ... ok
+test systems::tests::imu_feedback_stuck_fault_holds_values_but_advances_kinematics ... ok
+test systems::tests::imu_noise_changes_by_sample_sequence ... ok
+test systems::tests::incremental_encoder_applies_direction_zero_calibration_and_low_speed_quantization ... ok
+test systems::tests::incremental_encoder_capture_advances_with_sampling_jitter ... ok
+test systems::tests::incremental_encoder_drop_and_stuck_faults_preserve_internal_edge_history ... ok
+test systems::tests::incremental_encoder_resolves_signed_wrap_and_index_crossing ... ok
+test systems::tests::incremental_encoder_saturation_is_explicit_and_stops_count_velocity ... ok
+test systems::tests::incremental_encoder_uses_integer_counts_and_capture_time_not_truth_velocity ... ok
+test systems::tests::invalid_incremental_encoder_fails_all_due_sensors_atomically ... ok
+test systems::tests::invalid_motor_feedback_set_fails_atomically ... ok
+test systems::tests::joint_feedback_capture_advances_with_sampling_jitter ... ok
+test systems::tests::joint_feedback_drop_creates_a_sequence_gap ... ok
+test systems::tests::joint_feedback_exposes_schedule_latency_units_and_saturation ... ok
+test systems::tests::joint_feedback_preserves_measured_effort_and_rejects_wrong_units ... ok
+test systems::tests::joint_feedback_stuck_fault_holds_the_previous_value ... ok
+test systems::tests::lidar_frame_has_material_attributes_and_explicit_latency ... ok
+test systems::tests::missing_imu_mount_fails_all_due_publication_and_state_closed ... ok
+test systems::tests::motor_feedback_capture_advances_with_sampling_jitter ... ok
+test systems::tests::motor_feedback_dropout_and_stuck_are_observable ... ok
+test systems::tests::motor_feedback_noise_is_seeded_and_sample_indexed ... ok
+test systems::tests::motor_feedback_reads_completed_telemetry_with_timing_and_quantization ... ok
+test systems::tests::motor_feedback_reports_plant_and_frontend_saturation ... ok
+test systems::tests::sampling_jitter_delay_is_bounded_reproducible_and_seeded ... ok
+test systems::tests::sampling_jitter_is_absent_or_disabled_by_default ... ok
+test systems::tests::sensor_emits_at_configured_rate ... ok
+test wheel_encoder::tests::backend_free_joint_coordinate_is_measured_without_target_fallback ... ok
+test wheel_encoder::tests::backend_joint_state_is_measured_instead_of_command_target ... ok
+test livox::tests::successive_frames_cover_new_directions ... ok
+
+test result: ok. 101 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+$ cargo test --locked -p rne_hardware_gateway
+
+running 36 tests
+test conformance::tests::hil_authorization_is_explicit_and_timeout_is_bounded ... ok
+test conformance::tests::report_validation_rejects_noncanonical_checks_and_digest ... ok
+test mock::tests::disconnect_fault_confirms_device_side_stop ... ok
+test mock::tests::fixed_binding_and_shadow_authority_fail_closed ... ok
+test mock::tests::invalid_fault_counts_are_rejected ... ok
+test mock::tests::mock_session_is_deterministic_and_width_bound ... ok
+test recorded::tests::excessive_recorded_latency_is_rejected_before_gateway_execution ... ok
+test recorded::tests::injected_shadow_disconnect_is_bounded_and_non_actuating ... ok
+test recorded::tests::playback_suppresses_every_action_and_retains_provenance ... ok
+test shadow::tests::capacity_and_discrete_tolerance_fail_closed ... ok
+test shadow::tests::report_preserves_first_task_order_violation ... ok
+test simulator::conformance::tests::report_validation_rejects_noncanonical_checks ... ok
+test simulator::mock::tests::reset_and_steps_are_exactly_repeatable ... ok
+test simulator::mock::tests::simulation_time_overflow_fails_without_advancing_state ... ok
+test simulator::tests::runtime_manifest_requires_canonical_complete_artifacts ... ok
+test simulator::wire::tests::codec_round_trips_one_bounded_line ... ok
+test tests::action_bounds_are_required_at_construction ... ok
+test simulator::wire::tests::unknown_fields_and_non_finite_payloads_fail_closed ... ok
+test tests::actuator_limit_trips_and_replaces_output_with_zero_stop ... ok
+test tests::clean_close_requires_disarm_and_delivery_of_the_zero_stop ... ok
+test tests::device_safety_signal_latches_and_queues_an_independent_stop ... ok
+test tests::disconnect_reconnect_requires_clear_fresh_observation_and_rearm ... ok
+test tests::emergency_stop_is_latched_until_explicit_clear ... ok
+test tests::live_mode_delivers_only_armed_bounded_actions ... ok
+test tests::missed_deadline_trips_without_polling_a_command ... ok
+test tests::observation_integer_dtype_is_enforced ... ok
+test tests::queued_command_expires_to_a_safe_stop ... ok
+test tests::observation_ring_is_bounded_and_audited ... ok
+test tests::regressing_host_tick_fails_closed ... ok
+test tests::shadow_validates_but_never_queues_actuation ... ok
+test tests::snapshot_json_is_versioned_and_bounded ... ok
+test wire::tests::bounded_reader_rejects_before_unbounded_allocation ... ok
+test wire::tests::codec_rejects_unknown_fields_and_multiple_lines ... ok
+test wire::tests::codec_round_trip_is_one_bounded_line ... ok
+test wire::tests::terminal_response_must_confirm_device_stop ... ok
+test wire::tests::trace_refuses_overwrite_and_uncorrelated_responses ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test tests::parser_requires_explicit_hil_but_preserves_adapter_arguments ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test tests::parser_preserves_adapter_arguments_and_runtime_manifest ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test adapter_without_a_fixed_task_binding_gets_a_failed_report ... ok
+test external_mock_process_passes_exact_repeatable_catalog ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+
+running 1 test
+test fail_closed_session_matches_golden ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test process_mock_fault_matrix_matches_golden ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 1 test
+test process_disconnect_session_matches_golden ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test shadow_comparison_matches_golden ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test process_adapter_passes_complete_fixed_step_catalog ... ok
+test repository_gazebo_openarm_fixture_is_hash_bound_and_task_compatible ... ok
+test fresh_process_conformance_reports_are_byte_identical ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+$ cargo test --locked -p rne_hardware_lekiwi
+
+running 37 tests
+test flagship_observation::tests::fuses_exact_parent_order_and_records_unused_physical_values ... ok
+test flagship_observation::tests::held_sources_are_allowed_only_when_the_complete_sample_is_identical ... ok
+test flagship_observation::tests::invalid_calibration_physical_width_and_sequence_gap_do_not_advance ... ok
+test flagship_observation::tests::reused_sequence_rejects_float_bit_changes_including_negative_zero ... ok
+test flagship_observation::tests::source_gap_and_calibration_change_fail_without_advancing ... ok
+test flagship_observation::tests::stale_future_missing_perception_and_bad_digest_fail_closed ... ok
+test flagship_observation::tests::v2_continuity_covers_yaw_and_place_target_without_advancing_on_error ... ok
+test flagship_observation::tests::v2_fusion_is_complete_and_executes_the_portable_controller ... ok
+test flagship_projection::tests::exported_limits_match_the_physical_task_contract ... ok
+test flagship_projection::tests::physical_envelope_parent_limit_and_nonfinite_input_fail_closed ... ok
+test flagship_projection::tests::straight_action_projects_without_clamping_and_retains_suppression ... ok
+test flagship_projection::tests::turn_uses_parent_geometry_and_is_deterministic ... ok
+test flagship_projection::tests::v2_projection_binds_portable_task_and_controller ... ok
+test flagship_rate::tests::duplicate_gap_and_invalid_projection_do_not_advance_state ... ok
+test flagship_rate::tests::periods_are_integer_exact ... ok
+test flagship_rate::tests::phase_zero_emits_even_sequences_and_records_suppression ... ok
+test flagship_rate::tests::sequence_overflow_fails_without_advancing_state ... ok
+test flagship_rate::tests::v2_scheduler_retains_v2_projection_identity ... ok
+test flagship_shadow::tests::controller_and_source_contracts_are_strict ... ok
+test flagship_shadow::tests::manifest_separates_mock_from_physical_and_freezes_roles_and_digest ... ok
+test flagship_shadow::tests::all_three_streams_replay_and_detect_tampering ... ok
+test flagship_shadow::tests::v2_streams_replay_the_complete_observation_controller_projection_chain ... ok
+test physical_evidence::tests::rejects_duplicate_or_escaping_artifact_paths ... ok
+test physical_evidence::tests::rejects_missing_role_separation_and_late_watchdog ... ok
+test physical_evidence::tests::rejects_mock_identity_and_tampering ... ok
+test physical_evidence::tests::validates_complete_physical_manifest ... ok
+test session::tests::device_safety_and_shadow_disconnect_are_correlated ... ok
+test session::tests::invalid_controller_output_and_emergency_stop_are_typed_terminals ... ok
+test session::tests::limit_trip_delivers_gateway_stop_and_returns_terminal_evidence ... ok
+test session::tests::shadow_session_completes_without_an_actuation_frame ... ok
+test session::tests::live_session_stops_before_clean_close ... ok
+test tests::base_action_requires_observation_and_rechecks_limits ... ok
+test session::tests::tampered_outer_contract_and_rejected_open_fail ... ok
+test tests::invalid_vendor_values_fail_before_state_is_cached ... ok
+test tests::built_in_profile_is_strict_and_valid ... ok
+test tests::observation_mapping_converts_degrees_and_caches_arm_hold ... ok
+test tests::safety_stop_never_becomes_a_position_command ... ok
+
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test tests::physical_hil_requires_cutoff_operator_and_elevated_wheels ... ok
+test tests::physical_live_requires_cutoff_operator_and_clear_work_area ... ok
+test tests::safety_confirmations_fail_closed_outside_their_physical_stage ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test python_mock_passes_the_published_external_adapter_catalog ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.69s
+
+
+running 3 tests
+test physical_operator_diagnostics_match_committed_goldens ... ok
+test base_task_matches_committed_golden ... ok
+test reference_profile_matches_committed_golden ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test python_bridge_maps_observations_actions_and_safe_stop ... ok
+test python_bridge_denies_shadow_actuation ... ok
+test python_bridge_watchdog_stops_without_a_host_command ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+
+running 3 tests
+wrote /tmp/rne-lekiwi-session-cli-77751-deadline.json (rne.lekiwi_so101.mock.v1, GatewaySafetyStopped { reason: CommandDeadlineMissed })
+wrote /tmp/rne-lekiwi-session-cli-77751-stale.json (rne.lekiwi_so101.mock.v1, GatewaySafetyStopped { reason: ObservationStale })
+test session_cli_persists_gateway_safety_terminal_before_nonzero_exit ... ok
+wrote /tmp/rne-lekiwi-session-cli-77751-emergency.json (rne.lekiwi_so101.mock.v1, GatewaySafetyStopped { reason: EmergencyStop })
+test session_cli_counts_controller_time_and_exposes_emergency_stop ... ok
+wrote /tmp/rne-lekiwi-session-cli-77751-shadow.json (rne.lekiwi_so101.mock.v1, Completed)
+wrote /tmp/rne-lekiwi-session-cli-77751-live.json (rne.lekiwi_so101.mock.v1, Completed)
+test session_cli_runs_the_real_python_mock_protocol_and_writes_evidence ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+$ cargo run --locked -p diff_drive_dataset_capture --example 73_diff_drive_dataset_capture -- target/rne-dataset-reference-smoke-75490 --verify-golden
+{
+  "schema_version": 1,
+  "dataset_id": "rne-diff-drive-reference-v3",
+  "task_spec_sha256": "sha256:532d2e76854cecbc09e5f8d985486c2f9548a3f39a17865a59f10d86dd08e3ca",
+  "manifest_sha256": "sha256:c60ef1cec27b401008267a76acfe5582786d2dc0c9283621ff59dc00af6877d2",
+  "shard_sha256": "sha256:55cddb0b7a7a520c516a912af0646c5ba9b9b6dd9fa90327f3f8defbdcc189f4",
+  "stream_count": 8,
+  "record_count": 471,
+  "sample_count": 471,
+  "dropped_count": 0,
+  "imu_samples": 102,
+  "lidar_samples": 15,
+  "rgb_samples": 17,
+  "depth_samples": 17,
+  "ground_truth_depth_samples": 17,
+  "action_samples": 101,
+  "outcome_samples": 101,
+  "transform_samples": 101,
+  "evaluation_report_sha256": "sha256:6fd6b5cfdd0a298d42af3c2a7bcab72f828aaa3601bd1bcc36fded9a97142315",
+  "evaluated_frames": 17,
+  "evaluated_pixels": 52224,
+  "depth_mean_absolute_error_m": 0.005000002243939568,
+  "depth_root_mean_square_error_m": 0.005000002248030719,
+  "depth_max_absolute_error_m": 0.005000114440917969,
+  "depth_tolerance_m": 0.01,
+  "depth_evaluation_passed": true,
+  "terminated": true,
+  "truncated": false
+}
+dataset reference smoke ok: records=471 manifest=sha256:c60ef1cec27b401008267a76acfe5582786d2dc0c9283621ff59dc00af6877d2
+$ cargo run --locked -p flagship_validation_workflow --example 74_flagship_validation_workflow -- /workspace/RobotNativeEngine/artifacts/flagship-validation
+created failure capsule /workspace/RobotNativeEngine/artifacts/flagship-validation/failure-capsule (rne_failure_capsule)
+verified failure capsule /workspace/RobotNativeEngine/artifacts/flagship-validation/failure-capsule (6 artifacts)
+flagship workflow passed: success_steps=5807 failure_step=307 minimized_dimensions=1/3
+artifacts: /workspace/RobotNativeEngine/artifacts/flagship-validation
+verified failure capsule /workspace/RobotNativeEngine/artifacts/flagship-validation/failure-capsule (6 artifacts)
+release flagship evidence verified (cross_backend=false): /workspace/RobotNativeEngine/artifacts/flagship-validation

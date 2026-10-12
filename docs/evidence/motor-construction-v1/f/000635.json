@@ -1,0 +1,16 @@
+{
+  "kind": "exclusive_checked_driver_command_claim",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/cohort_driver.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/admitted-wrapper-v2.json",
+    "--spec-sha256",
+    "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce",
+    "--launch-native"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "created_utc": "2026-10-12T11:08:37.405472+00:00",
+  "registered_wrapper_sha256": "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce"
+}

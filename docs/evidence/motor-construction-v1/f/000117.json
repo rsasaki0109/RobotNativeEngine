@@ -1,0 +1,10 @@
+{
+  "original_exit_code": 0,
+  "prepared": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_mutated_source_fails_guard_and_stops_before_comparison/prepared/prepared-bindings.json",
+    "sha256": "8ea520e35c9d5e186d0ec43523dd53bc2bb8eff883c284629d7bbff63c618a2b",
+    "size_bytes": 14772
+  },
+  "status": "PASS_PREPARATION_ONLY",
+  "worlds": 0
+}

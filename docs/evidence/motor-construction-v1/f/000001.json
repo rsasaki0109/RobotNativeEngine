@@ -1,0 +1,39 @@
+{
+  "argv": [
+    "cargo",
+    "run",
+    "--locked",
+    "-p",
+    "xtask",
+    "--",
+    "ci"
+  ],
+  "completed_at": "2026-10-12T12:22:50.339776+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 3408.2848180500005,
+  "kind": "rne_actual_validation",
+  "name": "full-ci",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": true,
+  "source_after": {
+    "sha256": "8b2c8196accb6ccd392ed2ab658acbc913b98e4c32d430bba37b71bef919d8a8",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "8b2c8196accb6ccd392ed2ab658acbc913b98e4c32d430bba37b71bef919d8a8",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T11:26:02.054948+00:00",
+  "stderr": {
+    "sha256": "987a761293409ef07e923eee1d7694d89007d7181da578608efc55290ef1817b",
+    "size_bytes": 44045
+  },
+  "stdout": {
+    "sha256": "60b8854076d9524403e48e2e1731336e896cdf00b613d70db9ccd145da6c65b2",
+    "size_bytes": 298536
+  }
+}

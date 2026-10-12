@@ -1,0 +1,35 @@
+{
+  "kind": "rne_predeclared_direct_word_display",
+  "presentation_only": true,
+  "source_audit_sha256": "a3f3e60fb199390e1dd761f6e96357df684bbcb0bdc996d5ec24a0745c3e107c",
+  "fields_were_declared_before_collection": true,
+  "native_word_width": 32,
+  "display_method": "IEEE binary32 decoded exactly then formatted nine significant digits; originals retained whole in audit/raw files",
+  "new_scientific_criteria_or_numerical_reanalysis": false,
+  "rows": [
+    {
+      "case": "negative_on",
+      "slice": 31,
+      "q_before_rad_word": 3083222915,
+      "q_after_rad_word": 3083641934,
+      "integration_input_velocity_rad_s_word": 3167210956,
+      "final_writeback_velocity_rad_s_word": 3170893826,
+      "integration_input_velocity_rad_s_display": "-0.0243901238",
+      "final_writeback_velocity_rad_s_display": "-0.0312500075",
+      "q_before_rad_display": "-2.36330143e-05",
+      "q_after_rad_display": "-2.43952054e-05"
+    },
+    {
+      "case": "positive_on",
+      "slice": 31,
+      "q_before_rad_word": 935739267,
+      "q_after_rad_word": 936158286,
+      "integration_input_velocity_rad_s_word": 1019727308,
+      "final_writeback_velocity_rad_s_word": 1023410178,
+      "integration_input_velocity_rad_s_display": "0.0243901238",
+      "final_writeback_velocity_rad_s_display": "0.0312500075",
+      "q_before_rad_display": "2.36330143e-05",
+      "q_after_rad_display": "2.43952054e-05"
+    }
+  ]
+}

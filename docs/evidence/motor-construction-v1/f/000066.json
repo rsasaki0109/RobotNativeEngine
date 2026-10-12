@@ -1,0 +1,445 @@
+{
+  "actual_execution_in_preparation": {
+    "builds": 0,
+    "checkout_or_source_copy_edits": 0,
+    "network_writes": 0,
+    "numerical_reanalyses": 0,
+    "report_comparisons": 0,
+    "report_reads": 0,
+    "worlds": 0
+  },
+  "arm_id": "motor-construction-source-transition-141",
+  "authority": "Proposal only; actual maps/binaries/protocol/tools require independent pre-data freeze",
+  "baseline_merged_commit": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+  "cells_in_unchanged_collector_order": [
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 0,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 1,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 2,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 3,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 4,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 5,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 6,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 7,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 8,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 9,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 10,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 11,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 12,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 13,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 14,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 15,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 16,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 17,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 18,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 19,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 20,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 21,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 22,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 23,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.001_f32"
+    }
+  ],
+  "comparator_spec_template_NOT_EXECUTABLE": {
+    "added_paths": [
+      "third_party/rapier3d/src/pipeline/multibody_motor_construction.rs"
+    ],
+    "after_source_sha256": null,
+    "baseline_report_sha256": null,
+    "before_source_sha256": null,
+    "changed_existing_paths": null,
+    "kind": "rne_141_motor_construction_source_transition",
+    "removed_paths": [],
+    "schema_version": 1,
+    "status": "DRAFT_NOT_FROZEN"
+  },
+  "created_at": "2026-10-12T09:28:48.981492+00:00",
+  "forbidden_changes": [
+    "report schema",
+    "collector cases/logic",
+    "physics",
+    "codec",
+    "criteria/tolerances",
+    "old reports/raw/historical findings",
+    "unregistered source keys",
+    "verifier source binding"
+  ],
+  "freeze_prerequisites": [
+    "143 standalone-to-workspace integration complete; Cargo manifests/locks/features final",
+    "producer explains graph/query/interaction lifetime scope and preserves CRLF/EOF",
+    "full literal before/after selected maps and precise changed list frozen",
+    "baseline report full literal digest frozen without rewriting its bytes",
+    "source tree/patch plus non-exhaustive broader input guard frozen",
+    "compiler/Cargo/linker/target/features/flags and native binary descriptors frozen",
+    "protocol/comparator/tool closure/pure-test receipt and independent review frozen",
+    "persistent exclusive once-only claim/output/terminal/sourceguard plan frozen"
+  ],
+  "historical_report": {
+    "full_sha256": null,
+    "parent_supplied_sha_prefix": "db0",
+    "path": "docs/media/position-motor-calibration-contact-stages.json",
+    "preserve_literal": true,
+    "read_in_preparation": false
+  },
+  "kind": "rne_prospective_141_motor_construction_source_transition_arm",
+  "proposed_current_report": "docs/media/position-motor-calibration-motor-construction-source.json",
+  "schema_version": 1,
+  "separate_from": [
+    "generation-5 fixed18",
+    "proposed example-143 six construction worlds"
+  ],
+  "source_binding": {
+    "after_key_count": 22,
+    "after_keys": [
+      "Cargo.lock",
+      "Cargo.toml",
+      "examples/141_position_motor_calibration/Cargo.toml",
+      "examples/141_position_motor_calibration/lib.rs",
+      "examples/141_position_motor_calibration/main.rs",
+      "third_party/rapier3d/Cargo.toml",
+      "third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "third_party/rapier3d/src/dynamics/rigid_body.rs",
+      "third_party/rapier3d/src/dynamics/rigid_body_components.rs",
+      "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "third_party/rapier3d/src/pipeline/mod.rs",
+      "third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+      "third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs",
+      "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+    ],
+    "before_key_count": 21,
+    "before_keys": [
+      "Cargo.lock",
+      "Cargo.toml",
+      "examples/141_position_motor_calibration/Cargo.toml",
+      "examples/141_position_motor_calibration/lib.rs",
+      "examples/141_position_motor_calibration/main.rs",
+      "third_party/rapier3d/Cargo.toml",
+      "third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "third_party/rapier3d/src/dynamics/rigid_body.rs",
+      "third_party/rapier3d/src/dynamics/rigid_body_components.rs",
+      "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "third_party/rapier3d/src/pipeline/mod.rs",
+      "third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs",
+      "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+    ],
+    "final_hashes_and_exact_diff": "PENDING actual integrated source freeze; not guessed",
+    "permitted_existing_changes": [
+      "Cargo.lock",
+      "Cargo.toml",
+      "examples/141_position_motor_calibration/lib.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "third_party/rapier3d/src/pipeline/mod.rs",
+      "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+    ],
+    "possible_integration_changes": [
+      "Cargo.lock",
+      "Cargo.toml"
+    ],
+    "provisional_existing_changes": [
+      "examples/141_position_motor_calibration/lib.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "third_party/rapier3d/src/pipeline/mod.rs",
+      "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+    ],
+    "removed_keys": [],
+    "required_addition": "third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+    "scope": "selected non-exhaustive source inputs, not full compiler closure"
+  },
+  "status": "DRAFT_NOT_FROZEN",
+  "world_budget": {
+    "collector_invocations": 1,
+    "condition_count": 24,
+    "maximum_worlds": 72,
+    "new_construction_observer_enabled": false,
+    "numeric_filtering": false,
+    "partial_failure_action": "stop; preserve actual outputs/exits; no retry/replacement",
+    "worlds_per_condition": 3
+  }
+}

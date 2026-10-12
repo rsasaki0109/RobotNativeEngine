@@ -1,0 +1,1383 @@
+diff --git a/third_party/rapier3d/RNE_PATCH.md b/third_party/rapier3d/RNE_PATCH.md
+--- a/third_party/rapier3d/RNE_PATCH.md
++++ b/third_party/rapier3d/RNE_PATCH.md
+@@ -116,3 +116,28 @@
+ defined cases. Regression tests cover the formerly invalid reconnection and the
+ literal damping values of a defined legacy append. This repair changes no solver
+ floating-point formula, motor gains, or constraint ordering.
++
++## Preparatory construction and coordinate companion (owned source copy only)
++
++This unpromoted preparation adds a separately versioned, default-disabled
++`PhysicsPipeline` construction observer with its own enable/completed accessors.
++It copies the actual internal single-DoF unit-motor constructor locals, including
++coordinate, targets, gain model, gains, native duration/inverse duration, optional
++limits, effective clamped target velocity and ERP. The nested version-one row
++retains actual J/W/CFM/diagonal/bounds/identity; effort ceiling is copied from the
++same motor descriptor passed to `motor_params`, not a later descriptor lookup.
++
++Coordinate endpoints distinguish integration input from final stabilized and
++written-back velocity. Before-position-integration observation occurs after the
++generic-to-multibody velocity copy and before coordinate advance, per root.
++Final writeback observation occurs after the final generic-to-multibody copy.
++Uninitialized or unsupported observations remain explicit. Events drain in
++partition/island/native order; there is no global mutable observation state.
++
++The existing version-one stage public structs/schema and collectors141/142 are
++unchanged. Constructor/solver arithmetic, gain defaults, constraint/iteration
++order and scientific acceptance criteria are not patched. This copy's compilation
++and pure storage/schema/flag checks do not establish runtime neutrality, physical
++calibration or production readiness. No native world was executed for this
++preparation. A separately frozen future cohort/reader/binary qualification remains
++necessary; the archived inverse-diagonal candidate remains rejected.
+diff --git a/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs b/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs
+--- a/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs
++++ b/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs
+@@ -1,4 +1,5 @@
+ use crate::dynamics::solver::JointGenericOneBodyConstraint;
++use crate::dynamics::JointAxis;
+ use crate::dynamics::{
+     joint, FixedJointBuilder, GenericJoint, IntegrationParameters, Multibody, MultibodyLink,
+     RigidBodyVelocity,
+@@ -7,6 +8,7 @@
+     Isometry, JacobianViewMut, Real, Rotation, SpacialVector, Translation, Vector, ANG_DIM, DIM,
+     SPATIAL_DIM,
+ };
++use crate::pipeline::{InternalMotorConstructionRecorder, InternalMotorConstructionRowRecorder};
+ use na::{DVector, DVectorViewMut};
+ #[cfg(feature = "dim3")]
+ use na::{UnitQuaternion, Vector3};
+@@ -266,10 +268,42 @@
+         params: &IntegrationParameters,
+         multibody: &Multibody,
+         link: &MultibodyLink,
++        j_id: usize,
++        jacobians: &mut DVector<Real>,
++        constraints: &mut [JointGenericOneBodyConstraint],
++    ) -> usize {
++        self.velocity_constraints_with_construction_inputs(
++            params,
++            multibody,
++            link,
++            j_id,
++            jacobians,
++            constraints,
++            None,
++        )
++    }
++
++    pub(crate) fn velocity_constraints_with_construction_inputs(
++        &self,
++        params: &IntegrationParameters,
++        multibody: &Multibody,
++        link: &MultibodyLink,
+         mut j_id: usize,
+         jacobians: &mut DVector<Real>,
+         constraints: &mut [JointGenericOneBodyConstraint],
++        mut recorder: Option<InternalMotorConstructionRecorder<'_>>,
+     ) -> usize {
++        let axes = [
++            JointAxis::LinX,
++            JointAxis::LinY,
++            #[cfg(feature = "dim3")]
++            JointAxis::LinZ,
++            JointAxis::AngX,
++            #[cfg(feature = "dim3")]
++            JointAxis::AngY,
++            #[cfg(feature = "dim3")]
++            JointAxis::AngZ,
++        ];
+         let j_id = &mut j_id;
+         let locked_bits = self.data.locked_axes.bits();
+         let limit_bits = self.data.limit_axes.bits();
+@@ -286,7 +320,16 @@
+                 };
+ 
+                 if (motor_bits & (1 << i)) != 0 {
+-                    joint::unit_joint_motor_constraint(
++                    let row_recorder =
++                        recorder
++                            .as_mut()
++                            .map(|recorder| InternalMotorConstructionRowRecorder {
++                                rows: &mut *recorder.rows,
++                                constraint_index: recorder.constraint_base + num_constraints,
++                                link_id: recorder.link_id,
++                                axis: axes[i],
++                            });
++                    super::unit_multibody_joint::unit_joint_motor_constraint_with_construction_inputs(
+                         params,
+                         multibody,
+                         link,
+@@ -298,6 +341,7 @@
+                         jacobians,
+                         constraints,
+                         &mut num_constraints,
++                        row_recorder,
+                     );
+                 }
+ 
+@@ -355,7 +399,16 @@
+                 };
+ 
+                 if (motor_bits & (1 << i)) != 0 {
+-                    joint::unit_joint_motor_constraint(
++                    let row_recorder =
++                        recorder
++                            .as_mut()
++                            .map(|recorder| InternalMotorConstructionRowRecorder {
++                                rows: &mut *recorder.rows,
++                                constraint_index: recorder.constraint_base + num_constraints,
++                                link_id: recorder.link_id,
++                                axis: axes[i],
++                            });
++                    super::unit_multibody_joint::unit_joint_motor_constraint_with_construction_inputs(
+                         params,
+                         multibody,
+                         link,
+@@ -367,6 +420,7 @@
+                         jacobians,
+                         constraints,
+                         &mut num_constraints,
++                        row_recorder,
+                     );
+                 }
+                 curr_free_dof += 1;
+diff --git a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs
+new file mode 100644
+--- /dev/null
++++ b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs
+@@ -0,0 +1,155 @@
++use super::*;
++use crate::dynamics::{JointAxis, MotorModel, MultibodyJointHandle};
++#[cfg(feature = "serde-serialize")]
++use crate::pipeline::{
++    MultibodyMotorConstructionAvailability, MultibodyMotorConstructionEndpoint,
++    MultibodyMotorConstructionEvent, MultibodyMotorConstructionPhase,
++    MultibodyMotorConstructionTelemetry,
++};
++
++fn synthetic_record(limits: Option<[Real; 2]>) -> MultibodyMotorConstructionRow {
++    let mut rows = Vec::new();
++    let nan = Real::from_bits(0x7fc12345);
++    let motor = JointMotor {
++        target_pos: -0.0,
++        target_vel: nan,
++        stiffness: Real::INFINITY,
++        damping: -0.0,
++        max_force: Real::INFINITY,
++        model: MotorModel::ForceBased,
++        ..JointMotor::default()
++    };
++    let params = MotorParameters {
++        erp_inv_dt: nan,
++        cfm_coeff: -0.0,
++        cfm_gain: Real::INFINITY,
++        target_pos: motor.target_pos,
++        target_vel: motor.target_vel,
++        max_impulse: Real::INFINITY,
++    };
++    let row = JointGenericOneBodyConstraint {
++        solver_vel2: 3,
++        ndofs2: 1,
++        j_id2: 0,
++        joint_id: usize::MAX,
++        impulse_bounds: [-0.0, 0.0],
++        ..JointGenericOneBodyConstraint::invalid()
++    };
++    let jacobians = DVector::from_vec(vec![1.0, -0.0]);
++    InternalMotorConstructionRowRecorder {
++        rows: &mut rows,
++        constraint_index: 7,
++        link_id: 2,
++        axis: JointAxis::AngX,
++    }
++    .capture(
++        MultibodyJointHandle::from_raw_parts(12, 4),
++        &motor,
++        &params,
++        nan,
++        -0.0,
++        Real::INFINITY,
++        limits,
++        -0.0,
++        &row,
++        &jacobians,
++    );
++    rows.pop().unwrap()
++}
++
++#[test]
++fn actual_input_storage_preserves_ieee_payloads_and_identity_without_dynamics() {
++    let captured = synthetic_record(Some([-0.0, 0.0]));
++    assert_eq!(captured.coordinate_word, 0x7fc12345);
++    assert_eq!(captured.target_position_word, 0x80000000);
++    assert_eq!(captured.target_velocity_word, 0x7fc12345);
++    assert_eq!(captured.stiffness_word, 0x7f800000);
++    assert_eq!(captured.damping_word, 0x80000000);
++    assert_eq!(captured.duration_word, 0x80000000);
++    assert_eq!(captured.inverse_duration_word, 0x7f800000);
++    assert_eq!(captured.erp_inverse_duration_word, 0x7fc12345);
++    assert_eq!(captured.effective_target_velocity_word, 0x80000000);
++    assert_eq!(captured.limits_words, Some([0x80000000, 0]));
++    assert_eq!(captured.row.effort_ceiling_word, 0x7f800000);
++    assert_eq!(captured.row.impulse_bound_words, [0x80000000, 0]);
++    assert_eq!(captured.row.joint_handle.into_raw_parts(), (12, 4));
++    assert_eq!(captured.row.link_id, 2);
++    assert_eq!(captured.row.constraint_index, 7);
++    assert_eq!(captured.row.solver_velocity_offset, 3);
++    assert_eq!(captured.row.ndofs2, 1);
++    assert_eq!(captured.row.j_id2, 0);
++    assert_eq!(captured.row.jacobian_words, [0x3f800000]);
++    assert_eq!(captured.row.weighted_jacobian_words, [0x80000000]);
++}
++
++#[test]
++fn missing_limits_are_absent_not_a_zero_interval() {
++    let missing = synthetic_record(None);
++    let zero = synthetic_record(Some([-0.0, 0.0]));
++    assert_eq!(missing.limits_words, None);
++    assert_ne!(missing.limits_words, zero.limits_words);
++}
++
++#[cfg(feature = "serde-serialize")]
++#[test]
++fn companion_schema_and_raw_words_roundtrip_without_float_json() {
++    let mut telemetry = MultibodyMotorConstructionTelemetry::new(-0.0);
++    telemetry.events.push(MultibodyMotorConstructionEvent {
++        ccd_partition_index: 1,
++        island_index: 2,
++        internal_slice_index: 3,
++        expected_internal_slice_count: 4,
++        iteration_index: None,
++        phase: MultibodyMotorConstructionPhase::AfterRowConstruction,
++        native_scalar_bits: 32,
++        duration_word: 0x80000000,
++        row_cache_slice_index: Some(3),
++        availability: MultibodyMotorConstructionAvailability::Available,
++        integration_multibody_handle_words: None,
++        generalized_velocity_words: vec![0x7fc12345, 0x80000000],
++        constructed_rows: vec![synthetic_record(None)],
++        endpoints: Vec::new(),
++    });
++    let json = serde_json::to_value(&telemetry).unwrap();
++    assert_eq!(json["schema_version"], 1);
++    assert_eq!(json["source_contract"], "InternalUnitMotorConstructionV1");
++    assert_eq!(json["events"][0]["phase"], "AfterRowConstruction");
++    assert_eq!(json["events"][0]["availability"], "Available");
++    assert_eq!(
++        json["events"][0]["constructed_rows"][0]["limits_words"],
++        serde_json::Value::Null
++    );
++    assert_eq!(
++        json["events"][0]["constructed_rows"][0]["row"]["joint_handle"],
++        serde_json::json!({"index":12,"generation":4})
++    );
++    assert_eq!(
++        serde_json::from_value::<MultibodyMotorConstructionTelemetry>(json).unwrap(),
++        telemetry
++    );
++}
++
++#[cfg(feature = "serde-serialize")]
++#[test]
++fn endpoints_have_distinct_phase_and_actual_multibody_velocity_storage() {
++    let captured = synthetic_record(None);
++    let endpoint = MultibodyMotorConstructionEndpoint {
++        row: captured.row,
++        coordinate_word: 0x80000000,
++        multibody_velocity_words: vec![0x7fc12345],
++    };
++    let json = serde_json::to_value(&endpoint).unwrap();
++    assert_eq!(json["coordinate_word"], 0x80000000u64);
++    assert_eq!(
++        json["multibody_velocity_words"],
++        serde_json::json!([0x7fc12345u64])
++    );
++    assert_ne!(
++        MultibodyMotorConstructionPhase::BeforePositionIntegration,
++        MultibodyMotorConstructionPhase::AfterVelocityWriteback
++    );
++    assert_ne!(
++        MultibodyMotorConstructionAvailability::Uninitialized,
++        MultibodyMotorConstructionAvailability::NoSupportedRows
++    );
++}
+diff --git a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
+--- a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
++++ b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
+@@ -1,9 +1,13 @@
+ #![allow(missing_docs)] // For downcast.
+ 
+ use crate::dynamics::joint::MultibodyLink;
+-use crate::dynamics::solver::{JointGenericOneBodyConstraint, WritebackId};
+-use crate::dynamics::{IntegrationParameters, JointMotor, Multibody};
++use crate::dynamics::solver::{JointGenericOneBodyConstraint, MotorParameters, WritebackId};
++use crate::dynamics::{IntegrationParameters, JointMotor, Multibody, MultibodyJointHandle};
+ use crate::math::Real;
++use crate::pipeline::{
++    motor_stage_word, InternalMotorConstructionRowRecorder, InternalMotorStageBinding,
++    MultibodyMotorConstructionRow,
++};
+ use na::DVector;
+ 
+ /// Initializes and generate the velocity constraints applicable to the multibody links attached
+@@ -78,6 +82,36 @@
+     constraints: &mut [JointGenericOneBodyConstraint],
+     insert_at: &mut usize,
+ ) {
++    unit_joint_motor_constraint_with_construction_inputs(
++        params,
++        multibody,
++        link,
++        motor,
++        curr_pos,
++        limits,
++        dof_id,
++        j_id,
++        jacobians,
++        constraints,
++        insert_at,
++        None,
++    );
++}
++
++pub(crate) fn unit_joint_motor_constraint_with_construction_inputs(
++    params: &IntegrationParameters,
++    multibody: &Multibody,
++    link: &MultibodyLink,
++    motor: &JointMotor,
++    curr_pos: Real,
++    limits: Option<[Real; 2]>,
++    dof_id: usize,
++    j_id: &mut usize,
++    jacobians: &mut DVector<Real>,
++    constraints: &mut [JointGenericOneBodyConstraint],
++    insert_at: &mut usize,
++    recorder: Option<InternalMotorConstructionRowRecorder<'_>>,
++) {
+     let inv_dt = params.inv_dt();
+     let ndofs = multibody.ndofs();
+     let motor_params = motor.motor_params(params.dt);
+@@ -124,8 +158,66 @@
+         writeback_id: WritebackId::Motor(dof_id),
+     };
+ 
++    if let Some(recorder) = recorder {
++        recorder.capture(
++            crate::dynamics::MultibodyJointHandle(link.rigid_body_handle().0),
++            motor,
++            &motor_params,
++            curr_pos,
++            params.dt,
++            inv_dt,
++            limits,
++            target_vel,
++            &constraint,
++            jacobians,
++        );
++    }
++
+     constraints[*insert_at] = constraint;
+     *insert_at += 1;
+ 
+     *j_id += 2 * ndofs;
+ }
++impl InternalMotorConstructionRowRecorder<'_> {
++    #[allow(clippy::too_many_arguments)]
++    pub(crate) fn capture(
++        self,
++        joint_handle: MultibodyJointHandle,
++        motor: &JointMotor,
++        motor_params: &MotorParameters<Real>,
++        coordinate: Real,
++        duration: Real,
++        inverse_duration: Real,
++        limits: Option<[Real; 2]>,
++        effective_target_velocity: Real,
++        constraint: &JointGenericOneBodyConstraint,
++        jacobians: &DVector<Real>,
++    ) {
++        let row = InternalMotorStageBinding {
++            joint_handle,
++            link_id: self.link_id,
++            axis: self.axis,
++            gain_model: motor.model,
++            constraint_index: self.constraint_index,
++            // Same descriptor used by motor.motor_params in the constructor.
++            effort_ceiling: motor.max_force,
++        }
++        .snapshot(constraint, jacobians);
++        self.rows.push(MultibodyMotorConstructionRow {
++            row,
++            coordinate_word: motor_stage_word(coordinate),
++            target_position_word: motor_stage_word(motor.target_pos),
++            target_velocity_word: motor_stage_word(motor.target_vel),
++            stiffness_word: motor_stage_word(motor.stiffness),
++            damping_word: motor_stage_word(motor.damping),
++            duration_word: motor_stage_word(duration),
++            inverse_duration_word: motor_stage_word(inverse_duration),
++            limits_words: limits.map(|values| values.map(motor_stage_word)),
++            effective_target_velocity_word: motor_stage_word(effective_target_velocity),
++            erp_inverse_duration_word: motor_stage_word(motor_params.erp_inv_dt),
++        });
++    }
++}
++
++#[cfg(test)]
++mod rne_motor_construction_tests;
+diff --git a/third_party/rapier3d/src/dynamics/solver/island_solver.rs b/third_party/rapier3d/src/dynamics/solver/island_solver.rs
+--- a/third_party/rapier3d/src/dynamics/solver/island_solver.rs
++++ b/third_party/rapier3d/src/dynamics/solver/island_solver.rs
+@@ -4,7 +4,9 @@
+ use crate::dynamics::IslandManager;
+ use crate::dynamics::{IntegrationParameters, JointGraphEdge, JointIndex, RigidBodySet};
+ use crate::geometry::{ContactManifold, ContactManifoldIndex};
+-use crate::pipeline::{InternalMotorImpulseSample, MultibodyMotorStageEvent};
++use crate::pipeline::{
++    InternalMotorImpulseSample, MultibodyMotorConstructionEvent, MultibodyMotorStageEvent,
++};
+ use crate::prelude::MultibodyJointSet;
+ use parry::math::Real;
+ 
+@@ -55,6 +57,30 @@
+     pub(crate) fn take_motor_stage_events(&mut self) -> Vec<MultibodyMotorStageEvent> {
+         self.velocity_solver
+             .motor_stage_events
++            .take()
++            .unwrap_or_default()
++    }
++
++    pub(crate) fn prepare_motor_construction_telemetry(
++        &mut self,
++        enabled: bool,
++        partition: usize,
++        island: usize,
++    ) {
++        self.velocity_solver.motor_construction_events = enabled.then(Vec::new);
++        self.velocity_solver.motor_construction_partition_index = partition;
++        self.velocity_solver.motor_construction_island_index = island;
++        self.velocity_solver.motor_construction_final_context = None;
++        self.velocity_solver
++            .motor_construction_final_bindings
++            .clear();
++    }
++
++    pub(crate) fn take_motor_construction_events(
++        &mut self,
++    ) -> Vec<MultibodyMotorConstructionEvent> {
++        self.velocity_solver
++            .motor_construction_events
+             .take()
+             .unwrap_or_default()
+     }
+@@ -131,6 +157,8 @@
+             bodies,
+             multibodies,
+         );
++        self.velocity_solver
++            .record_motor_construction_writeback(multibodies, &self.joint_constraints);
+         counters.solver.velocity_writeback_time.pause();
+     }
+ }
+diff --git a/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs b/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs
+--- a/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs
++++ b/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs
+@@ -11,6 +11,7 @@
+     IntegrationParameters, IslandManager, JointGraphEdge, JointIndex, MultibodyJointSet,
+     RigidBodySet,
+ };
++use crate::pipeline::MultibodyMotorConstructionRow;
+ use crate::pipeline::{
+     motor_stage_event, motor_stage_word, InternalMotorStageBinding, InternalMotorStageContext,
+     MultibodyMotorStage, MultibodyMotorStageEvent, MultibodyMotorStageRow,
+@@ -472,6 +473,16 @@
+         multibodies: &MultibodyJointSet,
+         solver_bodies: &[SolverBody],
+     ) {
++        self.update_with_construction_inputs(params, multibodies, solver_bodies, None);
++    }
++
++    pub(crate) fn update_with_construction_inputs(
++        &mut self,
++        params: &IntegrationParameters,
++        multibodies: &MultibodyJointSet,
++        solver_bodies: &[SolverBody],
++        mut recorder: Option<&mut Vec<MultibodyMotorConstructionRow>>,
++    ) {
+         for builder in &mut self.generic_velocity_constraints_builder {
+             builder.update(
+                 params,
+@@ -483,13 +494,24 @@
+         }
+ 
+         for builder in &mut self.generic_velocity_one_body_constraints_builder {
+-            builder.update(
+-                params,
+-                multibodies,
+-                solver_bodies,
+-                &mut self.generic_jacobians,
+-                &mut self.generic_velocity_one_body_constraints,
+-            );
++            if let Some(recorder) = recorder.as_deref_mut() {
++                builder.update_with_construction_inputs(
++                    params,
++                    multibodies,
++                    solver_bodies,
++                    &mut self.generic_jacobians,
++                    &mut self.generic_velocity_one_body_constraints,
++                    Some(recorder),
++                );
++            } else {
++                builder.update(
++                    params,
++                    multibodies,
++                    solver_bodies,
++                    &mut self.generic_jacobians,
++                    &mut self.generic_velocity_one_body_constraints,
++                );
++            }
+         }
+ 
+         for builder in &mut self.velocity_constraints_builder {
+diff --git a/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs b/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs
+--- a/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs
++++ b/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs
+@@ -12,6 +12,7 @@
+ };
+ use crate::dynamics::{JointAxis, MultibodyJointHandle};
+ use crate::math::{Real, Vector, ANG_DIM, DIM, SPATIAL_DIM};
++use crate::pipeline::{InternalMotorConstructionRecorder, MultibodyMotorConstructionRow};
+ use crate::pipeline::{
+     InternalMotorImpulseSample, MultibodyMotorImpulseSlice, MultibodyMotorImpulseValue,
+ };
+@@ -400,9 +401,33 @@
+         jacobians: &mut DVector<Real>,
+         out: &mut [JointGenericOneBodyConstraint],
+     ) {
++        self.update_with_construction_inputs(params, multibodies, bodies, jacobians, out, None);
++    }
++
++    pub(crate) fn update_with_construction_inputs(
++        &self,
++        params: &IntegrationParameters,
++        multibodies: &MultibodyJointSet,
++        bodies: &[SolverBody],
++        jacobians: &mut DVector<Real>,
++        out: &mut [JointGenericOneBodyConstraint],
++        recorder: Option<&mut Vec<MultibodyMotorConstructionRow>>,
++    ) {
+         match self {
+             Self::Empty => {}
+-            Self::Internal(builder) => builder.update(params, multibodies, jacobians, out),
++            Self::Internal(builder) => {
++                if recorder.is_some() {
++                    builder.update_with_construction_inputs(
++                        params,
++                        multibodies,
++                        jacobians,
++                        out,
++                        recorder,
++                    )
++                } else {
++                    builder.update(params, multibodies, jacobians, out)
++                }
++            }
+             Self::External(builder) => builder.update(params, multibodies, bodies, jacobians, out),
+         }
+     }
+@@ -452,15 +477,36 @@
+         jacobians: &mut DVector<Real>,
+         out: &mut [JointGenericOneBodyConstraint],
+     ) {
++        self.update_with_construction_inputs(params, multibodies, jacobians, out, None);
++    }
++
++    fn update_with_construction_inputs(
++        &self,
++        params: &IntegrationParameters,
++        multibodies: &MultibodyJointSet,
++        jacobians: &mut DVector<Real>,
++        out: &mut [JointGenericOneBodyConstraint],
++        recorder: Option<&mut Vec<MultibodyMotorConstructionRow>>,
++    ) {
+         let mb = &multibodies[self.link.multibody];
+         let link = mb.link(self.link.id).unwrap();
+-        link.joint().velocity_constraints(
++        let recorder = if link.joint().ndofs() == 1 {
++            recorder.map(|rows| InternalMotorConstructionRecorder {
++                rows,
++                constraint_base: self.constraint_id,
++                link_id: self.link.id,
++            })
++        } else {
++            None
++        };
++        link.joint().velocity_constraints_with_construction_inputs(
+             params,
+             mb,
+             link,
+             self.j_id,
+             jacobians,
+             &mut out[self.constraint_id..],
++            recorder,
+         );
+     }
+ }
+diff --git a/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs b/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs
+--- a/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs
++++ b/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs
+@@ -1,5 +1,6 @@
+ use super::{JointConstraintTypes, SolverConstraintsSet};
+ use crate::dynamics::solver::solver_body::SolverBody;
++use crate::dynamics::Multibody;
+ use crate::dynamics::{
+     solver::{ContactConstraintTypes, SolverVel},
+     IntegrationParameters, IslandManager, JointGraphEdge, JointIndex, MultibodyJointSet,
+@@ -10,6 +11,11 @@
+ use crate::pipeline::{
+     motor_stage_event, InternalMotorImpulseSample, InternalMotorStageBinding,
+     InternalMotorStageContext, MultibodyMotorStage, MultibodyMotorStageEvent,
++};
++use crate::pipeline::{
++    motor_stage_word, MultibodyMotorConstructionAvailability, MultibodyMotorConstructionEndpoint,
++    MultibodyMotorConstructionEvent, MultibodyMotorConstructionPhase,
++    MultibodyMotorConstructionRow,
+ };
+ use crate::prelude::RigidBodyVelocity;
+ use crate::utils::SimdAngularInertia;
+@@ -27,6 +33,11 @@
+     pub(crate) motor_stage_events: Option<Vec<MultibodyMotorStageEvent>>,
+     pub(crate) motor_stage_partition_index: usize,
+     pub(crate) motor_stage_island_index: usize,
++    pub(crate) motor_construction_events: Option<Vec<MultibodyMotorConstructionEvent>>,
++    pub(crate) motor_construction_partition_index: usize,
++    pub(crate) motor_construction_island_index: usize,
++    pub(crate) motor_construction_final_context: Option<InternalMotorStageContext>,
++    pub(crate) motor_construction_final_bindings: Vec<InternalMotorStageBinding>,
+ }
+ 
+ impl VelocitySolver {
+@@ -43,6 +54,11 @@
+             motor_stage_events: None,
+             motor_stage_partition_index: 0,
+             motor_stage_island_index: 0,
++            motor_construction_events: None,
++            motor_construction_partition_index: 0,
++            motor_construction_island_index: 0,
++            motor_construction_final_context: None,
++            motor_construction_final_bindings: Vec::new(),
+         }
+     }
+ 
+@@ -196,6 +212,147 @@
+         }
+     }
+ 
++    fn construction_context(
++        &self,
++        context: InternalMotorStageContext,
++    ) -> InternalMotorStageContext {
++        InternalMotorStageContext {
++            partition: self.motor_construction_partition_index,
++            island: self.motor_construction_island_index,
++            ..context
++        }
++    }
++
++    fn construction_endpoints_for_multibody(
++        multibody: &Multibody,
++        joint_constraints: &SolverConstraintsSet<JointConstraintTypes>,
++        bindings: &[InternalMotorStageBinding],
++    ) -> Vec<MultibodyMotorConstructionEndpoint> {
++        bindings
++            .iter()
++            .filter_map(|binding| {
++                let link = multibody.link(binding.link_id)?;
++                if link.rigid_body_handle().0 != binding.joint_handle.0 {
++                    return None;
++                }
++                let row = joint_constraints
++                    .generic_velocity_one_body_constraints
++                    .get(binding.constraint_index)?;
++                Some(MultibodyMotorConstructionEndpoint {
++                    row: binding.snapshot(row, &joint_constraints.generic_jacobians),
++                    coordinate_word: motor_stage_word(link.joint().coords[binding.axis as usize]),
++                    multibody_velocity_words: multibody
++                        .velocities
++                        .iter()
++                        .map(|value| motor_stage_word(*value))
++                        .collect(),
++                })
++            })
++            .collect()
++    }
++
++    #[allow(clippy::too_many_arguments)]
++    fn push_construction_event(
++        events: &mut Option<Vec<MultibodyMotorConstructionEvent>>,
++        context: InternalMotorStageContext,
++        phase: MultibodyMotorConstructionPhase,
++        velocities: &DVector<Real>,
++        constructed_rows: Vec<MultibodyMotorConstructionRow>,
++        endpoints: Vec<MultibodyMotorConstructionEndpoint>,
++        integration_handle: Option<[u32; 2]>,
++    ) {
++        if let Some(events) = events {
++            let availability = if !context.initialized {
++                MultibodyMotorConstructionAvailability::Uninitialized
++            } else if constructed_rows.is_empty() && endpoints.is_empty() {
++                MultibodyMotorConstructionAvailability::NoSupportedRows
++            } else {
++                MultibodyMotorConstructionAvailability::Available
++            };
++            events.push(MultibodyMotorConstructionEvent {
++                ccd_partition_index: context.partition,
++                island_index: context.island,
++                internal_slice_index: context.slice,
++                expected_internal_slice_count: context.expected_slices,
++                iteration_index: context.iteration,
++                phase,
++                native_scalar_bits: (std::mem::size_of::<Real>() * 8) as u8,
++                duration_word: motor_stage_word(context.duration),
++                row_cache_slice_index: context.initialized.then_some(context.slice),
++                availability,
++                integration_multibody_handle_words: integration_handle,
++                generalized_velocity_words: velocities
++                    .iter()
++                    .map(|value| motor_stage_word(*value))
++                    .collect(),
++                constructed_rows,
++                endpoints,
++            });
++        }
++    }
++
++    fn record_construction_endpoint(
++        &mut self,
++        context: InternalMotorStageContext,
++        phase: MultibodyMotorConstructionPhase,
++        multibodies: &MultibodyJointSet,
++        joint_constraints: &SolverConstraintsSet<JointConstraintTypes>,
++        bindings: &[InternalMotorStageBinding],
++        constructed_rows: Vec<MultibodyMotorConstructionRow>,
++    ) {
++        if self.motor_construction_events.is_none() {
++            return;
++        }
++        let endpoints = if context.initialized {
++            bindings
++                .iter()
++                .filter_map(|binding| {
++                    let (multibody, link_id) = multibodies.get(binding.joint_handle)?;
++                    if link_id != binding.link_id {
++                        return None;
++                    }
++                    Self::construction_endpoints_for_multibody(
++                        multibody,
++                        joint_constraints,
++                        std::slice::from_ref(binding),
++                    )
++                    .into_iter()
++                    .next()
++                })
++                .collect()
++        } else {
++            Vec::new()
++        };
++        let context = self.construction_context(context);
++        Self::push_construction_event(
++            &mut self.motor_construction_events,
++            context,
++            phase,
++            &self.generic_solver_vels,
++            constructed_rows,
++            endpoints,
++            None,
++        );
++    }
++
++    pub(crate) fn record_motor_construction_writeback(
++        &mut self,
++        multibodies: &MultibodyJointSet,
++        joint_constraints: &SolverConstraintsSet<JointConstraintTypes>,
++    ) {
++        if let Some(context) = self.motor_construction_final_context {
++            let bindings = self.motor_construction_final_bindings.clone();
++            self.record_construction_endpoint(
++                context,
++                MultibodyMotorConstructionPhase::AfterVelocityWriteback,
++                multibodies,
++                joint_constraints,
++                &bindings,
++                Vec::new(),
++            );
++        }
++    }
++
+     pub fn solve_constraints(
+         &mut self,
+         params: &IntegrationParameters,
+@@ -225,6 +382,14 @@
+                 &stage_bindings,
+             );
+ 
++            self.record_construction_endpoint(
++                stage_context,
++                MultibodyMotorConstructionPhase::BeforeExternalForces,
++                multibodies,
++                joint_constraints,
++                &[],
++                Vec::new(),
++            );
+             for (solver_vels, incr) in self
+                 .solver_vels
+                 .iter_mut()
+@@ -245,10 +410,28 @@
+             /*
+              * Update & solve constraints.
+              */
+-            joint_constraints.update(params, multibodies, &self.solver_bodies);
++            self.record_construction_endpoint(
++                stage_context,
++                MultibodyMotorConstructionPhase::AfterExternalForces,
++                multibodies,
++                joint_constraints,
++                &[],
++                Vec::new(),
++            );
++            let mut constructed_rows = Vec::new();
++            if self.motor_construction_events.is_some() {
++                joint_constraints.update_with_construction_inputs(
++                    params,
++                    multibodies,
++                    &self.solver_bodies,
++                    Some(&mut constructed_rows),
++                );
++            } else {
++                joint_constraints.update(params, multibodies, &self.solver_bodies);
++            }
+             // Builder metadata and row values are read only after update has
+             // initialized every row for the current slice.
+-            if self.motor_stage_events.is_some() {
++            if self.motor_stage_events.is_some() || self.motor_construction_events.is_some() {
+                 for builder in &joint_constraints.generic_velocity_one_body_constraints_builder {
+                     builder.append_internal_motor_stage_bindings(
+                         multibodies,
+@@ -258,6 +441,14 @@
+                 }
+             }
+             stage_context.initialized = true;
++            self.record_construction_endpoint(
++                stage_context,
++                MultibodyMotorConstructionPhase::AfterRowConstruction,
++                multibodies,
++                joint_constraints,
++                &stage_bindings,
++                constructed_rows,
++            );
+             self.record_motor_stage(
+                 stage_context,
+                 MultibodyMotorStage::AfterJointUpdate,
+@@ -343,7 +534,27 @@
+             /*
+              * Integrate positions.
+              */
+-            self.integrate_positions(params, is_last_substep, bodies, multibodies);
++            let construction_observation = self.motor_construction_events.as_ref().map(|_| {
++                (
++                    InternalMotorStageContext {
++                        iteration: None,
++                        ..self.construction_context(stage_context)
++                    },
++                    &*joint_constraints,
++                    stage_bindings.as_slice(),
++                )
++            });
++            if construction_observation.is_some() {
++                self.integrate_positions_with_construction(
++                    params,
++                    is_last_substep,
++                    bodies,
++                    multibodies,
++                    construction_observation,
++                );
++            } else {
++                self.integrate_positions(params, is_last_substep, bodies, multibodies);
++            }
+             stage_context.iteration = None;
+             self.record_motor_stage(
+                 stage_context,
+@@ -383,6 +594,14 @@
+                         joint_constraints,
+                         &stage_bindings,
+                     );
++                    self.record_construction_endpoint(
++                        stage_context,
++                        MultibodyMotorConstructionPhase::AfterJointStabilization,
++                        multibodies,
++                        joint_constraints,
++                        &stage_bindings,
++                        Vec::new(),
++                    );
+                     contact_constraints.solve_restitution_wo_bias(
+                         &mut self.solver_vels,
+                         &mut self.generic_solver_vels,
+@@ -414,6 +633,18 @@
+                 &stage_bindings,
+             );
+ 
++            self.record_construction_endpoint(
++                stage_context,
++                MultibodyMotorConstructionPhase::FinalSlice,
++                multibodies,
++                joint_constraints,
++                &stage_bindings,
++                Vec::new(),
++            );
++            if self.motor_construction_events.is_some() {
++                self.motor_construction_final_context = Some(stage_context);
++                self.motor_construction_final_bindings = stage_bindings.clone();
++            }
+             // Observe final net impulses once, after all stabilization passes.
+             if let Some(samples) = &mut self.motor_impulse_samples {
+                 for builder in &joint_constraints.generic_velocity_one_body_constraints_builder {
+@@ -438,6 +669,27 @@
+         bodies: &mut RigidBodySet,
+         multibodies: &mut MultibodyJointSet,
+     ) {
++        self.integrate_positions_with_construction(
++            params,
++            is_last_substep,
++            bodies,
++            multibodies,
++            None,
++        );
++    }
++
++    fn integrate_positions_with_construction(
++        &mut self,
++        params: &IntegrationParameters,
++        is_last_substep: bool,
++        bodies: &mut RigidBodySet,
++        multibodies: &mut MultibodyJointSet,
++        construction_observation: Option<(
++            InternalMotorStageContext,
++            &SolverConstraintsSet<JointConstraintTypes>,
++            &[InternalMotorStageBinding],
++        )>,
++    ) {
+         // Integrate positions.
+         for (solver_vels, solver_body) in self.solver_vels.iter().zip(self.solver_bodies.iter_mut())
+         {
+@@ -462,7 +714,35 @@
+                 .generic_solver_vels
+                 .rows(multibody.solver_id, multibody.ndofs());
+             multibody.velocities.copy_from(&solver_vels);
++            if let Some((context, constraints, bindings)) = construction_observation {
++                let (index, generation) = link.multibody.0.into_raw_parts();
++                let endpoints =
++                    Self::construction_endpoints_for_multibody(multibody, constraints, bindings);
++                Self::push_construction_event(
++                    &mut self.motor_construction_events,
++                    context,
++                    MultibodyMotorConstructionPhase::BeforePositionIntegration,
++                    &self.generic_solver_vels,
++                    Vec::new(),
++                    endpoints,
++                    Some([index, generation]),
++                );
++            }
+             multibody.integrate(params.dt);
++            if let Some((context, constraints, bindings)) = construction_observation {
++                let (index, generation) = link.multibody.0.into_raw_parts();
++                let endpoints =
++                    Self::construction_endpoints_for_multibody(multibody, constraints, bindings);
++                Self::push_construction_event(
++                    &mut self.motor_construction_events,
++                    context,
++                    MultibodyMotorConstructionPhase::AfterPositionIntegration,
++                    &self.generic_solver_vels,
++                    Vec::new(),
++                    endpoints,
++                    Some([index, generation]),
++                );
++            }
+             // PERF: don’t write back to the rigid-body poses `bodies` before the last step?
+             multibody.forward_kinematics(bodies, false);
+             multibody.update_rigid_bodies_internal(bodies, !is_last_substep, true, false);
+diff --git a/third_party/rapier3d/src/pipeline/mod.rs b/third_party/rapier3d/src/pipeline/mod.rs
+--- a/third_party/rapier3d/src/pipeline/mod.rs
++++ b/third_party/rapier3d/src/pipeline/mod.rs
+@@ -2,6 +2,15 @@
+ 
+ pub use collision_pipeline::CollisionPipeline;
+ pub use event_handler::{ActiveEvents, ChannelEventCollector, EventHandler};
++pub(crate) use multibody_motor_construction::{
++    InternalMotorConstructionRecorder, InternalMotorConstructionRowRecorder,
++};
++pub use multibody_motor_construction::{
++    MultibodyMotorConstructionAvailability, MultibodyMotorConstructionEndpoint,
++    MultibodyMotorConstructionEvent, MultibodyMotorConstructionPhase,
++    MultibodyMotorConstructionRow, MultibodyMotorConstructionSource,
++    MultibodyMotorConstructionTelemetry,
++};
+ pub(crate) use multibody_motor_impulse::InternalMotorImpulseSample;
+ pub use multibody_motor_impulse::{
+     MultibodyMotorImpulseRecord, MultibodyMotorImpulseSlice, MultibodyMotorImpulseTelemetry,
+@@ -28,6 +37,7 @@
+ 
+ mod collision_pipeline;
+ mod event_handler;
++mod multibody_motor_construction;
+ mod multibody_motor_impulse;
+ mod multibody_motor_stage;
+ mod physics_hooks;
+diff --git a/third_party/rapier3d/src/pipeline/multibody_motor_construction.rs b/third_party/rapier3d/src/pipeline/multibody_motor_construction.rs
+new file mode 100644
+--- /dev/null
++++ b/third_party/rapier3d/src/pipeline/multibody_motor_construction.rs
+@@ -0,0 +1,171 @@
++//! Optional constructor inputs and distinct coordinate/velocity endpoints.
++//!
++//! This companion has its own schema. It does not change the version-one motor
++//! stage structs or infer row construction inputs from a later pose.
++
++use crate::dynamics::JointAxis;
++use crate::math::Real;
++use crate::pipeline::{motor_stage_word, MultibodyMotorStageRow};
++
++/// Source contract identifier; compiled source hashes belong in external bindings.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
++pub enum MultibodyMotorConstructionSource {
++    /// Actual locals from the internal unit-motor constructor, schema one.
++    InternalUnitMotorConstructionV1,
++}
++
++/// Boundary of the separately versioned construction companion.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
++pub enum MultibodyMotorConstructionPhase {
++    /// No current-slice row storage has been initialized.
++    BeforeExternalForces,
++    /// External increments completed; current-slice rows remain unavailable.
++    AfterExternalForces,
++    /// Actual constructor inputs and initialized rows are available.
++    AfterRowConstruction,
++    /// Generic V has been copied to this multibody, before coordinates advance.
++    BeforePositionIntegration,
++    /// Coordinates advanced using the preceding integration-input velocity.
++    AfterPositionIntegration,
++    /// One complete joint stabilization pass, before its contact pass.
++    AfterJointStabilization,
++    /// Final solver slice state, before final velocity writeback.
++    FinalSlice,
++    /// Final generic V has been copied to multibody velocity storage.
++    AfterVelocityWriteback,
++}
++
++/// Explicit availability of this event's supported internal motor rows.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
++pub enum MultibodyMotorConstructionAvailability {
++    /// Current-slice rows have not been initialized and were not read.
++    Uninitialized,
++    /// Row storage is initialized but has no supported single-DoF motor.
++    NoSupportedRows,
++    /// At least one supported initialized row was captured.
++    Available,
++}
++
++/// Raw actual inputs at one internal unit-motor construction.
++#[derive(Clone, Debug, PartialEq)]
++#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
++pub struct MultibodyMotorConstructionRow {
++    /// Unchanged stage-v1 row, copied from the actual initialized constraint.
++    pub row: MultibodyMotorStageRow,
++    /// Actual constructor coordinate, in metres or radians according to axis.
++    pub coordinate_word: u64,
++    /// Actual motor target position, in metres or radians.
++    pub target_position_word: u64,
++    /// Original native motor target velocity, before optional limit clamping.
++    pub target_velocity_word: u64,
++    /// Actual native stiffness; units depend on gain model and axis.
++    pub stiffness_word: u64,
++    /// Actual native damping; units depend on gain model and axis.
++    pub damping_word: u64,
++    /// Actual constructor parameter duration in seconds.
++    pub duration_word: u64,
++    /// Actual computed inverse duration in reciprocal seconds.
++    pub inverse_duration_word: u64,
++    /// Actual optional limit coordinates, preserving absence and signed zeros.
++    pub limits_words: Option<[u64; 2]>,
++    /// Actual local target velocity after optional limit clamping.
++    pub effective_target_velocity_word: u64,
++    /// Actual computed motor ERP inverse-duration coefficient in reciprocal seconds.
++    pub erp_inverse_duration_word: u64,
++}
++
++/// Current coordinate and actual multibody velocity at a named boundary.
++#[derive(Clone, Debug, PartialEq)]
++#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
++pub struct MultibodyMotorConstructionEndpoint {
++    /// Current constraint snapshot using the row cache named by its event.
++    pub row: MultibodyMotorStageRow,
++    /// Current native joint coordinate, never substituted with a later ECS value.
++    pub coordinate_word: u64,
++    /// Actual multibody velocity storage, distinguished from event generic V.
++    pub multibody_velocity_words: Vec<u64>,
++}
++
++/// One deterministic island/slice construction or coordinate boundary.
++#[derive(Clone, Debug, PartialEq)]
++#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
++pub struct MultibodyMotorConstructionEvent {
++    /// Actual CCD partition index.
++    pub ccd_partition_index: usize,
++    /// Actual island index, drained after workers join in island order.
++    pub island_index: usize,
++    /// Actual small-step index.
++    pub internal_slice_index: usize,
++    /// Actual expected small-step count for this island.
++    pub expected_internal_slice_count: usize,
++    /// Actual stabilization pass, when applicable.
++    pub iteration_index: Option<usize>,
++    /// Exact operation boundary.
++    pub phase: MultibodyMotorConstructionPhase,
++    /// IEEE width of all words, 32 or 64.
++    pub native_scalar_bits: u8,
++    /// Actual small-step duration in seconds.
++    pub duration_word: u64,
++    /// Cache that initialized nested rows; absence means storage was not read.
++    pub row_cache_slice_index: Option<usize>,
++    /// Explicit row availability, distinct from a measured zero.
++    pub availability: MultibodyMotorConstructionAvailability,
++    /// Native index/generation of the root being integrated; absent at other phases.
++    pub integration_multibody_handle_words: Option<[u32; 2]>,
++    /// Actual full generalized solver V, not ordinary rigid-body solver storage.
++    pub generalized_velocity_words: Vec<u64>,
++    /// Present only at AfterRowConstruction; subsequent phases do not rebuild inputs.
++    pub constructed_rows: Vec<MultibodyMotorConstructionRow>,
++    /// Actual coordinate/velocity endpoints for supported current rows.
++    pub endpoints: Vec<MultibodyMotorConstructionEndpoint>,
++}
++
++/// Completed read-only construction companion, disabled by default.
++///
++/// Empty or unsupported observations are not measured zero. This reports raw
++/// inputs/endpoints, not a computed physical solution or neutrality guarantee.
++#[derive(Clone, Debug, PartialEq)]
++#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
++pub struct MultibodyMotorConstructionTelemetry {
++    /// Independent companion schema version, currently one.
++    pub schema_version: u32,
++    /// Source contract; external source/compiler/binary bindings remain necessary.
++    pub source_contract: MultibodyMotorConstructionSource,
++    /// IEEE scalar width.
++    pub native_scalar_bits: u8,
++    /// Actual native outer duration in seconds.
++    pub numerical_outer_interval_word: u64,
++    /// Actual CCD partition durations, in recorded order.
++    pub ccd_partition_duration_words: Vec<u64>,
++    /// Construction and endpoint events in partition/island/native operation order.
++    pub events: Vec<MultibodyMotorConstructionEvent>,
++}
++
++impl MultibodyMotorConstructionTelemetry {
++    pub(crate) fn new(duration: Real) -> Self {
++        Self {
++            schema_version: 1,
++            source_contract: MultibodyMotorConstructionSource::InternalUnitMotorConstructionV1,
++            native_scalar_bits: (std::mem::size_of::<Real>() * 8) as u8,
++            numerical_outer_interval_word: motor_stage_word(duration),
++            ccd_partition_duration_words: Vec::new(),
++            events: Vec::new(),
++        }
++    }
++}
++
++pub(crate) struct InternalMotorConstructionRecorder<'a> {
++    pub rows: &'a mut Vec<MultibodyMotorConstructionRow>,
++    pub constraint_base: usize,
++    pub link_id: usize,
++}
++
++pub(crate) struct InternalMotorConstructionRowRecorder<'a> {
++    pub rows: &'a mut Vec<MultibodyMotorConstructionRow>,
++    pub constraint_index: usize,
++    pub link_id: usize,
++    pub axis: JointAxis,
++}
+diff --git a/third_party/rapier3d/src/pipeline/physics_pipeline.rs b/third_party/rapier3d/src/pipeline/physics_pipeline.rs
+--- a/third_party/rapier3d/src/pipeline/physics_pipeline.rs
++++ b/third_party/rapier3d/src/pipeline/physics_pipeline.rs
+@@ -15,8 +15,8 @@
+ };
+ use crate::math::{Real, Vector};
+ use crate::pipeline::{
+-    motor_stage_word, EventHandler, MultibodyMotorImpulseTelemetry, MultibodyMotorStageTelemetry,
+-    PhysicsHooks, QueryPipeline,
++    motor_stage_word, EventHandler, MultibodyMotorConstructionTelemetry,
++    MultibodyMotorImpulseTelemetry, MultibodyMotorStageTelemetry, PhysicsHooks, QueryPipeline,
+ };
+ use {crate::dynamics::RigidBodySet, crate::geometry::ColliderSet};
+ 
+@@ -46,6 +46,9 @@
+     motor_stage_telemetry_enabled: bool,
+     pending_motor_stage_telemetry: Option<MultibodyMotorStageTelemetry>,
+     completed_motor_stage_telemetry: Option<MultibodyMotorStageTelemetry>,
++    motor_construction_telemetry_enabled: bool,
++    pending_motor_construction_telemetry: Option<MultibodyMotorConstructionTelemetry>,
++    completed_motor_construction_telemetry: Option<MultibodyMotorConstructionTelemetry>,
+ }
+ 
+ impl Default for PhysicsPipeline {
+@@ -72,6 +75,9 @@
+             motor_stage_telemetry_enabled: false,
+             pending_motor_stage_telemetry: None,
+             completed_motor_stage_telemetry: None,
++            motor_construction_telemetry_enabled: false,
++            pending_motor_construction_telemetry: None,
++            completed_motor_construction_telemetry: None,
+             contact_pair_indices: vec![],
+             manifold_indices: vec![],
+             joint_constraint_indices: vec![],
+@@ -118,6 +124,29 @@
+     /// interrupted step. Empty rows indicate unavailable or unsupported motors.
+     pub fn completed_multibody_motor_stages(&self) -> Option<&MultibodyMotorStageTelemetry> {
+         self.completed_motor_stage_telemetry.as_ref()
++    }
++
++    /// Enables the independent read-only construction/coordinate companion.
++    ///
++    /// Disabled by default and independent of version-one stage observation.
++    /// Toggling clears this observer's pending/completed reports only.
++    pub fn set_multibody_motor_construction_telemetry_enabled(&mut self, enabled: bool) {
++        if self.motor_construction_telemetry_enabled != enabled {
++            self.motor_construction_telemetry_enabled = enabled;
++            self.pending_motor_construction_telemetry = None;
++            self.completed_motor_construction_telemetry = None;
++        }
++    }
++
++    /// Returns the completed construction companion, or None when unavailable.
++    ///
++    /// None includes disabled, pre-step, toggled and interrupted states. Empty
++    /// completed events do not mean a measured zero. Runtime neutrality and
++    /// physical calibration require separately registered qualification.
++    pub fn completed_multibody_motor_constructions(
++        &self,
++    ) -> Option<&MultibodyMotorConstructionTelemetry> {
++        self.completed_motor_construction_telemetry.as_ref()
+     }
+ 
+     fn clear_modified_colliders(
+@@ -291,11 +320,21 @@
+             .as_ref()
+             .map(|report| report.ccd_partition_duration_words.len() - 1)
+             .unwrap_or(0);
++        let construction_partition = self
++            .pending_motor_construction_telemetry
++            .as_ref()
++            .map(|report| report.ccd_partition_duration_words.len() - 1)
++            .unwrap_or(0);
+         for (island, solver) in self.solvers[..islands.num_islands()].iter_mut().enumerate() {
+             solver.prepare_motor_impulse_telemetry(self.motor_impulse_telemetry_enabled, partition);
+             solver.prepare_motor_stage_telemetry(
+                 self.motor_stage_telemetry_enabled,
+                 stage_partition,
++                island,
++            );
++            solver.prepare_motor_construction_telemetry(
++                self.motor_construction_telemetry_enabled,
++                construction_partition,
+                 island,
+             );
+         }
+@@ -385,6 +424,14 @@
+         if let Some(report) = &mut self.pending_motor_stage_telemetry {
+             for solver in &mut self.solvers[..islands.num_islands()] {
+                 report.events.extend(solver.take_motor_stage_events());
++            }
++        }
++
++        if let Some(report) = &mut self.pending_motor_construction_telemetry {
++            for solver in &mut self.solvers[..islands.num_islands()] {
++                report
++                    .events
++                    .extend(solver.take_motor_construction_events());
+             }
+         }
+ 
+@@ -517,10 +564,15 @@
+         self.pending_motor_stage_telemetry = self
+             .motor_stage_telemetry_enabled
+             .then(|| MultibodyMotorStageTelemetry::new(integration_parameters.dt));
++        self.completed_motor_construction_telemetry = None;
++        self.pending_motor_construction_telemetry = self
++            .motor_construction_telemetry_enabled
++            .then(|| MultibodyMotorConstructionTelemetry::new(integration_parameters.dt));
+         // Clear every cached island, including islands inactive this step.
+         for solver in &mut self.solvers {
+             solver.prepare_motor_impulse_telemetry(false, 0);
+             solver.prepare_motor_stage_telemetry(false, 0, 0);
++            solver.prepare_motor_construction_telemetry(false, 0, 0);
+         }
+         self.counters.reset();
+         self.counters.step_started();
+@@ -688,6 +740,11 @@
+                     .ccd_partition_duration_words
+                     .push(motor_stage_word(integration_parameters.dt));
+             }
++            if let Some(report) = &mut self.pending_motor_construction_telemetry {
++                report
++                    .ccd_partition_duration_words
++                    .push(motor_stage_word(integration_parameters.dt));
++            }
+             self.build_islands_and_solve_velocity_constraints(
+                 gravity,
+                 &integration_parameters,
+@@ -776,6 +833,8 @@
+             self.completed_motor_impulse_telemetry = Some(report);
+         }
+         self.completed_motor_stage_telemetry = self.pending_motor_stage_telemetry.take();
++        self.completed_motor_construction_telemetry =
++            self.pending_motor_construction_telemetry.take();
+     }
+ }
+ 
+@@ -1125,3 +1184,34 @@
+         }
+     }
+ }
++
++#[cfg(test)]
++mod rne_motor_construction_flag_tests {
++    use super::*;
++
++    #[test]
++    fn default_and_toggle_clear_only_companion_storage_without_a_world() {
++        let mut pipeline = PhysicsPipeline::new();
++        assert!(!pipeline.motor_construction_telemetry_enabled);
++        assert!(pipeline.completed_multibody_motor_constructions().is_none());
++        pipeline.motor_stage_telemetry_enabled = true;
++        pipeline.completed_motor_stage_telemetry = Some(MultibodyMotorStageTelemetry::new(-0.0));
++        let original_stage = pipeline.completed_motor_stage_telemetry.clone();
++        pipeline.pending_motor_construction_telemetry =
++            Some(MultibodyMotorConstructionTelemetry::new(-0.0));
++        pipeline.completed_motor_construction_telemetry =
++            Some(MultibodyMotorConstructionTelemetry::new(-0.0));
++        pipeline.set_multibody_motor_construction_telemetry_enabled(true);
++        assert!(pipeline.pending_motor_construction_telemetry.is_none());
++        assert!(pipeline.completed_multibody_motor_constructions().is_none());
++        assert!(pipeline.motor_stage_telemetry_enabled);
++        assert_eq!(pipeline.completed_motor_stage_telemetry, original_stage);
++        pipeline.completed_motor_construction_telemetry =
++            Some(MultibodyMotorConstructionTelemetry::new(-0.0));
++        pipeline.set_multibody_motor_construction_telemetry_enabled(true);
++        assert!(pipeline.completed_multibody_motor_constructions().is_some());
++        pipeline.set_multibody_motor_construction_telemetry_enabled(false);
++        assert!(pipeline.completed_multibody_motor_constructions().is_none());
++        assert_eq!(pipeline.completed_motor_stage_telemetry, original_stage);
++    }
++}

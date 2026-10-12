@@ -1,0 +1,10 @@
+{
+  "actual_exit_code": 1,
+  "tests": 26,
+  "failures": 0,
+  "errors": 1,
+  "cause": "An inherited v1 assertion expected ValueError for failed direct driver; new mandatory checked-command receipt was missing and raised FileNotFoundError. Missing-authorization admission is still rejected, but failure classification will be made explicit.",
+  "native_worlds": 0,
+  "native_processes": 0,
+  "not_a_native_or_scientific_result": true
+}

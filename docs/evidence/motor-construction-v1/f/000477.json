@@ -1,0 +1,82 @@
+{
+  "kind": "separately_versioned_v2_selected_runtime_tool_sources",
+  "status": "PURE_TESTED_SOURCE_READY_NOT_CONCRETE_ADMISSION",
+  "created_utc": "2026-10-12T10:44:04.704815+00:00",
+  "runtime_modules": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/strict_io.py",
+      "sha256": "27ad4b0d7351f93c4c378f3f41f69ecbb917569594cd1b980a2a7d6bbae07abc",
+      "bytes": 3739
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/cohort_reader.py",
+      "sha256": "71c8af5157df36ddfb0447cf52e8acffe0b814e0d74bec7cd33443af7c953310",
+      "bytes": 44099
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/cohort_driver.py",
+      "sha256": "1522fce043a58e800c5a1b16047a1433f6056bc5bb1c84593084869eeda0db92",
+      "bytes": 10669
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/checked_driver.py",
+      "sha256": "9e1f51bc1cb794762f0eb2e6d2c42c6b3d07e39dae425474df7ac75ffdfcdcaf",
+      "bytes": 4881
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    }
+  ],
+  "other_inputs": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/test_cohort_tools.py",
+      "sha256": "3a259a9b7924fa52dbd8148b9a1035229fb7755280ac9a443631ae3d98c48296",
+      "bytes": 26367
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/README.md",
+      "sha256": "d49a272da2dcffccd226bd7edc9007aac1047781c1ec24d89d6776eedbb8a10e",
+      "bytes": 9292
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/candidate-template.json",
+      "sha256": "853a9cbea418f8392f3a76da06e3646cbc05bc58651744735596ddcc159cbdd9",
+      "bytes": 2022
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/helper-copy-provenance-v2.json",
+      "sha256": "66076308c1f53cfbfb2d5cbc6c927a9cd6c0e69ae854af80415c2bad182f5d0e",
+      "bytes": 1252
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/v1-preservation-and-exact-copy-ledger.json",
+      "sha256": "eaa9bb93c93a041f001a7617a29d198847a2703a03d96d2341803cf7ec82a4f9",
+      "bytes": 6571
+    }
+  ],
+  "interpreter_binding_required": {
+    "path": "/usr/bin/python3",
+    "sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1",
+    "bytes": 6812336
+  },
+  "actual_pure_terminal": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/v2-pure-tests-final-attempt-1/terminal.json",
+    "sha256": "c4ba701b37184ad5a3ed1259251ebbc860cefbce56e0304e5352f5d6c2a4dd28",
+    "bytes": 3433
+  },
+  "native_worlds": 0,
+  "historical_native_numerical_payload_read": false,
+  "non_exhaustive_scope": "Seven Python runtime modules and pinned interpreter; no claim of a complete host dependency closure. Native source/compiler/binary bindings remain root-owned unchanged and require concrete admission."
+}

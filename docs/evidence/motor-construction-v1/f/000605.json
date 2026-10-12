@@ -1,0 +1,9 @@
+{
+  "kind": "prospective_synthetic_construction_oracle_tests",
+  "tests_run": 10,
+  "failures": 0,
+  "errors": 0,
+  "actual_exit_code": 0,
+  "native_worlds_launched": 0,
+  "native_data_read": false
+}

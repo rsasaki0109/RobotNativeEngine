@@ -1,0 +1,36 @@
+{
+  "argv": [
+    "cargo",
+    "test",
+    "--locked",
+    "--workspace"
+  ],
+  "completed_at": "2026-10-12T10:41:20.253499+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 1834.2471084780009,
+  "kind": "rne_actual_validation",
+  "name": "workspace-test",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": true,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:10:46.006380+00:00",
+  "stderr": {
+    "sha256": "9b0eff865e7a8bf375ac812f52d4b910326d9b5fa259bb1af48cd1fc087554da",
+    "size_bytes": 30103
+  },
+  "stdout": {
+    "sha256": "b9d242848946651597d8909316e67e7f509b6ac16664afc8086e1c06e2ce302f",
+    "size_bytes": 215517
+  }
+}

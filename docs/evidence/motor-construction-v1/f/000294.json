@@ -1,0 +1,22 @@
+{
+  "comparator_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/compare_scalar_source_transition.py",
+    "sha256": "699c654d4925e8870e67723863dc173e91a5e2e828af34e1a7d947970d99242e",
+    "size_bytes": 11517
+  },
+  "driver_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/driver.py",
+    "sha256": "4c1362e62ffb666413c140e686c880c342dad8adaa0aca017bc7516f1641331b",
+    "size_bytes": 31138
+  },
+  "test_runner_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/run_tests.py",
+    "sha256": "e2bb5ef303a4686b41e401b9e3d108b117fb8514a749af03bef7ee2a9d4ff398",
+    "size_bytes": 2730
+  },
+  "test_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/test_driver.py",
+    "sha256": "07ec5970d0b5c277cafd459d9542b738a61ce66f73a1799f784f9a0e209f6962",
+    "size_bytes": 17695
+  }
+}

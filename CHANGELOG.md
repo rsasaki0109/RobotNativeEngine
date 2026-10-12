@@ -288,6 +288,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Add a default-disabled Rapier motor-construction companion and example 143's
+  isolated diagnostic collector. Capture actual constructor inputs and separate
+  coordinate-integration velocity from stabilization and final writeback.
+  Six preregistered fresh processes pass captured-state ON/fresh/OFF replay,
+  complete stage ordering, and 128 construction plus 128 coordinate-update
+  checks in the declared normal/zero domain. A separate unchanged 72-world run
+  changes only the scalar report's selected-source object; every other report
+  byte matches. Preserve the original 0/4 calibration failure, rejected solver
+  candidate, public v1 schemas, production equations and gains.
+
 - Add default-off Rapier contact/motor stage observation and example 142's
   streaming gzip JSONL collector for the unchanged example 138 held-grasp plant.
   Retain native row coefficients, full generalized-velocity blocks, immediate

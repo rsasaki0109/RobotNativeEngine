@@ -1,0 +1,41 @@
+{
+  "argv": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--manifest-path",
+    "third_party/rapier3d/Cargo.toml",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "completed_at": "2026-10-12T10:59:17.424747+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 19.573071909002465,
+  "kind": "rne_actual_validation",
+  "name": "rapier-standalone-clippy",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": false,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:58:57.851668+00:00",
+  "stderr": {
+    "sha256": "5652dcf6bad66717a2fba3882a928a76d9bc10f13dc04489cfbd0ffab9f9ca4c",
+    "size_bytes": 2037
+  },
+  "stdout": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  }
+}

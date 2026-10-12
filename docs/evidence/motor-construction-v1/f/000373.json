@@ -1,0 +1,12 @@
+{
+  "collector_process_budget": 1,
+  "created_at": "2026-10-12T10:31:23.047215+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_mutated_source_fails_guard_and_stops_before_comparison/frozen/frozen-bindings.json",
+    "sha256": "95576b55c9f903aca53884bf3fcc236060831ffd1da850cb844d863d77622fc2",
+    "size_bytes": 16337
+  },
+  "kind": "rne_141_once_only_attempt_claim",
+  "retry_allowed": false,
+  "world_attempt_budget": 72
+}

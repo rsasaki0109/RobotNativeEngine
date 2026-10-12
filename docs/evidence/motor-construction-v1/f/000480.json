@@ -1,0 +1,39 @@
+{
+  "kind": "prospective_cohort_reader_fixed_driver_handoff",
+  "status": "READY_FOR_INDEPENDENT_PRE_DATA_REVIEW",
+  "created_utc": "2026-10-12T10:18:15.352268+00:00",
+  "tool_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/final-tool-source-manifest.json",
+    "sha256": "08a38821e4fbc8b453d30ea9a09cac505d3d4bcc178bd025e8ee36a21a2133b9",
+    "bytes": 3025
+  },
+  "source_schema_review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/source-only-schema-schedule-review.json",
+    "sha256": "d2f208e5cd5f8918ad17fbefe625c8a7a93e37af910d8ebf24a67b2c3e154d99",
+    "bytes": 3858
+  },
+  "actual_pure_test_terminal": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/pure-tests-final-attempt-1/terminal.json",
+    "sha256": "dbe458601272470bfb8a339784abe5f50c9c866bc892205f07335607ab0b1d99",
+    "bytes": 3118
+  },
+  "actual_pure_tests": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader/pure-tests-final-attempt-1/actual-pure-tests.json",
+    "sha256": "6dca969c3d78879a797936d656525fafd49aa4c50ba18f8f7e4e127d0cd08e0b",
+    "bytes": 287
+  },
+  "pure_methods_passed": 18,
+  "native_worlds": 0,
+  "native_processes": 0,
+  "historical_native_payload_read": false,
+  "native_launch_authorized_or_performed_by_author": false,
+  "parent_actions_required": [
+    "Freeze actual candidate full bytes after filling template with authoritative source/build/tool/binary bindings and persistent canonical paths.",
+    "Independent admission binds full candidate SHA, binary descriptor and frozen_inputs SHA. Outer wrapper binds candidate+admission descriptors; supply independently expected wrapper SHA on CLI.",
+    "Run validate-only CLI before the separately authorized native invocation; root controls launch.",
+    "Any pre-data source correction changes tool manifest and requires appropriate pure tests and concrete admission update."
+  ],
+  "source_guards_scope": "Selected actual sources, not a hermetic compiler closure. Frozen runtime modules listed in manifest; no future xtask/report pointer demanded unchanged forever.",
+  "failure_policy": "stop_on_first_failure_no_resume_or_replacement; all six durable claims exist before first launch, remaining unlaunched claims retained",
+  "reader_limits": "16MiB stored/32MiB raw per whole single gzip member, fixed header, complete EOF/CRC, source schema/count/word/identity, all six original process exits and artifacts, exact captured checkpoint equality and fresh ON completed-record bytes. Arithmetic exclusion/mismatch/failed or partial collection are non-PASS; private caches, runtime modes, convergence/SI accuracy/coupled-cause excluded."
+}

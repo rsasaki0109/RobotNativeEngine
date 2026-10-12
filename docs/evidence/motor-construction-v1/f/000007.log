@@ -1,0 +1,88 @@
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+   Compiling rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+   Compiling rne_ai v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ai)
+   Compiling rne_hardware_gateway v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_gateway)
+   Compiling rne_hardware_lekiwi v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_lekiwi)
+   Compiling rne_accelerator_contract v0.4.0 (/workspace/RobotNativeEngine/crates/rne_accelerator_contract)
+   Compiling rne_physics_conformance_suite v0.4.0 (/workspace/RobotNativeEngine/tests/physics_conformance)
+   Compiling rne_compatibility_suite v0.4.0 (/workspace/RobotNativeEngine/tests/compatibility)
+   Compiling rne_asset_cli v0.4.0 (/workspace/RobotNativeEngine/tools/rne_asset_cli)
+   Compiling xtask v0.4.0 (/workspace/RobotNativeEngine/xtask)
+    Finished `dev` profile [optimized] target(s) in 1m 34s
+     Running `target/debug/xtask ci-headless`
+test_auto_reset_is_deferred_until_after_terminal_result (test_protocol.ProtocolTests.test_auto_reset_is_deferred_until_after_terminal_result) ... ok
+test_capability_report_rejects_status_and_runtime_tampering (test_protocol.ProtocolTests.test_capability_report_rejects_status_and_runtime_tampering) ... ok
+test_checkpoint_replay_restores_the_next_step (test_protocol.ProtocolTests.test_checkpoint_replay_restores_the_next_step) ... ok
+test_conformance_report_atomic_write_retries_stale_temp (test_protocol.ProtocolTests.test_conformance_report_atomic_write_retries_stale_temp) ... ok
+test_conformance_report_passes_and_fault_injection_fails (test_protocol.ProtocolTests.test_conformance_report_passes_and_fault_injection_fails) ... ok
+test_normalized_capability_report_matches_golden (test_protocol.ProtocolTests.test_normalized_capability_report_matches_golden) ... ok
+test_normalized_conformance_report_matches_golden (test_protocol.ProtocolTests.test_normalized_conformance_report_matches_golden) ... ok
+test_normalized_scale_report_matches_golden (test_protocol.ProtocolTests.test_normalized_scale_report_matches_golden) ... ok
+test_partial_reset_does_not_perturb_lane_zero (test_protocol.ProtocolTests.test_partial_reset_does_not_perturb_lane_zero) ... ok
+test_process_conformance_report_matches_golden (test_protocol.ProtocolTests.test_process_conformance_report_matches_golden) ... ok
+test_protocol_transcript_matches_golden (test_protocol.ProtocolTests.test_protocol_transcript_matches_golden) ... ok
+test_replay_log_has_a_hard_limit (test_protocol.ProtocolTests.test_replay_log_has_a_hard_limit) ... ok
+test_runtime_probe_is_versioned_and_fail_closed (test_protocol.ProtocolTests.test_runtime_probe_is_versioned_and_fail_closed) ... ok
+test_scale_report_keeps_lane_zero_identical_across_widths (test_protocol.ProtocolTests.test_scale_report_keeps_lane_zero_identical_across_widths) ... ok
+test_seed_vectors_match_rust_task_contract (test_protocol.ProtocolTests.test_seed_vectors_match_rust_task_contract) ... ok
+test_task_binding_rejects_semantic_drift (test_protocol.ProtocolTests.test_task_binding_rejects_semantic_drift) ... ok
+test_fake_backend_requires_explicit_test_flag (test_server.LauncherTests.test_fake_backend_requires_explicit_test_flag) ... ok
+test_full_session_round_trip (test_server.ServerTests.test_full_session_round_trip) ... ok
+test_session_count_is_bounded (test_server.ServerTests.test_session_count_is_bounded) ... ok
+test_unknown_fields_and_noncanonical_lane_ids_are_rejected (test_server.ServerTests.test_unknown_fields_and_noncanonical_lane_ids_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.253s
+
+OK
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+   Compiling rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+   Compiling robot_workbench v0.4.0 (/workspace/RobotNativeEngine/examples/116_robot_workbench)
+    Finished `test` profile [optimized] target(s) in 21.31s
+     Running unittests main.rs (target/debug/deps/rne_workbench-3f336eb57abe0cd2)
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+   Compiling rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+   Compiling robot_workbench v0.4.0 (/workspace/RobotNativeEngine/examples/116_robot_workbench)
+    Finished `dev` profile [optimized] target(s) in 16.27s
+     Running `target/debug/rne-workbench --smoke`
+    Finished `test` profile [optimized] target(s) in 0.20s
+     Running unittests src/lib.rs (target/debug/deps/rne_render-35768f1e7903f005)
+    Finished `test` profile [optimized] target(s) in 0.19s
+     Running unittests src/lib.rs (target/debug/deps/rne_sensor-b33dcd3a813afa37)
+   Compiling rne_ai v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ai)
+   Compiling rne_hardware_gateway v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_gateway)
+    Finished `test` profile [optimized] target(s) in 59.42s
+     Running unittests src/lib.rs (target/debug/deps/rne_hardware_gateway-ebeb9b70185e95e5)
+     Running unittests src/bin/rne-hardware-conformance.rs (target/debug/deps/rne_hardware_conformance-1bdfc4c88434d7c1)
+     Running unittests src/bin/rne-hardware-mock-device.rs (target/debug/deps/rne_hardware_mock_device-48075dcf3e1eaad5)
+     Running unittests src/bin/rne-recorded-shadow-failure-replay.rs (target/debug/deps/rne_recorded_shadow_failure_replay-3c20fe8a6d3a6430)
+     Running unittests src/bin/rne-recorded-shadow-session.rs (target/debug/deps/rne_recorded_shadow_session-99aa0e543f8ccb2b)
+     Running unittests src/bin/rne-simulator-conformance.rs (target/debug/deps/rne_simulator_conformance-0549404deb4fff04)
+     Running unittests src/bin/rne-simulator-mock-adapter.rs (target/debug/deps/rne_simulator_mock_adapter-551a6ad9b81144cf)
+     Running tests/adapter_conformance.rs (target/debug/deps/adapter_conformance-e6db22889bc24d63)
+     Running tests/golden.rs (target/debug/deps/golden-537d2abf6774c0a6)
+     Running tests/process_conformance.rs (target/debug/deps/process_conformance-c74b5dcdea3e9d76)
+     Running tests/process_mock.rs (target/debug/deps/process_mock-76f4dd56add341e1)
+     Running tests/shadow_golden.rs (target/debug/deps/shadow_golden-60432df91c9ecc00)
+     Running tests/simulator_conformance.rs (target/debug/deps/simulator_conformance-814d6432f5d96032)
+   Doc-tests rne_hardware_gateway
+   Compiling rne_hardware_lekiwi v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_lekiwi)
+    Finished `test` profile [optimized] target(s) in 21.87s
+     Running unittests src/lib.rs (target/debug/deps/rne_hardware_lekiwi-95b1270576d5ead8)
+     Running unittests src/bin/rne-lekiwi-profile.rs (target/debug/deps/rne_lekiwi_profile-785a5f03e6e1d905)
+     Running unittests src/bin/rne-lekiwi-session.rs (target/debug/deps/rne_lekiwi_session-761544377915f615)
+     Running tests/adapter_conformance.rs (target/debug/deps/adapter_conformance-2c852355026d2293)
+     Running tests/golden.rs (target/debug/deps/golden-aa9ff04946b0fc63)
+     Running tests/process_bridge.rs (target/debug/deps/process_bridge-a81e2efff9342592)
+     Running tests/session_cli.rs (target/debug/deps/session_cli-d3c2c26317e77001)
+   Doc-tests rne_hardware_lekiwi
+   Compiling rne_ai v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ai)
+   Compiling diff_drive_dataset_capture v0.4.0 (/workspace/RobotNativeEngine/examples/73_diff_drive_dataset_capture)
+    Finished `dev` profile [optimized] target(s) in 20.02s
+     Running `target/debug/examples/73_diff_drive_dataset_capture target/rne-dataset-reference-smoke-75490 --verify-golden`
+   Compiling rne_hardware_gateway v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_gateway)
+   Compiling rne_hardware_lekiwi v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_lekiwi)
+   Compiling rne_asset_cli v0.4.0 (/workspace/RobotNativeEngine/tools/rne_asset_cli)
+   Compiling flagship_validation_workflow v0.4.0 (/workspace/RobotNativeEngine/examples/74_flagship_validation_workflow)
+    Finished `dev` profile [optimized] target(s) in 18.34s
+     Running `target/debug/examples/74_flagship_validation_workflow /workspace/RobotNativeEngine/artifacts/flagship-validation`

@@ -1,0 +1,18 @@
+    Checking rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d)
+    Checking isolated_motor_construction_collector v0.1.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector)
+error[E0599]: no method named `iter` found for struct `SdpMatrix3<N>` in the current scope
+   --> src/lib.rs:566:22
+    |
+563 |                   effective_angular_inertia_query_kg_m2_words: body
+    |  ______________________________________________________________-
+564 | |                     .mass_properties()
+565 | |                     .effective_angular_inertia()
+566 | |                     .iter()
+    | |                     -^^^^ method not found in `SdpMatrix3<f32>`
+    | |_____________________|
+    |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `isolated_motor_construction_collector` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `isolated_motor_construction_collector` (lib test) due to 1 previous error

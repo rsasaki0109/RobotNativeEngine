@@ -1006,13 +1006,49 @@ the approved raw TAR. Persistent local retention is verified; upload returned
 HTTP 401 and public download verification remains pending.
 
 The separately collected
-[current scalar report](../media/position-motor-calibration-contact-stages.json)
+[earlier contact-stage scalar report](../media/position-motor-calibration-contact-stages.json)
 retains the fixed 24 conditions and 72 worlds. Its selected-source object changes
 six hashes and adds four reviewed inputs. Independent verification permits only
 that object to differ from the vendor-lint report; every other raw report byte
 matches. Collection and replay pass, the four primary nonzero conditions still
 fail, and all eight zero targets pass. Historical reports and numerical criteria
-remain unchanged; CI verifies the new source binding through the same verifier.
+remain unchanged; at that revision CI verified its source binding with the same verifier.
+
+### Actual motor construction and coordinate integration
+
+The separately versioned, default-disabled construction companion records the
+actual single-DoF constructor coordinate, targets, gains, duration/inverse
+duration, limits, clamped target velocity and ERP, alongside its initialized
+version-one row. Inputs come from the constructor itself, including the original
+motor descriptor's gain model and effort ceiling. Later endpoint snapshots keep
+actual multibody velocity distinct from generalized solver velocity.
+
+Coordinate integration copies generic velocity into the named multibody before
+advancing its coordinate. Joint stabilization then changes generic velocity while
+multibody storage retains the integration copy; final writeback copies the final
+generic velocity. A final velocity cannot substitute for the earlier integration
+input. In example 143's last slice, the two target signs use approximately
+±0.024390124 rad/s for integration and write back ±0.031250007 rad/s.
+
+Six preregistered fresh processes, two signs times ON/fresh ON/OFF, pass exact
+captured initial/final-state replay and literal fresh-ON completed-record replay.
+Their one frozen audit accounts for 1,028 construction events and 3,328 unchanged
+v1 stage events, with 128 constructor and 128 coordinate-advance checks, no
+arithmetic exclusions or qualification issues. Native words remain intact.
+This verifies source-ordered normal/zero arithmetic and the declared captured
+scope; private caches/full-set state and runtime float registers remain unmeasured.
+It does not establish motor accuracy, convergence or a coupled-contact cause.
+See the [collector contract](../../examples/143_motor_construction/README.md)
+and [complete retained evidence](../evidence/motor-construction-v1/README.md).
+
+A separate, unchanged 24-condition/72-world source-transition run retains
+calibration FAIL 0/4 and motionless zero targets 8/8. Its source map adds the
+companion module (21→22 entries) and changes exactly eleven existing hashes.
+Every other byte matches the earlier scalar report. CI uses the same verifier
+with the [new complete report](../media/position-motor-calibration-motor-construction-source.json);
+old report bytes, numerical criteria and the rejected inverse-diagonal candidate
+remain unchanged. Pre-data storage-fault reviews and corrected once-only drivers
+are retained separately from the actual successful collections.
 
 ### Warehouse fleet visualization boundary
 

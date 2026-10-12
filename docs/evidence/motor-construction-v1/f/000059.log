@@ -1,0 +1,363 @@
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+   Compiling ash v0.38.0+1.3.281
+   Compiling rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+   Compiling rne_ai v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ai)
+   Compiling wgpu-hal v24.0.4
+   Compiling wgpu-core v24.0.5
+   Compiling wgpu v24.0.5
+   Compiling rne_render_wgpu v0.4.0 (/workspace/RobotNativeEngine/crates/rne_render_wgpu)
+   Compiling rne_hardware_gateway v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_gateway)
+   Compiling rne_mobility_benchmark v0.4.0 (/workspace/RobotNativeEngine/tests/mobility_benchmark)
+   Compiling rne_hardware_lekiwi v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_lekiwi)
+   Compiling rne_accelerator_contract v0.4.0 (/workspace/RobotNativeEngine/crates/rne_accelerator_contract)
+   Compiling wgpu-3dgs-viewer v0.2.0
+   Compiling rne_asset_cli v0.4.0 (/workspace/RobotNativeEngine/tools/rne_asset_cli)
+   Compiling rne_render_3dgs v0.4.0 (/workspace/RobotNativeEngine/crates/rne_render_3dgs)
+   Compiling rne_physics_conformance_suite v0.4.0 (/workspace/RobotNativeEngine/tests/physics_conformance)
+   Compiling pyo3-ffi v0.29.2
+   Compiling pyo3 v0.29.2
+   Compiling rne_compatibility_suite v0.4.0 (/workspace/RobotNativeEngine/tests/compatibility)
+   Compiling rne_dynamics_tests v0.4.0 (/workspace/RobotNativeEngine/tests/dynamics)
+   Compiling rne_locomotion v0.4.0 (/workspace/RobotNativeEngine/crates/rne_locomotion)
+   Compiling contact_motor_stages v0.4.0 (/workspace/RobotNativeEngine/examples/142_contact_motor_stages)
+   Compiling isolated_motor_construction_collector v0.4.0 (/workspace/RobotNativeEngine/examples/143_motor_construction)
+   Compiling position_motor_calibration v0.4.0 (/workspace/RobotNativeEngine/examples/141_position_motor_calibration)
+   Compiling rne_py v0.4.0 (/workspace/RobotNativeEngine/crates/rne_py)
+   Compiling xtask v0.4.0 (/workspace/RobotNativeEngine/xtask)
+   Compiling go2_push_recovery v0.4.0 (/workspace/RobotNativeEngine/examples/117_go2_push_recovery)
+   Compiling go2_mid360_navigation v0.4.0 (/workspace/RobotNativeEngine/examples/131_go2_mid360_navigation)
+   Compiling go2_door v0.4.0 (/workspace/RobotNativeEngine/examples/132_go2_door)
+   Compiling motion_planning_media v0.4.0 (/workspace/RobotNativeEngine/examples/102_motion_planning_media)
+   Compiling go2_jump_sim v0.2.0 (/workspace/RobotNativeEngine/examples/109_go2_jump_sim)
+   Compiling heavy_grasp v0.4.0 (/workspace/RobotNativeEngine/examples/138_heavy_grasp)
+   Compiling go2_native_backend v0.4.0 (/workspace/RobotNativeEngine/examples/137_go2_native_backend)
+   Compiling go2_feedback_trot v0.4.0 (/workspace/RobotNativeEngine/examples/135_go2_feedback_trot)
+   Compiling go2_parallel_rl v0.4.0 (/workspace/RobotNativeEngine/examples/136_go2_parallel_rl)
+   Compiling ssl_adapter_smoke v0.4.0 (/workspace/RobotNativeEngine/examples/80_ssl_adapter_smoke)
+   Compiling ssl_physics_coupling v0.4.0 (/workspace/RobotNativeEngine/examples/87_ssl_physics_coupling)
+   Compiling robot_workbench v0.4.0 (/workspace/RobotNativeEngine/examples/116_robot_workbench)
+   Compiling flagship_validation_workflow v0.4.0 (/workspace/RobotNativeEngine/examples/74_flagship_validation_workflow)
+   Compiling nav_slam_physics v0.4.0 (/workspace/RobotNativeEngine/examples/98_nav_slam_physics)
+   Compiling nav_elevation_icp v0.4.0 (/workspace/RobotNativeEngine/examples/100_nav_elevation_icp)
+   Compiling nav_slam_mapping v0.4.0 (/workspace/RobotNativeEngine/examples/97_nav_slam_mapping)
+   Compiling lifelong_slam v0.4.0 (/workspace/RobotNativeEngine/examples/127_lifelong_slam)
+   Compiling rne_determinism_tests v0.4.0 (/workspace/RobotNativeEngine/tests/determinism)
+   Compiling g1_head_splat_background v0.4.0 (/workspace/RobotNativeEngine/examples/81_g1_head_splat_background)
+   Compiling house_mobile_lift_hero v0.4.0 (/workspace/RobotNativeEngine/examples/89_house_mobile_lift_hero)
+   Compiling tsukuba_3dgs_depth v0.4.0 (/workspace/RobotNativeEngine/examples/82_tsukuba_3dgs_depth)
+   Compiling house_3dgs_hybrid v0.4.0 (/workspace/RobotNativeEngine/examples/88_house_3dgs_hybrid)
+   Compiling tsukuba_3dgs_background v0.4.0 (/workspace/RobotNativeEngine/examples/78_tsukuba_3dgs_background)
+   Compiling drjohnson_euroc_export v0.4.0 (/workspace/RobotNativeEngine/examples/113_drjohnson_euroc_export)
+   Compiling showcase_captures v0.4.0 (/workspace/RobotNativeEngine/examples/90_showcase_captures)
+   Compiling plateau_drone_gif v0.4.0 (/workspace/RobotNativeEngine/examples/46_plateau_drone_gif)
+   Compiling tsukuba_plateau_backdrop v0.4.0 (/workspace/RobotNativeEngine/examples/83_tsukuba_plateau_backdrop)
+   Compiling rne_physics_conformance v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_conformance)
+   Compiling dynamics_diagnostics v0.4.0 (/workspace/RobotNativeEngine/examples/103_dynamics_diagnostics)
+   Compiling g1_backflip_gif v0.1.0 (/workspace/RobotNativeEngine/examples/114_g1_backflip_gif)
+   Compiling go2_terrain_trot v0.4.0 (/workspace/RobotNativeEngine/examples/134_go2_terrain_trot)
+   Compiling go2_contact_terrain v0.4.0 (/workspace/RobotNativeEngine/examples/133_go2_contact_terrain)
+   Compiling nav_map_media v0.4.0 (/workspace/RobotNativeEngine/examples/121_nav_map_media)
+   Compiling elevator_call_button v0.4.0 (/workspace/RobotNativeEngine/examples/119_elevator_call_button)
+   Compiling multi_robot_avoidance v0.4.0 (/workspace/RobotNativeEngine/examples/99_multi_robot_avoidance)
+   Compiling warehouse_logistics v0.4.0 (/workspace/RobotNativeEngine/examples/123_warehouse_logistics)
+   Compiling warehouse_relay v0.4.0 (/workspace/RobotNativeEngine/examples/125_warehouse_relay)
+   Compiling warehouse_fleet v0.4.0 (/workspace/RobotNativeEngine/examples/140_warehouse_fleet)
+   Compiling multi_floor_mission v0.4.0 (/workspace/RobotNativeEngine/examples/120_multi_floor_mission)
+   Compiling nav_planning v0.4.0 (/workspace/RobotNativeEngine/examples/96_nav_planning)
+   Compiling elevator_ride v0.4.0 (/workspace/RobotNativeEngine/examples/118_elevator_ride)
+   Compiling multi_floor_media v0.4.0 (/workspace/RobotNativeEngine/examples/122_multi_floor_media)
+   Compiling nav_occupancy_grid v0.4.0 (/workspace/RobotNativeEngine/examples/95_nav_occupancy_grid)
+   Compiling interactive_viewer v0.4.0 (/workspace/RobotNativeEngine/examples/14_interactive_viewer)
+   Compiling urdf_mesh_render v0.4.0 (/workspace/RobotNativeEngine/examples/09_urdf_mesh_render)
+   Compiling g1_sustained_walk_gif v0.4.0 (/workspace/RobotNativeEngine/examples/92_g1_sustained_walk_gif)
+   Compiling render_clear v0.4.0 (/workspace/RobotNativeEngine/examples/02_render_clear)
+   Compiling go2_walk_vs_stand_push v0.4.0 (/workspace/RobotNativeEngine/examples/53_go2_walk_vs_stand_push)
+   Compiling unitree_g1_dex3_pick_place v0.4.0 (/workspace/RobotNativeEngine/examples/42_unitree_g1_dex3_pick_place)
+   Compiling unitree_g1_gif v0.4.0 (/workspace/RobotNativeEngine/examples/39_unitree_g1_gif)
+   Compiling control_eval_demo v0.4.0 (/workspace/RobotNativeEngine/examples/50_control_eval)
+   Compiling render_primitives v0.4.0 (/workspace/RobotNativeEngine/examples/07_render_primitives)
+   Compiling unitree_go2_gif v0.4.0 (/workspace/RobotNativeEngine/examples/38_unitree_go2_gif)
+   Compiling car_race v0.4.0 (/workspace/RobotNativeEngine/examples/128_car_race)
+   Compiling go2_heading_steer v0.4.0 (/workspace/RobotNativeEngine/examples/126_go2_heading_steer)
+   Compiling imu_dead_reckoning v0.4.0 (/workspace/RobotNativeEngine/examples/48_imu_dead_reckoning)
+   Compiling deformable_cloth v0.4.0 (/workspace/RobotNativeEngine/examples/44_deformable_cloth)
+   Compiling lidar_render v0.4.0 (/workspace/RobotNativeEngine/examples/19_lidar_render)
+   Compiling g1_stride_gif v0.4.0 (/workspace/RobotNativeEngine/examples/63_g1_stride_gif)
+   Compiling gltf_humanoid_gpu v0.4.0 (/workspace/RobotNativeEngine/examples/69_gltf_humanoid_gpu)
+   Compiling go2_stepped_turn v0.4.0 (/workspace/RobotNativeEngine/examples/55_go2_stepped_turn)
+   Compiling unitree_g1_parts_pick_place v0.4.0 (/workspace/RobotNativeEngine/examples/41_unitree_g1_parts_pick_place)
+   Compiling go2_turn_gif v0.4.0 (/workspace/RobotNativeEngine/examples/60_go2_turn_gif)
+   Compiling go2_mid360_room v0.4.0 (/workspace/RobotNativeEngine/examples/130_go2_mid360_room)
+   Compiling latency_in_the_loop v0.4.0 (/workspace/RobotNativeEngine/examples/51_latency_in_the_loop)
+   Compiling go2_learned_turn v0.4.0 (/workspace/RobotNativeEngine/examples/54_go2_learned_turn)
+   Compiling lift_pick_place_hero v0.4.0 (/workspace/RobotNativeEngine/examples/32_lift_pick_place_hero)
+   Compiling go2_fall_vs_save v0.4.0 (/workspace/RobotNativeEngine/examples/52_go2_fall_vs_save)
+   Compiling unitree_g1_cloth_handling v0.4.0 (/workspace/RobotNativeEngine/examples/45_unitree_g1_cloth_handling)
+   Compiling deformable_cable v0.4.0 (/workspace/RobotNativeEngine/examples/43_deformable_cable)
+   Compiling g1_rgbd_sensor v0.4.0 (/workspace/RobotNativeEngine/examples/71_g1_rgbd_sensor)
+   Compiling uav_race v0.4.0 (/workspace/RobotNativeEngine/examples/129_uav_race)
+   Compiling scene_episode v0.4.0 (/workspace/RobotNativeEngine/examples/08_scene_episode)
+   Compiling g1_photoreal_capture v0.4.0 (/workspace/RobotNativeEngine/examples/70_g1_photoreal_capture)
+   Compiling kick_comparison v0.4.0 (/workspace/RobotNativeEngine/examples/139_kick_comparison)
+   Compiling vehicle_dynamics_compare v0.4.0 (/workspace/RobotNativeEngine/examples/49_vehicle_dynamics)
+   Compiling traffic_city_replay v0.4.0 (/workspace/RobotNativeEngine/examples/47_traffic_city_replay)
+   Compiling office_agv_desk_place v0.4.0 (/workspace/RobotNativeEngine/examples/86_office_agv_desk_place)
+   Compiling go2_torque_turn v0.4.0 (/workspace/RobotNativeEngine/examples/56_go2_torque_turn)
+   Compiling locomotion_vectorized v0.4.0 (/workspace/RobotNativeEngine/examples/66_locomotion_vectorized)
+   Compiling goal_conditioned_agent v0.4.0 (/workspace/RobotNativeEngine/examples/16_goal_conditioned_agent)
+   Compiling office_agv_shared_aisle v0.4.0 (/workspace/RobotNativeEngine/examples/85_office_agv_shared_aisle)
+   Compiling external_urdf v0.4.0 (/workspace/RobotNativeEngine/examples/35_external_urdf)
+   Compiling episode_diff_drive v0.4.0 (/workspace/RobotNativeEngine/examples/05_episode_diff_drive)
+   Compiling mobile_manipulator_lift v0.4.0 (/workspace/RobotNativeEngine/examples/30_mobile_manipulator_lift)
+   Compiling g1_commanded_locomotion v0.4.0 (/workspace/RobotNativeEngine/examples/67_g1_commanded_locomotion)
+   Compiling multi_robot_collision v0.4.0 (/workspace/RobotNativeEngine/examples/17_multi_robot_collision)
+   Compiling go2_learned_sprint v0.4.0 (/workspace/RobotNativeEngine/examples/61_go2_learned_sprint)
+   Compiling trainer v0.4.0 (/workspace/RobotNativeEngine/examples/115_trainer)
+   Compiling agent_policy v0.4.0 (/workspace/RobotNativeEngine/examples/11_agent_policy)
+   Compiling shared_world_agent v0.4.0 (/workspace/RobotNativeEngine/examples/12_shared_world_agent)
+   Compiling mobile_lift_friction_pick_place v0.4.0 (/workspace/RobotNativeEngine/examples/72_mobile_lift_friction_pick_place)
+   Compiling mobile_manipulator_vectorized v0.4.0 (/workspace/RobotNativeEngine/examples/28_mobile_manipulator_vectorized)
+   Compiling humanoid_stand v0.4.0 (/workspace/RobotNativeEngine/examples/37_humanoid_stand)
+   Compiling mobile_clutter_pick_place_e2e v0.4.0 (/workspace/RobotNativeEngine/examples/34_mobile_clutter_pick_place_e2e)
+   Compiling ssl_small_pitch v0.4.0 (/workspace/RobotNativeEngine/examples/76_ssl_small_pitch)
+   Compiling policy_artifact v0.4.0 (/workspace/RobotNativeEngine/examples/114_policy_artifact)
+   Compiling mobile_so101_clutter v0.4.0 (/workspace/RobotNativeEngine/examples/91_mobile_so101_clutter)
+   Compiling multi_robot_agent v0.4.0 (/workspace/RobotNativeEngine/examples/13_multi_robot_agent)
+   Compiling g1_learned_stride v0.4.0 (/workspace/RobotNativeEngine/examples/62_g1_learned_stride)
+   Compiling mobile_manipulator_episode v0.4.0 (/workspace/RobotNativeEngine/examples/25_mobile_manipulator_episode)
+   Compiling mobile_manipulator_place v0.4.0 (/workspace/RobotNativeEngine/examples/26_mobile_manipulator_place)
+   Compiling quadruped_stand v0.4.0 (/workspace/RobotNativeEngine/examples/36_quadruped_stand)
+   Compiling go2_velocity_terrain v0.4.0 (/workspace/RobotNativeEngine/examples/65_go2_velocity_terrain)
+   Compiling go2_steered_turn v0.4.0 (/workspace/RobotNativeEngine/examples/58_go2_steered_turn)
+   Compiling g1_workbench_mission v0.4.0 (/workspace/RobotNativeEngine/examples/77_g1_workbench_mission)
+   Compiling go2_jump v0.4.0 (/workspace/RobotNativeEngine/examples/106_go2_jump)
+   Compiling mobile_manipulator_reach v0.4.0 (/workspace/RobotNativeEngine/examples/21_mobile_manipulator_reach)
+   Compiling g1_heading_turn v0.4.0 (/workspace/RobotNativeEngine/examples/68_g1_heading_turn)
+   Compiling diff_drive_dataset_capture v0.4.0 (/workspace/RobotNativeEngine/examples/73_diff_drive_dataset_capture)
+   Compiling go2_torque_policy v0.4.0 (/workspace/RobotNativeEngine/examples/57_go2_torque_policy)
+   Compiling go2_pure_torque v0.4.0 (/workspace/RobotNativeEngine/examples/64_go2_pure_torque)
+   Compiling mobile_manipulator_grasp v0.4.0 (/workspace/RobotNativeEngine/examples/22_mobile_manipulator_grasp)
+   Compiling office_agv_delivery v0.4.0 (/workspace/RobotNativeEngine/examples/84_office_agv_delivery)
+   Compiling g1_forward_stride v0.4.0 (/workspace/RobotNativeEngine/examples/124_g1_forward_stride)
+   Compiling tsukuba_confirmation v0.4.0 (/workspace/RobotNativeEngine/examples/75_tsukuba_confirmation)
+   Compiling tsukuba_full_run v0.4.0 (/workspace/RobotNativeEngine/examples/79_tsukuba_full_run)
+   Compiling mobile_manipulator_transport v0.4.0 (/workspace/RobotNativeEngine/examples/23_mobile_manipulator_transport)
+   Compiling mobile_manipulator_wrist_cam v0.4.0 (/workspace/RobotNativeEngine/examples/24_mobile_manipulator_wrist_cam)
+   Compiling go2_authority_turn v0.4.0 (/workspace/RobotNativeEngine/examples/59_go2_authority_turn)
+   Compiling unitree_g1_factory_inspection v0.4.0 (/workspace/RobotNativeEngine/examples/40_unitree_g1_factory_inspection)
+   Compiling vectorized_episode v0.4.0 (/workspace/RobotNativeEngine/examples/10_vectorized_episode)
+   Compiling mobile_manipulator_curriculum v0.4.0 (/workspace/RobotNativeEngine/examples/29_mobile_manipulator_curriculum)
+   Compiling clutter_pick_place_e2e v0.4.0 (/workspace/RobotNativeEngine/examples/33_clutter_pick_place_e2e)
+   Compiling mobile_manipulator_lift_pick_place v0.4.0 (/workspace/RobotNativeEngine/examples/31_mobile_manipulator_lift_pick_place)
+   Compiling rne_urdf_import v0.4.0 (/workspace/RobotNativeEngine/crates/rne_urdf_import)
+   Compiling mobile_manipulator_arm v0.4.0 (/workspace/RobotNativeEngine/examples/20_mobile_manipulator_arm)
+   Compiling scene_load v0.4.0 (/workspace/RobotNativeEngine/examples/06_scene_load)
+   Compiling diff_drive_lidar v0.4.0 (/workspace/RobotNativeEngine/examples/01_diff_drive_lidar)
+   Compiling falling_cube v0.4.0 (/workspace/RobotNativeEngine/examples/01_falling_cube)
+   Compiling collision_bake v0.4.0 (/workspace/RobotNativeEngine/examples/110_collision_bake)
+   Compiling asset_hot_reload v0.4.0 (/workspace/RobotNativeEngine/examples/15_asset_hot_reload)
+   Compiling urdf_import v0.4.0 (/workspace/RobotNativeEngine/examples/03_urdf_import)
+   Compiling robot_kinematics v0.4.0 (/workspace/RobotNativeEngine/examples/94_robot_kinematics)
+   Compiling hello_world v0.4.0 (/workspace/RobotNativeEngine/examples/00_hello_world)
+    Finished `test` profile [optimized] target(s) in 25m 11s
+     Running unittests lib.rs (target/debug/deps/contact_motor_stages-1c73ac21339addc8)
+     Running unittests installed_main.rs (target/debug/deps/rne_flagship_proof-2e9449bd12faecdd)
+     Running unittests src/lib.rs (target/debug/deps/go2_indoor-fadae723d067e48e)
+     Running unittests lib.rs (target/debug/deps/isolated_motor_construction_collector-8b43351e3e01d0f5)
+     Running unittests lib.rs (target/debug/deps/position_motor_calibration-1e115fcbb533c4ba)
+     Running unittests src/lib.rs (target/debug/deps/rne_accelerator_contract-0ccf2e4745d3c2cb)
+     Running unittests src/bin/rne-accelerator-conformance.rs (target/debug/deps/rne_accelerator_conformance-f4325e001ac056ec)
+     Running unittests src/bin/rne-accelerator-protocol-mock.rs (target/debug/deps/rne_accelerator_protocol_mock-7565eedfab86f2c1)
+     Running tests/process_conformance.rs (target/debug/deps/process_conformance-416722580f5b08f0)
+     Running unittests src/lib.rs (target/debug/deps/rne_adapter_ros2-fc8fa29e571b9ebd)
+     Running unittests src/lib.rs (target/debug/deps/rne_adapter_ssl-bde005c53f3116ea)
+     Running tests/udp_loopback.rs (target/debug/deps/udp_loopback-2248ed8d549338cf)
+     Running unittests src/lib.rs (target/debug/deps/rne_ai-27ea34a5d7971965)
+     Running tests/rng_compat.rs (target/debug/deps/rng_compat-9f0ce8f238e3390d)
+     Running tests/so101_arm_control.rs (target/debug/deps/so101_arm_control-ee0c233b654edc4a)
+     Running unittests src/lib.rs (target/debug/deps/rne_asset_cli-8b9c55d4f088f3e2)
+     Running unittests src/main.rs (target/debug/deps/rne_asset-43f9067a1e3828e1)
+     Running tests/co_sim.rs (target/debug/deps/co_sim-9e0f875ad5ad5189)
+     Running tests/control.rs (target/debug/deps/control-a2f9f2daae9daa08)
+     Running tests/failure_capsule.rs (target/debug/deps/failure_capsule-4d4acf32e74b3765)
+     Running tests/plugin.rs (target/debug/deps/plugin-30aa7989517251c9)
+   Compiling rne_plugin_example_velocity_servo v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin_example_velocity_servo)
+    Finished `dev` profile [optimized] target(s) in 0.33s
+     Running unittests src/lib.rs (target/debug/deps/rne_assets-12f3a9a2a9b48248)
+     Running unittests src/lib.rs (target/debug/deps/rne_collision_bake-c551329006047cf4)
+     Running unittests src/lib.rs (target/debug/deps/rne_compatibility_suite-0e5e4083870c5a12)
+     Running unittests src/main.rs (target/debug/deps/rne_compatibility-5f15b2b3eee93c29)
+     Running unittests src/lib.rs (target/debug/deps/rne_core-c73d4da813d2c9cf)
+     Running unittests src/lib.rs (target/debug/deps/rne_data-46f777660a6945f2)
+     Running tests/dataset_bundle.rs (target/debug/deps/dataset_bundle-080b7f57252e2d23)
+     Running unittests src/lib.rs (target/debug/deps/rne_deformable-4d4990f5ba25b89b)
+     Running tests/nav_slam.rs (target/debug/deps/nav_slam-5b5d460154ca190e)
+     Running tests/scenarios.rs (target/debug/deps/scenarios-da04ca82d6382ae1)
+     Running unittests src/lib.rs (target/debug/deps/rne_dynamics-5f72c8531c686f05)
+     Running unittests src/lib.rs (target/debug/deps/rne_dynamics_tests-eeab248e275eab95)
+     Running tests/pinocchio_golden.rs (target/debug/deps/pinocchio_golden-33f681b91471516e)
+     Running tests/report.rs (target/debug/deps/report-9975a21fbcd8701a)
+     Running tests/scenarios.rs (target/debug/deps/scenarios-a4a329bd62275a08)
+     Running unittests src/lib.rs (target/debug/deps/rne_ecs-d160ca9317dba460)
+     Running unittests src/lib.rs (target/debug/deps/rne_fuzz_smoke-0e2f19772a4313de)
+     Running unittests src/lib.rs (target/debug/deps/rne_hardware_gateway-d80d5710e0e13062)
+     Running unittests src/bin/rne-hardware-conformance.rs (target/debug/deps/rne_hardware_conformance-29cbbbcdb55caaf3)
+     Running unittests src/bin/rne-hardware-mock-device.rs (target/debug/deps/rne_hardware_mock_device-db418c74adb32fa1)
+     Running unittests src/bin/rne-recorded-shadow-failure-replay.rs (target/debug/deps/rne_recorded_shadow_failure_replay-e422efaa7d8602bd)
+     Running unittests src/bin/rne-recorded-shadow-session.rs (target/debug/deps/rne_recorded_shadow_session-f0734530d1f1a494)
+     Running unittests src/bin/rne-simulator-conformance.rs (target/debug/deps/rne_simulator_conformance-ccc57695c69e86a3)
+     Running unittests src/bin/rne-simulator-mock-adapter.rs (target/debug/deps/rne_simulator_mock_adapter-10e728bcd95fd08d)
+     Running tests/adapter_conformance.rs (target/debug/deps/adapter_conformance-dfb46c24efdab84c)
+     Running tests/golden.rs (target/debug/deps/golden-7f02a74f767d30e2)
+     Running tests/process_conformance.rs (target/debug/deps/process_conformance-803688a3161995ff)
+     Running tests/process_mock.rs (target/debug/deps/process_mock-8ad4353c3ef96104)
+     Running tests/shadow_golden.rs (target/debug/deps/shadow_golden-86b641cf9a0a7ee6)
+     Running tests/simulator_conformance.rs (target/debug/deps/simulator_conformance-64c53d95d868da83)
+     Running unittests src/lib.rs (target/debug/deps/rne_hardware_lekiwi-b43ae584eb7648f8)
+     Running unittests src/bin/rne-lekiwi-profile.rs (target/debug/deps/rne_lekiwi_profile-44989d0e7fb5e995)
+     Running unittests src/bin/rne-lekiwi-session.rs (target/debug/deps/rne_lekiwi_session-841f021da96785ac)
+     Running tests/adapter_conformance.rs (target/debug/deps/adapter_conformance-b642654e11d29176)
+     Running tests/golden.rs (target/debug/deps/golden-8da5b64af9bcfec5)
+     Running tests/process_bridge.rs (target/debug/deps/process_bridge-fe13d5da84bd040c)
+     Running tests/session_cli.rs (target/debug/deps/session_cli-ee4a8ad6beabda70)
+     Running unittests src/lib.rs (target/debug/deps/rne_legged-a202137425e2f7a6)
+     Running unittests src/lib.rs (target/debug/deps/rne_locomotion-aad0ac5f4483a097)
+     Running unittests src/lib.rs (target/debug/deps/rne_log-143fe94991decdd5)
+     Running unittests src/lib.rs (target/debug/deps/rne_math-c428f41f1b5e77e7)
+     Running unittests src/lib.rs (target/debug/deps/rne_mjcf-9bbb9c67d89835df)
+     Running tests/import.rs (target/debug/deps/import-5483a74820ffa82e)
+     Running unittests src/lib.rs (target/debug/deps/rne_mobility_benchmark-ac621d63f75a1a96)
+     Running unittests src/main.rs (target/debug/deps/rne_mobility_benchmark-5c0797c95368198a)
+     Running unittests src/nclt_audit.rs (target/debug/deps/rne_nclt_audit-61a19126a89071a7)
+     Running tests/identified_suspension_tire_cli.rs (target/debug/deps/identified_suspension_tire_cli-fb52f38ed517cf0a)
+     Running tests/suspension_cli.rs (target/debug/deps/suspension_cli-c3d39d6355c1fa99)
+     Running tests/tire_cli.rs (target/debug/deps/tire_cli-dc05c9832c567580)
+     Running unittests src/lib.rs (target/debug/deps/rne_nav-35495e67c7081900)
+     Running unittests src/lib.rs (target/debug/deps/rne_oc-1de5df8706d272c4)
+     Running unittests src/lib.rs (target/debug/deps/rne_openscenario-b0989c8c098d78eb)
+     Running tests/import.rs (target/debug/deps/import-df569223ac3d1685)
+     Running tests/runtime.rs (target/debug/deps/runtime-11ee522549c4acaf)
+     Running unittests src/lib.rs (target/debug/deps/rne_physics-4b3a448b684dad43)
+     Running unittests src/lib.rs (target/debug/deps/rne_physics_analytic-9a76edbf6d480cd5)
+     Running tests/free_fall.rs (target/debug/deps/free_fall-0af620a54296c245)
+     Running unittests src/lib.rs (target/debug/deps/rne_physics_conformance-417eb94d452e519f)
+     Running unittests src/lib.rs (target/debug/deps/rne_physics_conformance_suite-fa4d81eef25f74da)
+     Running unittests src/main.rs (target/debug/deps/rne_physics_conformance-748c2c2d76f209ea)
+     Running unittests src/lib.rs (target/debug/deps/rne_physics_mujoco-a82b79139fd6d852)
+     Running tests/compiled_rigid_bodies.rs (target/debug/deps/compiled_rigid_bodies-7b557914b04b70cc)
+     Running tests/default_mode.rs (target/debug/deps/default_mode-de49024b5a35f5e9)
+     Running tests/free_fall.rs (target/debug/deps/free_fall-e92089a342a1d121)
+     Running unittests src/lib.rs (target/debug/deps/rne_physics_native-ff7b98a46507a5f9)
+     Running unittests src/lib.rs (target/debug/deps/rne_physics_rapier-673d4c8e1641c1be)
+     Running unittests src/lib.rs (target/debug/deps/rne_planning-76e53618b492a522)
+     Running unittests src/lib.rs (target/debug/deps/rne_plateau-f34bc83dc2b50576)
+     Running tests/import.rs (target/debug/deps/import-f4600ee3cd2e8487)
+     Running unittests src/main.rs (target/debug/deps/rne_plateau_import-3a21e0362088d66f)
+     Running unittests src/lib.rs (target/debug/deps/rne_plugin-659233f2481b4035)
+     Running tests/load.rs (target/debug/deps/load-5f14ba23656f63dc)
+    Finished `dev` profile [optimized] target(s) in 0.15s
+   Compiling rne_plugin_legacy_v2_fixture v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin_legacy_v2_fixture)
+    Finished `dev` profile [optimized] target(s) in 0.31s
+     Running tests/scaffold.rs (target/debug/deps/scaffold-536bdeee35c78c09)
+   Compiling scaffold_e2e v0.1.0 (/workspace/RobotNativeEngine/target/runs/scaffold-build/scaffold_e2e)
+    Finished `dev` profile [unoptimized] target(s) in 0.16s
+     Running unittests src/lib.rs (target/debug/deps/rne_plugin_example_velocity_servo-7571de0b1628058c)
+     Running unittests src/lib.rs (target/debug/deps/rne_plugin_legacy_v2_fixture-6071a6331fcda9fd)
+     Running unittests src/lib.rs (target/debug/deps/rne_plugin_sdk-d75c385f79e1cb86)
+     Running unittests src/lib.rs (target/debug/deps/rne_py-780df6de7887baed)
+     Running unittests src/lib.rs (target/debug/deps/rne_render-c61a05c8906c06b1)
+     Running unittests src/lib.rs (target/debug/deps/rne_render_3dgs-1d0248fe1963ce94)
+     Running unittests src/lib.rs (target/debug/deps/rne_render_wgpu-0e93ef0983c1277d)
+     Running unittests src/lib.rs (target/debug/deps/rne_robot-ef96a51c9f49810b)
+     Running unittests src/lib.rs (target/debug/deps/rne_scenario_scale-a5ff5c83c6553e19)
+     Running unittests src/main.rs (target/debug/deps/rne_scenario_scale-c827137785d56549)
+     Running unittests src/lib.rs (target/debug/deps/rne_sdf-c3e1d3cfe65e0577)
+     Running tests/import.rs (target/debug/deps/import-0f9e98e598dbe29e)
+     Running unittests src/lib.rs (target/debug/deps/rne_sensor-12e19d8927fb691b)
+     Running tests/livox_mid360_real.rs (target/debug/deps/livox_mid360_real-328255ba0f0dd158)
+     Running unittests src/lib.rs (target/debug/deps/rne_slam-7999201eb174c5b8)
+     Running unittests src/lib.rs (target/debug/deps/rne_sumo-bae973fc569aa4c3)
+     Running unittests src/lib.rs (target/debug/deps/rne_traci-28d5fa1dc4e2ebc0)
+     Running tests/co_simulation.rs (target/debug/deps/co_simulation-a3c3955dc60cd419)
+     Running tests/mock.rs (target/debug/deps/mock-ec2b0f644452bdfa)
+     Running tests/sumo.rs (target/debug/deps/sumo-579971a4ae9707bf)
+     Running unittests src/lib.rs (target/debug/deps/rne_traffic-b10447e153b5f562)
+     Running tests/conflict_control.rs (target/debug/deps/conflict_control-aa0d31c6e4ef5e34)
+     Running tests/external_pose.rs (target/debug/deps/external_pose-be74e4eb0bc6fa01)
+     Running tests/fleet_replay.rs (target/debug/deps/fleet_replay-b496abfc4e1aa44e)
+     Running tests/idm.rs (target/debug/deps/idm-078b8fd296977157)
+     Running tests/routing.rs (target/debug/deps/routing-ac09193e1595e4bc)
+     Running tests/schema_v1.rs (target/debug/deps/schema_v1-688aee1bf0de1543)
+     Running tests/topology.rs (target/debug/deps/topology-481710a58e85a8c1)
+     Running unittests src/lib.rs (target/debug/deps/rne_urdf_import-9250bad10d13d355)
+     Running unittests src/lib.rs (target/debug/deps/rne_usd-b719453838a95712)
+     Running unittests src/lib.rs (target/debug/deps/rne_wbc-f91238dceb2bc8e4)
+     Running unittests src/lib.rs (target/debug/deps/rne_world-d017b47732d404ac)
+     Running unittests main.rs (target/debug/deps/rne_workbench-8e6313d332083ccd)
+     Running unittests imu_validation.rs (target/debug/deps/rne_imu_validation-ea1720bef006fcf3)
+     Running unittests openarm_controller_failure_replay.rs (target/debug/deps/rne_openarm_controller_failure_replay-a88e304f936bc78e)
+     Running unittests openarm_joint_loss_failure_replay.rs (target/debug/deps/rne_openarm_joint_loss_failure_replay-74b9c2e964ddbf64)
+     Running unittests openarm_plant_failure_replay.rs (target/debug/deps/rne_openarm_plant_failure_replay-9420704e0ff5f25e)
+     Running unittests openarm_trace.rs (target/debug/deps/rne_openarm_rapier_trace-af6c232b65c57a7b)
+     Running unittests openarm_robustness_failure_replay.rs (target/debug/deps/rne_openarm_robustness_failure_replay-b681007377c4fa7c)
+     Running unittests main.rs (target/debug/examples/140_warehouse_fleet-dce4dab0c06af66a)
+     Running unittests src/main.rs (target/debug/deps/xtask-91fc780190178e99)
+   Doc-tests contact_motor_stages
+   Doc-tests go2_indoor
+   Doc-tests isolated_motor_construction_collector
+   Doc-tests position_motor_calibration
+   Doc-tests rne_accelerator_contract
+   Doc-tests rne_adapter_ros2
+   Doc-tests rne_adapter_ssl
+   Doc-tests rne_ai
+   Doc-tests rne_asset_cli
+   Doc-tests rne_assets
+   Doc-tests rne_collision_bake
+   Doc-tests rne_compatibility_suite
+   Doc-tests rne_core
+   Doc-tests rne_data
+   Doc-tests rne_deformable
+   Doc-tests rne_dynamics
+   Doc-tests rne_dynamics_tests
+   Doc-tests rne_ecs
+   Doc-tests rne_fuzz_smoke
+   Doc-tests rne_hardware_gateway
+   Doc-tests rne_hardware_lekiwi
+   Doc-tests rne_legged
+   Doc-tests rne_locomotion
+   Doc-tests rne_log
+   Doc-tests rne_math
+   Doc-tests rne_mjcf
+   Doc-tests rne_mobility_benchmark
+   Doc-tests rne_nav
+   Doc-tests rne_oc
+   Doc-tests rne_openscenario
+   Doc-tests rne_physics
+   Doc-tests rne_physics_analytic
+   Doc-tests rne_physics_conformance
+   Doc-tests rne_physics_conformance_suite
+   Doc-tests rne_physics_mujoco
+   Doc-tests rne_physics_native
+   Doc-tests rne_physics_rapier
+   Doc-tests rne_planning
+   Doc-tests rne_plateau
+   Doc-tests rne_plugin
+   Doc-tests rne_plugin_example_velocity_servo
+   Doc-tests rne_plugin_legacy_v2_fixture
+   Doc-tests rne_plugin_sdk
+   Doc-tests rne_py
+   Doc-tests rne_render
+   Doc-tests rne_render_3dgs
+   Doc-tests rne_render_wgpu
+   Doc-tests rne_robot
+   Doc-tests rne_scenario_scale
+   Doc-tests rne_sdf
+   Doc-tests rne_sensor
+   Doc-tests rne_slam
+   Doc-tests rne_sumo
+   Doc-tests rne_traci
+   Doc-tests rne_traffic
+   Doc-tests rne_urdf_import
+   Doc-tests rne_usd
+   Doc-tests rne_wbc
+   Doc-tests rne_world

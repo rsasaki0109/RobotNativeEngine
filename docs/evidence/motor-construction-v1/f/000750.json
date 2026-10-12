@@ -1,0 +1,29 @@
+{
+  "kind": "rne_root_actual_registered_driver_command",
+  "argv": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/driver.py",
+    "run",
+    "--frozen",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/frozen-v2/frozen-bindings.json",
+    "--expected-frozen-sha256",
+    "6a99b2ccb8573c1141369c5498bcea6e9bc8f61f62189988066cd7f020f2270b"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "started_at": "2026-10-12T10:48:13.526921+00:00",
+  "completed_at": "2026-10-12T10:48:15.987095+00:00",
+  "actual_exit_code": 0,
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/outer-command/stdout.log",
+    "size_bytes": 6657,
+    "sha256": "87247306dad73060b995340158b794fcdf474b35fd3adcb2829088ff66756e9b"
+  },
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/outer-command/stderr.log",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "native_accounting_authority": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/terminal.json",
+  "native_worlds_not_inferred_from_external_python_process_count": true
+}

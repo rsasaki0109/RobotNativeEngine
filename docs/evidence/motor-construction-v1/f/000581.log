@@ -1,0 +1,18 @@
+   Compiling crossbeam-utils v0.8.21
+   Compiling serde_core v1.0.228
+    Checking num-complex v0.4.6
+    Checking crossbeam-epoch v0.9.20
+    Checking simba v0.9.1
+   Compiling serde v1.0.228
+    Checking crossbeam-deque v0.8.6
+    Checking crossbeam-channel v0.5.15
+    Checking crossbeam-queue v0.3.12
+    Checking bitflags v2.13.0
+    Checking nalgebra v0.33.3
+    Checking crossbeam v0.8.4
+    Checking bit-vec v0.7.0
+    Checking serde_json v1.0.150
+    Checking bincode v1.3.3
+    Checking parry3d v0.17.6
+    Checking rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d)
+    Finished `dev` profile [unoptimized] target(s) in 12.14s

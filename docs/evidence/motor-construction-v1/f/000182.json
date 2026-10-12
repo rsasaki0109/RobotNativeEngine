@@ -1,0 +1,10 @@
+{
+  "original_exit_code": 0,
+  "prepared": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_baseline_never_decoded_during_prepare_or_freeze/prepared/prepared-bindings.json",
+    "sha256": "d105cfbce58b4660a375d32833c451a4b7d321fa897b77ecc98e8453dbd0985c",
+    "size_bytes": 15214
+  },
+  "status": "PASS_PREPARATION_ONLY",
+  "worlds": 0
+}

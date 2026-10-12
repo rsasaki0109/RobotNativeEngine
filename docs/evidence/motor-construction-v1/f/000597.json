@@ -1,0 +1,704 @@
+{
+  "kind": "independent_final_synthetic_probes_of_corrected_prototypes",
+  "ended_utc": "2026-10-12T08:58:44.287866+00:00",
+  "assertions_passed": 41,
+  "native_worlds_launched": 0,
+  "native_data_read": false,
+  "qualification_claim": "source-only prototype review",
+  "probes": [
+    {
+      "name": "normal_half_valued_golden",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": {},
+        "operation_count": 15,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "f32_clamp_retains_equal_0x0",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 0,
+          "rhs_without_bias_word": 0,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 0,
+          "rhs_without_bias_word": 0,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": {},
+        "operation_count": 19,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "f32_clamp_retains_equal_0x80000000",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 2147483648,
+          "rhs_word": 0,
+          "rhs_without_bias_word": 0,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 2147483648,
+          "rhs_word": 0,
+          "rhs_without_bias_word": 0,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": {},
+        "operation_count": 19,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "impulse_clamp_differs_at_zero",
+      "assertion_passed": true,
+      "observed": {
+        "generic_impulse_clamp_word": 2147483648,
+        "finite_f32_clamp_word": 0
+      }
+    },
+    {
+      "name": "zero_authority_bound_sign_0x0",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 2147483648,
+          "upper_impulse_bound_word": 0
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 2147483648,
+          "upper_impulse_bound_word": 0
+        },
+        "mismatches": {},
+        "operation_count": 15,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "zero_authority_bound_sign_0x80000000",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 0,
+          "upper_impulse_bound_word": 2147483648
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 0,
+          "upper_impulse_bound_word": 2147483648
+        },
+        "mismatches": {},
+        "operation_count": 15,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_inv_dt_exact_zero_guard_0x0",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 0,
+          "erp_inverse_duration_word": 1065353216,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3212836864,
+          "rhs_without_bias_word": 3212836864,
+          "cfm_gain_word": 0,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 2147483648,
+          "upper_impulse_bound_word": 0
+        },
+        "observed_words": {
+          "inverse_duration_word": 0,
+          "erp_inverse_duration_word": 1065353216,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3212836864,
+          "rhs_without_bias_word": 3212836864,
+          "cfm_gain_word": 0,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 2147483648,
+          "upper_impulse_bound_word": 0
+        },
+        "mismatches": {},
+        "operation_count": 13,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_inv_dt_exact_zero_guard_0x80000000",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 0,
+          "erp_inverse_duration_word": 1065353216,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3212836864,
+          "rhs_without_bias_word": 3212836864,
+          "cfm_gain_word": 0,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 0,
+          "upper_impulse_bound_word": 2147483648
+        },
+        "observed_words": {
+          "inverse_duration_word": 0,
+          "erp_inverse_duration_word": 1065353216,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3212836864,
+          "rhs_without_bias_word": 3212836864,
+          "cfm_gain_word": 0,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 0,
+          "upper_impulse_bound_word": 2147483648
+        },
+        "mismatches": {},
+        "operation_count": 13,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "utils_inverse_inclusive_guard_0x1e3ce507",
+      "assertion_passed": true,
+      "observed": {
+        "input_word": 507307271,
+        "inverse_word": 0
+      }
+    },
+    {
+      "name": "utils_inverse_inclusive_guard_0x1e3ce508",
+      "assertion_passed": true,
+      "observed": {
+        "input_word": 507307272,
+        "inverse_word": 0
+      }
+    },
+    {
+      "name": "utils_inverse_inclusive_guard_0x9e3ce508",
+      "assertion_passed": true,
+      "observed": {
+        "input_word": 2654790920,
+        "inverse_word": 0
+      }
+    },
+    {
+      "name": "utils_inverse_inclusive_guard_0x9e3ce507",
+      "assertion_passed": true,
+      "observed": {
+        "input_word": 2654790919,
+        "inverse_word": 0
+      }
+    },
+    {
+      "name": "utils_inverse_outside_guard_0x1e3ce509",
+      "assertion_passed": true,
+      "observed": {
+        "input_word": 507307273,
+        "inverse_word": 1621981419
+      }
+    },
+    {
+      "name": "utils_inverse_outside_guard_0x9e3ce509",
+      "assertion_passed": true,
+      "observed": {
+        "input_word": 2654790921,
+        "inverse_word": 3769465067
+      }
+    },
+    {
+      "name": "repaired_nonfinite_captured_inverse_is_output_mismatch",
+      "assertion_passed": true,
+      "observed": {
+        "status": "MISMATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "observed_words": {
+          "inverse_duration_word": 2143289344,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": {
+          "inverse_duration_word": {
+            "expected_word": 1065353216,
+            "observed_word": 2143289344
+          }
+        },
+        "operation_count": 15,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "nonfinite_captured_rhs_is_mismatch",
+      "assertion_passed": true,
+      "observed": {
+        "status": "MISMATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 2143289344,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": {
+          "rhs_word": {
+            "expected_word": 3204448256,
+            "observed_word": 2143289344
+          }
+        },
+        "operation_count": 15,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "repaired_finite_overflow_returns_structured_exclusion",
+      "assertion_passed": true,
+      "observed": {
+        "status": "EXCLUDED_SOURCE_FLOAT_DOMAIN",
+        "exclusions": [
+          "nonfinite_arithmetic_input",
+          "overflow_intermediate",
+          "tiny_nonzero_exact_intermediate"
+        ],
+        "expected_words": null,
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": null,
+        "operation_count": 2,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "deliberately_narrow_formula_scope_does_not_validate_full_row",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": {},
+        "operation_count": 15,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "original_motor_ceiling_not_current_schema_guard",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3212836864,
+          "upper_impulse_bound_word": 1065353216
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3212836864,
+          "upper_impulse_bound_word": 1065353216
+        },
+        "mismatches": {},
+        "operation_count": 15,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "excluded_operand_0x7fc00000",
+      "assertion_passed": true,
+      "observed": {
+        "status": "EXCLUDED_SOURCE_FLOAT_DOMAIN",
+        "exclusions": [
+          "nonfinite_arithmetic_input"
+        ],
+        "nonfinite_named_inputs": [
+          "coordinate_word"
+        ],
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": null,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "excluded_operand_0x1",
+      "assertion_passed": true,
+      "observed": {
+        "status": "EXCLUDED_SOURCE_FLOAT_DOMAIN",
+        "exclusions": [
+          "subnormal_input"
+        ],
+        "expected_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "observed_words": {
+          "inverse_duration_word": 1065353216,
+          "erp_inverse_duration_word": 1056964608,
+          "effective_target_velocity_word": 0,
+          "rhs_word": 3204448256,
+          "rhs_without_bias_word": 3204448256,
+          "cfm_gain_word": 1056964608,
+          "cfm_coefficient_word": 0,
+          "lower_impulse_bound_word": 3221225472,
+          "upper_impulse_bound_word": 1073741824
+        },
+        "mismatches": {},
+        "operation_count": 15,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_copy_and_advance_0x3f800000",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "mismatches": {},
+        "expected_coordinate_word": 1065353216,
+        "operation_count": 2,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_copy_and_advance_0xbf800000",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "mismatches": {},
+        "expected_coordinate_word": 3212836864,
+        "operation_count": 2,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_copy_and_advance_0x80000000",
+      "assertion_passed": true,
+      "observed": {
+        "status": "DECLARED_FORMULAS_MATCH",
+        "exclusions": [],
+        "mismatches": {},
+        "expected_coordinate_word": 0,
+        "operation_count": 2,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_nonfinite_output_coordinate_word",
+      "assertion_passed": true,
+      "observed": {
+        "status": "MISMATCH",
+        "exclusions": [],
+        "mismatches": {
+          "coordinate_after_word": {
+            "expected_word": 1065353216,
+            "observed_word": 2143289344
+          }
+        },
+        "expected_coordinate_word": 1065353216,
+        "operation_count": 2,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_nonfinite_output_multibody_velocity_words",
+      "assertion_passed": true,
+      "observed": {
+        "status": "MISMATCH",
+        "exclusions": [],
+        "mismatches": {
+          "unchanged_multibody_velocity_word": {
+            "expected_word": 1065353216,
+            "observed_word": 2143289344
+          }
+        },
+        "expected_coordinate_word": 1065353216,
+        "operation_count": 2,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_rejects_later_generic_velocity",
+      "assertion_passed": true,
+      "observed": {
+        "status": "MISMATCH",
+        "exclusions": [],
+        "mismatches": {
+          "copied_integration_velocity_word": {
+            "expected_word": 1073741824,
+            "observed_word": 1065353216
+          }
+        },
+        "expected_coordinate_word": 1065353216,
+        "operation_count": 2,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_rejects_later_stabilized_multibody_velocity",
+      "assertion_passed": true,
+      "observed": {
+        "status": "MISMATCH",
+        "exclusions": [],
+        "mismatches": {
+          "unchanged_multibody_velocity_word": {
+            "expected_word": 1065353216,
+            "observed_word": 1073741824
+          }
+        },
+        "expected_coordinate_word": 1065353216,
+        "operation_count": 2,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_finite_overflow_is_excluded",
+      "assertion_passed": true,
+      "observed": {
+        "status": "EXCLUDED_SOURCE_FLOAT_DOMAIN",
+        "exclusions": [
+          "nonfinite_arithmetic_input",
+          "overflow_intermediate"
+        ],
+        "mismatches": null,
+        "motor_accuracy_verified": false
+      }
+    },
+    {
+      "name": "integration_boolean_handle_index",
+      "assertion_passed": true,
+      "observed": "native word must be a width-bounded integer, not bool"
+    },
+    {
+      "name": "integration_boolean_handle_generation",
+      "assertion_passed": true,
+      "observed": "native word must be a width-bounded integer, not bool"
+    },
+    {
+      "name": "integration_boolean_index_link_id",
+      "assertion_passed": true,
+      "observed": "invalid native row index"
+    },
+    {
+      "name": "integration_boolean_index_constraint_index",
+      "assertion_passed": true,
+      "observed": "invalid native row index"
+    },
+    {
+      "name": "integration_boolean_index_solver_velocity_offset",
+      "assertion_passed": true,
+      "observed": "invalid native row index"
+    },
+    {
+      "name": "integration_boolean_index_ndofs2",
+      "assertion_passed": true,
+      "observed": "invalid native row index"
+    },
+    {
+      "name": "integration_boolean_index_j_id2",
+      "assertion_passed": true,
+      "observed": "invalid native row index"
+    },
+    {
+      "name": "integration_mixed_handle_generation",
+      "assertion_passed": true,
+      "observed": "mixed endpoint rows"
+    },
+    {
+      "name": "integration_declared_scope_LinX_ForceBased_1",
+      "assertion_passed": true,
+      "observed": "outside declared isolated X-revolute scope"
+    },
+    {
+      "name": "integration_declared_scope_AngY_ForceBased_1",
+      "assertion_passed": true,
+      "observed": "outside declared isolated X-revolute scope"
+    },
+    {
+      "name": "integration_declared_scope_AngX_AccelerationBased_1",
+      "assertion_passed": true,
+      "observed": "outside declared isolated X-revolute scope"
+    },
+    {
+      "name": "integration_declared_scope_AngX_ForceBased_2",
+      "assertion_passed": true,
+      "observed": "outside declared isolated X-revolute scope"
+    }
+  ]
+}

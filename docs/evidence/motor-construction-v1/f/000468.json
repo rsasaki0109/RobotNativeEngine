@@ -1,0 +1,24 @@
+{
+  "actual_report_reads": 0,
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "test_compare_scalar_source_transition"
+  ],
+  "builds_started": 0,
+  "checkout_edits": 0,
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition",
+  "finished_at": "2026-10-12T09:27:11.920940+00:00",
+  "kind": "rne_synthetic_only_comparator_test_receipt",
+  "log_sha256": "8ba894197afef71138df4c5de8b9b7ad50c1b8ec0e7816e4e562b591b69dc29e",
+  "log_size_bytes": 133,
+  "original_exit_code": 0,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T09:27:11.721820+00:00",
+  "status": "PASS",
+  "synthetic_reports_only": true,
+  "worlds_started": 0
+}

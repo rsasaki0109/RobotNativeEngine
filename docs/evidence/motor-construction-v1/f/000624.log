@@ -1,0 +1,13 @@
+test_acceleration_based_places_compliance_in_coefficient (__main__.ConstructionTests.test_acceleration_based_places_compliance_in_coefficient) ... ok
+test_equal_signed_zero_velocity_is_not_replaced_by_clamp_bound (__main__.ConstructionTests.test_equal_signed_zero_velocity_is_not_replaced_by_clamp_bound) ... ok
+test_every_checked_output_tamper_is_rejected (__main__.ConstructionTests.test_every_checked_output_tamper_is_rejected) ... ok
+test_hand_derived_force_based_golden (__main__.ConstructionTests.test_hand_derived_force_based_golden) ... ok
+test_missing_availability_unknown_model_width_and_boolean_word_fail (__main__.ConstructionTests.test_missing_availability_unknown_model_width_and_boolean_word_fail) ... ok
+test_nonfinite_and_subnormal_are_not_promoted_to_qualified (__main__.ConstructionTests.test_nonfinite_and_subnormal_are_not_promoted_to_qualified) ... ok
+test_positive_target_velocity_is_clamped_from_actual_limits (__main__.ConstructionTests.test_positive_target_velocity_is_clamped_from_actual_limits) ... ok
+test_zero_cap_preserves_negative_lower_zero (__main__.ConstructionTests.test_zero_cap_preserves_negative_lower_zero) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.004s
+
+OK

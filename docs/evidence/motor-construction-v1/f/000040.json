@@ -1,0 +1,1 @@
+{"pid": 72271, "command": ["cargo", "run", "--locked", "--release", "-p", "go2_feedback_trot", "--example", "135_go2_feedback_trot"]}

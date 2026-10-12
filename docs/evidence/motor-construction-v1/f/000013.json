@@ -1,0 +1,43 @@
+{
+  "argv": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "-p",
+    "isolated_motor_construction_collector",
+    "-p",
+    "position_motor_calibration",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "completed_at": "2026-10-12T10:01:41.594236+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 2.1995527029976074,
+  "kind": "rne_actual_validation",
+  "name": "integrated-clippy",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": false,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:01:39.394678+00:00",
+  "stderr": {
+    "sha256": "db69ad3cc4fe31dcb814d7a8488a69553f12d559d6a2efbbbd41683eb703ef96",
+    "size_bytes": 487
+  },
+  "stdout": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  }
+}

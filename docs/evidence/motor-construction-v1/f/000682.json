@@ -1,0 +1,167 @@
+{
+  "actual_hash_checks_before_after": 1422,
+  "actual_independent_pure_methods": 29,
+  "actual_pure_original_exit": 0,
+  "additional_fault_gate_review": [
+    "late process-terminal ENOSPC retains observed original child exit/count in memory and stops next launch",
+    "child-start receipt storage failure retains actual started process/PID and reaps owned child",
+    "Popen exception is unknown launch, never fabricated verified-not-launched",
+    "prelaunch root-parent fsync failure prevents spawn",
+    "positive disk terminal after late fsync failure cannot pass because checked original coordinator exit is nonzero and reader rejects it",
+    "checked final receipt failure propagates nonzero; root must preserve actual outer CLI exit0 as a separate gate",
+    "outer coordinator stdout last complete strict JSON must equal full stored driver terminal",
+    "reader validates process-start/intents/barrier chronology, all six stored original exits, hashes/raw completeness and per-case accounting before scientific qualification"
+  ],
+  "all_frozen_inputs_current": 1414,
+  "binary": {
+    "bytes": 2851808,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+    "sha256": "8dff35933d8ecd6ce7a4f1165fffaba0f2560076476142ab29510b2bf0806618"
+  },
+  "candidate": {
+    "bytes": 302445,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/candidate-v2.json",
+    "sha256": "0d5912950c5d6d3d980262f1f263746d6fe820d17d92cf0bd95829304364c194"
+  },
+  "captured_semantics_review": {
+    "OFF_all_three_getters_null_required": true,
+    "ON_fresh_OFF_captured_initial_final_checkpoints_exact_required": true,
+    "ON_fresh_full_completed_record_literal_and_typed_telemetry_exact_required": true,
+    "actual_constructor_input_fields_captured_before_row_assignment": true,
+    "actual_full_generic_V_distinguished_from_stored_MB_V": true,
+    "final_velocity_writeback_checked_separately": true,
+    "integration_uses_actual_generic_V_copy_before_native_q_advance": true,
+    "known_native_objects_sorted_and_source_codec_decode_reencode_exact": true,
+    "one_DOF_handle_link_axis_block_identity_strict": true,
+    "postintegration_row_cache_is_current_slice_old_constructed_row": true,
+    "rows_unavailable_before_current_joint_update": true,
+    "stabilized_generic_V_not_relabelled_integration_V": true
+  },
+  "driver_interpreter": {
+    "bytes": 6812336,
+    "path": "/usr/bin/python3",
+    "sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1"
+  },
+  "frozen_inputs_sha256": "a14ea654a2462acff749b571e7e1127afeccb74325360379ba3db73450d7dc50",
+  "historical_blocked_v1_review": {
+    "bytes": 4365,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-predata-review/failed-v1-predata-review.json",
+    "sha256": "4ad0b862d96183f7444e7900b1f2eeb8a9530f07e7dd10b704f484c8a9211b80"
+  },
+  "independent_pure_receipt": {
+    "bytes": 5494,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-predata-review-v2/independent-pure-tests-terminal.json",
+    "sha256": "7441ccca0b99c86206471b2a58d872b6bbffa606d8daa9a6e3cd1316cbbb508f"
+  },
+  "internal_check_attempt_history": "Two initial internal path/descriptor-format assertions failed before writing a qualification result; their receipts are preserved. docs/media/showcase.toml is source config; root size_bytes metadata is normalized to bytes for exact descriptor comparison. No source, criterion, binary or numerical evidence was changed.",
+  "kind": "independent_fixed_six_predata_source_protocol_and_driver_review",
+  "limits": [
+    "This is pre-data admission, not a collected result or observer-neutrality finding.",
+    "Source/binary/tool/build closure is explicit selected/non-exhaustive, not hermetic compiler/host dependency attestation.",
+    "State equality covers individually serialized known entities/public words/parameters, not full sets/private pipeline or solver/cache state.",
+    "The reader relies on source-bound collector postcard decode/reencode, not an independent private postcard-layout decoder.",
+    "Float helper eligibility is normal-or-zero source-ordered RN f32; subnormal/nonfinite/tiny/overflow are exclusions; runtime MXCSR/FTZ/DAZ is unmeasured.",
+    "No complete internal PGS replay, convergence/SI motor accuracy, physical force origin, coupled-contact causal attribution, hardware/external-user reliability, rejected-candidate adoption or maturity increase follows.",
+    "Any unknown launch, nonzero original exit, timeout, source/storage/schema/arithmetic mismatch stays non-PASS; no retry/resume/replacement."
+  ],
+  "material_v1_findings_resolved": [
+    {
+      "finding": "parent/root directory durability",
+      "resolution": "cohort_driver v2 fsyncs newly created root parent, all six launch claims/case directories, then root after six entries and durability record before first spawn; checked outer directory is independently fsynced."
+    },
+    {
+      "finding": "late-terminal storage falsely marking launched case unlaunched",
+      "resolution": "case accounting updates known/unknown launch and actual wait return independently of per-process terminal serialization; stored terminal count is distinct from memory count; failed/unknown launches are separate from verified-not-launched labels."
+    }
+  ],
+  "method": "Independent read-only source-derived fixture/schedule/math-helper/capture/parser/driver review plus fresh stream SHA/size checks and literal source-copy pure/mock tests using pinned /usr/bin/python3; no authoritative native data collected or analyzed.",
+  "noncircular_admission_contract": "This receipt binds candidate full bytes and canonical frozen-input list without candidate referring to this receipt. Parent final wrapper must hash-bind candidate+this admission and independently supply wrapper SHA to both checked driver and reader. Validation only starts no process; explicit native launch consumes exclusive single cohort root and six prelaunch claims.",
+  "parser_and_arithmetic_review": {
+    "ERP_RHS_CFM_bounds_source_order_normal_zero_helpers_match_current_source_expressions": true,
+    "JSON_duplicate_keys_float_nonfinite_literals_rejected": true,
+    "arithmetic_exclusions_or_mismatches_nonPASS": true,
+    "direct_extra_diagnostic_words_copied_from_already_checked_capture": true,
+    "native_integer_width_bool_strict_and_signed_zero_words_retained": true,
+    "no_criteria_tolerance_gain_or_solver_formula_change": true,
+    "reciprocal_initial_diagonal_uses_actual_stored_weighted_selector": true,
+    "three_math_helpers_literal_unchanged_from_v1": true,
+    "whole_file_bounds_MiB": [
+      16,
+      32
+    ],
+    "whole_single_gzip_member_header_CRC_EOF_no_trailing_required": true
+  },
+  "review_actions": {
+    "Cargo_builds": 0,
+    "main_or_frozen_source_edits": 0,
+    "native_processes": 0,
+    "native_worlds": 0,
+    "network_or_publication_mutations": 0,
+    "new_six_data_reads": 0,
+    "old_numeric_report_decodes": 0
+  },
+  "reviewed_at": "2026-10-12T11:06:28.718716+00:00",
+  "reviewed_candidate_sha256": "0d5912950c5d6d3d980262f1f263746d6fe820d17d92cf0bd95829304364c194",
+  "root_required_before_collection": [
+    "Freeze wrapper with exact candidate and this admission descriptors; independently retain full wrapper SHA",
+    "Run only pinned checked_driver.py validate-only under registered runtime variables; then separately authorized --launch-native once",
+    "Keep all frozen source/compiler/binary/tool inputs unchanged throughout six collection and immediate qualification; do not extend or replace failed cases",
+    "Retain root actual checked outer CLI exit/stdout/stderr/source guards; require actual outer exit0 before invoking one reader qualification",
+    "After collection, preserve complete six raw gzip files and every original failure/partial artifact regardless of qualification result; follow ADR034 for publication"
+  ],
+  "schema_version": 2,
+  "source_binding_receipt": {
+    "bytes": 1628,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-predata-review-v2/v2-source-binding-verification-receipt.json",
+    "sha256": "8bec36b7b0900d7ff41e4b21473063862ca269b56e269e9a7c28020c5be07578"
+  },
+  "source_derived_workload": {
+    "companion_events_per_ON_world": 257,
+    "counts_derivation": "Companion 32x8 boundaries plus one final writeback; v1 32x(5 pre/updated/warmstart +6 PGS/visits/contacts +1 integration +2x6 stabilization/bias/visits/contact +2 final friction/slice). Counts are source-derived, not data-selected.",
+    "fixture": "Fixed parent/coincident isotropic 1 kg radius0.1 m sphere, one AngX DOF, ForceBased k300/d12, +/-0.001 rad, zero gravity/q/v/passive/body damping/armature; cap2 Nm; no contacts/limits/CCD/sleep/extra friction",
+    "independent_of": [
+      "G5 fixed18",
+      "separate14172 source transition"
+    ],
+    "native_process_limit": 6,
+    "order": [
+      {
+        "label": "negative_on",
+        "observer": "on",
+        "target": "negative"
+      },
+      {
+        "label": "negative_fresh_on",
+        "observer": "on",
+        "target": "negative"
+      },
+      {
+        "label": "negative_off",
+        "observer": "off",
+        "target": "negative"
+      },
+      {
+        "label": "positive_on",
+        "observer": "on",
+        "target": "positive"
+      },
+      {
+        "label": "positive_fresh_on",
+        "observer": "on",
+        "target": "positive"
+      },
+      {
+        "label": "positive_off",
+        "observer": "off",
+        "target": "positive"
+      }
+    ],
+    "outer_intervals_per_world": 1,
+    "pgs_passes": 1,
+    "small_steps": 32,
+    "stabilization_passes": 2,
+    "stage_v1_events_per_ON_world": 832,
+    "world_limit": 6
+  },
+  "status": "PASS_PRE_DATA_SOURCE_PROTOCOL_AND_DRIVER"
+}

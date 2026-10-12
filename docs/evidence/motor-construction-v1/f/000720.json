@@ -1,0 +1,12 @@
+{
+  "kind": "rne_literal_complete_scalar_source_transition_copy",
+  "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/report.json",
+  "destination": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-motor-construction-source.json",
+  "size_bytes": 8193579,
+  "sha256": "bf6a721ca92d609c2e80df2e3b7f1bddeb79fcb5974934351d615a88f18db662",
+  "whole_bytes_copied": true,
+  "primary_calibration": "FAIL_0_OF_4",
+  "historical_report_modified": false,
+  "source_equivalence_gate_passed": true,
+  "independent_postcollection_review_sha256": "12b08d6018456e9b2a9fbf5959da8ad6e79f2dc3714f602428308990549d060d"
+}

@@ -1,0 +1,33 @@
+{
+  "collector_original_exit_code": 1,
+  "collector_processes_started": 1,
+  "error": "Refused: original collection did not return preregistered FAIL exit2",
+  "finished_at": "2026-10-12T10:10:09.883312+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_unexpected_collection_exit_is_failure_despite_full_report/frozen/frozen-bindings.json",
+    "sha256": "8dc49ca4f5f2996bb9fd541906625c12c9a13062f4f8d443061418f2a15e06b8",
+    "size_bytes": 16964
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_unexpected_collection_exit_is_failure_despite_full_report/once-only-attempt/report.json",
+    "sha256": "37533df6ab4ec1001df09bb6dfdb98e2f83dd4b6e7d1cf41ce08f5fe666282bf",
+    "size_bytes": 25302
+  },
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:10:09.842296+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "case_count_retained": 24,
+    "status": "COMPLETE_FIXED72_FAIL0_OF4",
+    "world_counts": {
+      "completed_worlds": 72,
+      "worlds_attempted": 72,
+      "worlds_created": 72
+    }
+  }
+}

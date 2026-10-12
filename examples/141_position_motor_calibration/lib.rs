@@ -284,6 +284,10 @@ fn selected_sources() -> BTreeMap<String, String> {
         "../../third_party/rapier3d/src/pipeline/multibody_motor_stage.rs"
     );
     source!(
+        "third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+        "../../third_party/rapier3d/src/pipeline/multibody_motor_construction.rs"
+    );
+    source!(
         "third_party/rapier3d/src/pipeline/mod.rs",
         "../../third_party/rapier3d/src/pipeline/mod.rs"
     );

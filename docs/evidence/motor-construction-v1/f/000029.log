@@ -1,0 +1,8 @@
+
+running 3 tests
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::missing_limits_are_absent_not_a_zero_interval ... ok
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::actual_input_storage_preserves_ieee_payloads_and_identity_without_dynamics ... ok
+test pipeline::physics_pipeline::rne_motor_construction_flag_tests::default_and_toggle_clear_only_companion_storage_without_a_world ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 40 filtered out; finished in 0.00s
+

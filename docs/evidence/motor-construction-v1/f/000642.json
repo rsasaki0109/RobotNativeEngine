@@ -1,0 +1,43 @@
+{
+  "kind": "original_process_terminal",
+  "case": {
+    "label": "negative_fresh_on",
+    "target": "negative",
+    "observer": "on"
+  },
+  "attempt_index": 1,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+    "--target",
+    "negative",
+    "--observer",
+    "on",
+    "--label",
+    "negative_fresh_on",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/negative_fresh_on/raw.jsonl.gz"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "started_utc": "2026-10-12T11:08:37.850597+00:00",
+  "native_process_started": true,
+  "actual_exit_code": 0,
+  "timed_out": false,
+  "error": null,
+  "pid": 80276,
+  "ended_utc": "2026-10-12T11:08:37.869546+00:00",
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/negative_fresh_on/stdout.log",
+    "sha256": "fcd40ce1de4e9fdc3f20dfb2ab97f86cca864d7b5a83399cf9fa06cde17fd713",
+    "bytes": 68
+  },
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/negative_fresh_on/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "raw_output": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/negative_fresh_on/raw.jsonl.gz",
+    "sha256": "cf62c37fe4a65ce0aff6394d3a8e3030e1068fd3d4990ea0e19f1f8458da1f8b",
+    "bytes": 15533
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "argv": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "completed_at": "2026-10-12T10:01:39.291452+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 4.212294871998893,
+  "kind": "rne_actual_validation",
+  "name": "integrated-fmt",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": false,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:01:35.079148+00:00",
+  "stderr": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  },
+  "stdout": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  }
+}

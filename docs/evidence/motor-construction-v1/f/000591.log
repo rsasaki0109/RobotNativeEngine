@@ -1,0 +1,67 @@
+   Compiling libm v0.2.16
+   Compiling serde_core v1.0.228
+   Compiling num-traits v0.2.19
+   Compiling crossbeam-utils v0.8.21
+   Compiling serde v1.0.228
+   Compiling bytemuck v1.25.0
+   Compiling safe_arch v0.7.4
+   Compiling crossbeam-epoch v0.9.20
+   Compiling byteorder v1.5.0
+   Compiling hash32 v0.3.1
+   Compiling crossbeam-deque v0.8.6
+   Compiling num-complex v0.4.6
+   Compiling wide v0.7.33
+   Compiling num-integer v0.1.46
+   Compiling approx v0.5.1
+   Compiling stable_deref_trait v1.2.1
+   Compiling equivalent v1.0.2
+   Compiling foldhash v0.2.0
+   Compiling rawpointer v0.2.1
+   Compiling smallvec v1.15.2
+   Compiling allocator-api2 v0.2.21
+   Compiling hashbrown v0.16.1
+   Compiling simba v0.9.1
+   Compiling matrixmultiply v0.3.10
+   Compiling heapless v0.8.0
+   Compiling num-rational v0.4.2
+   Compiling typenum v1.20.1
+   Compiling log v0.4.32
+   Compiling robust v1.2.0
+   Compiling either v1.16.0
+   Compiling spade v2.15.1
+   Compiling nalgebra v0.33.3
+   Compiling ena v0.14.4
+   Compiling thiserror v1.0.69
+   Compiling rayon-core v1.13.0
+   Compiling zmij v1.0.21
+   Compiling rstar v0.12.2
+   Compiling crossbeam-channel v0.5.15
+   Compiling crossbeam-queue v0.3.12
+   Compiling bitflags v2.13.0
+   Compiling ordered-float v4.6.0
+   Compiling downcast-rs v1.2.1
+   Compiling itoa v1.0.18
+   Compiling slab v0.4.12
+   Compiling memchr v2.8.2
+   Compiling arrayvec v0.7.6
+   Compiling rustc-hash v2.1.2
+   Compiling serde_json v1.0.150
+   Compiling crossbeam v0.8.4
+   Compiling rayon v1.12.0
+   Compiling bit-vec v0.7.0
+   Compiling bincode v1.3.3
+   Compiling oorandom v11.1.5
+   Compiling parry3d v0.17.6
+   Compiling rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d)
+    Finished `test` profile [unoptimized] target(s) in 22.81s
+     Running unittests src/lib.rs (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/target/debug/deps/rapier3d-42a53fd542329112)
+
+running 5 tests
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::actual_input_storage_preserves_ieee_payloads_and_identity_without_dynamics ... ok
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::companion_schema_and_raw_words_roundtrip_without_float_json ... ok
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::endpoints_have_distinct_phase_and_actual_multibody_velocity_storage ... ok
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::missing_limits_are_absent_not_a_zero_interval ... ok
+test pipeline::physics_pipeline::rne_motor_construction_flag_tests::default_and_toggle_clear_only_companion_storage_without_a_world ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 44 filtered out; finished in 0.00s
+

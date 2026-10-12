@@ -1,0 +1,24 @@
+{
+  "collector_original_exit_code": null,
+  "collector_processes_started": 0,
+  "error": "Refused: original collection did not return preregistered FAIL exit2",
+  "finished_at": "2026-10-12T10:10:09.055366+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/frozen/frozen-bindings.json",
+    "sha256": "772bd2ec799eff8a71df7a8f07283de41414cdf60876ef3b196abac08fe6ba91",
+    "size_bytes": 16853
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": null,
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:10:09.042102+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "status": "UNAVAILABLE_NO_REPORT",
+    "world_counts": null
+  }
+}

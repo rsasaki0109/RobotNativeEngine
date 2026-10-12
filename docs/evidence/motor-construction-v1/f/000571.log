@@ -1,0 +1,114 @@
+   Compiling autocfg v1.5.1
+   Compiling proc-macro2 v1.0.106
+   Compiling quote v1.0.45
+   Compiling unicode-ident v1.0.24
+   Compiling libm v0.2.16
+   Compiling num-traits v0.2.19
+   Compiling syn v2.0.118
+   Compiling serde_core v1.0.228
+   Compiling crossbeam-utils v0.8.21
+   Compiling serde v1.0.228
+   Compiling serde_derive v1.0.228
+   Compiling crossbeam-epoch v0.9.20
+   Compiling paste v1.0.15
+    Checking bytemuck v1.25.0
+    Checking safe_arch v0.7.4
+   Compiling matrixmultiply v0.3.10
+    Checking byteorder v1.5.0
+   Compiling heapless v0.8.0
+    Checking hash32 v0.3.1
+    Checking crossbeam-deque v0.8.6
+    Checking wide v0.7.33
+    Checking approx v0.5.1
+    Checking num-complex v0.4.6
+    Checking num-integer v0.1.46
+    Checking equivalent v1.0.2
+    Checking smallvec v1.15.2
+    Checking rawpointer v0.2.1
+   Compiling rayon-core v1.13.0
+    Checking allocator-api2 v0.2.21
+   Compiling thiserror v1.0.69
+    Checking foldhash v0.2.0
+    Checking stable_deref_trait v1.2.1
+    Checking hashbrown v0.16.1
+    Checking simba v0.9.1
+    Checking num-rational v0.4.2
+   Compiling thiserror-impl v1.0.69
+   Compiling nalgebra-macros v0.2.2
+    Checking either v1.16.0
+    Checking log v0.4.32
+   Compiling zmij v1.0.21
+    Checking robust v1.2.0
+    Checking typenum v1.20.1
+    Checking spade v2.15.1
+    Checking nalgebra v0.33.3
+    Checking ena v0.14.4
+    Checking rstar v0.12.2
+    Checking crossbeam-queue v0.3.12
+    Checking crossbeam-channel v0.5.15
+   Compiling num-derive v0.4.2
+    Checking bitflags v2.13.0
+    Checking ordered-float v4.6.0
+   Compiling serde_json v1.0.150
+    Checking downcast-rs v1.2.1
+    Checking arrayvec v0.7.6
+    Checking slab v0.4.12
+    Checking rustc-hash v2.1.2
+    Checking crossbeam v0.8.4
+    Checking rayon v1.12.0
+    Checking bit-vec v0.7.0
+    Checking memchr v2.8.2
+    Checking itoa v1.0.18
+    Checking bincode v1.3.3
+    Checking oorandom v11.1.5
+    Checking parry3d v0.17.6
+    Checking rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d)
+error[E0425]: cannot find function `unit_joint_motor_constraint_with_construction_inputs` in module `joint`
+   --> src/dynamics/joint/multibody_joint/multibody_joint.rs:332:28
+    |
+332 |                     joint::unit_joint_motor_constraint_with_construction_inputs(
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in `joint`
+    |
+help: consider importing this function
+    |
+  1 + use crate::dynamics::joint::multibody_joint::unit_multibody_joint::unit_joint_motor_constraint_with_construction_inputs;
+    |
+help: if you import `unit_joint_motor_constraint_with_construction_inputs`, refer to it directly
+    |
+332 -                     joint::unit_joint_motor_constraint_with_construction_inputs(
+332 +                     unit_joint_motor_constraint_with_construction_inputs(
+    |
+
+error[E0425]: cannot find function `unit_joint_motor_constraint_with_construction_inputs` in module `joint`
+   --> src/dynamics/joint/multibody_joint/multibody_joint.rs:411:28
+    |
+411 |                     joint::unit_joint_motor_constraint_with_construction_inputs(
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in `joint`
+    |
+help: consider importing this function
+    |
+  1 + use crate::dynamics::joint::multibody_joint::unit_multibody_joint::unit_joint_motor_constraint_with_construction_inputs;
+    |
+help: if you import `unit_joint_motor_constraint_with_construction_inputs`, refer to it directly
+    |
+411 -                     joint::unit_joint_motor_constraint_with_construction_inputs(
+411 +                     unit_joint_motor_constraint_with_construction_inputs(
+    |
+
+error[E0603]: module `solver` is private
+  --> src/pipeline/multibody_motor_construction.rs:6:22
+   |
+ 6 | use crate::dynamics::solver::{JointGenericOneBodyConstraint, MotorParameters};
+   |                      ^^^^^^ private module
+   |
+note: the module `solver` is defined here
+  --> src/dynamics/mod.rs:26:1
+   |
+26 | mod solver;
+   | ^^^^^^^^^^^
+
+Some errors have detailed explanations: E0425, E0603.
+For more information about an error, try `rustc --explain E0425`.
+error: could not compile `rapier3d` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `rapier3d` (lib test) due to 3 previous errors

@@ -1,0 +1,32 @@
+{
+  "argv": [
+    "cargo",
+    "check",
+    "--locked",
+    "--offline",
+    "--all-targets",
+    "--manifest-path",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/Cargo.toml"
+  ],
+  "actual_exit_code": 101,
+  "started_utc": "2026-10-12T08:59:13.842878+00:00",
+  "ended_utc": "2026-10-12T08:59:37.664360+00:00",
+  "own_source_before": {
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/Cargo.toml": "5a0ae783178dd2aeec60f9de4f2279ae26154c4b0eecb3240202a594df44a6f0",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/Cargo.lock": "cbc9782957e845b45436686c4886969bb79f42ef8e0e7bb2fc4234237532f3d7",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/lib.rs": "c9163f10012b93d788571555701dd4ee2f81d68525d08b1dce7f92df3707c92e",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/main.rs": "97962b1e7cb0182547c8fef5a19c1603524150e12ae5ef487a38b3a85203f821",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/tests.rs": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063"
+  },
+  "own_source_after": {
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/Cargo.toml": "5a0ae783178dd2aeec60f9de4f2279ae26154c4b0eecb3240202a594df44a6f0",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/Cargo.lock": "cbc9782957e845b45436686c4886969bb79f42ef8e0e7bb2fc4234237532f3d7",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/lib.rs": "c9163f10012b93d788571555701dd4ee2f81d68525d08b1dce7f92df3707c92e",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/main.rs": "97962b1e7cb0182547c8fef5a19c1603524150e12ae5ef487a38b3a85203f821",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/tests.rs": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063"
+  },
+  "cargo_build_jobs": 2,
+  "target_directory": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/target-durable",
+  "native_worlds_executed": 0,
+  "scope": "Compile/check only; no native collector or fixture invocation"
+}

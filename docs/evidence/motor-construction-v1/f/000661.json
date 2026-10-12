@@ -1,0 +1,22 @@
+{
+  "kind": "durable_launch_intent",
+  "case": {
+    "label": "positive_off",
+    "target": "positive",
+    "observer": "off"
+  },
+  "attempt_index": 5,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+    "--target",
+    "positive",
+    "--observer",
+    "off",
+    "--label",
+    "positive_off",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/positive_off/raw.jsonl.gz"
+  ],
+  "created_utc": "2026-10-12T11:08:38.281333+00:00",
+  "registered_spec_sha256": "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce"
+}

@@ -1,0 +1,89 @@
+{
+  "actual_data_status": {
+    "72_collection_root_exists": false,
+    "old_numeric_report_decodes": 0,
+    "prepared_worlds_started": 0,
+    "reviewer_builds": 0,
+    "reviewer_old_numeric_report_or_raw_reads": 0,
+    "reviewer_tests_or_native_binary_invocations": 0,
+    "reviewer_worlds": 0,
+    "scientific_results": null
+  },
+  "before_world_collection": true,
+  "code_locations": {
+    "global_terminal_save": [
+      514
+    ],
+    "process_terminal_write": [
+      385
+    ],
+    "process_wait": [
+      373
+    ],
+    "run_count_only_after_return": [
+      455
+    ],
+    "run_exception_only": [
+      418,
+      497,
+      510
+    ],
+    "run_false_zero_initialization": [
+      442
+    ],
+    "run_final_report_retention": [
+      459,
+      509
+    ],
+    "run_initial_not_launched": [
+      443
+    ],
+    "run_process_call": [
+      453
+    ]
+  },
+  "driver_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/driver.py",
+    "sha256": "4c1362e62ffb666413c140e686c880c342dad8adaa0aca017bc7516f1641331b",
+    "size_bytes": 31138
+  },
+  "kind": "rne_141_independent_precollection_review",
+  "material_findings": [
+    {
+      "behavior": "run() updates collection count/original exit/world accounting only after process() returns. Its initial collector_processes_started=0 and world_accounting NOT_LAUNCHED can persist in global FAIL terminal even when start/pid/native report exist, implying false known zero/unlaunched instead of uncertain launch/accounting.",
+      "current_admission": "No PASS descriptor for cfaf v1. Parent acknowledged and is preparing separate v2 copy; frozen original fields/criteria remain preserved.",
+      "recommended_v2": "Preserve original v1 frozen sources/prepared receipt. New copied driver marks reserved/unknown before calling process and binds any verified started/exited facts conservatively from durable receipts; never says known zero/NOT_LAUNCHED after unconfirmed reserved process. Add real synthetic terminal-write/interrupt fault tests, source hashes and new predata bindings before data.",
+      "safety_boundary": "Exclusive persistent attempt root is consumed and no retry permitted; no extra-world grant or erroneous scientific PASS follows. Issue is truthful accounting/provenance under storage/interruption failure.",
+      "severity": "predata_blocker",
+      "trigger": "Child can start and finish, then process-terminal persistence/fsync/storage raises before process() returns. KeyboardInterrupt after launch is another incomplete-process path."
+    }
+  ],
+  "mutations": {
+    "GH": 0,
+    "checkout": 0,
+    "runtime_config": 0,
+    "source_copy": 0,
+    "v1_source_or_prepared": 0
+  },
+  "next": "Await independently frozen v2 source/test/prepared closure; review before collection. This BLOCKED receipt cannot satisfy freeze PASS acceptance.",
+  "partial_source_findings": {
+    "comparator": "Source-only span replacement and whole non-source byte equality, duplicate/nonfinite/schema/type guards; actualcomparison executed only after collection by driver, not this review.",
+    "environment": "Complete literal child environment only LC_ALL=C/LANG=C; binary does not inherit ambient credentials; no environment values read by reviewer.",
+    "fixed_protocol": "Separate72=24 cells x ON/fresh_ON/OFF, single --output --require-calibration collector, original expected exit2/FAIL0of4, no retries/filters/scene/criteria edits. Comparator then loaded zero-world gates0/2/1.",
+    "opaque_old_baseline": "No numerical report decode/reanalysis/old source-map parsing performed by this blocked-review command. Parent prior receipt reports wholeDB0 SHA and isolated duplicate-safe source-string-map confirmation; full independent 41-artifact/guard closure awaits v2.",
+    "pure_evidence": "Existing driver20 and comparator34 synthetic tests reviewed from source/receipts; do not cover current identified late-terminal uncertainty. New faults required in v2.",
+    "source_transition": "Declared before21/after22, precise11 existing changes and one new construction module. 141 physical fixture/math/criteria source unchanged apart from selected_source macro addition (already independent collector review)."
+  },
+  "prepared_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/prepared/prepared-bindings.json",
+    "sha256": "cfafbb1da93be0e3ce3804263ec5fb119121eeee7c2cab2a74fcbf8cfe54b322",
+    "size_bytes": 19895
+  },
+  "reviewed_prepared_binding_sha256": "cfafbb1da93be0e3ce3804263ec5fb119121eeee7c2cab2a74fcbf8cfe54b322",
+  "reviewed_prepared_binding_size_bytes": 19895,
+  "reviewed_utc": "2026-10-12T10:24:24.660698+00:00",
+  "schema_version": 1,
+  "separate_budgets": "This blocker is specifically the unexecuted72 v1 source-transition arm. Separately registered example143 fixedsix and gen5fixed18 are distinct; this review does not gate or authorize them.",
+  "status": "BLOCKED_BEFORE_COLLECTION_ACCOUNTING_UNCERTAINTY",
+  "world_budget": 72
+}

@@ -1,0 +1,8 @@
+{
+  "public_unit_constructor_signature_unchanged": true,
+  "unit_constructor_original_body_tokens_unchanged_except_added_observer_block": true,
+  "public_velocity_constraints_signature": true,
+  "existing_integrate_positions_signature": true,
+  "stage_v1_file_sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+  "stage_v1_source_bytes_unchanged": true
+}

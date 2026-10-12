@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/141_position_motor_calibration",
+    "--verify-report",
+    "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-contact-stages.json"
+  ],
+  "cleanup_error": null,
+  "cwd": "/workspace/RobotNativeEngine",
+  "environment": {
+    "LANG": "C",
+    "LC_ALL": "C"
+  },
+  "execution_error": null,
+  "finished_at": "2026-10-12T10:48:15.809210+00:00",
+  "kind": "rne_141_process_start",
+  "launch_error": null,
+  "original_exit_code": 1,
+  "pid_receipt_error": null,
+  "process_count": 1,
+  "process_launched": true,
+  "started_at": "2026-10-12T10:48:15.787838+00:00",
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/verify-old-stale/stderr.log",
+    "sha256": "fd1da9cab545501f81688742a0d652c6f084dabf5840c934af4f1648a3634766",
+    "size_bytes": 68
+  },
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/verify-old-stale/stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  },
+  "world_role": "zero worlds: --verify-report only"
+}

@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "kind": "final_source_stable_pure_only_vendor_preparation_v2",
+  "status": "source_stable_reviewable_patch; not production_ready or runtime_neutrality_qualified",
+  "owned_source_copy": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d",
+  "manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/final-changed-files-and-patches-v2.json",
+    "sha256": "8370cb378d2d1db94fef5d32d737595b4b22d7691115309ba0ec68c57e9412ca"
+  },
+  "static_source_proof": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/final-static-source-proof.json",
+    "sha256": "3ee3993b5981657a340784cef909aedade5a87fcac33e132c835c43f87cb63bf",
+    "findings": {
+      "public_unit_constructor_signature_unchanged": true,
+      "unit_constructor_original_body_tokens_unchanged_except_added_observer_block": true,
+      "public_velocity_constraints_signature": true,
+      "existing_integrate_positions_signature": true,
+      "stage_v1_file_sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+      "stage_v1_source_bytes_unchanged": true
+    }
+  },
+  "patch_apply_check": {
+    "exit": 0,
+    "scope": "read-only git apply --check against untouched baseline; no apply/checkout write",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "output": ""
+  },
+  "final_validation": [
+    {
+      "stage": "final-clippy-parallel",
+      "exit_code": 0,
+      "source_unchanged_during_command": true,
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "receipt_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-clippy-parallel.json",
+      "receipt_sha256": "83705aaab550af418296c5e6777d6c2ac392acca55dc7e3632fefce191f2d0ef"
+    },
+    {
+      "stage": "final-clippy-default",
+      "exit_code": 0,
+      "source_unchanged_during_command": true,
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "receipt_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-clippy-default.json",
+      "receipt_sha256": "3fbbe8aef027d4b6b4e360b3d5328f3f7d3ed29ea06744516c5d5672f4ef490f"
+    },
+    {
+      "stage": "final-rustdoc",
+      "exit_code": 0,
+      "source_unchanged_during_command": true,
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "receipt_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-rustdoc.json",
+      "receipt_sha256": "c3b0cd8875252aaeac9c8a6d6923e6e01e4072a8d9734360fb4fffd0f40240a9"
+    },
+    {
+      "stage": "final-pure-tests",
+      "exit_code": 0,
+      "source_unchanged_during_command": true,
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "receipt_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-pure-tests.json",
+      "receipt_sha256": "029389a836ec979486c9caab795e63e762756a52db52b81ec944906b63d26ab3"
+    },
+    {
+      "stage": "final-scoped-rustfmt",
+      "exit_code": 0,
+      "source_unchanged_during_command": true,
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "receipt_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-scoped-rustfmt.json",
+      "receipt_sha256": "3ddae43cbcdfbdd4ed3f2e967abcf15fb95c5d501312b585f83d29e85edd2211"
+    },
+    {
+      "stage": "final-toolchain",
+      "exit_code": 0,
+      "source_unchanged_during_command": true,
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "receipt_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-toolchain.json",
+      "receipt_sha256": "4b1c79c0230d0f30ec6bce207e1bc0ed8e78b4aa01700f311fff29d21c8a793e"
+    }
+  ],
+  "pure_tests": {
+    "passed": 5,
+    "failed": 0,
+    "filtered_dynamic_tests": 44,
+    "scope": "synthetic bit-storage/schema/flag only; no solver or world executed"
+  },
+  "retained_failures": [
+    "check-attempt1",
+    "check-attempt2",
+    "clippy-attempt1",
+    "baseline-clippy-parallel-attempt1"
+  ],
+  "unintended_formatting_restoration_sha256": "01ed5312645d8517358be0a360d6780c52d0272aa2147049c89fd98e3e524e2d",
+  "main_head": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+  "main_status": "",
+  "main_vendor_tree_equals_archived_E": true,
+  "authorized_main_head_transition": "Parent merged409 and reset branch; main3be has exactlyoldE tree. This agent did not change checkout/index/branches/GitHub/config.",
+  "worlds": 0,
+  "scientific_runs": 0,
+  "example141_142_runs": 0,
+  "old_raw_numeric_analysis": 0,
+  "limitations": [
+    "No ON/fresh/OFF runtime neutrality proof, calibration, convergence, performance or maturity gain.",
+    "Future six scientific worlds and separate unchanged14172-world source-transition arm require frozen reader/protocol/source/binary before any execution.",
+    "Only owned-copy compilation/docs and five explicitly filtered pure tests ran.",
+    "Native runtime float mode remains unmeasured; actual source/hash/compiler bindings are external to producer JSON."
+  ],
+  "copy_inventory_equals_all_six_final_validated_inputs": true,
+  "full_source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+  "export_attempt1_rejected": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/export-attempt1-rejected.json",
+    "sha256": "e06937c3e24f536fad4828644fd3abf78300c8268c2c0d7b9bc0366a35f48e5f"
+  },
+  "outside_scope_formatting_removed_again": true
+}

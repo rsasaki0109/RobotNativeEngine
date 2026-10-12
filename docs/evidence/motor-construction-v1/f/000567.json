@@ -1,0 +1,24 @@
+{
+  "scope": "Two accidental formatting/newline differences outside the implementation scope; exact intermediate bytes retained; original baseline bytes restored, not treated as numerical/API/lint changes.",
+  "records": [
+    {
+      "path": "src/data/graph.rs",
+      "original_sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044",
+      "intermediate_sha256": "b96ac9b832fce3435c81dc6531bd3eab88e55632882b3973cda5ea2780327942",
+      "original_crlf": 718,
+      "intermediate_crlf": 0,
+      "normalized_diff": "--- baseline/src/data/graph.rs\n+++ intermediate/src/data/graph.rs\n@@ -715,4 +715,3 @@\n         self.index == rhs.index && self.weight == rhs.weight\n     }\n }\n-\n",
+      "saved_intermediate": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/formatting-only-intermediates/graph.rs"
+    },
+    {
+      "path": "src/pipeline/query_pipeline/mod.rs",
+      "original_sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332",
+      "intermediate_sha256": "4951b12c1559fc2a63d019a9202f275611997fbbc846643b118e0ab7cc7dc4aa",
+      "original_crlf": 714,
+      "intermediate_crlf": 0,
+      "normalized_diff": "--- baseline/src/pipeline/query_pipeline/mod.rs\n+++ intermediate/src/pipeline/query_pipeline/mod.rs\n@@ -485,9 +485,7 @@\n                 shape,\n             );\n \n-        self.qbvh\n-            .traverse_best_first(&mut visitor)\n-            .map(|h| h.1 .0)\n+        self.qbvh.traverse_best_first(&mut visitor).map(|h| h.1 .0)\n     }\n \n     /// Find the projection of a point on the closest collider.\n",
+      "saved_intermediate": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/formatting-only-intermediates/query_pipeline_mod.rs"
+    }
+  ],
+  "worlds": 0
+}

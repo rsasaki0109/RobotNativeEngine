@@ -1,0 +1,10 @@
+{
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/frozen/frozen-bindings.json",
+    "sha256": "772bd2ec799eff8a71df7a8f07283de41414cdf60876ef3b196abac08fe6ba91",
+    "size_bytes": 16853
+  },
+  "original_exit_code": 0,
+  "status": "PASS_FREEZE_NO_WORLDS",
+  "worlds": 0
+}

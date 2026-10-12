@@ -1,0 +1,28 @@
+{
+  "kind": "exclusive_process_claim",
+  "case": {
+    "label": "positive_on",
+    "target": "positive",
+    "observer": "on"
+  },
+  "attempt_index": 3,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+    "--target",
+    "positive",
+    "--observer",
+    "on",
+    "--label",
+    "positive_on",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/positive_on/raw.jsonl.gz"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "binary": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+    "sha256": "8dff35933d8ecd6ce7a4f1165fffaba0f2560076476142ab29510b2bf0806618",
+    "bytes": 2851808
+  },
+  "created_utc": "2026-10-12T11:08:37.690849+00:00",
+  "registered_spec_sha256": "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce"
+}

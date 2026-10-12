@@ -1,0 +1,10 @@
+test_changed_native_velocity_between_coordinate_endpoints_is_retained (__main__.IntegrationTests.test_changed_native_velocity_between_coordinate_endpoints_is_retained) ... ok
+test_hand_derived_unit_advance_uses_actual_copied_velocity (__main__.IntegrationTests.test_hand_derived_unit_advance_uses_actual_copied_velocity) ... ok
+test_mixed_row_and_multidof_scope_are_rejected (__main__.IntegrationTests.test_mixed_row_and_multidof_scope_are_rejected) ... ok
+test_output_nan_is_mismatch_and_input_subnormal_is_explicit_exclusion (__main__.IntegrationTests.test_output_nan_is_mismatch_and_input_subnormal_is_explicit_exclusion) ... ok
+test_stabilized_velocity_cannot_substitute_for_integration_velocity (__main__.IntegrationTests.test_stabilized_velocity_cannot_substitute_for_integration_velocity) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK

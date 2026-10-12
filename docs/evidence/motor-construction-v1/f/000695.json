@@ -1,0 +1,33 @@
+{
+  "kind": "rne_six_v2_tool_pure_validation_binding",
+  "status": "PASS_PURE_PREREQUISITES_NOT_CONCRETE_ADMISSION",
+  "whole_reader_driver_test_terminal": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/v2-pure-tests-final-attempt-1/terminal.json",
+    "sha256": "c4ba701b37184ad5a3ed1259251ebbc860cefbce56e0304e5352f5d6c2a4dd28",
+    "bytes": 3433
+  },
+  "pure_methods_passed": 29,
+  "tool_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/final-tool-source-manifest-v2.json",
+    "sha256": "885022f270cf2a2793815e31ad244df35356121bdee2b6851c801c8ba8aa024d",
+    "bytes": 3895
+  },
+  "v1_preservation_ledger": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/v1-preservation-and-exact-copy-ledger.json",
+    "sha256": "eaa9bb93c93a041f001a7617a29d198847a2703a03d96d2341803cf7ec82a4f9",
+    "bytes": 6571
+  },
+  "literal_math_helper_provenance": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/helper-copy-provenance-v2.json",
+    "sha256": "66076308c1f53cfbfb2d5cbc6c927a9cd6c0e69ae854af80415c2bad182f5d0e",
+    "bytes": 1252
+  },
+  "prior_blocked_predata_review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-predata-review/failed-v1-predata-review.json",
+    "sha256": "4ad0b862d96183f7444e7900b1f2eeb8a9530f07e7dd10b704f484c8a9211b80",
+    "bytes": 4365
+  },
+  "native_worlds": 0,
+  "native_processes": 0,
+  "scope": "World-free mock/storage-fault tests; new concrete independent admission still required"
+}

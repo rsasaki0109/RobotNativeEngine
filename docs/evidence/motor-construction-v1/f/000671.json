@@ -1,0 +1,52 @@
+{
+  "kind": "rne_current_integrated_143_source_binding",
+  "schema_version": 1,
+  "actual_files": {
+    "examples/143_motor_construction/lib.rs": {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/lib.rs",
+      "sha256": "f73732b13546625a7b53af1e07c1a0873a937a1746e800175647fcf85dd910c7",
+      "bytes": 33595
+    },
+    "examples/143_motor_construction/main.rs": {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/main.rs",
+      "sha256": "97962b1e7cb0182547c8fef5a19c1603524150e12ae5ef487a38b3a85203f821",
+      "bytes": 346
+    },
+    "examples/143_motor_construction/tests.rs": {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/tests.rs",
+      "sha256": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063",
+      "bytes": 7539
+    },
+    "examples/143_motor_construction/Cargo.toml": {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/Cargo.toml",
+      "sha256": "8d2b86968245d8c1fc63a7fb58e97b1443b0814228ea62d230bdcb56bd2fbeb9",
+      "bytes": 520
+    },
+    "examples/141_position_motor_calibration/lib.rs": {
+      "path": "/workspace/RobotNativeEngine/examples/141_position_motor_calibration/lib.rs",
+      "sha256": "15993f5ee96380c06cf20f97eee90efd325ec8267e699cef110766fc69d70a9c",
+      "bytes": 74281
+    },
+    "Cargo.toml": {
+      "path": "/workspace/RobotNativeEngine/Cargo.toml",
+      "sha256": "d5aa604f219d313d42a39b68779a13bde80dd73d4750b7f5ab7310e663c9ed25",
+      "bytes": 12574
+    },
+    "Cargo.lock": {
+      "path": "/workspace/RobotNativeEngine/Cargo.lock",
+      "sha256": "bd1a2fd03beb12f3c24731a7ee8dd70d44bb65123f70a4e16adaa5a320b434ed",
+      "bytes": 141500
+    },
+    "third_party/rapier3d/RNE_PATCH.md": {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/RNE_PATCH.md",
+      "sha256": "ada06e874021e6310795838a0adaecb5a63ff27aef2fdf6e2d1a31b415bd9d3e",
+      "bytes": 9254
+    }
+  },
+  "baseline_reference_is_historical": true,
+  "141_change_from_baseline": "new companion selected-source entry only; physical fixture unchanged",
+  "producer_code11_export_exact": true,
+  "producer_location_doc_updated_separately": true,
+  "scope": "Non-exhaustive source binding; broader1344-input guard separately bound",
+  "worlds": 0
+}

@@ -1,5 +1,6 @@
 use super::{JointConstraintTypes, SolverConstraintsSet};
 use crate::dynamics::solver::solver_body::SolverBody;
+use crate::dynamics::Multibody;
 use crate::dynamics::{
     solver::{ContactConstraintTypes, SolverVel},
     IntegrationParameters, IslandManager, JointGraphEdge, JointIndex, MultibodyJointSet,
@@ -10,6 +11,11 @@ use crate::math::Real;
 use crate::pipeline::{
     motor_stage_event, InternalMotorImpulseSample, InternalMotorStageBinding,
     InternalMotorStageContext, MultibodyMotorStage, MultibodyMotorStageEvent,
+};
+use crate::pipeline::{
+    motor_stage_word, MultibodyMotorConstructionAvailability, MultibodyMotorConstructionEndpoint,
+    MultibodyMotorConstructionEvent, MultibodyMotorConstructionPhase,
+    MultibodyMotorConstructionRow,
 };
 use crate::prelude::RigidBodyVelocity;
 use crate::utils::SimdAngularInertia;
@@ -27,6 +33,11 @@ pub(crate) struct VelocitySolver {
     pub(crate) motor_stage_events: Option<Vec<MultibodyMotorStageEvent>>,
     pub(crate) motor_stage_partition_index: usize,
     pub(crate) motor_stage_island_index: usize,
+    pub(crate) motor_construction_events: Option<Vec<MultibodyMotorConstructionEvent>>,
+    pub(crate) motor_construction_partition_index: usize,
+    pub(crate) motor_construction_island_index: usize,
+    pub(crate) motor_construction_final_context: Option<InternalMotorStageContext>,
+    pub(crate) motor_construction_final_bindings: Vec<InternalMotorStageBinding>,
 }
 
 impl VelocitySolver {
@@ -43,6 +54,11 @@ impl VelocitySolver {
             motor_stage_events: None,
             motor_stage_partition_index: 0,
             motor_stage_island_index: 0,
+            motor_construction_events: None,
+            motor_construction_partition_index: 0,
+            motor_construction_island_index: 0,
+            motor_construction_final_context: None,
+            motor_construction_final_bindings: Vec::new(),
         }
     }
 
@@ -196,6 +212,147 @@ impl VelocitySolver {
         }
     }
 
+    fn construction_context(
+        &self,
+        context: InternalMotorStageContext,
+    ) -> InternalMotorStageContext {
+        InternalMotorStageContext {
+            partition: self.motor_construction_partition_index,
+            island: self.motor_construction_island_index,
+            ..context
+        }
+    }
+
+    fn construction_endpoints_for_multibody(
+        multibody: &Multibody,
+        joint_constraints: &SolverConstraintsSet<JointConstraintTypes>,
+        bindings: &[InternalMotorStageBinding],
+    ) -> Vec<MultibodyMotorConstructionEndpoint> {
+        bindings
+            .iter()
+            .filter_map(|binding| {
+                let link = multibody.link(binding.link_id)?;
+                if link.rigid_body_handle().0 != binding.joint_handle.0 {
+                    return None;
+                }
+                let row = joint_constraints
+                    .generic_velocity_one_body_constraints
+                    .get(binding.constraint_index)?;
+                Some(MultibodyMotorConstructionEndpoint {
+                    row: binding.snapshot(row, &joint_constraints.generic_jacobians),
+                    coordinate_word: motor_stage_word(link.joint().coords[binding.axis as usize]),
+                    multibody_velocity_words: multibody
+                        .velocities
+                        .iter()
+                        .map(|value| motor_stage_word(*value))
+                        .collect(),
+                })
+            })
+            .collect()
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn push_construction_event(
+        events: &mut Option<Vec<MultibodyMotorConstructionEvent>>,
+        context: InternalMotorStageContext,
+        phase: MultibodyMotorConstructionPhase,
+        velocities: &DVector<Real>,
+        constructed_rows: Vec<MultibodyMotorConstructionRow>,
+        endpoints: Vec<MultibodyMotorConstructionEndpoint>,
+        integration_handle: Option<[u32; 2]>,
+    ) {
+        if let Some(events) = events {
+            let availability = if !context.initialized {
+                MultibodyMotorConstructionAvailability::Uninitialized
+            } else if constructed_rows.is_empty() && endpoints.is_empty() {
+                MultibodyMotorConstructionAvailability::NoSupportedRows
+            } else {
+                MultibodyMotorConstructionAvailability::Available
+            };
+            events.push(MultibodyMotorConstructionEvent {
+                ccd_partition_index: context.partition,
+                island_index: context.island,
+                internal_slice_index: context.slice,
+                expected_internal_slice_count: context.expected_slices,
+                iteration_index: context.iteration,
+                phase,
+                native_scalar_bits: (std::mem::size_of::<Real>() * 8) as u8,
+                duration_word: motor_stage_word(context.duration),
+                row_cache_slice_index: context.initialized.then_some(context.slice),
+                availability,
+                integration_multibody_handle_words: integration_handle,
+                generalized_velocity_words: velocities
+                    .iter()
+                    .map(|value| motor_stage_word(*value))
+                    .collect(),
+                constructed_rows,
+                endpoints,
+            });
+        }
+    }
+
+    fn record_construction_endpoint(
+        &mut self,
+        context: InternalMotorStageContext,
+        phase: MultibodyMotorConstructionPhase,
+        multibodies: &MultibodyJointSet,
+        joint_constraints: &SolverConstraintsSet<JointConstraintTypes>,
+        bindings: &[InternalMotorStageBinding],
+        constructed_rows: Vec<MultibodyMotorConstructionRow>,
+    ) {
+        if self.motor_construction_events.is_none() {
+            return;
+        }
+        let endpoints = if context.initialized {
+            bindings
+                .iter()
+                .filter_map(|binding| {
+                    let (multibody, link_id) = multibodies.get(binding.joint_handle)?;
+                    if link_id != binding.link_id {
+                        return None;
+                    }
+                    Self::construction_endpoints_for_multibody(
+                        multibody,
+                        joint_constraints,
+                        std::slice::from_ref(binding),
+                    )
+                    .into_iter()
+                    .next()
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+        let context = self.construction_context(context);
+        Self::push_construction_event(
+            &mut self.motor_construction_events,
+            context,
+            phase,
+            &self.generic_solver_vels,
+            constructed_rows,
+            endpoints,
+            None,
+        );
+    }
+
+    pub(crate) fn record_motor_construction_writeback(
+        &mut self,
+        multibodies: &MultibodyJointSet,
+        joint_constraints: &SolverConstraintsSet<JointConstraintTypes>,
+    ) {
+        if let Some(context) = self.motor_construction_final_context {
+            let bindings = self.motor_construction_final_bindings.clone();
+            self.record_construction_endpoint(
+                context,
+                MultibodyMotorConstructionPhase::AfterVelocityWriteback,
+                multibodies,
+                joint_constraints,
+                &bindings,
+                Vec::new(),
+            );
+        }
+    }
+
     pub fn solve_constraints(
         &mut self,
         params: &IntegrationParameters,
@@ -225,6 +382,14 @@ impl VelocitySolver {
                 &stage_bindings,
             );
 
+            self.record_construction_endpoint(
+                stage_context,
+                MultibodyMotorConstructionPhase::BeforeExternalForces,
+                multibodies,
+                joint_constraints,
+                &[],
+                Vec::new(),
+            );
             for (solver_vels, incr) in self
                 .solver_vels
                 .iter_mut()
@@ -245,10 +410,28 @@ impl VelocitySolver {
             /*
              * Update & solve constraints.
              */
-            joint_constraints.update(params, multibodies, &self.solver_bodies);
+            self.record_construction_endpoint(
+                stage_context,
+                MultibodyMotorConstructionPhase::AfterExternalForces,
+                multibodies,
+                joint_constraints,
+                &[],
+                Vec::new(),
+            );
+            let mut constructed_rows = Vec::new();
+            if self.motor_construction_events.is_some() {
+                joint_constraints.update_with_construction_inputs(
+                    params,
+                    multibodies,
+                    &self.solver_bodies,
+                    Some(&mut constructed_rows),
+                );
+            } else {
+                joint_constraints.update(params, multibodies, &self.solver_bodies);
+            }
             // Builder metadata and row values are read only after update has
             // initialized every row for the current slice.
-            if self.motor_stage_events.is_some() {
+            if self.motor_stage_events.is_some() || self.motor_construction_events.is_some() {
                 for builder in &joint_constraints.generic_velocity_one_body_constraints_builder {
                     builder.append_internal_motor_stage_bindings(
                         multibodies,
@@ -258,6 +441,14 @@ impl VelocitySolver {
                 }
             }
             stage_context.initialized = true;
+            self.record_construction_endpoint(
+                stage_context,
+                MultibodyMotorConstructionPhase::AfterRowConstruction,
+                multibodies,
+                joint_constraints,
+                &stage_bindings,
+                constructed_rows,
+            );
             self.record_motor_stage(
                 stage_context,
                 MultibodyMotorStage::AfterJointUpdate,
@@ -343,7 +534,27 @@ impl VelocitySolver {
             /*
              * Integrate positions.
              */
-            self.integrate_positions(params, is_last_substep, bodies, multibodies);
+            let construction_observation = self.motor_construction_events.as_ref().map(|_| {
+                (
+                    InternalMotorStageContext {
+                        iteration: None,
+                        ..self.construction_context(stage_context)
+                    },
+                    &*joint_constraints,
+                    stage_bindings.as_slice(),
+                )
+            });
+            if construction_observation.is_some() {
+                self.integrate_positions_with_construction(
+                    params,
+                    is_last_substep,
+                    bodies,
+                    multibodies,
+                    construction_observation,
+                );
+            } else {
+                self.integrate_positions(params, is_last_substep, bodies, multibodies);
+            }
             stage_context.iteration = None;
             self.record_motor_stage(
                 stage_context,
@@ -383,6 +594,14 @@ impl VelocitySolver {
                         joint_constraints,
                         &stage_bindings,
                     );
+                    self.record_construction_endpoint(
+                        stage_context,
+                        MultibodyMotorConstructionPhase::AfterJointStabilization,
+                        multibodies,
+                        joint_constraints,
+                        &stage_bindings,
+                        Vec::new(),
+                    );
                     contact_constraints.solve_restitution_wo_bias(
                         &mut self.solver_vels,
                         &mut self.generic_solver_vels,
@@ -414,6 +633,18 @@ impl VelocitySolver {
                 &stage_bindings,
             );
 
+            self.record_construction_endpoint(
+                stage_context,
+                MultibodyMotorConstructionPhase::FinalSlice,
+                multibodies,
+                joint_constraints,
+                &stage_bindings,
+                Vec::new(),
+            );
+            if self.motor_construction_events.is_some() {
+                self.motor_construction_final_context = Some(stage_context);
+                self.motor_construction_final_bindings = stage_bindings.clone();
+            }
             // Observe final net impulses once, after all stabilization passes.
             if let Some(samples) = &mut self.motor_impulse_samples {
                 for builder in &joint_constraints.generic_velocity_one_body_constraints_builder {
@@ -437,6 +668,27 @@ impl VelocitySolver {
         is_last_substep: bool,
         bodies: &mut RigidBodySet,
         multibodies: &mut MultibodyJointSet,
+    ) {
+        self.integrate_positions_with_construction(
+            params,
+            is_last_substep,
+            bodies,
+            multibodies,
+            None,
+        );
+    }
+
+    fn integrate_positions_with_construction(
+        &mut self,
+        params: &IntegrationParameters,
+        is_last_substep: bool,
+        bodies: &mut RigidBodySet,
+        multibodies: &mut MultibodyJointSet,
+        construction_observation: Option<(
+            InternalMotorStageContext,
+            &SolverConstraintsSet<JointConstraintTypes>,
+            &[InternalMotorStageBinding],
+        )>,
     ) {
         // Integrate positions.
         for (solver_vels, solver_body) in self.solver_vels.iter().zip(self.solver_bodies.iter_mut())
@@ -462,7 +714,35 @@ impl VelocitySolver {
                 .generic_solver_vels
                 .rows(multibody.solver_id, multibody.ndofs());
             multibody.velocities.copy_from(&solver_vels);
+            if let Some((context, constraints, bindings)) = construction_observation {
+                let (index, generation) = link.multibody.0.into_raw_parts();
+                let endpoints =
+                    Self::construction_endpoints_for_multibody(multibody, constraints, bindings);
+                Self::push_construction_event(
+                    &mut self.motor_construction_events,
+                    context,
+                    MultibodyMotorConstructionPhase::BeforePositionIntegration,
+                    &self.generic_solver_vels,
+                    Vec::new(),
+                    endpoints,
+                    Some([index, generation]),
+                );
+            }
             multibody.integrate(params.dt);
+            if let Some((context, constraints, bindings)) = construction_observation {
+                let (index, generation) = link.multibody.0.into_raw_parts();
+                let endpoints =
+                    Self::construction_endpoints_for_multibody(multibody, constraints, bindings);
+                Self::push_construction_event(
+                    &mut self.motor_construction_events,
+                    context,
+                    MultibodyMotorConstructionPhase::AfterPositionIntegration,
+                    &self.generic_solver_vels,
+                    Vec::new(),
+                    endpoints,
+                    Some([index, generation]),
+                );
+            }
             // PERF: don’t write back to the rigid-body poses `bodies` before the last step?
             multibody.forward_kinematics(bodies, false);
             multibody.update_rigid_bodies_internal(bodies, !is_last_substep, true, false);

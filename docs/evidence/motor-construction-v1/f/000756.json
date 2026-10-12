@@ -1,0 +1,10 @@
+{
+  "original_exit_code": 0,
+  "prepared": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/prepared/prepared-bindings.json",
+    "sha256": "cfafbb1da93be0e3ce3804263ec5fb119121eeee7c2cab2a74fcbf8cfe54b322",
+    "size_bytes": 19895
+  },
+  "status": "PASS_PREPARATION_ONLY",
+  "worlds": 0
+}

@@ -1,0 +1,33 @@
+{
+  "collector_original_exit_code": 2,
+  "collector_processes_started": 1,
+  "error": "Refused: collector PID receipt failed; retain original exit without admission",
+  "finished_at": "2026-10-12T10:10:09.452376+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/frozen/frozen-bindings.json",
+    "sha256": "1c644e2bebfdf9a9dccc508aab3ca25ff275fdd66c0a44baa6795a6c7a6f7589",
+    "size_bytes": 16925
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/once-only-attempt/report.json",
+    "sha256": "37533df6ab4ec1001df09bb6dfdb98e2f83dd4b6e7d1cf41ce08f5fe666282bf",
+    "size_bytes": 25302
+  },
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:10:09.407368+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "case_count_retained": 24,
+    "status": "COMPLETE_FIXED72_FAIL0_OF4",
+    "world_counts": {
+      "completed_worlds": 72,
+      "worlds_attempted": 72,
+      "worlds_created": 72
+    }
+  }
+}

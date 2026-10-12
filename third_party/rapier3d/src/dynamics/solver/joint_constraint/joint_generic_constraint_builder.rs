@@ -12,6 +12,7 @@ use crate::dynamics::{
 };
 use crate::dynamics::{JointAxis, MultibodyJointHandle};
 use crate::math::{Real, Vector, ANG_DIM, DIM, SPATIAL_DIM};
+use crate::pipeline::{InternalMotorConstructionRecorder, MultibodyMotorConstructionRow};
 use crate::pipeline::{
     InternalMotorImpulseSample, MultibodyMotorImpulseSlice, MultibodyMotorImpulseValue,
 };
@@ -400,9 +401,33 @@ impl JointGenericOneBodyConstraintBuilder {
         jacobians: &mut DVector<Real>,
         out: &mut [JointGenericOneBodyConstraint],
     ) {
+        self.update_with_construction_inputs(params, multibodies, bodies, jacobians, out, None);
+    }
+
+    pub(crate) fn update_with_construction_inputs(
+        &self,
+        params: &IntegrationParameters,
+        multibodies: &MultibodyJointSet,
+        bodies: &[SolverBody],
+        jacobians: &mut DVector<Real>,
+        out: &mut [JointGenericOneBodyConstraint],
+        recorder: Option<&mut Vec<MultibodyMotorConstructionRow>>,
+    ) {
         match self {
             Self::Empty => {}
-            Self::Internal(builder) => builder.update(params, multibodies, jacobians, out),
+            Self::Internal(builder) => {
+                if recorder.is_some() {
+                    builder.update_with_construction_inputs(
+                        params,
+                        multibodies,
+                        jacobians,
+                        out,
+                        recorder,
+                    )
+                } else {
+                    builder.update(params, multibodies, jacobians, out)
+                }
+            }
             Self::External(builder) => builder.update(params, multibodies, bodies, jacobians, out),
         }
     }
@@ -452,15 +477,36 @@ impl JointGenericVelocityOneBodyInternalConstraintBuilder {
         jacobians: &mut DVector<Real>,
         out: &mut [JointGenericOneBodyConstraint],
     ) {
+        self.update_with_construction_inputs(params, multibodies, jacobians, out, None);
+    }
+
+    fn update_with_construction_inputs(
+        &self,
+        params: &IntegrationParameters,
+        multibodies: &MultibodyJointSet,
+        jacobians: &mut DVector<Real>,
+        out: &mut [JointGenericOneBodyConstraint],
+        recorder: Option<&mut Vec<MultibodyMotorConstructionRow>>,
+    ) {
         let mb = &multibodies[self.link.multibody];
         let link = mb.link(self.link.id).unwrap();
-        link.joint().velocity_constraints(
+        let recorder = if link.joint().ndofs() == 1 {
+            recorder.map(|rows| InternalMotorConstructionRecorder {
+                rows,
+                constraint_base: self.constraint_id,
+                link_id: self.link.id,
+            })
+        } else {
+            None
+        };
+        link.joint().velocity_constraints_with_construction_inputs(
             params,
             mb,
             link,
             self.j_id,
             jacobians,
             &mut out[self.constraint_id..],
+            recorder,
         );
     }
 }

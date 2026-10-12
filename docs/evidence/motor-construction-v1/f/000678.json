@@ -1,0 +1,118 @@
+{
+  "actual_native_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "actual_reader_original_exit": 0,
+  "additional_numeric_analysis": 0,
+  "additional_reader_invocations": 0,
+  "audit": {
+    "bytes": 260603,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/actual-cohort-audit-v2.json",
+    "sha256": "a3f3e60fb199390e1dd761f6e96357df684bbcb0bdc996d5ec24a0745c3e107c"
+  },
+  "candidate_sha256": "0d5912950c5d6d3d980262f1f263746d6fe820d17d92cf0bd95829304364c194",
+  "companion_events": 1028,
+  "frozen_reader_invocations_recorded": 1,
+  "hash_checks": 1448,
+  "input_sources_unchanged_during_review": true,
+  "ledger": {
+    "bytes": 657065,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-postcollection-review/retained-result-and-source-hash-ledger.json",
+    "sha256": "126911554312497a807280e88bb52ba014f1bf3cc6b78774cb7c7ced74c1d895"
+  },
+  "native_collection_count": 6,
+  "native_process_ids": [
+    80275,
+    80276,
+    80277,
+    80278,
+    80279,
+    80280
+  ],
+  "observed_ON_worlds": 4,
+  "old_numeric_report_reads": 0,
+  "original_coordinator_exit": 0,
+  "original_root_outer_exit": 0,
+  "raw_files": [
+    {
+      "complete_eof": true,
+      "gzip_members": 1,
+      "stored": {
+        "bytes": 15528,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/negative_on/raw.jsonl.gz",
+        "sha256": "4ce528cb11ba616762e641f8e35d3e48b49227fb653375e9372ec1da0d9ef797"
+      },
+      "uncompressed_bytes": 874965,
+      "uncompressed_sha256": "933782c0a12b5b5e24a6900b5216d03f859368df6b8431bd81a24d10314828fc"
+    },
+    {
+      "complete_eof": true,
+      "gzip_members": 1,
+      "stored": {
+        "bytes": 15533,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/negative_fresh_on/raw.jsonl.gz",
+        "sha256": "cf62c37fe4a65ce0aff6394d3a8e3030e1068fd3d4990ea0e19f1f8458da1f8b"
+      },
+      "uncompressed_bytes": 874971,
+      "uncompressed_sha256": "7f098f82d36fd7495d247b264fc25adfa969a650ec64c85d6fd3a1a4ef7210db"
+    },
+    {
+      "complete_eof": true,
+      "gzip_members": 1,
+      "stored": {
+        "bytes": 1817,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/negative_off/raw.jsonl.gz",
+        "sha256": "2cf2fdc55e77f553583db7852d06069d04daaae851473d4e78d6f478cdb8d3a1"
+      },
+      "uncompressed_bytes": 14354,
+      "uncompressed_sha256": "8934f57e6b16165163626ca38aba7b295a6af66b887458127eb035e6b623a9b1"
+    },
+    {
+      "complete_eof": true,
+      "gzip_members": 1,
+      "stored": {
+        "bytes": 15474,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/positive_on/raw.jsonl.gz",
+        "sha256": "c51aaf211058f65b60277e16654b906d9a3f3e2d36a512a13879895629178484"
+      },
+      "uncompressed_bytes": 874600,
+      "uncompressed_sha256": "a78e6f575c827370d0b6ac42f6affbde2b15f46716e5424c887bb327c01f4b94"
+    },
+    {
+      "complete_eof": true,
+      "gzip_members": 1,
+      "stored": {
+        "bytes": 15477,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/positive_fresh_on/raw.jsonl.gz",
+        "sha256": "77f2d1e30667d795d91542f352b73daded9755444ad373811a8d38280ba6579b"
+      },
+      "uncompressed_bytes": 874606,
+      "uncompressed_sha256": "4cbbbef4e7680df1d9faf9838e8a6960af3b504a281d82c9d453f9a9aaa9c34a"
+    },
+    {
+      "complete_eof": true,
+      "gzip_members": 1,
+      "stored": {
+        "bytes": 1790,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/positive_off/raw.jsonl.gz",
+        "sha256": "db6350940f80f1982511a4c6468fc52341d6d8b80edc1640904d3fa0cf29e255"
+      },
+      "uncompressed_bytes": 14316,
+      "uncompressed_sha256": "a9d1e9e068813765aa12625b143952bbe28998640f6f77b28f77d1ed988b971a"
+    }
+  ],
+  "reviewer_Cargo_builds": 0,
+  "reviewer_worlds": 0,
+  "stage_events": 3328,
+  "status": "PASS_RETAINED_SCOPE_CHECKS",
+  "wrapper": {
+    "bytes": 591,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/admitted-wrapper-v2.json",
+    "sha256": "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "argv": [
+    "cargo",
+    "check",
+    "-p",
+    "isolated_motor_construction_collector",
+    "--all-targets"
+  ],
+  "completed_at": "2026-10-12T10:00:37.315276+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 25.80919175699819,
+  "kind": "rne_actual_validation",
+  "name": "integrated-check-lock",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [
+    "Cargo.lock"
+  ],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": false,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "43083899ac6e97c104f1135e86346fbc10fb6470c474a9c6328d10f4882a506c",
+    "size_bytes": 219674
+  },
+  "source_changes": [
+    "Cargo.lock"
+  ],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:00:11.506075+00:00",
+  "stderr": {
+    "sha256": "f702d920fbf49fcb0cbaf6a998494dfc5341f4521513f45e9a5817b21c28339d",
+    "size_bytes": 2073
+  },
+  "stdout": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  }
+}

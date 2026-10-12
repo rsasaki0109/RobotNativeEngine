@@ -1,0 +1,39 @@
+{
+  "argv": [
+    "cargo",
+    "test",
+    "--locked",
+    "--manifest-path",
+    "third_party/rapier3d/Cargo.toml",
+    "--lib",
+    "rne_motor_construction"
+  ],
+  "completed_at": "2026-10-12T10:59:38.166770+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 18.49065520699878,
+  "kind": "rne_actual_validation",
+  "name": "rapier-standalone-pure-tests",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": false,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:59:19.676107+00:00",
+  "stderr": {
+    "sha256": "e23f9be95fe3d18aade68010e9d3b0bd88eae05b61c0808cdd410ad15102c434",
+    "size_bytes": 1876
+  },
+  "stdout": {
+    "sha256": "be2237d4e08cf72aec19919298234e17ad16d2aa0a72a6e540ee70ddbf50192d",
+    "size_bytes": 570
+  }
+}

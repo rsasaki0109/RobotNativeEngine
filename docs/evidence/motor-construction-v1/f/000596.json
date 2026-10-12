@@ -1,0 +1,156 @@
+{
+  "kind": "independent_corrected_prospective_constructor_and_scalar_endpoint_source_review",
+  "status": "PASS_SOURCE_ONLY_CORRECTED_PROTOTYPES",
+  "completed_utc": "2026-10-12T09:27:34.043287+00:00",
+  "material_blockers_in_declared_scope": [],
+  "source_epoch": {
+    "historical_head_E": "776ecebbd07897f35872128cfe855cdb8d99d8e3",
+    "observed_head_at_completion": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+    "observed_head_tree": "8e0520869ff35fc6b75a552bd2f8af132e297ddd",
+    "exact_tree_equal_to_E": true,
+    "checkout_clean": true,
+    "intentional_transition": "User-approved PR409 squash merge and branch reset to origin/main. HEAD identity changed while all reviewed source bytes and full tree remain equal to E."
+  },
+  "final_constructor": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/construction_oracle.py",
+    "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+    "bytes": 6177
+  },
+  "final_endpoint_helper": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version/prototype/integration_oracle.py",
+    "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+    "bytes": 4010
+  },
+  "source_ledger": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-final-version-source-ledger.json",
+    "sha256": "b008052c38d4510258c169064f4eec003d5ec0b48a815b5d1c10f05a3c154b20",
+    "bytes": 15855
+  },
+  "retained_initial_review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/independent-initial-prototype-source-review.json",
+    "sha256": "3bd4e7aa3376000a8a2e4f0097707d265de64be7d098dfbeadd841281c983c9c",
+    "bytes": 8138
+  },
+  "root_actual_pure_test_receipts": [
+    {
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-construction-tests-attempt-3/actual-pure-tests.json",
+        "sha256": "2dcb556fc0434ee3caefb4081c6ceac7b3638968a89cdb22dfc2f9435a8e8ba5",
+        "bytes": 200
+      },
+      "actual_count": 10,
+      "actual_exit_code": 0
+    },
+    {
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-integration-tests-attempt-2/actual-pure-tests.json",
+        "sha256": "55abc3dccb5b61dc9a268d83de6225af34e43464dc9176f9b12b0feead565346",
+        "bytes": 198
+      },
+      "actual_count": 6,
+      "actual_exit_code": 0
+    }
+  ],
+  "independent_pure_probes": {
+    "source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/independent_final_pure_probes.py",
+      "sha256": "29d5d95354ccbe47fe2cdc331594f7143cbf9b5f7d0cb9c1822dae37fbcb0f2f",
+      "bytes": 9072
+    },
+    "result": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/independent-final-pure-probe-results.json",
+      "sha256": "541041c42aec8318ad73c80752a64bf8ca0e835bbeb8018329d389c837049d1a",
+      "bytes": 22839
+    },
+    "actual_command": "python -B independent_final_pure_probes.py",
+    "actual_cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review",
+    "actual_tool_command_exit_code": 0,
+    "assertions_passed": 41,
+    "native_worlds_launched": 0,
+    "native_data_read": false
+  },
+  "fixed_findings": [
+    {
+      "id": "R1",
+      "confirmed": true,
+      "result": "Captured inverse_duration_word is parsed and compared strictly as an output, excluded from arithmetic_inputs. A NaN output with eligible finite true inputs is MISMATCH, not input exclusion.",
+      "refs": [
+        "construction_oracle.py:34-36,46-57,81-87"
+      ]
+    },
+    {
+      "id": "R2",
+      "confirmed": true,
+      "result": "Finite overflow retains EXCLUDED_SOURCE_FLOAT_DOMAIN and overflow_intermediate instead of losing the result to an unstructured ValueError. The try scope is arithmetic only; malformed input parsing remains outside, and errors without recorded arithmetic exclusions are re-raised.",
+      "refs": [
+        "construction_oracle.py:27-70,71-80"
+      ]
+    },
+    {
+      "id": "Independent_bound_order",
+      "confirmed": true,
+      "result": "cap*h is now evaluated after coefficients and before RHS as native motor_params does. Modeled expression order agrees; operation_count remains a modeled expression count, not the entire native mass/constructor trace.",
+      "refs": [
+        "construction_oracle.py:94-112",
+        "generic_joint.rs:183-195",
+        "unit_multibody_joint.rs:81-109"
+      ]
+    }
+  ],
+  "endpoint_source_review": [
+    {
+      "topic": "Actual copied integration velocity",
+      "result": "The selected full generic velocity block is copied into multibody.velocities before multibody.integrate. Helper strictly compares the selected generic word with the captured before multibody word.",
+      "refs": [
+        "velocity_solver.rs:456-465",
+        "integration_oracle.py:34-43,62-67"
+      ]
+    },
+    {
+      "topic": "Isolated angular coordinate update",
+      "result": "For fixed-root one-DOF AngX, Multibody::integrate passes the link velocity slice and MultibodyJoint::integrate advances coords[DIM+0] by v*dt. The helper performs one rounded multiply followed by one rounded add; it does not reconstruct q from final stabilized V.",
+      "refs": [
+        "multibody.rs:1037-1041",
+        "multibody_joint.rs:89-117",
+        "integration_oracle.py:31-33,53-54"
+      ]
+    },
+    {
+      "topic": "Velocity and identity retention",
+      "result": "Integration leaves the multibody velocity array unchanged. Helper compares before/after selected velocity, exact matching row identity, dictionary native handle {index,generation}, u32 handle words, non-bool bounded integer indices, one DOF, ForceBased AngX. Changed final V, mixed identity and wrong axis/model/DOF are rejected or retained as mismatches.",
+      "refs": [
+        "multibody_joint.rs:89-117",
+        "integration_oracle.py:17-43,62-67"
+      ]
+    },
+    {
+      "topic": "Float exclusions and signed zeros",
+      "result": "Both helpers retain normal-or-zero scope, tiny/subnormal/overflow exclusion, and literal output word mismatches. Finite f32 limit clamp remains distinct from generic impulse clamp. Selected nonfinite computed coordinate/after-velocity outputs are MISMATCH for eligible inputs.",
+      "refs": [
+        "construction_oracle.py:103-112",
+        "integration_oracle.py:44-72",
+        "stage_numeric.py:129-208"
+      ]
+    }
+  ],
+  "limitations": [
+    "This source/pure PASS is not a frozen preregistration, actual observer/producer qualification, whole event/schema/replay or source/compiler closure verifier. Only bounded files and synthetic opaque words were examined.",
+    "Caller must bind actual BeforePositionIntegration after generic-V copy and before coordinate advancement, actual AfterPositionIntegration immediately after advancement, actual native coords[3], multibody root/link, cache and slice identity, event schedule, fixed-root topology, scalar width and compiler/runtime mode. Matching row metadata cannot alone establish those facts.",
+    "Constructor helper still deliberately checks only ERP/RHS/CFM/bounds. It does not admit complete row shape, original motor cap/model binding, actual MotorParameters, initial impulse +0, inv_lhs, full J/W arrays, joint/root/DOF identity or full solver offsets. Self-consistent extra malformed row fields can still match narrow formulas; whole-cohort admission must reject them separately.",
+    "Endpoint helper checks only the declared scalar native block/coordinate and selected generic velocity word; unrelated generic blocks and full private state are not validated.",
+    "Malformed schema errors remain errors. An arithmetic error after a recorded float-domain exclusion returns EXCLUDED rather than PASS; whole-cohort retention must count and preserve every excluded/failed/missing record without resampling.",
+    "No full hidden-state/private-cache equivalence, RHS origin, per-contact causality, actual runtime MXCSR/FTZ/DAZ or universal native operation order is established.",
+    "No motor physical accuracy, convergence, candidate adoption, new engine defect, hardware/external validation, or maturity improvement follows. Existing numerical evidence and historical failed outcomes were not read or reinterpreted."
+  ],
+  "readme_claim_discipline": "Explicitly preparation, no native worlds, unchanged prior outcomes, pending freeze/cohort/producer bindings, initial review separated from later bytes and count limited to modeled expressions.",
+  "actions": {
+    "checkout_edits": 0,
+    "root_prototype_edits": 0,
+    "cargo_or_native_engine_runs": 0,
+    "native_worlds": 0,
+    "historical_native_values_or_reports_read": false,
+    "github_queries_or_mutations": 0,
+    "independent_ci_monitor_started": false
+  },
+  "qualification_versioning": "This receipt binds only copied final prototype/source bytes and the actual referenced pure receipts. Any later source/schema/producer/reader change requires separate review."
+}

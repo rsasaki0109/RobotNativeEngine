@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "status": "PROSPECTIVE_SCHEMA_EXCERPT_SOURCE_BOUND_NOT_RUNTIME_VERIFIED",
+  "source_files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/lib.rs",
+      "bytes": 33595,
+      "sha256": "f73732b13546625a7b53af1e07c1a0873a937a1746e800175647fcf85dd910c7"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/main.rs",
+      "bytes": 346,
+      "sha256": "97962b1e7cb0182547c8fef5a19c1603524150e12ae5ef487a38b3a85203f821"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/tests.rs",
+      "bytes": 7539,
+      "sha256": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063"
+    }
+  ],
+  "successful_record_order": [
+    "run_start",
+    "initial_state",
+    "completed_interval",
+    "run_end"
+  ],
+  "one_declared_outer_interval": true,
+  "native_scalar_bits": 32,
+  "run_start_fields": [
+    "kind",
+    "schema_version",
+    "run_label",
+    "target",
+    "target_position_rad_word",
+    "observer_enabled",
+    "expected_outer_intervals",
+    "native_scalar_bits",
+    "state_codec",
+    "state_scope",
+    "declared_conditions"
+  ],
+  "initial_state_fields": [
+    "kind",
+    "schema_version",
+    "checkpoint"
+  ],
+  "completed_interval_fields": [
+    "kind",
+    "schema_version",
+    "completed_outer_interval",
+    "checkpoint",
+    "construction_companion",
+    "stage_v1",
+    "impulse_v1_ieee_words"
+  ],
+  "run_end_fields": [
+    "kind",
+    "schema_version",
+    "status",
+    "progress",
+    "records_written_before_terminal",
+    "error"
+  ],
+  "partial_native_observation_fields": [
+    "kind",
+    "schema_version",
+    "checkpoint",
+    "checkpoint_error",
+    "completed_observers_available",
+    "construction_companion",
+    "stage_v1",
+    "impulse_v1_ieee_words"
+  ],
+  "checkpoint_fields": [
+    "schema_version",
+    "native_scalar_bits",
+    "state_scope",
+    "gravity_words",
+    "integration_parameters",
+    "records",
+    "public_body_words",
+    "public_multibody_words",
+    "parent_handle_words",
+    "child_handle_words",
+    "joint_handle_words",
+    "child_link_index"
+  ],
+  "checkpoint_records": {
+    "group_order": [
+      "Body",
+      "Collider",
+      "Multibody"
+    ],
+    "within_group_order": "native handle index then generation",
+    "fields": [
+      "kind",
+      "handle_words",
+      "postcard_bytes"
+    ],
+    "expected_counts": [
+      2,
+      1,
+      1
+    ]
+  },
+  "typed_observer_contract": {
+    "construction_companion": "actual public MultibodyMotorConstructionTelemetry serde, schema1/InternalUnitMotorConstructionV1, phase discriminator",
+    "stage_v1": "actual public MultibodyMotorStageTelemetry serde unchanged",
+    "impulse_v1_ieee_words": "actual public promoted/aggregate f64 values converted by to_bits, scalar_bits64; null distinct",
+    "off": "all three observations null"
+  },
+  "joint_projection": "exact source-bound serde projection of GenericJoint/kinematic/coords/joint_rot, must consume and reencode literal bytes",
+  "exclusions": [
+    "native full-set metadata",
+    "private pipeline",
+    "private solver/contact caches",
+    "observer buffers",
+    "broad/narrow phase"
+  ],
+  "failure_policy": "actual nonzero exit; prior/partial observations retained; terminal and gzip finalization can independently fail",
+  "fixture_source_reference": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/fixture-reference-receipt.json",
+    "bytes": 674,
+    "sha256": "b9ebce4f3da351b6c4cfcdda88883227edee76d1280486543dc187083f27a618"
+  },
+  "native_worlds_executed": 0
+}

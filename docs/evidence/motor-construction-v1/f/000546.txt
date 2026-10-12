@@ -1,0 +1,119 @@
+struct Fixture {
+    pipeline: PhysicsPipeline,
+    parameters: IntegrationParameters,
+    islands: IslandManager,
+    broad: BroadPhaseMultiSap,
+    narrow: NarrowPhase,
+    bodies: RigidBodySet,
+    colliders: ColliderSet,
+    impulse_joints: ImpulseJointSet,
+    multibody_joints: MultibodyJointSet,
+    ccd: CCDSolver,
+    parent: RigidBodyHandle,
+    child: RigidBodyHandle,
+    joint: MultibodyJointHandle,
+}
+
+impl Fixture {
+    fn new(cell: &Cell, enabled: bool) -> Result<Self> {
+        let mut bodies = RigidBodySet::new();
+        let parent = bodies.insert(RigidBodyBuilder::fixed());
+        let child = bodies.insert(
+            RigidBodyBuilder::dynamic()
+                .can_sleep(false)
+                .ccd_enabled(false)
+                .linear_damping(0.0)
+                .angular_damping(0.0)
+                .additional_solver_iterations(0),
+        );
+        let mut colliders = ColliderSet::new();
+        colliders.insert_with_parent(ColliderBuilder::ball(0.1).mass(1.0), child, &mut bodies);
+        bodies[child].recompute_mass_properties_from_colliders(&colliders);
+        let joint = fixture_joint(cell);
+        let mut multibody_joints = MultibodyJointSet::new();
+        let joint = multibody_joints
+            .insert(parent, child, joint, true)
+            .ok_or("joint insertion failed")?;
+        let (multibody, _) = multibody_joints
+            .get_mut(joint)
+            .ok_or("missing initial multibody")?;
+        // Public FK removes the default free-root DOFs without advancing time.
+        multibody.forward_kinematics(&bodies, true);
+        ensure(
+            multibody.ndofs() == 1,
+            "fixed-parent fixture is not one DOF",
+        )?;
+        multibody.damping_mut().fill(0.0);
+        ensure(multibody.set_armature(0, 0.0), "zero armature rejected")?;
+        multibody.generalized_velocity_mut().fill(0.0);
+        let mut pipeline = PhysicsPipeline::new();
+        pipeline.set_multibody_motor_impulse_telemetry_enabled(enabled);
+        Ok(Self {
+            pipeline,
+            parameters: IntegrationParameters {
+                dt: OUTER_DT_S,
+                num_solver_iterations: NonZeroUsize::new(cell.solver_small_steps)
+                    .ok_or("zero small-step count")?,
+                num_internal_pgs_iterations: cell.internal_pgs_passes,
+                num_internal_stabilization_iterations: STABILIZATION_PASSES,
+                max_ccd_substeps: 1,
+                ..IntegrationParameters::default()
+            },
+            islands: IslandManager::new(),
+            broad: BroadPhaseMultiSap::new(),
+            narrow: NarrowPhase::new(),
+            bodies,
+            colliders,
+            impulse_joints: ImpulseJointSet::new(),
+            multibody_joints,
+            ccd: CCDSolver::new(),
+            parent,
+            child,
+            joint,
+        })
+    }
+    fn step(&mut self) {
+        self.pipeline.step(
+            &Vector::zeros(),
+            &self.parameters,
+            &mut self.islands,
+            &mut self.broad,
+            &mut self.narrow,
+            &mut self.bodies,
+            &mut self.colliders,
+            &mut self.impulse_joints,
+            &mut self.multibody_joints,
+            &mut self.ccd,
+            None,
+            &(),
+            &(),
+        );
+    }
+    fn state(&self, completed: bool) -> Result<State> {
+        let (multibody, link_id) = self
+            .multibody_joints
+            .get(self.joint)
+            .ok_or("missing multibody")?;
+        ensure(link_id == 1, "unexpected child link ordinal")?;
+        let bodies = [
+            (self.parent, &self.bodies[self.parent]),
+            (self.child, &self.bodies[self.child]),
+        ];
+        state_from_native(&bodies, multibody, completed)
+    }
+}
+
+fn fixture_joint(cell: &Cell) -> RevoluteJoint {
+    let (stiffness, damping) = cell.gain.coefficients();
+    let mut joint = RevoluteJointBuilder::new(Vector::x_axis())
+        .motor_model(MotorModel::ForceBased)
+        .motor_position(cell.target_position_rad.value() as f32, stiffness, damping)
+        .motor_max_force(CAP_NM)
+        .contacts_enabled(false)
+        .build();
+    // The fixture specifies identity/X frames; avoid a generated auxiliary basis.
+    joint.data.local_frame1 = Isometry::identity();
+    joint.data.local_frame2 = Isometry::identity();
+    joint
+}
+

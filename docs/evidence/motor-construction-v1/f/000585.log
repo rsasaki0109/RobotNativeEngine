@@ -1,0 +1,13 @@
+   Compiling rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d)
+    Finished `test` profile [unoptimized] target(s) in 6.21s
+     Running unittests src/lib.rs (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/target/debug/deps/rapier3d-42a53fd542329112)
+
+running 5 tests
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::actual_input_storage_preserves_ieee_payloads_and_identity_without_dynamics ... ok
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::companion_schema_and_raw_words_roundtrip_without_float_json ... ok
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::endpoints_have_distinct_phase_and_actual_multibody_velocity_storage ... ok
+test dynamics::joint::multibody_joint::unit_multibody_joint::rne_motor_construction_tests::missing_limits_are_absent_not_a_zero_interval ... ok
+test pipeline::physics_pipeline::rne_motor_construction_flag_tests::default_and_toggle_clear_only_companion_storage_without_a_world ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 44 filtered out; finished in 0.00s
+

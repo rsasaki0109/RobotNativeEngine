@@ -1,0 +1,34 @@
+{
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/SYNTHETIC-STUB-NOT-PHYSICS",
+    "--verify-report",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/once-only-attempt/report.json"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/synthetic-source",
+  "environment": {
+    "STUB_BASELINE": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/SYNTHETIC-baseline-report.json",
+    "STUB_CURRENT": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/SYNTHETIC-current-template.json",
+    "STUB_EVENTS": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/SYNTHETIC-process-events.jsonl",
+    "STUB_MODE": "success",
+    "STUB_SOURCE": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/synthetic-source/Cargo.lock"
+  },
+  "finished_at": "2026-10-12T10:08:06.619359+00:00",
+  "kind": "rne_141_process_start",
+  "launch_error": null,
+  "original_exit_code": 0,
+  "pid_receipt_error": null,
+  "process_count": 1,
+  "process_launched": true,
+  "started_at": "2026-10-12T10:08:06.590227+00:00",
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/once-only-attempt/verify-current/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  },
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_second_attempt_refused_without_extra_stub_launch/once-only-attempt/verify-current/stdout.log",
+    "sha256": "3ae2e9b0866d608c474b010517cedafcb1261f8e90aa75a9716c2125a34e5aa5",
+    "size_bytes": 128
+  },
+  "world_role": "zero worlds: --verify-report only"
+}

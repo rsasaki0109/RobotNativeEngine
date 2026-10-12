@@ -1,0 +1,235 @@
+{
+  "binaries": {
+    "141_position_motor_calibration": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/141_position_motor_calibration",
+      "sha256": "9ff1b9d077150409b0d2c234d2780ac68eb5246fbc3b85ead14365056da9fde2",
+      "size_bytes": 3144136
+    },
+    "143_motor_construction": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+      "sha256": "8dff35933d8ecd6ce7a4f1165fffaba0f2560076476142ab29510b2bf0806618",
+      "size_bytes": 2851808
+    }
+  },
+  "build_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-companion-validation/integrated-release-build/actual.json",
+    "sha256": "3618edc5966e72d5ab7a6cc274946d1461e8f596b6c959b7e49dbe63806546de",
+    "size_bytes": 1149
+  },
+  "build_source_guard": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-companion-validation/integrated-release-build/source-after.json",
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "created_at": "2026-10-12T10:05:11.463125+00:00",
+  "environment": {
+    "CARGO_BUILD_JOBS": {
+      "present": true,
+      "value": "2"
+    },
+    "CARGO_BUILD_RUSTFLAGS": {
+      "present": false,
+      "value": null
+    },
+    "CARGO_BUILD_TARGET": {
+      "present": false,
+      "value": null
+    },
+    "CARGO_ENCODED_RUSTFLAGS": {
+      "present": false,
+      "value": null
+    },
+    "CARGO_INCREMENTAL": {
+      "present": true,
+      "value": "0"
+    },
+    "CARGO_PROFILE_RELEASE_DEBUG": {
+      "present": true,
+      "value": "0"
+    },
+    "CARGO_PROFILE_RELEASE_LTO": {
+      "present": false,
+      "value": null
+    },
+    "CARGO_PROFILE_RELEASE_OPT_LEVEL": {
+      "present": false,
+      "value": null
+    },
+    "RUSTDOCFLAGS": {
+      "present": false,
+      "value": null
+    },
+    "RUSTFLAGS": {
+      "present": false,
+      "value": null
+    }
+  },
+  "features": {
+    "isolated_motor_construction_collector": {
+      "argv": [
+        "cargo",
+        "tree",
+        "--locked",
+        "-p",
+        "isolated_motor_construction_collector",
+        "-e",
+        "features"
+      ],
+      "original_exit_code": 0,
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/features-isolated_motor_construction_collector.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/features-isolated_motor_construction_collector.stdout.log",
+        "sha256": "12fc48d15d1dcf43520278705b6355fd32a96e445b6293636a690721458d6f7e",
+        "size_bytes": 23843
+      }
+    },
+    "position_motor_calibration": {
+      "argv": [
+        "cargo",
+        "tree",
+        "--locked",
+        "-p",
+        "position_motor_calibration",
+        "-e",
+        "features"
+      ],
+      "original_exit_code": 0,
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/features-position_motor_calibration.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/features-position_motor_calibration.stdout.log",
+        "sha256": "420aedcae8a03bd3405a20a0dc8fb689cd6c0888585a48564a6fd9e2aee5fc28",
+        "size_bytes": 24547
+      }
+    }
+  },
+  "kind": "rne_actual_integrated_motor_build_binding",
+  "merged_base_commit": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+  "native_binary_invocations": 0,
+  "non_exhaustive_source_scope": "tracked Rust/TOML/locks/config selected by validation runner plus new143 and vendored .rs/.toml; not a complete compiler closure",
+  "old_report_literal": {
+    "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-contact-stages.json",
+    "sha256": "db0dee42a3c9067b38241112d5ee402341c0729466d7fc22f12f31504000db76",
+    "size_bytes": 8193438
+  },
+  "schema_version": 1,
+  "scientific_worlds": 0,
+  "selected_source_transition_maps": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/selected-source-transition-maps.json",
+    "sha256": "bf19aef7bbcb9abb499f8a4b8b45b2574fb037bb30100ce5dfce48207d20c284",
+    "size_bytes": 6537
+  },
+  "status": "BUILT_NOT_ADMITTED_NO_DATA",
+  "toolchain": {
+    "cargo": {
+      "argv": [
+        "cargo",
+        "-V"
+      ],
+      "original_exit_code": 0,
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/cargo.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/cargo.stdout.log",
+        "sha256": "c10ec31b8c6e6e2693cf65fc1971b41edbc3da1ae7db6f9f3f36c4823f8dcab5",
+        "size_bytes": 36
+      }
+    },
+    "cc": {
+      "argv": [
+        "cc",
+        "--version"
+      ],
+      "original_exit_code": 0,
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/cc.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/cc.stdout.log",
+        "sha256": "78fc11ae2c3ff7c235eb18ed90989d18f6cc864fb27027f839368cd0888deebc",
+        "size_bytes": 231
+      }
+    },
+    "host-target-cfg": {
+      "argv": [
+        "rustc",
+        "--print",
+        "cfg"
+      ],
+      "original_exit_code": 0,
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/host-target-cfg.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/host-target-cfg.stdout.log",
+        "sha256": "fc10eb20a7d7b72645bb1bca51c110fe8af01944a91935dfac9a9cc6a8fb53a5",
+        "size_bytes": 381
+      }
+    },
+    "linker": {
+      "argv": [
+        "ld",
+        "--version"
+      ],
+      "original_exit_code": 0,
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/linker.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/linker.stdout.log",
+        "sha256": "cfff299abc32f737f1cb856667d31ff328f3755d06d98bc093a3ed8e98d4339e",
+        "size_bytes": 281
+      }
+    },
+    "python": {
+      "argv": [
+        "/usr/bin/python3",
+        "--version"
+      ],
+      "original_exit_code": 0,
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/python.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/python.stdout.log",
+        "sha256": "01870de7caca112afeefd77b3c3b4c5e263cf5539a33af3f3411100727fad7d3",
+        "size_bytes": 14
+      }
+    },
+    "rustc": {
+      "argv": [
+        "rustc",
+        "-Vv"
+      ],
+      "original_exit_code": 0,
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/rustc.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/rustc.stdout.log",
+        "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+        "size_bytes": 196
+      }
+    }
+  }
+}

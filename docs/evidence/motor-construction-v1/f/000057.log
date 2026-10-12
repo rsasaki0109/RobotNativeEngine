@@ -1,0 +1,422 @@
+    Checking bytemuck v1.25.0
+    Checking serde v1.0.228
+    Checking bitflags v2.13.0
+    Checking thiserror v2.0.18
+    Checking libc v0.2.186
+    Checking smallvec v1.15.2
+    Checking once_cell v1.21.4
+    Checking crossbeam-utils v0.8.21
+    Checking zerocopy v0.8.52
+    Checking hashbrown v0.17.1
+    Checking indexmap v2.14.0
+    Checking glam v0.29.3
+    Checking pin-project-lite v0.2.17
+    Checking const-random v0.1.18
+    Checking getrandom v0.3.4
+    Checking ahash v0.8.12
+    Checking tracing-core v0.1.36
+    Checking fastrand v2.4.1
+    Checking tracing v0.1.44
+    Checking futures-core v0.3.32
+    Checking parking v2.2.1
+    Checking futures-io v0.3.32
+    Checking futures-lite v2.6.1
+    Checking rne_math v0.4.0 (/workspace/RobotNativeEngine/crates/rne_math)
+    Checking typeid v1.0.3
+    Checking hashbrown v0.14.5
+    Checking concurrent-queue v2.5.0
+    Checking thread_local v1.1.9
+    Checking async-task v4.7.1
+    Checking bevy_utils v0.15.3
+    Checking async-executor v1.14.0
+    Checking erased-serde v0.4.10
+    Checking derive_more v1.0.0
+    Checking disqualified v1.0.0
+    Checking fixedbitset v0.4.2
+    Checking bevy_ptr v0.15.3
+    Checking fixedbitset v0.5.7
+    Checking bevy_reflect v0.15.3
+    Checking petgraph v0.6.5
+    Checking bevy_tasks v0.15.3
+    Checking nonmax v0.5.5
+    Checking getrandom v0.2.17
+    Checking uuid v1.12.1
+    Checking rne_core v0.4.0 (/workspace/RobotNativeEngine/crates/rne_core)
+    Checking petgraph v0.7.1
+    Checking bevy_ecs v0.15.4
+    Checking crossbeam-epoch v0.9.20
+    Checking crossbeam-deque v0.8.6
+    Checking either v1.16.0
+    Checking num-bigint v0.4.6
+    Checking num-rational v0.4.2
+    Checking byteorder v1.5.0
+    Checking simd-adler32 v0.3.9
+    Checking anyhow v1.0.103
+    Checking miniz_oxide v0.8.9
+    Checking flate2 v1.1.9
+    Checking profiling v1.0.18
+    Checking equator v0.4.2
+    Checking rayon-core v1.13.0
+    Checking aligned-vec v0.6.4
+    Checking v_frame v0.3.9
+    Checking rayon v1.12.0
+    Checking as-slice v0.2.1
+    Checking rne_ecs v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ecs)
+    Checking aligned v0.4.3
+    Checking itertools v0.14.0
+    Checking rne_world v0.4.0 (/workspace/RobotNativeEngine/crates/rne_world)
+    Checking rne_physics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics)
+    Checking nom v8.0.0
+    Checking no_std_io2 v0.9.4
+    Checking half v2.7.1
+    Checking quick-error v2.0.1
+    Checking y4m v0.8.0
+    Checking av-scenechange v0.14.1
+    Checking bitstream-io v4.10.0
+    Checking maybe-rayon v0.1.1
+    Checking imgref v1.12.2
+    Checking av1-grain v0.2.5
+    Checking zune-core v0.5.1
+    Checking weezl v0.1.12
+    Checking new_debug_unreachable v1.0.6
+    Checking rav1e v0.8.1
+    Checking zune-jpeg v0.5.15
+    Checking loop9 v0.1.5
+    Checking fdeflate v0.3.7
+    Checking zune-inflate v0.2.54
+    Checking avif-serialize v0.8.9
+    Checking pxfm v0.1.29
+    Checking byteorder-lite v0.1.0
+    Checking bit_field v0.10.3
+    Checking rgb v0.8.53
+    Checking lebe v0.5.3
+    Checking fax v0.2.7
+    Checking color_quant v1.1.0
+    Checking gif v0.14.2
+    Checking tiff v0.11.3
+    Checking ravif v0.13.0
+    Checking exr v1.74.0
+    Checking image-webp v0.2.4
+    Checking moxcms v0.8.1
+    Checking png v0.18.1
+    Checking toml_datetime v0.6.11
+    Checking serde_spanned v0.6.9
+    Checking qoi v0.4.1
+    Checking winnow v0.7.15
+    Checking toml_write v0.1.2
+    Checking image v0.25.10
+    Checking toml_edit v0.22.27
+    Checking gltf-json v1.4.1
+    Checking base64 v0.13.1
+    Checking lazy_static v1.5.0
+    Checking urlencoding v2.1.3
+    Checking thiserror v1.0.69
+    Checking toml v0.8.23
+    Checking tobj v4.0.4
+    Checking rne_robot v0.4.0 (/workspace/RobotNativeEngine/crates/rne_robot)
+    Checking gltf v1.4.1
+    Checking rne_render v0.4.0 (/workspace/RobotNativeEngine/crates/rne_render)
+    Checking roxmltree v0.20.0
+    Checking safe_arch v0.7.4
+    Checking wide v0.7.33
+    Checking hash32 v0.3.1
+    Checking num-complex v0.4.6
+    Checking heapless v0.8.0
+    Checking simba v0.9.1
+    Checking spade v2.15.1
+    Checking rstar v0.12.2
+    Checking crossbeam-queue v0.3.12
+    Checking crossbeam-channel v0.5.15
+    Checking crossbeam v0.8.4
+    Checking bit-vec v0.7.0
+    Checking cobs v0.3.0
+    Checking postcard v1.1.3
+    Checking rne_collision_bake v0.4.0 (/workspace/RobotNativeEngine/crates/rne_collision_bake)
+    Checking rne_urdf_import v0.4.0 (/workspace/RobotNativeEngine/crates/rne_urdf_import)
+    Checking nalgebra v0.33.3
+    Checking rne_data v0.4.0 (/workspace/RobotNativeEngine/crates/rne_data)
+    Checking rne_sensor v0.4.0 (/workspace/RobotNativeEngine/crates/rne_sensor)
+    Checking rne_deformable v0.4.0 (/workspace/RobotNativeEngine/crates/rne_deformable)
+    Checking rne_assets v0.4.0 (/workspace/RobotNativeEngine/crates/rne_assets)
+    Checking rne_log v0.4.0 (/workspace/RobotNativeEngine/crates/rne_log)
+    Checking parry3d v0.17.6
+    Checking linux-raw-sys v0.12.1
+    Checking rustix v1.1.4
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Checking libloading v0.8.9
+    Checking dlib v0.5.3
+    Checking wayland-sys v0.31.11
+    Checking scoped-tls v1.0.1
+    Checking wayland-backend v0.3.15
+    Checking wayland-client v0.31.14
+    Checking termcolor v1.4.1
+    Checking scopeguard v1.2.0
+    Checking unicode-width v0.1.14
+    Checking linux-raw-sys v0.4.15
+    Checking bit-vec v0.8.0
+    Checking foldhash v0.1.5
+    Checking hashbrown v0.15.5
+    Checking rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+    Checking bit-set v0.8.0
+    Checking rustix v0.38.44
+    Checking rne_ai v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ai)
+    Checking codespan-reporting v0.11.1
+    Checking lock_api v0.4.14
+    Checking strum v0.26.3
+    Checking parking_lot_core v0.9.12
+    Checking wayland-protocols v0.32.12
+    Checking polling v3.11.0
+    Checking gpu-alloc-types v0.3.0
+    Checking gpu-descriptor-types v0.2.0
+    Checking spirv v0.3.0+sdk-1.3.268.0
+    Checking rustc-hash v1.1.0
+    Checking raw-window-handle v0.6.2
+    Checking unicode-xid v0.2.6
+    Checking hexf-parse v0.2.1
+    Checking gpu-descriptor v0.3.2
+    Checking gpu-alloc v0.6.0
+    Checking calloop v0.13.0
+    Checking naga v24.0.0
+    Checking parking_lot v0.12.5
+    Checking ash v0.38.0+1.3.281
+    Checking khronos-egl v6.0.0
+    Checking wgpu-types v24.0.0
+    Checking xcursor v0.3.10
+    Checking arrayref v0.3.9
+    Checking renderdoc-sys v1.1.0
+    Checking strict-num v0.1.1
+    Checking xkeysym v0.2.1
+    Checking cursor-icon v1.2.0
+    Checking glow v0.16.0
+    Checking wayland-csd-frame v0.3.0
+    Checking tiny-skia-path v0.11.4
+    Checking wayland-cursor v0.31.14
+    Checking calloop-wayland-source v0.3.0
+    Checking wayland-protocols-wlr v0.3.12
+    Checking memmap2 v0.9.11
+    Checking smithay-client-toolkit v0.19.2
+    Checking tiny-skia v0.11.4
+    Checking wgpu-hal v24.0.4
+    Checking gethostname v1.1.0
+    Checking as-raw-xcb-connection v1.0.1
+    Checking static_assertions v1.1.0
+    Checking x11rb-protocol v0.13.2
+    Checking wgpu-core v24.0.5
+    Checking wgpu v24.0.5
+    Checking sctk-adwaita v0.10.1
+    Checking x11-dl v2.21.0
+    Checking x11rb v0.13.2
+    Checking xkbcommon-dl v0.4.2
+    Checking wayland-protocols-plasma v0.3.12
+    Checking percent-encoding v2.3.2
+    Checking dpi v0.1.2
+    Checking smol_str v0.2.2
+    Checking pollster v0.4.0
+    Checking rne_traffic v0.4.0 (/workspace/RobotNativeEngine/crates/rne_traffic)
+    Checking winit v0.30.13
+    Checking getrandom v0.4.3
+    Checking rne_hardware_gateway v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_gateway)
+    Checking rne_render_wgpu v0.4.0 (/workspace/RobotNativeEngine/crates/rne_render_wgpu)
+    Checking tempfile v3.27.0
+    Checking rne_nav v0.4.0 (/workspace/RobotNativeEngine/crates/rne_nav)
+   Compiling rne_mobility_benchmark v0.4.0 (/workspace/RobotNativeEngine/tests/mobility_benchmark)
+    Checking rne_openscenario v0.4.0 (/workspace/RobotNativeEngine/crates/rne_openscenario)
+    Checking rne_physics_analytic v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_analytic)
+    Checking rne_plugin_sdk v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin_sdk)
+    Checking rne_hardware_lekiwi v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_lekiwi)
+    Checking rne_plugin v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin)
+    Checking rne_physics_conformance v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_conformance)
+    Checking earcutr v0.5.0
+    Checking rne_dynamics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_dynamics)
+    Checking utf8parse v0.2.2
+    Checking anstyle-parse v1.0.0
+    Checking rne_plateau v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plateau)
+    Checking is_terminal_polyfill v1.70.2
+    Checking colorchoice v1.0.5
+    Checking anstyle-query v1.1.5
+    Checking anstyle v1.0.14
+    Checking anstream v1.0.0
+    Checking clap_lex v1.1.0
+    Checking strsim v0.11.1
+    Checking clap_builder v4.6.0
+    Checking rne_traci v0.4.0 (/workspace/RobotNativeEngine/crates/rne_traci)
+    Checking clap v4.6.1
+    Checking rne_sumo v0.4.0 (/workspace/RobotNativeEngine/crates/rne_sumo)
+    Checking rne_usd v0.4.0 (/workspace/RobotNativeEngine/crates/rne_usd)
+    Checking peg-runtime v0.6.3
+    Checking peg v0.6.3
+    Checking rne_accelerator_contract v0.4.0 (/workspace/RobotNativeEngine/crates/rne_accelerator_contract)
+    Checking linked-hash-map v0.5.6
+    Checking ply-rs v0.1.3
+    Checking rne_asset_cli v0.4.0 (/workspace/RobotNativeEngine/tools/rne_asset_cli)
+    Checking oneshot v0.1.13
+    Checking wgpu-3dgs-viewer v0.2.0
+    Checking rne_physics_conformance_suite v0.4.0 (/workspace/RobotNativeEngine/tests/physics_conformance)
+    Checking rne_render_3dgs v0.4.0 (/workspace/RobotNativeEngine/crates/rne_render_3dgs)
+    Checking rne_slam v0.4.0 (/workspace/RobotNativeEngine/crates/rne_slam)
+    Checking rne_mjcf v0.4.0 (/workspace/RobotNativeEngine/crates/rne_mjcf)
+    Checking bytes v1.11.1
+    Checking prost v0.13.5
+   Compiling pyo3-ffi v0.29.2
+    Checking rne_compatibility_suite v0.4.0 (/workspace/RobotNativeEngine/tests/compatibility)
+    Checking rne_sdf v0.4.0 (/workspace/RobotNativeEngine/crates/rne_sdf)
+   Compiling pyo3 v0.29.2
+    Checking rne_adapter_ssl v0.4.0 (/workspace/RobotNativeEngine/adapters/ssl/rne_adapter_ssl)
+    Checking rne_dynamics_tests v0.4.0 (/workspace/RobotNativeEngine/tests/dynamics)
+    Checking rne_physics_mujoco v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_mujoco)
+    Checking rne_fuzz_smoke v0.4.0 (/workspace/RobotNativeEngine/tests/fuzz_smoke)
+    Checking rne_wbc v0.4.0 (/workspace/RobotNativeEngine/crates/rne_wbc)
+    Checking rne_locomotion v0.4.0 (/workspace/RobotNativeEngine/crates/rne_locomotion)
+    Checking rne_physics_native v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_native)
+    Checking rne_oc v0.4.0 (/workspace/RobotNativeEngine/crates/rne_oc)
+    Checking rne_scenario_scale v0.4.0 (/workspace/RobotNativeEngine/tests/scenario_scale)
+    Checking rne_planning v0.4.0 (/workspace/RobotNativeEngine/crates/rne_planning)
+    Checking go2_indoor v0.4.0 (/workspace/RobotNativeEngine/examples/go2_indoor)
+    Checking rne_legged v0.4.0 (/workspace/RobotNativeEngine/crates/rne_legged)
+    Checking contact_motor_stages v0.4.0 (/workspace/RobotNativeEngine/examples/142_contact_motor_stages)
+    Checking position_motor_calibration v0.4.0 (/workspace/RobotNativeEngine/examples/141_position_motor_calibration)
+    Checking isolated_motor_construction_collector v0.4.0 (/workspace/RobotNativeEngine/examples/143_motor_construction)
+    Checking legged_pattern v0.4.0 (/workspace/RobotNativeEngine/examples/104_legged_pattern)
+    Checking go2_push_recovery v0.4.0 (/workspace/RobotNativeEngine/examples/117_go2_push_recovery)
+    Checking motion_planning_media v0.4.0 (/workspace/RobotNativeEngine/examples/102_motion_planning_media)
+    Checking motion_planning v0.4.0 (/workspace/RobotNativeEngine/examples/101_motion_planning)
+    Checking go2_door v0.4.0 (/workspace/RobotNativeEngine/examples/132_go2_door)
+    Checking go2_mid360_navigation v0.4.0 (/workspace/RobotNativeEngine/examples/131_go2_mid360_navigation)
+    Checking rne_py v0.4.0 (/workspace/RobotNativeEngine/crates/rne_py)
+    Checking go2_jump_sim v0.2.0 (/workspace/RobotNativeEngine/examples/109_go2_jump_sim)
+    Checking go2_jump_opt v0.2.0 (/workspace/RobotNativeEngine/examples/108_go2_jump_opt)
+    Checking heavy_grasp v0.4.0 (/workspace/RobotNativeEngine/examples/138_heavy_grasp)
+    Checking go2_native_backend v0.4.0 (/workspace/RobotNativeEngine/examples/137_go2_native_backend)
+    Checking go2_parallel_rl v0.4.0 (/workspace/RobotNativeEngine/examples/136_go2_parallel_rl)
+    Checking go2_feedback_trot v0.4.0 (/workspace/RobotNativeEngine/examples/135_go2_feedback_trot)
+    Checking whole_body_control v0.4.0 (/workspace/RobotNativeEngine/examples/105_whole_body_control)
+    Checking xtask v0.4.0 (/workspace/RobotNativeEngine/xtask)
+    Checking ssl_adapter_smoke v0.4.0 (/workspace/RobotNativeEngine/examples/80_ssl_adapter_smoke)
+    Checking ssl_physics_coupling v0.4.0 (/workspace/RobotNativeEngine/examples/87_ssl_physics_coupling)
+    Checking rne_determinism_tests v0.4.0 (/workspace/RobotNativeEngine/tests/determinism)
+    Checking nav_elevation_icp v0.4.0 (/workspace/RobotNativeEngine/examples/100_nav_elevation_icp)
+    Checking nav_slam_physics v0.4.0 (/workspace/RobotNativeEngine/examples/98_nav_slam_physics)
+    Checking lifelong_slam v0.4.0 (/workspace/RobotNativeEngine/examples/127_lifelong_slam)
+    Checking nav_slam_mapping v0.4.0 (/workspace/RobotNativeEngine/examples/97_nav_slam_mapping)
+    Checking robot_workbench v0.4.0 (/workspace/RobotNativeEngine/examples/116_robot_workbench)
+    Checking tsukuba_3dgs_background v0.4.0 (/workspace/RobotNativeEngine/examples/78_tsukuba_3dgs_background)
+    Checking house_mobile_lift_hero v0.4.0 (/workspace/RobotNativeEngine/examples/89_house_mobile_lift_hero)
+    Checking house_3dgs_hybrid v0.4.0 (/workspace/RobotNativeEngine/examples/88_house_3dgs_hybrid)
+    Checking g1_head_splat_background v0.4.0 (/workspace/RobotNativeEngine/examples/81_g1_head_splat_background)
+    Checking tsukuba_3dgs_depth v0.4.0 (/workspace/RobotNativeEngine/examples/82_tsukuba_3dgs_depth)
+    Checking drjohnson_euroc_export v0.4.0 (/workspace/RobotNativeEngine/examples/113_drjohnson_euroc_export)
+    Checking flagship_validation_workflow v0.4.0 (/workspace/RobotNativeEngine/examples/74_flagship_validation_workflow)
+    Checking rne_plateau_import v0.4.0 (/workspace/RobotNativeEngine/tools/rne_plateau_import)
+    Checking showcase_captures v0.4.0 (/workspace/RobotNativeEngine/examples/90_showcase_captures)
+    Checking tsukuba_plateau_backdrop v0.4.0 (/workspace/RobotNativeEngine/examples/83_tsukuba_plateau_backdrop)
+    Checking plateau_drone_gif v0.4.0 (/workspace/RobotNativeEngine/examples/46_plateau_drone_gif)
+    Checking go2_contact_terrain v0.4.0 (/workspace/RobotNativeEngine/examples/133_go2_contact_terrain)
+    Checking dynamics_diagnostics v0.4.0 (/workspace/RobotNativeEngine/examples/103_dynamics_diagnostics)
+    Checking go2_terrain_trot v0.4.0 (/workspace/RobotNativeEngine/examples/134_go2_terrain_trot)
+    Checking g1_backflip_gif v0.1.0 (/workspace/RobotNativeEngine/examples/114_g1_backflip_gif)
+    Checking rne_plugin_example_velocity_servo v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin_example_velocity_servo)
+    Checking multi_floor_mission v0.4.0 (/workspace/RobotNativeEngine/examples/120_multi_floor_mission)
+    Checking nav_map_media v0.4.0 (/workspace/RobotNativeEngine/examples/121_nav_map_media)
+    Checking multi_floor_media v0.4.0 (/workspace/RobotNativeEngine/examples/122_multi_floor_media)
+    Checking warehouse_fleet v0.4.0 (/workspace/RobotNativeEngine/examples/140_warehouse_fleet)
+    Checking elevator_ride v0.4.0 (/workspace/RobotNativeEngine/examples/118_elevator_ride)
+    Checking nav_planning v0.4.0 (/workspace/RobotNativeEngine/examples/96_nav_planning)
+    Checking multi_robot_avoidance v0.4.0 (/workspace/RobotNativeEngine/examples/99_multi_robot_avoidance)
+    Checking warehouse_relay v0.4.0 (/workspace/RobotNativeEngine/examples/125_warehouse_relay)
+    Checking rne_adapter_ros2 v0.4.0 (/workspace/RobotNativeEngine/adapters/ros2/rne_adapter_ros2)
+    Checking nav_occupancy_grid v0.4.0 (/workspace/RobotNativeEngine/examples/95_nav_occupancy_grid)
+    Checking warehouse_logistics v0.4.0 (/workspace/RobotNativeEngine/examples/123_warehouse_logistics)
+    Checking elevator_call_button v0.4.0 (/workspace/RobotNativeEngine/examples/119_elevator_call_button)
+    Checking interactive_viewer v0.4.0 (/workspace/RobotNativeEngine/examples/14_interactive_viewer)
+    Checking go2_learned_turn v0.4.0 (/workspace/RobotNativeEngine/examples/54_go2_learned_turn)
+    Checking vehicle_dynamics_compare v0.4.0 (/workspace/RobotNativeEngine/examples/49_vehicle_dynamics)
+    Checking unitree_g1_parts_pick_place v0.4.0 (/workspace/RobotNativeEngine/examples/41_unitree_g1_parts_pick_place)
+    Checking render_primitives v0.4.0 (/workspace/RobotNativeEngine/examples/07_render_primitives)
+    Checking go2_heading_steer v0.4.0 (/workspace/RobotNativeEngine/examples/126_go2_heading_steer)
+    Checking lift_pick_place_hero v0.4.0 (/workspace/RobotNativeEngine/examples/32_lift_pick_place_hero)
+    Checking car_race v0.4.0 (/workspace/RobotNativeEngine/examples/128_car_race)
+    Checking uav_race v0.4.0 (/workspace/RobotNativeEngine/examples/129_uav_race)
+    Checking g1_sustained_walk_gif v0.4.0 (/workspace/RobotNativeEngine/examples/92_g1_sustained_walk_gif)
+    Checking control_eval_demo v0.4.0 (/workspace/RobotNativeEngine/examples/50_control_eval)
+    Checking go2_fall_vs_save v0.4.0 (/workspace/RobotNativeEngine/examples/52_go2_fall_vs_save)
+    Checking render_clear v0.4.0 (/workspace/RobotNativeEngine/examples/02_render_clear)
+    Checking g1_stride_gif v0.4.0 (/workspace/RobotNativeEngine/examples/63_g1_stride_gif)
+    Checking go2_walk_vs_stand_push v0.4.0 (/workspace/RobotNativeEngine/examples/53_go2_walk_vs_stand_push)
+    Checking scene_episode v0.4.0 (/workspace/RobotNativeEngine/examples/08_scene_episode)
+    Checking g1_rgbd_sensor v0.4.0 (/workspace/RobotNativeEngine/examples/71_g1_rgbd_sensor)
+    Checking deformable_cloth v0.4.0 (/workspace/RobotNativeEngine/examples/44_deformable_cloth)
+    Checking go2_mid360_room v0.4.0 (/workspace/RobotNativeEngine/examples/130_go2_mid360_room)
+    Checking gltf_humanoid_gpu v0.4.0 (/workspace/RobotNativeEngine/examples/69_gltf_humanoid_gpu)
+    Checking go2_turn_gif v0.4.0 (/workspace/RobotNativeEngine/examples/60_go2_turn_gif)
+    Checking latency_in_the_loop v0.4.0 (/workspace/RobotNativeEngine/examples/51_latency_in_the_loop)
+    Checking unitree_g1_gif v0.4.0 (/workspace/RobotNativeEngine/examples/39_unitree_g1_gif)
+    Checking kick_comparison v0.4.0 (/workspace/RobotNativeEngine/examples/139_kick_comparison)
+    Checking deformable_cable v0.4.0 (/workspace/RobotNativeEngine/examples/43_deformable_cable)
+    Checking lidar_render v0.4.0 (/workspace/RobotNativeEngine/examples/19_lidar_render)
+    Checking unitree_g1_dex3_pick_place v0.4.0 (/workspace/RobotNativeEngine/examples/42_unitree_g1_dex3_pick_place)
+    Checking imu_dead_reckoning v0.4.0 (/workspace/RobotNativeEngine/examples/48_imu_dead_reckoning)
+    Checking unitree_g1_cloth_handling v0.4.0 (/workspace/RobotNativeEngine/examples/45_unitree_g1_cloth_handling)
+    Checking unitree_go2_gif v0.4.0 (/workspace/RobotNativeEngine/examples/38_unitree_go2_gif)
+    Checking go2_stepped_turn v0.4.0 (/workspace/RobotNativeEngine/examples/55_go2_stepped_turn)
+    Checking urdf_mesh_render v0.4.0 (/workspace/RobotNativeEngine/examples/09_urdf_mesh_render)
+    Checking g1_photoreal_capture v0.4.0 (/workspace/RobotNativeEngine/examples/70_g1_photoreal_capture)
+    Checking traffic_city_replay v0.4.0 (/workspace/RobotNativeEngine/examples/47_traffic_city_replay)
+    Checking go2_steered_turn v0.4.0 (/workspace/RobotNativeEngine/examples/58_go2_steered_turn)
+    Checking go2_authority_turn v0.4.0 (/workspace/RobotNativeEngine/examples/59_go2_authority_turn)
+    Checking mobile_so101_clutter v0.4.0 (/workspace/RobotNativeEngine/examples/91_mobile_so101_clutter)
+    Checking mobile_manipulator_place v0.4.0 (/workspace/RobotNativeEngine/examples/26_mobile_manipulator_place)
+    Checking mobile_manipulator_episode v0.4.0 (/workspace/RobotNativeEngine/examples/25_mobile_manipulator_episode)
+    Checking unitree_g1_factory_inspection v0.4.0 (/workspace/RobotNativeEngine/examples/40_unitree_g1_factory_inspection)
+    Checking go2_torque_policy v0.4.0 (/workspace/RobotNativeEngine/examples/57_go2_torque_policy)
+    Checking mobile_manipulator_wrist_cam v0.4.0 (/workspace/RobotNativeEngine/examples/24_mobile_manipulator_wrist_cam)
+    Checking tsukuba_confirmation v0.4.0 (/workspace/RobotNativeEngine/examples/75_tsukuba_confirmation)
+    Checking office_agv_desk_place v0.4.0 (/workspace/RobotNativeEngine/examples/86_office_agv_desk_place)
+    Checking g1_learned_stride v0.4.0 (/workspace/RobotNativeEngine/examples/62_g1_learned_stride)
+    Checking tsukuba_full_run v0.4.0 (/workspace/RobotNativeEngine/examples/79_tsukuba_full_run)
+    Checking external_urdf v0.4.0 (/workspace/RobotNativeEngine/examples/35_external_urdf)
+    Checking quadruped_stand v0.4.0 (/workspace/RobotNativeEngine/examples/36_quadruped_stand)
+    Checking humanoid_stand v0.4.0 (/workspace/RobotNativeEngine/examples/37_humanoid_stand)
+    Checking go2_velocity_terrain v0.4.0 (/workspace/RobotNativeEngine/examples/65_go2_velocity_terrain)
+    Checking mobile_manipulator_curriculum v0.4.0 (/workspace/RobotNativeEngine/examples/29_mobile_manipulator_curriculum)
+    Checking ssl_small_pitch v0.4.0 (/workspace/RobotNativeEngine/examples/76_ssl_small_pitch)
+    Checking g1_forward_stride v0.4.0 (/workspace/RobotNativeEngine/examples/124_g1_forward_stride)
+    Checking go2_jump v0.4.0 (/workspace/RobotNativeEngine/examples/106_go2_jump)
+    Checking mobile_manipulator_vectorized v0.4.0 (/workspace/RobotNativeEngine/examples/28_mobile_manipulator_vectorized)
+    Checking go2_torque_turn v0.4.0 (/workspace/RobotNativeEngine/examples/56_go2_torque_turn)
+    Checking go2_learned_sprint v0.4.0 (/workspace/RobotNativeEngine/examples/61_go2_learned_sprint)
+    Checking agent_policy v0.4.0 (/workspace/RobotNativeEngine/examples/11_agent_policy)
+    Checking mobile_manipulator_lift v0.4.0 (/workspace/RobotNativeEngine/examples/30_mobile_manipulator_lift)
+    Checking trainer v0.4.0 (/workspace/RobotNativeEngine/examples/115_trainer)
+    Checking mobile_manipulator_transport v0.4.0 (/workspace/RobotNativeEngine/examples/23_mobile_manipulator_transport)
+    Checking locomotion_vectorized v0.4.0 (/workspace/RobotNativeEngine/examples/66_locomotion_vectorized)
+    Checking mobile_manipulator_reach v0.4.0 (/workspace/RobotNativeEngine/examples/21_mobile_manipulator_reach)
+    Checking mobile_manipulator_lift_pick_place v0.4.0 (/workspace/RobotNativeEngine/examples/31_mobile_manipulator_lift_pick_place)
+    Checking mobile_clutter_pick_place_e2e v0.4.0 (/workspace/RobotNativeEngine/examples/34_mobile_clutter_pick_place_e2e)
+    Checking diff_drive_dataset_capture v0.4.0 (/workspace/RobotNativeEngine/examples/73_diff_drive_dataset_capture)
+    Checking policy_artifact v0.4.0 (/workspace/RobotNativeEngine/examples/114_policy_artifact)
+    Checking office_agv_shared_aisle v0.4.0 (/workspace/RobotNativeEngine/examples/85_office_agv_shared_aisle)
+    Checking g1_workbench_mission v0.4.0 (/workspace/RobotNativeEngine/examples/77_g1_workbench_mission)
+    Checking clutter_pick_place_e2e v0.4.0 (/workspace/RobotNativeEngine/examples/33_clutter_pick_place_e2e)
+    Checking multi_robot_collision v0.4.0 (/workspace/RobotNativeEngine/examples/17_multi_robot_collision)
+    Checking multi_robot_agent v0.4.0 (/workspace/RobotNativeEngine/examples/13_multi_robot_agent)
+    Checking goal_conditioned_agent v0.4.0 (/workspace/RobotNativeEngine/examples/16_goal_conditioned_agent)
+    Checking shared_world_agent v0.4.0 (/workspace/RobotNativeEngine/examples/12_shared_world_agent)
+    Checking g1_commanded_locomotion v0.4.0 (/workspace/RobotNativeEngine/examples/67_g1_commanded_locomotion)
+    Checking episode_diff_drive v0.4.0 (/workspace/RobotNativeEngine/examples/05_episode_diff_drive)
+    Checking go2_pure_torque v0.4.0 (/workspace/RobotNativeEngine/examples/64_go2_pure_torque)
+    Checking mobile_manipulator_grasp v0.4.0 (/workspace/RobotNativeEngine/examples/22_mobile_manipulator_grasp)
+    Checking vectorized_episode v0.4.0 (/workspace/RobotNativeEngine/examples/10_vectorized_episode)
+    Checking mobile_lift_friction_pick_place v0.4.0 (/workspace/RobotNativeEngine/examples/72_mobile_lift_friction_pick_place)
+    Checking g1_heading_turn v0.4.0 (/workspace/RobotNativeEngine/examples/68_g1_heading_turn)
+    Checking office_agv_delivery v0.4.0 (/workspace/RobotNativeEngine/examples/84_office_agv_delivery)
+    Checking mobile_manipulator_arm v0.4.0 (/workspace/RobotNativeEngine/examples/20_mobile_manipulator_arm)
+    Checking diff_drive_lidar v0.4.0 (/workspace/RobotNativeEngine/examples/01_diff_drive_lidar)
+    Checking falling_cube v0.4.0 (/workspace/RobotNativeEngine/examples/01_falling_cube)
+    Checking collision_bake v0.4.0 (/workspace/RobotNativeEngine/examples/110_collision_bake)
+    Checking scene_load v0.4.0 (/workspace/RobotNativeEngine/examples/06_scene_load)
+    Checking asset_hot_reload v0.4.0 (/workspace/RobotNativeEngine/examples/15_asset_hot_reload)
+    Checking robot_kinematics v0.4.0 (/workspace/RobotNativeEngine/examples/94_robot_kinematics)
+    Checking urdf_import v0.4.0 (/workspace/RobotNativeEngine/examples/03_urdf_import)
+    Checking hello_world v0.4.0 (/workspace/RobotNativeEngine/examples/00_hello_world)
+    Checking rne_plugin_legacy_v2_fixture v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin_legacy_v2_fixture)
+    Finished `dev` profile [optimized] target(s) in 2m 37s

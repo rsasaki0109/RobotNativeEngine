@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "status": "REJECTED_EXPORT_ATTEMPT1",
+  "promotion_allowed": false,
+  "reason": "Whole-export CRLF guard caught reintroduced outside-scope graph/query formatting after completed validation. The old final-source-stable-receipt.json is NOT a stable admission receipt.",
+  "original_receipt_sha256": "2873ee9afeda2e01412724a4f998f017e6ec25afe724da5b2026b491e72f5f4c",
+  "replacement": "final-source-stable-receipt-v2.json",
+  "source_after_exact_restore_equals_last_validated_inventory": true,
+  "worlds": 0
+}

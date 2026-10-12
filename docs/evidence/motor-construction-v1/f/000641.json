@@ -1,0 +1,31 @@
+{
+  "kind": "original_process_terminal",
+  "case": {
+    "label": "negative_fresh_on",
+    "target": "negative",
+    "observer": "on"
+  },
+  "attempt_index": 1,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+    "--target",
+    "negative",
+    "--observer",
+    "on",
+    "--label",
+    "negative_fresh_on",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection/negative_fresh_on/raw.jsonl.gz"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "started_utc": "2026-10-12T11:08:37.850597+00:00",
+  "native_process_started": true,
+  "actual_exit_code": null,
+  "timed_out": false,
+  "error": null,
+  "pid": 80276,
+  "ended_utc": null,
+  "stdout": null,
+  "stderr": null,
+  "raw_output": null
+}

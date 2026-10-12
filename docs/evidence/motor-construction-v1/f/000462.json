@@ -1,0 +1,71 @@
+{
+  "actual_report_reads": 0,
+  "builds": 0,
+  "checkout_porcelain_observed": "",
+  "draft_registration": {
+    "sha256": "c8abb752560e0fb17d2d2bf2022e87b659dd2d54c6aed62bc9c1ced2fd2019ab",
+    "size_bytes": 13870
+  },
+  "head_observed": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+  "kind": "rne_source_only_141_transition_inspection",
+  "schema_version": 1,
+  "selected_declaration_matches_comparator_baseline": true,
+  "selected_source_declaration_count": 21,
+  "source_files_read": {
+    ".github/workflows/ci.yml": {
+      "sha256": "07e5f69da8be2197cff18e3723f62da8a149b769dac803178bf6d47d59822729",
+      "size_bytes": 23355
+    },
+    ".github/workflows/gazebo.yml": {
+      "sha256": "704aecda9cdd402c9fcd961e85ac455b3eb5b52b78edf38d2ff338ab30437291",
+      "size_bytes": 3480
+    },
+    ".github/workflows/mjx-warp.yml": {
+      "sha256": "f631033e87f367b62afbff81111de6478edb6535c93151917376f35224e0c3d8",
+      "size_bytes": 2420
+    },
+    ".github/workflows/mujoco.yml": {
+      "sha256": "0ccecc7943242ccbf6bb4af9c04501b27a8c57a6ef3f7259923dc28dd7214614",
+      "size_bytes": 8249
+    },
+    ".github/workflows/release.yml": {
+      "sha256": "bf46fd676da373225817460dd052abe852968a11c6e9c0f75a0c71dd0741826a",
+      "size_bytes": 15992
+    },
+    ".github/workflows/ros2-bridge.yml": {
+      "sha256": "1fb691eb82eaadb47b37b0ef398f272c57518b676e69df1eaff27cfbf8d64b2f",
+      "size_bytes": 1959
+    },
+    ".github/workflows/ros2-node.yml": {
+      "sha256": "bfc3795a656a326ca64c7293f871c07d6a3efccc5d3da476cfb556300857ebd9",
+      "size_bytes": 1812
+    },
+    "AGENTS.md": {
+      "sha256": "2e3caf6cea6e1a7d26cdb5794abe8a906dd9a50d6475a009759393e824b28b44",
+      "size_bytes": 10126
+    },
+    "docs/adr/034-external-large-evidence-retention.md": {
+      "sha256": "100441eb60d43bed59a4d00eb264cf0838c5ad2f33ee2f496cde7bc22f7dedd5",
+      "size_bytes": 4954
+    },
+    "examples/141_position_motor_calibration/README.md": {
+      "sha256": "e950927dc8cf79639e3fc625579ce983f06a040c5d6b95ff922d3fd12e336a99",
+      "size_bytes": 13566
+    },
+    "examples/141_position_motor_calibration/lib.rs": {
+      "sha256": "d52c33ef90beb2393c42f43cbbc59fb2ca43ae55b2351da69f2642c2bbd90576",
+      "size_bytes": 74102
+    },
+    "third_party/rapier3d/Cargo.toml": {
+      "sha256": "01d5f1b47c6002e2390a81e15d9ada9dfd92e53dde390f19eb0a5940b112f563",
+      "size_bytes": 3127
+    },
+    "xtask/src/main.rs": {
+      "sha256": "16201b98b713a4e385d9406c3fe1c860a0b0af4b31e69bb165c978bc3e227ab8",
+      "size_bytes": 168548
+    }
+  },
+  "source_inputs_unchanged_during_inspection": true,
+  "status": "PASS_SOURCE_ONLY_INSPECTION_NOT_SCIENTIFIC_QUALIFICATION",
+  "worlds": 0
+}

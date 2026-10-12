@@ -1,0 +1,29 @@
+{
+  "collector_original_exit_code": 7,
+  "collector_processes_started": 1,
+  "error": "Refused: original collection did not return preregistered FAIL exit2",
+  "finished_at": "2026-10-12T10:08:06.424972+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_partial_original_exit_and_all_partial_bytes_retained_no_retry/frozen/frozen-bindings.json",
+    "sha256": "89ae273cc42ab0d3ca52ca556aa94700c5147642685ca283126c2ed71707248a",
+    "size_bytes": 16403
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_partial_original_exit_and_all_partial_bytes_retained_no_retry/once-only-attempt/report.json",
+    "sha256": "0cfb2e8968800ccd762394a6beef25c214d70731bf45a62d58f28a184a248a4a",
+    "size_bytes": 21
+  },
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:08:06.365980+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "error": "JSONDecodeError: Expecting value: line 1 column 22 (char 21)",
+    "status": "UNAVAILABLE_UNREADABLE_PARTIAL_REPORT",
+    "world_counts": null
+  }
+}

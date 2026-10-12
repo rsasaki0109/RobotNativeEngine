@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/141_position_motor_calibration",
+    "--verify-report",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/report.json"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "environment": {
+    "LANG": "C",
+    "LC_ALL": "C"
+  },
+  "kind": "rne_141_process_start",
+  "process_count": 1,
+  "started_at": "2026-10-12T10:48:15.397611+00:00",
+  "world_role": "zero worlds: --verify-report only"
+}

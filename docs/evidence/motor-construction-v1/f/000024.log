@@ -1,0 +1,215 @@
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs:145:9
+    |
+145 |         serde_json::json!([0x7fc12345u64])
+    |         ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs:124:9
+    |
+124 |         serde_json::json!({"index":12,"generation":4})
+    |         ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+
+error[E0433]: cannot find module or crate `oorandom` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1625:23
+     |
+1625 |         let mut rnd = oorandom::Rand32::new(1234);
+     |                       ^^^^^^^^ use of unresolved module or unlinked crate `oorandom`
+     |
+     = help: if you wanted to use a crate named `oorandom`, use `cargo add oorandom` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `oorandom` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:1676:23
+     |
+1676 |         let mut rnd = oorandom::Rand32::new(1234);
+     |                       ^^^^^^^^ use of unresolved module or unlinked crate `oorandom`
+     |
+     = help: if you wanted to use a crate named `oorandom`, use `cargo add oorandom` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs:120:9
+    |
+120 |         serde_json::Value::Null
+    |         ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2047:26
+     |
+2047 |         let serialized = serde_json::to_value(&original).unwrap();
+     |                          ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+     |
+     = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2049:21
+     |
+2049 |         let bytes = bincode::serialize(&original).unwrap();
+     |                     ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+     |
+     = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2050:39
+     |
+2050 |         let mut restored: Multibody = bincode::deserialize(&bytes).unwrap();
+     |                                       ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+     |
+     = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2064:13
+     |
+2064 |             bincode::deserialize(&bincode::serialize(&bodies).unwrap()).unwrap();
+     |             ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+     |
+     = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2064:35
+     |
+2064 |             bincode::deserialize(&bincode::serialize(&bodies).unwrap()).unwrap();
+     |                                   ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+     |
+     = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2078:13
+     |
+2078 |             bincode::serialize(&bodies).unwrap(),
+     |             ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+     |
+     = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2079:13
+     |
+2079 |             bincode::serialize(&restored_bodies).unwrap()
+     |             ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+     |
+     = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2082:13
+     |
+2082 |             bincode::serialize(&original).unwrap(),
+     |             ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+     |
+     = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+    --> third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs:2083:13
+     |
+2083 |             bincode::serialize(&restored).unwrap()
+     |             ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+     |
+     = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs:113:16
+    |
+113 |     let json = serde_json::to_value(&telemetry).unwrap();
+    |                ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs:127:9
+    |
+127 |         serde_json::from_value::<MultibodyMotorConstructionTelemetry>(json).unwrap(),
+    |         ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs:141:16
+    |
+141 |     let json = serde_json::to_value(&endpoint).unwrap();
+    |                ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+   --> third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs:596:25
+    |
+596 |                         bincode::serialize(&on.bodies).unwrap(),
+    |                         ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+    |
+    = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+   --> third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs:597:25
+    |
+597 |                         bincode::serialize(&off.bodies).unwrap()
+    |                         ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+    |
+    = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+   --> third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs:600:25
+    |
+600 |                         bincode::serialize(&on.multibody_joints).unwrap(),
+    |                         ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+    |
+    = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+   --> third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs:601:25
+    |
+601 |                         bincode::serialize(&off.multibody_joints).unwrap()
+    |                         ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+    |
+    = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/pipeline/multibody_motor_stage/tests.rs:616:16
+    |
+616 |     let json = serde_json::to_vec(&report).unwrap();
+    |                ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/pipeline/multibody_motor_stage/tests.rs:619:9
+    |
+619 |         serde_json::from_slice::<MultibodyMotorStageTelemetry>(&json).unwrap()
+    |         ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+   --> third_party/rapier3d/src/pipeline/physics_pipeline.rs:987:26
+    |
+987 |         let ser_bodies = bincode::serialize(&bodies).unwrap();
+    |                          ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+    |
+    = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `bincode` in this scope
+   --> third_party/rapier3d/src/pipeline/physics_pipeline.rs:988:41
+    |
+988 |         let mut bodies2: RigidBodySet = bincode::deserialize(&ser_bodies).unwrap();
+    |                                         ^^^^^^^ use of unresolved module or unlinked crate `bincode`
+    |
+    = help: if you wanted to use a crate named `bincode`, use `cargo add bincode` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/utils.rs:735:21
+    |
+735 |             let j = serde_json::to_string(&s).unwrap();
+    |                     ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `serde_json` in this scope
+   --> third_party/rapier3d/src/utils.rs:737:27
+    |
+737 |             let p: Test = serde_json::from_str(&j).unwrap();
+    |                           ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: if you wanted to use a crate named `serde_json`, use `cargo add serde_json` to add it to your `Cargo.toml`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `rapier3d` (lib test) due to 27 previous errors

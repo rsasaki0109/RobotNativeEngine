@@ -15,8 +15,8 @@ use crate::geometry::{
 };
 use crate::math::{Real, Vector};
 use crate::pipeline::{
-    motor_stage_word, EventHandler, MultibodyMotorImpulseTelemetry, MultibodyMotorStageTelemetry,
-    PhysicsHooks, QueryPipeline,
+    motor_stage_word, EventHandler, MultibodyMotorConstructionTelemetry,
+    MultibodyMotorImpulseTelemetry, MultibodyMotorStageTelemetry, PhysicsHooks, QueryPipeline,
 };
 use {crate::dynamics::RigidBodySet, crate::geometry::ColliderSet};
 
@@ -46,6 +46,9 @@ pub struct PhysicsPipeline {
     motor_stage_telemetry_enabled: bool,
     pending_motor_stage_telemetry: Option<MultibodyMotorStageTelemetry>,
     completed_motor_stage_telemetry: Option<MultibodyMotorStageTelemetry>,
+    motor_construction_telemetry_enabled: bool,
+    pending_motor_construction_telemetry: Option<MultibodyMotorConstructionTelemetry>,
+    completed_motor_construction_telemetry: Option<MultibodyMotorConstructionTelemetry>,
 }
 
 impl Default for PhysicsPipeline {
@@ -72,6 +75,9 @@ impl PhysicsPipeline {
             motor_stage_telemetry_enabled: false,
             pending_motor_stage_telemetry: None,
             completed_motor_stage_telemetry: None,
+            motor_construction_telemetry_enabled: false,
+            pending_motor_construction_telemetry: None,
+            completed_motor_construction_telemetry: None,
             contact_pair_indices: vec![],
             manifold_indices: vec![],
             joint_constraint_indices: vec![],
@@ -118,6 +124,29 @@ impl PhysicsPipeline {
     /// interrupted step. Empty rows indicate unavailable or unsupported motors.
     pub fn completed_multibody_motor_stages(&self) -> Option<&MultibodyMotorStageTelemetry> {
         self.completed_motor_stage_telemetry.as_ref()
+    }
+
+    /// Enables the independent read-only construction/coordinate companion.
+    ///
+    /// Disabled by default and independent of version-one stage observation.
+    /// Toggling clears this observer's pending/completed reports only.
+    pub fn set_multibody_motor_construction_telemetry_enabled(&mut self, enabled: bool) {
+        if self.motor_construction_telemetry_enabled != enabled {
+            self.motor_construction_telemetry_enabled = enabled;
+            self.pending_motor_construction_telemetry = None;
+            self.completed_motor_construction_telemetry = None;
+        }
+    }
+
+    /// Returns the completed construction companion, or None when unavailable.
+    ///
+    /// None includes disabled, pre-step, toggled and interrupted states. Empty
+    /// completed events do not mean a measured zero. Runtime neutrality and
+    /// physical calibration require separately registered qualification.
+    pub fn completed_multibody_motor_constructions(
+        &self,
+    ) -> Option<&MultibodyMotorConstructionTelemetry> {
+        self.completed_motor_construction_telemetry.as_ref()
     }
 
     fn clear_modified_colliders(
@@ -291,11 +320,21 @@ impl PhysicsPipeline {
             .as_ref()
             .map(|report| report.ccd_partition_duration_words.len() - 1)
             .unwrap_or(0);
+        let construction_partition = self
+            .pending_motor_construction_telemetry
+            .as_ref()
+            .map(|report| report.ccd_partition_duration_words.len() - 1)
+            .unwrap_or(0);
         for (island, solver) in self.solvers[..islands.num_islands()].iter_mut().enumerate() {
             solver.prepare_motor_impulse_telemetry(self.motor_impulse_telemetry_enabled, partition);
             solver.prepare_motor_stage_telemetry(
                 self.motor_stage_telemetry_enabled,
                 stage_partition,
+                island,
+            );
+            solver.prepare_motor_construction_telemetry(
+                self.motor_construction_telemetry_enabled,
+                construction_partition,
                 island,
             );
         }
@@ -385,6 +424,14 @@ impl PhysicsPipeline {
         if let Some(report) = &mut self.pending_motor_stage_telemetry {
             for solver in &mut self.solvers[..islands.num_islands()] {
                 report.events.extend(solver.take_motor_stage_events());
+            }
+        }
+
+        if let Some(report) = &mut self.pending_motor_construction_telemetry {
+            for solver in &mut self.solvers[..islands.num_islands()] {
+                report
+                    .events
+                    .extend(solver.take_motor_construction_events());
             }
         }
 
@@ -517,10 +564,15 @@ impl PhysicsPipeline {
         self.pending_motor_stage_telemetry = self
             .motor_stage_telemetry_enabled
             .then(|| MultibodyMotorStageTelemetry::new(integration_parameters.dt));
+        self.completed_motor_construction_telemetry = None;
+        self.pending_motor_construction_telemetry = self
+            .motor_construction_telemetry_enabled
+            .then(|| MultibodyMotorConstructionTelemetry::new(integration_parameters.dt));
         // Clear every cached island, including islands inactive this step.
         for solver in &mut self.solvers {
             solver.prepare_motor_impulse_telemetry(false, 0);
             solver.prepare_motor_stage_telemetry(false, 0, 0);
+            solver.prepare_motor_construction_telemetry(false, 0, 0);
         }
         self.counters.reset();
         self.counters.step_started();
@@ -688,6 +740,11 @@ impl PhysicsPipeline {
                     .ccd_partition_duration_words
                     .push(motor_stage_word(integration_parameters.dt));
             }
+            if let Some(report) = &mut self.pending_motor_construction_telemetry {
+                report
+                    .ccd_partition_duration_words
+                    .push(motor_stage_word(integration_parameters.dt));
+            }
             self.build_islands_and_solve_velocity_constraints(
                 gravity,
                 &integration_parameters,
@@ -776,6 +833,8 @@ impl PhysicsPipeline {
             self.completed_motor_impulse_telemetry = Some(report);
         }
         self.completed_motor_stage_telemetry = self.pending_motor_stage_telemetry.take();
+        self.completed_motor_construction_telemetry =
+            self.pending_motor_construction_telemetry.take();
     }
 }
 
@@ -1123,5 +1182,36 @@ mod test {
             assert!(rotation.k.is_finite());
             assert!(rotation.w.is_finite());
         }
+    }
+}
+
+#[cfg(test)]
+mod rne_motor_construction_flag_tests {
+    use super::*;
+
+    #[test]
+    fn default_and_toggle_clear_only_companion_storage_without_a_world() {
+        let mut pipeline = PhysicsPipeline::new();
+        assert!(!pipeline.motor_construction_telemetry_enabled);
+        assert!(pipeline.completed_multibody_motor_constructions().is_none());
+        pipeline.motor_stage_telemetry_enabled = true;
+        pipeline.completed_motor_stage_telemetry = Some(MultibodyMotorStageTelemetry::new(-0.0));
+        let original_stage = pipeline.completed_motor_stage_telemetry.clone();
+        pipeline.pending_motor_construction_telemetry =
+            Some(MultibodyMotorConstructionTelemetry::new(-0.0));
+        pipeline.completed_motor_construction_telemetry =
+            Some(MultibodyMotorConstructionTelemetry::new(-0.0));
+        pipeline.set_multibody_motor_construction_telemetry_enabled(true);
+        assert!(pipeline.pending_motor_construction_telemetry.is_none());
+        assert!(pipeline.completed_multibody_motor_constructions().is_none());
+        assert!(pipeline.motor_stage_telemetry_enabled);
+        assert_eq!(pipeline.completed_motor_stage_telemetry, original_stage);
+        pipeline.completed_motor_construction_telemetry =
+            Some(MultibodyMotorConstructionTelemetry::new(-0.0));
+        pipeline.set_multibody_motor_construction_telemetry_enabled(true);
+        assert!(pipeline.completed_multibody_motor_constructions().is_some());
+        pipeline.set_multibody_motor_construction_telemetry_enabled(false);
+        assert!(pipeline.completed_multibody_motor_constructions().is_none());
+        assert_eq!(pipeline.completed_motor_stage_telemetry, original_stage);
     }
 }

@@ -1,0 +1,26 @@
+{
+  "baseline_map": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/72-baseline-source-map-binding.json",
+    "sha256": "0d2a546ce08db2324e130bfd806b36614dfbc435edc607fbfb67a503fcccf992",
+    "size_bytes": 3008
+  },
+  "git_base": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+  "kind": "rne_opaque_baseline_source_metadata_extraction",
+  "numeric_reanalysis": 0,
+  "numeric_report_decodes": 0,
+  "only_decoded_field": "selected_source_sha256",
+  "prospective_comparator_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/compare_scalar_source_transition.py",
+    "sha256": "699c654d4925e8870e67723863dc173e91a5e2e828af34e1a7d947970d99242e",
+    "size_bytes": 11517
+  },
+  "source_end_offset": 5443,
+  "source_key_count": 21,
+  "source_start_offset": 2682,
+  "whole_old_report": {
+    "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-contact-stages.json",
+    "sha256": "db0dee42a3c9067b38241112d5ee402341c0729466d7fc22f12f31504000db76",
+    "size_bytes": 8193438
+  },
+  "worlds": 0
+}

@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "kind": "final_guarded_bounded_export_v2",
+  "baseline_source_commit": "776ecebbd07897f35872128cfe855cdb8d99d8e3",
+  "integration_base_commit": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+  "existing_implementation_documentation_files": 9,
+  "separate_prerequisite_files": 1,
+  "new_files": 2,
+  "files": [
+    {
+      "path": "third_party/rapier3d/RNE_PATCH.md",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "bbace14a68ad9a22308ab199d7bc544cccdb6606a0c14168da3e717698effdf8",
+      "final_sha256": "5a58990397fd767c74691b60e8307e76cff93773881d4c95262bffa7c4b9705e",
+      "original_bytes": 7658,
+      "final_bytes": 9311,
+      "original_crlf": 0,
+      "final_crlf": 0,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a",
+      "final_sha256": "e16bc16254459b84534d7a48157ebdb19deae0d0f8461ed8fc0a4e395d5c82da",
+      "original_bytes": 13676,
+      "final_bytes": 15921,
+      "original_crlf": 378,
+      "final_crlf": 432,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+      "kind": "new",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": null,
+      "final_sha256": "f0f400cf4fa7d4e3be5d489b9f2d87325089682b7a8c5ce69d4fa2779b9b5811",
+      "original_bytes": null,
+      "final_bytes": 5817,
+      "original_crlf": null,
+      "final_crlf": 155,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+      "final_sha256": "2bde94532c22dd1a010c5b018fdb2e6a4314b2cf993bc56003523d5156b61857",
+      "original_bytes": 4272,
+      "final_bytes": 7380,
+      "original_crlf": 131,
+      "final_crlf": 223,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/interaction_groups.rs",
+      "kind": "modified",
+      "scope": "separate_mechanical_baseline_lint_prerequisite",
+      "original_sha256": "39724293d67a6fb28da6e30525a2d2a5a32976c752bd9b1c860153ef4ec07261",
+      "final_sha256": "3094f78156c6f7b7c819ccff507eb9d58415e834242d3af99868d5818ec94b22",
+      "original_bytes": 19684,
+      "final_bytes": 19677,
+      "original_crlf": 506,
+      "final_crlf": 506,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "98144ff88b0842debf5375a7d35700cc9a9e2ab23b827f52fd3d0b396fcdd302",
+      "final_sha256": "f16339e703e0ad8ed13b0a27f53f7a0956d9400114af8f7f1b2e94c8967c601a",
+      "original_bytes": 4539,
+      "final_bytes": 5528,
+      "original_crlf": 136,
+      "final_crlf": 164,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c",
+      "final_sha256": "7707ce8e2abe6e7747e513b317f0cf3909756e2082f381191784282cb88a2da7",
+      "original_bytes": 19450,
+      "final_bytes": 20338,
+      "original_crlf": 558,
+      "final_crlf": 580,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8",
+      "final_sha256": "46f3aedde8bc1d057de77342967142eae1e3c313e855630c84640df9ccf84867",
+      "original_bytes": 49297,
+      "final_bytes": 50987,
+      "original_crlf": 1433,
+      "final_crlf": 1479,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+      "final_sha256": "6701f1c231691d8c2bb871eef43996b5c3333db027b880c8c2b3aa9c20435921",
+      "original_bytes": 22436,
+      "final_bytes": 33943,
+      "original_crlf": 538,
+      "final_crlf": 818,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/mod.rs",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "723a3971ec08b0a5f9fdc07a743b705d09eccd37b4904f27ca0df92f53dbe89c",
+      "final_sha256": "a172e71d180a2397422ae490abc4abaf60ef012d139ee42f5165e9811dbe13ce",
+      "original_bytes": 1462,
+      "final_bytes": 1936,
+      "original_crlf": 39,
+      "final_crlf": 49,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+      "kind": "new",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": null,
+      "final_sha256": "03f417ee1b848ab1b2e3d1e5ca1aad29065e9b80c0ebf4f803f718fe39aa9e5e",
+      "original_bytes": null,
+      "final_bytes": 7972,
+      "original_crlf": null,
+      "final_crlf": 171,
+      "crlf_preserved_where_original_present": true
+    },
+    {
+      "path": "third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+      "kind": "modified",
+      "scope": "companion_implementation_or_documentation",
+      "original_sha256": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811",
+      "final_sha256": "86fbfe05994120617346ae30538837fd0bf96cdfc83f0bfe6043766e975f11b7",
+      "original_bytes": 43101,
+      "final_bytes": 47838,
+      "original_crlf": 1127,
+      "final_crlf": 1217,
+      "crlf_preserved_where_original_present": true
+    }
+  ],
+  "patches": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/motor-construction-companion-v2.patch",
+      "bytes": 59545,
+      "sha256": "0441eb3fdbe41c09070c679721acdd9cccf6ded64e404ca145cc4f764554e1f6"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/motor-construction-companion-with-prerequisite-v2.patch",
+      "bytes": 60168,
+      "sha256": "b410258c6e061678c673510c70f11842d2691af1c9a27a43a961faf597f777f6"
+    }
+  ],
+  "separate_prerequisite_patch": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/baseline-parallel-lifetime-prerequisite.patch",
+  "full_source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+  "full_source_inventory_equals_final_validated_snapshot": true,
+  "worlds": 0
+}

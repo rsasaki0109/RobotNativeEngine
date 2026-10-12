@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/checked_driver.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/admitted-wrapper-v2.json",
+    "--spec-sha256",
+    "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce",
+    "--launch-native"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "started_at": "2026-10-12T11:08:37.163377+00:00",
+  "registered_native_world_budget": 6,
+  "native_collector_invocation_budget": 6,
+  "not_a_retry": true
+}

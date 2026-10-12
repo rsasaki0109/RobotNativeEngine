@@ -1,0 +1,9 @@
+{
+  "kind": "completed_prelaunch_directory_barriers",
+  "schema_version": 2,
+  "root_parent": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six",
+  "cohort_root": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection",
+  "completed_utc": "2026-10-12T11:08:37.694561+00:00",
+  "all_six_claims_durable": true,
+  "registered_spec_sha256": "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce"
+}

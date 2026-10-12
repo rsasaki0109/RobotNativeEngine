@@ -1,0 +1,1 @@
+{"pid": 72265, "command": ["cargo", "run", "--locked", "--release", "-p", "go2_terrain_trot", "--example", "134_go2_terrain_trot"]}

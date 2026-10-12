@@ -1,0 +1,11 @@
+{
+  "kind": "pure_synthetic_cohort_reader_and_injected_driver_tests",
+  "methods": 29,
+  "failures": 0,
+  "errors": 0,
+  "actual_exit_code": 0,
+  "native_processes_started": 0,
+  "native_worlds": 0,
+  "historical_native_data_read": false,
+  "driver_processes_are_injected_mocks": true
+}

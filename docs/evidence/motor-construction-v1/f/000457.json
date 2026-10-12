@@ -1,0 +1,34 @@
+{
+  "actual_report_reads": 0,
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_driver"
+  ],
+  "builds": 0,
+  "checkout_edits": 0,
+  "finished_at": "2026-10-12T10:31:24.276297+00:00",
+  "kind": "rne_141_synthetic_driver_test_receipt",
+  "log": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/command.log",
+    "sha256": "7a1b2b1fc4e100e399a1b1d5594ed41a8e68ab28fd3705299a07c92a63e4db15",
+    "size_bytes": 3722
+  },
+  "original_exit_code": 0,
+  "schema_version": 1,
+  "scope": "Only synthetic reports/stub collector processes. Internal mock72 counters are not actual scientific world counts.",
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:31:21.673402+00:00",
+  "status": "PASS",
+  "synthetic_stub_fixture_root": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA",
+  "tested_tool_sha256": {
+    "comparator_source": "699c654d4925e8870e67723863dc173e91a5e2e828af34e1a7d947970d99242e",
+    "driver_source": "32369156b54d990c6921cc954add2750cad990ac0b73013439993549be6e5f71",
+    "test_runner_source": "e2bb5ef303a4686b41e401b9e3d108b117fb8514a749af03bef7ee2a9d4ff398",
+    "test_source": "05a34f7ba91326cd26a07f22f7efd11d6316804001c284e265575e12f72dea30"
+  },
+  "worlds": 0
+}

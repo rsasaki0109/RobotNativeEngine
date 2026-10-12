@@ -1,0 +1,9 @@
+test_large_whole_payload_not_split_or_copied (__main__.WholeByteGuards.test_large_whole_payload_not_split_or_copied) ... ok
+test_parent_traversal_and_casefold_collisions_rejected (__main__.WholeByteGuards.test_parent_traversal_and_casefold_collisions_rejected) ... ok
+test_stale_hash_rejected_before_destination_creation (__main__.WholeByteGuards.test_stale_hash_rejected_before_destination_creation) ... ok
+test_whole_bytes_and_aliases_verified_then_corruption_rejected (__main__.WholeByteGuards.test_whole_bytes_and_aliases_verified_then_corruption_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.006s
+
+OK

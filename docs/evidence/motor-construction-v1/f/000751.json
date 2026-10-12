@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/driver.py",
+    "run",
+    "--frozen",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/frozen-v2/frozen-bindings.json",
+    "--expected-frozen-sha256",
+    "6a99b2ccb8573c1141369c5498bcea6e9bc8f61f62189988066cd7f020f2270b"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "started_at": "2026-10-12T10:48:13.526921+00:00",
+  "registered_native_world_budget": 72,
+  "collector_invocation_budget": 1,
+  "not_a_retry": true
+}

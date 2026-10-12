@@ -1,0 +1,70 @@
+{
+  "kind": "independent_static_current_companion_source_preservation",
+  "status": "PASS_STATIC_SOURCE_SCOPE_WITH_ONE_DOCUMENTATION_CORRECTION_AND_PUBLICATION_PENDING",
+  "completed_utc": "2026-10-12T11:50:15.727416+00:00",
+  "head": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+  "ledger": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-companion-final-source-review/current-source-and-diff-ledger.json",
+    "sha256": "0dbf19903b868682396cec3b11fb388753d8564b0222bcfe312c08e72627908c",
+    "bytes": 22581
+  },
+  "source_only": true,
+  "constructor_native_tokens_exact_after_removing_one_readonly_capture_block": true,
+  "constructor_native_token_count": 296,
+  "integrate_positions_native_tokens_exact_after_removing_two_readonly_endpoint_blocks": true,
+  "integration_native_token_count": 266,
+  "multibody_joint_integrate_tokens_exact": true,
+  "writeback_bodies_tokens_exact": true,
+  "old_v1_stage_and_impulse_modules_literal_HEAD_exact": true,
+  "native_math_model_inverse_parameters_and_141_142_physical_sources_unchanged": true,
+  "collector_three_source_files_literal_frozen_copy_exact": true,
+  "current_selected_sources_all_22_live_and_frozen_and_report_map_exact": true,
+  "selected_transition": {
+    "previous": 21,
+    "current": 22,
+    "changed_existing": 11,
+    "added": 1,
+    "removed": 0
+  },
+  "build_guard_scope": {
+    "paths": 1343,
+    "differences": [
+      {
+        "path": "xtask/src/main.rs",
+        "build_epoch": {
+          "sha256": "16201b98b713a4e385d9406c3fe1c860a0b0af4b31e69bb165c978bc3e227ab8",
+          "size_bytes": 168548
+        },
+        "current": {
+          "path": "/workspace/RobotNativeEngine/xtask/src/main.rs",
+          "sha256": "81ea5c8ee1b6b079d83e54e2b607e06034bb70b760ac764db6e1723b2f9dfbf4",
+          "bytes": 168559
+        }
+      }
+    ],
+    "interpretation": "Only xtask source-report pointer changed after the native example build. This non-native CI submission change is intentional and is covered by the current running full CI guard separately; the historical build guard is not claimed identical to the whole current checkout."
+  },
+  "default_vendor_lifetime_fix": "interaction_groups.rs removes only an unused explicit reference lifetime; same trait/receiver/body and no arithmetic.",
+  "known_documentation_issue": {
+    "path": "third_party/rapier3d/RNE_PATCH.md",
+    "issue": "Frozen preparation-era wording says collectors unchanged and a future qualification remains necessary. Current publication should distinguish 141 selected-source-only changes and completed cohort from the historical preparation snapshot.",
+    "proposed_replacement": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-companion-final-source-review/RNE_PATCH-current-doc-replacement-proposal.md",
+      "sha256": "1670e04f7b7c90fa2ee33f301fdab96dbe7bf7941c655f04729ce39bcdbcf969",
+      "bytes": 874
+    }
+  },
+  "pending": [
+    "Referenced docs/evidence/motor-construction-v1 bundle not yet placed in checkout; final publication audit must bind the completed bundle/claims.",
+    "Full local CI still running; no success is inferred from this source review."
+  ],
+  "no_actions": {
+    "Cargo": 0,
+    "simulations": 0,
+    "scientific_reader_or_numeric_reanalysis": 0,
+    "old_native_payload_reads": 0,
+    "remote_writes": 0,
+    "checkout_edits": 0
+  },
+  "limitations": "Token comparison is a narrow static body preservation check, not compiler, full-host, private-cache, runtime-floating-mode or physical-accuracy qualification. Scientific result counts are root supplied and independently postreviewed separately; this script reads only source binding metadata, not native numeric observations."
+}

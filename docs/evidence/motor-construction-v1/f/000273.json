@@ -1,0 +1,33 @@
+{
+  "collector_original_exit_code": 2,
+  "collector_processes_started": 1,
+  "error": "Refused: not all 72 unchanged worlds and FAIL0/4 were retained",
+  "finished_at": "2026-10-12T10:10:09.797549+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_summary_false_cannot_replace_integer_zero/frozen/frozen-bindings.json",
+    "sha256": "76dcd1ce7c23806deb068d96f5172eb6ef40fb0fd9f86a1177369625f62e816a",
+    "size_bytes": 16673
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_summary_false_cannot_replace_integer_zero/once-only-attempt/report.json",
+    "sha256": "8298321ff539dbf79e24a5dc833fe94d377e3e5f9524b25c5ee0ec220e3313fa",
+    "size_bytes": 25306
+  },
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:10:09.754270+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "case_count_retained": 24,
+    "status": "RETAINED_INCOMPLETE_OR_CHANGED",
+    "world_counts": {
+      "completed_worlds": 72,
+      "worlds_attempted": 72,
+      "worlds_created": 72
+    }
+  }
+}

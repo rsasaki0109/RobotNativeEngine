@@ -1,0 +1,18 @@
+{
+  "baseline_report": {
+    "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-contact-stages.json",
+    "sha256": "db0dee42a3c9067b38241112d5ee402341c0729466d7fc22f12f31504000db76",
+    "size_bytes": 8193438
+  },
+  "kind": "rne_duplicate_safe_source_object_only_confirmation",
+  "numerical_reanalyses": 0,
+  "numerical_report_decodes": 0,
+  "parser": "json.loads only isolated source string map with comparator duplicate-key hook; no numerical fields decoded",
+  "selected_key_count": 21,
+  "selected_map_matches_git_base_before": true,
+  "source_object_byte_end": 5443,
+  "source_object_byte_start": 2682,
+  "source_object_bytes": 2761,
+  "source_object_sha256": "5af6ef57dafb2c20dc9b7d905ffe9e4f58abab3a8619552ffd6fff8562fdd182",
+  "whole_old_file_before_after_identical": true
+}

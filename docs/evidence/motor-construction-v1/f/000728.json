@@ -1,0 +1,200 @@
+{
+  "collector_launch_state": {
+    "actual_process_launched": true,
+    "launch_reserved": true,
+    "observed_pid": 75222,
+    "observed_wait_return": 2,
+    "returned_terminal": {
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/141_position_motor_calibration",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/report.json",
+        "--require-calibration"
+      ],
+      "cleanup_error": null,
+      "cwd": "/workspace/RobotNativeEngine",
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "execution_error": null,
+      "finished_at": "2026-10-12T10:48:13.963276+00:00",
+      "kind": "rne_141_process_start",
+      "launch_error": null,
+      "original_exit_code": 2,
+      "pid_receipt_error": null,
+      "process_count": 1,
+      "process_launched": true,
+      "started_at": "2026-10-12T10:48:13.917072+00:00",
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/collection/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/collection/stdout.log",
+        "sha256": "5b0c9d9b174967aa5e2fa7d09e928e0b7551a5924538ca5a7eeafa189f82f587",
+        "size_bytes": 112
+      },
+      "world_role": "one collector; internal fixed24 x ON/fresh_ON/OFF; max72 world attempts"
+    },
+    "terminal_written": true
+  },
+  "collector_original_exit_code": 2,
+  "collector_processes_started": 1,
+  "collector_receipt_recovery": "ACTUAL_FORMED_RETURN_RECEIPT_VERIFIED",
+  "finished_at": "2026-10-12T10:48:15.975079+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/frozen-v2/frozen-bindings.json",
+    "sha256": "6a99b2ccb8573c1141369c5498bcea6e9bc8f61f62189988066cd7f020f2270b",
+    "size_bytes": 21977
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_launch_states": [
+    {
+      "actual_process_launched": true,
+      "launch_reserved": true,
+      "observed_pid": 75225,
+      "observed_wait_return": 0,
+      "phase": "verify-current",
+      "returned_terminal": {
+        "argv": [
+          "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/141_position_motor_calibration",
+          "--verify-report",
+          "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/report.json"
+        ],
+        "cleanup_error": null,
+        "cwd": "/workspace/RobotNativeEngine",
+        "environment": {
+          "LANG": "C",
+          "LC_ALL": "C"
+        },
+        "execution_error": null,
+        "finished_at": "2026-10-12T10:48:15.427331+00:00",
+        "kind": "rne_141_process_start",
+        "launch_error": null,
+        "original_exit_code": 0,
+        "pid_receipt_error": null,
+        "process_count": 1,
+        "process_launched": true,
+        "started_at": "2026-10-12T10:48:15.397611+00:00",
+        "stderr": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/verify-current/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size_bytes": 0
+        },
+        "stdout": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/verify-current/stdout.log",
+          "sha256": "3ae2e9b0866d608c474b010517cedafcb1261f8e90aa75a9716c2125a34e5aa5",
+          "size_bytes": 128
+        },
+        "world_role": "zero worlds: --verify-report only"
+      },
+      "terminal_written": true
+    },
+    {
+      "actual_process_launched": true,
+      "launch_reserved": true,
+      "observed_pid": 75227,
+      "observed_wait_return": 2,
+      "phase": "verify-current-require",
+      "returned_terminal": {
+        "argv": [
+          "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/141_position_motor_calibration",
+          "--verify-report",
+          "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/report.json",
+          "--require-calibration"
+        ],
+        "cleanup_error": null,
+        "cwd": "/workspace/RobotNativeEngine",
+        "environment": {
+          "LANG": "C",
+          "LC_ALL": "C"
+        },
+        "execution_error": null,
+        "finished_at": "2026-10-12T10:48:15.622754+00:00",
+        "kind": "rne_141_process_start",
+        "launch_error": null,
+        "original_exit_code": 2,
+        "pid_receipt_error": null,
+        "process_count": 1,
+        "process_launched": true,
+        "started_at": "2026-10-12T10:48:15.592706+00:00",
+        "stderr": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/verify-current-require/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size_bytes": 0
+        },
+        "stdout": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/verify-current-require/stdout.log",
+          "sha256": "3ae2e9b0866d608c474b010517cedafcb1261f8e90aa75a9716c2125a34e5aa5",
+          "size_bytes": 128
+        },
+        "world_role": "zero worlds: --verify-report only"
+      },
+      "terminal_written": true
+    },
+    {
+      "actual_process_launched": true,
+      "launch_reserved": true,
+      "observed_pid": 75229,
+      "observed_wait_return": 1,
+      "phase": "verify-old-stale",
+      "returned_terminal": {
+        "argv": [
+          "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/141_position_motor_calibration",
+          "--verify-report",
+          "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-contact-stages.json"
+        ],
+        "cleanup_error": null,
+        "cwd": "/workspace/RobotNativeEngine",
+        "environment": {
+          "LANG": "C",
+          "LC_ALL": "C"
+        },
+        "execution_error": null,
+        "finished_at": "2026-10-12T10:48:15.809210+00:00",
+        "kind": "rne_141_process_start",
+        "launch_error": null,
+        "original_exit_code": 1,
+        "pid_receipt_error": null,
+        "process_count": 1,
+        "process_launched": true,
+        "started_at": "2026-10-12T10:48:15.787838+00:00",
+        "stderr": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/verify-old-stale/stderr.log",
+          "sha256": "fd1da9cab545501f81688742a0d652c6f084dabf5840c934af4f1648a3634766",
+          "size_bytes": 68
+        },
+        "stdout": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/verify-old-stale/stdout.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size_bytes": 0
+        },
+        "world_role": "zero worlds: --verify-report only"
+      },
+      "terminal_written": true
+    }
+  ],
+  "postcollection_processes_started": 3,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-source-transition-72/collection/report.json",
+    "sha256": "bf6a721ca92d609c2e80df2e3b7f1bddeb79fcb5974934351d615a88f18db662",
+    "size_bytes": 8193579
+  },
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:48:13.759375+00:00",
+  "status": "PASS_FIXED72_LITERAL_SOURCE_TRANSITION_RETAINED_FAIL0_OF4",
+  "world_accounting": {
+    "case_count_retained": 24,
+    "status": "COMPLETE_FIXED72_FAIL0_OF4",
+    "world_counts": {
+      "completed_worlds": 72,
+      "worlds_attempted": 72,
+      "worlds_created": 72
+    }
+  }
+}

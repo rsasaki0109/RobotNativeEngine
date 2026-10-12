@@ -1,0 +1,134 @@
+{
+  "kind": "independent_prospective_constructor_prototype_source_review",
+  "status": "SOURCE_REVIEW_COMPLETE_TWO_PRE_DATA_RETURN_CONTRACT_CORRECTIONS",
+  "completed_utc": "2026-10-12T08:45:09.957768+00:00",
+  "reviewed_head": "776ecebbd07897f35872128cfe855cdb8d99d8e3",
+  "checkout_clean": true,
+  "reviewed_prototype": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-initial-version/prototype/construction_oracle.py",
+    "sha256": "8d0dd2db283c67ce7d75ed7666403970291064e6168737e371f8b34126039fa3",
+    "bytes": 6293
+  },
+  "source_ledger": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/reviewed-initial-version-source-ledger.json",
+    "sha256": "3412443f657f8aacb1ee6c589c10cfc912fa69ffdd09ead939be5b5c087bef40",
+    "bytes": 9581
+  },
+  "reviewed_originals_retained": true,
+  "root_pure_tests": {
+    "receipt": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol/pure-tests-attempt-1/actual-pure-tests.json",
+      "sha256": "71031a679d9518c448372553d4ae268f990182a14a9b775eecde53ca9b0dadeb",
+      "bytes": 199
+    },
+    "actual_tests": 8,
+    "actual_exit_code": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "independent_pure_probes": {
+    "source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/independent_pure_probes.py",
+      "sha256": "0daef51619f844f1936bcf64455504780b06327ae019a233977a188790b6fef6",
+      "bytes": 5516
+    },
+    "results": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review/independent-pure-probe-results.json",
+      "sha256": "41107d12b1c3f28f781097948a42abf7313108f88ad69ceebf8985dde84fce92",
+      "bytes": 16474
+    },
+    "actual_command": "python -B independent_pure_probes.py",
+    "actual_cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-protocol-review",
+    "actual_tool_command_exit_code": 0,
+    "assertions": 21,
+    "scope": "Synthetic opaque word fixtures only. Probe passes establish observations, not prototype qualification."
+  },
+  "checks": [
+    {
+      "topic": "Coefficient arithmetic",
+      "conclusion": "Finite normal/zero expressions agree with source, including left-associated dt*dt*k, separately rounded additions and inclusive utils::inv threshold.",
+      "refs": [
+        "motor_model.rs:28-35",
+        "utils.rs:25-32",
+        "construction_oracle.py:74-75"
+      ]
+    },
+    {
+      "topic": "Different inverse guards",
+      "conclusion": "Integration inverse uses exactly dt==0 then +0; other finite dt uses 1/dt. It must not be replaced by utils::inv. Both signed dt zeros match the source prototype.",
+      "refs": [
+        "integration_parameters.rs:113-118",
+        "construction_oracle.py:73"
+      ]
+    },
+    {
+      "topic": "Velocity limit clamp",
+      "conclusion": "Manual strict finite comparisons preserve equal signed zero, matching native f32::clamp. The generic impulse clamp chooses a boundary for equality and must not be reused here.",
+      "refs": [
+        "unit_multibody_joint.rs:101-109",
+        "construction_oracle.py:80-89",
+        "stage_numeric.py:196-202"
+      ]
+    },
+    {
+      "topic": "RHS and gain model",
+      "conclusion": "Conditional positional RHS term, unary negation of effective velocity, copied RHS/RHS-without-bias and ForceBased versus AccelerationBased CFM placement match covered source formulas.",
+      "refs": [
+        "unit_multibody_joint.rs:96-122",
+        "generic_joint.rs:183-195"
+      ]
+    },
+    {
+      "topic": "Zero cap and signed zeros",
+      "conclusion": "Both positive and negative zero ceilings/durations preserve native multiplication/unary-negation bound words; expected outputs compare literal words.",
+      "refs": [
+        "generic_joint.rs:194",
+        "unit_multibody_joint.rs:94",
+        "construction_oracle.py:90-103"
+      ]
+    }
+  ],
+  "required_pre_data_corrections": [
+    {
+      "id": "R1",
+      "severity": "Prospective return-contract defect, not an engine defect",
+      "finding": "inverse_duration_word is a captured computed output but is included in arithmetic_inputs. With all true inputs finite, a NaN captured inverse is classified as nonfinite_arithmetic_input and no mismatch is retained; RHS NaN already produces MISMATCH.",
+      "refs": [
+        "construction_oracle.py:34-36,46-65"
+      ],
+      "repro": "independent probe nonfinite_captured_inverse_is_currently_input_exclusion",
+      "correction": "Remove inverse_duration_word from input-domain accounting while retaining strict word parsing and output equality. Nonfinite captured outputs for eligible true inputs must remain mismatches."
+    },
+    {
+      "id": "R2",
+      "severity": "Prospective explicit-failure retention defect, not a false PASS",
+      "finding": "Finite normal h=k=0x7f7fffff produces overflow in h*k. The helper marks overflow but inverse attempts exact(infinity), raising ValueError with no structured exclusion result returned.",
+      "refs": [
+        "construction_oracle.py:74",
+        "stage_numeric.py:149-176,204-208"
+      ],
+      "repro": "independent probe finite_overflow_has_no_structured_exclusion_return",
+      "correction": "Retain an explicit arithmetic-domain exclusion/failure record carrying the captured inputs/outputs and accumulated exclusions. Do not swallow malformed schema or other errors into PASS."
+    }
+  ],
+  "scope_and_freeze_requirements": [
+    "This is a draft narrow ERP/RHS/CFM/bounds verifier, not a frozen preregistration, collector, complete construction-row or cohort/replay admission verifier.",
+    "The prototype intentionally does not validate row identity, native frame/DOF, full J/W blocks, solver offsets, initial impulse +0, or inv_lhs=utils::inv(actual solved weighted selector). Synthetic inconsistent extra fields still receive narrow DECLARED_FORMULAS_MATCH; a future exact schema and source-bound producer must reject them before any whole-construction claim.",
+    "The cap/model currently come from the nested row; future producer/reader must bind them independently to the actual JointMotor.max_force/model and MotorParameters.max_impulse/target fields at the build site, so a self-consistent but wrong cap cannot masquerade as source fidelity.",
+    "Actual full event order evaluates max_impulse and bounds before RHS; the prototype evaluates independent bound multiplication afterward. Covered output words agree, but operation_count is not a native ordered-operation trace. Either match this order before freeze or limit the claim to each expression order.",
+    "Nonnegative duration/cap and finite-normal-or-zero qualification restrictions are reader eligibility choices; source consistency alone does not establish valid physical gains or plant accuracy. Native nonfinite limit/cap cases are conservatively excluded, not interpreted as zero.",
+    "Before collection freeze actual constructor locals, availability, every expected slice/build, joint/root/cache identity, endpoint timing, source/features/compiler/environment flags, binary and complete-failure retention. BeforePositionIntegration must be the actual copied multibody velocity before q advance, not final stabilized velocity.",
+    "No runtime floating point mode/MXCSR/FTZ/DAZ, private-cache full state equivalence, RHS-origin/contact attribution, physical motor accuracy, solver convergence, candidate adoption or maturity claim is established."
+  ],
+  "claim_discipline": {
+    "readme_explicitly_preparation": true,
+    "native_collection_worlds": 0,
+    "native_simulation_runs_by_auditor": 0,
+    "cargo_builds_by_auditor": 0,
+    "historical_native_values_or_reports_read": false,
+    "repository_or_prototype_edits": false,
+    "network_calls_by_auditor": 0,
+    "engine_defect_or_accuracy_qualification": false
+  },
+  "review_versioning": "Only the preserved initial prototype is reviewed. Any subsequent repair or integration helper needs its own source/tamper review; this receipt cannot qualify later bytes."
+}

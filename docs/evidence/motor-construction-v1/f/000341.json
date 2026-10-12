@@ -1,0 +1,28 @@
+{
+  "collector_launch_state": {
+    "launch_reserved": true
+  },
+  "collector_original_exit_code": null,
+  "collector_processes_started": null,
+  "collector_receipt_recovery": "UNKNOWN_ON_RESERVED_ATTEMPT",
+  "error": "KeyboardInterrupt: SYNTHETIC before call",
+  "finished_at": "2026-10-12T10:31:22.650349+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_interrupt_before_process_call_keeps_reserved_unknown/frozen/frozen-bindings.json",
+    "sha256": "093c3e4ef862ba18cdf9689c01365b1b63f362a3a673ae502725d189e23dfe14",
+    "size_bytes": 16295
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": null,
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:31:22.638206+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "status": "UNKNOWN_ON_RESERVED_ATTEMPT",
+    "world_counts": null
+  }
+}

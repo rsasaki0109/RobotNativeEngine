@@ -1,0 +1,8 @@
+{
+  "kind": "independent_postcheck_helper_attempt_failure",
+  "original_exit_code": 1,
+  "reason": "Own generic _words suffix classifier treated public_body_words structured object list as scalar word vector. Corrected source-schema classification; no raw data, authoritative reader, criteria or engine edits.",
+  "frozen_reader_reruns": 0,
+  "new_numeric_analysis": 0,
+  "reviewer_worlds": 0
+}

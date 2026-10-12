@@ -1,0 +1,34 @@
+{
+  "collector_original_exit_code": 2,
+  "collector_processes_started": 1,
+  "error": "Refused: source guard file list/bytes/types differ",
+  "final_guard_error": "Refused: source inputs changed or before snapshot unavailable",
+  "finished_at": "2026-10-12T10:08:06.197436+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_mutated_source_fails_guard_and_stops_before_comparison/frozen/frozen-bindings.json",
+    "sha256": "d34e211c1e3cb1d90e4505a34bcec465823f861e3860d2b7191451336264a574",
+    "size_bytes": 16283
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_mutated_source_fails_guard_and_stops_before_comparison/once-only-attempt/report.json",
+    "sha256": "37533df6ab4ec1001df09bb6dfdb98e2f83dd4b6e7d1cf41ce08f5fe666282bf",
+    "size_bytes": 25302
+  },
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": false,
+  "started_at": "2026-10-12T10:08:06.135569+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "case_count_retained": 24,
+    "status": "COMPLETE_FIXED72_FAIL0_OF4",
+    "world_counts": {
+      "completed_worlds": 72,
+      "worlds_attempted": 72,
+      "worlds_created": 72
+    }
+  }
+}

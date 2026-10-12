@@ -1,0 +1,29 @@
+{
+  "kind": "frozen_isolated_motor_construction_cohort",
+  "schema_version": 1,
+  "registered_utc": "UNFROZEN",
+  "collection_worlds_before_registration": 0,
+  "cases": [
+    {"label":"negative_on","target":"negative","observer":"on"},
+    {"label":"negative_fresh_on","target":"negative","observer":"on"},
+    {"label":"negative_off","target":"negative","observer":"off"},
+    {"label":"positive_on","target":"positive","observer":"on"},
+    {"label":"positive_fresh_on","target":"positive","observer":"on"},
+    {"label":"positive_off","target":"positive","observer":"off"}
+  ],
+  "binary": {"path":"/workspace/REPLACE_FROZEN_BINARY_COPY","sha256":"UNFROZEN","bytes":0},
+  "cwd": "/workspace/REPLACE_CANONICAL_CWD",
+  "output_root": "/workspace/REPLACE_NEW_EXCLUSIVE_OUTPUT_ROOT",
+  "frozen_inputs": [],
+  "registration_artifacts": {
+    "protocol": {"path":"/workspace/REPLACE_PROTOCOL","sha256":"UNFROZEN","bytes":0},
+    "collector_source_manifest": {"path":"/workspace/REPLACE_SOURCE_MAP","sha256":"UNFROZEN","bytes":0},
+    "compiler_feature_receipt": {"path":"/workspace/REPLACE_ACTUAL_BUILD_RECEIPT","sha256":"UNFROZEN","bytes":0},
+    "producer_review": {"path":"/workspace/REPLACE_PRODUCER_REVIEW","sha256":"UNFROZEN","bytes":0},
+    "pure_tests_review": {"path":"/workspace/REPLACE_ACTUAL_PURE_RECEIPT_REVIEW","sha256":"UNFROZEN","bytes":0}
+  },
+  "source_scope": "UNFROZEN_REPLACE_WITH_ACTUAL_SELECTED_SOURCE_SCOPE_AND_EXCLUSIONS",
+  "environment": {"RUSTFLAGS":null,"CARGO_ENCODED_RUSTFLAGS":null,"RUSTDOCFLAGS":null,"RUST_TEST_THREADS":null},
+  "timeout_seconds": 120,
+  "process_failure_policy": "stop_on_first_failure_no_resume_or_replacement"
+}

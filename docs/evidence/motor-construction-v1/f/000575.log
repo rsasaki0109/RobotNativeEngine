@@ -1,0 +1,15 @@
+    Checking rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d)
+warning: method `update` is never used
+   --> src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs:396:12
+    |
+241 | impl JointGenericOneBodyConstraintBuilder {
+    | ----------------------------------------- method in this implementation
+...
+396 |     pub fn update(
+    |            ^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `rapier3d` (lib) generated 1 warning
+warning: `rapier3d` (lib test) generated 1 warning (1 duplicate)
+    Finished `dev` profile [unoptimized] target(s) in 4.09s

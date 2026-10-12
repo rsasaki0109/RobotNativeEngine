@@ -1,0 +1,38 @@
+{
+  "actual_numeric_report_decodes": 0,
+  "all_current_matches_before_after": true,
+  "binary": {
+    "bytes": 2851808,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/binaries/143_motor_construction",
+    "sha256": "8dff35933d8ecd6ce7a4f1165fffaba0f2560076476142ab29510b2bf0806618"
+  },
+  "build_original_exit": 0,
+  "candidate": {
+    "bytes": 302445,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/candidate-v2.json",
+    "sha256": "0d5912950c5d6d3d980262f1f263746d6fe820d17d92cf0bd95829304364c194"
+  },
+  "frozen_input_count": 1414,
+  "frozen_inputs_sha256": "a14ea654a2462acff749b571e7e1127afeccb74325360379ba3db73450d7dc50",
+  "hash_checks": 1422,
+  "historical_v1_candidate_and_blocked_review_unchanged": true,
+  "initial_internal_assumption_failures_retained": 2,
+  "interpreter": {
+    "bytes": 6812336,
+    "path": "/usr/bin/python3",
+    "sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1"
+  },
+  "kind": "independent_six_v2_source_binding_verification",
+  "ledger": {
+    "bytes": 673601,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-predata-review-v2/v2-current-input-hash-ledger.json",
+    "sha256": "039b54295a93ed6d194b83c8aea3196b51cfa6117d5e6a7815f3f1f84a88cf2a"
+  },
+  "literal_three_math_helpers_unchanged": true,
+  "native_processes": 0,
+  "native_worlds": 0,
+  "new_native_collection_root_absent": true,
+  "source_schedule_companion_events": 257,
+  "source_schedule_stage_events": 832,
+  "status": "PASS_BINDING_CHECKS_NO_NATIVE_COLLECTION"
+}

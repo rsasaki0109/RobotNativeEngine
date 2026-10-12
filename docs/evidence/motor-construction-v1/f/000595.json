@@ -1,0 +1,372 @@
+{
+  "actual_preparation_validation_receipts": [
+    {
+      "actual_exit_code": 0,
+      "argv": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--all-targets",
+        "--features",
+        "parallel,serde-serialize",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": {
+        "bytes": 206,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-clippy-parallel.log",
+        "sha256": "78fca63bfba6da2e6006716f5f5a4f46419234d7376c52b42e7c38c36a5396f5"
+      },
+      "receipt": {
+        "bytes": 25839,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-clippy-parallel.json",
+        "sha256": "83705aaab550af418296c5e6777d6c2ac392acca55dc7e3632fefce191f2d0ef"
+      },
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "source_unchanged": true,
+      "stage": "final-clippy-parallel"
+    },
+    {
+      "actual_exit_code": 0,
+      "argv": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": {
+        "bytes": 720,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-clippy-default.log",
+        "sha256": "23bf9ad3d0eefcf9de05bf61620a4a6f8c8ab41ddc7882024735dd479d4d2ad7"
+      },
+      "receipt": {
+        "bytes": 25787,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-clippy-default.json",
+        "sha256": "3fbbe8aef027d4b6b4e360b3d5328f3f7d3ed29ea06744516c5d5672f4ef490f"
+      },
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "source_unchanged": true,
+      "stage": "final-clippy-default"
+    },
+    {
+      "actual_exit_code": 0,
+      "argv": [
+        "cargo",
+        "doc",
+        "--offline",
+        "--locked",
+        "--no-deps",
+        "--lib",
+        "--features",
+        "parallel,serde-serialize"
+      ],
+      "log": {
+        "bytes": 331,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-rustdoc.log",
+        "sha256": "cad58d61bfc038e99ac100ce05bfb9b6ac5c0f236f306d2440a4340b1292e8e1"
+      },
+      "receipt": {
+        "bytes": 25789,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-rustdoc.json",
+        "sha256": "c3b0cd8875252aaeac9c8a6d6923e6e01e4072a8d9734360fb4fffd0f40240a9"
+      },
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "source_unchanged": true,
+      "stage": "final-rustdoc"
+    },
+    {
+      "actual_exit_code": 0,
+      "argv": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--features",
+        "parallel,serde-serialize",
+        "rne_motor_construction",
+        "--",
+        "--test-threads=1"
+      ],
+      "log": {
+        "bytes": 1262,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-pure-tests.log",
+        "sha256": "7aa6383f0ee101d3f408b3c143f1bf7faacdb011d7fd120ba70bd4c44d371dfa"
+      },
+      "receipt": {
+        "bytes": 25835,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-pure-tests.json",
+        "sha256": "029389a836ec979486c9caab795e63e762756a52db52b81ec944906b63d26ab3"
+      },
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "source_unchanged": true,
+      "stage": "final-pure-tests"
+    },
+    {
+      "actual_exit_code": 0,
+      "argv": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "--config",
+        "newline_style=Windows,skip_children=true",
+        "src/pipeline/mod.rs",
+        "src/pipeline/physics_pipeline.rs",
+        "src/pipeline/multibody_motor_construction.rs",
+        "src/dynamics/joint/multibody_joint/multibody_joint.rs",
+        "src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+        "src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+        "src/dynamics/solver/island_solver.rs",
+        "src/dynamics/solver/velocity_solver.rs",
+        "src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+        "src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+        "src/dynamics/solver/interaction_groups.rs"
+      ],
+      "log": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-scoped-rustfmt.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "receipt": {
+        "bytes": 26407,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-scoped-rustfmt.json",
+        "sha256": "3ddae43cbcdfbdd4ed3f2e967abcf15fb95c5d501312b585f83d29e85edd2211"
+      },
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "source_unchanged": true,
+      "stage": "final-scoped-rustfmt"
+    },
+    {
+      "actual_exit_code": 0,
+      "argv": [
+        "rustc",
+        "--version",
+        "--verbose"
+      ],
+      "log": {
+        "bytes": 196,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-toolchain.log",
+        "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad"
+      },
+      "receipt": {
+        "bytes": 25694,
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/final-toolchain.json",
+        "sha256": "4b1c79c0230d0f30ec6bce207e1bc0ed8e78b4aa01700f311fff29d21c8a793e"
+      },
+      "source_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+      "source_unchanged": true,
+      "stage": "final-toolchain"
+    }
+  ],
+  "baseline_source_commit": "776ecebbd07897f35872128cfe855cdb8d99d8e3",
+  "construction_values": {
+    "gain_model_and_effort": "motor.model/max_force copied from the exact borrowed motor descriptor passed into motor.motor_params(params.dt). Nested v1 row carries actual computed max-impulse bounds/CFM/inv_lhs/J/W/RHS/identity.",
+    "same_constructor": "Actual initialized local constraint is snapshotted before storing identical value into output buffer. Inputs from same curr_pos/motor/motor_params/params.dt/inv_dt/limits/target_vel at unit constructor, not a poststep ECS pose or independent numeric reconstruction.",
+    "scope": "Only internal one-body unit motors on link.joint().ndofs()==1; external impulse joints/multi-DoF/unsupported motors are outside scope. No generic full-motor or physical force claim.",
+    "target_and_duration": "Raw native motor target_pos/target_vel/stiffness/damping copied; inverse duration is actual params.inv_dt local; effective target_vel after existing optional clamp and erp_inv_dt from actual motor_params."
+  },
+  "disabled_and_lifecycle": {
+    "cache_reset": "Every outer step clears pending previous completed plus every cached island, including inactive islands; each active partition assigns independent partition/island ids and clears final context/bindings. Per-slice constructed rows ephemeral; only actual constructor populates them.",
+    "default": "Enabled=false, pending/completed None; independent public enable/completed accessors. Value-changing toggle clears only companion report fields.",
+    "no_physics_write_in_observer": "Observer writes its own vectors/report/context fields and converts native values with to_bits; no arithmetic coefficient/velocity/coordinate/motor writes beyond unchanged core kernels.",
+    "report_completion": "Only end of complete pipeline step promotes pending; interrupted step accessors return no completed report. After take events buffers removed; final context is cleared by next preparation.",
+    "slice_disabled_path": "record endpoints immediately return if None; normal update and integration wrappers pass None to shared kernels; original constructor/integration/solve arithmetic and native operation order remain as reviewed. New empty Vec/flag overhead is not a runtime neutrality proof."
+  },
+  "export_manifest": {
+    "bytes": 7461,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/final-changed-files-and-patches-v2.json",
+    "sha256": "8370cb378d2d1db94fef5d32d737595b4b22d7691115309ba0ec68c57e9412ca"
+  },
+  "guarded_main_files": [
+    {
+      "bytes": 9311,
+      "original_sha256": "bbace14a68ad9a22308ab199d7bc544cccdb6606a0c14168da3e717698effdf8",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/RNE_PATCH.md",
+      "relative_path": "third_party/rapier3d/RNE_PATCH.md",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "5a58990397fd767c74691b60e8307e76cff93773881d4c95262bffa7c4b9705e"
+    },
+    {
+      "bytes": 15921,
+      "original_sha256": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "relative_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "e16bc16254459b84534d7a48157ebdb19deae0d0f8461ed8fc0a4e395d5c82da"
+    },
+    {
+      "bytes": 5817,
+      "original_sha256": null,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+      "relative_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "f0f400cf4fa7d4e3be5d489b9f2d87325089682b7a8c5ce69d4fa2779b9b5811"
+    },
+    {
+      "bytes": 7380,
+      "original_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "relative_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "2bde94532c22dd1a010c5b018fdb2e6a4314b2cf993bc56003523d5156b61857"
+    },
+    {
+      "bytes": 19677,
+      "original_sha256": "39724293d67a6fb28da6e30525a2d2a5a32976c752bd9b1c860153ef4ec07261",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/interaction_groups.rs",
+      "relative_path": "third_party/rapier3d/src/dynamics/solver/interaction_groups.rs",
+      "scope": "separate_mechanical_baseline_lint_prerequisite",
+      "sha256": "3094f78156c6f7b7c819ccff507eb9d58415e834242d3af99868d5818ec94b22"
+    },
+    {
+      "bytes": 5528,
+      "original_sha256": "98144ff88b0842debf5375a7d35700cc9a9e2ab23b827f52fd3d0b396fcdd302",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "relative_path": "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "f16339e703e0ad8ed13b0a27f53f7a0956d9400114af8f7f1b2e94c8967c601a"
+    },
+    {
+      "bytes": 20338,
+      "original_sha256": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "relative_path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "7707ce8e2abe6e7747e513b317f0cf3909756e2082f381191784282cb88a2da7"
+    },
+    {
+      "bytes": 50987,
+      "original_sha256": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "relative_path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "46f3aedde8bc1d057de77342967142eae1e3c313e855630c84640df9ccf84867"
+    },
+    {
+      "bytes": 33943,
+      "original_sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "relative_path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "6701f1c231691d8c2bb871eef43996b5c3333db027b880c8c2b3aa9c20435921"
+    },
+    {
+      "bytes": 1936,
+      "original_sha256": "723a3971ec08b0a5f9fdc07a743b705d09eccd37b4904f27ca0df92f53dbe89c",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/mod.rs",
+      "relative_path": "third_party/rapier3d/src/pipeline/mod.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "a172e71d180a2397422ae490abc4abaf60ef012d139ee42f5165e9811dbe13ce"
+    },
+    {
+      "bytes": 7972,
+      "original_sha256": null,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+      "relative_path": "third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "03f417ee1b848ab1b2e3d1e5ca1aad29065e9b80c0ebf4f803f718fe39aa9e5e"
+    },
+    {
+      "bytes": 47838,
+      "original_sha256": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811",
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+      "relative_path": "third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+      "scope": "companion_implementation_or_documentation",
+      "sha256": "86fbfe05994120617346ae30538837fd0bf96cdfc83f0bfe6043766e975f11b7"
+    }
+  ],
+  "identity_and_cache": {
+    "availability": "Before/AfterExternalForces current-slice row buffer is never read, initialized=false/cacheNone; after actual update cache current slice explicitly named. No rows after initialized means unsupported/unavailable, not measured zero.",
+    "endpoint_binding": "Existing append_internal_motor_stage_bindings validates single free axis/current initialized Motor(0) row/MAX internal joint sentinel/full MB block offset and ndofs. Endpoint filters handle+link identity against same current native MB and constraint index. No HashMap iteration used.",
+    "remaining_reader_gate": "Filter-map missing identity/current row may yield no endpoint and NoSupportedRows; no explicit error reason is emitted. Future preregistered reader must require expected row set/identity and reject absence rather than interpret it as zero.",
+    "row_index": "builder.constraint_id + num_constraints at call, preserving linear motor-before-limit and angular limit-before-motor ordering; native link/body handle, generation, axis and free DoF captured."
+  },
+  "integration_base_commit": "3be26ef0bd6967cf3e0b466a5b63b11795f40feb",
+  "kind": "independent_main_source_motor_construction_companion_predata_review",
+  "material_blockers": [],
+  "nonblocking_notes": [
+    {
+      "kind": "documentation_location_scope",
+      "line": 120,
+      "path": "third_party/rapier3d/RNE_PATCH.md",
+      "text": "Heading owned source copy only / This copy refers to preparation provenance. Implementation is now present in main worktree; root may revise location wording when preparing final docs. Unpromoted/no runtime qualification claims remain accurate."
+    },
+    {
+      "kind": "source_contract_binding",
+      "text": "InternalUnitMotorConstructionV1 identifies semantic source contract, not compiled file/hash/toolchain. Future collector/protocol must bind actual source/compiler/binary separately."
+    }
+  ],
+  "operation_endpoints": {
+    "final_writeback": "FinalSlice captures current generic V after all stabilization/contact/friction; last context/bindings retained only observer-enabled. IslandSolver calls AfterVelocityWriteback after original impulse writebacks and writeback_bodies final generic-to-MBcopy/kinematic root refresh.",
+    "ordering": "Events stored per island; deterministic partition insertion/island vector drain after parallel join/native root and builder order. No worker finish-order reductions, no HashMap-based sums.",
+    "per_root_integration": "In original native multibody_roots order, generic velocity block copied into multibody.velocities, BeforePositionIntegration captures Q+MBV, unchanged multibody.integrate(dt) executes, AfterPositionIntegration immediately captures Q+MBV before FK/body updates. Event includes root index/generation.",
+    "stabilization": "AfterJointStabilization is after joint no-bias solve but before that pass contact restitution. Generic V is current solver V; MB velocity storage may still hold earlier integration input, intentionally recorded separately. It is not mislabeled as final/copied solver V."
+  },
+  "preexisting_stable_source_receipt": {
+    "bytes": 5987,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/final-source-stable-receipt-v2.json",
+    "sha256": "2fd1a898a1eef1403c06ca0396d82518a4e8fa1acc2445101a4554bcc4b95889"
+  },
+  "qualification": "Predata producer source admission PASS for exact listed12 source hashes only. No runtime neutrality/calibration/maturity gain claim; old scientific outcomes remain outside this review.",
+  "reviewed_utc": "2026-10-12T09:55:31.819173+00:00",
+  "reviewer_actions": {
+    "Cargo_commands": 0,
+    "GitHub_calls": 0,
+    "checkout_edits": 0,
+    "config_edits": 0,
+    "old_numeric_report_or_raw_reads": 0,
+    "scientific_reanalysis": 0,
+    "source_copy_edits": 0,
+    "worlds": 0
+  },
+  "schema_version": 1,
+  "source_dependencies_reviewed": [
+    {
+      "bytes": 9594,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e"
+    },
+    {
+      "bytes": 27313,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+      "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f"
+    },
+    {
+      "bytes": 1488,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f"
+    },
+    {
+      "bytes": 81559,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f"
+    }
+  ],
+  "status": "PASS_SOURCE_ONLY",
+  "structural_checks": {
+    "MB_velocity_constraints_public_parameter_types_unchanged": "PASS; non-API mutable binding qualifier differs in wrapper",
+    "baseline_original_bytes_hash_bound": true,
+    "integration_original_body_tokens_unchanged_after_removing_two_observer_blocks": true,
+    "integration_public_signature_unchanged": true,
+    "main12_exact_export_sourcecopy_hash_bytes_CRLF": true,
+    "new_companion_independent_schema": 1,
+    "separate_lifetime_prerequisite": "Only elided equivalent lifetime on parallel ContactManifold trait impl; no arithmetic/body change",
+    "unit_constructor_original_arithmetic_tokens_unchanged_after_removing_observer_block": true,
+    "unit_constructor_public_signature_unchanged": true,
+    "v1_motor_stage_entire_source_bytes_unchanged": true
+  },
+  "tests_and_API": {
+    "limitations": "Tests cover storage/serialization/flags, not real constructor wiring, ON/fresh/OFF runtime neutrality, coordinate trajectory equality, calibration, convergence or performance. Source review manually covers wiring; future protocol/reader/binary qualification still needed.",
+    "public_API": "Existing unit/MB/integrate signatures retained semantically, v1stage type/schema/value source bytes untouched; companion APIs/types all Debug/rustdoc and serde gated.",
+    "pure_tests": "5 prior synthetic storage/schema/flag tests pass; preserves custom NaN/signedzero/infinity words, identity/cap/limits absence, serde integer words/schema, endpoint distinctness and independent flag clearing. No native solver/world in those tests."
+  }
+}

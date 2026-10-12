@@ -1,0 +1,322 @@
+{
+  "case_schema_codec_criteria_change_allowed": false,
+  "cells": [
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 0,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 1,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 2,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 3,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 4,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 5,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 6,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 7,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 8,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 9,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 10,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Posture",
+      "index": 11,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 12,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 13,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 14,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 15,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "-0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 16,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 17,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 18,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 19,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.0_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 20,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 21,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 1,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 22,
+      "internal_pgs_passes": 1,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.001_f32"
+    },
+    {
+      "fresh_world_order": [
+        "ON",
+        "fresh_ON",
+        "OFF"
+      ],
+      "gain_rust_variant": "G1Ankle",
+      "index": 23,
+      "internal_pgs_passes": 2,
+      "solver_small_steps": 32,
+      "target_rust_literal": "0.001_f32"
+    }
+  ],
+  "collector_cli": [
+    "--output",
+    "<new-report-path>",
+    "--require-calibration"
+  ],
+  "collector_logic_change_allowed": false,
+  "collector_process_count": 1,
+  "condition_count": 24,
+  "expected_collector_original_exit": 2,
+  "kind": "rne_141_separate72_motor_construction_source_transition",
+  "maximum_world_attempts": 72,
+  "new_construction_observer_enabled": false,
+  "numeric_filtering_allowed": false,
+  "postcollection_gate_order": [
+    "literal_comparator",
+    "verify_current",
+    "verify_current_require",
+    "verify_old_stale"
+  ],
+  "postcollection_verification_worlds": 0,
+  "primary_calibration_required_result": "FAIL_0_OF_4",
+  "retry_or_world_replacement_allowed": false,
+  "schema_version": 1,
+  "separate_from": [
+    "generation-5 fixed18",
+    "example-143 six construction worlds"
+  ],
+  "status": "REGISTERED_BEFORE_COLLECTION",
+  "worlds_per_condition": 3
+}

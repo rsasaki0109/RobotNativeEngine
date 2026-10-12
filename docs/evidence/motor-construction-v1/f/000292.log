@@ -1,0 +1,25 @@
+test_baseline_hash_tamper_refuses_before_stub (test_driver.StubQualification.test_baseline_hash_tamper_refuses_before_stub) ... ok
+test_baseline_never_decoded_during_prepare_or_freeze (test_driver.StubQualification.test_baseline_never_decoded_during_prepare_or_freeze) ... ok
+test_binary_hash_mismatch_refuses (test_driver.StubQualification.test_binary_hash_mismatch_refuses) ... ok
+test_complete_one_collection_and_three_zero_world_gates (test_driver.StubQualification.test_complete_one_collection_and_three_zero_world_gates) ... ok
+test_environment_is_explicit_not_inherited (test_driver.StubQualification.test_environment_is_explicit_not_inherited) ... ok
+test_frozen_file_external_hash_must_match (test_driver.StubQualification.test_frozen_file_external_hash_must_match) ... ok
+test_integer_schema_cannot_be_boolean (test_driver.StubQualification.test_integer_schema_cannot_be_boolean) ... ok
+test_launch_failure_retains_consumed_claim_without_retry (test_driver.StubQualification.test_launch_failure_retains_consumed_claim_without_retry) ... ok
+test_mutated_source_fails_guard_and_stops_before_comparison (test_driver.StubQualification.test_mutated_source_fails_guard_and_stops_before_comparison) ... ok
+test_native_payload_change_rejects_after_collection_before_verifiers (test_driver.StubQualification.test_native_payload_change_rejects_after_collection_before_verifiers) ... ok
+test_output_root_cannot_replace_baseline (test_driver.StubQualification.test_output_root_cannot_replace_baseline) ... ok
+test_partial_original_exit_and_all_partial_bytes_retained_no_retry (test_driver.StubQualification.test_partial_original_exit_and_all_partial_bytes_retained_no_retry) ... ok
+test_pending_or_undeclared_map_cannot_freeze (test_driver.StubQualification.test_pending_or_undeclared_map_cannot_freeze) ... ok
+test_pid_receipt_fault_still_waits_and_retains_original_exit (test_driver.StubQualification.test_pid_receipt_fault_still_waits_and_retains_original_exit) ... ok
+test_review_wrong_binding_sha_refuses (test_driver.StubQualification.test_review_wrong_binding_sha_refuses) ... ok
+test_second_attempt_refused_without_extra_stub_launch (test_driver.StubQualification.test_second_attempt_refused_without_extra_stub_launch) ... ok
+test_source_manifest_omission_is_refused (test_driver.StubQualification.test_source_manifest_omission_is_refused) ... ok
+test_summary_false_cannot_replace_integer_zero (test_driver.StubQualification.test_summary_false_cannot_replace_integer_zero) ... ok
+test_unexpected_collection_exit_is_failure_despite_full_report (test_driver.StubQualification.test_unexpected_collection_exit_is_failure_despite_full_report) ... ok
+test_zero_world_verifier_failure_preserves_original_exit_and_stops (test_driver.StubQualification.test_zero_world_verifier_failure_preserves_original_exit_and_stops) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 1.532s
+
+OK

@@ -4,7 +4,9 @@ use crate::dynamics::solver::contact_constraint::ContactConstraintsSet;
 use crate::dynamics::IslandManager;
 use crate::dynamics::{IntegrationParameters, JointGraphEdge, JointIndex, RigidBodySet};
 use crate::geometry::{ContactManifold, ContactManifoldIndex};
-use crate::pipeline::{InternalMotorImpulseSample, MultibodyMotorStageEvent};
+use crate::pipeline::{
+    InternalMotorImpulseSample, MultibodyMotorConstructionEvent, MultibodyMotorStageEvent,
+};
 use crate::prelude::MultibodyJointSet;
 use parry::math::Real;
 
@@ -55,6 +57,30 @@ impl IslandSolver {
     pub(crate) fn take_motor_stage_events(&mut self) -> Vec<MultibodyMotorStageEvent> {
         self.velocity_solver
             .motor_stage_events
+            .take()
+            .unwrap_or_default()
+    }
+
+    pub(crate) fn prepare_motor_construction_telemetry(
+        &mut self,
+        enabled: bool,
+        partition: usize,
+        island: usize,
+    ) {
+        self.velocity_solver.motor_construction_events = enabled.then(Vec::new);
+        self.velocity_solver.motor_construction_partition_index = partition;
+        self.velocity_solver.motor_construction_island_index = island;
+        self.velocity_solver.motor_construction_final_context = None;
+        self.velocity_solver
+            .motor_construction_final_bindings
+            .clear();
+    }
+
+    pub(crate) fn take_motor_construction_events(
+        &mut self,
+    ) -> Vec<MultibodyMotorConstructionEvent> {
+        self.velocity_solver
+            .motor_construction_events
             .take()
             .unwrap_or_default()
     }
@@ -131,6 +157,8 @@ impl IslandSolver {
             bodies,
             multibodies,
         );
+        self.velocity_solver
+            .record_motor_construction_writeback(multibodies, &self.joint_constraints);
         counters.solver.velocity_writeback_time.pause();
     }
 }

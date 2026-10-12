@@ -1,0 +1,28 @@
+{
+  "added_paths": [
+    "third_party/rapier3d/src/pipeline/multibody_motor_construction.rs"
+  ],
+  "after_selected_source_count": 22,
+  "all_other_report_bytes_equal": true,
+  "baseline_report_sha256": "fff401947d787eef19b602c7a749939d56d57accd74588874bdab00d3a69a99d",
+  "before_selected_source_count": 21,
+  "changed_existing_paths": [
+    "Cargo.lock",
+    "Cargo.toml",
+    "examples/141_position_motor_calibration/lib.rs",
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+    "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+    "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+    "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+    "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+    "third_party/rapier3d/src/pipeline/mod.rs",
+    "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+  ],
+  "current_report_sha256": "37533df6ab4ec1001df09bb6dfdb98e2f83dd4b6e7d1cf41ce08f5fe666282bf",
+  "kind": "rne_literal_141_source_transition_comparison",
+  "numerical_reanalysis_performed": false,
+  "removed_paths": [],
+  "schema_version": 1,
+  "status": "PASS_LITERAL_SOURCE_OBJECT_ONLY"
+}

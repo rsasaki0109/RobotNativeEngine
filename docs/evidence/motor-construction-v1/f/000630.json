@@ -1,0 +1,27 @@
+{
+  "kind": "rne_root_actual_frozen_reader_completion",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/cohort_reader.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/admitted-wrapper-v2.json",
+    "--spec-sha256",
+    "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce",
+    "--result-root",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/collection",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/actual-cohort-audit-v2.json"
+  ],
+  "original_exit_code": 0,
+  "observed_from_actual_exec_tool_completion": true,
+  "audit": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/actual-cohort-audit-v2.json",
+    "sha256": "a3f3e60fb199390e1dd761f6e96357df684bbcb0bdc996d5ec24a0745c3e107c",
+    "bytes": 260603
+  },
+  "recorded_at": "2026-10-12T11:11:37.960578+00:00",
+  "reader_native_worlds": 0,
+  "audit_invocations": 1,
+  "root_actual_checked_outer_exit": 0
+}

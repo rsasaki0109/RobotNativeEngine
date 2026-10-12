@@ -1,0 +1,74 @@
+{
+  "kind": "source_only_cohort_schema_schedule_conformance",
+  "status": "PREPARATION_COMPLETE_NOT_NATIVE_OR_FULL_PROTOCOL_ADMISSION",
+  "created_utc": "2026-10-12T10:18:15.351323+00:00",
+  "reviewed_source_files": [
+    {
+      "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/lib.rs",
+      "sha256": "f73732b13546625a7b53af1e07c1a0873a937a1746e800175647fcf85dd910c7",
+      "bytes": 33595
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_construction.rs",
+      "sha256": "03f417ee1b848ab1b2e3d1e5ca1aad29065e9b80c0ebf4f803f718fe39aa9e5e",
+      "bytes": 7972
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+      "bytes": 9594
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "sha256": "6701f1c231691d8c2bb871eef43996b5c3333db027b880c8c2b3aa9c20435921",
+      "bytes": 33943
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "sha256": "7707ce8e2abe6e7747e513b317f0cf3909756e2082f381191784282cb88a2da7",
+      "bytes": 20338
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "2bde94532c22dd1a010c5b018fdb2e6a4314b2cf993bc56003523d5156b61857",
+      "bytes": 7380
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "bytes": 1488
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+      "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+      "bytes": 27313
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/integration_parameters.rs",
+      "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+      "bytes": 14726
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "sha256": "e16bc16254459b84534d7a48157ebdb19deae0d0f8461ed8fc0a4e395d5c82da",
+      "bytes": 15921
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "bytes": 81559
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+      "sha256": "86fbfe05994120617346ae30538837fd0bf96cdfc83f0bfe6043766e975f11b7",
+      "bytes": 47838
+    }
+  ],
+  "phase_derivation": {
+    "companion": "32*(BeforeExternalForces,AfterExternalForces,AfterRowConstruction,BeforePositionIntegration,AfterPositionIntegration,AfterJointStabilization0,AfterJointStabilization1,FinalSlice)+AfterVelocityWriteback=257",
+    "stage_v1": "32*(5initial/warmstart+6PGS+1integration+2*6stabilization+2final)=832",
+    "native_single_row": "AngX ForceBased child handle1:generation0 link1, offset0, full ndofs1, j_id0, constraints index0",
+    "contacts": "Source fixture has one dynamic child collider and no collider on its fixed parent; no contact constraint source."
+  },
+  "protected_scope": "Current engine source was only read. Native worlds, Cargo runs and historical numeric payload reads were zero. Mock trajectories test format/fidelity gates, not actual PGS dynamics. Parent must independently admit concrete protocol/source/compiler/feature/binary/wrapper before any launch."
+}

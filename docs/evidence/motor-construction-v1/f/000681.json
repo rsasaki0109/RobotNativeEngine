@@ -1,0 +1,10 @@
+{
+  "kind": "independent_binding_check_initial_assertion_receipt",
+  "original_exit_code": 1,
+  "status": "INTERNAL_DESCRIPTOR_FORMAT_ASSUMPTION_FAILED_RETAINED",
+  "reason": "Compared candidate bytes descriptor directly with root build size_bytes descriptor. Same path/hash/size require explicit metadata normalization; no source/native/binary mismatch was observed. Subsequent check normalizes size_bytes to bytes without changing original artifacts.",
+  "native_processes": 0,
+  "worlds": 0,
+  "numeric_report_decodes": 0,
+  "frozen_inputs_modified": false
+}

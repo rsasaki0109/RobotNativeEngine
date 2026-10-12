@@ -1,0 +1,85 @@
+{
+  "kind": "prospective_v2_durable_cohort_driver_and_strict_reader_handoff",
+  "status": "READY_FOR_INDEPENDENT_PRE_DATA_REVIEW",
+  "created_utc": "2026-10-12T10:44:04.715120+00:00",
+  "tool_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/final-tool-source-manifest-v2.json",
+    "sha256": "885022f270cf2a2793815e31ad244df35356121bdee2b6851c801c8ba8aa024d",
+    "bytes": 3895
+  },
+  "actual_final_pure_terminal": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/v2-pure-tests-final-attempt-1/terminal.json",
+    "sha256": "c4ba701b37184ad5a3ed1259251ebbc860cefbce56e0304e5352f5d6c2a4dd28",
+    "bytes": 3433
+  },
+  "actual_final_pure_methods": 29,
+  "v1_preservation_ledger": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/v1-preservation-and-exact-copy-ledger.json",
+    "sha256": "eaa9bb93c93a041f001a7617a29d198847a2703a03d96d2341803cf7ec82a4f9",
+    "bytes": 6571
+  },
+  "all_20_v1_original_files_bytes_and_modes_exact": true,
+  "original_candidate_and_other_root_registrations_modified_by_author": false,
+  "literal_pure_math_helper_provenance": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/helper-copy-provenance-v2.json",
+    "sha256": "66076308c1f53cfbfb2d5cbc6c927a9cd6c0e69ae854af80415c2bad182f5d0e",
+    "bytes": 1252
+  },
+  "initial_v2_failed_pure_snapshot": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/v2-pure-failed-attempt-1/failure-note.json",
+    "sha256": "3acfbb907eb40c1717d2462c0697a085c236ae7bc7e037fb4f0a0fdb1dd8150c",
+    "bytes": 434
+  },
+  "fixes": [
+    "Sync newly created cohort root parent, then sync complete six-case root entries after every claim/file/case-directory is synced and before first launch.",
+    "Separate per-case reservations/unknown launch/known started/known exit from durable terminal counts; a late terminal ENOSPC retains known start and observed original exit in global memory, not falsely unlaunched.",
+    "Checked outer module exclusively claims its own directory and spawns exactly one fixed Python coordinator argv. Its original exit/source guards/stdout/stderr are mandatory reader inputs; stdout final memory JSON must equal disk terminal. Nonzero inner original exit rejects a positive disk terminal.",
+    "Root must require checked outer CLI actual exit0 too; final outer receipt fsync/write failure propagates nonzero rather than claiming durable success.",
+    "Copy declared diagnostic words q before/after/integration MB-V/two stabilization generic+MB V/final V directly without changing existing math or criteria."
+  ],
+  "failure_accounting_schema": {
+    "driver_schema_version": 2,
+    "states": [
+      "reserved_known_not_launched",
+      "launch_call_outcome_unknown",
+      "known_started_exit_unknown",
+      "known_started_exit_observed"
+    ],
+    "known_start_count_complete_only_if_no_unknown_launch": true,
+    "stored_terminal_count_independent_of_memory_count": true,
+    "unknown_exit_not_fabricated_zero": true
+  },
+  "root_candidate_new_fields": [
+    "driver_run_receipt_path (future canonical persistent /workspace path ending actual-command.json; no predata receipt SHA fabricated)",
+    "driver_interpreter descriptor for /usr/bin/python3",
+    "checked_driver_source descriptor for v2 checked_driver.py"
+  ],
+  "minimum_runtime_paths": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/strict_io.py",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/cohort_reader.py",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/cohort_driver.py",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/checked_driver.py",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/construction_oracle.py",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/integration_oracle.py",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-cohort-reader-v2/stage_numeric.py"
+  ],
+  "author_actions": {
+    "native_processes": 0,
+    "native_worlds": 0,
+    "Cargo_builds": 0,
+    "old_numerical_data_reads": 0,
+    "checkout_or_v1_edits": 0,
+    "only_injected_python_mock_processes": true
+  },
+  "next_steps": [
+    "Root fill new v2 candidate/final wrapper binding new module sources and unchanged native source/binary descriptors.",
+    "Independent reviewer motor_diagonal_ci_scope review new runtime/schema/fault tests and admit concrete candidate before first native launch.",
+    "Root invokes only checked_driver.py validate-only first, then separately authorized --launch-native once; preserve root actual outer CLI exit and logs.",
+    "Reader runs once on full result only after actual checked outer exit0; all partial/error/excluded outcomes and complete original files are retained."
+  ],
+  "no_qualification_claims": [
+    "No native measurement occurred.",
+    "No full event-data result or observer neutrality qualification yet.",
+    "No motor accuracy/convergence/physical force origin/coupled-contact cause or patch adoption."
+  ]
+}

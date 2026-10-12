@@ -1,0 +1,34 @@
+{
+  "actual_report_reads": 0,
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_driver"
+  ],
+  "builds": 0,
+  "checkout_edits": 0,
+  "finished_at": "2026-10-12T10:10:10.031601+00:00",
+  "kind": "rne_141_synthetic_driver_test_receipt",
+  "log": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/command.log",
+    "sha256": "d7059bb77b84ae95ad1067c05ec4f764459218e09261ed070cbb7df99c4a0357",
+    "size_bytes": 2923
+  },
+  "original_exit_code": 0,
+  "schema_version": 1,
+  "scope": "Only synthetic reports/stub collector processes. Internal mock72 counters are not actual scientific world counts.",
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:10:08.360516+00:00",
+  "status": "PASS",
+  "synthetic_stub_fixture_root": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA",
+  "tested_tool_sha256": {
+    "comparator_source": "699c654d4925e8870e67723863dc173e91a5e2e828af34e1a7d947970d99242e",
+    "driver_source": "4c1362e62ffb666413c140e686c880c342dad8adaa0aca017bc7516f1641331b",
+    "test_runner_source": "e2bb5ef303a4686b41e401b9e3d108b117fb8514a749af03bef7ee2a9d4ff398",
+    "test_source": "07ec5970d0b5c277cafd459d9542b738a61ce66f73a1799f784f9a0e209f6962"
+  },
+  "worlds": 0
+}

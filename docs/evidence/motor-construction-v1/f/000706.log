@@ -1,0 +1,139 @@
+position_motor_calibration v0.4.0 (/workspace/RobotNativeEngine/examples/141_position_motor_calibration)|
+├── postcard v1.1.3|alloc
+│   ├── cobs v0.3.0|
+│   │   └── thiserror v2.0.18|
+│   │       └── thiserror-impl v2.0.18 (proc-macro)|
+│   │           ├── proc-macro2 v1.0.106|default,proc-macro
+│   │           │   └── unicode-ident v1.0.24|
+│   │           ├── quote v1.0.45|default,proc-macro
+│   │           │   └── proc-macro2 v1.0.106|default,proc-macro (*)
+│   │           └── syn v2.0.118|clone-impls,default,derive,full,parsing,printing,proc-macro
+│   │               ├── proc-macro2 v1.0.106|default,proc-macro (*)
+│   │               ├── quote v1.0.45|default,proc-macro (*)
+│   │               └── unicode-ident v1.0.24|
+│   └── serde v1.0.228|alloc,default,derive,rc,serde_derive,std
+│       ├── serde_core v1.0.228|alloc,rc,result,std
+│       └── serde_derive v1.0.228 (proc-macro)|default
+│           ├── proc-macro2 v1.0.106|default,proc-macro (*)
+│           ├── quote v1.0.45|default,proc-macro (*)
+│           └── syn v2.0.118|clone-impls,default,derive,full,parsing,printing,proc-macro (*)
+├── rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)|default,dim3,f32,serde-serialize
+│   ├── approx v0.5.1|default,std
+│   │   └── num-traits v0.2.19|default,i128,libm,std
+│   │       └── libm v0.2.16|arch,default
+│   │       [build-dependencies]
+│   │       └── autocfg v1.5.1|
+│   ├── arrayvec v0.7.6|default,std
+│   ├── bit-vec v0.7.0|default,serde,std
+│   │   └── serde v1.0.228|alloc,default,derive,rc,serde_derive,std (*)
+│   ├── bitflags v2.13.0|serde,serde_core
+│   │   └── serde_core v1.0.228|alloc,rc,result,std
+│   ├── crossbeam v0.8.4|alloc,crossbeam-channel,crossbeam-deque,crossbeam-epoch,crossbeam-queue,default,std
+│   │   ├── crossbeam-channel v0.5.15|std
+│   │   │   └── crossbeam-utils v0.8.21|std
+│   │   ├── crossbeam-deque v0.8.6|std
+│   │   │   ├── crossbeam-epoch v0.9.20|alloc,std
+│   │   │   │   └── crossbeam-utils v0.8.21|std
+│   │   │   └── crossbeam-utils v0.8.21|std
+│   │   ├── crossbeam-epoch v0.9.20|alloc,std (*)
+│   │   ├── crossbeam-queue v0.3.12|alloc,std
+│   │   │   └── crossbeam-utils v0.8.21|std
+│   │   └── crossbeam-utils v0.8.21|std
+│   ├── downcast-rs v1.2.1|default,std
+│   ├── log v0.4.32|
+│   ├── nalgebra v0.33.3|default,libm,macros,matrixmultiply,nalgebra-macros,serde,serde-serialize,serde-serialize-no-std,std
+│   │   ├── approx v0.5.1|default,std (*)
+│   │   ├── matrixmultiply v0.3.10|default,std
+│   │   │   └── rawpointer v0.2.1|
+│   │   │   [build-dependencies]
+│   │   │   └── autocfg v1.5.1|
+│   │   ├── nalgebra-macros v0.2.2 (proc-macro)|
+│   │   │   ├── proc-macro2 v1.0.106|default,proc-macro (*)
+│   │   │   ├── quote v1.0.45|default,proc-macro (*)
+│   │   │   └── syn v2.0.118|clone-impls,default,derive,full,parsing,printing,proc-macro (*)
+│   │   ├── num-complex v0.4.6|serde,std
+│   │   │   ├── num-traits v0.2.19|default,i128,libm,std (*)
+│   │   │   └── serde v1.0.228|alloc,default,derive,rc,serde_derive,std (*)
+│   │   ├── num-rational v0.4.2|std
+│   │   │   ├── num-integer v0.1.46|i128,std
+│   │   │   │   └── num-traits v0.2.19|default,i128,libm,std (*)
+│   │   │   └── num-traits v0.2.19|default,i128,libm,std (*)
+│   │   ├── num-traits v0.2.19|default,i128,libm,std (*)
+│   │   ├── serde v1.0.228|alloc,default,derive,rc,serde_derive,std (*)
+│   │   ├── simba v0.9.1|default,libm,std,wide
+│   │   │   ├── approx v0.5.1|default,std (*)
+│   │   │   ├── num-complex v0.4.6|serde,std (*)
+│   │   │   ├── num-traits v0.2.19|default,i128,libm,std (*)
+│   │   │   ├── paste v1.0.15 (proc-macro)|
+│   │   │   └── wide v0.7.33|std
+│   │   │       ├── bytemuck v1.25.0|
+│   │   │       └── safe_arch v0.7.4|bytemuck,default
+│   │   │           └── bytemuck v1.25.0|
+│   │   └── typenum v1.20.1|
+│   ├── num-derive v0.4.2 (proc-macro)|
+│   │   ├── proc-macro2 v1.0.106|default,proc-macro (*)
+│   │   ├── quote v1.0.45|default,proc-macro (*)
+│   │   └── syn v2.0.118|clone-impls,default,derive,full,parsing,printing,proc-macro (*)
+│   ├── num-traits v0.2.19|default,i128,libm,std (*)
+│   ├── ordered-float v4.6.0|default,std
+│   │   └── num-traits v0.2.19|default,i128,libm,std (*)
+│   ├── parry3d v0.17.6|default,dim3,ena,f32,required-features,rustc-hash,serde,serde-serialize,slab,spade,std,thiserror
+│   │   ├── approx v0.5.1|default,std (*)
+│   │   ├── arrayvec v0.7.6|default,std
+│   │   ├── bitflags v2.13.0|serde,serde_core (*)
+│   │   ├── downcast-rs v1.2.1|default,std
+│   │   ├── either v1.16.0|
+│   │   ├── ena v0.14.4|
+│   │   │   └── log v0.4.32|
+│   │   ├── log v0.4.32|
+│   │   ├── nalgebra v0.33.3|default,libm,macros,matrixmultiply,nalgebra-macros,serde,serde-serialize,serde-serialize-no-std,std (*)
+│   │   ├── num-derive v0.4.2 (proc-macro)| (*)
+│   │   ├── num-traits v0.2.19|default,i128,libm,std (*)
+│   │   ├── ordered-float v4.6.0|default,std (*)
+│   │   ├── rstar v0.12.2|default
+│   │   │   ├── heapless v0.8.0|
+│   │   │   │   ├── hash32 v0.3.1|
+│   │   │   │   │   └── byteorder v1.5.0|
+│   │   │   │   └── stable_deref_trait v1.2.1|
+│   │   │   ├── num-traits v0.2.19|default,i128,libm,std (*)
+│   │   │   └── smallvec v1.15.2|
+│   │   ├── rustc-hash v2.1.2|default,std
+│   │   ├── serde v1.0.228|alloc,default,derive,rc,serde_derive,std (*)
+│   │   ├── simba v0.9.1|default,libm,std,wide (*)
+│   │   ├── slab v0.4.12|default,std
+│   │   ├── smallvec v1.15.2|
+│   │   ├── spade v2.15.1|default,std
+│   │   │   ├── hashbrown v0.16.1|allocator-api2,default,default-hasher,equivalent,inline-more,raw-entry
+│   │   │   │   ├── allocator-api2 v0.2.21|alloc
+│   │   │   │   ├── equivalent v1.0.2|
+│   │   │   │   └── foldhash v0.2.0|
+│   │   │   ├── num-traits v0.2.19|default,i128,libm,std (*)
+│   │   │   ├── robust v1.2.0|
+│   │   │   └── smallvec v1.15.2|
+│   │   └── thiserror v1.0.69|
+│   │       └── thiserror-impl v1.0.69 (proc-macro)|
+│   │           ├── proc-macro2 v1.0.106|default,proc-macro (*)
+│   │           ├── quote v1.0.45|default,proc-macro (*)
+│   │           └── syn v2.0.118|clone-impls,default,derive,full,parsing,printing,proc-macro (*)
+│   ├── rustc-hash v2.1.2|default,std
+│   ├── serde v1.0.228|alloc,default,derive,rc,serde_derive,std (*)
+│   ├── simba v0.9.1|default,libm,std,wide (*)
+│   └── thiserror v1.0.69| (*)
+├── serde v1.0.228|alloc,default,derive,rc,serde_derive,std (*)
+├── serde_json v1.0.150|default,float_roundtrip,raw_value,std
+│   ├── itoa v1.0.18|
+│   ├── memchr v2.8.2|alloc,std
+│   ├── serde_core v1.0.228|alloc,rc,result,std
+│   └── zmij v1.0.21|
+└── sha2 v0.10.9|default,std
+    ├── cfg-if v1.0.4|
+    ├── cpufeatures v0.2.17|
+    └── digest v0.10.7|alloc,block-buffer,core-api,default,std
+        ├── block-buffer v0.10.4|
+        │   └── generic-array v0.14.7|more_lengths
+        │       └── typenum v1.20.1|
+        │       [build-dependencies]
+        │       └── version_check v0.9.5|
+        └── crypto-common v0.1.7|std
+            ├── generic-array v0.14.7|more_lengths (*)
+            └── typenum v1.20.1|

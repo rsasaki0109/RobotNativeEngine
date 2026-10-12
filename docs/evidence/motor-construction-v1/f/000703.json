@@ -1,0 +1,43 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-evidence-export-preparation/test_export_guards.py"
+  ],
+  "finished_at": "2026-10-12T11:13:57.299708+00:00",
+  "kind": "rne_literal_export_pure_fault_test_terminal",
+  "native_binary_invocations": 0,
+  "numeric_reanalysis": false,
+  "original_exit_code": 0,
+  "pure_test_methods": 4,
+  "source_tools": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-evidence-export-preparation/prepare_literal_export.py",
+      "sha256": "1d828dbce12ff5a472be72232931a742edb4b15c955467ff2461e2719dc43c93",
+      "size_bytes": 15322
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-evidence-export-preparation/verify_literals.py",
+      "sha256": "a59a2668c3af0fe80a00b32472bff402fd0cfd0d6aa13e65c65a7aef0f21480d",
+      "size_bytes": 2343
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-evidence-export-preparation/test_export_guards.py",
+      "sha256": "d3e9b54a61899f266f804155479fbd3e2d33887602a7fcc97ce074283daca2c1",
+      "size_bytes": 3268
+    }
+  ],
+  "started_at": "2026-10-12T11:13:57.209869+00:00",
+  "status": "PASS_PURE_WHOLE_BYTE_FAULT_GUARDS",
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-evidence-export-preparation/pure-tests-attempt-2-final-helper/stderr.log",
+    "sha256": "f4f9ad604b152354904bfbdc9b7f0169775fbc661c0a7142b731ba6806132d4d",
+    "size_bytes": 666
+  },
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-evidence-export-preparation/pure-tests-attempt-2-final-helper/stdout.log",
+    "sha256": "16da74703459c4b5e72d7aa6e2ca38677f76ff5acb0e99d82936cb9c36894ef9",
+    "size_bytes": 73
+  },
+  "worlds": 0
+}

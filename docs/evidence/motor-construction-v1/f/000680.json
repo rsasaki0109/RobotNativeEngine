@@ -1,0 +1,10 @@
+{
+  "kind": "independent_binding_check_initial_assertion_receipt",
+  "original_exit_code": 1,
+  "status": "INTERNAL_PATH_CLASSIFICATION_ASSUMPTION_FAILED_RETAINED",
+  "reason": "Rejected all docs/media inputs, but actual only docs/media/showcase.toml is a source configuration file; no scientific report was present or decoded. Correct subsequent check rejects report JSON payload paths instead.",
+  "native_processes": 0,
+  "worlds": 0,
+  "numeric_report_decodes": 0,
+  "frozen_inputs_modified": false
+}

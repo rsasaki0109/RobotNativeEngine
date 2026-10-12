@@ -1,0 +1,14 @@
+{
+  "kind": "admitted_isolated_motor_construction_cohort",
+  "schema_version": 1,
+  "candidate": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/candidate-v2.json",
+    "sha256": "0d5912950c5d6d3d980262f1f263746d6fe820d17d92cf0bd95829304364c194",
+    "bytes": 302445
+  },
+  "admission": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-predata-review-v2/independent-predata-admission-v2.json",
+    "sha256": "914aff5eea938315c58788001ee9d8d2e32a10a8e6096971f949c435478aff2a",
+    "bytes": 9940
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "argv": [
+    "cargo",
+    "build",
+    "--locked",
+    "--release",
+    "-p",
+    "isolated_motor_construction_collector",
+    "-p",
+    "position_motor_calibration",
+    "--examples"
+  ],
+  "completed_at": "2026-10-12T10:03:56.872395+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 25.580942535001668,
+  "kind": "rne_actual_validation",
+  "name": "integrated-release-build",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": false,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:03:31.291446+00:00",
+  "stderr": {
+    "sha256": "3af410b07f6579adba103211108eaed313b67dfcd616aedeff64d982e523eec9",
+    "size_bytes": 384
+  },
+  "stdout": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  }
+}

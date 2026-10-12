@@ -2352,6 +2352,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
+name = "isolated_motor_construction_collector"
+version = "0.4.0"
+dependencies = [
+ "flate2",
+ "postcard",
+ "rapier3d",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "itertools"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

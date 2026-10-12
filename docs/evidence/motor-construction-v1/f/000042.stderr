@@ -1,0 +1,7 @@
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+   Compiling rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+   Compiling rne_ai v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ai)
+   Compiling rne_locomotion v0.4.0 (/workspace/RobotNativeEngine/crates/rne_locomotion)
+   Compiling go2_feedback_trot v0.4.0 (/workspace/RobotNativeEngine/examples/135_go2_feedback_trot)
+    Finished `release` profile [optimized] target(s) in 34.73s
+     Running `target/release/examples/135_go2_feedback_trot`

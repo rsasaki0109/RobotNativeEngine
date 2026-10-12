@@ -1,0 +1,71 @@
+{
+  "OFF_all_three_observers_absent": true,
+  "actual_frozen_reader_exit": 0,
+  "actual_frozen_reader_invocations_recorded": 1,
+  "actual_original_coordinator_exit": 0,
+  "actual_original_native_exits": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "actual_root_outer_exit": 0,
+  "all_1414_frozen_inputs_current_unchanged_before_after_review": true,
+  "all_six_durable_prelaunch_claims_verified": true,
+  "all_six_whole_single_member_gzip_header_CRC_EOF_and_raw_hashes_verified": true,
+  "audit": {
+    "bytes": 260603,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/actual-cohort-audit-v2.json",
+    "sha256": "a3f3e60fb199390e1dd761f6e96357df684bbcb0bdc996d5ec24a0745c3e107c"
+  },
+  "audit_declared_scope_and_saved_source_qualifier_consistency_verified": true,
+  "candidate_sha256": "0d5912950c5d6d3d980262f1f263746d6fe820d17d92cf0bd95829304364c194",
+  "captured_initial_final_ON_fresh_OFF_exact_by_sign": true,
+  "current_hash_checks": 1448,
+  "fresh_ON_entire_completed_record_literal_bytes_equal": true,
+  "hash_ledger": {
+    "bytes": 657065,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-postcollection-review/retained-result-and-source-hash-ledger.json",
+    "sha256": "126911554312497a807280e88bb52ba014f1bf3cc6b78774cb7c7ced74c1d895"
+  },
+  "initial_helper_attempt_retained": "Own structured public_body_words suffix classification failed before final verification; source snapshot and failure receipt retained. Corrected the reviewer-only structural classifier, without changing scientific originals, frozen reader or criteria.",
+  "kind": "independent_fixed_six_postcollection_scope_review",
+  "limits": "Retained source-bound constructor/integration-expression and captured entity/public-word scope only. No private-cache/full-state equivalence, SI motor accuracy/convergence, runtime MXCSR/FTZ/DAZ measurement, physical-force/contact-cause inference, hardware/external-user reliability, rejected-candidate adoption or maturity increase. Root actual outer completion is a retained root receipt, not external attestation.",
+  "main_update_guard": "Current-source check is completed before main updates. Preserve exact collection before/after bindings historically; subsequent xtask/docs changes are not retroactive physics requalification.",
+  "predata_before_all_claims_and_launches": true,
+  "retained_source_counts": {
+    "ON_worlds": 4,
+    "companion_events": 1028,
+    "constructor_checks": 128,
+    "coordinate_advance_checks": 128,
+    "native_worlds": 6,
+    "outer_intervals": 6,
+    "v1_stage_events": 3328
+  },
+  "review_actions": {
+    "Cargo_builds": 0,
+    "frozen_reader_reruns": 0,
+    "main_or_frozen_source_edits": 0,
+    "network_mutations": 0,
+    "new_native_processes_or_worlds": 0,
+    "numeric_oracle_replays_or_new_analysis": 0,
+    "old_numeric_report_reads": 0
+  },
+  "review_helper": {
+    "bytes": 18204,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-postcollection-review/verify_retained_collection.py",
+    "sha256": "c5f2eaec41b87c7d6f778aee4ca6e6b4b34307af663af0337a8361d22167d650"
+  },
+  "reviewed_at": "2026-10-12T11:21:23.205872+00:00",
+  "schema_version": 1,
+  "sequential_unique_PID_original_argv_and_terminal_guards_verified": true,
+  "status": "PASS_INDEPENDENT_POSTCOLLECTION_RETAINED_BINDINGS_AND_CAPTURE_SCOPE",
+  "verification_details": {
+    "bytes": 4357,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-six/independent-postcollection-review/retained-result-verification-details.json",
+    "sha256": "28edd922db34bd49baf70d4a663531fa74faceb2e6467f6d093aa4f9db8894ca"
+  },
+  "wrapper_sha256": "f78dce9830973d98de4bd86bf43fd73689859f3ed1f08880b96b0daad15523ce"
+}

@@ -11,6 +11,7 @@ use crate::dynamics::{
     IntegrationParameters, IslandManager, JointGraphEdge, JointIndex, MultibodyJointSet,
     RigidBodySet,
 };
+use crate::pipeline::MultibodyMotorConstructionRow;
 use crate::pipeline::{
     motor_stage_event, motor_stage_word, InternalMotorStageBinding, InternalMotorStageContext,
     MultibodyMotorStage, MultibodyMotorStageEvent, MultibodyMotorStageRow,
@@ -472,6 +473,16 @@ impl JointConstraintsSet {
         multibodies: &MultibodyJointSet,
         solver_bodies: &[SolverBody],
     ) {
+        self.update_with_construction_inputs(params, multibodies, solver_bodies, None);
+    }
+
+    pub(crate) fn update_with_construction_inputs(
+        &mut self,
+        params: &IntegrationParameters,
+        multibodies: &MultibodyJointSet,
+        solver_bodies: &[SolverBody],
+        mut recorder: Option<&mut Vec<MultibodyMotorConstructionRow>>,
+    ) {
         for builder in &mut self.generic_velocity_constraints_builder {
             builder.update(
                 params,
@@ -483,13 +494,24 @@ impl JointConstraintsSet {
         }
 
         for builder in &mut self.generic_velocity_one_body_constraints_builder {
-            builder.update(
-                params,
-                multibodies,
-                solver_bodies,
-                &mut self.generic_jacobians,
-                &mut self.generic_velocity_one_body_constraints,
-            );
+            if let Some(recorder) = recorder.as_deref_mut() {
+                builder.update_with_construction_inputs(
+                    params,
+                    multibodies,
+                    solver_bodies,
+                    &mut self.generic_jacobians,
+                    &mut self.generic_velocity_one_body_constraints,
+                    Some(recorder),
+                );
+            } else {
+                builder.update(
+                    params,
+                    multibodies,
+                    solver_bodies,
+                    &mut self.generic_jacobians,
+                    &mut self.generic_velocity_one_body_constraints,
+                );
+            }
         }
 
         for builder in &mut self.velocity_constraints_builder {

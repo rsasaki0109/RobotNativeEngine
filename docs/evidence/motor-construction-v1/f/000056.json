@@ -1,0 +1,40 @@
+{
+  "argv": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--workspace",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "completed_at": "2026-10-12T10:08:27.579609+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 158.16119254799924,
+  "kind": "rne_actual_validation",
+  "name": "workspace-clippy",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": false,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:05:49.418430+00:00",
+  "stderr": {
+    "sha256": "a4260112d0bcebb6b3c0a7657d24313f88096297219bb773023c6a316f30071b",
+    "size_bytes": 26247
+  },
+  "stdout": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  }
+}

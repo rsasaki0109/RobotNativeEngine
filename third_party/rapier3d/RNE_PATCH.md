@@ -116,3 +116,34 @@ preserve. The general legacy damping placement remains unchanged for existing
 defined cases. Regression tests cover the formerly invalid reconnection and the
 literal damping values of a defined legacy append. This repair changes no solver
 floating-point formula, motor gains, or constraint ordering.
+
+## Construction and coordinate companion
+
+This patch adds a separately versioned, default-disabled
+`PhysicsPipeline` construction observer with its own enable/completed accessors.
+It copies the actual internal single-DoF unit-motor constructor locals, including
+coordinate, targets, gain model, gains, native duration/inverse duration, optional
+limits, effective clamped target velocity and ERP. The nested version-one row
+retains actual J/W/CFM/diagonal/bounds/identity; effort ceiling is copied from the
+same motor descriptor passed to `motor_params`, not a later descriptor lookup.
+
+Coordinate endpoints distinguish integration input from final stabilized and
+written-back velocity. Before-position-integration observation occurs after the
+generic-to-multibody velocity copy and before coordinate advance, per root.
+Final writeback observation occurs after the final generic-to-multibody copy.
+Uninitialized or unsupported observations remain explicit. Events drain in
+partition/island/native order; there is no global mutable observation state.
+
+The existing version-one stage public structs/schema and the physical fixtures
+and numerical criteria of collectors141/142 remain unchanged. Example 141's
+selected-source binding adds the companion module and updates the affected
+source hashes. Constructor/solver arithmetic, gain defaults and constraint/
+iteration order are not patched.
+
+The original preparation checks constructed no native world. Their frozen
+source/documentation snapshots remain historical evidence. A subsequently
+preregistered six-process cohort completed and passed the declared captured-state
+replay and constructor/coordinate arithmetic checks. A separate unchanged
+72-world source-transition run retains scalar calibration FAIL 0/4. These results
+do not establish full private-state equality, motor accuracy, convergence or
+production readiness; the inverse-diagonal candidate remains rejected.

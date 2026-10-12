@@ -1,4 +1,5 @@
 use crate::dynamics::solver::JointGenericOneBodyConstraint;
+use crate::dynamics::JointAxis;
 use crate::dynamics::{
     joint, FixedJointBuilder, GenericJoint, IntegrationParameters, Multibody, MultibodyLink,
     RigidBodyVelocity,
@@ -7,6 +8,7 @@ use crate::math::{
     Isometry, JacobianViewMut, Real, Rotation, SpacialVector, Translation, Vector, ANG_DIM, DIM,
     SPATIAL_DIM,
 };
+use crate::pipeline::{InternalMotorConstructionRecorder, InternalMotorConstructionRowRecorder};
 use na::{DVector, DVectorViewMut};
 #[cfg(feature = "dim3")]
 use na::{UnitQuaternion, Vector3};
@@ -266,10 +268,42 @@ impl MultibodyJoint {
         params: &IntegrationParameters,
         multibody: &Multibody,
         link: &MultibodyLink,
-        mut j_id: usize,
+        j_id: usize,
         jacobians: &mut DVector<Real>,
         constraints: &mut [JointGenericOneBodyConstraint],
     ) -> usize {
+        self.velocity_constraints_with_construction_inputs(
+            params,
+            multibody,
+            link,
+            j_id,
+            jacobians,
+            constraints,
+            None,
+        )
+    }
+
+    pub(crate) fn velocity_constraints_with_construction_inputs(
+        &self,
+        params: &IntegrationParameters,
+        multibody: &Multibody,
+        link: &MultibodyLink,
+        mut j_id: usize,
+        jacobians: &mut DVector<Real>,
+        constraints: &mut [JointGenericOneBodyConstraint],
+        mut recorder: Option<InternalMotorConstructionRecorder<'_>>,
+    ) -> usize {
+        let axes = [
+            JointAxis::LinX,
+            JointAxis::LinY,
+            #[cfg(feature = "dim3")]
+            JointAxis::LinZ,
+            JointAxis::AngX,
+            #[cfg(feature = "dim3")]
+            JointAxis::AngY,
+            #[cfg(feature = "dim3")]
+            JointAxis::AngZ,
+        ];
         let j_id = &mut j_id;
         let locked_bits = self.data.locked_axes.bits();
         let limit_bits = self.data.limit_axes.bits();
@@ -286,7 +320,16 @@ impl MultibodyJoint {
                 };
 
                 if (motor_bits & (1 << i)) != 0 {
-                    joint::unit_joint_motor_constraint(
+                    let row_recorder =
+                        recorder
+                            .as_mut()
+                            .map(|recorder| InternalMotorConstructionRowRecorder {
+                                rows: &mut *recorder.rows,
+                                constraint_index: recorder.constraint_base + num_constraints,
+                                link_id: recorder.link_id,
+                                axis: axes[i],
+                            });
+                    super::unit_multibody_joint::unit_joint_motor_constraint_with_construction_inputs(
                         params,
                         multibody,
                         link,
@@ -298,6 +341,7 @@ impl MultibodyJoint {
                         jacobians,
                         constraints,
                         &mut num_constraints,
+                        row_recorder,
                     );
                 }
 
@@ -355,7 +399,16 @@ impl MultibodyJoint {
                 };
 
                 if (motor_bits & (1 << i)) != 0 {
-                    joint::unit_joint_motor_constraint(
+                    let row_recorder =
+                        recorder
+                            .as_mut()
+                            .map(|recorder| InternalMotorConstructionRowRecorder {
+                                rows: &mut *recorder.rows,
+                                constraint_index: recorder.constraint_base + num_constraints,
+                                link_id: recorder.link_id,
+                                axis: axes[i],
+                            });
+                    super::unit_multibody_joint::unit_joint_motor_constraint_with_construction_inputs(
                         params,
                         multibody,
                         link,
@@ -367,6 +420,7 @@ impl MultibodyJoint {
                         jacobians,
                         constraints,
                         &mut num_constraints,
+                        row_recorder,
                     );
                 }
                 curr_free_dof += 1;

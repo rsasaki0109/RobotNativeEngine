@@ -204,14 +204,14 @@ The current-source verification command is shown below.
 ```bash
 cargo run --locked -p position_motor_calibration \
   --example 141_position_motor_calibration -- \
-  --verify-report docs/media/position-motor-calibration-contact-stages.json
+  --verify-report docs/media/position-motor-calibration-motor-construction-source.json
 ```
 
 See the [source transition and strict validation receipts](../../docs/evidence/rapier-strict-validation/README.md).
 
-## Current-source qualification after stage instrumentation
+## Earlier source qualification after stage instrumentation
 
-The [current report](../../docs/media/position-motor-calibration-contact-stages.json)
+The [contact-stage report](../../docs/media/position-motor-calibration-contact-stages.json)
 collects the unchanged fixed 24 conditions and 72 worlds after the default-off
 stage observer is added. Its source object has six changed hashes and four
 additional reviewed source keys. A preregistered independent comparison replaces
@@ -220,3 +220,21 @@ report. All 72 worlds complete and replay exactly; all eight zero targets remain
 motionless, and the four primary nonzero cases still fail. Earlier reports stay
 byte-identical and the unchanged verifier rejects their stale source bindings.
 This scalar qualification is separate from example 142's contact measurements.
+
+## Current-source qualification after construction instrumentation
+
+The [current complete report](../../docs/media/position-motor-calibration-motor-construction-source.json)
+uses another separately preregistered, unchanged 24-condition/72-world run.
+The new construction companion stays disabled in this collector. The source
+map retains all 21 existing keys and adds the companion module; exactly eleven
+existing hashes change. A byte comparator frozen before collection admits only
+this exact source object transition. Every other raw report byte matches the
+contact-stage report, including native state, telemetry and all assessments.
+
+Collection and replay still pass; primary calibration still fails 0/4 and zero
+targets pass 8/8. The original collector returns 2 with `--require-calibration`;
+loaded verification returns 0 normally and 2 when accuracy is required. The
+earlier report now correctly fails its stale-source check, without rewriting
+its bytes. Example 143's six constructor/coordinate diagnostic processes form
+a separate cohort, not extra calibration cases. See the
+[retained protocols, failures and results](../../docs/evidence/motor-construction-v1/README.md).

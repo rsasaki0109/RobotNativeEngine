@@ -1,0 +1,12 @@
+{
+  "collector_process_budget": 1,
+  "created_at": "2026-10-12T10:10:09.406393+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-2-external-freeze-and-storage-faults/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_pid_receipt_fault_still_waits_and_retains_original_exit/frozen/frozen-bindings.json",
+    "sha256": "1c644e2bebfdf9a9dccc508aab3ca25ff275fdd66c0a44baa6795a6c7a6f7589",
+    "size_bytes": 16925
+  },
+  "kind": "rne_141_once_only_attempt_claim",
+  "retry_allowed": false,
+  "world_attempt_budget": 72
+}

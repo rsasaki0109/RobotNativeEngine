@@ -1,0 +1,34 @@
+test_before_launch_log_creation_failure_is_known_not_launched (__main__.CohortTests.test_before_launch_log_creation_failure_is_known_not_launched) ... ok
+test_changed_source_mid_mock_run_stops_remaining_claims (__main__.CohortTests.test_changed_source_mid_mock_run_stops_remaining_claims) ... ok
+test_child_start_receipt_failure_retains_returned_process (__main__.CohortTests.test_child_start_receipt_failure_retains_returned_process) ... ok
+test_complete_synthetic_schema (__main__.CohortTests.test_complete_synthetic_schema) ... ok
+test_constructor_mismatch_is_retained (__main__.CohortTests.test_constructor_mismatch_is_retained) ... ok
+test_driver_validate_only_never_spawns (__main__.CohortTests.test_driver_validate_only_never_spawns) ... ok
+test_duplicate_key_float_and_boolean_word (__main__.CohortTests.test_duplicate_key_float_and_boolean_word) ... ok
+test_extra_nested_schema_field_and_word_width (__main__.CohortTests.test_extra_nested_schema_field_and_word_width) ... ok
+test_failed_native_terminal_rejected (__main__.CohortTests.test_failed_native_terminal_rejected) ... ok
+test_fixed_gzip_header_mtime_flags_os_compression (__main__.CohortTests.test_fixed_gzip_header_mtime_flags_os_compression) ... ok
+test_fixed_six_mock_claims_equality_and_no_resume (__main__.CohortTests.test_fixed_six_mock_claims_equality_and_no_resume) ... ok
+test_gzip_truncation_trailing_second_member (__main__.CohortTests.test_gzip_truncation_trailing_second_member) ... ok
+test_late_process_terminal_enospc_keeps_original_exit_and_launch_count (__main__.CohortTests.test_late_process_terminal_enospc_keeps_original_exit_and_launch_count) ... ok
+test_mandatory_binding_and_changed_source (__main__.CohortTests.test_mandatory_binding_and_changed_source) ... ok
+test_missing_final_lf_and_partial_records (__main__.CohortTests.test_missing_final_lf_and_partial_records) ... ok
+test_missing_or_extra_event_and_root_cache_tamper (__main__.CohortTests.test_missing_or_extra_event_and_root_cache_tamper) ... ok
+test_off_telemetry_null (__main__.CohortTests.test_off_telemetry_null) ... ok
+test_original_mock_failure_retained_without_retry (__main__.CohortTests.test_original_mock_failure_retained_without_retry) ... ok
+test_outer_final_receipt_storage_failure_propagates (__main__.CohortTests.test_outer_final_receipt_storage_failure_propagates) ... ok
+test_outer_validate_only_never_creates_claim_or_spawns (__main__.CohortTests.test_outer_validate_only_never_creates_claim_or_spawns) ... ok
+test_owned_wait_interrupt_retains_observed_start_and_exit (__main__.CohortTests.test_owned_wait_interrupt_retains_observed_start_and_exit) ... ok
+test_parent_and_all_case_directory_fsync_precede_first_spawn (__main__.CohortTests.test_parent_and_all_case_directory_fsync_precede_first_spawn) ... ok
+test_parent_directory_fsync_failure_prevents_spawn (__main__.CohortTests.test_parent_directory_fsync_failure_prevents_spawn) ... ok
+test_popen_failure_is_unknown_not_verified_unlaunched (__main__.CohortTests.test_popen_failure_is_unknown_not_verified_unlaunched) ... ok
+test_positive_disk_terminal_with_nonzero_checked_exit_is_rejected (__main__.CohortTests.test_positive_disk_terminal_with_nonzero_checked_exit_is_rejected) ... ok
+test_prespecified_diagnostic_words_are_copied (__main__.CohortTests.test_prespecified_diagnostic_words_are_copied) ... ok
+test_raw_process_artifact_sha_tamper_rejected (__main__.CohortTests.test_raw_process_artifact_sha_tamper_rejected) ... ok
+test_stage_snapshot_mismatch (__main__.CohortTests.test_stage_snapshot_mismatch) ... ok
+test_zero_contact_generic_delta_rejected (__main__.CohortTests.test_zero_contact_generic_delta_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 3.497s
+
+OK

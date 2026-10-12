@@ -481,16 +481,24 @@ overwritten. Checking the retained report executes no new worlds:
 ```bash
 cargo run --locked -p position_motor_calibration \
   --example 141_position_motor_calibration -- \
-  --verify-report docs/media/position-motor-calibration-contact-stages.json
+  --verify-report docs/media/position-motor-calibration-motor-construction-source.json
 ```
 
 See [the fixed protocol and output contract](../examples/141_position_motor_calibration/README.md)
-and [all current-source conditions](media/position-motor-calibration-contact-stages.json). The retained
+and [all current-source conditions](media/position-motor-calibration-motor-construction-source.json). The retained
 run completes 72/72 worlds with exact ON/fresh/OFF state replay and 8/8 motionless
 zero targets. Its four primary N32/PGS1 nonzero conditions all fail the predeclared
 accuracy requirement; `--require-calibration` therefore exits 2. Loaded-report
 verification exits 0 while printing `primary_calibration=FAIL`. This fixture changes
 no production solver or control settings and makes no kick-recovery or hardware claim.
+
+Example 143 separately records actual motor-construction inputs and the velocity
+used immediately before coordinate integration. Six fixed sign/ON/fresh/OFF
+processes pass captured-state replay and 128 construction plus 128 coordinate
+checks. Final writeback velocity remains distinct from integration input;
+these diagnostics do not turn the scalar accuracy failure into a pass.
+See [the collector and fixed fixture](../examples/143_motor_construction/README.md)
+and [whole retained data and provenance](evidence/motor-construction-v1/README.md).
 
 The schema-2 reports use postcard 1.1.3. The
 [original schema-1 report](media/position-motor-calibration-bincode-generation-1.json)

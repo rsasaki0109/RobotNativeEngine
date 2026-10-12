@@ -1,0 +1,82 @@
+{
+  "actual_build_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-companion-validation/integrated-release-build/actual.json",
+    "sha256": "3618edc5966e72d5ab7a6cc274946d1461e8f596b6c959b7e49dbe63806546de",
+    "size_bytes": 1149
+  },
+  "actual_integrated_build_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/actual-build-binding.json",
+    "sha256": "1161a1155252976e6a9979beae8869027a68aa5210a2666872b55e9c56274450",
+    "size_bytes": 8411
+  },
+  "binary_sha256": "9ff1b9d077150409b0d2c234d2780ac68eb5246fbc3b85ead14365056da9fde2",
+  "build_flags": {
+    "CARGO_BUILD_JOBS": {
+      "present": true,
+      "value": "2"
+    },
+    "CARGO_BUILD_RUSTFLAGS": {
+      "present": false,
+      "value": null
+    },
+    "CARGO_BUILD_TARGET": {
+      "present": false,
+      "value": null
+    },
+    "CARGO_ENCODED_RUSTFLAGS": {
+      "present": false,
+      "value": null
+    },
+    "CARGO_INCREMENTAL": {
+      "present": true,
+      "value": "0"
+    },
+    "CARGO_PROFILE_RELEASE_DEBUG": {
+      "present": true,
+      "value": "0"
+    },
+    "CARGO_PROFILE_RELEASE_LTO": {
+      "present": false,
+      "value": null
+    },
+    "CARGO_PROFILE_RELEASE_OPT_LEVEL": {
+      "present": false,
+      "value": null
+    },
+    "RUSTDOCFLAGS": {
+      "present": false,
+      "value": null
+    },
+    "RUSTFLAGS": {
+      "present": false,
+      "value": null
+    }
+  },
+  "build_snapshot_all_entries_still_match": true,
+  "cargo_version": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+  "created_at": "2026-10-12T10:14:14.839143+00:00",
+  "dimension": "dim3",
+  "features": [
+    "default",
+    "dim3",
+    "f32",
+    "serde-serialize"
+  ],
+  "kind": "rne_141_compiler_build_binding",
+  "native_binary_invocations": 0,
+  "original_exit_code": 0,
+  "profile": "release",
+  "resolved_package_features": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-integrated-build-binding/141-resolved-package-features.log",
+    "sha256": "7078914e0f749d0bb83ca135952ee614bc700c7cbdd23ef09d0d9dacf5286d63",
+    "size_bytes": 8339
+  },
+  "rustc_version": "rustc 1.95.0 (59807616e 2026-04-14)\nbinary: rustc\ncommit-hash: 59807616e1fa2540724bfbac14d7976d7e4a3860\ncommit-date: 2026-04-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.95.0\nLLVM version: 22.1.2\n",
+  "scalar": "f32",
+  "schema_version": 1,
+  "scientific_worlds": 0,
+  "selected_after_map_all_entries_match": true,
+  "source_guard_fresh_scope": "tracked/nonignored Rust/Cargo/config plus all vendor .rs/.toml/lock; non-exhaustive compiler closure",
+  "source_guard_sha256": "8ea7e3a0aead6fbcdcef05276f2d13d035e13ca0916daffd92be99dc76dc7c32",
+  "target": "x86_64-unknown-linux-gnu"
+}

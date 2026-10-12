@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "separate_copy_only_baseline_parallel_lifetime_prerequisite",
+  "authorization": "Parent explicitly authorized one mechanical lifetime-elision hunk after reproducing exact baseline parallel feature diagnostic.",
+  "baseline_failure_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/validation/baseline-clippy-parallel-attempt1.json",
+    "sha256": "85b89530ccea64f7be9049227e092eeff72bb27727f844d0d4843d4101afe95d"
+  },
+  "source_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d/src/dynamics/solver/interaction_groups.rs",
+  "before_sha256": "39724293d67a6fb28da6e30525a2d2a5a32976c752bd9b1c860153ef4ec07261",
+  "after_sha256": "3094f78156c6f7b7c819ccff507eb9d58415e834242d3af99868d5818ec94b22",
+  "patch_sha256": "1a276f15c515229d8c5b4c3105173b0cea70880f31f503edf6972309221ea51a",
+  "exact_edit": {
+    "before": "impl<'a> PairInteraction for &'a mut ContactManifold",
+    "after": "impl PairInteraction for &mut ContactManifold"
+  },
+  "scope": "one source-copy line; no checkout change or physics arithmetic/operation/gain/schema change; no prior baseline parallel Clippy success claimed",
+  "worlds": 0
+}

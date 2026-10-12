@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "EXAMPLE143_PUBLIC_DOCUMENTATION_DRAFT",
+  "created_utc": "2026-10-12T10:09:06.901938+00:00",
+  "status": "DRAFT_OUTSIDE_CHECKOUT_RESULTS_PENDING",
+  "files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/documentation-draft/ADR016-paragraph.md",
+      "bytes": 2336,
+      "sha256": "f49eefef556269ad8271bd24f9b61f45858c829cabfc74d605ec9c9c114c6c55"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/documentation-draft/CHANGELOG-paragraph.md",
+      "bytes": 655,
+      "sha256": "74b74e2dbad51da2a5551af104e2c2e134f1b06c42fd436bb9e81142546b430a"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/documentation-draft/DEMOS-paragraph.md",
+      "bytes": 1225,
+      "sha256": "bba5e567bf1e9d5ae70afc291e8c86c91d9a22cf6f4f4dd5b659d20461f8492a"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/documentation-draft/README.md",
+      "bytes": 6362,
+      "sha256": "e540df67f0014debea6d99d6d349decfa29bc6302e61fdd805eff16d3d223cba"
+    }
+  ],
+  "current_checkout_edits": 0,
+  "worlds_builds_tests": 0,
+  "old_numeric_inputs_read": 0,
+  "scientific_results": "No new measured outcomes claimed; parent replaces pending fields only after actual fixed cohort receipts"
+}

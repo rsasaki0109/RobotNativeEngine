@@ -1,0 +1,5 @@
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+   Compiling rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+   Compiling heavy_grasp v0.4.0 (/workspace/RobotNativeEngine/examples/138_heavy_grasp)
+    Finished `release` profile [optimized] target(s) in 17.31s
+     Running `target/release/examples/138_heavy_grasp`

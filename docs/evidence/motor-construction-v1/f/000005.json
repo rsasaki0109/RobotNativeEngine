@@ -1,0 +1,39 @@
+{
+  "argv": [
+    "cargo",
+    "run",
+    "--locked",
+    "-p",
+    "xtask",
+    "--",
+    "ci-headless"
+  ],
+  "completed_at": "2026-10-12T10:55:51.198524+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "duration_s": 260.44334421999883,
+  "kind": "rne_actual_validation",
+  "name": "headless-ci",
+  "original_exit_code": 0,
+  "permitted_mutation_paths": [],
+  "scientific_collection_worlds": 0,
+  "simulation_test_execution": true,
+  "source_after": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_before": {
+    "sha256": "6499c5355329aaba062501448bbf10852c0233b6544ad845aef1846cd72c7baa",
+    "size_bytes": 219674
+  },
+  "source_changes": [],
+  "source_guard_pass": true,
+  "started_at": "2026-10-12T10:51:30.755174+00:00",
+  "stderr": {
+    "sha256": "16b9c0ad3fc9b109e443f0c35a7111014529c15e6b4203932922021fea2bfdd3",
+    "size_bytes": 8328
+  },
+  "stdout": {
+    "sha256": "32b7779465dc757f7b3394c51c3cb2016bfe0c4195c74458c4f47095251397f9",
+    "size_bytes": 25882
+  }
+}

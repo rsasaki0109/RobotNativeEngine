@@ -1,0 +1,10 @@
+{
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/synthetic-driver-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_native_payload_change_rejects_after_collection_before_verifiers/frozen/frozen-bindings.json",
+    "sha256": "9e7483958498ed73b4402e3be8ff0e2434cecc120dde556951230a1589f371f4",
+    "size_bytes": 16439
+  },
+  "original_exit_code": 0,
+  "status": "PASS_FREEZE_NO_WORLDS",
+  "worlds": 0
+}

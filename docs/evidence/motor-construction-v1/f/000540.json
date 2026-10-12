@@ -1,0 +1,54 @@
+{
+  "status": "PREPARATION_SOURCES_NOT_YET_FINAL_COMPILATION_OR_PREREGISTRATION",
+  "recorded_utc": "2026-10-12T09:29:52.826332+00:00",
+  "native_worlds_fixture_invocations_old_numeric_data_reads": 0,
+  "source_artifacts": [
+    {
+      "path": "Cargo.toml",
+      "bytes": 534,
+      "sha256": "5a0ae783178dd2aeec60f9de4f2279ae26154c4b0eecb3240202a594df44a6f0"
+    },
+    {
+      "path": "Cargo.lock",
+      "bytes": 17444,
+      "sha256": "cbc9782957e845b45436686c4886969bb79f42ef8e0e7bb2fc4234237532f3d7"
+    },
+    {
+      "path": "src/lib.rs",
+      "bytes": 32375,
+      "sha256": "72d813dd40ce880815672e68fe9f136361c4f04612f50f0a66f66cb7e9efb556"
+    },
+    {
+      "path": "src/main.rs",
+      "bytes": 346,
+      "sha256": "97962b1e7cb0182547c8fef5a19c1603524150e12ae5ef487a38b3a85203f821"
+    },
+    {
+      "path": "src/tests.rs",
+      "bytes": 7539,
+      "sha256": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7742,
+      "sha256": "da0421f53380f048d2378c8f8da4795c4482a6160f6f66bea7b04a20948f5da3"
+    },
+    {
+      "path": "integration-proposal.md",
+      "bytes": 2700,
+      "sha256": "208981cf1534d0848bc823e70697639b46b2917c7415409b3b23fc6ba6e96d14"
+    },
+    {
+      "path": "fixture-reference-receipt.json",
+      "bytes": 674,
+      "sha256": "b9ebce4f3da351b6c4cfcdda88883227edee76d1280486543dc187083f27a618"
+    },
+    {
+      "path": "reference-fixture-141.rs.txt",
+      "bytes": 4364,
+      "sha256": "ddec5ee3a8c2b3efe64831abacc2dc29b7fe2c55f4f092b49c2178f80d4754a5"
+    }
+  ],
+  "dependency": "../next-motor-construction-preparation/source-copy/third_party/rapier3d; separately owned and not edited here",
+  "pending": "Await FINAL vendor source-stable signal, then owned strict checks/pure tests; external freeze and native qualification remain future"
+}

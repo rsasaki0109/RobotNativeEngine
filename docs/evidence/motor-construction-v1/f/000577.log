@@ -1,0 +1,31 @@
+    Checking rapier3d v0.22.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/source-copy/third_party/rapier3d)
+error: method `update` is never used
+   --> src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs:396:12
+    |
+241 | impl JointGenericOneBodyConstraintBuilder {
+    | ----------------------------------------- method in this implementation
+...
+396 |     pub fn update(
+    |            ^^^^^^
+    |
+    = note: `-D dead-code` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: the following explicit lifetimes could be elided: 'a
+  --> src/dynamics/solver/interaction_groups.rs:21:6
+   |
+21 | impl<'a> PairInteraction for &'a mut ContactManifold {
+   |      ^^                       ^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#needless_lifetimes
+   = note: `-D clippy::needless-lifetimes` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_lifetimes)]`
+help: elide the lifetimes
+   |
+21 - impl<'a> PairInteraction for &'a mut ContactManifold {
+21 + impl PairInteraction for &mut ContactManifold {
+   |
+
+error: could not compile `rapier3d` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `rapier3d` (lib test) due to 2 previous errors

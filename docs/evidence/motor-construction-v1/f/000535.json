@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "kind": "standalone_collector_final_source_handoff",
+  "created_utc": "2026-10-12T09:58:21.409735+00:00",
+  "files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/Cargo.toml",
+      "bytes": 534,
+      "sha256": "5a0ae783178dd2aeec60f9de4f2279ae26154c4b0eecb3240202a594df44a6f0"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/Cargo.lock",
+      "bytes": 17444,
+      "sha256": "cbc9782957e845b45436686c4886969bb79f42ef8e0e7bb2fc4234237532f3d7"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/lib.rs",
+      "bytes": 33595,
+      "sha256": "f73732b13546625a7b53af1e07c1a0873a937a1746e800175647fcf85dd910c7"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/main.rs",
+      "bytes": 346,
+      "sha256": "97962b1e7cb0182547c8fef5a19c1603524150e12ae5ef487a38b3a85203f821"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/src/tests.rs",
+      "bytes": 7539,
+      "sha256": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/README.md",
+      "bytes": 9586,
+      "sha256": "760842d0b086a44ade06ae6a1bd689914d46cc56ad912e8cb5ce25f28daba8ee"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/integration-proposal.md",
+      "bytes": 3727,
+      "sha256": "66e2c6597f48a3f58c9ceaee1d22f87f9b15ee0d612f4efbd7acd5a93aa8769e"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/reference-fixture-141.rs.txt",
+      "bytes": 4364,
+      "sha256": "ddec5ee3a8c2b3efe64831abacc2dc29b7fe2c55f4f092b49c2178f80d4754a5"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/fixture-reference-receipt.json",
+      "bytes": 674,
+      "sha256": "b9ebce4f3da351b6c4cfcdda88883227edee76d1280486543dc187083f27a618"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/format-scope-correction.json",
+      "bytes": 925,
+      "sha256": "d464b596045a3e2dba1a7768146554a9c0532eb42a10d7409665a8931789382d"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/validation_runner.py",
+      "bytes": 4126,
+      "sha256": "da66627d2bc94f2eef099250a488e200b2a4b31ff51192f4d6436bd487350235"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/schema-contract-excerpt.json",
+      "bytes": 3712,
+      "sha256": "44bb5c5e880de403ff332aaaf89391f3e4579d8d72d51dcea4efb5efd56527e7"
+    }
+  ],
+  "producer_final_source_stable_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/final-source-stable-receipt-v2.json",
+    "bytes": 5987,
+    "sha256": "2fd1a898a1eef1403c06ca0396d82518a4e8fa1acc2445101a4554bcc4b95889"
+  },
+  "producer_final_source_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-preparation/final-changed-files-and-patches-v2.json",
+    "bytes": 7461,
+    "sha256": "8370cb378d2d1db94fef5d32d737595b4b22d7691115309ba0ec68c57e9412ca"
+  },
+  "dependency_inventory_sha256": "babaf825819242859b87ad87f48b708e78d835ff0aaa632590dbb63a34a995d4",
+  "own_source_inventory": "Cargo.toml/Cargo.lock/src/lib.rs/src/main.rs/src/tests.rs exactly equal every final passed command input",
+  "checks": [
+    {
+      "label": "check-attempt-3",
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/check-attempt-3/receipt.json",
+        "bytes": 27653,
+        "sha256": "4ba1350886461ae5801d236e3b58cc97ff4f6af97b1d82bb37877bc47d56e6fe"
+      },
+      "actual_exit_code": 0,
+      "dependency_unchanged": true,
+      "owned_source_unchanged": true,
+      "logs": {
+        "stdout.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/check-attempt-3/stdout.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        "stderr.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/check-attempt-3/stderr.log",
+          "sha256": "8ef1062dd8173d737289680da4d45edd4ec246e858eb6e94c264c49a5ea9d44c",
+          "bytes": 199
+        }
+      }
+    },
+    {
+      "label": "clippy-attempt-1",
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/clippy-attempt-1/receipt.json",
+        "bytes": 27693,
+        "sha256": "4fceee8610997545bd10a3ea1636a41fb09e02512c7c505ddccee0a49d4a1690"
+      },
+      "actual_exit_code": 0,
+      "dependency_unchanged": true,
+      "owned_source_unchanged": true,
+      "logs": {
+        "stdout.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/clippy-attempt-1/stdout.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        "stderr.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/clippy-attempt-1/stderr.log",
+          "sha256": "74760a8a0e9ad0953cae258bec5ab3a75334859d4c9de48c230582f49da0e6b3",
+          "bytes": 199
+        }
+      }
+    },
+    {
+      "label": "rustdoc-attempt-1",
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/rustdoc-attempt-1/receipt.json",
+        "bytes": 27662,
+        "sha256": "5666ba93596db6027f7de814715a6186eef1f005db5a8a2787524f5624c5f035"
+      },
+      "actual_exit_code": 0,
+      "dependency_unchanged": true,
+      "owned_source_unchanged": true,
+      "logs": {
+        "stdout.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/rustdoc-attempt-1/stdout.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        "stderr.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/rustdoc-attempt-1/stderr.log",
+          "sha256": "fbb8ceeb1df7ad0e5c16de296f2caff352615bd7892f32d8eaed417630f5a3ac",
+          "bytes": 359
+        }
+      }
+    },
+    {
+      "label": "pure-tests-attempt-1",
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/pure-tests-attempt-1/receipt.json",
+        "bytes": 27662,
+        "sha256": "213647752e8275ea6e09d77b4831ecc283ad03803bfbbce7c4ee760a0cf3f924"
+      },
+      "actual_exit_code": 0,
+      "dependency_unchanged": true,
+      "owned_source_unchanged": true,
+      "logs": {
+        "stdout.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/pure-tests-attempt-1/stdout.log",
+          "sha256": "da47b228a9723f29002b9f16ca5dcd26c4a4d0d9b377c395e6d460be5a297f2e",
+          "bytes": 644
+        },
+        "stderr.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/pure-tests-attempt-1/stderr.log",
+          "sha256": "61ed33da8319c03c11964b3f483deaf930c488195f65562d78e48a07eaae803e",
+          "bytes": 2247
+        }
+      }
+    },
+    {
+      "label": "final-scoped-rustfmt-after-fix",
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-scoped-rustfmt-after-fix/receipt.json",
+        "bytes": 27774,
+        "sha256": "9988a4be1fbfa66aeeb161c641c50c42e3a9176dcde01c65eb5429d8d8c7125e"
+      },
+      "actual_exit_code": 0,
+      "dependency_unchanged": true,
+      "owned_source_unchanged": true,
+      "logs": {
+        "stdout.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-scoped-rustfmt-after-fix/stdout.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        "stderr.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-scoped-rustfmt-after-fix/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    {
+      "label": "final-toolchain",
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-toolchain/receipt.json",
+        "bytes": 27597,
+        "sha256": "98cfd05687461e51430bafdf93ab0ee4fb61294fac1f51ed9ff867bfbe08bed8"
+      },
+      "actual_exit_code": 0,
+      "dependency_unchanged": true,
+      "owned_source_unchanged": true,
+      "logs": {
+        "stdout.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-toolchain/stdout.log",
+          "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+          "bytes": 196
+        },
+        "stderr.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-toolchain/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    {
+      "label": "final-resolved-features",
+      "receipt": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-resolved-features/receipt.json",
+        "bytes": 27683,
+        "sha256": "3e7e2e992450550afc600096377e8228711bf54b1e937ec432b88b69a0ae79ee"
+      },
+      "actual_exit_code": 0,
+      "dependency_unchanged": true,
+      "owned_source_unchanged": true,
+      "logs": {
+        "stdout.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-resolved-features/stdout.log",
+          "sha256": "5bd0480f958de058e5f1829a39bca72851059a20afc3750b6769e2110791ce68",
+          "bytes": 25220
+        },
+        "stderr.log": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-collector/checks/final-resolved-features/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    }
+  ],
+  "native_worlds_executed": 0,
+  "collector_binary_invocations": 0,
+  "old_numerical_inputs_read": 0,
+  "current_checkout_edits_by_this_collector": 0
+}

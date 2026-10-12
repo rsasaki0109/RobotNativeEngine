@@ -1,0 +1,10 @@
+{
+  "status": "PRE_DATA_TOOL_SCOPE_INCIDENT_RETAINED_FINAL_DEPENDENCY_VALIDATION_PENDING",
+  "recorded_utc": "2026-10-12T09:44:43.692016+00:00",
+  "prior_formatter": "cargo fmt --manifest-path own Cargo.toml --all",
+  "possible_effect": "Local path dependency traversal may have reintroduced formatting-only graph.rs/query_pipeline/mod.rs changes in producer source copy; no before/after vendor guard was captured by collector formatting, so attribution is possible rather than proven",
+  "instruction": "No further cargo fmt --all. Direct rustfmt only owned src/*.rs with skip_children=true. Vendor restoration and whole-inventory reconciliation owned by producer. Final compile waits for producer FINAL stable inventory receipt.",
+  "current_checkout_edits_by_collector": 0,
+  "native_worlds_old_numerical_data_reads": 0,
+  "preliminary_compile": "check-attempt-1 exit101 retained; not final source/binary qualification"
+}

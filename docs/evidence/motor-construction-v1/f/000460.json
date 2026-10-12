@@ -1,0 +1,94 @@
+{
+  "actual_exit": 0,
+  "actual_numeric_report_decodes": 0,
+  "actual_synthetic_methods": 25,
+  "actual_worlds": 0,
+  "artifacts": {
+    "comparator_source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/compare_scalar_source_transition.py",
+      "sha256": "699c654d4925e8870e67723863dc173e91a5e2e828af34e1a7d947970d99242e",
+      "size_bytes": 11517
+    },
+    "driver_source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/driver.py",
+      "sha256": "32369156b54d990c6921cc954add2750cad990ac0b73013439993549be6e5f71",
+      "size_bytes": 38591
+    },
+    "instructions": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/README.md",
+      "sha256": "0b78eb045b492971a75144f9ae9ac3c7b2b221590992548b2af58d7b8592e274",
+      "size_bytes": 11719
+    },
+    "pure_test_log": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/command.log",
+      "sha256": "7a1b2b1fc4e100e399a1b1d5594ed41a8e68ab28fd3705299a07c92a63e4db15",
+      "size_bytes": 3722
+    },
+    "pure_test_receipt": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/terminal.json",
+      "sha256": "a0fae921352b3006b47368f8b9ba603cd526a27da7577c7b3c205e7aba212531",
+      "size_bytes": 1540
+    },
+    "test_runner_source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/run_tests.py",
+      "sha256": "e2bb5ef303a4686b41e401b9e3d108b117fb8514a749af03bef7ee2a9d4ff398",
+      "size_bytes": 2730
+    },
+    "test_source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/test_driver.py",
+      "sha256": "05a34f7ba91326cd26a07f22f7efd11d6316804001c284e265575e12f72dea30",
+      "size_bytes": 23264
+    },
+    "tools_after": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/tools-after.json",
+      "sha256": "2f8fbc892b8a205d09edf66282e1a836385a96ec44e155073d61f705ea7e6593",
+      "size_bytes": 1075
+    },
+    "tools_before": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/tools-before.json",
+      "sha256": "2f8fbc892b8a205d09edf66282e1a836385a96ec44e155073d61f705ea7e6593",
+      "size_bytes": 1075
+    }
+  },
+  "corrections": [
+    "Durable collector launch reservation before process entry with conservative unknown defaults",
+    "Caller-owned process launch/observed PID/wait/formed-return-receipt states survive per-process receipt storage exceptions",
+    "Verified formed return receipts recover actual count/exit; unavailable receipt leaves main count/exit/world_counts null and UNKNOWN_ON_RESERVED_ATTEMPT",
+    "Retained report counters are separate observations when process completion is unverified",
+    "Postcollection zero-world launch accounting also remains conservative on late faults",
+    "Interrupted launched child is terminated/waited; final failure receipts attempted; original interruption re-raised"
+  ],
+  "frozen_expected_sha_required": true,
+  "kind": "rne_141_predata_driver_v2_conservative_accounting_handoff",
+  "main_source_edits": 0,
+  "native_processes": 0,
+  "new_fault_tests": [
+    "late process-terminal ENOSPC after actual stub child exit",
+    "late process-terminal KeyboardInterrupt retaining actual exit/log/report and re-raising",
+    "interrupt before formed receipt with actual start/report: null/UNKNOWN main accounting",
+    "interrupt before process call: consumed reservation unknown rather than false0",
+    "child wait interruption: cleanup and original interrupt retained"
+  ],
+  "predata_revision_not_cohort_retry": true,
+  "review_admission": "PENDING_NEW_V2_REVIEW_AND_PREPARATION",
+  "schema_version": 1,
+  "status": "READY_FOR_INDEPENDENT_PRE_DATA_REVIEW_NOT_EXECUTED",
+  "tool_inputs_unchanged": true,
+  "v1_original_artifact_hashes_unchanged": {
+    "comparator_source": true,
+    "driver_source": true,
+    "instructions": true,
+    "prior_attempt_receipt": true,
+    "pure_test_log": true,
+    "pure_test_receipt": true,
+    "pure_tools_after": true,
+    "pure_tools_before": true,
+    "test_runner_source": true,
+    "test_source": true
+  },
+  "v1_original_handoff": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v1/driver-handoff.json",
+    "sha256": "9791775be1b012a7e4fa23ce5e39ed4c148be1902b604663c9df083b3ee6df60",
+    "size_bytes": 4841
+  }
+}

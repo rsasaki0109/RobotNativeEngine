@@ -1,0 +1,13 @@
+{
+  "actual_processes_started": null,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_late_process_terminal_storage_fault_recovers_actual_receipt/SYNTHETIC-STUB-NOT-PHYSICS",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_late_process_terminal_storage_fault_recovers_actual_receipt/once-only-attempt/report.json",
+    "--require-calibration"
+  ],
+  "created_at": "2026-10-12T10:31:22.780746+00:00",
+  "kind": "rne_141_collector_launch_reservation",
+  "retry_allowed": false,
+  "world_counts": null
+}

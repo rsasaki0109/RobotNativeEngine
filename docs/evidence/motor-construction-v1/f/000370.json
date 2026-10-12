@@ -1,0 +1,69 @@
+{
+  "collector_launch_state": {
+    "actual_process_launched": false,
+    "launch_reserved": true,
+    "observed_pid": null,
+    "observed_wait_return": null,
+    "returned_terminal": {
+      "argv": [
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/SYNTHETIC-STUB-NOT-PHYSICS",
+        "--output",
+        "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/once-only-attempt/report.json",
+        "--require-calibration"
+      ],
+      "cleanup_error": null,
+      "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/synthetic-source",
+      "environment": {
+        "STUB_BASELINE": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/SYNTHETIC-baseline-report.json",
+        "STUB_CURRENT": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/SYNTHETIC-current-template.json",
+        "STUB_EVENTS": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/SYNTHETIC-process-events.jsonl",
+        "STUB_MODE": "success",
+        "STUB_SOURCE": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/synthetic-source/Cargo.lock"
+      },
+      "execution_error": null,
+      "finished_at": "2026-10-12T10:31:22.991803+00:00",
+      "kind": "rne_141_process_start",
+      "launch_error": "FileNotFoundError: SYNTHETIC launch fault",
+      "original_exit_code": null,
+      "pid_receipt_error": null,
+      "process_count": 1,
+      "process_launched": false,
+      "started_at": "2026-10-12T10:31:22.988544+00:00",
+      "stderr": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/once-only-attempt/collection/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "stdout": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/once-only-attempt/collection/stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "world_role": "one collector; internal fixed24 x ON/fresh_ON/OFF; max72 world attempts"
+    },
+    "terminal_written": true
+  },
+  "collector_original_exit_code": null,
+  "collector_processes_started": 0,
+  "collector_receipt_recovery": "ACTUAL_FORMED_RETURN_RECEIPT_VERIFIED",
+  "error": "Refused: original collection did not return preregistered FAIL exit2",
+  "finished_at": "2026-10-12T10:31:22.999624+00:00",
+  "frozen": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-construction-ci-transition/prospective72-driver-v2/synthetic-driver-v2-test-attempt-1/SYNTHETIC-STUB-FIXTURES-NOT-SCIENTIFIC-DATA/test_launch_failure_retains_consumed_claim_without_retry/frozen/frozen-bindings.json",
+    "sha256": "1bcbd9def97a749a9442ade293a5c8ac2fde5edee6a30146497780ed788028c3",
+    "size_bytes": 16277
+  },
+  "kind": "rne_141_once_only_attempt_terminal",
+  "postcollection_processes_started": 0,
+  "publication_status": "PROPOSED_NOT_PUBLISHED",
+  "report": null,
+  "retry_allowed": false,
+  "schema_version": 1,
+  "source_inputs_unchanged": true,
+  "started_at": "2026-10-12T10:31:22.981368+00:00",
+  "status": "FAIL_RETAINED_NO_RETRY",
+  "world_accounting": {
+    "status": "UNAVAILABLE_NO_REPORT",
+    "world_counts": null
+  }
+}

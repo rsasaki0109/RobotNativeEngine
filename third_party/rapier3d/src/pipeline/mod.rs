@@ -2,6 +2,15 @@
 
 pub use collision_pipeline::CollisionPipeline;
 pub use event_handler::{ActiveEvents, ChannelEventCollector, EventHandler};
+pub(crate) use multibody_motor_construction::{
+    InternalMotorConstructionRecorder, InternalMotorConstructionRowRecorder,
+};
+pub use multibody_motor_construction::{
+    MultibodyMotorConstructionAvailability, MultibodyMotorConstructionEndpoint,
+    MultibodyMotorConstructionEvent, MultibodyMotorConstructionPhase,
+    MultibodyMotorConstructionRow, MultibodyMotorConstructionSource,
+    MultibodyMotorConstructionTelemetry,
+};
 pub(crate) use multibody_motor_impulse::InternalMotorImpulseSample;
 pub use multibody_motor_impulse::{
     MultibodyMotorImpulseRecord, MultibodyMotorImpulseSlice, MultibodyMotorImpulseTelemetry,
@@ -28,6 +37,7 @@ pub use self::debug_render_pipeline::{
 
 mod collision_pipeline;
 mod event_handler;
+mod multibody_motor_construction;
 mod multibody_motor_impulse;
 mod multibody_motor_stage;
 mod physics_hooks;
