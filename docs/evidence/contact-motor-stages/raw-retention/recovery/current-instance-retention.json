@@ -1,0 +1,46 @@
+{
+  "approved_archive": {
+    "basename": "rne-contact-motor-stage-gen4-raw-traces.tar",
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0",
+    "size_bytes": 97996800
+  },
+  "cause": "Original raw traces and prepared TAR were stored only under /tmp and were not restored after environment publication/restart. No durable external asset had been verified.",
+  "current_archive_path_exists": false,
+  "independent_workspace_search": {
+    "candidate_count": 0,
+    "receipt": "workspace-exact-raw-retention-search.json",
+    "sha256": "f8c3b5f4acc4a7933bac4fcd763e9863c526c8d2b9ba57fd8d23dabdbf1b16d3"
+  },
+  "kind": "current_instance_raw_retention_recovery",
+  "limitations": [
+    "Absence is scoped to searched existing regular filesystem copies, not remote publication availability.",
+    "Opaque Git metadata, nested archives with differing outer bytes, excluded directories, symlink destinations and filesystem outside /workspace were not searched for embedded trace content.",
+    "No claim of irreversible data loss; root independently checks previously published assets."
+  ],
+  "merge_readiness": "BLOCKED_PENDING_ORIGINAL_RAW_RECOVERY_AND_VERIFIED_RETENTION",
+  "new_worlds_builds_replays_or_replacements": 0,
+  "previous_publication_manifest_sha256": "e51e915177959b386f7586ba42b50f6c2c0cb267451436845f800ce7192f04d0",
+  "prior_source_head": "df80b49c5bc5cda43a15f11c6fdda1270b2b3053",
+  "raw_expected_count": 18,
+  "raw_original_paths_present": [],
+  "recorded_utc": "2026-10-12T04:55:30.903709+00:00",
+  "remote_release": {
+    "actual_exit_code": 1,
+    "observed_error": "gh: Not Found (HTTP 404)",
+    "response_recorded_utc": "2026-10-12T04:49:28.841098+00:00",
+    "tag": "evidence-contact-motor-stage-gen4-44ab1050"
+  },
+  "runtime_config": {
+    "connectivity": "connected",
+    "network_state": "unknown",
+    "observations_current": true,
+    "spec_revision": "9",
+    "upload_operation_verified": false,
+    "uploads_host_configured": true
+  },
+  "schema_version": 1,
+  "scientific_result_requalified": false,
+  "source_manifest_sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690",
+  "source_tag_commit": "af116c85004718665f886e8cddbae84e41c46e66",
+  "status": "RAW_ARCHIVE_AND_ORIGINAL_GZIP_NOT_RECOVERED"
+}

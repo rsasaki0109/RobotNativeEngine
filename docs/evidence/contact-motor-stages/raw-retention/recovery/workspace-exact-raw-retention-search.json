@@ -1,0 +1,82 @@
+{
+  "approved_archive": {
+    "basename": "rne-contact-motor-stage-gen4-raw-traces.tar",
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0",
+    "size_bytes": 97996800
+  },
+  "candidate_count": 0,
+  "candidates": [],
+  "exact_approved_tar_match_count": 0,
+  "exact_raw_copy_match_count": 0,
+  "excluded_directories": [
+    "/workspace/.agents",
+    "/workspace/.aws",
+    "/workspace/.codex",
+    "/workspace/.git",
+    "/workspace/.rne-tools/cargo/advisory-db/.git",
+    "/workspace/.rne-tools/cargo/advisory-dbs/advisory-db-3157b0e258782691/.git",
+    "/workspace/RobotNativeEngine/.git",
+    "/workspace/RobotNativeEngine/.git.workspace-backup"
+  ],
+  "excluded_directory_count": 8,
+  "filesystem_counts": {
+    "archive_extension_files": 23,
+    "directories": 41218,
+    "gzip_extension_files": 1337,
+    "regular_files": 272999,
+    "symlinks": 2201
+  },
+  "filesystem_errors": [],
+  "kind": "independent_existing_workspace_raw_retention_search",
+  "limitations": [
+    "Absence is scoped to searched existing regular filesystem copies, not remote publication availability.",
+    "Opaque Git metadata, nested archives with differing outer bytes, excluded directories, symlink destinations and filesystem outside /workspace were not searched for embedded trace content.",
+    "No claim of irreversible data loss; root independently checks previously published assets."
+  ],
+  "matching_basename_symlinks_not_followed": [],
+  "mutations": {
+    "builds": 0,
+    "network": 0,
+    "original_raw": 0,
+    "replays": 0,
+    "repo": 0,
+    "worlds": 0
+  },
+  "original_raw_paths_present": [],
+  "original_tmp_directory_exists": false,
+  "recorded_utc": "2026-10-12T04:50:36.553382+00:00",
+  "rg_first_search": {
+    "argv": [
+      "rg",
+      "--files",
+      "--hidden",
+      "--no-ignore",
+      "-0",
+      "-g",
+      "!**/.agents/**",
+      "-g",
+      "!**/.aws/**",
+      "-g",
+      "!**/.codex/**",
+      "-g",
+      "!**/.gnupg/**",
+      "-g",
+      "!**/.ssh/**",
+      "-g",
+      "!**/.git*/**",
+      "/workspace"
+    ],
+    "exact_basename_candidates": [],
+    "exit_code": 0,
+    "file_count": 272599,
+    "stderr_byte_count": 0
+  },
+  "schema_version": 1,
+  "scope": "Read-only filesystem metadata inventory of /workspace, plus SHA-256 of exact basename or exact size candidate regular files. No symlink following, archive extraction, native-data reading, Git reconstruction, network asset check, world/build/replay, source modification, or restoration. Excludes credential/tool instruction directories and Git metadata directories.",
+  "source_manifest": {
+    "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/raw-trace-manifest.json",
+    "raw_original_gzip_size_bytes": 97965652,
+    "raw_trace_count": 18,
+    "sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690"
+  }
+}

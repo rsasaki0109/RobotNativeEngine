@@ -1370,143 +1370,281 @@
     },
     {
       "bytes": 7545934,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "443d78ef13096f7c04b6bee480198292581b8e387d816ffb64fbcde30dfefb85"
     },
     {
       "bytes": 7545948,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-fresh_on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "d7fd39894b4b281a669421cdad557700eb1b23fd039c7421ae25e871a94ed89f"
     },
     {
       "bytes": 1319483,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-off.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "394586f229e80e9041256c56bcfc37f873537f5649438ae3b337934b1598c662"
     },
     {
       "bytes": 7554098,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "0c4ad27e037f0bad4f4f3d553623c14466253233795e43421f56f7a3cad7a0d8"
     },
     {
       "bytes": 7554127,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-fresh_on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "2f975a48f52caacb3f8f0b71af2201c5977bc838878b526d8f568144f4d90308"
     },
     {
       "bytes": 1292101,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-off.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "6b0068bf6482259a86cf4c110a593a31d953795e065f4aab4830ed53186a9808"
     },
     {
       "bytes": 7570890,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "10234ea447e5ebf65b732902d0844e2962dd670666e8720fac8debf00bd92012"
     },
     {
       "bytes": 7570940,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-fresh_on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "be7f3d129af8544767ad2864959e80e70178484ac55a34cc0992dcd8cf845226"
     },
     {
       "bytes": 1333291,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-off.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "e1c4c3793b8f4ff3f62c6375488d5a95bc05a7da7bf5daac56c971f37eb923d9"
     },
     {
       "bytes": 7399245,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "d7dbdb14d780b4b69328eb1b0b90db2941d6ef5b9a3e20ebe5e63062796ee6c5"
     },
     {
       "bytes": 7399240,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-fresh_on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "bbcc426f5dcc900dc366a1205ed86c550b3e86e085ddede47fa2326070ba055a"
     },
     {
       "bytes": 1286903,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-off.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "efa696c3da18f66c2f66d90a5bf652f7bbdff45778b3e091377537d6825cb39a"
     },
     {
       "bytes": 7448315,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "bb0316d0f5bb956f71be5ea4f52d6a9bc5d5befcd1566ee2a6eb4d652d1999fc"
     },
     {
       "bytes": 7448262,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-fresh_on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "ceb8b0b5b1cae87e463e28225120e368239af3fe8cf3a93dc9b4423d5d799abe"
     },
     {
       "bytes": 1339406,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-off.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "892ec0aa0baac079df995cd78347efab2cbe4c59e523a3d77a57f88ec95e0faf"
     },
     {
       "bytes": 7511604,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "522371e5759d995d255f96d3604154bc5f87ff4f92ba09688713811d34b08901"
     },
     {
       "bytes": 7511595,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-fresh_on.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "e99d792ea1bb313c40040be836fd6dd5ba37892966ab983530c84eb48297d854"
     },
     {
       "bytes": 1334270,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-off.jsonl.gz",
       "retention": "original gzip bytes in separate prepared raw TAR",
       "sha256": "c5a6c32a170fefedbe3c1232a625d831af0794f0eafa8d298ea0da80ec3eb8aa"
     },
     {
       "bytes": 3439056,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/binaries/baseline142",
       "retention": "historical local frozen binary, not bundled or published by this preparation",
       "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
     },
     {
       "bytes": 3089208,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/binaries/baseline141",
       "retention": "historical local frozen binary, not bundled or published by this preparation",
       "sha256": "dc22283295e05ee5dd48cf581b15d4ca00719a6cc5688187fd1d310f90a0d3e9"
     },
     {
       "bytes": 3439088,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/binaries/rejected142",
       "retention": "historical local frozen binary, not bundled or published by this preparation",
       "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
     },
     {
       "bytes": 97996800,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "verified_public_copy_available": false
+      },
       "path": "/tmp/rne-contact-stage-generation4/retention-preparation/rne-contact-motor-stage-gen4-raw-traces.tar",
       "retention": "LOCAL_ARCHIVE_PREPARED_NOT_UPLOADED; user-authorized Release upload/download verification pending",
       "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
     },
     {
       "bytes": 8193438,
+      "current_instance_availability": {
+        "original_path_exists": false,
+        "receipt": "raw-retention/recovery/current-instance-retention.json",
+        "status": "COMMITTED_PUBLIC_COPY_HASH_VERIFIED",
+        "verified_public_copy_available": true
+      },
       "path": "/tmp/rne-contact-stage-generation4/current-scalar72.json",
       "public_path": "docs/media/position-motor-calibration-contact-stages.json",
       "retention": "separate current scalar report; exceeds 1 MiB bundle-file limit",
       "sha256": "db0dee42a3c9067b38241112d5ee402341c0729466d7fc22f12f31504000db76"
     }
   ],
-  "scope": "External or already-published immutable artifacts; availability/status is explicit"
+  "scope": "Original retention values describe preparation; current_instance_availability records the restarted instance. Historical artifact bytes and identities are unchanged."
 }
