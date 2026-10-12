@@ -71,3 +71,7 @@ The [post-pack independent byte review](postarchive-publication-review.json)
 verified the complete TAR and inline literal copies. This later publication
 proof is outside the already frozen TAR; its reproducible full-member review
 ledger remains local rather than being split into inline fragments.
+
+Long inline fixture/source paths use short SHA-based aliases for Windows checkout
+compatibility. The origin-path map preserves exact source identity and bytes;
+the frozen scientific TAR and its full member mapping remain unchanged.
