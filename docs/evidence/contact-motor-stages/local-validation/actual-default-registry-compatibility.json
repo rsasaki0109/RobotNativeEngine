@@ -1,0 +1,9 @@
+{
+  "actual_exit_code": 0,
+  "native_worlds_executed": 0,
+  "scope": "Independent temporary workspace, backend default features, registry Rapier0.22.0, root Cargo patch not inherited; fresh probe lock graph, not the repository locked graph",
+  "cargo_lock_sha256": "f796c564e0ca0e93fb98029094a027940c5ed85300bb931808f1b8fd89d15649",
+  "rapier_registry_package": "name = \"rapier3d\"\nversion = \"0.22.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"87360935d1a54802efe0ddf908489436bb49c84865c36c930131843c7b1dc97d\"\ndependencies = [\n \"approx\",\n \"arrayvec\",\n \"bit-vec\",\n \"bitflags\",\n \"crossbeam\",\n \"downcast-rs\",\n \"log\",\n \"nalgebra\",\n \"num-derive\",\n \"num-traits\",\n \"ordered-float\",\n \"parry3d\",\n \"rustc-hash\",\n \"simba\",\n \"thiserror 1.0.69\",\n]",
+  "command_terminal_sha256": "4822416fc8de7fdf5a83288d1c45a7febec8f5c40034a48cb49358b1a5cddd8b",
+  "source_inputs_unchanged": true
+}

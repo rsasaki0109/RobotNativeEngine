@@ -1,0 +1,19 @@
+{
+  "name": "stage-tests-serde",
+  "ended_utc": "2026-10-12T01:18:55.250059+00:00",
+  "exit_code": 0,
+  "runtime_s": 8.367602117999922,
+  "vendor_inputs_unchanged": true,
+  "changed_vendor_inputs": [],
+  "log_sha256": "573ffb4ece7a7c33016795d00d11a33e1b52577eb8d2e50f7e59cefdc4193944",
+  "log_bytes": 1405,
+  "capacity_failure": false,
+  "lock_graph_failure": false,
+  "disk_after_bytes": {
+    "/workspace": 192233472,
+    "/tmp": 3194265600
+  },
+  "functional_tests_planned_worlds": 14,
+  "functional_tests_planned_outer_steps": 48,
+  "authoritative_collection_worlds": 0
+}

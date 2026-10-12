@@ -186,23 +186,37 @@ verifier must reject the candidate's stale source binding; it is not a new defau
 calibration PASS. Attempted candidate unit tests fail to compile and provide no
 passing qualification. No retuning, G1 recovery or hardware claim follows.
 
-## Current-source qualification after vendor lint cleanup
+## Historical qualification after vendor lint cleanup
 
 Standalone strict Rapier lint and documentation cleanup changes two selected
 source files, without changing motor/contact arithmetic or this collector.
 Earlier reports remain byte-identical historical evidence; their stale-source
 rejection remains enforced. The separately collected
-[current-source report](../../docs/media/position-motor-calibration-vendor-lint.json)
+[vendor-lint qualification report](../../docs/media/position-motor-calibration-vendor-lint.json)
 uses the same schema, 24 conditions, 72 worlds, codec, state scope and criteria.
 A comparison reader frozen before collection allows only the two changed source
 hashes and requires literal equality of every other field with generation 2.
 Collection/replay qualification is independent of the still-failed motor accuracy
 criterion. This run measures no contact-stage coupling or hardware behavior.
 
+The current-source verification command is shown below.
+
 ```bash
 cargo run --locked -p position_motor_calibration \
   --example 141_position_motor_calibration -- \
-  --verify-report docs/media/position-motor-calibration-vendor-lint.json
+  --verify-report docs/media/position-motor-calibration-contact-stages.json
 ```
 
 See the [source transition and strict validation receipts](../../docs/evidence/rapier-strict-validation/README.md).
+
+## Current-source qualification after stage instrumentation
+
+The [current report](../../docs/media/position-motor-calibration-contact-stages.json)
+collects the unchanged fixed 24 conditions and 72 worlds after the default-off
+stage observer is added. Its source object has six changed hashes and four
+additional reviewed source keys. A preregistered independent comparison replaces
+only that object and requires every other raw report byte to match the vendor-lint
+report. All 72 worlds complete and replay exactly; all eight zero targets remain
+motionless, and the four primary nonzero cases still fail. Earlier reports stay
+byte-identical and the unchanged verifier rejects their stale source bindings.
+This scalar qualification is separate from example 142's contact measurements.

@@ -1,0 +1,251 @@
+{
+  "approved_raw_pointer": {
+    "prepared_archive_receipt": {
+      "bytes": 716,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/archive-sha-bytes-manifest.json",
+      "sha256": "a23209b25d71f72c6ca6fe8c4e40109fbc289a653c0f2bf0aa4af6916311acfc"
+    },
+    "raw_TAR_or_native_frame_read_by_this_review": false,
+    "record": {
+      "bytes": 414,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/rne-contact-motor-stage-gen4-raw-traces.tar.PROPOSED.pointer.json",
+      "sha256": "798d4d07df4faeea9d2bfc8870ef0b67efa71dc3aa569a8e96aafeb99328920d"
+    },
+    "remote_upload_download_not_yet_verified": true,
+    "shape_SHA_size_match": true,
+    "value": {
+      "kind": "rne_docs_evidence_pointer",
+      "original_filename": "rne-contact-motor-stage-gen4-raw-traces.tar",
+      "schema_version": 1,
+      "sha256": "sha256:534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0",
+      "size_bytes": 97996800,
+      "url": "https://github.com/rsasaki0109/RobotNativeEngine/releases/download/evidence-contact-motor-stage-gen4-44ab1050/rne-contact-motor-stage-gen4-raw-traces.tar"
+    }
+  },
+  "bounded_valid_finger_diagnosis": {
+    "axis": "LinX",
+    "first_rejected_entity": 4294967300,
+    "gain_model": "AccelerationBased",
+    "metadata_or_producer_corruption_identified": false,
+    "numerical_aggregation_performed": false,
+    "record": {
+      "bytes": 4223,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/actual-first-rejected-nonpalm-row-diagnosis.json",
+      "sha256": "bf347ce2dec9aed19be925ca5635b5dac9a5e950fc9a16cbe910ee122854c373"
+    },
+    "scope": "Only header and first completed_step from first baseline-m5-on trace; scan identity metadata and stop at first rejected row",
+    "selected_palm_entity": 4294967299,
+    "status": "COUPLED_NUMERICAL_QUALIFICATION_FAILED_UNQUALIFIED_GENUINE_NONPALM_ROWS",
+    "v3_registered": false
+  },
+  "coupled_audits": [
+    {
+      "actual_exit_code": 1,
+      "audit": {
+        "bytes": 437,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/actual-independent-coupled-audit.json",
+        "sha256": "d0611bcc8f9bde4efc816a900797e2aabe96b38500697bbb7d541f1b005facb6"
+      },
+      "command": {
+        "bytes": 5456,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/actual-independent-coupled-command.json",
+        "sha256": "1a023d8fa90bf3a3e2adc55938b728d8af9bd9e3a506fba7b432222b8e04ede7"
+      },
+      "error": "word vector must be a list",
+      "status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE",
+      "version": "original"
+    },
+    {
+      "actual_exit_code": 1,
+      "audit": {
+        "bytes": 634,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-handle-schema-repair-v1/actual-repaired-independent-coupled-audit.json",
+        "sha256": "90a894c4e72e5dec2ceef84ebfc36d685d912ad08fb5a2ab26899fb04ac2dd5b"
+      },
+      "command": {
+        "bytes": 8196,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-handle-schema-repair-v1/actual-repaired-reader-command.json",
+        "sha256": "05304b5988fd8a5f898bb9ef9c035e95878daf6472fc8c360ddb83057f26500e"
+      },
+      "error": "fixed scene exposed a row other than the ForceBased palm LinY motor",
+      "status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE",
+      "version": "v1"
+    },
+    {
+      "actual_exit_code": 1,
+      "audit": {
+        "bytes": 653,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-native-frame-schema-repair-v2/actual-v2-independent-coupled-audit.json",
+        "sha256": "a1adf12100f7e31b1ea49003664a2589db2333e0f6d4213aa9c78f5475d5c290"
+      },
+      "command": {
+        "bytes": 10216,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-native-frame-schema-repair-v2/actual-v2-reader-command.json",
+        "sha256": "a288e99f9dc239cb9b106e69c65f60f26cf4e132fa56cddeee1cb1c26528db54"
+      },
+      "error": "fixed scene exposed a row other than the ForceBased palm native joint-frame LinX motor",
+      "status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE",
+      "version": "v2"
+    }
+  ],
+  "coupled_recorded_outer_steps_each": 1250,
+  "coupled_recorded_worlds": 18,
+  "coupled_replay_numerical_qualification": "FAILED_UNQUALIFIED",
+  "direct_vendor_stage_validation": [
+    {
+      "actual_exit_code": 0,
+      "log": {
+        "bytes": 142,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/direct-vendor-stage-checks/clippy-default-all-targets/command.log",
+        "sha256": "1105f71286dbea3e9c0a2503f35de29d3a6228ffe26fccaf6c8d0a23599702dc"
+      },
+      "name": "clippy-default-all-targets",
+      "terminal": {
+        "bytes": 583,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/direct-vendor-stage-checks/clippy-default-all-targets/terminal.json",
+        "sha256": "77039bb359972998ab84c825e7253ac0b698b5dd844cd1e068f504bbf4e23014"
+      },
+      "test_result_lines": []
+    },
+    {
+      "actual_exit_code": 0,
+      "log": {
+        "bytes": 440,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/direct-vendor-stage-checks/clippy-serde-all-targets/command.log",
+        "sha256": "3c2c3ea899aed49026ec31495648d078677f24fc8f687e4d12056eab1f2c6a71"
+      },
+      "name": "clippy-serde-all-targets",
+      "terminal": {
+        "bytes": 581,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/direct-vendor-stage-checks/clippy-serde-all-targets/terminal.json",
+        "sha256": "0a82a59055386e580a97d5cc401834a6f9546e7a43be0043cfc35d878735241f"
+      },
+      "test_result_lines": []
+    },
+    {
+      "actual_exit_code": 0,
+      "log": {
+        "bytes": 1284,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/direct-vendor-stage-checks/stage-tests-default/command.log",
+        "sha256": "2244c1a9a4b093b1353a6c6921dbc9e65e71f8c3419afa403d335d8f66b755d8"
+      },
+      "name": "stage-tests-default",
+      "terminal": {
+        "bytes": 579,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/direct-vendor-stage-checks/stage-tests-default/terminal.json",
+        "sha256": "7ed8d63f9886c77b5ffe683d22e6a9bae2c60a6908b2592dd1ebc2e3fb9c992b"
+      },
+      "test_result_lines": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.07s"
+      ]
+    },
+    {
+      "actual_exit_code": 0,
+      "log": {
+        "bytes": 1405,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/direct-vendor-stage-checks/stage-tests-serde/command.log",
+        "sha256": "573ffb4ece7a7c33016795d00d11a33e1b52577eb8d2e50f7e59cefdc4193944"
+      },
+      "name": "stage-tests-serde",
+      "terminal": {
+        "bytes": 576,
+        "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/direct-vendor-stage-checks/stage-tests-serde/terminal.json",
+        "sha256": "7aa64846d347556e8319f3f61d609a54bbc2e8750014d72c876372182ca8013f"
+      },
+      "test_result_lines": [
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.05s"
+      ]
+    }
+  ],
+  "integrity_ledger": {
+    "bytes": 216359,
+    "path": "/tmp/rne-contact-stage-generation4/retention-preparation/publication-independent-review/current-publication-integrity-ledger.json",
+    "sha256": "4eaa1a1ea7b5f395f00606fd3854860eb887d0cf278a55046b4cae9044f8bba0"
+  },
+  "late_repair_provenance": {
+    "arithmetic_module_sha_unchanged": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "collection_end": "2026-10-12T01:56:13.467733+00:00",
+    "original_protocol_collection_preserved": true,
+    "v1_registered": "2026-10-12T02:10:38.755309+00:00",
+    "v2_registered": "2026-10-12T02:32:42.769300+00:00",
+    "worlds_rerun_each": 0
+  },
+  "limitations": [
+    "Current bytes/retained receipts only, not final committed head, CI completion or remote publication.",
+    "Hash-only reads of the requested immutable historical artifacts; no current raw native data was opened.",
+    "Attribute declarations disable text conversion; no fresh checkout roundtrip was run.",
+    "Coupled fail and scalar accuracy fail remain failures; no causal/numerical improvement is inferred."
+  ],
+  "literal_original_mapping_count": 277,
+  "locally_retained_not_distributed_native_executables": [
+    {
+      "bytes": 3439056,
+      "path": "/tmp/rne-contact-stage-generation4/binaries/baseline142",
+      "retention": "historical local frozen binary, not bundled or published by this preparation",
+      "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+    },
+    {
+      "bytes": 3089208,
+      "path": "/tmp/rne-contact-stage-generation4/binaries/baseline141",
+      "retention": "historical local frozen binary, not bundled or published by this preparation",
+      "sha256": "dc22283295e05ee5dd48cf581b15d4ca00719a6cc5688187fd1d310f90a0d3e9"
+    },
+    {
+      "bytes": 3439088,
+      "path": "/tmp/rne-contact-stage-generation4/binaries/rejected142",
+      "retention": "historical local frozen binary, not bundled or published by this preparation",
+      "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+    }
+  ],
+  "manifest_bound_records": 307,
+  "material_blockers": [],
+  "old_immutable_records": 228,
+  "operations": {
+    "builds_tests_worlds": 0,
+    "network_publication_mutations": 0,
+    "new_raw_gzip_native_frame_reads": 0,
+    "process_control_or_CI_GitHub_polling": 0,
+    "repo_edits": 0,
+    "scientific_reader_replays": 0
+  },
+  "optional_clarity_note": {
+    "finding": "external-artifact-references explicitly marks binaries local/not published; closure-omissions uses the shorter large external artifacts wording.",
+    "root_agreed_to_defer_until_CI_terminal": true,
+    "suggested_sentence": "The frozen native executables are retained locally and are not bundled or distributed by the raw-trace Release; this bundle is not a complete portable replay package."
+  },
+  "physical_bundle_files": 308,
+  "publication_manifest": {
+    "bytes": 59795,
+    "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/artifact-manifest.json",
+    "sha256": "a4232c85b8c3ba4db03888fd8d923d7093d878da9ff5f03a8e35e20ed94bd2dc"
+  },
+  "registry_default_compatibility": {
+    "actual_exit_code": 0,
+    "native_worlds_executed": 0,
+    "record": {
+      "bytes": 961,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/local-validation/actual-default-registry-compatibility.json",
+      "sha256": "d79d0b57dc79b3c54263c7fcdb7fb3dfe392dcd9520ba8f7ac9812ce8017f365"
+    },
+    "registry_rapier_version": "0.22.0",
+    "scope": "Separate fresh probe graph, not the repository locked graph"
+  },
+  "reviewed_utc": "2026-10-12T03:14:36.265165+00:00",
+  "scalar_literal_PASS_is_not_accuracy_PASS": {
+    "all_nonzero_tolerance_passes": 0,
+    "cells": 24,
+    "coupled_cause_or_maturity_gain_claim": false,
+    "literal_status": "PASS_LITERAL_CURRENT_SCALAR_SOURCE_OBJECT_TRANSITION",
+    "motor_accuracy_status": "FAIL, 0/4 primary, unchanged",
+    "primary_cells": 4,
+    "primary_passes": 0,
+    "record": {
+      "bytes": 2398,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/actual-independent-current-scalar-audit.json",
+      "sha256": "cd068d207114e98562ec7b84221115de6ea01a54e4b72c4c1edfde0a0c2cbe86"
+    },
+    "separate_worlds": 72,
+    "zero_target_passes": 8
+  },
+  "status": "PASS_CURRENT_LITERAL_PUBLICATION_REVIEW_NO_MATERIAL_BLOCKER"
+}

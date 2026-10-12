@@ -1,0 +1,105 @@
+{
+  "checks": [
+    {
+      "check": "stage-workspace-tests-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "41933f4c6ee7f2b09daf647e612a34a7a484209e0fd14f985650665a2c1fda14",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-workspace-clippy-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "5ba730a26fca41d0eaa74805d51be44e36836607d27442ad393f57ff7f6cfb09",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-ci-headless-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "6af64e41836d8c49929b5ec0af26aca12bcd9f0de49ae901d2882bdf43a6133d",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-integrated-tests-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "edb503dfe3ad4df980ae2f2e6e1bbe5b35a8e7f95011e88e4c4eeca9e3b25fa9",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-integrated-clippy-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "f13456f07aadf0524cf562ffef3df62dfaad80c76aea946f41d50a0bf4a61765",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-integrated-strict-docs-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "f0393992dea6d6e8d6f2b04d887d7092b9d8e707ea886d786d624c89e3c327a1",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-vendor-strict-docs-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "109f637e4060f62e3927f60af2aed854212c7512e188388e54973ab149b77ec3",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-related-physics-strict-docs-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "699f619e44b4e99a526f7881b133888ee97a6c15839bd407dd5b1ac27d02aa27",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-vendor-parallel-serde-tests-attempt-1",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "eb2c904b4399db84fc75ed3a5ea2b9bc850b1112a37637d324b5b35b75a5bd70",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-final-xtask-strict-docs",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "d131baa645e3359c11ebdb0ab3e1faecb3fa40f29bbf44d147ab881d332b605d",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-default-upstream-registry-check",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "f94199f79bc3cb4411a7f7098f0dadbd21824e2fc59c257c3e7d459a5ebcc339",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-current-scalar-report-verification",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "3ae2e9b0866d608c474b010517cedafcb1261f8e90aa75a9716c2125a34e5aa5",
+      "expected_stale_rejection": false
+    },
+    {
+      "check": "stage-historical-scalar-report-expected-stale-rejection",
+      "actual_exit_code": 1,
+      "source_inputs_unchanged": true,
+      "log_sha256": "fd1da9cab545501f81688742a0d652c6f084dabf5840c934af4f1648a3634766",
+      "expected_stale_rejection": true
+    },
+    {
+      "check": "gen4-current-stage-restored-default-release133-138",
+      "actual_exit_code": 0,
+      "source_inputs_unchanged": true,
+      "log_sha256": "042144629de5587e18f046e094457754eccf85bb678ed8af3dbe7773e79088da",
+      "expected_stale_rejection": false
+    }
+  ],
+  "full_ci_status": "NOT_RUN_AT_PUBLICATION_PREPARATION",
+  "github_ci_status": "NOT_RUN_AT_PUBLICATION_PREPARATION",
+  "scope": "Actual independent command logs/terminals. Source guard snapshots remain separately retained outside checkout and are represented by their terminal hashes; not an exhaustive compiler closure."
+}

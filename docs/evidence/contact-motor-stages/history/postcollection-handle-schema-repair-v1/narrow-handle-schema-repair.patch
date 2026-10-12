@@ -1,0 +1,175 @@
+--- original/audit_coupled_stages.py
++++ postcollection-handle-schema-repair-v1/audit_coupled_stages.py
+@@ -76,7 +76,7 @@
+     frozen = {str(Path(record["path"]).resolve()): record for record in protocol["reader_artifacts"]}
+     require(len(frozen) == len(protocol["reader_artifacts"]), "duplicate frozen reader artifact")
+     for name in ["audit_coupled_stages.py", "stage_analysis.py", "stage_numeric.py", "stage_schema.py"]:
+-        actual = record_for(Path(__file__).parent / name)
++        actual = record_for(Path(protocol_record["path"]).parent / name)
+         require(frozen.get(actual["path"]) == actual, "reader module changed after freeze: " + name)
+     for record in protocol["reader_artifacts"] + protocol["dependency_source_artifacts"] + protocol["immutable_published_artifacts"]:
+         artifact(record)
+@@ -243,6 +243,47 @@
+             "analysis": summary}
+ 
+ 
++def check_repair(args, protocol_record, collection_record):
++    """Bind an honestly post-collection repair without replacing pre-data facts."""
++    repair_record = record_for(args.repair_manifest)
++    require(repair_record["sha256"] == args.repair_manifest_sha256, "repair manifest literal SHA differs")
++    repair = strict_json(Path(args.repair_manifest).read_bytes())
++    keys(repair, ["schema_version", "status", "registered_utc", "original_protocol", "original_collection",
++                  "original_failed_audit", "original_failed_command", "first_frame_diagnosis", "rust_schema_sources",
++                  "original_reader_closure", "repaired_reader_closure", "narrow_diff", "pure_tests", "repair_scope",
++                  "numerical_formulas_and_scientific_gates_unchanged", "authoritative_worlds_rerun"], "post-collection repair manifest")
++    require(repair["schema_version"] == 1 and repair["status"] == "FROZEN_POST_COLLECTION_HANDLE_SCHEMA_REPAIR" and
++            repair["numerical_formulas_and_scientific_gates_unchanged"] is True and repair["authoritative_worlds_rerun"] == 0,
++            "repair provenance/scope differs")
++    require(literal_equal(repair["original_protocol"], protocol_record) and literal_equal(repair["original_collection"], collection_record),
++            "repair relabels original pre-data protocol or collection")
++    collection = strict_json(Path(collection_record["path"]).read_bytes())
++    require(stamp(collection["ended_utc"]) < stamp(repair["registered_utc"]), "repair incorrectly claims pre-data registration")
++    require(repair["repair_scope"] == "Native MultibodyJointHandle(Index) serde object metadata and identity only; arithmetic and stage/scientific gates unchanged",
++            "repair expands beyond the source-derived handle metadata")
++    for name in ["original_protocol", "original_collection", "original_failed_audit", "original_failed_command", "first_frame_diagnosis", "narrow_diff", "pure_tests"]:
++        artifact(repair[name])
++    for record in repair["rust_schema_sources"] + repair["original_reader_closure"] + repair["repaired_reader_closure"]:
++        artifact(record)
++    failed = strict_json(Path(repair["original_failed_audit"]["path"]).read_bytes())
++    require(failed["status"] == "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE" and failed["error"] == "word vector must be a list",
++            "original failed audit is not retained literally")
++    current = {str(Path(record["path"]).resolve()): record for record in repair["repaired_reader_closure"]}
++    original = {Path(record["path"]).name: record for record in repair["original_reader_closure"]}
++    original_protocol = strict_json(Path(protocol_record["path"]).read_bytes())
++    frozen_original = {Path(record["path"]).name: record for record in original_protocol["reader_artifacts"]}
++    require(len(current) == len(repair["repaired_reader_closure"]) == len(original) == len(repair["original_reader_closure"]) == 4,
++            "reader closure is duplicated or changed in scope")
++    for name in ["audit_coupled_stages.py", "stage_analysis.py", "stage_numeric.py", "stage_schema.py"]:
++        actual = record_for(Path(__file__).parent / name)
++        require(current.get(actual["path"]) == actual, "repaired reader module changed after registration: " + name)
++        require(name in original, "original reader module is not retained: " + name)
++        require(literal_equal(original[name], frozen_original.get(name)), "original pre-data reader binding was changed: " + name)
++    require(original["stage_numeric.py"]["sha256"] == record_for(Path(__file__).parent / "stage_numeric.py")["sha256"],
++            "repair changed arithmetic module")
++    return repair_record
++
++
+ def audit(args):
+     protocol_record = record_for(args.protocol)
+     require(protocol_record["sha256"] == args.protocol_sha256, "protocol literal SHA differs")
+@@ -250,6 +291,7 @@
+     expected = check_protocol(protocol, protocol_record)
+     collection_record = record_for(args.collection)
+     require(collection_record["sha256"] == args.collection_sha256, "collection literal SHA differs")
++    repair_record = check_repair(args, protocol_record, collection_record)
+     collection = strict_json(Path(args.collection).read_bytes())
+     keys(collection, ["schema_version", "status", "protocol_sha256", "root_driver", "started_utc", "ended_utc",
+                       "declared_authoritative_coupled_worlds", "declared_completed_outer_steps_per_world", "worlds_attempted",
+@@ -303,12 +345,17 @@
+             "runtime_registers_measured": False, "nonexhaustive_source_guard_caveat": SOURCE_SCOPE,
+             "historical_candidate_admission": "generation3 REJECTED; this measurement does not promote it",
+             "hidden_per_contact_coupling_or_causal_adoption_or_maturity_claim": False,
+-            "separate_scalar_qualification_not_inferred_from_this_reader": True}
++            "separate_scalar_qualification_not_inferred_from_this_reader": True,
++            "post_collection_handle_schema_repair": repair_record,
++            "repaired_reader_existed_before_data": False,
++            "original_predata_coupled_audit_status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE",
++            "numerical_formulas_and_scientific_stage_gates_unchanged": True}
+ 
+ 
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+-    for name in ["protocol", "protocol-sha256", "collection", "collection-sha256", "output", "details-directory"]:
++    for name in ["protocol", "protocol-sha256", "collection", "collection-sha256", "output", "details-directory",
++                 "repair-manifest", "repair-manifest-sha256"]:
+         parser.add_argument("--" + name, required=True)
+     args = parser.parse_args()
+     output = Path(args.output).resolve()
+@@ -320,6 +367,8 @@
+             result = {"status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE", "error_type": type(error).__name__, "error": str(error),
+                       "native_worlds_executed_by_reader": 0, "protocol_sha256_argument": args.protocol_sha256,
+                       "collection_sha256_argument": args.collection_sha256,
++                      "repair_manifest_sha256_argument": args.repair_manifest_sha256,
++                      "reader_is_post_collection_schema_repair": True,
+                       "historical_candidate_admission": "generation3 REJECTED, unchanged"}
+             success = False
+         json.dump(result, destination, indent=2, sort_keys=True, allow_nan=False); destination.write("\n")
+--- original/stage_analysis.py
++++ postcollection-handle-schema-repair-v1/stage_analysis.py
+@@ -6,12 +6,12 @@
+ 
+ from stage_numeric import F32, ONE, exact, exact_snapshot, rational, rounded, serialize_snapshot
+ from stage_schema import (keys, literal_equal, require, sha_bytes, validate_event,
+-                          words, f32_bits)
++                          words, f32_bits, native_joint_handle_words)
+ import json
+ 
+ 
+ def identity(row):
+-    return tuple(row["joint_handle"]) + (row["link_id"], row["axis"], row["constraint_index"])
++    return native_joint_handle_words(row["joint_handle"]) + (row["link_id"], row["axis"], row["constraint_index"])
+ 
+ 
+ def difference(left, right):
+@@ -268,7 +268,7 @@
+             groups.append((group_key, [])); current = group_key
+         groups[-1][1].append((ordinal, event))
+         for row in event["rows"]:
+-            handle = tuple(row["joint_handle"])
++            handle = native_joint_handle_words(row["joint_handle"])
+             require(handle in bindings and bindings[handle]["link_index"] == row["link_id"], "row/binding native identity mismatch")
+             require(bindings[handle]["entity_bits"] == palm_entity and row["axis"] == "LinY" and row["gain_model"] == "ForceBased",
+                     "fixed scene exposed a row other than the ForceBased palm LinY motor")
+--- original/stage_schema.py
++++ postcollection-handle-schema-repair-v1/stage_schema.py
+@@ -68,6 +68,12 @@
+     for word in value:
+         checked_word(word, width)
+     return value
++
++
++def native_joint_handle_words(value):
++    """Actual serde newtype Index object; no normalized report-array fallback."""
++    keys(value, ["index", "generation"], "native MultibodyJointHandle(Index)")
++    return (checked_word(value["index"], 32), checked_word(value["generation"], 32))
+ 
+ 
+ def byte_vector(value, maximum):
+@@ -277,7 +283,7 @@
+ 
+ def validate_row(row, vector_length, ceilings):
+     keys(row, ROW_FIELDS, "motor row")
+-    words(row["joint_handle"], 32, expected=2)
++    native_joint_handle_words(row["joint_handle"])
+     for field in ["link_id", "constraint_index", "solver_velocity_offset", "j_id2"]:
+         integer(row[field])
+     integer(row["ndofs2"], maximum=ceilings["motor_ndofs"], minimum=1)
+@@ -309,7 +315,7 @@
+     require(type(event["rows"]) is list and len(event["rows"]) <= ceilings["motor_rows_per_event"], "row resource ceiling")
+     for row in event["rows"]:
+         validate_row(row, len(event["generalized_velocity_words"]), ceilings)
+-    identities = [tuple(row["joint_handle"]) + (row["link_id"], row["axis"], row["constraint_index"]) for row in event["rows"]]
++    identities = [native_joint_handle_words(row["joint_handle"]) + (row["link_id"], row["axis"], row["constraint_index"]) for row in event["rows"]]
+     require(len(set(identities)) == len(identities), "duplicate supported row identity")
+     before_update = event["stage"] in ["BeforeExternalForces", "AfterExternalForces"]
+     if before_update:
+--- original/test_stage_reader.py
++++ postcollection-handle-schema-repair-v1/test_stage_reader.py
+@@ -20,7 +20,7 @@
+ 
+ 
+ def fixture():
+-    protocol = json.loads((HERE / "protocol-template.json").read_bytes())
++    protocol = json.loads((HERE.parent / "protocol-template.json").read_bytes())
+     parameters = dict(protocol["expected_runtime_parameters"])
+     # Synthetic one-slice arithmetic profile, deliberately not a physical run.
+     parameters.update(num_solver_iterations=1, num_internal_stabilization_iterations=1)
+@@ -28,7 +28,7 @@
+     numeric = F32()
+     g = numeric.inverse(numeric.add(numeric.multiply(numeric.multiply(h, h), f32_bits(1e5)), numeric.multiply(h, f32_bits(1e4))))
+     bound = numeric.multiply(f32_bits(5000), h)
+-    row = {"joint_handle": [3, 0], "link_id": 1, "axis": "LinY", "gain_model": "ForceBased",
++    row = {"joint_handle": {"index": 3, "generation": 0}, "link_id": 1, "axis": "LinY", "gain_model": "ForceBased",
+            "constraint_index": 0, "solver_velocity_offset": 0, "ndofs2": 3, "j_id2": 0,
+            "jacobian_words": [ONE, 0, 0], "weighted_jacobian_words": [f32_bits(2), f32_bits(3), 0],
+            "rhs_word": f32_bits(4), "rhs_without_bias_word": f32_bits(4), "cfm_gain_word": g,

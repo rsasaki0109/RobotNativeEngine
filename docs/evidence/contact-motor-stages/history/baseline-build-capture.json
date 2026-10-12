@@ -1,0 +1,34 @@
+{
+  "captured_utc": "2026-10-12T01:28:34.837600+00:00",
+  "worlds_executed": 0,
+  "source_manifest": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/baseline-source-manifest.json",
+    "sha256": "a1866a717894779fef1beba622617113e93faa0f51d24fdb71969334d7b75518",
+    "bytes": 328748
+  },
+  "binary142": {
+    "path": "/tmp/rne-contact-stage-generation4/binaries/baseline142",
+    "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18",
+    "bytes": 3439056
+  },
+  "binary141": {
+    "path": "/tmp/rne-contact-stage-generation4/binaries/baseline141",
+    "sha256": "dc22283295e05ee5dd48cf581b15d4ca00719a6cc5688187fd1d310f90a0d3e9",
+    "bytes": 3089208
+  },
+  "compiler": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-compiler.json",
+    "sha256": "6c46fe79d3e9c699220e2f76ffc0b3a7a30a041e19c84d1a508b23aaba7d0504",
+    "bytes": 732
+  },
+  "resolved_features": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/baseline-resolved-features.txt",
+    "sha256": "8a6914d3ae9c1089aaaa73071086ec29b764e9b9b5c19bd13908fbbb999c77a5",
+    "bytes": 55984
+  },
+  "build_terminal": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/stage-baseline-release-build-attempt-1/terminal.json",
+    "sha256": "4a355d1ccc5ea411e6d61d9bc80fa1ad7b06d17f8aa2014d2724abe5b5c13815",
+    "bytes": 440
+  }
+}

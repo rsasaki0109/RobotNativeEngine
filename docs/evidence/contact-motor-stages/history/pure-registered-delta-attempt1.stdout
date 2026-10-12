@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "native_worlds": 0,
+  "scope": "pure source-byte reconstruction, no binary/world",
+  "motor_context_is_unique_and_limit_builder_unchanged": true,
+  "rejected": [
+    {
+      "case": "second candidate source path",
+      "actual_error": "candidate source delta is not exactly the old runtime unit-row file"
+    },
+    {
+      "case": "wrong reconstructed runtime source",
+      "actual_error": "candidate compiled source is not exact historical reciprocal hunk reconstruction"
+    },
+    {
+      "case": "removed candidate source path",
+      "actual_error": "candidate added/removed source input paths"
+    },
+    {
+      "case": "candidate equals baseline instead of historical hunk",
+      "actual_error": "candidate source delta is not exactly the old runtime unit-row file"
+    }
+  ]
+}

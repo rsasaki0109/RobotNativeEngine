@@ -1,0 +1,11 @@
+{
+  "started_utc": "2026-10-12T01:34:40.413685+00:00",
+  "command": [
+    "python3",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/run_release_regressions.py"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": null
+}

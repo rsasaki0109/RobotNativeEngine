@@ -1,0 +1,15 @@
+{
+  "status": "ACTUAL_PURE_TEST_FAILED_BEFORE_FREEZE",
+  "exit_code": 1,
+  "native_worlds": 0,
+  "diagnosis": "The rebuilt-diagonal comparator ValueError was caught by the arithmetic-unavailability handler, so a deliberately wrong registered D was classified unavailable instead of rejected. No authoritative data read. Fix the exception scope before freezing; retain this failure and source snapshot.",
+  "source_snapshot": {
+    "audit_coupled_stages.py": "c069dfe40be864cb8c6267971a8280daebec5cda86bc2503d1f4e07a7fcfb0a2",
+    "stage_analysis.py": "ec89f4b6bc35592381f0dd571e5755867768ef8ecb83e58513fee2ff1e5fd57b",
+    "stage_numeric.py": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "stage_schema.py": "58fd8d418b9d02efec9985bb13237af4bb1ab55860c24b6bfa288ea90fc322b0",
+    "test_stage_numeric.py": "a1b4cd648a958c6444fb328e0d4130289f244d1fc05cdcaa947124ad53848ac0",
+    "test_stage_reader.py": "03635cefa6f09b36b2450d42084527d67dd28655b37e354225a804ce8309fd1f"
+  },
+  "stderr_sha256": "3496100cdc61de96843b606cf0135ce6d2204e1ed63553d27a131f3a731b4cc2"
+}

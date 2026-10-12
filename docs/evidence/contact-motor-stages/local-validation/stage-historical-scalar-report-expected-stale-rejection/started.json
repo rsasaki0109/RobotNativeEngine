@@ -1,0 +1,13 @@
+{
+  "started_utc": "2026-10-12T02:23:37.846733+00:00",
+  "command": [
+    "/tmp/rne-contact-stage-generation4/binaries/baseline141",
+    "--verify-report",
+    "docs/media/position-motor-calibration-vendor-lint.json"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": null,
+  "cargo_target_dir": "/tmp/rne-final-ci-cache"
+}

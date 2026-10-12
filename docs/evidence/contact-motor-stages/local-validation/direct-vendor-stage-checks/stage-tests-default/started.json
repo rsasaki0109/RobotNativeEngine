@@ -1,0 +1,31 @@
+{
+  "started_utc": "2026-10-12T01:18:42.019489+00:00",
+  "cwd": "/workspace/RobotNativeEngine",
+  "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--manifest-path",
+    "third_party/rapier3d/Cargo.toml",
+    "--lib",
+    "pipeline::multibody_motor_stage::tests::"
+  ],
+  "selected_nonsecret_environment": {
+    "CARGO_HOME": "/workspace/.rne-tools/cargo",
+    "RUSTUP_HOME": "/workspace/.rne-tools/rustup",
+    "CARGO_TARGET_DIR": "/tmp/rne-final-ci-cache",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RUSTDOCFLAGS": null
+  },
+  "disk_before_bytes": {
+    "/workspace": 192258048,
+    "/tmp": 3201224704
+  },
+  "functional_tests_planned_worlds": 14,
+  "functional_tests_planned_outer_steps": 48,
+  "authoritative_collection_worlds": 0
+}

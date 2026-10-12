@@ -1,0 +1,8 @@
+{
+  "status": "PREPARATION_COMMAND_SYNTAX_ERROR_BEFORE_ANY_SOURCE_PREFLIGHT_OR_FREEZE",
+  "exit_code": 1,
+  "native_worlds": 0,
+  "command_fragment": "from stage_schema import artifact,source_map if False else strict_json",
+  "actual_error": "SyntaxError: invalid syntax",
+  "diagnosis": "Ad hoc preparation import typo. Command failed at parse time; no inputs were altered. Replaced by named prepare_reader_freeze.py."
+}

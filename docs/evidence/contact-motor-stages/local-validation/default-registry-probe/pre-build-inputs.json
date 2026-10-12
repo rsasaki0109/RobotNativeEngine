@@ -1,0 +1,7 @@
+{
+  "scope": "Standalone default backend compile against crates.io Rapier without a root patch; no native worlds executed",
+  "files": {
+    "Cargo.toml": "4dc70cc3fe5606b1c99f2e0c8af93e5d70fe29f79810c8ae0349437afe0023be",
+    "src/main.rs": "56a2061bf985f65d8d259a5cbf8608aca653d3156b81c7f0133ff6eb5a1413ba"
+  }
+}

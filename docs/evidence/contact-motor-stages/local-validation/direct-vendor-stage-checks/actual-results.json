@@ -1,0 +1,117 @@
+{
+  "status": "ACTUAL_STAGE_VENDOR_FUNCTIONAL_CHECKS",
+  "completed_utc": "2026-10-12T01:18:55.258597+00:00",
+  "vendor_source_guard_count": 118,
+  "vendor_inputs_before": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/stage-vendor-checks-attempt-3/vendor-inputs-before-checks.json",
+    "bytes": 16291,
+    "sha256": "e53cc8046414d794a51302887d1f8fdc0180b978c4aa4a6b48598ab3df87cca0"
+  },
+  "vendor_inputs_after": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/stage-vendor-checks-attempt-3/vendor-inputs-after-checks.json",
+    "bytes": 16291,
+    "sha256": "e53cc8046414d794a51302887d1f8fdc0180b978c4aa4a6b48598ab3df87cca0"
+  },
+  "before_after_source_maps_equal": true,
+  "results": [
+    {
+      "name": "clippy-default-all-targets",
+      "ended_utc": "2026-10-12T01:18:20.136207+00:00",
+      "exit_code": 0,
+      "runtime_s": 3.3630652610008838,
+      "vendor_inputs_unchanged": true,
+      "changed_vendor_inputs": [],
+      "log_sha256": "1105f71286dbea3e9c0a2503f35de29d3a6228ffe26fccaf6c8d0a23599702dc",
+      "log_bytes": 142,
+      "capacity_failure": false,
+      "lock_graph_failure": false,
+      "disk_after_bytes": {
+        "/workspace": 192282624,
+        "/tmp": 3232665600
+      },
+      "functional_tests_planned_worlds": 0,
+      "functional_tests_planned_outer_steps": 0,
+      "authoritative_collection_worlds": 0,
+      "terminal_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/stage-vendor-checks-attempt-3/clippy-default-all-targets/terminal.json",
+        "bytes": 583,
+        "sha256": "77039bb359972998ab84c825e7253ac0b698b5dd844cd1e068f504bbf4e23014"
+      }
+    },
+    {
+      "name": "clippy-serde-all-targets",
+      "ended_utc": "2026-10-12T01:18:42.011553+00:00",
+      "exit_code": 0,
+      "runtime_s": 21.856194912994397,
+      "vendor_inputs_unchanged": true,
+      "changed_vendor_inputs": [],
+      "log_sha256": "3c2c3ea899aed49026ec31495648d078677f24fc8f687e4d12056eab1f2c6a71",
+      "log_bytes": 440,
+      "capacity_failure": false,
+      "lock_graph_failure": false,
+      "disk_after_bytes": {
+        "/workspace": 192266240,
+        "/tmp": 3201224704
+      },
+      "functional_tests_planned_worlds": 0,
+      "functional_tests_planned_outer_steps": 0,
+      "authoritative_collection_worlds": 0,
+      "terminal_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/stage-vendor-checks-attempt-3/clippy-serde-all-targets/terminal.json",
+        "bytes": 581,
+        "sha256": "0a82a59055386e580a97d5cc401834a6f9546e7a43be0043cfc35d878735241f"
+      }
+    },
+    {
+      "name": "stage-tests-default",
+      "ended_utc": "2026-10-12T01:18:46.863292+00:00",
+      "exit_code": 0,
+      "runtime_s": 4.8438310740020825,
+      "vendor_inputs_unchanged": true,
+      "changed_vendor_inputs": [],
+      "log_sha256": "2244c1a9a4b093b1353a6c6921dbc9e65e71f8c3419afa403d335d8f66b755d8",
+      "log_bytes": 1284,
+      "capacity_failure": false,
+      "lock_graph_failure": false,
+      "disk_after_bytes": {
+        "/workspace": 192249856,
+        "/tmp": 3194724352
+      },
+      "functional_tests_planned_worlds": 14,
+      "functional_tests_planned_outer_steps": 48,
+      "authoritative_collection_worlds": 0,
+      "terminal_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/stage-vendor-checks-attempt-3/stage-tests-default/terminal.json",
+        "bytes": 579,
+        "sha256": "7ed8d63f9886c77b5ffe683d22e6a9bae2c60a6908b2592dd1ebc2e3fb9c992b"
+      }
+    },
+    {
+      "name": "stage-tests-serde",
+      "ended_utc": "2026-10-12T01:18:55.250059+00:00",
+      "exit_code": 0,
+      "runtime_s": 8.367602117999922,
+      "vendor_inputs_unchanged": true,
+      "changed_vendor_inputs": [],
+      "log_sha256": "573ffb4ece7a7c33016795d00d11a33e1b52577eb8d2e50f7e59cefdc4193944",
+      "log_bytes": 1405,
+      "capacity_failure": false,
+      "lock_graph_failure": false,
+      "disk_after_bytes": {
+        "/workspace": 192233472,
+        "/tmp": 3194265600
+      },
+      "functional_tests_planned_worlds": 14,
+      "functional_tests_planned_outer_steps": 48,
+      "authoritative_collection_worlds": 0,
+      "terminal_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/stage-vendor-checks-attempt-3/stage-tests-serde/terminal.json",
+        "bytes": 576,
+        "sha256": "7aa64846d347556e8319f3f61d609a54bbc2e8750014d72c876372182ca8013f"
+      }
+    }
+  ],
+  "all_requested_checks_passed": true,
+  "scope": "Standalone default dim3/f32 and serde-serialize all-target Clippy plus stage-only unit tests; planned worlds become actual completed counts only after all eight/nine tests pass. No authoritative scientific collection, lint suppression, or source edits by this helper.",
+  "coverage_limitations": "No parallel, f64/dim2/SIMD, MSRV or workspace qualification. Standalone vendor Cargo.toml declares dim3/f32; serde adds serialization only. Full vendor test suite and strict rustdoc remain separate gates."
+}

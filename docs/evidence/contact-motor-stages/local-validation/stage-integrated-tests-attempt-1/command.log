@@ -1,0 +1,141 @@
+   Compiling serde v1.0.228
+   Compiling cobs v0.3.0
+   Compiling smallvec v1.15.2
+   Compiling num-complex v0.4.6
+   Compiling spade v2.15.1
+   Compiling simba v0.9.1
+   Compiling rstar v0.12.2
+   Compiling hashbrown v0.14.5
+   Compiling bevy_utils v0.15.3
+   Compiling bit-vec v0.7.0
+   Compiling bevy_reflect v0.15.3
+   Compiling nalgebra v0.33.3
+   Compiling parry3d v0.17.6
+   Compiling postcard v1.1.3
+   Compiling glam v0.29.3
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+   Compiling bevy_ecs v0.15.4
+   Compiling uuid v1.12.1
+   Compiling rne_math v0.4.0 (/workspace/RobotNativeEngine/crates/rne_math)
+   Compiling rne_core v0.4.0 (/workspace/RobotNativeEngine/crates/rne_core)
+   Compiling simd-adler32 v0.3.9
+   Compiling miniz_oxide v0.8.9
+   Compiling flate2 v1.1.9
+   Compiling position_motor_calibration v0.4.0 (/workspace/RobotNativeEngine/examples/141_position_motor_calibration)
+   Compiling rne_ecs v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ecs)
+   Compiling rne_world v0.4.0 (/workspace/RobotNativeEngine/crates/rne_world)
+   Compiling rne_physics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics)
+   Compiling rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+   Compiling contact_motor_stages v0.4.0 (/workspace/RobotNativeEngine/examples/142_contact_motor_stages)
+    Finished `test` profile [optimized] target(s) in 1m 46s
+     Running unittests lib.rs (/tmp/rne-final-ci-cache/debug/deps/contact_motor_stages-0bbc000b2a5d7bc4)
+
+running 8 tests
+test tests::an_incomplete_success_cannot_emit_a_collected_terminal ... ok
+test tests::collection_error_retains_complete_frames_and_failed_terminal ... ok
+test tests::gzip_encoding_has_fixed_header_and_literal_fresh_replay ... ok
+test tests::gzip_finish_and_sink_flush_errors_are_surfaced ... ok
+test tests::gzip_roundtrip_preserves_ieee_words_and_unavailable_presence ... ok
+test tests::serialization_failure_does_not_insert_half_a_json_line ... ok
+test tests::strict_cli_rejects_undeclared_repeated_and_missing_values ... ok
+test tests::unwind_panic_retains_failed_terminal_and_valid_gzip_footer ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests lib.rs (/tmp/rne-final-ci-cache/debug/deps/position_motor_calibration-8a1cb22653ee9d92)
+
+running 14 tests
+test tests::empty_collection_cannot_claim_primary_calibration_or_replay_qualification ... ok
+test tests::canonical_native_bytes_include_length_order_and_signed_zero ... ok
+test tests::fixed_joint_frames_are_identity_x_without_changing_motor_configuration ... ok
+test tests::fixed_matrix_has_both_signs_and_all_zero_controls_without_a_best_setting ... ok
+test tests::fixed_point_tolerance_is_not_replaced_with_cap_or_sign_qualification ... ok
+test tests::independent_fixed_point_handles_sign_cap_zero_and_unavailable_bounds ... ok
+test tests::missing_first_slice_stays_unavailable_instead_of_using_a_later_partial_sample ... ok
+test tests::native_codec_preserves_special_ieee_bits_and_options_with_strict_framing ... ok
+test tests::native_joint_projection_preserves_private_coordinate_bits_and_full_typed_bytes ... ok
+test tests::public_native_coefficients_match_independent_operation_order_for_every_fixed_cell ... ok
+test tests::scalar_roundtrip_preserves_nan_payload_negative_zero_and_missing ... ok
+test tests::failed_attempts_are_retained_and_a_forged_primary_success_is_rejected_without_worlds ... ok
+test tests::verify_and_output_are_exclusive_and_require_calibration_is_explicit ... ok
+test tests::verifier_rejects_stale_sources_missing_cells_and_forged_summary_without_worlds ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/rne-final-ci-cache/debug/deps/rne_physics_rapier-f073ac0803a92c9f)
+
+running 53 tests
+test backend::motor_stages::tests::native_codec_preserves_ieee_edge_words ... ok
+test backend::motor_stages::tests::stage_queries_reject_unknown_worlds_and_clear_completed_data ... ok
+test backend::tests::accelerating_root_leaves_free_slider_stationary_in_world ... ok
+test backend::tests::ccd_substeps_preserve_root_endpoint_and_free_slider_world_velocity ... ok
+test backend::tests::collider_can_be_added_to_and_removed_from_existing_multibody_link ... ok
+test backend::tests::collision_groups_disable_same_group_contacts ... ok
+test backend::tests::commanded_root_contact_against_fixed_wall_cancels_base_velocity ... ok
+test backend::tests::commanded_root_contact_transfers_prescribed_normal_velocity ... ok
+test backend::tests::commanded_root_pose_and_child_velocity_follow_translation_and_turning ... ok
+test backend::tests::compound_child_contact_points_and_relative_velocities_use_world_frames ... ok
+test backend::tests::compound_spheres_leave_a_gap_and_preserve_declared_mass ... ok
+test backend::tests::convex_hull_raycast_excludes_aabb_corners_and_preserves_declared_mass ... ok
+test backend::tests::convex_hull_rejects_invalid_geometry_and_conflicting_components ... ok
+test backend::tests::deterministic_1000_step_hash ... ok
+test backend::tests::direct_effort_follows_rotated_joint_origin ... ok
+test backend::tests::equally_prescribed_multibodies_have_no_relative_contact_velocity ... ok
+test backend::tests::exact_inertia_replaces_collider_derived_mass_properties ... ok
+test backend::tests::explicit_gain_model_reaches_the_backend_joint ... ok
+test backend::tests::external_wrench_drives_reduced_coordinate_multibody_links ... ok
+test backend::tests::external_wrench_is_world_frame_force_at_point_and_lasts_one_step ... ok
+test backend::tests::external_wrench_rejects_nonfinite_and_fixed_targets_without_mutation ... ok
+test backend::tests::falling_cube_moves_downward ... ok
+test backend::tests::fixed_joint_welds_then_releases_body ... ok
+test backend::tests::floating_offset_com_rotates_about_stationary_center_of_mass ... ok
+test backend::tests::invalid_exact_inertia_is_rejected_before_step ... ok
+test backend::tests::mismatched_unit_explicit_actuation_fails_before_step ... ok
+test backend::tests::motor_gain_lifts_mass_against_gravity ... ok
+test backend::tests::multibody_link_collider_contacts_external_dynamic_body ... ok
+test backend::tests::multibody_motor_lifts_mass_against_gravity ... ok
+test backend::tests::off_center_prismatic_effort_has_zero_net_world_moment ... ok
+test backend::tests::passive_joint_loss_opposes_completed_step_velocity ... ok
+test backend::tests::position_motor_diagnostics_are_unsupported_without_the_patch_feature ... ok
+test backend::tests::position_servo_follows_rotated_joint_origin ... ok
+test backend::tests::raycast_hits_ground ... ok
+test backend::tests::raycast_is_ready_after_sync_and_returns_all_hits_in_distance_order ... ok
+test backend::tests::regularized_coulomb_friction_reduces_coast_velocity ... ok
+test backend::tests::resting_contact_impulse_matches_steady_state_weight ... ok
+test backend::tests::rotating_kinematic_root_with_offset_com_has_correct_com_velocity ... ok
+test backend::tests::rotating_root_transfers_tangential_velocity_through_friction ... ok
+test backend::tests::runtime_sensor_and_collision_group_updates_report_force_free_overlap ... ok
+test backend::tests::signed_contact_separations_include_zero_impulse_and_respect_filters ... ok
+test backend::tests::sync_to_ecs_writes_dynamic_body_velocity ... ok
+test backend::tests::unit_explicit_prismatic_position_velocity_and_effort_move_joint ... ok
+test backend::tests::unit_explicit_revolute_position_velocity_and_effort_move_joint ... ok
+test backend::tests::weld_holds_an_articulated_link_against_its_own_joint ... ok
+test convert::tests::compound_converts_and_rejects_empty ... ok
+test convert::tests::empty_hull_is_rejected ... ok
+test convert::tests::heightfield_converts_and_validates_extent ... ok
+test convert::tests::primitive_shapes_convert ... ok
+test convert::tests::promoted_rotation_has_unit_length_for_f64_transform_inverse ... ok
+test convert::tests::tetrahedral_hull_converts ... ok
+test convert::tests::trimesh_converts_and_rejects_ragged_indices ... ok
+test backend::tests::a_stiff_motor_is_lost_through_an_open_height_field_but_not_through_a_solid_volume ... ok
+
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+   Doc-tests contact_motor_stages
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests position_motor_calibration
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rne_physics_rapier
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

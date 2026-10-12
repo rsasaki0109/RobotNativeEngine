@@ -1,0 +1,13 @@
+{
+  "scope": "Deliberate small-bundle boundaries",
+  "omissions": [
+    "18 raw gzip traces: retained externally in the exact prepared TAR, never copied inline",
+    "Raw TAR and native compiled binaries: large external artifacts, identified by source bindings/retention references",
+    "8.2 MB current and historical scalar reports: separately published/identified artifacts, not duplicated",
+    "Existing generation-3 and vendor-lint public evidence: preserved in existing public directories and hash-referenced",
+    "Duplicate source-guard physical files: literal identical bytes deduplicated with original-path mapping",
+    "Unreferenced preparation drafts, duplicate candidate repair manifests, bytecode caches and transient synthetic files: omitted",
+    "Full repository/dependency/compiler closure: not archived; source maps are explicitly nonexhaustive extension-filtered snapshots",
+    "No successful coupled numerical details exist: all three audits failed before full qualification; no v3 was created"
+  ]
+}

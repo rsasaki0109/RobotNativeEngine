@@ -1,0 +1,168 @@
+{
+  "base_commit": "c515029afed60419bdd69699bd2ece93365e441a",
+  "current_unit_SHA256_at_snapshot": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+  "temporary_rejected_candidate_scope": "Parent-authorized one-file reciprocal hunk used only to compile a rejected candidate. Not adopted baseline. No authoritative-world/runtime proof. Exact rollback must be bound separately before authoritative execution.",
+  "unchanged138_142_constant_names": [
+    "STEP_HZ",
+    "GRAVITY_M_S2",
+    "FRICTION",
+    "CUBE_HALF_M",
+    "PALM_Y_M",
+    "FINGER_DROP_M",
+    "FINGER_X_M",
+    "LIFT_M",
+    "SETTLE_STEPS",
+    "LIFT_STEPS",
+    "HOLD_STEPS"
+  ],
+  "unchanged138_142_helper_blocks": [
+    {
+      "function": "collider",
+      "literal138_142_sha256": "c080197acb148b5238d9fae9fda80f34068f483a16b96cc768ad9fa233654d3f"
+    },
+    {
+      "function": "lift",
+      "literal138_142_sha256": "588aed592967b4b5de1a0a80258c7e2dd73fb811111a76d4d9668d4baea2434a"
+    },
+    {
+      "function": "holding_squeeze_n",
+      "literal138_142_sha256": "f4fc5ab62dbe84eefbbafbabbee6d5285a4b438bb3106b321d5c2b9f746cb914"
+    }
+  ],
+  "unchanged138_142_spawn_scene_raw_sha256": "28bc93c3c91eeb425ea33db6b7f3113770b785427fae84e740480b05d848a822",
+  "unchanged_native_arithmetic_and_contact_files": [
+    {
+      "base_and_current_Git_blob_oid": "9655dbddf466a6075485fcac0ed1df6f0d197d94",
+      "base_and_current_raw_sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "325d550515bcd166d332ed5490aad4aa9d356cf8",
+      "base_and_current_raw_sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+      "path": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "74cbb05bd6691b7c708b0e0ffcefb297ee24f995",
+      "base_and_current_raw_sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+      "path": "third_party/rapier3d/src/dynamics/integration_parameters.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "f531b181233c697d2a19d6c928a6319981f72186",
+      "base_and_current_raw_sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+      "path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "a795d8382aa3eadd34f4e786fe9295b50550e2b4",
+      "base_and_current_raw_sha256": "c26e91059b9eec38ca42bc429c318db900a4c02cbac4417ebdc2f8ecb68780da",
+      "path": "examples/138_heavy_grasp/main.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "c7cc4e03bfb54a507f6850850e4513e6cc03b554",
+      "base_and_current_raw_sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/contact_constraints_set.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "9ac59f7fc167d25da7e96635ab48a627e657953b",
+      "base_and_current_raw_sha256": "cf0e796e3ae5c4257f7fefa30fb9d9a3ea873603839f839fd5d8f5861e427b01",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/generic_one_body_constraint.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "7c1fd8eefb1f4229efd5239f4980e651800821fd",
+      "base_and_current_raw_sha256": "d0f472cc412f133e9c21993c5e6840336e25ff1e57bfd06e8eaeea7d33efbfc9",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/generic_one_body_constraint_element.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "b7a957e7de51844039bd0314a36a73ead1bdd0d3",
+      "base_and_current_raw_sha256": "7243bd963781ecb156a098961c95b1b0ca20601f8df97f22c9934c9af01b3d59",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/generic_two_body_constraint.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "c0a9a86e619ed7358cc38c4036ecaa9413f4fbb9",
+      "base_and_current_raw_sha256": "1fc07787b70e8478760a331cf8868ae4df80a33f879875b212411a8ccf3e3dc3",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/generic_two_body_constraint_element.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "e3b300c26d5118194fbaac5586146c1dadc38a0c",
+      "base_and_current_raw_sha256": "e84c0974d0e9d7594c7e9ae629293182a97ba5a8f9004159ef3fd0079b698e46",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/mod.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "f5f3b5ae85c0e5363ef4f005ab0d026a7c61a7cb",
+      "base_and_current_raw_sha256": "788a8339d73296e43f19134d6c4e844353934e731a984e99d13b842081d24814",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "84fef12b14244cd7215903ae4fcbb6fc437fa43d",
+      "base_and_current_raw_sha256": "4ad8e1a4364135176c56093db6b0bfe24758229915ceb58a60b22c8c59d3bf40",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint_element.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "2988133a354028bb5719e8ecfbf5180853cab5a1",
+      "base_and_current_raw_sha256": "9bd7de1376037f288f5885441810a8c90821d3559fa3233260c61137052f45b5",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/one_body_constraint_simd.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "ade2fed7529cf8066428d0fd0519cb0daec27929",
+      "base_and_current_raw_sha256": "38efa0ceb763d2ac96b2c499f7a6e93d772e135b3cc12a3d6600aaff460e0451",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "91226025ae1149b5ac411e4c9d2ec57ed418f6a9",
+      "base_and_current_raw_sha256": "ea51fabe761507f2649008b8f443835ee2b1ab35fc8eca549f2fc4f1fee35c71",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint_element.rs"
+    },
+    {
+      "base_and_current_Git_blob_oid": "a72342fd3fe008250fb609698a9c86c15b3059aa",
+      "base_and_current_raw_sha256": "81856a02ab15e8b25f1392ef171a459a9a19669ee0006aec08919bb8f8f5eef8",
+      "path": "third_party/rapier3d/src/dynamics/solver/contact_constraint/two_body_constraint_simd.rs"
+    }
+  ],
+  "unchanged_original_function_blocks": [
+    {
+      "function": "init_solver_velocities_and_solver_bodies",
+      "literal_base_current_block_sha256": "c0522c801cf54752432afded6773cc574dea106643fed4e126e24aa2857f5d4e",
+      "path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs"
+    },
+    {
+      "function": "init_constraints",
+      "literal_base_current_block_sha256": "1d77717fde3820a8540b22691b2f2015eb6b36bac4b5c48dba93ececef6f8b4f",
+      "path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs"
+    },
+    {
+      "function": "integrate_positions",
+      "literal_base_current_block_sha256": "87424cd015dd48f059e709fa80554a9ce7dc269eb35b82e89d0078f0809e8432",
+      "path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs"
+    },
+    {
+      "function": "writeback_bodies",
+      "literal_base_current_block_sha256": "10d58e12165decd56ffe4a0e6a800dd67644d1384490dfc3dbb48b6cabb44289",
+      "path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs"
+    },
+    {
+      "function": "solve",
+      "literal_base_current_block_sha256": "3dfbd4e7088e950a100d0b1058ce828d604c895d5af907ec21278b388ba8527e",
+      "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+    },
+    {
+      "function": "solve_wo_bias",
+      "literal_base_current_block_sha256": "82fd3984cb3c8f4aa82ed3dc747242ba72f86b602d926ff40c25fea4efc41561",
+      "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+    },
+    {
+      "function": "update",
+      "literal_base_current_block_sha256": "2d257bd9cfd5c550cf7bffb840844a67a999670205d9a646da03141711a0f646",
+      "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+    },
+    {
+      "function": "writeback_impulses",
+      "literal_base_current_block_sha256": "0ae00b7268858f0dab7095f04fd8bb133fe7b2113fb4ad69c7c4fea787a93923",
+      "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+    },
+    {
+      "function": "init_and_solve",
+      "literal_base_current_block_sha256": "692a58e7994f01ab2119c37f67c11397630cf2c0a88a5a692a5ae613d22f1e7a",
+      "path": "third_party/rapier3d/src/dynamics/solver/island_solver.rs"
+    }
+  ],
+  "unit_motor_base_SHA256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe"
+}

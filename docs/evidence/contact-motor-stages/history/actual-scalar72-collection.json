@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "ACTUAL_CURRENT_SCALAR_72_WORLD_COLLECTION_COMPLETE",
+  "started_utc": "2026-10-12T01:56:43.660828+00:00",
+  "ended_utc": "2026-10-12T01:56:44.234117+00:00",
+  "exit_code": 0,
+  "binding_sha256": "dcb1cb64d326bafc30c4a9aa862c19854935c7467b7e254e227e4a1ae3c3a056",
+  "report_sha256": "db0dee42a3c9067b38241112d5ee402341c0729466d7fc22f12f31504000db76",
+  "source_inputs_unchanged": true,
+  "argv": [
+    "/tmp/rne-contact-stage-generation4/binaries/baseline141",
+    "--output",
+    "/tmp/rne-contact-stage-generation4/current-scalar72.json"
+  ],
+  "stdout": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/scalar72-actual.stdout",
+    "sha256": "5b0c9d9b174967aa5e2fa7d09e928e0b7551a5924538ca5a7eeafa189f82f587",
+    "bytes": 112
+  },
+  "stderr": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/scalar72-actual.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "source_guard_before": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/scalar72-source-before.json",
+    "sha256": "a1866a717894779fef1beba622617113e93faa0f51d24fdb71969334d7b75518",
+    "bytes": 328748
+  },
+  "source_guard_after": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/scalar72-source-after.json",
+    "sha256": "a1866a717894779fef1beba622617113e93faa0f51d24fdb71969334d7b75518",
+    "bytes": 328748
+  }
+}

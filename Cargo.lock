@@ -789,6 +789,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "contact_motor_stages"
+version = "0.4.0"
+dependencies = [
+ "flate2",
+ "postcard",
+ "rne_core",
+ "rne_ecs",
+ "rne_math",
+ "rne_physics",
+ "rne_physics_rapier",
+ "rne_world",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "control_eval_demo"
 version = "0.4.0"
 dependencies = [
@@ -4629,12 +4645,14 @@ name = "rne_physics_rapier"
 version = "0.4.0"
 dependencies = [
  "approx",
+ "postcard",
  "rapier3d",
  "rne_core",
  "rne_ecs",
  "rne_math",
  "rne_physics",
  "rne_world",
+ "serde",
 ]
 
 [[package]]

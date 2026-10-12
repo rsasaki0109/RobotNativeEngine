@@ -1,0 +1,17 @@
+diff --git a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
+index 43cea77e..58e478a5 100644
+--- a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
++++ b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
+@@ -117,7 +117,11 @@ pub fn unit_joint_motor_constraint(
+         impulse_bounds,
+         cfm_coeff: motor_params.cfm_coeff,
+         cfm_gain: motor_params.cfm_gain,
+-        inv_lhs: crate::utils::inv(lhs),
++        inv_lhs: if motor.model == crate::dynamics::MotorModel::ForceBased {
++            crate::utils::inv(lhs + motor_params.cfm_gain)
++        } else {
++            crate::utils::inv(lhs)
++        },
+         rhs: rhs_wo_bias,
+         rhs_wo_bias,
+         // Metadata only: MAX still prevents internal impulse writeback.

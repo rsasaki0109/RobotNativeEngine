@@ -1,5 +1,14 @@
 //! Rapier backend implementation.
 
+#[cfg(feature = "motor-stage-diagnostics")]
+#[path = "motor_stages.rs"]
+mod motor_stages;
+#[cfg(feature = "motor-stage-diagnostics")]
+pub use motor_stages::{
+    MotorStageCheckpointError, MotorStageIntegrationParameters, MotorStageJointBinding,
+    MotorStageNativeCheckpoint, MotorStageNativeRecord, MotorStageNativeRecordKind,
+};
+
 use crate::convert::{
     body_type_to_rapier, isometry_to_transform, quat_to_rapier, shape_to_shared,
     transform_to_isometry, vec3_from_point, vec3_from_rapier, vec3_to_point, vec3_to_rapier,

@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "scope": "pure synthetic source-object transitions only; historical baseline read, no new report read",
+  "native_worlds": 0,
+  "checks": [
+    "source object semantic parity",
+    "literal byte transition only",
+    "historical coverage and 0/4 FAIL retained"
+  ],
+  "tamper_rejections": [
+    "seventh existing source change",
+    "missing preregistered source addition",
+    "undeclared added source path",
+    "accuracy PASS forgery",
+    "literal signed zero spelling",
+    "native IEEE state tamper",
+    "trailing bytes",
+    "old report reinterpreted as new hashes"
+  ]
+}

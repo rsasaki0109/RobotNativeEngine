@@ -1,0 +1,139 @@
+{
+  "actual_exit_code": 1,
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/audit_coupled_stages.py",
+    "--protocol",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+    "--protocol-sha256",
+    "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a",
+    "--collection",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-coupled-collection-index.json",
+    "--collection-sha256",
+    "44ab1050c9386703f65cf765e56d5fa3d09c5b78beba064b6e21f7bb0db65880",
+    "--repair-manifest",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/frozen-repair-manifest.json",
+    "--repair-manifest-sha256",
+    "b640876ff36d3e1ff9821be56e45a0463cd006a8ded04f0a10f9ea36a5c8a366",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/actual-repaired-independent-coupled-audit.json",
+    "--details-directory",
+    "/tmp/rne-contact-stage-generation4/audited-details-repaired-v1"
+  ],
+  "ended_utc": "2026-10-12T02:25:58.388968+00:00",
+  "native_worlds_builds_checkout_mutations_or_original_reader_reruns": 0,
+  "original_and_repaired_reader_protocol_collection_audit_bytes_unchanged": true,
+  "output": {
+    "bytes": 634,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/actual-repaired-independent-coupled-audit.json",
+    "sha256": "90a894c4e72e5dec2ceef84ebfc36d685d912ad08fb5a2ab26899fb04ac2dd5b"
+  },
+  "repaired_reader_registered_after_collection": true,
+  "source_after": [
+    {
+      "bytes": 28021,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/audit_coupled_stages.py",
+      "sha256": "0f220bfb3164334e88840cd7764dac9847240b36f45c5c62d96de1c2245630c5"
+    },
+    {
+      "bytes": 27082,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_analysis.py",
+      "sha256": "280546de515bff9855028d6b5f7c0f2b7d6cb6226ae218ce6eba691e64fd40c8"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20799,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+    },
+    {
+      "bytes": 5609,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/frozen-repair-manifest.json",
+      "sha256": "b640876ff36d3e1ff9821be56e45a0463cd006a8ded04f0a10f9ea36a5c8a366"
+    },
+    {
+      "bytes": 84311,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+      "sha256": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a"
+    },
+    {
+      "bytes": 35380,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-coupled-collection-index.json",
+      "sha256": "44ab1050c9386703f65cf765e56d5fa3d09c5b78beba064b6e21f7bb0db65880"
+    },
+    {
+      "bytes": 437,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-coupled-audit.json",
+      "sha256": "d0611bcc8f9bde4efc816a900797e2aabe96b38500697bbb7d541f1b005facb6"
+    },
+    {
+      "bytes": 2398,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-current-scalar-audit.json",
+      "sha256": "cd068d207114e98562ec7b84221115de6ea01a54e4b72c4c1edfde0a0c2cbe86"
+    }
+  ],
+  "source_before": [
+    {
+      "bytes": 28021,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/audit_coupled_stages.py",
+      "sha256": "0f220bfb3164334e88840cd7764dac9847240b36f45c5c62d96de1c2245630c5"
+    },
+    {
+      "bytes": 27082,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_analysis.py",
+      "sha256": "280546de515bff9855028d6b5f7c0f2b7d6cb6226ae218ce6eba691e64fd40c8"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20799,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+    },
+    {
+      "bytes": 5609,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/frozen-repair-manifest.json",
+      "sha256": "b640876ff36d3e1ff9821be56e45a0463cd006a8ded04f0a10f9ea36a5c8a366"
+    },
+    {
+      "bytes": 84311,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+      "sha256": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a"
+    },
+    {
+      "bytes": 35380,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-coupled-collection-index.json",
+      "sha256": "44ab1050c9386703f65cf765e56d5fa3d09c5b78beba064b6e21f7bb0db65880"
+    },
+    {
+      "bytes": 437,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-coupled-audit.json",
+      "sha256": "d0611bcc8f9bde4efc816a900797e2aabe96b38500697bbb7d541f1b005facb6"
+    },
+    {
+      "bytes": 2398,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-current-scalar-audit.json",
+      "sha256": "cd068d207114e98562ec7b84221115de6ea01a54e4b72c4c1edfde0a0c2cbe86"
+    }
+  ],
+  "started_utc": "2026-10-12T02:25:56.812843+00:00",
+  "status": "ACTUAL_ONCE_ONLY_POSTCOLLECTION_HANDLE_REPAIR_READER_TERMINAL",
+  "stderr": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/actual-repaired-reader-command.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stdout": {
+    "bytes": 387,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/actual-repaired-reader-command.stdout",
+    "sha256": "1fc367b87a5de382da18252b62c625868437a740be1a7ef101fc35aeba5f28f8"
+  }
+}

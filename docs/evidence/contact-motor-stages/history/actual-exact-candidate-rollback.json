@@ -1,0 +1,22 @@
+{
+  "status": "EXACT_BASELINE_SOURCE_RESTORED_BEFORE_ANY_AUTHORITATIVE_WORLD",
+  "ended_utc": "2026-10-12T01:30:32.622656+00:00",
+  "baseline_manifest": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/baseline-source-manifest.json",
+    "sha256": "a1866a717894779fef1beba622617113e93faa0f51d24fdb71969334d7b75518",
+    "bytes": 328748
+  },
+  "candidate_manifest": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/rejected-source-manifest.json",
+    "sha256": "05d63a93b3d07a3950c2cb259b37b07c3b2dedd3301dfb8aae742d4cfe7009c0",
+    "bytes": 328748
+  },
+  "runtime_patch": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/registered-runtime-only-rejected.patch",
+    "sha256": "a4d75610e97ac5fcca76115b854cc7c790c8907e77bb12cf45bd6336af0503e7",
+    "bytes": 928
+  },
+  "changed_inputs_after_rollback": [],
+  "authoritative_coupled_worlds_executed": 0,
+  "authoritative_scalar_worlds_executed": 0
+}

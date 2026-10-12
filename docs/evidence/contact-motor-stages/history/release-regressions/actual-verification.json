@@ -1,0 +1,374 @@
+{
+  "status": "PASS",
+  "audited_utc": "2026-10-12T01:37:40.128365+00:00",
+  "wrapper_actual_exit_code": 0,
+  "source_freeze": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/final-source-freeze.json",
+    "bytes": 131999,
+    "sha256": "b5ca670dc33b8738994449c7d2b49dfa6d8ac784327ee3f4b780cbb5d7d2ac40"
+  },
+  "execution_started": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen4-current-stage-restored-default-release133-138/started.json",
+    "bytes": 378,
+    "sha256": "b7d5aa69bf61ee00e2d13059becd68ef29711bfcfcb861bc12c3c5229f4ad3d0"
+  },
+  "execution_terminal": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen4-current-stage-restored-default-release133-138/terminal.json",
+    "bytes": 439,
+    "sha256": "8557f9c00267fb5a383bb7e4eb424f0a0255be05d4b2b65797f57bd8bbb45cea"
+  },
+  "execution_log": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/gen4-current-stage-restored-default-release133-138/command.log",
+    "bytes": 2982,
+    "sha256": "042144629de5587e18f046e094457754eccf85bb678ed8af3dbe7773e79088da"
+  },
+  "raw_results": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/results.json",
+    "bytes": 3567,
+    "sha256": "06d40bb4ce6d8693d87fd049daeab44586ba1348199b8baee2c21b2e23600ddf"
+  },
+  "tool_freeze_sha256": "27812c1652abc34d91e9c52be9e907ef3d9aeda6a7337b253b939e91be7cf026",
+  "all6_required_complete": true,
+  "baseline": [
+    {
+      "example": "133_go2_contact_terrain",
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain.stdout",
+        "bytes": 445,
+        "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain.physical.txt",
+        "bytes": 445,
+        "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+      },
+      "receipt": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain-result.json",
+        "bytes": 268,
+        "sha256": "8788f413b01bc3eacdc0ddc8b82916e9da560a06d09554dbb77f11b98de5a14f"
+      }
+    },
+    {
+      "example": "134_go2_terrain_trot",
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot.stdout",
+        "bytes": 387,
+        "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot.physical.txt",
+        "bytes": 387,
+        "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+      },
+      "receipt": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot-result.json",
+        "bytes": 262,
+        "sha256": "2a6659a0d15ef0bc422502acf62cabe356540977bdf72e9c9f657972a4e6b703"
+      }
+    },
+    {
+      "example": "135_go2_feedback_trot",
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot.stdout",
+        "bytes": 664,
+        "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot.physical.txt",
+        "bytes": 664,
+        "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+      },
+      "receipt": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot-result.json",
+        "bytes": 263,
+        "sha256": "42b6e16db8862e8203601d94259891337222ae61d6792f3fc09858bd9e6ebee9"
+      }
+    },
+    {
+      "example": "136_go2_parallel_rl",
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl.stdout",
+        "bytes": 569,
+        "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl.physical.txt",
+        "bytes": 501,
+        "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+      },
+      "receipt": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl-result.json",
+        "bytes": 259,
+        "sha256": "024013aa59884ba596eb1ef0c0b01ec73e7bc65af3e69146fad9c298c0b99c8c"
+      }
+    },
+    {
+      "example": "137_go2_native_backend",
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend.stdout",
+        "bytes": 854,
+        "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend.physical.txt",
+        "bytes": 820,
+        "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+      },
+      "receipt": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend-result.json",
+        "bytes": 266,
+        "sha256": "c78742c31340d5b62bb6e98ebc179d7f72b765ffc3d2234ed0784553122c63ab"
+      }
+    },
+    {
+      "example": "138_heavy_grasp",
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp.stdout",
+        "bytes": 1647,
+        "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp.physical.txt",
+        "bytes": 1431,
+        "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+      },
+      "receipt": {
+        "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp-result.json",
+        "bytes": 250,
+        "sha256": "fe4d8d271e839a2e4f2572aa92a8ce273cd22f2679db6cedc045986123fdd4d4"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "example": "133_go2_contact_terrain",
+      "actual_argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_contact_terrain",
+        "--example",
+        "133_go2_contact_terrain"
+      ],
+      "actual_exit_code": 0,
+      "actual_ok_line_present": true,
+      "whole_stdout_timing_only_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/133_go2_contact_terrain.stdout",
+        "bytes": 445,
+        "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/133_go2_contact_terrain.stderr",
+        "bytes": 142,
+        "sha256": "0d6b87a158895388003314579c6de49a485bade9e008d5f655b811c30dae7d64"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/133_go2_contact_terrain.physical.txt",
+        "bytes": 445,
+        "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+      },
+      "process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/133_go2_contact_terrain-process.json",
+        "bytes": 139,
+        "sha256": "7787ee6854e038913c39026a0e72991c4ad91f05be036e655f5220d243ef07fb"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "134_go2_terrain_trot",
+      "actual_argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_terrain_trot",
+        "--example",
+        "134_go2_terrain_trot"
+      ],
+      "actual_exit_code": 0,
+      "actual_ok_line_present": true,
+      "whole_stdout_timing_only_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/134_go2_terrain_trot.stdout",
+        "bytes": 387,
+        "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/134_go2_terrain_trot.stderr",
+        "bytes": 139,
+        "sha256": "d3bf10c78266a8927cad95b899f81cb3baed3c1cbee19915044f73e8f811ead8"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/134_go2_terrain_trot.physical.txt",
+        "bytes": 387,
+        "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+      },
+      "process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/134_go2_terrain_trot-process.json",
+        "bytes": 133,
+        "sha256": "99339fd24a6ea7b0721ecbe937f9997bc8e5c7614df29600594251cb9d95d4aa"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "135_go2_feedback_trot",
+      "actual_argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_feedback_trot",
+        "--example",
+        "135_go2_feedback_trot"
+      ],
+      "actual_exit_code": 0,
+      "actual_ok_line_present": true,
+      "whole_stdout_timing_only_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/135_go2_feedback_trot.stdout",
+        "bytes": 664,
+        "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/135_go2_feedback_trot.stderr",
+        "bytes": 579,
+        "sha256": "23c568422b3b9cc207a9d5a27a1a5a7f183862443bcc59f52744506035469517"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/135_go2_feedback_trot.physical.txt",
+        "bytes": 664,
+        "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+      },
+      "process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/135_go2_feedback_trot-process.json",
+        "bytes": 135,
+        "sha256": "bf53164a4851cbf851ab00318cbf13541115b1bacdce22d93b870b9e040d4d59"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "136_go2_parallel_rl",
+      "actual_argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_parallel_rl",
+        "--example",
+        "136_go2_parallel_rl"
+      ],
+      "actual_exit_code": 0,
+      "actual_ok_line_present": true,
+      "whole_stdout_timing_only_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/136_go2_parallel_rl.stdout",
+        "bytes": 569,
+        "sha256": "fd37736e9410fe50870d5a12e58ffb9c5c656d6b079cde7ebc9ba23382889c8e"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/136_go2_parallel_rl.stderr",
+        "bytes": 234,
+        "sha256": "c979f84d08e2d9cb4da825bc13a4f626ba9b8c8f5615b0ecf679d9994e26cce8"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/136_go2_parallel_rl.physical.txt",
+        "bytes": 501,
+        "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+      },
+      "process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/136_go2_parallel_rl-process.json",
+        "bytes": 131,
+        "sha256": "d4644e5ab2a264e8ce57d7235470fb5fc2ee428106ef2d7b10cb788beb2fa01e"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "137_go2_native_backend",
+      "actual_argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "go2_native_backend",
+        "--example",
+        "137_go2_native_backend"
+      ],
+      "actual_exit_code": 0,
+      "actual_ok_line_present": true,
+      "whole_stdout_timing_only_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/137_go2_native_backend.stdout",
+        "bytes": 853,
+        "sha256": "09d15386890ce481c5f09b8852d8409b0058649c2471e4269d36a07cb90f7c10"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/137_go2_native_backend.stderr",
+        "bytes": 243,
+        "sha256": "dc90a1ccf58cedc0ce4b53b097476cd892cd2d73f477335f961789a7b0c392d5"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/137_go2_native_backend.physical.txt",
+        "bytes": 820,
+        "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+      },
+      "process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/137_go2_native_backend-process.json",
+        "bytes": 137,
+        "sha256": "0e4b4c22c68b048323e85a4967933c2e05848277fdf17c14f9f24fc083805fda"
+      },
+      "unified_physical_diff": []
+    },
+    {
+      "example": "138_heavy_grasp",
+      "actual_argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "heavy_grasp",
+        "--example",
+        "138_heavy_grasp"
+      ],
+      "actual_exit_code": 0,
+      "actual_ok_line_present": true,
+      "whole_stdout_timing_only_literal_match": true,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/138_heavy_grasp.stdout",
+        "bytes": 1647,
+        "sha256": "09fc428b4131a987b58ad347a2505465469bf116f10c0523346f595be08b2d89"
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/138_heavy_grasp.stderr",
+        "bytes": 401,
+        "sha256": "76e2dfcb6ef2bf49f18691e29fc49a3bcf0bedbc14833343071677318a309d85"
+      },
+      "physical_stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/138_heavy_grasp.physical.txt",
+        "bytes": 1431,
+        "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+      },
+      "process_receipt": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results/138_heavy_grasp-process.json",
+        "bytes": 123,
+        "sha256": "71664c71d410ac9387e4c2b77512b69acb98a94a0ff28d952f5e71a7103c0d4c"
+      },
+      "unified_physical_diff": []
+    }
+  ],
+  "selected_source_count": 1116,
+  "wrapper_selected_input_count": 2426,
+  "comparison": "Full original UTF-8 stdout after exactly the three frozen timing regex substitutions; no numerical tolerance or line omission.",
+  "world_accounting": "Separate required example regression collection; not part of planned18 coupled or72 scalar authoritative worlds.",
+  "planned18_coupled_world_count_contribution": 0,
+  "planned72_scalar_world_count_contribution": 0,
+  "reader_native_worlds_executed": 0,
+  "scope": "Printed rounded metrics are compared literally; unprinted precision and exhaustive compiler closure are not inferred."
+}

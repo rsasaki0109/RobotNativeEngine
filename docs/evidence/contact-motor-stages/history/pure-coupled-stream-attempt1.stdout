@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "native_worlds": 0,
+  "scope": "one synthetic 1250-frame triad plus literal replay tampering; no compiled binary invoked",
+  "synthetic_coverage": {
+    "physics_checkpoints": 3750,
+    "immediate_motor_visits": 2500,
+    "stream_record_counts": [
+      1252,
+      1252,
+      1252
+    ]
+  },
+  "rejected": [
+    {
+      "name": "off-signed-zero",
+      "actual_error": "within-build observer physical replay differs at step 1: ecs_physics_ieee_words"
+    },
+    {
+      "name": "fresh-ordered-trace",
+      "actual_error": "fresh ON ordered stage words differ at step 1"
+    }
+  ]
+}

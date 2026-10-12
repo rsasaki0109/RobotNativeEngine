@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "status": "PREPARED_NOT_FROZEN",
+  "registered_utc": null,
+  "base_commit": "c515029afed60419bdd69699bd2ece93365e441a",
+  "authoritative_coupled_worlds": 18,
+  "scalar_qualification_worlds": 72,
+  "fixed_cells": [
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "baseline-m5-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "baseline-m5-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "baseline-m5-off"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "baseline-m20-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "baseline-m20-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "baseline-m20-off"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "baseline-m50-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "baseline-m50-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "baseline-m50-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m5-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m5-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m5-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m20-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m20-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m20-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m50-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m50-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m50-off"
+    }
+  ],
+  "resource_ceilings": {
+    "compressed_bytes_per_run": 536870912,
+    "uncompressed_bytes_per_run": 2147483648,
+    "json_line_bytes": 8388608,
+    "native_record_bytes": 1048576,
+    "native_records_per_step": 32,
+    "native_bindings_per_step": 16,
+    "ecs_words_per_step": 4096,
+    "motor_ndofs": 256,
+    "generic_velocity_words": 4096,
+    "motor_rows_per_event": 8,
+    "events_per_step": 8192,
+    "slices_per_island_partition": 64,
+    "ccd_partitions_per_step": 8
+  },
+  "reader_artifacts": [],
+  "dependency_source_artifacts": [],
+  "candidate_runtime_patch": null,
+  "historical_complete_rejected_patch": null,
+  "preregistration": null,
+  "schema_source_sha256": {},
+  "expected_runtime_parameters": {
+    "dt_word": 990057071,
+    "min_ccd_dt_word": 959365951,
+    "contact_damping_ratio_word": 1084227584,
+    "contact_natural_frequency_word": 1106247680,
+    "joint_natural_frequency_word": 1232348160,
+    "joint_damping_ratio_word": 1065353216,
+    "warmstart_coefficient_word": 1065353216,
+    "length_unit_word": 1065353216,
+    "normalized_allowed_linear_error_word": 981668463,
+    "normalized_max_corrective_velocity_word": 1092616192,
+    "normalized_prediction_distance_word": 990057071,
+    "num_solver_iterations": 4,
+    "num_additional_friction_iterations": 0,
+    "num_internal_pgs_iterations": 1,
+    "num_internal_stabilization_iterations": 2,
+    "min_island_size": 128,
+    "max_ccd_substeps": 1
+  },
+  "scalar_qualification": {
+    "baseline_report": null,
+    "new_report_path": "docs/media/position-motor-calibration-contact-stages.json",
+    "selected_source_sha256_before": {},
+    "selected_source_sha256_after": {},
+    "added_selected_paths": [
+      "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "third_party/rapier3d/src/pipeline/mod.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+    ],
+    "changed_selected_paths": []
+  },
+  "immutable_published_artifacts": [],
+  "root_driver": null
+}

@@ -1,0 +1,71 @@
+{
+  "actual_native_mode_status": "source-bound RN/separate-op normal-zero model; runtime MXCSR unmeasured",
+  "authoritative_collection_outcome": null,
+  "bindings": [
+    {
+      "bytes": 340831,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/baseline-source-binary-binding.json",
+      "sha256": "c4151570b1472f2ce56d467b1dfbac0f008470cb9844c09060d0c99a42034c9a"
+    },
+    {
+      "bytes": 341103,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/rejected_inverse_w_plus_g-source-binary-binding.json",
+      "sha256": "d97777df39d940fe896fc4832e172286ff3909c7a9e9e62548337fae3e334f8d"
+    },
+    {
+      "bytes": 4305,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/scalar-source-binary-binding.json",
+      "sha256": "dcb1cb64d326bafc30c4a9aa862c19854935c7467b7e254e227e4a1ae3c3a056"
+    }
+  ],
+  "both_coupled_binaries_and_scalar_binary_bound_before_collection": true,
+  "candidate_admission": "generation3 REJECTED, unchanged",
+  "candidate_only_exact_runtime_motor_hunk": true,
+  "compile_actual_exit0_receipts": [
+    {
+      "bytes": 440,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/stage-baseline-release-build-attempt-1/terminal.json",
+      "sha256": "4a355d1ccc5ea411e6d61d9bc80fa1ad7b06d17f8aa2014d2724abe5b5c13815"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/stage-rejected-candidate-release-build-attempt-1/terminal.json",
+      "sha256": "1b6d62014b0f3d533f5d4308bf138ac52ce5fd0e8dbe676fbf0adcef2e1fb76c"
+    }
+  ],
+  "current_sources_literal_equal_baseline_manifest": true,
+  "driver": {
+    "bytes": 6387,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/collect_coupled_stages.py",
+    "sha256": "cdfd385f88501de33a13c2a48f16a1ba48e320cecad97bc6a6853982471b0f8f"
+  },
+  "driver_exclusive_output_and_sequential_process_contract_verified": true,
+  "exact_common142_feature_body": {
+    "bytes": 53787,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/common142-resolved-features.txt",
+    "sha256": "fe0381bf5f2f9a23ef71bda72d7c427b9bcd71f11d5fc60736d3172eacc4a167"
+  },
+  "fixed_driver_cells": 18,
+  "native_worlds_builds_or_measurement_audits_executed_by_review": 0,
+  "prior_public_artifact_hash_count": 228,
+  "protocol": {
+    "bytes": 84311,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+    "sha256": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a"
+  },
+  "restored_current_source_inputs": 2426,
+  "retained_metadata_only_review_command_failure": {
+    "bytes": 507,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/retained-concrete-binding-review-metadata-parser-failure.json",
+    "sha256": "d8a1878cd0daf96754fd83a6b4c591ebb56834c5242f29cb6ad6da82252a7bfd"
+  },
+  "reviewed_utc": "2026-10-12T01:54:53.909694+00:00",
+  "scalar_selected_source_transition": {
+    "added": 4,
+    "after": 21,
+    "before": 17,
+    "existing_changed": 6,
+    "other_literal_report_bytes_required_unchanged": true
+  },
+  "status": "PASS_INDEPENDENT_CONCRETE_PRE_WORLD_BINDING_AND_DRIVER_REVIEW"
+}

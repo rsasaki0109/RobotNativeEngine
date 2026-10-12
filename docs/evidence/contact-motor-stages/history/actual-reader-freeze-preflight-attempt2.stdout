@@ -1,0 +1,13 @@
+{
+  "protocol": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+    "sha256": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a",
+    "bytes": 84311
+  },
+  "freeze_receipt": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-reader-protocol-freeze.json",
+    "sha256": "9f185e0c84b85b87ff96637e6759fd03e22713dbf9fc3e5090b0d1904e43d556",
+    "bytes": 9934
+  },
+  "native_worlds": 0
+}

@@ -1,0 +1,92 @@
+{
+  "crates/rne_physics_rapier/src/motor_stages.rs:completed_multibody_motor_stages": {
+    "file_sha256": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da",
+    "line": 171,
+    "path": "crates/rne_physics_rapier/src/motor_stages.rs"
+  },
+  "crates/rne_physics_rapier/src/motor_stages.rs:configure_multibody_motor_stages": {
+    "file_sha256": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da",
+    "line": 157,
+    "path": "crates/rne_physics_rapier/src/motor_stages.rs"
+  },
+  "crates/rne_physics_rapier/src/motor_stages.rs:exact_bytes": {
+    "file_sha256": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da",
+    "line": 133,
+    "path": "crates/rne_physics_rapier/src/motor_stages.rs"
+  },
+  "crates/rne_physics_rapier/src/motor_stages.rs:motor_stage_native_checkpoint": {
+    "file_sha256": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da",
+    "line": 185,
+    "path": "crates/rne_physics_rapier/src/motor_stages.rs"
+  },
+  "examples/141_position_motor_calibration/lib.rs:selected_sources": {
+    "file_sha256": "d52c33ef90beb2393c42f43cbbc59fb2ca43ae55b2351da69f2642c2bbd90576",
+    "line": 229,
+    "path": "examples/141_position_motor_calibration/lib.rs"
+  },
+  "examples/142_contact_motor_stages/lib.rs:collect": {
+    "file_sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58",
+    "line": 406,
+    "path": "examples/142_contact_motor_stages/lib.rs"
+  },
+  "examples/142_contact_motor_stages/lib.rs:ecs_words": {
+    "file_sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58",
+    "line": 578,
+    "path": "examples/142_contact_motor_stages/lib.rs"
+  },
+  "examples/142_contact_motor_stages/lib.rs:record_frame": {
+    "file_sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58",
+    "line": 543,
+    "path": "examples/142_contact_motor_stages/lib.rs"
+  },
+  "examples/142_contact_motor_stages/lib.rs:run_cli": {
+    "file_sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58",
+    "line": 387,
+    "path": "examples/142_contact_motor_stages/lib.rs"
+  },
+  "examples/142_contact_motor_stages/lib.rs:write_run": {
+    "file_sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58",
+    "line": 303,
+    "path": "examples/142_contact_motor_stages/lib.rs"
+  },
+  "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs:snapshot": {
+    "file_sha256": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c",
+    "line": 524,
+    "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+  },
+  "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs:solve_with_motor_stages": {
+    "file_sha256": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c",
+    "line": 390,
+    "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+  },
+  "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs:append_internal_motor_stage_bindings": {
+    "file_sha256": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8",
+    "line": 321,
+    "path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs"
+  },
+  "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs:record_motor_stage": {
+    "file_sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+    "line": 165,
+    "path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs"
+  },
+  "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs:solve_constraints": {
+    "file_sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+    "line": 198,
+    "path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs"
+  },
+  "third_party/rapier3d/src/pipeline/physics_pipeline.rs:completed_multibody_motor_stages": {
+    "file_sha256": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811",
+    "line": 119,
+    "path": "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+  },
+  "third_party/rapier3d/src/pipeline/physics_pipeline.rs:set_multibody_motor_stage_telemetry_enabled": {
+    "file_sha256": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811",
+    "line": 107,
+    "path": "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+  },
+  "third_party/rapier3d/src/pipeline/physics_pipeline.rs:step": {
+    "file_sha256": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811",
+    "line": 496,
+    "path": "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+  }
+}

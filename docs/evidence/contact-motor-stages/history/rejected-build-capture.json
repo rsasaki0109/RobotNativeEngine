@@ -1,0 +1,37 @@
+{
+  "captured_utc": "2026-10-12T01:30:31.846615+00:00",
+  "worlds_executed": 0,
+  "source_manifest": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/rejected-source-manifest.json",
+    "sha256": "05d63a93b3d07a3950c2cb259b37b07c3b2dedd3301dfb8aae742d4cfe7009c0",
+    "bytes": 328748
+  },
+  "binary142": {
+    "path": "/tmp/rne-contact-stage-generation4/binaries/rejected142",
+    "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07",
+    "bytes": 3439088
+  },
+  "compiler": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-compiler.json",
+    "sha256": "6c46fe79d3e9c699220e2f76ffc0b3a7a30a041e19c84d1a508b23aaba7d0504",
+    "bytes": 732
+  },
+  "resolved_features": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/rejected-resolved-features.txt",
+    "sha256": "fe0381bf5f2f9a23ef71bda72d7c427b9bcd71f11d5fc60736d3172eacc4a167",
+    "bytes": 53787
+  },
+  "registered_runtime_patch": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/registered-runtime-only-rejected.patch",
+    "sha256": "a4d75610e97ac5fcca76115b854cc7c790c8907e77bb12cf45bd6336af0503e7",
+    "bytes": 928
+  },
+  "changed_source_paths": [
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs"
+  ],
+  "build_terminal": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/checks/stage-rejected-candidate-release-build-attempt-1/terminal.json",
+    "sha256": "1b6d62014b0f3d533f5d4308bf138ac52ce5fd0e8dbe676fbf0adcef2e1fb76c",
+    "bytes": 441
+  }
+}

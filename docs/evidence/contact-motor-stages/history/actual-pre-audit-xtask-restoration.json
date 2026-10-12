@@ -1,0 +1,8 @@
+{
+  "status": "EXACT_PREDATA_XTASK_BYTES_RESTORED_FOR_READONLY_AUDIT",
+  "registered_utc": "2026-10-12T02:24:45.539463+00:00",
+  "publication_version_sha256": "16201b98b713a4e385d9406c3fe1c860a0b0af4b31e69bb165c978bc3e227ab8",
+  "live_restored_sha256": "a501cd6c65a0bc99725a2a099890eaeaba2f1a2fa2687cb6c18dfd113e4063d1",
+  "expected_predatasha256": "a501cd6c65a0bc99725a2a099890eaeaba2f1a2fa2687cb6c18dfd113e4063d1",
+  "scope": "Temporary CI-report pointer rollback only; simulation code, bindings, raw data and criteria unchanged; restore saved publication bytes after reader terminal."
+}

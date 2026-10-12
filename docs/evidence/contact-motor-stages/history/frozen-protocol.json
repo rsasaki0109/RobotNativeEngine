@@ -1,0 +1,1630 @@
+{
+  "authoritative_coupled_worlds": 18,
+  "base_commit": "c515029afed60419bdd69699bd2ece93365e441a",
+  "candidate_runtime_patch": {
+    "bytes": 928,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/registered-runtime-only-rejected.patch",
+    "sha256": "a4d75610e97ac5fcca76115b854cc7c790c8907e77bb12cf45bd6336af0503e7"
+  },
+  "dependency_source_artifacts": [
+    {
+      "bytes": 44521,
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/base/blas.rs",
+      "sha256": "caa4b5bcc11d4fd4edbb17ee7ce2588421219dc5acf02e60ee1c51ff0fc941ad"
+    },
+    {
+      "bytes": 10660,
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/base/blas_uninit.rs",
+      "sha256": "4a9a23c5b1ba4d621fef724a78a9fbcee0d515674d166afa9aeb04a01221695c"
+    },
+    {
+      "bytes": 46534,
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/base/alias_view.rs",
+      "sha256": "d66a777df5cba1cd8ee94cdb19fc0c711f9e44113518225d3d2a644d5e765082"
+    },
+    {
+      "bytes": 45982,
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/base/matrix_view.rs",
+      "sha256": "5f4321474dfeb4e8ba49208bdf0a9f951ac91cb580cc66ddb26e37826c6c7466"
+    },
+    {
+      "bytes": 10134,
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/base/dimension.rs",
+      "sha256": "feef7ca1133e1a0a1b68e57a36660cc30074f332749f68d8c2105112394ce97a"
+    },
+    {
+      "bytes": 15304,
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/lib.rs",
+      "sha256": "5f1342011be47da06dfb34c91c1c179e4d3b78e8b53fe1b58c022af2e17a45ad"
+    },
+    {
+      "bytes": 24173,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/utils.rs",
+      "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7"
+    },
+    {
+      "bytes": 17536,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb"
+    },
+    {
+      "bytes": 1488,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f"
+    },
+    {
+      "bytes": 4272,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe"
+    },
+    {
+      "bytes": 4653,
+      "path": "/workspace/RobotNativeEngine/examples/142_contact_motor_stages/README.md",
+      "sha256": "af132c31fd170eb5b45be5b415abe13ec58bd0e74f697b13b0490573c19ff3e2"
+    },
+    {
+      "bytes": 732,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-compiler.json",
+      "sha256": "6c46fe79d3e9c699220e2f76ffc0b3a7a30a041e19c84d1a508b23aaba7d0504"
+    },
+    {
+      "bytes": 1253,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-exact142-feature-normalization.json",
+      "sha256": "f25556c3de000f5fb36fe1bd5a66c52ccd782cf69fa8da67340d72f60ddd8b70"
+    },
+    {
+      "bytes": 53787,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/common142-resolved-features.txt",
+      "sha256": "fe0381bf5f2f9a23ef71bda72d7c427b9bcd71f11d5fc60736d3172eacc4a167"
+    },
+    {
+      "bytes": 1581,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/baseline-build-capture.json",
+      "sha256": "fd37b3d9e6f2767279580f45ee78819f2473c84fd010ea601aac7016954e1382"
+    },
+    {
+      "bytes": 1818,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/rejected-build-capture.json",
+      "sha256": "c2adbe17c096c74ac8e11abfb92456c4656e828c242de6500acfae35292326eb"
+    },
+    {
+      "bytes": 1137,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-exact-candidate-rollback.json",
+      "sha256": "dfcaa9dbe22fc786cf9ca6c236c64ba1bafa32685413d81eb1ef04e9ce38bc84"
+    },
+    {
+      "bytes": 3962,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/scalar-source-transition-preregistration.json",
+      "sha256": "cd58e102b295ecb16b7a60b62f02905cd034f4d70caf01fc0e04cd35210e614e"
+    },
+    {
+      "bytes": 2200,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-source-bound-float-contract.json",
+      "sha256": "f04fb0cd5838ae3d85503a9450f0373aa67b4b985e41bad10a579462f58cbc00"
+    }
+  ],
+  "expected_runtime_parameters": {
+    "contact_damping_ratio_word": 1084227584,
+    "contact_natural_frequency_word": 1106247680,
+    "dt_word": 990057071,
+    "joint_damping_ratio_word": 1065353216,
+    "joint_natural_frequency_word": 1232348160,
+    "length_unit_word": 1065353216,
+    "max_ccd_substeps": 1,
+    "min_ccd_dt_word": 959365951,
+    "min_island_size": 128,
+    "normalized_allowed_linear_error_word": 981668463,
+    "normalized_max_corrective_velocity_word": 1092616192,
+    "normalized_prediction_distance_word": 990057071,
+    "num_additional_friction_iterations": 0,
+    "num_internal_pgs_iterations": 1,
+    "num_internal_stabilization_iterations": 2,
+    "num_solver_iterations": 4,
+    "warmstart_coefficient_word": 1065353216
+  },
+  "fixed_cells": [
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "baseline-m5-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "baseline-m5-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "baseline-m5-off"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "baseline-m20-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "baseline-m20-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "baseline-m20-off"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "baseline-m50-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "baseline-m50-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "baseline-m50-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m5-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m5-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m5-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m20-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m20-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m20-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m50-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m50-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m50-off"
+    }
+  ],
+  "historical_complete_rejected_patch": {
+    "bytes": 15075,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/complete-rejected-candidate.patch",
+    "sha256": "08b5932ec3ac3271709c3e665ed631b76bbb51190abe86117333f19ea1b1f3c7"
+  },
+  "immutable_published_artifacts": [
+    {
+      "bytes": 8192861,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration.json",
+      "sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a"
+    },
+    {
+      "bytes": 10140453,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-bincode-generation-1.json",
+      "sha256": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca"
+    },
+    {
+      "bytes": 15762,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-codec-migration.json",
+      "sha256": "257c8ddc628764625980be05bccdc1bd98e73517305ada82db62e98374e880e1"
+    },
+    {
+      "bytes": 8190750,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-diagonal-calibration.json",
+      "sha256": "010576c088b8916c29e2cfcf7af40abfc636508bff1496aacd793a9ba5826816"
+    },
+    {
+      "bytes": 8192861,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-vendor-lint.json",
+      "sha256": "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1"
+    },
+    {
+      "bytes": 103,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/.gitattributes",
+      "sha256": "3a6d4bea98fe732e9153672c6e384203193249605c5c14391f3a711b6364b630"
+    },
+    {
+      "bytes": 5282,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/README.md",
+      "sha256": "292612d8c82af7b74a4f19e11d752dddb9e2bc21083105fe2db5ab1feaa2af0a"
+    },
+    {
+      "bytes": 47858,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/archived-candidate-reconstruction-and-current-default-proof.json",
+      "sha256": "eafa41536ed4e37f288eb28bcce040e618772789cf2f9af7491ff28fdeb9a523"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/133_go2_contact_terrain.stdout",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/134_go2_terrain_trot.stdout",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/135_go2_feedback_trot.stdout",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 569,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/136_go2_parallel_rl.stdout",
+      "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+    },
+    {
+      "bytes": 854,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/137_go2_native_backend.stdout",
+      "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/138_heavy_grasp.stdout",
+      "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+    },
+    {
+      "bytes": 431,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/candidate-application.json",
+      "sha256": "0d7e6916eab8690f4a826353b121ecd6e9dadc6fb64384bce68ddc3b64847666"
+    },
+    {
+      "bytes": 16070,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/ci-review/strict-vendor-lint-doc-scope-review.json",
+      "sha256": "f66f4f218ab9f45f56db4d0cf8884f8c11b27d1a8a7dcc7c347c798e8df8e9ae"
+    },
+    {
+      "bytes": 112,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/command.log",
+      "sha256": "f7ea0d7a48ff57dc6f94e505e54f2ce6e81aada21060940bd9f6d374ae492a65"
+    },
+    {
+      "bytes": 487,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/started.json",
+      "sha256": "c3641e9b3fd582ff376ec4a529075b01b0961ea99c1f1696f54982df4a8cfd54"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/terminal.json",
+      "sha256": "ffd6b0393473237d25b96179fe9d2c737f6af0965728b8da2631664431d72b26"
+    },
+    {
+      "bytes": 11756,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/command.log",
+      "sha256": "c459b3e23070207ad7b3ea09a48466ee4a2cdaf23f5b7db92d01ab4bfa947f01"
+    },
+    {
+      "bytes": 354,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/started.json",
+      "sha256": "215f3b0de14ed8cc5fcc4be18c3bc91cf0961848fd5cbf17b9873250d4862b42"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/terminal.json",
+      "sha256": "e0cab997a221b88c81142c26b158607cd4e9b37d3c4532fa5c7792947054325f"
+    },
+    {
+      "bytes": 2980,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/command.log",
+      "sha256": "bcaa1d6415e53dba0b82c26aa9086b732192547a365882908ebaaddcc4dc916f"
+    },
+    {
+      "bytes": 337,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/started.json",
+      "sha256": "ddac28f75d4b85d19d0f014e2b4dd3328bb4e6958fd255f5aeaeeda88442cdcf"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/terminal.json",
+      "sha256": "3028268ebf666b9f1a63d773c39c57e64e5c49d2cd2f2826153b146aa892cf8d"
+    },
+    {
+      "bytes": 2981,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/command.log",
+      "sha256": "428504fd7b3341032a79e7d7667226fe2cb6d47ea116a483e489d40ad916a3d8"
+    },
+    {
+      "bytes": 353,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/started.json",
+      "sha256": "a3de4bf40f375f03af2ee1dd01b7ae769d8a494fe47d39a5a7f87fb57cb88ed3"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/terminal.json",
+      "sha256": "8cdcc42ff77f16d13981ff0e6c1592767f69ded958dd05fab1af63b5276b56ce"
+    },
+    {
+      "bytes": 3291,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/command.log",
+      "sha256": "b7cdd16d5483a3430b2578ca93391a6a22d0e65d8452d9a809a4705a6743279f"
+    },
+    {
+      "bytes": 327,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/started.json",
+      "sha256": "69d58a00fb667fd20d28a99eb8bb970ab11aa5197d77b0a0dc8991a743b5ab20"
+    },
+    {
+      "bytes": 443,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/terminal.json",
+      "sha256": "6bd410bee6b89d0ec738e45cf9508a5ad0a388a5f4ae2f604a2d391faa5f1d41"
+    },
+    {
+      "bytes": 15075,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/complete-rejected-candidate.patch",
+      "sha256": "08b5932ec3ac3271709c3e665ed631b76bbb51190abe86117333f19ea1b1f3c7"
+    },
+    {
+      "bytes": 1516,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/frozen-binary-binding.json",
+      "sha256": "c7cccc666b5208fbf99e7b0962a3e65a20839ca2ffc689a8182c1002a458f29b"
+    },
+    {
+      "bytes": 2019,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.json",
+      "sha256": "18309e2a1b28a4dc416edd51f5a2bf115f1c7b8b67853580ca5f08114ea2ac7e"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2632,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.stdout.txt",
+      "sha256": "f9dfef537d92307576ddeed16f3ff57ad9086e9c20df6474801e3615ee8f4882"
+    },
+    {
+      "bytes": 50108,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/admission-rejected-release133-138-independent-proof.json",
+      "sha256": "989dcd6169b73374292404376b031b462be8b4f4a639b9b353f5dbd4ec0360c6"
+    },
+    {
+      "bytes": 46585,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/all24-generation2-vs3-descriptive-metrics.json",
+      "sha256": "63bbd9b951b1dc2ad8b79b7e488ca0ef404d88b482d78760a43ea8ac316f6e4e"
+    },
+    {
+      "bytes": 32054,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/audit_candidate_report.py",
+      "sha256": "46121fdec42c45ef3588ae0cf6b26fb0c5b108ae2b32b032719fc50943cac270"
+    },
+    {
+      "bytes": 14330,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/audit_release_admission_readonly.py",
+      "sha256": "9d998d7b086229658e8052b582a02acb725931f3d45b61de2e86eea8d64a52d4"
+    },
+    {
+      "bytes": 12728,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/frozen_candidate_row_oracle.py",
+      "sha256": "10a148a918f192c15979a79aaefe2b32212f3ac04d86980246f87fafdff8eea3"
+    },
+    {
+      "bytes": 148535,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/independent-generation3-exact-fraction-audit.json",
+      "sha256": "7311d98d43470b1bc0ef8cf120307c6417dc213719238484872c650077770611"
+    },
+    {
+      "bytes": 8462,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-independent-tool-freeze.json",
+      "sha256": "6be7550fd0c3fe3eb7894d9ebd70b99fc827ca27a9d8386fa2c0300f739c004d"
+    },
+    {
+      "bytes": 13974,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-pure-oracle-tests-attempt-1.json",
+      "sha256": "11fb39bd050aeb17ce2642f39ae2448c1ec4b1eb14eca7616de4afd091d22558"
+    },
+    {
+      "bytes": 13974,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-pure-oracle-tests.json",
+      "sha256": "64c4c6bd23200e9cb1a409d353757a6087563fb9a01d28c8592ca47b48a8bc11"
+    },
+    {
+      "bytes": 16437,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/preregistered-diagonal-intervention-protocol.json",
+      "sha256": "72fb721272e7f42c38e67560f551dfe041f9b7102219f546906596fcd4868457"
+    },
+    {
+      "bytes": 7908,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/test_candidate_oracle_pure.py",
+      "sha256": "0a91fd5712529bcc011c759c93641e71d21aa25fbd8def57b9ad19fb72c19bb1"
+    },
+    {
+      "bytes": 642,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regression-reader-freeze.json",
+      "sha256": "2ce259b00432f3f0426169a7604c05c71067f5c1d316f0f2786068b89f3fb2ce"
+    },
+    {
+      "bytes": 139,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain-process.json",
+      "sha256": "a8284b88058ac0c2a6114e436ae701a2f21fe82f8a5a819478818f8611f56f33"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.physical.txt",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 1119,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.stderr",
+      "sha256": "bf82d0de3c8e84be107bdbee4c3e2f701bd68c41df95341522ef74b704451cdc"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.stdout",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 133,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot-process.json",
+      "sha256": "9df7f53d47a8bc3ea4ed87b614839bf461aebffe375e4bc131a79f1a1aa8eec5"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.physical.txt",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 220,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.stderr",
+      "sha256": "d40abf242d725a80b99d12f2f9572c7c25af54fd17ac5bf88de0c3aed8d50cb4"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.stdout",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 135,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot-process.json",
+      "sha256": "6e3b60ec1029b82a5b3aefa1c827505802018136b936e7988d0afbede9e4a09b"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.physical.txt",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 12759,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.stderr",
+      "sha256": "b7b8109013c23eaac161318b2c3ed0c6e36ebd62b4e9648e1a29e895068d3321"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.stdout",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 131,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl-process.json",
+      "sha256": "09324f37050f91c7efb581714d91af7f2a22db3acca3bdc46d8c242d37a8d6c8"
+    },
+    {
+      "bytes": 501,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.physical.txt",
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "bytes": 11052,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.stderr",
+      "sha256": "82bbdba2f8fa325ada6ac724d4a286f6cd694e60d14ad60f50ef01b01c91ad32"
+    },
+    {
+      "bytes": 569,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.stdout",
+      "sha256": "48f511e3d035f7cf3ccfbfdced0301ba48b02c3f29e17949c36b964894be1b05"
+    },
+    {
+      "bytes": 137,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend-process.json",
+      "sha256": "4517c8f7a268e298c9958a21a4bca4debc7245aeaa8aa5a68634a5a93b63a394"
+    },
+    {
+      "bytes": 820,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.physical.txt",
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "bytes": 11158,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.stderr",
+      "sha256": "8e43cd03c60fd9c0295bb6bfdc5a1028d167bd7d43a7afe94188c629075d4c03"
+    },
+    {
+      "bytes": 854,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.stdout",
+      "sha256": "582b5f785d217b286525d236537ad6d9adc94ce9cc0aa915e5adbf29fe83b2d7"
+    },
+    {
+      "bytes": 123,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp-process.json",
+      "sha256": "6d4a76d36f00586d519fba254760f88a30763e8f3ded89f99e2b57d939144915"
+    },
+    {
+      "bytes": 1431,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.physical.txt",
+      "sha256": "34ee5085d2c024721cff3d44d25726d0b64cd2bff18d2719cee44b919f9313c6"
+    },
+    {
+      "bytes": 11331,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.stderr",
+      "sha256": "12cc161ac82fb25bf55b5cc6cf3babfbfc5e87cf6af243d915cff646709841cd"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.stdout",
+      "sha256": "9acfe393a77fe2b705b5c5cc33662fcbad5c8e7c7703efe09bf39b6862d31cf1"
+    },
+    {
+      "bytes": 3565,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/results.json",
+      "sha256": "2ab7e727f7353cec525e30cb09276122a304a730851e1380aaab6ab8f42f3f0b"
+    },
+    {
+      "bytes": 24547,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/resolved-feature-tree.txt",
+      "sha256": "420aedcae8a03bd3405a20a0dc8fb689cd6c0888585a48564a6fd9e2aee5fc28"
+    },
+    {
+      "bytes": 139,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain-process.json",
+      "sha256": "5003fdfea0578468a4f575c74c73248444b0dd6aa264ef5489edb3046736a3ce"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.physical.txt",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 125,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.stderr",
+      "sha256": "e4b70399c0de513d529390357d20d4763ad7fa80efc4f018cc1ebaee6dedaa5a"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.stdout",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 133,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot-process.json",
+      "sha256": "6eefd271b2f1f78f4e2378fe68fe33d1cdc923c87bf3fb8f08909e57b16e9dca"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.physical.txt",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 122,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.stderr",
+      "sha256": "c99a1cf693c03e8eccc004bf073da5c6e36cf95f0efc84c1019c3142a497fca8"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.stdout",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 135,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot-process.json",
+      "sha256": "7a90ec54dd555088144c622905597c144bf422a1637dcf708c336ec562a5cfcf"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.physical.txt",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 11397,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.stderr",
+      "sha256": "1842749f6ac3a8e8b02696b35323f70012c43306cd39c8de2a64e5a821cdfc5c"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.stdout",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 131,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl-process.json",
+      "sha256": "08ff09d1910ddedb628e0626aae6ed319934499e2fd2eb5cb90e2e6741c85b5d"
+    },
+    {
+      "bytes": 501,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.physical.txt",
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "bytes": 11052,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.stderr",
+      "sha256": "2f56b47090c94ebc4646fa872fb1f54eefe961db32368dd1eda8101b49a12b9f"
+    },
+    {
+      "bytes": 571,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.stdout",
+      "sha256": "ec72e23cd8d90863f293477613461cfa00e51841b93e46e51ab2e871b42318a6"
+    },
+    {
+      "bytes": 137,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend-process.json",
+      "sha256": "f0a9c7d06225798f1bce30c899cef18322529209e900eb590572f318ad4758fa"
+    },
+    {
+      "bytes": 820,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.physical.txt",
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "bytes": 11061,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.stderr",
+      "sha256": "b73fa2d61bc363e8823dfe40386a1d756a76062d53b6a9c11bc2429e94721f37"
+    },
+    {
+      "bytes": 853,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.stdout",
+      "sha256": "4e807e8b2302f46854890b3a9adc06114e9c8cb84adb64cebd5670a0e9ec638a"
+    },
+    {
+      "bytes": 123,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp-process.json",
+      "sha256": "e76f23c2e434317f25c80874512a711ce1357775c4161a537a7f7630bab7fe4d"
+    },
+    {
+      "bytes": 1431,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.physical.txt",
+      "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+    },
+    {
+      "bytes": 11219,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.stderr",
+      "sha256": "7d9df6d460beb92e0acc5925d8e3d23121a98efd819c3785062917d89c78f0bb"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.stdout",
+      "sha256": "3af6f020d696ebb963bade812ff2b1143532b289693f5e650116bf5080df50f3"
+    },
+    {
+      "bytes": 3566,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/results.json",
+      "sha256": "08aae8cf1b94630277bf9daf6ff3cc8df26aeb755622676ffe6e2247b5330e22"
+    },
+    {
+      "bytes": 2396,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/rollback-to-merged-default.json",
+      "sha256": "ca142b3e63dd6636614a7eba736ffcfbdfd5604321216237bccb5c1c31881930"
+    },
+    {
+      "bytes": 2554,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/run_release_regressions.py",
+      "sha256": "0157b6fb5cf43f8d46c3eee1be76a38c6478d9d9195a80dfa61d3ea4a85cb65a"
+    },
+    {
+      "bytes": 2571,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/run_restored_default_release_regressions.py",
+      "sha256": "7af7ac54d2facdd7176b7fde658823b58b344c4eb34d66aebfa7c3876681214e"
+    },
+    {
+      "bytes": 18497,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/source-compiler-protocol.json",
+      "sha256": "16c085e73638c360126c57d05bd00ee67f3173c5a790ea17b4af528b39642aa8"
+    },
+    {
+      "bytes": 8190750,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-diagonal-calibration.json",
+      "sha256": "010576c088b8916c29e2cfcf7af40abfc636508bff1496aacd793a9ba5826816"
+    },
+    {
+      "bytes": 23833,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/artifact-manifest.json",
+      "sha256": "867ee05c187409cd4c0ad30b6ef2eb557db825ead21c3efdb600dece1ccbb9a2"
+    },
+    {
+      "bytes": 92,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/.gitattributes",
+      "sha256": "05f6d0bbce2ddea46f075ef7f444a5d53e721770a293280deac906ee4c7990c4"
+    },
+    {
+      "bytes": 5596,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/README.md",
+      "sha256": "b73a73626a283766cb7084c0beb8eb984990f1a1674894ef646c422a682c72e6"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/133_go2_contact_terrain.stdout",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/134_go2_terrain_trot.stdout",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/135_go2_feedback_trot.stdout",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 569,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/136_go2_parallel_rl.stdout",
+      "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+    },
+    {
+      "bytes": 854,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/137_go2_native_backend.stdout",
+      "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/138_heavy_grasp.stdout",
+      "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+    },
+    {
+      "bytes": 112,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/command.log",
+      "sha256": "5b0c9d9b174967aa5e2fa7d09e928e0b7551a5924538ca5a7eeafa189f82f587"
+    },
+    {
+      "bytes": 313608,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/inputs-after.json",
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "bytes": 313714,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/inputs-before.json",
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "bytes": 525,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/started.json",
+      "sha256": "0fe3a4f29dc7320905f36f9518bcbff8d32328082175c8505f024e2c588c1afa"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/terminal.json",
+      "sha256": "76f5ff33ef0fc62ff4a9d86825616a7f716ea116498d283c5d4de8817f813beb"
+    },
+    {
+      "bytes": 263,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/command.log",
+      "sha256": "529f845ed7f97c8e977bce5138188ac097797631d2365e21b5a0e771a6b7d958"
+    },
+    {
+      "bytes": 313608,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/inputs-after.json",
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "bytes": 313714,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/inputs-before.json",
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "bytes": 402,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/started.json",
+      "sha256": "e49b23a91522a784b2f4e2e786243da5e733c23788909e6512285450d456b81a"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/terminal.json",
+      "sha256": "44e32a01b6b68c06c2259113fe4106c36e47c690a01f37746913a9a0f7c39e30"
+    },
+    {
+      "bytes": 68,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/command.log",
+      "sha256": "fd1da9cab545501f81688742a0d652c6f084dabf5840c934af4f1648a3634766"
+    },
+    {
+      "bytes": 313608,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/inputs-after.json",
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "bytes": 313714,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/inputs-before.json",
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "bytes": 478,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/started.json",
+      "sha256": "a6fe793285ca410fa5d1f7866009044e3d388854d01166e5b626e8aaaafed8ea"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/terminal.json",
+      "sha256": "a5f0dbf6fd3a9ad6add93a28ff77a4d76fc45575758ce2ac945ece4d57e381f4"
+    },
+    {
+      "bytes": 2980,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/command.log",
+      "sha256": "dbf172b87f72ed9e8db2ab52af46647f2b0d13f91c83c09ba3dab6d73396aad6"
+    },
+    {
+      "bytes": 313608,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/inputs-after.json",
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "bytes": 313714,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/inputs-before.json",
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "bytes": 401,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/started.json",
+      "sha256": "fe0ecdd64f38578cd995fcefe17a72e15b762c0a3b3c0ce15f8aa26fe588f6bb"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/terminal.json",
+      "sha256": "99fcc36f24cfa3e5d9abead36f6d767326dc177916fcb0246b96122849fbbf51"
+    },
+    {
+      "bytes": 5085,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/command.log",
+      "sha256": "9c518c958ad960cbe5a1b0ad0f60f300a4bea63920d72d5b893a02c5eaaac60a"
+    },
+    {
+      "bytes": 313738,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/inputs-after.json",
+      "sha256": "9635b8648f18e12e9df6d3213cc797afb85e63beb8efb2a1ef318b671246dc3f"
+    },
+    {
+      "bytes": 313844,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/inputs-before.json",
+      "sha256": "c68ff86cab2c0ef8f193e35169308fbc807d53c48b7e7abcb802c1dffe962de5"
+    },
+    {
+      "bytes": 511,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/started.json",
+      "sha256": "451f6d13cd34b2b658587a6d1c7bb844decf3f3f92f13b2075581775f5f518f8"
+    },
+    {
+      "bytes": 439,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/terminal.json",
+      "sha256": "2a0b610bd18265854bad9d3d0fdcd27910ff278c2d28cb45fca48bc7c3ff2060"
+    },
+    {
+      "bytes": 4188,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/command.log",
+      "sha256": "2e84c60941f29042e262d8ab0d05861653dd5d29991fd95cd5d6ff53da40ca88"
+    },
+    {
+      "bytes": 326976,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/inputs-after.json",
+      "sha256": "48847f87ccdc998d03ba75013072db71b7056a597b02f23cb7f0d9601dacbd78"
+    },
+    {
+      "bytes": 327082,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/inputs-before.json",
+      "sha256": "ebb50e5cca4f45e6e6c8c6300e64389c62bd5dab3ec487f4ceddc11f6d0c802c"
+    },
+    {
+      "bytes": 401,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/started.json",
+      "sha256": "8c30e94c495764d125c2ae7d36815ecefc9021e22dfa3405707e513324643354"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/terminal.json",
+      "sha256": "bd8378bda05b36331aef0a09fb0f42b0f2172f4b81a64cf5ac4760224739f16d"
+    },
+    {
+      "bytes": 632,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/publication-boundary.json",
+      "sha256": "13a80b521031868cd2418c13e25dea5467ffb91a65f4eb7a5111f2418586e86b"
+    },
+    {
+      "bytes": 139,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain-process.json",
+      "sha256": "42ff01f27869105a17443422794889eaaee6bfc8074fdf17e47e7a51e2b246f7"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.physical.txt",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 142,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.stderr",
+      "sha256": "5af8695fc8c764789fe319580e683c8276180bb91095222b9fb739f203619585"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.stdout",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 133,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot-process.json",
+      "sha256": "0f22037343cb748d402e5278c45b4d86d54f0d3ab53fe51aeab9b5128f51ebcd"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.physical.txt",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 139,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.stderr",
+      "sha256": "71bd69d606baa2949b08e0e58acfc6aea49aabe878097205e8b6f8d446c6cb81"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.stdout",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 135,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot-process.json",
+      "sha256": "4b87a77c4d55d50d1032c343be513542153cc627aa70ea5ad12607a303cb68d7"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.physical.txt",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 579,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.stderr",
+      "sha256": "3e31d5516167c65f06ac4efd2cf5f0a8035c6c72049d54f30d3ee40afbcd5fad"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.stdout",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 131,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl-process.json",
+      "sha256": "117efce85e88aae09b4314ce1ce799c3ef6f36082ee7a2b1af6c228abcd4a210"
+    },
+    {
+      "bytes": 501,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.physical.txt",
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "bytes": 234,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.stderr",
+      "sha256": "5a94cb143645f5df058688d02a8b8823db6e520560b3b0e1c6d74cfe80b82e8e"
+    },
+    {
+      "bytes": 569,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.stdout",
+      "sha256": "5bfd31a9da6d3871806e014d9951349796fdb244c6a35925d9109a8ee2d6dfd5"
+    },
+    {
+      "bytes": 137,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend-process.json",
+      "sha256": "1a744d23dd03950daa0c8ec82c99b28a2875b28033e2ecf435df3486451ee989"
+    },
+    {
+      "bytes": 820,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.physical.txt",
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "bytes": 243,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.stderr",
+      "sha256": "d699d2c37437d35073cf8ccb811d5140567ab3ad27e3dde8d61a6421a1fd682d"
+    },
+    {
+      "bytes": 853,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.stdout",
+      "sha256": "7e81dc1956585638a2e435baa92e439bb6342190955b60c7b2213407a460f810"
+    },
+    {
+      "bytes": 123,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp-process.json",
+      "sha256": "5abd8c35244b55660fbbd5ae865e17fd8ec06a631217d285769b8030a36cf774"
+    },
+    {
+      "bytes": 1431,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.physical.txt",
+      "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+    },
+    {
+      "bytes": 401,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.stderr",
+      "sha256": "a2aedb2fe47027635a409a71fd6573042eb5b2dd2b59e00f3dbbe2de170f9923"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.stdout",
+      "sha256": "f192f19d90ab30f2a168c44d672ebb26e0d4d60070a22fcd3ad1ee68c04f5516"
+    },
+    {
+      "bytes": 3565,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/results.json",
+      "sha256": "c9ffb04d0021f3f4a3c1c872d434b67cecab938b316e6f82987479d08db678ef"
+    },
+    {
+      "bytes": 21551,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-cleanup.patch",
+      "sha256": "4d5527610ceda6ba463fcade04290bf77acc9b9feaeae77ef25ed21574a8c5db"
+    },
+    {
+      "bytes": 1819,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/actual-72-world-collection-receipt.json",
+      "sha256": "1782f6530a924c6fe106a66adfd4d71758e87e53da438a33f0a3d7bb59697ac5"
+    },
+    {
+      "bytes": 2766,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/actual-independent-72-world-audit-command.json",
+      "sha256": "c376577e2e985ff9947024d9aa75f88c425139a498711dd02d7f4b877249d4c2"
+    },
+    {
+      "bytes": 4567,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/actual-independent-72-world-audit.json",
+      "sha256": "8c5ddfdc7b804588c5f9d2545cc9713a6b9932e99015fde7b15202a6c4c08e43"
+    },
+    {
+      "bytes": 18203,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/audit_vendor_lint_report.py",
+      "sha256": "819d72bd9771e6f1cdf6cac0678c4f763dacf03cccc849a29494e7599c2b76ef"
+    },
+    {
+      "bytes": 532,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/binding-preflight-attempt1-error.json",
+      "sha256": "20ae43382268643a2b177d45d7c07554d899569f614d4a03edfb46b7d8265cf2"
+    },
+    {
+      "bytes": 24046,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/frozen-current-source-binary-binding.json",
+      "sha256": "5674fc8586f0832ab1870964eba2afea6c45ab2c09c599525b69a8538442d5dc"
+    },
+    {
+      "bytes": 6638,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/independent-vendor-hygiene-mechanical-readonly-review.json",
+      "sha256": "e2984863efac9bdba3b1400354a19be4bfd8d9e4514e493c4be93a2cb403d9c9"
+    },
+    {
+      "bytes": 16122,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/mechanical-source-independent-review.json",
+      "sha256": "26abf929497ea849c206b15b05d79098377518522a7f6289f60cf0314a779782"
+    },
+    {
+      "bytes": 3359,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/pre-world-independent-reader-freeze.json",
+      "sha256": "7c3daf4e83aaa75fcbdf695be602949f8aba1d4e9d79d1e547df512e7634d9a0"
+    },
+    {
+      "bytes": 26234,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/preregistered-vendor-lint-report-transition-protocol.json",
+      "sha256": "63bc23022227140e658b2c118a5be94aa6f8343e33565f1fd077e4951a61dbb6"
+    },
+    {
+      "bytes": 588,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/pure-reader-self-test-command.json",
+      "sha256": "36cad963067359349aabeb2c2aaf4f68c2924ea7a79ce57b12c14c2ff4a867c2"
+    },
+    {
+      "bytes": 855,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/pure-reader-self-test.stdout.json",
+      "sha256": "f257cdc69f46b0e6189bee2b99ead4298a1b5f982117e72a4becf2db523f6bc8"
+    },
+    {
+      "bytes": 719,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/required-release-reader-freeze.json",
+      "sha256": "9c2e76e8c3b984d9da4bc0f4a13719e38eaee35cec13c2a12386e43e6a907900"
+    },
+    {
+      "bytes": 33443,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/resolved-release-features.json",
+      "sha256": "ced05d09fa6820ae993650eb269261f38ce2d3b263e8d2adeb8ac7eba474e3df"
+    },
+    {
+      "bytes": 2565,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/run_required_release_regressions.py",
+      "sha256": "80a8ae77e2739c89485e2ddc982e0726ccd0172a86920e907f76b73b1d7b12dd"
+    },
+    {
+      "bytes": 17890,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/unfrozen-preflight-reader-before-tamper-fixture-fix.py",
+      "sha256": "e45fb8d1714a9050a06784a6c91c1c020bcffd7d03f78dd136f74939be3fa82e"
+    },
+    {
+      "bytes": 786,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/unfrozen-preflight-tamper-fixture-failure.json",
+      "sha256": "915807388488874b549a112c24d591840bb817c6a0ae456d0e2c67ec8e3f5769"
+    },
+    {
+      "bytes": 346,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/usize-is-multiple-of-official-msrv-read.json",
+      "sha256": "8b35bd9c710f6483ee231ae5e088313a59b8c62c82a15519fca4df4c41f0dc9d"
+    },
+    {
+      "bytes": 2643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/usize-is-multiple-of-official-rust-1-87-source-read.json",
+      "sha256": "8664b3c08977cd4f3536b38fe92f00a1d14527fb6c8a27b1cd0fceb35189931b"
+    },
+    {
+      "bytes": 4474,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/actual-baseline-results.json",
+      "sha256": "7b4477a2794010f1d7f0ccd6463c20f37fa79c13090c87284acffd9edb149483"
+    },
+    {
+      "bytes": 2964,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/actual-results.json",
+      "sha256": "56058ce46c5a6f63bf32493f6a079da3deb25ccac3e2d9a83505acae52326ed8"
+    },
+    {
+      "bytes": 142,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/command.log",
+      "sha256": "4c8a379ce69d2c593de1803c7a92b3e44b121f16d87d8b300163cefda24ec78f"
+    },
+    {
+      "bytes": 769,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/started.json",
+      "sha256": "71fcc085070abc043f86ac369b14808b451d8dc01e7389878a564ef81b247412"
+    },
+    {
+      "bytes": 477,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/terminal.json",
+      "sha256": "acbb3e103c24afcc27b1e9acf7f7fec567f5833aeff5a8c1e5cebeb48d199bda"
+    },
+    {
+      "bytes": 203,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/command.log",
+      "sha256": "427df98e80e90a479ad079e2c16c90097db3588f0e1011ce7efc26cb261e6429"
+    },
+    {
+      "bytes": 735,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/started.json",
+      "sha256": "122cd7e71f01fe5f8f7c3900588ba1b7ec753cc515e422acaf82573f6cde67f8"
+    },
+    {
+      "bytes": 473,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/terminal.json",
+      "sha256": "a63d843d6f4d67ec300960af7d195adffefc4eb02045bf818154c5f7ed14a4b1"
+    },
+    {
+      "bytes": 16017,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/vendor-inputs-after-checks.json",
+      "sha256": "be0ef8e205269cdf3737d20c170bb412b76bf0433f3b78e869e3b38d51004955"
+    },
+    {
+      "bytes": 16017,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/vendor-inputs-before-checks.json",
+      "sha256": "be0ef8e205269cdf3737d20c170bb412b76bf0433f3b78e869e3b38d51004955"
+    },
+    {
+      "bytes": 3776,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/actual-results.json",
+      "sha256": "2693e771599c4be720ffa8dd038019a36cae966b63cc77af3fd9631241d7a444"
+    },
+    {
+      "bytes": 373,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/command.log",
+      "sha256": "2ebb043d51110b95413fa38ffa98e06368fe7aec21d2c5515238392f0ee5d603"
+    },
+    {
+      "bytes": 769,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/started.json",
+      "sha256": "5853cfa1f15bd18c35e1a36d239dc3e6de9749512e46a4b00e4f05af1c3beea1"
+    },
+    {
+      "bytes": 477,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/terminal.json",
+      "sha256": "73c8cbe403c46689175b59eb59de9ee15dba1570b1b78fdf3fb3574ef61762f2"
+    },
+    {
+      "bytes": 142,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/command.log",
+      "sha256": "a2b4bc851367774e2658a996f241da47b8364d4573c38814b69365af64c0928e"
+    },
+    {
+      "bytes": 761,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/started.json",
+      "sha256": "68323f77e4c461821905532c8d1739c09b61b1834f5f9dc903bbbf4cfd2c760d"
+    },
+    {
+      "bytes": 469,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/terminal.json",
+      "sha256": "392182dab76337e7d2b3620d37b1ee4ac46cc67c3f4789879c0fcd5208685455"
+    },
+    {
+      "bytes": 1860,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/command.log",
+      "sha256": "85e8861b5c7b51f2d35660cc49295286a37460aff1cceb875fbb770d7d3ee329"
+    },
+    {
+      "bytes": 735,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/started.json",
+      "sha256": "09339ff4a524839ed92267c4d9eca86e5d7d26e13a63c87acd71b6e5ec7cfa8b"
+    },
+    {
+      "bytes": 476,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/terminal.json",
+      "sha256": "54ac2a4dfd6c8b0ab24c4a7851366413a1b4f0cc9f72d99bd8323b7f600c1d04"
+    },
+    {
+      "bytes": 16017,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/vendor-inputs-after-checks.json",
+      "sha256": "577424c6b7d3df8a49a50b5c77a80c68c022f3d103dba808271df3590c0a612c"
+    },
+    {
+      "bytes": 16017,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/vendor-inputs-before-checks.json",
+      "sha256": "577424c6b7d3df8a49a50b5c77a80c68c022f3d103dba808271df3590c0a612c"
+    },
+    {
+      "bytes": 23676,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/baseline-diagnostic-inventory.json",
+      "sha256": "702429553d90ad0962474d9dda55fa8eb4d8d4ba43c02a8f43c3a56853bcb02b"
+    },
+    {
+      "bytes": 20513,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/command.log",
+      "sha256": "ac1f7b867b9a894b234363701be91b873172bcebef62692b7935c664f4840d5e"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/inputs-after.json",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/inputs-before.json",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 1115,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/started.json",
+      "sha256": "7eb10ab0144e0d1cd763bf7f82e587659985b973723281f11e5d212b76635868"
+    },
+    {
+      "bytes": 1185,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/terminal.json",
+      "sha256": "9eb3bdf2f264006163242eb0a5737348699e46bf035b3e4d71ba1043350c45c3"
+    },
+    {
+      "bytes": 1742,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/documentation-fix-receipt.json",
+      "sha256": "b12df067170aa149d02cc145cb1e0ffb68a6f39d42824f602c0eb882052e2718"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/inputs-baseline.json",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 6028,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/mechanical-edit-receipt.json",
+      "sha256": "93edf6bfac81c008f512d8cb40848b1bc135f479863ddc24bbcaf92591f21feb"
+    },
+    {
+      "bytes": 4019,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/mechanical-final-review.json",
+      "sha256": "4081bd17561e1322196f0443b66370b5a95e9e0fc1e2018a7370489998d2a6b1"
+    },
+    {
+      "bytes": 545,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/command.log",
+      "sha256": "7da73d42fc0dedd5d308c5236e83ec76cece6f876e25939144075a0ddf578f93"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/inputs-after.json",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/inputs-before.json",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 1089,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/started.json",
+      "sha256": "1f3cf4b45ac084e02b3fa6e0c56e3279d07bb6f9541b82c2030f2a1fe96b62cd"
+    },
+    {
+      "bytes": 1191,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/terminal.json",
+      "sha256": "c32ba035452d4b8f8a924ec9ae8b9aa310068432937d76575181a17a208274b8"
+    },
+    {
+      "bytes": 8192861,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-vendor-lint.json",
+      "sha256": "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1"
+    },
+    {
+      "bytes": 28310,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/artifact-manifest.json",
+      "sha256": "606e4d40f38cfec766918d209399b5f720584e94ff8b5467f2d922d538610f22"
+    }
+  ],
+  "preregistration": {
+    "bytes": 11492,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/preregistration.md",
+    "sha256": "288f77348055facf796d31aea7ab32ed2bc8aa92dbe581d62638887f5ca650f6"
+  },
+  "reader_artifacts": [
+    {
+      "bytes": 23720,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_coupled_stages.py",
+      "sha256": "1226021f63fca4021985f4b4ba7a40c2143a9e65146056afef5fdbe62171b71d"
+    },
+    {
+      "bytes": 12586,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_current_scalar_report.py",
+      "sha256": "c1c559fed9d58e4562bfc337e81ceaf0d3f05e4e9a917973c72f640d991bf31d"
+    },
+    {
+      "bytes": 27015,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_analysis.py",
+      "sha256": "7357e77f10c4d9188b69b401212318ba0c0e2aca3bb1baf1f6f25aab7e6d5668"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20489,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_schema.py",
+      "sha256": "58fd8d418b9d02efec9985bb13237af4bb1ab55860c24b6bfa288ea90fc322b0"
+    },
+    {
+      "bytes": 7169,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_stage_numeric.py",
+      "sha256": "a1b4cd648a958c6444fb328e0d4130289f244d1fc05cdcaa947124ad53848ac0"
+    },
+    {
+      "bytes": 13647,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_stage_reader.py",
+      "sha256": "03635cefa6f09b36b2450d42084527d67dd28655b37e354225a804ce8309fd1f"
+    },
+    {
+      "bytes": 3695,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_scalar_transition.py",
+      "sha256": "81d77cdc8b787eb14c0af08b9c13bbd05f7f34559b36ec40e30eb6a6760e2606"
+    },
+    {
+      "bytes": 5249,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_coupled_stream.py",
+      "sha256": "21f62896ffb5052ec939c6cb29aafc3c56426d8021e01e36e67e35b33467be6f"
+    },
+    {
+      "bytes": 1937,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_registered_delta.py",
+      "sha256": "df99b6f5ecdd76ba551fc32a4360de7cd03b649ddaa5d1c3846e4dd04a1b9221"
+    },
+    {
+      "bytes": 8171,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/collection-index-template.json",
+      "sha256": "49816b6db1f6c5ebad2dd6120a92cda79ed42ff043405c8790b02c9bfdbaa7ec"
+    },
+    {
+      "bytes": 1405,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/source-binary-binding-template.json",
+      "sha256": "559797a42696a7db90f0198ca111de6566dbfc642ff58824df5172899a9050c9"
+    },
+    {
+      "bytes": 4857,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/protocol-template.json",
+      "sha256": "b50b93a78bbbf32028456b9ed28fde5080cc700761757849f087af6d9ca5ec33"
+    },
+    {
+      "bytes": 4378,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/collection-contract.md",
+      "sha256": "d6f0da041ca24c3fdeebf9ea1abcbe12f87ab15b3b7383836b481d2d5f8c6ea7"
+    },
+    {
+      "bytes": 6727,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/final-pure-reader-qualification.json",
+      "sha256": "88abb2e739cbe8687a6b71529f75a7e2c21c479fbc6f5e7b128fe06e9475f807"
+    },
+    {
+      "bytes": 9660,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/final-pure-reader-qualification-v2.json",
+      "sha256": "0558a0177c2c4517e26810717ed234ba5e607bb245a0934d1e683253df37a1a8"
+    },
+    {
+      "bytes": 1087,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/pure-reader-attempt1-receipt.json",
+      "sha256": "da05a89d918360dba44ac366ac46666a236b50bbe6eff6e9a4758079b3499520"
+    },
+    {
+      "bytes": 538,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/freeze-preflight-attempt1-receipt.json",
+      "sha256": "8eb63b7674e1400a628c840846d2217f3763688f9abcd7e7b3427cbfe2ef9edc"
+    },
+    {
+      "bytes": 422,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/retained-preparation-inline-syntax-error.json",
+      "sha256": "3b03dc853f198b845b355fa63a33ddc45aa7210ec129f3551229d9b29513c0eb"
+    },
+    {
+      "bytes": 2118,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/final-test_stage_numeric.stdout",
+      "sha256": "591a4d8f7750c197d912779f645c24d297e97b465fc21849ffbf823b24fd66ba"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/final-test_stage_numeric.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1685,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/final-test_stage_reader.stdout",
+      "sha256": "cd5801fe7e1276ad69f53f55afee51523cc9e78d6ea8de67e09169f779c23a24"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/final-test_stage_reader.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 604,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/final-test_scalar_transition.stdout",
+      "sha256": "341a10002ce2160406c5a92667fd8d8510a2683fe267b063447575153d8daff8"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/final-test_scalar_transition.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 609,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/pure-coupled-stream-attempt1.stdout",
+      "sha256": "fc924b47581e507d64365896e441ffabcf9ec8afa6492a81131abbfa41e80dca"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/pure-coupled-stream-attempt1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 814,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/pure-registered-delta-attempt1.stdout",
+      "sha256": "d51d599cd181a48e40ed7dd4974e4096cabbc4a703ad5c36c659558c1b36dc74"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/pure-registered-delta-attempt1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "registered_utc": "2026-10-12T01:48:57.594402+00:00",
+  "resource_ceilings": {
+    "ccd_partitions_per_step": 8,
+    "compressed_bytes_per_run": 536870912,
+    "ecs_words_per_step": 4096,
+    "events_per_step": 8192,
+    "generic_velocity_words": 4096,
+    "json_line_bytes": 8388608,
+    "motor_ndofs": 256,
+    "motor_rows_per_event": 8,
+    "native_bindings_per_step": 16,
+    "native_record_bytes": 1048576,
+    "native_records_per_step": 32,
+    "slices_per_island_partition": 64,
+    "uncompressed_bytes_per_run": 2147483648
+  },
+  "root_driver": {
+    "bytes": 6387,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/collect_coupled_stages.py",
+    "sha256": "cdfd385f88501de33a13c2a48f16a1ba48e320cecad97bc6a6853982471b0f8f"
+  },
+  "scalar_qualification": {
+    "added_selected_paths": [
+      "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "third_party/rapier3d/src/pipeline/mod.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+    ],
+    "baseline_report": {
+      "bytes": 8192861,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-vendor-lint.json",
+      "sha256": "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1"
+    },
+    "changed_selected_paths": [
+      "Cargo.lock",
+      "Cargo.toml",
+      "examples/141_position_motor_calibration/lib.rs",
+      "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+    ],
+    "new_report_path": "docs/media/position-motor-calibration-contact-stages.json",
+    "selected_source_sha256_after": {
+      "Cargo.lock": "6be6d1e137f70c3fcbe7f3c2ebd43778c26a946b29c6f9127b688f61669c3c7a",
+      "Cargo.toml": "c8f9d055367adff565f5aa68ce7b12b871124c8265712e24f736c654b1f2a7b1",
+      "examples/141_position_motor_calibration/Cargo.toml": "da10d51813c520fbbfd65bacc33a4054f79b67cf56aab39964355091a046c6c3",
+      "examples/141_position_motor_calibration/lib.rs": "d52c33ef90beb2393c42f43cbbc59fb2ca43ae55b2351da69f2642c2bbd90576",
+      "examples/141_position_motor_calibration/main.rs": "a302bedd163f14b7c5fc9dcf4bd9836bd6f20a6039ff83dbe3a8b39fa50e4645",
+      "third_party/rapier3d/Cargo.toml": "01d5f1b47c6002e2390a81e15d9ada9dfd92e53dde390f19eb0a5940b112f563",
+      "third_party/rapier3d/src/dynamics/joint/motor_model.rs": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+      "third_party/rapier3d/src/dynamics/rigid_body.rs": "d4c0803bb0f24a9fad3f54e73c5603cba9dcec31f6ad3df8544e6e96b68bebf7",
+      "third_party/rapier3d/src/dynamics/rigid_body_components.rs": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "third_party/rapier3d/src/dynamics/solver/island_solver.rs": "98144ff88b0842debf5375a7d35700cc9a9e2ab23b827f52fd3d0b396fcdd302",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8",
+      "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+      "third_party/rapier3d/src/pipeline/mod.rs": "723a3971ec08b0a5f9fdc07a743b705d09eccd37b4904f27ca0df92f53dbe89c",
+      "third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs": "d361abd9f84a0fca60ee1ef0256c6af7399a835f91b5b59138b7c61c58c9ccd2",
+      "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+      "third_party/rapier3d/src/pipeline/physics_pipeline.rs": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811"
+    },
+    "selected_source_sha256_before": {
+      "Cargo.lock": "a4a0d04bd29eba1b486145d051b2b6e873129cba839ba7ec983a3a63930f52b9",
+      "Cargo.toml": "26592e7a61314192daa0f29644bc07118be1f2516ea8c2a5eaacc04af8a5503d",
+      "examples/141_position_motor_calibration/Cargo.toml": "da10d51813c520fbbfd65bacc33a4054f79b67cf56aab39964355091a046c6c3",
+      "examples/141_position_motor_calibration/lib.rs": "e36a14f545bcdbb64c5a43cbc9c1bb4cc089fc4487dfef039ad6e43191479df2",
+      "examples/141_position_motor_calibration/main.rs": "a302bedd163f14b7c5fc9dcf4bd9836bd6f20a6039ff83dbe3a8b39fa50e4645",
+      "third_party/rapier3d/Cargo.toml": "01d5f1b47c6002e2390a81e15d9ada9dfd92e53dde390f19eb0a5940b112f563",
+      "third_party/rapier3d/src/dynamics/joint/motor_model.rs": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a",
+      "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+      "third_party/rapier3d/src/dynamics/rigid_body.rs": "d4c0803bb0f24a9fad3f54e73c5603cba9dcec31f6ad3df8544e6e96b68bebf7",
+      "third_party/rapier3d/src/dynamics/rigid_body_components.rs": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "third_party/rapier3d/src/dynamics/solver/island_solver.rs": "421d989653ff9d714b71f21c998c6fc83008bdeb51f224237ef6d5aa2be9375b",
+      "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs": "8438959037034a1f52af90dfbbc14ddd87a8e28f91fd9db15b1ccd200a8a5f88",
+      "third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs": "d361abd9f84a0fca60ee1ef0256c6af7399a835f91b5b59138b7c61c58c9ccd2",
+      "third_party/rapier3d/src/pipeline/physics_pipeline.rs": "ed048f72530c3286156e33212671db59828069c20358de99b957ec957e06eb6d"
+    }
+  },
+  "scalar_qualification_worlds": 72,
+  "schema_source_sha256": {
+    "crates/rne_physics_rapier/src/motor_stages.rs": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da",
+    "examples/142_contact_motor_stages/Cargo.toml": "e9c7df8803abbe4d8e67669edbfce429fcb2e84b0dfb74970414ce154076320c",
+    "examples/142_contact_motor_stages/lib.rs": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58",
+    "examples/142_contact_motor_stages/main.rs": "bd1b4eb2e7f50a1d2dffa2c2e9fbcce67d3940f3905985237fa6edc8e265d045",
+    "third_party/rapier3d/src/dynamics/integration_parameters.rs": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+    "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e"
+  },
+  "schema_version": 1,
+  "status": "FROZEN_PRE_DATA_COUPLED_STAGE_PROTOCOL"
+}

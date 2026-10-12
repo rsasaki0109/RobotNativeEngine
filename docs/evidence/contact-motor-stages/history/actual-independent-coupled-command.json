@@ -1,0 +1,105 @@
+{
+  "actual_exit_code": 1,
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_coupled_stages.py",
+    "--protocol",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+    "--protocol-sha256",
+    "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a",
+    "--collection",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-coupled-collection-index.json",
+    "--collection-sha256",
+    "44ab1050c9386703f65cf765e56d5fa3d09c5b78beba064b6e21f7bb0db65880",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-coupled-audit.json",
+    "--details-directory",
+    "/tmp/rne-contact-stage-generation4/audited-details"
+  ],
+  "ended_utc": "2026-10-12T01:59:30.342754+00:00",
+  "mode": "coupled",
+  "native_worlds_builds_or_checkout_mutations_by_reader": 0,
+  "output": {
+    "bytes": 437,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-coupled-audit.json",
+    "sha256": "d0611bcc8f9bde4efc816a900797e2aabe96b38500697bbb7d541f1b005facb6"
+  },
+  "reader_protocol_bytes_unchanged": true,
+  "source_after": [
+    {
+      "bytes": 23720,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_coupled_stages.py",
+      "sha256": "1226021f63fca4021985f4b4ba7a40c2143a9e65146056afef5fdbe62171b71d"
+    },
+    {
+      "bytes": 12586,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_current_scalar_report.py",
+      "sha256": "c1c559fed9d58e4562bfc337e81ceaf0d3f05e4e9a917973c72f640d991bf31d"
+    },
+    {
+      "bytes": 27015,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_analysis.py",
+      "sha256": "7357e77f10c4d9188b69b401212318ba0c0e2aca3bb1baf1f6f25aab7e6d5668"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20489,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_schema.py",
+      "sha256": "58fd8d418b9d02efec9985bb13237af4bb1ab55860c24b6bfa288ea90fc322b0"
+    },
+    {
+      "bytes": 84311,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+      "sha256": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a"
+    }
+  ],
+  "source_before": [
+    {
+      "bytes": 23720,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_coupled_stages.py",
+      "sha256": "1226021f63fca4021985f4b4ba7a40c2143a9e65146056afef5fdbe62171b71d"
+    },
+    {
+      "bytes": 12586,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_current_scalar_report.py",
+      "sha256": "c1c559fed9d58e4562bfc337e81ceaf0d3f05e4e9a917973c72f640d991bf31d"
+    },
+    {
+      "bytes": 27015,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_analysis.py",
+      "sha256": "7357e77f10c4d9188b69b401212318ba0c0e2aca3bb1baf1f6f25aab7e6d5668"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20489,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_schema.py",
+      "sha256": "58fd8d418b9d02efec9985bb13237af4bb1ab55860c24b6bfa288ea90fc322b0"
+    },
+    {
+      "bytes": 84311,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+      "sha256": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a"
+    }
+  ],
+  "started_utc": "2026-10-12T01:59:27.812123+00:00",
+  "status": "ACTUAL_ONCE_ONLY_FROZEN_INDEPENDENT_READER_TERMINAL",
+  "stderr": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-coupled-command.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stdout": {
+    "bytes": 339,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-coupled-command.stdout",
+    "sha256": "88a400536ac2588869c0465cf2e7211bf4d41074a2dcb48117ac1c63a65cf26b"
+  }
+}

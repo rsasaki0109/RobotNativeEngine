@@ -11,6 +11,10 @@ use crate::dynamics::{
     IntegrationParameters, IslandManager, JointGraphEdge, JointIndex, MultibodyJointSet,
     RigidBodySet,
 };
+use crate::pipeline::{
+    motor_stage_event, motor_stage_word, InternalMotorStageBinding, InternalMotorStageContext,
+    MultibodyMotorStage, MultibodyMotorStageEvent, MultibodyMotorStageRow,
+};
 use na::DVector;
 use parry::math::Real;
 
@@ -384,6 +388,77 @@ impl JointConstraintsSet {
         }
     }
 
+    pub(crate) fn solve_with_motor_stages(
+        &mut self,
+        solver_vels: &mut [SolverVel<Real>],
+        generic_solver_vels: &mut DVector<Real>,
+        bindings: &[InternalMotorStageBinding],
+        context: InternalMotorStageContext,
+        events: &mut Vec<MultibodyMotorStageEvent>,
+        remove_bias: bool,
+    ) {
+        // Use the exact same constraint iterator and solve calls as the disabled
+        // path. Inspect only initialized Internal-builder motor rows.
+        let (jac, constraints) = self.iter_constraints_mut();
+        let mut one_body_index = 0;
+        for (visit, mut c) in constraints.enumerate() {
+            let binding = if matches!(
+                c,
+                crate::dynamics::solver::AnyConstraintMut::GenericOneBody(_)
+            ) {
+                let binding = bindings
+                    .iter()
+                    .find(|binding| binding.constraint_index == one_body_index);
+                one_body_index += 1;
+                binding
+            } else {
+                None
+            };
+            let observe = |constraint: &crate::dynamics::solver::AnyConstraintMut<
+                '_,
+                JointConstraintTypes,
+            >,
+                           stage,
+                           velocities: &DVector<Real>,
+                           events: &mut Vec<MultibodyMotorStageEvent>| {
+                if let (
+                    Some(binding),
+                    crate::dynamics::solver::AnyConstraintMut::GenericOneBody(row),
+                ) = (binding, constraint)
+                {
+                    events.push(motor_stage_event(
+                        InternalMotorStageContext { stage, ..context },
+                        Some(visit),
+                        velocities,
+                        vec![binding.snapshot(row, jac)],
+                    ));
+                }
+            };
+            if remove_bias {
+                observe(
+                    &c,
+                    MultibodyMotorStage::BeforeMotorBiasRemoval,
+                    generic_solver_vels,
+                    events,
+                );
+                c.remove_bias();
+            }
+            observe(
+                &c,
+                MultibodyMotorStage::BeforeMotorSolve,
+                generic_solver_vels,
+                events,
+            );
+            c.solve(jac, solver_vels, generic_solver_vels);
+            observe(
+                &c,
+                MultibodyMotorStage::AfterMotorSolve,
+                generic_solver_vels,
+                events,
+            );
+        }
+    }
+
     pub fn writeback_impulses(&mut self, joints_all: &mut [JointGraphEdge]) {
         let (_, constraints) = self.iter_constraints_mut();
         for mut c in constraints {
@@ -441,6 +516,43 @@ impl JointConstraintsSet {
                 solver_bodies,
                 &mut self.simd_velocity_one_body_constraints,
             );
+        }
+    }
+}
+
+impl InternalMotorStageBinding {
+    pub(crate) fn snapshot(
+        &self,
+        row: &JointGenericOneBodyConstraint,
+        jacobians: &DVector<Real>,
+    ) -> MultibodyMotorStageRow {
+        MultibodyMotorStageRow {
+            joint_handle: self.joint_handle,
+            link_id: self.link_id,
+            axis: self.axis,
+            gain_model: self.gain_model,
+            constraint_index: self.constraint_index,
+            solver_velocity_offset: row.solver_vel2,
+            ndofs2: row.ndofs2,
+            j_id2: row.j_id2,
+            jacobian_words: jacobians
+                .rows(row.j_id2, row.ndofs2)
+                .iter()
+                .map(|value| motor_stage_word(*value))
+                .collect(),
+            weighted_jacobian_words: jacobians
+                .rows(row.j_id2 + row.ndofs2, row.ndofs2)
+                .iter()
+                .map(|value| motor_stage_word(*value))
+                .collect(),
+            rhs_word: motor_stage_word(row.rhs),
+            rhs_without_bias_word: motor_stage_word(row.rhs_wo_bias),
+            cfm_gain_word: motor_stage_word(row.cfm_gain),
+            cfm_coefficient_word: motor_stage_word(row.cfm_coeff),
+            inverse_lhs_word: motor_stage_word(row.inv_lhs),
+            impulse_word: motor_stage_word(row.impulse),
+            impulse_bound_words: row.impulse_bounds.map(motor_stage_word),
+            effort_ceiling_word: motor_stage_word(self.effort_ceiling),
         }
     }
 }

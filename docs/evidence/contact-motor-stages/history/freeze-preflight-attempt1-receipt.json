@@ -1,0 +1,8 @@
+{
+  "status": "ACTUAL_READONLY_SOURCE_PREFLIGHT_FAILED_BEFORE_FREEZE",
+  "exit_code": 1,
+  "native_worlds": 0,
+  "authoritative_worlds": 0,
+  "stderr_sha256": "18301ebc4fd6b0bd6899f1154aef7573f9030c1cdf52860961b9ff65fa121320",
+  "diagnosis": "The whole unit source contains the same inv(lhs) field in both a limit and a motor builder. The intended motor replacement must include its unique preceding cfm_gain: motor_params.cfm_gain context, as the literal historical patch does. No protocol file was created and no data was collected."
+}

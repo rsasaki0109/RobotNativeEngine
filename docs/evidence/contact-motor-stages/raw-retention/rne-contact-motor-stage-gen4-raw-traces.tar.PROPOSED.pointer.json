@@ -1,0 +1,8 @@
+{
+  "kind": "rne_docs_evidence_pointer",
+  "original_filename": "rne-contact-motor-stage-gen4-raw-traces.tar",
+  "schema_version": 1,
+  "sha256": "sha256:534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0",
+  "size_bytes": 97996800,
+  "url": "https://github.com/rsasaki0109/RobotNativeEngine/releases/download/evidence-contact-motor-stage-gen4-44ab1050/rne-contact-motor-stage-gen4-raw-traces.tar"
+}

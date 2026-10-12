@@ -7,6 +7,13 @@ pub use multibody_motor_impulse::{
     MultibodyMotorImpulseRecord, MultibodyMotorImpulseSlice, MultibodyMotorImpulseTelemetry,
     MultibodyMotorImpulseValue,
 };
+pub(crate) use multibody_motor_stage::{
+    motor_stage_event, motor_stage_word, InternalMotorStageBinding, InternalMotorStageContext,
+};
+pub use multibody_motor_stage::{
+    MultibodyMotorStage, MultibodyMotorStageEvent, MultibodyMotorStageRow,
+    MultibodyMotorStageTelemetry,
+};
 pub use physics_hooks::{ActiveHooks, ContactModificationContext, PairFilterContext, PhysicsHooks};
 pub use physics_pipeline::PhysicsPipeline;
 pub use query_pipeline::{
@@ -22,6 +29,7 @@ pub use self::debug_render_pipeline::{
 mod collision_pipeline;
 mod event_handler;
 mod multibody_motor_impulse;
+mod multibody_motor_stage;
 mod physics_hooks;
 mod physics_pipeline;
 mod query_pipeline;

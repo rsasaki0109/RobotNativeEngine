@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "scope": "pure post-collection provenance checks, original metadata/hashes only",
+  "native_worlds": 0,
+  "complete_raw_measurement_rereads": 0,
+  "actual_original_failed_audit_retained": true,
+  "checked_original_closure": 4,
+  "checked_repaired_closure": 4,
+  "rejected": [
+    {
+      "case": "literal manifest hash",
+      "actual_error": "repair manifest literal SHA differs"
+    },
+    {
+      "case": "false pre-data repair timestamp",
+      "actual_error": "repair incorrectly claims pre-data registration"
+    },
+    {
+      "case": "original protocol relabel",
+      "actual_error": "repair relabels original pre-data protocol or collection"
+    },
+    {
+      "case": "duplicate new closure",
+      "actual_error": "reader closure is duplicated or changed in scope"
+    },
+    {
+      "case": "criteria changes",
+      "actual_error": "repair provenance/scope differs"
+    },
+    {
+      "case": "scope expansion",
+      "actual_error": "repair expands beyond the source-derived handle/frame metadata"
+    },
+    {
+      "case": "new worlds claimed",
+      "actual_error": "repair provenance/scope differs"
+    }
+  ]
+}

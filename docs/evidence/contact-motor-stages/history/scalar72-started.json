@@ -1,0 +1,10 @@
+{
+  "started_utc": "2026-10-12T01:56:43.660828+00:00",
+  "argv": [
+    "/tmp/rne-contact-stage-generation4/binaries/baseline141",
+    "--output",
+    "/tmp/rne-contact-stage-generation4/current-scalar72.json"
+  ],
+  "binding_sha256": "dcb1cb64d326bafc30c4a9aa862c19854935c7467b7e254e227e4a1ae3c3a056",
+  "declared_authoritative_scalar_worlds": 72
+}

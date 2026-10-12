@@ -1,0 +1,9 @@
+{
+  "collection_sha256_argument": "44ab1050c9386703f65cf765e56d5fa3d09c5b78beba064b6e21f7bb0db65880",
+  "error": "word vector must be a list",
+  "error_type": "ValueError",
+  "historical_candidate_admission": "generation3 REJECTED, unchanged",
+  "native_worlds_executed_by_reader": 0,
+  "protocol_sha256_argument": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a",
+  "status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE"
+}

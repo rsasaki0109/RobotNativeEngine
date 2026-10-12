@@ -1,0 +1,99 @@
+--- postcollection-handle-schema-repair-v1/audit_coupled_stages.py
++++ postcollection-native-frame-schema-repair-v2/audit_coupled_stages.py
+@@ -244,30 +244,42 @@
+ 
+ 
+ def check_repair(args, protocol_record, collection_record):
+-    """Bind an honestly post-collection repair without replacing pre-data facts."""
++    """Bind source-derived handle/frame metadata repair and both prior failures."""
+     repair_record = record_for(args.repair_manifest)
+     require(repair_record["sha256"] == args.repair_manifest_sha256, "repair manifest literal SHA differs")
+     repair = strict_json(Path(args.repair_manifest).read_bytes())
+     keys(repair, ["schema_version", "status", "registered_utc", "original_protocol", "original_collection",
+                   "original_failed_audit", "original_failed_command", "first_frame_diagnosis", "rust_schema_sources",
+                   "original_reader_closure", "repaired_reader_closure", "narrow_diff", "pure_tests", "repair_scope",
+-                  "numerical_formulas_and_scientific_gates_unchanged", "authoritative_worlds_rerun"], "post-collection repair manifest")
+-    require(repair["schema_version"] == 1 and repair["status"] == "FROZEN_POST_COLLECTION_HANDLE_SCHEMA_REPAIR" and
++                  "numerical_formulas_and_scientific_gates_unchanged", "authoritative_worlds_rerun", "prior_repair_manifest",
++                  "prior_repair_failed_audit", "prior_repair_failed_command", "native_frame_diagnosis", "native_frame_sources"], "post-collection repair manifest")
++    require(repair["schema_version"] == 2 and repair["status"] == "FROZEN_POST_COLLECTION_NATIVE_FRAME_SCHEMA_REPAIR_V2" and
+             repair["numerical_formulas_and_scientific_gates_unchanged"] is True and repair["authoritative_worlds_rerun"] == 0,
+             "repair provenance/scope differs")
+     require(literal_equal(repair["original_protocol"], protocol_record) and literal_equal(repair["original_collection"], collection_record),
+             "repair relabels original pre-data protocol or collection")
+     collection = strict_json(Path(collection_record["path"]).read_bytes())
+     require(stamp(collection["ended_utc"]) < stamp(repair["registered_utc"]), "repair incorrectly claims pre-data registration")
+-    require(repair["repair_scope"] == "Native MultibodyJointHandle(Index) serde object metadata and identity only; arithmetic and stage/scientific gates unchanged",
+-            "repair expands beyond the source-derived handle metadata")
+-    for name in ["original_protocol", "original_collection", "original_failed_audit", "original_failed_command", "first_frame_diagnosis", "narrow_diff", "pure_tests"]:
++    require(repair["repair_scope"] == "Native handle object and source-derived palm joint-frame LinX metadata only; arithmetic and all remaining scientific/stage gates unchanged",
++            "repair expands beyond the source-derived handle/frame metadata")
++    for name in ["original_protocol", "original_collection", "original_failed_audit", "original_failed_command", "first_frame_diagnosis", "narrow_diff", "pure_tests",
++                 "prior_repair_manifest", "prior_repair_failed_audit", "prior_repair_failed_command", "native_frame_diagnosis"]:
+         artifact(repair[name])
+-    for record in repair["rust_schema_sources"] + repair["original_reader_closure"] + repair["repaired_reader_closure"]:
++    for record in repair["rust_schema_sources"] + repair["native_frame_sources"] + repair["original_reader_closure"] + repair["repaired_reader_closure"]:
+         artifact(record)
+     failed = strict_json(Path(repair["original_failed_audit"]["path"]).read_bytes())
+     require(failed["status"] == "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE" and failed["error"] == "word vector must be a list",
+             "original failed audit is not retained literally")
++    prior = strict_json(Path(repair["prior_repair_manifest"]["path"]).read_bytes())
++    prior_failed = strict_json(Path(repair["prior_repair_failed_audit"]["path"]).read_bytes())
++    require(repair["prior_repair_manifest"]["sha256"] == "b640876ff36d3e1ff9821be56e45a0463cd006a8ded04f0a10f9ea36a5c8a366" and
++            prior_failed["status"] == "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE" and
++            prior_failed["error"] == "fixed scene exposed a row other than the ForceBased palm LinY motor",
++            "first repaired failed audit/manifest are not retained literally")
++    for record in prior["repaired_reader_closure"]:
++        artifact(record)
++    require(stamp(strict_json(Path(repair["prior_repair_failed_command"]["path"]).read_bytes())["ended_utc"]) < stamp(repair["registered_utc"]),
++            "frame repair falsely precedes the first repaired execution")
+     current = {str(Path(record["path"]).resolve()): record for record in repair["repaired_reader_closure"]}
+     original = {Path(record["path"]).name: record for record in repair["original_reader_closure"]}
+     original_protocol = strict_json(Path(protocol_record["path"]).read_bytes())
+@@ -346,9 +358,10 @@
+             "historical_candidate_admission": "generation3 REJECTED; this measurement does not promote it",
+             "hidden_per_contact_coupling_or_causal_adoption_or_maturity_claim": False,
+             "separate_scalar_qualification_not_inferred_from_this_reader": True,
+-            "post_collection_handle_schema_repair": repair_record,
++            "post_collection_native_frame_schema_repair": repair_record,
+             "repaired_reader_existed_before_data": False,
+             "original_predata_coupled_audit_status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE",
++            "first_postcollection_handle_repair_status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE",
+             "numerical_formulas_and_scientific_stage_gates_unchanged": True}
+ 
+ 
+--- postcollection-handle-schema-repair-v1/stage_analysis.py
++++ postcollection-native-frame-schema-repair-v2/stage_analysis.py
+@@ -270,8 +270,8 @@
+         for row in event["rows"]:
+             handle = native_joint_handle_words(row["joint_handle"])
+             require(handle in bindings and bindings[handle]["link_index"] == row["link_id"], "row/binding native identity mismatch")
+-            require(bindings[handle]["entity_bits"] == palm_entity and row["axis"] == "LinY" and row["gain_model"] == "ForceBased",
+-                    "fixed scene exposed a row other than the ForceBased palm LinY motor")
++            require(bindings[handle]["entity_bits"] == palm_entity and row["axis"] == "LinX" and row["gain_model"] == "ForceBased",
++                    "fixed scene exposed a row other than the ForceBased palm native joint-frame LinX motor")
+             require(row["ndofs2"] == 3, "fixed gripper row block must have all three joint coordinates")
+     motor_slices = 0
+     for group_key, group in groups:
+--- postcollection-handle-schema-repair-v1/test_stage_reader.py
++++ postcollection-native-frame-schema-repair-v2/test_stage_reader.py
+@@ -28,7 +28,7 @@
+     numeric = F32()
+     g = numeric.inverse(numeric.add(numeric.multiply(numeric.multiply(h, h), f32_bits(1e5)), numeric.multiply(h, f32_bits(1e4))))
+     bound = numeric.multiply(f32_bits(5000), h)
+-    row = {"joint_handle": {"index": 3, "generation": 0}, "link_id": 1, "axis": "LinY", "gain_model": "ForceBased",
++    row = {"joint_handle": {"index": 3, "generation": 0}, "link_id": 1, "axis": "LinX", "gain_model": "ForceBased",
+            "constraint_index": 0, "solver_velocity_offset": 0, "ndofs2": 3, "j_id2": 0,
+            "jacobian_words": [ONE, 0, 0], "weighted_jacobian_words": [f32_bits(2), f32_bits(3), 0],
+            "rhs_word": f32_bits(4), "rhs_without_bias_word": f32_bits(4), "cfm_gain_word": g,
+--- postcollection-handle-schema-repair-v1/test_native_handle_shape.py
++++ postcollection-native-frame-schema-repair-v2/test_native_handle_shape.py
+@@ -20,7 +20,7 @@
+     event = frame["stage_telemetry"]["events"][2]
+     row = event["rows"][0]
+     validate_row(row, len(event["generalized_velocity_words"]), protocol["resource_ceilings"])
+-    assert identity(row) == (3, 0, 1, "LinY", 0)
++    assert identity(row) == (3, 0, 1, "LinX", 0)
+     assert row["joint_handle"] == native
+     checked.extend(["row validation uses native object", "identity retains index and generation", "raw native object unmodified"])
+     invalid = [

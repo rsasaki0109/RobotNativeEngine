@@ -1,0 +1,169 @@
+{
+  "added_pure_test": [
+    {
+      "name": "test_native_frame_metadata.py",
+      "scope": "New zero-world synthetic native-frame identity/model tamper test",
+      "source": {
+        "bytes": 2146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/test_native_frame_metadata.py",
+        "sha256": "b9253651f1e3f8a7cb8699e89ef9eeaec8c437fb8aa2cd27919896914eb81cbd"
+      }
+    }
+  ],
+  "analysis_entire_module_literal_and_AST_exact_after_only_native_axis_literal_and_error_text_reverse": true,
+  "audit_AST_exact_after_only_result_provenance_key_reverse": true,
+  "audit_unchanged_function_AST_names": [
+    "audit_cell",
+    "check_binding",
+    "check_candidate_delta",
+    "check_protocol",
+    "main",
+    "read_artifact",
+    "record_for",
+    "source_map",
+    "stamp",
+    "validate_step"
+  ],
+  "candidate_to_final_manifest_changed_keys": [
+    "pure_tests",
+    "registered_utc"
+  ],
+  "copied_sources": [
+    {
+      "literal_equal": false,
+      "name": "audit_coupled_stages.py",
+      "v1": {
+        "bytes": 28021,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/audit_coupled_stages.py",
+        "sha256": "0f220bfb3164334e88840cd7764dac9847240b36f45c5c62d96de1c2245630c5"
+      },
+      "v2": {
+        "bytes": 29341,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/audit_coupled_stages.py",
+        "sha256": "370b5bbadb6113749c66a64852356275bd446be16d3fc39fd6decfd6fd3df7e0"
+      }
+    },
+    {
+      "literal_equal": false,
+      "name": "stage_analysis.py",
+      "v1": {
+        "bytes": 27082,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_analysis.py",
+        "sha256": "280546de515bff9855028d6b5f7c0f2b7d6cb6226ae218ce6eba691e64fd40c8"
+      },
+      "v2": {
+        "bytes": 27101,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/stage_analysis.py",
+        "sha256": "83ad2d32a03a0c85e75707f9bf8f21a813655a60ca643ffd78a7d8f512643f03"
+      }
+    },
+    {
+      "literal_equal": true,
+      "name": "stage_numeric.py",
+      "v1": {
+        "bytes": 11149,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_numeric.py",
+        "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+      },
+      "v2": {
+        "bytes": 11149,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/stage_numeric.py",
+        "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+      }
+    },
+    {
+      "literal_equal": true,
+      "name": "stage_schema.py",
+      "v1": {
+        "bytes": 20799,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_schema.py",
+        "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+      },
+      "v2": {
+        "bytes": 20799,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/stage_schema.py",
+        "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+      }
+    },
+    {
+      "literal_equal": false,
+      "name": "test_native_handle_shape.py",
+      "v1": {
+        "bytes": 2408,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_native_handle_shape.py",
+        "sha256": "17aff236daec25930782ee069f4399fc680a1786791e399bf0bfcb992aa6f709"
+      },
+      "v2": {
+        "bytes": 2408,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/test_native_handle_shape.py",
+        "sha256": "ba36eaf110d34b7285dc8aa56e7b061ff80b967d24e27e9609e90a30c0062773"
+      }
+    },
+    {
+      "literal_equal": true,
+      "name": "test_repair_provenance.py",
+      "v1": {
+        "bytes": 3009,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_repair_provenance.py",
+        "sha256": "1ef1b49577d62a0ee081f9f4117229b3beee84c659ca30497c5567de29166174"
+      },
+      "v2": {
+        "bytes": 3009,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/test_repair_provenance.py",
+        "sha256": "1ef1b49577d62a0ee081f9f4117229b3beee84c659ca30497c5567de29166174"
+      }
+    },
+    {
+      "literal_equal": false,
+      "name": "test_stage_reader.py",
+      "v1": {
+        "bytes": 13677,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_stage_reader.py",
+        "sha256": "5d077cbf231a375856f4551c8f31fad26af5d8030cb657d0ba189fb83e899931"
+      },
+      "v2": {
+        "bytes": 13677,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/test_stage_reader.py",
+        "sha256": "3ce29a9bb2867ab7a56dabcce736ebc784b48291b277842620eceb6574200620"
+      }
+    }
+  ],
+  "fixture_and_handle_test_change_only_native_axis_label": true,
+  "narrow_patch_exact_recomputed": true,
+  "source_frame_chain": [
+    {
+      "artifact": {
+        "bytes": 207940,
+        "path": "/workspace/RobotNativeEngine/crates/rne_physics_rapier/src/backend.rs",
+        "sha256": "32b0bdce3651717bcbefa3f69ef3ebd9dccd450126486f349b57d04c7c1fa7bd"
+      },
+      "scope": "backend maps authored prismatic axis into a native frame and uses the native LinX DOF"
+    },
+    {
+      "artifact": {
+        "bytes": 9208,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/prismatic_joint.rs",
+        "sha256": "00fd5ed682feda771dd4dc4c18883715eaf6970e9a0b604c2145f16db0704604"
+      },
+      "scope": "Rapier prismatic motor/model address LinX independent of spatial direction"
+    },
+    {
+      "artifact": {
+        "bytes": 27313,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+        "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f"
+      },
+      "scope": "Generic joint local principal X is transformed to each body space"
+    },
+    {
+      "artifact": {
+        "bytes": 22717,
+        "path": "/workspace/RobotNativeEngine/examples/142_contact_motor_stages/lib.rs",
+        "sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58"
+      },
+      "scope": "Fixed-case palm uses Vec3Y with identity parent/child rotations and ForceBased model"
+    }
+  ],
+  "stage_numeric_v1_original_v2_byte_identical": true,
+  "stage_schema_v1_v2_byte_identical": true
+}

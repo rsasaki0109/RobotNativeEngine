@@ -1,0 +1,19 @@
+{
+  "name": "stage-tests-default",
+  "ended_utc": "2026-10-12T01:18:46.863292+00:00",
+  "exit_code": 0,
+  "runtime_s": 4.8438310740020825,
+  "vendor_inputs_unchanged": true,
+  "changed_vendor_inputs": [],
+  "log_sha256": "2244c1a9a4b093b1353a6c6921dbc9e65e71f8c3419afa403d335d8f66b755d8",
+  "log_bytes": 1284,
+  "capacity_failure": false,
+  "lock_graph_failure": false,
+  "disk_after_bytes": {
+    "/workspace": 192249856,
+    "/tmp": 3194724352
+  },
+  "functional_tests_planned_worlds": 14,
+  "functional_tests_planned_outer_steps": 48,
+  "authoritative_collection_worlds": 0
+}

@@ -1,0 +1,29 @@
+[package]
+name = "contact_motor_stages"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+flate2 = "=1.1.9"
+postcard = { version = "=1.1.3", default-features = false, features = ["alloc"] }
+rne_core.workspace = true
+rne_ecs.workspace = true
+rne_math.workspace = true
+rne_physics.workspace = true
+rne_physics_rapier = { workspace = true, features = ["motor-stage-diagnostics"] }
+rne_world.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[[example]]
+name = "142_contact_motor_stages"
+path = "main.rs"

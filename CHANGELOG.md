@@ -288,6 +288,20 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Add default-off Rapier contact/motor stage observation and example 142's
+  streaming gzip JSONL collector for the unchanged example 138 held-grasp plant.
+  Retain native row coefficients, full generalized-velocity blocks, immediate
+  motor visits, ordered aggregate contact boundaries and source-bound native
+  entity checkpoints. Preserve partial failures and distinguish collection,
+  replay and numerical assessment. Production actuation and solver arithmetic
+  remain unchanged. Requalify the fixed 72 scalar worlds against the new source
+  binding, preserving every other original report byte and the original
+  primary calibration failure (0/4) and zero-target passes (8/8).
+  Retain all eighteen coupled collection runs and the independent audit failures:
+  two late metadata repairs do not resolve the frozen reader's palm-only gate
+  rejecting genuine native finger rows. Coupled numerical qualification remains
+  failed/unavailable; the earlier inverse-diagonal candidate remains rejected.
+
 - Add example 140 and a README GIF showing 40 warehouse AMRs with seeded
   pickup/delivery dispatch, non-preemptive traffic reservations, charging,
   and route changes around an aisle closure. Record actual robot states and

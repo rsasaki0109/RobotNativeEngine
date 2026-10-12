@@ -1,0 +1,33 @@
+    Checking libc v0.2.186
+    Checking bitflags v2.13.0
+    Checking bytemuck v1.25.0
+    Checking safe_arch v0.7.4
+    Checking byteorder v1.5.0
+    Checking getrandom v0.3.4
+    Checking hash32 v0.3.1
+    Checking ahash v0.8.12
+    Checking wide v0.7.33
+    Checking heapless v0.8.0
+    Checking hashbrown v0.14.5
+    Checking bevy_utils v0.15.3
+    Checking simba v0.9.1
+    Checking rstar v0.12.2
+    Checking bevy_reflect v0.15.3
+    Checking nalgebra v0.33.3
+    Checking getrandom v0.2.17
+    Checking bevy_ecs v0.15.4
+    Checking rne_math v0.4.0 (/workspace/RobotNativeEngine/crates/rne_math)
+    Checking parry3d v0.17.6
+    Checking uuid v1.12.1
+    Checking rne_ecs v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ecs)
+    Checking rne_core v0.4.0 (/workspace/RobotNativeEngine/crates/rne_core)
+    Checking rne_world v0.4.0 (/workspace/RobotNativeEngine/crates/rne_world)
+    Checking rne_physics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics)
+    Checking simd-adler32 v0.3.9
+    Checking miniz_oxide v0.8.9
+    Checking flate2 v1.1.9
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Checking rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+    Checking position_motor_calibration v0.4.0 (/workspace/RobotNativeEngine/examples/141_position_motor_calibration)
+    Checking contact_motor_stages v0.4.0 (/workspace/RobotNativeEngine/examples/142_contact_motor_stages)
+    Finished `dev` profile [optimized] target(s) in 20.02s

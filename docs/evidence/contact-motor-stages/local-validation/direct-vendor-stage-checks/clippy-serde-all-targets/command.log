@@ -1,0 +1,12 @@
+    Checking serde_core v1.0.228
+    Checking serde v1.0.228
+    Checking bitflags v2.13.0
+    Checking serde_json v1.0.150
+    Checking num-complex v0.4.6
+    Checking bit-vec v0.7.0
+    Checking bincode v1.3.3
+    Checking simba v0.9.1
+    Checking nalgebra v0.33.3
+    Checking parry3d v0.17.6
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Finished `dev` profile [unoptimized] target(s) in 21.67s

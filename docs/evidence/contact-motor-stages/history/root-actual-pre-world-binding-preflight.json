@@ -1,0 +1,29 @@
+{
+  "status": "PASS_PRE_WORLD_BINDINGS",
+  "registered_utc": "2026-10-12T01:51:01.205346+00:00",
+  "protocol": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+    "sha256": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a",
+    "bytes": 84311
+  },
+  "coupled_bindings": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/baseline-source-binary-binding.json",
+      "sha256": "c4151570b1472f2ce56d467b1dfbac0f008470cb9844c09060d0c99a42034c9a",
+      "bytes": 340831
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/rejected_inverse_w_plus_g-source-binary-binding.json",
+      "sha256": "d97777df39d940fe896fc4832e172286ff3909c7a9e9e62548337fae3e334f8d",
+      "bytes": 341103
+    }
+  ],
+  "scalar_binding": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/scalar-source-binary-binding.json",
+    "sha256": "dcb1cb64d326bafc30c4a9aa862c19854935c7467b7e254e227e4a1ae3c3a056",
+    "bytes": 4305
+  },
+  "coupled_authoritative_worlds_executed": 0,
+  "scalar_authoritative_worlds_executed": 0,
+  "native_worlds_executed_by_preflight": 0
+}

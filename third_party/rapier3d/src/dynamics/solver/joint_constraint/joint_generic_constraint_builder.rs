@@ -319,6 +319,75 @@ impl JointGenericOneBodyConstraintBuilder {
         }
     }
 
+    pub(crate) fn append_internal_motor_stage_bindings(
+        &self,
+        multibodies: &MultibodyJointSet,
+        constraints: &[JointGenericOneBodyConstraint],
+        bindings: &mut Vec<crate::pipeline::InternalMotorStageBinding>,
+    ) {
+        let Self::Internal(builder) = self else {
+            return;
+        };
+        let multibody = &multibodies[builder.link.multibody];
+        let link = multibody.link(builder.link.id).unwrap();
+        let joint = link.joint();
+        if joint.ndofs() != 1 {
+            return;
+        }
+        let axes = [
+            JointAxis::LinX,
+            JointAxis::LinY,
+            #[cfg(feature = "dim3")]
+            JointAxis::LinZ,
+            JointAxis::AngX,
+            #[cfg(feature = "dim3")]
+            JointAxis::AngY,
+            #[cfg(feature = "dim3")]
+            JointAxis::AngZ,
+        ];
+        let mut free = axes
+            .into_iter()
+            .filter(|axis| !joint.data.locked_axes.contains((*axis).into()));
+        let Some(axis) = free.next() else {
+            return;
+        };
+        if free.next().is_some() || !joint.data.motor_axes.contains(axis.into()) {
+            return;
+        }
+        let Some(end) = builder
+            .constraint_id
+            .checked_add(joint.num_velocity_constraints())
+        else {
+            return;
+        };
+        let Some(rows) = constraints.get(builder.constraint_id..end) else {
+            return;
+        };
+        let mut motors = rows
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| matches!(row.writeback_id, WritebackId::Motor(0)));
+        let Some((offset, row)) = motors.next() else {
+            return;
+        };
+        if motors.next().is_some()
+            || row.joint_id != usize::MAX
+            || row.ndofs2 != multibody.ndofs()
+            || row.ndofs2 == 0
+            || row.solver_vel2 != multibody.solver_id
+        {
+            return;
+        }
+        bindings.push(crate::pipeline::InternalMotorStageBinding {
+            joint_handle: MultibodyJointHandle(link.rigid_body_handle().0),
+            link_id: builder.link.id,
+            axis,
+            gain_model: joint.data.motors[axis as usize].model,
+            constraint_index: builder.constraint_id + offset,
+            effort_ceiling: joint.data.motors[axis as usize].max_force,
+        });
+    }
+
     pub fn invalid() -> Self {
         Self::Empty
     }

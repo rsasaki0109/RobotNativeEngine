@@ -1,0 +1,7 @@
+[package]
+name = "rne-default-rapier-registry-probe"
+version = "0.0.0"
+edition = "2021"
+[workspace]
+[dependencies]
+rne_physics_rapier = { path = "/workspace/RobotNativeEngine/crates/rne_physics_rapier" }

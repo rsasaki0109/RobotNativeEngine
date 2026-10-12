@@ -1,0 +1,19 @@
+{
+  "status": "EXACT_PRE_DATA_README_RECOVERED_OUTSIDE_CHECKOUT",
+  "reviewed_utc": "2026-10-12T02:56:14.429715+00:00",
+  "current_publication_sha256": "634da1ac52c423ae3c7e20f29a8e51caaa6e56e19fdfc683d6af474fdc0b836e",
+  "recovered_original": {
+    "bytes": 4653,
+    "path": "/workspace/RobotNativeEngine/examples/142_contact_motor_stages/README.md",
+    "sha256": "af132c31fd170eb5b45be5b415abe13ec58bd0e74f697b13b0490573c19ff3e2"
+  },
+  "recovered_path": "/tmp/rne-contact-stage-generation4/publication-metadata-recovery/example142-README-predata.md",
+  "removed_scope": "Exactly two authorized publication-only paragraphs; no original record or live source edited",
+  "live_readme_unchanged": true,
+  "retained_first_packaging_failure": {
+    "actual_exit_code": 1,
+    "reason": "Historical bound example142 README differs after authorized publication-only additions",
+    "stderr_sha256": "1019c1727852b715efd966d173294045b583384b7b80cc3f5e1dbcb434b15f66"
+  },
+  "native_data_reads_or_arithmetic": 0
+}

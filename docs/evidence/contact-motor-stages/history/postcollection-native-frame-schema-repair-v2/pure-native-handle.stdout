@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "native_worlds": 0,
+  "scope": "pure Rust-serde object and identity checks; no raw trace read",
+  "checked": [
+    "literal Rust Index object",
+    "u32 maximum and full generation",
+    "JSON object key order does not change identity",
+    "row validation uses native object",
+    "identity retains index and generation",
+    "raw native object unmodified"
+  ],
+  "rejected": [
+    "normalized array is rejected",
+    "tuple fallback rejected",
+    "missing generation",
+    "missing index",
+    "unexpected field",
+    "bool index",
+    "bool generation",
+    "negative index",
+    "negative generation",
+    "index overflow",
+    "generation overflow",
+    "float index",
+    "string generation",
+    "null handle"
+  ]
+}

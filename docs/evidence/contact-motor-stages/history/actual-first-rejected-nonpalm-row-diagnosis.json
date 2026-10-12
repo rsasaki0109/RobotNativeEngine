@@ -1,0 +1,111 @@
+{
+  "admitted_before_rejection": [
+    {
+      "actual_binding": {
+        "entity_bits": 4294967299,
+        "joint_handle_words": [
+          3,
+          0
+        ],
+        "link_index": 1,
+        "multibody_handle_words": [
+          0,
+          0
+        ]
+      },
+      "axis": "LinX",
+      "event_ordinal": 2,
+      "gain_model": "ForceBased",
+      "handle": {
+        "generation": 0,
+        "index": 3
+      },
+      "island": 0,
+      "iteration": null,
+      "link": 1,
+      "partition": 0,
+      "row_ordinal": 0,
+      "slice": 0,
+      "stage": "AfterJointUpdate",
+      "visit": null
+    }
+  ],
+  "diagnosis": "AfterJointUpdate legitimately exposes a second single-DoF native motor row bound to left finger entity4294967300/link2, native LinX/AccelerationBased. The source collector appends supported internal builders without a palm-only filter; it does not mislabel this row as palm. Frozen reader assumes every observed supported row must be the one ForceBased palm. Genuine additional rows violate its registered admissibility/gates; selected palm identity is unchanged. No gate is widened or nonpalm row treated as palm.",
+  "first_rejected_row": {
+    "actual_binding": {
+      "entity_bits": 4294967300,
+      "joint_handle_words": [
+        4,
+        0
+      ],
+      "link_index": 2,
+      "multibody_handle_words": [
+        0,
+        0
+      ]
+    },
+    "axis": "LinX",
+    "event_ordinal": 2,
+    "gain_model": "AccelerationBased",
+    "handle": {
+      "generation": 0,
+      "index": 4
+    },
+    "island": 0,
+    "iteration": null,
+    "link": 2,
+    "partition": 0,
+    "row_ordinal": 1,
+    "slice": 0,
+    "stage": "AfterJointUpdate",
+    "visit": null
+  },
+  "metadata_or_ordinal_corruption_identified": false,
+  "numerical_or_results_aggregation_performed": false,
+  "outer_step": 1,
+  "producer_schema_violation_identified": false,
+  "read_scope": "Only header and first completed_step from first baseline-m5-on trace; scan identity metadata and stop at first rejected row",
+  "reader_edits_worlds_or_full_audit_reruns": 0,
+  "retained_v2_command": {
+    "bytes": 10216,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/actual-v2-reader-command.json",
+    "sha256": "a288e99f9dc239cb9b106e69c65f60f26cf4e132fa56cddeee1cb1c26528db54"
+  },
+  "retained_v2_failed_audit": {
+    "bytes": 653,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/actual-v2-independent-coupled-audit.json",
+    "sha256": "a1adf12100f7e31b1ea49003664a2589db2333e0f6d4213aa9c78f5475d5c290"
+  },
+  "reviewed_utc": "2026-10-12T02:45:48.454910+00:00",
+  "scientific_status": "UNQUALIFIED; no reopening/per-contact cause or native replay qualification inferred",
+  "selected_palm_ecs_entity": 4294967299,
+  "source_artifacts": [
+    {
+      "bytes": 49297,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "sha256": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8"
+    },
+    {
+      "bytes": 9594,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e"
+    },
+    {
+      "bytes": 14245,
+      "path": "/workspace/RobotNativeEngine/crates/rne_physics_rapier/src/motor_stages.rs",
+      "sha256": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da"
+    },
+    {
+      "bytes": 22717,
+      "path": "/workspace/RobotNativeEngine/examples/142_contact_motor_stages/lib.rs",
+      "sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58"
+    }
+  ],
+  "status": "COUPLED_NUMERICAL_QUALIFICATION_FAILED_UNQUALIFIED_GENUINE_NONPALM_ROWS",
+  "trace": {
+    "bytes": 7545934,
+    "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-on.jsonl.gz",
+    "sha256": "443d78ef13096f7c04b6bee480198292581b8e387d816ffb64fbcde30dfefb85"
+  },
+  "v3_edits_or_registration": false
+}

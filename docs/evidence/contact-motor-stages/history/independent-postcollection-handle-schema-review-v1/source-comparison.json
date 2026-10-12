@@ -1,0 +1,132 @@
+{
+  "AST_original_audit_and_main_exact_after_reversing_only_late_provenance_and_CLI": true,
+  "AST_schema_exact_after_reversing_only_handle_shape_identity": true,
+  "AST_scientific_analysis_exact_after_reversing_only_handle_access": true,
+  "AST_synthetic_stage_fixture_exact_after_only_handle_shape_and_parent_relocation": true,
+  "narrow_diff_exact_recomputed": true,
+  "new_pure_test_sources": [
+    {
+      "name": "test_native_handle_shape.py",
+      "scope": "New pure metadata/shape/provenance tests, not measurement analysis",
+      "source": {
+        "bytes": 2408,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_native_handle_shape.py",
+        "sha256": "17aff236daec25930782ee069f4399fc680a1786791e399bf0bfcb992aa6f709"
+      }
+    },
+    {
+      "name": "test_repair_provenance.py",
+      "scope": "New pure metadata/shape/provenance tests, not measurement analysis",
+      "source": {
+        "bytes": 3009,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_repair_provenance.py",
+        "sha256": "1ef1b49577d62a0ee081f9f4117229b3beee84c659ca30497c5567de29166174"
+      }
+    }
+  ],
+  "original_copy_sources": [
+    {
+      "literal_equal": false,
+      "name": "audit_coupled_stages.py",
+      "original": {
+        "bytes": 23720,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_coupled_stages.py",
+        "sha256": "1226021f63fca4021985f4b4ba7a40c2143a9e65146056afef5fdbe62171b71d"
+      },
+      "repaired": {
+        "bytes": 28021,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/audit_coupled_stages.py",
+        "sha256": "0f220bfb3164334e88840cd7764dac9847240b36f45c5c62d96de1c2245630c5"
+      }
+    },
+    {
+      "literal_equal": false,
+      "name": "stage_analysis.py",
+      "original": {
+        "bytes": 27015,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_analysis.py",
+        "sha256": "7357e77f10c4d9188b69b401212318ba0c0e2aca3bb1baf1f6f25aab7e6d5668"
+      },
+      "repaired": {
+        "bytes": 27082,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_analysis.py",
+        "sha256": "280546de515bff9855028d6b5f7c0f2b7d6cb6226ae218ce6eba691e64fd40c8"
+      }
+    },
+    {
+      "literal_equal": true,
+      "name": "stage_numeric.py",
+      "original": {
+        "bytes": 11149,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_numeric.py",
+        "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+      },
+      "repaired": {
+        "bytes": 11149,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_numeric.py",
+        "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+      }
+    },
+    {
+      "literal_equal": false,
+      "name": "stage_schema.py",
+      "original": {
+        "bytes": 20489,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_schema.py",
+        "sha256": "58fd8d418b9d02efec9985bb13237af4bb1ab55860c24b6bfa288ea90fc322b0"
+      },
+      "repaired": {
+        "bytes": 20799,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_schema.py",
+        "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+      }
+    },
+    {
+      "literal_equal": true,
+      "name": "test_coupled_stream.py",
+      "original": {
+        "bytes": 5249,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_coupled_stream.py",
+        "sha256": "21f62896ffb5052ec939c6cb29aafc3c56426d8021e01e36e67e35b33467be6f"
+      },
+      "repaired": {
+        "bytes": 5249,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_coupled_stream.py",
+        "sha256": "21f62896ffb5052ec939c6cb29aafc3c56426d8021e01e36e67e35b33467be6f"
+      }
+    },
+    {
+      "literal_equal": false,
+      "name": "test_stage_reader.py",
+      "original": {
+        "bytes": 13647,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_stage_reader.py",
+        "sha256": "03635cefa6f09b36b2450d42084527d67dd28655b37e354225a804ce8309fd1f"
+      },
+      "repaired": {
+        "bytes": 13677,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_stage_reader.py",
+        "sha256": "5d077cbf231a375856f4551c8f31fad26af5d8030cb657d0ba189fb83e899931"
+      }
+    }
+  ],
+  "pure_candidate_to_final_manifest_changed_keys": [
+    "pure_tests",
+    "registered_utc"
+  ],
+  "unchanged_arithmetic_module": {
+    "bytes": 11149,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/stage_numeric.py",
+    "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+  },
+  "unchanged_audit_function_AST_names": [
+    "audit_cell",
+    "check_binding",
+    "check_candidate_delta",
+    "read_artifact",
+    "record_for",
+    "source_map",
+    "stamp",
+    "validate_step"
+  ]
+}

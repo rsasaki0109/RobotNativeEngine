@@ -1,0 +1,333 @@
+diff --git a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
+index 43cea77e..58e478a5 100644
+--- a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
++++ b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
+@@ -117,7 +117,11 @@ pub fn unit_joint_motor_constraint(
+         impulse_bounds,
+         cfm_coeff: motor_params.cfm_coeff,
+         cfm_gain: motor_params.cfm_gain,
+-        inv_lhs: crate::utils::inv(lhs),
++        inv_lhs: if motor.model == crate::dynamics::MotorModel::ForceBased {
++            crate::utils::inv(lhs + motor_params.cfm_gain)
++        } else {
++            crate::utils::inv(lhs)
++        },
+         rhs: rhs_wo_bias,
+         rhs_wo_bias,
+         // Metadata only: MAX still prevents internal impulse writeback.
+diff --git a/third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs b/third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs
+index f979041f..20fb4c7d 100644
+--- a/third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs
++++ b/third_party/rapier3d/src/pipeline/multibody_motor_impulse/tests.rs
+@@ -1,4 +1,8 @@
+ use super::*;
++use crate::dynamics::solver::{
++    JointGenericOneBodyConstraint, JointGenericOneBodyConstraintBuilder,
++    JointGenericVelocityOneBodyInternalConstraintBuilder, WritebackId,
++};
+ use crate::dynamics::{
+     CCDSolver, GenericJoint, ImpulseJointSet, IntegrationParameters, IslandManager, MotorModel,
+     MultibodyJointSet, PrismaticJointBuilder, RevoluteJointBuilder, RigidBodyBuilder,
+@@ -324,6 +328,119 @@ fn motor_impulse_sign_units_and_momentum_match_both_joint_types() {
+     }
+ }
+ 
++#[test]
++fn force_based_first_slice_matches_the_projected_fixed_point_for_both_signs() {
++    for (stiffness, damping) in [(300.0, 12.0), (250.0, 8.0)] {
++        for target in [-0.001, 0.001] {
++            let mut fixture = Fixture::new(true, target, 2.0);
++            fixture.parameters.num_solver_iterations = NonZeroUsize::new(32).unwrap();
++            fixture.parameters.num_internal_pgs_iterations = 1;
++            fixture.parameters.num_internal_stabilization_iterations = 2;
++            let (multibody, id) = fixture.multibody_joints.get_mut(fixture.joint).unwrap();
++            let motor =
++                &mut multibody.link_mut(id).unwrap().joint.data.motors[JointAxis::AngX as usize];
++            motor.stiffness = stiffness;
++            motor.damping = damping;
++            fixture.bodies[fixture.child]
++                .recompute_mass_properties_from_colliders(&fixture.colliders);
++            let inertia = fixture.bodies[fixture.child]
++                .mass_properties()
++                .effective_angular_inertia()
++                .m11;
++            approx::assert_relative_eq!(inertia, 0.004, max_relative = 1.0e-6);
++            assert_eq!(fixture.joint_velocity(), 0.0);
++            fixture
++                .pipeline
++                .set_multibody_motor_impulse_telemetry_enabled(true);
++            fixture.step();
++            let record = fixture.record();
++            assert!(record.full_step_coverage);
++            assert_eq!(record.observed_solver_slice_count, 32);
++            assert!(fixture.joint_velocity().is_finite());
++            assert!(record
++                .slices
++                .iter()
++                .all(|slice| impulse(slice.impulse).is_finite()));
++            let first = &record.slices[0];
++            assert_eq!(first.ccd_partition_index, 0);
++            assert_eq!(first.internal_slice_index, 0);
++            assert!(first.duration_s.is_finite() && first.duration_s > 0.0);
++
++            // Independently evaluate the fixed point with native coefficients.
++            // The isotropic, centered sphere has w = 1 / Ixx in this isolated row.
++            // This checks the final first-slice impulse, including stabilization.
++            let h = first.duration_s as Real;
++            let a = stiffness * (1.0 / (h * stiffness + damping));
++            let g = 1.0 / (h * h * stiffness + h * damping);
++            let w = 1.0 / inertia;
++            let rhs = (0.0 - target) * a;
++            let bound = 2.0 * h;
++            let expected = (-f64::from(rhs) / (f64::from(w) + f64::from(g)))
++                .clamp(-f64::from(bound), f64::from(bound));
++            let actual = impulse(first.impulse);
++            let tolerance = 1.0e-8_f64.max(0.01 * expected.abs());
++            assert!(
++                (actual - expected).abs() <= tolerance,
++                "k={stiffness}, d={damping}, target={target}, actual={actual}, expected={expected}, tolerance={tolerance}"
++            );
++            assert!(actual * f64::from(target) > 0.0);
++        }
++    }
++}
++
++#[test]
++fn internal_motor_diagonal_changes_only_the_force_based_model() {
++    let mut fixture = Fixture::new(false, 0.01, 2.0);
++    fixture.step();
++    let (multibody, id) = fixture.multibody_joints.get(fixture.joint).unwrap();
++    let link = multibody.link(id).unwrap();
++    let mut motor = link.joint().data.motors[JointAxis::LinX as usize];
++    let mut parameters = fixture.parameters;
++    parameters.dt /= 4.0;
++    for model in [MotorModel::ForceBased, MotorModel::AccelerationBased] {
++        motor.model = model;
++        let mut jacobians = na::DVector::zeros(2 * multibody.ndofs());
++        let mut constraints = [JointGenericOneBodyConstraint::invalid()];
++        let mut j_id = 0;
++        let mut insert_at = 0;
++        crate::dynamics::unit_joint_motor_constraint(
++            &parameters,
++            multibody,
++            link,
++            &motor,
++            0.0,
++            None,
++            0,
++            &mut j_id,
++            &mut jacobians,
++            &mut constraints,
++            &mut insert_at,
++        );
++        assert_eq!(insert_at, 1);
++        assert_eq!(j_id, 2 * multibody.ndofs());
++        let row = &constraints[0];
++        let w = jacobians[multibody.ndofs() + link.assembly_id];
++        assert!(w.is_finite() && w > 0.0);
++        match model {
++            MotorModel::ForceBased => {
++                assert!(row.cfm_gain.is_finite() && row.cfm_gain > 0.0);
++                assert_eq!(row.cfm_coeff, 0.0);
++                assert_eq!(
++                    row.inv_lhs.to_bits(),
++                    crate::utils::inv(w + row.cfm_gain).to_bits()
++                );
++                assert!(row.inv_lhs < crate::utils::inv(w));
++            }
++            MotorModel::AccelerationBased => {
++                assert_eq!(row.cfm_gain, 0.0);
++                assert!(row.cfm_coeff.is_finite() && row.cfm_coeff > 0.0);
++                // Keep the pre-existing internal AccelerationBased arithmetic.
++                assert_eq!(row.inv_lhs.to_bits(), crate::utils::inv(w).to_bits());
++            }
++        }
++    }
++}
++
+ #[test]
+ fn zero_capacity_is_measured_zero_and_inactive_or_disabled_is_unavailable() {
+     let mut fixture = Fixture::new(true, 0.4, 0.0);
+@@ -416,26 +533,157 @@ fn hard_limit_impulse_is_not_reported_as_motor_impulse() {
+ }
+ 
+ #[test]
+-fn nonfinite_uncapped_solver_slices_do_not_become_full_interval_measurements() {
+-    // Retain the original uncapped fixture: its native ForceBased recurrence
+-    // overflows at these gains. The observer must not invent missing impulses.
++fn valid_uncapped_motor_keeps_finite_state_and_full_slice_coverage() {
++    // Keep the exact valid fixture that overflowed with the old diagonal.
++    // The previous nonfinite outcome remains in the original regression evidence.
+     let mut fixture = Fixture::new(false, 0.01, Real::INFINITY);
+     fixture
+         .pipeline
+         .set_multibody_motor_impulse_telemetry_enabled(true);
+     fixture.step();
++    let report = fixture
++        .pipeline
++        .completed_multibody_motor_impulses()
++        .unwrap();
+     let record = fixture.record();
+-    assert!(
+-        !fixture.joint_velocity().is_finite(),
+-        "expected native nonfinite corner, record={record:?}"
+-    );
+-    assert!(!record.full_step_coverage);
+-    assert!(record.observed_solver_slice_count < 4);
+-    assert!(record
+-        .slices
++    assert_eq!(report.ccd_partition_durations_s.len(), 1);
++    assert!(fixture.joint_velocity().is_finite());
++    let body = &fixture.bodies[fixture.child];
++    assert!(body
++        .position()
++        .translation
++        .vector
+         .iter()
+-        .all(|slice| impulse(slice.impulse).is_finite()));
++        .chain(body.position().rotation.coords.iter())
++        .chain(body.linvel().iter())
++        .chain(body.angvel().iter())
++        .all(|value| value.is_finite()));
++    assert!(record.full_step_coverage);
++    assert_eq!(record.observed_partition_count, 1);
++    assert_eq!(record.observed_solver_slice_count, 4);
++    assert_eq!(record.slices.len(), 4);
++    assert!(impulse(record.impulse).is_finite());
++    assert!(impulse(record.impulse) > 0.0);
++    assert!(record.observed_solver_interval_s.is_finite());
++    assert!(record.observed_solver_interval_s > 0.0);
+     assert_eq!(record.finite_positive_bound_eligible_slice_count, 0);
++    assert_eq!(record.finite_positive_bound_active_slice_count, 0);
++    assert_eq!(record.finite_positive_bound_eligible_duration_s, 0.0);
++    assert_eq!(record.finite_positive_bound_active_duration_s, 0.0);
++    assert!(matches!(
++        record.impulse,
++        MultibodyMotorImpulseValue::Prismatic {
++            effective_force_ceiling_n: None,
++            rounded_impulse_bound_n_s: None,
++            ..
++        }
++    ));
++    for (ordinal, slice) in record.slices.iter().enumerate() {
++        assert_eq!(slice.ccd_partition_index, 0);
++        assert_eq!(slice.internal_slice_index, ordinal);
++        assert_eq!(slice.expected_internal_slice_count, 4);
++        assert!(slice.duration_s.is_finite() && slice.duration_s > 0.0);
++        assert!(impulse(slice.impulse).is_finite());
++        assert!(!slice.finite_positive_bound_eligible);
++        assert!(!slice.finite_positive_bound_active);
++        assert!(matches!(
++            slice.impulse,
++            MultibodyMotorImpulseValue::Prismatic {
++                effective_force_ceiling_n: None,
++                rounded_impulse_bound_n_s: None,
++                ..
++            }
++        ));
++    }
++    let observed_duration: f64 = record.slices.iter().map(|slice| slice.duration_s).sum();
++    assert_eq!(
++        observed_duration.to_bits(),
++        record.observed_solver_interval_s.to_bits()
++    );
++}
++
++#[test]
++fn invalid_native_motor_samples_are_rejected_without_manufacturing_coverage() {
++    fn collect(
++        builder: &JointGenericOneBodyConstraintBuilder,
++        multibodies: &MultibodyJointSet,
++        constraint: JointGenericOneBodyConstraint,
++        duration: Real,
++        ordinal: usize,
++    ) -> Vec<InternalMotorImpulseSample> {
++        let mut samples = Vec::new();
++        builder.append_internal_motor_impulse_samples(
++            multibodies,
++            &[constraint],
++            0,
++            ordinal,
++            2,
++            duration,
++            &mut samples,
++        );
++        samples
++    }
++
++    // Exercise the actual native collector without solving an invalid motor.
++    let mut fixture = Fixture::new(false, 0.01, 2.0);
++    let link_id = *fixture
++        .multibody_joints
++        .rigid_body_link(fixture.child)
++        .unwrap();
++    let mut builder = JointGenericOneBodyConstraintBuilder::invalid();
++    let mut jacobians = na::DVector::zeros(0);
++    let mut j_id = 0;
++    let mut constraint_id = 0;
++    JointGenericVelocityOneBodyInternalConstraintBuilder::generate(
++        &fixture.multibody_joints,
++        &link_id,
++        &mut builder,
++        &mut j_id,
++        &mut jacobians,
++        &mut constraint_id,
++    );
++    assert_eq!(constraint_id, 1);
++    let valid = JointGenericOneBodyConstraint {
++        impulse: -0.2,
++        impulse_bounds: [-0.2, 0.2],
++        joint_id: usize::MAX,
++        writeback_id: WritebackId::Motor(0),
++        ..JointGenericOneBodyConstraint::invalid()
++    };
++    let qualified = collect(&builder, &fixture.multibody_joints, valid, 0.1, 0);
++    assert_eq!(qualified.len(), 1);
++    assert_eq!(impulse(qualified[0].slice.impulse), f64::from(0.2_f32));
++    for invalid in [Real::NAN, Real::INFINITY, Real::NEG_INFINITY] {
++        let constraint = JointGenericOneBodyConstraint {
++            impulse: invalid,
++            ..valid
++        };
++        assert!(collect(&builder, &fixture.multibody_joints, constraint, 0.1, 1).is_empty());
++    }
++    for duration in [Real::NAN, Real::INFINITY, Real::NEG_INFINITY, -0.1, 0.0] {
++        assert!(collect(&builder, &fixture.multibody_joints, valid, duration, 1).is_empty());
++    }
++    for bounds in [[-0.2, Real::NAN], [0.2, -0.2], [-0.1, 0.2]] {
++        let constraint = JointGenericOneBodyConstraint {
++            impulse_bounds: bounds,
++            ..valid
++        };
++        assert!(collect(&builder, &fixture.multibody_joints, constraint, 0.1, 1).is_empty());
++    }
++    for ceiling in [Real::NAN, -1.0, Real::NEG_INFINITY] {
++        let (multibody, id) = fixture.multibody_joints.get_mut(fixture.joint).unwrap();
++        multibody.link_mut(id).unwrap().joint.data.motors[JointAxis::LinX as usize].max_force =
++            ceiling;
++        assert!(collect(&builder, &fixture.multibody_joints, valid, 0.1, 1).is_empty());
++    }
++    let mut report = MultibodyMotorImpulseTelemetry::new(0.2);
++    report.ccd_partition_durations_s.push(f64::from(0.2_f32));
++    report.append(qualified);
++    report.finalize();
++    assert_eq!(report.motors.len(), 1);
++    assert!(!report.motors[0].full_step_coverage);
++    assert_eq!(report.motors[0].observed_solver_slice_count, 1);
++    assert_eq!(report.motors[0].slices[0].internal_slice_index, 0);
+ }
+ 
+ #[test]
+diff --git a/xtask/src/main.rs b/xtask/src/main.rs
+index db64ef48..19e3eef3 100644
+--- a/xtask/src/main.rs
++++ b/xtask/src/main.rs
+@@ -2916,7 +2916,7 @@ fn run_locomotion_smokes() -> anyhow::Result<()> {
+     )?;
+     run_step("cargo run --locked -p go2_door --example 132_go2_door -- --smoke")?;
+     run_step(
+-        "cargo run --locked -p position_motor_calibration --example 141_position_motor_calibration -- --verify-report docs/media/position-motor-calibration.json",
++        "cargo run --locked -p position_motor_calibration --example 141_position_motor_calibration -- --verify-report docs/media/position-motor-diagonal-calibration.json --require-calibration",
+     )?;
+     run_step("cargo test --locked -p kick_comparison --example 139_kick_comparison")?;
+     run_step("cargo test --locked -p rne_physics_rapier --features position-motor-diagnostics")?;

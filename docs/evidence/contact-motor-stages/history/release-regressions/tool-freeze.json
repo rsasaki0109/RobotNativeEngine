@@ -1,0 +1,56 @@
+{
+  "scope": "Generation4 current-stage required release133-138 criteria/tool preparation; immutable old tools and baseline retained literally.",
+  "frozen_files": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/criteria.json",
+      "bytes": 8231,
+      "sha256": "f471576f3580732d6640697db113b8443800ca9ed1c9a8483af2b0d89e58f025"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/release_regression_common.py",
+      "bytes": 4091,
+      "sha256": "a392a5200122fa69359a3cc6f08a5a0f337535b5397d9427b0c5db51ebef957c"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/run_release_regressions.py",
+      "bytes": 2537,
+      "sha256": "2b8f0ae8051ee2e82cc206109754666975a5f6ca863cd5b99c33b79c65d87943"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/freeze_source.py",
+      "bytes": 1257,
+      "sha256": "992028e8950cecd6650393ff9efc24189cc9e50a667a9e1a6220cead0a158a76"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/verify_release_regressions.py",
+      "bytes": 6703,
+      "sha256": "24377f836f85e6b570afcf9b5ff47b7ec45a52059386b95ec27e5019e43a8ae7"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/run_restored_default_release_regressions.py",
+      "bytes": 2571,
+      "sha256": "7af7ac54d2facdd7176b7fde658823b58b344c4eb34d66aebfa7c3876681214e"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/codec-migration-generation-2/run_release_regressions.py",
+      "bytes": 2548,
+      "sha256": "d7341d11319284849a261d4c30d585bf8c7e7cdf1ad615f13ef5df971f38be5e"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/vendor-lint-qualification/run_required_release_regressions.py",
+      "bytes": 2565,
+      "sha256": "80a8ae77e2739c89485e2ddc982e0726ccd0172a86920e907f76b73b1d7b12dd"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/run_checked.py",
+      "bytes": 2939,
+      "sha256": "223a9f95b201ede5821585f45dbc7ef0b9a62303b25b1d3a193712d34233f34a"
+    }
+  ],
+  "historical_files_preserved": true,
+  "current_runner_only_out_line_changed": true,
+  "numeric_tolerances_added": 0,
+  "release_world_collection_authorized_or_executed_by_this_preparation": false,
+  "planned18_coupled_world_count_contribution": 0,
+  "planned72_scalar_world_count_contribution": 0
+}

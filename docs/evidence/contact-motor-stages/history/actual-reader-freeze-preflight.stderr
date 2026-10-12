@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/prepare_reader_freeze.py", line 117, in <module>
+    main()
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/prepare_reader_freeze.py", line 25, in main
+    check_candidate_delta(dict(common, repo_source_sha256=before["files"]), dict(common, repo_source_sha256=after["files"]))
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/audit_coupled_stages.py", line 156, in check_candidate_delta
+    require(before.count(old) == 1, "registered unit reciprocal source replacement is not unique")
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_schema.py", line 42, in require
+    raise ValueError(message)
+ValueError: registered unit reciprocal source replacement is not unique

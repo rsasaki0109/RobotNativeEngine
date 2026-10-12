@@ -1,0 +1,14 @@
+{
+  "started_utc": "2026-10-12T02:43:58.193184+00:00",
+  "command": [
+    "cargo",
+    "check",
+    "--manifest-path",
+    "/tmp/rne-contact-stage-generation4/default-registry-probe/Cargo.toml"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": null,
+  "cargo_target_dir": "/tmp/rne-final-ci-cache"
+}

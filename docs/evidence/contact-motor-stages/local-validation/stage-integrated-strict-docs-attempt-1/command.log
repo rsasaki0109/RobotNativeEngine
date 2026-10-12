@@ -1,0 +1,10 @@
+    Checking rne_ecs v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ecs)
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Checking rne_world v0.4.0 (/workspace/RobotNativeEngine/crates/rne_world)
+    Checking rne_physics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics)
+    Checking rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+ Documenting rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+ Documenting contact_motor_stages v0.4.0 (/workspace/RobotNativeEngine/examples/142_contact_motor_stages)
+ Documenting position_motor_calibration v0.4.0 (/workspace/RobotNativeEngine/examples/141_position_motor_calibration)
+    Finished `dev` profile [optimized] target(s) in 9.11s
+   Generated /tmp/rne-final-ci-cache/doc/contact_motor_stages/index.html and 2 other files

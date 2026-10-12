@@ -934,6 +934,70 @@ cause, and supplies no recovery, hardware or maturity claim. Validation commands
 and actual outcomes are retained in the
 [strict-vendor evidence](../evidence/rapier-strict-validation/README.md).
 
+### Optional contact and motor stage observation
+
+The `rne_physics_rapier/motor-stage-diagnostics` feature adds a backend-specific,
+default-off observer without extending the backend-neutral physics trait. It is
+separate from completed-step motor-impulse diagnostics. Toggling invalidates the
+last completed trace; only a completed pipeline step publishes a new trace.
+Default backend builds retain compatibility with unmodified crates.io Rapier.
+
+The observer binds supported internal single-DOF motors through their builder,
+link, free-axis and unique `Motor(0)` identity. It reads rows only after the
+current joint update initializes them. Each row retains its actual full
+multibody `ndofs2`, generalized-velocity offset and stored J/weighted-J block,
+including native coefficient, accumulator and bound words. Complete ordered
+events distinguish joint solves, immediate motor visits, bias removal,
+integration/cache refresh and aggregate contact stages. Island buffers drain
+in island order after the existing workers join. Native solve, bias-removal and
+contact arithmetic retain their original operations and traversal order.
+
+Axes are native joint-frame axes. The collector's palm joint is authored along
+world Y, but the prismatic builder rotates its local X axis into that direction;
+its recorded motor axis is therefore `LinX`. Supported rows also include native
+finger motor rows; the observer does not select only the palm.
+
+Example 142 copies example 138's held-grasp ECS plant and synchronization. It
+streams every completed outer step into deterministic gzip JSONL, retaining
+typed checkpoint fields, exact postcard bytes and ECS IEEE words. Checkpoints
+cover individually serialized bodies, colliders, unique multibodies, impulse
+joints, gravity, integration parameters and sorted ECS joint bindings. Full set
+metadata, private pipeline/contact caches and ordinary rigid-body solver arrays
+are outside this declared scope. Errors preserve prior frames and require an
+explicit failure terminal when I/O permits it; gzip finalization errors remain
+nonzero process failures.
+
+For an unchanged cached motor row, independent analysis uses the exact-rational
+reference `r = rhs + J V - g lambda` and `w = J W`, with conditional projection
+`clamp(lambda + r / (w + g), lower, upper)` when the denominator is finite and
+positive. A contact-only interval requires literal equality of row identity,
+cache generation, J/W, RHS, coefficients, reciprocal, accumulator and bounds.
+Its net residual change can then be compared with `J delta_V`. Source-ordered
+f32 replay is assessed separately, with explicit floating-mode and subnormal
+coverage. Saturation complementarity remains distinct from a zero residual.
+Aggregate observations do not identify individual contact coupling columns or
+establish a coupled failure cause. See the
+[collector contract](../../examples/142_contact_motor_stages/README.md).
+
+The fixed baseline/rejected-comparison matrix collected all eighteen worlds and
+22,500 completed outer steps. Its original reader and two separately retained
+post-collection metadata repairs fail: after the native handle and local-axis
+interpretations are repaired, genuine finger rows violate the frozen palm-only
+row gate. Keep this coupled numerical qualification failed/unavailable; do not
+infer complete observer replay, contact reopening, a failure cause or candidate
+admission from collection completion. The earlier inverse-diagonal candidate
+remains rejected. The [retained evidence](../evidence/contact-motor-stages/README.md)
+preserves the failures, late repair provenance and exact raw-trace hashes.
+
+The separately collected
+[current scalar report](../media/position-motor-calibration-contact-stages.json)
+retains the fixed 24 conditions and 72 worlds. Its selected-source object changes
+six hashes and adds four reviewed inputs. Independent verification permits only
+that object to differ from the vendor-lint report; every other raw report byte
+matches. Collection and replay pass, the four primary nonzero conditions still
+fail, and all eight zero targets pass. Historical reports and numerical criteria
+remain unchanged; CI verifies the new source binding through the same verifier.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

@@ -427,6 +427,30 @@ available and full-step-qualified in the 131,200 first-ON rows, with measured
 zeros retained. See [all cases/joints and source-bound proofs](media/g1-motor-effort-diagnostics.json)
 and [method and output scope](../examples/139_kick_comparison/README.md#completed-position-motor-diagnostics).
 
+## Contact and motor stage collection
+
+Example 142 records one unchanged held-grasp Rapier case from example 138 at
+500 Hz. It retains all 1250 settle/lift/hold steps, native row and velocity
+words, ordered solver boundaries, exact native entity checkpoints and ECS words.
+
+```bash
+cargo run --locked --release -p contact_motor_stages \
+  --example 142_contact_motor_stages -- \
+  --mass-kg 5 --observer on --label baseline-m5-on \
+  --output /tmp/baseline-m5-on.jsonl.gz
+```
+
+All flags are mandatory and existing output is never overwritten. Choose mass
+`5`, `20` or `50` and observer `on` or `off`. The final `collection: ok` means
+the stream completed and gzip finalized; physical acceptance, replay and motor
+accuracy require separate assessment. See the
+[record layout and failure contract](../examples/142_contact_motor_stages/README.md).
+The first fixed eighteen-world collection completed, but its frozen palm-only
+numerical reader rejects additional native finger rows. This failed qualification
+and both late metadata repairs are retained in the
+[study evidence](evidence/contact-motor-stages/README.md); collection is not a
+contact-reopening or solver-improvement result.
+
 ## Isolated position-motor calibration
 
 Example 141 compares a contact-free one-DOF sphere motor with an independent
@@ -448,11 +472,11 @@ overwritten. Checking the retained report executes no new worlds:
 ```bash
 cargo run --locked -p position_motor_calibration \
   --example 141_position_motor_calibration -- \
-  --verify-report docs/media/position-motor-calibration-vendor-lint.json
+  --verify-report docs/media/position-motor-calibration-contact-stages.json
 ```
 
 See [the fixed protocol and output contract](../examples/141_position_motor_calibration/README.md)
-and [all current-source conditions](media/position-motor-calibration-vendor-lint.json). The retained
+and [all current-source conditions](media/position-motor-calibration-contact-stages.json). The retained
 run completes 72/72 worlds with exact ON/fresh/OFF state replay and 8/8 motionless
 zero targets. Its four primary N32/PGS1 nonzero conditions all fail the predeclared
 accuracy requirement; `--require-calibration` therefore exits 2. Loaded-report

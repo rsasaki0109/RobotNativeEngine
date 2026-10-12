@@ -181,6 +181,7 @@ members = [
   "examples/139_kick_comparison",
   "examples/140_warehouse_fleet",
   "examples/141_position_motor_calibration",
+  "examples/142_contact_motor_stages",
   "examples/go2_indoor",
   "examples/117_go2_push_recovery",
   "examples/118_elevator_ride",

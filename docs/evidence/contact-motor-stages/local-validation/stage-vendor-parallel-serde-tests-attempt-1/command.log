@@ -1,0 +1,101 @@
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Finished `test` profile [unoptimized] target(s) in 8.73s
+     Running unittests src/lib.rs (/tmp/rne-final-ci-cache/debug/deps/rapier3d-42a53fd542329112)
+
+running 44 tests
+test dynamics::joint::multibody_joint::multibody::rne_armature_tests::armature_setter_rejects_invalid_values_without_mutation ... ok
+test dynamics::joint::multibody_joint::multibody::rne_armature_tests::armature_survives_append_split_and_root_type_changes ... ok
+test dynamics::joint::multibody_joint::multibody::rne_kinematic_root_tests::append_preserves_defined_legacy_damping_placement ... ok
+test dynamics::joint::multibody_joint::multibody::rne_kinematic_root_tests::graph_surgery_reconstructs_motion_from_surviving_body_state ... ok
+test dynamics::joint::multibody_joint::multibody::rne_armature_tests::free_root_com_coordinates_preserve_pose_and_type_transitions ... ok
+test dynamics::joint::multibody_joint::multibody::rne_kinematic_root_tests::serialized_step_boundary_keeps_old_fields_and_exact_next_velocity_jump ... ok
+test dynamics::joint::multibody_joint::multibody::rne_kinematic_root_tests::root_type_transitions_clear_ephemeral_motion ... ok
+test dynamics::joint::multibody_joint::multibody::test::index_sequence_rearrange_columns ... ok
+test dynamics::joint::multibody_joint::multibody::test::index_sequence_rearrange_rows ... ok
+test dynamics::joint::multibody_joint::multibody::test::index_sequence_with_rearranged_rows_mut ... ok
+test dynamics::joint::multibody_joint::multibody::rne_kinematic_root_tests::split_child_as_rotating_root_has_only_one_com_centripetal_term ... ok
+test dynamics::joint::multibody_joint::multibody::test::test_multibody_append ... ok
+test dynamics::joint::multibody_joint::multibody::test::test_multibody_remove ... ok
+test dynamics::joint::multibody_joint::multibody::test::test_multibody_insert ... ok
+test dynamics::joint::revolute_joint::test::test_revolute_joint_angle ... ok
+test geometry::broad_phase_multi_sap::broad_phase_multi_sap::test::test_add_update_remove ... ok
+test pipeline::collision_pipeline::tests::test_no_rigid_bodies ... ok
+test pipeline::multibody_motor_impulse::tests::actual_ccd_partitions_and_small_steps_are_aggregated_without_pgs_double_counting ... ok
+test dynamics::joint::multibody_joint::multibody_ik::test::one_link_fwd_kinematics ... ok
+test pipeline::multibody_motor_impulse::tests::hard_limit_impulse_is_not_reported_as_motor_impulse ... ok
+test pipeline::multibody_motor_impulse::tests::infinite_native_capacity_is_unknown_and_not_a_positive_finite_bound ... ok
+test pipeline::multibody_motor_impulse::tests::integer_coverage_rejects_missing_duplicate_or_inconsistent_ordinals ... ok
+test pipeline::multibody_motor_impulse::tests::motor_impulse_sign_units_and_momentum_match_both_joint_types ... ok
+test pipeline::multibody_motor_impulse::tests::multiple_motor_islands_have_stable_order_and_exact_parallel_replay ... ok
+test pipeline::multibody_motor_impulse::tests::nonfinite_uncapped_solver_slices_do_not_become_full_interval_measurements ... ok
+test pipeline::multibody_motor_impulse::tests::telemetry_word_encoding_distinguishes_signed_zero_and_optional_capacity ... ok
+test pipeline::multibody_motor_impulse::tests::zero_capacity_is_measured_zero_and_inactive_or_disabled_is_unavailable ... ok
+test pipeline::multibody_motor_stage::tests::ccd_partitions_keep_actual_partition_ordinals_and_observer_parity ... ok
+test pipeline::multibody_motor_stage::tests::contact_normal_writes_are_separate_from_joint_stage_writes ... ok
+test pipeline::multibody_motor_stage::tests::independent_islands_drain_in_actual_island_order_with_exact_replay ... ok
+test pipeline::multibody_motor_stage::tests::initialized_rows_and_immediate_visits_preserve_bias_and_native_identity ... ok
+test pipeline::multibody_motor_stage::tests::observation_on_off_and_fresh_runs_preserve_contact_and_joint_state_bits ... ok
+test pipeline::multibody_motor_stage::tests::serialization_preserves_native_signed_zero_nonfinite_and_bound_words ... ok
+test pipeline::multibody_motor_stage::tests::single_dof_child_motors_retain_the_full_coupled_multibody_block ... ok
+test pipeline::multibody_motor_stage::tests::skipped_solver_passes_do_not_invent_motor_visits ... ok
+test pipeline::multibody_motor_stage::tests::stage_lifecycle_is_opt_in_and_independent_of_impulse_observation ... ok
+test pipeline::physics_pipeline::test::collider_removal_before_step ... ok
+test pipeline::physics_pipeline::test::joint_step_delta_time_0 ... ok
+test pipeline::physics_pipeline::test::kinematic_and_fixed_contact_crash ... ok
+test pipeline::physics_pipeline::test::rigid_body_removal_before_step ... ok
+test pipeline::physics_pipeline::test::rigid_body_removal_snapshot_handle_determinism ... ok
+test pipeline::physics_pipeline::test::rigid_body_type_changed_dynamic_is_in_active_set ... ok
+test utils::serde::test::serde_json_hashmap ... ok
+test pipeline::multibody_motor_impulse::tests::enabled_disabled_and_fresh_repeats_preserve_literal_physics_state ... ok
+
+test result: ok. 44 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+   Doc-tests rapier3d
+warning: unexpected character `.`
+  --> src/geometry/interaction_graph.rs:62:5
+   |
+62 | /     /// Removes a handle from this graph and returns a handle that must have its graph index changed to `id`.
+63 | |     ///
+64 | |     /// When a node is removed, another node of the graph takes it place. This means that the `ColliderGraphIndex`
+65 | |     /// of the collision object returned by this method will be equal to `id`. Thus if you maintain
+...  |
+74 | |     /// }
+75 | |     /// ```
+   | |___________^
+   |
+   = note: `#[warn(rustdoc::invalid_codeblock_attributes)]` on by default
+
+warning: 1 warning emitted
+
+
+running 27 tests
+test src/data/arena.rs - data::arena::Arena<T>::capacity (line 626) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::clear (line 153) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::contains (line 436) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::drain (line 745) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::get (line 457) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::get2_mut (line 514) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::get_mut (line 483) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::insert (line 286) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::insert_with (line 309) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::is_empty (line 602) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::iter (line 689) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::iter_mut (line 716) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::len (line 579) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::new (line 108) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::remove (line 351) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::reserve (line 654) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::retain (line 395) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::try_insert (line 191) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::try_insert_with (line 232) ... ignored
+test src/data/arena.rs - data::arena::Arena<T>::with_capacity (line 124) ... ignored
+test src/data/arena.rs - data::arena::Drain (line 1118) ... ignored
+test src/data/arena.rs - data::arena::Index (line 41) ... ignored
+test src/data/arena.rs - data::arena::IntoIter (line 832) ... ignored
+test src/data/arena.rs - data::arena::Iter (line 916) ... ignored
+test src/data/arena.rs - data::arena::IterMut (line 1020) ... ignored
+test src/dynamics/joint/multibody_joint/multibody_joint_set.rs - dynamics::joint::multibody_joint::multibody_joint_set::MultibodyLinkId (line 58) ... ignored
+test src/geometry/interaction_groups.rs - geometry::interaction_groups::InteractionGroups (line 15) ... ignored
+
+test result: ok. 0 passed; 0 failed; 27 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

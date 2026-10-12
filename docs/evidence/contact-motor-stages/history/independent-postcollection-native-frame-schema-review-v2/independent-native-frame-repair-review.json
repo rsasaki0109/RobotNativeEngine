@@ -1,0 +1,69 @@
+{
+  "actual_existing_zero_world_pure_qualification": {
+    "bytes": 5249,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/actual-pure-frame-repair-qualification.json",
+    "sha256": "8365e254c8b44232a35ba140f33755d97793abfaeb3e20d42ba447ef7164f4f6"
+  },
+  "all_other_arithmetic_threshold_stage_coverage_domain_cache_gain_order_resource_gates_unchanged": true,
+  "audited_utc": "2026-10-12T02:38:52.731483+00:00",
+  "auditor_scope": "Static source/AST/diff and existing receipt inspection only; prior pure tests were not rerun. No reader main imported or executed.",
+  "frame_correction": "Authored palm body-local Y equals world Y in this identity-pose fixture. Rapier places its prismatic principal X frame along that spatial Y axis; the native DOF enum remains LinX. Exact source-derived LinX predicate replaces mistaken world-label LinY predicate, not an any-axis fallback.",
+  "frozen_v2_manifest": {
+    "bytes": 7916,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/frozen-repair-manifest.json",
+    "sha256": "3eb73c2cc2d8a924492b1ccef1c066e79ad54e2b1d91d4c0816bab8d6a174901"
+  },
+  "late_timestamp_checks": {
+    "collection_end": "2026-10-12T01:56:13.467733+00:00",
+    "v1_failed_execution_end": "2026-10-12T02:25:58.388968+00:00",
+    "v1_registered": "2026-10-12T02:10:38.755309+00:00",
+    "v2_registered": "2026-10-12T02:32:42.769300+00:00"
+  },
+  "material_blockers": [],
+  "narrow_patch": {
+    "bytes": 8292,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-native-frame-schema-repair-v2/narrow-native-frame-metadata-repair.patch",
+    "sha256": "12595af0350cb38fcd09a2585256973205051f76e8743512c2de4d663483518c"
+  },
+  "no_new_scientific_permission_or_gate_added": true,
+  "no_source_edits_full_reader_native_worlds_builds_GitHub_CI_polling": true,
+  "preserved_original_failed_audit": {
+    "bytes": 437,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-independent-coupled-audit.json",
+    "sha256": "d0611bcc8f9bde4efc816a900797e2aabe96b38500697bbb7d541f1b005facb6"
+  },
+  "preserved_v1_failed_audit": {
+    "bytes": 634,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/actual-repaired-independent-coupled-audit.json",
+    "sha256": "90a894c4e72e5dec2ceef84ebfc36d685d912ad08fb5a2ab26899fb04ac2dd5b"
+  },
+  "preserved_v1_failed_command": {
+    "bytes": 8196,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/actual-repaired-reader-command.json",
+    "sha256": "05304b5988fd8a5f898bb9ef9c035e95878daf6472fc8c360ddb83057f26500e"
+  },
+  "prior_v1_independent_review": {
+    "bytes": 13875,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/independent-postcollection-handle-schema-review-v1/independent-repair-scope-review.json",
+    "sha256": "394adbe714bb02ffd431372a9be994b5181e5b23d98c126d3845d64b847be0d9"
+  },
+  "pure_case_counts": {
+    "frame_negative": 6,
+    "frame_positive": 1,
+    "handle_negative": 14,
+    "handle_positive": 6,
+    "provenance_negative": 7,
+    "stage_negative": 28,
+    "stage_positive": 11
+  },
+  "raw_measurement_integrity_scope": "All original protocol/collection/source references were SHA-checked; no compressed/decompressed raw measurement stream was read or rehashed by this source review. Full reader integrity/results remain future qualification.",
+  "repaired_reader_not_predata_and_both_failed_attempts_remain_FAILED": true,
+  "schema_version": 1,
+  "selected_palm_handle_generation_entity_link_ForceBased_model_and_full_ndofs3_unchanged": true,
+  "source_AST_comparison": {
+    "bytes": 7814,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/independent-postcollection-native-frame-schema-review-v2/source-and-AST-comparison.json",
+    "sha256": "b02700100592a950a892b8d109cca0f66d9ed3dfa40eb5a097bf41fa86c129b9"
+  },
+  "status": "PASS_STATIC_POSTCOLLECTION_NATIVE_FRAME_METADATA_REPAIR_V2_REVIEW"
+}

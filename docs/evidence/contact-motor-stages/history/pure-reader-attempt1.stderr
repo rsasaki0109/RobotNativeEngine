@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_stage_reader.py", line 198, in <module>
+    main()
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_stage_reader.py", line 141, in main
+    phase_tamper("registered diagonal wrong build", lambda x: [event["rows"][0].__setitem__("inverse_lhs_word", f32_bits(.25)) for event in x["events"] if event["rows"]])
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_stage_reader.py", line 133, in phase_tamper
+    fails(name, lambda: analyze_telemetry(telemetry, frame["native_checkpoint"], entities, 1, protocol, candidate))
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/test_stage_reader.py", line 106, in fails
+    raise AssertionError("tamper admitted: " + name)
+AssertionError: tamper admitted: registered diagonal wrong build

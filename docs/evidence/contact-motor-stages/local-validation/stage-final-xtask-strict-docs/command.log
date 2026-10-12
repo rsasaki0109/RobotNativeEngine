@@ -1,0 +1,46 @@
+    Checking bitflags v2.13.0
+    Checking hashbrown v0.14.5
+    Checking exr v1.74.0
+    Checking bevy_utils v0.15.3
+    Checking bevy_reflect v0.15.3
+    Checking png v0.18.1
+    Checking image v0.25.10
+    Checking bevy_ecs v0.15.4
+    Checking gltf v1.4.1
+    Checking nalgebra v0.33.3
+    Checking rne_ecs v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ecs)
+    Checking rne_world v0.4.0 (/workspace/RobotNativeEngine/crates/rne_world)
+    Checking rne_physics v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics)
+    Checking rne_render v0.4.0 (/workspace/RobotNativeEngine/crates/rne_render)
+    Checking rne_robot v0.4.0 (/workspace/RobotNativeEngine/crates/rne_robot)
+    Checking rne_data v0.4.0 (/workspace/RobotNativeEngine/crates/rne_data)
+    Checking parry3d v0.17.6
+    Checking rne_collision_bake v0.4.0 (/workspace/RobotNativeEngine/crates/rne_collision_bake)
+    Checking rne_urdf_import v0.4.0 (/workspace/RobotNativeEngine/crates/rne_urdf_import)
+    Checking rne_sensor v0.4.0 (/workspace/RobotNativeEngine/crates/rne_sensor)
+    Checking rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Checking rne_deformable v0.4.0 (/workspace/RobotNativeEngine/crates/rne_deformable)
+    Checking rne_assets v0.4.0 (/workspace/RobotNativeEngine/crates/rne_assets)
+    Checking rne_log v0.4.0 (/workspace/RobotNativeEngine/crates/rne_log)
+    Checking rne_physics_rapier v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_rapier)
+    Checking rne_traffic v0.4.0 (/workspace/RobotNativeEngine/crates/rne_traffic)
+    Checking rne_ai v0.4.0 (/workspace/RobotNativeEngine/crates/rne_ai)
+    Checking rne_openscenario v0.4.0 (/workspace/RobotNativeEngine/crates/rne_openscenario)
+    Checking rne_physics_analytic v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_analytic)
+    Checking rne_plugin v0.4.0 (/workspace/RobotNativeEngine/crates/rne_plugin)
+    Checking rne_sumo v0.4.0 (/workspace/RobotNativeEngine/crates/rne_sumo)
+    Checking rne_physics_conformance v0.4.0 (/workspace/RobotNativeEngine/crates/rne_physics_conformance)
+    Checking rustix v1.1.4
+    Checking rne_physics_conformance_suite v0.4.0 (/workspace/RobotNativeEngine/tests/physics_conformance)
+    Checking rne_traci v0.4.0 (/workspace/RobotNativeEngine/crates/rne_traci)
+    Checking rne_usd v0.4.0 (/workspace/RobotNativeEngine/crates/rne_usd)
+    Checking rne_fuzz_smoke v0.4.0 (/workspace/RobotNativeEngine/tests/fuzz_smoke)
+    Checking tempfile v3.27.0
+    Checking rne_hardware_gateway v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_gateway)
+    Checking rne_accelerator_contract v0.4.0 (/workspace/RobotNativeEngine/crates/rne_accelerator_contract)
+    Checking rne_hardware_lekiwi v0.4.0 (/workspace/RobotNativeEngine/adapters/hardware/rne_hardware_lekiwi)
+    Checking rne_compatibility_suite v0.4.0 (/workspace/RobotNativeEngine/tests/compatibility)
+    Checking rne_asset_cli v0.4.0 (/workspace/RobotNativeEngine/tools/rne_asset_cli)
+ Documenting xtask v0.4.0 (/workspace/RobotNativeEngine/xtask)
+    Finished `dev` profile [optimized] target(s) in 37.33s
+   Generated /tmp/rne-final-ci-cache/doc/xtask/index.html

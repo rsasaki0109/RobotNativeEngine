@@ -1,0 +1,17 @@
+{
+  "status": "KNOWN_FROZEN_LIVE_SOURCE_GATE_BLOCKS_FULL_READER_BEFORE_EXECUTION",
+  "reviewed_utc": "2026-10-12T02:24:06.381338+00:00",
+  "checks": {
+    "xtask/src/main.rs": {
+      "frozen_sha256": "a501cd6c65a0bc99725a2a099890eaeaba2f1a2fa2687cb6c18dfd113e4063d1",
+      "actual_sha256": "16201b98b713a4e385d9406c3fe1c860a0b0af4b31e69bb165c978bc3e227ab8"
+    },
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs": {
+      "frozen_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+      "actual_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe"
+    }
+  },
+  "repaired_reader_executions": 0,
+  "native_worlds": 0,
+  "diagnosis": "Original and reviewed repaired auditor require live baseline source map equality. Post-collection xtask report-pointer publication changed that bound source file. Historical collection guards alone cannot silently replace this frozen gate. Temporarily restore its literal predata bytes for audit or explicitly register a separate provenance repair; numerical gates remain unchanged."
+}

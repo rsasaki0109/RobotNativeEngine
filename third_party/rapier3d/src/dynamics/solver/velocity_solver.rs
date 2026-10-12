@@ -7,7 +7,10 @@ use crate::dynamics::{
 };
 use crate::geometry::{ContactManifold, ContactManifoldIndex};
 use crate::math::Real;
-use crate::pipeline::InternalMotorImpulseSample;
+use crate::pipeline::{
+    motor_stage_event, InternalMotorImpulseSample, InternalMotorStageBinding,
+    InternalMotorStageContext, MultibodyMotorStage, MultibodyMotorStageEvent,
+};
 use crate::prelude::RigidBodyVelocity;
 use crate::utils::SimdAngularInertia;
 use na::DVector;
@@ -21,6 +24,9 @@ pub(crate) struct VelocitySolver {
     pub multibody_roots: Vec<MultibodyLinkId>,
     pub(crate) motor_impulse_samples: Option<Vec<InternalMotorImpulseSample>>,
     pub(crate) motor_impulse_partition_index: usize,
+    pub(crate) motor_stage_events: Option<Vec<MultibodyMotorStageEvent>>,
+    pub(crate) motor_stage_partition_index: usize,
+    pub(crate) motor_stage_island_index: usize,
 }
 
 impl VelocitySolver {
@@ -34,6 +40,9 @@ impl VelocitySolver {
             multibody_roots: Vec::new(),
             motor_impulse_samples: None,
             motor_impulse_partition_index: 0,
+            motor_stage_events: None,
+            motor_stage_partition_index: 0,
+            motor_stage_island_index: 0,
         }
     }
 
@@ -154,6 +163,39 @@ impl VelocitySolver {
         }
     }
 
+    fn record_motor_stage(
+        &mut self,
+        context: InternalMotorStageContext,
+        stage: MultibodyMotorStage,
+        joint_constraints: &SolverConstraintsSet<JointConstraintTypes>,
+        bindings: &[InternalMotorStageBinding],
+    ) {
+        if let Some(events) = &mut self.motor_stage_events {
+            // Before this slice's update the row buffer may be uninitialized,
+            // or retain previous-slice data. Neither is inspected here.
+            let rows = if context.initialized {
+                bindings
+                    .iter()
+                    .map(|binding| {
+                        binding.snapshot(
+                            &joint_constraints.generic_velocity_one_body_constraints
+                                [binding.constraint_index],
+                            &joint_constraints.generic_jacobians,
+                        )
+                    })
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            events.push(motor_stage_event(
+                InternalMotorStageContext { stage, ..context },
+                None,
+                &self.generic_solver_vels,
+                rows,
+            ));
+        }
+    }
+
     pub fn solve_constraints(
         &mut self,
         params: &IntegrationParameters,
@@ -165,6 +207,23 @@ impl VelocitySolver {
     ) {
         for substep_id in 0..num_substeps {
             let is_last_substep = substep_id == num_substeps - 1;
+            let mut stage_context = InternalMotorStageContext {
+                partition: self.motor_stage_partition_index,
+                island: self.motor_stage_island_index,
+                slice: substep_id,
+                expected_slices: num_substeps,
+                iteration: None,
+                stage: MultibodyMotorStage::BeforeExternalForces,
+                duration: params.dt,
+                initialized: false,
+            };
+            let mut stage_bindings = Vec::new();
+            self.record_motor_stage(
+                stage_context,
+                MultibodyMotorStage::BeforeExternalForces,
+                joint_constraints,
+                &stage_bindings,
+            );
 
             for (solver_vels, incr) in self
                 .solver_vels
@@ -176,29 +235,108 @@ impl VelocitySolver {
             }
 
             self.generic_solver_vels += &self.generic_solver_vels_increment;
+            self.record_motor_stage(
+                stage_context,
+                MultibodyMotorStage::AfterExternalForces,
+                joint_constraints,
+                &stage_bindings,
+            );
 
             /*
              * Update & solve constraints.
              */
             joint_constraints.update(params, multibodies, &self.solver_bodies);
+            // Builder metadata and row values are read only after update has
+            // initialized every row for the current slice.
+            if self.motor_stage_events.is_some() {
+                for builder in &joint_constraints.generic_velocity_one_body_constraints_builder {
+                    builder.append_internal_motor_stage_bindings(
+                        multibodies,
+                        &joint_constraints.generic_velocity_one_body_constraints,
+                        &mut stage_bindings,
+                    );
+                }
+            }
+            stage_context.initialized = true;
+            self.record_motor_stage(
+                stage_context,
+                MultibodyMotorStage::AfterJointUpdate,
+                joint_constraints,
+                &stage_bindings,
+            );
             contact_constraints.update(params, substep_id, multibodies, &self.solver_bodies);
+            self.record_motor_stage(
+                stage_context,
+                MultibodyMotorStage::AfterContactUpdate,
+                joint_constraints,
+                &stage_bindings,
+            );
 
             if params.warmstart_coefficient != 0.0 {
                 contact_constraints.warmstart(&mut self.solver_vels, &mut self.generic_solver_vels);
+                self.record_motor_stage(
+                    stage_context,
+                    MultibodyMotorStage::AfterContactWarmstart,
+                    joint_constraints,
+                    &stage_bindings,
+                );
             }
 
-            for _ in 0..params.num_internal_pgs_iterations {
-                joint_constraints.solve(&mut self.solver_vels, &mut self.generic_solver_vels);
+            for iteration in 0..params.num_internal_pgs_iterations {
+                stage_context.iteration = Some(iteration);
+                self.record_motor_stage(
+                    stage_context,
+                    MultibodyMotorStage::BeforeJointSolve,
+                    joint_constraints,
+                    &stage_bindings,
+                );
+                if let Some(events) = &mut self.motor_stage_events {
+                    joint_constraints.solve_with_motor_stages(
+                        &mut self.solver_vels,
+                        &mut self.generic_solver_vels,
+                        &stage_bindings,
+                        stage_context,
+                        events,
+                        false,
+                    );
+                } else {
+                    joint_constraints.solve(&mut self.solver_vels, &mut self.generic_solver_vels);
+                }
+                self.record_motor_stage(
+                    stage_context,
+                    MultibodyMotorStage::AfterJointSolve,
+                    joint_constraints,
+                    &stage_bindings,
+                );
                 contact_constraints
                     .solve_restitution(&mut self.solver_vels, &mut self.generic_solver_vels);
+                self.record_motor_stage(
+                    stage_context,
+                    MultibodyMotorStage::AfterContactNormal,
+                    joint_constraints,
+                    &stage_bindings,
+                );
                 contact_constraints
                     .solve_friction(&mut self.solver_vels, &mut self.generic_solver_vels);
+                self.record_motor_stage(
+                    stage_context,
+                    MultibodyMotorStage::AfterContactFriction,
+                    joint_constraints,
+                    &stage_bindings,
+                );
             }
 
             if is_last_substep {
-                for _ in 0..params.num_additional_friction_iterations {
+                for iteration in 0..params.num_additional_friction_iterations {
+                    stage_context.iteration = Some(iteration);
                     contact_constraints
                         .solve_friction(&mut self.solver_vels, &mut self.generic_solver_vels);
+                    self.record_motor_stage(
+                        stage_context,
+                        MultibodyMotorStage::AfterAdditionalFriction,
+                        joint_constraints,
+                        &stage_bindings,
+                    );
                 }
             }
 
@@ -206,23 +344,75 @@ impl VelocitySolver {
              * Integrate positions.
              */
             self.integrate_positions(params, is_last_substep, bodies, multibodies);
+            stage_context.iteration = None;
+            self.record_motor_stage(
+                stage_context,
+                MultibodyMotorStage::AfterIntegration,
+                joint_constraints,
+                &stage_bindings,
+            );
 
             /*
              * Resolution without bias.
              */
             if params.num_internal_stabilization_iterations > 0 {
-                for _ in 0..params.num_internal_stabilization_iterations {
-                    joint_constraints
-                        .solve_wo_bias(&mut self.solver_vels, &mut self.generic_solver_vels);
+                for iteration in 0..params.num_internal_stabilization_iterations {
+                    stage_context.iteration = Some(iteration);
+                    self.record_motor_stage(
+                        stage_context,
+                        MultibodyMotorStage::BeforeJointStabilization,
+                        joint_constraints,
+                        &stage_bindings,
+                    );
+                    if let Some(events) = &mut self.motor_stage_events {
+                        joint_constraints.solve_with_motor_stages(
+                            &mut self.solver_vels,
+                            &mut self.generic_solver_vels,
+                            &stage_bindings,
+                            stage_context,
+                            events,
+                            true,
+                        );
+                    } else {
+                        joint_constraints
+                            .solve_wo_bias(&mut self.solver_vels, &mut self.generic_solver_vels);
+                    }
+                    self.record_motor_stage(
+                        stage_context,
+                        MultibodyMotorStage::AfterJointStabilization,
+                        joint_constraints,
+                        &stage_bindings,
+                    );
                     contact_constraints.solve_restitution_wo_bias(
                         &mut self.solver_vels,
                         &mut self.generic_solver_vels,
                     );
+                    self.record_motor_stage(
+                        stage_context,
+                        MultibodyMotorStage::AfterContactStabilization,
+                        joint_constraints,
+                        &stage_bindings,
+                    );
                 }
 
+                stage_context.iteration = None;
                 contact_constraints
                     .solve_friction(&mut self.solver_vels, &mut self.generic_solver_vels);
+                self.record_motor_stage(
+                    stage_context,
+                    MultibodyMotorStage::AfterStabilizationFriction,
+                    joint_constraints,
+                    &stage_bindings,
+                );
             }
+
+            stage_context.iteration = None;
+            self.record_motor_stage(
+                stage_context,
+                MultibodyMotorStage::FinalSlice,
+                joint_constraints,
+                &stage_bindings,
+            );
 
             // Observe final net impulses once, after all stabilization passes.
             if let Some(samples) = &mut self.motor_impulse_samples {

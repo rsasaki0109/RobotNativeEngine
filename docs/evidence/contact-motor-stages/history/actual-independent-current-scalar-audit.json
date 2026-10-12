@@ -1,0 +1,60 @@
+{
+  "actual_collection": {
+    "bytes": 1701,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-scalar72-collection.json",
+    "sha256": "e8beae74681d6d43f72141cba438d03cee5711418e6024ff7dafc4cc779fc308"
+  },
+  "baseline_report": {
+    "bytes": 8192861,
+    "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-vendor-lint.json",
+    "sha256": "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1"
+  },
+  "candidate_admission": "generation3 REJECTED, unchanged",
+  "coupled_causal_or_maturity_gain_claim": false,
+  "coverage": {
+    "all_nonzero_tolerance_passes": 0,
+    "cells": 24,
+    "enabled_telemetry_runs": 48,
+    "native_entities": 432,
+    "native_entity_bytes": 247248,
+    "native_state_canonical_words": 42264,
+    "native_states": 144,
+    "ordered_telemetry_slices": 792,
+    "primary_nonzero_passes": 0,
+    "telemetry_canonical_words": 10704,
+    "worlds": 72,
+    "zero_target_passes": 8
+  },
+  "motor_calibration_outcome": "FAIL, 0/4 primary, unchanged",
+  "native_worlds_executed_by_reader": 0,
+  "old_report_bytes_preserved": true,
+  "only_registered_selected_source_object_changed": true,
+  "protocol": {
+    "bytes": 84311,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/frozen-protocol.json",
+    "sha256": "8275933754f12274ffd7a7abe4f6540daf8ea1c3e4a29aa495bfce87691c6d4a"
+  },
+  "report": {
+    "bytes": 8193438,
+    "path": "/tmp/rne-contact-stage-generation4/current-scalar72.json",
+    "sha256": "db0dee42a3c9067b38241112d5ee402341c0729466d7fc22f12f31504000db76"
+  },
+  "source_binary_binding": {
+    "bytes": 4305,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/scalar-source-binary-binding.json",
+    "sha256": "dcb1cb64d326bafc30c4a9aa862c19854935c7467b7e254e227e4a1ae3c3a056"
+  },
+  "status": "PASS_LITERAL_CURRENT_SCALAR_SOURCE_OBJECT_TRANSITION",
+  "summary": {
+    "collection_complete": true,
+    "completed_worlds": 72,
+    "primary_calibration_pass": false,
+    "primary_nonzero_cells": 4,
+    "primary_nonzero_passes": 0,
+    "replay_qualification_pass": true,
+    "worlds_attempted": 72,
+    "worlds_created": 72,
+    "zero_target_cells": 8,
+    "zero_target_passes": 8
+  }
+}

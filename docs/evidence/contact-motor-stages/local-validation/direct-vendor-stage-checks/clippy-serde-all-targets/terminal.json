@@ -1,0 +1,19 @@
+{
+  "name": "clippy-serde-all-targets",
+  "ended_utc": "2026-10-12T01:18:42.011553+00:00",
+  "exit_code": 0,
+  "runtime_s": 21.856194912994397,
+  "vendor_inputs_unchanged": true,
+  "changed_vendor_inputs": [],
+  "log_sha256": "3c2c3ea899aed49026ec31495648d078677f24fc8f687e4d12056eab1f2c6a71",
+  "log_bytes": 440,
+  "capacity_failure": false,
+  "lock_graph_failure": false,
+  "disk_after_bytes": {
+    "/workspace": 192266240,
+    "/tmp": 3201224704
+  },
+  "functional_tests_planned_worlds": 0,
+  "functional_tests_planned_outer_steps": 0,
+  "authoritative_collection_worlds": 0
+}

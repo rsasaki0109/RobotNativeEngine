@@ -1,0 +1,19 @@
+{
+  "all_member_sha_and_fixed_headers_verified": true,
+  "archive": {
+    "bytes": 97996800,
+    "path": "/tmp/rne-contact-stage-generation4/retention-preparation/rne-contact-motor-stage-gen4-raw-traces.tar",
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+  },
+  "deterministic_second_stream_hash_and_size_match": true,
+  "embedded_manifest": {
+    "basename": "raw-trace-manifest.json",
+    "bytes": 8728,
+    "sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690"
+  },
+  "index_inputs_verified": 93,
+  "member_count": 19,
+  "original_gzip_member_count": 18,
+  "raw_originals_stat_and_sha_unchanged": true,
+  "status": "LOCAL_ARCHIVE_PREPARED_NOT_UPLOADED"
+}

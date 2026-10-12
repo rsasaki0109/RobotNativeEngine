@@ -1,0 +1,39 @@
+{
+  "status": "SOURCE_BOUND_F32_CONTRACT_RUNTIME_REGISTERS_UNMEASURED",
+  "registered_utc": "2026-10-12T01:46:19.362587+00:00",
+  "authoritative_coupled_worlds_executed": 0,
+  "compiler": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-compiler.json",
+    "sha256": "6c46fe79d3e9c699220e2f76ffc0b3a7a30a041e19c84d1a508b23aaba7d0504",
+    "bytes": 732
+  },
+  "actual_retained_candidate_cargo_fingerprint": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/actual-rejected-build-rapier-cargo-fingerprint.json",
+    "sha256": "66fff6e2093dc91289b11edcf97e589c0eae11f80438f8d419914412c6cba8d6",
+    "bytes": 1632
+  },
+  "environment_compiler_overrides_observed": {
+    "RUSTFLAGS": null,
+    "CARGO_ENCODED_RUSTFLAGS": null,
+    "RUSTC_WRAPPER": null,
+    "CARGO_BUILD_TARGET": null
+  },
+  "common142_features": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/common142-resolved-features.txt",
+    "sha256": "fe0381bf5f2f9a23ef71bda72d7c427b9bcd71f11d5fc60736d3172eacc4a167",
+    "bytes": 53787
+  },
+  "ftz_source": [
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/lib.rs",
+      "sha256": "6985bc3241fd187fdff91232813ea75a341867416aa3c09685aa55c393ebac30",
+      "bytes": 6967
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/utils.rs",
+      "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7",
+      "bytes": 24173
+    }
+  ],
+  "basis": "Native f32 strict separate source operations without mul_add; actual host compilation has no rustflags, and captured default target features are fxsr/sse/sse2 with no fma. Rapier source conditionally sets FTZ/DAZ bits while preserving other MXCSR bits. RN is the declared IEEE/Rust model under ordinary Linux process startup; runtime rounding/MXCSR registers are unmeasured, not asserted observed. Normal-or-zero word replay is the empirical consistency check, with every subnormal/tiny or invalid domain retained explicitly."
+}

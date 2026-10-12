@@ -14,7 +14,10 @@ use crate::geometry::{
     ContactManifoldIndex, NarrowPhase, TemporaryInteractionIndex,
 };
 use crate::math::{Real, Vector};
-use crate::pipeline::{EventHandler, MultibodyMotorImpulseTelemetry, PhysicsHooks, QueryPipeline};
+use crate::pipeline::{
+    motor_stage_word, EventHandler, MultibodyMotorImpulseTelemetry, MultibodyMotorStageTelemetry,
+    PhysicsHooks, QueryPipeline,
+};
 use {crate::dynamics::RigidBodySet, crate::geometry::ColliderSet};
 
 /// The physics pipeline, responsible for stepping the whole physics simulation.
@@ -40,6 +43,9 @@ pub struct PhysicsPipeline {
     motor_impulse_telemetry_enabled: bool,
     pending_motor_impulse_telemetry: Option<MultibodyMotorImpulseTelemetry>,
     completed_motor_impulse_telemetry: Option<MultibodyMotorImpulseTelemetry>,
+    motor_stage_telemetry_enabled: bool,
+    pending_motor_stage_telemetry: Option<MultibodyMotorStageTelemetry>,
+    completed_motor_stage_telemetry: Option<MultibodyMotorStageTelemetry>,
 }
 
 impl Default for PhysicsPipeline {
@@ -63,6 +69,9 @@ impl PhysicsPipeline {
             motor_impulse_telemetry_enabled: false,
             pending_motor_impulse_telemetry: None,
             completed_motor_impulse_telemetry: None,
+            motor_stage_telemetry_enabled: false,
+            pending_motor_stage_telemetry: None,
+            completed_motor_stage_telemetry: None,
             contact_pair_indices: vec![],
             manifold_indices: vec![],
             joint_constraint_indices: vec![],
@@ -89,6 +98,26 @@ impl PhysicsPipeline {
     /// an interrupted step. An empty completed report is not a measured zero.
     pub fn completed_multibody_motor_impulses(&self) -> Option<&MultibodyMotorImpulseTelemetry> {
         self.completed_motor_impulse_telemetry.as_ref()
+    }
+
+    /// Enables read-only internal single-DoF motor solver-stage observation.
+    ///
+    /// Disabled by default and independent of completed motor impulse telemetry.
+    /// Toggling clears this observer's report without changing physics state.
+    pub fn set_multibody_motor_stage_telemetry_enabled(&mut self, enabled: bool) {
+        if self.motor_stage_telemetry_enabled != enabled {
+            self.motor_stage_telemetry_enabled = enabled;
+            self.pending_motor_stage_telemetry = None;
+            self.completed_motor_stage_telemetry = None;
+        }
+    }
+
+    /// Returns stage observations of the most recently completed pipeline step.
+    ///
+    /// Returns `None` while disabled, before a completed step, or after an
+    /// interrupted step. Empty rows indicate unavailable or unsupported motors.
+    pub fn completed_multibody_motor_stages(&self) -> Option<&MultibodyMotorStageTelemetry> {
+        self.completed_motor_stage_telemetry.as_ref()
     }
 
     fn clear_modified_colliders(
@@ -257,8 +286,18 @@ impl PhysicsPipeline {
             .as_ref()
             .map(|report| report.ccd_partition_durations_s.len() - 1)
             .unwrap_or(0);
-        for solver in &mut self.solvers[..islands.num_islands()] {
+        let stage_partition = self
+            .pending_motor_stage_telemetry
+            .as_ref()
+            .map(|report| report.ccd_partition_duration_words.len() - 1)
+            .unwrap_or(0);
+        for (island, solver) in self.solvers[..islands.num_islands()].iter_mut().enumerate() {
             solver.prepare_motor_impulse_telemetry(self.motor_impulse_telemetry_enabled, partition);
+            solver.prepare_motor_stage_telemetry(
+                self.motor_stage_telemetry_enabled,
+                stage_partition,
+                island,
+            );
         }
 
         #[cfg(not(feature = "parallel"))]
@@ -340,6 +379,12 @@ impl PhysicsPipeline {
         if let Some(report) = &mut self.pending_motor_impulse_telemetry {
             for solver in &mut self.solvers[..islands.num_islands()] {
                 report.append(solver.take_motor_impulse_samples());
+            }
+        }
+
+        if let Some(report) = &mut self.pending_motor_stage_telemetry {
+            for solver in &mut self.solvers[..islands.num_islands()] {
+                report.events.extend(solver.take_motor_stage_events());
             }
         }
 
@@ -468,9 +513,14 @@ impl PhysicsPipeline {
         self.pending_motor_impulse_telemetry = self
             .motor_impulse_telemetry_enabled
             .then(|| MultibodyMotorImpulseTelemetry::new(integration_parameters.dt));
+        self.completed_motor_stage_telemetry = None;
+        self.pending_motor_stage_telemetry = self
+            .motor_stage_telemetry_enabled
+            .then(|| MultibodyMotorStageTelemetry::new(integration_parameters.dt));
         // Clear every cached island, including islands inactive this step.
         for solver in &mut self.solvers {
             solver.prepare_motor_impulse_telemetry(false, 0);
+            solver.prepare_motor_stage_telemetry(false, 0, 0);
         }
         self.counters.reset();
         self.counters.step_started();
@@ -633,6 +683,11 @@ impl PhysicsPipeline {
                     .ccd_partition_durations_s
                     .push(f64::from(integration_parameters.dt));
             }
+            if let Some(report) = &mut self.pending_motor_stage_telemetry {
+                report
+                    .ccd_partition_duration_words
+                    .push(motor_stage_word(integration_parameters.dt));
+            }
             self.build_islands_and_solve_velocity_constraints(
                 gravity,
                 &integration_parameters,
@@ -720,6 +775,7 @@ impl PhysicsPipeline {
             report.finalize();
             self.completed_motor_impulse_telemetry = Some(report);
         }
+        self.completed_motor_stage_telemetry = self.pending_motor_stage_telemetry.take();
     }
 }
 

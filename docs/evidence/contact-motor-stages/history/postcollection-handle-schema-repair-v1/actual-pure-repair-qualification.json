@@ -1,0 +1,75 @@
+{
+  "status": "ACTUAL_PURE_POSTCOLLECTION_SHAPE_AND_PROVENANCE_TESTS_PASS",
+  "registered_utc": "2026-10-12T02:10:38.753880+00:00",
+  "native_worlds": 0,
+  "complete_raw_measurement_rereads": 0,
+  "tests": [
+    {
+      "name": "test_native_handle_shape.py",
+      "actual_exit_code": 0,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/pure-handle-shape.stdout",
+        "sha256": "300ca283d4a69d7743454ce033c892da30a373d25ef4159a8bfc7d9f3ba39a91",
+        "bytes": 748
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/pure-handle-shape.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "test_stage_reader.py",
+      "actual_exit_code": 0,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/pure-shape-stage-tamper.stdout",
+        "sha256": "cd5801fe7e1276ad69f53f55afee51523cc9e78d6ea8de67e09169f779c23a24",
+        "bytes": 1685
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/pure-shape-stage-tamper.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "test_repair_provenance.py",
+      "actual_exit_code": 0,
+      "stdout": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/pure-repair-provenance.stdout",
+        "sha256": "e89720f2bb9db2c2682b6a67f507b9e67b8ea151318f0cf44d541d9ae478d63d",
+        "bytes": 1148
+      },
+      "stderr": {
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/pure-repair-provenance.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    }
+  ],
+  "arithmetic_module_original_sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+  "arithmetic_module_repaired_sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+  "all_original_protocol_reader_and_inputs_untouched": true,
+  "prior_shape_tests": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/actual-pure-shape-tests.json",
+    "sha256": "894cf7cf47cb8e60ae7f4564034b98ba43f3110ec2ad8be7a96f4f39162ea91c",
+    "bytes": 1971
+  },
+  "test_source_artifacts": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_native_handle_shape.py",
+      "sha256": "17aff236daec25930782ee069f4399fc680a1786791e399bf0bfcb992aa6f709",
+      "bytes": 2408
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_stage_reader.py",
+      "sha256": "5d077cbf231a375856f4551c8f31fad26af5d8030cb657d0ba189fb83e899931",
+      "bytes": 13677
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/test_repair_provenance.py",
+      "sha256": "1ef1b49577d62a0ee081f9f4117229b3beee84c659ca30497c5567de29166174",
+      "bytes": 3009
+    }
+  ]
+}

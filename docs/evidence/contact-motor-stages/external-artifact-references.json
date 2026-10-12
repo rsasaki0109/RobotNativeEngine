@@ -1,0 +1,1512 @@
+{
+  "artifacts": [
+    {
+      "bytes": 8192861,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration.json",
+      "retention": "existing published historical artifact",
+      "sha256": "0e4e32a62a39ebce083b957f42025abd3e9b41700de8f78806fb7697beb15e2a"
+    },
+    {
+      "bytes": 10140453,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-bincode-generation-1.json",
+      "retention": "existing published historical artifact",
+      "sha256": "a5a1a8856c58b5ee964a4fc6defbcceb65bebf5138bcb8126b59ece4d1bdc7ca"
+    },
+    {
+      "bytes": 15762,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-codec-migration.json",
+      "retention": "existing published historical artifact",
+      "sha256": "257c8ddc628764625980be05bccdc1bd98e73517305ada82db62e98374e880e1"
+    },
+    {
+      "bytes": 8190750,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-diagonal-calibration.json",
+      "retention": "existing published historical artifact",
+      "sha256": "010576c088b8916c29e2cfcf7af40abfc636508bff1496aacd793a9ba5826816"
+    },
+    {
+      "bytes": 8192861,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-vendor-lint.json",
+      "retention": "existing published historical artifact",
+      "sha256": "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1"
+    },
+    {
+      "bytes": 103,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/.gitattributes",
+      "retention": "existing published historical artifact",
+      "sha256": "3a6d4bea98fe732e9153672c6e384203193249605c5c14391f3a711b6364b630"
+    },
+    {
+      "bytes": 5282,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/README.md",
+      "retention": "existing published historical artifact",
+      "sha256": "292612d8c82af7b74a4f19e11d752dddb9e2bc21083105fe2db5ab1feaa2af0a"
+    },
+    {
+      "bytes": 47858,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/archived-candidate-reconstruction-and-current-default-proof.json",
+      "retention": "existing published historical artifact",
+      "sha256": "eafa41536ed4e37f288eb28bcce040e618772789cf2f9af7491ff28fdeb9a523"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/133_go2_contact_terrain.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/134_go2_terrain_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/135_go2_feedback_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 569,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/136_go2_parallel_rl.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+    },
+    {
+      "bytes": 854,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/137_go2_native_backend.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/baseline-release-regressions/138_heavy_grasp.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+    },
+    {
+      "bytes": 431,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/candidate-application.json",
+      "retention": "existing published historical artifact",
+      "sha256": "0d7e6916eab8690f4a826353b121ecd6e9dadc6fb64384bce68ddc3b64847666"
+    },
+    {
+      "bytes": 16070,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/ci-review/strict-vendor-lint-doc-scope-review.json",
+      "retention": "existing published historical artifact",
+      "sha256": "f66f4f218ab9f45f56db4d0cf8884f8c11b27d1a8a7dcc7c347c798e8df8e9ae"
+    },
+    {
+      "bytes": 112,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "f7ea0d7a48ff57dc6f94e505e54f2ce6e81aada21060940bd9f6d374ae492a65"
+    },
+    {
+      "bytes": 487,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "c3641e9b3fd582ff376ec4a529075b01b0961ea99c1f1696f54982df4a8cfd54"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-authoritative-calibration/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "ffd6b0393473237d25b96179fe9d2c737f6af0965728b8da2631664431d72b26"
+    },
+    {
+      "bytes": 11756,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "c459b3e23070207ad7b3ea09a48466ee4a2cdaf23f5b7db92d01ab4bfa947f01"
+    },
+    {
+      "bytes": 354,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "215f3b0de14ed8cc5fcc4be18c3bc91cf0961848fd5cbf17b9873250d4862b42"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-build-release/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "e0cab997a221b88c81142c26b158607cd4e9b37d3c4532fa5c7792947054325f"
+    },
+    {
+      "bytes": 2980,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "bcaa1d6415e53dba0b82c26aa9086b732192547a365882908ebaaddcc4dc916f"
+    },
+    {
+      "bytes": 337,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "ddac28f75d4b85d19d0f014e2b4dd3328bb4e6958fd255f5aeaeeda88442cdcf"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-release-regressions/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "3028268ebf666b9f1a63d773c39c57e64e5c49d2cd2f2826153b146aa892cf8d"
+    },
+    {
+      "bytes": 2981,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "428504fd7b3341032a79e7d7667226fe2cb6d47ea116a483e489d40ad916a3d8"
+    },
+    {
+      "bytes": 353,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "a3de4bf40f375f03af2ee1dd01b7ae769d8a494fe47d39a5a7f87fb57cb88ed3"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-restored-default-release-regressions/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "8cdcc42ff77f16d13981ff0e6c1592767f69ded958dd05fab1af63b5276b56ce"
+    },
+    {
+      "bytes": 3291,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "b7cdd16d5483a3430b2578ca93391a6a22d0e65d8452d9a809a4705a6743279f"
+    },
+    {
+      "bytes": 327,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "69d58a00fb667fd20d28a99eb8bb970ab11aa5197d77b0a0dc8991a743b5ab20"
+    },
+    {
+      "bytes": 443,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/commands/gen3-vendor-tests-build-default/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "6bd410bee6b89d0ec738e45cf9508a5ad0a388a5f4ae2f604a2d391faa5f1d41"
+    },
+    {
+      "bytes": 15075,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/complete-rejected-candidate.patch",
+      "retention": "existing published historical artifact",
+      "sha256": "08b5932ec3ac3271709c3e665ed631b76bbb51190abe86117333f19ea1b1f3c7"
+    },
+    {
+      "bytes": 1516,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/frozen-binary-binding.json",
+      "retention": "existing published historical artifact",
+      "sha256": "c7cccc666b5208fbf99e7b0962a3e65a20839ca2ffc689a8182c1002a458f29b"
+    },
+    {
+      "bytes": 2019,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.json",
+      "retention": "existing published historical artifact",
+      "sha256": "18309e2a1b28a4dc416edd51f5a2bf115f1c7b8b67853580ca5f08114ea2ac7e"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.stderr.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2632,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/actual-poststudy-audit-command.stdout.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "f9dfef537d92307576ddeed16f3ff57ad9086e9c20df6474801e3615ee8f4882"
+    },
+    {
+      "bytes": 50108,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/admission-rejected-release133-138-independent-proof.json",
+      "retention": "existing published historical artifact",
+      "sha256": "989dcd6169b73374292404376b031b462be8b4f4a639b9b353f5dbd4ec0360c6"
+    },
+    {
+      "bytes": 46585,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/all24-generation2-vs3-descriptive-metrics.json",
+      "retention": "existing published historical artifact",
+      "sha256": "63bbd9b951b1dc2ad8b79b7e488ca0ef404d88b482d78760a43ea8ac316f6e4e"
+    },
+    {
+      "bytes": 32054,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/audit_candidate_report.py",
+      "retention": "existing published historical artifact",
+      "sha256": "46121fdec42c45ef3588ae0cf6b26fb0c5b108ae2b32b032719fc50943cac270"
+    },
+    {
+      "bytes": 14330,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/audit_release_admission_readonly.py",
+      "retention": "existing published historical artifact",
+      "sha256": "9d998d7b086229658e8052b582a02acb725931f3d45b61de2e86eea8d64a52d4"
+    },
+    {
+      "bytes": 12728,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/frozen_candidate_row_oracle.py",
+      "retention": "existing published historical artifact",
+      "sha256": "10a148a918f192c15979a79aaefe2b32212f3ac04d86980246f87fafdff8eea3"
+    },
+    {
+      "bytes": 148535,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/independent-generation3-exact-fraction-audit.json",
+      "retention": "existing published historical artifact",
+      "sha256": "7311d98d43470b1bc0ef8cf120307c6417dc213719238484872c650077770611"
+    },
+    {
+      "bytes": 8462,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-independent-tool-freeze.json",
+      "retention": "existing published historical artifact",
+      "sha256": "6be7550fd0c3fe3eb7894d9ebd70b99fc827ca27a9d8386fa2c0300f739c004d"
+    },
+    {
+      "bytes": 13974,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-pure-oracle-tests-attempt-1.json",
+      "retention": "existing published historical artifact",
+      "sha256": "11fb39bd050aeb17ce2642f39ae2448c1ec4b1eb14eca7616de4afd091d22558"
+    },
+    {
+      "bytes": 13974,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/pre-world-pure-oracle-tests.json",
+      "retention": "existing published historical artifact",
+      "sha256": "64c4c6bd23200e9cb1a409d353757a6087563fb9a01d28c8592ca47b48a8bc11"
+    },
+    {
+      "bytes": 16437,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/preregistered-diagonal-intervention-protocol.json",
+      "retention": "existing published historical artifact",
+      "sha256": "72fb721272e7f42c38e67560f551dfe041f9b7102219f546906596fcd4868457"
+    },
+    {
+      "bytes": 7908,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/independent-oracle/test_candidate_oracle_pure.py",
+      "retention": "existing published historical artifact",
+      "sha256": "0a91fd5712529bcc011c759c93641e71d21aa25fbd8def57b9ad19fb72c19bb1"
+    },
+    {
+      "bytes": 642,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regression-reader-freeze.json",
+      "retention": "existing published historical artifact",
+      "sha256": "2ce259b00432f3f0426169a7604c05c71067f5c1d316f0f2786068b89f3fb2ce"
+    },
+    {
+      "bytes": 139,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "a8284b88058ac0c2a6114e436ae701a2f21fe82f8a5a819478818f8611f56f33"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 1119,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "bf82d0de3c8e84be107bdbee4c3e2f701bd68c41df95341522ef74b704451cdc"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/133_go2_contact_terrain.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 133,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "9df7f53d47a8bc3ea4ed87b614839bf461aebffe375e4bc131a79f1a1aa8eec5"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 220,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "d40abf242d725a80b99d12f2f9572c7c25af54fd17ac5bf88de0c3aed8d50cb4"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/134_go2_terrain_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 135,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "6e3b60ec1029b82a5b3aefa1c827505802018136b936e7988d0afbede9e4a09b"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 12759,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "b7b8109013c23eaac161318b2c3ed0c6e36ebd62b4e9648e1a29e895068d3321"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/135_go2_feedback_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 131,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "09324f37050f91c7efb581714d91af7f2a22db3acca3bdc46d8c242d37a8d6c8"
+    },
+    {
+      "bytes": 501,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "bytes": 11052,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "82bbdba2f8fa325ada6ac724d4a286f6cd694e60d14ad60f50ef01b01c91ad32"
+    },
+    {
+      "bytes": 569,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/136_go2_parallel_rl.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "48f511e3d035f7cf3ccfbfdced0301ba48b02c3f29e17949c36b964894be1b05"
+    },
+    {
+      "bytes": 137,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "4517c8f7a268e298c9958a21a4bca4debc7245aeaa8aa5a68634a5a93b63a394"
+    },
+    {
+      "bytes": 820,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "bytes": 11158,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "8e43cd03c60fd9c0295bb6bfdc5a1028d167bd7d43a7afe94188c629075d4c03"
+    },
+    {
+      "bytes": 854,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/137_go2_native_backend.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "582b5f785d217b286525d236537ad6d9adc94ce9cc0aa915e5adbf29fe83b2d7"
+    },
+    {
+      "bytes": 123,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "6d4a76d36f00586d519fba254760f88a30763e8f3ded89f99e2b57d939144915"
+    },
+    {
+      "bytes": 1431,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "34ee5085d2c024721cff3d44d25726d0b64cd2bff18d2719cee44b919f9313c6"
+    },
+    {
+      "bytes": 11331,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "12cc161ac82fb25bf55b5cc6cf3babfbfc5e87cf6af243d915cff646709841cd"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/138_heavy_grasp.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "9acfe393a77fe2b705b5c5cc33662fcbad5c8e7c7703efe09bf39b6862d31cf1"
+    },
+    {
+      "bytes": 3565,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/release-regressions/results.json",
+      "retention": "existing published historical artifact",
+      "sha256": "2ab7e727f7353cec525e30cb09276122a304a730851e1380aaab6ab8f42f3f0b"
+    },
+    {
+      "bytes": 24547,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/resolved-feature-tree.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "420aedcae8a03bd3405a20a0dc8fb689cd6c0888585a48564a6fd9e2aee5fc28"
+    },
+    {
+      "bytes": 139,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "5003fdfea0578468a4f575c74c73248444b0dd6aa264ef5489edb3046736a3ce"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 125,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "e4b70399c0de513d529390357d20d4763ad7fa80efc4f018cc1ebaee6dedaa5a"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/133_go2_contact_terrain.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 133,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "6eefd271b2f1f78f4e2378fe68fe33d1cdc923c87bf3fb8f08909e57b16e9dca"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 122,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "c99a1cf693c03e8eccc004bf073da5c6e36cf95f0efc84c1019c3142a497fca8"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/134_go2_terrain_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 135,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "7a90ec54dd555088144c622905597c144bf422a1637dcf708c336ec562a5cfcf"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 11397,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "1842749f6ac3a8e8b02696b35323f70012c43306cd39c8de2a64e5a821cdfc5c"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/135_go2_feedback_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 131,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "08ff09d1910ddedb628e0626aae6ed319934499e2fd2eb5cb90e2e6741c85b5d"
+    },
+    {
+      "bytes": 501,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "bytes": 11052,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "2f56b47090c94ebc4646fa872fb1f54eefe961db32368dd1eda8101b49a12b9f"
+    },
+    {
+      "bytes": 571,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/136_go2_parallel_rl.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "ec72e23cd8d90863f293477613461cfa00e51841b93e46e51ab2e871b42318a6"
+    },
+    {
+      "bytes": 137,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "f0a9c7d06225798f1bce30c899cef18322529209e900eb590572f318ad4758fa"
+    },
+    {
+      "bytes": 820,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "bytes": 11061,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "b73fa2d61bc363e8823dfe40386a1d756a76062d53b6a9c11bc2429e94721f37"
+    },
+    {
+      "bytes": 853,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/137_go2_native_backend.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "4e807e8b2302f46854890b3a9adc06114e9c8cb84adb64cebd5670a0e9ec638a"
+    },
+    {
+      "bytes": 123,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "e76f23c2e434317f25c80874512a711ce1357775c4161a537a7f7630bab7fe4d"
+    },
+    {
+      "bytes": 1431,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+    },
+    {
+      "bytes": 11219,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "7d9df6d460beb92e0acc5925d8e3d23121a98efd819c3785062917d89c78f0bb"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/138_heavy_grasp.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "3af6f020d696ebb963bade812ff2b1143532b289693f5e650116bf5080df50f3"
+    },
+    {
+      "bytes": 3566,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/restored-default-release-regressions/results.json",
+      "retention": "existing published historical artifact",
+      "sha256": "08aae8cf1b94630277bf9daf6ff3cc8df26aeb755622676ffe6e2247b5330e22"
+    },
+    {
+      "bytes": 2396,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/rollback-to-merged-default.json",
+      "retention": "existing published historical artifact",
+      "sha256": "ca142b3e63dd6636614a7eba736ffcfbdfd5604321216237bccb5c1c31881930"
+    },
+    {
+      "bytes": 2554,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/run_release_regressions.py",
+      "retention": "existing published historical artifact",
+      "sha256": "0157b6fb5cf43f8d46c3eee1be76a38c6478d9d9195a80dfa61d3ea4a85cb65a"
+    },
+    {
+      "bytes": 2571,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/run_restored_default_release_regressions.py",
+      "retention": "existing published historical artifact",
+      "sha256": "7af7ac54d2facdd7176b7fde658823b58b344c4eb34d66aebfa7c3876681214e"
+    },
+    {
+      "bytes": 18497,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/source-compiler-protocol.json",
+      "retention": "existing published historical artifact",
+      "sha256": "16c085e73638c360126c57d05bd00ee67f3173c5a790ea17b4af528b39642aa8"
+    },
+    {
+      "bytes": 8190750,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-diagonal-calibration.json",
+      "retention": "existing published historical artifact",
+      "sha256": "010576c088b8916c29e2cfcf7af40abfc636508bff1496aacd793a9ba5826816"
+    },
+    {
+      "bytes": 23833,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/position-motor-diagonal-experiment/artifact-manifest.json",
+      "retention": "existing published historical artifact",
+      "sha256": "867ee05c187409cd4c0ad30b6ef2eb557db825ead21c3efdb600dece1ccbb9a2"
+    },
+    {
+      "bytes": 92,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/.gitattributes",
+      "retention": "existing published historical artifact",
+      "sha256": "05f6d0bbce2ddea46f075ef7f444a5d53e721770a293280deac906ee4c7990c4"
+    },
+    {
+      "bytes": 5596,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/README.md",
+      "retention": "existing published historical artifact",
+      "sha256": "b73a73626a283766cb7084c0beb8eb984990f1a1674894ef646c422a682c72e6"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/133_go2_contact_terrain.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/134_go2_terrain_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/135_go2_feedback_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 569,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/136_go2_parallel_rl.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+    },
+    {
+      "bytes": 854,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/137_go2_native_backend.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/baseline-release-regressions/138_heavy_grasp.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+    },
+    {
+      "bytes": 112,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "5b0c9d9b174967aa5e2fa7d09e928e0b7551a5924538ca5a7eeafa189f82f587"
+    },
+    {
+      "bytes": 313608,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/inputs-after.json",
+      "retention": "existing published historical artifact",
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "bytes": 313714,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/inputs-before.json",
+      "retention": "existing published historical artifact",
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "bytes": 525,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "0fe3a4f29dc7320905f36f9518bcbff8d32328082175c8505f024e2c588c1afa"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-authoritative-calibration/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "76f5ff33ef0fc62ff4a9d86825616a7f716ea116498d283c5d4de8817f813beb"
+    },
+    {
+      "bytes": 263,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "529f845ed7f97c8e977bce5138188ac097797631d2365e21b5a0e771a6b7d958"
+    },
+    {
+      "bytes": 313608,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/inputs-after.json",
+      "retention": "existing published historical artifact",
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "bytes": 313714,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/inputs-before.json",
+      "retention": "existing published historical artifact",
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "bytes": 402,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "e49b23a91522a784b2f4e2e786243da5e733c23788909e6512285450d456b81a"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-calibration-build-release/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "44e32a01b6b68c06c2259113fe4106c36e47c690a01f37746913a9a0f7c39e30"
+    },
+    {
+      "bytes": 68,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "fd1da9cab545501f81688742a0d652c6f084dabf5840c934af4f1648a3634766"
+    },
+    {
+      "bytes": 313608,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/inputs-after.json",
+      "retention": "existing published historical artifact",
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "bytes": 313714,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/inputs-before.json",
+      "retention": "existing published historical artifact",
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "bytes": 478,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "a6fe793285ca410fa5d1f7866009044e3d388854d01166e5b626e8aaaafed8ea"
+    },
+    {
+      "bytes": 441,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-historical-source-rejection/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "a5f0dbf6fd3a9ad6add93a28ff77a4d76fc45575758ce2ac945ece4d57e381f4"
+    },
+    {
+      "bytes": 2980,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "dbf172b87f72ed9e8db2ab52af46647f2b0d13f91c83c09ba3dab6d73396aad6"
+    },
+    {
+      "bytes": 313608,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/inputs-after.json",
+      "retention": "existing published historical artifact",
+      "sha256": "aa557a5d88dd0d342ffff0736922e5b0ab9096c3b2a0deb51954b64047a4b895"
+    },
+    {
+      "bytes": 313714,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/inputs-before.json",
+      "retention": "existing published historical artifact",
+      "sha256": "056aee3ba7f4a6023469061ec61ec59733c20a4834eb2cddef48ec8612723b1e"
+    },
+    {
+      "bytes": 401,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "fe0ecdd64f38578cd995fcefe17a72e15b762c0a3b3c0ce15f8aa26fe588f6bb"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-release-regressions/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "99fcc36f24cfa3e5d9abead36f6d767326dc177916fcb0246b96122849fbbf51"
+    },
+    {
+      "bytes": 5085,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "9c518c958ad960cbe5a1b0ad0f60f300a4bea63920d72d5b893a02c5eaaac60a"
+    },
+    {
+      "bytes": 313738,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/inputs-after.json",
+      "retention": "existing published historical artifact",
+      "sha256": "9635b8648f18e12e9df6d3213cc797afb85e63beb8efb2a1ef318b671246dc3f"
+    },
+    {
+      "bytes": 313844,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/inputs-before.json",
+      "retention": "existing published historical artifact",
+      "sha256": "c68ff86cab2c0ef8f193e35169308fbc807d53c48b7e7abcb802c1dffe962de5"
+    },
+    {
+      "bytes": 511,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "451f6d13cd34b2b658587a6d1c7bb844decf3f3f92f13b2075581775f5f518f8"
+    },
+    {
+      "bytes": 439,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-rne-strict-rustdoc/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "2a0b610bd18265854bad9d3d0fdcd27910ff278c2d28cb45fca48bc7c3ff2060"
+    },
+    {
+      "bytes": 4188,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "2e84c60941f29042e262d8ab0d05861653dd5d29991fd95cd5d6ff53da40ca88"
+    },
+    {
+      "bytes": 326976,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/inputs-after.json",
+      "retention": "existing published historical artifact",
+      "sha256": "48847f87ccdc998d03ba75013072db71b7056a597b02f23cb7f0d9601dacbd78"
+    },
+    {
+      "bytes": 327082,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/inputs-before.json",
+      "retention": "existing published historical artifact",
+      "sha256": "ebb50e5cca4f45e6e6c8c6300e64389c62bd5dab3ec487f4ceddc11f6d0c802c"
+    },
+    {
+      "bytes": 401,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "8c30e94c495764d125c2ae7d36815ecefc9021e22dfa3405707e513324643354"
+    },
+    {
+      "bytes": 440,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/commands/vendor-lint-vendor-serde-tests/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "bd8378bda05b36331aef0a09fb0f42b0f2172f4b81a64cf5ac4760224739f16d"
+    },
+    {
+      "bytes": 632,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/publication-boundary.json",
+      "retention": "existing published historical artifact",
+      "sha256": "13a80b521031868cd2418c13e25dea5467ffb91a65f4eb7a5111f2418586e86b"
+    },
+    {
+      "bytes": 139,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "42ff01f27869105a17443422794889eaaee6bfc8074fdf17e47e7a51e2b246f7"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 142,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "5af8695fc8c764789fe319580e683c8276180bb91095222b9fb739f203619585"
+    },
+    {
+      "bytes": 445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/133_go2_contact_terrain.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "bytes": 133,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "0f22037343cb748d402e5278c45b4d86d54f0d3ab53fe51aeab9b5128f51ebcd"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 139,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "71bd69d606baa2949b08e0e58acfc6aea49aabe878097205e8b6f8d446c6cb81"
+    },
+    {
+      "bytes": 387,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/134_go2_terrain_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "bytes": 135,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "4b87a77c4d55d50d1032c343be513542153cc627aa70ea5ad12607a303cb68d7"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 579,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "3e31d5516167c65f06ac4efd2cf5f0a8035c6c72049d54f30d3ee40afbcd5fad"
+    },
+    {
+      "bytes": 664,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/135_go2_feedback_trot.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "bytes": 131,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "117efce85e88aae09b4314ce1ce799c3ef6f36082ee7a2b1af6c228abcd4a210"
+    },
+    {
+      "bytes": 501,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "bytes": 234,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "5a94cb143645f5df058688d02a8b8823db6e520560b3b0e1c6d74cfe80b82e8e"
+    },
+    {
+      "bytes": 569,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/136_go2_parallel_rl.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "5bfd31a9da6d3871806e014d9951349796fdb244c6a35925d9109a8ee2d6dfd5"
+    },
+    {
+      "bytes": 137,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "1a744d23dd03950daa0c8ec82c99b28a2875b28033e2ecf435df3486451ee989"
+    },
+    {
+      "bytes": 820,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "bytes": 243,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "d699d2c37437d35073cf8ccb811d5140567ab3ad27e3dde8d61a6421a1fd682d"
+    },
+    {
+      "bytes": 853,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/137_go2_native_backend.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "7e81dc1956585638a2e435baa92e439bb6342190955b60c7b2213407a460f810"
+    },
+    {
+      "bytes": 123,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp-process.json",
+      "retention": "existing published historical artifact",
+      "sha256": "5abd8c35244b55660fbbd5ae865e17fd8ec06a631217d285769b8030a36cf774"
+    },
+    {
+      "bytes": 1431,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.physical.txt",
+      "retention": "existing published historical artifact",
+      "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+    },
+    {
+      "bytes": 401,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.stderr",
+      "retention": "existing published historical artifact",
+      "sha256": "a2aedb2fe47027635a409a71fd6573042eb5b2dd2b59e00f3dbbe2de170f9923"
+    },
+    {
+      "bytes": 1647,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/138_heavy_grasp.stdout",
+      "retention": "existing published historical artifact",
+      "sha256": "f192f19d90ab30f2a168c44d672ebb26e0d4d60070a22fcd3ad1ee68c04f5516"
+    },
+    {
+      "bytes": 3565,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/release-regressions/results.json",
+      "retention": "existing published historical artifact",
+      "sha256": "c9ffb04d0021f3f4a3c1c872d434b67cecab938b316e6f82987479d08db678ef"
+    },
+    {
+      "bytes": 21551,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-cleanup.patch",
+      "retention": "existing published historical artifact",
+      "sha256": "4d5527610ceda6ba463fcade04290bf77acc9b9feaeae77ef25ed21574a8c5db"
+    },
+    {
+      "bytes": 1819,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/actual-72-world-collection-receipt.json",
+      "retention": "existing published historical artifact",
+      "sha256": "1782f6530a924c6fe106a66adfd4d71758e87e53da438a33f0a3d7bb59697ac5"
+    },
+    {
+      "bytes": 2766,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/actual-independent-72-world-audit-command.json",
+      "retention": "existing published historical artifact",
+      "sha256": "c376577e2e985ff9947024d9aa75f88c425139a498711dd02d7f4b877249d4c2"
+    },
+    {
+      "bytes": 4567,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/actual-independent-72-world-audit.json",
+      "retention": "existing published historical artifact",
+      "sha256": "8c5ddfdc7b804588c5f9d2545cc9713a6b9932e99015fde7b15202a6c4c08e43"
+    },
+    {
+      "bytes": 18203,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/audit_vendor_lint_report.py",
+      "retention": "existing published historical artifact",
+      "sha256": "819d72bd9771e6f1cdf6cac0678c4f763dacf03cccc849a29494e7599c2b76ef"
+    },
+    {
+      "bytes": 532,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/binding-preflight-attempt1-error.json",
+      "retention": "existing published historical artifact",
+      "sha256": "20ae43382268643a2b177d45d7c07554d899569f614d4a03edfb46b7d8265cf2"
+    },
+    {
+      "bytes": 24046,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/frozen-current-source-binary-binding.json",
+      "retention": "existing published historical artifact",
+      "sha256": "5674fc8586f0832ab1870964eba2afea6c45ab2c09c599525b69a8538442d5dc"
+    },
+    {
+      "bytes": 6638,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/independent-vendor-hygiene-mechanical-readonly-review.json",
+      "retention": "existing published historical artifact",
+      "sha256": "e2984863efac9bdba3b1400354a19be4bfd8d9e4514e493c4be93a2cb403d9c9"
+    },
+    {
+      "bytes": 16122,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/mechanical-source-independent-review.json",
+      "retention": "existing published historical artifact",
+      "sha256": "26abf929497ea849c206b15b05d79098377518522a7f6289f60cf0314a779782"
+    },
+    {
+      "bytes": 3359,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/pre-world-independent-reader-freeze.json",
+      "retention": "existing published historical artifact",
+      "sha256": "7c3daf4e83aaa75fcbdf695be602949f8aba1d4e9d79d1e547df512e7634d9a0"
+    },
+    {
+      "bytes": 26234,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/preregistered-vendor-lint-report-transition-protocol.json",
+      "retention": "existing published historical artifact",
+      "sha256": "63bc23022227140e658b2c118a5be94aa6f8343e33565f1fd077e4951a61dbb6"
+    },
+    {
+      "bytes": 588,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/pure-reader-self-test-command.json",
+      "retention": "existing published historical artifact",
+      "sha256": "36cad963067359349aabeb2c2aaf4f68c2924ea7a79ce57b12c14c2ff4a867c2"
+    },
+    {
+      "bytes": 855,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/pure-reader-self-test.stdout.json",
+      "retention": "existing published historical artifact",
+      "sha256": "f257cdc69f46b0e6189bee2b99ead4298a1b5f982117e72a4becf2db523f6bc8"
+    },
+    {
+      "bytes": 719,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/required-release-reader-freeze.json",
+      "retention": "existing published historical artifact",
+      "sha256": "9c2e76e8c3b984d9da4bc0f4a13719e38eaee35cec13c2a12386e43e6a907900"
+    },
+    {
+      "bytes": 33443,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/resolved-release-features.json",
+      "retention": "existing published historical artifact",
+      "sha256": "ced05d09fa6820ae993650eb269261f38ce2d3b263e8d2adeb8ac7eba474e3df"
+    },
+    {
+      "bytes": 2565,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/run_required_release_regressions.py",
+      "retention": "existing published historical artifact",
+      "sha256": "80a8ae77e2739c89485e2ddc982e0726ccd0172a86920e907f76b73b1d7b12dd"
+    },
+    {
+      "bytes": 17890,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/unfrozen-preflight-reader-before-tamper-fixture-fix.py",
+      "retention": "existing published historical artifact",
+      "sha256": "e45fb8d1714a9050a06784a6c91c1c020bcffd7d03f78dd136f74939be3fa82e"
+    },
+    {
+      "bytes": 786,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/unfrozen-preflight-tamper-fixture-failure.json",
+      "retention": "existing published historical artifact",
+      "sha256": "915807388488874b549a112c24d591840bb817c6a0ae456d0e2c67ec8e3f5769"
+    },
+    {
+      "bytes": 346,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/usize-is-multiple-of-official-msrv-read.json",
+      "retention": "existing published historical artifact",
+      "sha256": "8b35bd9c710f6483ee231ae5e088313a59b8c62c82a15519fca4df4c41f0dc9d"
+    },
+    {
+      "bytes": 2643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/source-transition/usize-is-multiple-of-official-rust-1-87-source-read.json",
+      "retention": "existing published historical artifact",
+      "sha256": "8664b3c08977cd4f3536b38fe92f00a1d14527fb6c8a27b1cd0fceb35189931b"
+    },
+    {
+      "bytes": 4474,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/actual-baseline-results.json",
+      "retention": "existing published historical artifact",
+      "sha256": "7b4477a2794010f1d7f0ccd6463c20f37fa79c13090c87284acffd9edb149483"
+    },
+    {
+      "bytes": 2964,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/actual-results.json",
+      "retention": "existing published historical artifact",
+      "sha256": "56058ce46c5a6f63bf32493f6a079da3deb25ccac3e2d9a83505acae52326ed8"
+    },
+    {
+      "bytes": 142,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "4c8a379ce69d2c593de1803c7a92b3e44b121f16d87d8b300163cefda24ec78f"
+    },
+    {
+      "bytes": 769,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "71fcc085070abc043f86ac369b14808b451d8dc01e7389878a564ef81b247412"
+    },
+    {
+      "bytes": 477,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/clippy-all-targets/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "acbb3e103c24afcc27b1e9acf7f7fec567f5833aeff5a8c1e5cebeb48d199bda"
+    },
+    {
+      "bytes": 203,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "427df98e80e90a479ad079e2c16c90097db3588f0e1011ce7efc26cb261e6429"
+    },
+    {
+      "bytes": 735,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "122cd7e71f01fe5f8f7c3900588ba1b7ec753cc515e422acaf82573f6cde67f8"
+    },
+    {
+      "bytes": 473,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/strict-rustdoc/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "a63d843d6f4d67ec300960af7d195adffefc4eb02045bf818154c5f7ed14a4b1"
+    },
+    {
+      "bytes": 16017,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/vendor-inputs-after-checks.json",
+      "retention": "existing published historical artifact",
+      "sha256": "be0ef8e205269cdf3737d20c170bb412b76bf0433f3b78e869e3b38d51004955"
+    },
+    {
+      "bytes": 16017,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-documentation-fixes-checks/vendor-inputs-before-checks.json",
+      "retention": "existing published historical artifact",
+      "sha256": "be0ef8e205269cdf3737d20c170bb412b76bf0433f3b78e869e3b38d51004955"
+    },
+    {
+      "bytes": 3776,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/actual-results.json",
+      "retention": "existing published historical artifact",
+      "sha256": "2693e771599c4be720ffa8dd038019a36cae966b63cc77af3fd9631241d7a444"
+    },
+    {
+      "bytes": 373,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "2ebb043d51110b95413fa38ffa98e06368fe7aec21d2c5515238392f0ee5d603"
+    },
+    {
+      "bytes": 769,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "5853cfa1f15bd18c35e1a36d239dc3e6de9749512e46a4b00e4f05af1c3beea1"
+    },
+    {
+      "bytes": 477,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-all-targets/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "73c8cbe403c46689175b59eb59de9ee15dba1570b1b78fdf3fb3574ef61762f2"
+    },
+    {
+      "bytes": 142,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "a2b4bc851367774e2658a996f241da47b8364d4573c38814b69365af64c0928e"
+    },
+    {
+      "bytes": 761,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "68323f77e4c461821905532c8d1739c09b61b1834f5f9dc903bbbf4cfd2c760d"
+    },
+    {
+      "bytes": 469,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/clippy-lib/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "392182dab76337e7d2b3620d37b1ee4ac46cc67c3f4789879c0fcd5208685455"
+    },
+    {
+      "bytes": 1860,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "85e8861b5c7b51f2d35660cc49295286a37460aff1cceb875fbb770d7d3ee329"
+    },
+    {
+      "bytes": 735,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "09339ff4a524839ed92267c4d9eca86e5d7d26e13a63c87acd71b6e5ec7cfa8b"
+    },
+    {
+      "bytes": 476,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/strict-rustdoc/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "54ac2a4dfd6c8b0ab24c4a7851366413a1b4f0cc9f72d99bd8323b7f600c1d04"
+    },
+    {
+      "bytes": 16017,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/vendor-inputs-after-checks.json",
+      "retention": "existing published historical artifact",
+      "sha256": "577424c6b7d3df8a49a50b5c77a80c68c022f3d103dba808271df3590c0a612c"
+    },
+    {
+      "bytes": 16017,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/after-hygiene-checks/vendor-inputs-before-checks.json",
+      "retention": "existing published historical artifact",
+      "sha256": "577424c6b7d3df8a49a50b5c77a80c68c022f3d103dba808271df3590c0a612c"
+    },
+    {
+      "bytes": 23676,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/baseline-diagnostic-inventory.json",
+      "retention": "existing published historical artifact",
+      "sha256": "702429553d90ad0962474d9dda55fa8eb4d8d4ba43c02a8f43c3a56853bcb02b"
+    },
+    {
+      "bytes": 20513,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "ac1f7b867b9a894b234363701be91b873172bcebef62692b7935c664f4840d5e"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/inputs-after.json",
+      "retention": "existing published historical artifact",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/inputs-before.json",
+      "retention": "existing published historical artifact",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 1115,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "7eb10ab0144e0d1cd763bf7f82e587659985b973723281f11e5d212b76635868"
+    },
+    {
+      "bytes": 1185,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/clippy-lib/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "9eb3bdf2f264006163242eb0a5737348699e46bf035b3e4d71ba1043350c45c3"
+    },
+    {
+      "bytes": 1742,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/documentation-fix-receipt.json",
+      "retention": "existing published historical artifact",
+      "sha256": "b12df067170aa149d02cc145cb1e0ffb68a6f39d42824f602c0eb882052e2718"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/inputs-baseline.json",
+      "retention": "existing published historical artifact",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 6028,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/mechanical-edit-receipt.json",
+      "retention": "existing published historical artifact",
+      "sha256": "93edf6bfac81c008f512d8cb40848b1bc135f479863ddc24bbcaf92591f21feb"
+    },
+    {
+      "bytes": 4019,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/mechanical-final-review.json",
+      "retention": "existing published historical artifact",
+      "sha256": "4081bd17561e1322196f0443b66370b5a95e9e0fc1e2018a7370489998d2a6b1"
+    },
+    {
+      "bytes": 545,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/command.log",
+      "retention": "existing published historical artifact",
+      "sha256": "7da73d42fc0dedd5d308c5236e83ec76cece6f876e25939144075a0ddf578f93"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/inputs-after.json",
+      "retention": "existing published historical artifact",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 305643,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/inputs-before.json",
+      "retention": "existing published historical artifact",
+      "sha256": "d48a71f0293b61f4c24bb44edcdc428ab11c6019c639571f56743c083c6cfe2c"
+    },
+    {
+      "bytes": 1089,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/started.json",
+      "retention": "existing published historical artifact",
+      "sha256": "1f3cf4b45ac084e02b3fa6e0c56e3279d07bb6f9541b82c2030f2a1fe96b62cd"
+    },
+    {
+      "bytes": 1191,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/vendor-checks/strict-rustdoc/terminal.json",
+      "retention": "existing published historical artifact",
+      "sha256": "c32ba035452d4b8f8a924ec9ae8b9aa310068432937d76575181a17a208274b8"
+    },
+    {
+      "bytes": 8192861,
+      "path": "/workspace/RobotNativeEngine/docs/media/position-motor-calibration-vendor-lint.json",
+      "retention": "existing published historical artifact",
+      "sha256": "a2f9b90b964123b1ee5dc69d2f2d10e320882c2b3317d6f49b0c8b490dcef8b1"
+    },
+    {
+      "bytes": 28310,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/rapier-strict-validation/artifact-manifest.json",
+      "retention": "existing published historical artifact",
+      "sha256": "606e4d40f38cfec766918d209399b5f720584e94ff8b5467f2d922d538610f22"
+    },
+    {
+      "bytes": 7545934,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "443d78ef13096f7c04b6bee480198292581b8e387d816ffb64fbcde30dfefb85"
+    },
+    {
+      "bytes": 7545948,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-fresh_on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "d7fd39894b4b281a669421cdad557700eb1b23fd039c7421ae25e871a94ed89f"
+    },
+    {
+      "bytes": 1319483,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-off.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "394586f229e80e9041256c56bcfc37f873537f5649438ae3b337934b1598c662"
+    },
+    {
+      "bytes": 7554098,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "0c4ad27e037f0bad4f4f3d553623c14466253233795e43421f56f7a3cad7a0d8"
+    },
+    {
+      "bytes": 7554127,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-fresh_on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "2f975a48f52caacb3f8f0b71af2201c5977bc838878b526d8f568144f4d90308"
+    },
+    {
+      "bytes": 1292101,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-off.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "6b0068bf6482259a86cf4c110a593a31d953795e065f4aab4830ed53186a9808"
+    },
+    {
+      "bytes": 7570890,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "10234ea447e5ebf65b732902d0844e2962dd670666e8720fac8debf00bd92012"
+    },
+    {
+      "bytes": 7570940,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-fresh_on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "be7f3d129af8544767ad2864959e80e70178484ac55a34cc0992dcd8cf845226"
+    },
+    {
+      "bytes": 1333291,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-off.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "e1c4c3793b8f4ff3f62c6375488d5a95bc05a7da7bf5daac56c971f37eb923d9"
+    },
+    {
+      "bytes": 7399245,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "d7dbdb14d780b4b69328eb1b0b90db2941d6ef5b9a3e20ebe5e63062796ee6c5"
+    },
+    {
+      "bytes": 7399240,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-fresh_on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "bbcc426f5dcc900dc366a1205ed86c550b3e86e085ddede47fa2326070ba055a"
+    },
+    {
+      "bytes": 1286903,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-off.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "efa696c3da18f66c2f66d90a5bf652f7bbdff45778b3e091377537d6825cb39a"
+    },
+    {
+      "bytes": 7448315,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "bb0316d0f5bb956f71be5ea4f52d6a9bc5d5befcd1566ee2a6eb4d652d1999fc"
+    },
+    {
+      "bytes": 7448262,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-fresh_on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "ceb8b0b5b1cae87e463e28225120e368239af3fe8cf3a93dc9b4423d5d799abe"
+    },
+    {
+      "bytes": 1339406,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-off.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "892ec0aa0baac079df995cd78347efab2cbe4c59e523a3d77a57f88ec95e0faf"
+    },
+    {
+      "bytes": 7511604,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "522371e5759d995d255f96d3604154bc5f87ff4f92ba09688713811d34b08901"
+    },
+    {
+      "bytes": 7511595,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-fresh_on.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "e99d792ea1bb313c40040be836fd6dd5ba37892966ab983530c84eb48297d854"
+    },
+    {
+      "bytes": 1334270,
+      "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-off.jsonl.gz",
+      "retention": "original gzip bytes in separate prepared raw TAR",
+      "sha256": "c5a6c32a170fefedbe3c1232a625d831af0794f0eafa8d298ea0da80ec3eb8aa"
+    },
+    {
+      "bytes": 3439056,
+      "path": "/tmp/rne-contact-stage-generation4/binaries/baseline142",
+      "retention": "historical local frozen binary, not bundled or published by this preparation",
+      "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+    },
+    {
+      "bytes": 3089208,
+      "path": "/tmp/rne-contact-stage-generation4/binaries/baseline141",
+      "retention": "historical local frozen binary, not bundled or published by this preparation",
+      "sha256": "dc22283295e05ee5dd48cf581b15d4ca00719a6cc5688187fd1d310f90a0d3e9"
+    },
+    {
+      "bytes": 3439088,
+      "path": "/tmp/rne-contact-stage-generation4/binaries/rejected142",
+      "retention": "historical local frozen binary, not bundled or published by this preparation",
+      "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+    },
+    {
+      "bytes": 97996800,
+      "path": "/tmp/rne-contact-stage-generation4/retention-preparation/rne-contact-motor-stage-gen4-raw-traces.tar",
+      "retention": "LOCAL_ARCHIVE_PREPARED_NOT_UPLOADED; user-authorized Release upload/download verification pending",
+      "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+    },
+    {
+      "bytes": 8193438,
+      "path": "/tmp/rne-contact-stage-generation4/current-scalar72.json",
+      "public_path": "docs/media/position-motor-calibration-contact-stages.json",
+      "retention": "separate current scalar report; exceeds 1 MiB bundle-file limit",
+      "sha256": "db0dee42a3c9067b38241112d5ee402341c0729466d7fc22f12f31504000db76"
+    }
+  ],
+  "scope": "External or already-published immutable artifacts; availability/status is explicit"
+}

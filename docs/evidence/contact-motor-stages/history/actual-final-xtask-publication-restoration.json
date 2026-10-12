@@ -1,0 +1,6 @@
+{
+  "scope": "Restore reviewed final publication pointer after actual v2 terminal failure and headless terminal; no physics/criterion changes",
+  "old_sha256": "a501cd6c65a0bc99725a2a099890eaeaba2f1a2fa2687cb6c18dfd113e4063d1",
+  "new_sha256": "16201b98b713a4e385d9406c3fe1c860a0b0af4b31e69bb165c978bc3e227ab8",
+  "v2_actual_exit_code": 1
+}

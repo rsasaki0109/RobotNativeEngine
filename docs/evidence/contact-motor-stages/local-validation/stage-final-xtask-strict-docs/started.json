@@ -1,0 +1,16 @@
+{
+  "started_utc": "2026-10-12T02:51:26.682678+00:00",
+  "command": [
+    "cargo",
+    "doc",
+    "--locked",
+    "-p",
+    "xtask",
+    "--no-deps"
+  ],
+  "cwd": "/workspace/RobotNativeEngine",
+  "cargo_build_jobs": "2",
+  "rust_test_threads": "2",
+  "rustdocflags": "-D warnings",
+  "cargo_target_dir": "/tmp/rne-final-ci-cache"
+}

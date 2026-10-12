@@ -1,0 +1,6 @@
+task rne.quadruped.terrain_locomotion.v1: 50 observations, 12 actions, control step 0.020 s (10 simulation steps)
+trot (zero residual), 1 thread: mean reward 1.309/step, 0 of 32 fell, 32 finished, 3435 env steps/s (34353 sim steps/s)
+trot (zero residual), 4 threads: mean reward 1.309/step, 0 of 32 fell, 32 finished, 2517 env steps/s (25169 sim steps/s)
+random residual, 4 threads: mean reward 1.061/step, 0 of 32 fell, 32 finished, 3341 env steps/s (33408 sim steps/s)
+parallel speedup 0.7x on 4 threads; parallel replay identical to serial: true
+go2 parallel rl: ok

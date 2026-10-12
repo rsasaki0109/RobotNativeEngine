@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_BUILD_COUPLED_WORLDS",
+  "build": "baseline",
+  "base_commit": "c515029afed60419bdd69699bd2ece93365e441a",
+  "registered_utc": "UTC_ISO_TIMESTAMP",
+  "authoritative_worlds_of_this_build_executed_before_freeze": 0,
+  "protocol_sha256": "64_LOWERCASE_HEX",
+  "reader_artifacts": [],
+  "schema_source_sha256": {},
+  "repo_source_sha256": {},
+  "source_manifest": {
+    "path": "ABSOLUTE_PATH",
+    "sha256": "64_LOWERCASE_HEX",
+    "bytes": 0
+  },
+  "compiler": "ACTUAL_RUSTC_VV",
+  "cargo": "ACTUAL_CARGO_V",
+  "target": "ACTUAL_TARGET",
+  "resolved_features": {
+    "path": "ABSOLUTE_PATH",
+    "sha256": "64_LOWERCASE_HEX",
+    "bytes": 0
+  },
+  "rustflags": [],
+  "build_command": [],
+  "binary": {
+    "path": "ABSOLUTE_PATH",
+    "sha256": "64_LOWERCASE_HEX",
+    "bytes": 0
+  },
+  "native_float_mode": {
+    "native_scalar_bits": 32,
+    "rounding_mode": "roundTiesToEven",
+    "operation_contract": "rust-f32-default-strict-separate-ops-no-mul_add",
+    "replay_domain": "normal_or_zero_only",
+    "ftz_daz_source_predicate": {
+      "target_arch": "x86_64",
+      "target_feature_sse": true,
+      "enhanced_determinism_feature": false
+    },
+    "scope": "source_bound_runtime_register_unmeasured",
+    "rounding_mode_basis": "ACTUAL_SOURCE_LAUNCH_ENVIRONMENT_BASIS",
+    "evidence": []
+  },
+  "rejected_candidate_patch": null,
+  "error": null
+}

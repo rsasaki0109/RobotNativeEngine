@@ -1,0 +1,198 @@
+{
+  "scope": "User-required release133-138 regression gate for final restored default; frozen before any generation4 regression execution.",
+  "baseline_directory": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples",
+  "examples": [
+    [
+      "go2_contact_terrain",
+      "133_go2_contact_terrain"
+    ],
+    [
+      "go2_terrain_trot",
+      "134_go2_terrain_trot"
+    ],
+    [
+      "go2_feedback_trot",
+      "135_go2_feedback_trot"
+    ],
+    [
+      "go2_parallel_rl",
+      "136_go2_parallel_rl"
+    ],
+    [
+      "go2_native_backend",
+      "137_go2_native_backend"
+    ],
+    [
+      "heavy_grasp",
+      "138_heavy_grasp"
+    ]
+  ],
+  "timing_only_exclusions": [
+    {
+      "regex": ",\\s*[0-9.]+ us per step",
+      "replacement": ""
+    },
+    {
+      "regex": "\\d+ env steps/s \\(\\d+ sim steps/s\\)",
+      "replacement": "<throughput>"
+    },
+    {
+      "regex": "parallel speedup [0-9.]+x",
+      "replacement": "parallel speedup <timing>"
+    }
+  ],
+  "comparison": "Literal complete original stdout after exactly the historical three timing substitutions, no new numerical tolerance, no new baseline, no omitted physics/summary lines.",
+  "actual_ok_lines": [
+    "go2 contact terrain: ok",
+    "go2 terrain trot: ok",
+    "go2 feedback trot: ok",
+    "go2 parallel rl: ok",
+    "go2 native backend: ok",
+    "heavy grasp: ok"
+  ],
+  "required_example_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "required_wrapper_exit_code": 0,
+  "required_complete_examples": 6,
+  "baseline_files": [
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain.stdout",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain.stderr",
+      "bytes": 125,
+      "sha256": "d7be737168ab63021d791a8f8fea9dbe7fed842f8ca76d3dd433177fe1c12270"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain.physical.txt",
+      "bytes": 445,
+      "sha256": "f87dfde7837b01f9e0288f4ec91daf45a38bac57087ccdd690f006edab0b6974"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/133_go2_contact_terrain-result.json",
+      "bytes": 268,
+      "sha256": "8788f413b01bc3eacdc0ddc8b82916e9da560a06d09554dbb77f11b98de5a14f"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot.stdout",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot.stderr",
+      "bytes": 122,
+      "sha256": "c3222a20893c130a0d11742194f2ca8e2bb777dfceaa7d448ec3dc2d8fbc2f4e"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot.physical.txt",
+      "bytes": 387,
+      "sha256": "8e44cc3ac04bcae7dd9fa4e28cbd551ce9cdf7d1d6d496e4747fdf024a2090c6"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/134_go2_terrain_trot-result.json",
+      "bytes": 262,
+      "sha256": "2a6659a0d15ef0bc422502acf62cabe356540977bdf72e9c9f657972a4e6b703"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot.stdout",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot.stderr",
+      "bytes": 10946,
+      "sha256": "8448a6960bc1cadd6491541b436897629876b6e7d384e48e6e4e0a18e52aef24"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot.physical.txt",
+      "bytes": 664,
+      "sha256": "3df8fd713c3a4b0a62395cfab4c4e24425209938383db97376a4f3da47fa91ba"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/135_go2_feedback_trot-result.json",
+      "bytes": 263,
+      "sha256": "42b6e16db8862e8203601d94259891337222ae61d6792f3fc09858bd9e6ebee9"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl.stdout",
+      "bytes": 569,
+      "sha256": "f9788fe8440ed1d56873561fd0b31ad01f43c8f76ff9266c0bb3864fd314eb5b"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl.stderr",
+      "bytes": 10944,
+      "sha256": "714b75b1757d2c2ea4eda4037bdb7f4c5d079f2d7d9f41b78abaea4dc47c2626"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl.physical.txt",
+      "bytes": 501,
+      "sha256": "2bf875d0c97229689a01d1830639b923069cd186f7e1457355ad937ab120224d"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/136_go2_parallel_rl-result.json",
+      "bytes": 259,
+      "sha256": "024013aa59884ba596eb1ef0c0b01ec73e7bc65af3e69146fad9c298c0b99c8c"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend.stdout",
+      "bytes": 854,
+      "sha256": "ea1b6c2e57252e9da4ca7acc12cda89a9e00843f44bb6aeafed62de772398c8f"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend.stderr",
+      "bytes": 10947,
+      "sha256": "2736239bb573e7f49f5efd94054e2952fc879927d90300b52461b35907faf6c2"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend.physical.txt",
+      "bytes": 820,
+      "sha256": "0ab72be184276642e8dea1ab1093767c728cced2263b006eeb95f32732c38f72"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/137_go2_native_backend-result.json",
+      "bytes": 266,
+      "sha256": "c78742c31340d5b62bb6e98ebc179d7f72b765ffc3d2234ed0784553122c63ab"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp.stdout",
+      "bytes": 1647,
+      "sha256": "f10b1da3d9fbef3d23d0a9385278b4d43d1fb6bd96293f4063f3c7a76c70b3a8"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp.stderr",
+      "bytes": 10940,
+      "sha256": "c6750fd37df73007f9eeefb11af8c4f69893c84f8c384f64b7ba7ebdc5e5905f"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp.physical.txt",
+      "bytes": 1431,
+      "sha256": "86fed5fd33b140b9f93d3a81002fabd71508a801d39ff68ee6769b83f7b33d17"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/g1-motor-torque-diagnostics/baseline/examples/138_heavy_grasp-result.json",
+      "bytes": 250,
+      "sha256": "fe4d8d271e839a2e4f2572aa92a8ce273cd22f2679db6cedc045986123fdd4d4"
+    }
+  ],
+  "historical_runner": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/diagonal-intervention-generation-3/run_restored_default_release_regressions.py",
+    "bytes": 2571,
+    "sha256": "7af7ac54d2facdd7176b7fde658823b58b344c4eb34d66aebfa7c3876681214e"
+  },
+  "historical_out_line": "OUT = ROOT / 'diagonal-intervention-generation-3' / 'restored-default-release-regressions'",
+  "current_out_line": "OUT = Path(__file__).resolve().parent / 'actual-results'",
+  "current_runner_only_output_line_changed": true,
+  "actual_results_directory": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/release-regressions/actual-results",
+  "world_accounting": "Separate user-required release regression collection; planned18 coupled and72 scalar authority counts unchanged.",
+  "planned18_coupled_world_count_contribution": 0,
+  "planned72_scalar_world_count_contribution": 0,
+  "release_programs_executed_before_this_freeze": 0
+}

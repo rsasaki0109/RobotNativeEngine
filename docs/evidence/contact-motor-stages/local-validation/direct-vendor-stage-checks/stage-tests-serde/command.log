@@ -1,0 +1,17 @@
+   Compiling rapier3d v0.22.0 (/workspace/RobotNativeEngine/third_party/rapier3d)
+    Finished `test` profile [unoptimized] target(s) in 8.17s
+     Running unittests src/lib.rs (/tmp/rne-final-ci-cache/debug/deps/rapier3d-02e304c43325381d)
+
+running 9 tests
+test pipeline::multibody_motor_stage::tests::contact_normal_writes_are_separate_from_joint_stage_writes ... ok
+test pipeline::multibody_motor_stage::tests::ccd_partitions_keep_actual_partition_ordinals_and_observer_parity ... ok
+test pipeline::multibody_motor_stage::tests::initialized_rows_and_immediate_visits_preserve_bias_and_native_identity ... ok
+test pipeline::multibody_motor_stage::tests::independent_islands_drain_in_actual_island_order_with_exact_replay ... ok
+test pipeline::multibody_motor_stage::tests::serialization_preserves_native_signed_zero_nonfinite_and_bound_words ... ok
+test pipeline::multibody_motor_stage::tests::single_dof_child_motors_retain_the_full_coupled_multibody_block ... ok
+test pipeline::multibody_motor_stage::tests::skipped_solver_passes_do_not_invent_motor_visits ... ok
+test pipeline::multibody_motor_stage::tests::stage_lifecycle_is_opt_in_and_independent_of_impulse_observation ... ok
+test pipeline::multibody_motor_stage::tests::observation_on_off_and_fresh_runs_preserve_contact_and_joint_state_bits ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.05s
+

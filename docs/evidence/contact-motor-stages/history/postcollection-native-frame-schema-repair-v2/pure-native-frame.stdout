@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "native_worlds": 0,
+  "complete_raw_measurement_rereads": 0,
+  "scope": "synthetic exact native LinX palm gate plus forbidden identity/model/frame transitions",
+  "native_LinX_accepted_without_other_gate_changes": true,
+  "rejected": [
+    {
+      "name": "world LinY label rejected as native frame",
+      "actual_error": "fixed scene exposed a row other than the ForceBased palm native joint-frame LinX motor"
+    },
+    {
+      "name": "wrong native angular axis",
+      "actual_error": "fixed scene exposed a row other than the ForceBased palm native joint-frame LinX motor"
+    },
+    {
+      "name": "wrong motor gain model",
+      "actual_error": "fixed scene exposed a row other than the ForceBased palm native joint-frame LinX motor"
+    },
+    {
+      "name": "wrong bound child link",
+      "actual_error": "row/binding native identity mismatch"
+    },
+    {
+      "name": "finger handle cannot replace palm",
+      "actual_error": "row/binding native identity mismatch"
+    },
+    {
+      "name": "handle generation remains exact",
+      "actual_error": "row/binding native identity mismatch"
+    }
+  ]
+}

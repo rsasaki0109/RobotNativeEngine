@@ -1,0 +1,23 @@
+{
+  "status": "LITERAL_COMMON_CONTACT142_FEATURE_CLOSURE_EQUAL_BEFORE_WORLDS",
+  "registered_utc": "2026-10-12T01:43:43.607314+00:00",
+  "baseline_original": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/baseline-resolved-features.txt",
+    "sha256": "8a6914d3ae9c1089aaaa73071086ec29b764e9b9b5c19bd13908fbbb999c77a5",
+    "bytes": 55984
+  },
+  "rejected_original": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/rejected-resolved-features.txt",
+    "sha256": "fe0381bf5f2f9a23ef71bda72d7c427b9bcd71f11d5fc60736d3172eacc4a167",
+    "bytes": 53787
+  },
+  "common142": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/common142-resolved-features.txt",
+    "sha256": "fe0381bf5f2f9a23ef71bda72d7c427b9bcd71f11d5fc60736d3172eacc4a167",
+    "bytes": 53787
+  },
+  "baseline_prefix_byte_count": 53787,
+  "prefix_literal_equal": true,
+  "remaining_baseline_suffix_scope": "newline and separate position_motor_calibration root; no 142 subtree byte excluded or changed",
+  "authoritative_coupled_worlds_executed": 0
+}

@@ -1,0 +1,77 @@
+{
+  "actual_error": {
+    "message": "word vector must be a list",
+    "traceback": "Traceback (most recent call last):\n  File \"<stdin>\", line 11, in <module>\n  File \"/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_schema.py\", line 280, in validate_row\n    words(row[\"joint_handle\"], 32, expected=2)\n  File \"/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_schema.py\", line 65, in words\n    require(type(value) is list, \"word vector must be a list\")\n  File \"/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/stage_schema.py\", line 42, in require\n    raise ValueError(message)\nValueError: word vector must be a list\n",
+    "type": "ValueError"
+  },
+  "additional_retained_ad_hoc_diagnostic_syntax_failure": {
+    "error": "SyntaxError: invalid syntax at type(v).__name__for",
+    "frozen_source_changes": false,
+    "scope": "Before raw data was read"
+  },
+  "all_raw_row_field_types": {
+    "axis": "str",
+    "cfm_coefficient_word": "int",
+    "cfm_gain_word": "int",
+    "constraint_index": "int",
+    "effort_ceiling_word": "int",
+    "gain_model": "str",
+    "impulse_bound_words": "list",
+    "impulse_word": "int",
+    "inverse_lhs_word": "int",
+    "j_id2": "int",
+    "jacobian_words": "list",
+    "joint_handle": "dict",
+    "link_id": "int",
+    "ndofs2": "int",
+    "rhs_without_bias_word": "int",
+    "rhs_word": "int",
+    "solver_velocity_offset": "int",
+    "weighted_jacobian_words": "list"
+  },
+  "completed_outer_step": 1,
+  "diagnosis": "Actual native joint_handle is the public Rust serde newtype MultibodyJointHandle(Index { index:u32,generation:u32 }), represented by a JSON object. Frozen reader incorrectly expects the normalized [index,generation] array used by example141's custom report, not the native serde object. This is a reader/schema assumption defect, not a raw trace violation or an internal list/tuple conversion defect.",
+  "first_initialized_event_ordinal": 2,
+  "frame_json_line_sha256": "07e97349d5a576ef8266d2931739e0963e1263e96f3b7f513cd11ba3365674c3",
+  "frozen_audit_status": "FAIL remains unchanged; no complete coupled numerical or replay qualification",
+  "frozen_inputs_criteria_or_source_modified": false,
+  "minimal_frozen_function_call": "stage_schema.validate_row(first_initialized_row, len(generalized_velocity_words), frozen_resource_ceilings)",
+  "native_checkpoint_record_counts": {
+    "Body": 6,
+    "Collider": 5,
+    "ImpulseJoint": 0,
+    "Multibody": 1
+  },
+  "native_worlds_or_full_auditor_reruns": 0,
+  "raw_joint_handle_type": "dict",
+  "raw_joint_handle_value": {
+    "generation": 0,
+    "index": 3
+  },
+  "read_scope": "Exactly run_start line and first completed_step line from baseline-m5-on; no later frame read",
+  "reviewed_utc": "2026-10-12T02:01:37.009297+00:00",
+  "rust_schema_sources": [
+    {
+      "bytes": 35182,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/data/arena.rs",
+      "sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb"
+    },
+    {
+      "bytes": 18345,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b"
+    },
+    {
+      "bytes": 9594,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e"
+    }
+  ],
+  "stage": "AfterJointUpdate",
+  "status": "READ_ONLY_FIRST_FRAME_SCHEMA_FAILURE_DIAGNOSIS",
+  "trace_input": {
+    "bytes": 7545934,
+    "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-on.jsonl.gz",
+    "sha256": "443d78ef13096f7c04b6bee480198292581b8e387d816ffb64fbcde30dfefb85"
+  }
+}

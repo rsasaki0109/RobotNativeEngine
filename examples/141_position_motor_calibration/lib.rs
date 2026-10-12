@@ -280,6 +280,19 @@ fn selected_sources() -> BTreeMap<String, String> {
         "../../third_party/rapier3d/src/pipeline/multibody_motor_impulse.rs"
     );
     source!(
+        "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+        "../../third_party/rapier3d/src/pipeline/multibody_motor_stage.rs"
+    );
+    source!(
+        "third_party/rapier3d/src/pipeline/mod.rs",
+        "../../third_party/rapier3d/src/pipeline/mod.rs"
+    );
+    source!("third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs", "../../third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs");
+    source!(
+        "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+        "../../third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+    );
+    source!(
         "third_party/rapier3d/src/dynamics/rigid_body.rs",
         "../../third_party/rapier3d/src/dynamics/rigid_body.rs"
     );

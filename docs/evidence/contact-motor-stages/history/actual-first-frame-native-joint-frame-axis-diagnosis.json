@@ -1,0 +1,47 @@
+{
+  "diagnosis": "Frozen reader hardcodes LinY from the ECS/world axis. Rapier prismatic joint uses native joint-frame LinX; RNE builds it from normalized_axis(desc.axis) and records Some(JointAxis::LinX). Native row and palm binding are valid. This is a separate source-coordinate metadata assumption defect. The failed repaired audit remains FAIL, not numerically qualified.",
+  "failed_repaired_audit": {
+    "bytes": 634,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-4/current-stage-qualification/postcollection-handle-schema-repair-v1/actual-repaired-independent-coupled-audit.json",
+    "sha256": "90a894c4e72e5dec2ceef84ebfc36d685d912ad08fb5a2ab26899fb04ac2dd5b"
+  },
+  "frozen_or_repaired_reader_criteria_modified": false,
+  "prior_failed_raw_inspection_path_search": "Nonexistent conversions.rs path; actual source is backend.rs",
+  "raw_first_frame": {
+    "axis": "LinX",
+    "gain_model": "ForceBased",
+    "joint_handle": {
+      "generation": 0,
+      "index": 3
+    },
+    "outer_step": 1,
+    "palm_binding": {
+      "entity_bits": 4294967299,
+      "joint_handle_words": [
+        3,
+        0
+      ],
+      "link_index": 1,
+      "multibody_handle_words": [
+        0,
+        0
+      ]
+    }
+  },
+  "read_scope": "run_start and first completed_step only; no later frame or numerical quantity analyzed",
+  "reviewed_utc": "2026-10-12T02:27:56.669310+00:00",
+  "source_files": [
+    {
+      "bytes": 207940,
+      "path": "/workspace/RobotNativeEngine/crates/rne_physics_rapier/src/backend.rs",
+      "sha256": "32b0bdce3651717bcbefa3f69ef3ebd9dccd450126486f349b57d04c7c1fa7bd"
+    },
+    {
+      "bytes": 9208,
+      "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/prismatic_joint.rs",
+      "sha256": "00fd5ed682feda771dd4dc4c18883715eaf6970e9a0b604c2145f16db0704604"
+    }
+  ],
+  "status": "READ_ONLY_FIRST_FRAME_NATIVE_JOINT_FRAME_AXIS_DIAGNOSIS",
+  "worlds_builds_or_full_reader_reruns": 0
+}
