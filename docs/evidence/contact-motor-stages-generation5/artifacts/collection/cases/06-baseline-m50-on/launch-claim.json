@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+    "--mass-kg",
+    "50",
+    "--observer",
+    "on",
+    "--label",
+    "baseline-m50-on",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-on.jsonl.gz"
+  ],
+  "attempted": false,
+  "binary": {
+    "bytes": 3439056,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+    "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+  },
+  "build": "baseline",
+  "case_index": 6,
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "ended_utc": null,
+  "environment_policy": "Inherited process environment; no driver overrides",
+  "error": null,
+  "exit_code": null,
+  "frozen_spec": {
+    "bytes": 7156,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-driver-spec.json",
+    "sha256": "9eca6217a0dffc0db1b3fdf0c4700bba0e6b1b9cae7161fde7fbee8f9486c568"
+  },
+  "launch_reserved": true,
+  "mass_kg": 50,
+  "mode": "on",
+  "original_exit_code": null,
+  "retry_or_resume_permitted": false,
+  "run_label": "baseline-m50-on",
+  "source_guard_after": null,
+  "source_guard_before": {
+    "bytes": 198146,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/06-baseline-m50-on/source-before.json",
+    "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+  },
+  "started_utc": "2026-10-12T06:21:30.811807+00:00",
+  "stderr": null,
+  "stdout": null,
+  "trace": null
+}

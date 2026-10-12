@@ -1,0 +1,30 @@
+{
+  "archive": {
+    "bytes": 97996800,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery-attempt/rne-contact-motor-stage-gen4-raw-traces.tar",
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+  },
+  "extra_worlds": 0,
+  "independent_reconstruction_receipt": "generation5-exact-byte-reconstruction.json",
+  "kind": "current_raw_retention_availability_update",
+  "merge_readiness": "BLOCKED_PENDING_AUTHENTICATED_UPLOAD_AND_PUBLIC_DOWNLOAD_VERIFICATION",
+  "new_cohort_id": "generation5-independent-all-motor-stage",
+  "new_fixed_worlds": 18,
+  "old_numerical_qualification": "FAILED_UNQUALIFIED_UNCHANGED",
+  "original_records_rewritten": false,
+  "prior_instance_receipt": "current-instance-retention.json",
+  "public_asset_verified": false,
+  "recorded_utc": "2026-10-12T06:43:29.031899+00:00",
+  "schema_version": 1,
+  "secret_requirement_saved_but_not_applied": {
+    "destination": "uploads.github.com",
+    "name": "RNE_GITHUB_RELEASE_UPLOAD",
+    "variable": "RNE_GITHUB_UPLOAD_TOKEN"
+  },
+  "status": "EXACT_APPROVED_ARCHIVE_LOCAL_RECONSTRUCTION_VERIFIED_UPLOAD_HTTP401",
+  "upload_failure": {
+    "api_read_ci_access": "working",
+    "host": "uploads.github.com",
+    "http_status": 401
+  }
+}

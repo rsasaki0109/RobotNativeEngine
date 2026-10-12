@@ -1,0 +1,29 @@
+{
+  "scope": "First synthetic fixture setup failure, no actual audit reads/worlds/builds/network",
+  "sources": [
+    {
+      "literal_retained_source": {
+        "bytes": 22540,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/historical-synthetic-attempt-1/prepare_derived_archive.py",
+        "sha256": "4e792041ba05be7d4e17f024488873b646ed87d63d880621e877fa91d8dc6c9b"
+      },
+      "original_before_fixture_fix": {
+        "bytes": 22540,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py",
+        "sha256": "4e792041ba05be7d4e17f024488873b646ed87d63d880621e877fa91d8dc6c9b"
+      }
+    },
+    {
+      "literal_retained_source": {
+        "bytes": 10706,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/historical-synthetic-attempt-1/test_derived_archive.py",
+        "sha256": "ddb41952d8d2132c9cfe1991bb0c318efef66b01de8024eac66d85cd9fc6ddf5"
+      },
+      "original_before_fixture_fix": {
+        "bytes": 10706,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py",
+        "sha256": "ddb41952d8d2132c9cfe1991bb0c318efef66b01de8024eac66d85cd9fc6ddf5"
+      }
+    }
+  ]
+}

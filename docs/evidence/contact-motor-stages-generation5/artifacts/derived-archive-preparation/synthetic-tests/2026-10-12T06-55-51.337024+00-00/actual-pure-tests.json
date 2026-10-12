@@ -1,0 +1,25 @@
+{
+  "errors": 5,
+  "failures": 0,
+  "log": {
+    "bytes": 10042,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/actual-tests.log",
+    "sha256": "24fdffd99d86a5bd9f54f7f541349fadf4e799b1582990e91365e3d1a8d76247"
+  },
+  "retained_synthetic_root": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00",
+  "sources": [
+    {
+      "bytes": 22540,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py",
+      "sha256": "4e792041ba05be7d4e17f024488873b646ed87d63d880621e877fa91d8dc6c9b"
+    },
+    {
+      "bytes": 10706,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py",
+      "sha256": "ddb41952d8d2132c9cfe1991bb0c318efef66b01de8024eac66d85cd9fc6ddf5"
+    }
+  ],
+  "status": "FAIL_SMALL_SYNTHETIC_DERIVED_ARCHIVE_TESTS",
+  "tests": 6,
+  "worlds_builds_network_actual_audit_reads": 0
+}

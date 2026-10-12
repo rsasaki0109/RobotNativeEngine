@@ -1,0 +1,24 @@
+{
+  "authoritative_worlds_of_this_cohort_before_freeze": 0,
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "registered_utc": "2026-10-12T06:18:05.534115+00:00",
+  "reviews": [
+    {
+      "bytes": 9780,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/predata-reader-review/independent-predata-reader-source-review.json",
+      "sha256": "e6795731162a9b39b5108b10178677e599041ec6a8aec38e7c8f092fa4a24e0e"
+    },
+    {
+      "bytes": 11932,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/predata-storage-review/final-predata-storage-review.json",
+      "sha256": "bc5c35492f9236bbde6cf7a22148a8fff275993dd37ebff3b927b7566a649347"
+    },
+    {
+      "bytes": 5830,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/concrete-freeze-review-v2.json",
+      "sha256": "9af552fa581c56b3a153a9a1a3eecb7f7743e0a6578c21a14e0615e7b4a2ed94"
+    }
+  ],
+  "scope": "Internal source-only review, pure tests and concrete artifact admission; neither numerical measurement nor independent external-use/hardware validation",
+  "status": "PASS_ALL_THREE_INDEPENDENT_PRE_DATA_SCOPES"
+}

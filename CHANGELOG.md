@@ -301,6 +301,13 @@ All notable changes to Robot Native Engine are documented in this file.
   two late metadata repairs do not resolve the frozen reader's palm-only gate
   rejecting genuine native finger rows. Coupled numerical qualification remains
   failed/unavailable; the earlier inverse-diagonal candidate remains rejected.
+  Add a separately preregistered generation 5 all-motor cohort: eighteen new
+  worlds pass exact captured-state replay and source-ordered normal/zero row
+  arithmetic across palm and both zero-authority fingers. Preserve the original
+  failed generation 4 gates and scalar 0/4 accuracy result. Recover the exact
+  previously approved raw TAR through all eighteen original gzip checksums and
+  an independent complete byte comparison. Keep large derived traces external;
+  public retention remains pending authenticated upload/download verification.
 
 - Add example 140 and a README GIF showing 40 warehouse AMRs with seeded
   pickup/delivery dispatch, non-preemptive traffic reservations, charging,

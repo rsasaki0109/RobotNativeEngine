@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py",
+    "--protocol",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol-v2.json",
+    "--protocol-sha256",
+    "0e1b320fa7681c79d4c195bd3dd8e5e802d37eea045423b8b3681934acfafabb",
+    "--collection",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/collection-index.json",
+    "--collection-sha256",
+    "d4fd79e6dac643a65eae675adfe384d19f24e366d052f4014dd671a1e2bd626a",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/independent-numerical-audit.json",
+    "--details-directory",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/details"
+  ],
+  "retries": 0,
+  "selection": false,
+  "worlds": 0
+}

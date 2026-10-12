@@ -1,0 +1,53 @@
+{
+  "baseline_source_reference": {
+    "bytes": 8676,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/baseline-source-reference-receipt.json",
+    "sha256": "45b66ede7668c8288dcb7e1e744f76f5c9538499826448693ea0c75044eee60b"
+  },
+  "binding_template": {
+    "bytes": 6236,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-binary-binding-template.json",
+    "sha256": "681648ceb2202c1e7abf9cf517a89d29d5dd6b46d15c0f630dabb0ddbed2ca4f"
+  },
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "explicit_unmeasured": [
+    "row-build coordinates/absolute RHS origin",
+    "independent native opaque per-object layout",
+    "anatomical finger frames",
+    "runtime floating register",
+    "private full-set/pipeline/solver/contact state",
+    "per-contact columns/impulse attribution"
+  ],
+  "old_generation3_candidate": "REJECTED unchanged",
+  "old_generation4_outcome": "FAILED/UNQUALIFIED immutable",
+  "pending_before_first_authoritative_world": [
+    "Independent source/admission/provenance review PASS",
+    "Root final reader/protocol/driver/source/compiler/feature/float/binary bindings freeze",
+    "Registered SHA-only recovery arm if used",
+    "Read-only concrete frozen preflight PASS"
+  ],
+  "preregistration": {
+    "bytes": 10927,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/preregistration.md",
+    "sha256": "2106b9adc1790d6a6076475d8c4accfbb58277917003a97bbf3a60abbfc6c8d5"
+  },
+  "protocol_template": {
+    "bytes": 11802,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/protocol-template.json",
+    "sha256": "6239a3fce26fcb39880ea60eaecc9236de7a45d15bbbea92baa4d6f98b90fab8"
+  },
+  "pure_qualification": {
+    "bytes": 4167,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/actual-pure-test-receipt.json",
+    "sha256": "f58425960c12f9e6a8d319438c27232d742718a54dae00d6c0793acfefbc3063"
+  },
+  "qualification_possible": "Declared-state exact replay and all-role captured-row exact/native arithmetic within scoped normal/zero replay model",
+  "recorded_utc": "2026-10-12T05:57:42.845431+00:00",
+  "source_diff": {
+    "bytes": 65884,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/prospective-all-motor-admission-source.diff",
+    "sha256": "cf23e9f05c04edc04337b5dba26366ad23d44cb2888ae3773ba3ff682f2e5c3c"
+  },
+  "status": "READY_FOR_INDEPENDENT_PRE_DATA_SOURCE_REVIEW_NOT_YET_WORLD_FREEZE",
+  "worlds_builds_old_native_data_reads_checkout_edits": 0
+}

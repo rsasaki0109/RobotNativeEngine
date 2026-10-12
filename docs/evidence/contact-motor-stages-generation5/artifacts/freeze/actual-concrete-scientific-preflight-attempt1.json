@@ -1,0 +1,15 @@
+{
+  "actual_exit_code": 0,
+  "ended_utc": "2026-10-12T06:05:01.054761+00:00",
+  "fixed_cells": 18,
+  "kind": "actual_pre_data_concrete_scientific_binding_check",
+  "protocol": {
+    "bytes": 93567,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol.json",
+    "sha256": "df5524188f6f1bf709fc4423eb462559c6b489c38fbef25dc8124eac2d0e9f68"
+  },
+  "source_paths": 1640,
+  "started_utc": "2026-10-12T06:05:00.976785+00:00",
+  "status": "PASS",
+  "worlds": 0
+}

@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+    "--mass-kg",
+    "5",
+    "--observer",
+    "on",
+    "--label",
+    "baseline-m5-on",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-on.jsonl.gz"
+  ],
+  "case_index": 0,
+  "launch_claim": {
+    "bytes": 1716,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/00-baseline-m5-on/launch-claim.json",
+    "sha256": "5cc1aaa7d707de112ad005f44864b26a4128a4015a9a590b9cef8263ccfadc28"
+  },
+  "pid": 16826,
+  "started_utc": "2026-10-12T06:21:14.931085+00:00"
+}

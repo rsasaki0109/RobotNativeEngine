@@ -1,0 +1,894 @@
+--- historical-source/stage_analysis.py
++++ new-predata-gen5/stage_analysis.py
+@@ -8,6 +8,7 @@
+ from stage_schema import (keys, literal_equal, require, sha_bytes, validate_event,
+                           words, f32_bits, native_joint_handle_words)
+ import json
++from stage_roles import Roles, ROLES
+ 
+ 
+ def identity(row):
+@@ -26,6 +27,9 @@
+         self.maximum = {}
+         self.issues = 0
+         self.first_issue = None
++        self.roles = Roles()
++        self.role_counts = {role: Counter() for role in ROLES}
++        self.role_maximum = {role: {} for role in ROLES}
+ 
+     def emit(self, record):
+         self.sink(record)
+@@ -35,16 +39,34 @@
+         if observed is not None:
+             record["observed"] = observed
+         self.issues += 1
++        if "role" in context:
++            self.role_counts[context["role"]]["qualification_issues"] += 1
+         if self.first_issue is None:
+             self.first_issue = record
+         self.emit(record)
++
++    def role_context(self, row, context):
++        role = self.roles.role(row)
++        binding = self.roles.frozen_identity[role]
++        return dict(context, role=role, entity_bits=binding["entity_bits"],
++                    zero_authority=(role != "palm"))
++
++    def distribute_counts(self, role, previous):
++        for name, count in self.counts.items():
++            self.role_counts[role][name] += count - previous.get(name, 0)
+ 
+     def track(self, name, value, context):
+         magnitude = abs(value)
+         if name not in self.maximum or magnitude > self.maximum[name][0]:
+             self.maximum[name] = (magnitude, value, dict(context))
++        if "role" in context:
++            maxima = self.role_maximum[context["role"]]
++            if name not in maxima or magnitude > maxima[name][0]:
++                maxima[name] = (magnitude, value, dict(context))
+ 
+     def snapshot(self, event, row, context):
++        context = self.role_context(row, context)
++        previous_counts = dict(self.counts)
+         self.counts["row_snapshots"] += 1
+         raw = json.dumps(row, separators=(",", ":"), sort_keys=True).encode()
+         record = {"kind": "row_snapshot", "context": context, "row_identity": list(identity(row)),
+@@ -80,6 +102,7 @@
+             self.counts["native_projection:unavailable"] += 1
+             record["native_projection"] = {"eligibility": "unavailable", "reason": str(error)}
+         self.emit(record)
++        self.distribute_counts(context["role"], previous_counts)
+         return reference, native
+ 
+     def contact(self, before, after, category, context):
+@@ -93,6 +116,8 @@
+                        "eligibility": "unavailable", "reason": "no_supported_motor_rows"})
+             return
+         for row_id in sorted(set(before_rows) | set(after_rows)):
++            context = self.role_context(before_rows.get(row_id, after_rows.get(row_id)), context)
++            previous_counts = dict(self.counts)
+             self.counts["contact_row_intervals"] += 1
+             record = {"kind": "contact_interval", "context": context, "category": category,
+                       "row_identity": list(row_id)}
+@@ -110,6 +135,7 @@
+                 self.counts["contact_intervals:field_or_cache_changed"] += 1
+                 self.issue(context, "contact-only stage changed motor row identity/cache/words", reasons)
+                 self.emit(record)
++                self.distribute_counts(context["role"], previous_counts)
+                 continue
+             row = before_rows[row_id]
+             try:
+@@ -121,7 +147,6 @@
+                     after["generalized_velocity_words"][offset:offset + length])]
+                 j_delta_v = sum((exact(j) * dv for j, dv in zip(row["jacobian_words"], delta_velocity)), Fraction())
+                 delta_r = second["residual"] - first["residual"]
+-                require(delta_r == j_delta_v, "exact contact delta-r identity failed")
+                 record.update(eligibility="finite_fixed_cached_row", delta_velocity=[rational(value) for value in delta_velocity],
+                               exact_delta_r=rational(delta_r), exact_j_delta_v=rational(j_delta_v),
+                               exact_identity=True, before_reference=serialize_snapshot(first), after_reference=serialize_snapshot(second))
+@@ -132,7 +157,9 @@
+                 record.update(eligibility="unavailable", reason=str(error))
+                 self.counts["contact_intervals:reference_unavailable"] += 1
+                 self.emit(record)
++                self.distribute_counts(context["role"], previous_counts)
+                 continue
++            require(delta_r == j_delta_v, "exact contact delta-r identity failed")
+             try:
+                 native_before = F32().projection(row, before["generalized_velocity_words"], include_axpy=False)
+                 native_after = F32().projection(row, after["generalized_velocity_words"], include_axpy=False)
+@@ -143,7 +170,8 @@
+                     e_after = exact(native_after["residual_word"]) - second["residual"]
+                     native_delta = exact(native_after["residual_word"]) - exact(native_before["residual_word"])
+                     discrepancy = native_delta - j_delta_v
+-                    require(discrepancy == e_after - e_before, "native endpoint rounding accounting failed")
++                    if discrepancy != e_after - e_before:
++                        raise AssertionError("native endpoint rounding accounting failed")
+                     record["native_rounding_accounting"] = {"before_error": rational(e_before), "after_error": rational(e_after),
+                         "native_residual_delta": rational(native_delta), "exact_discrepancy": rational(discrepancy), "identity": True}
+                     self.counts["contact_intervals:native_qualified"] += 1
+@@ -156,6 +184,7 @@
+                 record["native_rounding_accounting"] = {"status": "unavailable", "reason": str(error)}
+                 self.counts["contact_intervals:native_unavailable"] += 1
+             self.emit(record)
++            self.distribute_counts(context["role"], previous_counts)
+ 
+     def _change(self, record, name, before, after, context):
+         reopened = before == 0 and after != 0
+@@ -168,8 +197,10 @@
+         self.track(name + "_contact_projection_change", after - before, context)
+ 
+     def immediate(self, before, after, context):
++        first, second = before["rows"][0], after["rows"][0]
++        context = self.role_context(first, context)
++        previous_counts = dict(self.counts)
+         self.counts["immediate_motor_visits"] += 1
+-        first, second = before["rows"][0], after["rows"][0]
+         changes = difference(first, second)
+         require(set(changes) <= {"impulse_word"}, "selected motor solve changed fields beyond lambda")
+         for field in ["ccd_partition_index", "island_index", "internal_slice_index", "row_cache_slice_index",
+@@ -193,27 +224,36 @@
+             record["prediction"] = {"eligibility": "unavailable", "reason": str(error)}
+             self.counts["immediate_motor_visits:unavailable"] += 1
+         self.emit(record)
++        self.distribute_counts(context["role"], previous_counts)
+ 
+     def rebuilt(self, event, context):
+         for row in event["rows"]:
++            role = self.roles.role(row)
++            previous_counts = dict(self.counts)
+             require(row["impulse_word"] == 0, "rebuilt motor accumulator is not literal +0")
+             require(row["rhs_word"] == row["rhs_without_bias_word"], "unit motor initialized RHS differs from bias-free RHS")
+-            positions = [index for index, word in enumerate(row["jacobian_words"]) if word == ONE]
+-            require(len(positions) == 1 and all(word == 0 or word == ONE for word in row["jacobian_words"]),
+-                    "supported unit motor stored J is not literal one-hot")
+-            require(row["effort_ceiling_word"] == f32_bits(5000) and row["cfm_coefficient_word"] == 0,
+-                    "ForceBased palm ceiling or CFM coefficient differs from registered source")
++            coordinate = row["link_id"] - 1
++            require(row["cfm_coefficient_word"] == 0, "registered fixed motor coefficient differs")
+             coefficients = F32()
+             h = event["duration_word"]
+-            gain = coefficients.inverse(coefficients.add(
+-                coefficients.multiply(coefficients.multiply(h, h), f32_bits(1e5)),
+-                coefficients.multiply(h, f32_bits(1e4))))
+-            bound = coefficients.multiply(f32_bits(5000), h)
+-            require(row["cfm_gain_word"] == gain and row["impulse_bound_words"] == [bound ^ 0x80000000, bound],
+-                    "stored native ForceBased gain/bounds differ from fixed h/k/d/cap expressions")
++            if role == "palm":
++                ceiling = f32_bits(5000)
++                gain = coefficients.inverse(coefficients.add(
++                    coefficients.multiply(coefficients.multiply(h, h), f32_bits(1e5)),
++                    coefficients.multiply(h, f32_bits(1e4))))
++            else:
++                ceiling = 0
++                gain = 0  # AccelerationBased k=d=0 invokes guarded inverse(0).
++            bound = coefficients.multiply(ceiling, h)
++            require(row["effort_ceiling_word"] == ceiling and row["cfm_gain_word"] == gain and
++                    row["impulse_bound_words"] == [bound ^ 0x80000000, bound],
++                    "stored native role gain/bounds differ from fixed source expressions: " + role)
++            require(not coefficients.exclusions, "fixed registered duration/coefficient expression left native replay domain")
++            # Finger RHS is deliberately not forced to zero: source limit
++            # clamping can make the zero-target-velocity RHS nonzero.
+             native = F32()
+-            lhs = row["weighted_jacobian_words"][positions[0]]
+-            if self.build == "rejected_inverse_w_plus_g" and row["gain_model"] == "ForceBased":
++            lhs = row["weighted_jacobian_words"][coordinate]
++            if self.build == "rejected_inverse_w_plus_g" and role == "palm":
+                 lhs = native.add(lhs, row["cfm_gain_word"])
+             try:
+                 expected = native.inverse(lhs)
+@@ -226,19 +266,39 @@
+                 else:
+                     self.counts["rebuilt_diagonal:unqualified"] += 1
+             self.counts["initialized_motor_cache_generations"] += 1
++            if role != "palm":
++                self.counts["zero_authority_cache_generations"] += 1
++            self.distribute_counts(role, previous_counts)
+ 
+     def summary(self):
++        def maxima(values):
++            return {name: {"absolute_magnitude": rational(value[0]), "signed_value": rational(value[1]),
++                           "first_context": value[2]} for name, value in sorted(values.items())}
++        def native_complete(counts):
++            return (counts["immediate_motor_visits"] > 0 and
++                    counts["immediate_motor_visits"] == counts["immediate_motor_visits:qualified_match"] and
++                    counts["row_snapshots"] == counts["native_projection:qualified"] and
++                    counts["initialized_motor_cache_generations"] == counts["rebuilt_diagonal:qualified_match"] and
++                    counts["contact_row_intervals"] == counts["contact_intervals:native_qualified"])
++        def reference_complete(counts):
++            return (counts["row_snapshots"] > 0 and
++                    counts["row_snapshots"] == counts["finite_valid_reference_snapshots"] and
++                    counts["contact_row_intervals"] == counts["contact_intervals:finite_fixed_cached_row"])
++        roles = {role: {"counts": dict(sorted(self.role_counts[role].items())),
++                        "maxima": maxima(self.role_maximum[role]),
++                        "complete_native_replay": self.role_counts[role]["qualification_issues"] == 0 and native_complete(self.role_counts[role]),
++                        "complete_finite_valid_reference": reference_complete(self.role_counts[role]),
++                        "authority": "controlled" if role == "palm" else "zero_authority"} for role in ROLES}
+         return {"counts": dict(sorted(self.counts.items())), "qualification_issues": self.issues,
+-                "first_qualification_issue": self.first_issue,
+-                "maxima": {name: {"absolute_magnitude": rational(value[0]), "signed_value": rational(value[1]),
+-                                  "first_context": value[2]} for name, value in sorted(self.maximum.items())},
+-                "complete_native_replay": self.issues == 0 and self.counts["immediate_motor_visits"] > 0 and
+-                    self.counts["immediate_motor_visits"] == self.counts["immediate_motor_visits:qualified_match"] and
+-                    self.counts["row_snapshots"] == self.counts["native_projection:qualified"],
+-                "complete_finite_valid_reference": self.counts["row_snapshots"] > 0 and
+-                    self.counts["row_snapshots"] == self.counts["finite_valid_reference_snapshots"],
++                "first_qualification_issue": self.first_issue, "maxima": maxima(self.maximum),
++                "roles": roles, "role_identity_scope": self.roles.summary(),
++                "complete_native_replay": self.issues == 0 and native_complete(self.counts) and
++                    all(role["complete_native_replay"] for role in roles.values()),
++                "complete_finite_valid_reference": reference_complete(self.counts) and
++                    all(role["complete_finite_valid_reference"] for role in roles.values()),
+                 "unmeasured": ["per-contact J/W columns", "individual contact impulses", "J_m W_c",
+-                               "full set metadata", "private pipeline/solver/contact caches", "runtime MXCSR register"]}
++                               "full set metadata", "private pipeline/solver/contact caches", "runtime MXCSR register",
++                               "independent native per-object deserialization", "anatomical finger frame labels"]}
+ 
+ 
+ def analyze_telemetry(telemetry, checkpoint, ecs_entities, step, protocol, analysis):
+@@ -248,16 +308,14 @@
+     require(telemetry["numerical_outer_interval_word"] == parameters["dt_word"], "telemetry outer duration differs from native runtime parameters")
+     partitions = words(telemetry["ccd_partition_duration_words"], 32,
+                        maximum=protocol["resource_ceilings"]["ccd_partitions_per_step"])
+-    require(0 < len(partitions) <= parameters["max_ccd_substeps"], "partition count outside actual settings")
++    require(partitions == [parameters["dt_word"]] and parameters["max_ccd_substeps"] == 1,
++            "fixed no-CCD fixture partition duration/count differs")
+     require(all(exact(word) > 0 for word in partitions), "nonpositive partition duration")
+     events = telemetry["events"]
+     ceilings = protocol["resource_ceilings"]
+     require(type(events) is list and len(events) <= ceilings["events_per_step"], "stage event resource ceiling")
+     require(events, "ON step has no stage events")
+-    palm_entity = ecs_entities[3]["entity_bits"]
+-    bindings = {tuple(binding["joint_handle_words"]): binding for binding in checkpoint["bindings"]}
+-    palm_bindings = [binding for binding in checkpoint["bindings"] if binding["entity_bits"] == palm_entity]
+-    require(len(palm_bindings) == 1, "palm native binding is not unique")
++    analysis.roles.admit_checkpoint(checkpoint, ecs_entities)
+     seen_slices, groups = {}, []
+     current = None
+     for ordinal, event in enumerate(events):
+@@ -268,12 +326,9 @@
+             groups.append((group_key, [])); current = group_key
+         groups[-1][1].append((ordinal, event))
+         for row in event["rows"]:
+-            handle = native_joint_handle_words(row["joint_handle"])
+-            require(handle in bindings and bindings[handle]["link_index"] == row["link_id"], "row/binding native identity mismatch")
+-            require(bindings[handle]["entity_bits"] == palm_entity and row["axis"] == "LinX" and row["gain_model"] == "ForceBased",
+-                    "fixed scene exposed a row other than the ForceBased palm native joint-frame LinX motor")
+-            require(row["ndofs2"] == 3, "fixed gripper row block must have all three joint coordinates")
++            analysis.roles.admit_row(row, len(event["generalized_velocity_words"]))
+     motor_slices = 0
++    motor_islands = {}
+     for group_key, group in groups:
+         partition, island, slice_index = group_key
+         first = group[0][1]
+@@ -281,7 +336,7 @@
+         group_context = {"completed_outer_step": step, "partition": partition, "island": island, "slice": slice_index}
+         require(all(event["expected_internal_slice_count"] == expected_slices and event["duration_word"] == first["duration_word"]
+                     for _, event in group), "slice metadata changed within a group")
+-        require(expected_slices >= parameters["num_solver_iterations"], "actual slice count below configured base")
++        require(expected_slices == parameters["num_solver_iterations"], "fixed fixture slice count differs from configured base")
+         expected_duration = F32().divide(partitions[partition], rounded(Fraction(expected_slices)))
+         require(first["duration_word"] == expected_duration, "native small-step duration disagrees with actual partition/count")
+         island_key = (partition, island)
+@@ -295,6 +350,9 @@
+         analysis.counts["island_slices"] += 1
+         if group[2][1]["rows"]:
+             motor_slices += 1
++            require(partition not in motor_islands or motor_islands[partition] == island,
++                    "one multibody motor group appeared in multiple islands")
++            motor_islands[partition] = island
+         after_integration, pass_kind = False, None
+         for ordinal, event in group:
+             if event["stage"] == "AfterIntegration":
+@@ -321,7 +379,9 @@
+     for partition in range(len(partitions)):
+         island_ids = sorted(island for p, island in seen_slices if p == partition)
+         require(island_ids and island_ids == list(range(len(island_ids))), "partition island coverage/order missing")
+-    require(motor_slices > 0, "completed ON step did not expose the selected palm motor")
++    require(set(motor_islands) == set(range(len(partitions))) and
++            motor_slices == len(partitions) * parameters["num_solver_iterations"],
++            "every partition/slice must expose all three supported internal motors exactly once")
+     analysis.counts["completed_outer_steps"] += 1
+     analysis.counts["ccd_partitions"] += len(partitions)
+     analysis.counts["active_island_partitions"] += len(seen_slices)
+@@ -341,9 +401,15 @@
+     rebuilt, rebuilt_context = take("AfterJointUpdate")
+     analysis.rebuilt(rebuilt, rebuilt_context)
+     actual_rows = [identity(row) for row in rebuilt["rows"]]
+-    require(len(actual_rows) <= 1, "fixed scene has more than one supported palm motor")
++    analysis.roles.admit_aggregate(rebuilt["rows"], len(rebuilt["generalized_velocity_words"]))
+     immutable_rows = {identity(row): {name: value for name, value in row.items() if name not in ["rhs_word", "impulse_word"]}
+                       for row in rebuilt["rows"]}
++    immediate_stages = {"BeforeMotorBiasRemoval", "BeforeMotorSolve", "AfterMotorSolve"}
++    vector_length = len(rebuilt["generalized_velocity_words"])
++    for _, event in group:
++        require(len(event["generalized_velocity_words"]) == vector_length, "generic vector shape changed within island slice")
++        if event["stage"] not in immediate_stages and event["row_cache_slice_index"] is not None:
++            require([identity(row) for row in event["rows"]] == actual_rows, "aggregate supported role order/coverage changed")
+     for _, event in group[2:]:
+         for row in event["rows"]:
+             require(identity(row) in immutable_rows and literal_equal(
+@@ -359,8 +425,12 @@
+     def joint_pass(start_stage, end_stage, iteration, stabilization):
+         nonlocal cursor
+         beginning, _ = take(start_stage, iteration)
++        require(literal_equal(beginning["rows"], last["rows"]) and
++                beginning["generalized_velocity_words"] == last["generalized_velocity_words"],
++                "joint-pass entry changed preceding observed motor rows or generic velocity")
+         require([identity(row) for row in beginning["rows"]] == actual_rows, "aggregate supported row list changed during slice")
+-        observed, visits = [], []
++        observed, visits, last_impulses = [], [], {}
++        beginning_rows = {identity(row): row for row in beginning["rows"]}
+         while cursor < len(group) and group[cursor][1]["stage"] in ["BeforeMotorBiasRemoval", "BeforeMotorSolve"]:
+             if stabilization:
+                 biased, _ = take("BeforeMotorBiasRemoval", iteration)
+@@ -374,12 +444,21 @@
+             after, ctx = take("AfterMotorSolve", iteration)
+             ctx["pass_kind"] = "stabilization" if stabilization else "pgs"
+             ctx["after_integration"] = stabilization
+-            observed.append(identity(before["rows"][0])); visits.append(before["joint_visit_index"])
++            selected = before["rows"][0]
++            selected_id = identity(selected)
++            require(selected_id in beginning_rows and selected["impulse_word"] == beginning_rows[selected_id]["impulse_word"],
++                    "unvisited selected motor accumulator changed during joint pass")
++            require(before["joint_visit_index"] == selected["constraint_index"],
++                    "global visit differs from fixed fixture's sole generic-one-body constraint index")
++            observed.append(selected_id); visits.append(before["joint_visit_index"])
++            last_impulses[selected_id] = after["rows"][0]["impulse_word"]
+             analysis.immediate(before, after, ctx)
+-        require(set(observed) == set(actual_rows) and len(observed) == len(actual_rows), "immediate selected motor visit coverage incomplete")
++        require(observed == actual_rows, "all internal motor visits must cover the literal aggregate builder order exactly")
+         require(visits == sorted(set(visits)), "motor global visit order duplicated/reversed")
+         ending, _ = take(end_stage, iteration)
+         require([identity(row) for row in ending["rows"]] == actual_rows, "aggregate row identities changed after joint pass")
++        require(all(row["impulse_word"] == last_impulses[identity(row)] for row in ending["rows"]),
++                "final aggregate lambda differs from each selected motor's last visit")
+         return ending
+     for iteration in range(parameters["num_internal_pgs_iterations"]):
+         last = joint_pass("BeforeJointSolve", "AfterJointSolve", iteration, False)
+--- historical-source/audit_coupled_stages.py
++++ new-predata-gen5/audit_coupled_stages.py
+@@ -20,13 +20,17 @@
+                           sha_bytes, strict_json, validate_end, validate_start)
+ 
+ REPO = Path("/workspace/RobotNativeEngine")
+-BASE = "c515029afed60419bdd69699bd2ece93365e441a"
++BASE = "2c3586fa9168f13c774fb8f0c0d2cd359eba1287"
+ BUILDS = ["baseline", "rejected_inverse_w_plus_g"]
+ MODES = ["on", "fresh_on", "off"]
+ UNIT_SOURCE = "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs"
+ HISTORICAL_PATCH_SHA = "08b5932ec3ac3271709c3e665ed631b76bbb51190abe86117333f19ea1b1f3c7"
+ RUNTIME_PATCH_SHA = "a4d75610e97ac5fcca76115b854cc7c790c8907e77bb12cf45bd6336af0503e7"
+-SOURCE_SCOPE = "Nonexhaustive repository extension-filtered input snapshot; not compiler/dependency closure"
++SOURCE_SCOPE = "Non-exhaustive repository extension-filtered input snapshot; not compiler/dependency closure"
++COHORT_ID = "generation5-independent-all-motor-stage"
++INDEPENDENCE = "NEW_INDEPENDENT_COHORT_NOT_RESTORATION_OF_LOST_GENERATION4_TAR"
++RUN_FIELDS = ["build", "mass_kg", "mode", "run_label", "attempted", "exit_code", "started_utc", "ended_utc", "argv",
++              "trace", "stdout", "stderr", "source_guard_before", "source_guard_after", "error"]
+ 
+ 
+ def stamp(value):
+@@ -65,22 +69,32 @@
+                     "scalar_qualification_worlds", "fixed_cells", "resource_ceilings", "reader_artifacts",
+                     "dependency_source_artifacts", "candidate_runtime_patch", "historical_complete_rejected_patch",
+                     "preregistration", "schema_source_sha256", "expected_runtime_parameters", "scalar_qualification",
+-                    "immutable_published_artifacts", "root_driver"], "protocol")
+-    require(protocol["schema_version"] == 1 and protocol["status"] == "FROZEN_PRE_DATA_COUPLED_STAGE_PROTOCOL" and
+-            protocol["base_commit"] == BASE and protocol["authoritative_coupled_worlds"] == 18 and protocol["scalar_qualification_worlds"] == 72,
+-            "protocol scope is not the registered eighteen plus separate seventy-two")
++                    "immutable_published_artifacts", "root_driver", "role_admission", "baseline_source_reference",
++                    "audit_live_source_policy", "generation", "cohort_id", "independence", "checksum_only_recovery"], "protocol")
++    require(protocol["schema_version"] == 1 and protocol["status"] == "FROZEN_PRE_DATA_GENERATION5_ALL_MOTOR_STAGE_PROTOCOL" and
++            protocol["base_commit"] == BASE and protocol["authoritative_coupled_worlds"] == 18 and protocol["scalar_qualification_worlds"] == 0,
++            "protocol scope is not the registered new eighteen-cell all-motor cohort; no fresh scalar worlds inferred")
++    require(protocol["generation"] == 5 and type(protocol["generation"]) is int and
++            protocol["cohort_id"] == COHORT_ID and protocol["independence"] == INDEPENDENCE,
++            "new cohort/generation/independence identity differs")
+     stamp(protocol["registered_utc"])
++    if protocol["checksum_only_recovery"] is not None:
++        artifact(protocol["checksum_only_recovery"])
+     expected = [{"build": build, "mass_kg": mass, "mode": mode, "run_label": f"{build}-m{mass}-{mode}"}
+                 for build in BUILDS for mass in [5, 20, 50] for mode in MODES]
+     require(literal_equal(protocol["fixed_cells"], expected), "fixed eighteen-cell matrix changed")
+     frozen = {str(Path(record["path"]).resolve()): record for record in protocol["reader_artifacts"]}
+     require(len(frozen) == len(protocol["reader_artifacts"]), "duplicate frozen reader artifact")
+-    for name in ["audit_coupled_stages.py", "stage_analysis.py", "stage_numeric.py", "stage_schema.py"]:
+-        actual = record_for(Path(protocol_record["path"]).parent / name)
++    for name in ["audit_coupled_stages.py", "stage_analysis.py", "stage_numeric.py", "stage_schema.py", "stage_roles.py", "synthetic-profile.json"]:
++        actual = record_for(Path(__file__).parent / name)
+         require(frozen.get(actual["path"]) == actual, "reader module changed after freeze: " + name)
+     for record in protocol["reader_artifacts"] + protocol["dependency_source_artifacts"] + protocol["immutable_published_artifacts"]:
+         artifact(record)
+     artifact(protocol["preregistration"])
++    artifact(protocol["role_admission"])
++    artifact(protocol["baseline_source_reference"])
++    require(protocol["audit_live_source_policy"] == "Selected schema/runtime sources must remain restored baseline; recorded complete guards are historical, publication-only metadata outside this set may change after collection",
++            "audit live-source scope/metadata policy differs")
+     artifact(protocol["root_driver"])
+     historical, runtime = protocol["historical_complete_rejected_patch"], protocol["candidate_runtime_patch"]
+     require(artifact(historical)["sha256"] == HISTORICAL_PATCH_SHA and artifact(runtime)["sha256"] == RUNTIME_PATCH_SHA,
+@@ -88,7 +102,16 @@
+     full = Path(historical["path"]).read_bytes()
+     first = full.split(b"diff --git ")[1]
+     require(b"diff --git " + first == Path(runtime["path"]).read_bytes(), "runtime patch is not the literal historical first file section")
+-    source_map(protocol["schema_source_sha256"])
++    references = read_artifact(protocol["baseline_source_reference"])
++    reference_map = {record["repository_path"]: record["baseline_sha256"] for record in references["files"]}
++    require(references["baseline_commit"] == BASE and references["checkout_status"] == "" and
++            source_map(protocol["schema_source_sha256"]) == {path: digest for path, digest in reference_map.items() if path != UNIT_SOURCE},
++            "schema source closure differs from clean pre-data baseline references")
++    for record in references["files"]:
++        actual = record_for(record["reference_path"])
++        require(actual["sha256"] == record["baseline_sha256"] and actual["bytes"] == record["bytes"],
++                "baseline source reference bytes changed")
++
+     ceilings = protocol["resource_ceilings"]
+     keys(ceilings, ["compressed_bytes_per_run", "uncompressed_bytes_per_run", "json_line_bytes", "native_record_bytes",
+                    "native_records_per_step", "native_bindings_per_step", "ecs_words_per_step", "motor_ndofs",
+@@ -96,19 +119,26 @@
+                    "ccd_partitions_per_step"], "resource ceilings")
+     for value in ceilings.values():
+         integer(value, minimum=1)
++    profile = strict_json((Path(__file__).parent / "synthetic-profile.json").read_bytes())
++    require(literal_equal(ceilings, profile["resource_ceilings"]) and
++            literal_equal(protocol["expected_runtime_parameters"], profile["expected_runtime_parameters"]),
++            "fixed original resource ceilings or independently source-derived parameters changed")
++    require(protocol["scalar_qualification"] == {"status": "NOT_PART_OF_NEW_COUPLED_COLLECTION", "new_worlds": 0},
++            "new scalar worlds must not be inferred from coupled qualification")
+     return expected
+ 
+ 
+ def check_binding(record, build, protocol, protocol_record, collection_start):
+     binding = read_artifact(record)
+     keys(binding, ["schema_version", "status", "build", "base_commit", "registered_utc",
+-                   "authoritative_worlds_of_this_build_executed_before_freeze", "protocol_sha256", "reader_artifacts",
++                   "cohort_id", "authoritative_worlds_of_this_cohort_before_freeze", "protocol_sha256", "reader_artifacts",
+                    "schema_source_sha256", "repo_source_sha256", "source_manifest", "compiler", "cargo", "target",
+                    "resolved_features", "rustflags", "build_command", "binary", "native_float_mode", "rejected_candidate_patch", "error"],
+          "source/binary binding")
+-    require(binding["schema_version"] == 1 and binding["status"] == "FROZEN_BEFORE_BUILD_COUPLED_WORLDS" and binding["build"] == build and
++    require(binding["schema_version"] == 1 and binding["status"] == "FROZEN_BEFORE_GENERATION5_COHORT_WORLDS" and binding["build"] == build and
+             binding["base_commit"] == BASE and binding["protocol_sha256"] == protocol_record["sha256"] and
+-            binding["authoritative_worlds_of_this_build_executed_before_freeze"] == 0 and binding["error"] is None, "binding provenance/world count differs")
++            binding["authoritative_worlds_of_this_cohort_before_freeze"] == 0 and
++            type(binding["authoritative_worlds_of_this_cohort_before_freeze"]) is int and binding["cohort_id"] == COHORT_ID and binding["error"] is None, "binding provenance/world count differs")
+     require(stamp(protocol["registered_utc"]) <= stamp(binding["registered_utc"]) <= collection_start, "reader/source/binary freeze occurred after first world")
+     require(literal_equal(binding["reader_artifacts"], protocol["reader_artifacts"]) and
+             literal_equal(binding["schema_source_sha256"], protocol["schema_source_sha256"]), "binding reader/schema differs from pre-data protocol")
+@@ -120,7 +150,7 @@
+         require(binding["repo_source_sha256"].get(path) == digest, "schema source is absent from frozen source map")
+     for name in ["compiler", "cargo", "target"]:
+         require(type(binding[name]) is str and binding[name], "unbound compiler/cargo/target")
+-    require(type(binding["rustflags"]) is list and all(type(flag) is str for flag in binding["rustflags"]), "flags not bound")
++    require(binding["rustflags"] == [] and type(binding["rustflags"]) is list, "new cohort requires unchanged empty Rust flags")
+     require(type(binding["build_command"]) is list and "--release" in binding["build_command"] and "--locked" in binding["build_command"], "binary was not bound to locked release build")
+     artifact(binding["resolved_features"]); artifact(binding["binary"])
+     mode = binding["native_float_mode"]
+@@ -145,7 +175,7 @@
+     first, second = baseline["repo_source_sha256"], candidate["repo_source_sha256"]
+     require(set(first) == set(second), "candidate added/removed source input paths")
+     require({path for path in first if first[path] != second[path]} == {UNIT_SOURCE}, "candidate source delta is not exactly the old runtime unit-row file")
+-    before = (REPO / UNIT_SOURCE).read_bytes()
++    before = (Path(__file__).parent / "source-reference" / UNIT_SOURCE).read_bytes()
+     require(sha_bytes(before) == first[UNIT_SOURCE], "restored live unit source differs from baseline binding")
+     prefix = b"        cfm_gain: motor_params.cfm_gain,\r\n"
+     old = prefix + b"        inv_lhs: crate::utils::inv(lhs),\r\n"
+@@ -162,7 +192,7 @@
+         require(literal_equal(baseline[name], candidate[name]), "cross-build compiler/feature/float contract changed: " + name)
+ 
+ 
+-def validate_step(record, expected_step, observer, protocol):
++def validate_step(record, expected_step, observer, protocol, mass=None):
+     keys(record, ["kind", "schema_version", "completed_outer_step", "native_checkpoint",
+                   "native_checkpoint_postcard_bytes", "ecs_physics_ieee_words", "stage_telemetry"], "completed step")
+     require(record["kind"] == "completed_step" and record["schema_version"] == 1 and type(record["schema_version"]) is int and
+@@ -174,6 +204,14 @@
+     from stage_schema import f32_bits
+     require(record["native_checkpoint"]["gravity_ieee_words"] == [0, f32_bits(-9.81), 0], "native gravity changed")
+     entities = parse_ecs(record["ecs_physics_ieee_words"], protocol["resource_ceilings"])
++    from stage_schema import f64_bits
++    require(entities[0]["body"][1] == entities[2]["body"][1] == f64_bits(1),
++            "fixed floor/anchor authored mass differs")
++    require(entities[1]["body"][1] in [f64_bits(value) for value in (5, 20, 50)] and
++            (mass is None or entities[1]["body"][1] == f64_bits(mass)), "ECS cube authored mass differs from declared case")
++    for entity in entities:
++        for word in entity["pose"] + entity["body"][1:] + entity["joint"]:
++            require((word >> 52) & 0x7ff != 0x7ff, "nonfinite captured ECS physics scalar")
+     if observer:
+         require(type(record["stage_telemetry"]) is dict, "enabled stage data missing")
+     else:
+@@ -200,7 +238,7 @@
+     try:
+         for step in range(1, 1251):
+             frames = [next(iterator) for iterator in iterators]
+-            entities = [validate_step(frame, step, row["mode"] != "off", protocol) for frame, row in zip(frames, rows)]
++            entities = [validate_step(frame, step, row["mode"] != "off", protocol, row["mass_kg"]) for frame, row in zip(frames, rows)]
+             first = frames[0]
+             for frame in frames[1:]:
+                 for field in ["native_checkpoint", "native_checkpoint_postcard_bytes", "ecs_physics_ieee_words"]:
+@@ -243,57 +281,128 @@
+             "analysis": summary}
+ 
+ 
+-def check_repair(args, protocol_record, collection_record):
+-    """Bind source-derived handle/frame metadata repair and both prior failures."""
+-    repair_record = record_for(args.repair_manifest)
+-    require(repair_record["sha256"] == args.repair_manifest_sha256, "repair manifest literal SHA differs")
+-    repair = strict_json(Path(args.repair_manifest).read_bytes())
+-    keys(repair, ["schema_version", "status", "registered_utc", "original_protocol", "original_collection",
+-                  "original_failed_audit", "original_failed_command", "first_frame_diagnosis", "rust_schema_sources",
+-                  "original_reader_closure", "repaired_reader_closure", "narrow_diff", "pure_tests", "repair_scope",
+-                  "numerical_formulas_and_scientific_gates_unchanged", "authoritative_worlds_rerun", "prior_repair_manifest",
+-                  "prior_repair_failed_audit", "prior_repair_failed_command", "native_frame_diagnosis", "native_frame_sources"], "post-collection repair manifest")
+-    require(repair["schema_version"] == 2 and repair["status"] == "FROZEN_POST_COLLECTION_NATIVE_FRAME_SCHEMA_REPAIR_V2" and
+-            repair["numerical_formulas_and_scientific_gates_unchanged"] is True and repair["authoritative_worlds_rerun"] == 0,
+-            "repair provenance/scope differs")
+-    require(literal_equal(repair["original_protocol"], protocol_record) and literal_equal(repair["original_collection"], collection_record),
+-            "repair relabels original pre-data protocol or collection")
+-    collection = strict_json(Path(collection_record["path"]).read_bytes())
+-    require(stamp(collection["ended_utc"]) < stamp(repair["registered_utc"]), "repair incorrectly claims pre-data registration")
+-    require(repair["repair_scope"] == "Native handle object and source-derived palm joint-frame LinX metadata only; arithmetic and all remaining scientific/stage gates unchanged",
+-            "repair expands beyond the source-derived handle/frame metadata")
+-    for name in ["original_protocol", "original_collection", "original_failed_audit", "original_failed_command", "first_frame_diagnosis", "narrow_diff", "pure_tests",
+-                 "prior_repair_manifest", "prior_repair_failed_audit", "prior_repair_failed_command", "native_frame_diagnosis"]:
+-        artifact(repair[name])
+-    for record in repair["rust_schema_sources"] + repair["native_frame_sources"] + repair["original_reader_closure"] + repair["repaired_reader_closure"]:
++def check_durable_provenance(collection, collection_record, protocol, protocol_record, bindings, start, end):
++    """Strict actual schema2, original exit receipts and prospective spec linkage.
++
++    This reads JSON/file metadata only. It never imports the driver's modules,
++    executes a binary, resumes a cohort, or repairs any receipt.
++    """
++    spec = read_artifact(collection["frozen_spec"])
++    keys(spec, ["schema_version", "generation", "status", "independence", "cohort_id", "registered_utc",
++                "authoritative_worlds_of_this_cohort_before_freeze", "fixed_cells", "world_limit",
++                "preflight_gates", "cohort_root", "repository_root", "protocol", "reader_artifacts",
++                "reader_pure_test_receipt", "independent_readonly_review", "source_guard_manifest",
++                "driver_artifacts", "bindings"], "frozen durable driver spec")
++    require(spec["schema_version"] == 1 and type(spec["schema_version"]) is int and
++            spec["generation"] == 5 and type(spec["generation"]) is int and
++            spec["status"] == "FROZEN_BEFORE_GENERATION5_COLLECTION" and
++            spec["cohort_id"] == COHORT_ID and spec["independence"] == INDEPENDENCE and
++            spec["authoritative_worlds_of_this_cohort_before_freeze"] == 0 and
++            type(spec["authoritative_worlds_of_this_cohort_before_freeze"]) is int and
++            type(spec["world_limit"]) is int and spec["world_limit"] == 18,
++            "driver spec is not the prospectively frozen new cohort")
++    require(stamp(protocol["registered_utc"]) <= stamp(spec["registered_utc"]) <= start,
++            "driver spec freeze postdates first collection")
++    require(literal_equal(spec["fixed_cells"], protocol["fixed_cells"]) and
++            literal_equal(spec["protocol"], protocol_record) and
++            literal_equal(spec["reader_artifacts"], protocol["reader_artifacts"]) and
++            literal_equal(spec["bindings"], collection["source_binary_bindings"]),
++            "driver spec matrix/protocol/readers/bindings differ")
++    require(spec["preflight_gates"] == {"reader_pure_tests": "PASS", "independent_readonly_review": "PASS"},
++            "actual pre-world pure/review gates were not admitted")
++    for name in ["reader_pure_test_receipt", "independent_readonly_review"]:
++        artifact(spec[name])
++    require(spec["repository_root"] == str(REPO), "driver repository differs")
++    cohort_root = Path(spec["cohort_root"])
++    require(cohort_root.is_absolute() and cohort_root.resolve() == collection_record_path_parent(collection_record),
++            "durable index is outside its registered cohort directory")
++    manifest = read_artifact(spec["source_guard_manifest"])
++    require(literal_equal(manifest, {"scope": SOURCE_SCOPE, "files": bindings["baseline"]["repo_source_sha256"]}),
++            "durable source guard differs from restored baseline source map")
++    require(type(spec["driver_artifacts"]) is list and len(spec["driver_artifacts"]) == 3,
++            "driver source closure must contain exactly its three modules")
++    driver = Path(protocol["root_driver"]["path"])
++    records = {Path(record["path"]).name: record for record in spec["driver_artifacts"]}
++    require(set(records) == {"collect_once.py", "durable_common.py", "prepare_archive.py"},
++            "driver module source closure differs")
++    for name, record in records.items():
+         artifact(record)
+-    failed = strict_json(Path(repair["original_failed_audit"]["path"]).read_bytes())
+-    require(failed["status"] == "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE" and failed["error"] == "word vector must be a list",
+-            "original failed audit is not retained literally")
+-    prior = strict_json(Path(repair["prior_repair_manifest"]["path"]).read_bytes())
+-    prior_failed = strict_json(Path(repair["prior_repair_failed_audit"]["path"]).read_bytes())
+-    require(repair["prior_repair_manifest"]["sha256"] == "b640876ff36d3e1ff9821be56e45a0463cd006a8ded04f0a10f9ea36a5c8a366" and
+-            prior_failed["status"] == "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE" and
+-            prior_failed["error"] == "fixed scene exposed a row other than the ForceBased palm LinY motor",
+-            "first repaired failed audit/manifest are not retained literally")
+-    for record in prior["repaired_reader_closure"]:
+-        artifact(record)
+-    require(stamp(strict_json(Path(repair["prior_repair_failed_command"]["path"]).read_bytes())["ended_utc"]) < stamp(repair["registered_utc"]),
+-            "frame repair falsely precedes the first repaired execution")
+-    current = {str(Path(record["path"]).resolve()): record for record in repair["repaired_reader_closure"]}
+-    original = {Path(record["path"]).name: record for record in repair["original_reader_closure"]}
+-    original_protocol = strict_json(Path(protocol_record["path"]).read_bytes())
+-    frozen_original = {Path(record["path"]).name: record for record in original_protocol["reader_artifacts"]}
+-    require(len(current) == len(repair["repaired_reader_closure"]) == len(original) == len(repair["original_reader_closure"]) == 4,
+-            "reader closure is duplicated or changed in scope")
+-    for name in ["audit_coupled_stages.py", "stage_analysis.py", "stage_numeric.py", "stage_schema.py"]:
+-        actual = record_for(Path(__file__).parent / name)
+-        require(current.get(actual["path"]) == actual, "repaired reader module changed after registration: " + name)
+-        require(name in original, "original reader module is not retained: " + name)
+-        require(literal_equal(original[name], frozen_original.get(name)), "original pre-data reader binding was changed: " + name)
+-    require(original["stage_numeric.py"]["sha256"] == record_for(Path(__file__).parent / "stage_numeric.py")["sha256"],
+-            "repair changed arithmetic module")
+-    return repair_record
++        require(Path(record["path"]).resolve() == driver.parent / name,
++                "driver module is outside its registered source directory")
++    require(literal_equal(records["collect_once.py"], protocol["root_driver"]) and
++            literal_equal(collection["root_driver"], protocol["root_driver"]),
++            "actual collection driver changed after protocol registration")
++    require(type(collection["case_receipts"]) is list and len(collection["case_receipts"]) == 18 and
++            type(collection["runs"]) is list and len(collection["runs"]) == 18,
++            "all eighteen original durable case receipts are required")
++    for ordinal, (row, case_record) in enumerate(zip(collection["runs"], collection["case_receipts"])):
++        case = read_artifact(case_record)
++        keys(case, ["schema_version", "cohort_id", "case_index", "original_exit_code", "launch_reserved",
++                    "process_started", "binary", "original_process_exit_receipt", "raw_output_exclusive_create_contract",
++                    "source_inputs_unchanged", "launch_error", "row", "retry_or_resume_permitted"], "durable case terminal")
++        require(type(case["schema_version"]) is int and case["schema_version"] == 1 and
++                type(case["case_index"]) is int and case["case_index"] == ordinal and case["cohort_id"] == COHORT_ID and
++                type(case["original_exit_code"]) is int and case["original_exit_code"] == 0 and
++                case["launch_reserved"] is True and case["process_started"] is True and
++                case["source_inputs_unchanged"] is True and case["launch_error"] is None and
++                case["retry_or_resume_permitted"] is False and literal_equal(case["row"], row) and
++                literal_equal(case["binary"], bindings[row["build"]]["binary"]) and
++                case["raw_output_exclusive_create_contract"] == "Unchanged collector142 OpenOptions::create_new(true)",
++                "durable original case outcome/provenance differs")
++        folder = cohort_root / "cases" / f"{ordinal:02d}-{row['run_label']}"
++        require(Path(case_record["path"]).resolve() == folder / "case-terminal.json",
++                "durable case terminal path/index differs")
++        exit_record = case["original_process_exit_receipt"]
++        original_exit = read_artifact(exit_record)
++        keys(original_exit, ["case_index", "pid", "ended_utc", "original_exit_code", "source"], "original actual Popen exit")
++        require(Path(exit_record["path"]).resolve() == folder / "process-exit.json" and
++                type(original_exit["case_index"]) is int and original_exit["case_index"] == ordinal and
++                type(original_exit["original_exit_code"]) is int and original_exit["original_exit_code"] == row["exit_code"] == 0 and
++                original_exit["source"] == "Actual subprocess.Popen.returncode; no status substitution",
++                "actual original process exit receipt differs")
++        integer(original_exit["pid"], minimum=1)
++        process_started = strict_json((folder / "process-started.json").read_bytes())
++        keys(process_started, ["case_index", "pid", "started_utc", "argv", "launch_claim"], "actual Popen start")
++        require(type(process_started["case_index"]) is int and process_started["case_index"] == ordinal and
++                type(process_started["pid"]) is int and process_started["pid"] == original_exit["pid"] and
++                process_started["argv"] == row["argv"], "actual process start identity differs")
++        launch = read_artifact(process_started["launch_claim"])
++        require(Path(process_started["launch_claim"]["path"]).resolve() == folder / "launch-claim.json",
++                "durable launch claim path differs")
++        keys(launch, RUN_FIELDS + ["case_index", "cohort_id", "launch_reserved", "original_exit_code", "binary", "frozen_spec",
++                                  "environment_policy", "retry_or_resume_permitted"], "durable launch reservation")
++        require(type(launch["case_index"]) is int and launch["case_index"] == ordinal and launch["cohort_id"] == COHORT_ID and
++                launch["launch_reserved"] is True and launch["original_exit_code"] is None and launch["attempted"] is False and
++                launch["exit_code"] is None and launch["ended_utc"] is None and launch["error"] is None and
++                launch["environment_policy"] == "Inherited process environment; no driver overrides" and
++                launch["retry_or_resume_permitted"] is False and literal_equal(launch["frozen_spec"], collection["frozen_spec"]) and
++                literal_equal(launch["binary"], bindings[row["build"]]["binary"]),
++                "durable pre-Popen reservation differs")
++        for field in ["build", "mass_kg", "mode", "run_label", "started_utc", "argv", "source_guard_before"]:
++            require(literal_equal(launch[field], row[field]), "launch/index fields differ: " + field)
++        require(all(launch[field] is None for field in ["trace", "stdout", "stderr", "source_guard_after"]),
++                "launch reservation wrongly contains post-process artifacts")
++        require(start <= stamp(row["started_utc"]) <= stamp(process_started["started_utc"]) <=
++                stamp(original_exit["ended_utc"]) <= stamp(row["ended_utc"]) <= end,
++                "durable reserve/start/original-exit/terminal timestamps are inconsistent")
++    terminal = strict_json((cohort_root / "collection-terminal.json").read_bytes())
++    keys(terminal, ["schema_version", "status", "cohort_id", "independence", "index", "frozen_spec", "worlds_launch_reserved",
++                    "worlds_attempted", "worlds_completed", "driver_exit_code", "case_exit_codes_preserved", "retry_or_resume_permitted"],
++         "durable collection terminal")
++    require(type(terminal["schema_version"]) is int and terminal["schema_version"] == 1 and
++            terminal["status"] == collection["status"] and terminal["cohort_id"] == COHORT_ID and terminal["independence"] == INDEPENDENCE and
++            literal_equal(terminal["index"], collection_record) and literal_equal(terminal["frozen_spec"], collection["frozen_spec"]) and
++            type(terminal["driver_exit_code"]) is int and terminal["driver_exit_code"] == 0 and
++            terminal["case_exit_codes_preserved"] is True and terminal["retry_or_resume_permitted"] is False and
++            all(type(terminal[field]) is int and terminal[field] == 18 for field in
++                ["worlds_launch_reserved", "worlds_attempted", "worlds_completed"]),
++            "durable collection terminal outcome/counts differ")
++
++
++def collection_record_path_parent(record):
++    path = Path(record["path"]).resolve()
++    require(path.name == "collection-index.json", "actual durable collection index name differs")
++    return path.parent
+ 
+ 
+ def audit(args):
+@@ -303,28 +412,36 @@
+     expected = check_protocol(protocol, protocol_record)
+     collection_record = record_for(args.collection)
+     require(collection_record["sha256"] == args.collection_sha256, "collection literal SHA differs")
+-    repair_record = check_repair(args, protocol_record, collection_record)
+     collection = strict_json(Path(args.collection).read_bytes())
+-    keys(collection, ["schema_version", "status", "protocol_sha256", "root_driver", "started_utc", "ended_utc",
+-                      "declared_authoritative_coupled_worlds", "declared_completed_outer_steps_per_world", "worlds_attempted",
+-                      "worlds_completed", "source_binary_bindings", "runs", "error"], "collection index")
+-    require(collection["schema_version"] == 1 and collection["status"] == "ACTUAL_COUPLED_18_WORLD_COLLECTION_COMPLETE" and
+-            collection["protocol_sha256"] == args.protocol_sha256 and collection["error"] is None and
+-            collection["declared_authoritative_coupled_worlds"] == collection["worlds_attempted"] == collection["worlds_completed"] == 18 and
+-            collection["declared_completed_outer_steps_per_world"] == 1250, "actual collection incomplete/error/wrong count")
++    keys(collection, ["schema_version", "generation", "cohort_id", "independence", "status", "frozen_spec",
++                      "protocol_sha256", "root_driver", "started_utc", "ended_utc",
++                      "declared_authoritative_coupled_worlds", "declared_completed_outer_steps_per_world",
++                      "worlds_launch_reserved", "worlds_attempted", "worlds_completed", "source_binary_bindings",
++                      "case_receipts", "runs", "error"], "generation-five collection index")
++    require(collection["schema_version"] == 2 and type(collection["schema_version"]) is int and
++            collection["generation"] == 5 and type(collection["generation"]) is int and
++            collection["cohort_id"] == COHORT_ID and collection["independence"] == INDEPENDENCE and
++            collection["status"] == "GENERATION5_18_WORLD_PROCESSES_COMPLETED" and
++            collection["protocol_sha256"] == args.protocol_sha256 and collection["error"] is None,
++            "new collection incomplete/error/identity differs")
++    for field in ["declared_authoritative_coupled_worlds", "worlds_launch_reserved", "worlds_attempted", "worlds_completed"]:
++        require(type(collection[field]) is int and collection[field] == 18, "actual reserved/started/completed count differs")
++    require(type(collection["declared_completed_outer_steps_per_world"]) is int and
++            collection["declared_completed_outer_steps_per_world"] == 1250, "declared outer-step count differs")
+     start, end = stamp(collection["started_utc"]), stamp(collection["ended_utc"])
+     require(start <= end and literal_equal(collection["root_driver"], protocol["root_driver"]), "collection ordering/driver differs")
+     keys(collection["source_binary_bindings"], BUILDS, "build bindings")
+     bindings = {build: check_binding(collection["source_binary_bindings"][build], build, protocol, protocol_record, start) for build in BUILDS}
+     check_candidate_delta(bindings["baseline"], bindings["rejected_inverse_w_plus_g"])
+     baseline_source = bindings["baseline"]["repo_source_sha256"]
+-    for path, digest in baseline_source.items():
++    check_durable_provenance(collection, collection_record, protocol, protocol_record, bindings, start, end)
++    live_runtime = dict(protocol["schema_source_sha256"], **{UNIT_SOURCE: baseline_source[UNIT_SOURCE]})
++    for path, digest in live_runtime.items():
+         require(record_for(REPO / path)["sha256"] == digest, "restored live baseline source changed before audit: " + path)
+     require(type(collection["runs"]) is list and len(collection["runs"]) == 18, "missing matrix entry")
+     previous_end = start
+     for row, expected_cell in zip(collection["runs"], expected):
+-        keys(row, ["build", "mass_kg", "mode", "run_label", "attempted", "exit_code", "started_utc", "ended_utc", "argv",
+-                   "trace", "stdout", "stderr", "source_guard_before", "source_guard_after", "error"], "actual run entry")
++        keys(row, RUN_FIELDS, "actual run entry")
+         require(all(literal_equal(row[name], value) for name, value in expected_cell.items()), "collection matrix/order changed")
+         require(row["attempted"] is True and type(row["exit_code"]) is int and row["exit_code"] == 0 and row["error"] is None, "actual run errored/not attempted")
+         run_start, run_end = stamp(row["started_utc"]), stamp(row["ended_utc"])
+@@ -348,8 +465,9 @@
+     no_issues = all(result["analysis"]["qualification_issues"] == 0 for result in results)
+     return {"status": "PASS_COMPLETE_REPLAY_AND_SOURCE_ORDERED_NORMAL_ZERO_STAGE_QUALIFICATION" if complete_native and complete_reference and no_issues else
+                       "INCOMPLETE_OR_FAILED_NUMERICAL_STAGE_QUALIFICATION", "protocol": protocol_record, "collection": collection_record,
++                      "cohort_id": COHORT_ID, "independence": INDEPENDENCE,
+             "native_worlds_executed_by_reader": 0, "registered_authoritative_coupled_worlds": 18,
+-            "registered_scalar_worlds_separately_audited": 72, "completed_coupled_worlds": 18,
++            "registered_scalar_worlds_separately_audited": 0, "completed_coupled_worlds": 18,
+             "total_completed_coupled_outer_steps": 22500, "numerically_analyzed_ON_outer_steps": 7500,
+             "complete_native_normal_zero_replay": complete_native, "complete_finite_valid_reference": complete_reference,
+             "all_qualification_checks_no_issues": no_issues, "results": results,
+@@ -358,17 +476,15 @@
+             "historical_candidate_admission": "generation3 REJECTED; this measurement does not promote it",
+             "hidden_per_contact_coupling_or_causal_adoption_or_maturity_claim": False,
+             "separate_scalar_qualification_not_inferred_from_this_reader": True,
+-            "post_collection_native_frame_schema_repair": repair_record,
+-            "repaired_reader_existed_before_data": False,
+-            "original_predata_coupled_audit_status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE",
+-            "first_postcollection_handle_repair_status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE",
+-            "numerical_formulas_and_scientific_stage_gates_unchanged": True}
++            "reader_frozen_before_generation5_data": True,
++            "new_cohort_all_supported_internal_motor_rows_preregistered": True,
++            "generation4_palm_only_gate_and_failed_outcome_unchanged": True}
++
+ 
+ 
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+-    for name in ["protocol", "protocol-sha256", "collection", "collection-sha256", "output", "details-directory",
+-                 "repair-manifest", "repair-manifest-sha256"]:
++    for name in ["protocol", "protocol-sha256", "collection", "collection-sha256", "output", "details-directory"]:
+         parser.add_argument("--" + name, required=True)
+     args = parser.parse_args()
+     output = Path(args.output).resolve()
+@@ -380,8 +496,7 @@
+             result = {"status": "FAIL_RETAINED_WITHOUT_CRITERIA_CHANGE", "error_type": type(error).__name__, "error": str(error),
+                       "native_worlds_executed_by_reader": 0, "protocol_sha256_argument": args.protocol_sha256,
+                       "collection_sha256_argument": args.collection_sha256,
+-                      "repair_manifest_sha256_argument": args.repair_manifest_sha256,
+-                      "reader_is_post_collection_schema_repair": True,
++                      "reader_is_predata_generation5_all_motor_reader": True,
+                       "historical_candidate_admission": "generation3 REJECTED, unchanged"}
+             success = False
+         json.dump(result, destination, indent=2, sort_keys=True, allow_nan=False); destination.write("\n")
+--- /dev/null
++++ new-predata-gen5/stage_roles.py
+@@ -0,0 +1,113 @@
++#!/usr/bin/env python3
++"""Generation-five source-derived admission for every supported internal motor.
++
++No runtime numeric entity or handle value is guessed. The typed checkpoint
++binds entities to native handles/links; fixture body types/masses identify the
++palm and two finger slots. Slot names refer to append/link order, not a decoded
++native left/right frame. Native per-object payloads remain source-bound opaque
++bytes, with the original declared checkpoint exclusions.
++"""
++
++from stage_numeric import ONE, exact
++from stage_schema import (f64_bits, literal_equal, native_joint_handle_words,
++                          require)
++
++ROLES = ("palm", "finger_slot_0", "finger_slot_1")
++MODEL = {"palm": "ForceBased", "finger_slot_0": "AccelerationBased",
++         "finger_slot_1": "AccelerationBased"}
++
++
++class Roles:
++    def __init__(self):
++        self.frozen_identity = None
++        self.by_handle = None
++
++    def admit_checkpoint(self, checkpoint, entities):
++        """Freeze identities from source roles once, require them on every step."""
++        require(len(entities) == 6, "fixed six-entity role coverage differs")
++        # parse_ecs already enforces the source's sorted fixed/dynamic/tag layout.
++        children = [entity for entity in entities if entity["joint_tag"] == 2]
++        require(len(children) == 3 and all(entity["body"][0] == 0 for entity in children),
++                "all three prismatic children must remain dynamic")
++        palms = [entity for entity in children if entity["body"][1] == f64_bits(1)]
++        fingers = [entity for entity in children if entity["body"][1] == f64_bits(.2)]
++        require(len(palms) == 1 and len(fingers) == 2,
++                "fixture child masses do not uniquely identify palm and finger pair")
++        bindings = checkpoint["bindings"]
++        require(len(bindings) == 3, "all three native bindings are required")
++        by_entity = {binding["entity_bits"]: binding for binding in bindings}
++        require(len(by_entity) == 3 and set(by_entity) == {entity["entity_bits"] for entity in children},
++                "binding entities differ from all three prismatic children")
++        require(len({tuple(binding["joint_handle_words"]) for binding in bindings}) == 3,
++                "native motor handle aliases")
++        require(len({tuple(binding["multibody_handle_words"]) for binding in bindings}) == 1,
++                "fixture child bindings do not share the sole multibody")
++        palm = by_entity[palms[0]["entity_bits"]]
++        require(palm["link_index"] == 1, "fixed-base palm must be first appended child link")
++        finger_bindings = sorted((by_entity[entity["entity_bits"]] for entity in fingers),
++                                 key=lambda binding: binding["link_index"])
++        require([binding["link_index"] for binding in finger_bindings] == [2, 3],
++                "finger pair append/link coverage must be exactly two and three")
++        ordered = [palm] + finger_bindings
++        identity = {role: dict(binding, joint_handle_words=list(binding["joint_handle_words"]),
++                               multibody_handle_words=list(binding["multibody_handle_words"]))
++                    for role, binding in zip(ROLES, ordered)}
++        if self.frozen_identity is None:
++            self.frozen_identity = identity
++            self.by_handle = {tuple(binding["joint_handle_words"]): role
++                              for role, binding in identity.items()}
++        else:
++            require(literal_equal(self.frozen_identity, identity),
++                    "source-role native/entity identity changed during collection")
++        return identity
++
++    def admit_row(self, row, vector_length):
++        require(self.by_handle is not None, "row observed before checkpoint role admission")
++        handle = native_joint_handle_words(row["joint_handle"])
++        require(handle in self.by_handle, "unexpected supported native internal motor handle")
++        role = self.by_handle[handle]
++        binding = self.frozen_identity[role]
++        require(row["link_id"] == binding["link_index"], "native row/binding link differs")
++        require(row["axis"] == "LinX" and row["gain_model"] == MODEL[role],
++                "native joint-frame axis or source-derived gain model differs: " + role)
++        require(vector_length == row["ndofs2"] == 3 and row["solver_velocity_offset"] == 0,
++                "sole fixed-base gripper requires the full three-coordinate generic velocity block")
++        coordinate = binding["link_index"] - 1
++        require(row["jacobian_words"] == [ONE if index == coordinate else 0 for index in range(3)],
++                "unit motor stored J does not match link assembly coordinate: " + role)
++        require(row["rhs_word"] == row["rhs_without_bias_word"],
++                "internal Motor(0) cached RHS must equal its source bias-free RHS")
++        # Accumulator is always finite and feasible, including signed zero caps.
++        from stage_numeric import bound_compare
++        require(bound_compare(row["impulse_bound_words"][0], row["impulse_word"]) <= 0 and
++                bound_compare(row["impulse_word"], row["impulse_bound_words"][1]) <= 0,
++                "stored native motor accumulator is outside registered bounds")
++        require(exact(row["impulse_word"]) == 0 if role != "palm" else True,
++                "zero-authority finger accumulated a nonzero impulse")
++        return role
++
++    def admit_aggregate(self, rows, vector_length):
++        require((vector_length, len(rows)) in [(0, 0), (3, 3)],
++                "initialized island must expose zero rows or every one of the three motors")
++        if not rows:
++            return []
++        observed = [self.admit_row(row, vector_length) for row in rows]
++        require(set(observed) == set(ROLES) and len(observed) == 3,
++                "aggregate role coverage duplicated or missing")
++        # Builder traversal follows actual active-island ordering. Each finger
++        # reserves motor then limit; palm reserves motor only. No impulse joints
++        # means all preceding ordinary/generic-two-body joint vectors are empty.
++        constraint = 0
++        for row, role in zip(rows, observed):
++            require(row["constraint_index"] == constraint and row["j_id2"] == 6 * constraint,
++                    "motor/limit builder constraint or J-buffer reservation differs")
++            constraint += 1 if role == "palm" else 2
++        return observed
++
++    def role(self, row):
++        return self.by_handle[native_joint_handle_words(row["joint_handle"])]
++
++    def summary(self):
++        return {"identities": self.frozen_identity,
++                "labels": "palm and two native append-order finger slots; anatomical left/right frames are not decoded",
++                "zero_authority_roles": list(ROLES[1:])}

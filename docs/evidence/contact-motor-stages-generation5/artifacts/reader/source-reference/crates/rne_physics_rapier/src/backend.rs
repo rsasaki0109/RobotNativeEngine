@@ -1,0 +1,5177 @@
+//! Rapier backend implementation.
+
+#[cfg(feature = "motor-stage-diagnostics")]
+#[path = "motor_stages.rs"]
+mod motor_stages;
+#[cfg(feature = "motor-stage-diagnostics")]
+pub use motor_stages::{
+    MotorStageCheckpointError, MotorStageIntegrationParameters, MotorStageJointBinding,
+    MotorStageNativeCheckpoint, MotorStageNativeRecord, MotorStageNativeRecordKind,
+};
+
+use crate::convert::{
+    body_type_to_rapier, isometry_to_transform, quat_to_rapier, shape_to_shared,
+    transform_to_isometry, vec3_from_point, vec3_from_rapier, vec3_to_point, vec3_to_rapier,
+};
+use rapier3d::na::{Matrix3, Translation3, Unit, UnitQuaternion, Vector3};
+#[cfg(feature = "position-motor-diagnostics")]
+use rapier3d::pipeline::MultibodyMotorImpulseValue;
+use rapier3d::pipeline::{PhysicsPipeline, QueryPipeline};
+use rapier3d::prelude::*;
+use rne_core::SimDuration;
+use rne_ecs::Parent;
+use rne_ecs::{Entity, World};
+use rne_math::Transform3 as MathTransform3;
+use rne_math::Vec3;
+use rne_physics::RevoluteJointArmature;
+use rne_physics::{
+    Collider, CommandedKinematicPose, CompoundCollider, ContactEvent, ContactPointSample,
+    ConvexCollider, ExternalBodyWrench, FixedJointDesc, GravityScale, JointActuation,
+    JointEffortMeasurement, JointMotor, JointMotorGainModel, JointPassiveDynamics, JointState,
+    MultibodyLink, PhysicsBackend, PhysicsBackendManifest, PhysicsBackendRepeatability,
+    PhysicsCapability, PhysicsError, PhysicsOwnedPose, PhysicsWorldDesc, PhysicsWorldId,
+    PrismaticJointDesc, RaycastHit, RaycastQuery, RevoluteJointDesc, RigidBody, RigidBodyInertia,
+    RigidBodyType,
+};
+#[cfg(feature = "position-motor-diagnostics")]
+use rne_physics::{JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval};
+use rne_world::{world_transform_of, Transform3};
+use std::collections::HashMap;
+
+const CAPABILITIES: &[PhysicsCapability] = &[
+    PhysicsCapability::RigidBody,
+    PhysicsCapability::Articulation,
+    PhysicsCapability::DeterministicStep,
+    PhysicsCapability::ContactForce,
+    PhysicsCapability::RaycastBatch,
+    PhysicsCapability::KinematicBody,
+    PhysicsCapability::JointEffortMeasurement,
+    PhysicsCapability::ExternalBodyWrench,
+    PhysicsCapability::ContactPointKinematics,
+];
+
+/// Rapier-backed physics simulation.
+pub struct RapierBackend {
+    worlds: HashMap<PhysicsWorldId, RapierWorldState>,
+    next_world_id: u32,
+}
+
+impl std::fmt::Debug for RapierBackend {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // `RapierWorldState` holds opaque Rapier pipeline/solver state that
+        // does not implement `Debug`, so only the world count is reported.
+        f.debug_struct("RapierBackend")
+            .field("world_count", &self.worlds.len())
+            .field("next_world_id", &self.next_world_id)
+            .finish_non_exhaustive()
+    }
+}
+
+struct RapierWorldState {
+    gravity: Vector3<f32>,
+    integration_parameters: IntegrationParameters,
+    physics_pipeline: PhysicsPipeline,
+    island_manager: IslandManager,
+    broad_phase: BroadPhaseMultiSap,
+    narrow_phase: NarrowPhase,
+    bodies: RigidBodySet,
+    colliders: ColliderSet,
+    impulse_joints: ImpulseJointSet,
+    multibody_joints: MultibodyJointSet,
+    ccd_solver: CCDSolver,
+    query_pipeline: QueryPipeline,
+    entity_to_body: HashMap<Entity, RigidBodyHandle>,
+    body_to_entity: HashMap<RigidBodyHandle, Entity>,
+    entity_to_collider: HashMap<Entity, ColliderHandle>,
+    collider_to_entity: HashMap<ColliderHandle, Entity>,
+    entity_to_joint: HashMap<Entity, ImpulseJointHandle>,
+    entity_to_multibody_joint: HashMap<Entity, MultibodyJointHandle>,
+    /// Welds on articulated links: a [`FixedJointDesc`] on an entity whose own
+    /// articulation joint is revolute or prismatic becomes an extra impulse joint,
+    /// closing a loop, while the articulation joint keeps its coordinate.
+    entity_to_attachment: HashMap<Entity, ImpulseJointHandle>,
+    contacts: Vec<ContactEvent>,
+    contact_points: Vec<ContactPointSample>,
+    /// Bodies carrying a one-step disturbance force, cleared after the next step.
+    impulse_forced: Vec<RigidBodyHandle>,
+    /// Native force/torque increments accepted for the upcoming step.
+    pending_joint_efforts: HashMap<Entity, JointEffortMeasurement>,
+    /// Native force/torque increments retained from the completed step.
+    completed_joint_efforts: HashMap<Entity, JointEffortMeasurement>,
+    #[cfg(feature = "position-motor-diagnostics")]
+    position_motor_diagnostics_enabled: bool,
+    #[cfg(feature = "position-motor-diagnostics")]
+    position_motor_diagnostics_world_id: PhysicsWorldId,
+    #[cfg(feature = "position-motor-diagnostics")]
+    published_position_motor_diagnostics: Vec<Entity>,
+    #[cfg(feature = "position-motor-diagnostics")]
+    pending_position_motor_diagnostics: Vec<PositionMotorDiagnosticTarget>,
+    #[cfg(feature = "position-motor-diagnostics")]
+    completed_position_motor_diagnostics: HashMap<Entity, JointPositionMotorDiagnostics>,
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+#[derive(Clone, Copy, Debug)]
+struct PositionMotorDiagnosticTarget {
+    entity: Entity,
+    joint_handle: MultibodyJointHandle,
+    link_id: usize,
+    axis: JointAxis,
+    revolute: bool,
+    effort_ceiling: Option<f64>,
+}
+
+impl RapierBackend {
+    /// Creates a new Rapier backend with default capabilities.
+    pub fn new() -> Self {
+        Self {
+            worlds: HashMap::new(),
+            next_world_id: 0,
+        }
+    }
+
+    /// Returns the versioned conformance manifest for this backend.
+    pub fn manifest() -> PhysicsBackendManifest {
+        PhysicsBackendManifest::new(
+            "rapier",
+            env!("CARGO_PKG_VERSION"),
+            "rapier3d",
+            "0.22",
+            CAPABILITIES.iter().copied(),
+            PhysicsBackendRepeatability::SameRuntimeExact,
+        )
+        .expect("the built-in Rapier backend manifest is valid")
+    }
+
+    fn world_mut(&mut self, id: PhysicsWorldId) -> Result<&mut RapierWorldState, PhysicsError> {
+        self.worlds.get_mut(&id).ok_or(PhysicsError::WorldNotFound)
+    }
+
+    /// Applies a velocity-equivalent disturbance to an entity's rigid body over the
+    /// next physics step.
+    ///
+    /// Direct velocity writes do not survive on articulated links: multibody
+    /// velocities are recomputed from generalized joint state, and `sync_from_ecs`
+    /// overwrites plain-body velocities from the ECS every step. A force of
+    /// `mass * delta_v / dt` held for exactly one step instead enters the solver
+    /// itself, shoving plain dynamic bodies and multibody links alike — the
+    /// deterministic disturbance primitive. The force is cleared automatically after
+    /// the next [`PhysicsBackend::step`]. Returns false when the entity has no body
+    /// in this world or the delta is non-finite.
+    pub fn apply_velocity_impulse(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        entity: Entity,
+        delta_v_m_s: Vec3,
+    ) -> bool {
+        if !delta_v_m_s.x.is_finite() || !delta_v_m_s.y.is_finite() || !delta_v_m_s.z.is_finite() {
+            return false;
+        }
+        let Ok(state) = self.world_mut(physics_world) else {
+            return false;
+        };
+        let dt = state.integration_parameters.dt.max(f32::EPSILON);
+        let Some(body_handle) = state.entity_to_body.get(&entity).copied() else {
+            return false;
+        };
+        let Some(body) = state.bodies.get_mut(body_handle) else {
+            return false;
+        };
+        let force = vec3_to_rapier(delta_v_m_s) * (body.mass() / dt);
+        body.add_force(force, true);
+        state.impulse_forced.push(body_handle);
+        true
+    }
+
+    /// Returns signed manifold separations, including pairs with zero impulse.
+    ///
+    /// Values describe the latest solver contact-generation pose, not a fresh
+    /// post-integration distance query. Contact filtering remains authoritative.
+    /// This optional Rapier query does not alter the public backend trait.
+    pub fn contact_separations(
+        &self,
+        id: PhysicsWorldId,
+    ) -> Result<Vec<rne_physics::ContactSeparationSample>, PhysicsError> {
+        let state = self.world(id)?;
+        let mut samples = Vec::new();
+        for pair in state.narrow_phase.contact_pairs() {
+            let (Some(&a), Some(&b)) = (
+                state.collider_to_entity.get(&pair.collider1),
+                state.collider_to_entity.get(&pair.collider2),
+            ) else {
+                continue;
+            };
+            let Some(distance) = pair
+                .manifolds
+                .iter()
+                .flat_map(|m| m.points.iter())
+                .map(|point| point.dist)
+                .reduce(f32::min)
+            else {
+                continue;
+            };
+            samples.push(rne_physics::ContactSeparationSample {
+                entity_a: if a.index() <= b.index() { a } else { b },
+                entity_b: if a.index() <= b.index() { b } else { a },
+                min_separation_m: f64::from(distance),
+            });
+        }
+        samples.sort_by_key(|s| (s.entity_a.index(), s.entity_b.index()));
+        Ok(samples)
+    }
+
+    fn world(&self, id: PhysicsWorldId) -> Result<&RapierWorldState, PhysicsError> {
+        self.worlds.get(&id).ok_or(PhysicsError::WorldNotFound)
+    }
+
+    /// Updates the Coulomb friction of an entity's already-created collider.
+    ///
+    /// Collider materials are otherwise applied only at creation, so runtime
+    /// friction changes (e.g. a foot-friction scan) must reach the live
+    /// collider. Returns false when the entity has no collider in this world.
+    pub fn set_collider_friction(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        entity: Entity,
+        friction: f32,
+    ) -> bool {
+        let Ok(state) = self.world_mut(physics_world) else {
+            return false;
+        };
+        let Some(handle) = state.entity_to_collider.get(&entity).copied() else {
+            return false;
+        };
+        let Some(collider) = state.colliders.get_mut(handle) else {
+            return false;
+        };
+        collider.set_friction(friction);
+        true
+    }
+
+    /// Reads the generalized position of an entity's single-DoF multibody joint:
+    /// radians for revolute joints, meters for prismatic joints.
+    ///
+    /// The angle is recovered from the joint's internal rotation state, so it is
+    /// exact under the reduced-coordinate integrator (no drift against the motor's
+    /// `target_position` convention) but wraps to `(-PI, PI]`. Returns `None` for
+    /// entities without a multibody joint in this world and for joints with more
+    /// or fewer than one degree of freedom.
+    pub fn multibody_joint_position(
+        &self,
+        physics_world: PhysicsWorldId,
+        entity: Entity,
+    ) -> Option<f64> {
+        let state = self.worlds.get(&physics_world)?;
+        multibody_joint_coordinate(state, entity).map(|(position, _)| position)
+    }
+
+    /// Reads the generalized velocity of an entity's single-DoF multibody joint:
+    /// rad/s for revolute joints, m/s for prismatic joints.
+    ///
+    /// Returns `None` under the same conditions as
+    /// [`Self::multibody_joint_position`].
+    pub fn multibody_joint_velocity(
+        &self,
+        physics_world: PhysicsWorldId,
+        entity: Entity,
+    ) -> Option<f64> {
+        let state = self.worlds.get(&physics_world)?;
+        multibody_joint_coordinate(state, entity).map(|(_, velocity)| velocity)
+    }
+}
+
+fn multibody_joint_coordinate(state: &RapierWorldState, entity: Entity) -> Option<(f64, f64)> {
+    let handle = state.entity_to_multibody_joint.get(&entity)?;
+    let (multibody, link_id) = state.multibody_joints.get(*handle)?;
+    let link = multibody.link(link_id)?;
+    let joint = &link.joint;
+    if joint.ndofs() != 1 {
+        return None;
+    }
+    let data = &joint.data;
+    // body_to_parent = local_frame1 * translation(coords) * joint_rot * local_frame2^-1,
+    // so conjugating by the local frames leaves exactly the joint coordinate.
+    let rel = data.local_frame1.inverse() * joint.body_to_parent() * data.local_frame2;
+    let free_bits = (!data.locked_axes.bits()) & 0b11_1111;
+    let dof = free_bits.trailing_zeros() as usize;
+    let position = joint_coordinate_value(&rel, dof);
+    Some((position, multibody.joint_velocity(link)[0] as f64))
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn position_motor_diagnostic_target(
+    world: &World,
+    state: &RapierWorldState,
+    entity: Entity,
+) -> Option<PositionMotorDiagnosticTarget> {
+    if world.get::<MultibodyLink>(entity).is_none()
+        || world.get::<JointMotorGainModel>(entity) != Some(&JointMotorGainModel::ForceBased)
+    {
+        return None;
+    }
+    let command = world.get::<JointActuation>(entity)?;
+    let revolute = match command {
+        JointActuation::RevolutePosition { .. } => true,
+        JointActuation::PrismaticPosition { .. } => false,
+        _ => return None,
+    };
+    if !command.has_valid_values() {
+        return None;
+    }
+    let joint_handle = *state.entity_to_multibody_joint.get(&entity)?;
+    let (multibody, link_id) = state.multibody_joints.get(joint_handle)?;
+    let link = multibody.link(link_id)?;
+    if link.joint.ndofs() != 1 {
+        return None;
+    }
+    let axis = motor_axis_for_entity(world, entity)?;
+    if revolute != (axis == JointAxis::AngX) {
+        return None;
+    }
+    let motor = &link.joint.data.motors[axis as usize];
+    if motor.model != MotorModel::ForceBased || motor.max_force.is_nan() || motor.max_force < 0.0 {
+        return None;
+    }
+    Some(PositionMotorDiagnosticTarget {
+        entity,
+        joint_handle,
+        link_id,
+        axis,
+        revolute,
+        effort_ceiling: motor
+            .max_force
+            .is_finite()
+            .then(|| f64::from(motor.max_force)),
+    })
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn diagnostic_world_id(diagnostic: &JointPositionMotorDiagnostics) -> u32 {
+    match diagnostic {
+        JointPositionMotorDiagnostics::Revolute { interval, .. }
+        | JointPositionMotorDiagnostics::Prismatic { interval, .. } => interval.physics_world_id,
+    }
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn remove_position_motor_diagnostic_components(world: &mut World, state: &mut RapierWorldState) {
+    for entity in state.published_position_motor_diagnostics.drain(..) {
+        if world
+            .get::<JointPositionMotorDiagnostics>(entity)
+            .is_some_and(|measurement| {
+                diagnostic_world_id(measurement) == state.position_motor_diagnostics_world_id.0
+            })
+        {
+            world
+                .entity_mut(entity)
+                .remove::<JointPositionMotorDiagnostics>();
+        }
+    }
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn sync_position_motor_diagnostic_targets(world: &mut World, state: &mut RapierWorldState) {
+    if !state.position_motor_diagnostics_enabled {
+        return;
+    }
+    state.pending_position_motor_diagnostics = sorted_entities(world)
+        .into_iter()
+        .filter_map(|entity| position_motor_diagnostic_target(world, state, entity))
+        .collect();
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn collect_completed_position_motor_diagnostics(state: &mut RapierWorldState, dt: SimDuration) {
+    if !state.position_motor_diagnostics_enabled {
+        return;
+    }
+    let Some(report) = state.physics_pipeline.completed_multibody_motor_impulses() else {
+        return;
+    };
+    for target in &state.pending_position_motor_diagnostics {
+        let Some(sample) = report.motors.iter().find(|sample| {
+            sample.joint_handle == target.joint_handle
+                && sample.link_id == target.link_id
+                && sample.joint_dof_id == 0
+                && sample.axis == target.axis
+        }) else {
+            continue;
+        };
+        let interval = PositionMotorDiagnosticInterval {
+            physics_world_id: state.position_motor_diagnostics_world_id.0,
+            nominal_step_ticks: dt.ticks(),
+            numerical_outer_interval_s: report.numerical_outer_interval_s,
+            ccd_partition_durations_s: report.ccd_partition_durations_s.clone(),
+            observed_solver_interval_s: sample.observed_solver_interval_s,
+            observed_solver_slice_count: sample.observed_solver_slice_count as u64,
+            full_step_coverage: sample.full_step_coverage,
+            observed_partition_count: sample.observed_partition_count as u64,
+            finite_positive_bound_eligible_slice_count: sample
+                .finite_positive_bound_eligible_slice_count
+                as u64,
+            finite_positive_bound_eligible_duration_s: sample
+                .finite_positive_bound_eligible_duration_s,
+            finite_positive_bound_active_slice_count: sample
+                .finite_positive_bound_active_slice_count
+                as u64,
+            finite_positive_bound_active_duration_s: sample.finite_positive_bound_active_duration_s,
+        };
+        let measurement = match &sample.impulse {
+            MultibodyMotorImpulseValue::Revolute {
+                applied_impulse_nm_s,
+                effective_effort_ceiling_nm,
+                ..
+            } if target.revolute && *effective_effort_ceiling_nm == target.effort_ceiling => {
+                let mean = *applied_impulse_nm_s / interval.observed_solver_interval_s;
+                JointPositionMotorDiagnostics::Revolute {
+                    applied_motor_impulse_nm_s: *applied_impulse_nm_s,
+                    mean_observed_motor_effort_nm: mean,
+                    mean_completed_motor_effort_nm: interval.full_step_coverage.then_some(mean),
+                    effective_effort_ceiling_nm: *effective_effort_ceiling_nm,
+                    interval,
+                }
+            }
+            MultibodyMotorImpulseValue::Prismatic {
+                applied_impulse_n_s,
+                effective_force_ceiling_n,
+                ..
+            } if !target.revolute && *effective_force_ceiling_n == target.effort_ceiling => {
+                let mean = *applied_impulse_n_s / interval.observed_solver_interval_s;
+                JointPositionMotorDiagnostics::Prismatic {
+                    applied_motor_impulse_n_s: *applied_impulse_n_s,
+                    mean_observed_motor_force_n: mean,
+                    mean_completed_motor_force_n: interval.full_step_coverage.then_some(mean),
+                    effective_force_ceiling_n: *effective_force_ceiling_n,
+                    interval,
+                }
+            }
+            _ => continue,
+        };
+        if measurement.has_valid_values() {
+            state
+                .completed_position_motor_diagnostics
+                .insert(target.entity, measurement);
+        }
+    }
+}
+
+#[cfg(feature = "position-motor-diagnostics")]
+fn sync_position_motor_diagnostics_to_ecs(world: &mut World, state: &mut RapierWorldState) {
+    let mut entities = state.published_position_motor_diagnostics.clone();
+    entities.extend(state.completed_position_motor_diagnostics.keys().copied());
+    entities.sort_unstable();
+    entities.dedup();
+    let mut published = Vec::new();
+    for entity in entities {
+        let eligible = state.position_motor_diagnostics_enabled
+            && position_motor_diagnostic_target(world, state, entity).is_some();
+        if !eligible {
+            state.completed_position_motor_diagnostics.remove(&entity);
+            state
+                .pending_position_motor_diagnostics
+                .retain(|target| target.entity != entity);
+        }
+        if let Some(measurement) = eligible
+            .then(|| state.completed_position_motor_diagnostics.get(&entity))
+            .flatten()
+        {
+            world.entity_mut(entity).insert(measurement.clone());
+            published.push(entity);
+        } else if world
+            .get::<JointPositionMotorDiagnostics>(entity)
+            .is_some_and(|measurement| {
+                diagnostic_world_id(measurement) == state.position_motor_diagnostics_world_id.0
+            })
+        {
+            world
+                .entity_mut(entity)
+                .remove::<JointPositionMotorDiagnostics>();
+        }
+    }
+    state.published_position_motor_diagnostics = published;
+}
+
+fn joint_coordinate_value(rel: &Isometry<f32>, dof: usize) -> f64 {
+    if dof < 3 {
+        rel.translation.vector[dof] as f64
+    } else {
+        let quat = rel.rotation.quaternion();
+        let mut angle = 2.0 * (quat.imag()[dof - 3] as f64).atan2(quat.w as f64);
+        if angle > std::f64::consts::PI {
+            angle -= 2.0 * std::f64::consts::PI;
+        } else if angle < -std::f64::consts::PI {
+            angle += 2.0 * std::f64::consts::PI;
+        }
+        angle
+    }
+}
+
+impl Default for RapierBackend {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl PhysicsBackend for RapierBackend {
+    type BodyHandle = RigidBodyHandle;
+    type ColliderHandle = ColliderHandle;
+
+    fn create_world(&mut self, desc: PhysicsWorldDesc) -> Result<PhysicsWorldId, PhysicsError> {
+        let id = PhysicsWorldId(self.next_world_id);
+        self.next_world_id += 1;
+
+        self.worlds.insert(
+            id,
+            RapierWorldState {
+                gravity: vec3_to_rapier(desc.gravity_m_s2),
+                // A higher solver-iteration count (set per world) keeps stiff articulated
+                // chains — e.g. the lift robot's multi-link arm — stable instead of swinging
+                // chaotically; `0` keeps Rapier's default so existing robots are unchanged.
+                integration_parameters: match std::num::NonZeroUsize::new(desc.solver_iterations) {
+                    Some(iterations) => IntegrationParameters {
+                        num_solver_iterations: iterations,
+                        ..IntegrationParameters::default()
+                    },
+                    None => IntegrationParameters::default(),
+                },
+                physics_pipeline: PhysicsPipeline::new(),
+                island_manager: IslandManager::new(),
+                broad_phase: BroadPhaseMultiSap::new(),
+                narrow_phase: NarrowPhase::new(),
+                bodies: RigidBodySet::new(),
+                colliders: ColliderSet::new(),
+                impulse_joints: ImpulseJointSet::new(),
+                multibody_joints: MultibodyJointSet::new(),
+                ccd_solver: CCDSolver::new(),
+                query_pipeline: QueryPipeline::new(),
+                entity_to_body: HashMap::new(),
+                body_to_entity: HashMap::new(),
+                entity_to_collider: HashMap::new(),
+                collider_to_entity: HashMap::new(),
+                entity_to_joint: HashMap::new(),
+                entity_to_multibody_joint: HashMap::new(),
+                entity_to_attachment: HashMap::new(),
+                contacts: Vec::new(),
+                contact_points: Vec::new(),
+                impulse_forced: Vec::new(),
+                pending_joint_efforts: HashMap::new(),
+                completed_joint_efforts: HashMap::new(),
+                #[cfg(feature = "position-motor-diagnostics")]
+                position_motor_diagnostics_enabled: false,
+                #[cfg(feature = "position-motor-diagnostics")]
+                position_motor_diagnostics_world_id: id,
+                #[cfg(feature = "position-motor-diagnostics")]
+                published_position_motor_diagnostics: Vec::new(),
+                #[cfg(feature = "position-motor-diagnostics")]
+                pending_position_motor_diagnostics: Vec::new(),
+                #[cfg(feature = "position-motor-diagnostics")]
+                completed_position_motor_diagnostics: HashMap::new(),
+            },
+        );
+
+        Ok(id)
+    }
+
+    fn sync_from_ecs(
+        &mut self,
+        world: &mut World,
+        physics_world: PhysicsWorldId,
+    ) -> Result<(), PhysicsError> {
+        let state = self.world_mut(physics_world)?;
+        #[cfg(feature = "position-motor-diagnostics")]
+        if state.position_motor_diagnostics_enabled {
+            state.pending_position_motor_diagnostics.clear();
+            state.completed_position_motor_diagnostics.clear();
+            remove_position_motor_diagnostic_components(world, state);
+        }
+
+        // Iterate in a stable entity order so Rapier handle assignment and the
+        // resulting solver order are deterministic regardless of ECS archetype
+        // layout (see AGENTS.md determinism requirements).
+        for entity in sorted_entities(world) {
+            let transform = world_transform_of(world, entity);
+            let Some(rigid_body) = world.get::<RigidBody>(entity) else {
+                continue;
+            };
+            let collider = world.get::<Collider>(entity);
+            if world.get::<CompoundCollider>(entity).is_some_and(|parts| {
+                collider.is_none()
+                    || !parts.is_valid()
+                    || parts.parts.iter().any(|part| {
+                        part.local_offset
+                            .translation
+                            .to_array()
+                            .into_iter()
+                            .any(|v| !(v as f32).is_finite())
+                    })
+            }) {
+                return Err(PhysicsError::InitializationFailed);
+            }
+            if let Some(convex) = world.get::<ConvexCollider>(entity) {
+                if collider.is_none()
+                    || world.get::<CompoundCollider>(entity).is_some()
+                    || (!state.entity_to_collider.contains_key(&entity)
+                        && convex_shape(convex).is_none())
+                {
+                    return Err(PhysicsError::InitializationFailed);
+                }
+            }
+            if collider.is_none() && world.get::<MultibodyLink>(entity).is_none() {
+                continue;
+            }
+
+            let isometry = transform_to_isometry(&transform);
+
+            if let Some(body_handle) = state.entity_to_body.get(&entity).copied() {
+                // A marked reduced-coordinate member's pose and velocity are
+                // owned by its multibody assembly (root pose + joint state).
+                // Writing the stale ECS pose back into it after a root re-pin
+                // would desynchronize the chain, so only unmarked bodies (the
+                // root, impulse links, and every legacy multibody robot) are
+                // driven from ECS.
+                let physics_owned = world.get::<PhysicsOwnedPose>(entity).is_some();
+                if let Some(body) = state.bodies.get_mut(body_handle) {
+                    if !physics_owned {
+                        if rigid_body.body_type == RigidBodyType::Kinematic
+                            && world.get::<CommandedKinematicPose>(entity).is_some()
+                        {
+                            // Opt-in: command the body toward the pose so the
+                            // solver knows its velocity and can carry what
+                            // stands on it. See `CommandedKinematicPose` for why
+                            // teleporting stays the default.
+                            body.set_next_kinematic_position(isometry);
+                        } else {
+                            body.set_position(isometry, true);
+                        }
+                        if rigid_body.body_type != RigidBodyType::Fixed {
+                            body.set_linvel(vec3_to_rapier(rigid_body.linear_velocity_m_s), true);
+                            body.set_angvel(
+                                vec3_to_rapier(rigid_body.angular_velocity_rad_s),
+                                true,
+                            );
+                        }
+                    }
+                }
+                sync_entity_collider(world, state, entity, body_handle, collider)?;
+                continue;
+            }
+
+            let mut builder =
+                RigidBodyBuilder::new(body_type_to_rapier(rigid_body.body_type)).position(isometry);
+            if let Some(scale) = world.get::<GravityScale>(entity) {
+                builder = builder.gravity_scale(scale.0 as f32);
+            }
+            if let Some(inertia) = world.get::<RigidBodyInertia>(entity).copied() {
+                if !inertia.is_valid()
+                    || !rigid_body.mass_kg.is_finite()
+                    || rigid_body.mass_kg <= 0.0
+                {
+                    return Err(PhysicsError::InvalidInertia {
+                        entity_index: entity.index(),
+                        reason: "non-positive mass or physically invalid tensor",
+                    });
+                }
+                builder = builder.additional_mass_properties(MassProperties::with_inertia_matrix(
+                    vec3_to_point(inertia.center_of_mass_local_m),
+                    rigid_body.mass_kg as f32,
+                    Matrix3::new(
+                        inertia.ixx_kg_m2 as f32,
+                        inertia.ixy_kg_m2 as f32,
+                        inertia.ixz_kg_m2 as f32,
+                        inertia.ixy_kg_m2 as f32,
+                        inertia.iyy_kg_m2 as f32,
+                        inertia.iyz_kg_m2 as f32,
+                        inertia.ixz_kg_m2 as f32,
+                        inertia.iyz_kg_m2 as f32,
+                        inertia.izz_kg_m2 as f32,
+                    ),
+                ));
+            } else {
+                builder = builder.additional_mass(rigid_body.mass_kg as f32);
+            }
+
+            if rigid_body.body_type == RigidBodyType::Dynamic {
+                builder = builder
+                    .linvel(vec3_to_rapier(rigid_body.linear_velocity_m_s))
+                    .angvel(vec3_to_rapier(rigid_body.angular_velocity_rad_s));
+            }
+
+            let body_handle = state.bodies.insert(builder.build());
+            state.entity_to_body.insert(entity, body_handle);
+            state.body_to_entity.insert(body_handle, entity);
+            if let Some(collider) = collider {
+                let collider_handle = state.colliders.insert_with_parent(
+                    collider_builder(world, entity, collider)?.build(),
+                    body_handle,
+                    &mut state.bodies,
+                );
+                state.entity_to_collider.insert(entity, collider_handle);
+                state.collider_to_entity.insert(collider_handle, entity);
+            }
+        }
+
+        sync_joints_from_ecs(world, state)?;
+        apply_joint_motors(world, state)?;
+        #[cfg(feature = "position-motor-diagnostics")]
+        sync_position_motor_diagnostic_targets(world, state);
+        state.query_pipeline.update(&state.colliders);
+
+        Ok(())
+    }
+
+    fn step(&mut self, physics_world: PhysicsWorldId, dt: SimDuration) -> Result<(), PhysicsError> {
+        let state = self.world_mut(physics_world)?;
+        state.integration_parameters.dt = dt.as_seconds().value() as f32;
+        state.contacts.clear();
+        state.contact_points.clear();
+        #[cfg(feature = "position-motor-diagnostics")]
+        state.completed_position_motor_diagnostics.clear();
+
+        state.physics_pipeline.step(
+            &state.gravity,
+            &state.integration_parameters,
+            &mut state.island_manager,
+            &mut state.broad_phase,
+            &mut state.narrow_phase,
+            &mut state.bodies,
+            &mut state.colliders,
+            &mut state.impulse_joints,
+            &mut state.multibody_joints,
+            &mut state.ccd_solver,
+            Some(&mut state.query_pipeline),
+            &(),
+            &(),
+        );
+
+        state.completed_joint_efforts = std::mem::take(&mut state.pending_joint_efforts);
+        #[cfg(feature = "position-motor-diagnostics")]
+        collect_completed_position_motor_diagnostics(state, dt);
+
+        // One-step disturbance wrenches have done their work; clear both linear
+        // and angular parts so direct joint effort and revolute Coulomb friction
+        // do not accumulate in Rapier's persistent user-force storage.
+        for body_handle in state.impulse_forced.drain(..) {
+            if let Some(body) = state.bodies.get_mut(body_handle) {
+                body.reset_forces(true);
+                body.reset_torques(true);
+            }
+        }
+
+        state.query_pipeline.update(&state.colliders);
+
+        for contact_pair in state.narrow_phase.contact_pairs() {
+            if !contact_pair.has_any_active_contact {
+                continue;
+            }
+            let Some(entity_a) = state
+                .collider_to_entity
+                .get(&contact_pair.collider1)
+                .copied()
+            else {
+                continue;
+            };
+            let Some(entity_b) = state
+                .collider_to_entity
+                .get(&contact_pair.collider2)
+                .copied()
+            else {
+                continue;
+            };
+            let normal = contact_pair
+                .manifolds
+                .first()
+                .map(|manifold| vec3_from_rapier(manifold.local_n1))
+                .unwrap_or(Vec3::Y);
+            let impulse = contact_pair.total_impulse_magnitude();
+
+            let Some(collider_a) = state.colliders.get(contact_pair.collider1) else {
+                continue;
+            };
+            let Some(collider_b) = state.colliders.get(contact_pair.collider2) else {
+                continue;
+            };
+            let body_a = collider_a
+                .parent()
+                .and_then(|handle| state.bodies.get(handle));
+            let body_b = collider_b
+                .parent()
+                .and_then(|handle| state.bodies.get(handle));
+            let dt_s = f64::from(state.integration_parameters.dt);
+            for manifold in &contact_pair.manifolds {
+                let native_normal = vec3_from_rapier(manifold.data.normal);
+                // Compound manifold witnesses are in the child shape's frame.
+                let shape_a_position = manifold
+                    .subshape_pos1
+                    .as_ref()
+                    .map_or(*collider_a.position(), |child| {
+                        collider_a.position() * child
+                    });
+                let shape_b_position = manifold
+                    .subshape_pos2
+                    .as_ref()
+                    .map_or(*collider_b.position(), |child| {
+                        collider_b.position() * child
+                    });
+                for point in &manifold.points {
+                    let normal_impulse_n_s = f64::from(point.data.impulse.max(0.0));
+                    if normal_impulse_n_s == 0.0 || dt_s <= 0.0 {
+                        continue;
+                    }
+                    let point_a = shape_a_position * point.local_p1;
+                    let point_b = shape_b_position * point.local_p2;
+                    let point_world = Point::from((point_a.coords + point_b.coords) * 0.5);
+                    let velocity_a = body_a
+                        .map(|body| body.velocity_at_point(&point_world))
+                        .unwrap_or_else(Vector::zeros);
+                    let velocity_b = body_b
+                        .map(|body| body.velocity_at_point(&point_world))
+                        .unwrap_or_else(Vector::zeros);
+                    let canonical = entity_a.index() <= entity_b.index();
+                    state.contact_points.push(ContactPointSample {
+                        entity_a: if canonical { entity_a } else { entity_b },
+                        entity_b: if canonical { entity_b } else { entity_a },
+                        point_world_m: vec3_from_point(point_world),
+                        normal_a_to_b: if canonical {
+                            native_normal
+                        } else {
+                            -native_normal
+                        },
+                        velocity_b_relative_to_a_world_m_s: if canonical {
+                            vec3_from_rapier(velocity_b - velocity_a)
+                        } else {
+                            vec3_from_rapier(velocity_a - velocity_b)
+                        },
+                        normal_force_n: normal_impulse_n_s / dt_s,
+                    });
+                }
+            }
+
+            state.contacts.push(ContactEvent {
+                entity_a,
+                entity_b,
+                normal,
+                impulse,
+            });
+        }
+
+        state.contact_points.sort_by(|left, right| {
+            left.entity_a
+                .index()
+                .cmp(&right.entity_a.index())
+                .then_with(|| left.entity_b.index().cmp(&right.entity_b.index()))
+                .then_with(|| left.point_world_m.x.total_cmp(&right.point_world_m.x))
+                .then_with(|| left.point_world_m.y.total_cmp(&right.point_world_m.y))
+                .then_with(|| left.point_world_m.z.total_cmp(&right.point_world_m.z))
+        });
+
+        for (collider_a, collider_b, intersecting) in state.narrow_phase.intersection_pairs() {
+            if !intersecting {
+                continue;
+            }
+            let Some(entity_a) = state.collider_to_entity.get(&collider_a).copied() else {
+                continue;
+            };
+            let Some(entity_b) = state.collider_to_entity.get(&collider_b).copied() else {
+                continue;
+            };
+            state.contacts.push(ContactEvent {
+                entity_a,
+                entity_b,
+                normal: Vec3::ZERO,
+                impulse: 0.0,
+            });
+        }
+
+        Ok(())
+    }
+
+    fn sync_to_ecs(
+        &mut self,
+        world: &mut World,
+        physics_world: PhysicsWorldId,
+    ) -> Result<(), PhysicsError> {
+        #[cfg(feature = "position-motor-diagnostics")]
+        let state = self.world_mut(physics_world)?;
+        #[cfg(not(feature = "position-motor-diagnostics"))]
+        let state = self.world(physics_world)?;
+
+        // Write back in a stable parent-before-child order (entities are created
+        // root-first, so ascending id keeps a parent's transform fresh before a
+        // child reads it for its local-frame conversion). This avoids the
+        // order-dependent drift that HashMap iteration would introduce.
+        let mut bodies: Vec<(Entity, RigidBodyHandle)> = state
+            .entity_to_body
+            .iter()
+            .map(|(entity, handle)| (*entity, *handle))
+            .collect();
+        bodies.sort_unstable_by_key(|(entity, _)| *entity);
+
+        for (entity, body_handle) in bodies {
+            let Some(body) = state.bodies.get(body_handle) else {
+                continue;
+            };
+            if body.body_type() != rapier3d::prelude::RigidBodyType::Dynamic {
+                continue;
+            }
+
+            let world_tf = isometry_to_transform(body.position());
+            let parent_entity = world.get::<Parent>(entity).map(|parent| parent.0);
+            let local_tf = if let Some(parent_entity) = parent_entity {
+                let parent_world = world_transform_of(world, parent_entity);
+                world_to_local_transform(&parent_world, &world_tf)
+            } else {
+                world_tf
+            };
+            if let Some(mut transform) = world.get_mut::<Transform3>(entity) {
+                *transform = local_tf;
+            }
+            if let Some(mut rigid_body) = world.get_mut::<RigidBody>(entity) {
+                rigid_body.linear_velocity_m_s = vec3_from_rapier(*body.linvel());
+                rigid_body.angular_velocity_rad_s = vec3_from_rapier(*body.angvel());
+            }
+        }
+
+        let mut joint_entities = state
+            .entity_to_multibody_joint
+            .keys()
+            .chain(state.entity_to_joint.keys())
+            .copied()
+            .collect::<Vec<_>>();
+        joint_entities.sort_unstable();
+        joint_entities.dedup();
+        let joint_states = joint_entities
+            .into_iter()
+            .filter_map(|entity| {
+                // A weld on an articulated revolute or prismatic link leaves its
+                // coordinate measurable; only a joint that is fixed itself reports
+                // `Fixed`.
+                if world.get::<FixedJointDesc>(entity).is_some()
+                    && !has_articulated_coordinate(world, entity)
+                {
+                    return Some((entity, JointState::Fixed));
+                }
+                let (position, velocity) = multibody_joint_coordinate(state, entity)?;
+                if world.get::<RevoluteJointDesc>(entity).is_some() {
+                    Some((
+                        entity,
+                        JointState::Revolute {
+                            position_rad: position,
+                            velocity_rad_s: velocity,
+                        },
+                    ))
+                } else if world.get::<PrismaticJointDesc>(entity).is_some() {
+                    Some((
+                        entity,
+                        JointState::Prismatic {
+                            position_m: position,
+                            velocity_m_s: velocity,
+                        },
+                    ))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        for (entity, joint_state) in joint_states {
+            world.entity_mut(entity).insert(joint_state);
+        }
+        let mut measured_entities = state
+            .entity_to_multibody_joint
+            .keys()
+            .chain(state.entity_to_joint.keys())
+            .copied()
+            .collect::<Vec<_>>();
+        measured_entities.sort_unstable();
+        measured_entities.dedup();
+        for entity in measured_entities {
+            if let Some(measurement) = state.completed_joint_efforts.get(&entity).copied() {
+                world.entity_mut(entity).insert(measurement);
+            } else {
+                world.entity_mut(entity).remove::<JointEffortMeasurement>();
+            }
+        }
+        #[cfg(feature = "position-motor-diagnostics")]
+        sync_position_motor_diagnostics_to_ecs(world, state);
+
+        Ok(())
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn configure_position_motor_diagnostics(
+        &mut self,
+        world: &mut World,
+        physics_world: PhysicsWorldId,
+        enabled: bool,
+    ) -> Result<bool, PhysicsError> {
+        let state = self.world_mut(physics_world)?;
+        if state.position_motor_diagnostics_enabled != enabled {
+            state.position_motor_diagnostics_enabled = enabled;
+            state.pending_position_motor_diagnostics.clear();
+            state.completed_position_motor_diagnostics.clear();
+            state
+                .physics_pipeline
+                .set_multibody_motor_impulse_telemetry_enabled(enabled);
+            remove_position_motor_diagnostic_components(world, state);
+        }
+        Ok(true)
+    }
+
+    fn raycast(
+        &self,
+        physics_world: PhysicsWorldId,
+        query: RaycastQuery,
+    ) -> Result<Vec<RaycastHit>, PhysicsError> {
+        let state = self.world(physics_world)?;
+        let origin = vec3_to_point(query.origin_m);
+        let direction = vec3_to_rapier(query.direction);
+        if direction.norm_squared() <= f32::EPSILON {
+            return Ok(Vec::new());
+        }
+
+        let ray = Ray::new(origin, direction.normalize());
+        let filter = QueryFilter::default();
+        let mut intersections = Vec::new();
+        state.query_pipeline.intersections_with_ray(
+            &state.bodies,
+            &state.colliders,
+            &ray,
+            query.max_distance_m as f32,
+            true,
+            filter,
+            |collider_handle, intersection| {
+                if let Some(entity) = state.collider_to_entity.get(&collider_handle).copied() {
+                    intersections.push(RaycastHit {
+                        entity,
+                        point_m: vec3_from_point(ray.point_at(intersection.time_of_impact)),
+                        normal: vec3_from_rapier(intersection.normal),
+                        distance_m: intersection.time_of_impact as f64,
+                    });
+                }
+                true
+            },
+        );
+        intersections.sort_by(|left, right| {
+            left.distance_m
+                .total_cmp(&right.distance_m)
+                .then_with(|| left.entity.index().cmp(&right.entity.index()))
+        });
+        Ok(intersections)
+    }
+
+    fn apply_external_body_wrench(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        wrench: ExternalBodyWrench,
+    ) -> Result<(), PhysicsError> {
+        if !wrench.is_finite() {
+            return Err(PhysicsError::InvalidExternalBodyWrench {
+                entity_index: wrench.entity.index(),
+                reason: "point, force, and torque must be finite",
+            });
+        }
+        let state = self.world_mut(physics_world)?;
+        let body_handle = state.entity_to_body.get(&wrench.entity).copied().ok_or(
+            PhysicsError::InvalidExternalBodyWrench {
+                entity_index: wrench.entity.index(),
+                reason: "entity has no rigid body in this physics world",
+            },
+        )?;
+        let body =
+            state
+                .bodies
+                .get_mut(body_handle)
+                .ok_or(PhysicsError::InvalidExternalBodyWrench {
+                    entity_index: wrench.entity.index(),
+                    reason: "backend rigid body is unavailable",
+                })?;
+        if !body.is_dynamic() {
+            return Err(PhysicsError::InvalidExternalBodyWrench {
+                entity_index: wrench.entity.index(),
+                reason: "external wrenches require a dynamic rigid body",
+            });
+        }
+
+        body.add_force_at_point(
+            vec3_to_rapier(wrench.force_world_n),
+            vec3_to_point(wrench.point_world_m),
+            true,
+        );
+        body.add_torque(vec3_to_rapier(wrench.torque_world_nm), true);
+        state.impulse_forced.push(body_handle);
+        Ok(())
+    }
+
+    fn contacts(&self, physics_world: PhysicsWorldId) -> Result<&[ContactEvent], PhysicsError> {
+        Ok(&self.world(physics_world)?.contacts)
+    }
+
+    fn contact_points(
+        &self,
+        physics_world: PhysicsWorldId,
+    ) -> Result<&[ContactPointSample], PhysicsError> {
+        Ok(&self.world(physics_world)?.contact_points)
+    }
+
+    fn multibody_joint_state(
+        &self,
+        physics_world: PhysicsWorldId,
+        entity: Entity,
+    ) -> Option<(f64, f64)> {
+        let state = self.worlds.get(&physics_world)?;
+        multibody_joint_coordinate(state, entity)
+    }
+
+    fn capabilities(&self) -> &[PhysicsCapability] {
+        CAPABILITIES
+    }
+}
+
+fn sync_entity_collider(
+    world: &World,
+    state: &mut RapierWorldState,
+    entity: Entity,
+    body_handle: RigidBodyHandle,
+    collider: Option<&Collider>,
+) -> Result<(), PhysicsError> {
+    let existing = state.entity_to_collider.get(&entity).copied();
+    match (existing, collider) {
+        (None, Some(collider)) => {
+            let handle = state.colliders.insert_with_parent(
+                collider_builder(world, entity, collider)?.build(),
+                body_handle,
+                &mut state.bodies,
+            );
+            state.entity_to_collider.insert(entity, handle);
+            state.collider_to_entity.insert(handle, entity);
+        }
+        (Some(handle), Some(collider)) => {
+            if let Some(existing) = state.colliders.get_mut(handle) {
+                existing.set_sensor(collider.sensor);
+                existing.set_collision_groups(interaction_groups(world, entity));
+            }
+        }
+        (Some(handle), None) => {
+            state
+                .colliders
+                .remove(handle, &mut state.island_manager, &mut state.bodies, true);
+            state.collider_to_entity.remove(&handle);
+            state.entity_to_collider.remove(&entity);
+        }
+        (None, None) => {}
+    }
+    Ok(())
+}
+
+fn convex_shape(convex: &ConvexCollider) -> Option<SharedShape> {
+    if convex.vertices_m.len() < 4
+        || convex
+            .vertices_m
+            .iter()
+            .any(|v| !v.is_finite() || v.to_array().iter().any(|x| !(*x as f32).is_finite()))
+    {
+        return None;
+    }
+    let points: Vec<_> = convex
+        .vertices_m
+        .iter()
+        .copied()
+        .map(vec3_to_point)
+        .collect();
+    let (vertices, indices) = rapier3d::parry::transformation::try_convex_hull(&points).ok()?;
+    let shape = SharedShape::convex_mesh(vertices, &indices)?;
+    let mass = shape.mass_properties(1.0).mass();
+    (mass.is_finite() && mass > 0.0).then_some(shape)
+}
+
+fn collider_builder(
+    world: &World,
+    entity: Entity,
+    collider: &Collider,
+) -> Result<ColliderBuilder, PhysicsError> {
+    let (shape, offset) = if let Some(compound) = world.get::<CompoundCollider>(entity) {
+        (
+            SharedShape::compound(
+                compound
+                    .parts
+                    .iter()
+                    .map(|part| {
+                        Ok((
+                            transform_to_isometry(&part.local_offset),
+                            shape_to_shared(&part.shape)?,
+                        ))
+                    })
+                    .collect::<Result<Vec<_>, PhysicsError>>()?,
+            ),
+            Transform3::IDENTITY,
+        )
+    } else if let Some(convex) = world.get::<ConvexCollider>(entity) {
+        (
+            convex_shape(convex).expect("convex collider validated before creation"),
+            Transform3::IDENTITY,
+        )
+    } else {
+        (shape_to_shared(&collider.shape)?, collider.local_offset)
+    };
+    let mut builder = ColliderBuilder::new(shape)
+        .position(transform_to_isometry(&offset))
+        .friction(collider.material.friction)
+        .restitution(collider.material.restitution)
+        .sensor(collider.sensor)
+        .collision_groups(interaction_groups(world, entity));
+    if world.get::<RigidBodyInertia>(entity).is_some() {
+        builder = builder.density(0.0);
+    }
+    Ok(builder)
+}
+
+fn interaction_groups(world: &World, entity: Entity) -> InteractionGroups {
+    let groups = world
+        .get::<rne_physics::CollisionGroups>(entity)
+        .copied()
+        .unwrap_or_default();
+    InteractionGroups::new(
+        Group::from_bits_truncate(groups.memberships),
+        Group::from_bits_truncate(groups.filter),
+    )
+}
+
+/// Maximum torque a revolute joint motor may apply.
+const REVOLUTE_MOTOR_MAX_FORCE: f32 = 50.0;
+/// Maximum force a prismatic joint motor may apply. Higher than the revolute cap
+/// so a vertical lift can hold a multi-link arm against gravity (~60 N) with the
+/// motor gain still in a stable range.
+const PRISMATIC_MOTOR_MAX_FORCE: f32 = 150.0;
+
+/// Maximum motor force for a wired joint, selected by its driven axis.
+fn motor_max_force(axis: JointAxis) -> f32 {
+    match axis {
+        JointAxis::LinX | JointAxis::LinY | JointAxis::LinZ => PRISMATIC_MOTOR_MAX_FORCE,
+        _ => REVOLUTE_MOTOR_MAX_FORCE,
+    }
+}
+
+/// Driven axis of a wired joint, selecting the motor degree of freedom.
+fn motor_axis_for_entity(world: &World, entity: Entity) -> Option<JointAxis> {
+    if world.get::<RevoluteJointDesc>(entity).is_some() {
+        Some(JointAxis::AngX)
+    } else if world.get::<PrismaticJointDesc>(entity).is_some() {
+        Some(JointAxis::LinX)
+    } else {
+        None
+    }
+}
+
+/// Returns true when the entity's own joint is a revolute or prismatic joint.
+fn has_articulated_coordinate(world: &World, entity: Entity) -> bool {
+    world.get::<RevoluteJointDesc>(entity).is_some()
+        || world.get::<PrismaticJointDesc>(entity).is_some()
+}
+
+/// Builds a fixed joint holding the child at the described relative pose: the
+/// parent frame carries the relative rotation, the child frame is the identity at
+/// its anchor.
+fn fixed_joint_from_desc(desc: &FixedJointDesc) -> GenericJoint {
+    let frame1 = Isometry::from_parts(
+        Translation3::from(vec3_to_rapier(desc.anchor_parent_m)),
+        quat_to_rapier(desc.relative_rotation),
+    );
+    let frame2 = Isometry::from_parts(
+        Translation3::from(vec3_to_rapier(desc.anchor_child_m)),
+        UnitQuaternion::identity(),
+    );
+    FixedJointBuilder::new()
+        .local_frame1(frame1)
+        .local_frame2(frame2)
+        .build()
+        .into()
+}
+
+/// Returns true when the entity still carries any joint description component.
+fn has_joint_desc(world: &World, entity: Entity) -> bool {
+    world.get::<RevoluteJointDesc>(entity).is_some()
+        || world.get::<PrismaticJointDesc>(entity).is_some()
+        || world.get::<FixedJointDesc>(entity).is_some()
+}
+
+fn normalized_axis(axis: Vec3) -> Unit<Vector3<f32>> {
+    let axis = vec3_to_rapier(axis);
+    if axis.norm_squared() <= f32::EPSILON {
+        Vector3::y_axis()
+    } else {
+        Unit::new_normalize(axis)
+    }
+}
+
+/// Returns all live entities sorted by id for deterministic backend iteration.
+fn sorted_entities(world: &World) -> Vec<Entity> {
+    let mut entities: Vec<Entity> = world.iter_entities().map(|entity| entity.id()).collect();
+    entities.sort_unstable();
+    entities
+}
+
+fn sync_joints_from_ecs(world: &World, state: &mut RapierWorldState) -> Result<(), PhysicsError> {
+    // Release wired joints whose description component was removed (e.g. a grasp
+    // weld dropped when the gripper opens). Drop in a stable order for determinism.
+    let mut detached: Vec<Entity> = state
+        .entity_to_joint
+        .keys()
+        .copied()
+        .filter(|entity| !has_joint_desc(world, *entity))
+        .collect();
+    detached.sort_unstable();
+    for entity in detached {
+        if let Some(handle) = state.entity_to_joint.remove(&entity) {
+            state.impulse_joints.remove(handle, true);
+        }
+    }
+    let mut detached_multibody: Vec<Entity> = state
+        .entity_to_multibody_joint
+        .keys()
+        .copied()
+        .filter(|entity| !has_joint_desc(world, *entity))
+        .collect();
+    detached_multibody.sort_unstable();
+    for entity in detached_multibody {
+        if let Some(handle) = state.entity_to_multibody_joint.remove(&entity) {
+            state.multibody_joints.remove(handle, true);
+        }
+    }
+
+    for entity in sorted_entities(world) {
+        if state.entity_to_joint.contains_key(&entity)
+            || state.entity_to_multibody_joint.contains_key(&entity)
+        {
+            continue;
+        }
+
+        let (parent, joint, motor_axis) = if let Some(desc) = world.get::<RevoluteJointDesc>(entity)
+        {
+            let mut builder = RevoluteJointBuilder::new(normalized_axis(desc.axis))
+                .local_anchor1(vec3_to_point(desc.anchor_parent_m))
+                .local_anchor2(vec3_to_point(desc.anchor_child_m));
+            if let (Some(lower_rad), Some(upper_rad)) = (desc.lower_rad, desc.upper_rad) {
+                builder = builder.limits([lower_rad as f32, upper_rad as f32]);
+            }
+            let mut joint = builder.build();
+            // Compose the authored joint-origin rotation into the parent frame
+            // so joint angle zero matches the URDF pose (identity for legacy
+            // descs, which keeps existing assets bit-identical).
+            joint.data.local_frame1.rotation =
+                quat_to_rapier(desc.relative_rotation) * joint.data.local_frame1.rotation;
+            (
+                desc.parent,
+                GenericJoint::from(joint),
+                Some(JointAxis::AngX),
+            )
+        } else if let Some(desc) = world.get::<PrismaticJointDesc>(entity) {
+            let mut builder = PrismaticJointBuilder::new(normalized_axis(desc.axis))
+                .local_anchor1(vec3_to_point(desc.anchor_parent_m))
+                .local_anchor2(vec3_to_point(desc.anchor_child_m));
+            if let (Some(lower_m), Some(upper_m)) = (desc.lower_m, desc.upper_m) {
+                builder = builder.limits([lower_m as f32, upper_m as f32]);
+            }
+            let mut joint = builder.build();
+            joint.data.local_frame1.rotation =
+                quat_to_rapier(desc.relative_rotation) * joint.data.local_frame1.rotation;
+            (
+                desc.parent,
+                GenericJoint::from(joint),
+                Some(JointAxis::LinX),
+            )
+        } else if let Some(desc) = world.get::<FixedJointDesc>(entity) {
+            (desc.parent, fixed_joint_from_desc(desc), None)
+        } else {
+            continue;
+        };
+
+        let Some(parent_body) = state.entity_to_body.get(&parent).copied() else {
+            continue;
+        };
+        let Some(child_body) = state.entity_to_body.get(&entity).copied() else {
+            continue;
+        };
+
+        if world.get::<MultibodyLink>(entity).is_some() {
+            let Some(handle) = state
+                .multibody_joints
+                .insert(parent_body, child_body, joint, true)
+            else {
+                continue;
+            };
+            if let (Some(motor_axis), Some((multibody, link_id))) =
+                (motor_axis, state.multibody_joints.get_mut(handle))
+            {
+                if let Some(link) = multibody.link_mut(link_id) {
+                    link.joint
+                        .data
+                        .set_motor_max_force(motor_axis, motor_max_force(motor_axis));
+                }
+            }
+            state.entity_to_multibody_joint.insert(entity, handle);
+            continue;
+        }
+
+        let handle = state
+            .impulse_joints
+            .insert(parent_body, child_body, joint, true);
+        if let (Some(motor_axis), Some(joint)) = (motor_axis, state.impulse_joints.get_mut(handle))
+        {
+            joint
+                .data
+                .set_motor_max_force(motor_axis, motor_max_force(motor_axis));
+        }
+        state.entity_to_joint.insert(entity, handle);
+    }
+
+    sync_attachments_from_ecs(world, state);
+    Ok(())
+}
+
+/// Creates and releases welds on articulated revolute and prismatic links.
+fn sync_attachments_from_ecs(world: &World, state: &mut RapierWorldState) {
+    let mut released: Vec<Entity> = state
+        .entity_to_attachment
+        .keys()
+        .copied()
+        .filter(|entity| world.get::<FixedJointDesc>(*entity).is_none())
+        .collect();
+    released.sort_unstable();
+    for entity in released {
+        if let Some(handle) = state.entity_to_attachment.remove(&entity) {
+            state.impulse_joints.remove(handle, true);
+        }
+    }
+    for entity in sorted_entities(world) {
+        if state.entity_to_attachment.contains_key(&entity)
+            || !state.entity_to_multibody_joint.contains_key(&entity)
+            || !has_articulated_coordinate(world, entity)
+        {
+            continue;
+        }
+        let Some(desc) = world.get::<FixedJointDesc>(entity) else {
+            continue;
+        };
+        let (Some(parent_body), Some(child_body)) = (
+            state.entity_to_body.get(&desc.parent).copied(),
+            state.entity_to_body.get(&entity).copied(),
+        ) else {
+            continue;
+        };
+        let handle =
+            state
+                .impulse_joints
+                .insert(parent_body, child_body, fixed_joint_from_desc(desc), true);
+        state.entity_to_attachment.insert(entity, handle);
+    }
+}
+
+fn apply_joint_motors(world: &World, state: &mut RapierWorldState) -> Result<(), PhysicsError> {
+    for id in sorted_entities(world) {
+        let entity = world.entity(id);
+        if let Some(armature) = entity.get::<RevoluteJointArmature>() {
+            if !cfg!(feature = "experimental-armature") && armature.inertia_kg_m2 != 0.0 {
+                return Err(invalid_passive_dynamics(entity.id(), "nonzero armature requires experimental-armature and the repository Rapier patch"));
+            }
+            if !armature.inertia_kg_m2.is_finite()
+                || armature.inertia_kg_m2 < 0.0
+                || !(armature.inertia_kg_m2 as f32).is_finite()
+                || (armature.inertia_kg_m2 > 0.0 && armature.inertia_kg_m2 as f32 == 0.0)
+                || entity.get::<RevoluteJointDesc>().is_none()
+                || entity.get::<MultibodyLink>().is_none()
+                || !state.entity_to_multibody_joint.contains_key(&entity.id())
+            {
+                return Err(invalid_passive_dynamics(entity.id(), "armature requires a realized revolute multibody joint and finite nonnegative representable inertia"));
+            }
+        }
+    }
+    for (entity, joint_handle) in &state.entity_to_joint {
+        let Some(axis) = motor_axis_for_entity(world, *entity) else {
+            continue;
+        };
+        if passive_viscous_damping(world, *entity)?.is_some_and(|damping| damping != 0.0) {
+            return Err(invalid_passive_dynamics(
+                *entity,
+                "viscous damping requires a multibody articulation",
+            ));
+        }
+        let Some(joint) = state.impulse_joints.get_mut(*joint_handle) else {
+            continue;
+        };
+        apply_motor_command(world, *entity, axis, &mut joint.data)?;
+    }
+    for (entity, joint_handle) in &state.entity_to_multibody_joint {
+        let Some(axis) = motor_axis_for_entity(world, *entity) else {
+            continue;
+        };
+        let Some((multibody, link_id)) = state.multibody_joints.get_mut(*joint_handle) else {
+            continue;
+        };
+        let assembly_id = multibody
+            .links()
+            .take(link_id)
+            .map(|link| link.joint.ndofs())
+            .sum::<usize>();
+        let Some(link) = multibody.link(link_id) else {
+            continue;
+        };
+        let ndofs = link.joint.ndofs();
+        if ndofs != 1 {
+            return Err(invalid_passive_dynamics(
+                *entity,
+                "supported articulated joints must have exactly one degree of freedom",
+            ));
+        }
+        #[cfg(feature = "experimental-armature")]
+        {
+            let armature = world
+                .get::<RevoluteJointArmature>(*entity)
+                .map_or(0.0, |v| v.inertia_kg_m2 as f32);
+            if !multibody.set_armature(assembly_id, armature) {
+                return Err(PhysicsError::InitializationFailed);
+            }
+        }
+        if let Some(damping) = passive_viscous_damping(world, *entity)? {
+            multibody.damping_mut()[assembly_id] = damping as f32;
+        }
+        let Some(link) = multibody.link_mut(link_id) else {
+            continue;
+        };
+        apply_motor_command(world, *entity, axis, &mut link.joint.data)?;
+    }
+    apply_direct_joint_efforts(world, state)?;
+    apply_passive_coulomb_friction(world, state)?;
+    Ok(())
+}
+
+fn apply_motor_command(
+    world: &World,
+    entity: Entity,
+    axis: JointAxis,
+    joint: &mut GenericJoint,
+) -> Result<(), PhysicsError> {
+    if let Some(command) = world.get::<JointActuation>(entity).copied() {
+        let revolute = world.get::<RevoluteJointDesc>(entity).is_some();
+        if !command.has_valid_values()
+            || (revolute && !command.supports_revolute())
+            || (!revolute && !command.supports_prismatic())
+        {
+            return Err(invalid_actuation(entity, "mode, value, gain, or limit"));
+        }
+        let motor = match command {
+            JointActuation::Disabled => Some((0.0, 0.0, 0.0, 0.0, 0.0)),
+            JointActuation::RevolutePosition {
+                target_position_rad,
+                stiffness_nm_per_rad,
+                damping_nm_s_per_rad,
+                max_effort_nm,
+            } => Some((
+                target_position_rad,
+                0.0,
+                stiffness_nm_per_rad,
+                damping_nm_s_per_rad,
+                max_effort_nm,
+            )),
+            JointActuation::RevoluteVelocity {
+                target_velocity_rad_s,
+                gain_nm_s_per_rad,
+                max_effort_nm,
+            } => Some((
+                0.0,
+                target_velocity_rad_s,
+                0.0,
+                gain_nm_s_per_rad,
+                max_effort_nm,
+            )),
+            JointActuation::PrismaticPosition {
+                target_position_m,
+                stiffness_n_per_m,
+                damping_n_s_per_m,
+                max_force_n,
+            } => Some((
+                target_position_m,
+                0.0,
+                stiffness_n_per_m,
+                damping_n_s_per_m,
+                max_force_n,
+            )),
+            JointActuation::PrismaticVelocity {
+                target_velocity_m_s,
+                gain_n_s_per_m,
+                max_force_n,
+            } => Some((0.0, target_velocity_m_s, 0.0, gain_n_s_per_m, max_force_n)),
+            JointActuation::RevoluteEffort { .. } | JointActuation::PrismaticEffort { .. } => None,
+        };
+        if let Some((position, velocity, stiffness, damping, max_force)) = motor {
+            let gain_model = world
+                .get::<JointMotorGainModel>(entity)
+                .copied()
+                .unwrap_or_default();
+            joint.set_motor_model(
+                axis,
+                match gain_model {
+                    JointMotorGainModel::AccelerationBased => MotorModel::AccelerationBased,
+                    JointMotorGainModel::ForceBased => MotorModel::ForceBased,
+                },
+            );
+            joint.set_motor(
+                axis,
+                position as f32,
+                velocity as f32,
+                stiffness as f32,
+                damping as f32,
+            );
+            joint.set_motor_max_force(axis, max_force as f32);
+        } else {
+            joint.set_motor(axis, 0.0, 0.0, 0.0, 0.0);
+            joint.set_motor_max_force(axis, 0.0);
+        }
+        return Ok(());
+    }
+
+    let Some(motor) = world.get::<JointMotor>(entity) else {
+        return Ok(());
+    };
+    // Legacy motor compatibility: zero stiffness is a velocity motor and a
+    // positive stiffness adds a position spring. Honors an explicit
+    // [`JointMotorGainModel`] so light multibody chains can request
+    // newton-meter authority; without the component the acceleration-based
+    // default preserves legacy behavior bit-for-bit.
+    let gain_model = world
+        .get::<JointMotorGainModel>(entity)
+        .copied()
+        .unwrap_or_default();
+    joint.set_motor_model(
+        axis,
+        match gain_model {
+            JointMotorGainModel::AccelerationBased => MotorModel::AccelerationBased,
+            JointMotorGainModel::ForceBased => MotorModel::ForceBased,
+        },
+    );
+    joint.set_motor(
+        axis,
+        motor.target_position as f32,
+        motor.velocity_rad_s as f32,
+        motor.stiffness as f32,
+        motor.gain as f32,
+    );
+    if motor.max_force > 0.0 {
+        joint.set_motor_max_force(axis, motor.max_force as f32);
+    }
+    Ok(())
+}
+
+fn apply_direct_joint_efforts(
+    world: &World,
+    state: &mut RapierWorldState,
+) -> Result<(), PhysicsError> {
+    for entity in sorted_entities(world) {
+        let Some(command) = world.get::<JointActuation>(entity).copied() else {
+            continue;
+        };
+        let (parent, axis_local, effort, revolute) = match command {
+            JointActuation::RevoluteEffort {
+                effort_nm,
+                max_effort_nm,
+            } => {
+                let Some(desc) = world.get::<RevoluteJointDesc>(entity) else {
+                    return Err(invalid_actuation(
+                        entity,
+                        "revolute effort on non-revolute joint",
+                    ));
+                };
+                (
+                    desc.parent,
+                    desc.axis,
+                    effort_nm.clamp(-max_effort_nm, max_effort_nm),
+                    true,
+                )
+            }
+            JointActuation::PrismaticEffort {
+                force_n,
+                max_force_n,
+            } => {
+                let Some(desc) = world.get::<PrismaticJointDesc>(entity) else {
+                    return Err(invalid_actuation(
+                        entity,
+                        "prismatic effort on non-prismatic joint",
+                    ));
+                };
+                (
+                    desc.parent,
+                    desc.axis,
+                    force_n.clamp(-max_force_n, max_force_n),
+                    false,
+                )
+            }
+            _ => continue,
+        };
+        if !command.has_valid_values() {
+            return Err(invalid_actuation(
+                entity,
+                "non-finite effort or negative limit",
+            ));
+        }
+        let measured =
+            apply_generalized_effort(world, state, entity, parent, axis_local, effort, revolute)?;
+        state.pending_joint_efforts.insert(
+            entity,
+            if revolute {
+                JointEffortMeasurement::Revolute {
+                    measured_effort_nm: measured,
+                }
+            } else {
+                JointEffortMeasurement::Prismatic {
+                    measured_force_n: measured,
+                }
+            },
+        );
+    }
+    Ok(())
+}
+
+fn apply_passive_coulomb_friction(
+    world: &World,
+    state: &mut RapierWorldState,
+) -> Result<(), PhysicsError> {
+    for entity in sorted_entities(world) {
+        let Some(dynamics) = world.get::<JointPassiveDynamics>(entity).copied() else {
+            continue;
+        };
+        if !dynamics.has_valid_values() {
+            return Err(invalid_passive_dynamics(
+                entity,
+                "non-finite, negative, or zero-width nonzero Coulomb coefficient",
+            ));
+        }
+        let (parent, axis_local, revolute, magnitude) = match dynamics {
+            JointPassiveDynamics::Revolute {
+                coulomb_friction_nm,
+                ..
+            } => {
+                let Some(desc) = world.get::<RevoluteJointDesc>(entity) else {
+                    return Err(invalid_passive_dynamics(
+                        entity,
+                        "revolute dynamics on non-revolute joint",
+                    ));
+                };
+                (desc.parent, desc.axis, true, coulomb_friction_nm)
+            }
+            JointPassiveDynamics::Prismatic {
+                coulomb_friction_n, ..
+            } => {
+                let Some(desc) = world.get::<PrismaticJointDesc>(entity) else {
+                    return Err(invalid_passive_dynamics(
+                        entity,
+                        "prismatic dynamics on non-prismatic joint",
+                    ));
+                };
+                (desc.parent, desc.axis, false, coulomb_friction_n)
+            }
+        };
+        if magnitude == 0.0 {
+            continue;
+        }
+        let Some((_, velocity)) = multibody_joint_coordinate(state, entity) else {
+            return Err(invalid_passive_dynamics(
+                entity,
+                "regularized Coulomb friction requires a single-DoF multibody articulation",
+            ));
+        };
+        if !velocity.is_finite() {
+            return Err(invalid_passive_dynamics(
+                entity,
+                "joint velocity is non-finite",
+            ));
+        }
+        let effort = dynamics.regularized_coulomb_effort(velocity);
+        let _ =
+            apply_generalized_effort(world, state, entity, parent, axis_local, effort, revolute)?;
+    }
+    Ok(())
+}
+
+fn apply_generalized_effort(
+    world: &World,
+    state: &mut RapierWorldState,
+    entity: Entity,
+    parent: Entity,
+    axis_local: Vec3,
+    effort: f64,
+    revolute: bool,
+) -> Result<f64, PhysicsError> {
+    // Match the parent joint frame built in sync_joints: the authored origin
+    // rotation precedes the local axis. Omitting it applies effort to a locked
+    // direction on rotated URDF joints instead of their free coordinate.
+    let origin_rotation = if revolute {
+        world
+            .get::<RevoluteJointDesc>(entity)
+            .map(|desc| desc.relative_rotation)
+    } else {
+        world
+            .get::<PrismaticJointDesc>(entity)
+            .map(|desc| desc.relative_rotation)
+    }
+    .ok_or_else(|| invalid_actuation(entity, "joint effort has no joint descriptor"))?;
+    let axis_world =
+        world_transform_of(world, parent).rotation * origin_rotation * axis_local.normalize();
+    if !axis_world.is_finite() || axis_world.length_squared() <= f64::EPSILON {
+        return Err(invalid_actuation(
+            entity,
+            "joint axis is zero or non-finite",
+        ));
+    }
+    let mut measured = None;
+    for (target, sign) in [(entity, 1.0), (parent, -1.0)] {
+        let application_point_world_m = if revolute {
+            None
+        } else {
+            let desc = world.get::<PrismaticJointDesc>(entity).ok_or_else(|| {
+                invalid_actuation(entity, "prismatic effort requires a prismatic joint")
+            })?;
+            let anchor_local_m = if target == entity {
+                desc.anchor_child_m
+            } else {
+                desc.anchor_parent_m
+            };
+            let transform = world_transform_of(world, target);
+            Some(transform.translation + transform.rotation * (transform.scale * anchor_local_m))
+        };
+        let Some(handle) = state.entity_to_body.get(&target).copied() else {
+            continue;
+        };
+        let Some(body) = state.bodies.get_mut(handle) else {
+            continue;
+        };
+        let axis = vec3_to_rapier(axis_world);
+        let vector = axis * (effort * sign) as f32;
+        if revolute {
+            let before = body.user_torque();
+            body.add_torque(vector, true);
+            if target == entity {
+                measured = Some(f64::from((body.user_torque() - before).dot(&axis)));
+            }
+        } else {
+            let before = body.user_force();
+            body.add_force_at_point(
+                vector,
+                vec3_to_point(application_point_world_m.expect("prismatic anchor")),
+                true,
+            );
+            if target == entity {
+                measured = Some(f64::from((body.user_force() - before).dot(&axis)));
+            }
+        }
+        if !state.impulse_forced.contains(&handle) {
+            state.impulse_forced.push(handle);
+        }
+    }
+    measured.ok_or_else(|| invalid_actuation(entity, "dynamic child did not accept joint effort"))
+}
+
+fn passive_viscous_damping(world: &World, entity: Entity) -> Result<Option<f64>, PhysicsError> {
+    let Some(dynamics) = world.get::<JointPassiveDynamics>(entity).copied() else {
+        // Preserve Rapier's historical numerical damping for pre-contract
+        // articulations. An explicit component, including explicit zero, owns
+        // the plant-loss value and replaces the backend default.
+        return Ok(None);
+    };
+    if !dynamics.has_valid_values() {
+        return Err(invalid_passive_dynamics(
+            entity,
+            "non-finite or negative coefficient",
+        ));
+    }
+    match dynamics {
+        JointPassiveDynamics::Revolute {
+            viscous_damping_nm_s_per_rad,
+            ..
+        } if world.get::<RevoluteJointDesc>(entity).is_some() => {
+            Ok(Some(viscous_damping_nm_s_per_rad))
+        }
+        JointPassiveDynamics::Prismatic {
+            viscous_damping_n_s_per_m,
+            ..
+        } if world.get::<PrismaticJointDesc>(entity).is_some() => {
+            Ok(Some(viscous_damping_n_s_per_m))
+        }
+        JointPassiveDynamics::Revolute { .. } => Err(invalid_passive_dynamics(
+            entity,
+            "revolute dynamics on non-revolute joint",
+        )),
+        JointPassiveDynamics::Prismatic { .. } => Err(invalid_passive_dynamics(
+            entity,
+            "prismatic dynamics on non-prismatic joint",
+        )),
+    }
+}
+
+fn invalid_actuation(entity: Entity, reason: &'static str) -> PhysicsError {
+    PhysicsError::InvalidActuation {
+        entity_index: entity.index(),
+        reason,
+    }
+}
+
+fn invalid_passive_dynamics(entity: Entity, reason: &'static str) -> PhysicsError {
+    PhysicsError::InvalidPassiveDynamics {
+        entity_index: entity.index(),
+        reason,
+    }
+}
+
+fn world_to_local_transform(parent_world: &Transform3, world_tf: &Transform3) -> Transform3 {
+    let parent = to_math_transform(parent_world);
+    let world = to_math_transform(world_tf);
+    let local = parent.inverse().mul_transform(&world);
+    from_math_transform(local)
+}
+
+fn to_math_transform(transform: &Transform3) -> MathTransform3 {
+    MathTransform3 {
+        translation: transform.translation,
+        rotation: transform.rotation,
+        scale: transform.scale,
+    }
+}
+
+fn from_math_transform(transform: MathTransform3) -> Transform3 {
+    Transform3 {
+        translation: transform.translation,
+        rotation: transform.rotation,
+        scale: transform.scale,
+    }
+}
+
+/// Runs one full physics update: sync from ECS, step, sync to ECS.
+pub fn step_physics(
+    backend: &mut RapierBackend,
+    world: &mut World,
+    physics_world: PhysicsWorldId,
+    dt: SimDuration,
+) -> Result<(), PhysicsError> {
+    backend.sync_from_ecs(world, physics_world)?;
+    backend.step(physics_world, dt)?;
+    backend.sync_to_ecs(world, physics_world)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+    use rne_ecs::spawn_named;
+    use rne_math::Quat;
+    use rne_physics::{hash_physics_state, ColliderShape, CollisionGroups};
+
+    #[cfg(not(feature = "position-motor-diagnostics"))]
+    #[test]
+    fn position_motor_diagnostics_are_unsupported_without_the_patch_feature() {
+        let mut backend = RapierBackend::new();
+        let mut world = World::new();
+        let entity = world.spawn_empty().id();
+        assert!(!backend
+            .configure_position_motor_diagnostics(&mut world, PhysicsWorldId(u32::MAX), true)
+            .unwrap());
+        assert_eq!(world.iter_entities().count(), 1);
+        assert!(world
+            .get::<rne_physics::JointPositionMotorDiagnostics>(entity)
+            .is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn diagnostic_position_command(revolute: bool, target: f64, cap: f64) -> JointActuation {
+        if revolute {
+            JointActuation::RevolutePosition {
+                target_position_rad: target,
+                stiffness_nm_per_rad: 1_000_000.0,
+                damping_nm_s_per_rad: 100_000.0,
+                max_effort_nm: cap,
+            }
+        } else {
+            JointActuation::PrismaticPosition {
+                target_position_m: target,
+                stiffness_n_per_m: 1_000_000.0,
+                damping_n_s_per_m: 100_000.0,
+                max_force_n: cap,
+            }
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn motor_diagnostic_fixture(
+        revolute: bool,
+        target: f64,
+        cap: f64,
+    ) -> (RapierBackend, PhysicsWorldId, World, Entity) {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent_rotation = Quat::from_rotation_x(0.43);
+        let origin_rotation = Quat::from_rotation_y(-0.37);
+        let anchor = -Vec3::Y;
+        let parent = world
+            .spawn((
+                RigidBody {
+                    body_type: RigidBodyType::Fixed,
+                    ..RigidBody::default()
+                },
+                MultibodyLink,
+                Transform3::from_translation_rotation(Vec3::ZERO, parent_rotation),
+            ))
+            .id();
+        let child = world
+            .spawn((
+                RigidBody {
+                    mass_kg: 2.0,
+                    ..RigidBody::default()
+                },
+                Collider::cuboid(Vec3::splat(0.05)),
+                MultibodyLink,
+                PhysicsOwnedPose,
+                Transform3::from_translation_rotation(
+                    parent_rotation * anchor,
+                    parent_rotation * origin_rotation,
+                ),
+                JointMotorGainModel::ForceBased,
+                diagnostic_position_command(revolute, target, cap),
+            ))
+            .id();
+        if revolute {
+            world.entity_mut(child).insert(RevoluteJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: anchor,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: origin_rotation,
+                lower_rad: None,
+                upper_rad: None,
+            });
+        } else {
+            world.entity_mut(child).insert(PrismaticJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: anchor,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: origin_rotation,
+                lower_m: None,
+                upper_m: None,
+            });
+        }
+        (backend, id, world, child)
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn diagnostic_parts(
+        measurement: &JointPositionMotorDiagnostics,
+    ) -> (
+        f64,
+        f64,
+        Option<f64>,
+        Option<f64>,
+        &PositionMotorDiagnosticInterval,
+    ) {
+        match measurement {
+            JointPositionMotorDiagnostics::Revolute {
+                applied_motor_impulse_nm_s,
+                mean_observed_motor_effort_nm,
+                mean_completed_motor_effort_nm,
+                effective_effort_ceiling_nm,
+                interval,
+            } => (
+                *applied_motor_impulse_nm_s,
+                *mean_observed_motor_effort_nm,
+                *mean_completed_motor_effort_nm,
+                *effective_effort_ceiling_nm,
+                interval,
+            ),
+            JointPositionMotorDiagnostics::Prismatic {
+                applied_motor_impulse_n_s,
+                mean_observed_motor_force_n,
+                mean_completed_motor_force_n,
+                effective_force_ceiling_n,
+                interval,
+            } => (
+                *applied_motor_impulse_n_s,
+                *mean_observed_motor_force_n,
+                *mean_completed_motor_force_n,
+                *effective_force_ceiling_n,
+                interval,
+            ),
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn diagnostic_joint_coordinate(state: JointState) -> (f64, f64) {
+        match state {
+            JointState::Revolute {
+                position_rad,
+                velocity_rad_s,
+            } => (position_rad, velocity_rad_s),
+            JointState::Prismatic {
+                position_m,
+                velocity_m_s,
+            } => (position_m, velocity_m_s),
+            JointState::Fixed => panic!("the fixture has one free joint coordinate"),
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    fn diagnostic_literal_words(measurement: &JointPositionMotorDiagnostics) -> Vec<u64> {
+        let (impulse, mean, completed, ceiling, interval) = diagnostic_parts(measurement);
+        let mut words = vec![
+            u64::from(matches!(
+                measurement,
+                JointPositionMotorDiagnostics::Revolute { .. }
+            )),
+            impulse.to_bits(),
+            mean.to_bits(),
+            u64::from(completed.is_some()),
+            completed.map(f64::to_bits).unwrap_or(0),
+            u64::from(ceiling.is_some()),
+            ceiling.map(f64::to_bits).unwrap_or(0),
+            u64::from(interval.physics_world_id),
+            interval.nominal_step_ticks,
+            interval.numerical_outer_interval_s.to_bits(),
+            interval.ccd_partition_durations_s.len() as u64,
+        ];
+        words.extend(
+            interval
+                .ccd_partition_durations_s
+                .iter()
+                .map(|duration| duration.to_bits()),
+        );
+        words.extend([
+            interval.observed_solver_interval_s.to_bits(),
+            interval.observed_solver_slice_count,
+            u64::from(interval.full_step_coverage),
+            interval.observed_partition_count,
+            interval.finite_positive_bound_eligible_slice_count,
+            interval.finite_positive_bound_eligible_duration_s.to_bits(),
+            interval.finite_positive_bound_active_slice_count,
+            interval.finite_positive_bound_active_duration_s.to_bits(),
+        ]);
+        words
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn position_motor_impulses_keep_generalized_sign_units_and_actual_interval() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(1000.0));
+        for revolute in [true, false] {
+            for sign in [-1.0, 1.0] {
+                let (mut backend, id, mut world, child) =
+                    motor_diagnostic_fixture(revolute, sign * 0.4, 2.0);
+                assert!(backend
+                    .configure_position_motor_diagnostics(&mut world, id, true)
+                    .unwrap());
+                backend.sync_from_ecs(&mut world, id).unwrap();
+                let state = backend.world_mut(id).unwrap();
+                let body_handle = state.entity_to_body[&child];
+                state
+                    .bodies
+                    .get_mut(body_handle)
+                    .unwrap()
+                    .set_additional_solver_iterations(3);
+                backend.sync_to_ecs(&mut world, id).unwrap();
+                assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+                backend.step(id, dt).unwrap();
+                backend.sync_to_ecs(&mut world, id).unwrap();
+                let measurement = world.get::<JointPositionMotorDiagnostics>(child).unwrap();
+                assert_eq!(
+                    matches!(measurement, JointPositionMotorDiagnostics::Revolute { .. }),
+                    revolute
+                );
+                let (impulse, mean, completed, ceiling, interval) = diagnostic_parts(measurement);
+                assert!(impulse * sign > 0.0);
+                assert!(
+                    diagnostic_joint_coordinate(*world.get::<JointState>(child).unwrap()).1 * sign
+                        > 0.0
+                );
+                assert_eq!(ceiling, Some(2.0));
+                assert_eq!(
+                    mean.to_bits(),
+                    (impulse / interval.observed_solver_interval_s).to_bits()
+                );
+                assert_eq!(completed.map(f64::to_bits), Some(mean.to_bits()));
+                assert_eq!(interval.physics_world_id, id.0);
+                assert_eq!(interval.nominal_step_ticks, dt.ticks());
+                assert_eq!(
+                    interval.numerical_outer_interval_s.to_bits(),
+                    f64::from(dt.as_seconds().value() as f32).to_bits()
+                );
+                assert!(interval.full_step_coverage);
+                assert_ne!(
+                    interval.observed_solver_interval_s.to_bits(),
+                    interval.numerical_outer_interval_s.to_bits()
+                );
+                assert!(interval.observed_solver_slice_count > 0);
+                assert_eq!(
+                    interval.finite_positive_bound_eligible_slice_count,
+                    interval.observed_solver_slice_count
+                );
+                assert_eq!(
+                    interval.finite_positive_bound_active_slice_count,
+                    interval.observed_solver_slice_count
+                );
+                assert_eq!(
+                    interval.finite_positive_bound_active_duration_s.to_bits(),
+                    interval.observed_solver_interval_s.to_bits()
+                );
+                let state = backend.world(id).unwrap();
+                let report = state
+                    .physics_pipeline
+                    .completed_multibody_motor_impulses()
+                    .unwrap();
+                let h = report.motors[0].slices[0].duration_s as f32;
+                let (multibody, _) = state
+                    .multibody_joints
+                    .get(state.entity_to_multibody_joint[&child])
+                    .unwrap();
+                assert_eq!(multibody.ndofs(), 1);
+                let mut inverse_mass = DVector::from_element(1, 1.0_f32);
+                assert!(multibody.inv_augmented_mass().solve_mut(&mut inverse_mass));
+                let generalized_mass = 1.0 / inverse_mass[0];
+                let (erp_inv_dt, _, cfm_gain) =
+                    MotorModel::ForceBased.combine_coefficients(h, 1_000_000.0, 100_000.0);
+                // These fixed fixture gains keep the existing internal recurrence
+                // contractive; the bounded target still demands more than cap2
+                // can realize during this single interval, for the actual inertia.
+                assert!(cfm_gain * generalized_mass < 1.0);
+                let outer = interval.numerical_outer_interval_s as f32;
+                let maximum_velocity = 2.0 * outer / generalized_mass;
+                let maximum_position = 2.0 * outer * outer / generalized_mass;
+                assert!(
+                    erp_inv_dt * (0.4 - maximum_position) > maximum_velocity + cfm_gain * 2.0 * h
+                );
+                assert_relative_eq!(mean, sign * 2.0, epsilon = 1.0e-5);
+            }
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn a_solved_zero_cap_is_measured_zero_without_positive_bound_occupancy() {
+        for revolute in [true, false] {
+            let (mut backend, id, mut world, child) = motor_diagnostic_fixture(revolute, 10.0, 0.0);
+            backend
+                .configure_position_motor_diagnostics(&mut world, id, true)
+                .unwrap();
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            let (impulse, mean, completed, ceiling, interval) =
+                diagnostic_parts(world.get::<JointPositionMotorDiagnostics>(child).unwrap());
+            assert_eq!(impulse, 0.0);
+            assert_eq!(mean, 0.0);
+            assert_eq!(completed, Some(0.0));
+            assert_eq!(ceiling, Some(0.0));
+            assert!(interval.observed_solver_slice_count > 0);
+            assert_eq!(interval.finite_positive_bound_eligible_slice_count, 0);
+            assert_eq!(interval.finite_positive_bound_active_slice_count, 0);
+            assert_eq!(interval.finite_positive_bound_eligible_duration_s, 0.0);
+            assert_eq!(interval.finite_positive_bound_active_duration_s, 0.0);
+        }
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn position_motor_diagnostics_are_fresh_idempotent_and_cleared_on_invalid_sync() {
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        assert!(matches!(
+            backend.configure_position_motor_diagnostics(
+                &mut world,
+                PhysicsWorldId(u32::MAX),
+                true
+            ),
+            Err(PhysicsError::WorldNotFound)
+        ));
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        let completed = world
+            .get::<JointPositionMotorDiagnostics>(child)
+            .unwrap()
+            .clone();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert_eq!(
+            world.get::<JointPositionMotorDiagnostics>(child),
+            Some(&completed)
+        );
+        world
+            .entity_mut(child)
+            .insert(diagnostic_position_command(true, -10.0, 3.0));
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert_eq!(
+            world.get::<JointPositionMotorDiagnostics>(child),
+            Some(&completed)
+        );
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend.step(id, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let (impulse, _, _, ceiling, _) =
+            diagnostic_parts(world.get::<JointPositionMotorDiagnostics>(child).unwrap());
+        assert!(impulse < 0.0);
+        assert_eq!(ceiling, Some(3.0));
+        world
+            .entity_mut(child)
+            .insert(diagnostic_position_command(true, f64::NAN, 3.0));
+        assert!(backend.sync_from_ecs(&mut world, id).is_err());
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn ineligible_readback_cannot_resurrect_a_previous_completed_motor_interval() {
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 0.4, 2.0);
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_some());
+        world.entity_mut(child).insert(JointActuation::Disabled);
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        world
+            .entity_mut(child)
+            .insert(diagnostic_position_command(true, 0.4, 2.0));
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend.step(id, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_some());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn position_motor_diagnostics_clear_on_disable_sleep_and_unwiring() {
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_some());
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, false)
+            .unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        let state = backend.world_mut(id).unwrap();
+        let body = state.entity_to_body[&child];
+        state.bodies.get_mut(body).unwrap().sleep();
+        backend.step(id, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        let state = backend.world_mut(id).unwrap();
+        state.bodies.get_mut(body).unwrap().wake_up(true);
+        backend.step(id, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_some());
+        world.entity_mut(child).remove::<MultibodyLink>();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn unsupported_motor_modes_do_not_replace_direct_effort_feedback() {
+        let modes = [
+            JointActuation::Disabled,
+            JointActuation::RevoluteVelocity {
+                target_velocity_rad_s: 1.0,
+                gain_nm_s_per_rad: 10.0,
+                max_effort_nm: 2.0,
+            },
+            JointActuation::RevoluteEffort {
+                effort_nm: 2.0,
+                max_effort_nm: 2.0,
+            },
+        ];
+        for mode in modes {
+            let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+            backend
+                .configure_position_motor_diagnostics(&mut world, id, true)
+                .unwrap();
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            world.entity_mut(child).insert(mode);
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+            if matches!(mode, JointActuation::RevoluteEffort { .. }) {
+                assert!(
+                    matches!(world.get::<JointEffortMeasurement>(child), Some(JointEffortMeasurement::Revolute { measured_effort_nm }) if *measured_effort_nm == 2.0)
+                );
+            }
+        }
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        world
+            .entity_mut(child)
+            .insert(JointMotorGainModel::AccelerationBased);
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+        world.entity_mut(child).remove::<JointActuation>();
+        world.entity_mut(child).insert((
+            JointMotorGainModel::ForceBased,
+            JointMotor {
+                target_position: 10.0,
+                stiffness: 1000.0,
+                max_force: 2.0,
+                ..JointMotor::default()
+            },
+        ));
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        world.entity_mut(child).remove::<MultibodyLink>();
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn native_infinite_ceiling_is_unbounded_measurement_not_missing_or_bound_active() {
+        let (mut backend, id, mut world, child) = motor_diagnostic_fixture(false, 0.01, f64::MAX);
+        world.get_mut::<RigidBody>(child).unwrap().mass_kg = 1.0;
+        world
+            .entity_mut(child)
+            .insert(JointActuation::PrismaticPosition {
+                target_position_m: 0.01,
+                stiffness_n_per_m: 100.0,
+                damping_n_s_per_m: 10_000.0,
+                max_force_n: f64::MAX,
+            });
+        backend
+            .world_mut(id)
+            .unwrap()
+            .integration_parameters
+            .num_solver_iterations = std::num::NonZeroUsize::new(4).unwrap();
+        // At the 0.25 ms native slice, the existing ForceBased recurrence has
+        // cfm_gain * mass below one; this fixture does not rely on a finite cap.
+        backend
+            .configure_position_motor_diagnostics(&mut world, id, true)
+            .unwrap();
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(1000.0));
+        step_physics(&mut backend, &mut world, id, dt).unwrap();
+        let (impulse, mean, completed, ceiling, interval) =
+            diagnostic_parts(world.get::<JointPositionMotorDiagnostics>(child).unwrap());
+        assert!(impulse.is_finite() && impulse > 0.0 && mean.is_finite());
+        assert_eq!(completed, Some(mean));
+        assert_eq!(ceiling, None);
+        assert_eq!(interval.finite_positive_bound_eligible_slice_count, 0);
+        assert_eq!(interval.finite_positive_bound_active_slice_count, 0);
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn two_physics_worlds_keep_diagnostic_cleanup_scoped_to_the_last_writer() {
+        let (mut backend, first, mut world, child) = motor_diagnostic_fixture(true, 10.0, 2.0);
+        let second = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        backend
+            .configure_position_motor_diagnostics(&mut world, first, true)
+            .unwrap();
+        backend
+            .configure_position_motor_diagnostics(&mut world, second, true)
+            .unwrap();
+        step_physics(&mut backend, &mut world, first, fixed_step()).unwrap();
+        assert_eq!(
+            diagnostic_world_id(world.get::<JointPositionMotorDiagnostics>(child).unwrap()),
+            first.0
+        );
+        step_physics(&mut backend, &mut world, second, fixed_step()).unwrap();
+        let last_writer = world
+            .get::<JointPositionMotorDiagnostics>(child)
+            .unwrap()
+            .clone();
+        assert_eq!(diagnostic_world_id(&last_writer), second.0);
+        backend
+            .configure_position_motor_diagnostics(&mut world, first, false)
+            .unwrap();
+        assert_eq!(
+            world.get::<JointPositionMotorDiagnostics>(child),
+            Some(&last_writer)
+        );
+        backend
+            .configure_position_motor_diagnostics(&mut world, second, false)
+            .unwrap();
+        assert!(world.get::<JointPositionMotorDiagnostics>(child).is_none());
+    }
+
+    #[cfg(feature = "position-motor-diagnostics")]
+    #[test]
+    fn diagnostic_collection_preserves_literal_physical_state_and_replays() {
+        fn rollout(enabled: bool, revolute: bool) -> (Vec<Vec<u64>>, Vec<Vec<u64>>) {
+            let (mut backend, id, mut world, child) = motor_diagnostic_fixture(revolute, 10.0, 2.0);
+            backend
+                .configure_position_motor_diagnostics(&mut world, id, enabled)
+                .unwrap();
+            let mut physical = Vec::new();
+            let mut measurements = Vec::new();
+            for index in 0..20 {
+                world.entity_mut(child).insert(diagnostic_position_command(
+                    revolute,
+                    if index < 10 { 10.0 } else { -10.0 },
+                    2.0,
+                ));
+                step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+                let state = backend.world(id).unwrap();
+                let body = &state.bodies[state.entity_to_body[&child]];
+                let (multibody, link_id) = state
+                    .multibody_joints
+                    .get(state.entity_to_multibody_joint[&child])
+                    .unwrap();
+                let mut words = body
+                    .position()
+                    .to_homogeneous()
+                    .iter()
+                    .copied()
+                    .chain(body.linvel().iter().copied())
+                    .chain(body.angvel().iter().copied())
+                    .map(|v| u64::from(v.to_bits()))
+                    .collect::<Vec<_>>();
+                words.extend(
+                    multibody
+                        .joint_velocity(multibody.link(link_id).unwrap())
+                        .iter()
+                        .map(|v| u64::from(v.to_bits())),
+                );
+                let (position, velocity) =
+                    diagnostic_joint_coordinate(*world.get::<JointState>(child).unwrap());
+                words.extend([
+                    position.to_bits(),
+                    velocity.to_bits(),
+                    hash_physics_state(&world),
+                ]);
+                physical.push(words);
+                if let Some(measurement) = world.get::<JointPositionMotorDiagnostics>(child) {
+                    measurements.push(diagnostic_literal_words(measurement));
+                }
+            }
+            (physical, measurements)
+        }
+        for revolute in [true, false] {
+            let first = rollout(true, revolute);
+            let repeat = rollout(true, revolute);
+            let disabled = rollout(false, revolute);
+            assert_eq!(first.0, repeat.0);
+            assert_eq!(first.0, disabled.0);
+            assert_eq!(first.1, repeat.1);
+            assert_eq!(first.1.len(), 20);
+            assert!(disabled.1.is_empty());
+        }
+    }
+
+    fn commanded_root_fixture(
+        axis: Vec3,
+        contacts: bool,
+    ) -> (RapierBackend, PhysicsWorldId, World, Entity, Entity) {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let root = world
+            .spawn((
+                RigidBody {
+                    body_type: RigidBodyType::Kinematic,
+                    ..RigidBody::default()
+                },
+                MultibodyLink,
+                CommandedKinematicPose,
+                Transform3::default(),
+            ))
+            .id();
+        let offset = if contacts { Vec3::ZERO } else { Vec3::X };
+        let child = world
+            .spawn((
+                RigidBody::default(),
+                MultibodyLink,
+                PhysicsOwnedPose,
+                Transform3::from_translation_rotation(offset, Quat::IDENTITY),
+                PrismaticJointDesc {
+                    parent: root,
+                    axis,
+                    anchor_parent_m: offset,
+                    anchor_child_m: Vec3::ZERO,
+                    relative_rotation: Quat::IDENTITY,
+                    lower_m: None,
+                    upper_m: None,
+                },
+            ))
+            .id();
+        if contacts {
+            world
+                .entity_mut(child)
+                .insert(Collider::cuboid(Vec3::splat(0.05)));
+        }
+        (backend, id, world, root, child)
+    }
+
+    #[test]
+    fn commanded_root_pose_and_child_velocity_follow_translation_and_turning() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        for substeps in [1, 4] {
+            let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::Y, false);
+            backend
+                .world_mut(id)
+                .unwrap()
+                .integration_parameters
+                .num_solver_iterations = std::num::NonZeroUsize::new(substeps).unwrap();
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let command = Transform3::from_translation_rotation(
+                Vec3::new(0.002, 0.0, 0.0),
+                Quat::from_rotation_y(0.002),
+            );
+            world.entity_mut(root).insert(command);
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let state = backend.world(id).unwrap();
+            let root_body = &state.bodies[state.entity_to_body[&root]];
+            let child_body = &state.bodies[state.entity_to_body[&child]];
+            assert!((root_body.translation().x - 0.002).abs() < 1e-6);
+            assert!((root_body.rotation().angle() - 0.002).abs() < 1e-6);
+            let expected = command.translation + command.rotation * Vec3::X;
+            assert!(
+                (world.get::<Transform3>(child).unwrap().translation - expected).length() < 1e-5
+            );
+            assert!((root_body.linvel().x - 1.0).abs() < 1e-5);
+            assert!((root_body.angvel().y - 1.0).abs() < 1e-5);
+            assert!((child_body.linvel().x - 1.0).abs() < 0.003);
+            assert!((child_body.linvel().z + 1.0).abs() < 0.003);
+        }
+    }
+
+    #[test]
+    fn rotating_kinematic_root_with_offset_com_has_correct_com_velocity() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::Y, false);
+        world.entity_mut(root).insert(RigidBodyInertia {
+            center_of_mass_local_m: Vec3::new(0.3, 0.2, 0.1),
+            ixx_kg_m2: 0.02,
+            ixy_kg_m2: 0.0,
+            ixz_kg_m2: 0.0,
+            iyy_kg_m2: 0.02,
+            iyz_kg_m2: 0.0,
+            izz_kg_m2: 0.02,
+        });
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::ZERO,
+                Quat::from_rotation_y(0.002),
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let state = backend.world(id).unwrap();
+        let rb = &state.bodies[state.entity_to_body[&root]];
+        assert!(
+            (rb.linvel().x - 0.1).abs() < 0.001,
+            "root velocity {:?}",
+            rb.linvel()
+        );
+        assert!((rb.linvel().z + 0.3).abs() < 0.001);
+        let child_body = &state.bodies[state.entity_to_body[&child]];
+        assert!(child_body.linvel().x.abs() < 0.003);
+        assert!((child_body.linvel().z + 1.0).abs() < 0.003);
+    }
+
+    #[test]
+    fn commanded_root_contact_against_fixed_wall_cancels_base_velocity() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::X, true);
+        world.spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.1, 0.0, 0.0), Quat::IDENTITY),
+        ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        // A nonzero initial relative velocity makes the wall impulse necessary:
+        // the base velocity jump alone only reduces relative velocity to zero.
+        let state = backend.world_mut(id).unwrap();
+        let handle = state.entity_to_multibody_joint[&child];
+        let mb = state.multibody_joints.get_mut(handle).unwrap().0;
+        mb.damping_mut().fill(0.0);
+        mb.generalized_velocity_mut().fill(1.0);
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::X * 0.002,
+                Quat::IDENTITY,
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let qdot = backend.multibody_joint_velocity(id, child).unwrap();
+        assert!(
+            (qdot + 1.0).abs() < 0.01,
+            "wall should cancel 1 m/s base velocity; qdot={qdot}"
+        );
+    }
+
+    #[test]
+    fn accelerating_root_leaves_free_slider_stationary_in_world() {
+        let replay = || {
+            let mut trajectory = Vec::new();
+            let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+            let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::X, false);
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            // This analytic free-slider fixture has no physical/numerical joint damper.
+            let state = backend.world_mut(id).unwrap();
+            let handle = state.entity_to_multibody_joint[&child];
+            state
+                .multibody_joints
+                .get_mut(handle)
+                .unwrap()
+                .0
+                .damping_mut()
+                .fill(0.0);
+            for index in 1..=200 {
+                let t = index as f64 * 0.002;
+                let position = if index <= 100 {
+                    0.5 * t * t
+                } else {
+                    0.02 + 0.2 * (t - 0.2) - 0.5 * (t - 0.2).powi(2)
+                };
+                world
+                    .entity_mut(root)
+                    .insert(Transform3::from_translation_rotation(
+                        Vec3::X * position,
+                        Quat::IDENTITY,
+                    ));
+                backend.sync_from_ecs(&mut world, id).unwrap();
+                backend.step(id, dt).unwrap();
+                backend.sync_to_ecs(&mut world, id).unwrap();
+                for entity in [root, child] {
+                    let transform = world.get::<Transform3>(entity).unwrap();
+                    for value in transform
+                        .translation
+                        .to_array()
+                        .into_iter()
+                        .chain(transform.rotation.to_array())
+                    {
+                        trajectory.push(value.to_bits());
+                    }
+                }
+                trajectory.push(
+                    backend
+                        .multibody_joint_velocity(id, child)
+                        .unwrap()
+                        .to_bits(),
+                );
+                assert!(
+                    (world.get::<Transform3>(child).unwrap().translation.x - 1.0).abs() < 1e-5,
+                    "step {index}, pose {:?}",
+                    world.get::<Transform3>(child).unwrap()
+                );
+            }
+            trajectory
+        };
+        let first = replay();
+        let second = replay();
+        assert_eq!(first, second, "all fixed-order trajectory bits must replay");
+        let hash = |values: &[u64]| {
+            values
+                .iter()
+                .flat_map(|value| value.to_le_bytes())
+                .fold(0xcbf29ce484222325_u64, |hash, byte| {
+                    (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
+                })
+        };
+        assert_eq!(hash(&first), hash(&second));
+    }
+
+    #[test]
+    fn commanded_root_contact_transfers_prescribed_normal_velocity() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, _) = commanded_root_fixture(Vec3::Y, true);
+        let cube = world
+            .spawn((
+                RigidBody::default(),
+                Collider::cuboid(Vec3::splat(0.05)),
+                Transform3::from_translation_rotation(Vec3::new(0.1, 0.0, 0.0), Quat::IDENTITY),
+            ))
+            .id();
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::X * 0.002,
+                Quat::IDENTITY,
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let speed = world.get::<RigidBody>(cube).unwrap().linear_velocity_m_s.x;
+        assert!(
+            (speed - 1.0).abs() < 0.01,
+            "expected 1 m/s prescribed contact speed, got {speed}"
+        );
+    }
+
+    #[test]
+    fn ccd_substeps_preserve_root_endpoint_and_free_slider_world_velocity() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::X, false);
+        let bullet = world
+            .spawn((
+                RigidBody {
+                    linear_velocity_m_s: Vec3::ZERO,
+                    ..RigidBody::default()
+                },
+                Collider::cuboid(Vec3::splat(0.02)),
+                Transform3::from_translation_rotation(Vec3::new(10.0, 0.0, -0.4), Quat::IDENTITY),
+            ))
+            .id();
+        world.spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::new(0.5, 0.5, 0.02)),
+            Transform3::from_translation_rotation(Vec3::new(10.0, 0.0, 0.0), Quat::IDENTITY),
+        ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        world
+            .entity_mut(bullet)
+            .get_mut::<RigidBody>()
+            .unwrap()
+            .linear_velocity_m_s = Vec3::Z * 1000.0;
+        let state = backend.world_mut(id).unwrap();
+        state.bodies[state.entity_to_body[&bullet]].enable_ccd(true);
+        state.integration_parameters.max_ccd_substeps = 4;
+        let handle = state.entity_to_multibody_joint[&child];
+        state
+            .multibody_joints
+            .get_mut(handle)
+            .unwrap()
+            .0
+            .damping_mut()
+            .fill(0.0);
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::X * 0.002,
+                Quat::IDENTITY,
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        world
+            .entity_mut(root)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::X * 0.004,
+                Quat::IDENTITY,
+            ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.step(id, dt).unwrap();
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let state = backend.world(id).unwrap();
+        assert!(
+            state.physics_pipeline.counters.ccd.num_substeps > 1,
+            "fixture must actually split the CCD step: count={}, bullet={:?}, velocity={:?}",
+            state.physics_pipeline.counters.ccd.num_substeps,
+            state.bodies[state.entity_to_body[&bullet]].translation(),
+            state.bodies[state.entity_to_body[&bullet]].linvel()
+        );
+        assert!((state.bodies[state.entity_to_body[&root]].translation().x - 0.004).abs() < 1e-7);
+        assert!((world.get::<Transform3>(child).unwrap().translation.x - 1.0).abs() < 1e-5);
+        assert!(state.bodies[state.entity_to_body[&child]].linvel().norm() < 1e-5);
+    }
+
+    #[test]
+    fn rotating_root_transfers_tangential_velocity_through_friction() {
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+        let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::Y, false);
+        let mut pad = Collider::cuboid(Vec3::new(0.05, 0.4, 0.4));
+        pad.material.friction = 1.0;
+        world.entity_mut(child).insert(pad);
+        let mut cube_shape = Collider::cuboid(Vec3::splat(0.05));
+        cube_shape.material.friction = 1.0;
+        let cube = world
+            .spawn((
+                RigidBody::default(),
+                PhysicsOwnedPose,
+                cube_shape,
+                Transform3::from_translation_rotation(Vec3::new(1.1, 0.0, 0.0), Quat::IDENTITY),
+            ))
+            .id();
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        backend.world_mut(id).unwrap().gravity = Vector3::new(-100.0, 0.0, 0.0);
+        for _ in 0..10 {
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+        }
+        for index in 1..=50 {
+            world
+                .entity_mut(root)
+                .insert(Transform3::from_translation_rotation(
+                    Vec3::ZERO,
+                    Quat::from_rotation_y(index as f64 * 0.002),
+                ));
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+        }
+        let speed = world.get::<RigidBody>(cube).unwrap().linear_velocity_m_s.z;
+        assert!(
+            speed < -0.8,
+            "normal load and rotating pad must transmit tangential speed, got {speed}"
+        );
+    }
+
+    #[test]
+    fn equally_prescribed_multibodies_have_no_relative_contact_velocity() {
+        let check = |speed: f64| {
+            let dt = SimDuration::from_hertz(rne_math::Hertz::new(500.0));
+            let (mut backend, id, mut world, root, child) = commanded_root_fixture(Vec3::X, false);
+            world
+                .entity_mut(child)
+                .insert(Collider::cuboid(Vec3::splat(0.05)));
+            let root2 = world
+                .spawn((
+                    RigidBody {
+                        body_type: RigidBodyType::Kinematic,
+                        ..RigidBody::default()
+                    },
+                    MultibodyLink,
+                    CommandedKinematicPose,
+                    Transform3::from_translation_rotation(Vec3::X * 0.1, Quat::IDENTITY),
+                ))
+                .id();
+            let child2 = world
+                .spawn((
+                    RigidBody::default(),
+                    MultibodyLink,
+                    PhysicsOwnedPose,
+                    Collider::cuboid(Vec3::splat(0.05)),
+                    Transform3::from_translation_rotation(Vec3::X * 1.1, Quat::IDENTITY),
+                    PrismaticJointDesc {
+                        parent: root2,
+                        axis: Vec3::X,
+                        anchor_parent_m: Vec3::X,
+                        anchor_child_m: Vec3::ZERO,
+                        relative_rotation: Quat::IDENTITY,
+                        lower_m: None,
+                        upper_m: None,
+                    },
+                ))
+                .id();
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let state = backend.world_mut(id).unwrap();
+            for entity in [child, child2] {
+                let handle = state.entity_to_multibody_joint[&entity];
+                let mb = state.multibody_joints.get_mut(handle).unwrap().0;
+                mb.damping_mut().fill(0.0);
+                mb.generalized_velocity_mut().fill(speed as f32);
+            }
+            for (entity, x) in [(root, speed * 0.002), (root2, 0.1 + speed * 0.002)] {
+                world
+                    .entity_mut(entity)
+                    .insert(Transform3::from_translation_rotation(
+                        Vec3::X * x,
+                        Quat::IDENTITY,
+                    ));
+            }
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, dt).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let state = backend.world(id).unwrap();
+            for (entity, x) in [
+                (root, (speed * 0.002) as f32),
+                (root2, (0.1 + speed * 0.002) as f32),
+            ] {
+                let body = &state.bodies[state.entity_to_body[&entity]];
+                assert!((body.translation().x - x).abs() < 1e-6);
+                assert!((body.linvel().x - speed as f32).abs() < 1e-5);
+            }
+            assert!(
+                !state.contacts.is_empty(),
+                "fixture must have active contact"
+            );
+            assert!(state
+                .contacts
+                .iter()
+                .all(|contact| contact.impulse.abs() < 1e-5));
+            for entity in [child, child2] {
+                assert!(backend.multibody_joint_velocity(id, entity).unwrap().abs() < 1e-5);
+                assert!(
+                    (state.bodies[state.entity_to_body[&entity]].linvel().x - speed as f32).abs()
+                        < 1e-5
+                );
+            }
+        };
+        for speed in [-1.0, 1.0] {
+            check(speed);
+        }
+    }
+
+    fn fixed_step() -> SimDuration {
+        SimDuration::from_hertz(rne_math::Hertz::new(60.0))
+    }
+
+    fn setup_world() -> (RapierBackend, PhysicsWorldId, World, Entity, Entity) {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc::default())
+            .expect("physics world");
+
+        let mut world = World::new();
+        let ground = spawn_named(&mut world, "ground");
+        world.entity_mut(ground).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape: ColliderShape::Cuboid {
+                    half_extents_m: Vec3::new(10.0, 0.5, 10.0),
+                },
+                ..Collider::default()
+            },
+            Transform3::from_translation_rotation(Vec3::new(0.0, -0.5, 0.0), Quat::IDENTITY),
+        ));
+
+        let cube = spawn_named(&mut world, "cube");
+        world.entity_mut(cube).insert((
+            RigidBody::default(),
+            Collider::cuboid(Vec3::splat(0.5)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 5.0, 0.0), Quat::IDENTITY),
+        ));
+
+        (backend, physics_world, world, ground, cube)
+    }
+
+    /// Drives a motorised foot into a ground surface and reports its rest height.
+    ///
+    /// The foot is a 22 mm sphere on a prismatic multibody joint whose position
+    /// motor commands it 0.40 m below the hip — well past the ground — which is
+    /// the regime a stiff legged stance puts its feet in.
+    fn motorised_foot_rest_height_m(solid_ground: bool, hz: f64) -> (f64, f64) {
+        let mut backend = RapierBackend::new();
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        let mut world = World::new();
+
+        let ground = spawn_named(&mut world, "ground");
+        let (shape, pose) = if solid_ground {
+            (
+                ColliderShape::Cuboid {
+                    half_extents_m: Vec3::new(10.0, 0.5, 10.0),
+                },
+                Transform3::from_translation_rotation(Vec3::new(0.0, -0.5, 0.0), Quat::IDENTITY),
+            )
+        } else {
+            let (nrows, ncols) = (2u32, 33u32);
+            let heights: Vec<f64> = vec![0.0; (nrows * ncols) as usize];
+            (
+                ColliderShape::HeightField {
+                    nrows,
+                    ncols,
+                    heights_m: heights.into(),
+                    scale: Vec3::new(20.0, 1.0, 20.0),
+                },
+                Transform3::IDENTITY,
+            )
+        };
+        world.entity_mut(ground).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape,
+                ..Collider::default()
+            },
+            pose,
+        ));
+
+        let hip = spawn_named(&mut world, "hip");
+        world.entity_mut(hip).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.02)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 0.35, 0.0), Quat::IDENTITY),
+            MultibodyLink,
+        ));
+        let foot = spawn_named(&mut world, "foot");
+        world.entity_mut(foot).insert((
+            RigidBody {
+                mass_kg: 1.5,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape: ColliderShape::Sphere { radius_m: 0.022 },
+                ..Collider::default()
+            },
+            Transform3::from_translation_rotation(Vec3::new(0.0, 0.10, 0.0), Quat::IDENTITY),
+            MultibodyLink,
+            PrismaticJointDesc {
+                parent: hip,
+                axis: Vec3::new(0.0, 1.0, 0.0),
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: Quat::IDENTITY,
+                lower_m: None,
+                upper_m: None,
+            },
+            JointMotor {
+                target_position: -0.40,
+                stiffness: 4000.0,
+                gain: 100.0,
+                max_force: 200.0,
+                ..JointMotor::default()
+            },
+        ));
+
+        let dt = SimDuration::from_hertz(rne_math::Hertz::new(hz));
+        let mut min_height_m = f64::INFINITY;
+        for _ in 0..((7.0 * hz) as usize) {
+            step_physics(&mut backend, &mut world, id, dt).unwrap();
+            let height_m = world.get::<Transform3>(foot).unwrap().translation.y;
+            min_height_m = min_height_m.min(height_m);
+        }
+        let rest_m = world.get::<Transform3>(foot).unwrap().translation.y;
+        (rest_m, min_height_m)
+    }
+
+    /// A height field is an open surface, so a penetration it suffers is final.
+    ///
+    /// This characterizes a hazard rather than asserting desired behaviour: a
+    /// stiff position motor out-muscles the contact within one step at 60 Hz on
+    /// *either* ground, but a solid volume pushes the foot back out while a
+    /// height field cannot, and the foot is lost. Raising the rate keeps the
+    /// per-step penetration small enough that it never happens.
+    #[test]
+    fn a_stiff_motor_is_lost_through_an_open_height_field_but_not_through_a_solid_volume() {
+        const RADIUS_M: f64 = 0.022;
+
+        // At 60 Hz both grounds are penetrated, and only the solid one recovers.
+        let (solid_rest_m, solid_min_m) = motorised_foot_rest_height_m(true, 60.0);
+        let (field_rest_m, field_min_m) = motorised_foot_rest_height_m(false, 60.0);
+        assert!(
+            solid_min_m < 0.0,
+            "the solid ground was expected to be penetrated too: {solid_min_m}"
+        );
+        assert!(
+            solid_rest_m > 0.0,
+            "a solid volume must push the foot back out, rested at {solid_rest_m}"
+        );
+        assert!(
+            field_rest_m < -RADIUS_M,
+            "the open surface was expected to lose the foot, rested at {field_rest_m}"
+        );
+        assert!(field_min_m < field_rest_m + 1.0e-9);
+
+        // A finer step keeps the penetration inside what contact can resolve.
+        for hz in [240.0, 960.0] {
+            let (rest_m, min_m) = motorised_foot_rest_height_m(false, hz);
+            assert!(
+                rest_m > 0.0 && min_m > 0.0,
+                "{hz} Hz should hold the foot on the surface: rest {rest_m}, min {min_m}"
+            );
+        }
+    }
+
+    #[test]
+    fn signed_contact_separations_include_zero_impulse_and_respect_filters() {
+        for (gap, filtered) in [(0.0, false), (0.001, false), (-0.1, false), (-0.1, true)] {
+            let mut backend = RapierBackend::new();
+            let id = backend
+                .create_world(PhysicsWorldDesc {
+                    gravity_m_s2: Vec3::ZERO,
+                    ..PhysicsWorldDesc::default()
+                })
+                .unwrap();
+            let mut world = World::new();
+            let a = spawn_named(&mut world, "a");
+            let b = spawn_named(&mut world, "b");
+            for (entity, x, kind) in [
+                (a, 0.0, RigidBodyType::Fixed),
+                (b, 2.0 + gap, RigidBodyType::Dynamic),
+            ] {
+                world.entity_mut(entity).insert((
+                    RigidBody {
+                        body_type: kind,
+                        ..RigidBody::default()
+                    },
+                    Collider {
+                        shape: ColliderShape::Sphere { radius_m: 1.0 },
+                        ..Collider::default()
+                    },
+                    Transform3::from_translation_rotation(Vec3::new(x, 0.0, 0.0), Quat::IDENTITY),
+                ));
+                if filtered {
+                    world
+                        .entity_mut(entity)
+                        .insert(CollisionGroups::without_self_collision(1));
+                }
+            }
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, fixed_step()).unwrap();
+            let samples = backend.contact_separations(id).unwrap();
+            if filtered {
+                assert!(samples.is_empty());
+                continue;
+            }
+            assert_eq!(samples.len(), 1);
+            assert_eq!((samples[0].entity_a, samples[0].entity_b), (a, b));
+            if gap < 0.0 {
+                // Solver substeps may already have reduced the initial overlap.
+                assert!(samples[0].min_separation_m < 0.0);
+                assert!(samples[0].min_separation_m >= gap - 1e-6);
+            } else {
+                assert_relative_eq!(samples[0].min_separation_m, gap, epsilon = 1e-6);
+            }
+            if gap >= 0.0 {
+                assert!(backend
+                    .contacts(id)
+                    .unwrap()
+                    .iter()
+                    .all(|c| c.impulse == 0.0));
+            }
+            for entity in [a, b] {
+                world
+                    .entity_mut(entity)
+                    .insert(CollisionGroups::without_self_collision(1));
+            }
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend.step(id, fixed_step()).unwrap();
+            assert!(backend.contact_separations(id).unwrap().is_empty());
+        }
+    }
+
+    #[test]
+    fn convex_hull_raycast_excludes_aabb_corners_and_preserves_declared_mass() {
+        let mut backend = RapierBackend::new();
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        let mut world = World::new();
+        let body = spawn_named(&mut world, "tetrahedron");
+        let mut collider = Collider::cuboid(Vec3::ONE);
+        collider.local_offset.translation = Vec3::splat(50.0);
+        world.entity_mut(body).insert((
+            RigidBody {
+                mass_kg: 3.0,
+                ..RigidBody::default()
+            },
+            RigidBodyInertia {
+                center_of_mass_local_m: Vec3::splat(0.25),
+                ixx_kg_m2: 0.1,
+                ixy_kg_m2: 0.0,
+                ixz_kg_m2: 0.0,
+                iyy_kg_m2: 0.1,
+                iyz_kg_m2: 0.0,
+                izz_kg_m2: 0.1,
+            },
+            collider,
+            ConvexCollider {
+                vertices_m: vec![Vec3::ZERO, Vec3::X, Vec3::Y, Vec3::Z],
+            },
+            Transform3::IDENTITY,
+        ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        let hits = backend
+            .raycast(id, RaycastQuery::downward(Vec3::new(0.1, 2.0, 0.1), 3.0))
+            .unwrap();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].entity, body);
+        assert_relative_eq!(hits[0].point_m.y, 0.8, epsilon = 1e-5);
+        assert!(backend
+            .raycast(id, RaycastQuery::downward(Vec3::new(0.8, 2.0, 0.8), 3.0))
+            .unwrap()
+            .is_empty());
+        backend.step(id, fixed_step()).unwrap();
+        let state = backend.world(id).unwrap();
+        assert_relative_eq!(
+            state.bodies[state.entity_to_body[&body]].mass() as f64,
+            3.0,
+            epsilon = 1e-6
+        );
+    }
+
+    #[test]
+    fn convex_hull_rejects_invalid_geometry_and_conflicting_components() {
+        let valid = vec![Vec3::ZERO, Vec3::X, Vec3::Y, Vec3::Z];
+        for vertices_m in [
+            vec![],
+            vec![Vec3::ZERO; 4],
+            vec![Vec3::ZERO, Vec3::X, Vec3::Y, Vec3::X + Vec3::Y],
+            vec![Vec3::ZERO, Vec3::X, Vec3::Y, Vec3::splat(f64::NAN)],
+            vec![Vec3::ZERO, Vec3::X, Vec3::Y, Vec3::splat(f64::MAX)],
+        ] {
+            let mut backend = RapierBackend::new();
+            let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+            let mut world = World::new();
+            world.spawn((
+                RigidBody::default(),
+                Collider::default(),
+                ConvexCollider { vertices_m },
+            ));
+            assert!(matches!(
+                backend.sync_from_ecs(&mut world, id),
+                Err(PhysicsError::InitializationFailed)
+            ));
+        }
+        for with_companion in [false, true] {
+            let mut backend = RapierBackend::new();
+            let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+            let mut world = World::new();
+            let mut entity = world.spawn((
+                RigidBody::default(),
+                ConvexCollider {
+                    vertices_m: valid.clone(),
+                },
+            ));
+            if with_companion {
+                entity.insert((Collider::default(), CompoundCollider { parts: vec![] }));
+            }
+            assert!(matches!(
+                backend.sync_from_ecs(&mut world, id),
+                Err(PhysicsError::InitializationFailed)
+            ));
+        }
+    }
+
+    #[test]
+    fn compound_spheres_leave_a_gap_and_preserve_declared_mass() {
+        let mut backend = RapierBackend::new();
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        let mut world = World::new();
+        let foot = spawn_named(&mut world, "foot");
+        let parts = [-0.2, 0.2].map(|x| rne_physics::ColliderPart {
+            shape: ColliderShape::Sphere { radius_m: 0.04 },
+            local_offset: Transform3::from_translation_rotation(
+                Vec3::new(x, 0.0, 0.0),
+                Quat::IDENTITY,
+            ),
+        });
+        world.entity_mut(foot).insert((
+            RigidBody {
+                mass_kg: 3.0,
+                ..RigidBody::default()
+            },
+            RigidBodyInertia {
+                center_of_mass_local_m: Vec3::ZERO,
+                ixx_kg_m2: 0.01,
+                ixy_kg_m2: 0.0,
+                ixz_kg_m2: 0.0,
+                iyy_kg_m2: 0.01,
+                iyz_kg_m2: 0.0,
+                izz_kg_m2: 0.01,
+            },
+            Collider::cuboid(Vec3::new(0.24, 0.04, 0.04)),
+            CompoundCollider {
+                parts: parts.to_vec(),
+            },
+            Transform3::IDENTITY,
+        ));
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        assert!(backend
+            .raycast(id, RaycastQuery::downward(Vec3::Y, 2.0))
+            .unwrap()
+            .is_empty());
+        for x in [-0.2, 0.2] {
+            let hits = backend
+                .raycast(id, RaycastQuery::downward(Vec3::new(x, 1.0, 0.0), 2.0))
+                .unwrap();
+            assert_eq!(hits.len(), 1);
+            assert_eq!(hits[0].entity, foot);
+            assert_relative_eq!(hits[0].point_m.y, 0.04, epsilon = 1e-5);
+        }
+        // Rapier finalizes newly attached collider mass properties on its first step.
+        backend.step(id, fixed_step()).unwrap();
+        let state = backend.world(id).unwrap();
+        let body = &state.bodies[state.entity_to_body[&foot]];
+        assert_relative_eq!(body.mass() as f64, 3.0, epsilon = 1e-6);
+        world
+            .entity_mut(foot)
+            .insert(CompoundCollider { parts: Vec::new() });
+        assert!(matches!(
+            backend.sync_from_ecs(&mut world, id),
+            Err(PhysicsError::InitializationFailed)
+        ));
+    }
+
+    #[test]
+    fn compound_child_contact_points_and_relative_velocities_use_world_frames() {
+        for dynamic_first in [false, true] {
+            let mut backend = RapierBackend::new();
+            let id = backend
+                .create_world(PhysicsWorldDesc {
+                    gravity_m_s2: Vec3::ZERO,
+                    ..PhysicsWorldDesc::default()
+                })
+                .unwrap();
+            let mut world = World::new();
+            let (fixed, moving) = if dynamic_first {
+                let moving = spawn_named(&mut world, "moving");
+                (spawn_named(&mut world, "fixed"), moving)
+            } else {
+                let fixed = spawn_named(&mut world, "fixed");
+                (fixed, spawn_named(&mut world, "moving"))
+            };
+            let fixed_offset = Transform3::from_translation_rotation(
+                Vec3::new(0.7, -0.2, 0.4),
+                Quat::from_rotation_y(0.7) * Quat::from_rotation_x(-0.4),
+            );
+            let moving_offset = Transform3::from_translation_rotation(
+                Vec3::new(-0.3, 0.6, -0.5),
+                Quat::from_rotation_x(0.8) * Quat::from_rotation_z(-0.5),
+            );
+            for (entity, kind, center_m, rotation, offset) in [
+                (
+                    fixed,
+                    RigidBodyType::Fixed,
+                    Vec3::new(3.0, 1.0, -2.0),
+                    Quat::from_rotation_z(0.6),
+                    fixed_offset,
+                ),
+                (
+                    moving,
+                    RigidBodyType::Dynamic,
+                    Vec3::new(3.97, 1.0, -2.0),
+                    Quat::from_rotation_y(-0.4),
+                    moving_offset,
+                ),
+            ] {
+                world.entity_mut(entity).insert((
+                    RigidBody {
+                        body_type: kind,
+                        linear_velocity_m_s: if kind == RigidBodyType::Dynamic {
+                            Vec3::new(-0.2, 0.05, 0.0)
+                        } else {
+                            Vec3::ZERO
+                        },
+                        angular_velocity_rad_s: if kind == RigidBodyType::Dynamic {
+                            Vec3::new(0.0, 0.75, -0.6)
+                        } else {
+                            Vec3::ZERO
+                        },
+                        ..RigidBody::default()
+                    },
+                    Collider {
+                        shape: ColliderShape::Sphere { radius_m: 0.5 },
+                        ..Collider::default()
+                    },
+                    CompoundCollider {
+                        parts: vec![rne_physics::ColliderPart {
+                            shape: ColliderShape::Sphere { radius_m: 0.5 },
+                            local_offset: offset,
+                        }],
+                    },
+                    Transform3::from_translation_rotation(
+                        center_m - rotation * offset.translation,
+                        rotation,
+                    ),
+                ));
+            }
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend
+                .step(id, SimDuration::from_hertz(rne_math::Hertz::new(1000.0)))
+                .unwrap();
+            let samples = backend.contact_points(id).unwrap();
+            assert_eq!(samples.len(), 1);
+            let sample = &samples[0];
+            let state = backend.world(id).unwrap();
+            assert!(state.narrow_phase.contact_pairs().any(|pair| {
+                pair.manifolds.iter().any(|manifold| {
+                    manifold.subshape_pos1.is_some() && manifold.subshape_pos2.is_some()
+                })
+            }));
+            let fixed_body = &state.bodies[state.entity_to_body[&fixed]];
+            let moving_body = &state.bodies[state.entity_to_body[&moving]];
+            let fixed_center_m =
+                vec3_from_point(fixed_body.position() * vec3_to_point(fixed_offset.translation));
+            let moving_center_m =
+                vec3_from_point(moving_body.position() * vec3_to_point(moving_offset.translation));
+            // Equal spheres touch at the midpoint of their surface witnesses.
+            // Allow the small separation between the manifold and final poses.
+            let expected_point_m = (fixed_center_m + moving_center_m) * 0.5;
+            assert!(
+                (sample.point_world_m - expected_point_m).length() < 0.002,
+                "reported point {:?}, sphere midpoint {expected_point_m:?}",
+                sample.point_world_m
+            );
+            let (entity_a, entity_b) = if dynamic_first {
+                (moving, fixed)
+            } else {
+                (fixed, moving)
+            };
+            assert_eq!((sample.entity_a, sample.entity_b), (entity_a, entity_b));
+            let velocity_at_point = |entity: Entity, point_m: Vec3| {
+                let body = &state.bodies[state.entity_to_body[&entity]];
+                vec3_from_rapier(*body.linvel())
+                    + vec3_from_rapier(*body.angvel())
+                        .cross(point_m - vec3_from_point(*body.center_of_mass()))
+            };
+            let expected_velocity_m_s = velocity_at_point(entity_b, expected_point_m)
+                - velocity_at_point(entity_a, expected_point_m);
+            assert!(
+                (sample.velocity_b_relative_to_a_world_m_s - expected_velocity_m_s).length()
+                    < 0.003,
+                "reported relative velocity {:?}, expected {expected_velocity_m_s:?}",
+                sample.velocity_b_relative_to_a_world_m_s
+            );
+            let exact_velocity_m_s = velocity_at_point(entity_b, sample.point_world_m)
+                - velocity_at_point(entity_a, sample.point_world_m);
+            assert!(
+                (sample.velocity_b_relative_to_a_world_m_s - exact_velocity_m_s).length() < 1.0e-6
+            );
+        }
+    }
+
+    #[test]
+    fn falling_cube_moves_downward() {
+        let (mut backend, physics_world, mut world, _, cube) = setup_world();
+        let dt = fixed_step();
+
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        for _ in 0..30 {
+            backend.step(physics_world, dt).unwrap();
+            backend.sync_to_ecs(&mut world, physics_world).unwrap();
+        }
+
+        let y = world
+            .get::<Transform3>(cube)
+            .expect("cube transform")
+            .translation
+            .y;
+        assert!(y < 5.0, "cube should fall from initial height, y={y}");
+        assert!(y > 0.0, "cube should rest above ground, y={y}");
+    }
+
+    #[test]
+    fn external_wrench_is_world_frame_force_at_point_and_lasts_one_step() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 0,
+            })
+            .expect("physics world");
+        let mut world = World::new();
+        let body = spawn_named(&mut world, "wrench body");
+        world.entity_mut(body).insert((
+            RigidBody::default(),
+            Collider::cuboid(Vec3::splat(0.5)),
+            Transform3::IDENTITY,
+        ));
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+
+        backend
+            .apply_external_body_wrench(
+                physics_world,
+                ExternalBodyWrench {
+                    entity: body,
+                    point_world_m: Vec3::Y,
+                    force_world_n: Vec3::X * 60.0,
+                    torque_world_nm: Vec3::ZERO,
+                },
+            )
+            .unwrap();
+        backend.step(physics_world, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, physics_world).unwrap();
+        let after_forced_step = *world.get::<RigidBody>(body).unwrap();
+        assert!(after_forced_step.linear_velocity_m_s.x > 0.0);
+        assert!(after_forced_step.angular_velocity_rad_s.z < 0.0);
+
+        backend.step(physics_world, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, physics_world).unwrap();
+        let after_unforced_step = *world.get::<RigidBody>(body).unwrap();
+        assert_relative_eq!(
+            after_unforced_step.linear_velocity_m_s.x,
+            after_forced_step.linear_velocity_m_s.x,
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            after_unforced_step.angular_velocity_rad_s.z,
+            after_forced_step.angular_velocity_rad_s.z,
+            epsilon = 1.0e-6
+        );
+    }
+
+    #[test]
+    fn external_wrench_rejects_nonfinite_and_fixed_targets_without_mutation() {
+        let (mut backend, physics_world, mut world, ground, cube) = setup_world();
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+
+        let nonfinite = backend
+            .apply_external_body_wrench(
+                physics_world,
+                ExternalBodyWrench {
+                    entity: cube,
+                    point_world_m: Vec3::ZERO,
+                    force_world_n: Vec3::new(f64::NAN, 0.0, 0.0),
+                    torque_world_nm: Vec3::ZERO,
+                },
+            )
+            .expect_err("non-finite wrench must be rejected");
+        assert!(matches!(
+            nonfinite,
+            PhysicsError::InvalidExternalBodyWrench { entity_index, .. }
+                if entity_index == cube.index()
+        ));
+
+        let fixed = backend
+            .apply_external_body_wrench(
+                physics_world,
+                ExternalBodyWrench {
+                    entity: ground,
+                    point_world_m: Vec3::ZERO,
+                    force_world_n: Vec3::X,
+                    torque_world_nm: Vec3::ZERO,
+                },
+            )
+            .expect_err("fixed body must be rejected");
+        assert!(matches!(
+            fixed,
+            PhysicsError::InvalidExternalBodyWrench { entity_index, .. }
+                if entity_index == ground.index()
+        ));
+    }
+
+    #[test]
+    fn collision_groups_disable_same_group_contacts() {
+        let (mut backend, physics_world, mut world, ground, cube) = setup_world();
+        let groups = CollisionGroups::without_self_collision(1);
+        world.entity_mut(ground).insert(groups);
+        world.entity_mut(cube).insert(groups);
+
+        for _ in 0..90 {
+            step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        }
+
+        let y = world
+            .get::<Transform3>(cube)
+            .expect("cube transform")
+            .translation
+            .y;
+        assert!(
+            y < 0.0,
+            "same-group filtering should let cube pass through ground, y={y}"
+        );
+    }
+
+    #[test]
+    fn runtime_sensor_and_collision_group_updates_report_force_free_overlap() {
+        let (mut backend, physics_world, mut world, _, cube) = setup_world();
+        let sensor = spawn_named(&mut world, "sensor");
+        world.entity_mut(sensor).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape: ColliderShape::Cuboid {
+                    half_extents_m: Vec3::splat(0.5),
+                },
+                sensor: false,
+                ..Collider::default()
+            },
+            Transform3::from_translation_rotation(Vec3::new(0.0, 5.0, 0.0), Quat::IDENTITY),
+        ));
+        let filtered = CollisionGroups::without_self_collision(1);
+        world.entity_mut(sensor).insert(filtered);
+        world.entity_mut(cube).insert(filtered);
+
+        step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        assert!(backend.contacts(physics_world).unwrap().is_empty());
+
+        world.entity_mut(sensor).insert(CollisionGroups::default());
+        world.entity_mut(cube).insert(CollisionGroups::default());
+        world
+            .get_mut::<Collider>(sensor)
+            .expect("sensor collider")
+            .sensor = true;
+        step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+
+        let overlap = backend
+            .contacts(physics_world)
+            .unwrap()
+            .iter()
+            .find(|contact| {
+                (contact.entity_a == sensor && contact.entity_b == cube)
+                    || (contact.entity_a == cube && contact.entity_b == sensor)
+            })
+            .expect("sensor overlap event");
+        assert_eq!(overlap.impulse, 0.0);
+        assert_eq!(overlap.normal, Vec3::ZERO);
+        let cube_transform = world.get::<Transform3>(cube).expect("cube transform");
+        assert_eq!(cube_transform.translation.x, 0.0);
+        assert_eq!(cube_transform.translation.z, 0.0);
+        assert!(cube_transform.translation.y > 4.99);
+    }
+
+    #[test]
+    fn resting_contact_impulse_matches_steady_state_weight() {
+        // A box resting on the ground plane needs the ground's contact impulse to
+        // balance gravity each step: impulse ≈ weight * dt = m * g * dt on average.
+        // Verifies ContactEvent::impulse carries real solver data (not just a
+        // placeholder zero) and is in the right ballpark once the cube has
+        // settled. A single step's impulse is noisy (the TGS soft solver's bias
+        // term over/under-corrects tick to tick even at rest), so this averages
+        // over a settled window instead of asserting on one step.
+        let (mut backend, physics_world, mut world, ground, cube) = setup_world();
+        let dt = fixed_step();
+
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        for _ in 0..240 {
+            backend.step(physics_world, dt).unwrap();
+            backend.sync_to_ecs(&mut world, physics_world).unwrap();
+            backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        }
+
+        let mut samples = Vec::new();
+        for _ in 0..60 {
+            backend.step(physics_world, dt).unwrap();
+            backend.sync_to_ecs(&mut world, physics_world).unwrap();
+            backend.sync_from_ecs(&mut world, physics_world).unwrap();
+
+            let contacts = backend.contacts(physics_world).unwrap();
+            let impulse = contacts
+                .iter()
+                .find(|contact| {
+                    (contact.entity_a == ground && contact.entity_b == cube)
+                        || (contact.entity_a == cube && contact.entity_b == ground)
+                })
+                .map(|contact| contact.impulse as f64)
+                .expect("cube should be resting in contact with the ground");
+            samples.push(impulse);
+        }
+
+        let mean_impulse = samples.iter().sum::<f64>() / samples.len() as f64;
+        // `setup_world`'s cube has RigidBody::default().mass_kg == 1.0, but Rapier
+        // treats that as ADDITIONAL mass on top of the mass its 1 m^3 collider
+        // contributes at the engine's default density of 1.0 kg/m^3 (see
+        // RigidBodyBuilder::additional_mass docs), so the body's real total mass
+        // is 2.0 kg, not 1.0 kg.
+        let total_mass_kg = 2.0;
+        let expected_impulse = total_mass_kg * 9.81 * dt.as_seconds().value();
+        assert!(
+            mean_impulse > 0.0,
+            "resting contact should carry a nonzero impulse"
+        );
+        assert!(
+            (mean_impulse - expected_impulse).abs() < 0.5 * expected_impulse,
+            "mean resting contact impulse {mean_impulse} should approximate steady-state weight*dt {expected_impulse}"
+        );
+    }
+
+    #[test]
+    fn exact_inertia_replaces_collider_derived_mass_properties() {
+        let (mut backend, physics_world, mut world, _, cube) = setup_world();
+        world.entity_mut(cube).insert(RigidBodyInertia {
+            center_of_mass_local_m: Vec3::new(0.1, -0.2, 0.3),
+            ixx_kg_m2: 0.4,
+            ixy_kg_m2: 0.01,
+            ixz_kg_m2: -0.02,
+            iyy_kg_m2: 0.5,
+            iyz_kg_m2: 0.03,
+            izz_kg_m2: 0.6,
+        });
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        backend.step(physics_world, fixed_step()).unwrap();
+
+        let state = backend.world(physics_world).unwrap();
+        let handle = state.entity_to_body[&cube];
+        let body = &state.bodies[handle];
+        let mass_properties = body.mass_properties();
+        assert_relative_eq!(body.mass() as f64, 1.0, epsilon = 1.0e-6);
+        assert_relative_eq!(
+            mass_properties.local_mprops.local_com.x as f64,
+            0.1,
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            mass_properties.local_mprops.local_com.y as f64,
+            -0.2,
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            mass_properties.local_mprops.local_com.z as f64,
+            0.3,
+            epsilon = 1.0e-6
+        );
+    }
+
+    #[test]
+    fn invalid_exact_inertia_is_rejected_before_step() {
+        let (mut backend, physics_world, mut world, _, cube) = setup_world();
+        world.entity_mut(cube).insert(RigidBodyInertia {
+            center_of_mass_local_m: Vec3::ZERO,
+            ixx_kg_m2: 1.0,
+            ixy_kg_m2: 0.0,
+            ixz_kg_m2: 0.0,
+            iyy_kg_m2: -1.0,
+            iyz_kg_m2: 0.0,
+            izz_kg_m2: 1.0,
+        });
+        assert!(matches!(
+            backend.sync_from_ecs(&mut world, physics_world),
+            Err(PhysicsError::InvalidInertia { .. })
+        ));
+    }
+
+    #[test]
+    fn sync_to_ecs_writes_dynamic_body_velocity() {
+        let (mut backend, physics_world, mut world, _, cube) = setup_world();
+
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        backend.step(physics_world, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, physics_world).unwrap();
+
+        let body = world.get::<RigidBody>(cube).expect("cube body");
+        assert!(
+            body.linear_velocity_m_s.y < 0.0,
+            "falling cube should have downward velocity, got {:?}",
+            body.linear_velocity_m_s
+        );
+    }
+
+    #[test]
+    fn raycast_hits_ground() {
+        let (mut backend, physics_world, mut world, ground, _) = setup_world();
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        backend.step(physics_world, fixed_step()).unwrap();
+
+        let hits = backend
+            .raycast(
+                physics_world,
+                RaycastQuery::downward(Vec3::new(3.0, 10.0, 0.0), 20.0),
+            )
+            .expect("raycast");
+
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].entity, ground);
+        assert_relative_eq!(hits[0].point_m.y, 0.0, epsilon = 0.1);
+    }
+
+    #[test]
+    fn raycast_is_ready_after_sync_and_returns_all_hits_in_distance_order() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc::default())
+            .expect("physics world");
+        let mut world = World::new();
+        let near = spawn_named(&mut world, "near_wall");
+        let far = spawn_named(&mut world, "far_wall");
+        for (entity, x_m) in [(far, 6.0), (near, 3.0)] {
+            world.entity_mut(entity).insert((
+                RigidBody {
+                    body_type: RigidBodyType::Fixed,
+                    ..RigidBody::default()
+                },
+                Collider::cuboid(Vec3::new(0.2, 1.0, 1.0)),
+                Transform3::from_translation_rotation(Vec3::new(x_m, 0.0, 0.0), Quat::IDENTITY),
+            ));
+        }
+
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        let hits = backend
+            .raycast(
+                physics_world,
+                RaycastQuery {
+                    origin_m: Vec3::ZERO,
+                    direction: Vec3::X,
+                    max_distance_m: 10.0,
+                },
+            )
+            .unwrap();
+
+        assert_eq!(hits.len(), 2);
+        assert_eq!(hits[0].entity, near);
+        assert_eq!(hits[1].entity, far);
+        assert!(hits[0].distance_m < hits[1].distance_m);
+    }
+
+    #[test]
+    fn collider_can_be_added_to_and_removed_from_existing_multibody_link() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc::default())
+            .expect("physics world");
+        let mut world = World::new();
+        let link = spawn_named(&mut world, "tool_link");
+        world.entity_mut(link).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            MultibodyLink,
+            Transform3::from_translation_rotation(Vec3::new(0.0, 1.0, 0.0), Quat::IDENTITY),
+        ));
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        backend.step(physics_world, fixed_step()).unwrap();
+        assert!(backend
+            .raycast(
+                physics_world,
+                RaycastQuery::downward(Vec3::new(0.0, 2.0, 0.0), 2.0),
+            )
+            .unwrap()
+            .is_empty());
+
+        world
+            .entity_mut(link)
+            .insert(Collider::cuboid(Vec3::splat(0.1)));
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        backend.step(physics_world, fixed_step()).unwrap();
+        let hits = backend
+            .raycast(
+                physics_world,
+                RaycastQuery::downward(Vec3::new(0.0, 2.0, 0.0), 2.0),
+            )
+            .unwrap();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].entity, link);
+
+        world.entity_mut(link).remove::<Collider>();
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        backend.step(physics_world, fixed_step()).unwrap();
+        assert!(backend
+            .raycast(
+                physics_world,
+                RaycastQuery::downward(Vec3::new(0.0, 2.0, 0.0), 2.0),
+            )
+            .unwrap()
+            .is_empty());
+    }
+
+    #[test]
+    fn deterministic_1000_step_hash() {
+        let (mut backend, physics_world, mut world, _, _) = setup_world();
+        let dt = fixed_step();
+
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        for _ in 0..1000 {
+            backend.step(physics_world, dt).unwrap();
+            backend.sync_to_ecs(&mut world, physics_world).unwrap();
+        }
+
+        let hash_a = hash_physics_state(&world);
+
+        let (mut backend, physics_world, mut world, _, _) = setup_world();
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        for _ in 0..1000 {
+            backend.step(physics_world, dt).unwrap();
+            backend.sync_to_ecs(&mut world, physics_world).unwrap();
+        }
+
+        let hash_b = hash_physics_state(&world);
+        assert_eq!(hash_a, hash_b, "physics replay should be deterministic");
+        assert_ne!(hash_a, 0, "hash should reflect simulated state");
+    }
+
+    #[test]
+    fn fixed_joint_welds_then_releases_body() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc::default())
+            .expect("physics world");
+
+        let mut world = World::new();
+        // Fixed anchor in mid-air with a small collider away from the cube.
+        let anchor = spawn_named(&mut world, "anchor");
+        world.entity_mut(anchor).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 5.0, 0.0), Quat::IDENTITY),
+        ));
+
+        // Dynamic cube beside the anchor, welded so it cannot fall.
+        let cube = spawn_named(&mut world, "cube");
+        world.entity_mut(cube).insert((
+            RigidBody::default(),
+            Collider::cuboid(Vec3::splat(0.1)),
+            Transform3::from_translation_rotation(Vec3::new(0.5, 5.0, 0.0), Quat::IDENTITY),
+            FixedJointDesc {
+                parent: anchor,
+                anchor_parent_m: Vec3::new(0.5, 0.0, 0.0),
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: Quat::IDENTITY,
+            },
+        ));
+
+        let dt = fixed_step();
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        for _ in 0..120 {
+            backend.sync_from_ecs(&mut world, physics_world).unwrap();
+            backend.step(physics_world, dt).unwrap();
+            backend.sync_to_ecs(&mut world, physics_world).unwrap();
+        }
+
+        let welded_y = world.get::<Transform3>(cube).unwrap().translation.y;
+        assert!(
+            welded_y > 4.9,
+            "welded cube should hang from the anchor, y={welded_y}"
+        );
+
+        // Release the weld and let it fall.
+        world.entity_mut(cube).remove::<FixedJointDesc>();
+        for _ in 0..120 {
+            backend.sync_from_ecs(&mut world, physics_world).unwrap();
+            backend.step(physics_world, dt).unwrap();
+            backend.sync_to_ecs(&mut world, physics_world).unwrap();
+        }
+
+        let released_y = world.get::<Transform3>(cube).unwrap().translation.y;
+        assert!(
+            released_y < welded_y - 0.5,
+            "released cube should fall once the weld is removed, y={released_y}"
+        );
+    }
+
+    /// Runs a 1 kg mass suspended from a fixed anchor by a vertical prismatic
+    /// joint whose motor commands an upward velocity, and returns the mass's
+    /// final height. Higher `gain` lets the motor track that target more
+    /// stiffly against gravity, up to the backend force cap.
+    fn lift_displacement(gain: f64, multibody: bool) -> f64 {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc::default())
+            .expect("physics world");
+
+        let mut world = World::new();
+        let anchor = spawn_named(&mut world, "anchor");
+        world.entity_mut(anchor).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 3.0, 0.0), Quat::IDENTITY),
+        ));
+
+        let mass = spawn_named(&mut world, "mass");
+        world.entity_mut(mass).insert((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.1)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 0.5, 0.0), Quat::IDENTITY),
+            PrismaticJointDesc {
+                parent: anchor,
+                axis: Vec3::new(0.0, 1.0, 0.0),
+                anchor_parent_m: Vec3::new(0.0, -2.5, 0.0),
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: Quat::IDENTITY,
+                lower_m: None,
+                upper_m: None,
+            },
+            JointMotor {
+                velocity_rad_s: 1.0,
+                gain,
+                ..JointMotor::default()
+            },
+        ));
+        if multibody {
+            world.entity_mut(anchor).insert(MultibodyLink);
+            world.entity_mut(mass).insert(MultibodyLink);
+        }
+
+        let dt = fixed_step();
+        for _ in 0..120 {
+            step_physics(&mut backend, &mut world, physics_world, dt).unwrap();
+        }
+
+        world.get::<Transform3>(mass).unwrap().translation.y - 0.5
+    }
+
+    #[test]
+    fn motor_gain_lifts_mass_against_gravity() {
+        // A unit gain produces a force too weak to hold ~9.81 N of weight, so the
+        // mass sags below where a strong gain (force-capped above gravity) lifts it.
+        let weak = lift_displacement(1.0, false);
+        let strong = lift_displacement(40.0, false);
+
+        assert!(
+            strong > weak + 0.2,
+            "higher gain should lift the mass higher: weak={weak}, strong={strong}"
+        );
+        assert!(
+            strong > 0.5,
+            "high-gain motor should raise the mass against gravity, displacement={strong}"
+        );
+    }
+
+    /// Swings a one-link pendulum and returns the link's world X displacement.
+    ///
+    /// The joint sits one meter above the link, so a lateral force rotates the
+    /// joint and moves the link; a force that never reached the solver leaves
+    /// the link exactly where it started.
+    fn pendulum_swing_m(multibody: bool, force_n: f64) -> f64 {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                ..PhysicsWorldDesc::default()
+            })
+            .unwrap();
+        let mut world = World::new();
+        let anchor = spawn_named(&mut world, "anchor");
+        world.entity_mut(anchor).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 3.0, 0.0), Quat::IDENTITY),
+        ));
+        let link = spawn_named(&mut world, "link");
+        world.entity_mut(link).insert((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.1)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 1.0, 0.0), Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent: anchor,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::new(0.0, -1.0, 0.0),
+                anchor_child_m: Vec3::new(0.0, 1.0, 0.0),
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: None,
+                upper_rad: None,
+            },
+        ));
+        if multibody {
+            world.entity_mut(anchor).insert(MultibodyLink);
+            world.entity_mut(link).insert(MultibodyLink);
+        }
+
+        for _ in 0..60 {
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            if force_n != 0.0 {
+                let point_world_m = world_transform_of(&world, link).translation;
+                backend
+                    .apply_external_body_wrench(
+                        id,
+                        ExternalBodyWrench {
+                            entity: link,
+                            point_world_m,
+                            force_world_n: Vec3::new(force_n, 0.0, 0.0),
+                            torque_world_nm: Vec3::ZERO,
+                        },
+                    )
+                    .unwrap();
+            }
+            backend.step(id, fixed_step()).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+        }
+        world.get::<Transform3>(link).unwrap().translation.x
+    }
+
+    #[test]
+    fn external_wrench_drives_reduced_coordinate_multibody_links() {
+        // Rapier's multibody solver projects a link's body force onto the
+        // generalized coordinates through the body Jacobian, so a reduced
+        // coordinate articulation responds to an external wrench just as an
+        // impulse-joint chain does. Without that projection the multibody case
+        // would stay at exactly zero.
+        assert_relative_eq!(pendulum_swing_m(true, 0.0), 0.0, epsilon = 1e-9);
+        assert_relative_eq!(pendulum_swing_m(false, 0.0), 0.0, epsilon = 1e-9);
+
+        let multibody = pendulum_swing_m(true, 10.0);
+        let impulse_joint = pendulum_swing_m(false, 10.0);
+        assert!(
+            multibody > 0.05,
+            "multibody link ignored the external wrench: x = {multibody}"
+        );
+        assert!(
+            impulse_joint > 0.05,
+            "impulse-joint link ignored the external wrench: x = {impulse_joint}"
+        );
+        // The two solvers need not agree exactly, but a wrench that reached one
+        // and not the other would differ by orders of magnitude.
+        assert!(
+            (multibody / impulse_joint - 1.0).abs() < 0.5,
+            "solvers disagree on the wrench response: {multibody} vs {impulse_joint}"
+        );
+
+        // Doubling the force must increase the response.
+        assert!(pendulum_swing_m(true, 20.0) > multibody + 0.05);
+    }
+
+    /// Pushes the pendulum of [`pendulum_swing_m`] (multibody, hinged about z one
+    /// meter above the link) sideways, optionally welded to a fixed "hand" at the
+    /// hinge point, and returns the link's x displacement.
+    fn welded_pendulum_swing_m(welded: bool) -> f64 {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                ..PhysicsWorldDesc::default()
+            })
+            .unwrap();
+        let mut world = World::new();
+        let anchor = spawn_named(&mut world, "anchor");
+        world.entity_mut(anchor).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.05)),
+            MultibodyLink,
+            Transform3::from_translation_rotation(Vec3::new(0.0, 3.0, 0.0), Quat::IDENTITY),
+        ));
+        let hand = spawn_named(&mut world, "hand");
+        world.entity_mut(hand).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            // Behind the hinge, out of the link's way.
+            Collider::sphere(0.02),
+            Transform3::from_translation_rotation(Vec3::new(0.0, 2.0, -0.5), Quat::IDENTITY),
+        ));
+        let link = spawn_named(&mut world, "link");
+        world.entity_mut(link).insert((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.1)),
+            MultibodyLink,
+            Transform3::from_translation_rotation(Vec3::new(0.0, 1.0, 0.0), Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent: anchor,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::new(0.0, -1.0, 0.0),
+                anchor_child_m: Vec3::new(0.0, 1.0, 0.0),
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: None,
+                upper_rad: None,
+            },
+        ));
+        // The articulation exists before the weld, as when a gripper closes on
+        // a knob.
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        if welded {
+            // At the hinge point, one meter below the anchor: the hand holds
+            // the link where the hinge already pins it.
+            world.entity_mut(link).insert(FixedJointDesc {
+                parent: hand,
+                anchor_parent_m: Vec3::new(0.0, 0.0, 0.5),
+                anchor_child_m: Vec3::new(0.0, 1.0, 0.0),
+                relative_rotation: Quat::IDENTITY,
+            });
+        }
+        for _ in 0..60 {
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            let point_world_m = world_transform_of(&world, link).translation;
+            backend
+                .apply_external_body_wrench(
+                    id,
+                    ExternalBodyWrench {
+                        entity: link,
+                        point_world_m,
+                        force_world_n: Vec3::new(10.0, 0.0, 0.0),
+                        torque_world_nm: Vec3::ZERO,
+                    },
+                )
+                .unwrap();
+            backend.step(id, fixed_step()).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+        }
+        world.get::<Transform3>(link).unwrap().translation.x
+    }
+
+    #[test]
+    fn weld_holds_an_articulated_link_against_its_own_joint() {
+        // A link on a multibody joint already has that joint; the weld is added
+        // as a separate loop-closing constraint, so it holds the link still.
+        let free = welded_pendulum_swing_m(false);
+        let welded = welded_pendulum_swing_m(true);
+        assert!(free > 0.05, "the unwelded pendulum should swing: {free}");
+        assert!(
+            welded.abs() < 0.01,
+            "the weld should hold the link on its hinge: {welded}"
+        );
+    }
+
+    #[test]
+    fn multibody_link_collider_contacts_external_dynamic_body() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::new(0.0, -9.81, 0.0),
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let root = spawn_named(&mut world, "mb_root");
+        world.entity_mut(root).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let link = spawn_named(&mut world, "mb_link");
+        world.entity_mut(link).insert((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape: ColliderShape::Cuboid {
+                    half_extents_m: Vec3::splat(0.05),
+                },
+                local_offset: Transform3::from_translation_rotation(
+                    Vec3::new(0.0, -1.0, 0.0),
+                    Quat::IDENTITY,
+                ),
+                ..Collider::default()
+            },
+            MultibodyLink,
+            Transform3::from_translation_rotation(-Vec3::Y, Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent: root,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: Some(-1.0),
+                upper_rad: Some(1.0),
+            },
+        ));
+        // Free dynamic cube dropped onto the grip collider (at world y=-2).
+        let cube = spawn_named(&mut world, "mb_cube");
+        world.entity_mut(cube).insert((
+            RigidBody {
+                mass_kg: 0.1,
+                ..RigidBody::default()
+            },
+            Collider::cuboid(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::new(0.0, -1.5, 0.0), Quat::IDENTITY),
+        ));
+        let mut dyn_hits = 0;
+        for _ in 0..300 {
+            step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+            for c in backend.contacts(physics_world).unwrap() {
+                let pair = |a, b| {
+                    (c.entity_a == a && c.entity_b == b) || (c.entity_a == b && c.entity_b == a)
+                };
+                if pair(link, cube) {
+                    dyn_hits += 1;
+                }
+            }
+        }
+        let cp = world.get::<Transform3>(cube).unwrap().translation;
+        eprintln!(
+            "cube fell to y={:.3} (expect ~ -1.9 to rest on the link), dynamic contacts={dyn_hits}",
+            cp.y
+        );
+        assert!(
+            dyn_hits > 0,
+            "multibody link must contact a dropped dynamic body"
+        );
+    }
+    #[test]
+    fn multibody_motor_lifts_mass_against_gravity() {
+        let displacement = lift_displacement(40.0, true);
+        assert!(
+            displacement > 0.5,
+            "multibody motor should lift its child, displacement={displacement}"
+        );
+    }
+
+    fn run_revolute_actuation(command: JointActuation) -> JointState {
+        run_revolute_actuation_with_model(command, 1.0, None)
+    }
+
+    fn run_revolute_actuation_with_model(
+        command: JointActuation,
+        mass_kg: f64,
+        gain_model: Option<JointMotorGainModel>,
+    ) -> JointState {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "actuation_parent");
+        world.entity_mut(parent).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let child = spawn_named(&mut world, "actuation_child");
+        world.entity_mut(child).insert((
+            RigidBody {
+                mass_kg,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::from_translation_rotation(-Vec3::Y, Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: Some(-1.0),
+                upper_rad: Some(1.0),
+            },
+            command,
+        ));
+        if let Some(gain_model) = gain_model {
+            world.entity_mut(child).insert(gain_model);
+        }
+        for _ in 0..30 {
+            step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        }
+        *world.get::<JointState>(child).expect("joint state")
+    }
+
+    #[test]
+    fn direct_effort_follows_rotated_joint_origin() {
+        for revolute in [true, false] {
+            let run = |origin: Quat| {
+                let mut backend = RapierBackend::new();
+                let physics_world = backend
+                    .create_world(PhysicsWorldDesc {
+                        gravity_m_s2: Vec3::ZERO,
+                        solver_iterations: 16,
+                    })
+                    .unwrap();
+                let mut world = World::new();
+                let parent_rotation = Quat::from_rotation_y(0.37);
+                let parent = spawn_named(&mut world, "rotated_parent");
+                world.entity_mut(parent).insert((
+                    RigidBody {
+                        body_type: RigidBodyType::Fixed,
+                        ..RigidBody::default()
+                    },
+                    MultibodyLink,
+                    Transform3::from_translation_rotation(Vec3::ZERO, parent_rotation),
+                ));
+                let child = spawn_named(&mut world, "rotated_child");
+                let rotation = parent_rotation * origin;
+                world.entity_mut(child).insert((
+                    RigidBody::default(),
+                    Collider::sphere(0.1),
+                    MultibodyLink,
+                    Transform3::from_translation_rotation(rotation * -Vec3::Y, rotation),
+                ));
+                if revolute {
+                    world.entity_mut(child).insert((
+                        RevoluteJointDesc {
+                            parent,
+                            axis: Vec3::Z,
+                            anchor_parent_m: Vec3::ZERO,
+                            anchor_child_m: Vec3::Y,
+                            relative_rotation: origin,
+                            lower_rad: None,
+                            upper_rad: None,
+                        },
+                        JointActuation::RevoluteEffort {
+                            effort_nm: 0.5,
+                            max_effort_nm: 0.5,
+                        },
+                    ));
+                } else {
+                    world.entity_mut(child).insert((
+                        PrismaticJointDesc {
+                            parent,
+                            axis: Vec3::Z,
+                            anchor_parent_m: Vec3::ZERO,
+                            anchor_child_m: Vec3::Y,
+                            relative_rotation: origin,
+                            lower_m: None,
+                            upper_m: None,
+                        },
+                        JointActuation::PrismaticEffort {
+                            force_n: 0.5,
+                            max_force_n: 0.5,
+                        },
+                    ));
+                }
+                for _ in 0..30 {
+                    step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+                }
+                backend
+                    .multibody_joint_position(physics_world, child)
+                    .unwrap()
+            };
+            let aligned = run(Quat::IDENTITY);
+            let rotated = run(Quat::from_rotation_y(std::f64::consts::FRAC_PI_2));
+            assert!(aligned > 0.01, "fixture must move: {aligned}");
+            assert!((rotated-aligned).abs() < 1e-4,
+                "joint-origin rotation must preserve generalized effort: revolute={revolute}, aligned={aligned}, rotated={rotated}");
+        }
+    }
+
+    /// A position servo must reach its target whatever the joint origin is.
+    ///
+    /// `direct_effort_follows_rotated_joint_origin` covers effort control. The
+    /// position motor is a separate path: it writes a target into the Rapier
+    /// motor rather than an external torque, and the authored joint-origin
+    /// rotation is composed into `local_frame1` only. On a robot whose joint
+    /// origins are identity (`mm_minimal`) a servo holds its pose to 0.0004 m;
+    /// on one whose origins are not (SO-101) a gain of 2000 N·m/rad is
+    /// indistinguishable from no servo at all.
+    #[test]
+    fn position_servo_follows_rotated_joint_origin() {
+        let run = |origin: Quat| {
+            let mut backend = RapierBackend::new();
+            let physics_world = backend
+                .create_world(PhysicsWorldDesc {
+                    gravity_m_s2: Vec3::ZERO,
+                    solver_iterations: 16,
+                })
+                .unwrap();
+            let mut world = World::new();
+            let parent_rotation = Quat::from_rotation_y(0.37);
+            let parent = spawn_named(&mut world, "servo_parent");
+            world.entity_mut(parent).insert((
+                RigidBody {
+                    body_type: RigidBodyType::Fixed,
+                    ..RigidBody::default()
+                },
+                MultibodyLink,
+                Transform3::from_translation_rotation(Vec3::ZERO, parent_rotation),
+            ));
+            let child = spawn_named(&mut world, "servo_child");
+            let rotation = parent_rotation * origin;
+            world.entity_mut(child).insert((
+                RigidBody::default(),
+                Collider::sphere(0.1),
+                MultibodyLink,
+                Transform3::from_translation_rotation(rotation * -Vec3::Y, rotation),
+                RevoluteJointDesc {
+                    parent,
+                    axis: Vec3::Z,
+                    anchor_parent_m: Vec3::ZERO,
+                    anchor_child_m: Vec3::Y,
+                    relative_rotation: origin,
+                    lower_rad: None,
+                    upper_rad: None,
+                },
+                JointActuation::RevolutePosition {
+                    target_position_rad: 0.4,
+                    stiffness_nm_per_rad: 40.0,
+                    damping_nm_s_per_rad: 4.0,
+                    max_effort_nm: 20.0,
+                },
+                JointMotorGainModel::ForceBased,
+            ));
+            for _ in 0..240 {
+                step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+            }
+            backend
+                .multibody_joint_position(physics_world, child)
+                .unwrap()
+        };
+        let aligned = run(Quat::IDENTITY);
+        let rotated = run(Quat::from_rotation_y(std::f64::consts::FRAC_PI_2));
+        assert!(
+            (aligned - 0.4).abs() < 0.02,
+            "the servo must reach its target with an identity joint origin: {aligned}"
+        );
+        assert!(
+            (rotated - 0.4).abs() < 0.02,
+            "the servo must reach its target with a rotated joint origin too: \
+             aligned={aligned}, rotated={rotated}"
+        );
+    }
+
+    #[test]
+    fn floating_offset_com_rotates_about_stationary_center_of_mass() {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "offset_root");
+        let child = spawn_named(&mut world, "offset_weld");
+        let com = Vec3::new(0.2, 0.0, 0.0);
+        for entity in [parent, child] {
+            world.entity_mut(entity).insert((
+                RigidBody {
+                    mass_kg: 1.0,
+                    ..RigidBody::default()
+                },
+                RigidBodyInertia {
+                    center_of_mass_local_m: com,
+                    ixx_kg_m2: 0.02,
+                    iyy_kg_m2: 0.02,
+                    izz_kg_m2: 0.02,
+                    ixy_kg_m2: 0.0,
+                    ixz_kg_m2: 0.0,
+                    iyz_kg_m2: 0.0,
+                },
+                MultibodyLink,
+                Transform3::default(),
+            ));
+        }
+        world.entity_mut(child).insert(FixedJointDesc {
+            parent,
+            anchor_parent_m: Vec3::ZERO,
+            anchor_child_m: Vec3::ZERO,
+            relative_rotation: Quat::IDENTITY,
+        });
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        let state = backend.world_mut(id).unwrap();
+        let handle = state.entity_to_multibody_joint[&child];
+        let multibody = state.multibody_joints.get_mut(handle).unwrap().0;
+        multibody.damping_mut().fill(0.0);
+        multibody.generalized_velocity_mut()[5] = 10.0;
+        for _ in 0..100 {
+            backend
+                .step(id, SimDuration::from_ticks(1_000_000))
+                .unwrap();
+        }
+        backend.sync_to_ecs(&mut world, id).unwrap();
+        let state = backend.world(id).unwrap();
+        for entity in [parent, child] {
+            let body = &state.bodies[state.entity_to_body[&entity]];
+            let actual = vec3_from_rapier(body.center_of_mass().coords);
+            assert!(
+                (actual - com).length() < 1e-4,
+                "free-body COM drift: {:?}",
+                actual - com
+            );
+            assert!(body.linvel().norm() < 1e-4);
+            assert!(body.rotation().angle() > 0.9);
+        }
+    }
+
+    #[cfg(feature = "experimental-armature")]
+    fn armature_response(
+        armature: Option<f64>,
+        motor: bool,
+        floating: bool,
+    ) -> Result<f64, PhysicsError> {
+        let mut backend = RapierBackend::new();
+        let id = backend.create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            solver_iterations: 16,
+        })?;
+        let mut world = World::new();
+        let inertia = RigidBodyInertia {
+            center_of_mass_local_m: Vec3::ZERO,
+            ixx_kg_m2: 0.02,
+            iyy_kg_m2: 0.02,
+            izz_kg_m2: 0.02,
+            ixy_kg_m2: 0.0,
+            ixz_kg_m2: 0.0,
+            iyz_kg_m2: 0.0,
+        };
+        let parent = spawn_named(&mut world, "armature_parent");
+        world.entity_mut(parent).insert((
+            RigidBody {
+                body_type: if floating {
+                    RigidBodyType::Dynamic
+                } else {
+                    RigidBodyType::Fixed
+                },
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            inertia,
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let child = spawn_named(&mut world, "armature_child");
+        world.entity_mut(child).insert((
+            RigidBody {
+                mass_kg: 1.0,
+                ..RigidBody::default()
+            },
+            inertia,
+            MultibodyLink,
+            Transform3::default(),
+            RevoluteJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: None,
+                upper_rad: None,
+            },
+            JointPassiveDynamics::Revolute {
+                viscous_damping_nm_s_per_rad: 0.0,
+                coulomb_friction_nm: 0.0,
+                coulomb_transition_velocity_rad_s: 0.0,
+            },
+        ));
+        if let Some(value) = armature {
+            world.entity_mut(child).insert(RevoluteJointArmature {
+                inertia_kg_m2: value,
+            });
+        }
+        if motor {
+            world.entity_mut(child).insert((
+                JointMotor {
+                    velocity_rad_s: 100.0,
+                    gain: 100.0,
+                    stiffness: 0.0,
+                    target_position: 0.0,
+                    max_force: 0.5,
+                },
+                JointMotorGainModel::ForceBased,
+            ));
+        } else {
+            world
+                .entity_mut(child)
+                .insert(JointActuation::RevoluteEffort {
+                    effort_nm: 0.5,
+                    max_effort_nm: 0.5,
+                });
+        }
+        // Remove the upstream free-root numerical damping too, so the
+        // floating two-body fixture has the undamped analytic inertia.
+        backend.sync_from_ecs(&mut world, id)?;
+        let state = backend.world_mut(id)?;
+        let handle = state.entity_to_multibody_joint[&child];
+        state
+            .multibody_joints
+            .get_mut(handle)
+            .unwrap()
+            .0
+            .damping_mut()
+            .fill(0.0);
+        backend.step(id, SimDuration::from_ticks(1_000_000))?;
+        backend.sync_to_ecs(&mut world, id)?;
+        let state = backend.world(id)?;
+        let body = &state.bodies[state.entity_to_body[&child]];
+        assert!((body.mass() - 1.0).abs() < 1e-6);
+        assert_eq!(*world.get::<RigidBodyInertia>(child).unwrap(), inertia);
+        let first = match *world.get::<JointState>(child).unwrap() {
+            JointState::Revolute { velocity_rad_s, .. } => velocity_rad_s,
+            _ => panic!("expected revolute state"),
+        };
+        if armature == Some(0.01) && !floating && !motor {
+            world.entity_mut(child).remove::<RevoluteJointArmature>();
+            step_physics(
+                &mut backend,
+                &mut world,
+                id,
+                SimDuration::from_ticks(1_000_000),
+            )?;
+            let JointState::Revolute { velocity_rad_s, .. } =
+                *world.get::<JointState>(child).unwrap()
+            else {
+                panic!("revolute")
+            };
+            assert!(
+                (velocity_rad_s - first - 0.025).abs() < 2e-5,
+                "removing armature must restore physical inertia"
+            );
+        }
+        Ok(first)
+    }
+
+    #[test]
+    #[cfg(feature = "experimental-armature")]
+    fn armature_matches_analytic_acceleration_for_effort_and_motor_impulses() {
+        for motor in [false, true] {
+            for floating in [false, true] {
+                for armature in [None, Some(0.0), Some(0.01), Some(0.04)] {
+                    let actual = armature_response(armature, motor, floating).unwrap();
+                    let physical = if floating { 0.01 } else { 0.02 };
+                    let expected = 0.5 * 0.001 / (physical + armature.unwrap_or(0.0));
+                    assert!((actual - expected).abs() < 2e-5, "motor={motor}, floating={floating}, armature={armature:?}: {actual} vs {expected}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "experimental-armature")]
+    fn armature_rejects_invalid_inertia() {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let entity = spawn_named(&mut world, "unsupported_armature");
+        world.entity_mut(entity).insert(RevoluteJointArmature {
+            inertia_kg_m2: 0.01,
+        });
+        assert!(backend.sync_from_ecs(&mut world, id).is_err());
+        for value in [-0.1, f64::NAN, f64::INFINITY, f64::MAX, f64::MIN_POSITIVE] {
+            assert!(armature_response(Some(value), false, false).is_err());
+        }
+    }
+
+    fn coast_velocity_with_passive_loss(
+        passive_dynamics: Option<JointPassiveDynamics>,
+    ) -> Result<f64, PhysicsError> {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "passive_parent");
+        world.entity_mut(parent).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let child = spawn_named(&mut world, "passive_child");
+        world.entity_mut(child).insert((
+            RigidBody::default(),
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::from_translation_rotation(-Vec3::Y, Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: None,
+                upper_rad: None,
+            },
+            JointActuation::RevoluteEffort {
+                effort_nm: 0.5,
+                max_effort_nm: 0.5,
+            },
+        ));
+        for _ in 0..5 {
+            step_physics(&mut backend, &mut world, physics_world, fixed_step())?;
+            assert!(
+                backend
+                    .world(physics_world)?
+                    .bodies
+                    .iter()
+                    .all(|(_, body)| body.user_torque().norm_squared() == 0.0),
+                "one-step joint torque persisted after Rapier step"
+            );
+        }
+        world.entity_mut(child).insert(JointActuation::Disabled);
+        if let Some(passive_dynamics) = passive_dynamics {
+            world.entity_mut(child).insert(passive_dynamics);
+        }
+        for _ in 0..20 {
+            step_physics(&mut backend, &mut world, physics_world, fixed_step())?;
+        }
+        Ok(
+            match *world.get::<JointState>(child).expect("joint state") {
+                JointState::Revolute { velocity_rad_s, .. } => velocity_rad_s.abs(),
+                other => panic!("unexpected joint state {other:?}"),
+            },
+        )
+    }
+
+    #[test]
+    fn passive_joint_loss_opposes_completed_step_velocity() {
+        let undamped = coast_velocity_with_passive_loss(None).unwrap();
+        let damped = coast_velocity_with_passive_loss(Some(JointPassiveDynamics::Revolute {
+            viscous_damping_nm_s_per_rad: 0.2,
+            coulomb_friction_nm: 0.0,
+            coulomb_transition_velocity_rad_s: 0.0,
+        }))
+        .unwrap();
+        let strongly_damped =
+            coast_velocity_with_passive_loss(Some(JointPassiveDynamics::Revolute {
+                viscous_damping_nm_s_per_rad: 20.0,
+                coulomb_friction_nm: 0.0,
+                coulomb_transition_velocity_rad_s: 0.0,
+            }))
+            .unwrap();
+        assert!(
+            damped < undamped,
+            "passive loss should reduce coast velocity: undamped={undamped}, damped={damped}"
+        );
+        assert!(
+            strongly_damped.is_finite() && strongly_damped < damped,
+            "implicit damping should remain finite and monotonic: damped={damped}, strongly_damped={strongly_damped}"
+        );
+    }
+
+    #[test]
+    fn regularized_coulomb_friction_reduces_coast_velocity() {
+        let undamped = coast_velocity_with_passive_loss(None).unwrap();
+        let friction = coast_velocity_with_passive_loss(Some(JointPassiveDynamics::Revolute {
+            viscous_damping_nm_s_per_rad: 0.0,
+            coulomb_friction_nm: 0.1,
+            coulomb_transition_velocity_rad_s: 0.01,
+        }))
+        .unwrap();
+        assert!(
+            friction < undamped,
+            "regularized Coulomb loss should reduce coast velocity: undamped={undamped}, friction={friction}"
+        );
+    }
+
+    #[test]
+    fn explicit_gain_model_reaches_the_backend_joint() {
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "gain_parent");
+        let child = spawn_named(&mut world, "gain_child");
+        world.entity_mut(child).insert((
+            RevoluteJointDesc {
+                parent,
+                axis: Vec3::X,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: Some(-1.0),
+                upper_rad: Some(1.0),
+            },
+            JointActuation::RevolutePosition {
+                target_position_rad: 0.4,
+                stiffness_nm_per_rad: 5.0,
+                damping_nm_s_per_rad: 1.0,
+                max_effort_nm: 10.0,
+            },
+            JointMotorGainModel::ForceBased,
+        ));
+        let mut joint = GenericJoint::from(RevoluteJointBuilder::new(Vector3::x_axis()).build());
+        apply_motor_command(&world, child, JointAxis::AngX, &mut joint).unwrap();
+        assert_eq!(
+            joint.motor_model(JointAxis::AngX),
+            Some(MotorModel::ForceBased)
+        );
+    }
+
+    #[test]
+    fn unit_explicit_revolute_position_velocity_and_effort_move_joint() {
+        let position = run_revolute_actuation(JointActuation::RevolutePosition {
+            target_position_rad: 0.4,
+            stiffness_nm_per_rad: 40.0,
+            damping_nm_s_per_rad: 4.0,
+            max_effort_nm: 20.0,
+        });
+        let velocity = run_revolute_actuation(JointActuation::RevoluteVelocity {
+            target_velocity_rad_s: 1.0,
+            gain_nm_s_per_rad: 4.0,
+            max_effort_nm: 20.0,
+        });
+        let effort = run_revolute_actuation(JointActuation::RevoluteEffort {
+            effort_nm: 2.0,
+            max_effort_nm: 2.0,
+        });
+        assert!(position.position_rad().unwrap() > 0.1);
+        assert!(velocity.position_rad().unwrap() > 0.1);
+        assert!(effort.position_rad().unwrap() > 0.01);
+    }
+
+    fn run_prismatic_actuation(command: JointActuation) -> JointState {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "slider_parent");
+        world.entity_mut(parent).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let child = spawn_named(&mut world, "slider_child");
+        world.entity_mut(child).insert((
+            RigidBody::default(),
+            MultibodyLink,
+            Transform3::from_translation_rotation(-Vec3::Y, Quat::IDENTITY),
+            PrismaticJointDesc {
+                parent,
+                axis: Vec3::X,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_m: Some(-0.25),
+                upper_m: Some(0.25),
+            },
+            command,
+        ));
+        for _ in 0..30 {
+            step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        }
+        *world.get::<JointState>(child).expect("joint state")
+    }
+
+    #[test]
+    fn unit_explicit_prismatic_position_velocity_and_effort_move_joint() {
+        let position = run_prismatic_actuation(JointActuation::PrismaticPosition {
+            target_position_m: 0.15,
+            stiffness_n_per_m: 80.0,
+            damping_n_s_per_m: 8.0,
+            max_force_n: 30.0,
+        });
+        let velocity = run_prismatic_actuation(JointActuation::PrismaticVelocity {
+            target_velocity_m_s: 0.4,
+            gain_n_s_per_m: 10.0,
+            max_force_n: 30.0,
+        });
+        let effort = run_prismatic_actuation(JointActuation::PrismaticEffort {
+            force_n: 2.0,
+            max_force_n: 2.0,
+        });
+        assert!(position.position_m().unwrap() > 0.05);
+        assert!(velocity.position_m().unwrap() > 0.05);
+        assert!(effort.position_m().unwrap().abs() > 0.01);
+    }
+
+    #[test]
+    fn off_center_prismatic_effort_has_zero_net_world_moment() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                ..PhysicsWorldDesc::default()
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "effort_parent");
+        world.entity_mut(parent).insert((
+            RigidBody::default(),
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let child = spawn_named(&mut world, "effort_child");
+        world.entity_mut(child).insert((
+            RigidBody::default(),
+            MultibodyLink,
+            Transform3::from_translation_rotation(Vec3::X, Quat::IDENTITY),
+            PrismaticJointDesc {
+                parent,
+                axis: Vec3::Y,
+                anchor_parent_m: Vec3::X,
+                anchor_child_m: Vec3::ZERO,
+                lower_m: None,
+                upper_m: None,
+                relative_rotation: Quat::IDENTITY,
+            },
+        ));
+        backend.sync_from_ecs(&mut world, physics_world).unwrap();
+        backend.step(physics_world, fixed_step()).unwrap();
+        backend.sync_to_ecs(&mut world, physics_world).unwrap();
+
+        let state = backend.world_mut(physics_world).unwrap();
+        apply_generalized_effort(&world, state, child, parent, Vec3::Y, 10.0, false).unwrap();
+        let parent_handle = state.entity_to_body[&parent];
+        let child_handle = state.entity_to_body[&child];
+        let parent_body = &state.bodies[parent_handle];
+        let child_body = &state.bodies[child_handle];
+        let net_force = parent_body.user_force() + child_body.user_force();
+        let net_moment = parent_body.user_torque()
+            + parent_body.translation().cross(&parent_body.user_force())
+            + child_body.user_torque()
+            + child_body.translation().cross(&child_body.user_force());
+
+        assert_relative_eq!(net_force.norm(), 0.0, epsilon = 1.0e-6);
+        assert_relative_eq!(net_moment.norm(), 0.0, epsilon = 1.0e-5);
+    }
+
+    #[test]
+    fn mismatched_unit_explicit_actuation_fails_before_step() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "parent");
+        world.entity_mut(parent).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Transform3::default(),
+        ));
+        let child = spawn_named(&mut world, "child");
+        world.entity_mut(child).insert((
+            RigidBody::default(),
+            Transform3::from_translation_rotation(-Vec3::Y, Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: None,
+                upper_rad: None,
+            },
+            JointActuation::PrismaticEffort {
+                force_n: 1.0,
+                max_force_n: 2.0,
+            },
+        ));
+        assert!(matches!(
+            backend.sync_from_ecs(&mut world, physics_world),
+            Err(PhysicsError::InvalidActuation { .. })
+        ));
+    }
+}

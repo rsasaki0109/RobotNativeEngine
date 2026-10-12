@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_stage_reader"
+  ],
+  "cwd": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader",
+  "started_utc": "2026-10-12T05:38:35.001234+00:00",
+  "ended_utc": "2026-10-12T05:38:35.591619+00:00",
+  "exit_code": 1,
+  "native_worlds_builds_old_raw_reads": 0,
+  "source_sha256": {
+    "stage_schema.py": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8",
+    "audit_coupled_stages.py": "fc115bfb4292891022886b2ab2d15fbd40e5c1141b6d293b4c4eb7be02fa99f6",
+    "stage_numeric.py": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "test_stage_reader.py": "7a1501c577545effdcc9ed85875543803a2db9750b7ad65db8e556556142cc37",
+    "stage_analysis.py": "0b188600b246f1f8febd6f34410c2d8824e7f9f0fa47567c0d0bd4af265da91b",
+    "stage_roles.py": "0a66936ea1fee2703b98e110b368cd0bc0cbdd571462f1a3a74484d242e6099e"
+  }
+}

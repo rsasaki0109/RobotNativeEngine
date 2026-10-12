@@ -1,0 +1,9 @@
+{
+  "ended_utc": "2026-10-12T06:56:40.729450+00:00",
+  "error": "ValueError: closed G5 input file set changed after freeze",
+  "exit_code": 1,
+  "originals_and_partial_tar_preserved": true,
+  "proposed_pointer_exists": false,
+  "publication": "NOT_PUBLISHED",
+  "worlds": 0
+}

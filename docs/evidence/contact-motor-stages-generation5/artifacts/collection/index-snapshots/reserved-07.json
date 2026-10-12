@@ -1,0 +1,607 @@
+{
+  "case_receipts": [
+    {
+      "bytes": 3005,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/00-baseline-m5-on/case-terminal.json",
+      "sha256": "c18d0b308b86e3ba69c72e8a64df5f1c423dc05edb79652c9e160b10555adc87"
+    },
+    {
+      "bytes": 3065,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/01-baseline-m5-fresh_on/case-terminal.json",
+      "sha256": "72e3e14129422f2201dd21e82770e839bd3442a73b4c622d5d8e59a45d5509e2"
+    },
+    {
+      "bytes": 3016,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/02-baseline-m5-off/case-terminal.json",
+      "sha256": "8701d75b66fe0331b8e41f7190374c4f753553be71feab3016880ed018ceba1f"
+    },
+    {
+      "bytes": 3016,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/03-baseline-m20-on/case-terminal.json",
+      "sha256": "76b30b05e88e6eaf8848f5fd6530e205a458b91c100bbebbe8d3ec1af1a8fe36"
+    },
+    {
+      "bytes": 3076,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/case-terminal.json",
+      "sha256": "83707c086b9e396aac1b9b0695fd9709c62ca21eaf4722f6a600933d9cd717a1"
+    },
+    {
+      "bytes": 3027,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/05-baseline-m20-off/case-terminal.json",
+      "sha256": "e953d2e8a64569f11c446999e475e58b8cf5aab2f3d33dbda89ed34cba914e79"
+    },
+    {
+      "bytes": 3016,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/06-baseline-m50-on/case-terminal.json",
+      "sha256": "e821e03312af3ce40551146038a7609e384876927b2f422cb9fa65b5d60f576e"
+    }
+  ],
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "declared_authoritative_coupled_worlds": 18,
+  "declared_completed_outer_steps_per_world": 1250,
+  "ended_utc": null,
+  "error": null,
+  "frozen_spec": {
+    "bytes": 7156,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-driver-spec.json",
+    "sha256": "9eca6217a0dffc0db1b3fdf0c4700bba0e6b1b9cae7161fde7fbee8f9486c568"
+  },
+  "generation": 5,
+  "independence": "NEW_INDEPENDENT_COHORT_NOT_RESTORATION_OF_LOST_GENERATION4_TAR",
+  "protocol_sha256": "0e1b320fa7681c79d4c195bd3dd8e5e802d37eea045423b8b3681934acfafabb",
+  "root_driver": {
+    "bytes": 13335,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/collect_once.py",
+    "sha256": "641835598336f93b1976141ea8fe65fc94dc603bcd569c8136e20c95b4d911b6"
+  },
+  "runs": [
+    {
+      "argv": [
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "--mass-kg",
+        "5",
+        "--observer",
+        "on",
+        "--label",
+        "baseline-m5-on",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-on.jsonl.gz"
+      ],
+      "attempted": true,
+      "build": "baseline",
+      "ended_utc": "2026-10-12T06:21:17.253972+00:00",
+      "error": null,
+      "exit_code": 0,
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "baseline-m5-on",
+      "source_guard_after": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/00-baseline-m5-on/source-after.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "source_guard_before": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/00-baseline-m5-on/source-before.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "started_utc": "2026-10-12T06:21:14.927381+00:00",
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/00-baseline-m5-on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/00-baseline-m5-on/stdout.log",
+        "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+      },
+      "trace": {
+        "bytes": 7545934,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-on.jsonl.gz",
+        "sha256": "443d78ef13096f7c04b6bee480198292581b8e387d816ffb64fbcde30dfefb85"
+      }
+    },
+    {
+      "argv": [
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "--mass-kg",
+        "5",
+        "--observer",
+        "on",
+        "--label",
+        "baseline-m5-fresh_on",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-fresh_on.jsonl.gz"
+      ],
+      "attempted": true,
+      "build": "baseline",
+      "ended_utc": "2026-10-12T06:21:20.521695+00:00",
+      "error": null,
+      "exit_code": 0,
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "baseline-m5-fresh_on",
+      "source_guard_after": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/01-baseline-m5-fresh_on/source-after.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "source_guard_before": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/01-baseline-m5-fresh_on/source-before.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "started_utc": "2026-10-12T06:21:18.196057+00:00",
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/01-baseline-m5-fresh_on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/01-baseline-m5-fresh_on/stdout.log",
+        "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+      },
+      "trace": {
+        "bytes": 7545948,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-fresh_on.jsonl.gz",
+        "sha256": "d7fd39894b4b281a669421cdad557700eb1b23fd039c7421ae25e871a94ed89f"
+      }
+    },
+    {
+      "argv": [
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "--mass-kg",
+        "5",
+        "--observer",
+        "off",
+        "--label",
+        "baseline-m5-off",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-off.jsonl.gz"
+      ],
+      "attempted": true,
+      "build": "baseline",
+      "ended_utc": "2026-10-12T06:21:21.945396+00:00",
+      "error": null,
+      "exit_code": 0,
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "baseline-m5-off",
+      "source_guard_after": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/02-baseline-m5-off/source-after.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "source_guard_before": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/02-baseline-m5-off/source-before.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "started_utc": "2026-10-12T06:21:21.473961+00:00",
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/02-baseline-m5-off/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/02-baseline-m5-off/stdout.log",
+        "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+      },
+      "trace": {
+        "bytes": 1319483,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-off.jsonl.gz",
+        "sha256": "394586f229e80e9041256c56bcfc37f873537f5649438ae3b337934b1598c662"
+      }
+    },
+    {
+      "argv": [
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "--mass-kg",
+        "20",
+        "--observer",
+        "on",
+        "--label",
+        "baseline-m20-on",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-on.jsonl.gz"
+      ],
+      "attempted": true,
+      "build": "baseline",
+      "ended_utc": "2026-10-12T06:21:25.209149+00:00",
+      "error": null,
+      "exit_code": 0,
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "baseline-m20-on",
+      "source_guard_after": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/03-baseline-m20-on/source-after.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "source_guard_before": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/03-baseline-m20-on/source-before.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "started_utc": "2026-10-12T06:21:22.882387+00:00",
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/03-baseline-m20-on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/03-baseline-m20-on/stdout.log",
+        "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+      },
+      "trace": {
+        "bytes": 7554098,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-on.jsonl.gz",
+        "sha256": "0c4ad27e037f0bad4f4f3d553623c14466253233795e43421f56f7a3cad7a0d8"
+      }
+    },
+    {
+      "argv": [
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "--mass-kg",
+        "20",
+        "--observer",
+        "on",
+        "--label",
+        "baseline-m20-fresh_on",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-fresh_on.jsonl.gz"
+      ],
+      "attempted": true,
+      "build": "baseline",
+      "ended_utc": "2026-10-12T06:21:28.418557+00:00",
+      "error": null,
+      "exit_code": 0,
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "baseline-m20-fresh_on",
+      "source_guard_after": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/source-after.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "source_guard_before": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/source-before.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "started_utc": "2026-10-12T06:21:26.142403+00:00",
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/stdout.log",
+        "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+      },
+      "trace": {
+        "bytes": 7554127,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-fresh_on.jsonl.gz",
+        "sha256": "2f975a48f52caacb3f8f0b71af2201c5977bc838878b526d8f568144f4d90308"
+      }
+    },
+    {
+      "argv": [
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "--mass-kg",
+        "20",
+        "--observer",
+        "off",
+        "--label",
+        "baseline-m20-off",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-off.jsonl.gz"
+      ],
+      "attempted": true,
+      "build": "baseline",
+      "ended_utc": "2026-10-12T06:21:29.843496+00:00",
+      "error": null,
+      "exit_code": 0,
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "baseline-m20-off",
+      "source_guard_after": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/05-baseline-m20-off/source-after.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "source_guard_before": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/05-baseline-m20-off/source-before.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "started_utc": "2026-10-12T06:21:29.370690+00:00",
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/05-baseline-m20-off/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/05-baseline-m20-off/stdout.log",
+        "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+      },
+      "trace": {
+        "bytes": 1292101,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-off.jsonl.gz",
+        "sha256": "6b0068bf6482259a86cf4c110a593a31d953795e065f4aab4830ed53186a9808"
+      }
+    },
+    {
+      "argv": [
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "--mass-kg",
+        "50",
+        "--observer",
+        "on",
+        "--label",
+        "baseline-m50-on",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-on.jsonl.gz"
+      ],
+      "attempted": true,
+      "build": "baseline",
+      "ended_utc": "2026-10-12T06:21:33.189672+00:00",
+      "error": null,
+      "exit_code": 0,
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "baseline-m50-on",
+      "source_guard_after": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/06-baseline-m50-on/source-after.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "source_guard_before": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/06-baseline-m50-on/source-before.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "started_utc": "2026-10-12T06:21:30.811807+00:00",
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/06-baseline-m50-on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/06-baseline-m50-on/stdout.log",
+        "sha256": "3c61b2468ba0ea3e877e61688c7de37895f420888f864176251886f359edb1f0"
+      },
+      "trace": {
+        "bytes": 7570890,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-on.jsonl.gz",
+        "sha256": "10234ea447e5ebf65b732902d0844e2962dd670666e8720fac8debf00bd92012"
+      }
+    },
+    {
+      "argv": [
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "--mass-kg",
+        "50",
+        "--observer",
+        "on",
+        "--label",
+        "baseline-m50-fresh_on",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-fresh_on.jsonl.gz"
+      ],
+      "attempted": false,
+      "build": "baseline",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "baseline-m50-fresh_on",
+      "source_guard_after": null,
+      "source_guard_before": {
+        "bytes": 198146,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/07-baseline-m50-fresh_on/source-before.json",
+        "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+      },
+      "started_utc": "2026-10-12T06:21:34.130229+00:00",
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "baseline",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "baseline-m50-off",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m5-on",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m5-fresh_on",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m5-off",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m20-on",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m20-fresh_on",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m20-off",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m50-on",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m50-fresh_on",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    },
+    {
+      "argv": null,
+      "attempted": false,
+      "build": "rejected_inverse_w_plus_g",
+      "ended_utc": null,
+      "error": null,
+      "exit_code": null,
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m50-off",
+      "source_guard_after": null,
+      "source_guard_before": null,
+      "started_utc": null,
+      "stderr": null,
+      "stdout": null,
+      "trace": null
+    }
+  ],
+  "schema_version": 2,
+  "source_binary_bindings": {
+    "baseline": {
+      "bytes": 205950,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/baseline-source-binary-binding-v2.json",
+      "sha256": "98c77e5246b2fe2539dbc03d97c0fe07c6b1a9e8d1feae0bd5a93b5b8c79560f"
+    },
+    "rejected_inverse_w_plus_g": {
+      "bytes": 206231,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/rejected_inverse_w_plus_g-source-binary-binding-v2.json",
+      "sha256": "d5d6a06c870f741b5b4439f9905c48ceeae7c48d88c0cbbed56ddb690114c7cc"
+    }
+  },
+  "started_utc": "2026-10-12T06:21:14.463973+00:00",
+  "status": "GENERATION5_COLLECTION_CLAIMED",
+  "worlds_attempted": 7,
+  "worlds_completed": 7,
+  "worlds_launch_reserved": 8
+}

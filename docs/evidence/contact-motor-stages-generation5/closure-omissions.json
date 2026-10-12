@@ -1,0 +1,38 @@
+{
+  "categories": [
+    {
+      "files": 2813,
+      "reason": "Complete synthetic fixture retained in the proposed derived TAR"
+    },
+    {
+      "files": 12,
+      "reason": "Large complete artifact retained outside Git; see external pointers and archive manifest"
+    },
+    {
+      "files": 24,
+      "reason": "Whole raw stream in approved original TAR, or whole derived stream in the new proposed derived TAR; never split inline"
+    }
+  ],
+  "full_archive_membership_manifest": {
+    "bytes": 2646815,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/literal-member-manifest.json",
+    "retention": "Whole manifest inside proposed derived TAR; never split inline",
+    "sha256": "cd4436a621e23c94da922ea5add5475ed591e2324c5844e935d20498ff107324",
+    "tar_member": "literal-member-manifest.json"
+  },
+  "local_postpack_inline_omission_ledger": {
+    "bytes": 1216174,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/generation5-publication-staging/complete-local-inline-omission-ledger.json",
+    "retention": "Locally retained post-pack publication metadata, not included in frozen scientific TAR",
+    "sha256": "9770e1c02f96a3cac988b0825012ec3dd3be572dcdaa9a87e26fa00be16f86fd"
+  },
+  "no_native_trace_fragmentation": true,
+  "omitted_inline_origins": 2849,
+  "other_boundaries": [
+    "Local executables are not distributed; all three reproduced historical full size/SHA.",
+    "Pre-hardening checksum helper original bytes were not separately saved; superseded pre-data receipt/registration remain literal, current qualified helper is retained.",
+    "Scientific protocol retains the original absolute paths. The archive records those paths and complete file/member mappings; scripts are not a portable current-source verifier.",
+    "Externally retained artifacts are locally prepared but public upload/download remains unverified."
+  ],
+  "schema_version": 1
+}

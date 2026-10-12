@@ -1,0 +1,63 @@
+{
+  "audit_terminal": {
+    "bytes": 9552,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/actual-scientific-audit-command/actual-command-terminal.json",
+    "sha256": "21279e0f5cc6ebeca12e4df24a20670cc6fd04629f9218928bcc1c68df289b95"
+  },
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "cohort_root": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5",
+  "collection_index": {
+    "bytes": 47962,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/collection-index.json",
+    "sha256": "d4fd79e6dac643a65eae675adfe384d19f24e366d052f4014dd671a1e2bd626a"
+  },
+  "completed_scientific_review": {
+    "bytes": 10401,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/postcollection-scientific-review/independent-completed-gen5-scientific-scope-review.json",
+    "sha256": "405e6a43a272efabbdba748edf43a6cc6666c94e66872405f253c7ce5029b065"
+  },
+  "excluded_preparation_directory": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation",
+  "final_audit": {
+    "bytes": 266673,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/independent-numerical-audit.json",
+    "sha256": "121e92aaecb215d84220974c8997c929b07b80fb0e019afc0db93c39e99f0dc2"
+  },
+  "helper_artifacts": [
+    {
+      "bytes": 22540,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py",
+      "sha256": "4e792041ba05be7d4e17f024488873b646ed87d63d880621e877fa91d8dc6c9b"
+    },
+    {
+      "bytes": 10797,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py",
+      "sha256": "b8ec29b68f85d2b98e7ebc04bdc0e1aefe2c1d5e92414d75c0e5fc112bfdf9c7"
+    },
+    {
+      "bytes": 7074,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/README.md",
+      "sha256": "4cd0bbacc0fb312b6787bd3d9b44fbc35cdef08a5ebf12fb1492d3bf9e159966"
+    }
+  ],
+  "new_archive_publication_authorized": false,
+  "old_authorized_raw_archive": {
+    "bytes": 97996800,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery-attempt/rne-contact-motor-stage-gen4-raw-traces.tar",
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+  },
+  "old_raw_member_manifest": {
+    "bytes": 8728,
+    "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/raw-trace-manifest.json",
+    "sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690"
+  },
+  "old_tar_retention_review": {
+    "bytes": 32783,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/postcollection-retention-review/actual-old-tar-retention-review.json",
+    "sha256": "45f89763cce3c7aa57e170be7f3a3ab896c879f350fc3a365751fd21ba44b33b"
+  },
+  "output_directory": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive",
+  "raw_retention_status": "LOCAL_NOT_PUBLIC",
+  "root_release_scope": "Root explicitly released original terminal and final completed independent review; actual local packing once; no upload/URL/publication authorization for new derived bytes",
+  "status": "ROOT_RELEASED_AFTER_ORIGINAL_AUDIT_TERMINAL",
+  "synthetic_only": false
+}

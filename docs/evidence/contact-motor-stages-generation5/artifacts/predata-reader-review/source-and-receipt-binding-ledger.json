@@ -1,0 +1,1179 @@
+{
+  "actual_test_method_labels_15": [
+    "test_caps_and_zero_authority_complementarity (test_stage_numeric.NumericTests.test_caps_and_zero_authority_complementarity) ... ok",
+    "test_dyn8_source_order_known_nonassociative_dot (test_stage_numeric.NumericTests.test_dyn8_source_order_known_nonassociative_dot) ... ok",
+    "test_exact_binary32_boundaries_and_ties (test_stage_numeric.NumericTests.test_exact_binary32_boundaries_and_ties) ... ok",
+    "test_normal_zero_domain_exclusions_retained (test_stage_numeric.NumericTests.test_normal_zero_domain_exclusions_retained) ... ok",
+    "test_row_exact_reference_and_native_operation_signs (test_stage_numeric.NumericTests.test_row_exact_reference_and_native_operation_signs) ... ok",
+    "test_signed_zero_native_operations_and_guard (test_stage_numeric.NumericTests.test_signed_zero_native_operations_and_guard) ... ok",
+    "test_all_source_builder_permutations (test_stage_reader.StageReaderTests.test_all_source_builder_permutations) ... ok",
+    "test_complete_framing_counters_and_conditions (test_stage_reader.StageReaderTests.test_complete_framing_counters_and_conditions) ... ok",
+    "test_each_gate_fails_closed (test_stage_reader.StageReaderTests.test_each_gate_fails_closed) ... ok",
+    "test_framing_crc_truncation_and_strict_numbers (test_stage_reader.StageReaderTests.test_framing_crc_truncation_and_strict_numbers) ... ok",
+    "test_identity_drift_and_optional_modes (test_stage_reader.StageReaderTests.test_identity_drift_and_optional_modes) ... ok",
+    "test_literal_numeric_mismatch_is_not_pass (test_stage_reader.StageReaderTests.test_literal_numeric_mismatch_is_not_pass) ... ok",
+    "test_native_exclusion_is_not_complete_replay (test_stage_reader.StageReaderTests.test_native_exclusion_is_not_complete_replay) ... ok",
+    "test_complete_source_only_metadata_contract (test_stage_provenance.ProvenanceTests.test_complete_source_only_metadata_contract) ... ok",
+    "test_strict_original_exit_spec_and_launch_tamper (test_stage_provenance.ProvenanceTests.test_strict_original_exit_spec_and_launch_tamper) ... ok"
+  ],
+  "actual_test_source_hashes_eight": {
+    "audit_coupled_stages.py": "3065fdcd0c38b10628ad6c8e5dce34473c7a1edb6b6bf489a7222ab4bda32806",
+    "stage_analysis.py": "9964312729adb3ee89479e01fdae846c3217ac506af3731650ae7f98a5fabff7",
+    "stage_numeric.py": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "stage_roles.py": "8e1c53944e5722d1a9a19effdbdd5793cddc9aeae3f0013a5068ec3e36bd0a0e",
+    "stage_schema.py": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8",
+    "test_stage_numeric.py": "584b7776ebc483a8a5519973c910a4e2ce56342cd2a109aad2ee35a77f8e0e73",
+    "test_stage_provenance.py": "39650d1878659ab2d4394d829b32cdaf8ee134133b0bfa1b14406be7b11b59f5",
+    "test_stage_reader.py": "09597f2fa619fa9150cc60aba6c7ab1c6982eb4f58dae20523cd595ad0804529"
+  },
+  "baseline_live_and_source_reference_20": [
+    {
+      "live": {
+        "bytes": 22717,
+        "path": "/workspace/RobotNativeEngine/examples/142_contact_motor_stages/lib.rs",
+        "sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58"
+      },
+      "repository_path": "examples/142_contact_motor_stages/lib.rs",
+      "source_reference": {
+        "bytes": 22717,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/examples/142_contact_motor_stages/lib.rs",
+        "sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58"
+      }
+    },
+    {
+      "live": {
+        "bytes": 270,
+        "path": "/workspace/RobotNativeEngine/examples/142_contact_motor_stages/main.rs",
+        "sha256": "bd1b4eb2e7f50a1d2dffa2c2e9fbcce67d3940f3905985237fa6edc8e265d045"
+      },
+      "repository_path": "examples/142_contact_motor_stages/main.rs",
+      "source_reference": {
+        "bytes": 270,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/examples/142_contact_motor_stages/main.rs",
+        "sha256": "bd1b4eb2e7f50a1d2dffa2c2e9fbcce67d3940f3905985237fa6edc8e265d045"
+      }
+    },
+    {
+      "live": {
+        "bytes": 656,
+        "path": "/workspace/RobotNativeEngine/examples/142_contact_motor_stages/Cargo.toml",
+        "sha256": "e9c7df8803abbe4d8e67669edbfce429fcb2e84b0dfb74970414ce154076320c"
+      },
+      "repository_path": "examples/142_contact_motor_stages/Cargo.toml",
+      "source_reference": {
+        "bytes": 656,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/examples/142_contact_motor_stages/Cargo.toml",
+        "sha256": "e9c7df8803abbe4d8e67669edbfce429fcb2e84b0dfb74970414ce154076320c"
+      }
+    },
+    {
+      "live": {
+        "bytes": 207940,
+        "path": "/workspace/RobotNativeEngine/crates/rne_physics_rapier/src/backend.rs",
+        "sha256": "32b0bdce3651717bcbefa3f69ef3ebd9dccd450126486f349b57d04c7c1fa7bd"
+      },
+      "repository_path": "crates/rne_physics_rapier/src/backend.rs",
+      "source_reference": {
+        "bytes": 207940,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/crates/rne_physics_rapier/src/backend.rs",
+        "sha256": "32b0bdce3651717bcbefa3f69ef3ebd9dccd450126486f349b57d04c7c1fa7bd"
+      }
+    },
+    {
+      "live": {
+        "bytes": 14245,
+        "path": "/workspace/RobotNativeEngine/crates/rne_physics_rapier/src/motor_stages.rs",
+        "sha256": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da"
+      },
+      "repository_path": "crates/rne_physics_rapier/src/motor_stages.rs",
+      "source_reference": {
+        "bytes": 14245,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/crates/rne_physics_rapier/src/motor_stages.rs",
+        "sha256": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da"
+      }
+    },
+    {
+      "live": {
+        "bytes": 9594,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+        "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e"
+      },
+      "repository_path": "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "source_reference": {
+        "bytes": 9594,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+        "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e"
+      }
+    },
+    {
+      "live": {
+        "bytes": 43101,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+        "sha256": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811"
+      },
+      "repository_path": "third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+      "source_reference": {
+        "bytes": 43101,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+        "sha256": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811"
+      }
+    },
+    {
+      "live": {
+        "bytes": 14726,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/integration_parameters.rs",
+        "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/integration_parameters.rs",
+      "source_reference": {
+        "bytes": 14726,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/integration_parameters.rs",
+        "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912"
+      }
+    },
+    {
+      "live": {
+        "bytes": 1488,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+        "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "source_reference": {
+        "bytes": 1488,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+        "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f"
+      }
+    },
+    {
+      "live": {
+        "bytes": 27313,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+        "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+      "source_reference": {
+        "bytes": 27313,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+        "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f"
+      }
+    },
+    {
+      "live": {
+        "bytes": 81559,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+        "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "source_reference": {
+        "bytes": 81559,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+        "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f"
+      }
+    },
+    {
+      "live": {
+        "bytes": 13676,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+        "sha256": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "source_reference": {
+        "bytes": 13676,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+        "sha256": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a"
+      }
+    },
+    {
+      "live": {
+        "bytes": 18345,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+        "sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "source_reference": {
+        "bytes": 18345,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+        "sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b"
+      }
+    },
+    {
+      "live": {
+        "bytes": 4272,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+        "sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "source_reference": {
+        "bytes": 4272,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+        "sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe"
+      }
+    },
+    {
+      "live": {
+        "bytes": 49297,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+        "sha256": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "source_reference": {
+        "bytes": 49297,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+        "sha256": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8"
+      }
+    },
+    {
+      "live": {
+        "bytes": 17536,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+        "sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "source_reference": {
+        "bytes": 17536,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+        "sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb"
+      }
+    },
+    {
+      "live": {
+        "bytes": 19450,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+        "sha256": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "source_reference": {
+        "bytes": 19450,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+        "sha256": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c"
+      }
+    },
+    {
+      "live": {
+        "bytes": 9066,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+        "sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "source_reference": {
+        "bytes": 9066,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+        "sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313"
+      }
+    },
+    {
+      "live": {
+        "bytes": 22436,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+        "sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "source_reference": {
+        "bytes": 22436,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+        "sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec"
+      }
+    },
+    {
+      "live": {
+        "bytes": 4539,
+        "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+        "sha256": "98144ff88b0842debf5375a7d35700cc9a9e2ab23b827f52fd3d0b396fcdd302"
+      },
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "source_reference": {
+        "bytes": 4539,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+        "sha256": "98144ff88b0842debf5375a7d35700cc9a9e2ab23b827f52fd3d0b396fcdd302"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "bytes": 2737,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/reader-review-ready.json",
+      "sha256": "3d23cd0c6c53efd880dc220053b3203472ce519c60161fac8b54439cd50d91fa"
+    },
+    {
+      "bytes": 8676,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/baseline-source-reference-receipt.json",
+      "sha256": "45b66ede7668c8288dcb7e1e744f76f5c9538499826448693ea0c75044eee60b"
+    },
+    {
+      "bytes": 6236,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-binary-binding-template.json",
+      "sha256": "681648ceb2202c1e7abf9cf517a89d29d5dd6b46d15c0f630dabb0ddbed2ca4f"
+    },
+    {
+      "bytes": 10927,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/preregistration.md",
+      "sha256": "2106b9adc1790d6a6076475d8c4accfbb58277917003a97bbf3a60abbfc6c8d5"
+    },
+    {
+      "bytes": 11802,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/protocol-template.json",
+      "sha256": "6239a3fce26fcb39880ea60eaecc9236de7a45d15bbbea92baa4d6f98b90fab8"
+    },
+    {
+      "bytes": 4167,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/actual-pure-test-receipt.json",
+      "sha256": "f58425960c12f9e6a8d319438c27232d742718a54dae00d6c0793acfefbc3063"
+    },
+    {
+      "bytes": 65884,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/prospective-all-motor-admission-source.diff",
+      "sha256": "cf23e9f05c04edc04337b5dba26366ad23d44cb2888ae3773ba3ff682f2e5c3c"
+    },
+    {
+      "bytes": 38348,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py",
+      "sha256": "3065fdcd0c38b10628ad6c8e5dce34473c7a1edb6b6bf489a7222ab4bda32806"
+    },
+    {
+      "bytes": 31893,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py",
+      "sha256": "9964312729adb3ee89479e01fdae846c3217ac506af3731650ae7f98a5fabff7"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20799,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+    },
+    {
+      "bytes": 6779,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py",
+      "sha256": "8e1c53944e5722d1a9a19effdbdd5793cddc9aeae3f0013a5068ec3e36bd0a0e"
+    },
+    {
+      "bytes": 1240,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/synthetic-profile.json",
+      "sha256": "e7f08c8cdc122994567a847d06a1cb28a45fccf3f8465acec121ebee70c2be11"
+    },
+    {
+      "bytes": 5025,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/test_stage_numeric.py",
+      "sha256": "584b7776ebc483a8a5519973c910a4e2ce56342cd2a109aad2ee35a77f8e0e73"
+    },
+    {
+      "bytes": 16832,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/test_stage_reader.py",
+      "sha256": "09597f2fa619fa9150cc60aba6c7ab1c6982eb4f58dae20523cd595ad0804529"
+    },
+    {
+      "bytes": 9789,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/test_stage_provenance.py",
+      "sha256": "39650d1878659ab2d4394d829b32cdaf8ee134133b0bfa1b14406be7b11b59f5"
+    },
+    {
+      "bytes": 1213,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-3/command.json",
+      "sha256": "4b52d4649bc199be0f5653f39ee46541907a4503c23617f705efd00beb2cb1c6"
+    },
+    {
+      "bytes": 2049,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-3/stderr.txt",
+      "sha256": "15b652667cc50546ab216eebb9acec33bf049fb8b27ef1360c76ebf0e452d5e5"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-3/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 961,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-1/command.json",
+      "sha256": "aeb27bd4396ea2c38606f6784f30620f34cc142839e1da6efa4db666b7b12deb"
+    },
+    {
+      "bytes": 1084,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-2/command.json",
+      "sha256": "f5dfe2edb37a3bd7bab198baf6eca6537bcc75757f3b8f27676e4f2acf62362a"
+    },
+    {
+      "bytes": 20235,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/fixture-review/source-derived-fixture-spec.json",
+      "sha256": "e23de608042a3c1d16e59daa8ad5faecc0173f14501b6dc53a4acea090dfb3df"
+    },
+    {
+      "bytes": 10927,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/preregistration.md",
+      "sha256": "2106b9adc1790d6a6076475d8c4accfbb58277917003a97bbf3a60abbfc6c8d5"
+    },
+    {
+      "bytes": 8676,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/baseline-source-reference-receipt.json",
+      "sha256": "45b66ede7668c8288dcb7e1e744f76f5c9538499826448693ea0c75044eee60b"
+    },
+    {
+      "bytes": 13335,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/collect_once.py",
+      "sha256": "641835598336f93b1976141ea8fe65fc94dc603bcd569c8136e20c95b4d911b6"
+    },
+    {
+      "bytes": 6967,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/third_party/rapier3d/src/lib.rs",
+      "sha256": "6985bc3241fd187fdff91232813ea75a341867416aa3c09685aa55c393ebac30"
+    },
+    {
+      "bytes": 24173,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/third_party/rapier3d/src/utils.rs",
+      "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7"
+    },
+    {
+      "bytes": 44521,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/nalgebra-0.33.3/src/base/blas.rs",
+      "sha256": "caa4b5bcc11d4fd4edbb17ee7ce2588421219dc5acf02e60ee1c51ff0fc941ad"
+    },
+    {
+      "bytes": 10660,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/nalgebra-0.33.3/src/base/blas_uninit.rs",
+      "sha256": "4a9a23c5b1ba4d621fef724a78a9fbcee0d515674d166afa9aeb04a01221695c"
+    },
+    {
+      "bytes": 15304,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/nalgebra-0.33.3/src/lib.rs",
+      "sha256": "5f1342011be47da06dfb34c91c1c179e4d3b78e8b53fe1b58c022af2e17a45ad"
+    },
+    {
+      "bytes": 6958,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/fixture-review/source-review-start.json",
+      "sha256": "9bb73f3d0450ea829e8fe7a6b614c178a3356588ff377b64f6a08da0bf81e676"
+    },
+    {
+      "bytes": 20235,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/fixture-review/source-derived-fixture-spec.json",
+      "sha256": "e23de608042a3c1d16e59daa8ad5faecc0173f14501b6dc53a4acea090dfb3df"
+    },
+    {
+      "bytes": 11193,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/fixture-review/source-derived-fixture-review.md",
+      "sha256": "9a358ef7b4ab5afd094d9f01a83bb552d831b20e025830c732d6dc746392f9b8"
+    },
+    {
+      "bytes": 2702,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/fixture-review/source-review-proof.json",
+      "sha256": "055c6b4a5f619653f6595a05dc3717d9fed449b628fab2da9f98ec5bad03c0c8"
+    },
+    {
+      "bytes": 3299,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/README.md",
+      "sha256": "f4bf61555cf7557860481f65a9e8bbff5d5305ee1fe4aaac81c004cf54d59f2b"
+    },
+    {
+      "bytes": 857,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/historical-resource-policy-reference.json",
+      "sha256": "99f41cbc403ada24f1438d574b81b77b88fe18c5b583cb21562479a6b82523a5"
+    }
+  ],
+  "reader_source_AST_references": [
+    {
+      "end_line": 40,
+      "line": 36,
+      "name": "stamp",
+      "source_AST_segment_sha256": "cea55e6f9ba12a1ac3451b405edf23a3f050a5307f6652baa194fbbda0123ee5",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 50,
+      "line": 43,
+      "name": "record_for",
+      "source_AST_segment_sha256": "ad9a7426ac906d8bfc9486d28b9dff17875e0c95e35c177b0aa40ee73c51bea9",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 55,
+      "line": 53,
+      "name": "read_artifact",
+      "source_AST_segment_sha256": "44a4b49e0eefc91ba06b485ead11b90fe1745b4f68717ad47f78f8867e12e634",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 64,
+      "line": 58,
+      "name": "source_map",
+      "source_AST_segment_sha256": "d4d6f6a9b6c840a6401ef85564cfd5ded2b752e51deeb896311eb9fc6b74cb13",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 128,
+      "line": 67,
+      "name": "check_protocol",
+      "source_AST_segment_sha256": "0be29dadc280e185bf90d09b34dd742ab94bdff1b152c3185414c40b44aea2ee",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 171,
+      "line": 131,
+      "name": "check_binding",
+      "source_AST_segment_sha256": "3cfc0945f352d921329ed602675d8a68ae577381ede495aa8b1e0c7f50eceaea",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 192,
+      "line": 174,
+      "name": "check_candidate_delta",
+      "source_AST_segment_sha256": "6eaa0c31f404a0e02fce28d5850f1f8532d890c93cead42d0e17dad1f7045e5f",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 219,
+      "line": 195,
+      "name": "validate_step",
+      "source_AST_segment_sha256": "4349f306604f07496410e910cf1f751d0537071126937ec77110f927dd0e434b",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 281,
+      "line": 222,
+      "name": "audit_cell",
+      "source_AST_segment_sha256": "dde9679b1c832e92a16a70c2d0d63beabcd5ed737f9bff912b1822c0bd2ed02c",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 399,
+      "line": 284,
+      "name": "check_durable_provenance",
+      "source_AST_segment_sha256": "2e66af7858fc2f5cd65eab22db97bacb6d9552c3117e26c2ce5347ce1ee34a42",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 405,
+      "line": 402,
+      "name": "collection_record_path_parent",
+      "source_AST_segment_sha256": "c7eef0351bc6d1973154406031db7b7a79e8e5be179060f5b404c56e68e9e62f",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 481,
+      "line": 408,
+      "name": "audit",
+      "source_AST_segment_sha256": "615f0976f7508b8b97318164894885f66c7b5efce05f2265ca478a5150df7db7",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 504,
+      "line": 485,
+      "name": "main",
+      "source_AST_segment_sha256": "314b4beeb8b110d8850f1235ba88c3acdf2cd66434b7a1eff536ee63187195e7",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 234,
+      "line": 231,
+      "name": "emit",
+      "source_AST_segment_sha256": "425bccb225c3c26c3e133e2fa6f8009841900fe9f732de669a4d7d139917d1d7",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py"
+    },
+    {
+      "end_line": 15,
+      "line": 14,
+      "name": "identity",
+      "source_AST_segment_sha256": "9dcdf55923719035185cbfad7f379da847e679f5f482b3a2242a6c94e3bca5f9",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 19,
+      "line": 18,
+      "name": "difference",
+      "source_AST_segment_sha256": "de9e19ad40d2a0f254de295d54da2fc76c43211ca826dd6e86d05d2f36e479b2",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 301,
+      "line": 22,
+      "name": "Analysis",
+      "source_AST_segment_sha256": "b9cd00a76650edf9ef7dde8d6f4a38b70748813995ef6682ad40b717b4703271",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 388,
+      "line": 304,
+      "name": "analyze_telemetry",
+      "source_AST_segment_sha256": "82014a9d1f97abb2b2ccd165d97d437253c0edf6e776f8ea99534b0f82670ff5",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 489,
+      "line": 391,
+      "name": "_group_grammar",
+      "source_AST_segment_sha256": "dfa29f5c9ae4d7b886626cab7d6072ee605fb106a8fabe9343455b443cbded88",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 32,
+      "line": 23,
+      "name": "__init__",
+      "source_AST_segment_sha256": "6b753ad5df22fbb630ac8896ed62b5432a4254581c6e3e17e76157f93d2dd1fc",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 35,
+      "line": 34,
+      "name": "emit",
+      "source_AST_segment_sha256": "4eaea5b47ecc555088491e9a8d2bb1d0fd5b417ba19dd2fd837cc0bda99e18c0",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 46,
+      "line": 37,
+      "name": "issue",
+      "source_AST_segment_sha256": "b846400ca0b1b78fca5e4bcf07ebd16adb5a693d5b03a3e18e5765e80ec4c182",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 52,
+      "line": 48,
+      "name": "role_context",
+      "source_AST_segment_sha256": "734b942dccedc92cb06cf7a7c944484321b7ec5cdc46c8f68d105511ab49a348",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 56,
+      "line": 54,
+      "name": "distribute_counts",
+      "source_AST_segment_sha256": "7f77a963843584cf5d497bc65665592aacc16ca532a93bbebc78d1460c6e936e",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 65,
+      "line": 58,
+      "name": "track",
+      "source_AST_segment_sha256": "f7b8b496976e40d9e94f7dba8b3f74a00c0670dcf78f2ad095c6ac4e5d6cd211",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 106,
+      "line": 67,
+      "name": "snapshot",
+      "source_AST_segment_sha256": "907e59fb974777e8b2045a17003a076bb294a0d9930f17cae032fca7300dd7d1",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 187,
+      "line": 108,
+      "name": "contact",
+      "source_AST_segment_sha256": "c7bc4f21f9161cee04261f72209fe0daf352bc7246d0e11a00bcbbeb6f2741a6",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 197,
+      "line": 189,
+      "name": "_change",
+      "source_AST_segment_sha256": "1ef1cad32fcad8cb240322af427c56313da38a64cf57cb9cca5f140abb331643",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 227,
+      "line": 199,
+      "name": "immediate",
+      "source_AST_segment_sha256": "2f62f6cfc87ba5473d734c466b055b0aa90c811bb0a0232c766524cb6be1209b",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 271,
+      "line": 229,
+      "name": "rebuilt",
+      "source_AST_segment_sha256": "8bcdc4f4c207be98d1ddaaa17628222e1de31d8b5da137309819d3c7065c56fb",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 301,
+      "line": 273,
+      "name": "summary",
+      "source_AST_segment_sha256": "48471404780dc00e061596a5b65ea6e3f6b7e0b828e88d839e20fc177bcf3f21",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 398,
+      "line": 393,
+      "name": "take",
+      "source_AST_segment_sha256": "88ca4688f1f71a3942b26a43a7270db7f189dc4c6806f643fb2b1ad7c9a24766",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 462,
+      "line": 425,
+      "name": "joint_pass",
+      "source_AST_segment_sha256": "f5802fc1ed6afce0bd3016197734279d8ef852874e508fb7b2ac3f66a3dc7760",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 276,
+      "line": 274,
+      "name": "maxima",
+      "source_AST_segment_sha256": "6e50baf82b420099463b0715a50bd7bb02b7fff4926d3f1b38610d4a2ec62191",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 282,
+      "line": 277,
+      "name": "native_complete",
+      "source_AST_segment_sha256": "928803f0b1834981368542943b7cc3c796175effc4a8830daee3d6896839eb7e",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 286,
+      "line": 283,
+      "name": "reference_complete",
+      "source_AST_segment_sha256": "5a03b0b96e8f705d76a52175946dfbb6d50337ffad9c150216b20e8fe29b4f5c",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py"
+    },
+    {
+      "end_line": 23,
+      "line": 20,
+      "name": "checked_word",
+      "source_AST_segment_sha256": "53b218ac4a4687acbb1f748b9b3eceddcd912093a9641243749a2df1f420e728",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 34,
+      "line": 26,
+      "name": "kind",
+      "source_AST_segment_sha256": "dea9f765f2611803e6834441c1e8b526e8cd47c8246321d7841eba2ef02bd35f",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 49,
+      "line": 37,
+      "name": "exact",
+      "source_AST_segment_sha256": "9ea6ceba28491f6b882fa588e7f33fc92a67219419756a03c0111b52f0a4e3ff",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 53,
+      "line": 52,
+      "name": "rational",
+      "source_AST_segment_sha256": "2461f3b29e271b81d3344308be820b83487918694384c560cced8da6de805964",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 59,
+      "line": 56,
+      "name": "_floor_log2",
+      "source_AST_segment_sha256": "04b39e379bff85f511c283b774979ef7836d4c46ad7a3c1919a191a79bdbbfbf",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 65,
+      "line": 62,
+      "name": "_ties_even",
+      "source_AST_segment_sha256": "664b5ff5647d8b1c6d8e0117a02a643b2575cfeb5d918e3fecbe4a21f131e584",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 89,
+      "line": 68,
+      "name": "rounded",
+      "source_AST_segment_sha256": "6f3211fb54b7689d19fbceb17fc6711f92fe3e875305305ce2daa7b6b0a8d49f",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 93,
+      "line": 92,
+      "name": "negate",
+      "source_AST_segment_sha256": "e7461324ecdc6eb829d48e19f0349417ea4f3c360ef4120c7f7631605899c9a7",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 102,
+      "line": 96,
+      "name": "_bound",
+      "source_AST_segment_sha256": "720c9410a823fb001337ee951bfd8c6547829ee606813deb46c0b5d91020cf4c",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 112,
+      "line": 105,
+      "name": "bound_compare",
+      "source_AST_segment_sha256": "300340396de20f98ed2d1833dd300bfc6ab36083f4cfdcfe5ef3f1b20480506e",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 126,
+      "line": 115,
+      "name": "clamp_fraction",
+      "source_AST_segment_sha256": "2b550fb838a696f6a018a66be8ea14b6a3ff8f1060b1cf5494814fb645c16004",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 241,
+      "line": 129,
+      "name": "F32",
+      "source_AST_segment_sha256": "2d1cd750c74fcbb35eb449cb069c929269ca755658d361185c845548b0d3dfca",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 272,
+      "line": 244,
+      "name": "exact_snapshot",
+      "source_AST_segment_sha256": "4467c2cc1a9184677665ca628c62c81648c8f100ffdc5e8b782cfd41deee2b6d",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 276,
+      "line": 275,
+      "name": "serialize_snapshot",
+      "source_AST_segment_sha256": "facd74114d513b4ffa03482d15269452ab41fb8cf2fe8e4b23592604cbe9a65e",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 139,
+      "line": 137,
+      "name": "__init__",
+      "source_AST_segment_sha256": "1de400ea559f6a11e6dd1dcc6735f6300b137b643d7a7b56f97af69eae2caaf8",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 147,
+      "line": 141,
+      "name": "input",
+      "source_AST_segment_sha256": "fc4e4ab9c0bf8eff1e8c2b7b31459e68cde150e9d394933fb8b1f44bfa4141ae",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 156,
+      "line": 149,
+      "name": "finish",
+      "source_AST_segment_sha256": "34503ae9c2f8a1771dff27b7412f3e5ef121b2a7da5849aa146612559812e224",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 161,
+      "line": 158,
+      "name": "add",
+      "source_AST_segment_sha256": "14b25ae99873ed0c8148cc0a4ef10d4b5775280ca6a72c365a1e5cd8c839ce93",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 164,
+      "line": 163,
+      "name": "subtract",
+      "source_AST_segment_sha256": "f9a39974dd4261ec05bc91ae8f8eaba98437a164670eff3c41e844ebd509ea0c",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 169,
+      "line": 166,
+      "name": "multiply",
+      "source_AST_segment_sha256": "1346bcb1aecddb9bee72f70667f417823d778c2e09c5842ddc463466439e6bbb",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 176,
+      "line": 171,
+      "name": "divide",
+      "source_AST_segment_sha256": "7a8a88e98c4ad0e2eef2338954ce0bbb89e7fb4d5ccd500f6497754205050884",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 194,
+      "line": 178,
+      "name": "dot_dyn",
+      "source_AST_segment_sha256": "f9cb616c3ade983f540d885ac3f5e8082f31118bd8bfec535f3c83d6639e71f7",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 202,
+      "line": 196,
+      "name": "clamp",
+      "source_AST_segment_sha256": "0968c0947c37a97f1e6bd32ca7345478edd4d23753c94e9561ed32958b2c12e7",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 208,
+      "line": 204,
+      "name": "inverse",
+      "source_AST_segment_sha256": "41f1eb310811675ac90114b40df21c556887a01d9b354b5cb97977b41ef68d54",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 214,
+      "line": 210,
+      "name": "axpy",
+      "source_AST_segment_sha256": "81c8042d68ce2560a9f5e6c6b17013af6e3cbd91d2ebcdedeb39a6d5c171bda1",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 241,
+      "line": 216,
+      "name": "projection",
+      "source_AST_segment_sha256": "ffcfdb127a59947d84e52594ffd8d60572664a7d9668dbe92c9c992d18adbbee",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py"
+    },
+    {
+      "end_line": 113,
+      "line": 20,
+      "name": "Roles",
+      "source_AST_segment_sha256": "b012afa7a943c16a68d2bc38ca275cc72f0e5e5404b2ead298eb7cbfb7a0750b",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py"
+    },
+    {
+      "end_line": 23,
+      "line": 21,
+      "name": "__init__",
+      "source_AST_segment_sha256": "5ac269812649ec79fb22f699186cf9bca72d5b1d77ff076fc564185a04426ed2",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py"
+    },
+    {
+      "end_line": 62,
+      "line": 25,
+      "name": "admit_checkpoint",
+      "source_AST_segment_sha256": "5120f73d7a2457fe6a34aa8e6a8fb2420bb6313a1eac179fe50bbf3a59a4c418",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py"
+    },
+    {
+      "end_line": 87,
+      "line": 64,
+      "name": "admit_row",
+      "source_AST_segment_sha256": "5bf3c3c01580fa1933a454d96ed702f70cabce0adf5bdb4184c11def2a3cd883",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py"
+    },
+    {
+      "end_line": 105,
+      "line": 89,
+      "name": "admit_aggregate",
+      "source_AST_segment_sha256": "eb7f104af6f61658273a63c0ae56799bb5f338aa124543f981032c74075aa306",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py"
+    },
+    {
+      "end_line": 108,
+      "line": 107,
+      "name": "role",
+      "source_AST_segment_sha256": "101110e358dba92482adf611d4bc23e49d458151b2884fd54d3f4be68372e3fe",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py"
+    },
+    {
+      "end_line": 113,
+      "line": 110,
+      "name": "summary",
+      "source_AST_segment_sha256": "710ae6410d01be52a630829f9aacf4c8e6717098429635373adc95c1189519b7",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py"
+    },
+    {
+      "end_line": 42,
+      "line": 40,
+      "name": "require",
+      "source_AST_segment_sha256": "570ace48effbcffbb325b4bdc4424b575500114187d28c59c86b8870081e9f76",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 46,
+      "line": 45,
+      "name": "keys",
+      "source_AST_segment_sha256": "ada9a8e3b916b82f98b7da1b0bab3da2492d2141f7599a43e03dd21c1372813c",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 51,
+      "line": 49,
+      "name": "integer",
+      "source_AST_segment_sha256": "f925c03625e1fb8f39440436e3b624cb29631ca0de6470472707768553674e17",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 61,
+      "line": 54,
+      "name": "literal_equal",
+      "source_AST_segment_sha256": "643378ae5c9cd157bb0c9339941de464bfd9e840044368eb49abc6aabc9148bd",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 70,
+      "line": 64,
+      "name": "words",
+      "source_AST_segment_sha256": "f3e83958b6bd71bb984e7083f4e2defe1366f41e41076a8fc893a421225b09a9",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 76,
+      "line": 73,
+      "name": "native_joint_handle_words",
+      "source_AST_segment_sha256": "2f197f1723dbaa53d7a52ea08ae7e1d04fee2d95f482f29f8d81546e83bf24bd",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 81,
+      "line": 79,
+      "name": "byte_vector",
+      "source_AST_segment_sha256": "1ec8cf18e53e92b787a79638b10c352d61f20e769cff7a0f003cb3b2c6916d85",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 89,
+      "line": 84,
+      "name": "_pairs",
+      "source_AST_segment_sha256": "087247f0c0aaaf63b17df330eacc7b8348acefdeeb8d4aa7e27d6acfa1898bd1",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 93,
+      "line": 92,
+      "name": "_reject_number",
+      "source_AST_segment_sha256": "368758aeeea038001aec67ab86de748c821caa26a53c4644a9070602791267d2",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 98,
+      "line": 96,
+      "name": "strict_json",
+      "source_AST_segment_sha256": "55090bbc933b9237c1747fedd9c7bf2215098e1c93053d1f5a153354ccf3533c",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 102,
+      "line": 101,
+      "name": "sha_bytes",
+      "source_AST_segment_sha256": "3a54f0e1b45d49e673c69876734743795937a957ec65fd7874d559d723836339",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 116,
+      "line": 105,
+      "name": "artifact",
+      "source_AST_segment_sha256": "5b4c08da4e1d969735b7c8c0366c5bae87a11006c3c1c9ce0b3a87d10c3749f6",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 165,
+      "line": 119,
+      "name": "GzipJsonLines",
+      "source_AST_segment_sha256": "7baaef7ad5ef4723149f83413ae7ddb26fe52028c36e2d026f08412c0634713b",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 175,
+      "line": 168,
+      "name": "varint",
+      "source_AST_segment_sha256": "eedc6798371e2aad6c598ed99afbee6a00921fab1ca774e9789d44d864831300",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 180,
+      "line": 178,
+      "name": "_encoded_bytes",
+      "source_AST_segment_sha256": "6d8c64a44b4e562268ad6be999fd2348dc289136e8ac1a308862dd1914ab38e6",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 248,
+      "line": 183,
+      "name": "encode_checkpoint",
+      "source_AST_segment_sha256": "da8ce92411051560d9369b22e1161d09e814f793812bec0a5b24971f28091044",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 281,
+      "line": 251,
+      "name": "parse_ecs",
+      "source_AST_segment_sha256": "15f864a35931673825165c2c1bdc3975cc6e29a1c859c8e2b765f5d2218d2d9d",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 297,
+      "line": 284,
+      "name": "validate_row",
+      "source_AST_segment_sha256": "0f99fbeab85651ec4299634010bfe08633d5fabe2eac78df2ce4171c772ae951",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 328,
+      "line": 300,
+      "name": "validate_event",
+      "source_AST_segment_sha256": "e9f9bc2a50746febc0edf8041c72a00e2693224a972246bad60148d4ad3f30e7",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 332,
+      "line": 331,
+      "name": "f64_bits",
+      "source_AST_segment_sha256": "976545e332ddfcc2b37001766b6303b1de9a8d08b00d3a158681a097bdc9dc97",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 336,
+      "line": 335,
+      "name": "f32_bits",
+      "source_AST_segment_sha256": "459adf60d5e4d5b5b866fc99b7fbb7d14c0a96c05b529fcadfe0648e77915bd0",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 348,
+      "line": 339,
+      "name": "expected_conditions",
+      "source_AST_segment_sha256": "f7dac71dc6871bc597a2532c0f4dc49d46b52b368086fa44b8e4f160e247b2fd",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 362,
+      "line": 351,
+      "name": "validate_start",
+      "source_AST_segment_sha256": "3d2cbc8c8b3bbd24c77428cc1175bbed9010f3ed3ceabedc9875a604ea579ca0",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 376,
+      "line": 365,
+      "name": "validate_end",
+      "source_AST_segment_sha256": "d255d0ea9c14aa48788b9458afd04b50eee081ab543dbc136fb3fe6b33d8a96f",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 128,
+      "line": 122,
+      "name": "__init__",
+      "source_AST_segment_sha256": "c092e66a67a0106b89246a082d5ac05c2b0613716a1348dc8c37798081ae19dc",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 165,
+      "line": 130,
+      "name": "__iter__",
+      "source_AST_segment_sha256": "b15b4b6e39c9bdad965aef3c58d41f952c95bd6d2ee5f2796f7779e3a98f3d11",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    },
+    {
+      "end_line": 259,
+      "line": 255,
+      "name": "take",
+      "source_AST_segment_sha256": "c7e2a9b5f73cee755701f3b913d34be474fbb3837204098e181b3fcf239bc4b4",
+      "source_file": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py"
+    }
+  ],
+  "runtime_reader_artifacts_six": [
+    {
+      "bytes": 38348,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py",
+      "sha256": "3065fdcd0c38b10628ad6c8e5dce34473c7a1edb6b6bf489a7222ab4bda32806"
+    },
+    {
+      "bytes": 31893,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py",
+      "sha256": "9964312729adb3ee89479e01fdae846c3217ac506af3731650ae7f98a5fabff7"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20799,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+    },
+    {
+      "bytes": 6779,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py",
+      "sha256": "8e1c53944e5722d1a9a19effdbdd5793cddc9aeae3f0013a5068ec3e36bd0a0e"
+    },
+    {
+      "bytes": 1240,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/synthetic-profile.json",
+      "sha256": "e7f08c8cdc122994567a847d06a1cb28a45fccf3f8465acec121ebee70c2be11"
+    }
+  ]
+}

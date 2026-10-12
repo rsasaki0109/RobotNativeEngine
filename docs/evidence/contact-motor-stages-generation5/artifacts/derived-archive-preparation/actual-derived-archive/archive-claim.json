@@ -1,0 +1,12 @@
+{
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "publication": "PROPOSED_ONLY_NEW_BYTES_NOT_AUTHORIZED",
+  "release": {
+    "bytes": 3714,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-pack-release.json",
+    "sha256": "7bcc74f64ee197e15381096352488c88cbc7cdc90e1ecd1b1c60a75987cdadea"
+  },
+  "started_utc": "2026-10-12T07:02:02.657956+00:00",
+  "status": "DERIVED_ARCHIVE_EXCLUSIVE_CLAIM",
+  "worlds": 0
+}

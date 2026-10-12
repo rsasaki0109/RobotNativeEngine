@@ -1,0 +1,207 @@
+{
+  "archive": {
+    "bytes": 241981440,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/rne-contact-motor-stage-generation5-complete-derived-evidence.tar",
+    "sha256": "86217d5b652d0d3fd854db97563af1f90c79f5d48606cceb55c468872a95cd2d"
+  },
+  "archive_checks": {
+    "all_members": 3669,
+    "every_whole_source_member_byte_and_hash_match": true,
+    "excluded_files": 505,
+    "excluded_preparation_finalized_observations": [
+      {
+        "current": {
+          "bytes": 280,
+          "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-pack-command/stdout.log",
+          "sha256": "0769e928d32888477a118b8b53c4b10accb0baffd912b0fbec6f016a2156c37a"
+        },
+        "frozen": {
+          "bytes": 0,
+          "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-pack-command/stdout.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reason": "Explicitly excluded packaging metadata snapshot; wrapper output can finish after input freeze"
+      }
+    ],
+    "fixed_regular_empty_PAX_headers": true,
+    "frozen_nonpreparation_guard_paths": 3689,
+    "independent_regenerated_fullstream": {
+      "byte_comparison": true,
+      "bytes": 241981440,
+      "second_archive_saved": false,
+      "sha256": "86217d5b652d0d3fd854db97563af1f90c79f5d48606cceb55c468872a95cd2d"
+    },
+    "ordinal_original_ASCII_one_to_one_mapping": true,
+    "payload_files": 3668,
+    "prior_fixture_setup_failure_preserved": {
+      "bytes": 1231,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/actual-pure-tests.json",
+      "sha256": "3a0f8d52f9586d243e76c6e5c358ec7a2827cab44549c231c0ac56b3e615b392"
+    },
+    "pure_sources": [
+      {
+        "bytes": 22540,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py",
+        "sha256": "4e792041ba05be7d4e17f024488873b646ed87d63d880621e877fa91d8dc6c9b"
+      },
+      {
+        "bytes": 10797,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py",
+        "sha256": "b8ec29b68f85d2b98e7ebc04bdc0e1aefe2c1d5e92414d75c0e5fc112bfdf9c7"
+      }
+    ],
+    "pure_tests": 6,
+    "raw_original_references": 18,
+    "root_pack_actual_exit": 0,
+    "root_pack_guarded_inputs_unchanged": true,
+    "whole_detail_bytes": 203593254,
+    "whole_details": 6
+  },
+  "distinct_source_bindings_verified": 4494,
+  "freeze_boundary": "Scientific TAR was frozen before this review; this new review/script/ledger is not inside it. Root may append literal final review to inline evidence and regenerate artifact-manifest after this precommit review; exact finalhead validation remains necessary.",
+  "handoff": {
+    "bytes": 10533,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive-final-handoff.json",
+    "sha256": "b44be4e7bfb5139ca13a2b671487c4d586fbb711bb42975c55358f04a139731c"
+  },
+  "inline_checks": {
+    "all_le1MiB": true,
+    "artifact_manifest": {
+      "bytes": 82991,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages-generation5/artifact-manifest.json",
+      "sha256": "282fc130545e7ee4e23362c23281e15e1be359c524e62afaaf876dcb73ceb45b"
+    },
+    "complete_manifest_whole_inside_TAR": true,
+    "complete_postpack_omission_ledger": {
+      "bytes": 1216174,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/generation5-publication-staging/complete-local-inline-omission-ledger.json",
+      "sha256": "9770e1c02f96a3cac988b0825012ec3dd3be572dcdaa9a87e26fa00be16f86fd"
+    },
+    "deduplicated_targets": 370,
+    "every_source_destination_full_size_sha_match": true,
+    "extra_literal_handoff": [],
+    "literal_attributes": true,
+    "manifest_bound_files": 376,
+    "max_inline_bytes": 628946,
+    "numeric_trace_fragmentation": false,
+    "omission_categories": [
+      {
+        "files": 2813,
+        "reason": "Complete synthetic fixture retained in the proposed derived TAR"
+      },
+      {
+        "files": 12,
+        "reason": "Large complete artifact retained outside Git; see external pointers and archive manifest"
+      },
+      {
+        "files": 24,
+        "reason": "Whole raw stream in approved original TAR, or whole derived stream in the new proposed derived TAR; never split inline"
+      }
+    ],
+    "omitted_origins": 2849,
+    "origin_rows": 1328,
+    "physical_files": 377,
+    "proposed_pointer": {
+      "kind": "rne_docs_evidence_pointer",
+      "original_filename": "rne-contact-motor-stage-generation5-complete-derived-evidence.tar",
+      "schema_version": 1,
+      "sha256": "sha256:86217d5b652d0d3fd854db97563af1f90c79f5d48606cceb55c468872a95cd2d",
+      "size_bytes": 241981440,
+      "url": "https://github.com/rsasaki0109/RobotNativeEngine/releases/download/evidence-contact-motor-stage-gen5-2c3586fa/rne-contact-motor-stage-generation5-complete-derived-evidence.tar"
+    },
+    "publication_status": {
+      "archive": {
+        "bytes": 241981440,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/rne-contact-motor-stage-generation5-complete-derived-evidence.tar",
+        "sha256": "86217d5b652d0d3fd854db97563af1f90c79f5d48606cceb55c468872a95cd2d"
+      },
+      "old_original_archive_authorization_does_not_authorize_new_derived_bytes": true,
+      "proposed_tag": "evidence-contact-motor-stage-gen5-2c3586fa",
+      "public_asset_available": false,
+      "public_download_verified": false,
+      "schema_version": 1,
+      "source_commit": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+      "status": "PROPOSED_NEW_DERIVED_BYTES_FRESH_USER_AUTHORIZATION_PENDING",
+      "tag_created": false,
+      "upload_credentials_pending": true
+    },
+    "root": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages-generation5"
+  },
+  "input_freeze": {
+    "bytes": 4335442,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/input-freeze.json",
+    "sha256": "5e6ae4094638d7a8a4f024e7e2b01250b68687e781018224a1153ca8c62aade2"
+  },
+  "kind": "independent_generation5_derived_archive_and_inline_precommit_review",
+  "literal_manifest": {
+    "bytes": 2646815,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/literal-member-manifest.json",
+    "sha256": "cd4436a621e23c94da922ea5add5475ed591e2324c5844e935d20498ff107324"
+  },
+  "old_immutable_checks": {
+    "all_current_manifest_and_origin_bindings_match": true,
+    "baseline_files": 315,
+    "baseline_manifest": {
+      "bytes": 61445,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/generation5-publication-staging/head-C-original-publication-manifest.json",
+      "sha256": "e43417197517f7d50c3dbc05d9c0553ceff4a31c25b78f85827a8ed676d242e7"
+    },
+    "current_manifest_entries": 317,
+    "current_physical_files": 318,
+    "every_historical_original_bytes_hash_preserved": true,
+    "historical_qualification": "FAILED_UNQUALIFIED_UNCHANGED",
+    "immutable_old_scientific_files": 311,
+    "literal_historical_origin_rows": 277,
+    "predata_scope_correction": {
+      "bytes": 1422,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/pre-data-publication-metadata-scope-correction.json",
+      "sha256": "c1edab3d91310cad4a576a1b13a13c5ec20d92ea2afc074b9ec26c2ead6c8d07"
+    },
+    "protocol": {
+      "bytes": 92388,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol-v2.json",
+      "sha256": "0e1b320fa7681c79d4c195bd3dd8e5e802d37eea045423b8b3681934acfafabb"
+    },
+    "publication_only_exception_paths": [
+      "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/README.md",
+      "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/artifact-manifest.json",
+      "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/external-artifact-references.json",
+      "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/recovery/current-instance-retention.json",
+      "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/recovery/workspace-exact-raw-retention-search.json"
+    ],
+    "scalar": "FAIL_0_OF_4_UNCHANGED",
+    "scalar_plus_311_frozen_descriptors": 312
+  },
+  "publication_scope": "New241981440B/SHA86217 TAR is PROPOSED; fresh authorization pending. Old534e exact TAR remains locally verified/upload401/publicdownload unverified. No network or secret use by this reviewer.",
+  "review_limits": [
+    "No native numeric payload decompression/parsing or scientific replay/audit rerun.",
+    "No independent remote tag/asset/download check, fresh checkout byte roundtrip or portable verifier test.",
+    "Excluded packaging own stdout finalized after its input-freeze, exactly recorded above; no claim every excluded construction descriptor still has its earlier snapshot bytes.",
+    "Precommit snapshot only; append/recomputed inline manifest requires finalhead verification."
+  ],
+  "review_script": {
+    "bytes": 20951,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/postarchive-publication-review/verify_opaque_retention.py",
+    "sha256": "71aae3772d17afbf347566e27256e4a5d381ae663f6ba5fbcb8a08f74cff735b"
+  },
+  "reviewed_utc": "2026-10-12T07:17:12.460320+00:00",
+  "reviewer_actions": {
+    "archive_writes": 0,
+    "builds": 0,
+    "checkout_edits": 0,
+    "native_numeric_payload_parsing": 0,
+    "network_calls": 0,
+    "original_source_data_edits": 0,
+    "replays": 0,
+    "worlds": 0
+  },
+  "schema_version": 1,
+  "scientific_scope": "Retention/inline-source PASS only. Numeric report interpretation reviewed elsewhere. Oldgen4 FAILED, scalar0of4 and rejected candidate preserved; normal/zero arithmetic fidelity does not prove motor convergence, accuracy, contact causality, hardware or maturity gain.",
+  "source_guard_unchanged_at_review_end": true,
+  "status": "PASS",
+  "whole_member_ledger": {
+    "bytes": 1481257,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/postarchive-publication-review/derived-tar-whole-member-verification-ledger.json",
+    "sha256": "4aa9ff323861674eeee8b49cace738c9bd31354df2b14767eaa74a47ccbd234a"
+  }
+}

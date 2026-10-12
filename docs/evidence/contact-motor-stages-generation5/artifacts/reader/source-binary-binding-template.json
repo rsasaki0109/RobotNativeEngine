@@ -1,0 +1,109 @@
+{
+  "authoritative_worlds_of_this_cohort_before_freeze": 0,
+  "base_commit": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "binary": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/baseline-142",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "build": "baseline",
+  "build_command": [
+    "cargo",
+    "build",
+    "--locked",
+    "--release",
+    "-p",
+    "contact_motor_stages",
+    "--example",
+    "142_contact_motor_stages"
+  ],
+  "cargo": "ACTUAL_OUTPUT_PENDING",
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "compiler": "ACTUAL_OUTPUT_PENDING",
+  "error": null,
+  "native_float_mode": {
+    "evidence": [],
+    "ftz_daz_source_predicate": {
+      "enhanced_determinism_feature": false,
+      "target_arch": "x86_64",
+      "target_feature_sse": true
+    },
+    "native_scalar_bits": 32,
+    "operation_contract": "rust-f32-default-strict-separate-ops-no-mul_add",
+    "replay_domain": "normal_or_zero_only",
+    "rounding_mode": "roundTiesToEven",
+    "rounding_mode_basis": "Source/IEEE ordinary Linux startup model; actual runtime rounding/MXCSR register is unmeasured",
+    "scope": "source_bound_runtime_register_unmeasured"
+  },
+  "protocol_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "reader_artifacts": [
+    {
+      "bytes": 38348,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py",
+      "sha256": "3065fdcd0c38b10628ad6c8e5dce34473c7a1edb6b6bf489a7222ab4bda32806"
+    },
+    {
+      "bytes": 31893,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py",
+      "sha256": "9964312729adb3ee89479e01fdae846c3217ac506af3731650ae7f98a5fabff7"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20799,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+    },
+    {
+      "bytes": 6779,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py",
+      "sha256": "8e1c53944e5722d1a9a19effdbdd5793cddc9aeae3f0013a5068ec3e36bd0a0e"
+    },
+    {
+      "bytes": 1240,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/synthetic-profile.json",
+      "sha256": "e7f08c8cdc122994567a847d06a1cb28a45fccf3f8465acec121ebee70c2be11"
+    }
+  ],
+  "registered_utc": null,
+  "rejected_candidate_patch": null,
+  "repo_source_sha256": {},
+  "resolved_features": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/resolved-features.txt",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "rustflags": [],
+  "schema_source_sha256": {
+    "crates/rne_physics_rapier/src/backend.rs": "32b0bdce3651717bcbefa3f69ef3ebd9dccd450126486f349b57d04c7c1fa7bd",
+    "crates/rne_physics_rapier/src/motor_stages.rs": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da",
+    "examples/142_contact_motor_stages/Cargo.toml": "e9c7df8803abbe4d8e67669edbfce429fcb2e84b0dfb74970414ce154076320c",
+    "examples/142_contact_motor_stages/lib.rs": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58",
+    "examples/142_contact_motor_stages/main.rs": "bd1b4eb2e7f50a1d2dffa2c2e9fbcce67d3940f3905985237fa6edc8e265d045",
+    "third_party/rapier3d/src/dynamics/integration_parameters.rs": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+    "third_party/rapier3d/src/dynamics/joint/generic_joint.rs": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+    "third_party/rapier3d/src/dynamics/joint/motor_model.rs": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a",
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+    "third_party/rapier3d/src/dynamics/solver/island_solver.rs": "98144ff88b0842debf5375a7d35700cc9a9e2ab23b827f52fd3d0b396fcdd302",
+    "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c",
+    "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+    "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8",
+    "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+    "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+    "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+    "third_party/rapier3d/src/pipeline/physics_pipeline.rs": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811"
+  },
+  "schema_version": 1,
+  "source_manifest": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/baseline-source-manifest.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "status": "UNFROZEN_TEMPLATE_DO_NOT_EXECUTE",
+  "target": "ACTUAL_OUTPUT_PENDING"
+}

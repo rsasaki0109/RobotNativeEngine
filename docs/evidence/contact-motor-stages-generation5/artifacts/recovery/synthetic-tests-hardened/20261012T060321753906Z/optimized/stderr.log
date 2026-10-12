@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/checksum_reconstruct.py", line 164, in <module>
+    raise SystemExit(reconstruct(args.collection, args.registration, args.registration_sha256, args.output))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/checksum_reconstruct.py", line 79, in reconstruct
+    require(registration_descriptor["sha256"] == registration_sha, "registration SHA changed")
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/checksum_reconstruct.py", line 14, in require
+    raise ValueError(message)
+ValueError: registration SHA changed

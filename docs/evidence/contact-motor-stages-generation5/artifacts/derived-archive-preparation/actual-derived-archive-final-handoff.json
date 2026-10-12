@@ -1,0 +1,184 @@
+{
+  "ADR034_note": "Literal manifest is2646815B and input-freeze is4335442B; do not add these >1MiB files as new inline docs/evidence. Literal manifest already is included whole inside derived TAR.",
+  "actual_archive_terminal": {
+    "bytes": 721,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/archive-terminal.json",
+    "sha256": "df2a9ecd656cab7f382459f3b41ae78fde03ec2cabb8cacdf8599abdc9037995"
+  },
+  "actual_command_terminal": {
+    "bytes": 3277,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-pack-command/actual-command-terminal.json",
+    "sha256": "e00da45a0eb74764fa63e5cc6c880b1a7d4b512502fb3e5ec2f4a7aa4a8a9cd2"
+  },
+  "actual_helper_exit_code": 0,
+  "actual_input_guard_unchanged": true,
+  "actual_runtime_s": 8.589308791000803,
+  "archive": {
+    "bytes": 241981440,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/rne-contact-motor-stage-generation5-complete-derived-evidence.tar",
+    "sha256": "86217d5b652d0d3fd854db97563af1f90c79f5d48606cceb55c468872a95cd2d"
+  },
+  "archive_mapping": "Original relative ASCII ordered whole files map one-to-one to short artifacts/NNNNNN; empty per/global PAX headers and regular0444 uid/gid/mtime0 empty names; literal manifest is final member",
+  "closure_freeze_boundary": "All completedG5 provenance at packing; entire preparation directory and later publication/review proof excluded to avoid circular hash; root may append those later separately without claiming they were inside this TAR",
+  "completed_independent_review_members": [
+    {
+      "archive_member": "artifacts/003398",
+      "artifact": {
+        "bytes": 209708,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/postcollection-scientific-review/final-report-provenance-and-opaque-file-binding-ledger.json",
+        "sha256": "257576c13d1cd4c81e7bdfb8a9e6264de5b750648b8831bc14d81d2659d182bf"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "postcollection-scientific-review/final-report-provenance-and-opaque-file-binding-ledger.json"
+    },
+    {
+      "archive_member": "artifacts/003399",
+      "artifact": {
+        "bytes": 10401,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/postcollection-scientific-review/independent-completed-gen5-scientific-scope-review.json",
+        "sha256": "405e6a43a272efabbdba748edf43a6cc6666c94e66872405f253c7ce5029b065"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "postcollection-scientific-review/independent-completed-gen5-scientific-scope-review.json"
+    },
+    {
+      "archive_member": "artifacts/003400",
+      "artifact": {
+        "bytes": 22663,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/postcollection-scientific-review/review_completed_outcome_once.py",
+        "sha256": "bdbc6f1f9ab2ed34a51d29ea09ccff2c3d7db365d9ea798159b3bd3ce2629dac"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "postcollection-scientific-review/review_completed_outcome_once.py"
+    }
+  ],
+  "ended_utc": "2026-10-12T07:05:11.737628+00:00",
+  "extra_worlds_builds_scientific_audits_numeric_payload_parsing_network_publication": 0,
+  "full_exclusion_descriptors": 505,
+  "historical_scientific_status": "FAILED_UNQUALIFIED_UNCHANGED; actual new report retained opaque without archive-helper interpretation",
+  "initial_pure_fixture_setup_failure_retained": {
+    "bytes": 1231,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/actual-pure-tests.json",
+    "sha256": "3a0f8d52f9586d243e76c6e5c358ec7a2827cab44549c231c0ac56b3e615b392"
+  },
+  "input_freeze": {
+    "bytes": 4335442,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/input-freeze.json",
+    "sha256": "5e6ae4094638d7a8a4f024e7e2b01250b68687e781018224a1153ca8c62aade2"
+  },
+  "later_adoption_steps_owned_by_root": [
+    "Independent actual archive review",
+    "Fresh user authorization for the new derived TAR bytes",
+    "Actual upload/retrieval/fullSHA-size verification before final HTTPS pointer/publication"
+  ],
+  "literal_manifest": {
+    "bytes": 2646815,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/literal-member-manifest.json",
+    "sha256": "cd4436a621e23c94da922ea5add5475ed591e2324c5844e935d20498ff107324"
+  },
+  "new_bytes_publication_authorized": false,
+  "new_bytes_status": "PROPOSED_NEW_DERIVED_BYTES_FRESH_USER_AUTHORIZATION_PENDING",
+  "old_raw_archive_status_at_freeze": "LOCAL_NOT_PUBLIC; exact old authorized534e/97996800B bytes not duplicated in derived TAR",
+  "opaque_payload_archival_only": true,
+  "payload_files": 3668,
+  "proposed_pointer": {
+    "bytes": 1384,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/proposed-derived-archive-pointer.json",
+    "sha256": "8f68ed3d718f546c6e14a916ad1185c795cedd52182a0d17cf85fb8adfbe9b89"
+  },
+  "pure_preparation_checks": {
+    "bytes": 1229,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/actual-pure-tests.json",
+    "sha256": "a7f916bf93728bb1bdccb9c9a46c78b82964599e2e67c65b8c242f75b273f205"
+  },
+  "raw_member_references": 18,
+  "second_generated_stream": {
+    "bytes": 241981440,
+    "sha256": "86217d5b652d0d3fd854db97563af1f90c79f5d48606cceb55c468872a95cd2d"
+  },
+  "second_stream_literal_byte_comparison": true,
+  "source_readonly_scope": "No frozenG5 driver/reader/protocol/binding/source or originaldata modification; child writes only derived-archive-preparation.",
+  "status": "COMPLETE_DERIVED_ARCHIVE_ACTUAL_PREPARATION_PASS_PROPOSED_ONLY",
+  "tag": null,
+  "tar_members": 3669,
+  "url": null,
+  "verification": {
+    "bytes": 553138,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/archive-verification.json",
+    "sha256": "b6752ade003c4f8125506881880310fedafd08f064d9e221db370ca8040321ed"
+  },
+  "whole_final_audit_member": [
+    {
+      "archive_member": "artifacts/000018",
+      "artifact": {
+        "bytes": 266673,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/independent-numerical-audit.json",
+        "sha256": "121e92aaecb215d84220974c8997c929b07b80fb0e019afc0db93c39e99f0dc2"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "analysis/independent-numerical-audit.json"
+    }
+  ],
+  "whole_scientific_details": [
+    {
+      "archive_member": "artifacts/000012",
+      "artifact": {
+        "bytes": 34891663,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/details/baseline-m20-on.independent-details.jsonl.gz",
+        "sha256": "ac8d1adfef499d6e5bd9bbd7c359c0c32a8790b781a1db63d7b08aac8db942f0"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "analysis/details/baseline-m20-on.independent-details.jsonl.gz"
+    },
+    {
+      "archive_member": "artifacts/000013",
+      "artifact": {
+        "bytes": 34556893,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/details/baseline-m5-on.independent-details.jsonl.gz",
+        "sha256": "709bd3f766cab30277a36069d2f1f9bad3c6e7ed6fd85cc5fd01c4afa8d3797e"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "analysis/details/baseline-m5-on.independent-details.jsonl.gz"
+    },
+    {
+      "archive_member": "artifacts/000014",
+      "artifact": {
+        "bytes": 35394962,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/details/baseline-m50-on.independent-details.jsonl.gz",
+        "sha256": "b2428641f8262220c38e6c8439695279e3c9fb733c7e63fcfd1bbdcdb7faf288"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "analysis/details/baseline-m50-on.independent-details.jsonl.gz"
+    },
+    {
+      "archive_member": "artifacts/000015",
+      "artifact": {
+        "bytes": 32789315,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/details/rejected_inverse_w_plus_g-m20-on.independent-details.jsonl.gz",
+        "sha256": "5715f9e3974d0d095efd54adbccf7568c6efa554c3bebfac8f7ff3b1fd851059"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "analysis/details/rejected_inverse_w_plus_g-m20-on.independent-details.jsonl.gz"
+    },
+    {
+      "archive_member": "artifacts/000016",
+      "artifact": {
+        "bytes": 31960304,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/details/rejected_inverse_w_plus_g-m5-on.independent-details.jsonl.gz",
+        "sha256": "b24090f47bafec2422fbbb7a4b8b2e57ba64a9b65927a4293b1d5f294e5218dd"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "analysis/details/rejected_inverse_w_plus_g-m5-on.independent-details.jsonl.gz"
+    },
+    {
+      "archive_member": "artifacts/000017",
+      "artifact": {
+        "bytes": 34000117,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/analysis/details/rejected_inverse_w_plus_g-m50-on.independent-details.jsonl.gz",
+        "sha256": "f234e1d6964fe93004b6f88bec7c837054ffcefe236deda173ce91abdff6c794"
+      },
+      "origin": "COMPLETE_CLOSED_GENERATION5_ARTIFACT",
+      "original_relative_path": "analysis/details/rejected_inverse_w_plus_g-m50-on.independent-details.jsonl.gz"
+    }
+  ]
+}

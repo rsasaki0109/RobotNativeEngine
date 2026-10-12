@@ -1,0 +1,69 @@
+{
+  "binary": {
+    "bytes": 3439088,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+    "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+  },
+  "case_index": 13,
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "launch_error": null,
+  "launch_reserved": true,
+  "original_exit_code": 0,
+  "original_process_exit_receipt": {
+    "bytes": 191,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/13-rejected_inverse_w_plus_g-m20-fresh_on/process-exit.json",
+    "sha256": "069a9097836ff497f08b17f805e4bc08ec2caccb789afb78ce711b508a25b91e"
+  },
+  "process_started": true,
+  "raw_output_exclusive_create_contract": "Unchanged collector142 OpenOptions::create_new(true)",
+  "retry_or_resume_permitted": false,
+  "row": {
+    "argv": [
+      "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+      "--mass-kg",
+      "20",
+      "--observer",
+      "on",
+      "--label",
+      "rejected_inverse_w_plus_g-m20-fresh_on",
+      "--output",
+      "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m20-fresh_on.jsonl.gz"
+    ],
+    "attempted": true,
+    "build": "rejected_inverse_w_plus_g",
+    "ended_utc": "2026-10-12T06:21:52.366916+00:00",
+    "error": null,
+    "exit_code": 0,
+    "mass_kg": 20,
+    "mode": "fresh_on",
+    "run_label": "rejected_inverse_w_plus_g-m20-fresh_on",
+    "source_guard_after": {
+      "bytes": 198146,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/13-rejected_inverse_w_plus_g-m20-fresh_on/source-after.json",
+      "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    "source_guard_before": {
+      "bytes": 198146,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/13-rejected_inverse_w_plus_g-m20-fresh_on/source-before.json",
+      "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    "started_utc": "2026-10-12T06:21:50.041064+00:00",
+    "stderr": {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/13-rejected_inverse_w_plus_g-m20-fresh_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout": {
+      "bytes": 111,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/13-rejected_inverse_w_plus_g-m20-fresh_on/stdout.log",
+      "sha256": "c0c05936c10200a98f8d17c4f532001ee21b3f492ff865746c3dd4ea65650dea"
+    },
+    "trace": {
+      "bytes": 7448262,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m20-fresh_on.jsonl.gz",
+      "sha256": "ceb8b0b5b1cae87e463e28225120e368239af3fe8cf3a93dc9b4423d5d799abe"
+    }
+  },
+  "schema_version": 1,
+  "source_inputs_unchanged": true
+}

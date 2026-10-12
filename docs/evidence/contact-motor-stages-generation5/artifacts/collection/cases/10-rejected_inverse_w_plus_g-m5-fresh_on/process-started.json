@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+    "--mass-kg",
+    "5",
+    "--observer",
+    "on",
+    "--label",
+    "rejected_inverse_w_plus_g-m5-fresh_on",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m5-fresh_on.jsonl.gz"
+  ],
+  "case_index": 10,
+  "launch_claim": {
+    "bytes": 1832,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/10-rejected_inverse_w_plus_g-m5-fresh_on/launch-claim.json",
+    "sha256": "3aa927b3b1be0deb63a9ad8f3526151e3f6712f68a36d57d74e0c0b27cca6126"
+  },
+  "pid": 16836,
+  "started_utc": "2026-10-12T06:21:42.077132+00:00"
+}

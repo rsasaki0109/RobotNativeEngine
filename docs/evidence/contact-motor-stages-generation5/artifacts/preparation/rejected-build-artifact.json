@@ -1,0 +1,12 @@
+{
+  "build": "rejected_inverse_w_plus_g",
+  "binary": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+    "bytes": 3439088,
+    "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+  },
+  "changed_source_sha256": "5cdacfb67dfa186fd513354e693b4efc7d4f1ebd400d9f08ea8598f57135e9b5",
+  "registered_runtime_patch_sha256": "a4d75610e97ac5fcca76115b854cc7c790c8907e77bb12cf45bd6336af0503e7",
+  "resolved_features_identical": true,
+  "native_worlds": 0
+}

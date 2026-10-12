@@ -1,0 +1,13 @@
+{
+  "actual_exit_code": 0,
+  "fixed_cells": 18,
+  "registered_utc": "2026-10-12T06:18:05.787572+00:00",
+  "source_paths": 1640,
+  "spec": {
+    "bytes": 7156,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-driver-spec.json",
+    "sha256": "9eca6217a0dffc0db1b3fdf0c4700bba0e6b1b9cae7161fde7fbee8f9486c568"
+  },
+  "status": "PASS",
+  "worlds": 0
+}

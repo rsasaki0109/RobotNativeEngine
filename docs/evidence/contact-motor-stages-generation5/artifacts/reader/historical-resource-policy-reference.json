@@ -1,0 +1,21 @@
+{
+  "purpose": "Preregistration resource ceilings and settings reference only; no raw/native results read",
+  "source": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/protocol-template.json",
+  "sha256": "b50b93a78bbbf32028456b9ed28fde5080cc700761757849f087af6d9ca5ec33",
+  "unchanged_resource_ceilings": {
+    "compressed_bytes_per_run": 536870912,
+    "uncompressed_bytes_per_run": 2147483648,
+    "json_line_bytes": 8388608,
+    "native_record_bytes": 1048576,
+    "native_records_per_step": 32,
+    "native_bindings_per_step": 16,
+    "ecs_words_per_step": 4096,
+    "motor_ndofs": 256,
+    "generic_velocity_words": 4096,
+    "motor_rows_per_event": 8,
+    "events_per_step": 8192,
+    "slices_per_island_partition": 64,
+    "ccd_partitions_per_step": 8
+  },
+  "expected_parameters_independently_source_derived_equal": true
+}

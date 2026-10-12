@@ -1,0 +1,781 @@
+{
+  "archive": {
+    "bytes": 97996800,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery-attempt/rne-contact-motor-stage-gen4-raw-traces.tar",
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+  },
+  "case_proof": [
+    {
+      "case_index": 0,
+      "case_receipt": {
+        "bytes": 3005,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/00-baseline-m5-on/case-terminal.json",
+        "sha256": "c18d0b308b86e3ba69c72e8a64df5f1c423dc05edb79652c9e160b10555adc87"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7545934,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-on.jsonl.gz",
+        "sha256": "443d78ef13096f7c04b6bee480198292581b8e387d816ffb64fbcde30dfefb85"
+      },
+      "old_raw_bytes": 7545934,
+      "old_raw_sha256": "443d78ef13096f7c04b6bee480198292581b8e387d816ffb64fbcde30dfefb85",
+      "original_exit_code": 0,
+      "original_pid": 16826,
+      "run_label": "baseline-m5-on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 1,
+      "case_receipt": {
+        "bytes": 3065,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/01-baseline-m5-fresh_on/case-terminal.json",
+        "sha256": "72e3e14129422f2201dd21e82770e839bd3442a73b4c622d5d8e59a45d5509e2"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7545948,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-fresh_on.jsonl.gz",
+        "sha256": "d7fd39894b4b281a669421cdad557700eb1b23fd039c7421ae25e871a94ed89f"
+      },
+      "old_raw_bytes": 7545948,
+      "old_raw_sha256": "d7fd39894b4b281a669421cdad557700eb1b23fd039c7421ae25e871a94ed89f",
+      "original_exit_code": 0,
+      "original_pid": 16827,
+      "run_label": "baseline-m5-fresh_on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 2,
+      "case_receipt": {
+        "bytes": 3016,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/02-baseline-m5-off/case-terminal.json",
+        "sha256": "8701d75b66fe0331b8e41f7190374c4f753553be71feab3016880ed018ceba1f"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 1319483,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-off.jsonl.gz",
+        "sha256": "394586f229e80e9041256c56bcfc37f873537f5649438ae3b337934b1598c662"
+      },
+      "old_raw_bytes": 1319483,
+      "old_raw_sha256": "394586f229e80e9041256c56bcfc37f873537f5649438ae3b337934b1598c662",
+      "original_exit_code": 0,
+      "original_pid": 16828,
+      "run_label": "baseline-m5-off",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 3,
+      "case_receipt": {
+        "bytes": 3016,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/03-baseline-m20-on/case-terminal.json",
+        "sha256": "76b30b05e88e6eaf8848f5fd6530e205a458b91c100bbebbe8d3ec1af1a8fe36"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7554098,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-on.jsonl.gz",
+        "sha256": "0c4ad27e037f0bad4f4f3d553623c14466253233795e43421f56f7a3cad7a0d8"
+      },
+      "old_raw_bytes": 7554098,
+      "old_raw_sha256": "0c4ad27e037f0bad4f4f3d553623c14466253233795e43421f56f7a3cad7a0d8",
+      "original_exit_code": 0,
+      "original_pid": 16829,
+      "run_label": "baseline-m20-on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 4,
+      "case_receipt": {
+        "bytes": 3076,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/case-terminal.json",
+        "sha256": "83707c086b9e396aac1b9b0695fd9709c62ca21eaf4722f6a600933d9cd717a1"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7554127,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-fresh_on.jsonl.gz",
+        "sha256": "2f975a48f52caacb3f8f0b71af2201c5977bc838878b526d8f568144f4d90308"
+      },
+      "old_raw_bytes": 7554127,
+      "old_raw_sha256": "2f975a48f52caacb3f8f0b71af2201c5977bc838878b526d8f568144f4d90308",
+      "original_exit_code": 0,
+      "original_pid": 16830,
+      "run_label": "baseline-m20-fresh_on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 5,
+      "case_receipt": {
+        "bytes": 3027,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/05-baseline-m20-off/case-terminal.json",
+        "sha256": "e953d2e8a64569f11c446999e475e58b8cf5aab2f3d33dbda89ed34cba914e79"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 1292101,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-off.jsonl.gz",
+        "sha256": "6b0068bf6482259a86cf4c110a593a31d953795e065f4aab4830ed53186a9808"
+      },
+      "old_raw_bytes": 1292101,
+      "old_raw_sha256": "6b0068bf6482259a86cf4c110a593a31d953795e065f4aab4830ed53186a9808",
+      "original_exit_code": 0,
+      "original_pid": 16831,
+      "run_label": "baseline-m20-off",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 6,
+      "case_receipt": {
+        "bytes": 3016,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/06-baseline-m50-on/case-terminal.json",
+        "sha256": "e821e03312af3ce40551146038a7609e384876927b2f422cb9fa65b5d60f576e"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7570890,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-on.jsonl.gz",
+        "sha256": "10234ea447e5ebf65b732902d0844e2962dd670666e8720fac8debf00bd92012"
+      },
+      "old_raw_bytes": 7570890,
+      "old_raw_sha256": "10234ea447e5ebf65b732902d0844e2962dd670666e8720fac8debf00bd92012",
+      "original_exit_code": 0,
+      "original_pid": 16832,
+      "run_label": "baseline-m50-on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 7,
+      "case_receipt": {
+        "bytes": 3076,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/07-baseline-m50-fresh_on/case-terminal.json",
+        "sha256": "1470ef82da89e46102badc25c16ccc4010949819e7d1606ae18873bc4dad3112"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7570940,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-fresh_on.jsonl.gz",
+        "sha256": "be7f3d129af8544767ad2864959e80e70178484ac55a34cc0992dcd8cf845226"
+      },
+      "old_raw_bytes": 7570940,
+      "old_raw_sha256": "be7f3d129af8544767ad2864959e80e70178484ac55a34cc0992dcd8cf845226",
+      "original_exit_code": 0,
+      "original_pid": 16833,
+      "run_label": "baseline-m50-fresh_on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 8,
+      "case_receipt": {
+        "bytes": 3027,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/08-baseline-m50-off/case-terminal.json",
+        "sha256": "4a6209c1c4a74c300cc7a2f50f0c3b8e9976322c5bb1f35eb71cde7c467e0a45"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 1333291,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-off.jsonl.gz",
+        "sha256": "e1c4c3793b8f4ff3f62c6375488d5a95bc05a7da7bf5daac56c971f37eb923d9"
+      },
+      "old_raw_bytes": 1333291,
+      "old_raw_sha256": "e1c4c3793b8f4ff3f62c6375488d5a95bc05a7da7bf5daac56c971f37eb923d9",
+      "original_exit_code": 0,
+      "original_pid": 16834,
+      "run_label": "baseline-m50-off",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 9,
+      "case_receipt": {
+        "bytes": 3175,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/09-rejected_inverse_w_plus_g-m5-on/case-terminal.json",
+        "sha256": "62a71935168b2ebe5f193dbe6834fdb47e27b79ee5b13c8154e8ce87837747c2"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7399245,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m5-on.jsonl.gz",
+        "sha256": "d7dbdb14d780b4b69328eb1b0b90db2941d6ef5b9a3e20ebe5e63062796ee6c5"
+      },
+      "old_raw_bytes": 7399245,
+      "old_raw_sha256": "d7dbdb14d780b4b69328eb1b0b90db2941d6ef5b9a3e20ebe5e63062796ee6c5",
+      "original_exit_code": 0,
+      "original_pid": 16835,
+      "run_label": "rejected_inverse_w_plus_g-m5-on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 10,
+      "case_receipt": {
+        "bytes": 3236,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/10-rejected_inverse_w_plus_g-m5-fresh_on/case-terminal.json",
+        "sha256": "1d1520d5cbbff38b06d1301254dc37d9b2e4ddf89b387963039dd9f28c33d4ec"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7399240,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m5-fresh_on.jsonl.gz",
+        "sha256": "bbcc426f5dcc900dc366a1205ed86c550b3e86e085ddede47fa2326070ba055a"
+      },
+      "old_raw_bytes": 7399240,
+      "old_raw_sha256": "bbcc426f5dcc900dc366a1205ed86c550b3e86e085ddede47fa2326070ba055a",
+      "original_exit_code": 0,
+      "original_pid": 16836,
+      "run_label": "rejected_inverse_w_plus_g-m5-fresh_on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 11,
+      "case_receipt": {
+        "bytes": 3187,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/11-rejected_inverse_w_plus_g-m5-off/case-terminal.json",
+        "sha256": "da23c4bf321e09e9151661604021275c047591234147149398c29a0dfedaf9ca"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 1286903,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m5-off.jsonl.gz",
+        "sha256": "efa696c3da18f66c2f66d90a5bf652f7bbdff45778b3e091377537d6825cb39a"
+      },
+      "old_raw_bytes": 1286903,
+      "old_raw_sha256": "efa696c3da18f66c2f66d90a5bf652f7bbdff45778b3e091377537d6825cb39a",
+      "original_exit_code": 0,
+      "original_pid": 16879,
+      "run_label": "rejected_inverse_w_plus_g-m5-off",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 12,
+      "case_receipt": {
+        "bytes": 3187,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/12-rejected_inverse_w_plus_g-m20-on/case-terminal.json",
+        "sha256": "75cec24790d33f251dee77b39e3162db4c98ce31e4130807070c9f455a537e05"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7448315,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m20-on.jsonl.gz",
+        "sha256": "bb0316d0f5bb956f71be5ea4f52d6a9bc5d5befcd1566ee2a6eb4d652d1999fc"
+      },
+      "old_raw_bytes": 7448315,
+      "old_raw_sha256": "bb0316d0f5bb956f71be5ea4f52d6a9bc5d5befcd1566ee2a6eb4d652d1999fc",
+      "original_exit_code": 0,
+      "original_pid": 16880,
+      "run_label": "rejected_inverse_w_plus_g-m20-on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 13,
+      "case_receipt": {
+        "bytes": 3247,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/13-rejected_inverse_w_plus_g-m20-fresh_on/case-terminal.json",
+        "sha256": "39732bbf26f44272c22c49674f1dc91dea24ea5268ebbe3e0d68d7227e8cdab0"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7448262,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m20-fresh_on.jsonl.gz",
+        "sha256": "ceb8b0b5b1cae87e463e28225120e368239af3fe8cf3a93dc9b4423d5d799abe"
+      },
+      "old_raw_bytes": 7448262,
+      "old_raw_sha256": "ceb8b0b5b1cae87e463e28225120e368239af3fe8cf3a93dc9b4423d5d799abe",
+      "original_exit_code": 0,
+      "original_pid": 16881,
+      "run_label": "rejected_inverse_w_plus_g-m20-fresh_on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 14,
+      "case_receipt": {
+        "bytes": 3198,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/14-rejected_inverse_w_plus_g-m20-off/case-terminal.json",
+        "sha256": "798f056150ae230d3689b1b5a62d11ca36c5dfe5010da56cc79c9cccf792b91c"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 1339406,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m20-off.jsonl.gz",
+        "sha256": "892ec0aa0baac079df995cd78347efab2cbe4c59e523a3d77a57f88ec95e0faf"
+      },
+      "old_raw_bytes": 1339406,
+      "old_raw_sha256": "892ec0aa0baac079df995cd78347efab2cbe4c59e523a3d77a57f88ec95e0faf",
+      "original_exit_code": 0,
+      "original_pid": 16913,
+      "run_label": "rejected_inverse_w_plus_g-m20-off",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 15,
+      "case_receipt": {
+        "bytes": 3187,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/15-rejected_inverse_w_plus_g-m50-on/case-terminal.json",
+        "sha256": "3099132ac8f435e30aa8981e2ce4f20fdab013fe84e2ff2e89c539d5534d196a"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7511604,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m50-on.jsonl.gz",
+        "sha256": "522371e5759d995d255f96d3604154bc5f87ff4f92ba09688713811d34b08901"
+      },
+      "old_raw_bytes": 7511604,
+      "old_raw_sha256": "522371e5759d995d255f96d3604154bc5f87ff4f92ba09688713811d34b08901",
+      "original_exit_code": 0,
+      "original_pid": 16914,
+      "run_label": "rejected_inverse_w_plus_g-m50-on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 16,
+      "case_receipt": {
+        "bytes": 3247,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/16-rejected_inverse_w_plus_g-m50-fresh_on/case-terminal.json",
+        "sha256": "4337a5d57b9bccc7cb97a05f6b401a1ff1ecbd0f48c66a40f610b4a9f04994d0"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 7511595,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m50-fresh_on.jsonl.gz",
+        "sha256": "e99d792ea1bb313c40040be836fd6dd5ba37892966ab983530c84eb48297d854"
+      },
+      "old_raw_bytes": 7511595,
+      "old_raw_sha256": "e99d792ea1bb313c40040be836fd6dd5ba37892966ab983530c84eb48297d854",
+      "original_exit_code": 0,
+      "original_pid": 16978,
+      "run_label": "rejected_inverse_w_plus_g-m50-fresh_on",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "case_index": 17,
+      "case_receipt": {
+        "bytes": 3198,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/17-rejected_inverse_w_plus_g-m50-off/case-terminal.json",
+        "sha256": "9b8f08b620466d59a01494ca332658158772479eb1ab852afed581eaa56e8e03"
+      },
+      "matches_old_pair": true,
+      "new_raw": {
+        "bytes": 1334270,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m50-off.jsonl.gz",
+        "sha256": "c5a6c32a170fefedbe3c1232a625d831af0794f0eafa8d298ea0da80ec3eb8aa"
+      },
+      "old_raw_bytes": 1334270,
+      "old_raw_sha256": "c5a6c32a170fefedbe3c1232a625d831af0794f0eafa8d298ea0da80ec3eb8aa",
+      "original_exit_code": 0,
+      "original_pid": 17044,
+      "run_label": "rejected_inverse_w_plus_g-m50-off",
+      "source_before_after_sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    }
+  ],
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "collection_index": {
+    "bytes": 47962,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/collection-index.json",
+    "sha256": "d4fd79e6dac643a65eae675adfe384d19f24e366d052f4014dd671a1e2bd626a"
+  },
+  "collection_terminal": {
+    "bytes": 917,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/collection-terminal.json",
+    "sha256": "a84ca678cbc2babac0df9820296fa0fa25c30357b4613ae302009f5c683a9885"
+  },
+  "commands": [
+    {
+      "actual_exit_code": 0,
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/collect_once.py",
+        "run",
+        "--spec",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-driver-spec.json",
+        "--spec-sha256",
+        "9eca6217a0dffc0db1b3fdf0c4700bba0e6b1b9cae7161fde7fbee8f9486c568"
+      ],
+      "bound_input_count": 16,
+      "inputs_unchanged": true,
+      "rerun_or_retry": false,
+      "terminal": {
+        "bytes": 9471,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/actual-collection-command/actual-command-terminal.json",
+        "sha256": "cff0ffd63a06d6b8deca456f6eb697126e5a8432a30f3d94e1aaa73a9b7157a5"
+      }
+    },
+    {
+      "actual_exit_code": 0,
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/checksum_reconstruct.py",
+        "--collection",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/collection-index.json",
+        "--registration",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration-v2.json",
+        "--registration-sha256",
+        "ef5e439eec8cec9b3bc7d30a062bf6a4aaf711a8ab773581d8e3c15e79843c70",
+        "--output",
+        "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery-attempt"
+      ],
+      "bound_input_count": 24,
+      "inputs_unchanged": true,
+      "rerun_or_retry": false,
+      "terminal": {
+        "bytes": 14735,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/actual-checksum-recovery-command/actual-command-terminal.json",
+        "sha256": "aadd5276681cda593a1a1575430c6a4265fec4f999176395a247af7ae8561756"
+      }
+    }
+  ],
+  "counts": {
+    "case_directories": 18,
+    "case_receipts": 18,
+    "launch_reserved": 18,
+    "original_fixed_cases": 18,
+    "process_attempted": 18,
+    "process_exit0": 18,
+    "raw_pair_old_matches": 18,
+    "tar_all_members": 19,
+    "tar_literal_manifest_members": 1,
+    "tar_raw_gzip_members": 18,
+    "total_raw_gzip_bytes": 97965652,
+    "unique_process_pids": 18
+  },
+  "frozen_protocol": {
+    "bytes": 92388,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol-v2.json",
+    "sha256": "0e1b320fa7681c79d4c195bd3dd8e5e802d37eea045423b8b3681934acfafabb"
+  },
+  "frozen_source_command_descriptor_hashes_revalidated": true,
+  "frozen_spec": {
+    "bytes": 7156,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-driver-spec.json",
+    "sha256": "9eca6217a0dffc0db1b3fdf0c4700bba0e6b1b9cae7161fde7fbee8f9486c568"
+  },
+  "independent_regenerated_stream": {
+    "bytes": 97996800,
+    "full_byte_comparison": true,
+    "second_archive_stored": false,
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+  },
+  "kind": "independent_actual_generation5_exact_original_archive_retention_review",
+  "limitations": [
+    "Evidence proves fixed18 recorded process outcomes and retained hashes; not an independent global process-history census.",
+    "Opaque numerical payload has not been interpreted by reviewer.",
+    "No remote Release asset or downloaded bytes checked yet; root will provide public download receipt."
+  ],
+  "original_input_binding_count": 174,
+  "original_inputs_rehashed_unchanged_after_review": true,
+  "original_literal_manifest_byte_identical": true,
+  "original_manifest": {
+    "bytes": 8728,
+    "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/raw-trace-manifest.json",
+    "sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690"
+  },
+  "qualification_and_publication": {
+    "approved_publication": "Entire exact original97996800B/SHA534e archive is within existing explicit user approval; public upload/download not yet checked by this receipt",
+    "different_new_archive": "PROPOSED, outside old-byte approval",
+    "new_gen5": "New independent18 cohort; checksum recovery does not relabel original records or promote numerical qualification",
+    "numerical_qualification": "SEPARATE_ORIGINAL_AUDIT_PROCESS_NOT_EVALUATED_BY_THIS_REVIEW",
+    "old_gen4": "FAILED_UNQUALIFIED_UNCHANGED"
+  },
+  "recovery_registration": {
+    "bytes": 2709,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration-v2.json",
+    "sha256": "ef5e439eec8cec9b3bc7d30a062bf6a4aaf711a8ab773581d8e3c15e79843c70"
+  },
+  "recovery_terminal": {
+    "bytes": 10516,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery-attempt/reconstruction-terminal.json",
+    "sha256": "5cb28a4fdea34877fe813c67c6948563380ded93f4892607646f1aca876e793e"
+  },
+  "review_scope": "Streaming compressed source/TAR hashes, full compressed-member byte equality, exact original manifest bytes, deterministic headers/order/full independent regenerated TAR stream, literal metadata receipts and frozen-code bindings. No native numerical payload decompression/parsing or scientific re-audit.",
+  "reviewed_utc": "2026-10-12T06:33:48.303725+00:00",
+  "reviewer_actions": {
+    "archive_writes": 0,
+    "builds": 0,
+    "checkout_edits": 0,
+    "native_numeric_payload_parsing": 0,
+    "network_calls": 0,
+    "original_data_writes": 0,
+    "replays": 0,
+    "source_edits": 0,
+    "worlds": 0
+  },
+  "root_second_stream": {
+    "bytes": 97996800,
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+  },
+  "schema_version": 1,
+  "source_predata_review": {
+    "bytes": 11932,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/predata-storage-review/final-predata-storage-review.json",
+    "sha256": "bc5c35492f9236bbde6cf7a22148a8fff275993dd37ebff3b927b7566a649347"
+  },
+  "status": "PASS_EXACT_APPROVED_OLD_TAR_BYTES_FROM_NEW_INDEPENDENT18_COHORT",
+  "tar_members": [
+    {
+      "basename": "baseline-m20-fresh_on.jsonl.gz",
+      "bytes": 7554127,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "2f975a48f52caacb3f8f0b71af2201c5977bc838878b526d8f568144f4d90308",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "baseline-m20-off.jsonl.gz",
+      "bytes": 1292101,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "6b0068bf6482259a86cf4c110a593a31d953795e065f4aab4830ed53186a9808",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "baseline-m20-on.jsonl.gz",
+      "bytes": 7554098,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "0c4ad27e037f0bad4f4f3d553623c14466253233795e43421f56f7a3cad7a0d8",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "baseline-m5-fresh_on.jsonl.gz",
+      "bytes": 7545948,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "d7fd39894b4b281a669421cdad557700eb1b23fd039c7421ae25e871a94ed89f",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "baseline-m5-off.jsonl.gz",
+      "bytes": 1319483,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "394586f229e80e9041256c56bcfc37f873537f5649438ae3b337934b1598c662",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "baseline-m5-on.jsonl.gz",
+      "bytes": 7545934,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "443d78ef13096f7c04b6bee480198292581b8e387d816ffb64fbcde30dfefb85",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "baseline-m50-fresh_on.jsonl.gz",
+      "bytes": 7570940,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "be7f3d129af8544767ad2864959e80e70178484ac55a34cc0992dcd8cf845226",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "baseline-m50-off.jsonl.gz",
+      "bytes": 1333291,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "e1c4c3793b8f4ff3f62c6375488d5a95bc05a7da7bf5daac56c971f37eb923d9",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "baseline-m50-on.jsonl.gz",
+      "bytes": 7570890,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "10234ea447e5ebf65b732902d0844e2962dd670666e8720fac8debf00bd92012",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "raw-trace-manifest.json",
+      "bytes": 8728,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m20-fresh_on.jsonl.gz",
+      "bytes": 7448262,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "ceb8b0b5b1cae87e463e28225120e368239af3fe8cf3a93dc9b4423d5d799abe",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m20-off.jsonl.gz",
+      "bytes": 1339406,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "892ec0aa0baac079df995cd78347efab2cbe4c59e523a3d77a57f88ec95e0faf",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m20-on.jsonl.gz",
+      "bytes": 7448315,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "bb0316d0f5bb956f71be5ea4f52d6a9bc5d5befcd1566ee2a6eb4d652d1999fc",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m5-fresh_on.jsonl.gz",
+      "bytes": 7399240,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "bbcc426f5dcc900dc366a1205ed86c550b3e86e085ddede47fa2326070ba055a",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m5-off.jsonl.gz",
+      "bytes": 1286903,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "efa696c3da18f66c2f66d90a5bf652f7bbdff45778b3e091377537d6825cb39a",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m5-on.jsonl.gz",
+      "bytes": 7399245,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "d7dbdb14d780b4b69328eb1b0b90db2941d6ef5b9a3e20ebe5e63062796ee6c5",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m50-fresh_on.jsonl.gz",
+      "bytes": 7511595,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "e99d792ea1bb313c40040be836fd6dd5ba37892966ab983530c84eb48297d854",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m50-off.jsonl.gz",
+      "bytes": 1334270,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "c5a6c32a170fefedbe3c1232a625d831af0794f0eafa8d298ea0da80ec3eb8aa",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    },
+    {
+      "basename": "rejected_inverse_w_plus_g-m50-on.jsonl.gz",
+      "bytes": 7511604,
+      "gid": 0,
+      "gname": "",
+      "literal_source_byte_compare": true,
+      "mode_octal": "0444",
+      "mtime": 0,
+      "pax_headers": {},
+      "sha256": "522371e5759d995d255f96d3604154bc5f87ff4f92ba09688713811d34b08901",
+      "type": "regular",
+      "uid": 0,
+      "uname": ""
+    }
+  ]
+}

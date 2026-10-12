@@ -1,0 +1,24 @@
+{
+  "current_protocol": {
+    "bytes": 92388,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol-v2.json",
+    "sha256": "0e1b320fa7681c79d4c195bd3dd8e5e802d37eea045423b8b3681934acfafabb"
+  },
+  "excluded_publication_metadata_only": [
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/README.md",
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/artifact-manifest.json",
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/external-artifact-references.json",
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/recovery/current-instance-retention.json",
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/recovery/workspace-exact-raw-retention-search.json"
+  ],
+  "immutable_artifacts_after": 312,
+  "immutable_artifacts_before": 317,
+  "no_reader_criteria_or_production_change": true,
+  "previous_protocol": {
+    "bytes": 93567,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol.json",
+    "sha256": "df5524188f6f1bf709fc4423eb462559c6b489c38fbef25dc8124eac2d0e9f68"
+  },
+  "reason": "Avoid contradicting existing frozen audit_live_source_policy permitting publication-only metadata updates; all frozen scientific records remain immutable.",
+  "worlds": 0
+}

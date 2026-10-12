@@ -1,0 +1,9 @@
+{
+  "ended_utc": "2026-10-12T06:56:41.043152+00:00",
+  "error": "OSError: [Errno 28] SYNTHETIC fault only",
+  "exit_code": 1,
+  "originals_and_partial_tar_preserved": true,
+  "proposed_pointer_exists": false,
+  "publication": "NOT_PUBLISHED",
+  "worlds": 0
+}

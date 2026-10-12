@@ -1,0 +1,8 @@
+{
+  "path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+  "baseline_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+  "rejected_sha256": "3f0792149b17d5ce92f2d095325d6f9c783935a7cb902cdc08df8a3b71323865",
+  "purpose": "Same already-rejected ForceBased unit-motor reciprocal comparison; no adoption",
+  "changed_hunks": 1,
+  "worlds": 0
+}

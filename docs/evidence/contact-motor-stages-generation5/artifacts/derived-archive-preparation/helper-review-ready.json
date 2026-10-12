@@ -1,0 +1,52 @@
+{
+  "actual_auditor_terminal_notice": "Root reported actual original terminal exit0/unchangedinputs; no actual artifact hash/pack by this child yet",
+  "actual_pure_exit_code": 0,
+  "actual_pure_log": {
+    "bytes": 860,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/actual-tests.log",
+    "sha256": "9ebee8ed19cb6679cbc1f4cd9490abcedadb852bb83bf8ee7d4f8c3244fec346"
+  },
+  "actual_pure_tests": {
+    "bytes": 1229,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/actual-pure-tests.json",
+    "sha256": "a7f916bf93728bb1bdccb9c9a46c78b82964599e2e67c65b8c242f75b273f205"
+  },
+  "exclusions": "Full original path/size/SHA/reason at freeze for native binaries, raw18 linked to exact old LOCAL_NOT_PUBLIC TAR, old TAR, entire preparation directory; later archive/publication proofs outside input freeze to prevent circularhash",
+  "input_archive_member_count": "Variable full closed G5 provenance + six whole details + final audit + literal old member manifest + literal new member manifest; no fixed19 assumption",
+  "mapping": "Original relative ASCII order maps one-to-one whole files to short artifacts/NNNNNN; canonical PAX header objects remain empty",
+  "next_required_root_notice": "Final postcollection-scientific-review receipt/ledger complete and stable; no other G5 writes during actual packing",
+  "no_code_changes_after_handoff_without_coordination": true,
+  "owned_source_artifacts": {
+    "README.md": {
+      "bytes": 7074,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/README.md",
+      "sha256": "4cd0bbacc0fb312b6787bd3d9b44fbc35cdef08a5ebf12fb1492d3bf9e159966"
+    },
+    "prepare_derived_archive.py": {
+      "bytes": 22540,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py",
+      "sha256": "4e792041ba05be7d4e17f024488873b646ed87d63d880621e877fa91d8dc6c9b"
+    },
+    "test_derived_archive.py": {
+      "bytes": 10797,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py",
+      "sha256": "b8ec29b68f85d2b98e7ebc04bdc0e1aefe2c1d5e92414d75c0e5fc112bfdf9c7"
+    }
+  },
+  "prepared_utc": "2026-10-12T06:58:53.448182+00:00",
+  "publication_status": "New bytes PROPOSED only; no fresh authorization inferred from exact-old-TAR approval",
+  "pure_checks": 6,
+  "retained_initial_code_snapshot": {
+    "bytes": 1459,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/historical-synthetic-attempt-1/source-manifest.json",
+    "sha256": "fe27feb3e34567eaed5b9c8199cbc4a4af82fafa71718a075ac314d0dbc2c2ac"
+  },
+  "retained_initial_fixture_setup_failure": {
+    "bytes": 1231,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/actual-pure-tests.json",
+    "sha256": "3a0f8d52f9586d243e76c6e5c358ec7a2827cab44549c231c0ac56b3e615b392"
+  },
+  "source_hygiene": "Python AST/LF/single EOF/no trailing whitespace passed",
+  "status": "DERIVED_ARCHIVE_HELPER_REVIEW_READY_PENDING_COMPLETED_SCIENTIFIC_REVIEW_RELEASE",
+  "worlds_builds_numeric_analysis_network_actual_audit_reads": 0
+}

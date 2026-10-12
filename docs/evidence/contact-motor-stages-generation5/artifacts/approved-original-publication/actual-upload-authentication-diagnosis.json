@@ -1,0 +1,35 @@
+{
+  "api_github_read_and_ci_access": "WORKING",
+  "archive_local_exact_original_bytes_verified": true,
+  "archive_sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0",
+  "archive_size_bytes": 97996800,
+  "configured_outbound_identities": [],
+  "configured_runtime_variables": [],
+  "configured_secrets": [],
+  "credential_values_read_or_printed": false,
+  "failed_release_id": 410260034,
+  "kind": "actual_release_upload_authentication_diagnosis",
+  "network_policy_observed_state": "unknown",
+  "new_different_bytes_authorization": "NOT_INFERRED",
+  "observations_current": true,
+  "old_original_archive_publication_authorization": "ALREADY_EXPLICITLY_GRANTED",
+  "postfailure_release_query_http_status": 404,
+  "proxy_and_TLS_preserved": true,
+  "public_asset_available": false,
+  "recorded_utc": "2026-10-12T06:39:59.631536+00:00",
+  "runtime_spec_revision": "9",
+  "source": "Actual gh release create exit1 and HTTP401; fresh supported runtime metadata revision9, not an inferred token absence",
+  "supported_draft_change": {
+    "allowed_destinations": [
+      "uploads.github.com"
+    ],
+    "requires_publish": true,
+    "secret_requirement_name": "RNE_GITHUB_RELEASE_UPLOAD",
+    "source": "user_provided",
+    "status": "SAVED_NOT_APPLIED_OR_PUBLISHED",
+    "variable_name": "RNE_GITHUB_UPLOAD_TOKEN"
+  },
+  "upload_host": "uploads.github.com",
+  "upload_host_configured": true,
+  "upload_http_status": 401
+}

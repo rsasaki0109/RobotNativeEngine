@@ -1,0 +1,16 @@
+{
+  "actual_exit_code": 0,
+  "ended_utc": "2026-10-12T06:56:41.092927+00:00",
+  "guarded_inputs_unchanged": true,
+  "rerun_or_retry": false,
+  "stderr": {
+    "bytes": 27,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/missing-review/actual-scientific-audit-command/stderr.log",
+    "sha256": "f27b3cd2338bdfc399ccc8878b1a767ef80360cf8b7873af3a52a84a7f0ef55f"
+  },
+  "stdout": {
+    "bytes": 27,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/missing-review/actual-scientific-audit-command/stdout.log",
+    "sha256": "f27b3cd2338bdfc399ccc8878b1a767ef80360cf8b7873af3a52a84a7f0ef55f"
+  }
+}

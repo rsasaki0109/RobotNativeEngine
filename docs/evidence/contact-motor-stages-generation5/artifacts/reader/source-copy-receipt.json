@@ -1,0 +1,38 @@
+{
+  "recorded_utc": "2026-10-12T05:29:52.926625+00:00",
+  "purpose": "Source-only reference copying into new pre-data cohort; no old traces or measured numerical report read",
+  "old_generation_4_immutable": true,
+  "copies": [
+    {
+      "name": "stage_numeric.py",
+      "historical_source_path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-native-frame-schema-repair-v2/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    },
+    {
+      "name": "stage_schema.py",
+      "historical_source_path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-native-frame-schema-repair-v2/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8",
+      "bytes": 20799
+    },
+    {
+      "name": "stage_analysis.py",
+      "historical_source_path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-native-frame-schema-repair-v2/stage_analysis.py",
+      "sha256": "83ad2d32a03a0c85e75707f9bf8f21a813655a60ca643ffd78a7d8f512643f03",
+      "bytes": 27101
+    },
+    {
+      "name": "audit_coupled_stages.py",
+      "historical_source_path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-native-frame-schema-repair-v2/audit_coupled_stages.py",
+      "sha256": "370b5bbadb6113749c66a64852356275bd446be16d3fc39fd6decfd6fd3df7e0",
+      "bytes": 29341
+    },
+    {
+      "name": "test_stage_reader.py",
+      "historical_source_path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/postcollection-native-frame-schema-repair-v2/test_stage_reader.py",
+      "sha256": "3ce29a9bb2867ab7a56dabcce736ebc784b48291b277842620eceb6574200620",
+      "bytes": 13677
+    }
+  ],
+  "native_worlds_builds_old_data_reads": 0
+}

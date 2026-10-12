@@ -1,0 +1,35 @@
+{
+  "scope": "Source operation order only; no historical native data",
+  "artifacts": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/third_party/rapier3d/src/lib.rs",
+      "sha256": "6985bc3241fd187fdff91232813ea75a341867416aa3c09685aa55c393ebac30",
+      "bytes": 6967,
+      "original_source_path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/lib.rs"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/third_party/rapier3d/src/utils.rs",
+      "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7",
+      "bytes": 24173,
+      "original_source_path": "/workspace/RobotNativeEngine/third_party/rapier3d/src/utils.rs"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/nalgebra-0.33.3/src/base/blas.rs",
+      "sha256": "caa4b5bcc11d4fd4edbb17ee7ce2588421219dc5acf02e60ee1c51ff0fc941ad",
+      "bytes": 44521,
+      "original_source_path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/base/blas.rs"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/nalgebra-0.33.3/src/base/blas_uninit.rs",
+      "sha256": "4a9a23c5b1ba4d621fef724a78a9fbcee0d515674d166afa9aeb04a01221695c",
+      "bytes": 10660,
+      "original_source_path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/base/blas_uninit.rs"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/operation-source-reference/nalgebra-0.33.3/src/lib.rs",
+      "sha256": "5f1342011be47da06dfb34c91c1c179e4d3b78e8b53fe1b58c022af2e17a45ad",
+      "bytes": 15304,
+      "original_source_path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nalgebra-0.33.3/src/lib.rs"
+    }
+  ]
+}

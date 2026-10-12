@@ -1,0 +1,11 @@
+test_byte_mismatch_and_nonpersistent_paths_reject (__main__.Tests.test_byte_mismatch_and_nonpersistent_paths_reject) ... ok
+test_closed_input_file_set_drift_blocks_proposed_pointer (__main__.Tests.test_closed_input_file_set_drift_blocks_proposed_pointer) ... ok
+test_complete_closure_short_mapping_empty_pax_and_whole_six (__main__.Tests.test_complete_closure_short_mapping_empty_pax_and_whole_six) ... ok
+test_enospc_preserves_partial_tar_and_original_inputs (__main__.Tests.test_enospc_preserves_partial_tar_and_original_inputs) ... ok
+test_missing_complete_scientific_review_blocks (__main__.Tests.test_missing_complete_scientific_review_blocks) ... ok
+test_unreleased_blocks_before_input_scan (__main__.Tests.test_unreleased_blocks_before_input_scan) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.652s
+
+OK

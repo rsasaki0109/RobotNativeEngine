@@ -1,0 +1,11 @@
+test_all_eighteen_exact_and_directory_fsync (__main__.ArchiveFaultChecks.test_all_eighteen_exact_and_directory_fsync) ... ok
+test_archive_sha_fault_retains_failed_output (__main__.ArchiveFaultChecks.test_archive_sha_fault_retains_failed_output) ... ok
+test_duplicate_and_failed_case_reject (__main__.ArchiveFaultChecks.test_duplicate_and_failed_case_reject) ... ok
+test_one_changed_member_all_or_none (__main__.ArchiveFaultChecks.test_one_changed_member_all_or_none) ... ok
+test_optimized_python_does_not_disable_guards (__main__.ArchiveFaultChecks.test_optimized_python_does_not_disable_guards) ... ok
+test_second_stream_byte_mismatch_reject (__main__.ArchiveFaultChecks.test_second_stream_byte_mismatch_reject) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.228s
+
+OK

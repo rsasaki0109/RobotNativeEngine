@@ -1,0 +1,16 @@
+{
+  "archive": {
+    "bytes": 241981440,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/rne-contact-motor-stage-generation5-complete-derived-evidence.tar",
+    "sha256": "86217d5b652d0d3fd854db97563af1f90c79f5d48606cceb55c468872a95cd2d"
+  },
+  "old_original_archive_authorization_does_not_authorize_new_derived_bytes": true,
+  "proposed_tag": "evidence-contact-motor-stage-gen5-2c3586fa",
+  "public_asset_available": false,
+  "public_download_verified": false,
+  "schema_version": 1,
+  "source_commit": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "status": "PROPOSED_NEW_DERIVED_BYTES_FRESH_USER_AUTHORIZATION_PENDING",
+  "tag_created": false,
+  "upload_credentials_pending": true
+}

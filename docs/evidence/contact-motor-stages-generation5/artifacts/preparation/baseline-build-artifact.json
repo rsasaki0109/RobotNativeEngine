@@ -1,0 +1,17 @@
+{
+  "build": "baseline",
+  "binary": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+    "bytes": 3439056,
+    "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+  },
+  "target_directory": "/workspace/RobotNativeEngine/target",
+  "source_head": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "features": {
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/baseline142-resolved-features.txt",
+    "sha256": "fe0381bf5f2f9a23ef71bda72d7c427b9bcd71f11d5fc60736d3172eacc4a167"
+  },
+  "source_before_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+  "RUSTFLAGS_empty_observed": true,
+  "native_worlds": 0
+}

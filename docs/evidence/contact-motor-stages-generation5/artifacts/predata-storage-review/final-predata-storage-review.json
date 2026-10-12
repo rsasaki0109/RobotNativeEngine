@@ -1,0 +1,195 @@
+{
+  "bound_artifacts": [
+    {
+      "bytes": 10194,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/final-driver-handoff.json",
+      "sha256": "4ae28dcf5351cbb4cb54bf761765b291c00ea4bf409a07d063238b96dd2faf4b"
+    },
+    {
+      "bytes": 2709,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration-v2.json",
+      "sha256": "ef5e439eec8cec9b3bc7d30a062bf6a4aaf711a8ab773581d8e3c15e79843c70"
+    },
+    {
+      "bytes": 7979,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/README.md",
+      "sha256": "0c6c3e3e12846e8e32d8ec32dd43888382df2f1b345d8d979ddb694f86958759"
+    },
+    {
+      "bytes": 13335,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/collect_once.py",
+      "sha256": "641835598336f93b1976141ea8fe65fc94dc603bcd569c8136e20c95b4d911b6"
+    },
+    {
+      "bytes": 9075,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/durable_common.py",
+      "sha256": "d5aa49a02217d0b9f5c56464bcf6cbedfa1bad1386be2be123167ac4c777593e"
+    },
+    {
+      "bytes": 13253,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/prepare_archive.py",
+      "sha256": "e0824b75f9e5891a02bf602be2eea27d753cc4da5f7e08976ec32326d49284c5"
+    },
+    {
+      "bytes": 5807,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/spec-template.json",
+      "sha256": "9bd9240ad7ebb49acb9126efda7ff53c66e1e5c0433a95cbbb7c1893c4b955ed"
+    },
+    {
+      "bytes": 19262,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/test_durable_driver.py",
+      "sha256": "bb1ff486bc634fbee1575ff99fac0d8d515029a48353e1a287d0f77f4d81e6d0"
+    },
+    {
+      "bytes": 7336,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/checksum_reconstruct.py",
+      "sha256": "a1272976f5a632e985c7dbae19d79795f30aeea5c13c46ea38983c02d034b714"
+    },
+    {
+      "bytes": 8728,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/raw-trace-manifest.json",
+      "sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690"
+    },
+    {
+      "bytes": 1171,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/synthetic-tests-hardened/20261012T060321753906Z/actual-pure-checks.json",
+      "sha256": "cd7a408cf5667bbbf9656679e12da46e676115f5880cdf75b2f61924c2f17768"
+    },
+    {
+      "bytes": 2179,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration.json",
+      "sha256": "43b85daf7b6d45c43d5802c0cf8993370cd2fcb2852a1bfe018bd646e4d43b9e"
+    },
+    {
+      "bytes": 8075,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/test_checksum_reconstruct.py",
+      "sha256": "01217daadf2a5cdfc0276e0253fe18445e0eabddbd6eb85ea9bef6eabb205fe5"
+    },
+    {
+      "bytes": 818,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/synthetic-tests-hardened/20261012T060321753906Z/actual-tests.log",
+      "sha256": "407fbb871262eb1a3e7e26c7b28bfa8ed654d6e9ddf2e3ba66f9dfbef97df27d"
+    },
+    {
+      "bytes": 1720,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/synthetic-tests/2026-10-12T05-44-53.121454+00-00-11642/actual-synthetic-tests-receipt.json",
+      "sha256": "89f28eab68f17f73f145dd5954c49fbfe5143873159cd64a782a595c95ec5c05"
+    },
+    {
+      "bytes": 2434,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/synthetic-tests/2026-10-12T05-44-53.121454+00-00-11642/actual-synthetic-tests.log",
+      "sha256": "9c18aa80d6f5a019a4772b35d30a37e786530d38db1735cf87cee4c736346eea"
+    },
+    {
+      "bytes": 198146,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/baseline-canonical-source-manifest.json",
+      "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    {
+      "bytes": 3089208,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline141",
+      "sha256": "dc22283295e05ee5dd48cf581b15d4ca00719a6cc5688187fd1d310f90a0d3e9"
+    },
+    {
+      "bytes": 3439056,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+      "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+    },
+    {
+      "bytes": 3439088,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+      "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+    }
+  ],
+  "code_sha256": {
+    "driver/collect_once.py": "641835598336f93b1976141ea8fe65fc94dc603bcd569c8136e20c95b4d911b6",
+    "driver/durable_common.py": "d5aa49a02217d0b9f5c56464bcf6cbedfa1bad1386be2be123167ac4c777593e",
+    "driver/prepare_archive.py": "e0824b75f9e5891a02bf602be2eea27d753cc4da5f7e08976ec32326d49284c5",
+    "driver/test_durable_driver.py": "bb1ff486bc634fbee1575ff99fac0d8d515029a48353e1a287d0f77f4d81e6d0",
+    "recovery/checksum_reconstruct.py": "a1272976f5a632e985c7dbae19d79795f30aeea5c13c46ea38983c02d034b714",
+    "recovery/test_checksum_reconstruct.py": "01217daadf2a5cdfc0276e0253fe18445e0eabddbd6eb85ea9bef6eabb205fe5"
+  },
+  "driver_review": {
+    "archive": "All18 original raw members and exits retained; gzip container/trailer/literal stream only, compressed hashes and source consumed hashes, deterministic USTAR zero metadata/mode0444, fixed19 member order, saved-member header/hash/count verification, regenerated full stream byte comparison+SHA/size. Partial files/claims retained; only PROPOSED pointer, no network writes.",
+    "durable_outputs": "O_EXCL/O_NOFOLLOW, file+parent directory fsync; original raw collector create_new contract, after exit raw+directory fsync; immutable sequential snapshots.",
+    "evidence": "Pinned driver test script and actual16-PASS receipt/log all descriptors verified, no child test execution.",
+    "fixed_matrix": "baseline/rejected_inverse_w_plus_g x5/20/50kg xon/fresh_on/off fixed order",
+    "once": "Canonical persistent cohort root exclusive mkdir and fsynced permanent claim precede Popen; no resume/retry on existing root, including partial/torn claims. Concurrent second runner cannot launch.",
+    "outcomes": "Actual signed Popen returncode persisted before later hashing; failed spawn reserved but not falsely completed; nonzero retained and next fixed cell continues only if provenance/source binds; infra/source drift stops without replacing failed row; no numeric outcome selection.",
+    "status": "PASS",
+    "world_limit": 18
+  },
+  "historical_binary_review": {
+    "binaries": [
+      {
+        "bytes": 3089208,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline141",
+        "sha256": "dc22283295e05ee5dd48cf581b15d4ca00719a6cc5688187fd1d310f90a0d3e9"
+      },
+      {
+        "bytes": 3439056,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+        "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+      },
+      {
+        "bytes": 3439088,
+        "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+        "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+      }
+    ],
+    "source_or_binary_match_alone_guarantees_raw_reproduction": false,
+    "status": "PASS_EXACT_OLD_BYTES_HASHES"
+  },
+  "kind": "independent_predata_generation5_storage_driver_recovery_review",
+  "limitations": [
+    "No actual new18 native data exists in this reviewer observation; no real-world/raw-checksum recovery or numerical qualification is claimed.",
+    "Input guard is explicitly non-exhaustive; no full compiler dependency closure or independent Git cleanliness assertion.",
+    "Recovery tool accepts trusted frozen descriptors; generic untrusted path/JSON hardening weaker than driver is outside this source review.",
+    "PASS bound only to the exact listed code/registration/test/binary hashes; any change needs re-review."
+  ],
+  "production_input_guard": {
+    "mismatches": [],
+    "registered_input_count": 1640,
+    "root_rollback_attempt1_build_exit": 101,
+    "root_rollback_attempt2_build_exit": 0,
+    "root_rollback_native_worlds": 0,
+    "scope": "Non-exhaustive repository extension-filtered input snapshot; not compiler/dependency closure",
+    "status": "PASS",
+    "worktree_clean": "Literal root rollback-attempt2 receipt claim; no independent Git operation"
+  },
+  "qualification_and_publication": {
+    "existing_user_approval": "Applies only to entire old97996800B TAR SHA534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0; any differing new archive remains PROPOSED/no publication without separate approval",
+    "new_gen5": "New independent18 cohort even if byte-identical raw/TAR",
+    "old_gen4": "FAILED_UNQUALIFIED_UNCHANGED",
+    "predata_raw_matching": "NOT_ESTABLISHED",
+    "scientific_gain_claim": null
+  },
+  "recovery_review": {
+    "all_or_none": "No archive until all18 raw size/SHA pairs match exact original manifest; duplicate/unknown/unattempted/nonzero cases rejected; any raw mismatch terminalFAIL/no selected subset.",
+    "durability": "Unconditional require guards remain active under Python optimization; exclusive output directory/receipt/TAR, file+parent fsync including output parent; original source/data records read-only, failed partial output retained.",
+    "evidence": "New root six-PASS fault-test receipt/script/log all bound. Covers independent seekable expected19-member headers/bytes, once output, raw mismatch, duplicate/nonzero case, wrong archiveSHA failure retaining output, second-stream mismatch, -O bypass rejection, parent fsync.",
+    "expected_old_archive": {
+      "basename": "rne-contact-motor-stage-gen4-raw-traces.tar",
+      "bytes": 97996800,
+      "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+    },
+    "native_numeric_payload_parsing": 0,
+    "original_raw_pairs_required": 18,
+    "recipe": "Exact original manifest bytes +18 original compressed bytes; sorted ASCII basename; PAX regular members with zero uid/gid/mtime, empty names and pax headers, mode0444; entire old TAR exact expected SHA/size +second generated byte stream equality and revalidation of all source descriptors required.",
+    "status": "PASS"
+  },
+  "registration_supersession": "v2 only replaces old pre-data helper/test binding after optimization/fsync fix; old v1registration and prior reviews preserved. No post-data criteria/source repair.",
+  "reviewed_utc": "2026-10-12T06:05:17.936394+00:00",
+  "reviewer_actions": {
+    "builds": 0,
+    "checkout_edits": 0,
+    "helper_edits": 0,
+    "native_numeric_reads": 0,
+    "network": 0,
+    "test_runs": 0,
+    "worlds": 0
+  },
+  "schema_version": 1,
+  "scope": "Source-only independent once/durability/archive/checksum-recovery review of exactly bound code + root existing synthetic receipts, before any authoritative18 collection. This PASS is a storage/driver preflight gate only, not numeric reader qualification or native real-data outcome.",
+  "status": "PASS"
+}

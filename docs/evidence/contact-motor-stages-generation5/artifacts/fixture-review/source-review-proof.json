@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "generation5_independent_fixture_source_only_review_proof",
+  "status": "source_spec_ready_for_future_reader_and_workload_freeze; no authorisation_or_execution_implied",
+  "head_before": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "head_after": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "head_unchanged": true,
+  "git_status_before": "",
+  "git_status_after": "",
+  "git_status_unchanged": true,
+  "source_inventory_sha256_before": "15361ef82a6ae94fdf88bec169fbbf7e28c08b2a9ce473379369d446f7450fb6",
+  "source_inventory_sha256_after": "15361ef82a6ae94fdf88bec169fbbf7e28c08b2a9ce473379369d446f7450fb6",
+  "source_byte_changes": [],
+  "source_file_count": 33,
+  "artifact_bindings": [
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/fixture-review/source-review-start.json",
+      "bytes": 6958,
+      "sha256": "9bb73f3d0450ea829e8fe7a6b614c178a3356588ff377b64f6a08da0bf81e676"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/fixture-review/source-derived-fixture-spec.json",
+      "bytes": 20235,
+      "sha256": "e23de608042a3c1d16e59daa8ad5faecc0173f14501b6dc53a4acea090dfb3df"
+    },
+    {
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/fixture-review/source-derived-fixture-review.md",
+      "bytes": 11193,
+      "sha256": "9a358ef7b4ab5afd094d9f01a83bb552d831b20e025830c732d6dc746392f9b8"
+    }
+  ],
+  "activity_counts": {
+    "cargo_invocations": 0,
+    "builds": 0,
+    "test_runs": 0,
+    "physics_worlds": 0,
+    "native_measurement_files_read": 0,
+    "checkout_or_index_writes": 0,
+    "github_mutations": 0
+  },
+  "review_scope": "Current Rust/manifest/lockfile sources plus one historical schema source reference only; no historical numerical report/raw-data access.",
+  "admission_scope": "New generation5 all-three-row gate, source-derived role/binding/block/phase/native arithmetic rules, and planned18case axes.",
+  "pending": "Independent reader exact tolerance/predicate qualification and parent actual source/compiler/flags/profile/binary/driver freeze, all18worlds and required physical/source qualification remain future.",
+  "known_limits": [
+    "Anatomical finger side is not bound; reader slots are native link indices.",
+    "No independent full native Multibody/private layout decoder or hidden-state equality claim.",
+    "Row-build q is unobserved; no absolute RHS reconstruction from final q.",
+    "No measured cause, accuracy, hardware/external-use or maturity claim.",
+    "Generation3 remains REJECTED and earlier cohorts stay immutable."
+  ]
+}

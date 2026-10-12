@@ -1,0 +1,7 @@
+{
+  "case_index": 10,
+  "ended_utc": "2026-10-12T06:21:44.449779+00:00",
+  "original_exit_code": 0,
+  "pid": 16836,
+  "source": "Actual subprocess.Popen.returncode; no status substitution"
+}

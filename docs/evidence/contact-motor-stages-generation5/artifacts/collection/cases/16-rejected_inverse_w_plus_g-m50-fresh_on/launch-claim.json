@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+    "--mass-kg",
+    "50",
+    "--observer",
+    "on",
+    "--label",
+    "rejected_inverse_w_plus_g-m50-fresh_on",
+    "--output",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m50-fresh_on.jsonl.gz"
+  ],
+  "attempted": false,
+  "binary": {
+    "bytes": 3439088,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+    "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+  },
+  "build": "rejected_inverse_w_plus_g",
+  "case_index": 16,
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "ended_utc": null,
+  "environment_policy": "Inherited process environment; no driver overrides",
+  "error": null,
+  "exit_code": null,
+  "frozen_spec": {
+    "bytes": 7156,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-driver-spec.json",
+    "sha256": "9eca6217a0dffc0db1b3fdf0c4700bba0e6b1b9cae7161fde7fbee8f9486c568"
+  },
+  "launch_reserved": true,
+  "mass_kg": 50,
+  "mode": "fresh_on",
+  "original_exit_code": null,
+  "retry_or_resume_permitted": false,
+  "run_label": "rejected_inverse_w_plus_g-m50-fresh_on",
+  "source_guard_after": null,
+  "source_guard_before": {
+    "bytes": 198146,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/16-rejected_inverse_w_plus_g-m50-fresh_on/source-before.json",
+    "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+  },
+  "started_utc": "2026-10-12T06:21:58.000797+00:00",
+  "stderr": null,
+  "stdout": null,
+  "trace": null
+}

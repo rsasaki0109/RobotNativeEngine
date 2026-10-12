@@ -1,0 +1,17 @@
+diff --git a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
+index 43cea77e..c691f4d7 100644
+--- a/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
++++ b/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs
+@@ -49,7 +49,11 @@ pub fn unit_joint_limit_constraint(
+         joint_id: usize::MAX,
+         impulse: 0.0,
+         impulse_bounds,
+-        inv_lhs: crate::utils::inv(lhs),
++        inv_lhs: if motor.model == crate::dynamics::MotorModel::ForceBased {
++            crate::utils::inv(lhs + motor_params.cfm_gain)
++        } else {
++            crate::utils::inv(lhs)
++        },
+         rhs: rhs_wo_bias + rhs_bias,
+         rhs_wo_bias,
+         cfm_coeff,

@@ -1,0 +1,11 @@
+{
+  "initial_binary_oldhash_matches_all": true,
+  "initial_driver_bindings_all_match": true,
+  "initial_production_guard_mismatches": 0,
+  "initial_review_sha256": "2c8c35b1e4b940de7ab71c232744d4ba8fbfd2e69834d4fd932b7c2c7f009de8",
+  "kind": "initial_review_concurrent_source_transition_note",
+  "new_source_observation": "a1272976 has unconditional require guards and parent-directory fsync, fixing identified assertions/durability issues.",
+  "new_source_registration_binding_at_initial_capture": false,
+  "recorded_utc": "2026-10-12T06:00:16.959211+00:00",
+  "scope": "Initial recovery findings came from old source SHA36f50086df986e29b79c594200ff9bbfcaaa00ae27955560461d36da3ddabc9c read before receipt capture. Root replaced source concurrently; initial receipt artifact captures newer SHAa1272976f5a632e985c7dbae19d79795f30aeea5c13c46ea38983c02d034b714 while old registration/pure receipts were still live. Its recovery hardening findings therefore describe old source only, not captured newer source. Preserve initial observation; final review must separately bind final code, registration, pure receipts."
+}

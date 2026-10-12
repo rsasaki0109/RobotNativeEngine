@@ -1,0 +1,101 @@
+test_byte_mismatch_and_nonpersistent_paths_reject (__main__.Tests.test_byte_mismatch_and_nonpersistent_paths_reject) ... ok
+test_closed_input_file_set_drift_blocks_proposed_pointer (__main__.Tests.test_closed_input_file_set_drift_blocks_proposed_pointer) ... ERROR
+test_complete_closure_short_mapping_empty_pax_and_whole_six (__main__.Tests.test_complete_closure_short_mapping_empty_pax_and_whole_six) ... ERROR
+test_enospc_preserves_partial_tar_and_original_inputs (__main__.Tests.test_enospc_preserves_partial_tar_and_original_inputs) ... ERROR
+test_missing_complete_scientific_review_blocks (__main__.Tests.test_missing_complete_scientific_review_blocks) ... ERROR
+test_unreleased_blocks_before_input_scan (__main__.Tests.test_unreleased_blocks_before_input_scan) ... ERROR
+
+======================================================================
+ERROR: test_closed_input_file_set_drift_blocks_proposed_pointer (__main__.Tests.test_closed_input_file_set_drift_blocks_proposed_pointer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 135, in test_closed_input_file_set_drift_blocks_proposed_pointer
+    fixture = Fixture("file-set-drift")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 39, in __init__
+    logs.append(archive.write_bytes(self.root / "actual-scientific-audit-command" / filename,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 130, in write_bytes
+    with new_stream(value) as destination:
+         ^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 119, in new_stream
+    descriptor = os.open(value, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/file-set-drift/actual-scientific-audit-command/stdout.log'
+
+======================================================================
+ERROR: test_complete_closure_short_mapping_empty_pax_and_whole_six (__main__.Tests.test_complete_closure_short_mapping_empty_pax_and_whole_six)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 97, in test_complete_closure_short_mapping_empty_pax_and_whole_six
+    fixture = Fixture("complete")
+              ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 39, in __init__
+    logs.append(archive.write_bytes(self.root / "actual-scientific-audit-command" / filename,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 130, in write_bytes
+    with new_stream(value) as destination:
+         ^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 119, in new_stream
+    descriptor = os.open(value, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/complete/actual-scientific-audit-command/stdout.log'
+
+======================================================================
+ERROR: test_enospc_preserves_partial_tar_and_original_inputs (__main__.Tests.test_enospc_preserves_partial_tar_and_original_inputs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 147, in test_enospc_preserves_partial_tar_and_original_inputs
+    fixture = Fixture("enospc")
+              ^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 39, in __init__
+    logs.append(archive.write_bytes(self.root / "actual-scientific-audit-command" / filename,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 130, in write_bytes
+    with new_stream(value) as destination:
+         ^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 119, in new_stream
+    descriptor = os.open(value, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/enospc/actual-scientific-audit-command/stdout.log'
+
+======================================================================
+ERROR: test_missing_complete_scientific_review_blocks (__main__.Tests.test_missing_complete_scientific_review_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 128, in test_missing_complete_scientific_review_blocks
+    fixture = Fixture("missing-review")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 39, in __init__
+    logs.append(archive.write_bytes(self.root / "actual-scientific-audit-command" / filename,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 130, in write_bytes
+    with new_stream(value) as destination:
+         ^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 119, in new_stream
+    descriptor = os.open(value, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/missing-review/actual-scientific-audit-command/stdout.log'
+
+======================================================================
+ERROR: test_unreleased_blocks_before_input_scan (__main__.Tests.test_unreleased_blocks_before_input_scan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 120, in test_unreleased_blocks_before_input_scan
+    fixture = Fixture("unreleased")
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/test_derived_archive.py", line 39, in __init__
+    logs.append(archive.write_bytes(self.root / "actual-scientific-audit-command" / filename,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 130, in write_bytes
+    with new_stream(value) as destination:
+         ^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py", line 119, in new_stream
+    descriptor = os.open(value, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-55-51.337024+00-00/unreleased/actual-scientific-audit-command/stdout.log'
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.210s
+
+FAILED (errors=5)

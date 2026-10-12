@@ -1,0 +1,69 @@
+{
+  "binary": {
+    "bytes": 3439056,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+    "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+  },
+  "case_index": 4,
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "launch_error": null,
+  "launch_reserved": true,
+  "original_exit_code": 0,
+  "original_process_exit_receipt": {
+    "bytes": 190,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/process-exit.json",
+    "sha256": "55ed8464d1295f05e0fa2b1fd898d9a86734cc39b4b12011e73f38ec542cd6c9"
+  },
+  "process_started": true,
+  "raw_output_exclusive_create_contract": "Unchanged collector142 OpenOptions::create_new(true)",
+  "retry_or_resume_permitted": false,
+  "row": {
+    "argv": [
+      "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+      "--mass-kg",
+      "20",
+      "--observer",
+      "on",
+      "--label",
+      "baseline-m20-fresh_on",
+      "--output",
+      "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-fresh_on.jsonl.gz"
+    ],
+    "attempted": true,
+    "build": "baseline",
+    "ended_utc": "2026-10-12T06:21:28.418557+00:00",
+    "error": null,
+    "exit_code": 0,
+    "mass_kg": 20,
+    "mode": "fresh_on",
+    "run_label": "baseline-m20-fresh_on",
+    "source_guard_after": {
+      "bytes": 198146,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/source-after.json",
+      "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    "source_guard_before": {
+      "bytes": 198146,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/source-before.json",
+      "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    },
+    "started_utc": "2026-10-12T06:21:26.142403+00:00",
+    "stderr": {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout": {
+      "bytes": 111,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/cases/04-baseline-m20-fresh_on/stdout.log",
+      "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+    },
+    "trace": {
+      "bytes": 7554127,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-fresh_on.jsonl.gz",
+      "sha256": "2f975a48f52caacb3f8f0b71af2201c5977bc838878b526d8f568144f4d90308"
+    }
+  },
+  "schema_version": 1,
+  "source_inputs_unchanged": true
+}

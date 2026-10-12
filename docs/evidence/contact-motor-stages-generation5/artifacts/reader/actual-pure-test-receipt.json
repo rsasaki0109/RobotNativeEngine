@@ -1,0 +1,86 @@
+{
+  "actual_command": {
+    "bytes": 1213,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-3/command.json",
+    "sha256": "4b52d4649bc199be0f5653f39ee46541907a4503c23617f705efd00beb2cb1c6"
+  },
+  "actual_exit_code": 0,
+  "actual_stderr": {
+    "bytes": 2049,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-3/stderr.txt",
+    "sha256": "15b652667cc50546ab216eebb9acec33bf049fb8b27ef1360c76ebf0e452d5e5"
+  },
+  "actual_stdout": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-3/stdout.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "authoritative_generation5_collection_or_numeric_findings_qualified": false,
+  "builder_permutation_profiles": 12,
+  "exact_historical_arithmetic_and_checkpoint_schema_source_unchanged": true,
+  "metadata_tamper_variants": 13,
+  "native_worlds_builds_old_native_data_reads": 0,
+  "preserved_predata_first_failed_attempt": {
+    "bytes": 961,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-1/command.json",
+    "sha256": "aeb27bd4396ea2c38606f6784f30620f34cc142839e1da6efa4db666b7b12deb"
+  },
+  "prior_pass_before_actual_schema2_integration": {
+    "bytes": 1084,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-2/command.json",
+    "sha256": "f5dfe2edb37a3bd7bab198baf6eca6537bcc75757f3b8f27676e4f2acf62362a"
+  },
+  "pure_test_source_closure": [
+    {
+      "bytes": 5025,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/test_stage_numeric.py",
+      "sha256": "584b7776ebc483a8a5519973c910a4e2ce56342cd2a109aad2ee35a77f8e0e73"
+    },
+    {
+      "bytes": 16832,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/test_stage_reader.py",
+      "sha256": "09597f2fa619fa9150cc60aba6c7ab1c6982eb4f58dae20523cd595ad0804529"
+    },
+    {
+      "bytes": 9789,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/test_stage_provenance.py",
+      "sha256": "39650d1878659ab2d4394d829b32cdaf8ee134133b0bfa1b14406be7b11b59f5"
+    }
+  ],
+  "recorded_utc": "2026-10-12T05:57:42.833281+00:00",
+  "runtime_reader_closure": [
+    {
+      "bytes": 38348,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py",
+      "sha256": "3065fdcd0c38b10628ad6c8e5dce34473c7a1edb6b6bf489a7222ab4bda32806"
+    },
+    {
+      "bytes": 31893,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py",
+      "sha256": "9964312729adb3ee89479e01fdae846c3217ac506af3731650ae7f98a5fabff7"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20799,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+    },
+    {
+      "bytes": 6779,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py",
+      "sha256": "8e1c53944e5722d1a9a19effdbdd5793cddc9aeae3f0013a5068ec3e36bd0a0e"
+    },
+    {
+      "bytes": 1240,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/synthetic-profile.json",
+      "sha256": "e7f08c8cdc122994567a847d06a1cb28a45fccf3f8465acec121ebee70c2be11"
+    }
+  ],
+  "scope": "PRE_DATA_GENERATION5_SYNTHETIC_READER_QUALIFICATION_ONLY",
+  "status": "PASS",
+  "unittest_methods": 15
+}

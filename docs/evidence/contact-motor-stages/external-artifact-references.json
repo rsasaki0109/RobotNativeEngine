@@ -1371,9 +1371,11 @@
     {
       "bytes": 7545934,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-on.jsonl.gz",
@@ -1383,9 +1385,11 @@
     {
       "bytes": 7545948,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-fresh_on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-fresh_on.jsonl.gz",
@@ -1395,9 +1399,11 @@
     {
       "bytes": 1319483,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m5-off.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m5-off.jsonl.gz",
@@ -1407,9 +1413,11 @@
     {
       "bytes": 7554098,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-on.jsonl.gz",
@@ -1419,9 +1427,11 @@
     {
       "bytes": 7554127,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-fresh_on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-fresh_on.jsonl.gz",
@@ -1431,9 +1441,11 @@
     {
       "bytes": 1292101,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m20-off.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m20-off.jsonl.gz",
@@ -1443,9 +1455,11 @@
     {
       "bytes": 7570890,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-on.jsonl.gz",
@@ -1455,9 +1469,11 @@
     {
       "bytes": 7570940,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-fresh_on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-fresh_on.jsonl.gz",
@@ -1467,9 +1483,11 @@
     {
       "bytes": 1333291,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/baseline-m50-off.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/baseline-m50-off.jsonl.gz",
@@ -1479,9 +1497,11 @@
     {
       "bytes": 7399245,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m5-on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-on.jsonl.gz",
@@ -1491,9 +1511,11 @@
     {
       "bytes": 7399240,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m5-fresh_on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-fresh_on.jsonl.gz",
@@ -1503,9 +1525,11 @@
     {
       "bytes": 1286903,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m5-off.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m5-off.jsonl.gz",
@@ -1515,9 +1539,11 @@
     {
       "bytes": 7448315,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m20-on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-on.jsonl.gz",
@@ -1527,9 +1553,11 @@
     {
       "bytes": 7448262,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m20-fresh_on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-fresh_on.jsonl.gz",
@@ -1539,9 +1567,11 @@
     {
       "bytes": 1339406,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m20-off.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m20-off.jsonl.gz",
@@ -1551,9 +1581,11 @@
     {
       "bytes": 7511604,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m50-on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-on.jsonl.gz",
@@ -1563,9 +1595,11 @@
     {
       "bytes": 7511595,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m50-fresh_on.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-fresh_on.jsonl.gz",
@@ -1575,9 +1609,11 @@
     {
       "bytes": 1334270,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection/raw/rejected_inverse_w_plus_g-m50-off.jsonl.gz",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "BYTE_IDENTICAL_NEW_COHORT_LOCAL_COPY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/actual-traces/rejected_inverse_w_plus_g-m50-off.jsonl.gz",
@@ -1587,9 +1623,11 @@
     {
       "bytes": 3439056,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "REBUILT_BYTE_IDENTICAL_HISTORICAL_EXECUTABLE_LOCALLY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/binaries/baseline142",
@@ -1599,9 +1637,11 @@
     {
       "bytes": 3089208,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline141",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "REBUILT_BYTE_IDENTICAL_HISTORICAL_EXECUTABLE_LOCALLY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/binaries/baseline141",
@@ -1611,9 +1651,11 @@
     {
       "bytes": 3439088,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "REBUILT_BYTE_IDENTICAL_HISTORICAL_EXECUTABLE_LOCALLY_VERIFIED",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/binaries/rejected142",
@@ -1623,13 +1665,15 @@
     {
       "bytes": 97996800,
       "current_instance_availability": {
+        "current_verified_local_copy_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery-attempt/rne-contact-motor-stage-gen4-raw-traces.tar",
         "original_path_exists": false,
-        "receipt": "raw-retention/recovery/current-instance-retention.json",
-        "status": "NOT_RESTORED_AFTER_ENVIRONMENT_RESTART",
+        "receipt": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+        "source_cohort_id": "generation5-independent-all-motor-stage",
+        "status": "EXACT_APPROVED_ARCHIVE_RECONSTRUCTED_LOCALLY_UPLOAD_HTTP401",
         "verified_public_copy_available": false
       },
       "path": "/tmp/rne-contact-stage-generation4/retention-preparation/rne-contact-motor-stage-gen4-raw-traces.tar",
-      "retention": "LOCAL_ARCHIVE_PREPARED_NOT_UPLOADED; user-authorized Release upload/download verification pending",
+      "retention": "EXACT_ORIGINAL_ARCHIVE_RECONSTRUCTED_LOCALLY; authorized upload failed HTTP401, public download unverified",
       "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
     },
     {
@@ -1646,5 +1690,5 @@
       "sha256": "db0dee42a3c9067b38241112d5ee402341c0729466d7fc22f12f31504000db76"
     }
   ],
-  "scope": "Original retention values describe preparation; current_instance_availability records the restarted instance. Historical artifact bytes and identities are unchanged."
+  "scope": "Historical identities and original paths are unchanged; current availability includes hash-identical copies from the new independent generation5 cohort and rebuilt binaries. Original FAILED_UNQUALIFIED outcomes are unchanged; local retention does not assert verified public availability."
 }

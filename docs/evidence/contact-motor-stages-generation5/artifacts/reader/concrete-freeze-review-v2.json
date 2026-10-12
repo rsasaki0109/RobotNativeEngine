@@ -1,0 +1,103 @@
+{
+  "all_current_restored_source_paths_exact": 1640,
+  "authoritative_collection_directory_absent": true,
+  "bindings": {
+    "baseline": {
+      "bytes": 205950,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/baseline-source-binary-binding-v2.json",
+      "sha256": "98c77e5246b2fe2539dbc03d97c0fe07c6b1a9e8d1feae0bd5a93b5b8c79560f"
+    },
+    "rejected_inverse_w_plus_g": {
+      "bytes": 206231,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/rejected_inverse_w_plus_g-source-binary-binding-v2.json",
+      "sha256": "d5d6a06c870f741b5b4439f9905c48ceeae7c48d88c0cbbed56ddb690114c7cc"
+    }
+  },
+  "both142_binaries_and_compile_only141_unchanged_from_v1_review": true,
+  "candidate_admission": "REJECTED unchanged",
+  "candidate_runtime_delta_exact": true,
+  "checkout_clean": true,
+  "checksum_only_recovery_v2_unchanged": {
+    "bytes": 2709,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration-v2.json",
+    "sha256": "ef5e439eec8cec9b3bc7d30a062bf6a4aaf711a8ab773581d8e3c15e79843c70"
+  },
+  "driver_spec_review": "PENDING; must freeze and pass independent validation before launch",
+  "exact_delta": "Only protocol timestamp and five publication-only metadata descriptors omitted; each binding changes only protocol SHA/timestamp. No scientific criteria, reader, source, binary, float model or raw input changed.",
+  "head": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "historical_numerical_payloads_reopened_or_parsed": 0,
+  "material_blockers": [],
+  "native_replay_domain": "normal_or_zero_only",
+  "old_generation4_status": "FAILED/UNQUALIFIED immutable",
+  "omitted_publication_metadata_only": [
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/README.md",
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/artifact-manifest.json",
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/external-artifact-references.json",
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/recovery/current-instance-retention.json",
+    "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/recovery/workspace-exact-raw-retention-search.json"
+  ],
+  "previous_v1_source_only_review_retained_superseded": {
+    "bytes": 6959,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/concrete-freeze-review.json",
+    "sha256": "5af421aca947db333c7e3fbc14f45de5a5807a4de770d06dd848145ffd3ae7f4"
+  },
+  "prior_publication_manifest_metadata_literal_checked": {
+    "bytes": 61445,
+    "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/artifact-manifest.json",
+    "sha256": "e43417197517f7d50c3dbc05d9c0553ceff4a31c25b78f85827a8ed676d242e7"
+  },
+  "prospective_publication_scope_correction": {
+    "bytes": 1422,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/pre-data-publication-metadata-scope-correction.json",
+    "sha256": "c1edab3d91310cad4a576a1b13a13c5ec20d92ea2afc074b9ec26c2ead6c8d07"
+  },
+  "protocol": {
+    "bytes": 92388,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol-v2.json",
+    "sha256": "0e1b320fa7681c79d4c195bd3dd8e5e802d37eea045423b8b3681934acfafabb"
+  },
+  "reader_runtime_closure_exact": [
+    {
+      "bytes": 38348,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py",
+      "sha256": "3065fdcd0c38b10628ad6c8e5dce34473c7a1edb6b6bf489a7222ab4bda32806"
+    },
+    {
+      "bytes": 31893,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py",
+      "sha256": "9964312729adb3ee89479e01fdae846c3217ac506af3731650ae7f98a5fabff7"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20799,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+    },
+    {
+      "bytes": 6779,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py",
+      "sha256": "8e1c53944e5722d1a9a19effdbdd5793cddc9aeae3f0013a5068ec3e36bd0a0e"
+    },
+    {
+      "bytes": 1240,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/synthetic-profile.json",
+      "sha256": "e7f08c8cdc122994567a847d06a1cb28a45fccf3f8465acec121ebee70c2be11"
+    }
+  ],
+  "recorded_utc": "2026-10-12T06:13:21.217940+00:00",
+  "retained_old_scientific_and_scalar_descriptors_literal": 312,
+  "review_worlds_builds_checkout_or_frozen_artifact_edits": 0,
+  "root_actual_literal_all_old_subjects_preflight": {
+    "bytes": 529,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/actual-concrete-scientific-preflight-attempt2.json",
+    "sha256": "628186968a9323b9f33f69021e5e2c41fc3d2cdf372912bd5f23e47ac8401a3b"
+  },
+  "runtime_MXCSR_or_rounding_registers_measured": false,
+  "source_compiler_features_flags_float_domain_unchanged_from_v1_review": true,
+  "source_scope": "Non-exhaustive repository extension-filtered input snapshot; not compiler/dependency closure",
+  "status": "PASS_CONCRETE_V2_PRE_DATA_SCIENTIFIC_FREEZE_ONLY"
+}

@@ -989,6 +989,22 @@ admission from collection completion. The earlier inverse-diagonal candidate
 remains rejected. The [retained evidence](../evidence/contact-motor-stages/README.md)
 preserves the failures, late repair provenance and exact raw-trace hashes.
 
+A separately preregistered generation 5 cohort admits all three source-derived
+motor roles before eighteen new runs. Its one frozen audit passes captured-object
+and ECS replay, ordered telemetry, and source-ordered normal/zero arithmetic:
+22,500 outer steps, 2,160,000 row snapshots, 270,000 immediate motor visits and
+540,000 aggregate contact-row intervals, with zero qualification issues. Its
+exact complementarity classifications still retain 720,000 violated palm
+snapshots across all observed phases; arithmetic fidelity does not establish
+motor convergence. Absolute RHS construction, per-contact causes, full private
+state and runtime float registers remain unmeasured. The
+[new cohort evidence](../evidence/contact-motor-stages-generation5/README.md)
+preserves all six complete detail streams externally and leaves generation 4's
+failed outcome and the candidate's rejection unchanged. All eighteen new gzip
+hashes match the original manifest, permitting byte-identical reconstruction of
+the approved raw TAR. Persistent local retention is verified; upload returned
+HTTP 401 and public download verification remains pending.
+
 The separately collected
 [current scalar report](../media/position-motor-calibration-contact-stages.json)
 retains the fixed 24 conditions and 72 worlds. Its selected-source object changes

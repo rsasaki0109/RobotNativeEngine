@@ -1,7 +1,7 @@
 {
   "coupled_collected_worlds": 18,
   "coupled_qualification": "FAILED_UNQUALIFIED",
-  "current_retention_receipt": "raw-retention/recovery/current-instance-retention.json",
+  "current_retention_receipt": "raw-retention/recovery/generation5-current-availability.json",
   "files": [
     {
       "bytes": 76,
@@ -9,9 +9,9 @@
       "sha256": "af9299fae67f343e93f38517c1920912543c58a65550cf0d76129c4ed4db33ba"
     },
     {
-      "bytes": 4772,
+      "bytes": 5691,
       "path": "README.md",
-      "sha256": "06eeb5536d8431cbb987ac64c8ee1d777a853b9c219a9ab184e57fcea5ac3772"
+      "sha256": "0d6fad56bc4d66bd2faa2509086cfa319b7a554386aa81e86312098979b4046e"
     },
     {
       "bytes": 15075,
@@ -244,9 +244,9 @@
       "sha256": "3359a1b6a1842d70c73ebab0de0ee72a08f05f83d3b63440a37215c36c425675"
     },
     {
-      "bytes": 86476,
+      "bytes": 92586,
       "path": "external-artifact-references.json",
-      "sha256": "fa917c50c2e65996a163f4ecbde274c68cd9ac0d82f690043cf62df8ebf6debd"
+      "sha256": "f91639496c37ae074056d53a4e178dc7faaafd94b72d9ac0e941221424d14166"
     },
     {
       "bytes": 732,
@@ -1509,6 +1509,16 @@
       "sha256": "c9692d725b0e3af6ef4dd9a18f16fe5e5d6010c6e52cd2639c43af8a979e3ed6"
     },
     {
+      "bytes": 1292,
+      "path": "raw-retention/recovery/generation5-current-availability.json",
+      "sha256": "55e4a557e2524bca80b0eaecf7f8f6b4765be5841f5b0d6164a690865a04782d"
+    },
+    {
+      "bytes": 32783,
+      "path": "raw-retention/recovery/generation5-exact-byte-reconstruction.json",
+      "sha256": "45f89763cce3c7aa57e170be7f3a3ab896c879f350fc3a365751fd21ba44b33b"
+    },
+    {
       "bytes": 2885,
       "path": "raw-retention/recovery/workspace-exact-raw-retention-search.json",
       "sha256": "f8c3b5f4acc4a7933bac4fcd763e9863c526c8d2b9ba57fd8d23dabdbf1b16d3"
@@ -1579,11 +1589,12 @@
       "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7"
     }
   ],
+  "generation5_evidence": "../contact-motor-stages-generation5/README.md",
   "manifest_excludes": [
     "artifact-manifest.json"
   ],
   "prepared_utc": "2026-10-12T02:56:15.921767+00:00",
-  "raw_archive_status": "NOT_RECOVERED_AFTER_ENVIRONMENT_RESTART_RELEASE_ABSENT",
+  "raw_archive_status": "EXACT_APPROVED_BYTES_RECONSTRUCTED_LOCALLY_UPLOAD_HTTP401_PUBLIC_DOWNLOAD_UNVERIFIED",
   "scalar_primary_accuracy": "FAIL_0_OF_4",
   "scalar_worlds_separate": 72,
   "schema_version": 1,

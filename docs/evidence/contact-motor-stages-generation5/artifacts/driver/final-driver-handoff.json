@@ -1,0 +1,246 @@
+{
+  "actual_all_synthetic_process_starts_across_both_runs": 237,
+  "actual_latest_tests": {
+    "builds": 0,
+    "exit_code": 0,
+    "network_publications": 0,
+    "robot_worlds": 0,
+    "synthetic_process_starts": 128,
+    "tests_passed": 16
+  },
+  "archive_contract": {
+    "deletions_replacements_repairs": 0,
+    "gzip_members": 18,
+    "headers": "USTAR; mtime0; uid/gid0; empty uname/gname; regular files; mode0444",
+    "member_order": "Fixed case order, then literal-member-manifest.json",
+    "old_archive_recovery_owned_by": "Root separate preregistered arm; not part of these helpers",
+    "pointer_status": "PROPOSED_LOCAL_ARCHIVE_NOT_PUBLISHED",
+    "second_tar_file_stored": false,
+    "terminal_write_failure": "Keep torn original terminal and append archive-failure.json if storage permits; a PROPOSED pointer alone does not qualify wrapper success",
+    "total_tar_members": 19,
+    "verification": "Compressed SHA/size; gzip CRC/trailer/full uncompressed stream SHA; consumed source stream SHA/size; saved TAR member SHA/size/order; second generated stream byte-for-byte comparison and SHA/size equality"
+  },
+  "case_order": [
+    {
+      "build": "baseline",
+      "case_index": 0,
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "baseline-m5-on"
+    },
+    {
+      "build": "baseline",
+      "case_index": 1,
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "baseline-m5-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "case_index": 2,
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "baseline-m5-off"
+    },
+    {
+      "build": "baseline",
+      "case_index": 3,
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "baseline-m20-on"
+    },
+    {
+      "build": "baseline",
+      "case_index": 4,
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "baseline-m20-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "case_index": 5,
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "baseline-m20-off"
+    },
+    {
+      "build": "baseline",
+      "case_index": 6,
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "baseline-m50-on"
+    },
+    {
+      "build": "baseline",
+      "case_index": 7,
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "baseline-m50-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "case_index": 8,
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "baseline-m50-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 9,
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m5-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 10,
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m5-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 11,
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m5-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 12,
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m20-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 13,
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m20-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 14,
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m20-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 15,
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m50-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 16,
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m50-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "case_index": 17,
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m50-off"
+    }
+  ],
+  "code_frozen_at_handoff": "No further helper source edits by child without root coordination; root owns authoritative freeze.",
+  "completed_utc": "2026-10-12T05:47:34.681786+00:00",
+  "current_actual_collection_worlds_executed_by_this_child": 0,
+  "durability": {
+    "all_created_artifacts": "O_EXCL/fsync file/fsync parent; permanent exclusive cohort directory and claim before Popen",
+    "binding_guard": "Pinned spec/protocol/readers/gate receipts/modules/two source-binary bindings/binaries validated before launch and after case",
+    "crash_policy": "Existing cohort root always blocks another run; claimed/unconfirmed/torn cases never retried or resumed",
+    "infrastructure_drift_policy": "Stop new launches, retain original case process exit/raw/logs and unattempted entries",
+    "nonzero_exit_policy": "Retain failed process/raw and continue next fixed case if provenance still binds; do not numerically select cases",
+    "original_exit": "Signed Popen returncode is saved to process-exit.json before later hashing; no shell-style substitution",
+    "raw_creation": "Unchanged collector142 OpenOptions create_new(true); fresh fixed case output path",
+    "source_guard": "Exactly root frozen sorted map, streaming hashes before/after each case; non-exhaustive compiler/dependency closure explicit"
+  },
+  "implementation_artifacts": {
+    "README.md": {
+      "bytes": 7979,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/README.md",
+      "sha256": "0c6c3e3e12846e8e32d8ec32dd43888382df2f1b345d8d979ddb694f86958759"
+    },
+    "collect_once.py": {
+      "bytes": 13335,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/collect_once.py",
+      "sha256": "641835598336f93b1976141ea8fe65fc94dc603bcd569c8136e20c95b4d911b6"
+    },
+    "durable_common.py": {
+      "bytes": 9075,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/durable_common.py",
+      "sha256": "d5aa49a02217d0b9f5c56464bcf6cbedfa1bad1386be2be123167ac4c777593e"
+    },
+    "prepare_archive.py": {
+      "bytes": 13253,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/prepare_archive.py",
+      "sha256": "e0824b75f9e5891a02bf602be2eea27d753cc4da5f7e08976ec32326d49284c5"
+    },
+    "spec-template.json": {
+      "bytes": 5807,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/spec-template.json",
+      "sha256": "9bd9240ad7ebb49acb9126efda7ff53c66e1e5c0433a95cbbb7c1893c4b955ed"
+    },
+    "test_durable_driver.py": {
+      "bytes": 19262,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/test_durable_driver.py",
+      "sha256": "bb1ff486bc634fbee1575ff99fac0d8d515029a48353e1a287d0f77f4d81e6d0"
+    }
+  },
+  "independence": "NEW_INDEPENDENT_COHORT_NOT_RESTORATION_OF_LOST_GENERATION4_TAR",
+  "latest_full_synthetic_test_log": {
+    "bytes": 2434,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/synthetic-tests/2026-10-12T05-44-53.121454+00-00-11642/actual-synthetic-tests.log",
+    "sha256": "9c18aa80d6f5a019a4772b35d30a37e786530d38db1735cf87cee4c736346eea"
+  },
+  "latest_synthetic_checks": {
+    "bytes": 1720,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/synthetic-tests/2026-10-12T05-44-53.121454+00-00-11642/actual-synthetic-tests-receipt.json",
+    "sha256": "89f28eab68f17f73f145dd5954c49fbfe5143873159cd64a782a595c95ec5c05"
+  },
+  "owned_write_scope": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver",
+  "prior_pre_hardening_checks": {
+    "bytes": 1402,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/synthetic-tests/2026-10-12T05-39-28.828086+00-00-10320/actual-synthetic-tests-receipt.json",
+    "sha256": "ba2de873aa755b7beac3ff939e097b9f5ac2c574b245eed3185970dee49de6fb"
+  },
+  "receipt_roles": {
+    "cases/*/case-terminal.json": "Case exit/raw/log/guard binding and errors",
+    "cases/*/launch-claim.json": "Durable case reservation before Popen",
+    "cases/*/process-exit.json": "Actual original exit before hashing",
+    "cases/*/process-started.json": "Actual PID and argv",
+    "cases/*/source-before.json,source-after.json": "Frozen guarded path map snapshots",
+    "cases/*/stdout.log,stderr.log": "Exclusive original process output logs",
+    "cohort-claim.json": "Durable no-restart reservation, not proof of started worlds",
+    "collection-index.json": "Final immutable schema2 cohort index including all unattempted rows",
+    "collection-started.json": "Frozen initial 18-case index",
+    "collection-terminal.json": "Driver outcome, separate from case exits",
+    "index-snapshots/": "Immutable reserved/completed index generations; no replace or rewrite",
+    "raw/*.jsonl.gz": "Original exclusive collector outputs, including failures/partial data"
+  },
+  "remaining_root_actions": [
+    "Root source/build/binary/protocol/reader/gate receipt freeze and spec creation",
+    "Independent final pre-world helper/spec/source/binary qualification",
+    "Root-owned single actual run of fixed 18 cases",
+    "Independent numerical qualification and optional separate literal old-archive recovery arm",
+    "Root-owned archive preparation/adoption/publication decisions"
+  ],
+  "retained_prior_code_snapshot_manifest": {
+    "bytes": 2554,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/historical-pre-hardening/snapshot-manifest.json",
+    "sha256": "accec1ccf9de83982a44edcb532754dd6c6dbd7385e4e986075af6e49b6456b0"
+  },
+  "source_hygiene": {
+    "line_endings": "LF-only",
+    "python_AST_parse": "PASS",
+    "single_final_newline": true,
+    "trailing_whitespace": false
+  },
+  "status": "DURABLE_GENERATION5_DRIVER_READY_FOR_ROOT_FREEZE_NOT_NATIVE_EXECUTED"
+}

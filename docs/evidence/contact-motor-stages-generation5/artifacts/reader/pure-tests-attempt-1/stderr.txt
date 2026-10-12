@@ -1,0 +1,30 @@
+test_all_source_builder_permutations (test_stage_reader.StageReaderTests.test_all_source_builder_permutations) ... ok
+test_complete_framing_counters_and_conditions (test_stage_reader.StageReaderTests.test_complete_framing_counters_and_conditions) ... ok
+test_each_gate_fails_closed (test_stage_reader.StageReaderTests.test_each_gate_fails_closed) ... 
+  test_each_gate_fails_closed (test_stage_reader.StageReaderTests.test_each_gate_fails_closed) (name='new_child_mass') ... FAIL
+test_framing_crc_truncation_and_strict_numbers (test_stage_reader.StageReaderTests.test_framing_crc_truncation_and_strict_numbers) ... ok
+test_identity_drift_and_optional_modes (test_stage_reader.StageReaderTests.test_identity_drift_and_optional_modes) ... ok
+test_literal_numeric_mismatch_is_not_pass (test_stage_reader.StageReaderTests.test_literal_numeric_mismatch_is_not_pass) ... ok
+test_native_exclusion_is_not_complete_replay (test_stage_reader.StageReaderTests.test_native_exclusion_is_not_complete_replay) ... FAIL
+
+======================================================================
+FAIL: test_each_gate_fails_closed (test_stage_reader.StageReaderTests.test_each_gate_fails_closed) (name='new_child_mass')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/test_stage_reader.py", line 200, in test_each_gate_fails_closed
+    with self.assertRaises((ValueError, TypeError, KeyError, IndexError, AssertionError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'ValueError'>, <class 'TypeError'>, <class 'KeyError'>, <class 'IndexError'>, <class 'AssertionError'>) not raised
+
+======================================================================
+FAIL: test_native_exclusion_is_not_complete_replay (test_stage_reader.StageReaderTests.test_native_exclusion_is_not_complete_replay)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/test_stage_reader.py", line 229, in test_native_exclusion_is_not_complete_replay
+    self.assertGreater(a.counts["native_exclusion:subnormal_input"],0)
+AssertionError: 0 not greater than 0
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.484s
+
+FAILED (failures=2)

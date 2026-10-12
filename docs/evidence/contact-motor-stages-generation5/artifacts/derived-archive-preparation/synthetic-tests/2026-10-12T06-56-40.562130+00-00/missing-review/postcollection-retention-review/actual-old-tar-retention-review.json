@@ -1,0 +1,9 @@
+{
+  "archive": {
+    "bytes": 45,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/missing-review/recovery-attempt/old-authorized-raw.tar",
+    "sha256": "13e001ab7bb93a9741964e31f9df66e25f7b5ca3f94d1488b077136c2894cc45"
+  },
+  "cohort_id": "SYNTHETIC_DERIVED_ARCHIVE_missing-review",
+  "status": "PASS_EXACT_APPROVED_OLD_TAR_BYTES_FROM_NEW_INDEPENDENT18_COHORT"
+}

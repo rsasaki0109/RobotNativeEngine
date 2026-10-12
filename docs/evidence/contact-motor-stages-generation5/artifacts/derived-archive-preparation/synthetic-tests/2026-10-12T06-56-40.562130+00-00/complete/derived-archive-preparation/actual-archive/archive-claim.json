@@ -1,0 +1,12 @@
+{
+  "cohort_id": "SYNTHETIC_DERIVED_ARCHIVE_complete",
+  "publication": "PROPOSED_ONLY_NEW_BYTES_NOT_AUTHORIZED",
+  "release": {
+    "bytes": 3721,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/complete/derived-archive-preparation/root-release.json",
+    "sha256": "8c4ac06007b34807431ff69689e6607f90762fe9a473370a0e6a1457700a3657"
+  },
+  "started_utc": "2026-10-12T06:56:40.851065+00:00",
+  "status": "DERIVED_ARCHIVE_EXCLUSIVE_CLAIM",
+  "worlds": 0
+}

@@ -1,0 +1,181 @@
+{
+  "authoritative_worlds_of_this_cohort_before_freeze": 0,
+  "bindings": {
+    "baseline": {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/baseline-source-binary-binding.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "rejected_inverse_w_plus_g": {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/rejected_inverse_w_plus_g-source-binary-binding.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "cohort_id": "generation5-contact-motor-stages-new-cohort",
+  "cohort_root": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/collection",
+  "driver_artifacts": [
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/durable_common.py",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/collect_once.py",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/prepare_archive.py",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "fixed_cells": [
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "baseline-m5-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "baseline-m5-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "baseline-m5-off"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "baseline-m20-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "baseline-m20-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "baseline-m20-off"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "baseline-m50-on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "baseline-m50-fresh_on"
+    },
+    {
+      "build": "baseline",
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "baseline-m50-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m5-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m5-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 5,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m5-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m20-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m20-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 20,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m20-off"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "on",
+      "run_label": "rejected_inverse_w_plus_g-m50-on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "fresh_on",
+      "run_label": "rejected_inverse_w_plus_g-m50-fresh_on"
+    },
+    {
+      "build": "rejected_inverse_w_plus_g",
+      "mass_kg": 50,
+      "mode": "off",
+      "run_label": "rejected_inverse_w_plus_g-m50-off"
+    }
+  ],
+  "generation": 5,
+  "independence": "NEW_INDEPENDENT_COHORT_NOT_RESTORATION_OF_LOST_GENERATION4_TAR",
+  "independent_readonly_review": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/independent-readonly-review.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "preflight_gates": {
+    "independent_readonly_review": "PENDING",
+    "reader_pure_tests": "PENDING"
+  },
+  "protocol": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "reader_artifacts": [
+    {
+      "bytes": 0,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_reader.py",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "reader_pure_test_receipt": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/actual-pure-test-receipt.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "repository_root": "/workspace/RobotNativeEngine",
+  "schema_version": 1,
+  "source_guard_manifest": {
+    "bytes": 0,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/restored-source-manifest.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "status": "UNFROZEN_TEMPLATE_DO_NOT_EXECUTE",
+  "world_limit": 18
+}

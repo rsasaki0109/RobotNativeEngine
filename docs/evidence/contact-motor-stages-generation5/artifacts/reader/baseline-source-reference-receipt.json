@@ -1,0 +1,130 @@
+{
+  "status": "PRE_DATA_BASELINE_SOURCE_REFERENCES_ONLY",
+  "recorded_utc": "2026-10-12T05:31:15.660927+00:00",
+  "baseline_commit": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "checkout_status": "",
+  "files": [
+    {
+      "repository_path": "examples/142_contact_motor_stages/lib.rs",
+      "baseline_sha256": "34f7e4003375925cd2b55132ab0bbf1f02c1c4daf4b5ba80a5459038b0326b58",
+      "bytes": 22717,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/examples/142_contact_motor_stages/lib.rs"
+    },
+    {
+      "repository_path": "examples/142_contact_motor_stages/main.rs",
+      "baseline_sha256": "bd1b4eb2e7f50a1d2dffa2c2e9fbcce67d3940f3905985237fa6edc8e265d045",
+      "bytes": 270,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/examples/142_contact_motor_stages/main.rs"
+    },
+    {
+      "repository_path": "examples/142_contact_motor_stages/Cargo.toml",
+      "baseline_sha256": "e9c7df8803abbe4d8e67669edbfce429fcb2e84b0dfb74970414ce154076320c",
+      "bytes": 656,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/examples/142_contact_motor_stages/Cargo.toml"
+    },
+    {
+      "repository_path": "crates/rne_physics_rapier/src/backend.rs",
+      "baseline_sha256": "32b0bdce3651717bcbefa3f69ef3ebd9dccd450126486f349b57d04c7c1fa7bd",
+      "bytes": 207940,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/crates/rne_physics_rapier/src/backend.rs"
+    },
+    {
+      "repository_path": "crates/rne_physics_rapier/src/motor_stages.rs",
+      "baseline_sha256": "c209bf5748dc6c5025bf17098d3974ece6610de4f435400c729a13b6be5764da",
+      "bytes": 14245,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/crates/rne_physics_rapier/src/motor_stages.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/pipeline/multibody_motor_stage.rs",
+      "baseline_sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+      "bytes": 9594,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/pipeline/multibody_motor_stage.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/pipeline/physics_pipeline.rs",
+      "baseline_sha256": "392609b785869034acf1b3779224e2470008649b218100e1566e13a911b6f811",
+      "bytes": 43101,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/pipeline/physics_pipeline.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/integration_parameters.rs",
+      "baseline_sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+      "bytes": 14726,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/integration_parameters.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/motor_model.rs",
+      "baseline_sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "bytes": 1488,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/motor_model.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/generic_joint.rs",
+      "baseline_sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+      "bytes": 27313,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/generic_joint.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs",
+      "baseline_sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "bytes": 81559,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "baseline_sha256": "13bb4b4dc8966321b88f83f9dc71bdf77ba580db08ee39bbd42bb74e71e44a4a",
+      "bytes": 13676,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "baseline_sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+      "bytes": 18345,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint_set.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "baseline_sha256": "0e8eaa25f2ed772fc7de1e15b084c0761700d9f2afb5eeb17b73247af51246fe",
+      "bytes": 4272,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "baseline_sha256": "78ef50eb060e891ca917f37cb6e64eb94f4557d7840c5b652e7b76975f61a5e8",
+      "bytes": 49297,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "baseline_sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "bytes": 17536,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "baseline_sha256": "3d007e07687860e28908143231197bb5e7e4a730ee788e6036cf2c874166539c",
+      "bytes": 19450,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_constraints_set.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs",
+      "baseline_sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+      "bytes": 9066,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/solver_constraints_set.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/velocity_solver.rs",
+      "baseline_sha256": "64f5af28ae6119fa7e736c4e50387c0a114eccf8fa6791b5901d6f47e92cebec",
+      "bytes": 22436,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/velocity_solver.rs"
+    },
+    {
+      "repository_path": "third_party/rapier3d/src/dynamics/solver/island_solver.rs",
+      "baseline_sha256": "98144ff88b0842debf5375a7d35700cc9a9e2ab23b827f52fd3d0b396fcdd302",
+      "bytes": 4539,
+      "reference_path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/source-reference/third_party/rapier3d/src/dynamics/solver/island_solver.rs"
+    }
+  ],
+  "source_reference_scope": "Selected source proof, not compiler/dependency closure",
+  "worlds_builds_old_raw_reads": 0
+}

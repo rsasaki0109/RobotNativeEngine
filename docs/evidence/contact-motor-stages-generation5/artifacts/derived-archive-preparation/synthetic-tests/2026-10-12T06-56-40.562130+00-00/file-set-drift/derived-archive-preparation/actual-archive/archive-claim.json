@@ -1,0 +1,12 @@
+{
+  "cohort_id": "SYNTHETIC_DERIVED_ARCHIVE_file-set-drift",
+  "publication": "PROPOSED_ONLY_NEW_BYTES_NOT_AUTHORIZED",
+  "release": {
+    "bytes": 3787,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/file-set-drift/derived-archive-preparation/root-release.json",
+    "sha256": "4f523041a5886b6e750a729f73bdbad7200cb0becd151caa2d31371398ea2d80"
+  },
+  "started_utc": "2026-10-12T06:56:40.687730+00:00",
+  "status": "DERIVED_ARCHIVE_EXCLUSIVE_CLAIM",
+  "worlds": 0
+}

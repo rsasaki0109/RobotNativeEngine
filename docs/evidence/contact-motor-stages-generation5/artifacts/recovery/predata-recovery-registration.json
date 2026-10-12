@@ -1,0 +1,43 @@
+{
+  "declared_new_fixed_collection_worlds": 18,
+  "expected_original_archive": {
+    "basename": "rne-contact-motor-stage-gen4-raw-traces.tar",
+    "bytes": 97996800,
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+  },
+  "extra_worlds_retries_or_resampling": 0,
+  "kind": "PRE_DATA_INDEPENDENT_ALL_OR_NONE_CHECKSUM_ONLY_ARCHIVE_RECOVERY",
+  "native_numeric_payloads_parsed_by_recovery_arm": 0,
+  "new_cohort_id": "generation5-independent-all-motor-stage",
+  "new_cohort_identity": "The new18 runs remain new independent collection, even if raw bytes match old checksums",
+  "original_member_manifest": {
+    "bytes": 8728,
+    "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/raw-trace-manifest.json",
+    "sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690"
+  },
+  "publication_rule": "Existing user approval applies only if entire reconstructed old TAR size/SHA match the explicitly approved bytes. Otherwise new archive remains proposed and needs separate publication authorization.",
+  "pure_test_receipt": {
+    "bytes": 602,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/synthetic-tests/actual-pure-checks.json",
+    "sha256": "58a7347aa2cd5fba23e5bf81ac6490a170b21873311988b07f99936554440343"
+  },
+  "qualification_rule": "Recovery outcome is independent of the new numeric audit and cannot promote old FAILED_UNQUALIFIED results",
+  "recipe": {
+    "format": "PAX",
+    "gid": 0,
+    "gname": "",
+    "mode_octal": "0444",
+    "mtime": 0,
+    "ordering": "ASCII member basename lexicographic",
+    "pax_headers": {},
+    "uid": 0,
+    "uname": ""
+  },
+  "registered_utc": "2026-10-12T05:51:12.021740+00:00",
+  "selection": "All eighteen originally registered gzip size/SHA pairs must match; no selected cases; stop on mismatch without rebuild or extra worlds",
+  "tool": {
+    "bytes": 6466,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/checksum_reconstruct.py",
+    "sha256": "36f50086df986e29b79c594200ff9bbfcaaa00ae27955560461d36da3ddabc9c"
+  }
+}

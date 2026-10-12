@@ -1,0 +1,138 @@
+{
+  "authoritative_collection_directory_absent": true,
+  "bindings": {
+    "baseline": {
+      "bytes": 205950,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/baseline-source-binary-binding.json",
+      "sha256": "3ca5b7c1c59c94c998f8cfcc8f19721882c8a9f716aa5dc3398b3d90ac37ac73"
+    },
+    "rejected_inverse_w_plus_g": {
+      "bytes": 206231,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/rejected_inverse_w_plus_g-source-binary-binding.json",
+      "sha256": "81e081e6c2bff031b914650a515385853a4115dc6f2e2718904ef504ae702490"
+    }
+  },
+  "candidate_admission": "REJECTED unchanged",
+  "checkout_clean": true,
+  "checksum_only_recovery_v2": {
+    "bytes": 2709,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration-v2.json",
+    "sha256": "ef5e439eec8cec9b3bc7d30a062bf6a4aaf711a8ab773581d8e3c15e79843c70"
+  },
+  "compile_only_141_binary_exact_historical_metadata": {
+    "bytes": 3089208,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline141",
+    "sha256": "dc22283295e05ee5dd48cf581b15d4ca00719a6cc5688187fd1d310f90a0d3e9"
+  },
+  "compiler_target_feature_float_evidence_source_only": true,
+  "current_restored_source_all_paths_exact": true,
+  "driver_spec_review": "PENDING; must freeze and pass independent validation before launch",
+  "exact_bound_142_binaries": {
+    "baseline": {
+      "bytes": 3439056,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+      "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+    },
+    "rejected_inverse_w_plus_g": {
+      "bytes": 3439088,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+      "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+    }
+  },
+  "head": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "historical_immutability_scope": {
+    "manifest": {
+      "bytes": 61445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/artifact-manifest.json",
+      "sha256": "e43417197517f7d50c3dbc05d9c0553ceff4a31c25b78f85827a8ed676d242e7"
+    },
+    "old_payloads_independently_opened": 0,
+    "root_literal_all_subject_preflight": {
+      "bytes": 526,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/actual-concrete-scientific-preflight-attempt1.json",
+      "sha256": "53e3f08f89c625273880b1ffa57ef9f74c6efc0c9e4675784437cde5ecd5db85"
+    },
+    "subjects": 317
+  },
+  "input_metadata": [
+    {
+      "bytes": 93567,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol.json",
+      "sha256": "df5524188f6f1bf709fc4423eb462559c6b489c38fbef25dc8124eac2d0e9f68"
+    },
+    {
+      "bytes": 11802,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/protocol-template.json",
+      "sha256": "6239a3fce26fcb39880ea60eaecc9236de7a45d15bbbea92baa4d6f98b90fab8"
+    },
+    {
+      "bytes": 4167,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/actual-pure-test-receipt.json",
+      "sha256": "f58425960c12f9e6a8d319438c27232d742718a54dae00d6c0793acfefbc3063"
+    },
+    {
+      "bytes": 205950,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/baseline-source-binary-binding.json",
+      "sha256": "3ca5b7c1c59c94c998f8cfcc8f19721882c8a9f716aa5dc3398b3d90ac37ac73"
+    },
+    {
+      "bytes": 206231,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/rejected_inverse_w_plus_g-source-binary-binding.json",
+      "sha256": "81e081e6c2bff031b914650a515385853a4115dc6f2e2718904ef504ae702490"
+    },
+    {
+      "bytes": 413,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/actual-compiler.json",
+      "sha256": "d5351b93e555ec23b430a32b72447ec2b635575d94feec631e91fd84c7a2ea98"
+    },
+    {
+      "bytes": 4305,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/history/scalar-source-binary-binding.json",
+      "sha256": "dcb1cb64d326bafc30c4a9aa862c19854935c7467b7e254e227e4a1ae3c3a056"
+    },
+    {
+      "bytes": 2709,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration-v2.json",
+      "sha256": "ef5e439eec8cec9b3bc7d30a062bf6a4aaf711a8ab773581d8e3c15e79843c70"
+    },
+    {
+      "bytes": 211,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/actual-candidate-rollback-attempt2.json",
+      "sha256": "2690eecb2e1f836dfbe735f89be50d57ee4968f4744c7bb5936b495e7e18fbea"
+    },
+    {
+      "bytes": 526,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/actual-concrete-scientific-preflight-attempt1.json",
+      "sha256": "53e3f08f89c625273880b1ffa57ef9f74c6efc0c9e4675784437cde5ecd5db85"
+    },
+    {
+      "bytes": 61445,
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/artifact-manifest.json",
+      "sha256": "e43417197517f7d50c3dbc05d9c0553ceff4a31c25b78f85827a8ed676d242e7"
+    }
+  ],
+  "material_blockers": [],
+  "native_replay_domain": "normal_or_zero_only",
+  "new_scalar_worlds": 0,
+  "old_generation4_status": "FAILED/UNQUALIFIED immutable; no numerical reanalysis",
+  "one_candidate_delta_exact_historical_runtime_unit_hunk": true,
+  "protocol": {
+    "bytes": 93567,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/frozen-protocol.json",
+    "sha256": "df5524188f6f1bf709fc4423eb462559c6b489c38fbef25dc8124eac2d0e9f68"
+  },
+  "reader_pure_tests_and_runtime_closure_exact": true,
+  "recorded_utc": "2026-10-12T06:10:04.480820+00:00",
+  "root_preflight": {
+    "bytes": 526,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/freeze/actual-concrete-scientific-preflight-attempt1.json",
+    "sha256": "53e3f08f89c625273880b1ffa57ef9f74c6efc0c9e4675784437cde5ecd5db85"
+  },
+  "runtime_MXCSR_rounding_registers_measured": false,
+  "schema_common_sources": 19,
+  "source_guard_paths": 1640,
+  "source_guard_scope": "Non-exhaustive repository extension-filtered input snapshot; not compiler/dependency closure",
+  "started_utc": "2026-10-12T06:10:04.281200+00:00",
+  "status": "PASS_CONCRETE_PRE_DATA_SCIENTIFIC_FREEZE_ONLY",
+  "worlds_builds_native_or_old_numerical_payloads_parsed": 0
+}

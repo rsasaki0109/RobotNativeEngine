@@ -451,6 +451,15 @@ and both late metadata repairs are retained in the
 [study evidence](evidence/contact-motor-stages/README.md); collection is not a
 contact-reopening or solver-improvement result.
 
+The [generation 5 cohort](evidence/contact-motor-stages-generation5/README.md)
+preregisters palm and both zero-authority finger roles before eighteen new runs.
+Captured-state replay and source-ordered normal/zero arithmetic pass all six
+build/mass profiles. The historical failed gates, rejected candidate and scalar
+0/4 accuracy result remain unchanged. Its six whole derived detail streams are
+retained outside Git; public download verification is pending upload credentials.
+All eighteen compressed streams reproduce the original raw checksums, allowing
+the exact approved TAR to be reconstructed under persistent storage.
+
 ## Isolated position-motor calibration
 
 Example 141 compares a contact-free one-DOF sphere motor with an independent

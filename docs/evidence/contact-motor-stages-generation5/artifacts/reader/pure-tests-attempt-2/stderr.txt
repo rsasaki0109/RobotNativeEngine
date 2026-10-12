@@ -1,0 +1,18 @@
+test_caps_and_zero_authority_complementarity (test_stage_numeric.NumericTests.test_caps_and_zero_authority_complementarity) ... ok
+test_dyn8_source_order_known_nonassociative_dot (test_stage_numeric.NumericTests.test_dyn8_source_order_known_nonassociative_dot) ... ok
+test_exact_binary32_boundaries_and_ties (test_stage_numeric.NumericTests.test_exact_binary32_boundaries_and_ties) ... ok
+test_normal_zero_domain_exclusions_retained (test_stage_numeric.NumericTests.test_normal_zero_domain_exclusions_retained) ... ok
+test_row_exact_reference_and_native_operation_signs (test_stage_numeric.NumericTests.test_row_exact_reference_and_native_operation_signs) ... ok
+test_signed_zero_native_operations_and_guard (test_stage_numeric.NumericTests.test_signed_zero_native_operations_and_guard) ... ok
+test_all_source_builder_permutations (test_stage_reader.StageReaderTests.test_all_source_builder_permutations) ... ok
+test_complete_framing_counters_and_conditions (test_stage_reader.StageReaderTests.test_complete_framing_counters_and_conditions) ... ok
+test_each_gate_fails_closed (test_stage_reader.StageReaderTests.test_each_gate_fails_closed) ... ok
+test_framing_crc_truncation_and_strict_numbers (test_stage_reader.StageReaderTests.test_framing_crc_truncation_and_strict_numbers) ... ok
+test_identity_drift_and_optional_modes (test_stage_reader.StageReaderTests.test_identity_drift_and_optional_modes) ... ok
+test_literal_numeric_mismatch_is_not_pass (test_stage_reader.StageReaderTests.test_literal_numeric_mismatch_is_not_pass) ... ok
+test_native_exclusion_is_not_complete_replay (test_stage_reader.StageReaderTests.test_native_exclusion_is_not_complete_replay) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.472s
+
+OK

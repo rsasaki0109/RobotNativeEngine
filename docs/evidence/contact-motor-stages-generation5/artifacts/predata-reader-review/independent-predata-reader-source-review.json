@@ -1,0 +1,199 @@
+{
+  "activity_counts": {
+    "CI_monitoring": 0,
+    "Cargo_or_native_builds": 0,
+    "checkout_or_Git_mutations": 0,
+    "native_values_or_old_numerical_payload_reads": 0,
+    "network_operations": 0,
+    "new_test_executions": 0,
+    "scientific_reader_execution": 0,
+    "worlds": 0
+  },
+  "actual_pure_qualification": {
+    "actual_command": {
+      "bytes": 1213,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-3/command.json",
+      "sha256": "4b52d4649bc199be0f5653f39ee46541907a4503c23617f705efd00beb2cb1c6"
+    },
+    "actual_stderr": {
+      "bytes": 2049,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/pure-tests-attempt-3/stderr.txt",
+      "sha256": "15b652667cc50546ab216eebb9acec33bf049fb8b27ef1360c76ebf0e452d5e5"
+    },
+    "command_snapshot_Python_sources_eight_match_current": true,
+    "earlier_attempt1_failed_exit1_retained": true,
+    "earlier_attempt2_prior_pass_exit0_retained": true,
+    "exit_code": 0,
+    "fresh_runtime_artifacts_six_match_ready_receipt": true,
+    "qualification_is_synthetic_only": true,
+    "receipt": {
+      "bytes": 4167,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/actual-pure-test-receipt.json",
+      "sha256": "f58425960c12f9e6a8d319438c27232d742718a54dae00d6c0793acfefbc3063"
+    },
+    "unittest_methods": 15,
+    "worlds_and_old_native_reads": 0
+  },
+  "binding_ledger": {
+    "bytes": 58175,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/predata-reader-review/source-and-receipt-binding-ledger.json",
+    "sha256": "faa084721eb785ea1b7bd9f4d2c625110ddf0bdac490cd876152c72336f3a240"
+  },
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "concrete_final_artifacts_validated_by_this_review": false,
+  "ended_utc": "2026-10-12T06:17:05.906863+00:00",
+  "explicit_exclusions": [
+    "independent opaque native per-object layout decode",
+    "full hidden-set/private pipeline/solver/contact cache replay",
+    "absolute runtime MXCSR/rounding verification",
+    "row-build coordinates and absolute RHS origin",
+    "individual contact impulses/columns and per-contact causal attribution",
+    "anatomical left/right finger frames",
+    "compiler/dependency complete closure"
+  ],
+  "fixture_inventory_live_count": 33,
+  "git_clean_before_after": true,
+  "head_before_after": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "helper": {
+    "bytes": 14982,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/predata-reader-review/capture_source_only_review.py",
+    "sha256": "55b0aa7ff26149113a3d9345d85bf7fc0a77afb74ea8a249c6efd3d0afa01284"
+  },
+  "material_blockers": [],
+  "new_cohort_directory_absent_at_review_completion": true,
+  "profile_JSON_count": 1,
+  "reader_review_ready": {
+    "bytes": 2737,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/reader-review-ready.json",
+    "sha256": "3d23cd0c6c53efd880dc220053b3203472ce519c60161fac8b54439cd50d91fa"
+  },
+  "required_final_driver_spec_fill": [
+    "cohort_id generation5-independent-all-motor-stage",
+    "timezone registered_utc before first authoritative world",
+    "all6 exact current reader artifacts:5Python+profileJSON",
+    "actual frozen protocol/bindings/source guard/compiler/features/binary receipts",
+    "preflight PASS descriptors bound before exclusive new collection creation"
+  ],
+  "runtime_Python_module_count": 5,
+  "runtime_closure": [
+    {
+      "bytes": 38348,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/audit_coupled_stages.py",
+      "sha256": "3065fdcd0c38b10628ad6c8e5dce34473c7a1edb6b6bf489a7222ab4bda32806"
+    },
+    {
+      "bytes": 31893,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_analysis.py",
+      "sha256": "9964312729adb3ee89479e01fdae846c3217ac506af3731650ae7f98a5fabff7"
+    },
+    {
+      "bytes": 11149,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc"
+    },
+    {
+      "bytes": 20799,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_schema.py",
+      "sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+    },
+    {
+      "bytes": 6779,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/stage_roles.py",
+      "sha256": "8e1c53944e5722d1a9a19effdbdd5793cddc9aeae3f0013a5068ec3e36bd0a0e"
+    },
+    {
+      "bytes": 1240,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/reader/synthetic-profile.json",
+      "sha256": "e7f08c8cdc122994567a847d06a1cb28a45fccf3f8465acec121ebee70c2be11"
+    }
+  ],
+  "runtime_reader_artifact_count": 6,
+  "schema_version": 1,
+  "scientific_outcomes": {
+    "accuracy_hardware_maturity_gain_claimed": false,
+    "generation3_candidate": "REJECTED unchanged",
+    "generation4": "FAILED_UNQUALIFIED unchanged",
+    "generation5_actual_measurement_qualified": false
+  },
+  "scope": "INDEPENDENT_PRE_DATA_SOURCE_ONLY_GENERATION5_READER_REVIEW_NOT_NATIVE_OR_COMPILER_QUALIFICATION",
+  "source_only_findings": [
+    {
+      "details": "Unique authored 1kg palm and two .2kg prismatic children join checkpoint handles to link1/2/3, native LinX, ForceBased/AccelerationBased and 3-coordinate full J/W/V blocks; slots are append order, not anatomical labels.",
+      "evidence": [
+        "stage_roles.py:20-113",
+        "fixture-review/source-derived-fixture-review.md"
+      ],
+      "finding": "All three internal roles are prospectively admitted"
+    },
+    {
+      "details": "Observed motor ordering derives Motor+Limit reservations and global visit/J offsets; every initialized aggregate has all3 roles, each immediate pass matches aggregate order; uncaptured limit writes are not attributed to palm.",
+      "evidence": [
+        "stage_roles.py:90-113",
+        "stage_analysis.py:304-511"
+      ],
+      "finding": "Actual builder and phase order is retained"
+    },
+    {
+      "details": "Finger caps/gains/coefficient zero, [-0,+0] bounds and signed-zero lambdas retained; RHS is not forced zero, native AXPY still runs, and zero authority is not successful control or convergence failure.",
+      "evidence": [
+        "stage_analysis.py:226-265",
+        "stage_numeric.py:244-272",
+        "stage_roles.py:65-85"
+      ],
+      "finding": "Zero authority remains explicit and literal"
+    },
+    {
+      "details": "Exact Fraction common projection and native Dyn dot8/tail, ordered separate f32 operations, nalgebra clamp branch, negative delta AXPY and inverse guard match source; tiny/subnormal/nonfinite/overflow exclusions cannot satisfy complete replay.",
+      "evidence": [
+        "stage_numeric.py:129-272",
+        "operation-source-reference/nalgebra-0.33.3/src/lib.rs:240-249",
+        "source-reference/third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs:511-540"
+      ],
+      "finding": "Arithmetic source and replay exclusions are preserved"
+    },
+    {
+      "details": "Before/after external force cache absent, each joint rebuild new lambda+0 and same rhs/rhs_without_bias, post-integration old J/W retained; absolute RHS origin, per-contact columns/causal attribution and hidden cache replay stay unmeasured.",
+      "evidence": [
+        "stage_analysis.py:391-511",
+        "reader/preregistration.md"
+      ],
+      "finding": "Cached-stage scope prevents unsupported reconstruction"
+    },
+    {
+      "details": "Strict build2\u00d7mass3\u00d7mode3 fixed order, 1250frames each, all18 complete EOF/CRC/exit/source guards; ON6\u00d71250 analysis, freshON literal replay and OFF null; no scalar worlds or candidate promotion inferred.",
+      "evidence": [
+        "audit_coupled_stages.py:67-130",
+        "audit_coupled_stages.py:222-282",
+        "audit_coupled_stages.py:408-482"
+      ],
+      "finding": "Fixed18 are a new cohort, analyzed ON once"
+    },
+    {
+      "details": "Exact cohort/spec/case/launch/Popen start and original returncode linkage, timezone/order, 18 reserved/attempted/completed, serial source guards and no retry; incomplete or failed outputs remain FAIL.",
+      "evidence": [
+        "audit_coupled_stages.py:284-400",
+        "driver/collect_once.py",
+        "reader/test_stage_provenance.py"
+      ],
+      "finding": "Actual durable schema2 integration is strict"
+    },
+    {
+      "details": "Six runtime artifacts exclude protocol and binding; protocol binds source/preregistration/driver, bindings point to protocol digest, final driver spec can point to this review. Unfrozen placeholders are not scientific qualification.",
+      "evidence": [
+        "reader/protocol-template.json",
+        "reader/source-binary-binding-template.json",
+        "reader/README.md"
+      ],
+      "finding": "Freeze graph is acyclic at this source-review stage"
+    }
+  ],
+  "source_reference_live_count": 20,
+  "started_utc": "2026-10-12T06:17:05.816262+00:00",
+  "status": "PASS",
+  "unchanged_historical_code_only": {
+    "native_observations_read_from_history": 0,
+    "stage_numeric_sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "stage_schema_sha256": "ea5d0e4ddf7463e1a13387f08c845347807bf986f6c360ce96f585f57094e3b8"
+  },
+  "world_execution_authorized_by_this_review": false
+}

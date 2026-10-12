@@ -1,0 +1,49 @@
+{
+  "declared_new_fixed_collection_worlds": 18,
+  "expected_original_archive": {
+    "basename": "rne-contact-motor-stage-gen4-raw-traces.tar",
+    "bytes": 97996800,
+    "sha256": "534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0"
+  },
+  "extra_worlds_retries_or_resampling": 0,
+  "kind": "PRE_DATA_INDEPENDENT_ALL_OR_NONE_CHECKSUM_ONLY_ARCHIVE_RECOVERY",
+  "native_numeric_payloads_parsed_by_recovery_arm": 0,
+  "new_cohort_id": "generation5-independent-all-motor-stage",
+  "new_cohort_identity": "The new18 runs remain new independent collection, even if raw bytes match old checksums",
+  "original_member_manifest": {
+    "bytes": 8728,
+    "path": "/workspace/RobotNativeEngine/docs/evidence/contact-motor-stages/raw-retention/raw-trace-manifest.json",
+    "sha256": "5b3a15dc169388389826e10161998256cfc477c8347db59ecb4cbfca7f4c5690"
+  },
+  "publication_rule": "Existing user approval applies only if entire reconstructed old TAR size/SHA match the explicitly approved bytes. Otherwise new archive remains proposed and needs separate publication authorization.",
+  "pure_test_receipt": {
+    "bytes": 1171,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/synthetic-tests-hardened/20261012T060321753906Z/actual-pure-checks.json",
+    "sha256": "cd7a408cf5667bbbf9656679e12da46e676115f5880cdf75b2f61924c2f17768"
+  },
+  "qualification_rule": "Recovery outcome is independent of the new numeric audit and cannot promote old FAILED_UNQUALIFIED results",
+  "reason_for_pre_data_revision": "Independent source review found optimized-Python guard bypass and missing parent directory fsync; hardened code passed six pure fault checks before any new cohort world.",
+  "recipe": {
+    "format": "PAX",
+    "gid": 0,
+    "gname": "",
+    "mode_octal": "0444",
+    "mtime": 0,
+    "ordering": "ASCII member basename lexicographic",
+    "pax_headers": {},
+    "uid": 0,
+    "uname": ""
+  },
+  "registered_utc": "2026-10-12T06:03:35.237480+00:00",
+  "selection": "All eighteen originally registered gzip size/SHA pairs must match; no selected cases; stop on mismatch without rebuild or extra worlds",
+  "supersedes_pre_data_registration": {
+    "bytes": 2179,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration.json",
+    "sha256": "43b85daf7b6d45c43d5802c0cf8993370cd2fcb2852a1bfe018bd646e4d43b9e"
+  },
+  "tool": {
+    "bytes": 7336,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/checksum_reconstruct.py",
+    "sha256": "a1272976f5a632e985c7dbae19d79795f30aeea5c13c46ea38983c02d034b714"
+  }
+}

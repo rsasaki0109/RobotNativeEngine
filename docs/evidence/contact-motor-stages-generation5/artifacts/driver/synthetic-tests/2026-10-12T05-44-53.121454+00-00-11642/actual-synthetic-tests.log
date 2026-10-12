@@ -1,0 +1,21 @@
+test_abrupt_interruption_after_claim_refuses_resume (__main__.DriverTests.test_abrupt_interruption_after_claim_refuses_resume) ... ok
+test_byte_mismatch_is_rejected_even_without_hash_comparison (__main__.DriverTests.test_byte_mismatch_is_rejected_even_without_hash_comparison) ... ok
+test_changed_binary_blocks_before_cohort_claim (__main__.DriverTests.test_changed_binary_blocks_before_cohort_claim) ... ok
+test_changed_source_stops_with_original_exit_and_raw_retained (__main__.DriverTests.test_changed_source_stops_with_original_exit_and_raw_retained) ... ok
+test_complete_once_and_archive_literal_second_stream (__main__.DriverTests.test_complete_once_and_archive_literal_second_stream) ... ok
+test_concurrent_second_driver_cannot_launch_another_cohort (__main__.DriverTests.test_concurrent_second_driver_cannot_launch_another_cohort) ... ok
+test_duplicate_json_and_nonpersistent_paths_are_rejected (__main__.DriverTests.test_duplicate_json_and_nonpersistent_paths_are_rejected) ... ok
+test_invalid_gzip_retained_and_no_proposed_pointer_created (__main__.DriverTests.test_invalid_gzip_retained_and_no_proposed_pointer_created) ... ok
+test_missing_reader_gate_and_changed_matrix_block_before_claim (__main__.DriverTests.test_missing_reader_gate_and_changed_matrix_block_before_claim) ... ok
+test_nonzero_original_exit_does_not_filter_remaining_cases (__main__.DriverTests.test_nonzero_original_exit_does_not_filter_remaining_cases) ... ok
+test_operator_stop_preserves_one_completed_case_and_unattempted_rest (__main__.DriverTests.test_operator_stop_preserves_one_completed_case_and_unattempted_rest) ... ok
+test_signal_original_exit_is_retained_without_substitution (__main__.DriverTests.test_signal_original_exit_is_retained_without_substitution) ... ok
+test_spawn_failure_reservation_cannot_retry (__main__.DriverTests.test_spawn_failure_reservation_cannot_retry) ... ok
+test_synthetic_enospc_preserves_partial_tar_and_raws (__main__.DriverTests.test_synthetic_enospc_preserves_partial_tar_and_raws) ... ok
+test_torn_archive_terminal_is_never_replaced_after_verified_pointer (__main__.DriverTests.test_torn_archive_terminal_is_never_replaced_after_verified_pointer) ... ok
+test_torn_receipt_is_inspected_as_incomplete_and_never_resumed (__main__.DriverTests.test_torn_receipt_is_inspected_as_incomplete_and_never_resumed) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 12.385s
+
+OK

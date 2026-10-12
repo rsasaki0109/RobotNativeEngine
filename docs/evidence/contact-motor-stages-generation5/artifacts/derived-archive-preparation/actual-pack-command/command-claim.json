@@ -1,0 +1,32 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py",
+    "--release",
+    "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-pack-release.json",
+    "--release-sha256",
+    "7bcc74f64ee197e15381096352488c88cbc7cdc90e1ecd1b1c60a75987cdadea"
+  ],
+  "cwd": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation",
+  "inputs_before": [
+    {
+      "bytes": 3714,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-pack-release.json",
+      "sha256": "7bcc74f64ee197e15381096352488c88cbc7cdc90e1ecd1b1c60a75987cdadea"
+    },
+    {
+      "bytes": 22540,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/prepare_derived_archive.py",
+      "sha256": "4e792041ba05be7d4e17f024488873b646ed87d63d880621e877fa91d8dc6c9b"
+    },
+    {
+      "bytes": 2361,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/execute_actual_pack.py",
+      "sha256": "b61a418020fa13b734d6aa8213f55fdffd4fd69420a54bd57193c79f43e044f1"
+    }
+  ],
+  "no_retry": true,
+  "started_utc": "2026-10-12T07:02:00.756292+00:00",
+  "worlds_builds_network": 0
+}

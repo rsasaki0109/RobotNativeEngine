@@ -1,0 +1,26 @@
+{
+  "archive": {
+    "bytes": 241981440,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/rne-contact-motor-stage-generation5-complete-derived-evidence.tar",
+    "sha256": "86217d5b652d0d3fd854db97563af1f90c79f5d48606cceb55c468872a95cd2d"
+  },
+  "cohort_id": "generation5-independent-all-motor-stage",
+  "historical_scientific_status": "FAILED_UNQUALIFIED_UNCHANGED",
+  "kind": "LOCAL_PROPOSED_GENERATION5_DERIVED_EVIDENCE_POINTER",
+  "manifest": {
+    "bytes": 2646815,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/literal-member-manifest.json",
+    "sha256": "cd4436a621e23c94da922ea5add5475ed591e2324c5844e935d20498ff107324"
+  },
+  "old_raw_archive_authorization_does_not_authorize_these_new_bytes": true,
+  "publication_authorized": false,
+  "schema_version": 1,
+  "status": "PROPOSED_NEW_DERIVED_BYTES_FRESH_USER_AUTHORIZATION_PENDING",
+  "tag": null,
+  "url": null,
+  "verification": {
+    "bytes": 553138,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/archive-verification.json",
+    "sha256": "b6752ade003c4f8125506881880310fedafd08f064d9e221db370ca8040321ed"
+  }
+}

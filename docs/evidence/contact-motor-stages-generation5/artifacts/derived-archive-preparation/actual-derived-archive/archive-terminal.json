@@ -1,0 +1,16 @@
+{
+  "ended_utc": "2026-10-12T07:02:09.316387+00:00",
+  "exit_code": 0,
+  "originals_preserved": true,
+  "pointer": {
+    "bytes": 1384,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-derived-archive/proposed-derived-archive-pointer.json",
+    "sha256": "8f68ed3d718f546c6e14a916ad1185c795cedd52182a0d17cf85fb8adfbe9b89"
+  },
+  "publication": "PROPOSED_ONLY",
+  "release": {
+    "bytes": 3714,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/actual-pack-release.json",
+    "sha256": "7bcc74f64ee197e15381096352488c88cbc7cdc90e1ecd1b1c60a75987cdadea"
+  }
+}

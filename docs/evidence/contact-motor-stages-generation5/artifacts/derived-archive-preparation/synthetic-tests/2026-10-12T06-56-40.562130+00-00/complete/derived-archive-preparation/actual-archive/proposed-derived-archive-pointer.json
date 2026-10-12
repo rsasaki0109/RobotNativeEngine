@@ -1,0 +1,26 @@
+{
+  "archive": {
+    "bytes": 112640,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/complete/derived-archive-preparation/actual-archive/rne-contact-motor-stage-generation5-complete-derived-evidence.tar",
+    "sha256": "00626d181b71dee9b3506931e33af995e41b93ee55c27288ef73f7d3d1aa15b7"
+  },
+  "cohort_id": "SYNTHETIC_DERIVED_ARCHIVE_complete",
+  "historical_scientific_status": "FAILED_UNQUALIFIED_UNCHANGED",
+  "kind": "LOCAL_PROPOSED_GENERATION5_DERIVED_EVIDENCE_POINTER",
+  "manifest": {
+    "bytes": 54076,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/complete/derived-archive-preparation/actual-archive/literal-member-manifest.json",
+    "sha256": "43592ac05672ede5681589cac53617cc5ac6d8a495a994b1dffb5d9c4a6663d7"
+  },
+  "old_raw_archive_authorization_does_not_authorize_these_new_bytes": true,
+  "publication_authorized": false,
+  "schema_version": 1,
+  "status": "PROPOSED_NEW_DERIVED_BYTES_FRESH_USER_AUTHORIZATION_PENDING",
+  "tag": null,
+  "url": null,
+  "verification": {
+    "bytes": 7613,
+    "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/derived-archive-preparation/synthetic-tests/2026-10-12T06-56-40.562130+00-00/complete/derived-archive-preparation/actual-archive/archive-verification.json",
+    "sha256": "4e22f5df810705a719b277ef19ef121a9f3ee4f3ca3622d19155695dca921beb"
+  }
+}

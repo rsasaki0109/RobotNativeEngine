@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "kind": "generation5_predata_source_derived_fixture_spec",
+  "status": "planned_only; source review completed; reader/source/binary/driver freeze and all worlds remain future",
+  "source_head": "2c3586fa9168f13c774fb8f0c0d2cd359eba1287",
+  "source_inventory_sha256": "15361ef82a6ae94fdf88bec169fbbf7e28c08b2a9ce473379369d446f7450fb6",
+  "prior_cohorts": "Immutable. Generation 3 remains REJECTED; generation 4 is not reanalysed or reclassified.",
+  "scope_counts": {
+    "worlds_executed": 0,
+    "builds_executed": 0,
+    "tests_executed": 0,
+    "native_data_files_read": 0,
+    "checkout_writes": 0
+  },
+  "scene_spawn_order": [
+    {
+      "spawn_ordinal": 0,
+      "source_role": "floor",
+      "ecs_motion": "Fixed",
+      "authored_mass_kg": "RigidBody::default() = 1.0",
+      "collider_half_m": [
+        "5.0",
+        "0.5",
+        "5.0"
+      ],
+      "spawn_translation_m": [
+        "0.0",
+        "-0.5",
+        "0.0"
+      ],
+      "multibody_marker": false,
+      "joint": null
+    },
+    {
+      "spawn_ordinal": 1,
+      "source_role": "cube",
+      "ecs_motion": "Dynamic",
+      "authored_mass_kg": "declared mass in {5.0,20.0,50.0}",
+      "collider_half_m": [
+        "0.05",
+        "0.05",
+        "0.05"
+      ],
+      "spawn_translation_m": [
+        "0.0",
+        "0.05",
+        "0.0"
+      ],
+      "multibody_marker": false,
+      "joint": null
+    },
+    {
+      "spawn_ordinal": 2,
+      "source_role": "anchor",
+      "ecs_motion": "Fixed",
+      "authored_mass_kg": "RigidBody::default() = 1.0",
+      "collider_half_m": null,
+      "spawn_translation_m": [
+        "0.0",
+        "1.0",
+        "0.0"
+      ],
+      "multibody_marker": true,
+      "joint": null
+    },
+    {
+      "spawn_ordinal": 3,
+      "source_role": "palm",
+      "ecs_motion": "Dynamic",
+      "authored_mass_kg": "1.0",
+      "collider_half_m": [
+        "0.12",
+        "0.02",
+        "0.05"
+      ],
+      "spawn_translation_m": [
+        "0.0",
+        "0.26",
+        "0.0"
+      ],
+      "multibody_marker": true,
+      "joint": {
+        "type": "Prismatic",
+        "parent_source_role": "anchor",
+        "authored_axis": "Vec3::Y",
+        "parent_anchor_m": [
+          "0.0",
+          "PALM_Y_M - anchor_y_m",
+          "0.0"
+        ],
+        "child_anchor_m": [
+          "0.0",
+          "0.0",
+          "0.0"
+        ],
+        "relative_rotation": "Quat::IDENTITY",
+        "limits_m": null
+      }
+    },
+    {
+      "spawn_ordinal": 4,
+      "source_role": "finger_side_minus",
+      "reader_role": "one of finger_slot_0 / finger_slot_1; do not infer anatomical side",
+      "ecs_motion": "Dynamic",
+      "authored_mass_kg": "0.2",
+      "collider_half_m": [
+        "0.01",
+        "0.06",
+        "0.04"
+      ],
+      "spawn_translation_m": [
+        "-FINGER_X_M",
+        "PALM_Y_M - FINGER_DROP_M",
+        "0.0"
+      ],
+      "multibody_marker": true,
+      "joint": {
+        "type": "Prismatic",
+        "parent_source_role": "palm",
+        "authored_axis": "Vec3::X",
+        "parent_anchor_m": [
+          "-FINGER_X_M",
+          "-FINGER_DROP_M",
+          "0.0"
+        ],
+        "child_anchor_m": [
+          "0.0",
+          "0.0",
+          "0.0"
+        ],
+        "relative_rotation": "Quat::IDENTITY",
+        "limits_m": [
+          "-0.05",
+          "0.05"
+        ]
+      },
+      "direct_effort_n": "+squeeze_n"
+    },
+    {
+      "spawn_ordinal": 5,
+      "source_role": "finger_side_plus",
+      "reader_role": "the other finger slot, source side remains unbound",
+      "ecs_motion": "Dynamic",
+      "authored_mass_kg": "0.2",
+      "collider_half_m": [
+        "0.01",
+        "0.06",
+        "0.04"
+      ],
+      "spawn_translation_m": [
+        "FINGER_X_M",
+        "PALM_Y_M - FINGER_DROP_M",
+        "0.0"
+      ],
+      "multibody_marker": true,
+      "joint": {
+        "type": "Prismatic",
+        "parent_source_role": "palm",
+        "authored_axis": "Vec3::X",
+        "parent_anchor_m": [
+          "FINGER_X_M",
+          "-FINGER_DROP_M",
+          "0.0"
+        ],
+        "child_anchor_m": [
+          "0.0",
+          "0.0",
+          "0.0"
+        ],
+        "relative_rotation": "Quat::IDENTITY",
+        "limits_m": [
+          "-0.05",
+          "0.05"
+        ]
+      },
+      "direct_effort_n": "-squeeze_n"
+    }
+  ],
+  "internal_motor_rows": [
+    {
+      "role": "palm",
+      "source_spawn_ordinal": 3,
+      "source_derived_link_index": 1,
+      "selector_coordinate": 0,
+      "native_axis": "LinX",
+      "gain_model": "ForceBased",
+      "stiffness_native_f32_from": "1.0e5_f64 as f32",
+      "damping_native_f32_from": "1.0e4_f64 as f32",
+      "effort_ceiling_native_f32_from": "5000.0_f64 as f32",
+      "target_velocity_m_s": "0.0",
+      "target_position_m": "outer-step schedule, f64 expression then backend f32 cast",
+      "limits_m": null,
+      "reserved_native_rows": 1,
+      "reserved_row_order": [
+        "Motor(0)"
+      ],
+      "bound_expression": "[-(5000.0f32 * h), +(5000.0f32 * h)]",
+      "rhs_expression": "0.0; if a != 0.0 add (curr_pos - target_pos)*a; add -target_vel",
+      "coefficients": "a=k*inv(h*k+d); c=+0; g=inv(h*h*k+h*d)"
+    },
+    {
+      "role": "finger_slot_0",
+      "source_spawn_ordinal": null,
+      "source_derived_link_index": 2,
+      "selector_coordinate": 1,
+      "native_axis": "LinX",
+      "gain_model": "AccelerationBased",
+      "stiffness_native_f32_from": "literal +0.0f32",
+      "damping_native_f32_from": "literal +0.0f32",
+      "effort_ceiling_native_f32_from": "literal +0.0f32",
+      "target_velocity_m_s": "literal +0.0f32 before limit clamp",
+      "target_position_m": "literal +0.0f32",
+      "limits_m": [
+        "-0.05f64 as f32",
+        "+0.05f64 as f32"
+      ],
+      "reserved_native_rows": 2,
+      "reserved_row_order": [
+        "Motor(0)",
+        "Limit(0)"
+      ],
+      "bound_expression": "[-(0.0f32 * h), +(0.0f32 * h)] = signed [-0,+0] for finite positive h",
+      "rhs_expression": "0.0; no ERP add for a=+0; target_vel=clamp(+0,(min-curr_pos)*inv_dt,(max-curr_pos)*inv_dt); add -target_vel",
+      "coefficients": "a=+0; c=+0; g=+0 under guarded inv(0)"
+    },
+    {
+      "role": "finger_slot_1",
+      "source_spawn_ordinal": null,
+      "source_derived_link_index": 3,
+      "selector_coordinate": 2,
+      "native_axis": "LinX",
+      "gain_model": "AccelerationBased",
+      "stiffness_native_f32_from": "literal +0.0f32",
+      "damping_native_f32_from": "literal +0.0f32",
+      "effort_ceiling_native_f32_from": "literal +0.0f32",
+      "target_velocity_m_s": "literal +0.0f32 before limit clamp",
+      "target_position_m": "literal +0.0f32",
+      "limits_m": [
+        "-0.05f64 as f32",
+        "+0.05f64 as f32"
+      ],
+      "reserved_native_rows": 2,
+      "reserved_row_order": [
+        "Motor(0)",
+        "Limit(0)"
+      ],
+      "bound_expression": "[-(0.0f32 * h), +(0.0f32 * h)] = signed [-0,+0] for finite positive h",
+      "rhs_expression": "same independently bound finger rule; not an unconditional zero",
+      "coefficients": "a=+0; c=+0; g=+0 under guarded inv(0)"
+    }
+  ],
+  "literal_138_conditions": {
+    "entity_count": 6,
+    "native_body_count": 6,
+    "native_collider_count": 5,
+    "native_unique_multibody_count": 1,
+    "native_impulse_joint_count": 0,
+    "outer_steps": 1250,
+    "step_hz": "500.0f64",
+    "duration_expression": "SimDuration::from_hertz(Hertz::new(500.0)); backend as_seconds().value() as f32",
+    "settle_steps": 250,
+    "lift_steps": 500,
+    "hold_steps": 500,
+    "palm_target_schedule": "steps 1..250: +0; completed step 250+i, i=1..1000: 0.2f64 * min(i as f64 / 500 as f64, 1.0), then f32 cast",
+    "squeeze_expression": "1.25f64 * (mass_kg * 9.81f64 / (2.0f64 * f64::from(0.8f32)))",
+    "direct_finger_effort": "-side * squeeze_n, cap squeeze_n, side in [-1.0,+1.0]; separate child/parent force pair, not zero-cap motor impulse",
+    "physics_world": "PhysicsWorldDesc::default(); gravity=(0,-9.81,0), solver_iterations=0 retains native defaults",
+    "native_default_counts": {
+      "small_steps": 4,
+      "pgs_passes": 1,
+      "stabilization_passes": 2,
+      "additional_final_friction_passes": 0
+    },
+    "native_warmstart": "1.0f32; contact warmstart only, not internal motor accumulator carry-over",
+    "sync_order": [
+      "sync_from_ecs",
+      "backend.step",
+      "sync_to_ecs",
+      "record completed checkpoint/ECS/stage"
+    ],
+    "physics_owned_pose_component": "absent; preserve existing ECS/native pose and quaternion conversion path",
+    "mass_caveat": "ECS authored mass is used as native additional_mass; default-density collider mass is also present. Do not equate native total mass to authored mass.",
+    "physical_stdout": "exact example138 Rapier physical row without timing; collection ok is not physical acceptance"
+  },
+  "identity_admission": [
+    "ECS words retain full u64 entity.to_bits() and are numerically sorted; no assumed allocator generation/index or fixed ID.",
+    "ECS source roles derive from body motion, authored mass and Prismatic JointState presence: dynamic 1kg prismatic=palm; two dynamic .2kg prismatic=finger pair; selected-mass cube is distinct.",
+    "Checkpoint has exactly three unique entity bindings sorted by entity_bits; join each to its ECS prismatic role and native child handle/index+generation, unique multibody record and actual link_index.",
+    "Native joint handle JSON is exactly {index:u32,generation:u32}; checkpoint handle_words is a distinct [u32,u32] grammar. No normalized-array fallback.",
+    "Source append/fixed-root topology yields palm link1 and finger vector links2/3; each has one LinX DOF, fixed anchor root zero DOFs, full block ndofs2=3; selector=link_index-1.",
+    "finger_slot_0/1 are named by actual native link indices2/3 only; source side minus/plus and anatomical left/right are not independently bound by the current JSON capture.",
+    "Every initialized aggregate gripper group must contain exactly all three unique admitted roles. No positive-cap/ForceBased-only subset is permitted; missing/extra/duplicate rows fail the new cohort gate.",
+    "Other native island groups may contain no supported rows; actual group/island/partition/constraint order is observed, not assigned a fixed number.",
+    "Source topology is conditional on the admitted exact six-body scene, all three bindings and unchanged source. Native per-object payloads remain opaque exact bytes, not an independently decoded internal topology claim."
+  ],
+  "row_block_admission": [
+    "Full J and W vectors each have ndofs2=3 words; actual solver_velocity_offset..+3 must fit the observed generalized velocity vector.",
+    "All three admitted rows share one multibody V block; J is exact initialized positive unit selector at coordinate link_index-1 and +0 elsewhere. W is the captured solve of the then-current inverse augmented mass against that selector.",
+    "j_id2 indexes the separate joint generic Jacobian buffer: J occupies [j_id2,j_id2+3), W [j_id2+3,j_id2+6). Contact buffer offsets are never substituted.",
+    "Builder order follows actual active_island handles, not entity bits, link order or anatomy. Palm reserves1 motor row; each finger reserves motor then limit,2 rows. Observe role order before deriving constraint index and J offset from the reserve counts.",
+    "Under this admitted scene with no external generic joints, first internal builder constraint_index=0 and j_id2=0; each reserved native row advances one index and6 J-buffer words. Motor indices cannot be fixed to a predetermined permutation.",
+    "Five native joint constraints are reserved in total; only the three Motor(0) rows are captured. Limit-row writes are included in aggregate joint-stage changes.",
+    "BeforeExternalForces and AfterExternalForces have rows=[] and cache=None; initialized captures use cache=current slice. Immediate motor stages contain exactly the selected row; aggregate captures contain the entire supported role set.",
+    "AfterIntegration still references the prior row J/W cache initialized by this slice joint update. Do not replace it with a later mass matrix, checkpoint data or newly generated W."
+  ],
+  "native_operation_and_units": {
+    "units": {
+      "V": "m/s for all3 translational generalized coordinates",
+      "J": "dimensionless selectors",
+      "W": "1/kg",
+      "rhs": "m/s",
+      "lambda": "N s, native accumulator opposite applied impulse",
+      "force_based_g": "1/kg",
+      "cfm_coefficient": "dimensionless",
+      "inverse_lhs_D": "kg",
+      "duration": "s"
+    },
+    "guarded_inverse": "inv(x)=+0 for x in inclusive [-1e-20,+1e-20]; otherwise 1/x. Preserve Rust f32 operation order.",
+    "native_solve_order": [
+      "vel2=J.dot(V)",
+      "dvel=rhs+vel2",
+      "lambda_next=na::clamp(lambda+D*(dvel-g*lambda),lower,upper)",
+      "delta=lambda_next-lambda",
+      "lambda=lambda_next",
+      "V.axpy(-delta,W,1.0)"
+    ],
+    "native_residual_sign": "rhs + J*V - g*lambda; applied motor impulse=-lambda",
+    "coefficient_cfmc": "preserved in capture; this internal one-body solve path does not use it",
+    "initialization": "row lambda=literal +0 on each slice rebuild; no inference from descriptor writeback, since joint_id=usize::MAX prevents internal impulse writeback",
+    "bias_remove": "rhs=rhs_wo_bias; current internal motor constructor places ERP position term in rhs_wo_bias and initially sets both equal. Immediate motor bias removal retains equal RHS.",
+    "finger_zero_cap": "Preserve [-0,+0] bounds and observed lambda signed zero. Finger RHS may be nonzero because limit-clamped target velocity is dynamic. A nonzero residual with zero-width bounds is not itself a nonconvergence result.",
+    "diagonal_builds": {
+      "baseline": "D=inv(w), w=J*W captured in source dot/selector order",
+      "rejected_inverse_w_plus_g": "ForceBased unit motor D=inv(w+g); AccelerationBased retains inv(w)"
+    },
+    "common_reference_projection": "Define separately from stored-D native projection, using the same captured native bounds and explicit w+g reference; zero-width finger bounds remain admissible. Exact independent formulas/tolerances are frozen by the reader owner before any data.",
+    "rounding": "Do not conflate an exact algebraic real formula, a rounded native operation and an accepted tolerance. No rounding threshold is selected from prior or new data."
+  },
+  "phase_and_writer_scope": {
+    "all_row_immediate_pairs": "For every declared PGS/stabilization visit, require one coherent immediate BeforeMotorSolve/AfterMotorSolve pair per admitted role, plus BeforeMotorBiasRemoval on stabilization. Validate actual joint_visit_index order and same row/cache identity.",
+    "contact_only_edges": [
+      [
+        "AfterJointUpdate",
+        "AfterContactUpdate"
+      ],
+      [
+        "AfterContactUpdate",
+        "AfterContactWarmstart"
+      ],
+      [
+        "AfterJointSolve",
+        "AfterContactNormal"
+      ],
+      [
+        "AfterContactNormal",
+        "AfterContactFriction"
+      ],
+      [
+        "AfterJointStabilization",
+        "AfterContactStabilization"
+      ],
+      [
+        "AfterContactStabilization",
+        "AfterStabilizationFriction"
+      ]
+    ],
+    "contact_scope": "Aggregate all contact velocity writers only. Some update edges may be unchanged; do not require a nonzero contact delta. Additional friction is conditional on actual configured count and stage.",
+    "other_velocity_writers": [
+      "external force increments",
+      "selected motor row",
+      "two uncaptured finger limit rows within aggregate joint solve",
+      "integration and dynamics cache update",
+      "contact warmstart",
+      "normal/restitution contacts",
+      "friction contacts",
+      "stabilization passes"
+    ],
+    "absolute_rhs_limit": "Row-build joint positions are not captured per stage; do not rebuild absolute RHS from post-outer-step ECS JointState or native checkpoint generalized positions.",
+    "causal_limit": "No individual contact columns/visits captured; no attribution to one palm/contact/limit from aggregate changes. These gates do not establish measured cause or solver accuracy."
+  },
+  "checkpoint_literal_gate": [
+    "Native JSON fields/record kind/handle arrays and wrapper postcard source declaration order are strict; no unknown fields or float-number conversions.",
+    "Compare every completed-step checkpoint JSON, exact wrapper postcard bytes, native object byte vectors, integration settings, gravity and ECS IEEE words literally within each build ON/fresh ON/OFF triple.",
+    "Compare ON/fresh ON ordered stage telemetry literally; OFF must be null. Header identity labels and observer_enabled are case descriptors, not physics words to normalize.",
+    "Require 1250 sequential completed frames and a collected terminal with both counters1250, no error and complete physical report; retain partial failed traces and fail on missing gzip trailer/CRC/end/EOF, process nonzero or finish/flush error.",
+    "Native object count/order and three binding identities are admitted on every frame; observed private-object postcard equality covers the declared payloads only.",
+    "Checkpoint excludes full-set metadata, broad/narrow phase, private pipeline/solver/contact caches, observer buffers and skipped native serde fields. Equality is not full hidden-state equality."
+  ],
+  "driver_18_case_axes": {
+    "builds": [
+      "baseline",
+      "rejected_inverse_w_plus_g"
+    ],
+    "masses_kg": [
+      5,
+      20,
+      50
+    ],
+    "observation_modes": [
+      "on",
+      "fresh_on",
+      "off"
+    ],
+    "count": 18,
+    "fresh_on_semantics": "new process/new world, observer=on, distinct exclusive output and label; same declared physical input"
+  },
+  "parent_declared_build_conditions": {
+    "rustc": "1.95.0",
+    "target_arch": "x86_64",
+    "cargo_features": "default features plus example142 manifest-implied motor-stage-diagnostics; no extra parallel/enhanced-determinism/SIMD toggles",
+    "RUSTFLAGS": [],
+    "profile": "release, actual command and artifacts to be frozen by parent",
+    "manifest_chain": "142 -> rne_physics_rapier/motor-stage-diagnostics -> rapier3d/serde-serialize; repository patch; Rapier defaults dim3,f32",
+    "verified_here": false
+  },
+  "freeze_prerequisites": [
+    "Independent reader/schema/all3-row predicate and pure synthetic qualification must be complete and hashed prospectively.",
+    "Parent freezes both selected-source inventories, exact candidate-only hunk, compiler/target/flags/features/profile/lockfiles, command lines and binaries before any18 authoritative worlds.",
+    "Driver freezes all18 unique keys/labels/output paths, order, ceilings, process receipts, partial-output retention and failure accounting; no opportunistic reruns or subset selection.",
+    "No source/code/gain/timestep/iteration retuning or gate relaxation after data. Existing examples133\u2013138 exact physical stdout preservation remains a separate unchanged admission requirement.",
+    "Observer equivalence success is necessary for a diagnostic comparison and cannot promote the already rejected candidate or establish physical calibration success."
+  ],
+  "limitations": [
+    "No runtime numeric entity/handle/island/constraint IDs are fixed; source spawn ordinals are human source roles only.",
+    "Bevy Entity Ord creation order is not proven equal to Entity.to_bits numerical order; backend uses Ord while frame output uses to_bits sorting.",
+    "Native per-object private layouts are source-bound opaque byte records, not an independent decoder of the full Multibody structure.",
+    "The append implementation shifts descendant internal_id metadata differently from vector/rb2mb link indices for an already populated child subtree. Do not add an unproved internal_id == vector index assertion; reader uses checkpoint link_index and captured stage link_id/J.",
+    "No absolute RHS reconstruction from end-step state, no uncaptured contact-column attribution, no hardware/external-user validation or maturity increase claim.",
+    "All native worlds/builds/test runs and source/binary compilation bindings remain unrun/unverified by this review."
+  ]
+}

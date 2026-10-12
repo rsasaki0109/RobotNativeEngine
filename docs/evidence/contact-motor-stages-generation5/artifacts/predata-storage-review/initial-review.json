@@ -1,0 +1,165 @@
+{
+  "artifacts": [
+    {
+      "bytes": 13335,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/collect_once.py",
+      "sha256": "641835598336f93b1976141ea8fe65fc94dc603bcd569c8136e20c95b4d911b6"
+    },
+    {
+      "bytes": 9075,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/durable_common.py",
+      "sha256": "d5aa49a02217d0b9f5c56464bcf6cbedfa1bad1386be2be123167ac4c777593e"
+    },
+    {
+      "bytes": 13253,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/prepare_archive.py",
+      "sha256": "e0824b75f9e5891a02bf602be2eea27d753cc4da5f7e08976ec32326d49284c5"
+    },
+    {
+      "bytes": 19262,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/test_durable_driver.py",
+      "sha256": "bb1ff486bc634fbee1575ff99fac0d8d515029a48353e1a287d0f77f4d81e6d0"
+    },
+    {
+      "bytes": 10194,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/driver/final-driver-handoff.json",
+      "sha256": "4ae28dcf5351cbb4cb54bf761765b291c00ea4bf409a07d063238b96dd2faf4b"
+    },
+    {
+      "bytes": 7336,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/checksum_reconstruct.py",
+      "sha256": "a1272976f5a632e985c7dbae19d79795f30aeea5c13c46ea38983c02d034b714"
+    },
+    {
+      "bytes": 2179,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/predata-recovery-registration.json",
+      "sha256": "43b85daf7b6d45c43d5802c0cf8993370cd2fcb2852a1bfe018bd646e4d43b9e"
+    },
+    {
+      "bytes": 602,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/recovery/synthetic-tests/actual-pure-checks.json",
+      "sha256": "58a7347aa2cd5fba23e5bf81ac6490a170b21873311988b07f99936554440343"
+    },
+    {
+      "bytes": 793,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/baseline-build-artifact.json",
+      "sha256": "67ddba7a481064369c8eb2ea45c364ca061ec32a6ef364bfa199c477c0ecc340"
+    },
+    {
+      "bytes": 548,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/rejected-build-artifact.json",
+      "sha256": "8736bed67cd1f67b2176ba2646effafa1a528e4f3ea85932388310a433c93470"
+    },
+    {
+      "bytes": 213,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/actual-candidate-rollback.json",
+      "sha256": "0e9db05968e5a2c5ee502dfb1279da085d9fdabfa860c074298899be3519535a"
+    },
+    {
+      "bytes": 211,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/actual-candidate-rollback-attempt2.json",
+      "sha256": "2690eecb2e1f836dfbe735f89be50d57ee4968f4744c7bb5936b495e7e18fbea"
+    },
+    {
+      "bytes": 198146,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/preparation/baseline-canonical-source-manifest.json",
+      "sha256": "ea5ea9340bf21e3930bbf5f8b363c280d99ccba408a26d8daf6fa2ccf284f613"
+    }
+  ],
+  "driver_findings": {
+    "archive": "Exactly18 raw+manifest, all original exits retained, compressed SHA and gzip container CRC/trailer/full stream hash; USTAR deterministic headers; explicit saved member SHA/order/header checks + second full byte stream match. PROPOSED local pointer only, no network publication.",
+    "durability": "O_EXCL/O_NOFOLLOW outputs; file+parent fsync; raw collector create_new contract pinned. Failure to save final receipt may leave incomplete evidence, never grants restart.",
+    "fixed_count_order": "Two builds x masses 5/20/50 x on/fresh_on/off, exactly eighteen rows, no numeric branching or successful-case substitution.",
+    "once": "Exclusive persistent cohort directory + fsynced claim before Popen; no resume/run existing root. Concurrent fixed-root runner loses before launch.",
+    "partial_or_nonzero": "Original signed Popen returncode persisted before hashing. Nonzero process continues next fixed case if source/provenance binds; spawn/infra/source drift stops new cases. Partial/torn claims/artifacts retained; no deletion, replacement or retry.",
+    "source_guard": "Frozen sorted explicitly non-exhaustive guard/readers/protocol/binaries before/after every case; not full dependency closure.",
+    "worlds_completed_semantics": "Count of process exit==0, including potential after-source-error case, not a numerical/provenance qualification count."
+  },
+  "handoff_implementation_bindings_match": {
+    "README.md": true,
+    "collect_once.py": true,
+    "durable_common.py": true,
+    "prepare_archive.py": true,
+    "spec-template.json": true,
+    "test_durable_driver.py": true
+  },
+  "historical_binary_matches": [
+    {
+      "bytes": 3089208,
+      "executable": true,
+      "matches_historical_expected_size_sha": true,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline141",
+      "sha256": "dc22283295e05ee5dd48cf581b15d4ca00719a6cc5688187fd1d310f90a0d3e9"
+    },
+    {
+      "bytes": 3439056,
+      "executable": true,
+      "matches_historical_expected_size_sha": true,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/baseline142",
+      "sha256": "1ce04f9044712fa6791aa0330a48d2e0668db767004447dad5b03b0816420d18"
+    },
+    {
+      "bytes": 3439088,
+      "executable": true,
+      "matches_historical_expected_size_sha": true,
+      "path": "/workspace/.rne-kick-demo/single-joint-motor-calibration/next-experiment/generation-5/binaries/rejected142",
+      "sha256": "f019e933fde0dceec036a8db5c4aa97910567cb8cf6a220c7cc8fd7711a62f07"
+    }
+  ],
+  "kind": "independent_predata_storage_source_review",
+  "other_reference_bindings_match": {
+    "latest_full_synthetic_test_log": true,
+    "latest_synthetic_checks": true,
+    "original_member_manifest": true,
+    "recovery_pure_test_receipt": true,
+    "recovery_tool": false,
+    "retained_prior_code_snapshot_manifest": true
+  },
+  "pure_test_evidence": {
+    "driver_preexisting_robot_worlds": 0,
+    "driver_preexisting_synthetic_processes_latest_run": 128,
+    "driver_preexisting_tests": 16,
+    "recovery_pure_checks": "Known synthetic archive/all18/exclusive/mismatch/duplicate claimed and bound; no reusable pure-test source/actual command located in recovery root; not rerun by reviewer",
+    "reviewer_tests_executed": 0,
+    "test_source_AST_syntax": "PASS"
+  },
+  "qualification_and_publication": {
+    "existing_user_approval_scope": "Only entire reconstructed old TAR exact size+SHA; any different gen5 archive is PROPOSED, needs separate publication authorization",
+    "new_generation5": "Independent18 cohort remains separate even if byte-identical",
+    "old_generation4": "FAILED_UNQUALIFIED_UNCHANGED",
+    "real_raw_checksum_match": "NOT_ESTABLISHED_PRE_DATA",
+    "scientific_numeric_gain_claim": null
+  },
+  "recovery_findings": {
+    "blocking_issue": {
+      "code_assert_lines": [],
+      "summary": "Safety/admission guards are Python assert statements, removed by Python -O/PYTHONOPTIMIZE. Need unconditional guards or unconditional rejection of optimized mode before any side effects. No independent PASS for arbitrary environment until hardened."
+    },
+    "durability_gap": "Output directory creation and writes fsync file but not parent directory; symlink/canonical checks weaker than driver; recommend shared durable primitives. No assertion of crash-durable recovery receipt/source artifact validation in current recovery.",
+    "old_archive_gate": "Expected97996800B and SHA534e38498ccbbcba99bf1e1b26a77f37469d8c5596429cbf0dd13b5a55d329b0, second stream byte comparison/hash, revalidate member/manifest/collection inputs; old-byte equality is not numerical qualification.",
+    "raw_originals": "Read-only gzip/member/collection access; independent reconstruction directory; no original record overwrite or numeric payload parsing.",
+    "recipe": "PAX, sorted ASCII basename including exact original manifest, regular file, mtime/uid/gid0, empty uname/gname, mode0444, empty pax headers.",
+    "selection": "All18 original manifest raw size/SHA pairs required, no selected cells/new extra worlds. Mismatch returns1 without constructing archive."
+  },
+  "restored_production_input_guard": {
+    "count": 1640,
+    "git_worktree_clean": "ROOT_ROLLBACK_RECEIPT_CLAIM_NOT_INDEPENDENT_GIT_CHECK",
+    "mismatches": [],
+    "native_worlds_per_both_rollback_receipts": 0,
+    "rollback_attempt1_build_exit": 101,
+    "rollback_attempt2_build_exit": 0,
+    "scope": "Non-exhaustive repository extension-filtered input snapshot; not compiler/dependency closure"
+  },
+  "reviewed_utc": "2026-10-12T05:59:23.033404+00:00",
+  "reviewer_actions": {
+    "Git_commands": 0,
+    "builds": 0,
+    "checkout_edits": 0,
+    "helper_code_edits": 0,
+    "native_numeric_reads": 0,
+    "network": 0,
+    "worlds": 0
+  },
+  "schema_version": 1,
+  "status": "DRIVER_SOURCE_REVIEW_PASS_RECOVERY_HARDENING_REQUIRED"
+}
