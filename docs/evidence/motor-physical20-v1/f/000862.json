@@ -1,0 +1,25 @@
+{
+  "kind": "exclusive_original_cli_claim",
+  "mode": "collect",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/checked_driver.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "--spec-sha256",
+    "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+    "--launch-native"
+  ],
+  "registered_wrapper_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+  "created_utc": "2026-10-13T01:26:36.776279+00:00",
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "retries": 0,
+  "resume": false,
+  "process_started": true,
+  "pid": 199197,
+  "original_exit": null,
+  "launch_outcome": "known_started_exit_unknown",
+  "error": null,
+  "start_unix_ns": 1791854796777115201
+}

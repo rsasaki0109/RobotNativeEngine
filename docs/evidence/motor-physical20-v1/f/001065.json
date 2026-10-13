@@ -1,0 +1,50 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_run_schema",
+    "test_physical_oracle"
+  ],
+  "started_utc": "2026-10-13T01:07:30.577003+00:00",
+  "ended_utc": "2026-10-13T01:07:31.812543+00:00",
+  "actual_exit": 1,
+  "source_before": {
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/case_context.py": "50670236fac40cdf7d8f932a85ae3c09a062cff707a19ec8a6c68da6ba4e6df4",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/construction_oracle.py": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/fixed_contract.py": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/integration_oracle.py": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_oracle.py": "b7c826c51b1e7b426bec96defc9245b85e7de096c18984cf926a6e0810d3233c",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py": "c90ee12c66c87e37e916bf53aa73d9a8ff3428eb6e92174cf70c202b43d86d8d",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reference.py": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/run_schema.py": "baea2ab7cf9a5acf1ecd64728e7a123d4290d87a9786f74296c2d6759f13c069",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/spec_contract.py": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/stage_numeric.py": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/strict_io.py": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/synthetic_fixtures.py": "901b8f930eb18a7859e84e740cc70b36c8a5b991a82b1b9dbd3083c6ef38b256",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_physical_oracle.py": "176dc02c595144acb4fc1d59bcff08f9f1beaf0883798faf8f13973590218c19",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_run_schema.py": "ecbbb0afbc0df2769888f575ce1ac82ed72cdbb55d7a13da8817b2c27f67b9e0"
+  },
+  "source_after": {
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/case_context.py": "50670236fac40cdf7d8f932a85ae3c09a062cff707a19ec8a6c68da6ba4e6df4",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/construction_oracle.py": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/fixed_contract.py": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/integration_oracle.py": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_oracle.py": "b7c826c51b1e7b426bec96defc9245b85e7de096c18984cf926a6e0810d3233c",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py": "c90ee12c66c87e37e916bf53aa73d9a8ff3428eb6e92174cf70c202b43d86d8d",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reference.py": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/run_schema.py": "baea2ab7cf9a5acf1ecd64728e7a123d4290d87a9786f74296c2d6759f13c069",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/spec_contract.py": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/stage_numeric.py": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/strict_io.py": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/synthetic_fixtures.py": "901b8f930eb18a7859e84e740cc70b36c8a5b991a82b1b9dbd3083c6ef38b256",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_physical_oracle.py": "176dc02c595144acb4fc1d59bcff08f9f1beaf0883798faf8f13973590218c19",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_run_schema.py": "ecbbb0afbc0df2769888f575ce1ac82ed72cdbb55d7a13da8817b2c27f67b9e0"
+  },
+  "native_worlds": 0,
+  "native_collectors": 0,
+  "scientific_audits": 0,
+  "scope": "Invented pure math/word framing tests only"
+}

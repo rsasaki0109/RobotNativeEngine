@@ -1,0 +1,96 @@
+{
+  "actual_build_command_exits": 21,
+  "actual_build_receipt_count": 86,
+  "actual_build_source_count": 264,
+  "actual_final_pure_test_executions": {
+    "collector_baseline": 10,
+    "collector_candidate": 10,
+    "driver": 25,
+    "reader": 26
+  },
+  "actual_freeze_original": {
+    "bytes": 27054,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/freeze-original.json",
+    "sha256": "21d7c752dfec4b8ab459bbc5cfd8af26e87613955e9264989a15d8875bbf5bde"
+  },
+  "binaries": {
+    "baseline": {
+      "bytes": 2859600,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_baseline.native",
+      "sha256": "048383baf8aaefc1fc0ff87e781c456164070a9e690f971f9eff3df4073fbc79"
+    },
+    "candidate": {
+      "bytes": 2859736,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_candidate.native",
+      "sha256": "23443b28d638eda841a79e2ddd44f86936a89b06f522c80060926e7bf9bca464"
+    }
+  },
+  "cargo_commands": 0,
+  "checkout_changes": 0,
+  "collection_admitted": true,
+  "completed_utc": "2026-10-13T01:23:35.950408+00:00",
+  "final_tests_are_execution_counts_not_unique_tests": true,
+  "frozen_input_count": 536,
+  "frozen_inputs_current_before_after_exact": true,
+  "frozen_inputs_sha256": "76ba002c00992cea79f58220e5376202093740fea41a2dc0fbd6f0a90bfd4936",
+  "github_calls": 0,
+  "guard_after": {
+    "bytes": 136236,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-predata-admission/frozen-inputs-after.json",
+    "sha256": "33a205ce200328742f1fdaf9647257ca410590da20774cd05f0c9ec915aa2684"
+  },
+  "guard_before": {
+    "bytes": 136236,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-predata-admission/frozen-inputs-before.json",
+    "sha256": "33a205ce200328742f1fdaf9647257ca410590da20774cd05f0c9ec915aa2684"
+  },
+  "limits": [
+    "Admission is solely for the separately frozen120-process/one-reader diagnostic; no production behavior change, promotion, merge or external publication authorization.",
+    "No earlier numerical dataset/report/raw/scientific reader was accessed or reclassified; historical four primary gates/global-candidate rejection remain retained.",
+    "Runtime rounding/MXCSR/FTZ/DAZ, full hermetic compiler/registry/runtime closure, private solver/cache/mass-LU construction, independent opaque-layout decoder and general multislice f64 aggregation remain unqualified.",
+    "No physical outcome, motor accuracy, coupled-contact cause, hardware validation or maturity increase is established before these once-only observations.",
+    "Root must create the noncircular descriptor wrapper after this receipt and validate default(no-launch) mode before the sole explicitly flagged launch. Runtime allowlist is four NULL values.",
+    "Keep all complete/partial original files regardless of diagnostic labels. Any ADR034 external artifact requires separate concrete publication authorization; this receipt grants none."
+  ],
+  "native_output_claims_absent": true,
+  "native_processes_launched": 0,
+  "old_numerical_payload_reads": 0,
+  "operative_declaration": {
+    "bytes": 4572,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v2.json",
+    "sha256": "e3731a9f36121a5a8470a3148c6eb4c0a1da3758bf59d417a1aa03d2c56bb9d3"
+  },
+  "operative_protocol": {
+    "bytes": 34594,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/operative-protocol-v1.json",
+    "sha256": "305725217acb81eb72adf34d56a072fb2792e5cc797ec4f58baaf7a3bacab136"
+  },
+  "prior_doc_conflict_resolved_by_explicit_predata_precedence": true,
+  "review_source": {
+    "bytes": 14703,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-predata-admission/qualify_frozen_candidate.py",
+    "sha256": "7f72d39a1581088d131b47433e468ef7ce8872ecacfa6cff2f7a6a22fc9fd503"
+  },
+  "reviewed_candidate": {
+    "bytes": 177194,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/frozen-candidate.json",
+    "sha256": "e81d000fecaaa612aed14b72dfe639679da45448b5f4cfc5d62b4532152a40df"
+  },
+  "reviewed_candidate_sha256": "e81d000fecaaa612aed14b72dfe639679da45448b5f4cfc5d62b4532152a40df",
+  "reviewed_source_methods": [
+    "Literal vendor intervention review:123 files each, one exact CRLF-preserving ForceBased inverse-(w+g) branch; AccelerationBased and contact/limit/solve/order paths unchanged.",
+    "Source fixed plant:one centered ball of mass0.5/2 kg and radius0.1m, fixed parent/coincident X frames, zero gravity/damping/armature/velocity, N1/PGS1/S2 and one interval; state assertions are checked independently from proposed SI references.",
+    "Actual locked build receipts/metadata/features/compiler executable and two native-copy hashes verified; no binary invocation.",
+    "Nominal rational clipped backward-Euler reference and unchanged deltaI/deltaP with independently declared velocity/coordinate/torque allowances; every quantity is separate, not an uncertainty propagation inference.",
+    "Reader requires exact mass words, complete typed ordered checkpoint/telemetry/phase/cache schema and normal-zero-only native arithmetic; public inertia and cached inverse mass stay distinct.",
+    "Whole single-member gzip header/CRC/EOF/no trailing bytes, duplicate-key/nonfinite/JSON-float/type/width gates; freshON completed record literal equality and within-build captured ON/fresh/OFF checkpoints, OFF null observers.",
+    "Exclusive120 preclaims and ancestor/root fsync before first Popen; each process guard/original argv/exit and independent conservative launch/storage accounting; first failure stops/no resume/retry/replacement.",
+    "Checked coordinator owns a group inherited by native children; owned TERM/KILL interruption cleanup; root checked CLI and inner original exits/stdout-versus-disk receipts required before one separately claimed reader.",
+    "Two final pure suites cover synthetic error paths only, with original exit0 and source guards; authentic prior failed preparation receipts remain frozen. No favorable baseline/candidate result is required."
+  ],
+  "root_clean": true,
+  "root_head": "423a3fd7f44128aa440afe47f937039de504f275",
+  "root_tree": "442e06b18e20bf99347877bdf8de8b8324d4b795",
+  "scientific_reader_invocations": 0,
+  "status": "PASS_PRE_DATA_PHYSICAL20_SOURCE_PROTOCOL_DRIVER_READER"
+}

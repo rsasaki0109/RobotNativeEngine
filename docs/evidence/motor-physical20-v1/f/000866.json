@@ -1,0 +1,3008 @@
+{
+  "kind": "physical20_prereader_byte_header_completion_guard",
+  "native_original_processes": 120,
+  "whole_files": [
+    {
+      "process": {
+        "slot": 0,
+        "variant": "baseline",
+        "case_id": "m05_h05_neg_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap2/on/raw.jsonl.gz",
+          "sha256": "9cbb2fc4f34f15a7927d1dc7acd9a13b538f857639867cae6c206f7f950dae13",
+          "bytes": 3155
+        },
+        "uncompressed_sha256": "1289b3a417cf0f75cf0d36663d60c7d1de89cb2ea1644d27f6676226e0b6204a",
+        "uncompressed_bytes": 43170,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap2/on/raw.jsonl.gz",
+        "sha256": "9cbb2fc4f34f15a7927d1dc7acd9a13b538f857639867cae6c206f7f950dae13",
+        "bytes": 3155
+      }
+    },
+    {
+      "process": {
+        "slot": 1,
+        "variant": "baseline",
+        "case_id": "m05_h05_neg_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "886d46822fd3e45a748eb7ed1f5256b5209309e05de3e27df2b86b3b7b05019b",
+          "bytes": 3160
+        },
+        "uncompressed_sha256": "c8ca05297e446528749e59bc340f5ba133b63c3d5f904586e03af4aa532e103b",
+        "uncompressed_bytes": 43176,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "886d46822fd3e45a748eb7ed1f5256b5209309e05de3e27df2b86b3b7b05019b",
+        "bytes": 3160
+      }
+    },
+    {
+      "process": {
+        "slot": 2,
+        "variant": "baseline",
+        "case_id": "m05_h05_neg_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap2/off/raw.jsonl.gz",
+          "sha256": "8a93e15b4c64d1db31aa1d10eccb13105b536328edf4c6a725a2646a6d040b69",
+          "bytes": 1911
+        },
+        "uncompressed_sha256": "3728ca72b6e561bb59cba4366f1bdc53e9411217094376f4689a951e24bde492",
+        "uncompressed_bytes": 14583,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap2/off/raw.jsonl.gz",
+        "sha256": "8a93e15b4c64d1db31aa1d10eccb13105b536328edf4c6a725a2646a6d040b69",
+        "bytes": 1911
+      }
+    },
+    {
+      "process": {
+        "slot": 3,
+        "variant": "baseline",
+        "case_id": "m05_h05_neg_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap001/on/raw.jsonl.gz",
+          "sha256": "522c30d8898d9855de3ddc5767ab2a872199bff3299797c088164937148de2d7",
+          "bytes": 3089
+        },
+        "uncompressed_sha256": "444f3b79fb14ecc090a17a9d57cf2d80a94b52921f8712c07eed9e76c03d6290",
+        "uncompressed_bytes": 43204,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap001/on/raw.jsonl.gz",
+        "sha256": "522c30d8898d9855de3ddc5767ab2a872199bff3299797c088164937148de2d7",
+        "bytes": 3089
+      }
+    },
+    {
+      "process": {
+        "slot": 4,
+        "variant": "baseline",
+        "case_id": "m05_h05_neg_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "df2ddcf75cdb0da8a68280b354739fe635af69eb82dabef563ad4731a0ee10a4",
+          "bytes": 3095
+        },
+        "uncompressed_sha256": "9cc5387f2082d64c4249097a82d57d79d7dbb10941f9b509fe104af77dc64efe",
+        "uncompressed_bytes": 43210,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "df2ddcf75cdb0da8a68280b354739fe635af69eb82dabef563ad4731a0ee10a4",
+        "bytes": 3095
+      }
+    },
+    {
+      "process": {
+        "slot": 5,
+        "variant": "baseline",
+        "case_id": "m05_h05_neg_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap001/off/raw.jsonl.gz",
+          "sha256": "b91219884c7cbd7f486150011b4ca57987ec66dc6814b7c222c3369cd6e66425",
+          "bytes": 1908
+        },
+        "uncompressed_sha256": "7bf6a5cba8dbb4f4c3572d6d99c0492ac1f91ede0457f592cdb3018801f2380f",
+        "uncompressed_bytes": 14600,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_neg_cap001/off/raw.jsonl.gz",
+        "sha256": "b91219884c7cbd7f486150011b4ca57987ec66dc6814b7c222c3369cd6e66425",
+        "bytes": 1908
+      }
+    },
+    {
+      "process": {
+        "slot": 6,
+        "variant": "baseline",
+        "case_id": "m05_h05_pos_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap2/on/raw.jsonl.gz",
+          "sha256": "fe6789a0a298b916deb522d70d184d19ed25c50d10222c10319a5afb4d86f6a8",
+          "bytes": 3140
+        },
+        "uncompressed_sha256": "1315d6c70f990838984cc2b3909576530f71f12b5670bfe2baff2fe2f9ecd6ab",
+        "uncompressed_bytes": 43151,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap2/on/raw.jsonl.gz",
+        "sha256": "fe6789a0a298b916deb522d70d184d19ed25c50d10222c10319a5afb4d86f6a8",
+        "bytes": 3140
+      }
+    },
+    {
+      "process": {
+        "slot": 7,
+        "variant": "baseline",
+        "case_id": "m05_h05_pos_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "66da33ee5cc8c250a39de0fcc2f94c406726170552fc905bcac7ebe1c4c8053a",
+          "bytes": 3144
+        },
+        "uncompressed_sha256": "ab0a0aa4b451589f5737b9fd422b96f072d54ac2815b025468737281c9c289a1",
+        "uncompressed_bytes": 43157,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "66da33ee5cc8c250a39de0fcc2f94c406726170552fc905bcac7ebe1c4c8053a",
+        "bytes": 3144
+      }
+    },
+    {
+      "process": {
+        "slot": 8,
+        "variant": "baseline",
+        "case_id": "m05_h05_pos_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap2/off/raw.jsonl.gz",
+          "sha256": "8522292d5312290af14716f27fc121c89f52e429bb4977391b700e86804de569",
+          "bytes": 1883
+        },
+        "uncompressed_sha256": "c7fae3022f6bf8eb4a6ce5826cad6ffeefda62d943d1ae2fee293da781d928a7",
+        "uncompressed_bytes": 14547,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap2/off/raw.jsonl.gz",
+        "sha256": "8522292d5312290af14716f27fc121c89f52e429bb4977391b700e86804de569",
+        "bytes": 1883
+      }
+    },
+    {
+      "process": {
+        "slot": 9,
+        "variant": "baseline",
+        "case_id": "m05_h05_pos_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap001/on/raw.jsonl.gz",
+          "sha256": "72ff34e3156c52d4e8c6c829bd56f11470cc09bf357287be18f55179679b529f",
+          "bytes": 3047
+        },
+        "uncompressed_sha256": "a56a092e01eaf9dbadaf1ecaca478b9dd30f86abada05a82cdc1089bc7be80d5",
+        "uncompressed_bytes": 43153,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap001/on/raw.jsonl.gz",
+        "sha256": "72ff34e3156c52d4e8c6c829bd56f11470cc09bf357287be18f55179679b529f",
+        "bytes": 3047
+      }
+    },
+    {
+      "process": {
+        "slot": 10,
+        "variant": "baseline",
+        "case_id": "m05_h05_pos_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "679f0a513616afa8a34f281ec65132a8b3cb227cc342ae8b724683295ad3ac86",
+          "bytes": 3052
+        },
+        "uncompressed_sha256": "2c926493401614614ff2afd01bb9195968484e7a4eb8302267a7dec4ed078b73",
+        "uncompressed_bytes": 43159,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "679f0a513616afa8a34f281ec65132a8b3cb227cc342ae8b724683295ad3ac86",
+        "bytes": 3052
+      }
+    },
+    {
+      "process": {
+        "slot": 11,
+        "variant": "baseline",
+        "case_id": "m05_h05_pos_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap001/off/raw.jsonl.gz",
+          "sha256": "b0fa162622a43b658af8df7b3a8c00eb47633c5352903ed566f9f18bc1b9a2bd",
+          "bytes": 1878
+        },
+        "uncompressed_sha256": "8db1b90bb4764c4de5087ebe5a2d17cb341e1e76afeadd24d4c6a4aadf18daa1",
+        "uncompressed_bytes": 14563,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_pos_cap001/off/raw.jsonl.gz",
+        "sha256": "b0fa162622a43b658af8df7b3a8c00eb47633c5352903ed566f9f18bc1b9a2bd",
+        "bytes": 1878
+      }
+    },
+    {
+      "process": {
+        "slot": 12,
+        "variant": "baseline",
+        "case_id": "m05_h05_zero_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_zero_cap2/on/raw.jsonl.gz",
+          "sha256": "69da523ff07b723f7b64710f884628568d2069e8912c117d1f7a0d72ddb709b2",
+          "bytes": 2950
+        },
+        "uncompressed_sha256": "9a36bc94c0da96ab22bb0c9021ea7b2bab463ec92a848aa02c295be54a17da8d",
+        "uncompressed_bytes": 41926,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_zero_cap2/on/raw.jsonl.gz",
+        "sha256": "69da523ff07b723f7b64710f884628568d2069e8912c117d1f7a0d72ddb709b2",
+        "bytes": 2950
+      }
+    },
+    {
+      "process": {
+        "slot": 13,
+        "variant": "baseline",
+        "case_id": "m05_h05_zero_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_zero_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "64a53c24d1754cbbf5310718945b69f2adf234738641757eff01354408fdac90",
+          "bytes": 2954
+        },
+        "uncompressed_sha256": "352dc166147ea67c9ab91b96c5ba2e7a78573adc817b16ef1476803092f9dfdb",
+        "uncompressed_bytes": 41932,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_zero_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "64a53c24d1754cbbf5310718945b69f2adf234738641757eff01354408fdac90",
+        "bytes": 2954
+      }
+    },
+    {
+      "process": {
+        "slot": 14,
+        "variant": "baseline",
+        "case_id": "m05_h05_zero_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_zero_cap2/off/raw.jsonl.gz",
+          "sha256": "19f2009b81ff339d4316ca415df28d8983650a1d1fcb49ebb22d087d9f12ff1b",
+          "bytes": 1807
+        },
+        "uncompressed_sha256": "f2ab7385a1e465cd097660155ab75f4411e71b79ec20cf55a41d29b6195cbf5a",
+        "uncompressed_bytes": 14450,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h05_zero_cap2/off/raw.jsonl.gz",
+        "sha256": "19f2009b81ff339d4316ca415df28d8983650a1d1fcb49ebb22d087d9f12ff1b",
+        "bytes": 1807
+      }
+    },
+    {
+      "process": {
+        "slot": 15,
+        "variant": "baseline",
+        "case_id": "m05_h2_neg_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap2/on/raw.jsonl.gz",
+          "sha256": "2ae0dab343e7ad642f93d476f19ab710030f106800ddba07a9bdce582e944265",
+          "bytes": 3157
+        },
+        "uncompressed_sha256": "3171899ea881ec54d7c1a7237e891f272253bf6490e449743e9a3efc22660baf",
+        "uncompressed_bytes": 43183,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap2/on/raw.jsonl.gz",
+        "sha256": "2ae0dab343e7ad642f93d476f19ab710030f106800ddba07a9bdce582e944265",
+        "bytes": 3157
+      }
+    },
+    {
+      "process": {
+        "slot": 16,
+        "variant": "baseline",
+        "case_id": "m05_h2_neg_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "e657b52f5cb58ef32244826600a20b83fbdd8195673a129868bdb2c4a0c903be",
+          "bytes": 3163
+        },
+        "uncompressed_sha256": "dc34a1526f17f242a5927a2a7fad8024e753f2be33d1b34c07f0cc681bb889da",
+        "uncompressed_bytes": 43189,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "e657b52f5cb58ef32244826600a20b83fbdd8195673a129868bdb2c4a0c903be",
+        "bytes": 3163
+      }
+    },
+    {
+      "process": {
+        "slot": 17,
+        "variant": "baseline",
+        "case_id": "m05_h2_neg_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap2/off/raw.jsonl.gz",
+          "sha256": "6d2c03bcfb7ff0a213ab7662da6ed28ea2c7b35606cc81d445427b9f7f1606e1",
+          "bytes": 1909
+        },
+        "uncompressed_sha256": "76673afb6b56ebf0d9c43eb12656d7b45db2ea1710190c53b7a32e98bb982f08",
+        "uncompressed_bytes": 14596,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap2/off/raw.jsonl.gz",
+        "sha256": "6d2c03bcfb7ff0a213ab7662da6ed28ea2c7b35606cc81d445427b9f7f1606e1",
+        "bytes": 1909
+      }
+    },
+    {
+      "process": {
+        "slot": 18,
+        "variant": "baseline",
+        "case_id": "m05_h2_neg_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap001/on/raw.jsonl.gz",
+          "sha256": "34255d645d7af233a92f4326e59f31d45741e8132edc749d16aaf0df7d9edaa4",
+          "bytes": 3072
+        },
+        "uncompressed_sha256": "5d8c377d59b6b306632148fadfb8434e2b7e5d1f6a9c602981ec9baa44c3b2ba",
+        "uncompressed_bytes": 43203,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap001/on/raw.jsonl.gz",
+        "sha256": "34255d645d7af233a92f4326e59f31d45741e8132edc749d16aaf0df7d9edaa4",
+        "bytes": 3072
+      }
+    },
+    {
+      "process": {
+        "slot": 19,
+        "variant": "baseline",
+        "case_id": "m05_h2_neg_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "9207a10df9c963706bfe7c50e9cef3a0df38f2b74ffbac3e974993e08597fdce",
+          "bytes": 3077
+        },
+        "uncompressed_sha256": "f64a4a3d4309b08d8999fcf9c4c2315a34d36de1cd0a351d81fad2aa01ec7162",
+        "uncompressed_bytes": 43209,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "9207a10df9c963706bfe7c50e9cef3a0df38f2b74ffbac3e974993e08597fdce",
+        "bytes": 3077
+      }
+    },
+    {
+      "process": {
+        "slot": 20,
+        "variant": "baseline",
+        "case_id": "m05_h2_neg_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap001/off/raw.jsonl.gz",
+          "sha256": "fb60a3c664514763541a2ebd6aa316445de51415e37a93e65b0a9c163e99b2e2",
+          "bytes": 1899
+        },
+        "uncompressed_sha256": "16bfc260d0343846ef7e9f882c49d2fda53344781798d0411e025b7b95446806",
+        "uncompressed_bytes": 14599,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_neg_cap001/off/raw.jsonl.gz",
+        "sha256": "fb60a3c664514763541a2ebd6aa316445de51415e37a93e65b0a9c163e99b2e2",
+        "bytes": 1899
+      }
+    },
+    {
+      "process": {
+        "slot": 21,
+        "variant": "baseline",
+        "case_id": "m05_h2_pos_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap2/on/raw.jsonl.gz",
+          "sha256": "196906a375d95c43aad02c7ccf43097538bcebc0c37fe9745cf9b6cdf98a3508",
+          "bytes": 3128
+        },
+        "uncompressed_sha256": "8e50cfb43e49ff68ae19caa526bfd771b9e8435c4a962b3efd4356f2412fdd15",
+        "uncompressed_bytes": 43164,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap2/on/raw.jsonl.gz",
+        "sha256": "196906a375d95c43aad02c7ccf43097538bcebc0c37fe9745cf9b6cdf98a3508",
+        "bytes": 3128
+      }
+    },
+    {
+      "process": {
+        "slot": 22,
+        "variant": "baseline",
+        "case_id": "m05_h2_pos_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "64bb6e847c54291294e2a73a552cd1e0ba070be6c5d1077ead2e44a3f65e54c5",
+          "bytes": 3135
+        },
+        "uncompressed_sha256": "6c402c1e680583edc0f8c2c1ae8c98c60439d6c4ac594e799cbfd42c95a45440",
+        "uncompressed_bytes": 43170,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "64bb6e847c54291294e2a73a552cd1e0ba070be6c5d1077ead2e44a3f65e54c5",
+        "bytes": 3135
+      }
+    },
+    {
+      "process": {
+        "slot": 23,
+        "variant": "baseline",
+        "case_id": "m05_h2_pos_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap2/off/raw.jsonl.gz",
+          "sha256": "bdcf5742d348d9ada83734ab3e878d11294264c72f93804e5ec0e90cd62a1394",
+          "bytes": 1882
+        },
+        "uncompressed_sha256": "c08a1901ee90d8ef2331b35c727894dd2e730c9f3d5aa491546fddfb6066edfb",
+        "uncompressed_bytes": 14560,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap2/off/raw.jsonl.gz",
+        "sha256": "bdcf5742d348d9ada83734ab3e878d11294264c72f93804e5ec0e90cd62a1394",
+        "bytes": 1882
+      }
+    },
+    {
+      "process": {
+        "slot": 24,
+        "variant": "baseline",
+        "case_id": "m05_h2_pos_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap001/on/raw.jsonl.gz",
+          "sha256": "074373654ef8ddd35908ad5b9926c31d1eff75447a37c939d7e4abe0fb86d6dd",
+          "bytes": 3032
+        },
+        "uncompressed_sha256": "6e6da66f24365e56f0b8d32bcec22a5827aa786e754ecc7040b4361539c665e0",
+        "uncompressed_bytes": 43184,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap001/on/raw.jsonl.gz",
+        "sha256": "074373654ef8ddd35908ad5b9926c31d1eff75447a37c939d7e4abe0fb86d6dd",
+        "bytes": 3032
+      }
+    },
+    {
+      "process": {
+        "slot": 25,
+        "variant": "baseline",
+        "case_id": "m05_h2_pos_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "78ef676ed51252cf3c734246cf9af078dcfdcebde699e34df61012edc12b9a81",
+          "bytes": 3036
+        },
+        "uncompressed_sha256": "ae43c585bb81d4d9a85feb51b1d3d34c02351c9070f8546848e13476b23d9301",
+        "uncompressed_bytes": 43190,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "78ef676ed51252cf3c734246cf9af078dcfdcebde699e34df61012edc12b9a81",
+        "bytes": 3036
+      }
+    },
+    {
+      "process": {
+        "slot": 26,
+        "variant": "baseline",
+        "case_id": "m05_h2_pos_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap001/off/raw.jsonl.gz",
+          "sha256": "4ce4b7931985f7cae5120884586a7fe725594f0c4fb87a5aa64caa177852a0a7",
+          "bytes": 1871
+        },
+        "uncompressed_sha256": "e49c48f429febd19e55b6afcc4c7cd6e3343d7eec81f36b4a7b40050493f9114",
+        "uncompressed_bytes": 14563,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_pos_cap001/off/raw.jsonl.gz",
+        "sha256": "4ce4b7931985f7cae5120884586a7fe725594f0c4fb87a5aa64caa177852a0a7",
+        "bytes": 1871
+      }
+    },
+    {
+      "process": {
+        "slot": 27,
+        "variant": "baseline",
+        "case_id": "m05_h2_zero_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_zero_cap2/on/raw.jsonl.gz",
+          "sha256": "d180281676de62ed96fcf9a0196b1e4c1490f8a4dff1b3cc1ff28b85795c8b99",
+          "bytes": 2942
+        },
+        "uncompressed_sha256": "3d7d1e944a9921ea3916483c1da5d7caad5da4344c247ef82be42f69cad4540f",
+        "uncompressed_bytes": 41925,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_zero_cap2/on/raw.jsonl.gz",
+        "sha256": "d180281676de62ed96fcf9a0196b1e4c1490f8a4dff1b3cc1ff28b85795c8b99",
+        "bytes": 2942
+      }
+    },
+    {
+      "process": {
+        "slot": 28,
+        "variant": "baseline",
+        "case_id": "m05_h2_zero_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_zero_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "395751b0bc2d5d08b59e1c499057dfadbc9f4c29142d3797a57b08a1b227680e",
+          "bytes": 2949
+        },
+        "uncompressed_sha256": "655f27c85d6d1024daa6b5154e1e13efe4a4932cbeccd752aa54aeeb35ac972c",
+        "uncompressed_bytes": 41931,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_zero_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "395751b0bc2d5d08b59e1c499057dfadbc9f4c29142d3797a57b08a1b227680e",
+        "bytes": 2949
+      }
+    },
+    {
+      "process": {
+        "slot": 29,
+        "variant": "baseline",
+        "case_id": "m05_h2_zero_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_zero_cap2/off/raw.jsonl.gz",
+          "sha256": "150be2f51984e685e7a24574cdc0b5579696a454e0d40ff633b4f90e289c57fc",
+          "bytes": 1799
+        },
+        "uncompressed_sha256": "ca29ad0d8e747665ef6e7d0b8b1fc61b1b7b359dd6cf5c22a09786a7a16d7121",
+        "uncompressed_bytes": 14449,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m05_h2_zero_cap2/off/raw.jsonl.gz",
+        "sha256": "150be2f51984e685e7a24574cdc0b5579696a454e0d40ff633b4f90e289c57fc",
+        "bytes": 1799
+      }
+    },
+    {
+      "process": {
+        "slot": 30,
+        "variant": "baseline",
+        "case_id": "m2_h05_neg_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap2/on/raw.jsonl.gz",
+          "sha256": "25cd91bcc6e5b8f2562172fcd2dc89cdfab79ca21b9e165ccb916f095076d3af",
+          "bytes": 3160
+        },
+        "uncompressed_sha256": "0f3827db0129950011bea78e9ea2fd47bec32c378e2367ba418285fcdcfb3c8a",
+        "uncompressed_bytes": 43200,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap2/on/raw.jsonl.gz",
+        "sha256": "25cd91bcc6e5b8f2562172fcd2dc89cdfab79ca21b9e165ccb916f095076d3af",
+        "bytes": 3160
+      }
+    },
+    {
+      "process": {
+        "slot": 31,
+        "variant": "baseline",
+        "case_id": "m2_h05_neg_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "9b2414ad94c403a50a034028bd25a1a0f7f0e0b0a0b28dac6fc74e6dc34c255e",
+          "bytes": 3166
+        },
+        "uncompressed_sha256": "406c7d7942514259b63b0804ec1833dbe008550f60a951d66c21f39238e96ee8",
+        "uncompressed_bytes": 43206,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "9b2414ad94c403a50a034028bd25a1a0f7f0e0b0a0b28dac6fc74e6dc34c255e",
+        "bytes": 3166
+      }
+    },
+    {
+      "process": {
+        "slot": 32,
+        "variant": "baseline",
+        "case_id": "m2_h05_neg_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap2/off/raw.jsonl.gz",
+          "sha256": "9e19c6d75c002e18dcdb9b3e24a0bf32955ac4b7d5fc3be8acbf0f788f9ed40e",
+          "bytes": 1908
+        },
+        "uncompressed_sha256": "d64f3e302153591348a2f81edec5afe7dfa7e16b10bdfcd238ad725b799a0704",
+        "uncompressed_bytes": 14574,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap2/off/raw.jsonl.gz",
+        "sha256": "9e19c6d75c002e18dcdb9b3e24a0bf32955ac4b7d5fc3be8acbf0f788f9ed40e",
+        "bytes": 1908
+      }
+    },
+    {
+      "process": {
+        "slot": 33,
+        "variant": "baseline",
+        "case_id": "m2_h05_neg_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap001/on/raw.jsonl.gz",
+          "sha256": "969231f8f398483d04060e2fe361d428a37a173f2c77cf6486d669d51cd66170",
+          "bytes": 3095
+        },
+        "uncompressed_sha256": "5aec39e58296815b037c77526dc29b4712d7023dbea4292585cae8e730f77cc7",
+        "uncompressed_bytes": 43229,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap001/on/raw.jsonl.gz",
+        "sha256": "969231f8f398483d04060e2fe361d428a37a173f2c77cf6486d669d51cd66170",
+        "bytes": 3095
+      }
+    },
+    {
+      "process": {
+        "slot": 34,
+        "variant": "baseline",
+        "case_id": "m2_h05_neg_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "5d3cc7c8013a604b98c8b5f116bc0a682a7f617e23128acc435fabcfe8660512",
+          "bytes": 3100
+        },
+        "uncompressed_sha256": "9b94872f52a7652c91e41aed1457d682b073121660319f9cf544245f21006918",
+        "uncompressed_bytes": 43235,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "5d3cc7c8013a604b98c8b5f116bc0a682a7f617e23128acc435fabcfe8660512",
+        "bytes": 3100
+      }
+    },
+    {
+      "process": {
+        "slot": 35,
+        "variant": "baseline",
+        "case_id": "m2_h05_neg_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap001/off/raw.jsonl.gz",
+          "sha256": "d049612ea9af88d22114c9effd88c15f8f06eba9a7bc3e7b9be0e15ace538ddb",
+          "bytes": 1913
+        },
+        "uncompressed_sha256": "d4d8ab2a6641c084b3cfa771420f223b089982113b615cfcad6c1d3298284dcf",
+        "uncompressed_bytes": 14593,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_neg_cap001/off/raw.jsonl.gz",
+        "sha256": "d049612ea9af88d22114c9effd88c15f8f06eba9a7bc3e7b9be0e15ace538ddb",
+        "bytes": 1913
+      }
+    },
+    {
+      "process": {
+        "slot": 36,
+        "variant": "baseline",
+        "case_id": "m2_h05_pos_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap2/on/raw.jsonl.gz",
+          "sha256": "453e29b74c1afd258992b8689935f6f31d65688315ad0b9b58a8f1a6c7f08255",
+          "bytes": 3138
+        },
+        "uncompressed_sha256": "025ebc56a4928236b9e222b0400bb05341e98ce37cbcdac418aaf2bd1e6efdfa",
+        "uncompressed_bytes": 43167,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap2/on/raw.jsonl.gz",
+        "sha256": "453e29b74c1afd258992b8689935f6f31d65688315ad0b9b58a8f1a6c7f08255",
+        "bytes": 3138
+      }
+    },
+    {
+      "process": {
+        "slot": 37,
+        "variant": "baseline",
+        "case_id": "m2_h05_pos_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "b6ae74c65a8e56316c3d4ca6c70756ae24f13c7fed93d9af6c8cce4cf519a5d9",
+          "bytes": 3144
+        },
+        "uncompressed_sha256": "91376244fa0475d60fa0f68c10d65cf4ffbf188d9c3be7af7bd882f059b3a4fb",
+        "uncompressed_bytes": 43173,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "b6ae74c65a8e56316c3d4ca6c70756ae24f13c7fed93d9af6c8cce4cf519a5d9",
+        "bytes": 3144
+      }
+    },
+    {
+      "process": {
+        "slot": 38,
+        "variant": "baseline",
+        "case_id": "m2_h05_pos_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap2/off/raw.jsonl.gz",
+          "sha256": "d33f9d4c66d261f5d163d15512eb1e0a53a6a4fae5fe06db534f297baa54af76",
+          "bytes": 1883
+        },
+        "uncompressed_sha256": "9bf3f864e8929207972191558ee16771c0f8f9db705c626d7d417fc5f9400eaf",
+        "uncompressed_bytes": 14538,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap2/off/raw.jsonl.gz",
+        "sha256": "d33f9d4c66d261f5d163d15512eb1e0a53a6a4fae5fe06db534f297baa54af76",
+        "bytes": 1883
+      }
+    },
+    {
+      "process": {
+        "slot": 39,
+        "variant": "baseline",
+        "case_id": "m2_h05_pos_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap001/on/raw.jsonl.gz",
+          "sha256": "57dc15d56e399d9ecf2e9ce5a11ded08862b1c2d7729a4d7f052f3b371c158b9",
+          "bytes": 3051
+        },
+        "uncompressed_sha256": "259ad8df8bafbce5a9ae7efcd09a8bd66abd9ebc5f5816f643d7c33f681c0524",
+        "uncompressed_bytes": 43178,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap001/on/raw.jsonl.gz",
+        "sha256": "57dc15d56e399d9ecf2e9ce5a11ded08862b1c2d7729a4d7f052f3b371c158b9",
+        "bytes": 3051
+      }
+    },
+    {
+      "process": {
+        "slot": 40,
+        "variant": "baseline",
+        "case_id": "m2_h05_pos_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "4111c2c0a1d41106a786a1a419fcb59ecd72c1b58446d8ded1bf7766114c6b6f",
+          "bytes": 3055
+        },
+        "uncompressed_sha256": "59951c9d6b31c0a9e7152a3ae011354b3eabd04fb4e5273ef2e846729be66843",
+        "uncompressed_bytes": 43184,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "4111c2c0a1d41106a786a1a419fcb59ecd72c1b58446d8ded1bf7766114c6b6f",
+        "bytes": 3055
+      }
+    },
+    {
+      "process": {
+        "slot": 41,
+        "variant": "baseline",
+        "case_id": "m2_h05_pos_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap001/off/raw.jsonl.gz",
+          "sha256": "b09a314e3217b6cc823a91a02a5da7e4576dce3abc17aca612040b93f1f1b8d1",
+          "bytes": 1879
+        },
+        "uncompressed_sha256": "c867a5a1c12ceef8ab78579fc80967b753d1117bbbb544e00e0bbd40aa2d7d89",
+        "uncompressed_bytes": 14556,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap001/off/raw.jsonl.gz",
+        "sha256": "b09a314e3217b6cc823a91a02a5da7e4576dce3abc17aca612040b93f1f1b8d1",
+        "bytes": 1879
+      }
+    },
+    {
+      "process": {
+        "slot": 42,
+        "variant": "baseline",
+        "case_id": "m2_h05_zero_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_zero_cap2/on/raw.jsonl.gz",
+          "sha256": "092f8196bf1acf1f9df6959ffad42faf0690a7e65fd0cc43985681a51d029fd6",
+          "bytes": 2947
+        },
+        "uncompressed_sha256": "7d62be7dd180fe58ced9424574bdbaa595ed9efef61ca4019f368f6edd53fa66",
+        "uncompressed_bytes": 41951,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_zero_cap2/on/raw.jsonl.gz",
+        "sha256": "092f8196bf1acf1f9df6959ffad42faf0690a7e65fd0cc43985681a51d029fd6",
+        "bytes": 2947
+      }
+    },
+    {
+      "process": {
+        "slot": 43,
+        "variant": "baseline",
+        "case_id": "m2_h05_zero_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_zero_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "138ce6454738156336e4df279aeda56a8cdf37f92926118b5fcbf58c8699c54b",
+          "bytes": 2950
+        },
+        "uncompressed_sha256": "0d1eec162042dfe07348ac64a7e84f78567cdc80336e2c0ad55243ef9c8ac38c",
+        "uncompressed_bytes": 41957,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_zero_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "138ce6454738156336e4df279aeda56a8cdf37f92926118b5fcbf58c8699c54b",
+        "bytes": 2950
+      }
+    },
+    {
+      "process": {
+        "slot": 44,
+        "variant": "baseline",
+        "case_id": "m2_h05_zero_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_zero_cap2/off/raw.jsonl.gz",
+          "sha256": "b99291686c57218a4a42a8b209adfd48201b5d3a71204240c7ef749976a12b12",
+          "bytes": 1801
+        },
+        "uncompressed_sha256": "1e9a67591c3ac88b8ce249ff358195a7c2e8938d0c02813a350880272df73836",
+        "uncompressed_bytes": 14443,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_zero_cap2/off/raw.jsonl.gz",
+        "sha256": "b99291686c57218a4a42a8b209adfd48201b5d3a71204240c7ef749976a12b12",
+        "bytes": 1801
+      }
+    },
+    {
+      "process": {
+        "slot": 45,
+        "variant": "baseline",
+        "case_id": "m2_h2_neg_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap2/on/raw.jsonl.gz",
+          "sha256": "0d892dfc0cc448b0c12ced63db3b7f2f94c736547a20a290f85708e71a5eb06d",
+          "bytes": 3163
+        },
+        "uncompressed_sha256": "d1cec85a2e47ad3125018d9a67a713faa225765ca9a5c3a211357c2b7a3c2e01",
+        "uncompressed_bytes": 43208,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap2/on/raw.jsonl.gz",
+        "sha256": "0d892dfc0cc448b0c12ced63db3b7f2f94c736547a20a290f85708e71a5eb06d",
+        "bytes": 3163
+      }
+    },
+    {
+      "process": {
+        "slot": 46,
+        "variant": "baseline",
+        "case_id": "m2_h2_neg_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "a1f5802407983e8d7883cc64392ece5ac25005dc581d56c1122b07ae1580aea3",
+          "bytes": 3169
+        },
+        "uncompressed_sha256": "06b2d16a654c4f8b60eedb28ba4059c5d800a5666d5d7fab1a43420948895112",
+        "uncompressed_bytes": 43214,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "a1f5802407983e8d7883cc64392ece5ac25005dc581d56c1122b07ae1580aea3",
+        "bytes": 3169
+      }
+    },
+    {
+      "process": {
+        "slot": 47,
+        "variant": "baseline",
+        "case_id": "m2_h2_neg_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap2/off/raw.jsonl.gz",
+          "sha256": "1cc27fda13ea3f210a90d085a8fa297d1d42bbe7455f07699a9d90a2a1cfcd15",
+          "bytes": 1903
+        },
+        "uncompressed_sha256": "916301262ff9f74350749ddd14899c152211afa603afffa403b2efa1a4cc93c4",
+        "uncompressed_bytes": 14589,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap2/off/raw.jsonl.gz",
+        "sha256": "1cc27fda13ea3f210a90d085a8fa297d1d42bbe7455f07699a9d90a2a1cfcd15",
+        "bytes": 1903
+      }
+    },
+    {
+      "process": {
+        "slot": 48,
+        "variant": "baseline",
+        "case_id": "m2_h2_neg_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap001/on/raw.jsonl.gz",
+          "sha256": "6c7442229b4217c264506d21052915bbd6d2425e97e815795bf01d8d1654eb16",
+          "bytes": 3094
+        },
+        "uncompressed_sha256": "9ef1382b4a7efb34e829c9041f662212d70cab685afa358520fdb59f22c1c362",
+        "uncompressed_bytes": 43228,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap001/on/raw.jsonl.gz",
+        "sha256": "6c7442229b4217c264506d21052915bbd6d2425e97e815795bf01d8d1654eb16",
+        "bytes": 3094
+      }
+    },
+    {
+      "process": {
+        "slot": 49,
+        "variant": "baseline",
+        "case_id": "m2_h2_neg_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "4d9d8c691975bb827cef2ac02f94e15c05be06f07e0e81b3240d40285969a50c",
+          "bytes": 3099
+        },
+        "uncompressed_sha256": "509373c3bb8415eb4e3dc75dc6a461ce8a3726ec8bc4383c14e3d5a292db50f3",
+        "uncompressed_bytes": 43234,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "4d9d8c691975bb827cef2ac02f94e15c05be06f07e0e81b3240d40285969a50c",
+        "bytes": 3099
+      }
+    },
+    {
+      "process": {
+        "slot": 50,
+        "variant": "baseline",
+        "case_id": "m2_h2_neg_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap001/off/raw.jsonl.gz",
+          "sha256": "47814ceff12f6f396af5863d9824a7e52b22a3a49fc3fdd9d581411ede8edb29",
+          "bytes": 1907
+        },
+        "uncompressed_sha256": "3db7d4388fdf00ff30bf747524dfae2326110f9e858c392f2bbbe345e67d77d2",
+        "uncompressed_bytes": 14592,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_neg_cap001/off/raw.jsonl.gz",
+        "sha256": "47814ceff12f6f396af5863d9824a7e52b22a3a49fc3fdd9d581411ede8edb29",
+        "bytes": 1907
+      }
+    },
+    {
+      "process": {
+        "slot": 51,
+        "variant": "baseline",
+        "case_id": "m2_h2_pos_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap2/on/raw.jsonl.gz",
+          "sha256": "34ef62e823681d649cb5717f076ae713f29a3aee01ccd3ae46b18283805f3998",
+          "bytes": 3134
+        },
+        "uncompressed_sha256": "275c310c5d6b09d38ef1e40caa204e52d905d150f34e2bc669f21e33356c3be0",
+        "uncompressed_bytes": 43189,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap2/on/raw.jsonl.gz",
+        "sha256": "34ef62e823681d649cb5717f076ae713f29a3aee01ccd3ae46b18283805f3998",
+        "bytes": 3134
+      }
+    },
+    {
+      "process": {
+        "slot": 52,
+        "variant": "baseline",
+        "case_id": "m2_h2_pos_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "e994394f8629d1a2d9580aeeb1bc2d3a2480dd2fcc4792b594c43c62027ad3a7",
+          "bytes": 3140
+        },
+        "uncompressed_sha256": "7101dbc6daf39e9b12ac23b9eee2c355758a5e1bd892288b55639039267fd2f5",
+        "uncompressed_bytes": 43195,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "e994394f8629d1a2d9580aeeb1bc2d3a2480dd2fcc4792b594c43c62027ad3a7",
+        "bytes": 3140
+      }
+    },
+    {
+      "process": {
+        "slot": 53,
+        "variant": "baseline",
+        "case_id": "m2_h2_pos_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap2/off/raw.jsonl.gz",
+          "sha256": "c14d1f9ad672c5fc18298761a29d270b6db688fab03464f4ea1120195d5c8213",
+          "bytes": 1880
+        },
+        "uncompressed_sha256": "929478be94ca7b9a7b8593cea559428d4fc1063511c852b6d33c26a1e0ed068b",
+        "uncompressed_bytes": 14553,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap2/off/raw.jsonl.gz",
+        "sha256": "c14d1f9ad672c5fc18298761a29d270b6db688fab03464f4ea1120195d5c8213",
+        "bytes": 1880
+      }
+    },
+    {
+      "process": {
+        "slot": 54,
+        "variant": "baseline",
+        "case_id": "m2_h2_pos_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap001/on/raw.jsonl.gz",
+          "sha256": "8784b3360dae64fa7cfaf5ba432c1590a1956e5ab7a88177c462b726bef13d51",
+          "bytes": 3049
+        },
+        "uncompressed_sha256": "4e7d0b4a7d70f676b0e1e9d8c6f748c37175f82e4c58e3eb461e1ea4d43807cb",
+        "uncompressed_bytes": 43177,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap001/on/raw.jsonl.gz",
+        "sha256": "8784b3360dae64fa7cfaf5ba432c1590a1956e5ab7a88177c462b726bef13d51",
+        "bytes": 3049
+      }
+    },
+    {
+      "process": {
+        "slot": 55,
+        "variant": "baseline",
+        "case_id": "m2_h2_pos_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "92b64c2b8050cad9a62b27b04614ab2dcbfac7654ed7f98673c545cbdc567694",
+          "bytes": 3053
+        },
+        "uncompressed_sha256": "e7cc41137cfb2eea850b96f4f49c6aad0357757967a57eb0946ef5124b3b970b",
+        "uncompressed_bytes": 43183,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "92b64c2b8050cad9a62b27b04614ab2dcbfac7654ed7f98673c545cbdc567694",
+        "bytes": 3053
+      }
+    },
+    {
+      "process": {
+        "slot": 56,
+        "variant": "baseline",
+        "case_id": "m2_h2_pos_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap001/off/raw.jsonl.gz",
+          "sha256": "f6cd6534233c637198a39f7ec345f9d8120a35e3cbb7f8b313152ba84617cc93",
+          "bytes": 1873
+        },
+        "uncompressed_sha256": "f9dd03142d51b57e75444b517afcbc6556835b04b4128b5922353079d93b45e6",
+        "uncompressed_bytes": 14555,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_pos_cap001/off/raw.jsonl.gz",
+        "sha256": "f6cd6534233c637198a39f7ec345f9d8120a35e3cbb7f8b313152ba84617cc93",
+        "bytes": 1873
+      }
+    },
+    {
+      "process": {
+        "slot": 57,
+        "variant": "baseline",
+        "case_id": "m2_h2_zero_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_zero_cap2/on/raw.jsonl.gz",
+          "sha256": "d744da206c7849a1cfe709af2aea96a538acf73eb910e0a949c0f8a252447c07",
+          "bytes": 2950
+        },
+        "uncompressed_sha256": "4a8f006dd9378255e30ec5be9621b2907b90c04612c113c6b1d3d5b45e0acdb0",
+        "uncompressed_bytes": 41950,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_zero_cap2/on/raw.jsonl.gz",
+        "sha256": "d744da206c7849a1cfe709af2aea96a538acf73eb910e0a949c0f8a252447c07",
+        "bytes": 2950
+      }
+    },
+    {
+      "process": {
+        "slot": 58,
+        "variant": "baseline",
+        "case_id": "m2_h2_zero_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_zero_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "b4652c0d19d38f0b24640eb00652db853dfaf0f0fdca20ccbbfb7836210c7361",
+          "bytes": 2951
+        },
+        "uncompressed_sha256": "e54c38df9a19a4b1bfca9f25ce64257e0c3da3f5f5f4c96b4de4748c555d11ef",
+        "uncompressed_bytes": 41956,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_zero_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "b4652c0d19d38f0b24640eb00652db853dfaf0f0fdca20ccbbfb7836210c7361",
+        "bytes": 2951
+      }
+    },
+    {
+      "process": {
+        "slot": 59,
+        "variant": "baseline",
+        "case_id": "m2_h2_zero_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_zero_cap2/off/raw.jsonl.gz",
+          "sha256": "4d5c9cf91404607650716dc50126a32c7db33d4ae47968badb80b81e5802a878",
+          "bytes": 1793
+        },
+        "uncompressed_sha256": "650becff4edfd306092ad54c24630cbc8e500b40e190e1a95853f9357cf1e831",
+        "uncompressed_bytes": 14442,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h2_zero_cap2/off/raw.jsonl.gz",
+        "sha256": "4d5c9cf91404607650716dc50126a32c7db33d4ae47968badb80b81e5802a878",
+        "bytes": 1793
+      }
+    },
+    {
+      "process": {
+        "slot": 60,
+        "variant": "candidate",
+        "case_id": "m05_h05_neg_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap2/on/raw.jsonl.gz",
+          "sha256": "30c707d002e5a5b18a0bcbfaf57e80b623643ac9fea64b49b3540ba310df7b96",
+          "bytes": 3102
+        },
+        "uncompressed_sha256": "0c199e2b685cdb702d691fe87e634175c6587681dc86429f8ea6c34dd1ad815b",
+        "uncompressed_bytes": 43176,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap2/on/raw.jsonl.gz",
+        "sha256": "30c707d002e5a5b18a0bcbfaf57e80b623643ac9fea64b49b3540ba310df7b96",
+        "bytes": 3102
+      }
+    },
+    {
+      "process": {
+        "slot": 61,
+        "variant": "candidate",
+        "case_id": "m05_h05_neg_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "8e1673e3bef248a3a2369e932a6ed2d70a3f3e1a3b8099aa7bffd1290901c79c",
+          "bytes": 3107
+        },
+        "uncompressed_sha256": "4e4f4eb61da4de6fc504665a121750bbee5105ecc115ffb5dd8c8386ff632a23",
+        "uncompressed_bytes": 43182,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "8e1673e3bef248a3a2369e932a6ed2d70a3f3e1a3b8099aa7bffd1290901c79c",
+        "bytes": 3107
+      }
+    },
+    {
+      "process": {
+        "slot": 62,
+        "variant": "candidate",
+        "case_id": "m05_h05_neg_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap2/off/raw.jsonl.gz",
+          "sha256": "edb50aaf5798898ed6d8f6042db35d60062461427509868626ffbba94041dde0",
+          "bytes": 1913
+        },
+        "uncompressed_sha256": "c51c6bb75a9eb8d58066170a0a26e40428038204b7bf008eaa59cdf0d286693c",
+        "uncompressed_bytes": 14589,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap2/off/raw.jsonl.gz",
+        "sha256": "edb50aaf5798898ed6d8f6042db35d60062461427509868626ffbba94041dde0",
+        "bytes": 1913
+      }
+    },
+    {
+      "process": {
+        "slot": 63,
+        "variant": "candidate",
+        "case_id": "m05_h05_neg_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap001/on/raw.jsonl.gz",
+          "sha256": "3b200e80b827e854b03465a8c3da28c2a5e4a9c1b214ab22cc579c6586cf78c4",
+          "bytes": 3095
+        },
+        "uncompressed_sha256": "cae277ed3678cebbc5134d93452d9a1c7fca3aa9151d869c090f62298ff355ad",
+        "uncompressed_bytes": 43205,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap001/on/raw.jsonl.gz",
+        "sha256": "3b200e80b827e854b03465a8c3da28c2a5e4a9c1b214ab22cc579c6586cf78c4",
+        "bytes": 3095
+      }
+    },
+    {
+      "process": {
+        "slot": 64,
+        "variant": "candidate",
+        "case_id": "m05_h05_neg_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "d53b4170bc060338b357dee4131f67e171646f284de0fea790aa2b338ff4c79e",
+          "bytes": 3100
+        },
+        "uncompressed_sha256": "3f7c348696fe013623825fa690c8f11771a535be8f6f9ea76f94b1ed15846238",
+        "uncompressed_bytes": 43211,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "d53b4170bc060338b357dee4131f67e171646f284de0fea790aa2b338ff4c79e",
+        "bytes": 3100
+      }
+    },
+    {
+      "process": {
+        "slot": 65,
+        "variant": "candidate",
+        "case_id": "m05_h05_neg_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap001/off/raw.jsonl.gz",
+          "sha256": "88f0585a0699f03e2161d81446931b6c0da068d50d1465c0a5b2b5fa673894f4",
+          "bytes": 1910
+        },
+        "uncompressed_sha256": "5266ad53d8ccf1fb6f2aaabf7b56d881bf1166f7e23e8a68f74613fb24904155",
+        "uncompressed_bytes": 14601,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap001/off/raw.jsonl.gz",
+        "sha256": "88f0585a0699f03e2161d81446931b6c0da068d50d1465c0a5b2b5fa673894f4",
+        "bytes": 1910
+      }
+    },
+    {
+      "process": {
+        "slot": 66,
+        "variant": "candidate",
+        "case_id": "m05_h05_pos_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap2/on/raw.jsonl.gz",
+          "sha256": "5ec24156e4abe934802930e8871efacfb42c9c29f170b119bb97ad998197885f",
+          "bytes": 3082
+        },
+        "uncompressed_sha256": "828d485078efa68caba09cb146253de36b7d516b2bca1723086906df14e6ea02",
+        "uncompressed_bytes": 43157,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap2/on/raw.jsonl.gz",
+        "sha256": "5ec24156e4abe934802930e8871efacfb42c9c29f170b119bb97ad998197885f",
+        "bytes": 3082
+      }
+    },
+    {
+      "process": {
+        "slot": 67,
+        "variant": "candidate",
+        "case_id": "m05_h05_pos_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "7648d00feade81fffef4796b6b9b2031041212fb55025f2839b2f854572255ee",
+          "bytes": 3084
+        },
+        "uncompressed_sha256": "c31d3383180d7a3883fb68c37eb55ad12d68fbf16e3a45ee4d6f5b2ad7e0f64e",
+        "uncompressed_bytes": 43163,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "7648d00feade81fffef4796b6b9b2031041212fb55025f2839b2f854572255ee",
+        "bytes": 3084
+      }
+    },
+    {
+      "process": {
+        "slot": 68,
+        "variant": "candidate",
+        "case_id": "m05_h05_pos_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap2/off/raw.jsonl.gz",
+          "sha256": "28f66d62da538fd4f7bdd5968166ea52aa6073424b02eece7243cbd0bdc12623",
+          "bytes": 1887
+        },
+        "uncompressed_sha256": "601f00a8d0c422f4a30025d801c6eca62157b9338facaf820215963c9bf13771",
+        "uncompressed_bytes": 14553,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap2/off/raw.jsonl.gz",
+        "sha256": "28f66d62da538fd4f7bdd5968166ea52aa6073424b02eece7243cbd0bdc12623",
+        "bytes": 1887
+      }
+    },
+    {
+      "process": {
+        "slot": 69,
+        "variant": "candidate",
+        "case_id": "m05_h05_pos_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap001/on/raw.jsonl.gz",
+          "sha256": "9da576690d20b39ca3394d098d455d6b035102f1e70ead08708c4636240b1488",
+          "bytes": 3052
+        },
+        "uncompressed_sha256": "b62443f946c7eb5b0520fc24e41f92fa7706d5b7fb0097b9690dfb677907e76b",
+        "uncompressed_bytes": 43154,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap001/on/raw.jsonl.gz",
+        "sha256": "9da576690d20b39ca3394d098d455d6b035102f1e70ead08708c4636240b1488",
+        "bytes": 3052
+      }
+    },
+    {
+      "process": {
+        "slot": 70,
+        "variant": "candidate",
+        "case_id": "m05_h05_pos_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "3a293a1e4e3e45f22b13a480b5ef70de1efbe906a5b3d1799a52d1c669ef61b9",
+          "bytes": 3057
+        },
+        "uncompressed_sha256": "2e0659eb696f10a2fe0eb1e561a70b268b5445a2274d7ea1f15e519cbc9ae688",
+        "uncompressed_bytes": 43160,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "3a293a1e4e3e45f22b13a480b5ef70de1efbe906a5b3d1799a52d1c669ef61b9",
+        "bytes": 3057
+      }
+    },
+    {
+      "process": {
+        "slot": 71,
+        "variant": "candidate",
+        "case_id": "m05_h05_pos_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap001/off/raw.jsonl.gz",
+          "sha256": "40ba751c417cf7d4288c2915bb29d92e35c3148b9be5a46d93d1d6281062c951",
+          "bytes": 1879
+        },
+        "uncompressed_sha256": "82aeed01851f401ff8a1134b2fc29da8ac6056b7bda30b2da8f3d34eae69fd9e",
+        "uncompressed_bytes": 14564,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_pos_cap001/off/raw.jsonl.gz",
+        "sha256": "40ba751c417cf7d4288c2915bb29d92e35c3148b9be5a46d93d1d6281062c951",
+        "bytes": 1879
+      }
+    },
+    {
+      "process": {
+        "slot": 72,
+        "variant": "candidate",
+        "case_id": "m05_h05_zero_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_zero_cap2/on/raw.jsonl.gz",
+          "sha256": "84dfe8c236f0c821d1c4712d3d1a33f7bbaffb358ee398e26b2809825f494483",
+          "bytes": 2957
+        },
+        "uncompressed_sha256": "8e1c374d67510ebe1eec0a2a45053bd3d78b542ca2f597b8758cb2b016d34489",
+        "uncompressed_bytes": 41927,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_zero_cap2/on/raw.jsonl.gz",
+        "sha256": "84dfe8c236f0c821d1c4712d3d1a33f7bbaffb358ee398e26b2809825f494483",
+        "bytes": 2957
+      }
+    },
+    {
+      "process": {
+        "slot": 73,
+        "variant": "candidate",
+        "case_id": "m05_h05_zero_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_zero_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "99d2c5aea438b299e273b22c9b7d68c4c6fc557835898cfff0d01f12fb4789b0",
+          "bytes": 2962
+        },
+        "uncompressed_sha256": "13a5acc17fb69bccd40351e16c47aa6a84a7eeadcebf0b588228287200f84738",
+        "uncompressed_bytes": 41933,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_zero_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "99d2c5aea438b299e273b22c9b7d68c4c6fc557835898cfff0d01f12fb4789b0",
+        "bytes": 2962
+      }
+    },
+    {
+      "process": {
+        "slot": 74,
+        "variant": "candidate",
+        "case_id": "m05_h05_zero_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_zero_cap2/off/raw.jsonl.gz",
+          "sha256": "fe4d00be3165b80625168a6a5d66679cd0b90abe093e3b1722ce2729f4ceee59",
+          "bytes": 1808
+        },
+        "uncompressed_sha256": "bc2379d8a694427cee2a2558a1a6438f651be6cf8471ae0cf5a57de0b5a8562a",
+        "uncompressed_bytes": 14451,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_zero_cap2/off/raw.jsonl.gz",
+        "sha256": "fe4d00be3165b80625168a6a5d66679cd0b90abe093e3b1722ce2729f4ceee59",
+        "bytes": 1808
+      }
+    },
+    {
+      "process": {
+        "slot": 75,
+        "variant": "candidate",
+        "case_id": "m05_h2_neg_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap2/on/raw.jsonl.gz",
+          "sha256": "25d366480f28c3719ad2ad84713232f02970a02893ce453e05eeace4fe8ed856",
+          "bytes": 3095
+        },
+        "uncompressed_sha256": "d5c7ddc7c54f8b875479dab092e3335e9c049eacfa83f758b925e3eeea63bf40",
+        "uncompressed_bytes": 43177,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap2/on/raw.jsonl.gz",
+        "sha256": "25d366480f28c3719ad2ad84713232f02970a02893ce453e05eeace4fe8ed856",
+        "bytes": 3095
+      }
+    },
+    {
+      "process": {
+        "slot": 76,
+        "variant": "candidate",
+        "case_id": "m05_h2_neg_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "64a0723b920d8004135ea6470c042ddfd79f67be423bd0861587412d1df299c3",
+          "bytes": 3100
+        },
+        "uncompressed_sha256": "bb4818b4ceac290d16194be055905d78022fc3f78ab562030c8efd51910b15a4",
+        "uncompressed_bytes": 43183,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "64a0723b920d8004135ea6470c042ddfd79f67be423bd0861587412d1df299c3",
+        "bytes": 3100
+      }
+    },
+    {
+      "process": {
+        "slot": 77,
+        "variant": "candidate",
+        "case_id": "m05_h2_neg_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap2/off/raw.jsonl.gz",
+          "sha256": "2d0861a572a76ec67755d021a5c6b2e7adcb7f9f9761b45a74901e0f0cf3e896",
+          "bytes": 1904
+        },
+        "uncompressed_sha256": "325538f257e417f56afd6897a556b41049c1b49bfed58bc8b03966702b2d3b4a",
+        "uncompressed_bytes": 14590,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap2/off/raw.jsonl.gz",
+        "sha256": "2d0861a572a76ec67755d021a5c6b2e7adcb7f9f9761b45a74901e0f0cf3e896",
+        "bytes": 1904
+      }
+    },
+    {
+      "process": {
+        "slot": 78,
+        "variant": "candidate",
+        "case_id": "m05_h2_neg_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap001/on/raw.jsonl.gz",
+          "sha256": "c1290d5c9ecdcd17e6d0b342f45a78a135024d52e75ac690272c07d214b7ec71",
+          "bytes": 3080
+        },
+        "uncompressed_sha256": "af730fe85d840994c419009866a4963654ec5fffdd20fe1c9710c0fd8b47b1b9",
+        "uncompressed_bytes": 43204,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap001/on/raw.jsonl.gz",
+        "sha256": "c1290d5c9ecdcd17e6d0b342f45a78a135024d52e75ac690272c07d214b7ec71",
+        "bytes": 3080
+      }
+    },
+    {
+      "process": {
+        "slot": 79,
+        "variant": "candidate",
+        "case_id": "m05_h2_neg_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "8d9f95e057a6512f1106321e5fe3998ed51defa2df76d557efe91e7b3bb8fb5d",
+          "bytes": 3085
+        },
+        "uncompressed_sha256": "c401cd68e876f4edd9778f2fbb33d5f9d2924652501015c1a7da22ba41e6827a",
+        "uncompressed_bytes": 43210,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "8d9f95e057a6512f1106321e5fe3998ed51defa2df76d557efe91e7b3bb8fb5d",
+        "bytes": 3085
+      }
+    },
+    {
+      "process": {
+        "slot": 80,
+        "variant": "candidate",
+        "case_id": "m05_h2_neg_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap001/off/raw.jsonl.gz",
+          "sha256": "c666b63da2cbd633d9ded7bb6653e86c65589dc7e9e11425b1db93cf119a7d03",
+          "bytes": 1901
+        },
+        "uncompressed_sha256": "57f650669cc4f72293cc728d8ee6738f386ff15feb387046acee93333348ef85",
+        "uncompressed_bytes": 14600,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_neg_cap001/off/raw.jsonl.gz",
+        "sha256": "c666b63da2cbd633d9ded7bb6653e86c65589dc7e9e11425b1db93cf119a7d03",
+        "bytes": 1901
+      }
+    },
+    {
+      "process": {
+        "slot": 81,
+        "variant": "candidate",
+        "case_id": "m05_h2_pos_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/on/raw.jsonl.gz",
+          "sha256": "77535a1b151e5106e907a06381172b1b898141bac8c22578b5fd5a79107064ac",
+          "bytes": 3072
+        },
+        "uncompressed_sha256": "af0063479bf3ab9a55e93c9b7829ed505de13bc101dded4162d9f99233d1f733",
+        "uncompressed_bytes": 43158,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/on/raw.jsonl.gz",
+        "sha256": "77535a1b151e5106e907a06381172b1b898141bac8c22578b5fd5a79107064ac",
+        "bytes": 3072
+      }
+    },
+    {
+      "process": {
+        "slot": 82,
+        "variant": "candidate",
+        "case_id": "m05_h2_pos_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "2bc66019c10f84968c6b2196d6c5f4663ee006132cea36e7e1717290f39d9250",
+          "bytes": 3078
+        },
+        "uncompressed_sha256": "eff4a244dc20c474ea9a03c787fbf9f4c278098c02b8f02229bcc13045f9ff30",
+        "uncompressed_bytes": 43164,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "2bc66019c10f84968c6b2196d6c5f4663ee006132cea36e7e1717290f39d9250",
+        "bytes": 3078
+      }
+    },
+    {
+      "process": {
+        "slot": 83,
+        "variant": "candidate",
+        "case_id": "m05_h2_pos_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/off/raw.jsonl.gz",
+          "sha256": "7707d316119004375ae383f5e2aa52f584a36eec906f22d2ff2cd48cbde6d60b",
+          "bytes": 1883
+        },
+        "uncompressed_sha256": "c4d7c979094826b9cbfd9316182e681d4f34047b32cfedf00a266ee0f1b259a2",
+        "uncompressed_bytes": 14554,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/off/raw.jsonl.gz",
+        "sha256": "7707d316119004375ae383f5e2aa52f584a36eec906f22d2ff2cd48cbde6d60b",
+        "bytes": 1883
+      }
+    },
+    {
+      "process": {
+        "slot": 84,
+        "variant": "candidate",
+        "case_id": "m05_h2_pos_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap001/on/raw.jsonl.gz",
+          "sha256": "7ba9bb0a7f2917a6fcfa5cc0e0bb945771ef022772f5061c94dab6538a0c5ade",
+          "bytes": 3039
+        },
+        "uncompressed_sha256": "91315b6e3c2c263060a59fa8fae1d485eea4c4105978f9c0c6c2cfd68c258237",
+        "uncompressed_bytes": 43185,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap001/on/raw.jsonl.gz",
+        "sha256": "7ba9bb0a7f2917a6fcfa5cc0e0bb945771ef022772f5061c94dab6538a0c5ade",
+        "bytes": 3039
+      }
+    },
+    {
+      "process": {
+        "slot": 85,
+        "variant": "candidate",
+        "case_id": "m05_h2_pos_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "164c8958dff058d71317f11113a282c296a2a42f3f55fa08b18b10674b750988",
+          "bytes": 3043
+        },
+        "uncompressed_sha256": "9b967f59d12c468ff27fefb329653032ec5cfb7981bd80401098255aa002b1a6",
+        "uncompressed_bytes": 43191,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "164c8958dff058d71317f11113a282c296a2a42f3f55fa08b18b10674b750988",
+        "bytes": 3043
+      }
+    },
+    {
+      "process": {
+        "slot": 86,
+        "variant": "candidate",
+        "case_id": "m05_h2_pos_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap001/off/raw.jsonl.gz",
+          "sha256": "d52d7f560f9fbfc2421b100b7350623810c3a6fbba63c9ed0d116c3cd15acae6",
+          "bytes": 1873
+        },
+        "uncompressed_sha256": "5cbc4df8eb773bbefc3055e37d1e8f631a88eaff7f3efa762db5add6dd8c28cf",
+        "uncompressed_bytes": 14564,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap001/off/raw.jsonl.gz",
+        "sha256": "d52d7f560f9fbfc2421b100b7350623810c3a6fbba63c9ed0d116c3cd15acae6",
+        "bytes": 1873
+      }
+    },
+    {
+      "process": {
+        "slot": 87,
+        "variant": "candidate",
+        "case_id": "m05_h2_zero_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_zero_cap2/on/raw.jsonl.gz",
+          "sha256": "da0ce0b5ba28738f03ba072f4979685722509c96ecb12ed327de2ab4231975d9",
+          "bytes": 2949
+        },
+        "uncompressed_sha256": "1a7522ecda700db2d7bda2c621c1a31175bc0cda05418bdc5899d8fb71fbbbb2",
+        "uncompressed_bytes": 41926,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_zero_cap2/on/raw.jsonl.gz",
+        "sha256": "da0ce0b5ba28738f03ba072f4979685722509c96ecb12ed327de2ab4231975d9",
+        "bytes": 2949
+      }
+    },
+    {
+      "process": {
+        "slot": 88,
+        "variant": "candidate",
+        "case_id": "m05_h2_zero_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_zero_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "23dab711d05d5fca97b5f83b2232752bd892fe97178bfed7a0c74fc8443d7314",
+          "bytes": 2955
+        },
+        "uncompressed_sha256": "cda6d5bfde0fa503e1a5251f2957e882d7e40c9149da9bd0e7c7d33df7c8a1c4",
+        "uncompressed_bytes": 41932,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_zero_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "23dab711d05d5fca97b5f83b2232752bd892fe97178bfed7a0c74fc8443d7314",
+        "bytes": 2955
+      }
+    },
+    {
+      "process": {
+        "slot": 89,
+        "variant": "candidate",
+        "case_id": "m05_h2_zero_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_zero_cap2/off/raw.jsonl.gz",
+          "sha256": "26a9a4586419219cbe91efa4265b7c7a0bb802710dfb3997ae29301121d163c8",
+          "bytes": 1799
+        },
+        "uncompressed_sha256": "d06bbd516dd76d5863f0cef049f7895fae08f769c280a800e9ffb50a016202c1",
+        "uncompressed_bytes": 14450,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_zero_cap2/off/raw.jsonl.gz",
+        "sha256": "26a9a4586419219cbe91efa4265b7c7a0bb802710dfb3997ae29301121d163c8",
+        "bytes": 1799
+      }
+    },
+    {
+      "process": {
+        "slot": 90,
+        "variant": "candidate",
+        "case_id": "m2_h05_neg_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap2/on/raw.jsonl.gz",
+          "sha256": "10b966740c5b1773fac7ff81d9b4fb4af0e56c78357476b1b047523087e47e4a",
+          "bytes": 3095
+        },
+        "uncompressed_sha256": "380fd931d7cb4a8913f49b7234b38194ae28d2f6fa12d6046dca1259e85096d2",
+        "uncompressed_bytes": 43165,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap2/on/raw.jsonl.gz",
+        "sha256": "10b966740c5b1773fac7ff81d9b4fb4af0e56c78357476b1b047523087e47e4a",
+        "bytes": 3095
+      }
+    },
+    {
+      "process": {
+        "slot": 91,
+        "variant": "candidate",
+        "case_id": "m2_h05_neg_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "da114953778cc2c469d488237dbc4f0d6bd68717a296d40dcdaa16b35cdba94d",
+          "bytes": 3101
+        },
+        "uncompressed_sha256": "3512ec7d2086f54c56239e5f2e3170d6aab519dca7dcbaf9ade5de0e9fbb2bc6",
+        "uncompressed_bytes": 43171,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "da114953778cc2c469d488237dbc4f0d6bd68717a296d40dcdaa16b35cdba94d",
+        "bytes": 3101
+      }
+    },
+    {
+      "process": {
+        "slot": 92,
+        "variant": "candidate",
+        "case_id": "m2_h05_neg_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap2/off/raw.jsonl.gz",
+          "sha256": "6ad20a5c58dfd79b1c52544fd813b7b9370a75a96c411bf6fd307abbdfac2574",
+          "bytes": 1903
+        },
+        "uncompressed_sha256": "088de077e4dcb44d06386e914439cc52f0e8c291013f72fede46823aea35cde3",
+        "uncompressed_bytes": 14578,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap2/off/raw.jsonl.gz",
+        "sha256": "6ad20a5c58dfd79b1c52544fd813b7b9370a75a96c411bf6fd307abbdfac2574",
+        "bytes": 1903
+      }
+    },
+    {
+      "process": {
+        "slot": 93,
+        "variant": "candidate",
+        "case_id": "m2_h05_neg_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap001/on/raw.jsonl.gz",
+          "sha256": "1001d8b2b35ae64ea84cb54ca657ae89c6dea7c23b2c98138eb29b52b22bfad6",
+          "bytes": 3100
+        },
+        "uncompressed_sha256": "6ca5830f45dea699c7c609c865af74ad131d0eb9ffd47539137c32b938df9dba",
+        "uncompressed_bytes": 43198,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap001/on/raw.jsonl.gz",
+        "sha256": "1001d8b2b35ae64ea84cb54ca657ae89c6dea7c23b2c98138eb29b52b22bfad6",
+        "bytes": 3100
+      }
+    },
+    {
+      "process": {
+        "slot": 94,
+        "variant": "candidate",
+        "case_id": "m2_h05_neg_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "1280d6da5a2ed2942446b9ad12625478274775d02584900d3f969ffe75b73f47",
+          "bytes": 3105
+        },
+        "uncompressed_sha256": "a78c0cf449fed1f0a3710dfeb9ff857df8e06077db0fb08490943cd5c0ea97ca",
+        "uncompressed_bytes": 43204,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "1280d6da5a2ed2942446b9ad12625478274775d02584900d3f969ffe75b73f47",
+        "bytes": 3105
+      }
+    },
+    {
+      "process": {
+        "slot": 95,
+        "variant": "candidate",
+        "case_id": "m2_h05_neg_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap001/off/raw.jsonl.gz",
+          "sha256": "c395d1c71e81e397d66ce9f8e6f59f7e80da4b236bf18c2ed8c4528e53a2da14",
+          "bytes": 1914
+        },
+        "uncompressed_sha256": "523e760af806ce31d990a37b6b391ec3df2bffc2a93254fac08ba997cc5b05b9",
+        "uncompressed_bytes": 14594,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_neg_cap001/off/raw.jsonl.gz",
+        "sha256": "c395d1c71e81e397d66ce9f8e6f59f7e80da4b236bf18c2ed8c4528e53a2da14",
+        "bytes": 1914
+      }
+    },
+    {
+      "process": {
+        "slot": 96,
+        "variant": "candidate",
+        "case_id": "m2_h05_pos_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap2/on/raw.jsonl.gz",
+          "sha256": "16fa66410ef1692b7ea937babad21c8374720d80a9cc7335d40a61385df065d9",
+          "bytes": 3070
+        },
+        "uncompressed_sha256": "84a5bb50bfbbb3f0472d05ec6be10021a5b35524f4690f48b279ed6ac0896025",
+        "uncompressed_bytes": 43146,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap2/on/raw.jsonl.gz",
+        "sha256": "16fa66410ef1692b7ea937babad21c8374720d80a9cc7335d40a61385df065d9",
+        "bytes": 3070
+      }
+    },
+    {
+      "process": {
+        "slot": 97,
+        "variant": "candidate",
+        "case_id": "m2_h05_pos_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "fb7d9bd5ef85119a160adb45ce600eb5bf7134fbad4ec9cab1527388c83b37cd",
+          "bytes": 3077
+        },
+        "uncompressed_sha256": "6707556c92183fc12ee2b8be5ed8432b1529a2c66c0a7a6743cef7a097fcd142",
+        "uncompressed_bytes": 43152,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "fb7d9bd5ef85119a160adb45ce600eb5bf7134fbad4ec9cab1527388c83b37cd",
+        "bytes": 3077
+      }
+    },
+    {
+      "process": {
+        "slot": 98,
+        "variant": "candidate",
+        "case_id": "m2_h05_pos_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap2/off/raw.jsonl.gz",
+          "sha256": "b0e1fa04743078b2e33cd14eab17b367ccfa802f96e1855b246822c5430beac2",
+          "bytes": 1880
+        },
+        "uncompressed_sha256": "189b0cd7d50fb58088805b4910e79197f84f8a0f31b7ff55495b90a8c98daa14",
+        "uncompressed_bytes": 14542,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap2/off/raw.jsonl.gz",
+        "sha256": "b0e1fa04743078b2e33cd14eab17b367ccfa802f96e1855b246822c5430beac2",
+        "bytes": 1880
+      }
+    },
+    {
+      "process": {
+        "slot": 99,
+        "variant": "candidate",
+        "case_id": "m2_h05_pos_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap001/on/raw.jsonl.gz",
+          "sha256": "492ef28a45a840460b0aef6ccdf483c4ec1584f35f0e74753cb7cfeb7411366f",
+          "bytes": 3055
+        },
+        "uncompressed_sha256": "abd34ba1efe9011673226b2f97a999340e5683e748910f599080c140786165a6",
+        "uncompressed_bytes": 43147,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap001/on/raw.jsonl.gz",
+        "sha256": "492ef28a45a840460b0aef6ccdf483c4ec1584f35f0e74753cb7cfeb7411366f",
+        "bytes": 3055
+      }
+    },
+    {
+      "process": {
+        "slot": 100,
+        "variant": "candidate",
+        "case_id": "m2_h05_pos_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "f110a69ddada4da9444732b3961094fd6d01f6f4a79b6834b508fd3a908f6b8e",
+          "bytes": 3060
+        },
+        "uncompressed_sha256": "58c842d7b128b3e2ac9c0abeda81b8bf130d12c4c81c94ccea7bffbfbca19909",
+        "uncompressed_bytes": 43153,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "f110a69ddada4da9444732b3961094fd6d01f6f4a79b6834b508fd3a908f6b8e",
+        "bytes": 3060
+      }
+    },
+    {
+      "process": {
+        "slot": 101,
+        "variant": "candidate",
+        "case_id": "m2_h05_pos_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap001/off/raw.jsonl.gz",
+          "sha256": "987d2bba1cd48870cf5aea56efe63a49ee7100155caff3053832cb990d6270d8",
+          "bytes": 1881
+        },
+        "uncompressed_sha256": "5f4817bf32eb1009e354bb102b79ba128e992544228bedf80c239ad1af75b1b2",
+        "uncompressed_bytes": 14557,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_pos_cap001/off/raw.jsonl.gz",
+        "sha256": "987d2bba1cd48870cf5aea56efe63a49ee7100155caff3053832cb990d6270d8",
+        "bytes": 1881
+      }
+    },
+    {
+      "process": {
+        "slot": 102,
+        "variant": "candidate",
+        "case_id": "m2_h05_zero_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_zero_cap2/on/raw.jsonl.gz",
+          "sha256": "c780bab1fa4d3d0c17ccf48e888521664e8842b2345c409fe67eb991407a06bb",
+          "bytes": 2953
+        },
+        "uncompressed_sha256": "662088151c05c94d34e04025b9ab58497992e2b3e6f0337dbce7d62c505ec327",
+        "uncompressed_bytes": 41920,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_zero_cap2/on/raw.jsonl.gz",
+        "sha256": "c780bab1fa4d3d0c17ccf48e888521664e8842b2345c409fe67eb991407a06bb",
+        "bytes": 2953
+      }
+    },
+    {
+      "process": {
+        "slot": 103,
+        "variant": "candidate",
+        "case_id": "m2_h05_zero_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_zero_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "8969b6912b9e5ae6ab66964c3097ebaccbf02e58d900b103b0200565115b4bb2",
+          "bytes": 2957
+        },
+        "uncompressed_sha256": "3ea5f4b7e6a9a3c0612f78219550ea51f22dbb4209f686e20419a70ad11823da",
+        "uncompressed_bytes": 41926,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_zero_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "8969b6912b9e5ae6ab66964c3097ebaccbf02e58d900b103b0200565115b4bb2",
+        "bytes": 2957
+      }
+    },
+    {
+      "process": {
+        "slot": 104,
+        "variant": "candidate",
+        "case_id": "m2_h05_zero_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_zero_cap2/off/raw.jsonl.gz",
+          "sha256": "3d26311ec83b0139fa0d0c3d4f1214e59f9fcb8901485627ba877aba48add4a5",
+          "bytes": 1802
+        },
+        "uncompressed_sha256": "9672e0abf7eef40adcdefce5d70526d54bcf10f8d17661f481dbd8a5e4b02202",
+        "uncompressed_bytes": 14444,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h05_zero_cap2/off/raw.jsonl.gz",
+        "sha256": "3d26311ec83b0139fa0d0c3d4f1214e59f9fcb8901485627ba877aba48add4a5",
+        "bytes": 1802
+      }
+    },
+    {
+      "process": {
+        "slot": 105,
+        "variant": "candidate",
+        "case_id": "m2_h2_neg_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap2/on/raw.jsonl.gz",
+          "sha256": "4f9e59d6bcd98f86dedd6e2a250bbe2a9e49bbbc035804d96e930f9f7504d6a5",
+          "bytes": 3131
+        },
+        "uncompressed_sha256": "c67ed723e5a97f7029f742f8dd5410b3bdd38877e4c98363c0deb795df327e0c",
+        "uncompressed_bytes": 43207,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap2/on/raw.jsonl.gz",
+        "sha256": "4f9e59d6bcd98f86dedd6e2a250bbe2a9e49bbbc035804d96e930f9f7504d6a5",
+        "bytes": 3131
+      }
+    },
+    {
+      "process": {
+        "slot": 106,
+        "variant": "candidate",
+        "case_id": "m2_h2_neg_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "2a6ef24190bdb0ded3cc5047090942caa07e7210caa74a1e23c0e628eb3fc9aa",
+          "bytes": 3133
+        },
+        "uncompressed_sha256": "d95640b089fc24e6c72050a8e665607ffb3df491f462581659efc5664b28557f",
+        "uncompressed_bytes": 43213,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "2a6ef24190bdb0ded3cc5047090942caa07e7210caa74a1e23c0e628eb3fc9aa",
+        "bytes": 3133
+      }
+    },
+    {
+      "process": {
+        "slot": 107,
+        "variant": "candidate",
+        "case_id": "m2_h2_neg_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap2/off/raw.jsonl.gz",
+          "sha256": "aaf9876c4e15b25102d093546607b01458f885394ac32ceb9a05c72c7c94b517",
+          "bytes": 1902
+        },
+        "uncompressed_sha256": "932b686926e59e258ff6873c02c17d10d9ceddf6f353ee2f896cf5acbe91cc3a",
+        "uncompressed_bytes": 14588,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap2/off/raw.jsonl.gz",
+        "sha256": "aaf9876c4e15b25102d093546607b01458f885394ac32ceb9a05c72c7c94b517",
+        "bytes": 1902
+      }
+    },
+    {
+      "process": {
+        "slot": 108,
+        "variant": "candidate",
+        "case_id": "m2_h2_neg_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap001/on/raw.jsonl.gz",
+          "sha256": "ff0d92a10072f9d2413f6b9d6159e1d08f5de4cb9033aadbf629a336bacacc62",
+          "bytes": 3099
+        },
+        "uncompressed_sha256": "548e31c2526108be827b6b8b29e4758d72d9e634bc82adbf028e8743a630371f",
+        "uncompressed_bytes": 43229,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap001/on/raw.jsonl.gz",
+        "sha256": "ff0d92a10072f9d2413f6b9d6159e1d08f5de4cb9033aadbf629a336bacacc62",
+        "bytes": 3099
+      }
+    },
+    {
+      "process": {
+        "slot": 109,
+        "variant": "candidate",
+        "case_id": "m2_h2_neg_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "628f7f6b6859ea3153dcad75eebc1c1729aecb8477ded3f8bbbc418394b80416",
+          "bytes": 3104
+        },
+        "uncompressed_sha256": "612bf515bf8a99eb3a28466958f10b077bf9e220c17197f8c21891e999298fb8",
+        "uncompressed_bytes": 43235,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "628f7f6b6859ea3153dcad75eebc1c1729aecb8477ded3f8bbbc418394b80416",
+        "bytes": 3104
+      }
+    },
+    {
+      "process": {
+        "slot": 110,
+        "variant": "candidate",
+        "case_id": "m2_h2_neg_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap001/off/raw.jsonl.gz",
+          "sha256": "033187bf20d2f5be85969bd273206820f52c348e4ed9409cf90080564e233a2b",
+          "bytes": 1908
+        },
+        "uncompressed_sha256": "a8f21b73f74ae8ace2d3fada2243ea1ee21025eb956833f2acd415afab58cd2e",
+        "uncompressed_bytes": 14593,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_neg_cap001/off/raw.jsonl.gz",
+        "sha256": "033187bf20d2f5be85969bd273206820f52c348e4ed9409cf90080564e233a2b",
+        "bytes": 1908
+      }
+    },
+    {
+      "process": {
+        "slot": 111,
+        "variant": "candidate",
+        "case_id": "m2_h2_pos_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap2/on/raw.jsonl.gz",
+          "sha256": "f792fc4055258d3cb470992a184dbbe9302777bc39042d1bf2f8f264d56ad66f",
+          "bytes": 3104
+        },
+        "uncompressed_sha256": "382275b7fd730dbf98762310ef3e3e9e6623310687779da60343f3593c186d9b",
+        "uncompressed_bytes": 43188,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap2/on/raw.jsonl.gz",
+        "sha256": "f792fc4055258d3cb470992a184dbbe9302777bc39042d1bf2f8f264d56ad66f",
+        "bytes": 3104
+      }
+    },
+    {
+      "process": {
+        "slot": 112,
+        "variant": "candidate",
+        "case_id": "m2_h2_pos_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "baf7e395ae37a1681359ca7b8523e4bc47d7d39e01cac3e5c59f8aa688939e9a",
+          "bytes": 3110
+        },
+        "uncompressed_sha256": "2e4f066f1bc970ad7f0d363e66e17267f2ddc4fdbd181400417377c8b9d0908b",
+        "uncompressed_bytes": 43194,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "baf7e395ae37a1681359ca7b8523e4bc47d7d39e01cac3e5c59f8aa688939e9a",
+        "bytes": 3110
+      }
+    },
+    {
+      "process": {
+        "slot": 113,
+        "variant": "candidate",
+        "case_id": "m2_h2_pos_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap2/off/raw.jsonl.gz",
+          "sha256": "c6d89756905fa0a6855801f55e57d5d3ff30eee0bc475e5c897521f009ef83c7",
+          "bytes": 1879
+        },
+        "uncompressed_sha256": "828c92276e8fc983ed535c0bef3ca1b77cfd291f1423257db1587ed0aed59df0",
+        "uncompressed_bytes": 14552,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap2/off/raw.jsonl.gz",
+        "sha256": "c6d89756905fa0a6855801f55e57d5d3ff30eee0bc475e5c897521f009ef83c7",
+        "bytes": 1879
+      }
+    },
+    {
+      "process": {
+        "slot": 114,
+        "variant": "candidate",
+        "case_id": "m2_h2_pos_cap001",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap001/on/raw.jsonl.gz",
+          "sha256": "202677549e4605d2fd7467163f3880d64bd85f6095b5f1d770a583792618edfb",
+          "bytes": 3055
+        },
+        "uncompressed_sha256": "8d2e19fcebb1923dbc739edb7ae8cbef7f9513ce161e6cd769e0ee00ca020bc4",
+        "uncompressed_bytes": 43178,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap001/on/raw.jsonl.gz",
+        "sha256": "202677549e4605d2fd7467163f3880d64bd85f6095b5f1d770a583792618edfb",
+        "bytes": 3055
+      }
+    },
+    {
+      "process": {
+        "slot": 115,
+        "variant": "candidate",
+        "case_id": "m2_h2_pos_cap001",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap001/fresh_on/raw.jsonl.gz",
+          "sha256": "f3a11f64bab03a16c42ec408d87406cbb9752d0e927fc0e4cd45eaeca3b10b70",
+          "bytes": 3058
+        },
+        "uncompressed_sha256": "983f509f58bd7ad6c19829bda7dea4951d056583ebaf3f3bf46e36d8333fe1e1",
+        "uncompressed_bytes": 43184,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap001/fresh_on/raw.jsonl.gz",
+        "sha256": "f3a11f64bab03a16c42ec408d87406cbb9752d0e927fc0e4cd45eaeca3b10b70",
+        "bytes": 3058
+      }
+    },
+    {
+      "process": {
+        "slot": 116,
+        "variant": "candidate",
+        "case_id": "m2_h2_pos_cap001",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap001/off/raw.jsonl.gz",
+          "sha256": "86780ea0a9f495b4b0d04992bdc89883b639c307d6b7bad16b36e453188fe8fd",
+          "bytes": 1875
+        },
+        "uncompressed_sha256": "ff8b3cdeaf890fb02d94570af6f5a58709f2815b01d83d80c1529d3b732e9047",
+        "uncompressed_bytes": 14556,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_pos_cap001/off/raw.jsonl.gz",
+        "sha256": "86780ea0a9f495b4b0d04992bdc89883b639c307d6b7bad16b36e453188fe8fd",
+        "bytes": 1875
+      }
+    },
+    {
+      "process": {
+        "slot": 117,
+        "variant": "candidate",
+        "case_id": "m2_h2_zero_cap2",
+        "observer": "on",
+        "label": "on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_zero_cap2/on/raw.jsonl.gz",
+          "sha256": "0ffb17fe14308b3ec6e93c4a8828bdedaf75abd06834ff5033c9540f46ad188e",
+          "bytes": 2955
+        },
+        "uncompressed_sha256": "dce34f0e7f5655bafdd0c4d924e29abaa121f5f543c4e85ca1ad256ce9a8dfd4",
+        "uncompressed_bytes": 41951,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_zero_cap2/on/raw.jsonl.gz",
+        "sha256": "0ffb17fe14308b3ec6e93c4a8828bdedaf75abd06834ff5033c9540f46ad188e",
+        "bytes": 2955
+      }
+    },
+    {
+      "process": {
+        "slot": 118,
+        "variant": "candidate",
+        "case_id": "m2_h2_zero_cap2",
+        "observer": "on",
+        "label": "fresh_on"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_zero_cap2/fresh_on/raw.jsonl.gz",
+          "sha256": "7b8e0a0d9fc5ac4277ec96e19bd3dd9f061a400bebe13833a2277747dccb0cab",
+          "bytes": 2959
+        },
+        "uncompressed_sha256": "273718813eee2ab1ae95db5306044acf7a694ae589382e0a29f4e6b0435fcb02",
+        "uncompressed_bytes": 41957,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_zero_cap2/fresh_on/raw.jsonl.gz",
+        "sha256": "7b8e0a0d9fc5ac4277ec96e19bd3dd9f061a400bebe13833a2277747dccb0cab",
+        "bytes": 2959
+      }
+    },
+    {
+      "process": {
+        "slot": 119,
+        "variant": "candidate",
+        "case_id": "m2_h2_zero_cap2",
+        "observer": "off",
+        "label": "off"
+      },
+      "framing": {
+        "stored": {
+          "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_zero_cap2/off/raw.jsonl.gz",
+          "sha256": "f31e1882061b00ef4b8f77d9fdf52d284bb48baec9cef8af7b30b06067fb45e6",
+          "bytes": 1798
+        },
+        "uncompressed_sha256": "6f9b97463f573263bd8e6b9084e1077e8d4c27dfd1a15d7e388edb79c64989f3",
+        "uncompressed_bytes": 14443,
+        "gzip_members": 1,
+        "complete_eof": true
+      },
+      "whole_raw": {
+        "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m2_h2_zero_cap2/off/raw.jsonl.gz",
+        "sha256": "f31e1882061b00ef4b8f77d9fdf52d284bb48baec9cef8af7b30b06067fb45e6",
+        "bytes": 1798
+      }
+    }
+  ],
+  "source_arithmetic_or_SI_reanalysis": false,
+  "scientific_reader_invocations": 0
+}

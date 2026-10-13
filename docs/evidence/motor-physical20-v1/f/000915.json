@@ -1,0 +1,11 @@
+{
+  "label": "actual-rustc-path",
+  "argv": [
+    "rustup",
+    "which",
+    "rustc"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "start_unix_ns": 1791853206390203815,
+  "native_fixture_invoked": false
+}

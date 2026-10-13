@@ -1,0 +1,47 @@
+{
+  "kind": "original_process_terminal",
+  "case": {
+    "slot": 81,
+    "variant": "candidate",
+    "case_id": "m05_h2_pos_cap2",
+    "observer": "on",
+    "label": "on"
+  },
+  "attempt_index": 81,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_candidate.native",
+    "--case",
+    "m05_h2_pos_cap2",
+    "--variant",
+    "candidate",
+    "--observer",
+    "on",
+    "--label",
+    "on",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/on/raw.jsonl.gz"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "started_utc": "2026-10-13T01:26:46.996147+00:00",
+  "native_process_started": true,
+  "actual_exit_code": 0,
+  "timed_out": false,
+  "error": null,
+  "pid": 199280,
+  "ended_utc": "2026-10-13T01:26:47.020653+00:00",
+  "stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/on/stdout.log",
+    "sha256": "a8a15817f5dc5667cb747bba24c4710f2fd190169ee51dc90cf82493e1d0a505",
+    "bytes": 64
+  },
+  "stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/on/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "raw_output": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h2_pos_cap2/on/raw.jsonl.gz",
+    "sha256": "77535a1b151e5106e907a06381172b1b898141bac8c22578b5fd5a79107064ac",
+    "bytes": 3072
+  }
+}

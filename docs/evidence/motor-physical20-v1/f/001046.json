@@ -1,0 +1,12 @@
+{
+  "kind": "PRE_DATA_PROTOCOL_PREPARATION_FAILURE",
+  "original_exit": 1,
+  "failure": "Wrong manually expanded SHA literal in pre-data assertion. No protocol file was written. Corrected by loading independent whole-file descriptor instead of expanding abbreviated hash.",
+  "observed_declaration": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v2.json",
+    "bytes": 4572,
+    "sha256": "e3731a9f36121a5a8470a3148c6eb4c0a1da3758bf59d417a1aa03d2c56bb9d3"
+  },
+  "native_worlds": 0,
+  "scientific_reader_invocations": 0
+}

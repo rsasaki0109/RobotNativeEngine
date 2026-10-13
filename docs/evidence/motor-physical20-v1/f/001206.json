@@ -1,0 +1,22 @@
+{
+  "kind": "NEW120_lossless_whole_audit_restoration_binding",
+  "schema_version": 1,
+  "created_utc": "2026-10-13T01:40:28.809287+00:00",
+  "original": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json",
+    "sha256": "a43b19474de7478faa43bad15de2ee977f51473896575f6c282d381dfe8ecf99",
+    "bytes": 2049298
+  },
+  "compressed_representation": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json.gz",
+    "sha256": "016d5524c6ee239da8b4ebf7a3856076ff2e52f399484cb3c7c4a0b2ca7d2b69",
+    "bytes": 61534
+  },
+  "gzip_members": 1,
+  "gzip_mtime": 0,
+  "complete_original_bytes_exact": true,
+  "split_truncated_reformatted_or_selected": false,
+  "stored_representation_at_or_below1MiB": true,
+  "new_scientific_reader_native_or_mathematical_reanalysis": 0,
+  "public_retention_completed": false
+}

@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_registered_once.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "--spec-sha256",
+    "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "github_calls": 0,
+  "kind": "actual_once_default_no_native_cli_preflight",
+  "native_processes_started": 0,
+  "original_default_cli_invocations": 0,
+  "original_exit": null,
+  "retries": 0,
+  "scientific_reader_invocations": 0,
+  "source_mutations": 0,
+  "started_utc": "2026-10-13T01:25:57.900210+00:00",
+  "status": "FAILED_OR_UNQUALIFIED",
+  "wrapper": {
+    "bytes": 561,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+  }
+}

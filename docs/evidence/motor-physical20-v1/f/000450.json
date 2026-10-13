@@ -1,0 +1,26 @@
+{
+  "kind": "durable_launch_intent",
+  "case": {
+    "slot": 61,
+    "variant": "candidate",
+    "case_id": "m05_h05_neg_cap2",
+    "observer": "on",
+    "label": "fresh_on"
+  },
+  "attempt_index": 61,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_candidate.native",
+    "--case",
+    "m05_h05_neg_cap2",
+    "--variant",
+    "candidate",
+    "--observer",
+    "on",
+    "--label",
+    "fresh_on",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/candidate/m05_h05_neg_cap2/fresh_on/raw.jsonl.gz"
+  ],
+  "created_utc": "2026-10-13T01:26:44.615529+00:00",
+  "registered_spec_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+}

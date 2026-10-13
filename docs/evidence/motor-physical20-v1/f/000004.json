@@ -1,0 +1,16 @@
+{
+  "kind": "exclusive_checked_driver_command_claim",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/cohort_driver.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "--spec-sha256",
+    "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+    "--launch-native"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "created_utc": "2026-10-13T01:26:37.007607+00:00",
+  "registered_wrapper_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+}

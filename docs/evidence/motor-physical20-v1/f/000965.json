@@ -1,0 +1,17 @@
+{
+  "label": "candidate-metadata",
+  "argv": [
+    "cargo",
+    "--config",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/candidate-cargo-config.toml",
+    "metadata",
+    "--locked",
+    "--format-version",
+    "1"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "start_unix_ns": 1791853568063937417,
+  "native_fixture_invoked": false,
+  "original_exit": 0,
+  "end_unix_ns": 1791853568142858400
+}

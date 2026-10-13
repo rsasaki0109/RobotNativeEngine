@@ -23,6 +23,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Retain a separately registered 120-process isolated ForceBased physical
+  diagnostic with two source-copy builds and 20 fixed inertia/time/cap
+  conditions. Existing normalization meets the nominal-SI allowances in 12/20
+  cases; the outside-copy inverse-(w+g) candidate meets them in 20/20. Keep all
+  eight interior baseline failures, saturated/null controls, exact ON/fresh/OFF
+  state checks and complete original exits. This one-interval diagnostic changes
+  no production defaults or historical calibration/promotion gates. See the
+  [complete physical diagnostic](docs/evidence/motor-physical20-v1/README.md).
+
 - Restore warning-denied Clippy and rustdoc validation for the vendored Rapier
   library before adding further solver diagnostics. Apply mechanical lifetime,
   annotation, documentation and equivalent default/integer cleanups without

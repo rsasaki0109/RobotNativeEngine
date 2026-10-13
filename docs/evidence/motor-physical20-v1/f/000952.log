@@ -1,0 +1,15 @@
+
+running 10 tests
+test tests::existing_claim_blocks_before_callback_without_overwrite ... ok
+test tests::fixed_cli_accepts_twenty_cases_and_two_variant_labels_without_tuning ... ok
+test tests::impulse_promoted_f64_words_keep_signed_zero_and_absence ... ok
+test tests::input_table_exact_order_words_and_zero_controls_are_source_bound ... ok
+test tests::missing_or_repeated_mandatory_flags_never_reach_a_callback ... ok
+test tests::postcard_opaque_f32_words_preserve_zero_nan_and_infinity ... ok
+test tests::exclusive_header_precedes_stub_callback_and_keeps_error_terminal ... ok
+test tests::stub_panic_is_retained_and_empty_success_is_not_collected ... ok
+test tests::synthetic_completed_framing_is_deterministic ... ok
+test tests::synthetic_zero_header_keeps_new_kind_case_and_literal_variant_without_fixture ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

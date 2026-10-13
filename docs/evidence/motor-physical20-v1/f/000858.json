@@ -1,0 +1,26 @@
+{
+  "kind": "exclusive_original_cli_claim",
+  "mode": "audit",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "--spec-sha256",
+    "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+    "--result-root",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json",
+    "--checked-outer-receipt",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/collect-invocation/actual-command.json",
+    "--checked-outer-sha256",
+    "0502aead8aa2045d65ba148a30d12dd7201c43d297b08353776d6daae168a7ec"
+  ],
+  "registered_wrapper_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+  "created_utc": "2026-10-13T01:26:52.144731+00:00",
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "retries": 0,
+  "resume": false
+}

@@ -1,0 +1,14 @@
+{
+  "kind": "admitted_motor_physical20_cohort",
+  "schema_version": 1,
+  "candidate": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/frozen-candidate.json",
+    "bytes": 177194,
+    "sha256": "e81d000fecaaa612aed14b72dfe639679da45448b5f4cfc5d62b4532152a40df"
+  },
+  "admission": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-predata-admission/admission.json",
+    "bytes": 6565,
+    "sha256": "44f6a89c970c82011be6588ec448cf4d9b9c1c23717a5a8e719a3f5e91f71074"
+  }
+}

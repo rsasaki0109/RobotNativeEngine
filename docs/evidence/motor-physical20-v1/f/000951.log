@@ -1,0 +1,3 @@
+   Compiling motor_physical_collector v0.1.0 (/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector)
+    Finished `test` profile [unoptimized] target(s) in 0.72s
+     Running unittests lib.rs (/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/target_baseline/debug/deps/motor_physical_collector-2df4c2e505775e06)

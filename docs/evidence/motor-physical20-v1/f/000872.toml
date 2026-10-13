@@ -1,0 +1,2 @@
+[patch.crates-io]
+rapier3d = { path = "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base" }

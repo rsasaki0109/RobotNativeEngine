@@ -1,0 +1,52 @@
+[
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/assemble_candidate.py",
+    "sha256": "5ec2342e71fcb9e2d86d4bd7e59288db1989ddeb2e35aaea2624272543727958",
+    "bytes": 5030
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/byte_header.py",
+    "sha256": "1b0f58dc533de524fee180b669c6b44f81603722dd48a084d4c075d64e24f278",
+    "bytes": 6735
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/checked_driver.py",
+    "sha256": "ac3c7d824c6d275294b659f9154477660c9f9f7f69d81a7b520aab9ac045737b",
+    "bytes": 6232
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/cohort_driver.py",
+    "sha256": "70877e335de6b161b356885073e7511add1683e36411780e7b58a83395b07385",
+    "bytes": 13059
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/fixed_contract.py",
+    "sha256": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+    "bytes": 23656
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_pure_tests.py",
+    "sha256": "b163df95e2f095f44f176c22d40300b0e254903c966e99d2a00ec7408340a0f8",
+    "bytes": 1850
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_registered_once.py",
+    "sha256": "ff58dd43de5830b19a1783dcc2f41042f2b074a504424ef45398204fb3858c4e",
+    "bytes": 8323
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/spec_contract.py",
+    "sha256": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+    "bytes": 7316
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/strict_io.py",
+    "sha256": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+    "bytes": 4176
+  },
+  {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/test_driver_pure.py",
+    "sha256": "7a94a5de45937770f8db06ba76910516bc579c0e0e04eef736f21b99a8d6186c",
+    "bytes": 19311
+  }
+]

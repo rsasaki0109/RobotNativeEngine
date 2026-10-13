@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "kind": "PRE_DATA_NEW20_PHYSICAL_DIAGNOSTIC_DECLARATION",
+  "created_utc": "2026-10-13T00:54:30.299828+00:00",
+  "status": "DECLARED_BEFORE_ANY_NEW_DATA_NOT_YET_ADMITTED",
+  "study_kind": "rne_isolated_forcebased_physical_motor_v1",
+  "case_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/protocol-source-template.json",
+    "sha256": "9ed5bb514d9aee946c8623d87aff15087ae98cb9e7a695c48e5c3fdcf8a05552",
+    "bytes": 32480
+  },
+  "budget": {
+    "new_conditions": 20,
+    "variants": [
+      "baseline",
+      "candidate"
+    ],
+    "observations": [
+      "on",
+      "fresh_on",
+      "off"
+    ],
+    "fresh_processes": 120,
+    "actual_launched": 0,
+    "superseded_12_pilot_launched": 0
+  },
+  "case_ids": [
+    "m05_h05_neg_cap2",
+    "m05_h05_neg_cap001",
+    "m05_h05_pos_cap2",
+    "m05_h05_pos_cap001",
+    "m05_h05_zero_cap2",
+    "m05_h2_neg_cap2",
+    "m05_h2_neg_cap001",
+    "m05_h2_pos_cap2",
+    "m05_h2_pos_cap001",
+    "m05_h2_zero_cap2",
+    "m2_h05_neg_cap2",
+    "m2_h05_neg_cap001",
+    "m2_h05_pos_cap2",
+    "m2_h05_pos_cap001",
+    "m2_h05_zero_cap2",
+    "m2_h2_neg_cap2",
+    "m2_h2_neg_cap001",
+    "m2_h2_pos_cap2",
+    "m2_h2_pos_cap001",
+    "m2_h2_zero_cap2"
+  ],
+  "mechanics": {
+    "I_nominal": "(2/5)*mass_kg*radius_m^2 using exact nominal decimal inputs, not fitted native inertia",
+    "v0_rad_s": "0",
+    "q0_rad": "0",
+    "v_star_rad_s": "0",
+    "p_free": "I*((I*v0+h*k*(target-q0))/(I+h*d+h*h*k)-v0)",
+    "p_BE": "clip(p_free,-h*max_torque_nm,h*max_torque_nm)",
+    "v_BE": "v0+p_BE/I",
+    "q_BE": "q0+h*v_BE",
+    "tau_BE": "p_BE/h",
+    "f32_input_crosscheck": "source-rounded native branch uses authoritative input_f32_words; record nominal-to-f32 exact-real residuals separately"
+  },
+  "unchanged_literal_existing_tolerances": {
+    "inertia_kg_m2": "max(1e-8,2e-5*abs(I_nominal))",
+    "impulse_nm_s": "max(1e-8,0.01*abs(p_BE))",
+    "velocity_rad_s": "same impulse tolerance / I_nominal",
+    "coordinate_rad": "h * same impulse tolerance / I_nominal",
+    "torque_nm": "same impulse tolerance / h",
+    "no_tuning_or_new_threshold_after_data": true
+  },
+  "distinct_measured_quantities": [
+    "PGS accumulator applied impulse -lambda before integration",
+    "physical geometric-I*(v_integration-v0)",
+    "final accumulator net impulse -lambda after stabilization",
+    "physical geometric-I*(v_writeback-v0)",
+    "q_after_position_integration",
+    "actual multibody V before position integration",
+    "final generic/MB writeback V",
+    "pre-step public Ixx query",
+    "first-constructor I_row=1/(J*W) kept distinct"
+  ],
+  "outputs": {
+    "reference_regime": [
+      "interior",
+      "saturated_positive",
+      "saturated_negative",
+      "null"
+    ],
+    "source_fidelity": [
+      "PASS_DECLARED_SOURCE_DOMAIN",
+      "FAILED",
+      "EXCLUDED_UNQUALIFIED"
+    ],
+    "new_physical_diagnostics": [
+      "MEETS_DECLARED_NEW_CASE_ALLOWANCE",
+      "OUTSIDE_DECLARED_NEW_CASE_ALLOWANCE",
+      "UNQUALIFIED_NONFINITE_OR_MISSING"
+    ],
+    "null": "separate exact-null flag; \u00b10 words preserved",
+    "discriminator": [
+      "OBSERVED_DECLARED_DIFFERENCE",
+      "INCONCLUSIVE_OR_NO_DIFFERENCE",
+      "UNQUALIFIED"
+    ],
+    "historical_four_primary_cases_reclassified": false,
+    "production_or_global_candidate_adoption": false
+  },
+  "scope_limits": [
+    "actual runtime rounding/MXCSR/FTZ/DAZ unmeasured",
+    "full native set/private pipeline/contact caches excluded",
+    "captured public body inertia vs cached row inverse mass comparison does not prove whole mass/LU construction",
+    "source-bound opaque native object roundtrip not independent private-layout decoder",
+    "no hardware/coupled-contact/maturity gain"
+  ],
+  "version": 2,
+  "supersedes_before_any_native_worlds": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v1.json",
+    "sha256": "429428402522aa3cd357a900dad610a7cbb123d7fede89c3cfa759698777d523",
+    "bytes": 3789
+  },
+  "nominal_allowance_scope": "Velocity, coordinate and torque allowances derived numerically from the same fixed deltaP and nominal geometric inertia/duration are independently declared nominal SI diagnostic comparisons. They are not conservative propagated f32/input/inertia uncertainty envelopes and a native-impulse or observed-inertia pass does not imply any velocity or coordinate pass. Each actual error and each quantity label is retained separately; no tolerance value is widened."
+}

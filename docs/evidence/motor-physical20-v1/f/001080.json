@@ -1,0 +1,13 @@
+{
+  "kind": "LITERAL_PRE_DATA_HELPER_RECOVERY",
+  "status": "EXACT_ORIGINAL_BEFORE_HASH_MATCH",
+  "original_descriptor": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/qualify_builds.py",
+    "bytes": 7853,
+    "sha256": "261b2687c65b944d756eba80f16faefe3f999003732cb2e0b786458df3fc86a4"
+  },
+  "retained_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-build-helper-history/qualify_builds-attempt-1.py",
+  "recovery": "Reverse only recorded Clippy argument-order patch; match original stored full bytes/SHA before retention. No command execution or data reconstruction.",
+  "native_worlds": 0,
+  "scientific_reader_invocations": 0
+}

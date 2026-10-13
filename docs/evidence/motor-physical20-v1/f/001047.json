@@ -1,0 +1,1369 @@
+{
+  "kind": "NEW_PHYSICAL20_OPERATIVE_PRE_DATA_PROTOCOL",
+  "schema_version": 1,
+  "status": "FROZEN_FOR_INDEPENDENT_ADMISSION_NO_DATA",
+  "cases": [
+    {
+      "case_id": "m05_h05_neg_cap2",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": -0.001,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "ba83126f",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h05_neg_cap001",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": -0.001,
+      "max_torque_nm": 0.01,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "ba83126f",
+        "max_torque_nm": "3c23d70a",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h05_pos_cap2",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": 0.001,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "3a83126f",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h05_pos_cap001",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": 0.001,
+      "max_torque_nm": 0.01,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "3a83126f",
+        "max_torque_nm": "3c23d70a",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h05_zero_cap2",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": 0.0,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "00000000",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h2_neg_cap2",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": -0.001,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "ba83126f",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h2_neg_cap001",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": -0.001,
+      "max_torque_nm": 0.01,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "ba83126f",
+        "max_torque_nm": "3c23d70a",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h2_pos_cap2",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": 0.001,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "3a83126f",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h2_pos_cap001",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": 0.001,
+      "max_torque_nm": 0.01,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "3a83126f",
+        "max_torque_nm": "3c23d70a",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m05_h2_zero_cap2",
+      "mass_kg": 0.5,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": 0.0,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "3f000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "00000000",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h05_neg_cap2",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": -0.001,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "ba83126f",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h05_neg_cap001",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": -0.001,
+      "max_torque_nm": 0.01,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "ba83126f",
+        "max_torque_nm": "3c23d70a",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h05_pos_cap2",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": 0.001,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "3a83126f",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h05_pos_cap001",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": 0.001,
+      "max_torque_nm": 0.01,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "3a83126f",
+        "max_torque_nm": "3c23d70a",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h05_zero_cap2",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.0005,
+      "target_pos_rad": 0.0,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3a03126f",
+        "target_pos_rad": "00000000",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h2_neg_cap2",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": -0.001,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "ba83126f",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h2_neg_cap001",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": -0.001,
+      "max_torque_nm": 0.01,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "ba83126f",
+        "max_torque_nm": "3c23d70a",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h2_pos_cap2",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": 0.001,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "3a83126f",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h2_pos_cap001",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": 0.001,
+      "max_torque_nm": 0.01,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "3a83126f",
+        "max_torque_nm": "3c23d70a",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    },
+    {
+      "case_id": "m2_h2_zero_cap2",
+      "mass_kg": 2.0,
+      "outer_dt_s": 0.002,
+      "target_pos_rad": 0.0,
+      "max_torque_nm": 2.0,
+      "radius_m": 0.1,
+      "stiffness_nm_per_rad": 300.0,
+      "damping_nm_s_per_rad": 12.0,
+      "num_solver_iterations": 1,
+      "num_internal_pgs_iterations": 1,
+      "num_internal_stabilization_iterations": 2,
+      "outer_intervals": 1,
+      "input_f32_words": {
+        "mass_kg": "40000000",
+        "outer_dt_s": "3b03126f",
+        "target_pos_rad": "00000000",
+        "max_torque_nm": "40000000",
+        "radius_m": "3dcccccd",
+        "stiffness_nm_per_rad": "43960000",
+        "damping_nm_s_per_rad": "41400000"
+      }
+    }
+  ],
+  "process_order": [
+    {
+      "slot": 0,
+      "variant": "baseline",
+      "case_id": "m05_h05_neg_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 1,
+      "variant": "baseline",
+      "case_id": "m05_h05_neg_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 2,
+      "variant": "baseline",
+      "case_id": "m05_h05_neg_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 3,
+      "variant": "baseline",
+      "case_id": "m05_h05_neg_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 4,
+      "variant": "baseline",
+      "case_id": "m05_h05_neg_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 5,
+      "variant": "baseline",
+      "case_id": "m05_h05_neg_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 6,
+      "variant": "baseline",
+      "case_id": "m05_h05_pos_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 7,
+      "variant": "baseline",
+      "case_id": "m05_h05_pos_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 8,
+      "variant": "baseline",
+      "case_id": "m05_h05_pos_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 9,
+      "variant": "baseline",
+      "case_id": "m05_h05_pos_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 10,
+      "variant": "baseline",
+      "case_id": "m05_h05_pos_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 11,
+      "variant": "baseline",
+      "case_id": "m05_h05_pos_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 12,
+      "variant": "baseline",
+      "case_id": "m05_h05_zero_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 13,
+      "variant": "baseline",
+      "case_id": "m05_h05_zero_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 14,
+      "variant": "baseline",
+      "case_id": "m05_h05_zero_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 15,
+      "variant": "baseline",
+      "case_id": "m05_h2_neg_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 16,
+      "variant": "baseline",
+      "case_id": "m05_h2_neg_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 17,
+      "variant": "baseline",
+      "case_id": "m05_h2_neg_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 18,
+      "variant": "baseline",
+      "case_id": "m05_h2_neg_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 19,
+      "variant": "baseline",
+      "case_id": "m05_h2_neg_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 20,
+      "variant": "baseline",
+      "case_id": "m05_h2_neg_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 21,
+      "variant": "baseline",
+      "case_id": "m05_h2_pos_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 22,
+      "variant": "baseline",
+      "case_id": "m05_h2_pos_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 23,
+      "variant": "baseline",
+      "case_id": "m05_h2_pos_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 24,
+      "variant": "baseline",
+      "case_id": "m05_h2_pos_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 25,
+      "variant": "baseline",
+      "case_id": "m05_h2_pos_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 26,
+      "variant": "baseline",
+      "case_id": "m05_h2_pos_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 27,
+      "variant": "baseline",
+      "case_id": "m05_h2_zero_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 28,
+      "variant": "baseline",
+      "case_id": "m05_h2_zero_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 29,
+      "variant": "baseline",
+      "case_id": "m05_h2_zero_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 30,
+      "variant": "baseline",
+      "case_id": "m2_h05_neg_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 31,
+      "variant": "baseline",
+      "case_id": "m2_h05_neg_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 32,
+      "variant": "baseline",
+      "case_id": "m2_h05_neg_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 33,
+      "variant": "baseline",
+      "case_id": "m2_h05_neg_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 34,
+      "variant": "baseline",
+      "case_id": "m2_h05_neg_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 35,
+      "variant": "baseline",
+      "case_id": "m2_h05_neg_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 36,
+      "variant": "baseline",
+      "case_id": "m2_h05_pos_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 37,
+      "variant": "baseline",
+      "case_id": "m2_h05_pos_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 38,
+      "variant": "baseline",
+      "case_id": "m2_h05_pos_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 39,
+      "variant": "baseline",
+      "case_id": "m2_h05_pos_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 40,
+      "variant": "baseline",
+      "case_id": "m2_h05_pos_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 41,
+      "variant": "baseline",
+      "case_id": "m2_h05_pos_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 42,
+      "variant": "baseline",
+      "case_id": "m2_h05_zero_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 43,
+      "variant": "baseline",
+      "case_id": "m2_h05_zero_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 44,
+      "variant": "baseline",
+      "case_id": "m2_h05_zero_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 45,
+      "variant": "baseline",
+      "case_id": "m2_h2_neg_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 46,
+      "variant": "baseline",
+      "case_id": "m2_h2_neg_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 47,
+      "variant": "baseline",
+      "case_id": "m2_h2_neg_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 48,
+      "variant": "baseline",
+      "case_id": "m2_h2_neg_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 49,
+      "variant": "baseline",
+      "case_id": "m2_h2_neg_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 50,
+      "variant": "baseline",
+      "case_id": "m2_h2_neg_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 51,
+      "variant": "baseline",
+      "case_id": "m2_h2_pos_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 52,
+      "variant": "baseline",
+      "case_id": "m2_h2_pos_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 53,
+      "variant": "baseline",
+      "case_id": "m2_h2_pos_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 54,
+      "variant": "baseline",
+      "case_id": "m2_h2_pos_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 55,
+      "variant": "baseline",
+      "case_id": "m2_h2_pos_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 56,
+      "variant": "baseline",
+      "case_id": "m2_h2_pos_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 57,
+      "variant": "baseline",
+      "case_id": "m2_h2_zero_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 58,
+      "variant": "baseline",
+      "case_id": "m2_h2_zero_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 59,
+      "variant": "baseline",
+      "case_id": "m2_h2_zero_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 60,
+      "variant": "candidate",
+      "case_id": "m05_h05_neg_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 61,
+      "variant": "candidate",
+      "case_id": "m05_h05_neg_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 62,
+      "variant": "candidate",
+      "case_id": "m05_h05_neg_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 63,
+      "variant": "candidate",
+      "case_id": "m05_h05_neg_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 64,
+      "variant": "candidate",
+      "case_id": "m05_h05_neg_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 65,
+      "variant": "candidate",
+      "case_id": "m05_h05_neg_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 66,
+      "variant": "candidate",
+      "case_id": "m05_h05_pos_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 67,
+      "variant": "candidate",
+      "case_id": "m05_h05_pos_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 68,
+      "variant": "candidate",
+      "case_id": "m05_h05_pos_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 69,
+      "variant": "candidate",
+      "case_id": "m05_h05_pos_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 70,
+      "variant": "candidate",
+      "case_id": "m05_h05_pos_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 71,
+      "variant": "candidate",
+      "case_id": "m05_h05_pos_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 72,
+      "variant": "candidate",
+      "case_id": "m05_h05_zero_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 73,
+      "variant": "candidate",
+      "case_id": "m05_h05_zero_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 74,
+      "variant": "candidate",
+      "case_id": "m05_h05_zero_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 75,
+      "variant": "candidate",
+      "case_id": "m05_h2_neg_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 76,
+      "variant": "candidate",
+      "case_id": "m05_h2_neg_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 77,
+      "variant": "candidate",
+      "case_id": "m05_h2_neg_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 78,
+      "variant": "candidate",
+      "case_id": "m05_h2_neg_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 79,
+      "variant": "candidate",
+      "case_id": "m05_h2_neg_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 80,
+      "variant": "candidate",
+      "case_id": "m05_h2_neg_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 81,
+      "variant": "candidate",
+      "case_id": "m05_h2_pos_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 82,
+      "variant": "candidate",
+      "case_id": "m05_h2_pos_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 83,
+      "variant": "candidate",
+      "case_id": "m05_h2_pos_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 84,
+      "variant": "candidate",
+      "case_id": "m05_h2_pos_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 85,
+      "variant": "candidate",
+      "case_id": "m05_h2_pos_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 86,
+      "variant": "candidate",
+      "case_id": "m05_h2_pos_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 87,
+      "variant": "candidate",
+      "case_id": "m05_h2_zero_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 88,
+      "variant": "candidate",
+      "case_id": "m05_h2_zero_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 89,
+      "variant": "candidate",
+      "case_id": "m05_h2_zero_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 90,
+      "variant": "candidate",
+      "case_id": "m2_h05_neg_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 91,
+      "variant": "candidate",
+      "case_id": "m2_h05_neg_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 92,
+      "variant": "candidate",
+      "case_id": "m2_h05_neg_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 93,
+      "variant": "candidate",
+      "case_id": "m2_h05_neg_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 94,
+      "variant": "candidate",
+      "case_id": "m2_h05_neg_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 95,
+      "variant": "candidate",
+      "case_id": "m2_h05_neg_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 96,
+      "variant": "candidate",
+      "case_id": "m2_h05_pos_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 97,
+      "variant": "candidate",
+      "case_id": "m2_h05_pos_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 98,
+      "variant": "candidate",
+      "case_id": "m2_h05_pos_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 99,
+      "variant": "candidate",
+      "case_id": "m2_h05_pos_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 100,
+      "variant": "candidate",
+      "case_id": "m2_h05_pos_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 101,
+      "variant": "candidate",
+      "case_id": "m2_h05_pos_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 102,
+      "variant": "candidate",
+      "case_id": "m2_h05_zero_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 103,
+      "variant": "candidate",
+      "case_id": "m2_h05_zero_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 104,
+      "variant": "candidate",
+      "case_id": "m2_h05_zero_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 105,
+      "variant": "candidate",
+      "case_id": "m2_h2_neg_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 106,
+      "variant": "candidate",
+      "case_id": "m2_h2_neg_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 107,
+      "variant": "candidate",
+      "case_id": "m2_h2_neg_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 108,
+      "variant": "candidate",
+      "case_id": "m2_h2_neg_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 109,
+      "variant": "candidate",
+      "case_id": "m2_h2_neg_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 110,
+      "variant": "candidate",
+      "case_id": "m2_h2_neg_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 111,
+      "variant": "candidate",
+      "case_id": "m2_h2_pos_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 112,
+      "variant": "candidate",
+      "case_id": "m2_h2_pos_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 113,
+      "variant": "candidate",
+      "case_id": "m2_h2_pos_cap2",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 114,
+      "variant": "candidate",
+      "case_id": "m2_h2_pos_cap001",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 115,
+      "variant": "candidate",
+      "case_id": "m2_h2_pos_cap001",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 116,
+      "variant": "candidate",
+      "case_id": "m2_h2_pos_cap001",
+      "observer": "off",
+      "label": "off"
+    },
+    {
+      "slot": 117,
+      "variant": "candidate",
+      "case_id": "m2_h2_zero_cap2",
+      "observer": "on",
+      "label": "on"
+    },
+    {
+      "slot": 118,
+      "variant": "candidate",
+      "case_id": "m2_h2_zero_cap2",
+      "observer": "on",
+      "label": "fresh_on"
+    },
+    {
+      "slot": 119,
+      "variant": "candidate",
+      "case_id": "m2_h2_zero_cap2",
+      "observer": "off",
+      "label": "off"
+    }
+  ],
+  "budget": {
+    "fresh_native_processes": 120,
+    "scientific_reader_invocations": 1,
+    "pilot_processes": 0,
+    "retries": 0,
+    "replacement_processes": 0,
+    "old_reader_invocations": 0
+  },
+  "candidate": "Diagnostic outside copy ForceBased D=inv(w+g); previous global rejection remains unchanged.",
+  "physical_reference": "Independent SI clipped backward Euler using I=(2/5)mR^2; integration velocity distinct from final writeback.",
+  "promotion_gates": [
+    "historical four primary accuracy criteria unchanged",
+    "literal physical stdout examples133-138 unchanged",
+    "both heavy grasp tests",
+    "full required local and GitHub CI"
+  ],
+  "claims_excluded": [
+    "production adoption",
+    "hardware validation",
+    "coupled contact cause",
+    "maturity increase"
+  ],
+  "pre_data_required": [
+    "exact source/compiler/features/flags/binaries and environment",
+    "pure tests",
+    "frozen once-only driver and independent reader",
+    "independent admission"
+  ],
+  "created_utc": "2026-10-13T01:14:46.380381+00:00",
+  "source_case_template": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/protocol-source-template.json",
+    "bytes": 32480,
+    "sha256": "9ed5bb514d9aee946c8623d87aff15087ae98cb9e7a695c48e5c3fdcf8a05552"
+  },
+  "operative_diagnostic_declaration": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v2.json",
+    "bytes": 4572,
+    "sha256": "e3731a9f36121a5a8470a3148c6eb4c0a1da3758bf59d417a1aa03d2c56bb9d3"
+  },
+  "independent_physics_review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-physics-review/independent-physics-review.json",
+    "bytes": 8501,
+    "sha256": "44cef34325d0c1de01bafb9787338f0e29912bd6d3f4d21a4cbd1603ed4e0162"
+  },
+  "precedence": {
+    "operative": "physical-declaration-v2.json and independently checked per-quantity nominal-SI allowances; thresholds unchanged",
+    "collector_earlier_proposal": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/physical-protocol-and-gates.md",
+      "bytes": 7344,
+      "sha256": "b0f917b682018e8d4fc0da63cf063cc5faca9ced0cfbb325d0008b0e1404e247"
+    },
+    "earlier_envelope_request": "Historical preparatory suggestion only; not an operative requirement or claim of complete inertia/f32 error propagation. No original build-bound document is overwritten.",
+    "earlier_12_pilot": "Superseded before data and never launched."
+  },
+  "literal_mass_guard": "Registered child public mass words equal source-controlled binary32 powers0.5/2 in initial and final snapshots; no fitted mass tolerance.",
+  "failure_policy": "Stop on first failed/unknown native process; preserve consumed claims and original exits/partial bytes; no resume/retry/replacement.",
+  "registered_maximum_fresh_processes": 120,
+  "registered_maximum_scientific_readers": 1,
+  "native_processes_before_protocol": 0,
+  "scientific_reader_invocations_before_protocol": 0
+}

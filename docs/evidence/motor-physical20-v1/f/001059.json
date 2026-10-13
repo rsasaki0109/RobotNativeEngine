@@ -1,0 +1,34 @@
+{
+  "kind": "NEW20_SOURCE_ONLY_REUSED_INDEPENDENT_MATH",
+  "sources": [
+    {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/stage_numeric.py",
+      "destination": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149,
+      "source_only_literal_copy": true
+    },
+    {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/construction_oracle.py",
+      "destination": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177,
+      "source_only_literal_copy": true
+    },
+    {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/integration_oracle.py",
+      "destination": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010,
+      "source_only_literal_copy": true
+    },
+    {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-visit-placement-reader/physical_reference.py",
+      "destination": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800,
+      "source_only_literal_copy": true
+    }
+  ],
+  "native_data_or_old_readers_executed": 0
+}

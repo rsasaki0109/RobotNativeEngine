@@ -1,0 +1,14 @@
+{
+  "label": "baseline-strict-rustdoc",
+  "argv": [
+    "cargo",
+    "--config",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/baseline-cargo-config.toml",
+    "doc",
+    "--locked",
+    "--no-deps"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "start_unix_ns": 1791853507949703865,
+  "native_fixture_invoked": false
+}

@@ -511,6 +511,17 @@ the captured coordinate with both velocities at 0.0243901238 rad/s; the 3/0
 profile changes the coordinate endpoint and has both velocities at 0.0312500075
 rad/s. This external prototype adds no workspace CLI or production setting.
 See [the whole retained study](evidence/motor-visit-placement-v1/README.md).
+
+A separate external physical diagnostic uses two source-copy builds and twenty
+fixed contact-free ForceBased inertia/time/cap conditions. All 120 original
+processes and the one frozen reader complete with source/state fidelity checks
+passing. Inactive-cap cases meet the independently declared nominal-SI allowances
+in 0/8 baseline and 8/8 candidate cases; saturated and zero controls meet them in
+both builds. These are one-interval diagnostics with integration/final velocity
+kept distinct, not a new workspace example or production setting. The earlier
+global inverse-(w+g) rejection and four-primary calibration failure are unchanged.
+See [the full physical diagnostic](evidence/motor-physical20-v1/README.md).
+
 The scalar 0/4 failure and rejected inverse-diagonal candidate remain unchanged;
 these observations establish no motor-accuracy or hardware improvement.
 

@@ -1,0 +1,200 @@
+{
+  "kind": "FINAL_SOURCE_ONLY_NEW_PHYSICAL20_READER_HANDOFF",
+  "schema_version": 1,
+  "status": "SEALED_PRE_DATA_READY_FOR_INDEPENDENT_ADMISSION_NOT_WORLD_AUTHORIZATION",
+  "created_utc": "2026-10-13T01:14:39.656713+00:00",
+  "reader_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py",
+    "sha256": "3dfd29b779c6538af1feddaef16b2666935c4ced172cf74305944eac053d29f2",
+    "bytes": 27271
+  },
+  "source_manifest": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/final-source-manifest.json",
+    "sha256": "e1b1e00f26ec92b65bfb4399ba70c7500a9ba6e3c7b5245f0358f68e77b3caed",
+    "bytes": 5153
+  },
+  "runtime_closure": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py",
+      "sha256": "3dfd29b779c6538af1feddaef16b2666935c4ced172cf74305944eac053d29f2",
+      "bytes": 27271
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/fixed_contract.py",
+      "sha256": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+      "bytes": 23656
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/spec_contract.py",
+      "sha256": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+      "bytes": 7316
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/strict_io.py",
+      "sha256": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+      "bytes": 4176
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/case_context.py",
+      "sha256": "50670236fac40cdf7d8f932a85ae3c09a062cff707a19ec8a6c68da6ba4e6df4",
+      "bytes": 981
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/run_schema.py",
+      "sha256": "09d34aeef3dfd6710a0f94235ddf17381287d0149a20d4e0bd1c63d130641dcc",
+      "bytes": 33824
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_oracle.py",
+      "sha256": "b7c826c51b1e7b426bec96defc9245b85e7de096c18984cf926a6e0810d3233c",
+      "bytes": 6654
+    }
+  ],
+  "pure_tests_closure": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/synthetic_fixtures.py",
+      "sha256": "901b8f930eb18a7859e84e740cc70b36c8a5b991a82b1b9dbd3083c6ef38b256",
+      "bytes": 10333
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_run_schema.py",
+      "sha256": "ff9f617b9801e72e7d814125dd30d9491c05dd22d0ebc3650494de57bffc4c38",
+      "bytes": 6395
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_physical_oracle.py",
+      "sha256": "a43c0f6b3bcafbcb31649ab645ce69661d1c31886dfb2e277f00d10c07ef3877",
+      "bytes": 5348
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_cohort_reader.py",
+      "sha256": "b73132e0e0e9366ba48abf6a9f88c04f784547e34978b30fcff82e4212999f8f",
+      "bytes": 11558
+    }
+  ],
+  "declaration": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v2.json",
+    "sha256": "e3731a9f36121a5a8470a3148c6eb4c0a1da3758bf59d417a1aa03d2c56bb9d3",
+    "bytes": 4572
+  },
+  "retained_initial_declaration": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v1.json",
+    "sha256": "429428402522aa3cd357a900dad610a7cbb123d7fede89c3cfa759698777d523",
+    "bytes": 3789
+  },
+  "documentation": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/README.md",
+    "sha256": "349dca638178fdaa81c719ba3d8ad2b621afcdb6dc3888cd3f0d7b4d98d9dce9",
+    "bytes": 5196
+  },
+  "shared_literal_proof": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/shared-contract-literal-final.json",
+    "sha256": "622bfced298580a952c01a3b9a966cf680d662858b903dc5cc51ca8c5a027430",
+    "bytes": 627
+  },
+  "final_pure_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-3/actual.json",
+    "sha256": "33fa90f7aac4dc1271972dd0d466d3655fccc30a0fda85be69755b9ac32a0c01",
+    "bytes": 9398
+  },
+  "final_pure_stdout": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-3/stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "final_pure_stderr": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-3/stderr.log",
+    "sha256": "d33c3ab0fac3b050d73be0f5c8748f52c93c2d22da13c5a33d5c3b2db3c95f12",
+    "bytes": 3908
+  },
+  "all_pure_attempts": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-1/actual.json",
+      "sha256": "8c1b3d8a5d9f3fba9f848b735a5276997f0e6d2efe907a63dd667593a19475a7",
+      "bytes": 5429
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-2/actual.json",
+      "sha256": "ea9857bf49cfd394eb3b73d2e99683030672adff0c7aced2cf09207067e73b55",
+      "bytes": 5856
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-3/actual.json",
+      "sha256": "33fa90f7aac4dc1271972dd0d466d3655fccc30a0fda85be69755b9ac32a0c01",
+      "bytes": 9398
+    }
+  ],
+  "final_pure_actual_exit": 0,
+  "pure_test_count": 26,
+  "source_guard_unchanged": true,
+  "CLI": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py",
+    "--spec",
+    "ABS_ADMITTED_WRAPPER",
+    "--spec-sha256",
+    "LITERAL_WRAPPER_SHA",
+    "--result-root",
+    "ABS_REGISTERED_ROOT",
+    "--output",
+    "ABS_REGISTERED_AUDIT",
+    "--checked-outer-receipt",
+    "ABS_MASTER_COLLECT_RECEIPT",
+    "--checked-outer-sha256",
+    "LITERAL_OUTER_SHA"
+  ],
+  "fixed_budget": {
+    "conditions": 20,
+    "builds": 2,
+    "ON_fresh_ON_OFF": 3,
+    "native_processes": 120,
+    "outer_intervals_each": 1,
+    "observed_ON_processes": 80,
+    "constructor_checks": 80,
+    "integration_checks": 80,
+    "source_motor_solves": 240,
+    "companion_events": 720,
+    "stage_v1_events": 2080
+  },
+  "once_only": "Fixed reader-audit-claim.json in registered cohort before processing; alternate output retry blocked after failure; master separately claims reader launch.",
+  "qualification_scope": "Complete original120 exits, checked coordinator and root checkedCLI0 authenticated separately; exact captured ON/fresh/OFF scope, source-ordered normal-zero f32 replay, exact conditional operands, independent nominal SI diagnostics; no historical accuracy or adoption verdict.",
+  "new_physical_scope": "Each metric independently tested against fixed nominal allowances. They are not propagated uncertainty envelopes or consequences of other passes. Public mass power-of-two words are a literal source-domain control; nominal inertia is independently fixed, never fitted from captured W.",
+  "unqualified": [
+    "actual runtime rounding/MXCSR/FTZ/DAZ",
+    "private full-set/pipeline/contact caches",
+    "independent opaque native-object decoder",
+    "complete mass-matrix/LU/external-acceleration construction",
+    "general multi-slice promoted-f64 aggregation",
+    "historical four-primary calibration",
+    "coupled-contact causality",
+    "production adoption",
+    "hardware",
+    "maturity"
+  ],
+  "actual_native_worlds": 0,
+  "actual_native_data_reads": 0,
+  "actual_old_numeric_reads": 0,
+  "actual_scientific_reader_executions": 0,
+  "checkout_modifications": 0
+}

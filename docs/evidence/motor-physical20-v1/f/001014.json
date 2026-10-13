@@ -1,0 +1,167 @@
+{
+  "kind": "NEW20_120_DRIVER_SOURCE_AND_PURE_HANDOFF",
+  "schema_version": 1,
+  "status": "SOURCE_READY_PURE25_PASS_PENDING_INDEPENDENT_ACTUAL_ADMISSION",
+  "created_utc": "2026-10-13T01:11:58.037886+00:00",
+  "sources": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/fixed_contract.py",
+      "sha256": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+      "bytes": 23656
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/strict_io.py",
+      "sha256": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+      "bytes": 4176
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/spec_contract.py",
+      "sha256": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+      "bytes": 7316
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/byte_header.py",
+      "sha256": "1b0f58dc533de524fee180b669c6b44f81603722dd48a084d4c075d64e24f278",
+      "bytes": 6735
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/cohort_driver.py",
+      "sha256": "70877e335de6b161b356885073e7511add1683e36411780e7b58a83395b07385",
+      "bytes": 13059
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/checked_driver.py",
+      "sha256": "ac3c7d824c6d275294b659f9154477660c9f9f7f69d81a7b520aab9ac045737b",
+      "bytes": 6232
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_registered_once.py",
+      "sha256": "ff58dd43de5830b19a1783dcc2f41042f2b074a504424ef45398204fb3858c4e",
+      "bytes": 8323
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/assemble_candidate.py",
+      "sha256": "5ec2342e71fcb9e2d86d4bd7e59288db1989ddeb2e35aaea2624272543727958",
+      "bytes": 5030
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/test_driver_pure.py",
+      "sha256": "810b38570444f3a02078d9fd2327ec09bfa2d8350e445475059536b7a9320261",
+      "bytes": 19932
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_pure_tests.py",
+      "sha256": "b163df95e2f095f44f176c22d40300b0e254903c966e99d2a00ec7408340a0f8",
+      "bytes": 1850
+    }
+  ],
+  "shared_sources": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/fixed_contract.py",
+      "sha256": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+      "bytes": 23656
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/strict_io.py",
+      "sha256": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+      "bytes": 4176
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/spec_contract.py",
+      "sha256": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+      "bytes": 7316
+    }
+  ],
+  "README": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/README.md",
+    "sha256": "88587cb3b4b0c4ebc74d8abe9bee09c893869501c81513df59f23dc4cc89041a",
+    "bytes": 3274
+  },
+  "shared_contract": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/shared-contract-template.json",
+    "sha256": "7a70009bca1175310291ad8e353061b6cc9cbd1be69ae76e1cd1a58bd2073b15",
+    "bytes": 2655
+  },
+  "protocol_template": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/protocol-template.json",
+    "sha256": "965319cc6b0fbeceb33922352f22db04774814c8b60e1bfdb7f4ef2217367369",
+    "bytes": 31838
+  },
+  "root_case_template": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/protocol-source-template.json",
+    "sha256": "9ed5bb514d9aee946c8623d87aff15087ae98cb9e7a695c48e5c3fdcf8a05552",
+    "bytes": 32480
+  },
+  "pure_tests": 25,
+  "pure_original_exit_code": 0,
+  "pure_original_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/actual-command.json",
+    "sha256": "526c5aee414fe354b6492a00a4e0f2b6d60b392998aabb0fb61e27ba7bf080f1",
+    "bytes": 3677
+  },
+  "pure_source_guard_unchanged": true,
+  "pure_outputs": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/actual-command.json",
+      "sha256": "526c5aee414fe354b6492a00a4e0f2b6d60b392998aabb0fb61e27ba7bf080f1",
+      "bytes": 3677
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/sources-after.json",
+      "sha256": "2adaeffe73fbc01cdc5c23bad458693f45657bd7318b9e13fff2dfc589a22f39",
+      "bytes": 2267
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/sources-before.json",
+      "sha256": "2adaeffe73fbc01cdc5c23bad458693f45657bd7318b9e13fff2dfc589a22f39",
+      "bytes": 2267
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/stderr.log",
+      "sha256": "1c7c6f19240d9431861e3efa47981e0f830b6ff57fa29bf7a08902f6be9ab5aa",
+      "bytes": 3823
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "preserved_failed_predata_test_attempt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010727444508Z/actual-command.json",
+    "sha256": "29cc7d5d226d442ea46316e3705755654da3cc2f072058655257b7ac97feac2b",
+    "bytes": 3677
+  },
+  "failed_attempt_diagnosis": "Two tests expected only FileExistsError after rerun; explicit occupied-reader-output preflight raised ValueError. Assertions now accept either refusal and dedicated zero-launch occupied-output test added. No failed native or scientific execution.",
+  "historical_source_copy_provenance": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/historical-source-copy-provenance.json",
+    "sha256": "b5735655e2266b00de286d0d2dba5d9ccfd67c13ead5d31c6e3068924a4b2e91",
+    "bytes": 1643
+  },
+  "historical_source_files_unchanged": true,
+  "native_budget": 120,
+  "scientific_reader_budget": 1,
+  "case_conditions": 20,
+  "pilot_processes": 0,
+  "retries": 0,
+  "resume": false,
+  "original_exits_or_unknown_outcomes_retained": true,
+  "actual_driver_subprocess_native_world_scientific_reader_process_signals_old_dataset_reads_main_Git_remote_mutations": 0,
+  "assembler": {
+    "source": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/assemble_candidate.py",
+      "sha256": "5ec2342e71fcb9e2d86d4bd7e59288db1989ddeb2e35aaea2624272543727958",
+      "bytes": 5030
+    },
+    "API": "assemble(binding_path,protocol_path,collector_schema_path,reader_source_path,producer_review_path,pure_tests_review_path,cwd,output_root,master_run_root,driver_run_receipt_path,reader_output_path,output_candidate_path,extra_paths,environment,timeout_seconds,reader_timeout_seconds)",
+    "runtime_allowlist": "RUSTFLAGS CARGO_ENCODED_RUSTFLAGS RUSTDOCFLAGS RUST_TEST_THREADS",
+    "actual_inherited_environment_required": true
+  },
+  "limits": [
+    "Stub-only source/storage/lifecycle checks are not actual build/physics/SI qualification.",
+    "No old driver/reader/program or numerical dataset executed/read.",
+    "Root exact actual two-binary/source/compiler/protocol/reader/independent admission binding is mandatory before any native collection.",
+    "Public retention, production adoption, hardware verification and maturity are outside this handoff."
+  ],
+  "issues": []
+}

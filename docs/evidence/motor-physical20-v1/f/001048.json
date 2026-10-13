@@ -1,0 +1,50 @@
+{
+  "kind": "NEW_PHYSICAL_POST_BUILD_ROOT_LITERAL_REVIEW",
+  "schema_version": 1,
+  "created_utc": "2026-10-13T01:09:22.134720+00:00",
+  "status": "PASS_BUILD_BYTES_ONLY_NOT_COLLECTION_ADMISSION",
+  "actual_build_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/actual-build-binding.json",
+    "bytes": 107497,
+    "sha256": "89675062b3e245690538e14248defddbb4df018f4cbcadc75042fd29249025c2"
+  },
+  "binaries": {
+    "baseline": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_baseline.native",
+      "bytes": 2859600,
+      "sha256": "048383baf8aaefc1fc0ff87e781c456164070a9e690f971f9eff3df4073fbc79"
+    },
+    "candidate": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_candidate.native",
+      "bytes": 2859736,
+      "sha256": "23443b28d638eda841a79e2ddd44f86936a89b06f522c80060926e7bf9bca464"
+    }
+  },
+  "all_sources_still_match": true,
+  "native_worlds": 0,
+  "scientific_reader_invocations": 0,
+  "production_adoption": false,
+  "root_head": "423a3fd7f44128aa440afe47f937039de504f275",
+  "root_status": "",
+  "pre_data_failure_receipts": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-strict-clippy-actual.json",
+      "bytes": 519,
+      "sha256": "c111a91cc1e50349375472656d87e0e1d5cdb67648e7abf169f9e1723050950e"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-strict-clippy-actual.json",
+      "bytes": 519,
+      "sha256": "8539e29864b9602545dbebb1cd4597b0edfd5d6744d7d63b0e63bc631a25207c"
+    }
+  ],
+  "resolved_pre_data_failures": [
+    "cargo external Clippy needs --config after clippy subcommand",
+    "copied unchanged repository threshold150 and split new181-line pure input-table test; no physics/helper change"
+  ],
+  "qualified_attempt": 3,
+  "next_requires": [
+    "final reader/driver pure tests and source closure",
+    "frozen candidate and independent pre-data admission"
+  ]
+}

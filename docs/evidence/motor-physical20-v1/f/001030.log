@@ -1,0 +1,30 @@
+test_all120_claims_and_ancestor_barriers_precede_first_stub (__main__.DriverFaultTests.test_all120_claims_and_ancestor_barriers_precede_first_stub) ... ok
+test_all120_stub_originals_and_byte_headers_complete (__main__.DriverFaultTests.test_all120_stub_originals_and_byte_headers_complete) ... ok
+test_checked_group_cleanup_uses_owned_group_with_no_real_signals (__main__.DriverFaultTests.test_checked_group_cleanup_uses_owned_group_with_no_real_signals) ... ok
+test_checked_nonzero_original_is_retained (__main__.DriverFaultTests.test_checked_nonzero_original_is_retained) ... ok
+test_default_validation_never_claims_or_spawns (__main__.DriverFaultTests.test_default_validation_never_claims_or_spawns) ... ok
+test_directory_barrier_failure_starts_no_stub (__main__.DriverFaultTests.test_directory_barrier_failure_starts_no_stub) ... ok
+test_final_coordinator_storage_failure_cannot_claim_completed (__main__.DriverFaultTests.test_final_coordinator_storage_failure_cannot_claim_completed) ... ok
+test_interrupted_wait_reaps_stub_preserves_original_exit_and_error (__main__.DriverFaultTests.test_interrupted_wait_reaps_stub_preserves_original_exit_and_error) ... ok
+test_late_terminal_storage_failure_does_not_erase_original_start_exit (__main__.DriverFaultTests.test_late_terminal_storage_failure_does_not_erase_original_start_exit) ... ok
+test_master_exactly_one_reader_after120_headers_and_no_resume (__main__.DriverFaultTests.test_master_exactly_one_reader_after120_headers_and_no_resume) ... ok
+test_master_failed_byte_header_blocks_reader_without_new_world (__main__.DriverFaultTests.test_master_failed_byte_header_blocks_reader_without_new_world) ... ok
+test_master_failed_collection_never_launches_reader (__main__.DriverFaultTests.test_master_failed_collection_never_launches_reader) ... ok
+test_master_reader_nonzero_is_retained_with_no_rerun (__main__.DriverFaultTests.test_master_reader_nonzero_is_retained_with_no_rerun) ... ok
+test_master_reader_spawn_uncertain_claim_cannot_replace (__main__.DriverFaultTests.test_master_reader_spawn_uncertain_claim_cannot_replace) ... ok
+test_native_header_tamper_truncation_and_off_payload_rejected (__main__.DriverFaultTests.test_native_header_tamper_truncation_and_off_payload_rejected) ... ok
+test_nonzero_original_stops_after_one_no_replacement (__main__.DriverFaultTests.test_nonzero_original_stops_after_one_no_replacement) ... ok
+test_occupied_reader_output_refuses_before_any_claim_or_stub_call (__main__.DriverFaultTests.test_occupied_reader_output_refuses_before_any_claim_or_stub_call) ... ok
+test_process_started_receipt_failure_keeps_started_memory_and_reaps (__main__.DriverFaultTests.test_process_started_receipt_failure_keeps_started_memory_and_reaps) ... ok
+test_root_literal20_order120_no_pilot_or_tuning (__main__.DriverFaultTests.test_root_literal20_order120_no_pilot_or_tuning) ... ok
+test_source_or_binary_mutation_after_one_stops_further_calls (__main__.DriverFaultTests.test_source_or_binary_mutation_after_one_stops_further_calls) ... ok
+test_spec_case_order_and_bool_world_count_rejected (__main__.DriverFaultTests.test_spec_case_order_and_bool_world_count_rejected) ... ok
+test_timeout_reaps_stub_and_keeps_original_negative_exit (__main__.DriverFaultTests.test_timeout_reaps_stub_and_keeps_original_negative_exit) ... ok
+test_uncertain_spawn_never_claims_zero_or_resumes (__main__.DriverFaultTests.test_uncertain_spawn_never_claims_zero_or_resumes) ... ok
+test_wrong_binary_admission_does_not_authorize_any_call (__main__.DriverFaultTests.test_wrong_binary_admission_does_not_authorize_any_call) ... ok
+test_wrong_external_wrapper_sha_rejected_before_claim (__main__.DriverFaultTests.test_wrong_external_wrapper_sha_rejected_before_claim) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 26.483s
+
+OK

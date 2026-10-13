@@ -1,0 +1,2741 @@
+{
+  "kind": "fixed_case_frozen_input_guard",
+  "schema_version": 1,
+  "phase": "after",
+  "case": {
+    "slot": 92,
+    "variant": "candidate",
+    "case_id": "m2_h05_neg_cap2",
+    "observer": "off",
+    "label": "off"
+  },
+  "attempt_index": 92,
+  "verified_utc": "2026-10-13T01:26:48.396338+00:00",
+  "binaries": {
+    "baseline": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_baseline.native",
+      "bytes": 2859600,
+      "sha256": "048383baf8aaefc1fc0ff87e781c456164070a9e690f971f9eff3df4073fbc79"
+    },
+    "candidate": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_candidate.native",
+      "bytes": 2859736,
+      "sha256": "23443b28d638eda841a79e2ddd44f86936a89b06f522c80060926e7bf9bca464"
+    }
+  },
+  "frozen_inputs": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/README.md",
+      "sha256": "51de9aef01607a73f83df684351f950034c808e2fc6ab715038a137c1dfc93a1",
+      "bytes": 3050
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/actual-build-binding.json",
+      "sha256": "89675062b3e245690538e14248defddbb4df018f4cbcadc75042fd29249025c2",
+      "bytes": 107497
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/baseline-cargo-config.toml",
+      "sha256": "d470a9f1404f74083477454afa0981b9e1386f46d030c5582365daad900c09eb",
+      "bytes": 131
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/actual-cargo-path-actual.json",
+      "sha256": "fec1bcf9a20fb35f2e3254d0d55b5fa479b59627ef87c4549172981a61d74709",
+      "bytes": 325
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/actual-cargo-path-command.json",
+      "sha256": "c82626a24f6a490d55ff15b6c01dd9ae7fb7e9b841de3b9f4223b3b9dd4051ee",
+      "bytes": 265
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/actual-cargo-path-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/actual-cargo-path-stdout.log",
+      "sha256": "f0a14a33154720c5a0e9a2fa05aeac05a82840b32b61dab3f8a835066757a266",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/actual-rustc-path-actual.json",
+      "sha256": "e24c87093752a1ff2ecdad474311179de5755b513fe477492248d4877f360b71",
+      "bytes": 325
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/actual-rustc-path-command.json",
+      "sha256": "59457e174ca16c2ae423fedff2a46669d0cfd198e7b7ff8b8cd25ab7ff00a5ed",
+      "bytes": 265
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/actual-rustc-path-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/actual-rustc-path-stdout.log",
+      "sha256": "a05a70d1a2f6620c94fd8e3c9b1f249aacfe0b381f793794b7036dae3f24a58e",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-features-actual.json",
+      "sha256": "27c2b6d222dd615deb50087cf56aaae8d7e4599fe8abdf39429226e2c6485e52",
+      "bytes": 479
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-features-command.json",
+      "sha256": "27f4cf9238b2755f1fec85bc71cbc98131255b2a6b8c8ddf4c5568bfc3188f8e",
+      "bytes": 419
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-features-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-features-stdout.log",
+      "sha256": "39ca06d8582525a0cd7811a955f0f60d78fbb3028c592f642c35bf8b5d82768b",
+      "bytes": 24012
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-metadata-actual.json",
+      "sha256": "085009c42e9877b9b87cb0e765d1027f34154e1a3230df11bf1648c478e92a35",
+      "bytes": 490
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-metadata-command.json",
+      "sha256": "f301c5ebf46d2a87d893de704e6a424e75e7ff016c254ee1ffce7da12ed305ea",
+      "bytes": 430
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-metadata-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-metadata-stdout.log",
+      "sha256": "a7a7e0e1771d319057ff5c5d57f3c452c3d2093d2ae4cc3b921fa84498e75044",
+      "bytes": 316055
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-pure-tests-actual.json",
+      "sha256": "b7439e8e4f51f49ea33b9b3b3f109ef28d6650b153420a033d9a1ac66522ea2b",
+      "bytes": 468
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-pure-tests-command.json",
+      "sha256": "35647aef48a71f2ab6221e5f902a32b69747ce7f20fb1ab07b129974e8cb15ba",
+      "bytes": 408
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-pure-tests-stderr.log",
+      "sha256": "477dbfef23d52bf4235498eaa96ad90980af54e5942fd19fa6c5c218124bdda1",
+      "bytes": 2628
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-pure-tests-stdout.log",
+      "sha256": "81e85f5e6f057504a2cc9167f01c1da8fc9ee8a22c8716f95c233e58c0ead8a7",
+      "bytes": 913
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-strict-clippy-actual.json",
+      "sha256": "c111a91cc1e50349375472656d87e0e1d5cdb67648e7abf169f9e1723050950e",
+      "bytes": 519
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-strict-clippy-command.json",
+      "sha256": "7347a23c06a1ad84ce3b49d037088a8f0d1cb3712922c404f70ffd63faa52088",
+      "bytes": 457
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-strict-clippy-stderr.log",
+      "sha256": "37003d80350b886ab44f17550b50b09b1e12f31c95bf18b70ce2e50ed61f00ac",
+      "bytes": 321
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/baseline-strict-clippy-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/cargo-version-actual.json",
+      "sha256": "5739ac618967dc09adbe02c752ab2481c391c3701debfc44dcd9d3774cd4451e",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/cargo-version-command.json",
+      "sha256": "87e72c2044e531e9dc621e82512134bb00672a7d4a92bf02213cf6d327edae94",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/cargo-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/cargo-version-stdout.log",
+      "sha256": "c6cd47fb28b137d9450165b5b0796de3dfdac887c91ea225c53506f3fc5f6add",
+      "bytes": 328
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/cc-version-actual.json",
+      "sha256": "47fa976f5aa77a7739c9946c22fb305191bea9662ec98b40abf4b12935c3a68f",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/cc-version-command.json",
+      "sha256": "fbe62b938f8ca61b7ab2d674aab4b1e02530bb50bddceb5266690ea083983da9",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/cc-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/cc-version-stdout.log",
+      "sha256": "78fc11ae2c3ff7c235eb18ed90989d18f6cc864fb27027f839368cd0888deebc",
+      "bytes": 231
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/format-check-collector-only-actual.json",
+      "sha256": "8511984ba3f243dcfa05c22e6e3703085cb593146ef8be7a62edd64e478539c6",
+      "bytes": 399
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/format-check-collector-only-command.json",
+      "sha256": "168e06ce96a6fb7f77ae0278780b6c867393ba0d6796e186ba20c365bcb64e59",
+      "bytes": 339
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/format-check-collector-only-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/format-check-collector-only-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/format-collector-only-actual.json",
+      "sha256": "b06ab57f5029f635006d39b4a4027d61562a83ffae29385b0a85fbf3e27e095c",
+      "bytes": 378
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/format-collector-only-command.json",
+      "sha256": "6a8c3f42c8ef3ad1124aa8e105b69cf72efd2d7ffd014bd91edb9c3421dec666",
+      "bytes": 318
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/format-collector-only-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/format-collector-only-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/ld-version-actual.json",
+      "sha256": "2d2111cf56c4b153746d8826c9597aff458d5d564ebcda5e1c9e988e54186c54",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/ld-version-command.json",
+      "sha256": "3d91837e0e3042dca27acc33556cf10ddcb0282de20870af6f2b550a71e0277f",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/ld-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/ld-version-stdout.log",
+      "sha256": "cfff299abc32f737f1cb856667d31ff328f3755d06d98bc093a3ed8e98d4339e",
+      "bytes": 281
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/rustc-version-actual.json",
+      "sha256": "26384be2e937df57c5aa5e59e0315eb00808440ca7f4bc7c7091b20db46c70cc",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/rustc-version-command.json",
+      "sha256": "f1aa0501ddb4c7119ab6cea8bb6c9585889c695c655499c1d2345934219aeb17",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/rustc-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/rustc-version-stdout.log",
+      "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+      "bytes": 196
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/sources-before.json",
+      "sha256": "f5fae57fc594359602a80243788a6c569f0d5fcab5a49d87d8012b8472a208c2",
+      "bytes": 66450
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/target-cfg-actual.json",
+      "sha256": "a21b1866cff51904a2b2bf50ed642a3096270b0f26262fc0b97d6c66ab7eafc4",
+      "bytes": 317
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/target-cfg-command.json",
+      "sha256": "a4254d922ae72ebc7cc17921cc24a80fa4d0b1a4abedff856a0a96c5fdfd8a6f",
+      "bytes": 257
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/target-cfg-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-1/target-cfg-stdout.log",
+      "sha256": "fc10eb20a7d7b72645bb1bca51c110fe8af01944a91935dfac9a9cc6a8fb53a5",
+      "bytes": 381
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/actual-cargo-path-actual.json",
+      "sha256": "cc2c02741b5bd640bd295d66ef0db99e8f07ec74485578ff7c699c3fc1ffd815",
+      "bytes": 325
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/actual-cargo-path-command.json",
+      "sha256": "b5ea65eeca9acbd293c5513a9fa76b66deafb17ec80c03087f14303777ab253c",
+      "bytes": 265
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/actual-cargo-path-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/actual-cargo-path-stdout.log",
+      "sha256": "f0a14a33154720c5a0e9a2fa05aeac05a82840b32b61dab3f8a835066757a266",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/actual-rustc-path-actual.json",
+      "sha256": "f5805d419da85510ad2c9ca231d930b70e09f9d8fbd5035e491580f43941ac6c",
+      "bytes": 325
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/actual-rustc-path-command.json",
+      "sha256": "5a565588d4aa07f509e103039ed548752980420859f0823a62dd9483333d186d",
+      "bytes": 265
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/actual-rustc-path-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/actual-rustc-path-stdout.log",
+      "sha256": "a05a70d1a2f6620c94fd8e3c9b1f249aacfe0b381f793794b7036dae3f24a58e",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-features-actual.json",
+      "sha256": "23d1ceb3b532249e92b4af7d83005caf36c4ee8328b51a32e5324c4934b260a3",
+      "bytes": 479
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-features-command.json",
+      "sha256": "32cbdcf77bde7284509d24c6178ca539002f40953e39c2b55917d4b96a61e5e2",
+      "bytes": 419
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-features-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-features-stdout.log",
+      "sha256": "39ca06d8582525a0cd7811a955f0f60d78fbb3028c592f642c35bf8b5d82768b",
+      "bytes": 24012
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-metadata-actual.json",
+      "sha256": "88abdadd1f3f95bd1ee55d8109948ca3ebecd78d448382a7684cb17f1fb3e7ac",
+      "bytes": 490
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-metadata-command.json",
+      "sha256": "8f1865b62b708d9ae6fd1f9742457f168eb7a3952f5a5e5f50e126de48a19a37",
+      "bytes": 430
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-metadata-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-metadata-stdout.log",
+      "sha256": "a7a7e0e1771d319057ff5c5d57f3c452c3d2093d2ae4cc3b921fa84498e75044",
+      "bytes": 316055
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-pure-tests-actual.json",
+      "sha256": "e7b1f4d831b81b4cd7043ebb742e19fb0beca4df35075ff5808bd1f7c55837ff",
+      "bytes": 468
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-pure-tests-command.json",
+      "sha256": "577d331d7f5a27a4d2de386082817d62627d900ce3aad227fc3d590caf45ad6d",
+      "bytes": 408
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-pure-tests-stderr.log",
+      "sha256": "eb628a0652c2f1d0bb25285433f44b348cff88bf703101029755994ceae1ccd8",
+      "bytes": 239
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-pure-tests-stdout.log",
+      "sha256": "81e85f5e6f057504a2cc9167f01c1da8fc9ee8a22c8716f95c233e58c0ead8a7",
+      "bytes": 913
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-strict-clippy-actual.json",
+      "sha256": "8539e29864b9602545dbebb1cd4597b0edfd5d6744d7d63b0e63bc631a25207c",
+      "bytes": 519
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-strict-clippy-command.json",
+      "sha256": "6a93a37603d2bd5c41dfeb8ff30154253419e9b257d7dbabc75c64526388cc07",
+      "bytes": 457
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-strict-clippy-stderr.log",
+      "sha256": "d2dceadf977ba4e12f413506d4c7858fbf126cb590778f2792580617515a9b05",
+      "bytes": 3071
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/baseline-strict-clippy-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/cargo-version-actual.json",
+      "sha256": "ff56277ac0875249caa7a04ea3cf63da22e90600b7a5b519459536fa8a85a0e6",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/cargo-version-command.json",
+      "sha256": "d36f8d63411ebd8bc48b7ff8793a28a763d30dfc68b4356d4a5cc22d38dae401",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/cargo-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/cargo-version-stdout.log",
+      "sha256": "c6cd47fb28b137d9450165b5b0796de3dfdac887c91ea225c53506f3fc5f6add",
+      "bytes": 328
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/cc-version-actual.json",
+      "sha256": "9999d81bf3209119e4f4c4c52bc78a5bd908b6c1e894472e12ebd54bfeb25b3b",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/cc-version-command.json",
+      "sha256": "f619bee08b8c473cbadc051e6fb4bd50c0dd96054996c584821ada2d7ef0ad50",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/cc-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/cc-version-stdout.log",
+      "sha256": "78fc11ae2c3ff7c235eb18ed90989d18f6cc864fb27027f839368cd0888deebc",
+      "bytes": 231
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/format-check-collector-only-actual.json",
+      "sha256": "504d92874fedd7cb5ecccf162a7665f9f169d0baa717aef7f4eb03ab5f662a39",
+      "bytes": 399
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/format-check-collector-only-command.json",
+      "sha256": "eece5055a8f2a6fb0a7e7e85a621d6ced043d7b3c21ef5753e9088a752db9fc2",
+      "bytes": 339
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/format-check-collector-only-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/format-check-collector-only-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/format-collector-only-actual.json",
+      "sha256": "a91e1e37cfa8221ddd5df9529af9fb26cd0be529b7aeb6f0c35d2f7bef8f0cb1",
+      "bytes": 378
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/format-collector-only-command.json",
+      "sha256": "f41640cae3a4a36a86f683418830feec6925a7490d6db4fbe5f4cd23e9338bfe",
+      "bytes": 318
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/format-collector-only-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/format-collector-only-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/ld-version-actual.json",
+      "sha256": "071941f286292f929fecd21b4d946eb88edc336818eb209fbd6071583015340d",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/ld-version-command.json",
+      "sha256": "185ea4174f27aa7039217b6aee1e7b1226eaef28ccf5ab18725a617c0070e757",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/ld-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/ld-version-stdout.log",
+      "sha256": "cfff299abc32f737f1cb856667d31ff328f3755d06d98bc093a3ed8e98d4339e",
+      "bytes": 281
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/rustc-version-actual.json",
+      "sha256": "4987bebe0e8285a0d7c05f8598a7dec896960e3d975ebee5a554da4e0d9c07bf",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/rustc-version-command.json",
+      "sha256": "3facf0286c79576d828812c53c87b95fdfd6b31713db9db0acd48bfcc02433ed",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/rustc-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/rustc-version-stdout.log",
+      "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+      "bytes": 196
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/sources-before.json",
+      "sha256": "22f8bc66e1137a6b0f67adfb7478c6fc58ce53bdd473acdf9780740d5a763031",
+      "bytes": 66450
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/target-cfg-actual.json",
+      "sha256": "b0529e908b8ed8f355099a6f3d5881978b8eecf0ddd7f2bbc0e8e7d84b9806c6",
+      "bytes": 317
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/target-cfg-command.json",
+      "sha256": "19cc42aba584e15378f67a0ed64f0478aa00869d412b43a071e4bfef38934100",
+      "bytes": 257
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/target-cfg-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-2/target-cfg-stdout.log",
+      "sha256": "fc10eb20a7d7b72645bb1bca51c110fe8af01944a91935dfac9a9cc6a8fb53a5",
+      "bytes": 381
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/actual-cargo-path-actual.json",
+      "sha256": "72ac29b0f3759115f5b19ac1dd9db0723a71cb88e7a802dd169c323922e0c38e",
+      "bytes": 325
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/actual-cargo-path-command.json",
+      "sha256": "b1e5e80b7613663e48915bf58c33d028715e46fce410d3a2ceba355c23497ae0",
+      "bytes": 265
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/actual-cargo-path-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/actual-cargo-path-stdout.log",
+      "sha256": "f0a14a33154720c5a0e9a2fa05aeac05a82840b32b61dab3f8a835066757a266",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/actual-rustc-path-actual.json",
+      "sha256": "086320af5b5f376be588b992d85655a4e9dcbd0d5775810a38f07f0aaceb94bf",
+      "bytes": 325
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/actual-rustc-path-command.json",
+      "sha256": "2ea06310184b31bf7a3e001e6c23898f2fc4351cb4f5ffa1d78e5233563a0cfe",
+      "bytes": 265
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/actual-rustc-path-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/actual-rustc-path-stdout.log",
+      "sha256": "a05a70d1a2f6620c94fd8e3c9b1f249aacfe0b381f793794b7036dae3f24a58e",
+      "bytes": 82
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-features-actual.json",
+      "sha256": "7a635903137377dcc37eaf812ab0689724b204a3f4ed18b338b355a2f82eeb9a",
+      "bytes": 479
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-features-command.json",
+      "sha256": "2a7c0a92883447150f6c62482e8277caf015977af522711650f72321e736966c",
+      "bytes": 419
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-features-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-features-stdout.log",
+      "sha256": "39ca06d8582525a0cd7811a955f0f60d78fbb3028c592f642c35bf8b5d82768b",
+      "bytes": 24012
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-metadata-actual.json",
+      "sha256": "1e9a29b7d99a83b4654f55d556f3529bf98b96534a6dad8de05b212c67755c60",
+      "bytes": 490
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-metadata-command.json",
+      "sha256": "75466d4ad242157d4b19991c6ef11dd4fb3eddfecc4366f2d5c49cb960a36ca9",
+      "bytes": 430
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-metadata-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-metadata-stdout.log",
+      "sha256": "a7a7e0e1771d319057ff5c5d57f3c452c3d2093d2ae4cc3b921fa84498e75044",
+      "bytes": 316055
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-pure-tests-actual.json",
+      "sha256": "5732f3d414bbb1913b3fc63eeb61755523549f23297c9ed4033dbf19cf6059e9",
+      "bytes": 468
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-pure-tests-command.json",
+      "sha256": "3c2bc0ceba324e18a99e71c3a1f028f5674d25c6c7b892b685e70c87909e4a2c",
+      "bytes": 408
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-pure-tests-stderr.log",
+      "sha256": "64868d7b2c7756dd513df16ddb2abc7baaf6f3ad096b786b7188280bbff47269",
+      "bytes": 373
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-pure-tests-stdout.log",
+      "sha256": "87a68d4122d361ab2f878c285c8061b8f37b6204e5ac6f13a160a728e2c0de1f",
+      "bytes": 913
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-release-build-actual.json",
+      "sha256": "6c83b16f3720efbe3b04ccfd0da91a4d7cff0694e311faf9b529c201972c3720",
+      "bytes": 511
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-release-build-command.json",
+      "sha256": "b0364d060357c7d075d672c05a4074096f837805b866d322820bc2c3be6ecbd0",
+      "bytes": 451
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-release-build-stderr.log",
+      "sha256": "42281e5f31ff3b8884ccb7f3348e0ea1daca130f7fd1bf2f0c546fdeaaba587f",
+      "bytes": 2451
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-release-build-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-strict-clippy-actual.json",
+      "sha256": "634174662fb7f71a15c92ebdfaed657cfc4ec0667b4884f7eb2ad0972dd918b9",
+      "bytes": 517
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-strict-clippy-command.json",
+      "sha256": "42f613bbf7ec92f1dd5f7233ab1b41ee2350773c5d93333c9c7e1480a6f59062",
+      "bytes": 457
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-strict-clippy-stderr.log",
+      "sha256": "2d6a8418f8d9273894ce9e0034992ff5edf81ec7fbc5c147bfa159bcc3ea4774",
+      "bytes": 194
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-strict-clippy-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-strict-rustdoc-actual.json",
+      "sha256": "c1c0739a301465f37c33e8503838b12c0914ef491d7f2a26f3a2f0e7ace72c2f",
+      "bytes": 475
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-strict-rustdoc-command.json",
+      "sha256": "4eb733cf56d86c6068de172b734a216073a0ad2be715a9135ac23d1b66a80e49",
+      "bytes": 415
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-strict-rustdoc-stderr.log",
+      "sha256": "4e9948b0a03829a1678b2945d39e40358c3e1746cc9fbdadaf30eba4834d5fbd",
+      "bytes": 491
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-strict-rustdoc-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-features-actual.json",
+      "sha256": "2a30db2378c4aab5850bafadc4503707254c5dc4d6c8e4c9524fe9ab8c2f2583",
+      "bytes": 481
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-features-command.json",
+      "sha256": "ce5b62c91171bf56e0fb3f4f918b9d38cf383fd71ad56ec704707025383a7892",
+      "bytes": 421
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-features-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-features-stdout.log",
+      "sha256": "8772f199fccb61bb3d97a4ce710fc4051a412e56648a5b852410687ad6fc9181",
+      "bytes": 24032
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-metadata-actual.json",
+      "sha256": "bd7d92e38ce84e62926158c77a83aa9d6904bd72d2df501a5e47cb8f80e58619",
+      "bytes": 492
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-metadata-command.json",
+      "sha256": "593a3ae264bb6f4c9571d1ce8d84d8b40564d9b3e94df35bb9238d381c4391ee",
+      "bytes": 432
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-metadata-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-metadata-stdout.log",
+      "sha256": "e5c208d5ebd02703b05b47b75451603ce8a7852d356fb86902ae98f8623b5da0",
+      "bytes": 316087
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-pure-tests-actual.json",
+      "sha256": "a0519a1086d297048bf387dc23a1fd9ddb18f9c705b18838408b610a3d6c6800",
+      "bytes": 470
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-pure-tests-command.json",
+      "sha256": "970d5910b844c3c899649493474120dd143be9b4a8bb3ba64f8cdbcad86c2983",
+      "bytes": 410
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-pure-tests-stderr.log",
+      "sha256": "8b435a0df66d865074c3192db2d73ae65ffe713bbfce38c5db0c079a2dcbde0f",
+      "bytes": 2634
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-pure-tests-stdout.log",
+      "sha256": "81e85f5e6f057504a2cc9167f01c1da8fc9ee8a22c8716f95c233e58c0ead8a7",
+      "bytes": 913
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-release-build-actual.json",
+      "sha256": "afe7844357b352b1480603c11815303f5c09de83ce278dab69cb77c84da6113c",
+      "bytes": 513
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-release-build-command.json",
+      "sha256": "c3f74570976702ae6074216d406a9a7c3d7f136590a3daf39ceaa5c719e2fdd2",
+      "bytes": 453
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-release-build-stderr.log",
+      "sha256": "4fbe337b8f8612993c7487252299121b90eb9b05d1f4083cd337ec98f0b4df70",
+      "bytes": 2456
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-release-build-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-strict-clippy-actual.json",
+      "sha256": "b78723c2e0511d38863be17ea34ac6c4e47dc2e0d5d8c5aa981d9720694580ed",
+      "bytes": 519
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-strict-clippy-command.json",
+      "sha256": "6cb5ba1c42ebd82445d839ca94b64f9c9b8862efff196a16b1d5f46d84e972d9",
+      "bytes": 459
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-strict-clippy-stderr.log",
+      "sha256": "eb44bd0969c1fbcc8b45726e1442161b17b02d150b9fdba288829cfee7bb6c95",
+      "bytes": 2103
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-strict-clippy-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-strict-rustdoc-actual.json",
+      "sha256": "b497cd953909cd156eaf332d72d56ada50f146eb5f0e3d6336d81f8257d1f17a",
+      "bytes": 477
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-strict-rustdoc-command.json",
+      "sha256": "84d372f48532c4b550f32dd410f70c7f81d61fd7b0031a8cf43848a8651cac02",
+      "bytes": 417
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-strict-rustdoc-stderr.log",
+      "sha256": "8713afdc0bb9caba0b0ac87a41d75fd2513172050f9d50cabb45fd5fa401cfd5",
+      "bytes": 492
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-strict-rustdoc-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/cargo-version-actual.json",
+      "sha256": "c8cd96db1ebe6f5737d932c88e17be3964007877ff122cecbda3156d626ea43a",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/cargo-version-command.json",
+      "sha256": "724db3958c2e963e391eafd73569eec4ec96aba2975d754e09de171fca13fdb2",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/cargo-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/cargo-version-stdout.log",
+      "sha256": "c6cd47fb28b137d9450165b5b0796de3dfdac887c91ea225c53506f3fc5f6add",
+      "bytes": 328
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/cc-version-actual.json",
+      "sha256": "824cee489aca9067121fb77bfe15584578922921ef23efa984816403010b6688",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/cc-version-command.json",
+      "sha256": "d866d5af54564f08b46260858566bb58843f59abd6516725385295501a4895ce",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/cc-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/cc-version-stdout.log",
+      "sha256": "78fc11ae2c3ff7c235eb18ed90989d18f6cc864fb27027f839368cd0888deebc",
+      "bytes": 231
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/format-check-collector-only-actual.json",
+      "sha256": "ee95af5c84c3d07355194016431dbc65c504736c7b54d6314eaf861e42bae479",
+      "bytes": 399
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/format-check-collector-only-command.json",
+      "sha256": "01bc014d33fbc761e49a53d4688e02ffa47026e526c3a9e304c55e92379fa901",
+      "bytes": 339
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/format-check-collector-only-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/format-check-collector-only-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/format-collector-only-actual.json",
+      "sha256": "de8936b3f827f49d3e95382ed53f4f1403717063dcf439c06391eb565d16a81c",
+      "bytes": 378
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/format-collector-only-command.json",
+      "sha256": "1e2a132758da25adb155518d566f7263c8db1e132ed169a17bca0a78cfc46208",
+      "bytes": 318
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/format-collector-only-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/format-collector-only-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/ld-version-actual.json",
+      "sha256": "fe241855b8e2f11fc8b9832c585e48cd3393bdaa1103ef0cf8bf326555abd97c",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/ld-version-command.json",
+      "sha256": "47376f6ffaa311518d574f7c7901bf1716b8bd524d7705b37d08da1a4506ef60",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/ld-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/ld-version-stdout.log",
+      "sha256": "cfff299abc32f737f1cb856667d31ff328f3755d06d98bc093a3ed8e98d4339e",
+      "bytes": 281
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/rustc-version-actual.json",
+      "sha256": "3ff577aad9c05618d8fcd9802444a2f3d9303178645942448b5f856e5cfd0ed1",
+      "bytes": 305
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/rustc-version-command.json",
+      "sha256": "bdbba9ef044f0c3eb883a3001275eb49f357aa09c29d51c3d79bcb3a17ce02be",
+      "bytes": 245
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/rustc-version-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/rustc-version-stdout.log",
+      "sha256": "4fdff2578428e9c5c08ddd7a0d3079c1a106b1cdaa46e73e46f7cd32b0fb9cad",
+      "bytes": 196
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/sources-after.json",
+      "sha256": "d1018e66988b2ea8e7d18d97dff70d7f2dc4c7139f273bcde5f07bd788c81512",
+      "bytes": 67163
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/sources-before.json",
+      "sha256": "d1018e66988b2ea8e7d18d97dff70d7f2dc4c7139f273bcde5f07bd788c81512",
+      "bytes": 67163
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/target-cfg-actual.json",
+      "sha256": "fa9e95827b5db1ca1f76fc619fa39b0922c7f892aedfbd3f06d7cfe13c317cd0",
+      "bytes": 317
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/target-cfg-command.json",
+      "sha256": "523672469304d7baa0372e67bd0152f709a53be2b3de0a3a884017358a58e966",
+      "bytes": 257
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/target-cfg-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/target-cfg-stdout.log",
+      "sha256": "fc10eb20a7d7b72645bb1bca51c110fe8af01944a91935dfac9a9cc6a8fb53a5",
+      "bytes": 381
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/candidate-cargo-config.toml",
+      "sha256": "1669388fba2cb83958a7d58b2e0ade97dd7b153e26725fac621d5d5535ecec8e",
+      "bytes": 136
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/Cargo.lock",
+      "sha256": "896d016b18af585474008329dc46f269d6ee56f40fc7a580940578afa80d490d",
+      "bytes": 17142
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/Cargo.toml",
+      "sha256": "1a9d218c11e706474d89e7c434d3fa33068245b7c1cfa7f3e6f5d51822672c14",
+      "bytes": 768
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/README.md",
+      "sha256": "5eec6575be2e353ec0aa1e8bc2c28ee3379903ee18126c2a39466c2d47d19154",
+      "bytes": 3902
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/clippy.toml",
+      "sha256": "2e5a56898feafc9072d010eb802c24f8a05fce44ae8c4454c3fed13cb9c1444a",
+      "bytes": 67
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/lib.rs",
+      "sha256": "4cae4ce4c1c337c2154a05ae3c804ae54c07332e6b6024a778310d39c352e0d7",
+      "bytes": 39058
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/main.rs",
+      "sha256": "cf207747482c6788aa6ab17770139061a6d667c25df606b4402e754559e89ade",
+      "bytes": 329
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/physical-protocol-and-gates.md",
+      "sha256": "b0f917b682018e8d4fc0da63cf063cc5faca9ced0cfbb325d0008b0e1404e247",
+      "bytes": 7344
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/predata-test-split-receipt.json",
+      "sha256": "287e345d0666e634c2fa24340c0a9200cee97d1db398807fb57fe95ddb5c566d",
+      "bytes": 1812
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/schema-source-contract.json",
+      "sha256": "828df1ad1988f8b62ec4a89940866f4a27aa9a51fb8b1bb50f7b9d1588ea3979",
+      "bytes": 17339
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/source-handoff-before-test-split.json",
+      "sha256": "94328a3f4a347bb82cd19a4d61d10eff37a116309e7eeff98565176c562ca35c",
+      "bytes": 3703
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/source-handoff.json",
+      "sha256": "0c6fa44fedbe1b34e385596e48025f5c7bc6b84e544c41e156aeeca37aa2f733",
+      "bytes": 4805
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/tests.rs",
+      "sha256": "a7f35f2bfcd634f90ac82983aefb43b24f8ae3108d7344bf6a60c221e337ea1d",
+      "bytes": 14749
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/README.md",
+      "sha256": "88587cb3b4b0c4ebc74d8abe9bee09c893869501c81513df59f23dc4cc89041a",
+      "bytes": 3274
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/assemble_candidate.py",
+      "sha256": "5ec2342e71fcb9e2d86d4bd7e59288db1989ddeb2e35aaea2624272543727958",
+      "bytes": 5030
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/byte_header.py",
+      "sha256": "1b0f58dc533de524fee180b669c6b44f81603722dd48a084d4c075d64e24f278",
+      "bytes": 6735
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/checked_driver.py",
+      "sha256": "ac3c7d824c6d275294b659f9154477660c9f9f7f69d81a7b520aab9ac045737b",
+      "bytes": 6232
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/cohort_driver.py",
+      "sha256": "70877e335de6b161b356885073e7511add1683e36411780e7b58a83395b07385",
+      "bytes": 13059
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/fixed_contract.py",
+      "sha256": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+      "bytes": 23656
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/handoff.json",
+      "sha256": "8947747f5da16ef0aceb6260499641fcd7f05d90276903da9b71893edf53ef4a",
+      "bytes": 8447
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/protocol-template.json",
+      "sha256": "965319cc6b0fbeceb33922352f22db04774814c8b60e1bfdb7f4ef2217367369",
+      "bytes": 31838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_pure_tests.py",
+      "sha256": "b163df95e2f095f44f176c22d40300b0e254903c966e99d2a00ec7408340a0f8",
+      "bytes": 1850
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_registered_once.py",
+      "sha256": "ff58dd43de5830b19a1783dcc2f41042f2b074a504424ef45398204fb3858c4e",
+      "bytes": 8323
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/shared-contract-template.json",
+      "sha256": "7a70009bca1175310291ad8e353061b6cc9cbd1be69ae76e1cd1a58bd2073b15",
+      "bytes": 2655
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/spec_contract.py",
+      "sha256": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+      "bytes": 7316
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/strict_io.py",
+      "sha256": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+      "bytes": 4176
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/test_driver_pure.py",
+      "sha256": "810b38570444f3a02078d9fd2327ec09bfa2d8350e445475059536b7a9320261",
+      "bytes": 19932
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010510249745Z/actual-command.json",
+      "sha256": "707deed8c968acba444ee7b860956a8b0539120ac3c4e420bc87602ca65e7318",
+      "bytes": 3677
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010510249745Z/sources-after.json",
+      "sha256": "cd0af98c5075f9b7a8b64db9a04aecad0b18d5fef4b9d47f9959ff7b17e0f85e",
+      "bytes": 2267
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010510249745Z/sources-before.json",
+      "sha256": "cd0af98c5075f9b7a8b64db9a04aecad0b18d5fef4b9d47f9959ff7b17e0f85e",
+      "bytes": 2267
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010510249745Z/stderr.log",
+      "sha256": "7e613b55b057c88404cccdde0cb4c6100de25bf8376484a614b3ecf8aae905c2",
+      "bytes": 3404
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010510249745Z/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010727444508Z/actual-command.json",
+      "sha256": "29cc7d5d226d442ea46316e3705755654da3cc2f072058655257b7ac97feac2b",
+      "bytes": 3677
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010727444508Z/sources-after.json",
+      "sha256": "ad4f0ecfee3d0ec532e9aa3eb5ad8dea97c070cc4a8bac05d0ac29294fcb98bc",
+      "bytes": 2267
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010727444508Z/sources-before.json",
+      "sha256": "ad4f0ecfee3d0ec532e9aa3eb5ad8dea97c070cc4a8bac05d0ac29294fcb98bc",
+      "bytes": 2267
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010727444508Z/stderr.log",
+      "sha256": "ebf703c3c8cf3d8c205a62162957e840b98a711fc78c2ebdeb86a2b155b2ac40",
+      "bytes": 6436
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010727444508Z/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/actual-command.json",
+      "sha256": "526c5aee414fe354b6492a00a4e0f2b6d60b392998aabb0fb61e27ba7bf080f1",
+      "bytes": 3677
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/sources-after.json",
+      "sha256": "2adaeffe73fbc01cdc5c23bad458693f45657bd7318b9e13fff2dfc589a22f39",
+      "bytes": 2267
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/sources-before.json",
+      "sha256": "2adaeffe73fbc01cdc5c23bad458693f45657bd7318b9e13fff2dfc589a22f39",
+      "bytes": 2267
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/stderr.log",
+      "sha256": "1c7c6f19240d9431861e3efa47981e0f830b6ff57fa29bf7a08902f6be9ab5aa",
+      "bytes": 3823
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/freeze_actual_candidate.py",
+      "sha256": "a262fca9ace11292f226b5682e6185cf759a2b548cc9fc6d1e5cad665f9bd018",
+      "bytes": 3991
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-physics-review/independent-physics-review.json",
+      "sha256": "44cef34325d0c1de01bafb9787338f0e29912bd6d3f4d21a4cbd1603ed4e0162",
+      "bytes": 8501
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-source-review/actual-source-only-review/independent-source-only-review.json",
+      "sha256": "bb94d4f50cd2fd6a78d0d212963102a61242350b4cbe233e531dd3150565494d",
+      "bytes": 7119
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/operative-protocol-preparation-attempt-1-failure.json",
+      "sha256": "ce6b89b294c854f25ce8b434a754ccf327f83ac2e1f66e4eea736dad6e93c130",
+      "bytes": 596
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/operative-protocol-v1.json",
+      "sha256": "305725217acb81eb72adf34d56a072fb2792e5cc797ec4f58baaf7a3bacab136",
+      "bytes": 34594
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/post-build-root-review.json",
+      "sha256": "4db727436a0a0a19e6948c1e7323ad30212982aef6dc6293d3327537146a3547",
+      "bytes": 2172
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/prepare_sources.py",
+      "sha256": "498345d9eb860f3b938fc59dc0fe585faafb78c1916c3f7043e024b1f6dd3726",
+      "bytes": 7107
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/protocol-source-template.json",
+      "sha256": "9ed5bb514d9aee946c8623d87aff15087ae98cb9e7a695c48e5c3fdcf8a05552",
+      "bytes": 32480
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/pure-tests-review.json",
+      "sha256": "39b10b6cb14f19a22712717a7c88e5589d452184df8834cbf2829f5ce1ba0d7b",
+      "bytes": 2762
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/qualify_builds.py",
+      "sha256": "3d17ea218f44e07508d244a0cee5701609b35cedc4a10be9013646bd3e1cfa9d",
+      "bytes": 7890
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/README.md",
+      "sha256": "349dca638178fdaa81c719ba3d8ad2b621afcdb6dc3888cd3f0d7b4d98d9dce9",
+      "bytes": 5196
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/case_context.py",
+      "sha256": "50670236fac40cdf7d8f932a85ae3c09a062cff707a19ec8a6c68da6ba4e6df4",
+      "bytes": 981
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/construction_oracle.py",
+      "sha256": "2b45c47a95a572bcd6d2ac55d7159bf1ff32ac3a08793f590f789134d67bf6de",
+      "bytes": 6177
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/final-source-manifest.json",
+      "sha256": "e1b1e00f26ec92b65bfb4399ba70c7500a9ba6e3c7b5245f0358f68e77b3caed",
+      "bytes": 5153
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/fixed_contract.py",
+      "sha256": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+      "bytes": 23656
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/handoff.json",
+      "sha256": "534b7c416aa4b7cbbf9f8b1835f749a8f330d8c682e468419de22c27e7f21a57",
+      "bytes": 9197
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/integration_oracle.py",
+      "sha256": "3b2e4023f996abff888b81ddc4c710dcc1eb47a606dcd3c131e96afe85919cff",
+      "bytes": 4010
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/literal-math-source-reuse.json",
+      "sha256": "00383eb8548fd7db1bdae99bba1cb21f80c695806debbf0b746a143682290943",
+      "bytes": 1742
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v1.json",
+      "sha256": "429428402522aa3cd357a900dad610a7cbb123d7fede89c3cfa759698777d523",
+      "bytes": 3789
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v2.json",
+      "sha256": "e3731a9f36121a5a8470a3148c6eb4c0a1da3758bf59d417a1aa03d2c56bb9d3",
+      "bytes": 4572
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_oracle.py",
+      "sha256": "b7c826c51b1e7b426bec96defc9245b85e7de096c18984cf926a6e0810d3233c",
+      "bytes": 6654
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py",
+      "sha256": "3dfd29b779c6538af1feddaef16b2666935c4ced172cf74305944eac053d29f2",
+      "bytes": 27271
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-1/actual.json",
+      "sha256": "8c1b3d8a5d9f3fba9f848b735a5276997f0e6d2efe907a63dd667593a19475a7",
+      "bytes": 5429
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-1/stderr.log",
+      "sha256": "14d6f8dde0d5c8457974d894e37d3daf87bd1acfd51e0322da7f745a2dd3ce87",
+      "bytes": 4483
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-1/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-2/actual.json",
+      "sha256": "ea9857bf49cfd394eb3b73d2e99683030672adff0c7aced2cf09207067e73b55",
+      "bytes": 5856
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-2/stderr.log",
+      "sha256": "248971b5f1ce67a70ad99a7c0ffa167c379a96fa14f6e42df4ef7fb51a2fd1d8",
+      "bytes": 3610
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-2/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-3/actual.json",
+      "sha256": "33fa90f7aac4dc1271972dd0d466d3655fccc30a0fda85be69755b9ac32a0c01",
+      "bytes": 9398
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-3/stderr.log",
+      "sha256": "d33c3ab0fac3b050d73be0f5c8748f52c93c2d22da13c5a33d5c3b2db3c95f12",
+      "bytes": 3908
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-3/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/run_schema.py",
+      "sha256": "09d34aeef3dfd6710a0f94235ddf17381287d0149a20d4e0bd1c63d130641dcc",
+      "bytes": 33824
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/shared-contract-literal-final.json",
+      "sha256": "622bfced298580a952c01a3b9a966cf680d662858b903dc5cc51ca8c5a027430",
+      "bytes": 627
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/spec_contract.py",
+      "sha256": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+      "bytes": 7316
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/stage_numeric.py",
+      "sha256": "9ede5d788bd5bfb2de5d604cba53ccd872acb8796cd45641865c5a5b3a7a46cc",
+      "bytes": 11149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/strict_io.py",
+      "sha256": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+      "bytes": 4176
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/synthetic_fixtures.py",
+      "sha256": "901b8f930eb18a7859e84e740cc70b36c8a5b991a82b1b9dbd3083c6ef38b256",
+      "bytes": 10333
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_cohort_reader.py",
+      "sha256": "b73132e0e0e9366ba48abf6a9f88c04f784547e34978b30fcff82e4212999f8f",
+      "bytes": 11558
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_physical_oracle.py",
+      "sha256": "a43c0f6b3bcafbcb31649ab645ce69661d1c31886dfb2e277f00d10c07ef3877",
+      "bytes": 5348
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_run_schema.py",
+      "sha256": "ff9f617b9801e72e7d814125dd30d9491c05dd22d0ebc3650494de57bffc4c38",
+      "bytes": 6395
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/source-copy-binding.json",
+      "sha256": "341844c2875f3d960e73cf19906f811679e20c4b872def67cacd253e76e537b7",
+      "bytes": 142133
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-build-helper-history/qualify_builds-attempt-1.py",
+      "sha256": "261b2687c65b944d756eba80f16faefe3f999003732cb2e0b786458df3fc86a4",
+      "bytes": 7853
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-build-helper-history/recovery-receipt.json",
+      "sha256": "d67f3d0167aea971d6aa3f9d5d34387e30a27cedd91b3c27063a070b2a438702",
+      "bytes": 734
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/Cargo.lock",
+      "sha256": "896d016b18af585474008329dc46f269d6ee56f40fc7a580940578afa80d490d",
+      "bytes": 17142
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/Cargo.toml",
+      "sha256": "1a9d218c11e706474d89e7c434d3fa33068245b7c1cfa7f3e6f5d51822672c14",
+      "bytes": 768
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/README.md",
+      "sha256": "5eec6575be2e353ec0aa1e8bc2c28ee3379903ee18126c2a39466c2d47d19154",
+      "bytes": 3902
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/lib.rs",
+      "sha256": "4cae4ce4c1c337c2154a05ae3c804ae54c07332e6b6024a778310d39c352e0d7",
+      "bytes": 39058
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/main.rs",
+      "sha256": "cf207747482c6788aa6ab17770139061a6d667c25df606b4402e754559e89ade",
+      "bytes": 329
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/physical-protocol-and-gates.md",
+      "sha256": "b0f917b682018e8d4fc0da63cf063cc5faca9ced0cfbb325d0008b0e1404e247",
+      "bytes": 7344
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/schema-source-contract.json",
+      "sha256": "828df1ad1988f8b62ec4a89940866f4a27aa9a51fb8b1bb50f7b9d1588ea3979",
+      "bytes": 17339
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/source-handoff.json",
+      "sha256": "94328a3f4a347bb82cd19a4d61d10eff37a116309e7eeff98565176c562ca35c",
+      "bytes": 3703
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources/tests.rs",
+      "sha256": "35ddfce9c282f0670a1dcbbd35699226a106b909f70b7f9e37d1a029e6c9347e",
+      "bytes": 14647
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/.gitattributes",
+      "sha256": "7348042733449d91fd3d3c1c086cdf5a8f5a713706897bcc7d6c275f591003e9",
+      "bytes": 376
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/Cargo.toml",
+      "sha256": "01d5f1b47c6002e2390a81e15d9ada9dfd92e53dde390f19eb0a5940b112f563",
+      "bytes": 3127
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/Cargo.toml.orig",
+      "sha256": "37223145bbb2e2e5deb616bafb83f54ed76b2aafa7663a1af05c6ad3938da998",
+      "bytes": 2457
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/LICENSE",
+      "sha256": "86ae51c591e742d80ce56823d35e2e176b53e38a99bd8499c85dae31ef4fe1f7",
+      "bytes": 11548
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/README.md",
+      "sha256": "7459f6035574cc777115cdbf566626a84293202eb4e9b2f06223a5cba824c677",
+      "bytes": 2805
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/RNE.patch",
+      "sha256": "9b63afccf0b02e8d461add58edb007cdf1f15b50062db15c5b83c876c6517c6c",
+      "bytes": 11057
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/RNE_PATCH.md",
+      "sha256": "d24b109067bfc3033bae18edbb680bb6ea038ed7e275c8409d3c93af086ba199",
+      "bytes": 9583
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/RNE_UPSTREAM_SHA256.json",
+      "sha256": "77ec485ce27993c69f7f044543ce34079b9f38f9071a1c221a4a41e0167df31f",
+      "bytes": 12867
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/control/character_controller.rs",
+      "sha256": "f4eb3f1d420e6e0c460f9301e40c6547b670c4de65e961ba562272504c203f27",
+      "bytes": 35890
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/control/mod.rs",
+      "sha256": "872afd3082ef48b5bf5d5820712e844c26fbf825592ebdb207cb086c8443df4f",
+      "bytes": 469
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/control/ray_cast_vehicle_controller.rs",
+      "sha256": "bf33eff305668348edf9cc48473325c418403a28c3058e7345d83b9ff3b83727",
+      "bytes": 32159
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/counters/ccd_counters.rs",
+      "sha256": "69fac9dfcfaf19be624f037f9e34d0cc886125ac80d2bf69bd2a1d7ce7080b9e",
+      "bytes": 1838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/counters/collision_detection_counters.rs",
+      "sha256": "4d0eaed2c797dc66e6e76275a8848eacd365fcfafb5502513133321212ffcd12",
+      "bytes": 1316
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/counters/mod.rs",
+      "sha256": "954a057e5fe76ddacc7adb502be7677ffeca50108f54b1b9fcb019874864bc00",
+      "bytes": 6292
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/counters/solver_counters.rs",
+      "sha256": "bc50fa8637c6566a70939f35aa55b0f788c53794e9bc575b73ca364c89a57990",
+      "bytes": 2179
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/counters/stages_counters.rs",
+      "sha256": "9d92325aedc1131f3755225e250ae4ef38855dc04b01b7d19af5568f7c737424",
+      "bytes": 2510
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/counters/timer.rs",
+      "sha256": "3adc13e371fd59fc1e7bf01f5f810f7b266f2d959a58bb5adba546952356e879",
+      "bytes": 1482
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/data/arena.rs",
+      "sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb",
+      "bytes": 35182
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/data/coarena.rs",
+      "sha256": "310a2f7d9473b37fcd0b018cfe5fd5a08d8d2cbde6994a1dd9c76ccc2efd65e5",
+      "bytes": 4730
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/data/graph.rs",
+      "sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044",
+      "bytes": 23167
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/data/mod.rs",
+      "sha256": "21d21acf9f300023d719072c540ceeef1eb00064f44d951d3e7471a967d95271",
+      "bytes": 237
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/data/pubsub.rs",
+      "sha256": "2f206f65738a3744bbe50d3b90d67c17e9167ceb1d2143e9db37614f8a352d2a",
+      "bytes": 4973
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/ccd/ccd_solver.rs",
+      "sha256": "07122413e9024e33b26a4267488a7310163838789ba257d610c948819add724b",
+      "bytes": 23101
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/ccd/mod.rs",
+      "sha256": "c22415ffd9f49e825b4f54d25b8bfbf5c5e2025d14e211bd020fed810b38a3c9",
+      "bytes": 298
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/ccd/toi_entry.rs",
+      "sha256": "ba28a8bbf7bcef80447929e99e39c67472bed2d5eceac2f41e8924a96c61a5b9",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/coefficient_combine_rule.rs",
+      "sha256": "ab1065b104c00157c0c26cc9079ae17d4d2ecfa8ed316e9b28b627f6a6d0efd7",
+      "bytes": 1211
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/integration_parameters.rs",
+      "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+      "bytes": 14726
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/island_manager.rs",
+      "sha256": "587343081ba5cb45585ab18d222f5c137b1d4fae9805e4aaa88878756c0288c4",
+      "bytes": 14286
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/fixed_joint.rs",
+      "sha256": "f171a8cce1913a7ff2cf2410ec7fa5810a13fd9f01fe33622d88e009fe064ebb",
+      "bytes": 4809
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/generic_joint.rs",
+      "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+      "bytes": 27313
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/impulse_joint/impulse_joint.rs",
+      "sha256": "8aab2c18afc4196d7bd04f6502b1bf5ff44c40df8fa3b53440ae490eab21b949",
+      "bytes": 759
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/impulse_joint/impulse_joint_set.rs",
+      "sha256": "b75a72e35ebefaea73773c2779d8c939b1a5e30db88bff83a8ea735624c2321b",
+      "bytes": 14846
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/impulse_joint/mod.rs",
+      "sha256": "1cba596a795a55e24936bd9af61aa57ea34366c7f8b267bc7c97e696ecd98689",
+      "bytes": 234
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/mod.rs",
+      "sha256": "4769f5564b300c113cebda78ef976ad135cbd67386801afddaecfd258dd2e26c",
+      "bytes": 595
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/motor_model.rs",
+      "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "bytes": 1488
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/mod.rs",
+      "sha256": "c537ae187ad2e0ae80e2fa9ab2cc66a329e2258d22a0331ed04f0fb92b625740",
+      "bytes": 649
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/multibody.rs",
+      "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "bytes": 81559
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/multibody_ik.rs",
+      "sha256": "f95c748523ab6b3e1ec4d8536f249b716e76094ff1817c753f4f39bfe5c377e6",
+      "bytes": 10006
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "sha256": "e16bc16254459b84534d7a48157ebdb19deae0d0f8461ed8fc0a4e395d5c82da",
+      "bytes": 15921
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+      "bytes": 18345
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/multibody_link.rs",
+      "sha256": "19dbfdf2af1a803631424acdc3597633b7e754104bc91a2c7ab2bb090d538109",
+      "bytes": 4149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/multibody_workspace.rs",
+      "sha256": "0c2c4c20bb8205aafbac5a0de6be115a95cc1f83fe2863e82ee6e84e605dd573",
+      "bytes": 830
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "2bde94532c22dd1a010c5b018fdb2e6a4314b2cf993bc56003523d5156b61857",
+      "bytes": 7380
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+      "sha256": "f0f400cf4fa7d4e3be5d489b9f2d87325089682b7a8c5ce69d4fa2779b9b5811",
+      "bytes": 5817
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/prismatic_joint.rs",
+      "sha256": "00fd5ed682feda771dd4dc4c18883715eaf6970e9a0b604c2145f16db0704604",
+      "bytes": 9208
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/revolute_joint.rs",
+      "sha256": "ef831e469cfc9dd28c57d4f0b84383a00e6616f68a0f3b9ba0a38a997ff7eab4",
+      "bytes": 11090
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/rope_joint.rs",
+      "sha256": "f1ecb6a4ef0703ebed737c347e6c83b2f717ff1994d84f4702a98217e053cc36",
+      "bytes": 7641
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/spherical_joint.rs",
+      "sha256": "05ad4cd2cc2cfb85de6a25de43208a6294174a5d154fa7ee0c8dbe77e2563dbb",
+      "bytes": 9472
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/spring_joint.rs",
+      "sha256": "1743bf8327e3e11a30ada01addad5336d09d5bd019db070847b1e9c6655e4237",
+      "bytes": 6701
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/mod.rs",
+      "sha256": "5b35f68f31913d3bbb069d1f5c4aa4a014d153b6e5248178a524152b017422d0",
+      "bytes": 946
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/rigid_body.rs",
+      "sha256": "d4c0803bb0f24a9fad3f54e73c5603cba9dcec31f6ad3df8544e6e96b68bebf7",
+      "bytes": 59050
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/rigid_body_components.rs",
+      "sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "bytes": 40728
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/rigid_body_set.rs",
+      "sha256": "9bcdfcfcf34b97c1ec4b93b8571e1f94fe2f8b4243561d1ffb52641cf6e96079",
+      "bytes": 9724
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/categorization.rs",
+      "sha256": "3341ed381cf843085cf4c672fdd5d3b3165424e3efaa719c437a1d026c377865",
+      "bytes": 2555
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/contact_constraints_set.rs",
+      "sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70",
+      "bytes": 19202
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/generic_one_body_constraint.rs",
+      "sha256": "cf0e796e3ae5c4257f7fefa30fb9d9a3ea873603839f839fd5d8f5861e427b01",
+      "bytes": 13969
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/generic_one_body_constraint_element.rs",
+      "sha256": "d0f472cc412f133e9c21993c5e6840336e25ff1e57bfd06e8eaeea7d33efbfc9",
+      "bytes": 6922
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/generic_two_body_constraint.rs",
+      "sha256": "7243bd963781ecb156a098961c95b1b0ca20601f8df97f22c9934c9af01b3d59",
+      "bytes": 22283
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/generic_two_body_constraint_element.rs",
+      "sha256": "1fc07787b70e8478760a331cf8868ae4df80a33f879875b212411a8ccf3e3dc3",
+      "bytes": 16307
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/mod.rs",
+      "sha256": "e84c0974d0e9d7594c7e9ae629293182a97ba5a8f9004159ef3fd0079b698e46",
+      "bytes": 1109
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/one_body_constraint.rs",
+      "sha256": "788a8339d73296e43f19134d6c4e844353934e731a984e99d13b842081d24814",
+      "bytes": 16961
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/one_body_constraint_element.rs",
+      "sha256": "4ad8e1a4364135176c56093db6b0bfe24758229915ceb58a60b22c8c59d3bf40",
+      "bytes": 10736
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/one_body_constraint_simd.rs",
+      "sha256": "9bd7de1376037f288f5885441810a8c90821d3559fa3233260c61137052f45b5",
+      "bytes": 18804
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/two_body_constraint.rs",
+      "sha256": "38efa0ceb763d2ac96b2c499f7a6e93d772e135b3cc12a3d6600aaff460e0451",
+      "bytes": 21977
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/two_body_constraint_element.rs",
+      "sha256": "ea51fabe761507f2649008b8f443835ee2b1ab35fc8eca549f2fc4f1fee35c71",
+      "bytes": 15519
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/contact_constraint/two_body_constraint_simd.rs",
+      "sha256": "81856a02ab15e8b25f1392ef171a459a9a19669ee0006aec08919bb8f8f5eef8",
+      "bytes": 19812
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/interaction_groups.rs",
+      "sha256": "3094f78156c6f7b7c819ccff507eb9d58415e834242d3af99868d5818ec94b22",
+      "bytes": 19677
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/island_solver.rs",
+      "sha256": "f16339e703e0ad8ed13b0a27f53f7a0956d9400114af8f7f1b2e94c8967c601a",
+      "bytes": 5528
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/joint_constraint/any_joint_constraint.rs",
+      "sha256": "ed15ed8800f32fefc2b7a1808f2187ec173f7d999429989a2d017317501c9b47",
+      "bytes": 4136
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs",
+      "sha256": "b197dfd33145401d3d4b7239c6b02cb4299ce34013564fd7ce29e1103c8cc2c7",
+      "bytes": 53890
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "sha256": "7707ce8e2abe6e7747e513b317f0cf3909756e2082f381191784282cb88a2da7",
+      "bytes": 20338
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "bytes": 17536
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "sha256": "46f3aedde8bc1d057de77342967142eae1e3c313e855630c84640df9ccf84867",
+      "bytes": 50987
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs",
+      "sha256": "42a091f95f10dbd267c90ec7bfe0a151a55e95a5586cb1c30261a23774a0855c",
+      "bytes": 26413
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/joint_constraint/mod.rs",
+      "sha256": "37c1abf96e0161c2f3689edf254242a03d4094dfe53fb5c24404bcf833d44dbe",
+      "bytes": 795
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/mod.rs",
+      "sha256": "bfe85fbefa20c7ccec9e0aa09dba289c02f335a9f7091addf8f1ec4477afb23b",
+      "bytes": 1659
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/parallel_island_solver.rs",
+      "sha256": "87bb21020cc26852eb40dc1acbccfdd0673f99ff8505804ed37bc7fdb12cf81c",
+      "bytes": 15621
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/parallel_solver_constraints.rs",
+      "sha256": "30554ef140c780ed412de171ebd31c7873053d8a201ace297828d286c807d0e9",
+      "bytes": 20262
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/parallel_velocity_solver.rs",
+      "sha256": "8c52c6da3c2246f222f9e44fa9f97bb2ee1f916d2cec54b49eb2c843c8c8309c",
+      "bytes": 13959
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/solver_body.rs",
+      "sha256": "7fca3fb5066986c6a2895860ac1abffeda5c438079b122199f5254feb8a5eaf4",
+      "bytes": 1970
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/solver_constraints_set.rs",
+      "sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+      "bytes": 9066
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/solver_vel.rs",
+      "sha256": "8e10277211c04ce06c004a18f2aaf2445ead09ab55edd6ea7d5439ffd8f4e402",
+      "bytes": 1848
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/solver/velocity_solver.rs",
+      "sha256": "6701f1c231691d8c2bb871eef43996b5c3333db027b880c8c2b3aa9c20435921",
+      "bytes": 33943
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase.rs",
+      "sha256": "c9e2e4d70e8a99c879660dee99fd2e15f14b6b235989142032958c418cdcc49d",
+      "bytes": 2931
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/broad_phase_multi_sap.rs",
+      "sha256": "23f5fa77e2d17278a2cb5819d0c9a370db76770bc5667385c60316046ea3cf23",
+      "bytes": 31085
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/broad_phase_pair_event.rs",
+      "sha256": "0aae56147926a6a8d34795a56179807209f997b07d271a56800ee060a8a98b0f",
+      "bytes": 1481
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/mod.rs",
+      "sha256": "1b93d3f5ce020eeb6717e415a5d83b66a17cdca478fc1f534694ac85f822c71f",
+      "bytes": 447
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/sap_axis.rs",
+      "sha256": "8cb82483f89ab60991cb0a3752f44522d36f0fb2407ff6c7d0eb6a4621c0ca59",
+      "bytes": 10555
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/sap_endpoint.rs",
+      "sha256": "3b3271fb7b1d9f793c81dfd1f07632ee6451e3f5445d3b8cb070ddcaa48af61f",
+      "bytes": 1540
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/sap_layer.rs",
+      "sha256": "ee77333ab190cc1629665c01481fc8e2b839d8b2b1835e6b1cdf6ac4623a1432",
+      "bytes": 16921
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/sap_proxy.rs",
+      "sha256": "1edc0dec088aa2160dc325370a2827183704fdda29d637ea09e11e2fbb77e9f7",
+      "bytes": 4041
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/sap_region.rs",
+      "sha256": "9b12949a4f876bcafc6ad193a21edec8970fe387ffd473b93bc4ccb52e5a797b",
+      "bytes": 9778
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_multi_sap/sap_utils.rs",
+      "sha256": "0fd422f004d410dbcaf49d0bfc51abb4a794b86a64690d3373efc6c8984dc45e",
+      "bytes": 2238
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/broad_phase_qbvh.rs",
+      "sha256": "d412638e9773c8f89b6e250b1ca69a5c4474dc9e7387584594dc498b6b043b96",
+      "bytes": 2796
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/collider.rs",
+      "sha256": "a9be8b5eba41a6f08acfa9b6cb2a9d289f19626a138b8ebb15e7fd0ecbea909e",
+      "bytes": 43255
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/collider_components.rs",
+      "sha256": "210a17becb2d69e2d64c41f32ca0da07f1a7c5dfab210febe6e918e97634e5ae",
+      "bytes": 17840
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/collider_set.rs",
+      "sha256": "af08b39dcba35e759955462a6f12d9074939f0bcc9c62b21593d2142037224bd",
+      "bytes": 12139
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/contact_pair.rs",
+      "sha256": "ea83b390d843d1d8ff7a4b6d9f2e896e256f6c07d055d4e25b1764db6f719c3a",
+      "bytes": 13612
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/interaction_graph.rs",
+      "sha256": "414647bf53526ca7e5713669fc4d6e3508ad6612872e43d839e11aa455121747",
+      "bytes": 9691
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/interaction_groups.rs",
+      "sha256": "39a949af9236f697aa53ee3fd46191135c8a68c151cfe88e008ff631eac241c8",
+      "bytes": 5350
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/mesh_converter.rs",
+      "sha256": "95ba603f7221ead75bce7d9ba5bf8c297d0c11a18b28f781d5a4fa70720f96a7",
+      "bytes": 3585
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/mod.rs",
+      "sha256": "41992ea284c2444f3c94775ddfba0c877730bd1dc391aa22498e90400501f35e",
+      "bytes": 8127
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/narrow_phase.rs",
+      "sha256": "e9c56dd64e27edf8ac5d45673a41c655c569972d8792faac50882dd687304353",
+      "bytes": 51225
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/lib.rs",
+      "sha256": "6985bc3241fd187fdff91232813ea75a341867416aa3c09685aa55c393ebac30",
+      "bytes": 6967
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/collision_pipeline.rs",
+      "sha256": "2eb844ab886a044a5d88eadf300aeae4cd3b03c4296c63dd69471758aca21f0f",
+      "bytes": 8806
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/debug_render_pipeline/debug_render_backend.rs",
+      "sha256": "7c24f7c24da2d2c7b26e1c8f89b01f622b71e3a4bee8c34752ed09fce4fdc8df",
+      "bytes": 3253
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/debug_render_pipeline/debug_render_pipeline.rs",
+      "sha256": "b0ffeca067494ade98d13476fdafb6dd4a3a7e07a4c76bc705f699745be4ca8f",
+      "bytes": 24768
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/debug_render_pipeline/debug_render_style.rs",
+      "sha256": "5341ead11fae42210775af22b17f28f6c30f58c302a35f7aa3b70ab4a71fb5ec",
+      "bytes": 3748
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/debug_render_pipeline/mod.rs",
+      "sha256": "b19c81775729cff87021de5a109d0bf9e68c657e9c2724d0751a5dda98896ded",
+      "bytes": 320
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/debug_render_pipeline/outlines.rs",
+      "sha256": "d07bde2f73f851edb5de5eff3790c7a2ae62df4f89dcf09842cfb7f49bb652a7",
+      "bytes": 1180
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/event_handler.rs",
+      "sha256": "9820d4432914cfab9573c4795ddfcf4d2554c765197e72496b44ce91f9d4b2b9",
+      "bytes": 4742
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/mod.rs",
+      "sha256": "a172e71d180a2397422ae490abc4abaf60ef012d139ee42f5165e9811dbe13ce",
+      "bytes": 1936
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/multibody_motor_construction.rs",
+      "sha256": "03f417ee1b848ab1b2e3d1e5ca1aad29065e9b80c0ebf4f803f718fe39aa9e5e",
+      "bytes": 7972
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/multibody_motor_impulse.rs",
+      "sha256": "d361abd9f84a0fca60ee1ef0256c6af7399a835f91b5b59138b7c61c58c9ccd2",
+      "bytes": 12621
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/multibody_motor_impulse/tests.rs",
+      "sha256": "9a3c4cbcde20a7957ad3c2b9b38f8a9a2861c396c0c7cbb692c1407c65ff156e",
+      "bytes": 25838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/multibody_motor_stage.rs",
+      "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+      "bytes": 9594
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/multibody_motor_stage/tests.rs",
+      "sha256": "036fb87df8d9c18cd79ce37b15856e79da02fd0e170393db891bf55547aa7499",
+      "bytes": 22817
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/physics_hooks.rs",
+      "sha256": "d4339ef3704471574c2c57379dc6b7c44b5aae98abc3ad7443c1d293733c30a4",
+      "bytes": 12422
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/physics_pipeline.rs",
+      "sha256": "86fbfe05994120617346ae30538837fd0bf96cdfc83f0bfe6043766e975f11b7",
+      "bytes": 47838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/query_pipeline/generators.rs",
+      "sha256": "6902e47cd8e9fbc234ac30bb3b31e4f523dd4ff7bcfaa878ff8750bee5426048",
+      "bytes": 4195
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/query_pipeline/mod.rs",
+      "sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332",
+      "bytes": 29798
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/pipeline/user_changes.rs",
+      "sha256": "c83e9fdf86677c9c9db3d11ff9e484f562b450e869e41e3e3c6a803e39a16720",
+      "bytes": 11422
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/utils.rs",
+      "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7",
+      "bytes": 24173
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/.gitattributes",
+      "sha256": "7348042733449d91fd3d3c1c086cdf5a8f5a713706897bcc7d6c275f591003e9",
+      "bytes": 376
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/Cargo.toml",
+      "sha256": "01d5f1b47c6002e2390a81e15d9ada9dfd92e53dde390f19eb0a5940b112f563",
+      "bytes": 3127
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/Cargo.toml.orig",
+      "sha256": "37223145bbb2e2e5deb616bafb83f54ed76b2aafa7663a1af05c6ad3938da998",
+      "bytes": 2457
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/LICENSE",
+      "sha256": "86ae51c591e742d80ce56823d35e2e176b53e38a99bd8499c85dae31ef4fe1f7",
+      "bytes": 11548
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/README.md",
+      "sha256": "7459f6035574cc777115cdbf566626a84293202eb4e9b2f06223a5cba824c677",
+      "bytes": 2805
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/RNE.patch",
+      "sha256": "9b63afccf0b02e8d461add58edb007cdf1f15b50062db15c5b83c876c6517c6c",
+      "bytes": 11057
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/RNE_PATCH.md",
+      "sha256": "d24b109067bfc3033bae18edbb680bb6ea038ed7e275c8409d3c93af086ba199",
+      "bytes": 9583
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/RNE_UPSTREAM_SHA256.json",
+      "sha256": "77ec485ce27993c69f7f044543ce34079b9f38f9071a1c221a4a41e0167df31f",
+      "bytes": 12867
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/control/character_controller.rs",
+      "sha256": "f4eb3f1d420e6e0c460f9301e40c6547b670c4de65e961ba562272504c203f27",
+      "bytes": 35890
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/control/mod.rs",
+      "sha256": "872afd3082ef48b5bf5d5820712e844c26fbf825592ebdb207cb086c8443df4f",
+      "bytes": 469
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/control/ray_cast_vehicle_controller.rs",
+      "sha256": "bf33eff305668348edf9cc48473325c418403a28c3058e7345d83b9ff3b83727",
+      "bytes": 32159
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/counters/ccd_counters.rs",
+      "sha256": "69fac9dfcfaf19be624f037f9e34d0cc886125ac80d2bf69bd2a1d7ce7080b9e",
+      "bytes": 1838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/counters/collision_detection_counters.rs",
+      "sha256": "4d0eaed2c797dc66e6e76275a8848eacd365fcfafb5502513133321212ffcd12",
+      "bytes": 1316
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/counters/mod.rs",
+      "sha256": "954a057e5fe76ddacc7adb502be7677ffeca50108f54b1b9fcb019874864bc00",
+      "bytes": 6292
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/counters/solver_counters.rs",
+      "sha256": "bc50fa8637c6566a70939f35aa55b0f788c53794e9bc575b73ca364c89a57990",
+      "bytes": 2179
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/counters/stages_counters.rs",
+      "sha256": "9d92325aedc1131f3755225e250ae4ef38855dc04b01b7d19af5568f7c737424",
+      "bytes": 2510
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/counters/timer.rs",
+      "sha256": "3adc13e371fd59fc1e7bf01f5f810f7b266f2d959a58bb5adba546952356e879",
+      "bytes": 1482
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/data/arena.rs",
+      "sha256": "dcebcfc93cbf1a252aa2b7e77cdbf789b690b8c8ffe070dccf7ff26b6ec286eb",
+      "bytes": 35182
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/data/coarena.rs",
+      "sha256": "310a2f7d9473b37fcd0b018cfe5fd5a08d8d2cbde6994a1dd9c76ccc2efd65e5",
+      "bytes": 4730
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/data/graph.rs",
+      "sha256": "624a5abdb8d5ecf007ac917cbf3bfcaa82d86c2a755792a792cb0580ecbbd044",
+      "bytes": 23167
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/data/mod.rs",
+      "sha256": "21d21acf9f300023d719072c540ceeef1eb00064f44d951d3e7471a967d95271",
+      "bytes": 237
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/data/pubsub.rs",
+      "sha256": "2f206f65738a3744bbe50d3b90d67c17e9167ceb1d2143e9db37614f8a352d2a",
+      "bytes": 4973
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/ccd/ccd_solver.rs",
+      "sha256": "07122413e9024e33b26a4267488a7310163838789ba257d610c948819add724b",
+      "bytes": 23101
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/ccd/mod.rs",
+      "sha256": "c22415ffd9f49e825b4f54d25b8bfbf5c5e2025d14e211bd020fed810b38a3c9",
+      "bytes": 298
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/ccd/toi_entry.rs",
+      "sha256": "ba28a8bbf7bcef80447929e99e39c67472bed2d5eceac2f41e8924a96c61a5b9",
+      "bytes": 6444
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/coefficient_combine_rule.rs",
+      "sha256": "ab1065b104c00157c0c26cc9079ae17d4d2ecfa8ed316e9b28b627f6a6d0efd7",
+      "bytes": 1211
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/integration_parameters.rs",
+      "sha256": "6f19c037bf4392bc7229bf86a9198b36c5eb626443227610358b2eb62dc9b912",
+      "bytes": 14726
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/island_manager.rs",
+      "sha256": "587343081ba5cb45585ab18d222f5c137b1d4fae9805e4aaa88878756c0288c4",
+      "bytes": 14286
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/fixed_joint.rs",
+      "sha256": "f171a8cce1913a7ff2cf2410ec7fa5810a13fd9f01fe33622d88e009fe064ebb",
+      "bytes": 4809
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/generic_joint.rs",
+      "sha256": "4480307ed1b3f3e8b47a1682232da06ad802e91b1cbd8065d5f0a6f05999032f",
+      "bytes": 27313
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/impulse_joint/impulse_joint.rs",
+      "sha256": "8aab2c18afc4196d7bd04f6502b1bf5ff44c40df8fa3b53440ae490eab21b949",
+      "bytes": 759
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/impulse_joint/impulse_joint_set.rs",
+      "sha256": "b75a72e35ebefaea73773c2779d8c939b1a5e30db88bff83a8ea735624c2321b",
+      "bytes": 14846
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/impulse_joint/mod.rs",
+      "sha256": "1cba596a795a55e24936bd9af61aa57ea34366c7f8b267bc7c97e696ecd98689",
+      "bytes": 234
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/mod.rs",
+      "sha256": "4769f5564b300c113cebda78ef976ad135cbd67386801afddaecfd258dd2e26c",
+      "bytes": 595
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/motor_model.rs",
+      "sha256": "03deba330801c1e9d1317f51fb22634dc765329caad0702ef40c61f744aa462f",
+      "bytes": 1488
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/mod.rs",
+      "sha256": "c537ae187ad2e0ae80e2fa9ab2cc66a329e2258d22a0331ed04f0fb92b625740",
+      "bytes": 649
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/multibody.rs",
+      "sha256": "c17e20ef2c48df1d9043f2de46396cb84dc3a8718cc03fa187c7ce277b8b2a1f",
+      "bytes": 81559
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/multibody_ik.rs",
+      "sha256": "f95c748523ab6b3e1ec4d8536f249b716e76094ff1817c753f4f39bfe5c377e6",
+      "bytes": 10006
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/multibody_joint.rs",
+      "sha256": "e16bc16254459b84534d7a48157ebdb19deae0d0f8461ed8fc0a4e395d5c82da",
+      "bytes": 15921
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/multibody_joint_set.rs",
+      "sha256": "260976cbdc34f38aebb0bb86f9d4ac96176ce703272093d095157ff78d3a597b",
+      "bytes": 18345
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/multibody_link.rs",
+      "sha256": "19dbfdf2af1a803631424acdc3597633b7e754104bc91a2c7ab2bb090d538109",
+      "bytes": 4149
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/multibody_workspace.rs",
+      "sha256": "0c2c4c20bb8205aafbac5a0de6be115a95cc1f83fe2863e82ee6e84e605dd573",
+      "bytes": 830
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "fd658279d15dcae275e08e9b7f8cefa967247d260f86aa2625d799fd7bbb52d4",
+      "bytes": 7612
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/unit_multibody_joint/rne_motor_construction_tests.rs",
+      "sha256": "f0f400cf4fa7d4e3be5d489b9f2d87325089682b7a8c5ce69d4fa2779b9b5811",
+      "bytes": 5817
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/prismatic_joint.rs",
+      "sha256": "00fd5ed682feda771dd4dc4c18883715eaf6970e9a0b604c2145f16db0704604",
+      "bytes": 9208
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/revolute_joint.rs",
+      "sha256": "ef831e469cfc9dd28c57d4f0b84383a00e6616f68a0f3b9ba0a38a997ff7eab4",
+      "bytes": 11090
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/rope_joint.rs",
+      "sha256": "f1ecb6a4ef0703ebed737c347e6c83b2f717ff1994d84f4702a98217e053cc36",
+      "bytes": 7641
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/spherical_joint.rs",
+      "sha256": "05ad4cd2cc2cfb85de6a25de43208a6294174a5d154fa7ee0c8dbe77e2563dbb",
+      "bytes": 9472
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/spring_joint.rs",
+      "sha256": "1743bf8327e3e11a30ada01addad5336d09d5bd019db070847b1e9c6655e4237",
+      "bytes": 6701
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/mod.rs",
+      "sha256": "5b35f68f31913d3bbb069d1f5c4aa4a014d153b6e5248178a524152b017422d0",
+      "bytes": 946
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/rigid_body.rs",
+      "sha256": "d4c0803bb0f24a9fad3f54e73c5603cba9dcec31f6ad3df8544e6e96b68bebf7",
+      "bytes": 59050
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/rigid_body_components.rs",
+      "sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "bytes": 40728
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/rigid_body_set.rs",
+      "sha256": "9bcdfcfcf34b97c1ec4b93b8571e1f94fe2f8b4243561d1ffb52641cf6e96079",
+      "bytes": 9724
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/categorization.rs",
+      "sha256": "3341ed381cf843085cf4c672fdd5d3b3165424e3efaa719c437a1d026c377865",
+      "bytes": 2555
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/contact_constraints_set.rs",
+      "sha256": "06730efe4c32cfd7ff4d85d15dc675a204111dd5fea9e2be1a5d2515c5aaac70",
+      "bytes": 19202
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/generic_one_body_constraint.rs",
+      "sha256": "cf0e796e3ae5c4257f7fefa30fb9d9a3ea873603839f839fd5d8f5861e427b01",
+      "bytes": 13969
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/generic_one_body_constraint_element.rs",
+      "sha256": "d0f472cc412f133e9c21993c5e6840336e25ff1e57bfd06e8eaeea7d33efbfc9",
+      "bytes": 6922
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/generic_two_body_constraint.rs",
+      "sha256": "7243bd963781ecb156a098961c95b1b0ca20601f8df97f22c9934c9af01b3d59",
+      "bytes": 22283
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/generic_two_body_constraint_element.rs",
+      "sha256": "1fc07787b70e8478760a331cf8868ae4df80a33f879875b212411a8ccf3e3dc3",
+      "bytes": 16307
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/mod.rs",
+      "sha256": "e84c0974d0e9d7594c7e9ae629293182a97ba5a8f9004159ef3fd0079b698e46",
+      "bytes": 1109
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/one_body_constraint.rs",
+      "sha256": "788a8339d73296e43f19134d6c4e844353934e731a984e99d13b842081d24814",
+      "bytes": 16961
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/one_body_constraint_element.rs",
+      "sha256": "4ad8e1a4364135176c56093db6b0bfe24758229915ceb58a60b22c8c59d3bf40",
+      "bytes": 10736
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/one_body_constraint_simd.rs",
+      "sha256": "9bd7de1376037f288f5885441810a8c90821d3559fa3233260c61137052f45b5",
+      "bytes": 18804
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/two_body_constraint.rs",
+      "sha256": "38efa0ceb763d2ac96b2c499f7a6e93d772e135b3cc12a3d6600aaff460e0451",
+      "bytes": 21977
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/two_body_constraint_element.rs",
+      "sha256": "ea51fabe761507f2649008b8f443835ee2b1ab35fc8eca549f2fc4f1fee35c71",
+      "bytes": 15519
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/contact_constraint/two_body_constraint_simd.rs",
+      "sha256": "81856a02ab15e8b25f1392ef171a459a9a19669ee0006aec08919bb8f8f5eef8",
+      "bytes": 19812
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/interaction_groups.rs",
+      "sha256": "3094f78156c6f7b7c819ccff507eb9d58415e834242d3af99868d5818ec94b22",
+      "bytes": 19677
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/island_solver.rs",
+      "sha256": "f16339e703e0ad8ed13b0a27f53f7a0956d9400114af8f7f1b2e94c8967c601a",
+      "bytes": 5528
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/joint_constraint/any_joint_constraint.rs",
+      "sha256": "ed15ed8800f32fefc2b7a1808f2187ec173f7d999429989a2d017317501c9b47",
+      "bytes": 4136
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs",
+      "sha256": "b197dfd33145401d3d4b7239c6b02cb4299ce34013564fd7ce29e1103c8cc2c7",
+      "bytes": 53890
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/joint_constraint/joint_constraints_set.rs",
+      "sha256": "7707ce8e2abe6e7747e513b317f0cf3909756e2082f381191784282cb88a2da7",
+      "bytes": 20338
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs",
+      "sha256": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "bytes": 17536
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/joint_constraint/joint_generic_constraint_builder.rs",
+      "sha256": "46f3aedde8bc1d057de77342967142eae1e3c313e855630c84640df9ccf84867",
+      "bytes": 50987
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs",
+      "sha256": "42a091f95f10dbd267c90ec7bfe0a151a55e95a5586cb1c30261a23774a0855c",
+      "bytes": 26413
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/joint_constraint/mod.rs",
+      "sha256": "37c1abf96e0161c2f3689edf254242a03d4094dfe53fb5c24404bcf833d44dbe",
+      "bytes": 795
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/mod.rs",
+      "sha256": "bfe85fbefa20c7ccec9e0aa09dba289c02f335a9f7091addf8f1ec4477afb23b",
+      "bytes": 1659
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/parallel_island_solver.rs",
+      "sha256": "87bb21020cc26852eb40dc1acbccfdd0673f99ff8505804ed37bc7fdb12cf81c",
+      "bytes": 15621
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/parallel_solver_constraints.rs",
+      "sha256": "30554ef140c780ed412de171ebd31c7873053d8a201ace297828d286c807d0e9",
+      "bytes": 20262
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/parallel_velocity_solver.rs",
+      "sha256": "8c52c6da3c2246f222f9e44fa9f97bb2ee1f916d2cec54b49eb2c843c8c8309c",
+      "bytes": 13959
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/solver_body.rs",
+      "sha256": "7fca3fb5066986c6a2895860ac1abffeda5c438079b122199f5254feb8a5eaf4",
+      "bytes": 1970
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/solver_constraints_set.rs",
+      "sha256": "b07403282fc080bfbb08cbcea4886943aa8d0363291474b98e5f4f3c2e676313",
+      "bytes": 9066
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/solver_vel.rs",
+      "sha256": "8e10277211c04ce06c004a18f2aaf2445ead09ab55edd6ea7d5439ffd8f4e402",
+      "bytes": 1848
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/solver/velocity_solver.rs",
+      "sha256": "6701f1c231691d8c2bb871eef43996b5c3333db027b880c8c2b3aa9c20435921",
+      "bytes": 33943
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase.rs",
+      "sha256": "c9e2e4d70e8a99c879660dee99fd2e15f14b6b235989142032958c418cdcc49d",
+      "bytes": 2931
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/broad_phase_multi_sap.rs",
+      "sha256": "23f5fa77e2d17278a2cb5819d0c9a370db76770bc5667385c60316046ea3cf23",
+      "bytes": 31085
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/broad_phase_pair_event.rs",
+      "sha256": "0aae56147926a6a8d34795a56179807209f997b07d271a56800ee060a8a98b0f",
+      "bytes": 1481
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/mod.rs",
+      "sha256": "1b93d3f5ce020eeb6717e415a5d83b66a17cdca478fc1f534694ac85f822c71f",
+      "bytes": 447
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/sap_axis.rs",
+      "sha256": "8cb82483f89ab60991cb0a3752f44522d36f0fb2407ff6c7d0eb6a4621c0ca59",
+      "bytes": 10555
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/sap_endpoint.rs",
+      "sha256": "3b3271fb7b1d9f793c81dfd1f07632ee6451e3f5445d3b8cb070ddcaa48af61f",
+      "bytes": 1540
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/sap_layer.rs",
+      "sha256": "ee77333ab190cc1629665c01481fc8e2b839d8b2b1835e6b1cdf6ac4623a1432",
+      "bytes": 16921
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/sap_proxy.rs",
+      "sha256": "1edc0dec088aa2160dc325370a2827183704fdda29d637ea09e11e2fbb77e9f7",
+      "bytes": 4041
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/sap_region.rs",
+      "sha256": "9b12949a4f876bcafc6ad193a21edec8970fe387ffd473b93bc4ccb52e5a797b",
+      "bytes": 9778
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_multi_sap/sap_utils.rs",
+      "sha256": "0fd422f004d410dbcaf49d0bfc51abb4a794b86a64690d3373efc6c8984dc45e",
+      "bytes": 2238
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/broad_phase_qbvh.rs",
+      "sha256": "d412638e9773c8f89b6e250b1ca69a5c4474dc9e7387584594dc498b6b043b96",
+      "bytes": 2796
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/collider.rs",
+      "sha256": "a9be8b5eba41a6f08acfa9b6cb2a9d289f19626a138b8ebb15e7fd0ecbea909e",
+      "bytes": 43255
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/collider_components.rs",
+      "sha256": "210a17becb2d69e2d64c41f32ca0da07f1a7c5dfab210febe6e918e97634e5ae",
+      "bytes": 17840
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/collider_set.rs",
+      "sha256": "af08b39dcba35e759955462a6f12d9074939f0bcc9c62b21593d2142037224bd",
+      "bytes": 12139
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/contact_pair.rs",
+      "sha256": "ea83b390d843d1d8ff7a4b6d9f2e896e256f6c07d055d4e25b1764db6f719c3a",
+      "bytes": 13612
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/interaction_graph.rs",
+      "sha256": "414647bf53526ca7e5713669fc4d6e3508ad6612872e43d839e11aa455121747",
+      "bytes": 9691
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/interaction_groups.rs",
+      "sha256": "39a949af9236f697aa53ee3fd46191135c8a68c151cfe88e008ff631eac241c8",
+      "bytes": 5350
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/mesh_converter.rs",
+      "sha256": "95ba603f7221ead75bce7d9ba5bf8c297d0c11a18b28f781d5a4fa70720f96a7",
+      "bytes": 3585
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/mod.rs",
+      "sha256": "41992ea284c2444f3c94775ddfba0c877730bd1dc391aa22498e90400501f35e",
+      "bytes": 8127
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/geometry/narrow_phase.rs",
+      "sha256": "e9c56dd64e27edf8ac5d45673a41c655c569972d8792faac50882dd687304353",
+      "bytes": 51225
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/lib.rs",
+      "sha256": "6985bc3241fd187fdff91232813ea75a341867416aa3c09685aa55c393ebac30",
+      "bytes": 6967
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/collision_pipeline.rs",
+      "sha256": "2eb844ab886a044a5d88eadf300aeae4cd3b03c4296c63dd69471758aca21f0f",
+      "bytes": 8806
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/debug_render_pipeline/debug_render_backend.rs",
+      "sha256": "7c24f7c24da2d2c7b26e1c8f89b01f622b71e3a4bee8c34752ed09fce4fdc8df",
+      "bytes": 3253
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/debug_render_pipeline/debug_render_pipeline.rs",
+      "sha256": "b0ffeca067494ade98d13476fdafb6dd4a3a7e07a4c76bc705f699745be4ca8f",
+      "bytes": 24768
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/debug_render_pipeline/debug_render_style.rs",
+      "sha256": "5341ead11fae42210775af22b17f28f6c30f58c302a35f7aa3b70ab4a71fb5ec",
+      "bytes": 3748
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/debug_render_pipeline/mod.rs",
+      "sha256": "b19c81775729cff87021de5a109d0bf9e68c657e9c2724d0751a5dda98896ded",
+      "bytes": 320
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/debug_render_pipeline/outlines.rs",
+      "sha256": "d07bde2f73f851edb5de5eff3790c7a2ae62df4f89dcf09842cfb7f49bb652a7",
+      "bytes": 1180
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/event_handler.rs",
+      "sha256": "9820d4432914cfab9573c4795ddfcf4d2554c765197e72496b44ce91f9d4b2b9",
+      "bytes": 4742
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/mod.rs",
+      "sha256": "a172e71d180a2397422ae490abc4abaf60ef012d139ee42f5165e9811dbe13ce",
+      "bytes": 1936
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/multibody_motor_construction.rs",
+      "sha256": "03f417ee1b848ab1b2e3d1e5ca1aad29065e9b80c0ebf4f803f718fe39aa9e5e",
+      "bytes": 7972
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/multibody_motor_impulse.rs",
+      "sha256": "d361abd9f84a0fca60ee1ef0256c6af7399a835f91b5b59138b7c61c58c9ccd2",
+      "bytes": 12621
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/multibody_motor_impulse/tests.rs",
+      "sha256": "9a3c4cbcde20a7957ad3c2b9b38f8a9a2861c396c0c7cbb692c1407c65ff156e",
+      "bytes": 25838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/multibody_motor_stage.rs",
+      "sha256": "991bf9151f122e187bd9263b95dafff0bfe5210506fd22134bea6eb00ffb666e",
+      "bytes": 9594
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/multibody_motor_stage/tests.rs",
+      "sha256": "036fb87df8d9c18cd79ce37b15856e79da02fd0e170393db891bf55547aa7499",
+      "bytes": 22817
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/physics_hooks.rs",
+      "sha256": "d4339ef3704471574c2c57379dc6b7c44b5aae98abc3ad7443c1d293733c30a4",
+      "bytes": 12422
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/physics_pipeline.rs",
+      "sha256": "86fbfe05994120617346ae30538837fd0bf96cdfc83f0bfe6043766e975f11b7",
+      "bytes": 47838
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/query_pipeline/generators.rs",
+      "sha256": "6902e47cd8e9fbc234ac30bb3b31e4f523dd4ff7bcfaa878ff8750bee5426048",
+      "bytes": 4195
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/query_pipeline/mod.rs",
+      "sha256": "070281be415e6f0dd2c382482e7d67353b07d5fac303c041c86aa39c73ac3332",
+      "bytes": 29798
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/pipeline/user_changes.rs",
+      "sha256": "c83e9fdf86677c9c9db3d11ff9e484f562b450e869e41e3e3c6a803e39a16720",
+      "bytes": 11422
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/utils.rs",
+      "sha256": "ecae79f6c5266b0e698011bb2c4f111f7f81ae97185f4e745d5ab1482239ebf7",
+      "bytes": 24173
+    }
+  ],
+  "registration_artifacts": {
+    "protocol": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/operative-protocol-v1.json",
+      "sha256": "305725217acb81eb72adf34d56a072fb2792e5cc797ec4f58baaf7a3bacab136",
+      "bytes": 34594
+    },
+    "collector_schema": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/schema-source-contract.json",
+      "sha256": "828df1ad1988f8b62ec4a89940866f4a27aa9a51fb8b1bb50f7b9d1588ea3979",
+      "bytes": 17339
+    },
+    "baseline_build_binding": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/actual-build-binding.json",
+      "sha256": "89675062b3e245690538e14248defddbb4df018f4cbcadc75042fd29249025c2",
+      "bytes": 107497
+    },
+    "candidate_build_binding": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/actual-build-binding.json",
+      "sha256": "89675062b3e245690538e14248defddbb4df018f4cbcadc75042fd29249025c2",
+      "bytes": 107497
+    },
+    "producer_review": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/post-build-root-review.json",
+      "sha256": "4db727436a0a0a19e6948c1e7323ad30212982aef6dc6293d3327537146a3547",
+      "bytes": 2172
+    },
+    "pure_tests_review": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/pure-tests-review.json",
+      "sha256": "39b10b6cb14f19a22712717a7c88e5589d452184df8834cbf2829f5ce1ba0d7b",
+      "bytes": 2762
+    }
+  },
+  "registered_spec_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+}

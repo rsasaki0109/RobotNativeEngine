@@ -1,0 +1,114 @@
+{
+  "kind": "NEW_PHYSICAL_COLLECTOR_SOURCE_HANDOFF",
+  "schema_version": 1,
+  "created_utc": "2026-10-13T01:04:37.443189+00:00",
+  "status": "SOURCE_READY_FOR_ROOT_ATTEMPT3_NOT_ADMITTED_NO_WORLDS",
+  "source_files": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/lib.rs",
+      "sha256": "4cae4ce4c1c337c2154a05ae3c804ae54c07332e6b6024a778310d39c352e0d7",
+      "bytes": 39058
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/main.rs",
+      "sha256": "cf207747482c6788aa6ab17770139061a6d667c25df606b4402e754559e89ade",
+      "bytes": 329
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/tests.rs",
+      "sha256": "a7f35f2bfcd634f90ac82983aefb43b24f8ae3108d7344bf6a60c221e337ea1d",
+      "bytes": 14749
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/README.md",
+      "sha256": "5eec6575be2e353ec0aa1e8bc2c28ee3379903ee18126c2a39466c2d47d19154",
+      "bytes": 3902
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/schema-source-contract.json",
+      "sha256": "828df1ad1988f8b62ec4a89940866f4a27aa9a51fb8b1bb50f7b9d1588ea3979",
+      "bytes": 17339
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/physical-protocol-and-gates.md",
+      "sha256": "b0f917b682018e8d4fc0da63cf063cc5faca9ced0cfbb325d0008b0e1404e247",
+      "bytes": 7344
+    }
+  ],
+  "original143_lib": {
+    "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/lib.rs",
+    "sha256": "f73732b13546625a7b53af1e07c1a0873a937a1746e800175647fcf85dd910c7",
+    "bytes": 33595
+  },
+  "original143_tests": {
+    "path": "/workspace/RobotNativeEngine/examples/143_motor_construction/tests.rs",
+    "sha256": "3a11fcb56fa7fcf75fbbd33608080770f18a263ec431bd64595eee9bea60c063",
+    "bytes": 7539
+  },
+  "root_protocol_template": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/protocol-source-template.json",
+    "sha256": "9ed5bb514d9aee946c8623d87aff15087ae98cb9e7a695c48e5c3fdcf8a05552",
+    "bytes": 32480
+  },
+  "root_owned_not_edited": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "vendor_base",
+    "vendor_candidate",
+    "build configs and targets"
+  ],
+  "checkpoint_telemetry_projection_helper_region_literal143": true,
+  "case_ids_order": [
+    "m05_h05_neg_cap2",
+    "m05_h05_neg_cap001",
+    "m05_h05_pos_cap2",
+    "m05_h05_pos_cap001",
+    "m05_h05_zero_cap2",
+    "m05_h2_neg_cap2",
+    "m05_h2_neg_cap001",
+    "m05_h2_pos_cap2",
+    "m05_h2_pos_cap001",
+    "m05_h2_zero_cap2",
+    "m2_h05_neg_cap2",
+    "m2_h05_neg_cap001",
+    "m2_h05_pos_cap2",
+    "m2_h05_pos_cap001",
+    "m2_h05_zero_cap2",
+    "m2_h2_neg_cap2",
+    "m2_h2_neg_cap001",
+    "m2_h2_pos_cap2",
+    "m2_h2_pos_cap001",
+    "m2_h2_zero_cap2"
+  ],
+  "case_count": 20,
+  "fixed_new_native_budget": 120,
+  "pilot_budget": 0,
+  "pure_tests_defined": 10,
+  "pure_tests_native_entrypoint_calls": 0,
+  "direct_scoped_rustfmt_original_exit": 0,
+  "Cargo_tests_builds_or_worlds_run_by_author": 0,
+  "old_reports_or_reader_execution": 0,
+  "checkout_Git_or_remote_changes": 0,
+  "variant_label_not_runtime_policy_or_observer_selector": true,
+  "numerical_accuracy_or_adoption_maturity_claim": false,
+  "remaining": [
+    "Root guarded pure compilation/tests/lint/docs/build for both variants",
+    "Independent NEW reader/driver/protocol/build/source freeze and admission before120 launches"
+  ],
+  "issues": [],
+  "root_owned_clippy_config": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/clippy.toml",
+    "sha256": "2e5a56898feafc9072d010eb802c24f8a05fce44ae8c4454c3fed13cb9c1444a",
+    "bytes": 67
+  },
+  "predata_test_split_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/predata-test-split-receipt.json",
+    "sha256": "287e345d0666e634c2fa24340c0a9200cee97d1db398807fb57fe95ddb5c566d",
+    "bytes": 1812
+  },
+  "previous_source_handoff": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/source-handoff-before-test-split.json",
+    "sha256": "94328a3f4a347bb82cd19a4d61d10eff37a116309e7eeff98565176c562ca35c"
+  },
+  "predata_validation_context": "Root baseline ten pure tests passed; first Clippy invocation configuration refusal and second actual too-many-lines failure are retained, not passes. Only new test literal table was split for existing repository150-line policy. Root qualification attempt3 remains unrun at this handoff."
+}

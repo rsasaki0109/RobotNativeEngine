@@ -1,0 +1,24 @@
+{
+  "kind": "PRE_DATA_FINAL_SHARED_SOURCE_COPY",
+  "native_worlds": 0,
+  "files": [
+    {
+      "name": "fixed_contract.py",
+      "sha256": "4683c31e52a28ef70bb20098e3cb88a1ef5ec443e06d54de2ff6e36a22c34984",
+      "bytes": 23656,
+      "literal_equal": true
+    },
+    {
+      "name": "strict_io.py",
+      "sha256": "9eaf69d82115bbc15f43ab8ef297a7bb89080875384cd163bd308c7d0ead442a",
+      "bytes": 4176,
+      "literal_equal": true
+    },
+    {
+      "name": "spec_contract.py",
+      "sha256": "72109d34b506f9a5165471f9613614bd6c95528aa4331626a7a26d8b5c6fe344",
+      "bytes": 7316,
+      "literal_equal": true
+    }
+  ]
+}

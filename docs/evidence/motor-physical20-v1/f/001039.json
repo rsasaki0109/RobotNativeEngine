@@ -1,0 +1,53 @@
+{
+  "admission": {
+    "bytes": 6565,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-predata-admission/admission.json",
+    "sha256": "44f6a89c970c82011be6588ec448cf4d9b9c1c23717a5a8e719a3f5e91f71074"
+  },
+  "argv": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_registered_once.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "--spec-sha256",
+    "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+  ],
+  "completed_utc": "2026-10-13T01:25:58.194614+00:00",
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "executor_source": {
+    "bytes": 6026,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-predata-admission/preflight_default_once.py",
+    "sha256": "d251d68209c83507b5a106cb6401951cba2ad8b2d606baa06936a15cbda9be90"
+  },
+  "github_calls": 0,
+  "kind": "actual_once_default_no_native_cli_preflight",
+  "native_outputs_and_claims_still_absent": true,
+  "native_processes_started": 0,
+  "original_default_cli_invocations": 1,
+  "original_exit": 0,
+  "retries": 0,
+  "root_checkout_clean": true,
+  "root_head": "423a3fd7f44128aa440afe47f937039de504f275",
+  "root_tree": "442e06b18e20bf99347877bdf8de8b8324d4b795",
+  "scientific_reader_invocations": 0,
+  "source_and_wrapper_and_admission_inputs_unchanged": true,
+  "source_mutations": 0,
+  "started_utc": "2026-10-13T01:25:57.900210+00:00",
+  "status": "PASS_AUTHENTICATED_DEFAULT_PREFLIGHT_NO_NATIVE_OR_READER_OR_CLAIMS",
+  "stderr": {
+    "bytes": 0,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-predata-admission/preflight-default-once/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stdout": {
+    "bytes": 84,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-predata-admission/preflight-default-once/stdout.log",
+    "sha256": "b4c80394b66b6838bfbc69b2cf8ce8aeb0f3ee3cd4ace603db7141344da8cf34"
+  },
+  "wrapper": {
+    "bytes": 561,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+  }
+}

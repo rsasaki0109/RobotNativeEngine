@@ -1,0 +1,35 @@
+{
+  "kind": "NEW_PHYSICAL_COLLECTOR_PRE_DATA_TEST_SPLIT",
+  "schema_version": 1,
+  "created_utc": "2026-10-13T01:04:37.443189+00:00",
+  "status": "SOURCE_READY_FOR_ROOT_ATTEMPT3_NOT_ADMITTED_NO_WORLDS",
+  "preserved_failed_attempt2_snapshot": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/unadmitted-predata-clippy-attempt-2-sources",
+  "original_tests_sha256": "35ddfce9c282f0670a1dcbbd35699226a106b909f70b7f9e37d1a029e6c9347e",
+  "current_tests": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/tests.rs",
+    "sha256": "a7f35f2bfcd634f90ac82983aefb43b24f8ae3108d7344bf6a60c221e337ea1d",
+    "bytes": 14749
+  },
+  "unchanged_expected_case_ids_and_80_literal_input_words": true,
+  "other_nine_tests_and_original_test_assertion_body_literal_unchanged": true,
+  "expected_helper_lines": 144,
+  "test_body_lines": 43,
+  "pure_test_count": 10,
+  "pure_native_entrypoint_calls": 0,
+  "root_owned_clippy_config": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/clippy.toml",
+    "sha256": "2e5a56898feafc9072d010eb802c24f8a05fce44ae8c4454c3fed13cb9c1444a",
+    "bytes": 67
+  },
+  "threshold_not_raised": 150,
+  "root_config_copy_existing_repository_policy": true,
+  "format_command": "direct rustfmt --edition 2021 --config skip_children=true tests.rs",
+  "format_original_exit": 0,
+  "author_Cargo_or_native_worlds": 0,
+  "native_helpers_or_schema_changes": 0,
+  "previous_ready_handoff": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/source-handoff-before-test-split.json",
+    "sha256": "94328a3f4a347bb82cd19a4d61d10eff37a116309e7eeff98565176c562ca35c"
+  },
+  "original_actual_failure_proof_retained_by_root": true
+}

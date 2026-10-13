@@ -1095,6 +1095,54 @@ retention is prepared separately from the scientific qualification. Captured
 state/source arithmetic do not qualify full private caches, runtime floating-point
 modes, physical motor accuracy, hardware behavior or increased practical maturity.
 
+### Isolated ForceBased inertia/time/cap diagnostic
+
+A new finite external study uses source copies of PR #411 head `423a3fd7`.
+The baseline uses the existing internal ForceBased normalization `inv(w)`;
+the sole candidate uses `inv(w+g)` for ForceBased motors. AccelerationBased,
+gains, caps, observer schemas and solve order are unchanged. Contact freedom is
+established by the fixed-parent, centered single spherical collider plant, not
+by a DOF count or observer flag. This is the same algebraic change whose prior
+global application failed example 138's numerical preservation gate; that
+rejection remains unchanged.
+
+The 20 registered conditions use mass 0.5/2 kg, radius 0.1 m, duration 0.5/2 ms,
+one solver slice, one PGS pass and two stabilization passes. Stiffness is
+300 Nm/rad and damping is 12 Nm s/rad. Targets -0.001/+0.001 rad and caps
+2/0.01 Nm form 16 cases, with four zero-target controls at 2 Nm. Two builds
+times each condition's ON/fresh ON/OFF processes give exactly 120 original
+processes and one new frozen reader. Earlier cohorts and readers are not rerun.
+
+All original native, coordinator, checked CLI and reader exits are zero. The
+declared source checks pass for 80 constructors, 80 coordinate advances and
+240 motor solves, without issues. Captured ON/fresh/OFF checkpoints match,
+complete fresh ON records match literally, and OFF observers are absent.
+The independent reference uses geometric inertia `(2/5)mR^2` and clipped
+implicit backward Euler. Integration velocity and final writeback velocity
+remain separate measurements.
+
+| Condition class | Baseline within nominal allowance | Candidate within nominal allowance |
+|---|---:|---:|
+| Interior, torque cap inactive | 0/8 | 8/8 |
+| Saturated torque | 8/8 | 8/8 |
+| Zero controls | 4/4 | 4/4 |
+| All distinct conditions | 12/20 | 20/20 |
+
+These are fixed per-quantity nominal-SI comparisons, not a propagated envelope
+for f32 input or inertia uncertainty. Passing one metric does not imply another
+passes. Inertia/impulse allowances are inherited; velocity, coordinate and
+torque allowances are nominal scalings. The aggregate physical status retains
+the eight baseline failures. Source fidelity does not establish universal
+accuracy, convergence, full mass/LU construction or a coupled-contact cause.
+No production/default change or historical calibration reclassification is
+made. The four-primary accuracy criteria, exact physical output of examples
+133–138, both heavy-grasp tests and full CI remain future promotion gates.
+
+The [whole data and provenance](../evidence/motor-physical20-v1/README.md)
+retain all 120 full raw streams and a single lossless representation of the
+complete 2,049,298-byte audit. No hardware, runtime floating-point-mode or
+practical maturity claim is added.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

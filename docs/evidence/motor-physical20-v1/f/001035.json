@@ -1,0 +1,136 @@
+{
+  "SI_or_source_arithmetic_rederivations": 0,
+  "all_120_whole_raw_originals_and_receipt_bindings_verified": true,
+  "all_study_artifacts_before_after_unchanged": true,
+  "audit": {
+    "bytes": 2049298,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json",
+    "sha256": "a43b19474de7478faa43bad15de2ee977f51473896575f6c282d381dfe8ecf99"
+  },
+  "cargo_commands": 0,
+  "carrier_complete_single_member_CRC_EOF_and_literal_full_restoration": true,
+  "checkout_edits": 0,
+  "completed_utc": "2026-10-13T01:37:11.735116+00:00",
+  "direct_label_projection": [
+    {
+      "by_regime": {
+        "interior": {
+          "OUTSIDE_DECLARED_NEW_CASE_ALLOWANCE": 8
+        },
+        "null": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 4
+        },
+        "saturated": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 8
+        }
+      },
+      "labels": {
+        "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 12,
+        "OUTSIDE_DECLARED_NEW_CASE_ALLOWANCE": 8
+      },
+      "unique_cases": 20,
+      "variant": "baseline"
+    },
+    {
+      "by_regime": {
+        "interior": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 8
+        },
+        "null": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 4
+        },
+        "saturated": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 8
+        }
+      },
+      "labels": {
+        "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 20
+      },
+      "unique_cases": 20,
+      "variant": "candidate"
+    }
+  ],
+  "fixed_120_claims_durable_before_first_start": true,
+  "frozen536_inputs_current_unchanged": true,
+  "github_calls": 0,
+  "launch_outcome_unknown_count": 0,
+  "limitations": [
+    "This is byte/provenance and direct categorical presentation review, not a second scientific audit or SI/source-arithmetic derivation.",
+    "Source-fidelity PASS and candidate20/20 concern this new isolated nominal diagnostic only; historical four criteria and globally rejected candidate remain unchanged.",
+    "All123 recorded native/coordinator/checked/reader PIDs are absent; the master shell completion is evidenced by root original tool receipt, not an account-wide process/schedule audit.",
+    "No public upload, production correction, real-world validation, general motor accuracy or maturity gain is established."
+  ],
+  "native_or_audit_retries": 0,
+  "new_native_worlds": 0,
+  "old_numerical_dataset_reads": 0,
+  "one_scientific_launch_and_audit_claim_bound": true,
+  "original_coordinator_and_checked_and_reader_CLI_exits_zero": true,
+  "original_native_exits_zero": 120,
+  "prereg_admission_and_freeze_before_all_native_claims": true,
+  "presentation_scope_review": "README and summary correctly restrict the20-case/one-interval nominal diagnostic, separate integration/writeback quantities, preserve baseline outside-labels and all originals, and exclude adoption/old calibration/coupled-contact/hardware/maturity claims.",
+  "proof_ledgers": [
+    {
+      "bytes": 277550,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-postcollection-review/whole-study-file-ledger-before.json",
+      "sha256": "adde4449a4b513608aea026f94f0eff49975b7056737fd10e38895a166dee385"
+    },
+    {
+      "bytes": 277550,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-postcollection-review/whole-study-file-ledger-after.json",
+      "sha256": "adde4449a4b513608aea026f94f0eff49975b7056737fd10e38895a166dee385"
+    },
+    {
+      "bytes": 136236,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-postcollection-review/frozen-source-inputs-before.json",
+      "sha256": "33a205ce200328742f1fdaf9647257ca410590da20774cd05f0c9ec915aa2684"
+    },
+    {
+      "bytes": 136236,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-postcollection-review/frozen-source-inputs-after.json",
+      "sha256": "33a205ce200328742f1fdaf9647257ca410590da20774cd05f0c9ec915aa2684"
+    },
+    {
+      "bytes": 78343,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-postcollection-review/direct-label-projection-and-original-process-map.json",
+      "sha256": "2601f3f29e6fee24ed31c9c652c3264317ee25fda70b294f38af44bcdcbd7ea7"
+    }
+  ],
+  "readme": {
+    "bytes": 2354,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/README.md",
+    "sha256": "f6808063dab5d1751f1b13c6632fdb0a2cfce7b36b53255b806caa688be394ef"
+  },
+  "recorded_123_process_ids_absent": true,
+  "review_source": {
+    "bytes": 20550,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-postcollection-review/review_provenance_and_presentation.py",
+    "sha256": "1c3947d7e0969989b05f556238e674071f57815d071704f4564ebd671ed43144"
+  },
+  "root_checkout_clean": true,
+  "root_head": "423a3fd7f44128aa440afe47f937039de504f275",
+  "root_original_tool_exit_zero_observed_receipt": {
+    "bytes": 1382,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/root-original-launch.json",
+    "sha256": "3b94a271d02a6460cdbd6ea5ba9f6d2cfe1d4ba56c58014413a748f0d64e8052"
+  },
+  "root_outer_tool_receipt_scope": "Parent-observed actual original tool exit retained after completion; not an external execution attestation.",
+  "root_tree": "442e06b18e20bf99347877bdf8de8b8324d4b795",
+  "same_captured_ON_fresh_OFF_bytes_and_fresh_record_literal": true,
+  "scientific_reader_executions": 0,
+  "status": "PASS_COMPLETED_NEW120_BYTE_PROVENANCE_AND_DIRECT_PRESENTATION_REVIEW",
+  "summary": {
+    "bytes": 3026,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/result-summary.json",
+    "sha256": "0e318c57b08265bf7eaa001203a5368e7f5877671b9d4b9763dfd3674fa29900"
+  },
+  "whole_audit_carrier": {
+    "bytes": 61534,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json.gz",
+    "sha256": "016d5524c6ee239da8b4ebf7a3856076ff2e52f399484cb3c7c4a0b2ca7d2b69"
+  },
+  "wrapper": {
+    "bytes": 561,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+  }
+}

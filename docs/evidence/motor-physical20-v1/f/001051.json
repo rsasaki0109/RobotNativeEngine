@@ -1,0 +1,57 @@
+{
+  "kind": "NEW_PHYSICAL_PRE_DATA_PURE_TESTS_AGGREGATE",
+  "schema_version": 1,
+  "created_utc": "2026-10-13T01:15:58.481044+00:00",
+  "status": "PASS_FINAL_PURE_TESTS_NOT_NATIVE_ADMISSION",
+  "collector_tests_each_variant": 10,
+  "reader_tests": 26,
+  "driver_tests": 25,
+  "final_pure_executions": 71,
+  "collector_build_binding": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/actual-build-binding.json",
+    "bytes": 107497,
+    "sha256": "89675062b3e245690538e14248defddbb4df018f4cbcadc75042fd29249025c2"
+  },
+  "collector_test_receipts": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/baseline-pure-tests-actual.json",
+      "bytes": 468,
+      "sha256": "5732f3d414bbb1913b3fc63eeb61755523549f23297c9ed4033dbf19cf6059e9"
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/build-qualification-attempt-3/candidate-pure-tests-actual.json",
+      "bytes": 470,
+      "sha256": "a0519a1086d297048bf387dc23a1fd9ddb18f9c705b18838408b610a3d6c6800"
+    }
+  ],
+  "reader_handoff": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/handoff.json",
+    "bytes": 9197,
+    "sha256": "534b7c416aa4b7cbbf9f8b1835f749a8f330d8c682e468419de22c27e7f21a57"
+  },
+  "driver_handoff": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/handoff.json",
+    "bytes": 8447,
+    "sha256": "8947747f5da16ef0aceb6260499641fcd7f05d90276903da9b71893edf53ef4a"
+  },
+  "reader_original_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/pure-checks/attempt-3/actual.json",
+    "sha256": "33fa90f7aac4dc1271972dd0d466d3655fccc30a0fda85be69755b9ac32a0c01",
+    "bytes": 9398
+  },
+  "driver_original_receipt": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/validation/20261013T010946116207Z/actual-command.json",
+    "sha256": "526c5aee414fe354b6492a00a4e0f2b6d60b392998aabb0fb61e27ba7bf080f1",
+    "bytes": 3677
+  },
+  "native_worlds": 0,
+  "scientific_reader_invocations": 0,
+  "source_guards_unchanged": true,
+  "physical_review": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-physics-review/independent-physics-review.json",
+    "bytes": 8501,
+    "sha256": "44cef34325d0c1de01bafb9787338f0e29912bd6d3f4d21a4cbd1603ed4e0162"
+  },
+  "failed_predata_attempts_retained": true,
+  "test_failures_fixed_before_data": "Original Clippy config/line-limit and pure test expectation/decoding errors retained; no outcome-dependent numerical changes."
+}

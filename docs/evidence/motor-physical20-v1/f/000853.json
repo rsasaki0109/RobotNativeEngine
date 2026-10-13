@@ -1,0 +1,29 @@
+{
+  "kind": "exclusive_scientific_reader_launch_intent",
+  "created_utc": "2026-10-13T01:26:52.143299+00:00",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py",
+    "--spec",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "--spec-sha256",
+    "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+    "--result-root",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json",
+    "--checked-outer-receipt",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/collect-invocation/actual-command.json",
+    "--checked-outer-sha256",
+    "0502aead8aa2045d65ba148a30d12dd7201c43d297b08353776d6daae168a7ec"
+  ],
+  "registered_wrapper_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+  "prereader_byte_guard": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/prereader-byte-guard.json",
+    "sha256": "77c23854fde9e7b332e1a5590dc7c7740782de5f4c4cb12cb42ceaad25572b6e",
+    "bytes": 115880
+  },
+  "maximum_invocations": 1,
+  "retries": 0
+}

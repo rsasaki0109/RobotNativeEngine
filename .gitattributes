@@ -12,3 +12,6 @@ docs/evidence/motor-construction-v1/source-review-diff.patch -diff -whitespace
 
 # Literal visitation-placement data and provenance retain original bytes.
 docs/evidence/motor-visit-placement-v1/f/** -diff -whitespace
+
+# Keep complete physical motor evidence literal.
+docs/evidence/motor-physical20-v1/f/** -diff -whitespace

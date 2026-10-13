@@ -1,0 +1,17 @@
+{
+  "kind": "exclusive_once_only_physical20_audit",
+  "schema_version": 1,
+  "created_utc": "2026-10-13T01:26:52.269029+00:00",
+  "spec_path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+  "externally_supplied_wrapper_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+  "result_root": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort",
+  "output": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json",
+  "checked_outer_receipt": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/collect-invocation/actual-command.json",
+  "checked_outer_sha256": "0502aead8aa2045d65ba148a30d12dd7201c43d297b08353776d6daae168a7ec",
+  "reader_source": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py",
+    "sha256": "3dfd29b779c6538af1feddaef16b2666935c4ced172cf74305944eac053d29f2",
+    "bytes": 27271
+  },
+  "native_processes_launched": 0
+}

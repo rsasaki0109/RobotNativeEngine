@@ -1,0 +1,49 @@
+test_all_twenty_both_variants_on_and_off_synthetic (test_run_schema.RunTests.test_all_twenty_both_variants_on_and_off_synthetic) ... ok
+test_case_variant_actual_control_boolean_and_row_faults_fail_closed (test_run_schema.RunTests.test_case_variant_actual_control_boolean_and_row_faults_fail_closed) ... ok
+test_hand_half_response_and_mismatch (test_run_schema.RunTests.test_hand_half_response_and_mismatch) ... ok
+test_impulse_sign_duration_ceiling_and_saturation_linkage_fail (test_run_schema.RunTests.test_impulse_sign_duration_ceiling_and_saturation_linkage_fail) ... ok
+test_integration_and_final_writeback_not_substitutable (test_run_schema.RunTests.test_integration_and_final_writeback_not_substitutable) ... ok
+test_nonfinite_rounding_is_excluded_not_passed (test_run_schema.RunTests.test_nonfinite_rounding_is_excluded_not_passed) ... ok
+test_off_nulls_and_truncated_duplicate_float_multiple_members_fail (test_run_schema.RunTests.test_off_nulls_and_truncated_duplicate_float_multiple_members_fail) ... ok
+test_schedule_counts_and_iteration_collision_are_not_collapsed (test_run_schema.RunTests.test_schedule_counts_and_iteration_collision_are_not_collapsed) ... ok
+test_boundary_is_literal_not_expanded (test_physical_oracle.PhysicalTests.test_boundary_is_literal_not_expanded) ... ok
+test_exact_nominal_inertias_and_declared_regimes (test_physical_oracle.PhysicalTests.test_exact_nominal_inertias_and_declared_regimes) ... ok
+test_final_velocity_does_not_replace_integrated_coordinate (test_physical_oracle.PhysicalTests.test_final_velocity_does_not_replace_integrated_coordinate) ... ok
+test_hand_backward_euler_interior_and_cap_units (test_physical_oracle.PhysicalTests.test_hand_backward_euler_interior_and_cap_units) ... ok
+test_nominal_is_not_f32_geometry (test_physical_oracle.PhysicalTests.test_nominal_is_not_f32_geometry) ... ERROR
+test_same_impulse_allowance_derives_velocity_coordinate_torque (test_physical_oracle.PhysicalTests.test_same_impulse_allowance_derives_velocity_coordinate_torque) ... ERROR
+test_saturated_scaling_and_sign (test_physical_oracle.PhysicalTests.test_saturated_scaling_and_sign) ... ok
+test_wrong_inertia_not_fitted_to_row (test_physical_oracle.PhysicalTests.test_wrong_inertia_not_fitted_to_row) ... ok
+test_zero_signed_words_nonfinite_and_bool (test_physical_oracle.PhysicalTests.test_zero_signed_words_nonfinite_and_bool) ... ok
+
+======================================================================
+ERROR: test_nominal_is_not_f32_geometry (test_physical_oracle.PhysicalTests.test_nominal_is_not_f32_geometry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_physical_oracle.py", line 70, in test_nominal_is_not_f32_geometry
+    self.assertNotEqual(F(residual['numerator'],residual['denominator']),0)
+                        ~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/fractions.py", line 294, in __new__
+    raise TypeError("both arguments should be "
+                    "Rational instances")
+TypeError: both arguments should be Rational instances
+
+======================================================================
+ERROR: test_same_impulse_allowance_derives_velocity_coordinate_torque (test_physical_oracle.PhysicalTests.test_same_impulse_allowance_derives_velocity_coordinate_torque)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_physical_oracle.py", line 41, in test_same_impulse_allowance_derives_velocity_coordinate_torque
+    self.assertEqual(fraction(q['integration_input_velocity']['allowance']),dp/r['inertia'])
+                     ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_physical_oracle.py", line 39, in fraction
+    def fraction(x):return F(x['numerator'],x['denominator'])
+                           ~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/fractions.py", line 294, in __new__
+    raise TypeError("both arguments should be "
+                    "Rational instances")
+TypeError: both arguments should be Rational instances
+
+----------------------------------------------------------------------
+Ran 17 tests in 1.142s
+
+FAILED (errors=2)

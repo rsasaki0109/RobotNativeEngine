@@ -1,0 +1,26 @@
+{
+  "kind": "ROOT_ORIGINAL_NEW120_LAUNCH_TOOL_RECEIPT",
+  "original_exit": 0,
+  "actual_tool_result": {
+    "chunk_id": "19c279",
+    "wall_time_seconds": 0.000033553,
+    "exit_code": 0,
+    "original_token_count": 0,
+    "output": ""
+  },
+  "launch_start_observed": {
+    "current_time": "2026-10-13 01:26:36 UTC"
+  },
+  "completion_recorded": {
+    "current_time": "2026-10-13 01:30:18 UTC"
+  },
+  "command": ". /workspace/.rne-onboarding/env.sh\nset -o noclobber\n/usr/bin/python3 -B /workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/run_registered_once.py --spec /workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json --spec-sha256 6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c --launch-native > /workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/root-stdout.log 2> /workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/root-stderr.log",
+  "registered_wrapper": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+    "bytes": 561,
+    "sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c"
+  },
+  "retries": 0,
+  "scientific_reader_maximum": 1,
+  "note": "Original execution tool completion, retained after observation; master files contain exact child times and original exits."
+}

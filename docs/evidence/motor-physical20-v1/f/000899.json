@@ -1,0 +1,15 @@
+{
+  "label": "format-check-collector-only",
+  "argv": [
+    "rustfmt",
+    "--edition",
+    "2021",
+    "--check",
+    "lib.rs",
+    "main.rs",
+    "tests.rs"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "start_unix_ns": 1791853078647529074,
+  "native_fixture_invoked": false
+}

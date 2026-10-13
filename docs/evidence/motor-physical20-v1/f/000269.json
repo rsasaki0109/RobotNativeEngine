@@ -1,0 +1,35 @@
+{
+  "kind": "original_process_terminal",
+  "case": {
+    "slot": 41,
+    "variant": "baseline",
+    "case_id": "m2_h05_pos_cap001",
+    "observer": "off",
+    "label": "off"
+  },
+  "attempt_index": 41,
+  "argv": [
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/motor_physical_baseline.native",
+    "--case",
+    "m2_h05_pos_cap001",
+    "--variant",
+    "baseline",
+    "--observer",
+    "off",
+    "--label",
+    "off",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort/baseline/m2_h05_pos_cap001/off/raw.jsonl.gz"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "started_utc": "2026-10-13T01:26:42.261328+00:00",
+  "native_process_started": true,
+  "actual_exit_code": null,
+  "timed_out": false,
+  "error": null,
+  "pid": 199240,
+  "ended_utc": null,
+  "stdout": null,
+  "stderr": null,
+  "raw_output": null
+}

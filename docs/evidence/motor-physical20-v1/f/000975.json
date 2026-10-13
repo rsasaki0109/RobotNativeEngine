@@ -1,0 +1,17 @@
+{
+  "label": "candidate-strict-clippy",
+  "argv": [
+    "cargo",
+    "clippy",
+    "--config",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/candidate-cargo-config.toml",
+    "--locked",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "start_unix_ns": 1791853597601185480,
+  "native_fixture_invoked": false
+}

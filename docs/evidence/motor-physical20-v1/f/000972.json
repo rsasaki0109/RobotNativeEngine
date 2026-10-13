@@ -1,0 +1,16 @@
+{
+  "label": "candidate-release-build",
+  "argv": [
+    "cargo",
+    "--config",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/candidate-cargo-config.toml",
+    "build",
+    "--locked",
+    "--release",
+    "--bin",
+    "motor_physical"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "start_unix_ns": 1791853617367731416,
+  "native_fixture_invoked": false
+}

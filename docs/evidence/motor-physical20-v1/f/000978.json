@@ -1,0 +1,14 @@
+{
+  "label": "candidate-strict-rustdoc",
+  "argv": [
+    "cargo",
+    "--config",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/candidate-cargo-config.toml",
+    "doc",
+    "--locked",
+    "--no-deps"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "start_unix_ns": 1791853615806338103,
+  "native_fixture_invoked": false
+}

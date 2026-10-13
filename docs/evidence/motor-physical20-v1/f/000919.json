@@ -1,0 +1,15 @@
+{
+  "label": "baseline-metadata",
+  "argv": [
+    "cargo",
+    "--config",
+    "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/baseline-cargo-config.toml",
+    "metadata",
+    "--locked",
+    "--format-version",
+    "1"
+  ],
+  "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+  "start_unix_ns": 1791853206517761536,
+  "native_fixture_invoked": false
+}

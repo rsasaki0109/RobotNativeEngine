@@ -1,0 +1,98 @@
+{
+  "kind": "new_physical20_once_master_terminal",
+  "status": "completed_fixed120_collection_and_one_reader",
+  "created_utc": "2026-10-13T01:26:36.775801+00:00",
+  "ended_utc": "2026-10-13T01:26:53.544527+00:00",
+  "original_collection_CLI": {
+    "kind": "exclusive_original_cli_claim",
+    "mode": "collect",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/driver/checked_driver.py",
+      "--spec",
+      "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+      "--spec-sha256",
+      "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+      "--launch-native"
+    ],
+    "registered_wrapper_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+    "created_utc": "2026-10-13T01:26:36.776279+00:00",
+    "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+    "retries": 0,
+    "resume": false,
+    "process_started": true,
+    "pid": 199197,
+    "original_exit": 0,
+    "launch_outcome": "known_started_exit_observed",
+    "error": null,
+    "start_unix_ns": 1791854796777115201,
+    "end_unix_ns": 1791854811890953620,
+    "source_inputs_unchanged": true,
+    "stdout": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/collect-invocation/stdout.log",
+      "sha256": "e50b27438f82b18789587b32c603f029ba268693deebb6e10510e6203664b03c",
+      "bytes": 1462
+    },
+    "stderr": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/collect-invocation/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  },
+  "original_reader_CLI": {
+    "kind": "exclusive_original_cli_claim",
+    "mode": "audit",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reader.py",
+      "--spec",
+      "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/admitted-spec.json",
+      "--spec-sha256",
+      "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+      "--result-root",
+      "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/cohort",
+      "--output",
+      "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json",
+      "--checked-outer-receipt",
+      "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/collect-invocation/actual-command.json",
+      "--checked-outer-sha256",
+      "0502aead8aa2045d65ba148a30d12dd7201c43d297b08353776d6daae168a7ec"
+    ],
+    "registered_wrapper_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+    "created_utc": "2026-10-13T01:26:52.144731+00:00",
+    "cwd": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector",
+    "retries": 0,
+    "resume": false,
+    "process_started": true,
+    "pid": 199319,
+    "original_exit": 0,
+    "launch_outcome": "known_started_exit_observed",
+    "error": null,
+    "start_unix_ns": 1791854812145412437,
+    "end_unix_ns": 1791854813420660474,
+    "source_inputs_unchanged": true,
+    "stdout": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/audit-invocation/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "stderr": {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/audit-invocation/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  },
+  "prereader_byte_guard": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/prereader-byte-guard.json",
+    "sha256": "77c23854fde9e7b332e1a5590dc7c7740782de5f4c4cb12cb42ceaad25572b6e",
+    "bytes": 115880
+  },
+  "reader_launch_outcome": "known_started_exit_observed",
+  "registered_wrapper_sha256": "6755bb5d73294fe67353df7ff5ab555314ecd6d425e6343f411132942d35b20c",
+  "retries": 0,
+  "resumed": false,
+  "error": null,
+  "source_inputs_unchanged": true
+}

@@ -1,0 +1,85 @@
+{
+  "kind": "NEW20_LITERAL_REPORT_PRESENTATION_NOT_NEW_SCIENTIFIC_AUDIT",
+  "created_utc": "2026-10-13T01:30:19.115092+00:00",
+  "audit": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json",
+    "bytes": 2049298,
+    "sha256": "a43b19474de7478faa43bad15de2ee977f51473896575f6c282d381dfe8ecf99"
+  },
+  "lossless_whole_audit_carrier": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/actual-cohort-audit.json.gz",
+    "bytes": 61534,
+    "sha256": "016d5524c6ee239da8b4ebf7a3856076ff2e52f399484cb3c7c4a0b2ca7d2b69"
+  },
+  "master": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/master/master-terminal.json",
+    "bytes": 4298,
+    "sha256": "29c8e115141f9b2724b5713deee74f652598c00bf5037ec36a7f79c12d3f7fcf"
+  },
+  "root_original_launch": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-120/root-original-launch.json",
+    "bytes": 1382,
+    "sha256": "3b94a271d02a6460cdbd6ea5ba9f6d2cfe1d4ba56c58014413a748f0d64e8052"
+  },
+  "fidelity_status": "PASS_COMPLETE_DECLARED_SCOPE",
+  "collection_status": "COMPLETE_ORIGINAL_EXITS_120_NATIVE_AND_COORDINATOR_AND_CHECKED_CLI_ZERO",
+  "physical_SI_status": "SOME_NEW_CASE_DIAGNOSTICS_OUTSIDE_DECLARED_ALLOWANCES",
+  "actual_processes": 120,
+  "actual_outer_intervals": 120,
+  "observed_ON_processes": 80,
+  "constructor_checks": 80,
+  "coordinate_checks": 80,
+  "native_motor_solve_checks": 240,
+  "companion_events": 720,
+  "stage_v1_events": 2080,
+  "captured_checkpoint_ON_repeat_OFF_exact": true,
+  "fresh_ON_complete_record_literal_exact": true,
+  "off_observers_absent": true,
+  "rows": [
+    {
+      "variant": "baseline",
+      "unique_cases": 20,
+      "labels": {
+        "OUTSIDE_DECLARED_NEW_CASE_ALLOWANCE": 8,
+        "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 12
+      },
+      "by_regime": {
+        "interior": {
+          "OUTSIDE_DECLARED_NEW_CASE_ALLOWANCE": 8
+        },
+        "saturated": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 8
+        },
+        "null": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 4
+        }
+      }
+    },
+    {
+      "variant": "candidate",
+      "unique_cases": 20,
+      "labels": {
+        "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 20
+      },
+      "by_regime": {
+        "interior": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 8
+        },
+        "saturated": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 8
+        },
+        "null": {
+          "MEETS_DECLARED_NEW_CASE_ALLOWANCE": 4
+        }
+      }
+    }
+  ],
+  "claims": {
+    "historical_calibration_reclassified": false,
+    "production_adoption": false,
+    "coupled_contact_cause": false,
+    "hardware_verified": false,
+    "maturity_increase": false
+  },
+  "scope": "Direct counts of existing frozen audit labels only; no raw numeric decoding or physics/source rederivation. Fixed nominal-SI allowances per quantity, not propagated f32/inertia uncertainty envelopes. One interval per process."
+}

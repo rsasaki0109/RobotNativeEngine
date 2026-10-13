@@ -1,0 +1,106 @@
+{
+  "acceleration_branch_unchanged": true,
+  "all_74_nonstudy_package_identities_and_checksums_match_root": true,
+  "build_selection": "Two external Cargo patch configs choose vendor_base/vendor_candidate; CLI variant is only a retained label.",
+  "candidate_changed_paths": [
+    "src/dynamics/joint/multibody_joint/unit_multibody_joint.rs"
+  ],
+  "candidate_delta": {
+    "baseline": {
+      "bytes": 7380,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "2bde94532c22dd1a010c5b018fdb2e6a4314b2cf993bc56003523d5156b61857"
+    },
+    "candidate": {
+      "bytes": 7612,
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_candidate/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs",
+      "sha256": "fd658279d15dcae275e08e9b7f8cefa967247d260f86aa2625d799fd7bbb52d4"
+    },
+    "other_changed_paths": [],
+    "production_adoption": false,
+    "scope": "ForceBased internal motor normalization only; contact freedom admitted by isolated plant, not ndofs."
+  },
+  "candidate_replacement_exact": true,
+  "candidate_source_diff": {
+    "bytes": 739,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-source-review/actual-source-only-review/literal-candidate-source-diff.patch",
+    "sha256": "23569495c0b457c1daeced04c2a2018095206446f9badae15c6e34e2d55f27c1"
+  },
+  "cargo_or_build_commands": 0,
+  "cases": 20,
+  "claim_limits": [
+    "This source-only receipt never authorizes data collection, production adoption or source changes in the repository.",
+    "Historical global candidate rejection and four primary accuracy failures are retained as declared. No historical numerical report/raw/reader was opened or reinterpreted in this review.",
+    "A successful isolated physical study would not establish contact-coupled behavior, hardware validity, general motor accuracy or a maturity increase.",
+    "Declared features are source expectations, not a resolved compiler/feature qualification.",
+    "Dependency review compares lock identities/version/source/checksum and literal prior lock transition; it is not an exhaustive compiler input closure."
+  ],
+  "collection_admitted": false,
+  "collector_lock_package_count": 75,
+  "crlf_and_final_crlf_preserved": true,
+  "declared_rapier_features": [
+    "default",
+    "dim3",
+    "f32",
+    "serde-serialize"
+  ],
+  "github_calls_or_writes": 0,
+  "input_guards_unchanged": true,
+  "lock_literal_old_source_copy_only_study_package_name_transition": true,
+  "main_checkout_edits": 0,
+  "missing_readiness": [
+    "Final frozen collector including pure unit/mock error-path tests and actual original exits/guards; observed current source is DRAFT_UNCOMPILED_UNRUN.",
+    "Actual baseline/candidate builds and pinned native binaries with compiler/linker/executable/features/flags/environment/dependency-source bindings and before/after source guards.",
+    "Frozen independent SI clipped backward-Euler and native source-ordered reader, strict complete gzip/JSON/native-state schema, pure tests and declared criteria/tolerances before data.",
+    "Frozen once-only driver and checked outer launcher with exclusive 120 claims, fsync before launch, conservative known/reserved/unknown accounting, original exits, no retries/resume and owned child cleanup.",
+    "Complete pre-data candidate/protocol/registration/input closure and independent final admission before any of the 120 native processes.",
+    "Prospective whole-file retention/publication descriptors under ADR 034; no outcome-selected/truncated raw evidence or inferred authorization for new external assets."
+  ],
+  "native_processes_launched": 0,
+  "old_numerical_payload_reads": 0,
+  "other_physics_solver_contact_limit_order_changes": false,
+  "planned_native_retries_or_replacements": 0,
+  "planned_new_native_processes": 120,
+  "planned_pilots": 0,
+  "pre_data_ready": false,
+  "recorded_at": "2026-10-13T00:56:51.050522+00:00",
+  "reviewer_source": {
+    "bytes": 15625,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-source-review/review_source_only.py",
+    "sha256": "075c723a7858854f370cee2653b20dc61d8612d71a3ac00bad1a1d06074e77f1"
+  },
+  "root_checkout_clean_unchanged": true,
+  "root_head": "423a3fd7f44128aa440afe47f937039de504f275",
+  "root_lock_package_count": 643,
+  "root_tree": "442e06b18e20bf99347877bdf8de8b8324d4b795",
+  "scientific_reader_executions": 0,
+  "source_binding_rows": 246,
+  "source_inputs_after": {
+    "bytes": 92300,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-source-review/actual-source-only-review/reviewed-inputs-after.json",
+    "sha256": "47a59f20a7a34feb3aaf3144cf3bee004cbd19488bd8916c6d5da8ae7756ef59"
+  },
+  "source_inputs_before": {
+    "bytes": 92300,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-source-review/actual-source-only-review/reviewed-inputs-before.json",
+    "sha256": "47a59f20a7a34feb3aaf3144cf3bee004cbd19488bd8916c6d5da8ae7756ef59"
+  },
+  "source_plant_findings": [
+    "Draft Fixture constructs a fixed parent and one dynamic child with a single centered ball collider R=0.1 m and declared mass 0.5 or 2 kg. No second collider/contact counterpart exists.",
+    "Revolute X-axis motor frames are both identity/coincident; the joint is ForceBased with k=300 Nm/rad and d=12 Nm s/rad, target +/-0.001 rad or zero, cap 2 or 0.01 Nm, and contacts disabled.",
+    "Draft declares/sets zero gravity, body and generalized passive damping, generalized initial velocity and armature; sleeping/CCD are disabled. It checks one DOF/two links/two bodies/one collider.",
+    "Draft sets N=1, PGS=1, stabilization=2, CCD partitions maximum=1 and one outer interval. Island solver divides dt by N plus additional island iterations; draft additional body iterations are zero.",
+    "Source ordering integrates before stabilization. Integration velocity and final writeback velocity must remain separately assessed.",
+    "The isolated centered sphere permits the SI reference I=(2/5)mR^2. The reader must verify actual captured native mass/inertia/coordinate/velocity, not substitute current-row cached inverse mass for physical inertia.",
+    "For the ForceBased angular motor, w and g=1/(h*h*k+h*d) both have inverse-inertia units. The candidate changes only D from inv(w) to inv(w+g); this dimensional/source consistency is not physical accuracy evidence."
+  ],
+  "source_snapshots": {
+    "bytes": 7901,
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-source-review/actual-source-only-review/whole-byte-source-snapshot-index.json",
+    "sha256": "96ce7403497f9949a8ed8af8b56d975956ab10ce828f0979ffce5e2fc5cc619c"
+  },
+  "standalone_workspace": true,
+  "status": "PASS_SOURCE_ONLY_PREPARATION_REVIEW_NOT_COLLECTION_ADMISSION",
+  "vendor_tracked_files_each": 123,
+  "zero_target_controls": 4
+}

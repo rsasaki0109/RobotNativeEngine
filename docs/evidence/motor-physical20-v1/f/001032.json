@@ -1,0 +1,205 @@
+{
+  "kind": "INDEPENDENT_NEW20_PHYSICAL_REFERENCE_SOURCE_REVIEW",
+  "schema_version": 1,
+  "created_utc": "2026-10-13T01:11:06.591069+00:00",
+  "status": "SOURCE_ONLY_PASS_WITH_EXPLICIT_LIMITS_NOT_NATIVE_ADMISSION",
+  "source_bindings": [
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reference.py",
+      "sha256": "5be13b63c98bfd0d8f88878be4779889673bf2c16c4a8f63da0c6116256466f4",
+      "bytes": 2800
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_oracle.py",
+      "sha256": "b7c826c51b1e7b426bec96defc9245b85e7de096c18984cf926a6e0810d3233c",
+      "bytes": 6654
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v1.json",
+      "sha256": "429428402522aa3cd357a900dad610a7cbb123d7fede89c3cfa759698777d523",
+      "bytes": 3789
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical-declaration-v2.json",
+      "sha256": "e3731a9f36121a5a8470a3148c6eb4c0a1da3758bf59d417a1aa03d2c56bb9d3",
+      "bytes": 4572
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/run_schema.py",
+      "sha256": "09d34aeef3dfd6710a0f94235ddf17381287d0149a20d4e0bd1c63d130641dcc",
+      "bytes": 33824
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/test_physical_oracle.py",
+      "sha256": "a43c0f6b3bcafbcb31649ab645ce69661d1c31886dfb2e277f00d10c07ef3877",
+      "bytes": 5348
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/protocol-source-template.json",
+      "sha256": "9ed5bb514d9aee946c8623d87aff15087ae98cb9e7a695c48e5c3fdcf8a05552",
+      "bytes": 32480
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/lib.rs",
+      "sha256": "4cae4ce4c1c337c2154a05ae3c804ae54c07332e6b6024a778310d39c352e0d7",
+      "bytes": 39058
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/source-handoff.json",
+      "sha256": "0c6fa44fedbe1b34e385596e48025f5c7bc6b84e544c41e156aeeca37aa2f733",
+      "bytes": 4805
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/collider_components.rs",
+      "sha256": "210a17becb2d69e2d64c41f32ca0da07f1a7c5dfab210febe6e918e97634e5ae",
+      "bytes": 17840
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/rigid_body_components.rs",
+      "sha256": "60d43d1fbee173d778d74f192d6d1248a38bdf7e207bd1f60173c2cbd5c5e62d",
+      "bytes": 40728
+    },
+    {
+      "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/rigid_body.rs",
+      "sha256": "d4c0803bb0f24a9fad3f54e73c5603cba9dcec31f6ad3df8544e6e96b68bebf7",
+      "bytes": 59050
+    },
+    {
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parry3d-0.17.6/src/mass_properties/mass_properties.rs",
+      "sha256": "44afb6165e4991603601ffe5fd1a0352a64ede9c09b537fc83f8b11df5bf7570",
+      "bytes": 21215
+    },
+    {
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parry3d-0.17.6/src/mass_properties/mass_properties_ball.rs",
+      "sha256": "33edde7ca779d2c1f4de0c56d6028c038c766a19c0e0ae5585adf1c5b7a926c1",
+      "bytes": 999
+    },
+    {
+      "path": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parry3d-0.17.6/src/utils/inv.rs",
+      "sha256": "abc623f4c76ab7b01a4262cd594fed244b8748763ff402960bd999ffdc52d2cf",
+      "bytes": 127
+    }
+  ],
+  "source_line_references": {
+    "sphere_and_mass": {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/collector/lib.rs",
+      "lines": [
+        565
+      ]
+    },
+    "mass_override": {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/geometry/collider_components.rs",
+      "lines": [
+        184
+      ]
+    },
+    "stored_reciprocal_mass": {
+      "source": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parry3d-0.17.6/src/mass_properties/mass_properties.rs",
+      "lines": [
+        232,
+        239
+      ]
+    },
+    "zero_operand_additions": {
+      "source": "/workspace/.rne-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parry3d-0.17.6/src/mass_properties/mass_properties.rs",
+      "lines": [
+        264,
+        302,
+        334,
+        358
+      ]
+    },
+    "public_mass_query": {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/vendor_base/src/dynamics/rigid_body.rs",
+      "lines": [
+        599
+      ]
+    },
+    "public_mass_equality_admission": {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/run_schema.py",
+      "lines": [
+        126
+      ]
+    },
+    "geometry_reference": {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_oracle.py",
+      "lines": [
+        20
+      ]
+    },
+    "backward_euler": {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_reference.py",
+      "lines": [
+        15,
+        16,
+        18,
+        41
+      ]
+    },
+    "allowance_scope": {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/physical_oracle.py",
+      "lines": [
+        95
+      ]
+    },
+    "distinct_endpoints": {
+      "source": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/reader/run_schema.py",
+      "lines": [
+        350,
+        351,
+        354
+      ]
+    }
+  },
+  "mathematical_findings": {
+    "SI_sphere_inertia_and_capped_backward_Euler_dimensions_and_sign_consistent": true,
+    "native_lambda_minus_physical_impulse": true,
+    "nominal_and_authoritative_f32_inputs_separate": true,
+    "integration_velocity_coordinate_and_final_velocity_separate": true,
+    "exact_null_raw_signed_zero_preserved": true,
+    "nominal_case_regimes_synthetic_only": {
+      "interior": 8,
+      "saturated": 8,
+      "null": 4
+    },
+    "allowance_values_unchanged": true,
+    "allowance_issue_resolved_via_LIMITS_NOT_widening": true,
+    "nominal_V_Q_tau_limits_not_conservative_uncertainty_envelopes": true,
+    "public_child_mass_source_prediction_and_exact_source_gate_added": true,
+    "public_inertia_not_exact_geometric_word_prediction": true
+  },
+  "synthetic_check": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-physics-review/synthetic-attempt1-original-exit.json",
+    "sha256": "004b30a73bb914bbcced8272f78c2a442ab95f449b2e1daa4f32c63afa9e9ad5",
+    "bytes": 849
+  },
+  "synthetic_original_exit_code": 0,
+  "review_notes": {
+    "path": "/workspace/.rne-onboarding/recovery-20261012/next-motor-physical-preparation/independent-physics-review/review-notes.md",
+    "sha256": "2edd01375e6dc0aa9e59603095d0210280ff4acf00df86d7b8efc5b65630c850",
+    "bytes": 5002
+  },
+  "collector_ready_handoff_unchanged": true,
+  "author_scope": {
+    "reader_edits": 0,
+    "collector_edits_during_review": 0,
+    "Cargo_or_native_builds": 0,
+    "native_worlds_or_Fixtures": 0,
+    "scientific_reader_or_old_numeric_data": 0,
+    "checkout_Git_or_remote_changes": 0
+  },
+  "historical_or_production_claims": {
+    "old_four_primary_reclassification": false,
+    "old_global_inverse_w_plus_g_rejection_changed": false,
+    "physical_accuracy_convergence_or_adoption_verified": false,
+    "maturity_increase": false
+  },
+  "limits": [
+    "No native outcomes or actual process/observer/source/binary launch admission",
+    "Geometric normalized diagnostic limits are separately evaluated; I/P passes do not imply V/Q passes",
+    "Public inertia/first row inverse mass do not prove full mass-LU construction or private caches",
+    "Normal finite binary32 source assumptions; runtime floating mode not observed",
+    "No coupled-contact/hardware validation or criterion changes"
+  ],
+  "unresolved_source_blockers": []
+}
