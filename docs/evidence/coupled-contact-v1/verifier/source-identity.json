@@ -1,0 +1,53 @@
+{
+  "exact_sources": [
+    {
+      "original_source": {
+        "bytes": 21239,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/whole_archive.py",
+        "sha256": "e049f6b82d570b291ffec082acb093b4bb175a28ab7c316c58b2f9fd3e8ce955"
+      },
+      "portable_copy": {
+        "bytes": 21239,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/whole_archive.py",
+        "sha256": "e049f6b82d570b291ffec082acb093b4bb175a28ab7c316c58b2f9fd3e8ce955"
+      }
+    },
+    {
+      "original_source": {
+        "bytes": 14789,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/test_whole_archive_mock.py",
+        "sha256": "229fb2619b06e36ae9eabaee07de59c5a51661adee1d6d7022ff2aca8c84b6d0"
+      },
+      "portable_copy": {
+        "bytes": 14789,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/test_whole_archive_mock.py",
+        "sha256": "229fb2619b06e36ae9eabaee07de59c5a51661adee1d6d7022ff2aca8c84b6d0"
+      }
+    },
+    {
+      "original_source": {
+        "bytes": 2076,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/qualify_mock.py",
+        "sha256": "73de5880789e98c207ae279436ee945f9360ef19eab277f6dea57f7a74b10e52"
+      },
+      "portable_copy": {
+        "bytes": 2076,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/qualify_mock.py",
+        "sha256": "73de5880789e98c207ae279436ee945f9360ef19eab277f6dea57f7a74b10e52"
+      }
+    }
+  ],
+  "kind": "rne_portable_archive_source_identity",
+  "prior_independent_source_review_original": {
+    "bytes": 11143,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3-independent-review/independent-archive-v3-source-byte-review.json",
+    "sha256": "2be61534a838e45ac31a85e0b1dc656bc9a8df47512789e21502d9728ae3ff97"
+  },
+  "prior_source_ready": {
+    "bytes": 3851,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/source-ready.json",
+    "sha256": "bf5032d435f9ea3e20bdcbb876eeed2b8b58541e834dee0dc318c26c8b9e260a"
+  },
+  "qualification_scope": "Exact source bytes; no archived program executed or historical origin read by portable verify. POSIX/Linux Python3.13.5 tested.",
+  "schema_version": 1
+}

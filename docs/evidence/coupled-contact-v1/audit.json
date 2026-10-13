@@ -1,0 +1,4143 @@
+{
+  "actual_native_processes_launched_by_reader": 0,
+  "audit_claim": {
+    "bytes": 895,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/reader-audit-claim.json",
+    "sha256": "69e0ec9b3dbfcf143e963048d2b35fa8376b74307ed16183459fd79160a7ea2b"
+  },
+  "canonical_ON_frames_analyzed": 3750,
+  "collection_path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection",
+  "detail_finalization_error": null,
+  "details": {
+    "bytes": 124297581,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/analysis/details.jsonl.gz",
+    "sha256": "0381ad6cde5f24d1dcc791828e7dac1b4478ca9f3fd53c4c9d0851e61588b015"
+  },
+  "enabled_captured_frames": 7500,
+  "error": null,
+  "favorable_or_reopen_outcome_required": false,
+  "fresh_ON_scope": "literal completed-record replay, not an independent numerical sample",
+  "general_motor_accuracy_verified": false,
+  "groups": [
+    {
+      "OFF_telemetry_absent": true,
+      "ON_fresh_OFF_captured_state_exact": true,
+      "ON_fresh_completed_record_bytes_and_ordered_words_exact": true,
+      "analysis": {
+        "complete_finite_valid_reference": true,
+        "complete_native_replay": true,
+        "counts": {
+          "active_island_partitions": 1250,
+          "aggregate_contact_boundaries": 30000,
+          "bound_position:interior": 120000,
+          "bound_position:zero_authority": 240000,
+          "ccd_partitions": 1250,
+          "complementarity:violated": 120000,
+          "complementarity:zero_authority": 240000,
+          "completed_outer_steps": 1250,
+          "contact_category:contact_warmstart": 5000,
+          "contact_category:final_stabilization_friction": 5000,
+          "contact_category:friction": 5000,
+          "contact_category:normal_restitution": 5000,
+          "contact_category:stabilization_normal": 10000,
+          "contact_intervals:finite_fixed_cached_row": 90000,
+          "contact_intervals:native_qualified": 90000,
+          "contact_row_intervals": 90000,
+          "events": 210000,
+          "events:no_supported_rows": 10000,
+          "finite_valid_reference_snapshots": 360000,
+          "immediate_motor_visits": 45000,
+          "immediate_motor_visits:qualified_match": 45000,
+          "initialized_motor_cache_generations": 15000,
+          "island_slices": 5000,
+          "native_contact_projection:both_zero": 60000,
+          "native_contact_projection:decreased_magnitude": 9654,
+          "native_contact_projection:equal_value": 6230,
+          "native_contact_projection:increased_magnitude": 14116,
+          "native_projection:qualified": 360000,
+          "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 23770,
+          "native_projection_transition:UNCHANGED_NONZERO": 6230,
+          "native_projection_transition:VALID_ZERO_AUTHORITY": 60000,
+          "old_cached_row_after_integration_events": 135000,
+          "rebuilt_diagonal:qualified_match": 15000,
+          "reference_contact_projection:both_zero": 60000,
+          "reference_contact_projection:decreased_magnitude": 10217,
+          "reference_contact_projection:equal_value": 5118,
+          "reference_contact_projection:increased_magnitude": 14665,
+          "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 24882,
+          "reference_projection_transition:UNCHANGED_NONZERO": 5118,
+          "reference_projection_transition:VALID_ZERO_AUTHORITY": 60000,
+          "row_snapshots": 360000,
+          "selected_motor_slices": 5000,
+          "stage:AfterContactFriction": 5000,
+          "stage:AfterContactNormal": 5000,
+          "stage:AfterContactStabilization": 10000,
+          "stage:AfterContactUpdate": 5000,
+          "stage:AfterContactWarmstart": 5000,
+          "stage:AfterExternalForces": 5000,
+          "stage:AfterIntegration": 5000,
+          "stage:AfterJointSolve": 5000,
+          "stage:AfterJointStabilization": 10000,
+          "stage:AfterJointUpdate": 5000,
+          "stage:AfterMotorSolve": 45000,
+          "stage:AfterStabilizationFriction": 5000,
+          "stage:BeforeExternalForces": 5000,
+          "stage:BeforeJointSolve": 5000,
+          "stage:BeforeJointStabilization": 10000,
+          "stage:BeforeMotorBiasRemoval": 30000,
+          "stage:BeforeMotorSolve": 45000,
+          "stage:FinalSlice": 5000,
+          "zero_authority_cache_generations": 10000
+        },
+        "first_qualification_issue": null,
+        "maxima": {
+          "contact_exact_delta_r": {
+            "absolute_magnitude": {
+              "denominator": "8388608",
+              "numerator": "13753867"
+            },
+            "first_context": {
+              "completed_outer_step": 8,
+              "entity_bits": 4294967300,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "finger_slot_0",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": true
+            },
+            "signed_value": {
+              "denominator": "8388608",
+              "numerator": "-13753867"
+            }
+          },
+          "contact_native_rounding_discrepancy": {
+            "absolute_magnitude": {
+              "denominator": "536870912",
+              "numerator": "1"
+            },
+            "first_context": {
+              "completed_outer_step": 253,
+              "entity_bits": 4294967299,
+              "event_ordinal": 88,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 2,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "536870912",
+              "numerator": "-1"
+            }
+          },
+          "exact_velocity_residual": {
+            "absolute_magnitude": {
+              "denominator": "4194304",
+              "numerator": "11641531"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 8,
+              "entity_bits": 4294967301,
+              "event_ordinal": 2,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "finger_slot_1",
+              "slice": 0,
+              "stage": "AfterJointUpdate",
+              "visit": null,
+              "zero_authority": true
+            },
+            "signed_value": {
+              "denominator": "4194304",
+              "numerator": "-11641531"
+            }
+          },
+          "native_contact_projection_change": {
+            "absolute_magnitude": {
+              "denominator": "536870912",
+              "numerator": "16457169"
+            },
+            "first_context": {
+              "completed_outer_step": 254,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "536870912",
+              "numerator": "-16457169"
+            }
+          },
+          "native_projected_residual": {
+            "absolute_magnitude": {
+              "denominator": "134217728",
+              "numerator": "6382239"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 253,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "134217728",
+              "numerator": "-6382239"
+            }
+          },
+          "native_residual_rounding_error": {
+            "absolute_magnitude": {
+              "denominator": "536870912",
+              "numerator": "1"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 252,
+              "entity_bits": 4294967299,
+              "event_ordinal": 4,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 0,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "536870912",
+              "numerator": "-1"
+            }
+          },
+          "reference_contact_projection_change": {
+            "absolute_magnitude": {
+              "denominator": "489951504",
+              "numerator": "11743849"
+            },
+            "first_context": {
+              "completed_outer_step": 254,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "489951504",
+              "numerator": "-11743849"
+            }
+          },
+          "reference_projected_residual": {
+            "absolute_magnitude": {
+              "denominator": "326634336",
+              "numerator": "12144989"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 253,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "326634336",
+              "numerator": "-12144989"
+            }
+          }
+        },
+        "qualification_issues": 0,
+        "role_identity_scope": {
+          "identities": {
+            "finger_slot_0": {
+              "entity_bits": 4294967300,
+              "joint_handle_words": [
+                4,
+                0
+              ],
+              "link_index": 2,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            },
+            "finger_slot_1": {
+              "entity_bits": 4294967301,
+              "joint_handle_words": [
+                5,
+                0
+              ],
+              "link_index": 3,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            },
+            "palm": {
+              "entity_bits": 4294967299,
+              "joint_handle_words": [
+                3,
+                0
+              ],
+              "link_index": 1,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            }
+          },
+          "labels": "palm and two native append-order finger slots; anatomical left/right frames are not decoded",
+          "zero_authority_roles": [
+            "finger_slot_0",
+            "finger_slot_1"
+          ]
+        },
+        "roles": {
+          "finger_slot_0": {
+            "authority": "zero_authority",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 0,
+              "bound_position:zero_authority": 120000,
+              "ccd_partitions": 0,
+              "complementarity:violated": 0,
+              "complementarity:zero_authority": 120000,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 30000,
+              "native_contact_projection:decreased_magnitude": 0,
+              "native_contact_projection:equal_value": 0,
+              "native_contact_projection:increased_magnitude": 0,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "native_projection_transition:UNCHANGED_NONZERO": 0,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 30000,
+              "reference_contact_projection:decreased_magnitude": 0,
+              "reference_contact_projection:equal_value": 0,
+              "reference_contact_projection:increased_magnitude": 0,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "reference_projection_transition:UNCHANGED_NONZERO": 0,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 5000
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "8388608",
+                  "numerator": "13753867"
+                },
+                "first_context": {
+                  "completed_outer_step": 8,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "8388608",
+                  "numerator": "-13753867"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "4194304",
+                  "numerator": "11641531"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 8,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "4194304",
+                  "numerator": "11641531"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              }
+            }
+          },
+          "finger_slot_1": {
+            "authority": "zero_authority",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 0,
+              "bound_position:zero_authority": 120000,
+              "ccd_partitions": 0,
+              "complementarity:violated": 0,
+              "complementarity:zero_authority": 120000,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 30000,
+              "native_contact_projection:decreased_magnitude": 0,
+              "native_contact_projection:equal_value": 0,
+              "native_contact_projection:increased_magnitude": 0,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "native_projection_transition:UNCHANGED_NONZERO": 0,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 30000,
+              "reference_contact_projection:decreased_magnitude": 0,
+              "reference_contact_projection:equal_value": 0,
+              "reference_contact_projection:increased_magnitude": 0,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "reference_projection_transition:UNCHANGED_NONZERO": 0,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 5000
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "16777216",
+                  "numerator": "27290725"
+                },
+                "first_context": {
+                  "completed_outer_step": 8,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "16777216",
+                  "numerator": "27290725"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "4194304",
+                  "numerator": "11641531"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 8,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "4194304",
+                  "numerator": "-11641531"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              }
+            }
+          },
+          "palm": {
+            "authority": "controlled",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 120000,
+              "bound_position:zero_authority": 0,
+              "ccd_partitions": 0,
+              "complementarity:violated": 120000,
+              "complementarity:zero_authority": 0,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 0,
+              "native_contact_projection:decreased_magnitude": 9654,
+              "native_contact_projection:equal_value": 6230,
+              "native_contact_projection:increased_magnitude": 14116,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 23770,
+              "native_projection_transition:UNCHANGED_NONZERO": 6230,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 0,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 0,
+              "reference_contact_projection:decreased_magnitude": 10217,
+              "reference_contact_projection:equal_value": 5118,
+              "reference_contact_projection:increased_magnitude": 14665,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 24882,
+              "reference_projection_transition:UNCHANGED_NONZERO": 5118,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 0,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 0
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "536870912",
+                  "numerator": "11743849"
+                },
+                "first_context": {
+                  "completed_outer_step": 254,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "536870912",
+                  "numerator": "-11743849"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "536870912",
+                  "numerator": "1"
+                },
+                "first_context": {
+                  "completed_outer_step": 253,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 88,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 2,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "536870912",
+                  "numerator": "-1"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1073741824",
+                  "numerator": "36434967"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 253,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "1073741824",
+                  "numerator": "-36434967"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "536870912",
+                  "numerator": "16457169"
+                },
+                "first_context": {
+                  "completed_outer_step": 254,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "536870912",
+                  "numerator": "-16457169"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "134217728",
+                  "numerator": "6382239"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 253,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "134217728",
+                  "numerator": "-6382239"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "536870912",
+                  "numerator": "1"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 252,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "536870912",
+                  "numerator": "-1"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "489951504",
+                  "numerator": "11743849"
+                },
+                "first_context": {
+                  "completed_outer_step": 254,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "489951504",
+                  "numerator": "-11743849"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "326634336",
+                  "numerator": "12144989"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 253,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "326634336",
+                  "numerator": "-12144989"
+                }
+              }
+            }
+          }
+        },
+        "unmeasured": [
+          "per-contact J/W columns",
+          "individual contact impulses",
+          "J_m W_c",
+          "full set metadata",
+          "private pipeline/solver/contact caches",
+          "runtime MXCSR/FTZ/DAZ/rounding registers",
+          "absolute constructor RHS input q/target reconstruction",
+          "unselected limit-row arithmetic",
+          "independent native per-object deserialization",
+          "anatomical finger frame labels"
+        ]
+      },
+      "caller_source_binary_admission_original_exits_qualification_required": true,
+      "captured_checkpoints": 3750,
+      "completed_steps_each": 1250,
+      "detail_records": {
+        "first": 1,
+        "last": 505000
+      },
+      "ecs_words": 525000,
+      "favorable_or_reopen_outcome_required": false,
+      "general_motor_accuracy_verified": false,
+      "historical_138_cause_verified": false,
+      "input_streams": [
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-5kg-on",
+          "uncompressed_bytes": 275866533,
+          "uncompressed_sha256": "4866aaf44660d95085742f8b42e81385e94ecb122a601b454f3ebf766beed51f"
+        },
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-5kg-fresh-on",
+          "uncompressed_bytes": 275866539,
+          "uncompressed_sha256": "35b2582e1465d4b41a56e6a7420c60367e5f742ec558c3de0d534d888cc00043"
+        },
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-5kg-off",
+          "uncompressed_bytes": 37596569,
+          "uncompressed_sha256": "0971b5626b136d4ea08fa5ccb6141ee17455fdb9497986abd8e8d01161329d7c"
+        }
+      ],
+      "kind": "new_baseline_coupled_contact_triplet_stream_qualification",
+      "mass_kg": 5,
+      "native_checkpoint_bytes": 20499726,
+      "numerical_sample_scope": "ON once; fresh ON is literal replay, not an independent numerical sample",
+      "original_raw": [
+        {
+          "bytes": 7545963,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/on/raw.jsonl.gz",
+          "sha256": "4759f5e6213fc881430c5529347c68ab2d6b749a5990304ac69a715c5f4bb6a6"
+        },
+        {
+          "bytes": 7545938,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/fresh-on/raw.jsonl.gz",
+          "sha256": "9595cf7a573ffeaee9588863e835a971102aaa0a4d780f13aa2819d02fbf93aa"
+        },
+        {
+          "bytes": 1319551,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/off/raw.jsonl.gz",
+          "sha256": "9d464c6d2d639659284b8e204bbcd4f7e3eae295c6bd6d34d994fc854c19d6c4"
+        }
+      ],
+      "original_stdout": [
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/on/stdout.log",
+          "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+        },
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/fresh-on/stdout.log",
+          "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+        },
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/off/stdout.log",
+          "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+        }
+      ],
+      "physical_report": {
+        "cube_ecs_pose_ieee_words": [
+          4552374606349991936,
+          4598158717744054272,
+          13751864615531184128,
+          4515061805955832263,
+          4542581442772116053,
+          13779902244925653626,
+          4607182417963659474,
+          4607182418800017408,
+          4607182418800017408,
+          4607182418800017408
+        ],
+        "physical_ieee_words": [
+          4596357277893106074,
+          4596372490774642688,
+          4550775548149760000,
+          4561033819633491592
+        ],
+        "physical_stdout_row": "  rapier: lifted  0.200 m (palm 0.200 m), slip   1.8e-4 m, tilt  8.6e-4 rad"
+      },
+      "scene_role_identity": {
+        "anchor": 4294967298,
+        "cube": 4294967297,
+        "finger_pair": [
+          4294967300,
+          4294967301
+        ],
+        "floor": 4294967296,
+        "palm": 4294967299
+      },
+      "solver_adoption_verified": false,
+      "source_numerical_status": "QUALIFIED_DECLARED_DOMAIN",
+      "stream_scope_status": "COMPLETE_TYPED_POSTCARD_ECS_REPEAT_OFF_AND_CRC_EOF"
+    },
+    {
+      "OFF_telemetry_absent": true,
+      "ON_fresh_OFF_captured_state_exact": true,
+      "ON_fresh_completed_record_bytes_and_ordered_words_exact": true,
+      "analysis": {
+        "complete_finite_valid_reference": true,
+        "complete_native_replay": true,
+        "counts": {
+          "active_island_partitions": 1250,
+          "aggregate_contact_boundaries": 30000,
+          "bound_position:interior": 120000,
+          "bound_position:zero_authority": 240000,
+          "ccd_partitions": 1250,
+          "complementarity:violated": 120000,
+          "complementarity:zero_authority": 240000,
+          "completed_outer_steps": 1250,
+          "contact_category:contact_warmstart": 5000,
+          "contact_category:final_stabilization_friction": 5000,
+          "contact_category:friction": 5000,
+          "contact_category:normal_restitution": 5000,
+          "contact_category:stabilization_normal": 10000,
+          "contact_intervals:finite_fixed_cached_row": 90000,
+          "contact_intervals:native_qualified": 90000,
+          "contact_row_intervals": 90000,
+          "events": 210000,
+          "events:no_supported_rows": 10000,
+          "finite_valid_reference_snapshots": 360000,
+          "immediate_motor_visits": 45000,
+          "immediate_motor_visits:qualified_match": 45000,
+          "initialized_motor_cache_generations": 15000,
+          "island_slices": 5000,
+          "native_contact_projection:both_zero": 60000,
+          "native_contact_projection:decreased_magnitude": 10736,
+          "native_contact_projection:equal_value": 5209,
+          "native_contact_projection:increased_magnitude": 14055,
+          "native_projection:qualified": 360000,
+          "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 24791,
+          "native_projection_transition:UNCHANGED_NONZERO": 5209,
+          "native_projection_transition:VALID_ZERO_AUTHORITY": 60000,
+          "old_cached_row_after_integration_events": 135000,
+          "rebuilt_diagonal:qualified_match": 15000,
+          "reference_contact_projection:both_zero": 60000,
+          "reference_contact_projection:decreased_magnitude": 12451,
+          "reference_contact_projection:equal_value": 2653,
+          "reference_contact_projection:increased_magnitude": 14896,
+          "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 27347,
+          "reference_projection_transition:UNCHANGED_NONZERO": 2653,
+          "reference_projection_transition:VALID_ZERO_AUTHORITY": 60000,
+          "row_snapshots": 360000,
+          "selected_motor_slices": 5000,
+          "stage:AfterContactFriction": 5000,
+          "stage:AfterContactNormal": 5000,
+          "stage:AfterContactStabilization": 10000,
+          "stage:AfterContactUpdate": 5000,
+          "stage:AfterContactWarmstart": 5000,
+          "stage:AfterExternalForces": 5000,
+          "stage:AfterIntegration": 5000,
+          "stage:AfterJointSolve": 5000,
+          "stage:AfterJointStabilization": 10000,
+          "stage:AfterJointUpdate": 5000,
+          "stage:AfterMotorSolve": 45000,
+          "stage:AfterStabilizationFriction": 5000,
+          "stage:BeforeExternalForces": 5000,
+          "stage:BeforeJointSolve": 5000,
+          "stage:BeforeJointStabilization": 10000,
+          "stage:BeforeMotorBiasRemoval": 30000,
+          "stage:BeforeMotorSolve": 45000,
+          "stage:FinalSlice": 5000,
+          "zero_authority_cache_generations": 10000
+        },
+        "first_qualification_issue": null,
+        "maxima": {
+          "contact_exact_delta_r": {
+            "absolute_magnitude": {
+              "denominator": "16777216",
+              "numerator": "109194877"
+            },
+            "first_context": {
+              "completed_outer_step": 5,
+              "entity_bits": 4294967300,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "finger_slot_0",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": true
+            },
+            "signed_value": {
+              "denominator": "16777216",
+              "numerator": "-109194877"
+            }
+          },
+          "contact_native_rounding_discrepancy": {
+            "absolute_magnitude": {
+              "denominator": "2147483648",
+              "numerator": "9"
+            },
+            "first_context": {
+              "completed_outer_step": 890,
+              "entity_bits": 4294967299,
+              "event_ordinal": 88,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 2,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "2147483648",
+              "numerator": "9"
+            }
+          },
+          "exact_velocity_residual": {
+            "absolute_magnitude": {
+              "denominator": "1048576",
+              "numerator": "6824347"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 5,
+              "entity_bits": 4294967301,
+              "event_ordinal": 2,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "finger_slot_1",
+              "slice": 0,
+              "stage": "AfterJointUpdate",
+              "visit": null,
+              "zero_authority": true
+            },
+            "signed_value": {
+              "denominator": "1048576",
+              "numerator": "-6824347"
+            }
+          },
+          "native_contact_projection_change": {
+            "absolute_magnitude": {
+              "denominator": "67108864",
+              "numerator": "7803535"
+            },
+            "first_context": {
+              "completed_outer_step": 259,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "67108864",
+              "numerator": "-7803535"
+            }
+          },
+          "native_projected_residual": {
+            "absolute_magnitude": {
+              "denominator": "16777216",
+              "numerator": "2497571"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 259,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "16777216",
+              "numerator": "-2497571"
+            }
+          },
+          "native_residual_rounding_error": {
+            "absolute_magnitude": {
+              "denominator": "268435456",
+              "numerator": "1"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 251,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "268435456",
+              "numerator": "1"
+            }
+          },
+          "reference_contact_projection_change": {
+            "absolute_magnitude": {
+              "denominator": "489951504",
+              "numerator": "44548873"
+            },
+            "first_context": {
+              "completed_outer_step": 259,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "489951504",
+              "numerator": "-44548873"
+            }
+          },
+          "reference_projected_residual": {
+            "absolute_magnitude": {
+              "denominator": "61243938",
+              "numerator": "7129075"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 259,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "61243938",
+              "numerator": "-7129075"
+            }
+          }
+        },
+        "qualification_issues": 0,
+        "role_identity_scope": {
+          "identities": {
+            "finger_slot_0": {
+              "entity_bits": 4294967300,
+              "joint_handle_words": [
+                4,
+                0
+              ],
+              "link_index": 2,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            },
+            "finger_slot_1": {
+              "entity_bits": 4294967301,
+              "joint_handle_words": [
+                5,
+                0
+              ],
+              "link_index": 3,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            },
+            "palm": {
+              "entity_bits": 4294967299,
+              "joint_handle_words": [
+                3,
+                0
+              ],
+              "link_index": 1,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            }
+          },
+          "labels": "palm and two native append-order finger slots; anatomical left/right frames are not decoded",
+          "zero_authority_roles": [
+            "finger_slot_0",
+            "finger_slot_1"
+          ]
+        },
+        "roles": {
+          "finger_slot_0": {
+            "authority": "zero_authority",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 0,
+              "bound_position:zero_authority": 120000,
+              "ccd_partitions": 0,
+              "complementarity:violated": 0,
+              "complementarity:zero_authority": 120000,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 30000,
+              "native_contact_projection:decreased_magnitude": 0,
+              "native_contact_projection:equal_value": 0,
+              "native_contact_projection:increased_magnitude": 0,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "native_projection_transition:UNCHANGED_NONZERO": 0,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 30000,
+              "reference_contact_projection:decreased_magnitude": 0,
+              "reference_contact_projection:equal_value": 0,
+              "reference_contact_projection:increased_magnitude": 0,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "reference_projection_transition:UNCHANGED_NONZERO": 0,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 5000
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "16777216",
+                  "numerator": "109194877"
+                },
+                "first_context": {
+                  "completed_outer_step": 5,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "16777216",
+                  "numerator": "-109194877"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1048576",
+                  "numerator": "6824347"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 5,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1048576",
+                  "numerator": "6824347"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              }
+            }
+          },
+          "finger_slot_1": {
+            "authority": "zero_authority",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 0,
+              "bound_position:zero_authority": 120000,
+              "ccd_partitions": 0,
+              "complementarity:violated": 0,
+              "complementarity:zero_authority": 120000,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 30000,
+              "native_contact_projection:decreased_magnitude": 0,
+              "native_contact_projection:equal_value": 0,
+              "native_contact_projection:increased_magnitude": 0,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "native_projection_transition:UNCHANGED_NONZERO": 0,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 30000,
+              "reference_contact_projection:decreased_magnitude": 0,
+              "reference_contact_projection:equal_value": 0,
+              "reference_contact_projection:increased_magnitude": 0,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "reference_projection_transition:UNCHANGED_NONZERO": 0,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 5000
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "4194304",
+                  "numerator": "27296069"
+                },
+                "first_context": {
+                  "completed_outer_step": 5,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "4194304",
+                  "numerator": "27296069"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1048576",
+                  "numerator": "6824347"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 5,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1048576",
+                  "numerator": "-6824347"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              }
+            }
+          },
+          "palm": {
+            "authority": "controlled",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 120000,
+              "bound_position:zero_authority": 0,
+              "ccd_partitions": 0,
+              "complementarity:violated": 120000,
+              "complementarity:zero_authority": 0,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 0,
+              "native_contact_projection:decreased_magnitude": 10736,
+              "native_contact_projection:equal_value": 5209,
+              "native_contact_projection:increased_magnitude": 14055,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 24791,
+              "native_projection_transition:UNCHANGED_NONZERO": 5209,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 0,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 0,
+              "reference_contact_projection:decreased_magnitude": 12451,
+              "reference_contact_projection:equal_value": 2653,
+              "reference_contact_projection:increased_magnitude": 14896,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 27347,
+              "reference_projection_transition:UNCHANGED_NONZERO": 2653,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 0,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 0
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "536870912",
+                  "numerator": "44548873"
+                },
+                "first_context": {
+                  "completed_outer_step": 259,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "536870912",
+                  "numerator": "-44548873"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "2147483648",
+                  "numerator": "9"
+                },
+                "first_context": {
+                  "completed_outer_step": 890,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 88,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 2,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "2147483648",
+                  "numerator": "9"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "67108864",
+                  "numerator": "7129075"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 259,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "67108864",
+                  "numerator": "-7129075"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "67108864",
+                  "numerator": "7803535"
+                },
+                "first_context": {
+                  "completed_outer_step": 259,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "67108864",
+                  "numerator": "-7803535"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "16777216",
+                  "numerator": "2497571"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 259,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "16777216",
+                  "numerator": "-2497571"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "268435456",
+                  "numerator": "1"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 251,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "268435456",
+                  "numerator": "1"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "489951504",
+                  "numerator": "44548873"
+                },
+                "first_context": {
+                  "completed_outer_step": 259,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "489951504",
+                  "numerator": "-44548873"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "61243938",
+                  "numerator": "7129075"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 259,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "61243938",
+                  "numerator": "-7129075"
+                }
+              }
+            }
+          }
+        },
+        "unmeasured": [
+          "per-contact J/W columns",
+          "individual contact impulses",
+          "J_m W_c",
+          "full set metadata",
+          "private pipeline/solver/contact caches",
+          "runtime MXCSR/FTZ/DAZ/rounding registers",
+          "absolute constructor RHS input q/target reconstruction",
+          "unselected limit-row arithmetic",
+          "independent native per-object deserialization",
+          "anatomical finger frame labels"
+        ]
+      },
+      "caller_source_binary_admission_original_exits_qualification_required": true,
+      "captured_checkpoints": 3750,
+      "completed_steps_each": 1250,
+      "detail_records": {
+        "first": 505001,
+        "last": 1010000
+      },
+      "ecs_words": 525000,
+      "favorable_or_reopen_outcome_required": false,
+      "general_motor_accuracy_verified": false,
+      "historical_138_cause_verified": false,
+      "input_streams": [
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-20kg-on",
+          "uncompressed_bytes": 275812783,
+          "uncompressed_sha256": "c12b775a6a57c79fd41a4012585400c27632404d341f02ae4c6b3d0998ac80aa"
+        },
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-20kg-fresh-on",
+          "uncompressed_bytes": 275812789,
+          "uncompressed_sha256": "368e3c5e8650eac0fcf7e18873772d23f4fe56e55d42d63947cfd98f823b79e2"
+        },
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-20kg-off",
+          "uncompressed_bytes": 37564042,
+          "uncompressed_sha256": "dedc0544ff6d917225b0ae1700a07d63f35ba9a8bc1647d868d2f40f4da604b9"
+        }
+      ],
+      "kind": "new_baseline_coupled_contact_triplet_stream_qualification",
+      "mass_kg": 20,
+      "native_checkpoint_bytes": 20499726,
+      "numerical_sample_scope": "ON once; fresh ON is literal replay, not an independent numerical sample",
+      "original_raw": [
+        {
+          "bytes": 7554076,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/on/raw.jsonl.gz",
+          "sha256": "892266ef65a45237c0cf883a6fd5cecbf20fcfd1ae872fccdb47b19130922ba0"
+        },
+        {
+          "bytes": 7554075,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/fresh-on/raw.jsonl.gz",
+          "sha256": "b34ea8b87d3e828e7a2fbbbccd00af10c9c25082a02d3f1a8fbf8a8b5cf2fbcf"
+        },
+        {
+          "bytes": 1292190,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/off/raw.jsonl.gz",
+          "sha256": "173883aa7c9a255a1461240a2925d804f02d3709920eb859b6d41a425349d348"
+        }
+      ],
+      "original_stdout": [
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/on/stdout.log",
+          "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+        },
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/fresh-on/stdout.log",
+          "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+        },
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/off/stdout.log",
+          "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+        }
+      ],
+      "physical_report": {
+        "cube_ecs_pose_ieee_words": [
+          4554342733237452800,
+          4598119912177664000,
+          13750679315152896000,
+          13765068947422619389,
+          4546207893243842961,
+          13774051567653776353,
+          4607182418613432866,
+          4607182418800017408,
+          4607182418800017408,
+          4607182418800017408
+        ],
+        "physical_ieee_words": [
+          4596318472326715802,
+          4596361734029049856,
+          4558378842854522880,
+          4555386132141667893
+        ],
+        "physical_stdout_row": "  rapier: lifted  0.198 m (palm 0.200 m), slip   5.7e-4 m, tilt  3.7e-4 rad"
+      },
+      "scene_role_identity": {
+        "anchor": 4294967298,
+        "cube": 4294967297,
+        "finger_pair": [
+          4294967300,
+          4294967301
+        ],
+        "floor": 4294967296,
+        "palm": 4294967299
+      },
+      "solver_adoption_verified": false,
+      "source_numerical_status": "QUALIFIED_DECLARED_DOMAIN",
+      "stream_scope_status": "COMPLETE_TYPED_POSTCARD_ECS_REPEAT_OFF_AND_CRC_EOF"
+    },
+    {
+      "OFF_telemetry_absent": true,
+      "ON_fresh_OFF_captured_state_exact": true,
+      "ON_fresh_completed_record_bytes_and_ordered_words_exact": true,
+      "analysis": {
+        "complete_finite_valid_reference": true,
+        "complete_native_replay": true,
+        "counts": {
+          "active_island_partitions": 1250,
+          "aggregate_contact_boundaries": 30000,
+          "bound_position:interior": 120000,
+          "bound_position:zero_authority": 240000,
+          "ccd_partitions": 1250,
+          "complementarity:violated": 120000,
+          "complementarity:zero_authority": 240000,
+          "completed_outer_steps": 1250,
+          "contact_category:contact_warmstart": 5000,
+          "contact_category:final_stabilization_friction": 5000,
+          "contact_category:friction": 5000,
+          "contact_category:normal_restitution": 5000,
+          "contact_category:stabilization_normal": 10000,
+          "contact_intervals:finite_fixed_cached_row": 90000,
+          "contact_intervals:native_qualified": 90000,
+          "contact_row_intervals": 90000,
+          "events": 210000,
+          "events:no_supported_rows": 10000,
+          "finite_valid_reference_snapshots": 360000,
+          "immediate_motor_visits": 45000,
+          "immediate_motor_visits:qualified_match": 45000,
+          "initialized_motor_cache_generations": 15000,
+          "island_slices": 5000,
+          "native_contact_projection:both_zero": 60000,
+          "native_contact_projection:decreased_magnitude": 14093,
+          "native_contact_projection:equal_value": 792,
+          "native_contact_projection:increased_magnitude": 15115,
+          "native_projection:qualified": 360000,
+          "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 29208,
+          "native_projection_transition:UNCHANGED_NONZERO": 792,
+          "native_projection_transition:VALID_ZERO_AUTHORITY": 60000,
+          "old_cached_row_after_integration_events": 135000,
+          "rebuilt_diagonal:qualified_match": 15000,
+          "reference_contact_projection:both_zero": 60000,
+          "reference_contact_projection:decreased_magnitude": 14245,
+          "reference_contact_projection:equal_value": 452,
+          "reference_contact_projection:increased_magnitude": 15303,
+          "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 29548,
+          "reference_projection_transition:UNCHANGED_NONZERO": 452,
+          "reference_projection_transition:VALID_ZERO_AUTHORITY": 60000,
+          "row_snapshots": 360000,
+          "selected_motor_slices": 5000,
+          "stage:AfterContactFriction": 5000,
+          "stage:AfterContactNormal": 5000,
+          "stage:AfterContactStabilization": 10000,
+          "stage:AfterContactUpdate": 5000,
+          "stage:AfterContactWarmstart": 5000,
+          "stage:AfterExternalForces": 5000,
+          "stage:AfterIntegration": 5000,
+          "stage:AfterJointSolve": 5000,
+          "stage:AfterJointStabilization": 10000,
+          "stage:AfterJointUpdate": 5000,
+          "stage:AfterMotorSolve": 45000,
+          "stage:AfterStabilizationFriction": 5000,
+          "stage:BeforeExternalForces": 5000,
+          "stage:BeforeJointSolve": 5000,
+          "stage:BeforeJointStabilization": 10000,
+          "stage:BeforeMotorBiasRemoval": 30000,
+          "stage:BeforeMotorSolve": 45000,
+          "stage:FinalSlice": 5000,
+          "zero_authority_cache_generations": 10000
+        },
+        "first_qualification_issue": null,
+        "maxima": {
+          "contact_exact_delta_r": {
+            "absolute_magnitude": {
+              "denominator": "16777216",
+              "numerator": "208745139"
+            },
+            "first_context": {
+              "completed_outer_step": 4,
+              "entity_bits": 4294967300,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "finger_slot_0",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": true
+            },
+            "signed_value": {
+              "denominator": "16777216",
+              "numerator": "-208745139"
+            }
+          },
+          "contact_native_rounding_discrepancy": {
+            "absolute_magnitude": {
+              "denominator": "1073741824",
+              "numerator": "9"
+            },
+            "first_context": {
+              "completed_outer_step": 921,
+              "entity_bits": 4294967299,
+              "event_ordinal": 88,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 2,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "1073741824",
+              "numerator": "-9"
+            }
+          },
+          "exact_velocity_residual": {
+            "absolute_magnitude": {
+              "denominator": "1048576",
+              "numerator": "13046549"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 4,
+              "entity_bits": 4294967301,
+              "event_ordinal": 2,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "finger_slot_1",
+              "slice": 0,
+              "stage": "AfterJointUpdate",
+              "visit": null,
+              "zero_authority": true
+            },
+            "signed_value": {
+              "denominator": "1048576",
+              "numerator": "-13046549"
+            }
+          },
+          "native_contact_projection_change": {
+            "absolute_magnitude": {
+              "denominator": "268435456",
+              "numerator": "76090629"
+            },
+            "first_context": {
+              "completed_outer_step": 268,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "268435456",
+              "numerator": "-76090629"
+            }
+          },
+          "native_projected_residual": {
+            "absolute_magnitude": {
+              "denominator": "33554432",
+              "numerator": "11505197"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 268,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "33554432",
+              "numerator": "-11505197"
+            }
+          },
+          "native_residual_rounding_error": {
+            "absolute_magnitude": {
+              "denominator": "134217728",
+              "numerator": "1"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 255,
+              "entity_bits": 4294967299,
+              "event_ordinal": 130,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 3,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "134217728",
+              "numerator": "-1"
+            }
+          },
+          "reference_contact_projection_change": {
+            "absolute_magnitude": {
+              "denominator": "11665512",
+              "numerator": "2585635"
+            },
+            "first_context": {
+              "completed_outer_step": 268,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "11665512",
+              "numerator": "-2585635"
+            }
+          },
+          "reference_projected_residual": {
+            "absolute_magnitude": {
+              "denominator": "1458189",
+              "numerator": "390958"
+            },
+            "first_context": {
+              "after_integration": false,
+              "completed_outer_step": 268,
+              "entity_bits": 4294967299,
+              "event_ordinal": 46,
+              "island": 0,
+              "iteration": null,
+              "partition": 0,
+              "pass_kind": null,
+              "role": "palm",
+              "slice": 1,
+              "stage": "AfterContactWarmstart",
+              "visit": null,
+              "zero_authority": false
+            },
+            "signed_value": {
+              "denominator": "1458189",
+              "numerator": "-390958"
+            }
+          }
+        },
+        "qualification_issues": 0,
+        "role_identity_scope": {
+          "identities": {
+            "finger_slot_0": {
+              "entity_bits": 4294967300,
+              "joint_handle_words": [
+                4,
+                0
+              ],
+              "link_index": 2,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            },
+            "finger_slot_1": {
+              "entity_bits": 4294967301,
+              "joint_handle_words": [
+                5,
+                0
+              ],
+              "link_index": 3,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            },
+            "palm": {
+              "entity_bits": 4294967299,
+              "joint_handle_words": [
+                3,
+                0
+              ],
+              "link_index": 1,
+              "multibody_handle_words": [
+                0,
+                0
+              ]
+            }
+          },
+          "labels": "palm and two native append-order finger slots; anatomical left/right frames are not decoded",
+          "zero_authority_roles": [
+            "finger_slot_0",
+            "finger_slot_1"
+          ]
+        },
+        "roles": {
+          "finger_slot_0": {
+            "authority": "zero_authority",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 0,
+              "bound_position:zero_authority": 120000,
+              "ccd_partitions": 0,
+              "complementarity:violated": 0,
+              "complementarity:zero_authority": 120000,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 30000,
+              "native_contact_projection:decreased_magnitude": 0,
+              "native_contact_projection:equal_value": 0,
+              "native_contact_projection:increased_magnitude": 0,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "native_projection_transition:UNCHANGED_NONZERO": 0,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 30000,
+              "reference_contact_projection:decreased_magnitude": 0,
+              "reference_contact_projection:equal_value": 0,
+              "reference_contact_projection:increased_magnitude": 0,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "reference_projection_transition:UNCHANGED_NONZERO": 0,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 5000
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "16777216",
+                  "numerator": "208745139"
+                },
+                "first_context": {
+                  "completed_outer_step": 4,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "16777216",
+                  "numerator": "-208745139"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1048576",
+                  "numerator": "13046549"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 4,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1048576",
+                  "numerator": "13046549"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967300,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_0",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              }
+            }
+          },
+          "finger_slot_1": {
+            "authority": "zero_authority",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 0,
+              "bound_position:zero_authority": 120000,
+              "ccd_partitions": 0,
+              "complementarity:violated": 0,
+              "complementarity:zero_authority": 120000,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 30000,
+              "native_contact_projection:decreased_magnitude": 0,
+              "native_contact_projection:equal_value": 0,
+              "native_contact_projection:increased_magnitude": 0,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "native_projection_transition:UNCHANGED_NONZERO": 0,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 30000,
+              "reference_contact_projection:decreased_magnitude": 0,
+              "reference_contact_projection:equal_value": 0,
+              "reference_contact_projection:increased_magnitude": 0,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 0,
+              "reference_projection_transition:UNCHANGED_NONZERO": 0,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 30000,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 5000
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "8388608",
+                  "numerator": "104372249"
+                },
+                "first_context": {
+                  "completed_outer_step": 4,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "8388608",
+                  "numerator": "104372249"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1048576",
+                  "numerator": "13046549"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 4,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1048576",
+                  "numerator": "-13046549"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 4,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1",
+                  "numerator": "0"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 1,
+                  "entity_bits": 4294967301,
+                  "event_ordinal": 2,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "finger_slot_1",
+                  "slice": 0,
+                  "stage": "AfterJointUpdate",
+                  "visit": null,
+                  "zero_authority": true
+                },
+                "signed_value": {
+                  "denominator": "1",
+                  "numerator": "0"
+                }
+              }
+            }
+          },
+          "palm": {
+            "authority": "controlled",
+            "complete_finite_valid_reference": true,
+            "complete_native_replay": true,
+            "counts": {
+              "active_island_partitions": 0,
+              "aggregate_contact_boundaries": 0,
+              "bound_position:interior": 120000,
+              "bound_position:zero_authority": 0,
+              "ccd_partitions": 0,
+              "complementarity:violated": 120000,
+              "complementarity:zero_authority": 0,
+              "completed_outer_steps": 0,
+              "contact_category:contact_warmstart": 0,
+              "contact_category:final_stabilization_friction": 0,
+              "contact_category:friction": 0,
+              "contact_category:normal_restitution": 0,
+              "contact_category:stabilization_normal": 0,
+              "contact_intervals:finite_fixed_cached_row": 30000,
+              "contact_intervals:native_qualified": 30000,
+              "contact_row_intervals": 30000,
+              "events": 0,
+              "events:no_supported_rows": 0,
+              "finite_valid_reference_snapshots": 120000,
+              "immediate_motor_visits": 15000,
+              "immediate_motor_visits:qualified_match": 15000,
+              "initialized_motor_cache_generations": 5000,
+              "island_slices": 0,
+              "native_contact_projection:both_zero": 0,
+              "native_contact_projection:decreased_magnitude": 14093,
+              "native_contact_projection:equal_value": 792,
+              "native_contact_projection:increased_magnitude": 15115,
+              "native_projection:qualified": 120000,
+              "native_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 29208,
+              "native_projection_transition:UNCHANGED_NONZERO": 792,
+              "native_projection_transition:VALID_ZERO_AUTHORITY": 0,
+              "old_cached_row_after_integration_events": 0,
+              "rebuilt_diagonal:qualified_match": 5000,
+              "reference_contact_projection:both_zero": 0,
+              "reference_contact_projection:decreased_magnitude": 14245,
+              "reference_contact_projection:equal_value": 452,
+              "reference_contact_projection:increased_magnitude": 15303,
+              "reference_projection_transition:CHANGED_WHILE_ALREADY_NONZERO": 29548,
+              "reference_projection_transition:UNCHANGED_NONZERO": 452,
+              "reference_projection_transition:VALID_ZERO_AUTHORITY": 0,
+              "row_snapshots": 120000,
+              "selected_motor_slices": 0,
+              "stage:AfterContactFriction": 0,
+              "stage:AfterContactNormal": 0,
+              "stage:AfterContactStabilization": 0,
+              "stage:AfterContactUpdate": 0,
+              "stage:AfterContactWarmstart": 0,
+              "stage:AfterExternalForces": 0,
+              "stage:AfterIntegration": 0,
+              "stage:AfterJointSolve": 0,
+              "stage:AfterJointStabilization": 0,
+              "stage:AfterJointUpdate": 0,
+              "stage:AfterMotorSolve": 0,
+              "stage:AfterStabilizationFriction": 0,
+              "stage:BeforeExternalForces": 0,
+              "stage:BeforeJointSolve": 0,
+              "stage:BeforeJointStabilization": 0,
+              "stage:BeforeMotorBiasRemoval": 0,
+              "stage:BeforeMotorSolve": 0,
+              "stage:FinalSlice": 0,
+              "zero_authority_cache_generations": 0
+            },
+            "maxima": {
+              "contact_exact_delta_r": {
+                "absolute_magnitude": {
+                  "denominator": "268435456",
+                  "numerator": "54298335"
+                },
+                "first_context": {
+                  "completed_outer_step": 268,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "268435456",
+                  "numerator": "-54298335"
+                }
+              },
+              "contact_native_rounding_discrepancy": {
+                "absolute_magnitude": {
+                  "denominator": "1073741824",
+                  "numerator": "9"
+                },
+                "first_context": {
+                  "completed_outer_step": 921,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 88,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 2,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "1073741824",
+                  "numerator": "-9"
+                }
+              },
+              "exact_velocity_residual": {
+                "absolute_magnitude": {
+                  "denominator": "16777216",
+                  "numerator": "4105059"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 268,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "16777216",
+                  "numerator": "-4105059"
+                }
+              },
+              "native_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "268435456",
+                  "numerator": "76090629"
+                },
+                "first_context": {
+                  "completed_outer_step": 268,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "268435456",
+                  "numerator": "-76090629"
+                }
+              },
+              "native_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "33554432",
+                  "numerator": "11505197"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 268,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "33554432",
+                  "numerator": "-11505197"
+                }
+              },
+              "native_residual_rounding_error": {
+                "absolute_magnitude": {
+                  "denominator": "134217728",
+                  "numerator": "1"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 255,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 130,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 3,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "134217728",
+                  "numerator": "-1"
+                }
+              },
+              "reference_contact_projection_change": {
+                "absolute_magnitude": {
+                  "denominator": "11665512",
+                  "numerator": "2585635"
+                },
+                "first_context": {
+                  "completed_outer_step": 268,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "11665512",
+                  "numerator": "-2585635"
+                }
+              },
+              "reference_projected_residual": {
+                "absolute_magnitude": {
+                  "denominator": "1458189",
+                  "numerator": "390958"
+                },
+                "first_context": {
+                  "after_integration": false,
+                  "completed_outer_step": 268,
+                  "entity_bits": 4294967299,
+                  "event_ordinal": 46,
+                  "island": 0,
+                  "iteration": null,
+                  "partition": 0,
+                  "pass_kind": null,
+                  "role": "palm",
+                  "slice": 1,
+                  "stage": "AfterContactWarmstart",
+                  "visit": null,
+                  "zero_authority": false
+                },
+                "signed_value": {
+                  "denominator": "1458189",
+                  "numerator": "-390958"
+                }
+              }
+            }
+          }
+        },
+        "unmeasured": [
+          "per-contact J/W columns",
+          "individual contact impulses",
+          "J_m W_c",
+          "full set metadata",
+          "private pipeline/solver/contact caches",
+          "runtime MXCSR/FTZ/DAZ/rounding registers",
+          "absolute constructor RHS input q/target reconstruction",
+          "unselected limit-row arithmetic",
+          "independent native per-object deserialization",
+          "anatomical finger frame labels"
+        ]
+      },
+      "caller_source_binary_admission_original_exits_qualification_required": true,
+      "captured_checkpoints": 3750,
+      "completed_steps_each": 1250,
+      "detail_records": {
+        "first": 1010001,
+        "last": 1515000
+      },
+      "ecs_words": 525000,
+      "favorable_or_reopen_outcome_required": false,
+      "general_motor_accuracy_verified": false,
+      "historical_138_cause_verified": false,
+      "input_streams": [
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-50kg-on",
+          "uncompressed_bytes": 275714664,
+          "uncompressed_sha256": "c472831007a8dac87f0dee94184f58d983ed8eff0e649cbe623723163d2f501a"
+        },
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-50kg-fresh-on",
+          "uncompressed_bytes": 275714670,
+          "uncompressed_sha256": "a6e58db9ea8a029a976e325c8dd2a827192a4fc6f878be0870ea66405e542fb6"
+        },
+        {
+          "records": 1252,
+          "run_label": "coupled-baseline-50kg-off",
+          "uncompressed_bytes": 37586148,
+          "uncompressed_sha256": "cb844e4ecf4c53caad0060a7053333b1224afbd0a5858add142d63dee6ca41bc"
+        }
+      ],
+      "kind": "new_baseline_coupled_contact_triplet_stream_qualification",
+      "mass_kg": 50,
+      "native_checkpoint_bytes": 20499726,
+      "numerical_sample_scope": "ON once; fresh ON is literal replay, not an independent numerical sample",
+      "original_raw": [
+        {
+          "bytes": 7570893,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/on/raw.jsonl.gz",
+          "sha256": "5fa2627a107689d6168d040b4dacb7cd7095d4b6b99c8cd38a81a6da0bbe63e6"
+        },
+        {
+          "bytes": 7570962,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/fresh-on/raw.jsonl.gz",
+          "sha256": "2e4a76c3e0e8554c358fcf0db19a6ed0beca119c066f6a77cf76c97e4bc505ba"
+        },
+        {
+          "bytes": 1333303,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/off/raw.jsonl.gz",
+          "sha256": "27f69fad051a72227f65f766e60ef30506a4a01858937e28ae94097d1d773ba2"
+        }
+      ],
+      "original_stdout": [
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/on/stdout.log",
+          "sha256": "3c61b2468ba0ea3e877e61688c7de37895f420888f864176251886f359edb1f0"
+        },
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/fresh-on/stdout.log",
+          "sha256": "3c61b2468ba0ea3e877e61688c7de37895f420888f864176251886f359edb1f0"
+        },
+        {
+          "bytes": 111,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/off/stdout.log",
+          "sha256": "3c61b2468ba0ea3e877e61688c7de37895f420888f864176251886f359edb1f0"
+        }
+      ],
+      "physical_report": {
+        "cube_ecs_pose_ieee_words": [
+          4565809051450998784,
+          4598035534323908608,
+          13752830892441600000,
+          13769087634030111943,
+          4546958684712865013,
+          4568714577956401344,
+          4607182382183280979,
+          4607182418800017408,
+          4607182418800017408,
+          4607182418800017408
+        ],
+        "physical_ieee_words": [
+          4596234094472960410,
+          4596321434350911488,
+          4564528754986057728,
+          4573220940495610471
+        ],
+        "physical_stdout_row": "  rapier: lifted  0.196 m (palm 0.199 m), slip   1.5e-3 m, tilt  5.7e-3 rad"
+      },
+      "scene_role_identity": {
+        "anchor": 4294967298,
+        "cube": 4294967297,
+        "finger_pair": [
+          4294967300,
+          4294967301
+        ],
+        "floor": 4294967296,
+        "palm": 4294967299
+      },
+      "solver_adoption_verified": false,
+      "source_numerical_status": "QUALIFIED_DECLARED_DOMAIN",
+      "stream_scope_status": "COMPLETE_TYPED_POSTCARD_ECS_REPEAT_OFF_AND_CRC_EOF"
+    }
+  ],
+  "historical_138_cause_verified": false,
+  "kind": "new9_coupled_contact_projected_defect_audit",
+  "limitations": [
+    "absolute constructor RHS q/target reconstruction",
+    "unselected limit-row arithmetic",
+    "per-contact cached J/W/impulses or attribution",
+    "ordinary rigid-body solver storage",
+    "full-set metadata/private pipeline/solver/contact caches",
+    "independent opaque native-object decoder",
+    "actual runtime MXCSR/FTZ/DAZ/rounding register witness",
+    "hardware/production adoption/maturity"
+  ],
+  "original_receipts_and_raw": [
+    {
+      "case": {
+        "case_id": "m5-on",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 5,
+        "mass_kg_ieee754_bits": 4617315517961601024,
+        "mode": "on",
+        "observer_enabled": true,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m5/on",
+        "run_label": "coupled-baseline-5kg-on"
+      },
+      "original_terminal": {
+        "bytes": 1977,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/on/process-terminal.json",
+        "sha256": "e00513453f24e0a0f390cdbe0765ed3270203a7af2e7b26b508b77d3b50cba5b"
+      },
+      "raw": {
+        "bytes": 7545963,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/on/raw.jsonl.gz",
+        "sha256": "4759f5e6213fc881430c5529347c68ab2d6b749a5990304ac69a715c5f4bb6a6"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 275866533,
+        "decoded_sha256": "4866aaf44660d95085742f8b42e81385e94ecb122a601b454f3ebf766beed51f",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 7545963,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/on/raw.jsonl.gz",
+          "sha256": "4759f5e6213fc881430c5529347c68ab2d6b749a5990304ac69a715c5f4bb6a6"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/on/stdout.log",
+        "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+      }
+    },
+    {
+      "case": {
+        "case_id": "m5-fresh-on",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 5,
+        "mass_kg_ieee754_bits": 4617315517961601024,
+        "mode": "fresh-on",
+        "observer_enabled": true,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m5/fresh-on",
+        "run_label": "coupled-baseline-5kg-fresh-on"
+      },
+      "original_terminal": {
+        "bytes": 2019,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/fresh-on/process-terminal.json",
+        "sha256": "52895c6eba85f5bdeabd3065c106684c1452390f0a0fa2d56f450f6da29a6506"
+      },
+      "raw": {
+        "bytes": 7545938,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/fresh-on/raw.jsonl.gz",
+        "sha256": "9595cf7a573ffeaee9588863e835a971102aaa0a4d780f13aa2819d02fbf93aa"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 275866539,
+        "decoded_sha256": "35b2582e1465d4b41a56e6a7420c60367e5f742ec558c3de0d534d888cc00043",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 7545938,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/fresh-on/raw.jsonl.gz",
+          "sha256": "9595cf7a573ffeaee9588863e835a971102aaa0a4d780f13aa2819d02fbf93aa"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/fresh-on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/fresh-on/stdout.log",
+        "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+      }
+    },
+    {
+      "case": {
+        "case_id": "m5-off",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 5,
+        "mass_kg_ieee754_bits": 4617315517961601024,
+        "mode": "off",
+        "observer_enabled": false,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m5/off",
+        "run_label": "coupled-baseline-5kg-off"
+      },
+      "original_terminal": {
+        "bytes": 1984,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/off/process-terminal.json",
+        "sha256": "b3fa6cd911c5a6deac1407b57f2f80facf8f932f4c000837aac4ff61537193df"
+      },
+      "raw": {
+        "bytes": 1319551,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/off/raw.jsonl.gz",
+        "sha256": "9d464c6d2d639659284b8e204bbcd4f7e3eae295c6bd6d34d994fc854c19d6c4"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 37596569,
+        "decoded_sha256": "0971b5626b136d4ea08fa5ccb6141ee17455fdb9497986abd8e8d01161329d7c",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 1319551,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/off/raw.jsonl.gz",
+          "sha256": "9d464c6d2d639659284b8e204bbcd4f7e3eae295c6bd6d34d994fc854c19d6c4"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/off/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m5/off/stdout.log",
+        "sha256": "ce9e8401be6a8f0bf16df63781e196a2aec9de4bdd48fd10fb9df1aa61f8eb70"
+      }
+    },
+    {
+      "case": {
+        "case_id": "m20-on",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 20,
+        "mass_kg_ieee754_bits": 4626322717216342016,
+        "mode": "on",
+        "observer_enabled": true,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m20/on",
+        "run_label": "coupled-baseline-20kg-on"
+      },
+      "original_terminal": {
+        "bytes": 1985,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/on/process-terminal.json",
+        "sha256": "8a71eb1654b2fb0c3a598a96d636aa83d0c8ea17ea899a32c5498e4811c36627"
+      },
+      "raw": {
+        "bytes": 7554076,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/on/raw.jsonl.gz",
+        "sha256": "892266ef65a45237c0cf883a6fd5cecbf20fcfd1ae872fccdb47b19130922ba0"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 275812783,
+        "decoded_sha256": "c12b775a6a57c79fd41a4012585400c27632404d341f02ae4c6b3d0998ac80aa",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 7554076,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/on/raw.jsonl.gz",
+          "sha256": "892266ef65a45237c0cf883a6fd5cecbf20fcfd1ae872fccdb47b19130922ba0"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/on/stdout.log",
+        "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+      }
+    },
+    {
+      "case": {
+        "case_id": "m20-fresh-on",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 20,
+        "mass_kg_ieee754_bits": 4626322717216342016,
+        "mode": "fresh-on",
+        "observer_enabled": true,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m20/fresh-on",
+        "run_label": "coupled-baseline-20kg-fresh-on"
+      },
+      "original_terminal": {
+        "bytes": 2027,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/fresh-on/process-terminal.json",
+        "sha256": "ac8c56295f5242d2b267a194cd6152c74d84a0fcd0fe86ec434176d2408580a9"
+      },
+      "raw": {
+        "bytes": 7554075,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/fresh-on/raw.jsonl.gz",
+        "sha256": "b34ea8b87d3e828e7a2fbbbccd00af10c9c25082a02d3f1a8fbf8a8b5cf2fbcf"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 275812789,
+        "decoded_sha256": "368e3c5e8650eac0fcf7e18873772d23f4fe56e55d42d63947cfd98f823b79e2",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 7554075,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/fresh-on/raw.jsonl.gz",
+          "sha256": "b34ea8b87d3e828e7a2fbbbccd00af10c9c25082a02d3f1a8fbf8a8b5cf2fbcf"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/fresh-on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/fresh-on/stdout.log",
+        "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+      }
+    },
+    {
+      "case": {
+        "case_id": "m20-off",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 20,
+        "mass_kg_ieee754_bits": 4626322717216342016,
+        "mode": "off",
+        "observer_enabled": false,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m20/off",
+        "run_label": "coupled-baseline-20kg-off"
+      },
+      "original_terminal": {
+        "bytes": 1992,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/off/process-terminal.json",
+        "sha256": "01b86c9ec4809af0fde5a2695efa4a6e4fafe8e75886e66d16e2aca7d54eac3c"
+      },
+      "raw": {
+        "bytes": 1292190,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/off/raw.jsonl.gz",
+        "sha256": "173883aa7c9a255a1461240a2925d804f02d3709920eb859b6d41a425349d348"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 37564042,
+        "decoded_sha256": "dedc0544ff6d917225b0ae1700a07d63f35ba9a8bc1647d868d2f40f4da604b9",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 1292190,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/off/raw.jsonl.gz",
+          "sha256": "173883aa7c9a255a1461240a2925d804f02d3709920eb859b6d41a425349d348"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/off/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m20/off/stdout.log",
+        "sha256": "bd75c7491cb417ee7bd9ef680ecbf44a9172adf73e52524380721224fed0a51b"
+      }
+    },
+    {
+      "case": {
+        "case_id": "m50-on",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 50,
+        "mass_kg_ieee754_bits": 4632233691727265792,
+        "mode": "on",
+        "observer_enabled": true,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m50/on",
+        "run_label": "coupled-baseline-50kg-on"
+      },
+      "original_terminal": {
+        "bytes": 1985,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/on/process-terminal.json",
+        "sha256": "7b24536cdd037ba4be5d06980abd4e904eb920a5f286f0e657ae3335a0011ba0"
+      },
+      "raw": {
+        "bytes": 7570893,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/on/raw.jsonl.gz",
+        "sha256": "5fa2627a107689d6168d040b4dacb7cd7095d4b6b99c8cd38a81a6da0bbe63e6"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 275714664,
+        "decoded_sha256": "c472831007a8dac87f0dee94184f58d983ed8eff0e649cbe623723163d2f501a",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 7570893,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/on/raw.jsonl.gz",
+          "sha256": "5fa2627a107689d6168d040b4dacb7cd7095d4b6b99c8cd38a81a6da0bbe63e6"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/on/stdout.log",
+        "sha256": "3c61b2468ba0ea3e877e61688c7de37895f420888f864176251886f359edb1f0"
+      }
+    },
+    {
+      "case": {
+        "case_id": "m50-fresh-on",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 50,
+        "mass_kg_ieee754_bits": 4632233691727265792,
+        "mode": "fresh-on",
+        "observer_enabled": true,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m50/fresh-on",
+        "run_label": "coupled-baseline-50kg-fresh-on"
+      },
+      "original_terminal": {
+        "bytes": 2027,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/fresh-on/process-terminal.json",
+        "sha256": "cf226041ae9778aa69519ba4a259c94503ee1419648319b6727592b36efe1a0e"
+      },
+      "raw": {
+        "bytes": 7570962,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/fresh-on/raw.jsonl.gz",
+        "sha256": "2e4a76c3e0e8554c358fcf0db19a6ed0beca119c066f6a77cf76c97e4bc505ba"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 275714670,
+        "decoded_sha256": "a6e58db9ea8a029a976e325c8dd2a827192a4fc6f878be0870ea66405e542fb6",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 7570962,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/fresh-on/raw.jsonl.gz",
+          "sha256": "2e4a76c3e0e8554c358fcf0db19a6ed0beca119c066f6a77cf76c97e4bc505ba"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/fresh-on/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/fresh-on/stdout.log",
+        "sha256": "3c61b2468ba0ea3e877e61688c7de37895f420888f864176251886f359edb1f0"
+      }
+    },
+    {
+      "case": {
+        "case_id": "m50-off",
+        "expected_completed_outer_steps": 1250,
+        "expected_records": 1252,
+        "mass_kg": 50,
+        "mass_kg_ieee754_bits": 4632233691727265792,
+        "mode": "off",
+        "observer_enabled": false,
+        "raw_name": "raw.jsonl.gz",
+        "relative_directory": "m50/off",
+        "run_label": "coupled-baseline-50kg-off"
+      },
+      "original_terminal": {
+        "bytes": 1992,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/off/process-terminal.json",
+        "sha256": "52846f393b00119964a359b1095dddf9df4001b698f0978f54a2a3163e123303"
+      },
+      "raw": {
+        "bytes": 1333303,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/off/raw.jsonl.gz",
+        "sha256": "27f69fad051a72227f65f766e60ef30506a4a01858937e28ae94097d1d773ba2"
+      },
+      "raw_framing": {
+        "complete_crc_eof": true,
+        "decoded_bytes": 37586148,
+        "decoded_sha256": "cb844e4ecf4c53caad0060a7053333b1224afbd0a5858add142d63dee6ca41bc",
+        "gzip_members": 1,
+        "numerical_analysis_performed": false,
+        "scientific_schema_validated": false,
+        "stored": {
+          "bytes": 1333303,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/off/raw.jsonl.gz",
+          "sha256": "27f69fad051a72227f65f766e60ef30506a4a01858937e28ae94097d1d773ba2"
+        }
+      },
+      "stderr": {
+        "bytes": 0,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/off/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 111,
+        "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/m50/off/stdout.log",
+        "sha256": "3c61b2468ba0ea3e877e61688c7de37895f420888f864176251886f359edb1f0"
+      }
+    }
+  ],
+  "provenance": {
+    "collection_terminal": {
+      "bytes": 22712,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/collection-terminal.json",
+      "sha256": "e77639292c03f83bfc12da7caf50f30d20e02de7798962d36745aaa6c7c60a61"
+    },
+    "native_original_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "original_outer_receipt": {
+      "bytes": 1721,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/collection/driver-outer-original-exit.json",
+      "sha256": "d2c4974ef8a05e7d361c4a9f38461462df8e36e34649e9145bb9b4e5f52e308c"
+    },
+    "outer_original_exit": 0
+  },
+  "registration": {
+    "bytes": 351092,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/registration-admitted.json",
+    "sha256": "e1d6250cb40bd9dc270309264d579a19007a2094055e160b9506cd8bc50612e9"
+  },
+  "schema_version": 1,
+  "solver_adoption_verified": false,
+  "status": "PASS_DECLARED_CAPTURE_AND_SOURCE_DOMAIN",
+  "supplied_registration_path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/registration-admitted.json",
+  "total_registered_frames": 11250,
+  "total_registered_native_processes": 9
+}

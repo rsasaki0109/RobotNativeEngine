@@ -1,0 +1,19 @@
+{
+  "approved_target_commit": "b9a6c8531c31eb07af6b014f411dbd2d621edcf3",
+  "artifact_whole_local_verification_passed": true,
+  "draft_release_id": 411461772,
+  "future_pr_merge_authorized": false,
+  "kind": "coupled_contact_external_retention_status",
+  "native_gh_upload_original_exit": 1,
+  "public_download_verified": false,
+  "public_release_published": false,
+  "required_existing_secret_name": "RNE_GITHUB_RELEASE_UPLOAD",
+  "required_runtime_variable_name": "RNE_GITHUB_UPLOAD_TOKEN",
+  "runtime_named_secret_present": false,
+  "scientific_reexecution_for_upload": false,
+  "tag": "evidence-coupled-contact-v1-b9a6c853",
+  "upload_endpoint_host": "uploads.github.com",
+  "upload_http_status": 401,
+  "user_publication_approval_received": true,
+  "utc": "2026-10-13T08:49:18.745575+00:00"
+}

@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/usr/bin/python3.13",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/whole_archive.py",
+    "verify",
+    "--archive",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/coupled-contact-v1-b9a6c853.tar.gz",
+    "--create-receipt",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/create-v3-receipt.json",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/verify-v3-receipt.json"
+  ],
+  "pid": 256988,
+  "started_utc": "2026-10-13T07:20:32.016455+00:00",
+  "ended_utc": "2026-10-13T07:20:47.057509+00:00",
+  "original_exit": 0,
+  "scientific_reader_invocations": 0,
+  "numerical_analysis": false,
+  "command_invocations": 1
+}

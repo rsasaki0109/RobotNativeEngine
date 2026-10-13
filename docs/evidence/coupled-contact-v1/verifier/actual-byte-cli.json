@@ -1,0 +1,95 @@
+{
+  "actual_interpreter": {
+    "bytes": 6812336,
+    "path": "/usr/bin/python3.13",
+    "sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1"
+  },
+  "archive": {
+    "bytes": 1317548213,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/coupled-contact-v1-b9a6c853.tar.gz",
+    "sha256": "4dd915ab6cb549cce86241f36e7782743623396c603182b12749ee4050cc998a"
+  },
+  "archived_code_executed": false,
+  "command": [
+    "/usr/bin/python3.13",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/whole_archive.py",
+    "verify",
+    "--archive",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/coupled-contact-v1-b9a6c853.tar.gz",
+    "--create-receipt",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/create-v3-receipt.json",
+    "--output",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/actual-byte-qualification/whole-byte-verification.json",
+    "--no-originals"
+  ],
+  "create_receipt": {
+    "bytes": 751,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/create-v3-receipt.json",
+    "sha256": "0569b145ef16a501931ffa607ee806dac7a1e90f5d7b4ce90197ca939f9744f1"
+  },
+  "cwd": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier",
+  "ended_utc": "2026-10-13T08:03:07.285922+00:00",
+  "execution_kind": "BYTE_ONLY_NO_ORIGINALS",
+  "historical_originals_read": false,
+  "inputs_before_after_unchanged": true,
+  "kind": "actual_original_portable_archive_byte_cli",
+  "native_worlds": 0,
+  "network_git_cargo_publication_actions": 0,
+  "numerical_analysis": false,
+  "original_exit": 0,
+  "pid": 258747,
+  "python_version": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "scientific_reader_invocations": 0,
+  "source_after": [
+    {
+      "bytes": 2076,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/qualify_mock.py",
+      "sha256": "73de5880789e98c207ae279436ee945f9360ef19eab277f6dea57f7a74b10e52"
+    },
+    {
+      "bytes": 14789,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/test_whole_archive_mock.py",
+      "sha256": "229fb2619b06e36ae9eabaee07de59c5a51661adee1d6d7022ff2aca8c84b6d0"
+    },
+    {
+      "bytes": 21239,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/whole_archive.py",
+      "sha256": "e049f6b82d570b291ffec082acb093b4bb175a28ab7c316c58b2f9fd3e8ce955"
+    }
+  ],
+  "source_before": [
+    {
+      "bytes": 2076,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/qualify_mock.py",
+      "sha256": "73de5880789e98c207ae279436ee945f9360ef19eab277f6dea57f7a74b10e52"
+    },
+    {
+      "bytes": 14789,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/test_whole_archive_mock.py",
+      "sha256": "229fb2619b06e36ae9eabaee07de59c5a51661adee1d6d7022ff2aca8c84b6d0"
+    },
+    {
+      "bytes": 21239,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/payload/whole_archive.py",
+      "sha256": "e049f6b82d570b291ffec082acb093b4bb175a28ab7c316c58b2f9fd3e8ce955"
+    }
+  ],
+  "source_unchanged": true,
+  "started_utc": "2026-10-13T08:02:59.385216+00:00",
+  "stderr": {
+    "bytes": 0,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/actual-byte-qualification/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stdout": {
+    "bytes": 777,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/actual-byte-qualification/stdout.log",
+    "sha256": "1d4278659f1ef97d609ffc533047330c5eec6742a8a6935906be5102544c709c"
+  },
+  "whole_byte_verification": {
+    "bytes": 746,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-pr-preparation/portable-verifier/actual-byte-qualification/whole-byte-verification.json",
+    "sha256": "578695787b0a530b6069e48df44e08048aba2fa615b160cd6ba9ad7ca36c0936"
+  }
+}

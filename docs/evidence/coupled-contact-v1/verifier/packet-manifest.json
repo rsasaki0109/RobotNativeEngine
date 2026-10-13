@@ -1,0 +1,82 @@
+{
+  "files": [
+    {
+      "bytes": 8,
+      "relative_path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "bytes": 4189,
+      "relative_path": "README.md",
+      "sha256": "6c416d943a830510e1cde2ed20218f58e0aba3d19c7c6a2b9aeeaee2e27e29c6"
+    },
+    {
+      "bytes": 4481,
+      "relative_path": "actual-byte-cli.json",
+      "sha256": "51a50dcaaddead5fb9d8df2ecd47607537cf820e847bf0f7146c2df89c0e7057"
+    },
+    {
+      "bytes": 0,
+      "relative_path": "actual-byte-cli.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 777,
+      "relative_path": "actual-byte-cli.stdout.log",
+      "sha256": "1d4278659f1ef97d609ffc533047330c5eec6742a8a6935906be5102544c709c"
+    },
+    {
+      "bytes": 751,
+      "relative_path": "create-v3-receipt.json",
+      "sha256": "0569b145ef16a501931ffa607ee806dac7a1e90f5d7b4ce90197ca939f9744f1"
+    },
+    {
+      "bytes": 11143,
+      "relative_path": "independent-source-review.json",
+      "sha256": "2be61534a838e45ac31a85e0b1dc656bc9a8df47512789e21502d9728ae3ff97"
+    },
+    {
+      "bytes": 2651,
+      "relative_path": "pure-tests-original-exit.json",
+      "sha256": "5f2edfd2cd0c21653ae8dcca6a45cd4e644a5924b8c65ee3c3e7405d45c69219"
+    },
+    {
+      "bytes": 4419,
+      "relative_path": "pure-tests.stderr.log",
+      "sha256": "f837a5e6300c099a98ef4b656be9767a4771221ab4a47b6d8512a822a6387928"
+    },
+    {
+      "bytes": 0,
+      "relative_path": "pure-tests.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2076,
+      "relative_path": "qualify_mock.py",
+      "sha256": "73de5880789e98c207ae279436ee945f9360ef19eab277f6dea57f7a74b10e52"
+    },
+    {
+      "bytes": 2514,
+      "relative_path": "source-identity.json",
+      "sha256": "54fe69d6917f4333d817f07ee3cfbb4c3930e773f71df89b3bc17b88471dac17"
+    },
+    {
+      "bytes": 14789,
+      "relative_path": "test_whole_archive_mock.py",
+      "sha256": "229fb2619b06e36ae9eabaee07de59c5a51661adee1d6d7022ff2aca8c84b6d0"
+    },
+    {
+      "bytes": 746,
+      "relative_path": "whole-byte-verification.json",
+      "sha256": "578695787b0a530b6069e48df44e08048aba2fa615b160cd6ba9ad7ca36c0936"
+    },
+    {
+      "bytes": 21239,
+      "relative_path": "whole_archive.py",
+      "sha256": "e049f6b82d570b291ffec082acb093b4bb175a28ab7c316c58b2f9fd3e8ce955"
+    }
+  ],
+  "kind": "rne_portable_whole_archive_verifier_packet",
+  "schema_version": 1,
+  "scope": "Small source/test/identity/whole original qualification copies only; complete archive external; no public availability or numerical accuracy verdict."
+}

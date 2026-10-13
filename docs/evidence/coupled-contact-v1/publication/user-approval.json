@@ -1,0 +1,11 @@
+{
+  "kind": "explicit_user_approval",
+  "utc": "2026-10-13T08:34:49.994041+00:00",
+  "literal_user_reply": "マージ！許可！",
+  "reply_context": "Latest question explicitly asked PR412 squash merge AND new1.32GB evidenceRelease publication.",
+  "approved_pr": 412,
+  "approved_head": "b9a6c8531c31eb07af6b014f411dbd2d621edcf3",
+  "approved_new_release_tag": "evidence-coupled-contact-v1-b9a6c853",
+  "approved_publication_packet": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/publication-packet.json",
+  "future_pr_merge_approval": false
+}

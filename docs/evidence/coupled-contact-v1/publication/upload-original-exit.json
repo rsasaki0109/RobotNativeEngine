@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/workspace/.rne-tools/gh/bin/gh",
+    "release",
+    "upload",
+    "evidence-coupled-contact-v1-b9a6c853",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/coupled-contact-v1-b9a6c853.tar.gz",
+    "--repo",
+    "rsasaki0109/RobotNativeEngine"
+  ],
+  "pid": 260992,
+  "started_utc": "2026-10-13T08:39:54.273803+00:00",
+  "ended_utc": "2026-10-13T08:39:55.693894+00:00",
+  "original_exit": 1,
+  "scientific_reader_invocations": 0,
+  "numerical_analysis": false,
+  "command_invocations": 1
+}

@@ -1,0 +1,35 @@
+test_archive_inside_input_root_is_rejected (test_whole_archive_mock.ArchiveTests.test_archive_inside_input_root_is_rejected) ... ok
+test_capacity_rejection_before_archive_creation (test_whole_archive_mock.ArchiveTests.test_capacity_rejection_before_archive_creation) ... ok
+test_changed_original_after_archive_rejects_local_verification (test_whole_archive_mock.ArchiveTests.test_changed_original_after_archive_rejects_local_verification) ... ok
+test_changed_original_during_create_preserves_partial (test_whole_archive_mock.ArchiveTests.test_changed_original_during_create_preserves_partial) ... ok
+test_dangling_and_long_pax_link_targets_retained (test_whole_archive_mock.ArchiveTests.test_dangling_and_long_pax_link_targets_retained) ... ok
+test_duplicate_and_casefold_alias_rejected (test_whole_archive_mock.ArchiveTests.test_duplicate_and_casefold_alias_rejected) ... ok
+test_duplicate_json_bool_size_and_unsafe_paths_rejected (test_whole_archive_mock.ArchiveTests.test_duplicate_json_bool_size_and_unsafe_paths_rejected) ... ok
+test_exact_duplicate_original_origin_rejected (test_whole_archive_mock.ArchiveTests.test_exact_duplicate_original_origin_rejected) ... ok
+test_external_link_target_bytes_never_bound_or_followed (test_whole_archive_mock.ArchiveTests.test_external_link_target_bytes_never_bound_or_followed) ... ok
+test_extra_tar_payload_rejected (test_whole_archive_mock.ArchiveTests.test_extra_tar_payload_rejected) ... ok
+test_gzip_crc_corruption_rejected (test_whole_archive_mock.ArchiveTests.test_gzip_crc_corruption_rejected) ... ok
+test_header_tamper_even_with_updated_whole_archive_sha_rejected (test_whole_archive_mock.ArchiveTests.test_header_tamper_even_with_updated_whole_archive_sha_rejected) ... ok
+test_local_only_binding_not_recoverable_member (test_whole_archive_mock.ArchiveTests.test_local_only_binding_not_recoverable_member) ... ok
+test_long_literal_pax_member_and_empty_original (test_whole_archive_mock.ArchiveTests.test_long_literal_pax_member_and_empty_original) ... ok
+test_magic_only_nonexecutable_fixture_retained_whole (test_whole_archive_mock.ArchiveTests.test_magic_only_nonexecutable_fixture_retained_whole) ... ok
+test_member_tamper_even_with_updated_whole_archive_sha_rejected (test_whole_archive_mock.ArchiveTests.test_member_tamper_even_with_updated_whole_archive_sha_rejected) ... ok
+test_missing_or_added_original_changes_inventory (test_whole_archive_mock.ArchiveTests.test_missing_or_added_original_changes_inventory) ... ok
+test_original_case_pair_both_whole_bytes_retained (test_whole_archive_mock.ArchiveTests.test_original_case_pair_both_whole_bytes_retained) ... ok
+test_overlapping_named_roots_rejected (test_whole_archive_mock.ArchiveTests.test_overlapping_named_roots_rejected) ... ok
+test_portable_mode_never_reads_absent_originals (test_whole_archive_mock.ArchiveTests.test_portable_mode_never_reads_absent_originals) ... ok
+test_symlink_directory_not_dereferenced_or_recurred (test_whole_archive_mock.ArchiveTests.test_symlink_directory_not_dereferenced_or_recurred) ... ok
+test_symlink_input_stored_as_literal_object (test_whole_archive_mock.ArchiveTests.test_symlink_input_stored_as_literal_object) ... ok
+test_symlink_literal_header_tamper_rejected (test_whole_archive_mock.ArchiveTests.test_symlink_literal_header_tamper_rejected) ... ok
+test_symlink_metadata_changed_during_archive_preserves_partial (test_whole_archive_mock.ArchiveTests.test_symlink_metadata_changed_during_archive_preserves_partial) ... ok
+test_symlink_replaced_after_archive_fails_lstat_guard (test_whole_archive_mock.ArchiveTests.test_symlink_replaced_after_archive_fails_lstat_guard) ... ok
+test_trailing_or_second_member_rejected (test_whole_archive_mock.ArchiveTests.test_trailing_or_second_member_rejected) ... ok
+test_truncated_gzip_rejected (test_whole_archive_mock.ArchiveTests.test_truncated_gzip_rejected) ... ok
+test_unlisted_executable_not_implicitly_packaged (test_whole_archive_mock.ArchiveTests.test_unlisted_executable_not_implicitly_packaged) ... ok
+test_whole_bytes_standard_gzip_tar_and_bound (test_whole_archive_mock.ArchiveTests.test_whole_bytes_standard_gzip_tar_and_bound) ... ok
+test_wrong_alias_ordinal_and_original_root_relationship_rejected (test_whole_archive_mock.ArchiveTests.test_wrong_alias_ordinal_and_original_root_relationship_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.155s
+
+OK

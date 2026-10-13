@@ -1,0 +1,167 @@
+[
+  {
+    "bytes": 30894944,
+    "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12",
+    "sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7"
+  },
+  {
+    "bytes": 6812336,
+    "path": "/usr/bin/python3.13",
+    "sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1"
+  },
+  {
+    "bytes": 42185192,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/bin/cargo",
+    "sha256": "841072d1d92f9e841d9ba5b0814182a0adf064acf4527cd120967b7bc49dcb66"
+  },
+  {
+    "bytes": 644784,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/bin/rustc",
+    "sha256": "bff349e72704ff70bc08a234a3847338e797065bbedde5e556808bc87b7bf7c6"
+  },
+  {
+    "bytes": 153621360,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/librustc_driver-6108105cd7e839cf.so",
+    "sha256": "ae69468875215df490fde685ec1f1b969743482ba7e0251f4074a222606a5484"
+  },
+  {
+    "bytes": 27626,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libaddr2line-a79a8816d9fd6004.rlib",
+    "sha256": "5315222d1620a3419938e70183ee8eb571e3d3cd7e7d91edc8871b13fa3ee4da"
+  },
+  {
+    "bytes": 9312,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libadler2-1f570ee5c6635aae.rlib",
+    "sha256": "c7137fb6bbd820a67c5a97b4e7c642fa7c9af5e5144f5d1ec124e6c579bead1b"
+  },
+  {
+    "bytes": 855192,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/liballoc-6e6df4ffe0af4d15.rlib",
+    "sha256": "74b8a1e7acb9cb7e505d2a212fab58be7691f138349ca5914c875b6efb843368"
+  },
+  {
+    "bytes": 4166,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libcfg_if-0ce073fff809ec38.rlib",
+    "sha256": "5e614e81e14e2101c5d8b3aef3034d2c4429d13f20bbb9b089b7a252bdff0252"
+  },
+  {
+    "bytes": 4342948,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libcompiler_builtins-27cfc16bdf3bb694.rlib",
+    "sha256": "c2ab63385e3ed4a2b5e9f2dcb58b84bf77c1365a2afb0da0ff528751359af486"
+  },
+  {
+    "bytes": 2933734,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libcore-120cbae4e86ec454.rlib",
+    "sha256": "ab33e4effb345047ed8302d2d278518b04ab70d53f21cc9924066394bfc8d4e2"
+  },
+  {
+    "bytes": 739864,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libgetopts-e6d22c100c4f8a03.rlib",
+    "sha256": "722de07045a6826aabe4f2ad43b43f3aa32a6813fcf7d965877f78a4c787613d"
+  },
+  {
+    "bytes": 915658,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libgimli-46dc78dc6a8cb06a.rlib",
+    "sha256": "d50e5d5980ca737cd3345d92bfb48e43625a18262dae3bd7c5c777133b48b169"
+  },
+  {
+    "bytes": 36100,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libhashbrown-1448c95121de53aa.rlib",
+    "sha256": "75d56b8dd998cc62c8cf54474f27842b809c7f58bcdf395942d28af66711faf3"
+  },
+  {
+    "bytes": 29996,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/liblibc-5b1ad6df1855186c.rlib",
+    "sha256": "b2164f8e84ae76a2968f9424093d0ee917a8e7fc2c5276b9c0f61e391f5502ab"
+  },
+  {
+    "bytes": 414750,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libmemchr-ea71fa85f6699d6b.rlib",
+    "sha256": "0c4bdeb813965be1b867782cc58f98558f0da7fdb48583269b357042bddfc51d"
+  },
+  {
+    "bytes": 101348,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libminiz_oxide-5ad929a15a8e6727.rlib",
+    "sha256": "28ab545bcb16803e6c8183553194da8c9c9c5ec327f2621ce464776e6635cf47"
+  },
+  {
+    "bytes": 166724,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libobject-2a81194c9d07bbf6.rlib",
+    "sha256": "766f1d593ec36b2abc2fc7a819773e4bd8d789018b96d24b72ff36f2e4321e66"
+  },
+  {
+    "bytes": 10104,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libpanic_abort-d53e46b1577156b6.rlib",
+    "sha256": "895107035db92d96ca2d83ad68bc29316eafb061aa3c11764009b9d064c97b5e"
+  },
+  {
+    "bytes": 35202,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libpanic_unwind-4be5972b22d3a6da.rlib",
+    "sha256": "755beb4e514e6d56e37c707573b22fcacddeebf0bbf5bd028ea7da9dcf3a44e8"
+  },
+  {
+    "bytes": 3636810,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libproc_macro-9a3b801af650b923.rlib",
+    "sha256": "1ffcb6933513e9216e23396f5510e0e3e4e03ae9ca74084598dd2f35cacf43df"
+  },
+  {
+    "bytes": 494604,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libprofiler_builtins-a3355e49a89815f3.rlib",
+    "sha256": "57347233d0c2b5f2fdf2d9ab7ead7f83b7831d846edb5164019a24e2d6d7bc94"
+  },
+  {
+    "bytes": 228416,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_demangle-146c3f1190dee2e2.rlib",
+    "sha256": "d96214d62f9559cec453b06890c308a5780a89c1e7549d38d9ee72e5baba385a"
+  },
+  {
+    "bytes": 4308,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_literal_escaper-f3a22ebee540a516.rlib",
+    "sha256": "b1c2656538518e0834d4c4dfed2d68cf569d8fb40b055eff353d3f1e5d0234ec"
+  },
+  {
+    "bytes": 4388,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_std_workspace_alloc-5bc57914b232292d.rlib",
+    "sha256": "03cc81990150696f99024a353384a9a66893990b0757652a17e518d81f815ce0"
+  },
+  {
+    "bytes": 4386,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_std_workspace_core-75c1307561ed9634.rlib",
+    "sha256": "2e7d2ec9657f8a0090aa27d5b42cf4f979c23479f93422ae6c0b0ce77799ee76"
+  },
+  {
+    "bytes": 4368,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_std_workspace_std-56350ff0a024971a.rlib",
+    "sha256": "21eab526ceda861b3453d7022661a2ef0b9a9b382be9f274c37c549569992d51"
+  },
+  {
+    "bytes": 11684724,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libstd-d1237ef7159db0a2.rlib",
+    "sha256": "2f4c8945547a8487dd6a5bf38cd94167a3566876006b9abda7544ba9825b9a95"
+  },
+  {
+    "bytes": 62310,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libstd_detect-e305c7135f50bfab.rlib",
+    "sha256": "069bedd255a5a64c4e816cad7378b281c292b76791c979f0656c58a7b96a356e"
+  },
+  {
+    "bytes": 4248,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libsysroot-87040cf31105a8ed.rlib",
+    "sha256": "a11b14863a8018b7de78547e247b47eb517de97bcec317d27025d2e0de3007fe"
+  },
+  {
+    "bytes": 6904224,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libtest-3710056540f41481.rlib",
+    "sha256": "618f37a7f50bc032b758078f85f2df612d4e0e02c29037089ab8aa00378e4f9c"
+  },
+  {
+    "bytes": 4238,
+    "path": "/workspace/.rne-tools/rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/libunwind-545faafa3c69262e.rlib",
+    "sha256": "385135b5d1f9d3cb568f1027bacec6277c1eed880a2914f5cd821382c0d2703e"
+  },
+  {
+    "bytes": 3460880,
+    "path": "/workspace/RobotNativeEngine/target/release/examples/142_contact_motor_stages",
+    "sha256": "3da129e56cb8c532ecc9aeb8c0ae0a252def13248153a39427f5b29cf22df9c2"
+  }
+]

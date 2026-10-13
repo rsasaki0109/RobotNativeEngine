@@ -1143,6 +1143,55 @@ retain all 120 full raw streams and a single lossless representation of the
 complete 2,049,298-byte audit. No hardware, runtime floating-point-mode or
 practical maturity claim is added.
 
+### Baseline coupled-contact projected-defect diagnostic
+
+A new, separately registered cohort uses the unchanged example-142 held-grasp
+fixture: cube masses 5/20/50 kg, each ON/fresh ON/OFF, 1,250 completed outer
+steps per process. All nine original native exits, the separately captured
+outer collection exit and the one scientific reader exit are zero. No solver,
+controller, gains, bounds or observer schema changes are made.
+
+The reader authenticates all three internal motor roles from ECS semantics and
+native checkpoint bindings: one ForceBased palm and two zero-cap
+AccelerationBased finger motors. The fingers still receive external physical
+squeeze effort; zero internal motor authority does not mean zero finger load.
+It qualifies all 135,000 immediate motor-row visits, 45,000 rebuilt diagonals
+and 270,000 aggregate-contact row intervals in the declared source-ordered
+normal/zero native arithmetic domain. Captured ON/fresh/OFF checkpoints match
+exactly, fresh ON completed records and ordered words match literally, and OFF
+telemetry is absent. The 3,750 canonical ON frames are analyzed numerically;
+fresh ON is replay qualification. All 11,250 captured frames are retained.
+
+For a literal fixed cached row, the reference uses
+`r = rhs + J V - g lambda`, `w = J W`, and
+`E_ref = clip(lambda + r/(w+g), lower, upper) - lambda`.
+Native applied impulse has the opposite sign, `p = -lambda`. The separate
+source-rounded conditional projection uses the captured diagonal and actual
+full-block operation order. Contact-only endpoint checks retain the fixed-row
+identity and verify `delta r = +J delta V`; they do not execute extra solves.
+No strict `REOPENED` transition is counted. Observed contact stages can change
+an already nonzero projected defect, while zero-authority finger defects are
+zero by bounds. These are cached-row impulse-update defects, not position or
+torque errors and not an accuracy or convergence predicate.
+
+The capture includes sorted individual native body/collider/unique multibody/
+impulse-joint bytes, integration parameters, gravity and ECS multibody bindings.
+Primitive checkpoint encoding is independently reconstructed; native per-object
+payloads remain opaque. Full-set metadata/private solver or contact caches,
+individual contact columns/impulses, absolute constructor RHS inputs, unselected
+limit-row arithmetic and runtime floating-point control registers remain
+unmeasured. These results do not identify the historical example-138 cause,
+promote the rejected inverse-diagonal candidate, change scalar calibration
+FAIL 0/4, or establish hardware behavior or practical maturity.
+
+The [complete audit and retention](../evidence/coupled-contact-v1/README.md)
+record a locally verified whole 1,317,548,213-byte archive, including all raw
+streams, full details, source snapshots, original receipts and preparation
+history. Its proposed ADR-034 pointer is not a public availability claim:
+publication is approved, but upload returned HTTP 401 from `uploads.github.com`.
+Public download/hash verification remains pending. Historical
+reports and evidence are preserved; no prior cohort or reader is rerun.
+
 ### Warehouse fleet visualization boundary
 
 Example 140 demonstrates 40-robot logistics using `rne_nav::TrafficCoordinator`

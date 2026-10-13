@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/usr/bin/python3.13",
+    "-B",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/whole_archive.py",
+    "create",
+    "--roots-json",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/roots-v3.json",
+    "--local-only-json",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/local-only.json",
+    "--archive",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/coupled-contact-v1-b9a6c853.tar.gz",
+    "--receipt",
+    "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/create-v3-receipt.json"
+  ],
+  "pid": 256787,
+  "started_utc": "2026-10-13T07:19:47.557713+00:00",
+  "ended_utc": "2026-10-13T07:20:04.281076+00:00",
+  "original_exit": 0,
+  "scientific_reader_invocations": 0,
+  "numerical_analysis": false,
+  "command_invocations": 1
+}

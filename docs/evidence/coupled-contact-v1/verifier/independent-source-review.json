@@ -1,0 +1,223 @@
+{
+  "blockers": [],
+  "byte_binding_qualification": {
+    "bytes": 7429,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3-independent-review/source-byte-binding-qualification.json",
+    "sha256": "0fe53ec481415d885b860009412c6d5f60acd3d7f3668c92d12d9bd0e179275e"
+  },
+  "existing_actual_original_case_pair_scope": {
+    "descriptors": [
+      [
+        {
+          "bytes": 1,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/symlink-capable-v2/pure-MOCK-fixtures/test_casefold_collision_rejected-2lo89kcb/MOCK_INPUT/Case",
+          "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"
+        },
+        {
+          "bytes": 1,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/symlink-capable-v2/pure-MOCK-fixtures/test_casefold_collision_rejected-2lo89kcb/MOCK_INPUT/case",
+          "sha256": "df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c"
+        }
+      ],
+      [
+        {
+          "bytes": 1,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/symlink-capable-v2/pure-MOCK-fixtures/test_casefold_collision_rejected-wxuj8vut/MOCK_INPUT/Case",
+          "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"
+        },
+        {
+          "bytes": 1,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/symlink-capable-v2/pure-MOCK-fixtures/test_casefold_collision_rejected-wxuj8vut/MOCK_INPUT/case",
+          "sha256": "df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c"
+        }
+      ],
+      [
+        {
+          "bytes": 1,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/pure-MOCK-fixtures/test_casefold_collision_rejected-jpikne9g/MOCK_INPUT/Case",
+          "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"
+        },
+        {
+          "bytes": 1,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/pure-MOCK-fixtures/test_casefold_collision_rejected-jpikne9g/MOCK_INPUT/case",
+          "sha256": "df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c"
+        }
+      ],
+      [
+        {
+          "bytes": 1,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/pure-MOCK-fixtures/test_casefold_collision_rejected-78uhgkfp/MOCK_INPUT/Case",
+          "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"
+        },
+        {
+          "bytes": 1,
+          "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/pure-MOCK-fixtures/test_casefold_collision_rejected-78uhgkfp/MOCK_INPUT/case",
+          "sha256": "df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c"
+        }
+      ]
+    ],
+    "each_upper_and_lower_has_distinct_full_absolute_label_and_distinct_one_byte_SHA": true,
+    "no_object_filtered_rewritten_or_reencoded": true,
+    "pair_count": 4,
+    "whole_regular_objects": 8
+  },
+  "existing_pure_qualification": {
+    "actual_original_exit": 0,
+    "interpreter": {
+      "bytes": 6812336,
+      "path": "/usr/bin/python3.13",
+      "sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1"
+    },
+    "method_count": 30,
+    "scope": "Synthetic storage corruption, object retention and portability cases; no scientific inputs.",
+    "source_before_after_current_exact": true
+  },
+  "existing_pure_receipt": {
+    "bytes": 2369,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/pure-checks/attempt-1-portable-aliases/actual-command.json",
+    "sha256": "5c9ae01feb4b011bd68ef7de7e7095d8cf8c40e9d8055f589f4fdc4068becf41"
+  },
+  "kind": "independent_portable_alias_archive_v3_source_review",
+  "limits": [
+    "This review qualifies source and existing pure MOCK receipts only. No actual v3 inventory, measured storage-fit gate, create or archive verification was performed.",
+    "Parent must freeze all retention roots, including this review root and v3 sources/fixtures, before actual inventory and archive creation; all output/config/actual receipts must remain outside those roots.",
+    "Exact inventory aliases and original hashes permit whole-byte reconstruction. Local-only compiled payloads remain absent and public availability/publication is not qualified.",
+    "Portable --no-originals verification interprets historical original paths as labels and never reads them; local verification intentionally checks current original bytes and object identities.",
+    "No scientific outcome, physical accuracy, candidate adoption, maturity increase or old result reclassification is claimed."
+  ],
+  "old_frozen_sources_unchanged": [
+    {
+      "bytes": 19825,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/symlink-capable-v2/whole_archive.py",
+      "sha256": "0513d4ae472fd79402156a83bd9a48eeca070988ba143c11d97e652342087bed"
+    },
+    {
+      "bytes": 12747,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/symlink-capable-v2/test_whole_archive_mock.py",
+      "sha256": "a3548b0650aee5a21eb5008f2b266af809ef7e505f695797947e81817aac2d40"
+    },
+    {
+      "bytes": 2076,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/symlink-capable-v2/qualify_mock.py",
+      "sha256": "73de5880789e98c207ae279436ee945f9360ef19eab277f6dea57f7a74b10e52"
+    },
+    {
+      "bytes": 3781,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-execution/retention/symlink-capable-v2/source-ready.json",
+      "sha256": "0c03d7eca8712dc39b6bd3bf0ecb8f38541e9a078917b03c80c69958a58a977b"
+    }
+  ],
+  "original_review_exit": 0,
+  "original_review_tool_completion": {
+    "chunk_id": "f59ca2",
+    "exit_code": 0,
+    "scope": "Owner-observed local process original completion, not external attestation.",
+    "tool": "exec_command"
+  },
+  "original_stderr": {
+    "bytes": 0,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3-independent-review/original-review-stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "original_stdout": {
+    "bytes": 340,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3-independent-review/original-review-stdout.log",
+    "sha256": "f66f65a82488add90cbe1357884dcdc8dbfdc6ed15d29e7000764757d79ae6cb"
+  },
+  "retention_plan": {
+    "bytes": 2429,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/RETENTION_V3.md",
+    "sha256": "9d00974341d26afad0734de342f3c90bf6c2a314326235702e32d90b55d2c7c4"
+  },
+  "review_actions": {
+    "actual_inventory_archive_create_or_verify_invocations": 0,
+    "cargo_network_git_actions": 0,
+    "native_worlds": 0,
+    "old_frozen_root_or_checkout_writes": 0,
+    "scientific_payloads_or_reports_parsed": 0,
+    "scientific_readers_invoked": 0
+  },
+  "review_source": {
+    "bytes": 3837,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3-independent-review/verify_source_bindings.py",
+    "sha256": "2263635c802ba8fcbd98f4c1efe8d170f2ad7a4d78c1ff42c7d044733f236c07"
+  },
+  "reviewed_utc": "2026-10-13T07:18:09.224399+00:00",
+  "runtime_source": {
+    "bytes": 21239,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/whole_archive.py",
+    "sha256": "e049f6b82d570b291ffec082acb093b4bb175a28ab7c316c58b2f9fd3e8ce955"
+  },
+  "source_delta": {
+    "all_other_function_and_class_AST_identical_to_v2": true,
+    "changed_functions": [
+      "inventory_for",
+      "validate_inventory"
+    ],
+    "unchanged_functions": [
+      "GzipReader",
+      "StoredGzip",
+      "bound",
+      "canonical",
+      "create",
+      "descriptor",
+      "descriptor_shape",
+      "header",
+      "link_descriptor",
+      "link_shape",
+      "loads",
+      "main",
+      "member_header",
+      "member_size",
+      "need",
+      "outside",
+      "padding",
+      "plan",
+      "read_json",
+      "safe_member",
+      "sync_directory",
+      "verify",
+      "write_json"
+    ],
+    "whole_file_version_constant_change": "v2 to v3 kind and inventory schema."
+  },
+  "source_findings": [
+    {
+      "finding": "Case-sensitive original paths remain distinct. Per root, sorting original full paths followed by ROOT/objects/{ordinal:08d} yields a deterministic injective member mapping. Validator checks root containment, original lexical order, contiguous ordinal aliases, exact original-path uniqueness and member/root casefold uniqueness. No original label or payload is normalized.",
+      "source": "whole_archive.py:114-151,189-202"
+    },
+    {
+      "finding": "The new Case/case test resolves both original labels through inventory and independently reads both complete A/B payloads using standard tar. Alias duplicate/casefold, ordinal/root relationship and duplicate original origin faults reject qualification.",
+      "source": "test_whole_archive_mock.py:176-187,233-255"
+    },
+    {
+      "finding": "Typed symlink lstat/readlink identity, exact target text and type2/PAX link header remain unchanged. Links are not followed, targets are not read and members are never extracted by the runtime verifier.",
+      "source": "whole_archive.py:75-108,154-187,269-271"
+    },
+    {
+      "finding": "Streaming exact stored-gzip size planning, literal PAX/header/padding, whole member/archive SHA+length, one gzip CRC/EOF/no trailing, capacity floor, outside-root exclusive outputs and post-inventory checks are AST-identical to v2. The failure path preserves originals and partial archive.",
+      "source": "whole_archive.py:204-235,256-298,301-371"
+    }
+  ],
+  "source_ready": {
+    "bytes": 3851,
+    "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/archive-v3/source-ready.json",
+    "sha256": "bf5032d435f9ea3e20bdcbb876eeed2b8b58541e834dee0dc318c26c8b9e260a"
+  },
+  "status": "PASS_SOURCE_BYTE_IMPLEMENTATION_PORTABLE_ALIAS_V3",
+  "v2_failure_scope": {
+    "actual_compatibility": "FAILED original create before archive writing; not proven by prior source-only review.",
+    "original_exit": 1,
+    "original_exit_provenance": "Parent actual process report; full preserved stderr independently byte-bound.",
+    "preserved_stderr": {
+      "bytes": 1925,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/create.stderr.log",
+      "sha256": "a86d349cbe913b6e2895c18a66ac41c7194a70df325a4bea2f7a45e002c9d268"
+    },
+    "saved_collision_metadata": {
+      "bytes": 988,
+      "path": "/workspace/.rne-onboarding/recovery-20261013/coupled-contact-publication/casefold-collisions.json",
+      "sha256": "20f770c7541d619526f36de429c1bd0854fffd958cfd67ee926439863dc58b40"
+    }
+  }
+}

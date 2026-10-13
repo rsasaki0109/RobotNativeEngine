@@ -23,6 +23,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Retain a new baseline-only nine-process coupled-contact diagnostic for the
+  unchanged 5/20/50 kg held-grasp fixture, with ON/fresh ON/OFF capture. One
+  frozen reader qualifies 135,000 immediate motor visits, 45,000 rebuilt
+  diagonals and 270,000 contact-row intervals, including both zero-authority
+  internal finger motors. Contact stages change already nonzero projected
+  defects; no strict reopening is counted. Keep accuracy, convergence and
+  historical candidate rejection unchanged. The whole archive is locally
+  verified; publication is approved, but upload returned HTTP 401. Public
+  download verification remains pending.
+  See [the captured scope and retention](docs/evidence/coupled-contact-v1/README.md).
+
 - Retain a separately registered 120-process isolated ForceBased physical
   diagnostic with two source-copy builds and 20 fixed inertia/time/cap
   conditions. Existing normalization meets the nominal-SI allowances in 12/20

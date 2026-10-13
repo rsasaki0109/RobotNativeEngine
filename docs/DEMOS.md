@@ -460,6 +460,19 @@ retained outside Git; public download verification is pending upload credentials
 All eighteen compressed streams reproduce the original raw checksums, allowing
 the exact approved TAR to be reconstructed under persistent storage.
 
+A separate [baseline coupled-contact diagnostic](evidence/coupled-contact-v1/README.md)
+uses nine new processes: 5/20/50 kg, each ON/fresh ON/OFF, with unchanged
+example-142 defaults. All original exits and the one frozen reader exit are
+zero; captured-state replay and source-domain checks cover all three internal
+motor rows, including the zero-cap finger pair. It retains 135,000 motor visits,
+45,000 rebuilt diagonals and 270,000 contact-row intervals. No strict reopening
+is counted; contact stages change defects that are already nonzero. This is no
+accuracy, convergence or historical example-138 cause claim. The complete
+external archive is locally verified; the proposed download location is pending
+upload authentication recovery and public byte verification; publication has
+already been approved. Collection commands above
+are individual examples, not permission to rerun the completed cohort.
+
 ## Isolated position-motor calibration
 
 Example 141 compares a contact-free one-DOF sphere motor with an independent
