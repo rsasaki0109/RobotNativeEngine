@@ -4,6 +4,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Accept `.` and `..` as installed bundle roots in the source-free flagship
+  verification workflow. Resolve the actual directory name after rejecting
+  symbolic-link roots, preserving exact payload and checksum verification.
+
 ### Removed
 
 - Confirmed-dead `pub` items with zero references outside their defining file

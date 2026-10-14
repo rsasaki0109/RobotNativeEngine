@@ -59,6 +59,7 @@ struct ActualMember {
 ///
 /// The root and every descendant must be free of symbolic links. Extra,
 /// missing, duplicate, malformed, or digest-mismatched members fail closed.
+/// Relative roots such as `.` and `..` use their resolved directory name.
 pub fn verify(root: &Path) -> Result<InstalledBundleVerificationReport> {
     let metadata = fs::symlink_metadata(root)
         .with_context(|| format!("inspect installed bundle root {}", root.display()))?;
@@ -67,6 +68,10 @@ pub fn verify(root: &Path) -> Result<InstalledBundleVerificationReport> {
         "installed bundle root must be a non-symlink directory: {}",
         root.display()
     );
+    // Reject symbolic-link roots before resolving relative directory names.
+    let resolved_root = fs::canonicalize(root)
+        .with_context(|| format!("resolve installed bundle root {}", root.display()))?;
+    let root = resolved_root.as_path();
     let manifest_path = root.join(CHECKSUM_MANIFEST);
     let manifest_bytes = read_regular_file(&manifest_path, "checksum manifest")?;
     let declared = parse_manifest(&manifest_bytes)?;
@@ -289,6 +294,54 @@ mod tests {
         assert_eq!(report.status, "passed");
         assert_eq!(report.verified_member_count, 2);
         assert_eq!(report.release_report.path, RELEASE_REPORT);
+    }
+
+    #[test]
+    fn verifies_current_directory_without_changing_the_parent_process_directory() {
+        const EXPECTED_ROOT: &str = "RNE_ASSET_CLI_TEST_BUNDLE_ROOT_NAME";
+        if let Some(expected) = std::env::var_os(EXPECTED_ROOT) {
+            let report = verify(std::path::Path::new(".")).expect("current-directory bundle");
+            assert_eq!(report.bundle_root, expected.to_string_lossy());
+            assert_eq!(report.verified_member_count, 2);
+            return;
+        }
+
+        let directory = fixture();
+        let module = module_path!().split_once("::").expect("crate module").1;
+        let output = std::process::Command::new(std::env::current_exe().expect("test executable"))
+            .arg("--exact")
+            .arg(format!("{module}::verifies_current_directory_without_changing_the_parent_process_directory"))
+            .current_dir(directory.path())
+            .env(EXPECTED_ROOT, directory.path().file_name().expect("fixture name"))
+            .output()
+            .expect("isolated current-directory verification");
+        assert!(
+            output.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(String::from_utf8_lossy(&output.stdout).contains("1 passed"));
+    }
+
+    #[test]
+    fn parent_directory_input_has_the_same_verified_identity() {
+        let directory = fixture();
+        let child = directory.path().join("empty-child");
+        fs::create_dir(&child).expect("empty child directory");
+        let expected = verify(directory.path()).expect("absolute bundle root");
+        let actual = verify(&child.join("..")).expect("parent-directory bundle root");
+        assert_eq!(actual, expected);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn rejects_symlink_roots_before_resolving_the_directory_name() {
+        let directory = fixture();
+        let aliases = tempfile::tempdir().expect("alias directory");
+        let alias = aliases.path().join("bundle");
+        std::os::unix::fs::symlink(directory.path(), &alias).expect("root symlink");
+        assert!(verify(&alias).is_err());
     }
 
     #[test]

@@ -1207,3 +1207,11 @@ Exact full-state replay and source/pixel bindings qualify this simulation
 capture within the tested runtime; they do not establish hardware fleet safety
 or cross-platform bit identity. See the
 [example instructions](../../examples/140_warehouse_fleet/README.md).
+
+### Installed contact-workflow verification
+
+The source-free flagship workflow verifies its extracted payload before starting
+the Rapier and MuJoCo contact scenarios. Relative bundle roots such as `.` resolve
+to the actual directory name after symbolic-link roots are rejected. Payload
+integrity and the scenario's physical acceptance criteria are separate checks;
+see [ADR 027](../adr/027-archive-bound-time-to-proof.md) for the archive-bound proof.

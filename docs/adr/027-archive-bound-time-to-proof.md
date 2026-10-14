@@ -49,3 +49,8 @@ on specifically named reference hardware.
 - Trust in a submitted machine label remains a provenance and review question;
   the schema makes the claim explicit and content-addressed rather than trying
   to infer external independence.
+
+Relative bundle roots, including the documented `.` invocation, are resolved
+after rejecting a symbolic-link root and before member verification. The report
+uses the resolved directory name. Root and descendant symbolic-link rejection,
+the exact regular-file graph and all payload digests remain mandatory.

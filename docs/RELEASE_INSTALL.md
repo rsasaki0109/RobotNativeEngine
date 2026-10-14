@@ -96,6 +96,10 @@ operator evidence collection from the maintainer-only acceptance check and
 uses `release/external-flagship-submission-template.json` to prevent missing
 provenance or artifact identities.
 
+The bundle root may be an absolute path or a relative directory such as `.` or
+`..`. Verification records its resolved directory name and rejects symbolic-link
+roots before resolving them.
+
 ```bash
 ./bin/rne-flagship-proof flagship-proof --cross-backend \
   --measure-on "lab-workstation-a" --verify-installed-bundle .
