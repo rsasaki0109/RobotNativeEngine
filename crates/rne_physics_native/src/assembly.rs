@@ -8,7 +8,7 @@ use rne_math::{Quat, Vec3};
 use rne_physics::{
     Collider, ColliderShape, CollisionGroups, FixedJointDesc, JointActuation, JointMotor,
     JointPassiveDynamics, PhysicsError, PrismaticJointDesc, RevoluteJointDesc, RigidBody,
-    RigidBodyInertia, RigidBodyType,
+    RigidBodyInertia, RigidBodyType, SelfCollisionExclusion,
 };
 use rne_robot::{FloatingBase, Joint, JointKind, JointLimits, Link, Robot, RobotId};
 use rne_world::{world_transform_of, Transform3};
@@ -103,8 +103,12 @@ pub(crate) struct AssemblyBody {
     pub collider: Option<(ColliderShape, Transform3)>,
     /// Trees of the triangle meshes in the collider.
     pub meshes: Vec<Arc<MeshTree>>,
-    /// Collision filtering masks.
+    /// Original collision filtering masks for pairs without owner markers.
     pub groups: CollisionGroups,
+    /// Collision filtering masks refreshed at each sync for marked pairs.
+    pub owned_pair_groups: CollisionGroups,
+    /// Optional owner whose other marked colliders cannot contact this body.
+    pub self_collision_owner: Option<Entity>,
     /// Joint description connecting the body to its parent, if any.
     pub joint: Option<JointDesc>,
 }
@@ -241,6 +245,10 @@ impl Assembly {
             if let Some((shape, _)) = &collider {
                 mesh_trees(shape, mesh_cache, &mut meshes);
             }
+            let groups = world
+                .get::<CollisionGroups>(entity)
+                .copied()
+                .unwrap_or_default();
             bodies.push(AssemblyBody {
                 entity,
                 link_index: 0,
@@ -249,10 +257,11 @@ impl Assembly {
                 friction,
                 collider,
                 meshes,
-                groups: world
-                    .get::<CollisionGroups>(entity)
-                    .copied()
-                    .unwrap_or_default(),
+                groups,
+                owned_pair_groups: groups,
+                self_collision_owner: world
+                    .get::<SelfCollisionExclusion>(entity)
+                    .map(|exclusion| exclusion.owner),
                 joint,
             });
         }

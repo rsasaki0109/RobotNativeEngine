@@ -29,6 +29,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Add opt-in per-robot self-collision exclusion without allocating a collision
+  mask bit for every robot. Ownership-aware URDF spawn functions attach a full
+  generational entity token; native and Rapier suppress same-owner pairs while
+  retaining cross-owner contacts and independent masks. MuJoCo binds ownership
+  into pairwise model exclusions and its fixed topology. Existing spawn APIs
+  retain their shared-bit policy. Tests cover physical contacts beyond 32 owners,
+  sensors, runtime edits, generation reuse and exact replay.
+
 - Retain a new baseline-only nine-process coupled-contact diagnostic for the
   unchanged 5/20/50 kg held-grasp fixture, with ON/fresh ON/OFF capture. One
   frozen reader qualifies 135,000 immediate motor visits, 45,000 rebuilt

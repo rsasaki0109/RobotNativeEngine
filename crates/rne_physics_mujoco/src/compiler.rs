@@ -5,7 +5,7 @@ use rne_math::{Quat, Vec3};
 use rne_physics::{
     Collider, ColliderShape, CollisionGroups, FixedJointDesc, JointActuation, JointMotor,
     JointPassiveDynamics, PhysicsCapability, PhysicsWorldDesc, PrismaticJointDesc,
-    RevoluteJointDesc, RigidBody, RigidBodyInertia, RigidBodyType,
+    RevoluteJointDesc, RigidBody, RigidBodyInertia, RigidBodyType, SelfCollisionExclusion,
 };
 use rne_world::{world_transform_of, Transform3};
 use std::fmt::Write as _;
@@ -86,6 +86,7 @@ pub(crate) struct BodyTopology {
     inertia: Option<RigidBodyInertia>,
     collider: Option<Collider>,
     collision_groups: CollisionGroups,
+    self_collision_owner: Option<Entity>,
     structural_transform: Option<Transform3>,
     joint: Option<JointSpec>,
 }
@@ -114,6 +115,7 @@ struct BodyInput {
     inertia: Option<RigidBodyInertia>,
     collider: Option<Collider>,
     collision_groups: CollisionGroups,
+    self_collision_owner: Option<Entity>,
     local_transform: Transform3,
     transform: Transform3,
     ecs_parent: Option<Entity>,
@@ -274,6 +276,19 @@ fn collect_bodies(world: &World) -> Result<Vec<BodyInput>, CompileError> {
                 // apply every parent transform twice for imported robots.
                 let transform = world_transform_of(world, entity);
                 let inertia = entity_ref.get::<RigidBodyInertia>().copied();
+                let self_collision_owner = entity_ref
+                    .get::<SelfCollisionExclusion>()
+                    .map(|exclusion| exclusion.owner);
+                if self_collision_owner.is_some()
+                    && collider.as_ref().is_some_and(|collider| collider.sensor)
+                {
+                    // Sensor overlaps use direct distance queries rather than
+                    // the compiled solid-contact exclusions.
+                    return Err(invalid(
+                        entity.index(),
+                        "SelfCollisionExclusion on sensor collider unsupported by the mujoco backend",
+                    ));
+                }
                 validate_body(entity, rigid_body, inertia, collider.as_ref(), transform)?;
                 let joints = [
                     entity_ref
@@ -309,6 +324,7 @@ fn collect_bodies(world: &World) -> Result<Vec<BodyInput>, CompileError> {
                         .get::<CollisionGroups>()
                         .copied()
                         .unwrap_or_default(),
+                    self_collision_owner,
                     local_transform,
                     transform,
                     ecs_parent: entity_ref.get::<Parent>().map(|parent| parent.0),
@@ -570,6 +586,7 @@ fn write_body(
         inertia: body.inertia,
         collider: body.collider.clone(),
         collision_groups: body.collision_groups,
+        self_collision_owner: body.self_collision_owner,
         structural_transform: (body.rigid_body.body_type == RigidBodyType::Fixed
             || matches!(body.joint, Some(JointSpec::Fixed(_))))
         .then_some(structural_transform),
@@ -738,7 +755,9 @@ fn write_collision_exclusions(output: &mut String, bodies: &[BodyInput], binding
                 left.collision_groups.filter & right.collision_groups.memberships != 0;
             let right_accepts_left =
                 right.collision_groups.filter & left.collision_groups.memberships != 0;
-            if left_accepts_right && right_accepts_left {
+            let same_owner = left.self_collision_owner.is_some()
+                && left.self_collision_owner == right.self_collision_owner;
+            if !same_owner && left_accepts_right && right_accepts_left {
                 continue;
             }
             let left_name = &bindings
@@ -1431,6 +1450,269 @@ mod tests {
         assert!(compiled
             .mjcf
             .contains("<exclude body1=\"rne_body_0\" body2=\"rne_body_1\"/>"));
+    }
+
+    fn excludes_pair(compiled: &CompiledRigidBodyModel, left: Entity, right: Entity) -> bool {
+        let (left, right) = if left.index() < right.index() {
+            (left, right)
+        } else {
+            (right, left)
+        };
+        compiled.mjcf.contains(&format!(
+            "<exclude body1=\"rne_body_{}\" body2=\"rne_body_{}\"/>",
+            left.index(),
+            right.index(),
+        ))
+    }
+
+    #[test]
+    fn self_collision_exclusion_only_suppresses_the_same_marked_owner() {
+        let mut world = World::new();
+        let owner = world.spawn_empty().id();
+        let other_owner = world.spawn_empty().id();
+        let left = body(&mut world, "left", RigidBodyType::Dynamic, Vec3::ZERO);
+        let right = body(&mut world, "right", RigidBodyType::Dynamic, Vec3::ZERO);
+        let different = body(&mut world, "different", RigidBodyType::Dynamic, Vec3::ZERO);
+        let unmarked = body(&mut world, "unmarked", RigidBodyType::Dynamic, Vec3::ZERO);
+        let also_unmarked = body(
+            &mut world,
+            "also_unmarked",
+            RigidBodyType::Dynamic,
+            Vec3::ZERO,
+        );
+        world
+            .entity_mut(left)
+            .insert(SelfCollisionExclusion { owner });
+        world
+            .entity_mut(right)
+            .insert(SelfCollisionExclusion { owner });
+        world
+            .entity_mut(different)
+            .insert(SelfCollisionExclusion { owner: other_owner });
+
+        let compiled =
+            compile_rigid_body_model(&world, PhysicsWorldDesc::default(), 0.001).unwrap();
+
+        assert!(excludes_pair(&compiled, left, right));
+        assert!(!excludes_pair(&compiled, left, different));
+        assert!(!excludes_pair(&compiled, right, different));
+        assert!(!excludes_pair(&compiled, left, unmarked));
+        assert!(!excludes_pair(&compiled, right, unmarked));
+        assert!(!excludes_pair(&compiled, unmarked, also_unmarked));
+        assert_eq!(compiled.mjcf.matches("<exclude ").count(), 1);
+        assert_eq!(
+            compiled,
+            compile_rigid_body_model(&world, PhysicsWorldDesc::default(), 0.001).unwrap(),
+        );
+    }
+
+    #[test]
+    fn self_collision_exclusion_and_collision_masks_remain_independent() {
+        let mut world = World::new();
+        let left_owner = world.spawn_empty().id();
+        let right_owner = world.spawn_empty().id();
+        let left = body(&mut world, "left", RigidBodyType::Dynamic, Vec3::ZERO);
+        let right = body(&mut world, "right", RigidBodyType::Dynamic, Vec3::ZERO);
+        world
+            .entity_mut(left)
+            .insert(SelfCollisionExclusion { owner: left_owner });
+        world
+            .entity_mut(right)
+            .insert(SelfCollisionExclusion { owner: right_owner });
+
+        let compile = |world: &World| {
+            compile_rigid_body_model(world, PhysicsWorldDesc::default(), 0.001).unwrap()
+        };
+        assert!(!excludes_pair(&compile(&world), left, right));
+
+        world.entity_mut(left).insert(CollisionGroups {
+            memberships: 1,
+            filter: 1,
+        });
+        world.entity_mut(right).insert(CollisionGroups {
+            memberships: 2,
+            filter: u32::MAX,
+        });
+        assert!(excludes_pair(&compile(&world), left, right));
+
+        world.entity_mut(left).insert(CollisionGroups {
+            memberships: 1,
+            filter: u32::MAX,
+        });
+        world.entity_mut(right).insert(CollisionGroups {
+            memberships: 2,
+            filter: 2,
+        });
+        assert!(excludes_pair(&compile(&world), left, right));
+
+        world.entity_mut(right).insert(CollisionGroups {
+            memberships: 2,
+            filter: u32::MAX,
+        });
+        assert!(!excludes_pair(&compile(&world), left, right));
+
+        world
+            .entity_mut(right)
+            .insert(SelfCollisionExclusion { owner: left_owner });
+        assert!(excludes_pair(&compile(&world), left, right));
+    }
+
+    #[test]
+    fn forty_self_collision_owners_compile_without_membership_bits() {
+        let mut world = World::new();
+        let mut pairs = Vec::new();
+        for index in 0..40 {
+            let owner = world.spawn_empty().id();
+            let left = body(
+                &mut world,
+                &format!("robot_{index}_left"),
+                RigidBodyType::Dynamic,
+                Vec3::ZERO,
+            );
+            let right = body(
+                &mut world,
+                &format!("robot_{index}_right"),
+                RigidBodyType::Dynamic,
+                Vec3::ZERO,
+            );
+            world
+                .entity_mut(left)
+                .insert(SelfCollisionExclusion { owner });
+            world
+                .entity_mut(right)
+                .insert(SelfCollisionExclusion { owner });
+            pairs.push((left, right));
+        }
+
+        let compiled =
+            compile_rigid_body_model(&world, PhysicsWorldDesc::default(), 0.001).unwrap();
+
+        assert_eq!(compiled.mjcf.matches("<exclude ").count(), 40);
+        for &(left, right) in &pairs {
+            assert!(excludes_pair(&compiled, left, right));
+            assert!(world.get::<CollisionGroups>(left).is_none());
+            assert!(world.get::<CollisionGroups>(right).is_none());
+        }
+        assert!(!excludes_pair(&compiled, pairs[0].0, pairs[39].0));
+        assert!(!excludes_pair(&compiled, pairs[38].1, pairs[39].0));
+        assert!(excludes_pair(&compiled, pairs[39].0, pairs[39].1));
+    }
+
+    #[test]
+    fn self_collision_owner_comparison_includes_entity_generation() {
+        let mut world = World::new();
+        let old_owner = world.spawn_empty().id();
+        assert!(world.despawn(old_owner));
+        let new_owner = world.spawn_empty().id();
+        assert_eq!(old_owner.index(), new_owner.index());
+        assert_ne!(old_owner.generation(), new_owner.generation());
+        let left = body(&mut world, "left", RigidBodyType::Dynamic, Vec3::ZERO);
+        let right = body(&mut world, "right", RigidBodyType::Dynamic, Vec3::ZERO);
+        world
+            .entity_mut(left)
+            .insert(SelfCollisionExclusion { owner: old_owner });
+        world
+            .entity_mut(right)
+            .insert(SelfCollisionExclusion { owner: new_owner });
+
+        let compile = |world: &World| {
+            compile_rigid_body_model(world, PhysicsWorldDesc::default(), 0.001).unwrap()
+        };
+        assert!(!excludes_pair(&compile(&world), left, right));
+        world
+            .entity_mut(left)
+            .insert(SelfCollisionExclusion { owner: new_owner });
+        assert!(excludes_pair(&compile(&world), left, right));
+    }
+
+    #[test]
+    fn self_collision_owner_add_replace_remove_changes_fixed_topology_signature() {
+        let mut world = World::new();
+        let first_owner = world.spawn_empty().id();
+        let second_owner = world.spawn_empty().id();
+        let collider = body(&mut world, "body", RigidBodyType::Dynamic, Vec3::ZERO);
+        let compile = |world: &World| {
+            compile_rigid_body_model(world, PhysicsWorldDesc::default(), 0.001).unwrap()
+        };
+        let unmarked = compile(&world);
+        world
+            .entity_mut(collider)
+            .insert(SelfCollisionExclusion { owner: first_owner });
+        let marked = compile(&world);
+        assert_ne!(unmarked.topology, marked.topology);
+        assert_eq!(unmarked.mjcf, marked.mjcf);
+        assert_eq!(marked.topology, compile(&world).topology);
+
+        world.entity_mut(collider).insert(SelfCollisionExclusion {
+            owner: second_owner,
+        });
+        let changed_owner = compile(&world);
+        assert_ne!(marked.topology, changed_owner.topology);
+        assert_eq!(marked.mjcf, changed_owner.mjcf);
+
+        world
+            .entity_mut(collider)
+            .remove::<SelfCollisionExclusion>();
+        let removed = compile(&world);
+        assert_ne!(changed_owner.topology, removed.topology);
+        assert_eq!(unmarked.topology, removed.topology);
+    }
+
+    #[test]
+    fn unmarked_sensor_collider_retains_existing_compilation() {
+        let mut world = World::new();
+        let sensor = body(&mut world, "sensor", RigidBodyType::Dynamic, Vec3::ZERO);
+        world.get_mut::<Collider>(sensor).unwrap().sensor = true;
+
+        let compiled =
+            compile_rigid_body_model(&world, PhysicsWorldDesc::default(), 0.001).unwrap();
+
+        assert!(compiled.mjcf.contains("contype=\"0\" conaffinity=\"0\""));
+        assert!(!compiled.mjcf.contains("<exclude "));
+    }
+
+    #[test]
+    fn self_collision_exclusion_on_single_sensor_collider_is_rejected() {
+        let mut world = World::new();
+        let sensor = body(&mut world, "sensor", RigidBodyType::Dynamic, Vec3::ZERO);
+        world.get_mut::<Collider>(sensor).unwrap().sensor = true;
+        world
+            .entity_mut(sensor)
+            .insert(SelfCollisionExclusion { owner: sensor });
+
+        let error = compile_rigid_body_model(&world, PhysicsWorldDesc::default(), 0.001)
+            .expect_err("owner-marked sensor collider is unsupported even without another body");
+
+        assert_eq!(
+            error,
+            CompileError::InvalidValue {
+                entity_index: sensor.index(),
+                field:
+                    "SelfCollisionExclusion on sensor collider unsupported by the mujoco backend",
+            },
+        );
+        assert!(error.to_string().contains("sensor collider unsupported"));
+    }
+
+    #[test]
+    fn self_collision_exclusion_on_sensor_with_solid_owner_peer_is_rejected() {
+        let mut world = World::new();
+        let owner = world.spawn_empty().id();
+        let solid = body(&mut world, "solid", RigidBodyType::Dynamic, Vec3::ZERO);
+        let sensor = body(&mut world, "sensor", RigidBodyType::Dynamic, Vec3::ZERO);
+        world.get_mut::<Collider>(sensor).unwrap().sensor = true;
+        world
+            .entity_mut(solid)
+            .insert(SelfCollisionExclusion { owner });
+        world
+            .entity_mut(sensor)
+            .insert(SelfCollisionExclusion { owner });
+
+        assert!(matches!(
+            compile_rigid_body_model(&world, PhysicsWorldDesc::default(), 0.001),
+            Err(CompileError::InvalidValue { entity_index, .. })
+                if entity_index == sensor.index(),
+        ));
     }
 
     #[test]

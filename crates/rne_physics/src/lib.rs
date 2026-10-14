@@ -21,7 +21,7 @@ pub use components::{
     JointEffortMeasurement, JointMotor, JointMotorGainModel, JointPassiveDynamics,
     JointPositionMotorDiagnostics, JointState, MultibodyLink, PhysicsMaterial, PhysicsOwnedPose,
     PositionMotorDiagnosticInterval, PrismaticJointDesc, RevoluteJointArmature, RevoluteJointDesc,
-    RigidBody, RigidBodyInertia, RigidBodyType,
+    RigidBody, RigidBodyInertia, RigidBodyType, SelfCollisionExclusion,
 };
 pub use events::{
     ContactEvent, ContactPointSample, ContactSeparationSample, ExternalBodyWrench, RaycastHit,

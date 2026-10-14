@@ -404,6 +404,26 @@ impl CollisionGroups {
     }
 }
 
+/// Excludes contact with colliders carrying the same owner identity.
+///
+/// This is independent of [`CollisionGroups`]: a pair must pass its masks and
+/// must not share an exclusion owner. A missing component or different owner
+/// leaves the existing pair policy unchanged. Owners use the complete
+/// generational entity identity, so more than 32 robots can coexist without
+/// allocating a collision-mask bit to each robot.
+///
+/// The owner is an identity token and need not remain alive. Reusing its entity
+/// index with a new generation does not join the old exclusion group. Native
+/// and Rapier synchronize changes; MuJoCo binds ownership at model compilation
+/// and rejects subsequent topology changes.
+/// Sensor filtering follows backend support: MuJoCo supports owned solid
+/// contact pairs and rejects owner-marked sensor colliders during compilation.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SelfCollisionExclusion {
+    /// Identity shared by colliders whose mutual contacts are excluded.
+    pub owner: Entity,
+}
+
 /// Physical surface material.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsMaterial {

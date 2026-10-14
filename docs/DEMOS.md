@@ -37,6 +37,16 @@ cargo run --release --locked -p warehouse_fleet --example 140_warehouse_fleet
 The scenario was inspired by [WareTwin](https://github.com/WayneChou-bot/WareTwin);
 the code, meshes, and media are original.
 
+Physical URDF fleets can use `spawn_urdf_robot_with_owned_collisions` or its
+document equivalent with `UrdfSpawnConfig { self_collisions: false, ..Default::default() }`.
+Each robot then excludes contacts only within its own generational owner group,
+while contacts with other owners or unmarked environment colliders remain
+eligible under their independent masks. This avoids assigning one mask bit per
+robot, including beyond 32 robots. Native and Rapier implement the pair filter;
+MuJoCo binds solid-pair exclusions when compiling the model and rejects
+owner-marked sensors. The legacy spawn APIs still use their
+shared mask. See [the ownership policy and validation scope](architecture/016_contact_dynamics.md#per-robot-self-collision-exclusion).
+
 ## Office AGV delivery
 
 <p align="center">

@@ -152,6 +152,47 @@ and which it deliberately does not.
     coplanar points (a table's sixteen leg corners) keeps the per-contact
     solver converging.
 
+### Per-robot self-collision exclusion
+
+`SelfCollisionExclusion` names the complete generational entity of an owner.
+Only two colliders with the same declared owner are excluded; a different or
+missing owner leaves the existing pair policy in place. This identity does not
+consume a bit in `CollisionGroups`, so a physical fleet can have more than 32
+independently excluded robots. Explicit mask and adjacent-joint exclusions
+remain separate vetoes. An owner is an identity token rather than a live-body
+requirement, and reuse of its entity index with a new generation does not merge
+the two groups.
+
+The additive `spawn_urdf_robot_with_owned_collisions` and
+`spawn_urdf_document_with_owned_collisions` APIs use the existing spawn config.
+With `self_collisions=false`, every collision-bearing link receives the spawned
+robot root as its owner, without the legacy importer-generated shared mask.
+With self collisions enabled, no exclusion is attached. Existing import APIs
+retain their shared-bit behavior so their established examples and numerical
+outputs are not silently migrated.
+
+Native filters both moving/moving and moving/fixed-or-kinematic candidates and
+refreshes ownership at each ECS synchronization. For static pairs with at least
+one owner marker it also honors both explicit collision masks; the legacy
+unmarked static path is unchanged. Rapier uses public contact and sensor hooks
+only for marked colliders, preserves the default non-dynamic pair rule, and
+refreshes cached pairs on ownership edits. Its scoped marked-collider despawn
+cleanup does not change the existing rigid-body allocation lifecycle. MuJoCo
+emits pairwise XML exclusions and includes ownership in its fixed topology;
+post-compilation edits use the existing topology rejection contract.
+Its ownership policy covers solid contact pairs. Owner-marked sensor colliders
+are rejected before model creation because sensor overlap reporting uses a
+separate distance-query path; unmarked sensor compilation retains its existing
+behavior.
+
+Tests cover same/different/missing owners, external bodies, sensors, independent
+masks, generational reuse, runtime edits, 40/48-owner physical scenes and fresh
+bitwise replay. A URDF-to-Rapier test compares 40 imported robots through the
+legacy and new routes. MuJoCo compile tests cover the generated model and
+topology; native MuJoCo runtime qualification is a separate check. These gates
+do not establish hardware behavior or qualify the existing warehouse GIF as a
+contact-physics experiment.
+
 ### Prescribed moving bases in contact
 
 `BaseMotion` supplies the inertial effects of a moving fixed base to RNEA/ABA,

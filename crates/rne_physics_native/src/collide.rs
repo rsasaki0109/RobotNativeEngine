@@ -3,7 +3,7 @@
 use crate::mesh::MeshTree;
 use rne_ecs::Entity;
 use rne_math::{Quat, Vec3};
-use rne_physics::{height_field_surface, ColliderShape};
+use rne_physics::{height_field_surface, ColliderShape, CollisionGroups};
 use rne_world::Transform3;
 use std::sync::Arc;
 
@@ -104,6 +104,10 @@ pub(crate) struct StaticCollider {
     pub friction: f64,
     /// Trees of the triangle meshes in the shape, from [`mesh_trees`].
     pub meshes: Vec<Arc<MeshTree>>,
+    /// Collision filtering masks, used when either side has an owner marker.
+    pub groups: CollisionGroups,
+    /// Optional owner whose other marked colliders cannot contact this body.
+    pub self_collision_owner: Option<Entity>,
 }
 
 /// Closest approach of a sample sphere to a static collider.
@@ -632,6 +636,8 @@ mod tests {
             pose,
             friction: 0.5,
             meshes: Vec::new(),
+            groups: CollisionGroups::default(),
+            self_collision_owner: None,
         }
     }
 

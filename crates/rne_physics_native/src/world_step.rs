@@ -38,6 +38,10 @@ fn interacts(a: CollisionGroups, b: CollisionGroups) -> bool {
     a.memberships & b.filter != 0 && b.memberships & a.filter != 0
 }
 
+fn same_self_collision_owner(a: Option<Entity>, b: Option<Entity>) -> bool {
+    a.is_some() && a == b
+}
+
 /// Advances every assembly by `dt_s`. Assemblies that touch through a
 /// contact are solved together; the others are solved one island each.
 pub(crate) fn step_world(
@@ -174,6 +178,8 @@ fn moving_colliders(
                     pose,
                     friction: body.friction,
                     meshes: body.meshes.clone(),
+                    groups: body.owned_pair_groups,
+                    self_collision_owner: body.self_collision_owner,
                 },
                 groups: body.groups,
                 radius_m,
@@ -328,6 +334,15 @@ fn contact_candidates(
                 Some((cuboid_half(shape)?, side.pose.mul_transform(offset)))
             });
             for collider in statics {
+                if same_self_collision_owner(
+                    body.self_collision_owner,
+                    collider.self_collision_owner,
+                ) || ((body.self_collision_owner.is_some()
+                    || collider.self_collision_owner.is_some())
+                    && !interacts(body.owned_pair_groups, collider.groups))
+                {
+                    continue;
+                }
                 let friction = 0.5 * (body.friction + collider.friction);
                 if let (Some((half, pose)), Some(static_half)) =
                     (body_box, cuboid_half(&collider.shape))
@@ -360,9 +375,20 @@ fn contact_candidates(
                 }
             }
             for other in moving {
+                let (groups, other_groups) = if body.self_collision_owner.is_some()
+                    || other.collider.self_collision_owner.is_some()
+                {
+                    (body.owned_pair_groups, other.collider.groups)
+                } else {
+                    (body.groups, other.groups)
+                };
                 if (other.assembly == assembly_index
                     && (other.body == body_index || assembly.adjacent(body_index, other.body)))
-                    || !interacts(body.groups, other.groups)
+                    || !interacts(groups, other_groups)
+                    || same_self_collision_owner(
+                        body.self_collision_owner,
+                        other.collider.self_collision_owner,
+                    )
                 {
                     continue;
                 }

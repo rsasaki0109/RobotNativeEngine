@@ -6,6 +6,7 @@ use crate::schema::{UrdfDocument, UrdfInertial, UrdfJoint, UrdfJointType, UrdfLi
 use rne_ecs::{spawn_named, Entity, World};
 use rne_physics::{
     ColliderPart, CollisionGroups, CompoundCollider, RigidBody, RigidBodyInertia, RigidBodyType,
+    SelfCollisionExclusion,
 };
 use rne_render::{LinkVisuals, Visual};
 use rne_robot::{Joint, JointKind, JointLimits, Link, MimicJoint, Robot, RobotId};
@@ -24,6 +25,12 @@ pub struct UrdfSpawnConfig {
     /// When true, mesh collision geometry is approximated by AABB colliders.
     pub attach_mesh_colliders: bool,
     /// When false, colliders spawned for this robot do not collide with each other.
+    ///
+    /// Legacy spawn functions use a shared collision-mask bit, which also
+    /// excludes other robots using that bit. Use
+    /// [`spawn_urdf_robot_with_owned_collisions`] or
+    /// [`spawn_urdf_document_with_owned_collisions`] to exclude only contacts
+    /// within the same imported robot.
     pub self_collisions: bool,
     /// Rigid body type applied to the base link.
     pub base_body_type: RigidBodyType,
@@ -279,6 +286,59 @@ pub fn spawn_urdf_document_with_config(
     config: UrdfSpawnConfig,
 ) -> Result<SpawnedUrdfRobot, UrdfSpawnError> {
     spawn_urdf_robot_with_inertials(world, &document.robot, &document.inertials, config)
+}
+
+/// Spawns a URDF robot with per-robot self-collision exclusion.
+///
+/// When `config.self_collisions` is false, each collision-bearing link receives
+/// [`SelfCollisionExclusion`] with the spawned robot root as its owner. The
+/// importer does not assign a shared [`CollisionGroups`] bit, so different
+/// robots can collide and no 32-robot mask limit applies. Callers may still add
+/// independent masks before physics synchronization. A true setting preserves
+/// the existing unfiltered spawn behavior.
+///
+/// This additive route leaves legacy spawn functions unchanged.
+pub fn spawn_urdf_robot_with_owned_collisions(
+    world: &mut World,
+    urdf: &UrdfRobot,
+    config: UrdfSpawnConfig,
+) -> Result<SpawnedUrdfRobot, UrdfSpawnError> {
+    spawn_urdf_with_owned_collisions(world, urdf, &BTreeMap::new(), config)
+}
+
+/// Spawns a URDF document with per-robot self-collision exclusion and inertials.
+///
+/// Uses the same ownership policy as [`spawn_urdf_robot_with_owned_collisions`]
+/// while preserving extended inertial properties from the document.
+pub fn spawn_urdf_document_with_owned_collisions(
+    world: &mut World,
+    document: &UrdfDocument,
+    config: UrdfSpawnConfig,
+) -> Result<SpawnedUrdfRobot, UrdfSpawnError> {
+    spawn_urdf_with_owned_collisions(world, &document.robot, &document.inertials, config)
+}
+
+fn spawn_urdf_with_owned_collisions(
+    world: &mut World,
+    urdf: &UrdfRobot,
+    inertials: &BTreeMap<String, UrdfInertial>,
+    mut config: UrdfSpawnConfig,
+) -> Result<SpawnedUrdfRobot, UrdfSpawnError> {
+    let exclude_self = !config.self_collisions;
+    config.self_collisions = true;
+    let spawned = spawn_urdf_robot_with_inertials(world, urdf, inertials, config)?;
+    if exclude_self {
+        // Follow authored link order rather than the name map's iteration order.
+        for link in &urdf.links {
+            let entity = spawned.links[&link.name];
+            if world.get::<rne_physics::Collider>(entity).is_some() {
+                world.entity_mut(entity).insert(SelfCollisionExclusion {
+                    owner: spawned.robot,
+                });
+            }
+        }
+    }
+    Ok(spawned)
 }
 
 fn spawn_urdf_robot_with_inertials(
@@ -611,6 +671,167 @@ mod tests {
     use std::path::PathBuf;
 
     const FIXTURE: &str = include_str!("../tests/fixtures/minimal_diff_drive.urdf");
+
+    #[test]
+    fn forty_owned_urdf_robots_keep_distinct_exclusion_identities() {
+        let urdf = parse_urdf(FIXTURE).unwrap();
+        let mut world = World::new();
+        let mut owners = std::collections::HashSet::new();
+        for _ in 0..40 {
+            let spawned = spawn_urdf_robot_with_owned_collisions(
+                &mut world,
+                &urdf,
+                UrdfSpawnConfig {
+                    self_collisions: false,
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+            assert!(owners.insert(spawned.robot));
+            assert_eq!(spawned.collider_count, 3);
+            for entity in spawned.links.values() {
+                assert_eq!(
+                    world.get::<SelfCollisionExclusion>(*entity),
+                    Some(&SelfCollisionExclusion {
+                        owner: spawned.robot
+                    })
+                );
+                assert!(world.get::<CollisionGroups>(*entity).is_none());
+            }
+        }
+        assert_eq!(owners.len(), 40);
+    }
+
+    #[test]
+    fn forty_imported_robots_collide_only_through_the_owned_spawn_route() {
+        let urdf = parse_urdf(
+            r#"<robot name="ball"><link name="base"><collision>
+              <geometry><sphere radius="0.5"/></geometry>
+            </collision></link></robot>"#,
+        )
+        .unwrap();
+        for owned in [false, true] {
+            let mut world = World::new();
+            let mut bases = Vec::new();
+            for index in 0..40 {
+                let config = UrdfSpawnConfig {
+                    self_collisions: false,
+                    base_body_type: RigidBodyType::Dynamic,
+                    ..Default::default()
+                };
+                let spawned = if owned {
+                    spawn_urdf_robot_with_owned_collisions(&mut world, &urdf, config)
+                } else {
+                    spawn_urdf_robot_with_config(&mut world, &urdf, config)
+                }
+                .unwrap();
+                world
+                    .entity_mut(spawned.base_link)
+                    .insert(Transform3::from_translation_rotation(
+                        rne_math::Vec3::new(
+                            4.0 * f64::from(index / 2) + 0.8 * f64::from(index % 2),
+                            0.0,
+                            0.0,
+                        ),
+                        rne_math::Quat::IDENTITY,
+                    ));
+                bases.push(spawned.base_link);
+            }
+            let mut backend = RapierBackend::new();
+            let id = backend
+                .create_world(PhysicsWorldDesc {
+                    gravity_m_s2: rne_math::Vec3::ZERO,
+                    solver_iterations: 16,
+                })
+                .unwrap();
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            backend
+                .step(id, rne_core::SimDuration::from_ticks(1_000_000))
+                .unwrap();
+            let contacts = backend.contacts(id).unwrap();
+            for pair in bases.chunks_exact(2) {
+                let contact = contacts.iter().any(|contact| {
+                    (contact.entity_a == pair[0] && contact.entity_b == pair[1])
+                        || (contact.entity_a == pair[1] && contact.entity_b == pair[0])
+                });
+                assert_eq!(contact, owned);
+            }
+        }
+    }
+
+    #[test]
+    fn owned_spawn_preserves_enabled_self_collisions_and_missing_geometry() {
+        let urdf = parse_urdf(FIXTURE).unwrap();
+        for config in [
+            UrdfSpawnConfig::default(),
+            UrdfSpawnConfig {
+                self_collisions: false,
+                attach_colliders: false,
+                ..Default::default()
+            },
+        ] {
+            let mut world = World::new();
+            let spawned =
+                spawn_urdf_robot_with_owned_collisions(&mut world, &urdf, config.clone()).unwrap();
+            assert_eq!(
+                spawned.collider_count,
+                if config.attach_colliders { 3 } else { 0 }
+            );
+            for entity in spawned.links.values() {
+                assert!(world.get::<SelfCollisionExclusion>(*entity).is_none());
+                assert!(world.get::<CollisionGroups>(*entity).is_none());
+            }
+        }
+    }
+
+    #[test]
+    fn owned_document_preserves_declared_inertia_without_legacy_shared_mask() {
+        let document = parse_urdf_document(
+            r#"<robot name="sphere"><link name="base">
+              <inertial><mass value="2"/><inertia ixx="0.008" ixy="0" ixz="0"
+                iyy="0.008" iyz="0" izz="0.008"/></inertial>
+              <collision><geometry><sphere radius="0.1"/></geometry></collision>
+            </link></robot>"#,
+        )
+        .unwrap();
+        let config = UrdfSpawnConfig {
+            self_collisions: false,
+            use_declared_inertial_masses: true,
+            ..Default::default()
+        };
+        let mut legacy_world = World::new();
+        let legacy =
+            spawn_urdf_document_with_config(&mut legacy_world, &document, config.clone()).unwrap();
+        let mut owned_world = World::new();
+        let owned =
+            spawn_urdf_document_with_owned_collisions(&mut owned_world, &document, config).unwrap();
+        assert_eq!(
+            legacy_world.get::<RigidBody>(legacy.base_link),
+            owned_world.get::<RigidBody>(owned.base_link)
+        );
+        assert_eq!(
+            legacy_world.get::<RigidBodyInertia>(legacy.base_link),
+            owned_world.get::<RigidBodyInertia>(owned.base_link)
+        );
+        assert_eq!(
+            legacy_world.get::<Collider>(legacy.base_link),
+            owned_world.get::<Collider>(owned.base_link)
+        );
+        assert_eq!(
+            legacy_world.get::<CollisionGroups>(legacy.base_link),
+            Some(&CollisionGroups::without_self_collision(1))
+        );
+        assert!(legacy_world
+            .get::<SelfCollisionExclusion>(legacy.base_link)
+            .is_none());
+        assert!(owned_world
+            .get::<CollisionGroups>(owned.base_link)
+            .is_none());
+        assert_eq!(
+            owned_world.get::<SelfCollisionExclusion>(owned.base_link),
+            Some(&SelfCollisionExclusion { owner: owned.robot })
+        );
+    }
 
     #[test]
     fn fixture_urdf_spawns_robot_links_and_joints() {

@@ -6,6 +6,11 @@
 //! into a backend-private MJCF model before step 0, then exposes simulation only
 //! through the [`rne_physics::PhysicsBackend`] trait. A caller-owned MJCF
 //! constructor remains available for the original bounded compatibility fixture.
+//!
+//! [`rne_physics::SelfCollisionExclusion`] filters solid contact pairs in compiled
+//! ECS models. Owner-marked sensor colliders are rejected before native model
+//! creation because sensor overlap reporting uses a separate distance-query path.
+//! Sensor colliders without that component retain their existing behavior.
 
 #![deny(missing_docs)]
 

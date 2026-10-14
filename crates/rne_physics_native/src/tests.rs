@@ -2,7 +2,7 @@ use super::*;
 use rne_math::{Hertz, Quat};
 use rne_physics::{
     CollisionGroups, CompoundPart, FixedJointDesc, JointActuation, PhysicsMaterial,
-    PrismaticJointDesc, RevoluteJointDesc,
+    PrismaticJointDesc, RevoluteJointDesc, SelfCollisionExclusion,
 };
 use rne_physics_conformance::{
     run_external_backend_conformance, ExternalPhysicsBackendCheckStatus,
@@ -1388,4 +1388,648 @@ fn a_heavy_grasp_survives_cart_motion_along_the_squeeze_axis() {
 #[test]
 fn a_heavy_grasp_survives_cart_motion_along_the_friction_axis() {
     assert_cart_grasp(Vec3::new(0.0, 0.0, 0.12), 0.0);
+}
+
+fn owner_collision_world() -> (NativeBackend, World, PhysicsWorldId) {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            ..PhysicsWorldDesc::default()
+        })
+        .expect("world");
+    (backend, World::new(), id)
+}
+
+fn owner_collision_body(
+    world: &mut World,
+    body_type: RigidBodyType,
+    shape: ColliderShape,
+    translation: Vec3,
+    velocity_m_s: Vec3,
+    owner: Option<Entity>,
+) -> Entity {
+    let body = world
+        .spawn((
+            RigidBody {
+                body_type,
+                linear_velocity_m_s: velocity_m_s,
+                ..RigidBody::default()
+            },
+            Collider {
+                shape,
+                ..Collider::sphere(0.1)
+            },
+            Transform3::from_translation_rotation(translation, Quat::IDENTITY),
+        ))
+        .id();
+    if let Some(owner) = owner {
+        world
+            .entity_mut(body)
+            .insert(SelfCollisionExclusion { owner });
+    }
+    body
+}
+
+fn owner_pair_contact(backend: &NativeBackend, id: PhysicsWorldId, a: Entity, b: Entity) -> bool {
+    backend.contacts(id).expect("contacts").iter().any(|event| {
+        ((event.entity_a == a && event.entity_b == b)
+            || (event.entity_a == b && event.entity_b == a))
+            && event.impulse > 0.0
+    })
+}
+
+fn assert_owner_collision_free_velocity(world: &World, entity: Entity, expected_m_s: Vec3) {
+    let velocity_m_s = world
+        .get::<RigidBody>(entity)
+        .expect("body")
+        .linear_velocity_m_s;
+    assert!(
+        (velocity_m_s - expected_m_s).length() < 1.0e-12,
+        "velocity {velocity_m_s:?}, expected {expected_m_s:?}"
+    );
+}
+
+fn owner_collision_shapes() -> [ColliderShape; 2] {
+    [
+        ColliderShape::Sphere { radius_m: 0.1 },
+        ColliderShape::Cuboid {
+            half_extents_m: Vec3::splat(0.1),
+        },
+    ]
+}
+
+#[test]
+fn self_collision_exclusion_suppresses_same_owner_dynamic_pairs() {
+    for shape in owner_collision_shapes() {
+        let (mut backend, mut world, id) = owner_collision_world();
+        let owner = world.spawn_empty().id();
+        let left = owner_collision_body(
+            &mut world,
+            RigidBodyType::Dynamic,
+            shape.clone(),
+            Vec3::new(-0.09, 0.0, 0.0),
+            Vec3::X,
+            Some(owner),
+        );
+        let right = owner_collision_body(
+            &mut world,
+            RigidBodyType::Dynamic,
+            shape,
+            Vec3::new(0.09, 0.0, 0.0),
+            -Vec3::X,
+            Some(owner),
+        );
+        step(&mut backend, &mut world, id);
+        assert!(backend.contacts(id).expect("contacts").is_empty());
+        assert_eq!(backend.assembly_count(id).expect("count"), 2);
+        assert_owner_collision_free_velocity(&world, left, Vec3::X);
+        assert_owner_collision_free_velocity(&world, right, -Vec3::X);
+    }
+}
+
+#[test]
+fn self_collision_exclusion_preserves_other_owner_and_unmarked_dynamic_contacts() {
+    for shape in owner_collision_shapes() {
+        for owners in [(true, true), (true, false), (false, true), (false, false)] {
+            let (mut backend, mut world, id) = owner_collision_world();
+            let left_owner = world.spawn_empty().id();
+            let right_owner = world.spawn_empty().id();
+            let left = owner_collision_body(
+                &mut world,
+                RigidBodyType::Dynamic,
+                shape.clone(),
+                Vec3::new(-0.09, 0.0, 0.0),
+                Vec3::X,
+                owners.0.then_some(left_owner),
+            );
+            let right = owner_collision_body(
+                &mut world,
+                RigidBodyType::Dynamic,
+                shape.clone(),
+                Vec3::new(0.09, 0.0, 0.0),
+                -Vec3::X,
+                owners.1.then_some(right_owner),
+            );
+            step(&mut backend, &mut world, id);
+            assert!(owner_pair_contact(&backend, id, left, right), "{owners:?}");
+            assert!(
+                world
+                    .get::<RigidBody>(left)
+                    .expect("left")
+                    .linear_velocity_m_s
+                    .x
+                    < 1.0
+            );
+        }
+    }
+}
+
+#[test]
+fn self_collision_exclusion_filters_fixed_and_kinematic_owners_but_keeps_environment_contacts() {
+    for body_type in [RigidBodyType::Fixed, RigidBodyType::Kinematic] {
+        for shape in owner_collision_shapes() {
+            // Both marked, either side unmarked, neither marked, and different owners.
+            for (left_marked, right_marked, same_owner) in [
+                (true, true, true),
+                (true, false, true),
+                (false, true, true),
+                (false, false, true),
+                (true, true, false),
+            ] {
+                let (mut backend, mut world, id) = owner_collision_world();
+                let owner = world.spawn_empty().id();
+                let other_owner = world.spawn_empty().id();
+                let left = owner_collision_body(
+                    &mut world,
+                    RigidBodyType::Dynamic,
+                    shape.clone(),
+                    Vec3::new(-0.09, 0.0, 0.0),
+                    Vec3::X,
+                    left_marked.then_some(owner),
+                );
+                let right = owner_collision_body(
+                    &mut world,
+                    body_type,
+                    shape.clone(),
+                    Vec3::new(0.09, 0.0, 0.0),
+                    Vec3::ZERO,
+                    right_marked.then_some(if same_owner { owner } else { other_owner }),
+                );
+                step(&mut backend, &mut world, id);
+                let excluded = left_marked && right_marked && same_owner;
+                assert_eq!(owner_pair_contact(&backend, id, left, right), !excluded);
+                if excluded {
+                    assert!(backend.contacts(id).expect("contacts").is_empty());
+                    assert_owner_collision_free_velocity(&world, left, Vec3::X);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn self_collision_exclusion_compares_owner_generations() {
+    for body_type in [
+        RigidBodyType::Dynamic,
+        RigidBodyType::Fixed,
+        RigidBodyType::Kinematic,
+    ] {
+        let (mut backend, mut world, id) = owner_collision_world();
+        let previous_owner = world.spawn_empty().id();
+        assert!(world.despawn(previous_owner));
+        let current_owner = world.spawn_empty().id();
+        assert_eq!(previous_owner.index(), current_owner.index());
+        assert_ne!(previous_owner, current_owner);
+        let left = owner_collision_body(
+            &mut world,
+            RigidBodyType::Dynamic,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(-0.09, 0.0, 0.0),
+            Vec3::X,
+            Some(previous_owner),
+        );
+        let right = owner_collision_body(
+            &mut world,
+            body_type,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(0.09, 0.0, 0.0),
+            Vec3::ZERO,
+            Some(current_owner),
+        );
+        step(&mut backend, &mut world, id);
+        assert!(owner_pair_contact(&backend, id, left, right));
+    }
+}
+
+#[test]
+fn self_collision_exclusion_leaves_collision_groups_independent() {
+    let (mut backend, mut world, id) = owner_collision_world();
+    let left_owner = world.spawn_empty().id();
+    let right_owner = world.spawn_empty().id();
+    let left = owner_collision_body(
+        &mut world,
+        RigidBodyType::Dynamic,
+        ColliderShape::Sphere { radius_m: 0.1 },
+        Vec3::new(-0.09, 0.0, 0.0),
+        Vec3::X,
+        Some(left_owner),
+    );
+    owner_collision_body(
+        &mut world,
+        RigidBodyType::Dynamic,
+        ColliderShape::Sphere { radius_m: 0.1 },
+        Vec3::new(0.09, 0.0, 0.0),
+        -Vec3::X,
+        Some(right_owner),
+    );
+    world.entity_mut(left).insert(CollisionGroups {
+        memberships: 1,
+        filter: 0,
+    });
+    step(&mut backend, &mut world, id);
+    assert!(backend.contacts(id).expect("contacts").is_empty());
+    assert_owner_collision_free_velocity(&world, left, Vec3::X);
+}
+
+#[test]
+fn self_collision_exclusion_honors_both_masks_on_marked_static_pairs() {
+    for body_type in [RigidBodyType::Fixed, RigidBodyType::Kinematic] {
+        for (left_marked, right_marked) in [(true, true), (true, false), (false, true)] {
+            for dynamic_rejects in [true, false] {
+                let (mut backend, mut world, id) = owner_collision_world();
+                let left_owner = world.spawn_empty().id();
+                let right_owner = world.spawn_empty().id();
+                let left = owner_collision_body(
+                    &mut world,
+                    RigidBodyType::Dynamic,
+                    ColliderShape::Sphere { radius_m: 0.1 },
+                    Vec3::new(-0.09, 0.0, 0.0),
+                    Vec3::X,
+                    left_marked.then_some(left_owner),
+                );
+                let right = owner_collision_body(
+                    &mut world,
+                    body_type,
+                    ColliderShape::Sphere { radius_m: 0.1 },
+                    Vec3::new(0.09, 0.0, 0.0),
+                    Vec3::ZERO,
+                    right_marked.then_some(right_owner),
+                );
+                // Exactly one side's filter rejects the other membership.
+                world.entity_mut(left).insert(CollisionGroups {
+                    memberships: 1,
+                    filter: if dynamic_rejects { 1 } else { 2 },
+                });
+                world.entity_mut(right).insert(CollisionGroups {
+                    memberships: 2,
+                    filter: if dynamic_rejects { 1 } else { 0 },
+                });
+                step(&mut backend, &mut world, id);
+                assert!(backend.contacts(id).expect("contacts").is_empty());
+                assert_owner_collision_free_velocity(&world, left, Vec3::X);
+            }
+        }
+    }
+}
+
+#[test]
+fn self_collision_exclusion_preserves_unmarked_static_mask_behavior() {
+    for body_type in [RigidBodyType::Fixed, RigidBodyType::Kinematic] {
+        let (mut backend, mut world, id) = owner_collision_world();
+        let left = owner_collision_body(
+            &mut world,
+            RigidBodyType::Dynamic,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(-0.09, 0.0, 0.0),
+            Vec3::X,
+            None,
+        );
+        let right = owner_collision_body(
+            &mut world,
+            body_type,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(0.09, 0.0, 0.0),
+            Vec3::ZERO,
+            None,
+        );
+        for entity in [left, right] {
+            world.entity_mut(entity).insert(CollisionGroups {
+                memberships: 1,
+                filter: 0,
+            });
+        }
+        step(&mut backend, &mut world, id);
+        // The new opt-in component does not change legacy unmarked static pairs.
+        assert!(owner_pair_contact(&backend, id, left, right));
+    }
+}
+
+#[test]
+fn self_collision_exclusion_leaves_adjacent_joint_filter_independent() {
+    let (mut backend, mut world, id) = owner_collision_world();
+    let left_owner = world.spawn_empty().id();
+    let right_owner = world.spawn_empty().id();
+    let left = owner_collision_body(
+        &mut world,
+        RigidBodyType::Dynamic,
+        ColliderShape::Sphere { radius_m: 0.1 },
+        Vec3::new(-0.09, 0.0, 0.0),
+        Vec3::ZERO,
+        Some(left_owner),
+    );
+    let right = owner_collision_body(
+        &mut world,
+        RigidBodyType::Dynamic,
+        ColliderShape::Sphere { radius_m: 0.1 },
+        Vec3::new(0.09, 0.0, 0.0),
+        Vec3::ZERO,
+        Some(right_owner),
+    );
+    world.entity_mut(right).insert(FixedJointDesc {
+        parent: left,
+        anchor_parent_m: Vec3::new(0.18, 0.0, 0.0),
+        anchor_child_m: Vec3::ZERO,
+        relative_rotation: Quat::IDENTITY,
+    });
+    step(&mut backend, &mut world, id);
+    assert_eq!(backend.assembly_count(id).expect("count"), 1);
+    assert!(backend.contacts(id).expect("contacts").is_empty());
+}
+
+#[test]
+fn self_collision_exclusion_refreshes_owner_insertion_change_and_removal() {
+    for body_type in [
+        RigidBodyType::Dynamic,
+        RigidBodyType::Fixed,
+        RigidBodyType::Kinematic,
+    ] {
+        let (mut backend, mut world, id) = owner_collision_world();
+        let owner = world.spawn_empty().id();
+        let other_owner = world.spawn_empty().id();
+        let left = owner_collision_body(
+            &mut world,
+            RigidBodyType::Dynamic,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(-0.09, 0.0, 0.0),
+            Vec3::X,
+            Some(owner),
+        );
+        let right = owner_collision_body(
+            &mut world,
+            body_type,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(0.09, 0.0, 0.0),
+            Vec3::ZERO,
+            None,
+        );
+        // Sync without stepping builds the original topology and owner cache.
+        backend.sync_from_ecs(&mut world, id).expect("initial sync");
+        world
+            .entity_mut(right)
+            .insert(SelfCollisionExclusion { owner });
+        step(&mut backend, &mut world, id);
+        assert!(backend.contacts(id).expect("contacts").is_empty());
+        world
+            .entity_mut(right)
+            .insert(SelfCollisionExclusion { owner: other_owner });
+        step(&mut backend, &mut world, id);
+        assert!(owner_pair_contact(&backend, id, left, right));
+        world
+            .entity_mut(right)
+            .insert(SelfCollisionExclusion { owner });
+        step(&mut backend, &mut world, id);
+        assert!(backend.contacts(id).expect("contacts").is_empty());
+        world.entity_mut(right).remove::<SelfCollisionExclusion>();
+        // Restore the incoming pair to check removal independently of separation.
+        for (entity, x, velocity) in [(left, -0.09, Vec3::X), (right, 0.09, Vec3::ZERO)] {
+            world
+                .entity_mut(entity)
+                .insert(Transform3::from_translation_rotation(
+                    Vec3::new(x, 0.0, 0.0),
+                    Quat::IDENTITY,
+                ));
+            world
+                .get_mut::<RigidBody>(entity)
+                .expect("body")
+                .linear_velocity_m_s = velocity;
+        }
+        step(&mut backend, &mut world, id);
+        assert!(owner_pair_contact(&backend, id, left, right));
+    }
+}
+
+fn assert_runtime_owner_collision(
+    backend: &mut NativeBackend,
+    world: &mut World,
+    id: PhysicsWorldId,
+    pair: [Entity; 2],
+    expected_contact: bool,
+) {
+    for (entity, x, velocity_m_s) in [(pair[0], -0.09, Vec3::X), (pair[1], 0.09, Vec3::ZERO)] {
+        world
+            .entity_mut(entity)
+            .insert(Transform3::from_translation_rotation(
+                Vec3::new(x, 0.0, 0.0),
+                Quat::IDENTITY,
+            ));
+        world
+            .get_mut::<RigidBody>(entity)
+            .expect("body")
+            .linear_velocity_m_s = velocity_m_s;
+    }
+    step(backend, world, id);
+    if expected_contact {
+        assert!(owner_pair_contact(backend, id, pair[0], pair[1]));
+    } else {
+        assert!(backend.contacts(id).expect("contacts").is_empty());
+        assert_owner_collision_free_velocity(world, pair[0], Vec3::X);
+    }
+}
+
+#[test]
+fn self_collision_exclusion_refreshes_masks_when_owner_and_mask_are_inserted() {
+    for body_type in [
+        RigidBodyType::Dynamic,
+        RigidBodyType::Fixed,
+        RigidBodyType::Kinematic,
+    ] {
+        let (mut backend, mut world, id) = owner_collision_world();
+        let owner = world.spawn_empty().id();
+        let left = owner_collision_body(
+            &mut world,
+            RigidBodyType::Dynamic,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(-0.09, 0.0, 0.0),
+            Vec3::X,
+            None,
+        );
+        let right = owner_collision_body(
+            &mut world,
+            body_type,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(0.09, 0.0, 0.0),
+            Vec3::ZERO,
+            None,
+        );
+        backend.sync_from_ecs(&mut world, id).expect("initial sync");
+        world.entity_mut(left).insert((
+            SelfCollisionExclusion { owner },
+            CollisionGroups {
+                memberships: 1,
+                filter: 0,
+            },
+        ));
+        assert_runtime_owner_collision(&mut backend, &mut world, id, [left, right], false);
+        world.entity_mut(left).insert(CollisionGroups::default());
+        assert_runtime_owner_collision(&mut backend, &mut world, id, [left, right], true);
+    }
+}
+
+#[test]
+fn self_collision_exclusion_refreshes_both_masks_on_marked_pairs() {
+    for body_type in [
+        RigidBodyType::Dynamic,
+        RigidBodyType::Fixed,
+        RigidBodyType::Kinematic,
+    ] {
+        let (mut backend, mut world, id) = owner_collision_world();
+        let left_owner = world.spawn_empty().id();
+        let right_owner = world.spawn_empty().id();
+        let left = owner_collision_body(
+            &mut world,
+            RigidBodyType::Dynamic,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(-0.09, 0.0, 0.0),
+            Vec3::X,
+            Some(left_owner),
+        );
+        let right = owner_collision_body(
+            &mut world,
+            body_type,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(0.09, 0.0, 0.0),
+            Vec3::ZERO,
+            Some(right_owner),
+        );
+        backend.sync_from_ecs(&mut world, id).expect("initial sync");
+        for entity in [left, right] {
+            world.entity_mut(entity).insert(CollisionGroups {
+                memberships: 1,
+                filter: 0,
+            });
+            assert_runtime_owner_collision(&mut backend, &mut world, id, [left, right], false);
+            world.entity_mut(entity).insert(CollisionGroups::default());
+            assert_runtime_owner_collision(&mut backend, &mut world, id, [left, right], true);
+            world.entity_mut(entity).insert(CollisionGroups {
+                memberships: 1,
+                filter: 0,
+            });
+            assert_runtime_owner_collision(&mut backend, &mut world, id, [left, right], false);
+            world.entity_mut(entity).remove::<CollisionGroups>();
+            assert_runtime_owner_collision(&mut backend, &mut world, id, [left, right], true);
+        }
+    }
+}
+
+#[test]
+fn self_collision_exclusion_refreshes_unmarked_dynamic_masks_against_marked_bodies() {
+    for body_type in [
+        RigidBodyType::Dynamic,
+        RigidBodyType::Fixed,
+        RigidBodyType::Kinematic,
+    ] {
+        let (mut backend, mut world, id) = owner_collision_world();
+        let owner = world.spawn_empty().id();
+        let left = owner_collision_body(
+            &mut world,
+            RigidBodyType::Dynamic,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(-0.09, 0.0, 0.0),
+            Vec3::X,
+            None,
+        );
+        let right = owner_collision_body(
+            &mut world,
+            body_type,
+            ColliderShape::Sphere { radius_m: 0.1 },
+            Vec3::new(0.09, 0.0, 0.0),
+            Vec3::ZERO,
+            Some(owner),
+        );
+        backend.sync_from_ecs(&mut world, id).expect("initial sync");
+        for entity in [left, right] {
+            world.entity_mut(entity).insert(CollisionGroups {
+                memberships: 1,
+                filter: 0,
+            });
+            assert_runtime_owner_collision(&mut backend, &mut world, id, [left, right], false);
+            world.entity_mut(entity).insert(CollisionGroups::default());
+            assert_runtime_owner_collision(&mut backend, &mut world, id, [left, right], true);
+        }
+    }
+}
+
+fn many_owner_collision_replay(owner_count: usize) -> Vec<u64> {
+    let (mut backend, mut world, id) = owner_collision_world();
+    let mut pairs = Vec::new();
+    for index in 0..owner_count {
+        let owner = world.spawn_empty().id();
+        let x = if index < owner_count - 2 {
+            2.0 * index as f64
+        } else {
+            2.0 * owner_count as f64 + 4.0 + 0.18 * (index + 2 - owner_count) as f64
+        };
+        let velocity = if index == owner_count - 2 {
+            Vec3::X
+        } else {
+            Vec3::ZERO
+        };
+        let bodies = [-0.025, 0.025].map(|y| {
+            owner_collision_body(
+                &mut world,
+                RigidBodyType::Dynamic,
+                ColliderShape::Sphere { radius_m: 0.1 },
+                Vec3::new(x, y, 0.0),
+                velocity,
+                Some(owner),
+            )
+        });
+        pairs.push(bodies);
+    }
+    let mut hashes = Vec::new();
+    for index in 0..12 {
+        step(&mut backend, &mut world, id);
+        for &[left, right] in &pairs {
+            assert!(!owner_pair_contact(&backend, id, left, right));
+        }
+        if index == 0 {
+            assert!(owner_pair_contact(
+                &backend,
+                id,
+                pairs[owner_count - 2][0],
+                pairs[owner_count - 1][0]
+            ));
+        }
+        // Stable entity, component, and contact order includes all owner worlds.
+        let mut digest = 0xcbf29ce484222325_u64;
+        let mut mix = |bits: u64| {
+            digest ^= bits;
+            digest = digest.wrapping_mul(0x100000001b3);
+        };
+        for &entity in pairs.iter().flatten() {
+            let pose = world.get::<Transform3>(entity).expect("pose");
+            let body = world.get::<RigidBody>(entity).expect("body");
+            mix(entity.to_bits());
+            for value in pose
+                .translation
+                .to_array()
+                .into_iter()
+                .chain(pose.rotation.to_array())
+                .chain(body.linear_velocity_m_s.to_array())
+                .chain(body.angular_velocity_rad_s.to_array())
+            {
+                mix(value.to_bits());
+            }
+        }
+        for event in backend.contacts(id).expect("contacts") {
+            mix(event.entity_a.to_bits());
+            mix(event.entity_b.to_bits());
+            for value in event.normal.to_array() {
+                mix(value.to_bits());
+            }
+            mix(u64::from(event.impulse.to_bits()));
+        }
+        hashes.push(digest);
+    }
+    hashes
+}
+
+#[test]
+fn self_collision_exclusion_supports_40_and_48_owners_with_exact_fresh_replay() {
+    for owner_count in [40, 48] {
+        let first = many_owner_collision_replay(owner_count);
+        let fresh = many_owner_collision_replay(owner_count);
+        assert_eq!(first, fresh, "{owner_count} owners");
+    }
 }

@@ -31,7 +31,7 @@ use rne_physics::{
     MultibodyLink, PhysicsBackend, PhysicsBackendManifest, PhysicsBackendRepeatability,
     PhysicsCapability, PhysicsError, PhysicsOwnedPose, PhysicsWorldDesc, PhysicsWorldId,
     PrismaticJointDesc, RaycastHit, RaycastQuery, RevoluteJointDesc, RigidBody, RigidBodyInertia,
-    RigidBodyType,
+    RigidBodyType, SelfCollisionExclusion,
 };
 #[cfg(feature = "position-motor-diagnostics")]
 use rne_physics::{JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval};
@@ -84,6 +84,8 @@ struct RapierWorldState {
     body_to_entity: HashMap<RigidBodyHandle, Entity>,
     entity_to_collider: HashMap<Entity, ColliderHandle>,
     collider_to_entity: HashMap<ColliderHandle, Entity>,
+    /// Exact generational owner tokens; only keyed lookups affect pair filtering.
+    collider_owners: HashMap<ColliderHandle, Entity>,
     entity_to_joint: HashMap<Entity, ImpulseJointHandle>,
     entity_to_multibody_joint: HashMap<Entity, MultibodyJointHandle>,
     /// Welds on articulated links: a [`FixedJointDesc`] on an entity whose own
@@ -119,6 +121,77 @@ struct PositionMotorDiagnosticTarget {
     axis: JointAxis,
     revolute: bool,
     effort_ceiling: Option<f64>,
+}
+
+struct OwnerCollisionHooks<'a> {
+    owners: &'a HashMap<ColliderHandle, Entity>,
+}
+
+impl OwnerCollisionHooks<'_> {
+    fn allows_pair(&self, context: &PairFilterContext<'_>) -> bool {
+        if let (Some(owner_a), Some(owner_b)) = (
+            self.owners.get(&context.collider1),
+            self.owners.get(&context.collider2),
+        ) {
+            if owner_a == owner_b {
+                return false;
+            }
+        }
+
+        // A hook replaces Rapier's default pair filter. Retain the public
+        // collider body-type flags, including the default dynamic-only rule.
+        let body_type = |handle: Option<RigidBodyHandle>| {
+            handle
+                .and_then(|handle| context.bodies.get(handle))
+                .map(|body| body.body_type())
+                .unwrap_or(rapier3d::dynamics::RigidBodyType::Fixed)
+        };
+        let type_a = body_type(context.rigid_body1);
+        let type_b = body_type(context.rigid_body2);
+        context.colliders[context.collider1]
+            .active_collision_types()
+            .test(type_a, type_b)
+            || context.colliders[context.collider2]
+                .active_collision_types()
+                .test(type_a, type_b)
+    }
+}
+
+impl PhysicsHooks for OwnerCollisionHooks<'_> {
+    fn filter_contact_pair(&self, context: &PairFilterContext<'_>) -> Option<SolverFlags> {
+        self.allows_pair(context).then_some(SolverFlags::default())
+    }
+
+    fn filter_intersection_pair(&self, context: &PairFilterContext<'_>) -> bool {
+        self.allows_pair(context)
+    }
+}
+
+fn advance_rapier_pipeline(state: &mut RapierWorldState) {
+    let owner_hooks = OwnerCollisionHooks {
+        owners: &state.collider_owners,
+    };
+    // Retain the original unit hook when this world has no marked collider.
+    let hooks: &dyn PhysicsHooks = if state.collider_owners.is_empty() {
+        &()
+    } else {
+        &owner_hooks
+    };
+    state.physics_pipeline.step(
+        &state.gravity,
+        &state.integration_parameters,
+        &mut state.island_manager,
+        &mut state.broad_phase,
+        &mut state.narrow_phase,
+        &mut state.bodies,
+        &mut state.colliders,
+        &mut state.impulse_joints,
+        &mut state.multibody_joints,
+        &mut state.ccd_solver,
+        Some(&mut state.query_pipeline),
+        hooks,
+        &(),
+    );
 }
 
 impl RapierBackend {
@@ -548,6 +621,7 @@ impl PhysicsBackend for RapierBackend {
                 body_to_entity: HashMap::new(),
                 entity_to_collider: HashMap::new(),
                 collider_to_entity: HashMap::new(),
+                collider_owners: HashMap::new(),
                 entity_to_joint: HashMap::new(),
                 entity_to_multibody_joint: HashMap::new(),
                 entity_to_attachment: HashMap::new(),
@@ -578,6 +652,7 @@ impl PhysicsBackend for RapierBackend {
         physics_world: PhysicsWorldId,
     ) -> Result<(), PhysicsError> {
         let state = self.world_mut(physics_world)?;
+        remove_stale_owned_colliders(world, state);
         #[cfg(feature = "position-motor-diagnostics")]
         if state.position_motor_diagnostics_enabled {
             state.pending_position_motor_diagnostics.clear();
@@ -653,6 +728,7 @@ impl PhysicsBackend for RapierBackend {
                     }
                 }
                 sync_entity_collider(world, state, entity, body_handle, collider)?;
+                sync_collider_owner(world, state, entity);
                 continue;
             }
 
@@ -708,6 +784,7 @@ impl PhysicsBackend for RapierBackend {
                 state.entity_to_collider.insert(entity, collider_handle);
                 state.collider_to_entity.insert(collider_handle, entity);
             }
+            sync_collider_owner(world, state, entity);
         }
 
         sync_joints_from_ecs(world, state)?;
@@ -727,21 +804,7 @@ impl PhysicsBackend for RapierBackend {
         #[cfg(feature = "position-motor-diagnostics")]
         state.completed_position_motor_diagnostics.clear();
 
-        state.physics_pipeline.step(
-            &state.gravity,
-            &state.integration_parameters,
-            &mut state.island_manager,
-            &mut state.broad_phase,
-            &mut state.narrow_phase,
-            &mut state.bodies,
-            &mut state.colliders,
-            &mut state.impulse_joints,
-            &mut state.multibody_joints,
-            &mut state.ccd_solver,
-            Some(&mut state.query_pipeline),
-            &(),
-            &(),
-        );
+        advance_rapier_pipeline(state);
 
         state.completed_joint_efforts = std::mem::take(&mut state.pending_joint_efforts);
         #[cfg(feature = "position-motor-diagnostics")]
@@ -1156,10 +1219,62 @@ fn sync_entity_collider(
                 .remove(handle, &mut state.island_manager, &mut state.bodies, true);
             state.collider_to_entity.remove(&handle);
             state.entity_to_collider.remove(&entity);
+            state.collider_owners.remove(&handle);
         }
         (None, None) => {}
     }
     Ok(())
+}
+
+fn sync_collider_owner(world: &World, state: &mut RapierWorldState, entity: Entity) {
+    let Some(handle) = state.entity_to_collider.get(&entity).copied() else {
+        return;
+    };
+    let owner = world
+        .get::<SelfCollisionExclusion>(entity)
+        .map(|exclusion| exclusion.owner);
+    if state.collider_owners.get(&handle).copied() == owner {
+        return;
+    }
+    match owner {
+        Some(owner) => {
+            state.collider_owners.insert(handle, owner);
+        }
+        None => {
+            state.collider_owners.remove(&handle);
+        }
+    }
+    if let Some(collider) = state.colliders.get_mut(handle) {
+        collider.set_active_hooks(if owner.is_some() {
+            ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::FILTER_INTERSECTION_PAIR
+        } else {
+            ActiveHooks::empty()
+        });
+        // Setting hooks alone does not invalidate cached Rapier pairs. Reapply
+        // the unchanged pose to refresh even stationary/sleeping intersections.
+        collider.set_position(*collider.position());
+    }
+}
+
+fn remove_stale_owned_colliders(world: &World, state: &mut RapierWorldState) {
+    let mut stale: Vec<_> = state
+        .collider_owners
+        .keys()
+        .filter_map(|handle| {
+            let entity = state.collider_to_entity.get(handle).copied()?;
+            (world.get::<RigidBody>(entity).is_none() || world.get::<Collider>(entity).is_none())
+                .then_some((entity, *handle))
+        })
+        .collect();
+    stale.sort_unstable_by_key(|(entity, _)| *entity);
+    for (entity, handle) in stale {
+        state
+            .colliders
+            .remove(handle, &mut state.island_manager, &mut state.bodies, true);
+        state.collider_owners.remove(&handle);
+        state.collider_to_entity.remove(&handle);
+        state.entity_to_collider.remove(&entity);
+    }
 }
 
 fn convex_shape(convex: &ConvexCollider) -> Option<SharedShape> {
@@ -1961,6 +2076,479 @@ mod tests {
     use rne_ecs::spawn_named;
     use rne_math::Quat;
     use rne_physics::{hash_physics_state, ColliderShape, CollisionGroups};
+
+    fn owner_filter_fixture() -> (RapierBackend, PhysicsWorldId, World) {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 16,
+            })
+            .unwrap();
+        (backend, id, World::new())
+    }
+
+    fn owner_filter_body(
+        world: &mut World,
+        position_m: Vec3,
+        body_type: RigidBodyType,
+        sensor: bool,
+        owner: Option<Entity>,
+    ) -> Entity {
+        let mut collider = Collider::sphere(0.5);
+        collider.sensor = sensor;
+        let entity = world
+            .spawn((
+                RigidBody {
+                    body_type,
+                    linear_velocity_m_s: if body_type == RigidBodyType::Dynamic {
+                        Vec3::X
+                    } else {
+                        Vec3::ZERO
+                    },
+                    ..RigidBody::default()
+                },
+                collider,
+                Transform3::from_translation_rotation(position_m, Quat::IDENTITY),
+            ))
+            .id();
+        if let Some(owner) = owner {
+            world
+                .entity_mut(entity)
+                .insert(SelfCollisionExclusion { owner });
+        }
+        entity
+    }
+
+    fn owner_filter_pair_contact(
+        backend: &RapierBackend,
+        id: PhysicsWorldId,
+        a: Entity,
+        b: Entity,
+    ) -> Option<&ContactEvent> {
+        backend.contacts(id).unwrap().iter().find(|contact| {
+            (contact.entity_a == a && contact.entity_b == b)
+                || (contact.entity_a == b && contact.entity_b == a)
+        })
+    }
+
+    #[test]
+    fn self_collision_owner_filters_only_two_equal_marked_bodies() {
+        for (mark_a, mark_b, same_owner, expected_contact) in [
+            (false, false, true, true),
+            (true, false, true, true),
+            (false, true, true, true),
+            (true, true, true, false),
+            (true, true, false, true),
+        ] {
+            let (mut backend, id, mut world) = owner_filter_fixture();
+            let owner_a = world.spawn_empty().id();
+            let owner_b = if same_owner {
+                owner_a
+            } else {
+                world.spawn_empty().id()
+            };
+            let a = owner_filter_body(
+                &mut world,
+                -Vec3::X * 0.4,
+                RigidBodyType::Dynamic,
+                false,
+                mark_a.then_some(owner_a),
+            );
+            let b = owner_filter_body(
+                &mut world,
+                Vec3::X * 0.4,
+                RigidBodyType::Fixed,
+                false,
+                mark_b.then_some(owner_b),
+            );
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            if !mark_a && !mark_b {
+                let state = backend.world(id).unwrap();
+                assert!(state.collider_owners.is_empty());
+                assert!(state.colliders[state.entity_to_collider[&a]]
+                    .active_hooks()
+                    .is_empty());
+                assert!(state.colliders[state.entity_to_collider[&b]]
+                    .active_hooks()
+                    .is_empty());
+            }
+            let contact = owner_filter_pair_contact(&backend, id, a, b);
+            assert_eq!(contact.is_some(), expected_contact);
+            if let Some(contact) = contact {
+                assert!(contact.impulse > 0.0, "allowed pairs must enter the solver");
+            } else {
+                assert_eq!(
+                    world.get::<RigidBody>(a).unwrap().linear_velocity_m_s,
+                    Vec3::X
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn self_collision_owner_keeps_unmarked_and_different_owner_floor_support() {
+        for (mark_floor, same_owner, expected_support) in [
+            (false, true, true),
+            (true, false, true),
+            (true, true, false),
+        ] {
+            let (mut backend, id, mut world, floor, cube) = setup_world();
+            let owner = world.spawn_empty().id();
+            world
+                .entity_mut(cube)
+                .insert(SelfCollisionExclusion { owner });
+            if mark_floor {
+                let floor_owner = if same_owner {
+                    owner
+                } else {
+                    world.spawn_empty().id()
+                };
+                world
+                    .entity_mut(floor)
+                    .insert(SelfCollisionExclusion { owner: floor_owner });
+            }
+            let mut supported = false;
+            for _ in 0..90 {
+                step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+                supported |= owner_filter_pair_contact(&backend, id, floor, cube)
+                    .is_some_and(|contact| contact.impulse > 0.0);
+            }
+            let height_m = world.get::<Transform3>(cube).unwrap().translation.y;
+            assert_eq!(supported, expected_support);
+            if expected_support {
+                assert!(
+                    height_m > 0.45,
+                    "allowed floor must support the cube: {height_m}"
+                );
+            } else {
+                assert!(
+                    height_m < 0.0,
+                    "excluded cube must pass through the floor: {height_m}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn self_collision_owner_filters_sensor_intersections_and_keeps_user_masks() {
+        for (same_owner, masked, expected_overlap) in [
+            (true, false, false),
+            (false, false, true),
+            (false, true, false),
+        ] {
+            let (mut backend, id, mut world) = owner_filter_fixture();
+            let owner_a = world.spawn_empty().id();
+            let owner_b = if same_owner {
+                owner_a
+            } else {
+                world.spawn_empty().id()
+            };
+            let a = owner_filter_body(
+                &mut world,
+                -Vec3::X * 0.4,
+                RigidBodyType::Dynamic,
+                false,
+                Some(owner_a),
+            );
+            let b = owner_filter_body(
+                &mut world,
+                Vec3::X * 0.4,
+                RigidBodyType::Fixed,
+                true,
+                Some(owner_b),
+            );
+            if masked {
+                world.entity_mut(a).insert(CollisionGroups {
+                    memberships: 1,
+                    filter: 1,
+                });
+                world.entity_mut(b).insert(CollisionGroups {
+                    memberships: 2,
+                    filter: 2,
+                });
+            }
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            let contact = owner_filter_pair_contact(&backend, id, a, b);
+            assert_eq!(contact.is_some(), expected_overlap);
+            if let Some(contact) = contact {
+                assert_eq!(contact.impulse, 0.0);
+                assert_eq!(contact.normal, Vec3::ZERO);
+            }
+            assert_eq!(
+                world.get::<RigidBody>(a).unwrap().linear_velocity_m_s,
+                Vec3::X
+            );
+        }
+    }
+
+    #[test]
+    fn self_collision_owner_cannot_override_cross_owner_contact_masks() {
+        let (mut backend, id, mut world) = owner_filter_fixture();
+        let owner_a = world.spawn_empty().id();
+        let owner_b = world.spawn_empty().id();
+        let a = owner_filter_body(
+            &mut world,
+            -Vec3::X * 0.4,
+            RigidBodyType::Dynamic,
+            false,
+            Some(owner_a),
+        );
+        let b = owner_filter_body(
+            &mut world,
+            Vec3::X * 0.4,
+            RigidBodyType::Fixed,
+            false,
+            Some(owner_b),
+        );
+        world.entity_mut(a).insert(CollisionGroups {
+            memberships: 1,
+            filter: 1,
+        });
+        world.entity_mut(b).insert(CollisionGroups {
+            memberships: 2,
+            filter: 2,
+        });
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_none());
+        assert_eq!(
+            world.get::<RigidBody>(a).unwrap().linear_velocity_m_s,
+            Vec3::X
+        );
+    }
+
+    #[test]
+    fn self_collision_owner_preserves_default_non_dynamic_filter() {
+        for sensor in [false, true] {
+            for second_type in [RigidBodyType::Fixed, RigidBodyType::Kinematic] {
+                let (mut backend, id, mut world) = owner_filter_fixture();
+                let owner_a = world.spawn_empty().id();
+                let owner_b = world.spawn_empty().id();
+                let a = owner_filter_body(
+                    &mut world,
+                    -Vec3::X * 0.4,
+                    RigidBodyType::Fixed,
+                    sensor,
+                    Some(owner_a),
+                );
+                let b =
+                    owner_filter_body(&mut world, Vec3::X * 0.4, second_type, false, Some(owner_b));
+                step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+                assert!(owner_filter_pair_contact(&backend, id, a, b).is_none());
+            }
+        }
+    }
+
+    fn owner_filter_forty_body_scene(
+    ) -> (RapierBackend, PhysicsWorldId, World, Vec<(Entity, Entity)>) {
+        let (backend, id, mut world) = owner_filter_fixture();
+        let owners: Vec<_> = (0..40).map(|_| world.spawn_empty().id()).collect();
+        let mut pairs = Vec::new();
+        for index in 0..40 {
+            let center_m = Vec3::new(index as f64 * 3.0, 0.0, 0.0);
+            let a = owner_filter_body(
+                &mut world,
+                center_m - Vec3::X * 0.4,
+                RigidBodyType::Dynamic,
+                false,
+                Some(owners[index]),
+            );
+            let b = owner_filter_body(
+                &mut world,
+                center_m + Vec3::X * 0.4,
+                RigidBodyType::Fixed,
+                false,
+                Some(owners[(index + 1) % owners.len()]),
+            );
+            pairs.push((a, b));
+        }
+        (backend, id, world, pairs)
+    }
+
+    #[test]
+    fn self_collision_owner_forty_owners_keep_physical_cross_owner_contacts() {
+        let (mut backend, id, mut world, pairs) = owner_filter_forty_body_scene();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert_eq!(backend.contacts(id).unwrap().len(), 40);
+        for (index, &(a, b)) in pairs.iter().enumerate() {
+            let contact = owner_filter_pair_contact(&backend, id, a, b)
+                .unwrap_or_else(|| panic!("cross-owner pair {index} was filtered"));
+            assert!(
+                contact.impulse > 0.0,
+                "pair {index} must receive solver impulse"
+            );
+            assert!(world.get::<RigidBody>(a).unwrap().linear_velocity_m_s.x < 1.0);
+        }
+        assert_eq!(backend.world(id).unwrap().collider_owners.len(), 80);
+    }
+
+    fn owner_filter_replay() -> (Vec<u64>, Vec<u64>) {
+        let (mut backend, id, mut world, _) = owner_filter_forty_body_scene();
+        let mut hashes = Vec::new();
+        let mut bits = Vec::new();
+        for _ in 0..12 {
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            hashes.push(rne_physics::hash_physics_state_v2(&world));
+            for entity in sorted_entities(&world) {
+                let (Some(body), Some(transform)) = (
+                    world.get::<RigidBody>(entity),
+                    world.get::<Transform3>(entity),
+                ) else {
+                    continue;
+                };
+                bits.extend(transform.translation.to_array().map(f64::to_bits));
+                bits.extend(transform.rotation.to_array().map(f64::to_bits));
+                bits.extend(body.linear_velocity_m_s.to_array().map(f64::to_bits));
+                bits.extend(body.angular_velocity_rad_s.to_array().map(f64::to_bits));
+            }
+        }
+        (hashes, bits)
+    }
+
+    #[test]
+    fn self_collision_owner_replay_is_bit_exact() {
+        assert_eq!(owner_filter_replay(), owner_filter_replay());
+    }
+
+    #[test]
+    fn self_collision_owner_runtime_edits_refresh_stationary_sensor_pairs() {
+        let (mut backend, id, mut world) = owner_filter_fixture();
+        let owner = world.spawn_empty().id();
+        let other_owner = world.spawn_empty().id();
+        let a = owner_filter_body(
+            &mut world,
+            -Vec3::X * 0.4,
+            RigidBodyType::Dynamic,
+            false,
+            Some(owner),
+        );
+        world.get_mut::<RigidBody>(a).unwrap().linear_velocity_m_s = Vec3::ZERO;
+        let b = owner_filter_body(
+            &mut world,
+            Vec3::X * 0.4,
+            RigidBodyType::Fixed,
+            true,
+            Some(owner),
+        );
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_none());
+        world
+            .entity_mut(b)
+            .insert(SelfCollisionExclusion { owner: other_owner });
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_some());
+        world.entity_mut(b).insert(SelfCollisionExclusion { owner });
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_none());
+        world.entity_mut(b).remove::<SelfCollisionExclusion>();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_some());
+        world.entity_mut(b).insert(SelfCollisionExclusion { owner });
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_none());
+        let collider_handle = backend.world(id).unwrap().entity_to_collider[&b];
+        world.entity_mut(b).remove::<Collider>();
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        let state = backend.world(id).unwrap();
+        assert!(!state.colliders.contains(collider_handle));
+        assert!(!state.collider_owners.contains_key(&collider_handle));
+        let mut collider = Collider::sphere(0.5);
+        collider.sensor = true;
+        world.entity_mut(b).insert(collider);
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_none());
+        let replacement_handle = backend.world(id).unwrap().entity_to_collider[&b];
+        assert_ne!(replacement_handle, collider_handle);
+        assert!(world.despawn(b));
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        let state = backend.world(id).unwrap();
+        assert!(!state.colliders.contains(replacement_handle));
+        assert!(!state.collider_owners.contains_key(&replacement_handle));
+        assert!(!state.entity_to_collider.contains_key(&b));
+        assert!(backend.contacts(id).unwrap().is_empty());
+    }
+
+    #[test]
+    fn self_collision_owner_runtime_edits_update_solver_contacts() {
+        let (mut backend, id, mut world) = owner_filter_fixture();
+        let owner = world.spawn_empty().id();
+        let other_owner = world.spawn_empty().id();
+        let a = owner_filter_body(
+            &mut world,
+            -Vec3::X * 0.4,
+            RigidBodyType::Dynamic,
+            false,
+            Some(owner),
+        );
+        let b = owner_filter_body(
+            &mut world,
+            Vec3::X * 0.4,
+            RigidBodyType::Fixed,
+            false,
+            Some(owner),
+        );
+        for (new_owner, expected_contact) in [
+            (Some(owner), false),
+            (Some(other_owner), true),
+            (Some(owner), false),
+            (None, true),
+            (Some(owner), false),
+        ] {
+            if let Some(owner) = new_owner {
+                world.entity_mut(b).insert(SelfCollisionExclusion { owner });
+            } else {
+                world.entity_mut(b).remove::<SelfCollisionExclusion>();
+            }
+            world.get_mut::<Transform3>(a).unwrap().translation = -Vec3::X * 0.4;
+            world.get_mut::<RigidBody>(a).unwrap().linear_velocity_m_s = Vec3::X;
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+            let contact = owner_filter_pair_contact(&backend, id, a, b);
+            assert_eq!(contact.is_some(), expected_contact);
+            if let Some(contact) = contact {
+                assert!(contact.impulse > 0.0);
+            } else {
+                assert_eq!(
+                    world.get::<RigidBody>(a).unwrap().linear_velocity_m_s,
+                    Vec3::X
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn self_collision_owner_reused_entity_index_is_a_distinct_owner() {
+        let (mut backend, id, mut world) = owner_filter_fixture();
+        let old_owner = world.spawn_empty().id();
+        let a = owner_filter_body(
+            &mut world,
+            -Vec3::X * 0.4,
+            RigidBodyType::Dynamic,
+            false,
+            Some(old_owner),
+        );
+        let b = owner_filter_body(
+            &mut world,
+            Vec3::X * 0.4,
+            RigidBodyType::Fixed,
+            true,
+            Some(old_owner),
+        );
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_none());
+        assert!(world.despawn(old_owner));
+        let new_owner = world.spawn_empty().id();
+        assert_eq!(new_owner.index(), old_owner.index());
+        assert_ne!(new_owner, old_owner);
+        // A dead owner's token remains a valid exclusion identity. Its reused
+        // entity index does not make a newly generated owner part of that group.
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_none());
+        world
+            .entity_mut(b)
+            .insert(SelfCollisionExclusion { owner: new_owner });
+        step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        assert!(owner_filter_pair_contact(&backend, id, a, b).is_some());
+    }
 
     #[cfg(not(feature = "position-motor-diagnostics"))]
     #[test]

@@ -30,7 +30,11 @@
 //!   from outside, and each gets a bounding-volume tree; a convex hull is
 //!   built from its points once, with its face planes. A box against a box instead runs the full
 //!   separating-axis test, so crossing edges touch too.
-//!   [`rne_physics::CollisionGroups`] filter every pair.
+//!   [`rne_physics::CollisionGroups`] filter dynamic pairs and any pair marked
+//!   for self-collision exclusion.
+//!   [`rne_physics::SelfCollisionExclusion`] also suppresses contacts when
+//!   both colliders name the same full owner entity; it leaves contacts with
+//!   other owners and unmarked colliders eligible.
 //!   Assemblies that touch are solved in one contact problem, as RaiSim solves
 //!   a world; the rest are solved one island each. Contacts between two
 //!   entities along one normal are reduced to four that span their support. Friction is the mean of
@@ -49,7 +53,8 @@
 //!
 //! An ECS pose or velocity edit on a simulated body (other than the backend's
 //! own write-back) re-reads that assembly's state from the ECS, and adding or
-//! removing bodies or joints rebuilds the assemblies.
+//! removing bodies or joints rebuilds the assemblies. Self-collision owners
+//! are refreshed at each sync, including component insertion and removal.
 //!
 //! Raycasts hit every non-sensor collider at its current pose and return the
 //! hits by distance. Spheres, capsules, boxes, planes, and convex hulls are
@@ -74,9 +79,10 @@ use rne_dynamics::ContactStepConfig;
 use rne_ecs::{Entity, Parent, World};
 use rne_math::Vec3;
 use rne_physics::{
-    Collider, ColliderShape, ContactEvent, JointState, PhysicsBackend, PhysicsBackendManifest,
-    PhysicsBackendRepeatability, PhysicsCapability, PhysicsError, PhysicsWorldDesc, PhysicsWorldId,
-    RaycastHit, RaycastQuery, RigidBody, RigidBodyType,
+    Collider, ColliderShape, CollisionGroups, ContactEvent, JointState, PhysicsBackend,
+    PhysicsBackendManifest, PhysicsBackendRepeatability, PhysicsCapability, PhysicsError,
+    PhysicsWorldDesc, PhysicsWorldId, RaycastHit, RaycastQuery, RigidBody, RigidBodyType,
+    SelfCollisionExclusion,
 };
 use rne_world::{world_transform_of, Transform3};
 use std::collections::{BTreeMap, HashMap};
@@ -349,12 +355,32 @@ impl PhysicsBackend for NativeBackend {
                     pose: sim_from_world(&pose),
                     friction: f64::from(collider.material.friction),
                     meshes,
+                    groups: world
+                        .get::<CollisionGroups>(entity)
+                        .copied()
+                        .unwrap_or_default(),
+                    self_collision_owner: world
+                        .get::<SelfCollisionExclusion>(entity)
+                        .map(|exclusion| exclusion.owner),
                 })
             })
             .collect();
         // Drop the trees no collider uses any more.
         state.mesh_cache.retain(|tree| Arc::strong_count(tree) > 1);
         for assembly in &mut state.assemblies {
+            for body in &mut assembly.bodies {
+                body.owned_pair_groups = world
+                    .get::<CollisionGroups>(body.entity)
+                    .copied()
+                    .unwrap_or_default();
+                let owner = world
+                    .get::<SelfCollisionExclusion>(body.entity)
+                    .map(|exclusion| exclusion.owner);
+                if owner != body.self_collision_owner {
+                    body.self_collision_owner = owner;
+                    state.warm.clear();
+                }
+            }
             assembly.follow_anchor(world, state.elapsed_s);
             assembly.load_commands(world)?;
         }
