@@ -63,6 +63,8 @@ struct App {
     render_size: Option<(u32, u32)>,
     orbit: CameraOrbit,
     reset_counter: u32,
+    wave_counter: u32,
+    mission_counter: u32,
     dragging: bool,
     last_cursor: Option<PhysicalPosition<f64>>,
 }
@@ -242,16 +244,35 @@ impl App {
                 .ok_or_else(|| format!("invalid control: {id}"))
         };
         let reset_counter = value("control-reset-counter")? as u32;
+        let wave_counter = value("control-wave-counter")? as u32;
+        let mission_counter = value("control-mission-counter")? as u32;
         let targets_rad = (0..scene.joint_count())
             .map(|index| value(&format!("control-joint-{index}")))
             .collect::<Result<Vec<_>, _>>()?;
-        let render_scene = scene.control_frame(G1Input {
-            forward: value("control-forward")?,
-            turn: value("control-turn")?,
-            targets_rad,
-            reset: reset_counter != self.reset_counter,
-        })?;
+        let render_scene = scene.play_frame(
+            G1Input {
+                forward: value("control-forward")?,
+                turn: value("control-turn")?,
+                targets_rad,
+                reset: reset_counter != self.reset_counter,
+            },
+            value("control-motion-enabled")? == 1.0,
+            wave_counter != self.wave_counter,
+            mission_counter != self.mission_counter,
+        )?;
         self.reset_counter = reset_counter;
+        self.wave_counter = wave_counter;
+        self.mission_counter = mission_counter;
+        if let Some(mission) = document.get_element_by_id("mission-status") {
+            mission.set_text_content(Some(&scene.mission_status()));
+        }
+        if let Some(motion) = document.get_element_by_id("engine-motion") {
+            motion.set_text_content(Some(&format!(
+                "{} · 向き {:.0}°",
+                scene.motion_status(),
+                scene.heading_rad().to_degrees()
+            )));
+        }
         self.orbit.focus = scene.focus();
         if let Some(position) = document.get_element_by_id("engine-position") {
             position.set_text_content(Some(&format!(

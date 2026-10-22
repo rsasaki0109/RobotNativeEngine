@@ -62,13 +62,28 @@
     input.addEventListener("input", show); show();
   }
   document.getElementById("control-stop").addEventListener("click", releaseAll);
-  document.getElementById("control-reset").addEventListener("click", () => {
-    releaseAll();
+  function homeTargets() {
     for (const input of document.querySelectorAll("[data-angle]")) {
       input.value = input.defaultValue;
       input.dispatchEvent(new Event("input"));
     }
-    const counter = document.getElementById("control-reset-counter");
+  }
+  function signal(id) {
+    const counter = document.getElementById(id);
     counter.value = String((Number(counter.value) + 1) % 4294967296);
+  }
+  document.getElementById("control-wave").addEventListener("click", () => signal("control-wave-counter"));
+  const motionButton = document.getElementById("control-motion");
+  motionButton.addEventListener("click", () => {
+    const enabled = document.getElementById("control-motion-enabled");
+    enabled.value = enabled.value === "1" ? "0" : "1";
+    motionButton.setAttribute("aria-pressed", String(enabled.value === "1"));
+    motionButton.textContent = "歩行モーション " + (enabled.value === "1" ? "ON" : "OFF");
+  });
+  document.getElementById("mission-start").addEventListener("click", () => {
+    releaseAll(); homeTargets(); signal("control-mission-counter");
+  });
+  document.getElementById("control-reset").addEventListener("click", () => {
+    releaseAll(); homeTargets(); signal("control-reset-counter");
   });
 })(typeof window === "undefined" ? globalThis : window);

@@ -1,4 +1,5 @@
 //! Browser-local kinematic control of the vendored Unitree G1.
+use crate::playground::{Playground, GOALS, GOAL_RADIUS_M};
 use rne_ecs::{Entity, World};
 use rne_math::{Quat, Vec3};
 use rne_render::{load_stl_bytes, RenderScene, TriangleMesh, VisualShape};
@@ -29,6 +30,7 @@ pub struct G1Scene {
     joints: Vec<(Entity, Entity, UrdfJoint)>,
     parts: Vec<Part>,
     heading_rad: f64,
+    playground: Playground,
 }
 
 /// Complete command for one fixed kinematic preview tick.
@@ -102,6 +104,7 @@ impl G1Scene {
             joints,
             parts,
             heading_rad: 0.0,
+            playground: Playground::default(),
         })
     }
 
@@ -120,6 +123,20 @@ impl G1Scene {
     /// Translation is 0.015 m/tick and yaw 0.025 rad/tick at full input.
     /// The browser schedules ticks; this is not real-time simulated walking.
     pub fn control_frame(&mut self, input: G1Input) -> Result<RenderScene, String> {
+        self.play_frame(input, false, false, false)
+    }
+
+    /// Advances the kinematic playground, with optional gait, wave and course start.
+    ///
+    /// Wave and start are one-tick commands. Starting a course restores the base
+    /// pose; reset cancels both animation and course. Targets remain in radians.
+    pub fn play_frame(
+        &mut self,
+        input: G1Input,
+        animate: bool,
+        wave: bool,
+        start: bool,
+    ) -> Result<RenderScene, String> {
         if !input.forward.is_finite()
             || input.forward.abs() > 1.0
             || !input.turn.is_finite()
@@ -134,10 +151,17 @@ impl G1Scene {
                 return Err(format!("target outside source limits: {}", joint.name));
             }
         }
-        if input.reset {
+        let start = start && !input.reset;
+        let wave = wave && !input.reset;
+        if input.reset || start {
             self.heading_rad = 0.0;
             self.world.entity_mut(self.base).insert(home());
+            self.playground = Playground::default();
+            if start {
+                self.playground.course.start();
+            }
         }
+        let previous = self.focus();
         self.heading_rad =
             (self.heading_rad + input.turn * 0.025).rem_euclid(std::f64::consts::TAU);
         let yaw = Quat::from_rotation_y(self.heading_rad);
@@ -151,7 +175,20 @@ impl G1Scene {
             base.translation.x = base.translation.x.clamp(-4.0, 4.0);
             base.translation.z = base.translation.z.clamp(-4.0, 4.0);
         }
-        for ((entity, child, joint), angle) in self.joints.iter().zip(input.targets_rad) {
+        let position = self.focus();
+        self.playground.tick(
+            (position - previous).length(),
+            input.turn,
+            animate,
+            wave,
+            position,
+        );
+        for ((entity, child, joint), manual_rad) in self.joints.iter().zip(input.targets_rad) {
+            let limit = joint.limit.ok_or("missing source joint limit")?;
+            let angle = self
+                .playground
+                .angle(&joint.name, manual_rad)
+                .clamp(limit.lower, limit.upper);
             let rotation = rpy_to_quat(joint.origin_rpy)
                 * Quat::from_axis_angle(joint.axis.normalize(), angle);
             self.world
@@ -166,6 +203,21 @@ impl G1Scene {
             }
         }
         Ok(self.render())
+    }
+
+    /// Current course progress, distance and elapsed fixed preview ticks.
+    pub fn mission_status(&self) -> String {
+        self.playground.course.status(self.focus())
+    }
+
+    /// Current pose animation state for the controls HUD.
+    pub fn motion_status(&self) -> &'static str {
+        self.playground.motion_status()
+    }
+
+    /// Base heading around the world's up axis, in radians.
+    pub fn heading_rad(&self) -> f64 {
+        self.heading_rad
     }
 
     fn render(&self) -> RenderScene {
@@ -190,6 +242,41 @@ impl G1Scene {
                         size_m: Vec3::new(0.05, 0.004, 0.05),
                     },
                     [0.4, 0.65, 0.7, 1.0],
+                    Transform3::IDENTITY,
+                ));
+            }
+        }
+        for (index, (x, z)) in GOALS.iter().copied().enumerate() {
+            let color = if index < self.playground.course.reached {
+                [0.1, 0.9, 0.45, 1.0]
+            } else if index == self.playground.course.reached {
+                [1.0, 0.65, 0.08, 1.0]
+            } else {
+                [0.35, 0.45, 0.55, 1.0]
+            };
+            for segment in 0..16 {
+                let angle = f64::from(segment) * std::f64::consts::TAU / 16.0;
+                scene.items.push(RenderScene::item_from_visual(
+                    Transform3::from_translation_rotation(
+                        Vec3::new(
+                            x + GOAL_RADIUS_M * angle.cos(),
+                            0.016,
+                            z + GOAL_RADIUS_M * angle.sin(),
+                        ),
+                        Quat::from_rotation_y(-angle),
+                    ),
+                    VisualShape::Box {
+                        size_m: Vec3::new(0.065, 0.03, 0.14),
+                    },
+                    color,
+                    Transform3::IDENTITY,
+                ));
+            }
+            if index == self.playground.course.reached {
+                scene.items.push(RenderScene::item_from_visual(
+                    Transform3::from_translation_rotation(Vec3::new(x, 0.2, z), Quat::IDENTITY),
+                    VisualShape::Sphere { radius_m: 0.08 },
+                    color,
                     Transform3::IDENTITY,
                 ));
             }
@@ -312,6 +399,68 @@ fn mesh_bytes(path: &str) -> Result<&'static [u8], String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn animated_pose_respects_limits_and_reset_cancels_commands() {
+        let mut scene = G1Scene::load().unwrap();
+        let mut command = neutral(&scene);
+        command.forward = 1.0;
+        command.targets_rad = scene
+            .joints
+            .iter()
+            .map(|(_, _, joint)| joint.limit.unwrap().upper)
+            .collect();
+        for tick in 0..40 {
+            scene
+                .play_frame(command.clone(), true, tick == 0, false)
+                .unwrap();
+            for (entity, _, joint) in &scene.joints {
+                let angle = scene.world.get::<Joint>(*entity).unwrap().position;
+                let limit = joint.limit.unwrap();
+                assert!((limit.lower..=limit.upper).contains(&angle));
+            }
+        }
+        let mut reset = neutral(&scene);
+        reset.reset = true;
+        scene.play_frame(reset, true, true, true).unwrap();
+        assert_eq!(scene.motion_status(), "立ち姿");
+        assert!(scene.mission_status().starts_with("未開始"));
+        assert_eq!(scene.focus().x, 0.0);
+    }
+
+    #[test]
+    fn drive_commands_complete_the_entire_course() {
+        let mut scene = G1Scene::load().unwrap();
+        scene
+            .play_frame(neutral(&scene), true, false, true)
+            .unwrap();
+        for _ in 0..2000 {
+            let reached = scene.playground.course.reached;
+            if reached == GOALS.len() {
+                break;
+            }
+            let (x, z) = GOALS[reached];
+            let delta = Vec3::new(x, scene.focus().y, z) - scene.focus();
+            let desired = (-delta.z).atan2(delta.x);
+            let error = (desired - scene.heading_rad + std::f64::consts::PI)
+                .rem_euclid(std::f64::consts::TAU)
+                - std::f64::consts::PI;
+            let mut command = neutral(&scene);
+            if error.abs() > 0.03 {
+                command.turn = error.signum();
+            } else {
+                command.forward = 1.0;
+            }
+            scene.play_frame(command, true, false, false).unwrap();
+        }
+        assert_eq!(scene.playground.course.reached, 4);
+        assert!(scene.mission_status().starts_with("クリア"));
+        let completed = scene.mission_status();
+        scene
+            .play_frame(neutral(&scene), true, false, false)
+            .unwrap();
+        assert_eq!(scene.mission_status(), completed);
+    }
     fn neutral(scene: &G1Scene) -> G1Input {
         G1Input {
             forward: 0.0,

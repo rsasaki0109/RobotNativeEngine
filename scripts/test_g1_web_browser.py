@@ -46,12 +46,30 @@ def main():
         assert len(middle.getcolors(middle.width * middle.height)) > 100, "empty robot view"
         position = page.locator("#engine-position")
         initial = position.inner_text()
-        page.locator("#canvas").click(position={"x": 700, "y": 450})
+        # Keep software-WebGPU animation checks affordable on CI runners.
+        # Full desktop/mobile sizes are checked separately below.
+        page.set_viewport_size({"width": 800, "height": 600})
+        page.wait_for_function("document.querySelector('#canvas').width === 800")
+        page.locator("#control-wave").click()
+        page.wait_for_function("document.querySelector('#engine-motion').textContent.startsWith('手振り中')")
+        page.evaluate("""() => new Promise(resolve => {
+            let frames = 25;
+            function tick() { if (--frames) requestAnimationFrame(tick); else resolve(); }
+            requestAnimationFrame(tick);
+        })""")
+        page.screenshot(path=str(args.output / "g1-wave.png"))
+        page.locator("#control-reset").click()
+        page.wait_for_function("document.querySelector('#engine-motion').textContent.startsWith('立ち姿')")
+        page.locator("#mission-start").click()
+        page.wait_for_function("document.querySelector('#mission-status').textContent.startsWith('0/4')")
+        page.locator("#canvas").click(position={"x": 600, "y": 250})
         page.keyboard.down("w")
         page.wait_for_function(
-            "document.querySelector('#engine-position').textContent !== 'X 0.00 m · Z 0.00 m'"
+            "document.querySelector('#mission-status').textContent.startsWith('1/4')",
+            timeout=240000,
         )
         page.keyboard.up("w")
+        page.wait_for_function("document.querySelector('#engine-motion').textContent.startsWith('立ち姿')")
         page.wait_for_function("document.querySelector('#control-forward').value === '0'")
         # Let pending redraws settle; the next six redraws must stay stopped.
         page.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
@@ -78,17 +96,25 @@ def main():
             "document.querySelector('#engine-position').textContent === 'X 0.00 m · Z 0.00 m'"
         )
         assert position.inner_text() == initial
+        assert page.locator("#mission-status").inner_text().startswith("未開始")
+        page.locator("#control-motion").click()
+        assert page.locator("#control-motion").get_attribute("aria-pressed") == "false"
+        page.locator("#control-motion").click()
+        assert page.locator("#control-motion").get_attribute("aria-pressed") == "true"
         page.locator("#controls summary").click()
         page.locator("#control-joint-3").evaluate("""input => {
             input.value = "0.8"; input.dispatchEvent(new Event("input", {bubbles: true}));
         }""")
         actual = page.locator("#control-joint-3-value").evaluate("element => element.value")
         assert actual == "0.80 rad", actual
+        page.set_viewport_size({"width": 1440, "height": 900})
+        page.wait_for_function("document.querySelector('#canvas').width === 1440")
         page.screenshot(path=str(args.output / "g1-desktop.png"))
         page.locator("#control-reset").click()
         assert page.locator("#control-joint-3").input_value() == "0"
         page.locator("#controls summary").click()
         page.set_viewport_size({"width": 390, "height": 844})
+        page.locator("#controls").evaluate("element => { element.scrollTop = 0; }")
         page.wait_for_function("document.querySelector('#canvas').width === 390")
         assert page.locator("#canvas").evaluate("canvas => canvas.clientWidth") == 390
         assert page.locator("#canvas").evaluate("canvas => canvas.height") == 422
@@ -98,7 +124,7 @@ def main():
         assert len(stage.getcolors(stage.width * stage.height)) > 100, "empty mobile robot view"
         assert not errors, errors
         browser.close()
-    print("G1 browser checks passed: WASM startup, keyboard drive/stop, focus loss, pointer cancellation, joints, reset and responsive layout")
+    print("G1 browser checks passed: rendered G1, wave/reset, gait/stop, first checkpoint, course reset, motion toggle, keyboard/blur/pointers, joints and responsive layout")
 
 
 if __name__ == "__main__":
