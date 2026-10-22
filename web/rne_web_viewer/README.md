@@ -14,6 +14,23 @@ The base is confined to an 8 × 8 m area. Reset restores its initial pose and
 zero joint targets; blur, backgrounding and pointer cancellation stop drive
 input. Drag to orbit the camera and scroll to zoom.
 
+## Walking, waving and checkpoint run
+
+**Walking motion ON** adds a bounded, alternating leg/arm pose animation while
+moving or turning. Stopping blends back to the manual slider pose. Toggle it
+off for manual inspection. **Wave** raises the left arm and waves for 180
+preview ticks, then restores the pose; another press restarts the gesture.
+All composed joint coordinates are clamped to the original URDF limits.
+These are authored pose animations, not a physics-based walking controller.
+
+**Mission start / Retry** restores the base and joint targets, clears the old
+gesture, and starts a four-checkpoint course: (X, Z) = (1.5, 0), (1.5, -1.5),
+(0, -1.5), (0, 0) metres. Enter each 0.35 m radius circle in order. The next
+circle is gold, completed circles turn green, and the HUD shows progress,
+distance and elapsed preview time. Finishing freezes the score; retry starts
+over. Reset cancels the course and animation. Time is fixed tick count / 60,
+so it is **preview time**, not a wall-clock or calibrated performance measure.
+
 Model provenance and license: [upstream details](../../assets/robots/g1_description/UPSTREAM.md),
 [Unitree BSD license](../../assets/robots/g1_description/LICENSE.unitree_ros).
 The static bundle includes the model license.

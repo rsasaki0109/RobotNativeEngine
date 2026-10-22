@@ -166,7 +166,21 @@
       #controls p { margin: 7px 0; color: #b6cadb; line-height: 1.5; }
       a { color: #8fd8ee; }
       summary { cursor: pointer; }
+      #mission-panel { position: fixed; top: 78px; left: 12px; max-width: 320px; padding: 12px;
+        background: rgba(8, 12, 18, .9); border: 1px solid #8f7849; border-radius: 9px; font-size: 13px; }
+      #mission-panel p { margin: 6px 0; line-height: 1.5; }
+      #mission-panel button { padding: 7px 12px; border-radius: 5px; border: 1px solid #d3a650;
+        background: #54401d; color: #fff2cc; cursor: pointer; }
+      .pose-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+      #controls button[aria-pressed=true] { border-color: #71d7bd; }
+      #engine-motion { color: #8fe3c9; }
+      @media (min-width: 701px) and (max-height: 760px) {
+        #mission-panel { left: auto; right: 12px; max-width: 300px; font-size: 12px; }
+      }
       @media (max-width: 700px) {
+        #mission-panel { top: 60px; left: 8px; right: 8px; max-width: none; padding: 8px; font-size: 11px; }
+        #mission-panel p { margin: 2px 0; }
+        #mission-panel strong, #mission-panel p:last-child { display: none; }
         #canvas { height: 50vh; }
         #hud { display: none; }
         #replay-panel { top: 8px; right: 8px; width: min(260px, calc(100vw - 42px)); max-height: 23vh; overflow: auto; }
@@ -180,14 +194,28 @@
       RNE Web Viewer — drag to orbit, scroll to zoom<br />
       WASD / arrow keys: drive · sliders: G1 joints · Reset: home
     </div>
+    <section id="mission-panel" aria-label="Checkpoint mission">
+      <strong>CHECKPOINT RUN · 金色の輪を順番に4つ通過</strong>
+      <p id="mission-status" aria-live="off">未開始 · ミッション開始でスタート</p>
+      <button id="mission-start" type="button">ミッション開始／再挑戦</button>
+      <p>プレビュー時間：60描画フレーム＝1秒。描画速度で実時間は変わります。</p>
+    </section>
     <section id="controls" aria-label="Robot controls">
       <h1>RNE G1 Playground</h1>
       <p id="engine-status" role="status">G1を読み込み中…</p>
       <p id="engine-position">X 0.00 m · Z 0.00 m</p>
+      <p id="engine-motion">立ち姿</p>
+      <div class="pose-buttons">
+        <button id="control-wave" type="button">手を振る 👋</button>
+        <button id="control-motion" type="button" aria-pressed="true">歩行モーション ON</button>
+      </div>
       <p>WASD・矢印キー／下のボタンで移動と旋回。<br>ドラッグで視点回転、スクロールで拡大。</p>
       <input id="control-forward" type="hidden" value="0">
       <input id="control-turn" type="hidden" value="0">
       <input id="control-reset-counter" type="hidden" value="0">
+      <input id="control-wave-counter" type="hidden" value="0">
+      <input id="control-mission-counter" type="hidden" value="0">
+      <input id="control-motion-enabled" type="hidden" value="1">
       <div class="drive-pad">
         <span></span><button type="button" data-drive="KeyW" aria-label="前進">↑ 前進</button><span></span>
         <button type="button" data-drive="KeyA" aria-label="左旋回">↶ 左</button>
@@ -267,7 +295,7 @@
         </label>
       </details>
       <button type="button" id="control-reset">初期位置に戻す</button>
-      <p>Unitree G1 / 23-DoF · 姿勢操作プレビュー<br>移動はベース位置の直接操作です。<br>自立歩行・接触の物理演算は行いません。<br>移動は描画1フレームごとに固定量、範囲は8m四方です。<br><a href="LICENSE.unitree_ros">Unitree model license</a></p>
+      <p>Unitree G1 / 23-DoF · 姿勢アニメーション<br>スライダーの姿勢に歩行・手振りを加算します。<br>自立歩行・接触の物理演算は行いません。<br>移動は描画1フレームごとに固定量、範囲は8m四方です。<br><a href="LICENSE.unitree_ros">Unitree model license</a></p>
     </section>
     <details id="replay-panel" aria-label="Replay inspector">
       <summary>Replay inspector</summary>
