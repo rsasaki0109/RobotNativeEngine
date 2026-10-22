@@ -1,0 +1,71 @@
+name: G1 browser playground
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/rne_web_viewer/**"
+      - "crates/**"
+      - "assets/robots/g1_description/**"
+      - ".github/workflows/pages.yml"
+  pull_request:
+    paths:
+      - "web/rne_web_viewer/**"
+      - "crates/**"
+      - "assets/robots/g1_description/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: g1-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: web/rne_web_viewer
+          shared-key: g1-web
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: trunk@0.21.14
+      - name: Check browser controls and replay inspector
+        run: |
+          node web/rne_web_viewer/controls.test.cjs
+          node web/rne_web_viewer/replay.test.cjs
+      - name: Test G1 model and control without a GPU
+        working-directory: web/rne_web_viewer
+        run: cargo test --locked --lib
+      - name: Check WASM compilation
+        working-directory: web/rne_web_viewer
+        run: |
+          cargo fmt --all --check
+          cargo clippy --locked --target wasm32-unknown-unknown -- -D warnings
+      - name: Build a relocatable static bundle
+        working-directory: web/rne_web_viewer
+        run: trunk build --release --public-url "./"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/rne_web_viewer/dist
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

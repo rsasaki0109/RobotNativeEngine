@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RNE Web Viewer — replay inspector</title>
+    <title>RNE G1 Playground</title>
+    <link data-trunk rel="rust" data-wasm-opt="0" />
+    <link data-trunk rel="copy-file" href="controls.js" />
+    <link data-trunk rel="copy-file" href="replay.js" />
+    <link data-trunk rel="copy-file" href="../../assets/robots/g1_description/LICENSE.unitree_ros" />
     <style>
       html,
       body {
@@ -140,16 +144,133 @@
         color: #91a7bb;
         font-size: 11px;
       }
+
+      #controls {
+        position: fixed; left: 12px; bottom: 12px;
+        width: min(320px, calc(100vw - 50px)); max-height: 65vh; overflow: auto;
+        padding: 12px; border: 1px solid #405466; border-radius: 10px;
+        background: rgba(8, 12, 18, .92); font-size: 13px;
+      }
+      #controls h1 { font-size: 17px; margin: 0 0 8px; }
+      #controls label { display: block; margin: 8px 0; }
+      #controls input[type=range] { display: block; width: 100%; }
+      #controls output { float: right; font-variant-numeric: tabular-nums; }
+      #controls button {
+        background: #20384c; color: #edf8ff; border: 1px solid #63829b;
+        border-radius: 6px; padding: 10px 14px; cursor: pointer; font: inherit;
+      }
+      #controls button:active { background: #376688; }
+      button:focus-visible, input:focus-visible { outline: 2px solid #7ee1cd; outline-offset: 3px; }
+      .drive-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 10px 0; }
+      [data-drive] { touch-action: none; user-select: none; }
+      #controls p { margin: 7px 0; color: #b6cadb; line-height: 1.5; }
+      a { color: #8fd8ee; }
+      summary { cursor: pointer; }
+      @media (max-width: 700px) {
+        #canvas { height: 50vh; }
+        #hud { display: none; }
+        #replay-panel { top: 8px; right: 8px; width: min(260px, calc(100vw - 42px)); max-height: 23vh; overflow: auto; }
+        #controls { bottom: 8px; left: 8px; max-height: 45vh; }
+      }
     </style>
   </head>
   <body>
     <canvas id="canvas" width="1280" height="720"></canvas>
     <div id="hud">
       RNE Web Viewer — drag to orbit, scroll to zoom<br />
-      Arm animation uses a deterministic frame counter (not wall-clock sim time).
+      WASD / arrow keys: drive · sliders: G1 joints · Reset: home
     </div>
-    <section id="replay-panel" aria-label="Replay inspector">
-      <h2>Replay inspector</h2>
+    <section id="controls" aria-label="Robot controls">
+      <h1>RNE G1 Playground</h1>
+      <p id="engine-status" role="status">G1を読み込み中…</p>
+      <p id="engine-position">X 0.00 m · Z 0.00 m</p>
+      <p>WASD・矢印キー／下のボタンで移動と旋回。<br>ドラッグで視点回転、スクロールで拡大。</p>
+      <input id="control-forward" type="hidden" value="0">
+      <input id="control-turn" type="hidden" value="0">
+      <input id="control-reset-counter" type="hidden" value="0">
+      <div class="drive-pad">
+        <span></span><button type="button" data-drive="KeyW" aria-label="前進">↑ 前進</button><span></span>
+        <button type="button" data-drive="KeyA" aria-label="左旋回">↶ 左</button>
+        <button type="button" id="control-stop">停止</button>
+        <button type="button" data-drive="KeyD" aria-label="右旋回">右 ↷</button>
+        <span></span><button type="button" data-drive="KeyS" aria-label="後退">↓ 後退</button><span></span>
+      </div>
+      <details><summary>関節を操作（23軸・rad）</summary>
+        <label for="control-joint-0">left hip pitch <output id="control-joint-0-value"></output>
+          <input data-angle id="control-joint-0" type="range" min="-2.5307" max="2.8798" step="any" value="0">
+        </label>
+        <label for="control-joint-1">left hip roll <output id="control-joint-1-value"></output>
+          <input data-angle id="control-joint-1" type="range" min="-0.5236" max="2.9671" step="any" value="0">
+        </label>
+        <label for="control-joint-2">left hip yaw <output id="control-joint-2-value"></output>
+          <input data-angle id="control-joint-2" type="range" min="-2.7576" max="2.7576" step="any" value="0">
+        </label>
+        <label for="control-joint-3">left knee <output id="control-joint-3-value"></output>
+          <input data-angle id="control-joint-3" type="range" min="-0.087267" max="2.8798" step="any" value="0">
+        </label>
+        <label for="control-joint-4">left ankle pitch <output id="control-joint-4-value"></output>
+          <input data-angle id="control-joint-4" type="range" min="-0.87267" max="0.5236" step="any" value="0">
+        </label>
+        <label for="control-joint-5">left ankle roll <output id="control-joint-5-value"></output>
+          <input data-angle id="control-joint-5" type="range" min="-0.2618" max="0.2618" step="any" value="0">
+        </label>
+        <label for="control-joint-6">right hip pitch <output id="control-joint-6-value"></output>
+          <input data-angle id="control-joint-6" type="range" min="-2.5307" max="2.8798" step="any" value="0">
+        </label>
+        <label for="control-joint-7">right hip roll <output id="control-joint-7-value"></output>
+          <input data-angle id="control-joint-7" type="range" min="-2.9671" max="0.5236" step="any" value="0">
+        </label>
+        <label for="control-joint-8">right hip yaw <output id="control-joint-8-value"></output>
+          <input data-angle id="control-joint-8" type="range" min="-2.7576" max="2.7576" step="any" value="0">
+        </label>
+        <label for="control-joint-9">right knee <output id="control-joint-9-value"></output>
+          <input data-angle id="control-joint-9" type="range" min="-0.087267" max="2.8798" step="any" value="0">
+        </label>
+        <label for="control-joint-10">right ankle pitch <output id="control-joint-10-value"></output>
+          <input data-angle id="control-joint-10" type="range" min="-0.87267" max="0.5236" step="any" value="0">
+        </label>
+        <label for="control-joint-11">right ankle roll <output id="control-joint-11-value"></output>
+          <input data-angle id="control-joint-11" type="range" min="-0.2618" max="0.2618" step="any" value="0">
+        </label>
+        <label for="control-joint-12">waist yaw <output id="control-joint-12-value"></output>
+          <input data-angle id="control-joint-12" type="range" min="-2.618" max="2.618" step="any" value="0">
+        </label>
+        <label for="control-joint-13">left shoulder pitch <output id="control-joint-13-value"></output>
+          <input data-angle id="control-joint-13" type="range" min="-3.0892" max="2.6704" step="any" value="0">
+        </label>
+        <label for="control-joint-14">left shoulder roll <output id="control-joint-14-value"></output>
+          <input data-angle id="control-joint-14" type="range" min="-1.5882" max="2.2515" step="any" value="0">
+        </label>
+        <label for="control-joint-15">left shoulder yaw <output id="control-joint-15-value"></output>
+          <input data-angle id="control-joint-15" type="range" min="-2.618" max="2.618" step="any" value="0">
+        </label>
+        <label for="control-joint-16">left elbow <output id="control-joint-16-value"></output>
+          <input data-angle id="control-joint-16" type="range" min="-1.0472" max="2.0944" step="any" value="0">
+        </label>
+        <label for="control-joint-17">left wrist roll <output id="control-joint-17-value"></output>
+          <input data-angle id="control-joint-17" type="range" min="-1.972222054" max="1.972222054" step="any" value="0">
+        </label>
+        <label for="control-joint-18">right shoulder pitch <output id="control-joint-18-value"></output>
+          <input data-angle id="control-joint-18" type="range" min="-3.0892" max="2.6704" step="any" value="0">
+        </label>
+        <label for="control-joint-19">right shoulder roll <output id="control-joint-19-value"></output>
+          <input data-angle id="control-joint-19" type="range" min="-2.2515" max="1.5882" step="any" value="0">
+        </label>
+        <label for="control-joint-20">right shoulder yaw <output id="control-joint-20-value"></output>
+          <input data-angle id="control-joint-20" type="range" min="-2.618" max="2.618" step="any" value="0">
+        </label>
+        <label for="control-joint-21">right elbow <output id="control-joint-21-value"></output>
+          <input data-angle id="control-joint-21" type="range" min="-1.0472" max="2.0944" step="any" value="0">
+        </label>
+        <label for="control-joint-22">right wrist roll <output id="control-joint-22-value"></output>
+          <input data-angle id="control-joint-22" type="range" min="-1.972222054" max="1.972222054" step="any" value="0">
+        </label>
+      </details>
+      <button type="button" id="control-reset">初期位置に戻す</button>
+      <p>Unitree G1 / 23-DoF · 姿勢操作プレビュー<br>移動はベース位置の直接操作です。<br>自立歩行・接触の物理演算は行いません。<br>移動は描画1フレームごとに固定量、範囲は8m四方です。<br><a href="LICENSE.unitree_ros">Unitree model license</a></p>
+    </section>
+    <details id="replay-panel" aria-label="Replay inspector">
+      <summary>Replay inspector</summary>
       <label for="replay-file">Open a .rne-replay file</label>
       <input id="replay-file" type="file" accept=".rne-replay,.json" />
       <div id="replay-status">No replay loaded</div>
@@ -177,7 +298,8 @@
       <small id="replay-note">
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
-    </section>
+    </details>
+    <script src="controls.js"></script>
     <script src="replay.js"></script>
   </body>
 </html>

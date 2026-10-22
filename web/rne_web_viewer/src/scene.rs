@@ -247,9 +247,12 @@ fn collider_fallback_visual(collider: &Collider) -> Option<(VisualShape, [f32; 4
             },
             BASE_COLOR,
         )),
-        rne_physics::ColliderShape::Sphere { radius_m } => {
-            Some((VisualShape::Sphere { radius_m: *radius_m }, BASE_COLOR))
-        }
+        rne_physics::ColliderShape::Sphere { radius_m } => Some((
+            VisualShape::Sphere {
+                radius_m: *radius_m,
+            },
+            BASE_COLOR,
+        )),
         _ => None,
     }
 }
