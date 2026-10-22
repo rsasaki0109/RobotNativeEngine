@@ -149,7 +149,10 @@ fn shadow_visibility(input: VertexOutput, ndotl: f32) -> f32 {
     for (var y = -1; y <= 1; y = y + 1) {
         for (var x = -1; x <= 1; x = x + 1) {
             let offset = vec2<f32>(f32(x), f32(y)) * texel;
-            visibility += textureSampleCompare(
+            // Shadow maps have one mip level. Explicit level-zero comparison
+            // also permits this sample after fragment-dependent bounds checks
+            // on browser WebGPU, which rejects implicit derivatives here.
+            visibility += textureSampleCompareLevel(
                 shadow_texture,
                 shadow_sampler,
                 uv + offset,

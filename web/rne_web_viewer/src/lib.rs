@@ -4,6 +4,7 @@
 
 #[cfg(target_arch = "wasm32")]
 mod app;
+mod humanoid;
 mod scene;
 
 #[cfg(target_arch = "wasm32")]
@@ -16,4 +17,5 @@ pub fn start() {
     app::run();
 }
 
+pub use humanoid::{G1Input, G1Scene};
 pub use scene::WebScene;

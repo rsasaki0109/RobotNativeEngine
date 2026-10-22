@@ -1,15 +1,25 @@
 //! winit application loop for the browser viewer.
 
-use crate::scene::WebScene;
+use crate::humanoid::{G1Input, G1Scene};
 use rne_render_wgpu::{CameraOrbit, InteractiveViewer, ViewerError};
 use std::sync::Arc;
 use winit::application::ApplicationHandler;
 use winit::dpi::PhysicalPosition;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
+use winit::platform::web::EventLoopExtWebSys;
 use winit::window::{Window, WindowId};
 
 const CLEAR_COLOR: [f32; 4] = [0.05, 0.08, 0.12, 1.0];
+
+fn status(message: &str) {
+    if let Some(element) = web_sys::window()
+        .and_then(|window| window.document())
+        .and_then(|document| document.get_element_by_id("engine-status"))
+    {
+        element.set_text_content(Some(message));
+    }
+}
 
 /// GPU initialization completion event for wasm async startup.
 struct ViewerInitEvent(Result<InteractiveViewer, ViewerError>);
@@ -20,7 +30,7 @@ enum InitState {
     Pending,
     Ready {
         viewer: Box<InteractiveViewer>,
-        scene: Box<WebScene>,
+        scene: Box<G1Scene>,
     },
     Failed(String),
 }
@@ -31,11 +41,17 @@ pub fn run() {
         .build()
         .expect("create event loop");
     let proxy = event_loop.create_proxy();
-    let mut app = App {
+    let app = App {
         proxy: Some(proxy),
+        orbit: CameraOrbit {
+            yaw_rad: 0.9,
+            pitch_rad: 1.15,
+            distance_m: 3.2,
+            ..CameraOrbit::default()
+        },
         ..App::default()
     };
-    event_loop.run_app(&mut app).expect("run web viewer");
+    event_loop.spawn_app(app);
 }
 
 #[derive(Default)]
@@ -43,9 +59,10 @@ struct App {
     proxy: Option<EventLoopProxy<ViewerInitEvent>>,
     window: Option<Arc<Window>>,
     init: InitState,
-    pending_scene: Option<WebScene>,
+    pending_scene: Option<G1Scene>,
+    render_size: Option<(u32, u32)>,
     orbit: CameraOrbit,
-    frame_index: u64,
+    reset_counter: u32,
     dragging: bool,
     last_cursor: Option<PhysicalPosition<f64>>,
 }
@@ -56,9 +73,10 @@ impl ApplicationHandler<ViewerInitEvent> for App {
             return;
         }
 
-        let scene = match WebScene::load_mm_minimal() {
+        let scene = match G1Scene::load() {
             Ok(scene) => scene,
             Err(error) => {
+                status(&format!("G1読み込みエラー: {error}"));
                 self.init = InitState::Failed(error);
                 return;
             }
@@ -70,7 +88,7 @@ impl ApplicationHandler<ViewerInitEvent> for App {
             not(target_arch = "wasm32"),
             expect(unused_mut, reason = "wasm attaches canvas")
         )]
-        let mut attributes = Window::default_attributes().with_title("RNE Web Viewer — mm_minimal");
+        let mut attributes = Window::default_attributes().with_title("RNE G1 Playground");
 
         #[cfg(target_arch = "wasm32")]
         {
@@ -115,6 +133,7 @@ impl ApplicationHandler<ViewerInitEvent> for App {
 
         match event.0 {
             Ok(viewer) => {
+                status("操作できます · G1 / 23関節");
                 self.init = InitState::Ready {
                     viewer: Box::new(viewer),
                     scene: Box::new(scene),
@@ -124,6 +143,7 @@ impl ApplicationHandler<ViewerInitEvent> for App {
                 }
             }
             Err(error) => {
+                status(&format!("GPU初期化エラー: {error}"));
                 self.init = InitState::Failed(error.to_string());
                 event_loop.exit();
             }
@@ -138,17 +158,17 @@ impl ApplicationHandler<ViewerInitEvent> for App {
     ) {
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
-            WindowEvent::Resized(size) => {
-                if let InitState::Ready { viewer, .. } = &mut self.init {
-                    viewer.resize(size.width, size.height);
-                }
+            WindowEvent::Resized(_) => {
+                self.render_size = None;
             }
-            WindowEvent::MouseInput { state, button, .. } => {
-                if button == MouseButton::Left {
-                    self.dragging = state == ElementState::Pressed;
-                    if state == ElementState::Released {
-                        self.last_cursor = None;
-                    }
+            WindowEvent::MouseInput {
+                state,
+                button: MouseButton::Left,
+                ..
+            } => {
+                self.dragging = state == ElementState::Pressed;
+                if state == ElementState::Released {
+                    self.last_cursor = None;
                 }
             }
             WindowEvent::CursorMoved { position, .. } => {
@@ -172,6 +192,7 @@ impl ApplicationHandler<ViewerInitEvent> for App {
             }
             WindowEvent::RedrawRequested => {
                 if let Err(error) = self.draw_frame() {
+                    status(&format!("描画エラー: {error}"));
                     #[cfg(target_arch = "wasm32")]
                     web_sys::console::error_1(&error.into());
                     #[cfg(not(target_arch = "wasm32"))]
@@ -199,9 +220,45 @@ impl App {
             return Ok(());
         };
 
-        let render_scene = scene.frame(self.frame_index);
-        self.frame_index = self.frame_index.saturating_add(1);
+        let browser = web_sys::window().ok_or("missing browser window")?;
+        let pixel_ratio = browser.device_pixel_ratio();
+        let document = browser.document().ok_or("missing document")?;
+        let canvas = document
+            .get_element_by_id("canvas")
+            .ok_or("missing canvas")?;
+        let width = (f64::from(canvas.client_width()) * pixel_ratio).max(1.0) as u32;
+        let height = (f64::from(canvas.client_height()) * pixel_ratio).max(1.0) as u32;
+        if self.render_size != Some((width, height)) {
+            viewer.resize(width, height);
+            self.render_size = Some((width, height));
+        }
+        let value = |id: &str| -> Result<f64, String> {
+            use wasm_bindgen::JsCast;
+            document
+                .get_element_by_id(id)
+                .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
+                .and_then(|input| input.value().parse::<f64>().ok())
+                .filter(|value| value.is_finite())
+                .ok_or_else(|| format!("invalid control: {id}"))
+        };
+        let reset_counter = value("control-reset-counter")? as u32;
+        let targets_rad = (0..scene.joint_count())
+            .map(|index| value(&format!("control-joint-{index}")))
+            .collect::<Result<Vec<_>, _>>()?;
+        let render_scene = scene.control_frame(G1Input {
+            forward: value("control-forward")?,
+            turn: value("control-turn")?,
+            targets_rad,
+            reset: reset_counter != self.reset_counter,
+        })?;
+        self.reset_counter = reset_counter;
         self.orbit.focus = scene.focus();
+        if let Some(position) = document.get_element_by_id("engine-position") {
+            position.set_text_content(Some(&format!(
+                "X {:.2} m · Z {:.2} m",
+                self.orbit.focus.x, self.orbit.focus.z
+            )));
+        }
 
         let view = self.orbit.camera_transform();
         viewer
