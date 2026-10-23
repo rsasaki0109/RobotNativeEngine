@@ -30,6 +30,10 @@ for(const text of [
  '手先リーチ · 関節直結 × 速度制限P · 腕が障害物に接触 · 1.20 s · 完了段階 0 · 探索 1回 · 未保持',
  '障害物 1/24 · 目標 X 2.80 / Z -0.55 m',
  '最後に選んだデモ：腕の手法を変えて運ぶ · 運搬 · 腕6手法 · seed 42',
+ '標準の運搬 · seed 42 · 再試行なし。未実行は失敗に含めません。比較完了後にセルを選ぶと終了地点を再生します。表は横にスクロールできます。',
+ '移動4組 × 腕6組 · 運搬24試行',
+ '未実行',
+ '評価中',
  'クリア！ 4/4 · 15.00 秒（プレビュー時間）'
 ]) assert.ok(!/[\u3040-\u30ff\u3400-\u9fff]/.test(translate(text,'en')), 'Missing dynamic English: '+text);
 console.log('PASS: language precedence, whitespace, static UI/attributes and dynamic result/error translations');

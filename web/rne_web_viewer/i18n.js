@@ -367,7 +367,19 @@ Object.assign(english, {
   "表示": "Showing"
 });
 Object.assign(english, {"リプレイを再生":"Play replay", "リプレイを一時停止":"Pause replay", "前の記録コマ":"Previous saved frame", "次の記録コマ":"Next saved frame", "再生速度":"Playback speed"});
-const japanese = {
+Object.assign(english, {
+  "移動 × 腕の24組を比較": "Compare 24 navigation × arm pairs",
+  "運搬 · 移動4組 × 腕6組の24試行": "Delivery · 4 navigation × 6 arm pairs (24 trials)",
+  "「移動 × 腕の24組を比較」は同じ配置・seed・再試行設定で全組み合わせを評価します。4行 × 6列の表から、比較完了後に各試行を再生できます。": "Compare all 24 navigation × arm pairs on the same layout, seed and recovery policy. After the comparison completes, select a cell in the 4-row × 6-column table to replay that trial.",
+  "未実行は失敗に含めません。比較完了後にセルを選ぶと終了地点を再生します。表は横にスクロールできます。": "Pending trials do not count as failures. After the comparison completes, select a cell to replay its endpoint. Scroll the table horizontally.",
+  "移動と腕の24組比較（横スクロール）": "24 navigation and arm pairs (scroll horizontally)",
+  "移動4組 × 腕6組 · 運搬24試行": "4 navigation × 6 arm pairs · 24 delivery trials",
+  "移動の計画 × 制御 / 腕の計画 × 制御": "Navigation planner × controller / Arm planner × controller",
+  "未実行": "Pending",
+  "評価中": "Running"
+});
+
+  const japanese = {
   "RNE Web Viewer — drag to orbit, scroll to zoom": "RNE Web Viewer — ドラッグで視点回転、スクロールで拡大",
   "WASD / arrow keys: drive · sliders: G1 joints · Reset: home": "WASD・矢印キー：移動 · スライダー：G1の関節 · リセット：初期位置",
   "Checkpoint mission": "チェックポイントミッション",

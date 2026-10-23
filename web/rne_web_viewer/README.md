@@ -604,3 +604,22 @@ node web/rne_web_viewer/replay_player.test.cjs
 python3 scripts/test_g1_replay_player_browser.py --url http://127.0.0.1:8080/ \
   --output work/replay-player-browser
 ```
+
+## Compare navigation × arm combinations
+
+Use **Compare 24 navigation × arm pairs** in delivery to evaluate all 4
+navigation methods against all 6 arm methods. Scenario, layout seed and recovery
+policy are captured once; later form edits cannot affect queued trials. Execution
+order is navigation planner/controller, then arm planner/controller.
+
+The 4-row × 6-column matrix shows each completed trial's actual result, terminal
+stage and simulated time. Pending/running trials are separate from failures.
+After all 24 complete, select a cell to replay its saved endpoint. Interrupted
+batches keep a read-only matrix, including unexecuted cells. Display filters do
+not hide matrix cells. CSV schema 3 remains unchanged and reports 24 expected
+trials; shared links support the `mobile-matrix` mode in Japanese and English.
+
+```bash
+python3 scripts/test_g1_mobile_matrix_browser.py --url http://127.0.0.1:8080/ \
+  --output work/matrix-browser
+```

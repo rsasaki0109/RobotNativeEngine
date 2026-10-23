@@ -463,7 +463,9 @@ impl App {
                     seed,
                 },
             };
-            if mobile_intent == 5 {
+            if mobile_intent == 6 {
+                self.mobile.start_matrix(config);
+            } else if mobile_intent == 5 {
                 self.mobile.start_arm_benchmark(config);
             } else if mobile_intent == 4 {
                 self.mobile.start_arm_comparison(config);

@@ -340,6 +340,7 @@ enum Comparison {
     Navigation,
     Arm,
     ArmBenchmark,
+    Matrix,
     Recovery,
 }
 impl Comparison {
@@ -352,6 +353,9 @@ impl Comparison {
                 BENCHMARK_SEEDS as usize * ARM_PLANNERS.len() * ARM_CONTROLLERS.len()
             }
             Self::Recovery => 2,
+            Self::Matrix => {
+                PLANNERS.len() * CONTROLLERS.len() * ARM_PLANNERS.len() * ARM_CONTROLLERS.len()
+            }
         }
     }
 }
@@ -362,6 +366,7 @@ pub(crate) struct MobileTask {
     records: Vec<Record>,
     comparison: Comparison,
     benchmark_config: Option<MobileConfig>,
+    matrix_config: Option<MobileConfig>,
     pub(crate) paused: bool,
     pub(crate) replay: Option<(usize, u32)>,
 }
@@ -397,6 +402,10 @@ impl MobileTask {
     pub(crate) fn start_arm_benchmark(&mut self, c: MobileConfig) {
         self.start_comparison(c, Comparison::ArmBenchmark);
     }
+    /// Compare every navigation/arm pair on one captured scene and seed.
+    pub(crate) fn start_matrix(&mut self, c: MobileConfig) {
+        self.start_comparison(c, Comparison::Matrix);
+    }
     fn start_comparison(&mut self, c: MobileConfig, comparison: Comparison) {
         self.queue.clear();
         self.records.clear();
@@ -404,7 +413,30 @@ impl MobileTask {
         self.replay = None;
         self.comparison = comparison;
         self.benchmark_config = (comparison == Comparison::ArmBenchmark).then_some(c);
-        if comparison == Comparison::Navigation {
+        self.matrix_config = (comparison == Comparison::Matrix).then_some(c);
+        if comparison == Comparison::Matrix {
+            for nav_planner in 0..PLANNERS.len() {
+                for nav_controller in 0..CONTROLLERS.len() {
+                    for planner in 0..ARM_PLANNERS.len() {
+                        for controller in 0..ARM_CONTROLLERS.len() {
+                            self.queue.push_back(MobileConfig {
+                                nav: Config {
+                                    planner: nav_planner,
+                                    controller: nav_controller,
+                                    ..c.nav
+                                },
+                                arm: ArmConfig {
+                                    planner,
+                                    controller,
+                                    ..c.arm
+                                },
+                                ..c
+                            });
+                        }
+                    }
+                }
+            }
+        } else if comparison == Comparison::Navigation {
             for planner in 0..2 {
                 for controller in 0..2 {
                     self.queue.push_back(MobileConfig {
@@ -552,7 +584,11 @@ impl MobileTask {
         )
     }
     pub(crate) fn summary_html(&self) -> String {
-        if !self.active() && self.records.is_empty() && self.benchmark_config.is_none() {
+        if !self.active()
+            && self.records.is_empty()
+            && self.benchmark_config.is_none()
+            && self.matrix_config.is_none()
+        {
             return String::new();
         }
         let expected = self.comparison.trials();
@@ -567,6 +603,7 @@ impl MobileTask {
         };
         let mut s=format!("<p>{state} · 完了 {}/{expected}試行。段階の成功率は、その段階まで到達した完了試行のみで計算します。</p>",self.records.len());
         s.push_str(&self.arm_benchmark_html());
+        s.push_str(&self.matrix_html());
         let policies: &[Option<bool>] = if self.comparison == Comparison::Recovery {
             &[Some(false), Some(true)]
         } else {
@@ -622,6 +659,58 @@ impl MobileTask {
             s.push_str("</tbody></table>");
         }
         s
+    }
+    /// Keep all method pairs visible, including pending trials in interrupted batches.
+    fn matrix_html(&self) -> String {
+        let Some(c) = self.matrix_config else {
+            return String::new();
+        };
+        let disabled = if self.queue.is_empty() && self.episode.as_ref().is_some_and(|e| e.recorded)
+        {
+            ""
+        } else {
+            " disabled"
+        };
+        let mut html = format!("<p>{} · seed {} · 再試行{}。未実行は失敗に含めません。比較完了後にセルを選ぶと終了地点を再生します。表は横にスクロールできます。</p><div class='mobile-matrix-scroll' tabindex='0' role='region' aria-label='移動と腕の24組比較（横スクロール）'><table class='mobile-matrix-table'><caption>移動4組 × 腕6組 · 運搬24試行</caption><thead><tr><th scope='col'>移動の計画 × 制御 / 腕の計画 × 制御</th>", SCENARIOS[c.scenario], c.nav.seed, if c.nav.recovery { "あり" } else { "なし" });
+        for planner in ARM_PLANNERS {
+            for controller in ARM_CONTROLLERS {
+                let _ = write!(html, "<th scope='col'>{planner} × {controller}</th>");
+            }
+        }
+        html.push_str("</tr></thead><tbody>");
+        for (nav_planner, planner) in PLANNERS.iter().enumerate() {
+            for (nav_controller, controller) in CONTROLLERS.iter().enumerate() {
+                let _ = write!(html, "<tr><th scope='row'>{planner} × {controller}</th>");
+                for arm_planner in 0..ARM_PLANNERS.len() {
+                    for arm_controller in 0..ARM_CONTROLLERS.len() {
+                        let index = (nav_planner * CONTROLLERS.len() + nav_controller)
+                            * ARM_PLANNERS.len()
+                            * ARM_CONTROLLERS.len()
+                            + arm_planner * ARM_CONTROLLERS.len()
+                            + arm_controller;
+                        if let Some(r) = self.records.get(index) {
+                            let f = r.frames.last().unwrap();
+                            let success = f.state == "成功";
+                            let stage = if success {
+                                "全4段階完了"
+                            } else {
+                                STAGES[f.stage]
+                            };
+                            let _ = write!(html, "<td data-matrix-state='{}'><button type='button' data-mobile-record='{index}' data-mobile-tick='{}'{disabled}>{} · {stage} · {:.2} s</button></td>", if success { "success" } else { "failure" }, f.tick, f.state, f64::from(f.tick) * DT);
+                        } else if index == self.records.len()
+                            && self.episode.as_ref().is_some_and(|e| !e.recorded)
+                        {
+                            html.push_str("<td data-matrix-state='running'>評価中</td>");
+                        } else {
+                            let _ = write!(html, "<td data-matrix-state='pending'>未実行</td>");
+                        }
+                    }
+                }
+                html.push_str("</tr>");
+            }
+        }
+        html.push_str("</tbody></table></div>");
+        html
     }
     /// Aggregate only completed trials; successful runs alone contribute to mean time.
     fn arm_benchmark_html(&self) -> String {
@@ -949,6 +1038,143 @@ mod tests {
         for _ in 0..1000 {
             task.advance(false);
         }
+    }
+    #[test]
+    fn full_matrix_matches_individual_trials_and_keeps_replay_evidence() {
+        let mut c = config();
+        c.arm.seed = 123;
+        let mut task = MobileTask::default();
+        task.start_matrix(c);
+        for _ in 0..5000 {
+            task.advance(false);
+        }
+        assert_eq!(task.records.len(), 24);
+        assert!(task.queue.is_empty());
+        for (index, r) in task.records.iter().enumerate() {
+            assert_eq!(
+                r.config.nav,
+                Config {
+                    planner: index / 12,
+                    controller: index / 6 % 2,
+                    ..c.nav
+                }
+            );
+            assert_eq!(
+                (
+                    r.config.arm.planner,
+                    r.config.arm.controller,
+                    r.config.arm.seed,
+                    r.config.arm.task
+                ),
+                (index % 6 / 2, index % 2, c.arm.seed, c.arm.task)
+            );
+            assert_eq!(r.config.scenario, c.scenario);
+            let initial = &r.frames[0];
+            let baseline = &task.records[0].frames[0];
+            assert_eq!(
+                (
+                    initial.pose,
+                    initial.object,
+                    &initial.joints,
+                    &initial.boxes
+                ),
+                (
+                    baseline.pose,
+                    baseline.object,
+                    &baseline.joints,
+                    &baseline.boxes
+                )
+            );
+            let mut individual = MobileTask::default();
+            individual.start(r.config, false);
+            for _ in 0..5000 {
+                individual.advance(false);
+            }
+            assert_eq!(individual.records[0].frames, r.frames);
+            if index < 12 {
+                assert_eq!(r.frames.last().unwrap().stage, 0);
+            }
+        }
+        let html = task.matrix_html();
+        assert_eq!(html.matches("scope='row'").count(), 4);
+        assert_eq!(html.matches("data-matrix-state=").count(), 24);
+        assert_eq!(html.matches("data-matrix-state='success'").count(), 6);
+        assert!(!html.contains("pending"));
+        assert!(!html.contains(" disabled"));
+        let csv = task.csv();
+        let summary = task.summary_html();
+        assert_eq!(csv.lines().count(), 25);
+        assert!(csv.contains("shelf_delivery,completed,24,24,"));
+        for index in 0..24 {
+            let tick = task.records[index].frames.last().unwrap().tick;
+            assert!(html.contains(&format!(
+                "data-mobile-record='{index}' data-mobile-tick='{tick}'"
+            )));
+            task.seek(index, tick);
+            assert_eq!(
+                task.frame().unwrap(),
+                task.records[index].frames.last().unwrap()
+            );
+            assert_eq!(task.csv(), csv);
+            assert_eq!(task.summary_html(), summary);
+        }
+    }
+    #[test]
+    fn full_matrix_pause_stop_and_pending_cells_preserve_captured_conditions() {
+        let mut c = config();
+        c.nav.seed = u32::MAX;
+        c.nav.recovery = true;
+        c.scenario = 3;
+        let mut task = MobileTask::default();
+        task.start_matrix(c);
+        assert_eq!(
+            task.matrix_html()
+                .matches("data-matrix-state='pending'")
+                .count(),
+            23
+        );
+        assert_eq!(
+            task.matrix_html()
+                .matches("data-matrix-state='running'")
+                .count(),
+            1
+        );
+        task.paused = true;
+        task.advance(false);
+        assert!(task.records.is_empty());
+        task.advance(true);
+        assert_eq!(task.records.len(), 1);
+        task.seek(0, 0);
+        assert!(task.replay.is_none());
+        for config in task
+            .queue
+            .iter()
+            .chain(task.episode.iter().map(|e| &e.config))
+        {
+            assert_eq!(config.scenario, 3);
+            assert_eq!(config.nav.seed, u32::MAX);
+            assert!(config.nav.recovery);
+            assert_eq!(config.arm.seed, c.arm.seed);
+        }
+        task.stop();
+        let html = task.matrix_html();
+        assert_eq!(html.matches("data-matrix-state='pending'").count(), 23);
+        assert_eq!(html.matches("data-matrix-state='failure'").count(), 1);
+        assert_eq!(html.matches(" disabled").count(), 1);
+        assert!(!html.contains("data-matrix-state='running'"));
+        assert!(task.summary_html().contains("中断 · 完了 1/24試行"));
+        assert!(task.csv().contains("shelf_delivery,interrupted,24,1,"));
+        task.start_matrix(c);
+        task.stop();
+        assert!(task.summary_html().contains("中断 · 完了 0/24試行"));
+        assert_eq!(
+            task.matrix_html()
+                .matches("data-matrix-state='pending'")
+                .count(),
+            24
+        );
+        task.start_arm_comparison(c);
+        assert!(task.matrix_html().is_empty());
     }
     #[test]
     fn delivery_matrix_records_real_stage_outcomes_and_continuous_payload() {

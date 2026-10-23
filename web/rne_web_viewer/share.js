@@ -6,7 +6,7 @@
     "nav-run": "experiment-run-button", "nav-compare": "experiment-compare-button",
     "arm-run": "arm-run-button", "arm-compare": "arm-compare-button", "arm-benchmark": "arm-benchmark-button",
     "mobile-run": "mobile-run-button", "mobile-compare": "mobile-compare-button", "mobile-arm": "mobile-arm-compare-button",
-    "mobile-recovery": "mobile-recovery-compare-button", "mobile-benchmark": "mobile-benchmark-button",
+    "mobile-recovery": "mobile-recovery-compare-button", "mobile-benchmark": "mobile-benchmark-button", "mobile-matrix": "mobile-matrix-button",
   };
   const MAX_BYTES = 16384;
   const error = () => { throw Error("共有リンクの形式・設定を確認してください"); };
