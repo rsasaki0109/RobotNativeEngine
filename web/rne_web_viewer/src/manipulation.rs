@@ -563,6 +563,21 @@ struct Record {
     goal: Vec3,
     blocker: Option<Vec3>,
 }
+impl Record {
+    fn time_s(&self) -> f64 {
+        f64::from(self.frames.last().unwrap().tick) * DT
+    }
+    fn movement_m(&self) -> f64 {
+        self.trace
+            .windows(2)
+            .fold(0.0, |travel, w| travel + (w[1] - w[0]).length())
+    }
+}
+
+fn csv_text(value: &str) -> String {
+    format!("\"{}\"", value.replace('"', "\"\""))
+}
+
 #[derive(Debug, Default)]
 pub(crate) struct Manipulation {
     arm: Option<Arm>,
@@ -740,6 +755,47 @@ impl Manipulation {
             }
         )
     }
+    /// Export a snapshot of completed trials, including captured conditions and units.
+    /// Empty until the first trial finishes; replay does not alter the snapshot.
+    pub(crate) fn results_csv(&self) -> String {
+        if self.records.is_empty() {
+            return String::new();
+        }
+        let expected = if self.benchmark.is_some() {
+            18
+        } else if self.batch {
+            6
+        } else {
+            1
+        };
+        let mode = if self.benchmark.is_some() {
+            "benchmark"
+        } else if self.batch {
+            "comparison"
+        } else {
+            "single"
+        };
+        let state = if self.records.len() == expected {
+            "completed"
+        } else if self.run.is_none() {
+            "interrupted"
+        } else if self.paused {
+            "paused"
+        } else {
+            "running"
+        };
+        let mut csv = String::from("schema_version,mode,batch_state,expected_trials,completed_trials,task_id,task,seed,planner_id,planner,controller_id,controller,result,time_s,hand_travel_m,final_error_m,joint_target_rmse_rad,planning_iterations\r\n");
+        for r in &self.records {
+            let c = r.config;
+            let _ = write!(csv, "1,{mode},{state},{expected},{},{},{},{},{},{},{},{},{},{:.6},{:.6},{:.6},{},{}\r\n",
+                self.records.len(), c.task, csv_text(TASKS[c.task]), c.seed,
+                c.planner, csv_text(PLANNERS[c.planner]), c.controller, csv_text(CONTROLLERS[c.controller]),
+                csv_text(r.state), r.time_s(), r.movement_m(), r.error_m,
+                r.rmse_rad.map_or_else(String::new, |v| format!("{v:.6}")),
+                r.frames.last().unwrap().iterations);
+        }
+        csv
+    }
     /// Completed trials only; averages include successful trials only.
     pub(crate) fn benchmark_html(&self) -> String {
         let Some(c) = self.benchmark else {
@@ -761,23 +817,8 @@ impl Manipulation {
                         format!("{:.2}", total / successes.len() as f64)
                     }
                 };
-                let time = mean(
-                    successes
-                        .iter()
-                        .map(|r| f64::from(r.frames.last().unwrap().tick) * DT)
-                        .sum(),
-                );
-                let movement = mean(
-                    successes
-                        .iter()
-                        .map(|r| {
-                            r.trace
-                                .windows(2)
-                                .map(|w| (w[1] - w[0]).length())
-                                .sum::<f64>()
-                        })
-                        .sum(),
-                );
+                let time = mean(successes.iter().map(|r| r.time_s()).sum());
+                let movement = mean(successes.iter().map(|r| r.movement_m()).sum());
                 let rate = if trials.is_empty() {
                     "—".into()
                 } else {
@@ -807,7 +848,7 @@ impl Manipulation {
                 r.state,
                 r.error_m,
                 r.rmse_rad.map_or_else(|| "—".into(), |v| format!("{v:.3}")),
-                f64::from(r.frames.last().unwrap().tick) * DT,
+                r.time_s(),
                 r.frames.last().unwrap().iterations
             );
         }
@@ -904,6 +945,81 @@ impl Manipulation {
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn csv_exports_captured_trials_and_preserves_results_during_replay() {
+        let mut m = Manipulation::default();
+        let config = ArmConfig {
+            task: 0,
+            planner: 2,
+            controller: 1,
+            seed: 42,
+        };
+        assert!(m.results_csv().is_empty());
+        m.start(config, false);
+        assert!(m.results_csv().is_empty());
+        for _ in 0..1801 {
+            m.advance(false);
+        }
+        assert_eq!(m.records.len(), 1);
+        let csv = m.results_csv();
+        let lines: Vec<_> = csv.lines().collect();
+        assert_eq!(lines.len(), 2);
+        let row: Vec<_> = lines[1].split(',').collect();
+        assert_eq!(row.len(), 18);
+        assert_eq!(&row[..6], &["1", "single", "completed", "1", "1", "0"]);
+        assert_eq!(row[7], "42");
+        assert_eq!(row[8], "2");
+        assert_eq!(row[10], "1");
+        assert_eq!(row[12], "\"成功\"");
+        for i in [13, 14, 15, 16] {
+            let actual = row[i].parse::<f64>().unwrap();
+            assert!(actual.is_finite() && actual >= 0.0);
+        }
+        assert!((row[13].parse::<f64>().unwrap() - m.records[0].time_s()).abs() < 1e-6);
+        assert!((row[14].parse::<f64>().unwrap() - m.records[0].movement_m()).abs() < 1e-6);
+        m.seek(0, 0);
+        m.advance(false);
+        assert_eq!(m.results_csv(), csv);
+        m.stop();
+        assert_eq!(m.results_csv(), csv);
+    }
+    #[test]
+    fn csv_exports_partial_and_failed_trials_without_inventing_metrics() {
+        let mut m = Manipulation::default();
+        let config = ArmConfig {
+            task: 3,
+            planner: 0,
+            controller: 0,
+            seed: u32::MAX,
+        };
+        m.start_benchmark(config);
+        m.paused = true;
+        m.advance(true);
+        let csv = m.results_csv();
+        assert_eq!(csv.lines().count(), 2);
+        assert!(csv
+            .lines()
+            .nth(1)
+            .unwrap()
+            .starts_with("1,benchmark,paused,18,1,3,"));
+        let row: Vec<_> = csv.lines().nth(1).unwrap().split(',').collect();
+        assert_eq!(row[13], "0.000000");
+        assert_eq!(row[14], "0.000000");
+        assert!(row[15].parse::<f64>().unwrap() > 0.0);
+        assert_eq!(row[16], "");
+        assert_eq!(row[17], "0");
+        m.stop();
+        assert!(m.results_csv().contains("benchmark,interrupted,18,1,"));
+        m.start_benchmark(config);
+        assert!(m.results_csv().is_empty());
+        m.advance(false);
+        let csv = m.results_csv();
+        assert_eq!(csv.lines().count(), 19);
+        assert_eq!(csv.matches("benchmark,completed,18,18,").count(), 18);
+        assert!(csv.lines().nth(7).unwrap().contains(",0,0,\"関節直結\""));
+        assert!(!csv.contains("NaN") && !csv.contains("inf"));
+        assert_eq!(csv_text("x,\"y\""), "\"x,\"\"y\"\"\"");
+    }
     #[test]
     fn benchmark_counts_completed_trials_and_repeats_seeded_metrics() {
         let config = ArmConfig {
