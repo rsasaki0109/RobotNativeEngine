@@ -143,24 +143,26 @@
       signal("arm-"+(action==="benchmark"?"compare":action));
     });
   }
-  for (const action of ["run","compare","pause","step","stop"]) {
+  for (const action of ["run","compare","recovery-compare","pause","step","stop"]) {
     document.getElementById("mobile-"+action+"-button").addEventListener("click",()=>{
       releaseAll();document.getElementById("mobile-replay-enabled").value="0";
-      if (action==="run" || action==="compare") {
+      if (["run","compare","recovery-compare"].includes(action)) {
         sceneEditor.close();homeTargets();signal("experiment-manual");
-        document.getElementById("mobile-intent").value=action==="compare"?"2":"1";
+        document.getElementById("mobile-intent").value=action==="recovery-compare"?"3":action==="compare"?"2":"1";
       }
       if (action==="stop") document.getElementById("mobile-intent").value="0";
-      signal("mobile-"+action);
+      signal("mobile-"+(action==="recovery-compare"?"compare":action));
     });
   }
   document.getElementById("mobile-recovery-toggle").addEventListener("change",event=>{document.getElementById("mobile-recovery").value=event.target.checked?"1":"0";});
-  document.getElementById("mobile-example-button").addEventListener("click",()=>{
-    for (const [id,value] of [["mobile-scenario","0"],["experiment-planner-select","1"],["experiment-controller-select","1"],["arm-planner","2"],["arm-controller","0"],["experiment-seed-editor","42"]]) {
+  function mobileExample(scenario,action) {
+    for (const [id,value] of [["mobile-scenario",scenario],["experiment-planner-select","1"],["experiment-controller-select","1"],["arm-planner","2"],["arm-controller","0"],["experiment-seed-editor","42"]]) {
       const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event("change",{bubbles:true}));
     }
-    document.getElementById("mobile-run-button").click();
-  });
+    document.getElementById("mobile-"+action+"-button").click();
+  }
+  document.getElementById("mobile-example-button").addEventListener("click",()=>mobileExample("0","run"));
+  document.getElementById("mobile-wait-example-button").addEventListener("click",()=>mobileExample("3","recovery-compare"));
   for (const prefix of ["arm","mobile"]) {
     document.getElementById(prefix+"-export-button").addEventListener("click",()=>{
       const csv=document.getElementById(prefix+"-export-data").textContent;
