@@ -155,6 +155,17 @@ impl G1Scene {
         self.frame_inner(input, animate, false, false, Some(pose))
     }
 
+    /// Shows a recorded kinematic pose without advancing visual gait or gestures.
+    #[cfg(any(target_arch = "wasm32", test))]
+    pub(crate) fn recorded_frame(
+        &mut self,
+        input: G1Input,
+        pose: (f64, f64, f64),
+    ) -> Result<RenderScene, String> {
+        self.playground = Playground::default();
+        self.frame_inner(input, false, false, false, Some(pose))
+    }
+
     fn frame_inner(
         &mut self,
         input: G1Input,
@@ -246,6 +257,17 @@ impl G1Scene {
             }
         }
         Ok(self.render(navigation.is_none()))
+    }
+
+    #[cfg(test)]
+    pub(crate) fn left_tool_position(&self) -> Vec3 {
+        let (_, link, _) = self
+            .joints
+            .iter()
+            .find(|(_, _, j)| j.name == "left_wrist_roll_joint")
+            .unwrap();
+        let pose = world_transform_of(&self.world, *link);
+        pose.translation + pose.rotation * Vec3::new(0.055, 0.0, 0.0)
     }
 
     /// Current course progress, distance and elapsed fixed preview ticks.
@@ -430,6 +452,28 @@ fn mesh_bytes(path: &str) -> Result<&'static [u8], String> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn recorded_pose_is_independent_of_previous_gait_and_redraw_count() {
+        let mut scene = G1Scene::load().unwrap();
+        let input = G1Input {
+            forward: 1.0,
+            turn: 0.0,
+            targets_rad: vec![0.0; scene.joint_count()],
+            reset: false,
+        };
+        for _ in 0..20 {
+            scene.play_frame(input.clone(), true, false, false).unwrap();
+        }
+        let a = scene
+            .recorded_frame(input.clone(), (1.0, 0.3, 0.5))
+            .unwrap();
+        let b = scene.recorded_frame(input, (1.0, 0.3, 0.5)).unwrap();
+        assert_eq!(
+            a.items.iter().map(|i| i.transform).collect::<Vec<_>>(),
+            b.items.iter().map(|i| i.transform).collect::<Vec<_>>()
+        );
+    }
+
     use super::*;
 
     #[test]

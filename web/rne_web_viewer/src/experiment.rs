@@ -11,6 +11,7 @@ use rne_render::{RenderScene, VisualShape};
 use rne_world::Transform3;
 use std::collections::VecDeque;
 use std::fmt::Write;
+use std::sync::Arc;
 
 const DT_S: f64 = 33_333_333.0 / 1_000_000_000.0;
 const RADIUS_M: f64 = 0.28;
@@ -34,11 +35,13 @@ pub(crate) struct Config {
     pub(crate) planner: usize,
     pub(crate) controller: usize,
     pub(crate) seed: u32,
+    pub(crate) recovery: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum State {
     Running,
+    Waiting,
     Success,
     PlanFailed,
     Collision,
@@ -49,6 +52,7 @@ impl State {
     fn label(self) -> &'static str {
         match self {
             Self::Running => "実行中",
+            Self::Waiting => "待機・再試行",
             Self::Success => "成功",
             Self::PlanFailed => "計画失敗",
             Self::Collision => "接触で停止",
@@ -119,6 +123,25 @@ fn line_free(map: &Costmap, a: Pose2d, b: Pose2d) -> bool {
     })
 }
 
+#[derive(Clone, Debug, PartialEq)]
+struct Snapshot {
+    remaining_goals: VecDeque<Pose2d>,
+    tick: u32,
+    pose: Pose2d,
+    goal: Pose2d,
+    obstacles: Vec<Obstacle>,
+    path: Arc<Path2d>,
+    state: State,
+    trace_len: usize,
+    travelled_m: f64,
+    error_sq: f64,
+    samples: u32,
+    clearance_m: f64,
+    replans: u32,
+    reached_goals: u32,
+    waiting_total: u32,
+}
+
 #[derive(Debug)]
 struct Run {
     config: Config,
@@ -131,7 +154,7 @@ struct Run {
     pending: Vec<BoxSpec>,
     scene_id: Option<String>,
     map: Costmap,
-    path: Path2d,
+    path: Arc<Path2d>,
     trace: Vec<Pose2d>,
     state: State,
     ticks: u32,
@@ -142,6 +165,9 @@ struct Run {
     min_clearance_m: f64,
     replans: u32,
     recorded: bool,
+    waiting_span: u32,
+    waiting_total: u32,
+    frames: Vec<Snapshot>,
 }
 
 impl Run {
@@ -227,7 +253,7 @@ impl Run {
             obstacles,
             pending,
             scene_id,
-            path: Path2d::from_points(&[]),
+            path: Arc::new(Path2d::from_points(&[])),
             trace: vec![Pose2d::IDENTITY],
             state: State::Running,
             ticks: 0,
@@ -238,6 +264,9 @@ impl Run {
             min_clearance_m: f64::INFINITY,
             replans: 0,
             recorded: false,
+            waiting_span: 0,
+            waiting_total: 0,
+            frames: vec![],
         };
         run.min_clearance_m = run
             .obstacles
@@ -245,11 +274,13 @@ impl Run {
             .map(|o| o.clearance(run.pose.x_m, run.pose.y_m))
             .fold(f64::INFINITY, f64::min);
         run.plan();
+        run.capture();
         run
     }
 
     fn plan(&mut self) {
-        self.path = if self.config.planner == 0 {
+        self.state = State::Running;
+        self.path = Arc::new(if self.config.planner == 0 {
             Path2d::from_points(&[point(self.pose), point(self.goal)])
         } else {
             match plan_path(
@@ -260,22 +291,125 @@ impl Run {
             ) {
                 Ok(path) => path,
                 Err(_) => {
-                    self.state = State::PlanFailed;
+                    self.state = if self.config.recovery {
+                        State::Waiting
+                    } else {
+                        State::PlanFailed
+                    };
                     return;
                 }
             }
-        };
+        });
         if self
             .path
             .waypoints()
             .windows(2)
             .any(|w| !line_free(&self.map, w[0], w[1]))
         {
-            self.state = State::PlanFailed;
+            self.state = if self.config.recovery {
+                State::Waiting
+            } else {
+                State::PlanFailed
+            };
         }
     }
 
+    fn capture(&mut self) {
+        self.frames.push(Snapshot {
+            remaining_goals: self.remaining_goals.clone(),
+            tick: self.ticks,
+            pose: self.pose,
+            goal: self.goal,
+            obstacles: self.obstacles.clone(),
+            path: self.path.clone(),
+            state: self.state,
+            trace_len: self.trace.len(),
+            travelled_m: self.travelled_m,
+            error_sq: self.error_sq,
+            samples: self.samples,
+            clearance_m: self.min_clearance_m,
+            replans: self.replans,
+            reached_goals: self.reached_goals,
+            waiting_total: self.waiting_total,
+        });
+    }
     fn tick(&mut self) {
+        if !matches!(self.state, State::Running | State::Waiting) {
+            return;
+        }
+        let previous = self.state;
+        if self.state == State::Waiting {
+            self.command = VelocityCommand2d::ZERO;
+            if self.config.task == 5 {
+                for n in 0..=4 {
+                    let y = moving_y(self.config.seed, self.ticks)
+                        + (moving_y(self.config.seed, self.ticks + 1)
+                            - moving_y(self.config.seed, self.ticks))
+                            * f64::from(n)
+                            / 4.0;
+                    let mut o = self.obstacles[0];
+                    o.y = y;
+                    let clearance = o.clearance(self.pose.x_m, self.pose.y_m);
+                    self.min_clearance_m = self.min_clearance_m.min(clearance);
+                    if clearance <= 0.0 {
+                        self.obstacles[0] = o;
+                        self.state = State::Collision;
+                        break;
+                    }
+                }
+                if self.state != State::Collision {
+                    self.obstacles[0].y = moving_y(self.config.seed, self.ticks + 1);
+                }
+            }
+            self.ticks += 1;
+            self.clock.advance(self.clock.fixed_delta());
+            self.waiting_span += 1;
+            self.waiting_total += 1;
+            let due: Vec<_> = self
+                .pending
+                .iter()
+                .filter(|o| o.appear_step <= self.ticks)
+                .map(obstacle)
+                .collect();
+            self.obstacles.extend(due);
+            self.pending.retain(|o| o.appear_step > self.ticks);
+            let clearance = self
+                .obstacles
+                .iter()
+                .map(|o| o.clearance(self.pose.x_m, self.pose.y_m))
+                .fold(f64::INFINITY, f64::min);
+            self.min_clearance_m = self.min_clearance_m.min(clearance);
+            if clearance <= 0.0 {
+                self.state = State::Collision;
+            }
+            if self.state == State::Waiting && self.waiting_span.is_multiple_of(15) {
+                self.map = make_map(&self.obstacles);
+                self.replans += 1;
+                self.plan();
+                if self.state == State::Running {
+                    self.waiting_span = 0;
+                }
+            }
+            if self.state == State::Waiting && self.waiting_span >= 300 {
+                self.state = State::PlanFailed;
+            }
+            if matches!(self.state, State::Waiting | State::Running) && self.ticks >= MAX_TICKS {
+                self.state = State::Timeout;
+            }
+        } else {
+            self.tick_running();
+            if self.state == State::Waiting {
+                self.command = VelocityCommand2d::ZERO;
+            }
+        }
+        if self.ticks.is_multiple_of(3)
+            || self.state != previous
+            || !matches!(self.state, State::Running | State::Waiting)
+        {
+            self.capture();
+        }
+    }
+    fn tick_running(&mut self) {
         if self.state != State::Running {
             return;
         }
@@ -466,6 +600,8 @@ struct Record {
     reached_goals: u32,
     trace: Vec<Pose2d>,
     batch_id: u64,
+    waiting_total: u32,
+    frames: Vec<Snapshot>,
 }
 
 #[derive(Debug, Default)]
@@ -480,11 +616,15 @@ pub(crate) struct Experiment {
     pub(crate) draft: SceneSpec,
     batch_scene: Option<SceneSpec>,
     pub(crate) editor_visible: bool,
+    replay_run: Option<Run>,
+    replay_key: Option<(usize, u32)>,
 }
 
 impl Experiment {
     pub(crate) fn start(&mut self, config: Config, batch: bool) {
         self.queue.clear();
+        self.replay_run = None;
+        self.replay_key = None;
         self.paused = false;
         self.batch = batch;
         self.batch_id = self.batch_id.wrapping_add(1);
@@ -510,6 +650,8 @@ impl Experiment {
     }
     pub(crate) fn stop(&mut self) {
         self.run = None;
+        self.replay_run = None;
+        self.replay_key = None;
         self.queue.clear();
         self.paused = false;
     }
@@ -517,19 +659,24 @@ impl Experiment {
         self.run.is_some()
     }
     pub(crate) fn advance(&mut self, step: bool) {
-        if self.paused && !step {
+        if self.replay_run.is_some() || (self.paused && !step) {
             return;
         }
         for _ in 0..if self.batch && !step { 32 } else { 1 } {
             let Some(run) = self.run.as_mut() else {
                 return;
             };
-            if run.state == State::Running {
+            if matches!(run.state, State::Running | State::Waiting) {
                 run.tick();
             }
-            if run.state != State::Running && !run.recorded {
+            if !matches!(run.state, State::Running | State::Waiting) && !run.recorded {
                 if run.trace.last().copied() != Some(run.pose) {
                     run.trace.push(run.pose);
+                }
+                if run.frames.last().is_none_or(|f| {
+                    f.tick != run.ticks || f.state != run.state || f.trace_len != run.trace.len()
+                }) {
+                    run.capture();
                 }
                 self.records.push(Record {
                     config: run.config,
@@ -544,6 +691,8 @@ impl Experiment {
                     reached_goals: run.reached_goals,
                     trace: run.trace.clone(),
                     batch_id: self.batch_id,
+                    waiting_total: run.waiting_total,
+                    frames: run.frames.clone(),
                 });
                 if self.records.len() > 12 {
                     self.records.remove(0);
@@ -559,17 +708,90 @@ impl Experiment {
             }
         }
     }
+    fn view(&self) -> Option<&Run> {
+        self.replay_run.as_ref().or(self.run.as_ref())
+    }
+    pub(crate) fn replaying(&self) -> bool {
+        self.replay_run.is_some()
+    }
+    pub(crate) fn clear_replay(&mut self) {
+        self.replay_run = None;
+        self.replay_key = None;
+    }
+    pub(crate) fn replay_options(&self) -> String {
+        if !self.queue.is_empty() || !self.run.as_ref().is_some_and(|r| r.recorded) {
+            return String::new();
+        }
+        self.records
+            .iter()
+            .enumerate()
+            .map(|(i, r)| {
+                format!(
+                    "<option value='{i}' data-times='{}'>{} · {} × {}</option>",
+                    r.frames
+                        .iter()
+                        .map(|f| f.tick.to_string())
+                        .collect::<Vec<_>>()
+                        .join(","),
+                    TASKS[r.config.task],
+                    PLANNERS[r.config.planner],
+                    CONTROLLERS[r.config.controller]
+                )
+            })
+            .collect()
+    }
+    pub(crate) fn seek_replay(&mut self, index: usize, tick: u32) {
+        if self.replay_key == Some((index, tick))
+            || !self.queue.is_empty()
+            || !self.run.as_ref().is_some_and(|r| r.recorded)
+        {
+            return;
+        }
+        let Some(record) = self.records.get(index) else {
+            return;
+        };
+        let Some(f) = record
+            .frames
+            .iter()
+            .rev()
+            .find(|f| f.tick <= tick)
+            .or_else(|| record.frames.first())
+        else {
+            return;
+        };
+        let mut r = Run::with_scene(record.config, None);
+        r.pose = f.pose;
+        r.goal = f.goal;
+        r.remaining_goals = f.remaining_goals.clone();
+        r.scene_id = record.scene_id.clone();
+        r.obstacles = f.obstacles.clone();
+        r.path = f.path.clone();
+        r.state = f.state;
+        r.ticks = f.tick;
+        r.trace = record.trace[..f.trace_len.min(record.trace.len())].to_vec();
+        r.clock = SimClock::new(SimDuration::from_ticks(33_333_333));
+        r.clock
+            .advance(SimDuration::from_ticks(u64::from(f.tick) * 33_333_333));
+        r.travelled_m = f.travelled_m;
+        r.error_sq = f.error_sq;
+        r.samples = f.samples;
+        r.min_clearance_m = f.clearance_m;
+        r.replans = f.replans;
+        r.reached_goals = f.reached_goals;
+        r.waiting_total = f.waiting_total;
+        self.replay_run = Some(r);
+        self.replay_key = Some((index, tick));
+    }
     pub(crate) fn pose(&self) -> Option<(f64, f64, f64)> {
-        self.run
-            .as_ref()
+        self.view()
             .map(|r| (r.pose.x_m, -r.pose.y_m, r.pose.yaw_rad))
             .or_else(|| self.editor_visible.then_some((0.0, 0.0, 0.0)))
     }
     pub(crate) fn full_map(&self) -> bool {
-        self.run.as_ref().is_some_and(|r| r.config.task >= 3)
+        self.view().is_some_and(|r| r.config.task >= 3)
     }
     pub(crate) fn status(&self) -> String {
-        let Some(r) = &self.run else {
+        let Some(r) = self.view() else {
             return if self.editor_visible {
                 "シーン編集中 · 編集を終えて選択条件で実行"
             } else {
@@ -582,7 +804,11 @@ impl Experiment {
             TASKS[r.config.task],
             PLANNERS[r.config.planner],
             CONTROLLERS[r.config.controller],
-            r.state.label(),
+            if self.replay_run.is_some() {
+                "リプレイ"
+            } else {
+                r.state.label()
+            },
             if self.paused {
                 "（一時停止）"
             } else {
@@ -594,15 +820,16 @@ impl Experiment {
         )
     }
     pub(crate) fn metrics(&self) -> String {
-        let Some(r) = &self.run else {
+        let Some(r) = self.view() else {
             return "青＝計画 / 緑＝実軌跡 / 橙＝障害物".into();
         };
         format!(
-            "目標まで {:.2} m · 追従RMSE {} m · 移動 {:.2} m · 最小余裕 {} m",
+            "目標まで {:.2} m · 追従RMSE {} m · 移動 {:.2} m · 最小余裕 {} m · 待機 {:.2} s",
             distance(r.pose, r.goal),
             number(r.rmse()),
             r.travelled_m,
-            number(r.min_clearance_m.is_finite().then_some(r.min_clearance_m))
+            number(r.min_clearance_m.is_finite().then_some(r.min_clearance_m)),
+            f64::from(r.waiting_total) * DT_S
         )
     }
     pub(crate) fn results_html(&self) -> String {
@@ -614,7 +841,13 @@ impl Experiment {
                 .as_ref()
                 .map_or_else(String::new, |id| format!("<br>scene {}", &id[..8]));
             let color = trace_color(r.config);
-            let _ = write!(html, "<tr><td title='{}'>{tag}<br>seed {}{scene_tag}</td><td><details><summary><span style='color:{color}'>●</span> {}<br>{}</summary><p>移動 {:.2} m<br>最小余裕 {} m<br>計画 {:.2} m<br>再計画 {}回<br>到達 {}地点</p></details></td><td>{}</td><td>{:.2}</td><td>{}</td><td>{:.2}</td><td>{}</td></tr>",
+            let recovery = if r.config.recovery {
+                "待機あり"
+            } else {
+                "即時終了"
+            };
+            let wait_s = f64::from(r.waiting_total) * DT_S;
+            let _ = write!(html, "<tr><td title='{}'>{tag}<br>seed {}{scene_tag}<br>{recovery}</td><td><details><summary><span style='color:{color}'>●</span> {}<br>{}</summary><p>移動 {:.2} m<br>最小余裕 {} m<br>計画 {:.2} m<br>再計画 {}回<br>到達 {}地点<br>待機 {wait_s:.2} s</p></details></td><td>{}</td><td>{:.2}</td><td>{}</td><td>{:.2}</td><td>{}</td></tr>",
                 TASKS[r.config.task], r.config.seed, PLANNERS[r.config.planner], CONTROLLERS[r.config.controller],
                 r.travelled_m, number(r.clearance_m.is_finite().then_some(r.clearance_m)), r.planned_m, r.replans, r.reached_goals,
                 r.state.label(), r.elapsed_s, number(r.rmse_m), r.travelled_m, number(r.clearance_m.is_finite().then_some(r.clearance_m)));
@@ -622,7 +855,7 @@ impl Experiment {
         html
     }
     pub(crate) fn map_svg(&self) -> String {
-        let Some(r) = &self.run else {
+        let Some(r) = self.view() else {
             return String::new();
         };
         let mut svg = String::from("<rect x='-4' y='-4' width='8' height='8' fill='#101d28'/>");
@@ -647,14 +880,15 @@ impl Experiment {
             svg.push_str("'/>");
         };
         line(r.path.waypoints(), "#68bfff");
-        if self.batch {
+        if self.batch && self.replay_run.is_none() {
             for record in self.records.iter().filter(|record| {
                 record.batch_id == self.batch_id && self.trace_visible(record.config)
             }) {
                 line(&record.trace, trace_color(record.config));
             }
         }
-        if (!r.recorded || !self.batch) && self.trace_visible(r.config) {
+        if (!r.recorded || !self.batch || self.replay_run.is_some()) && self.trace_visible(r.config)
+        {
             line(&r.trace, trace_color(r.config));
         }
         for (i, goal) in r.remaining_goals.iter().enumerate() {
@@ -694,7 +928,7 @@ impl Experiment {
         )
     }
     pub(crate) fn overlay(&self, scene: &mut RenderScene) {
-        let Some(r) = &self.run else {
+        let Some(r) = self.view() else {
             if self.editor_visible {
                 for spec in &self.draft.obstacles {
                     draw_obstacle(scene, obstacle(spec), spec.appear_step > 0);
@@ -714,14 +948,15 @@ impl Experiment {
             ));
         }
         draw_trace(scene, r.path.waypoints(), [0.1, 0.5, 1.0, 1.0]);
-        if self.batch {
+        if self.batch && self.replay_run.is_none() {
             for record in self.records.iter().filter(|record| {
                 record.batch_id == self.batch_id && self.trace_visible(record.config)
             }) {
                 draw_trace(scene, &record.trace, trace_rgba(record.config));
             }
         }
-        if (!self.batch || !r.recorded) && self.trace_visible(r.config) {
+        if (!self.batch || !r.recorded || self.replay_run.is_some()) && self.trace_visible(r.config)
+        {
             draw_trace(scene, &r.trace, trace_rgba(r.config));
         }
         for goal in &r.remaining_goals {
@@ -843,12 +1078,79 @@ mod tests {
     fn complete(config: Config) -> Run {
         let mut r = Run::new(config);
         for _ in 0..MAX_TICKS + 1 {
-            if r.state != State::Running {
+            if !matches!(r.state, State::Running | State::Waiting) {
                 break;
             }
             r.tick();
         }
         r
+    }
+    #[test]
+    fn recovery_advances_time_retries_and_replay_preserves_measured_results() {
+        let mut run = Run::new(Config {
+            task: 5,
+            recovery: true,
+            seed: 42,
+            ..Config::default()
+        });
+        for _ in 0..MAX_TICKS + 1 {
+            if !matches!(run.state, State::Running | State::Waiting) {
+                break;
+            }
+            run.tick();
+        }
+        println!(
+            "recovery moving: {:?}, wait {}, ticks {}, x {}",
+            run.state, run.waiting_total, run.ticks, run.pose.x_m
+        );
+        assert!(run.waiting_total > 0);
+        assert_eq!(run.state, State::Success);
+        assert_ne!(run.state, State::Waiting);
+        assert!(run.ticks <= MAX_TICKS);
+        let blocked = complete(Config {
+            task: 1,
+            recovery: true,
+            ..Config::default()
+        });
+        assert_eq!(blocked.state, State::PlanFailed);
+        assert_eq!(blocked.waiting_total, 300);
+        assert_eq!(blocked.ticks, 300);
+        assert_eq!(blocked.travelled_m, 0.0);
+        let mut e = Experiment::default();
+        e.start(
+            Config {
+                task: 5,
+                recovery: true,
+                seed: 42,
+                ..Config::default()
+            },
+            true,
+        );
+        for _ in 0..MAX_TICKS {
+            e.advance(false);
+            if e.records.len() == 4 {
+                break;
+            }
+        }
+        assert_eq!(e.records.len(), 4);
+        assert!(!e.replay_options().is_empty());
+        let records = e.records.clone();
+        e.seek_replay(0, 0);
+        assert!(e.replaying());
+        assert_eq!(e.view().unwrap().ticks, 0);
+        assert_eq!(e.pose(), Some((0.0, 0.0, 0.0)));
+        let final_tick = records[0].frames.last().unwrap().tick;
+        e.seek_replay(0, final_tick);
+        assert_eq!(
+            e.view().unwrap().obstacles,
+            records[0].frames.last().unwrap().obstacles
+        );
+        let scene = e.map_svg();
+        e.advance(false);
+        assert_eq!(scene, e.map_svg());
+        assert_eq!(e.records, records);
+        e.clear_replay();
+        assert!(e.replay_run.is_none());
     }
     #[test]
     fn navigation_method_matrix_has_real_outcomes_and_reproducible_results() {
@@ -859,6 +1161,7 @@ mod tests {
                     controller,
                     seed: 42,
                     task: 0,
+                    recovery: false,
                 };
                 let a = complete(c);
                 let b = complete(c);
@@ -882,6 +1185,7 @@ mod tests {
                 planner: 1,
                 controller: 1,
                 seed: 42,
+                recovery: false,
             });
             assert_eq!(
                 r.state,
@@ -989,6 +1293,7 @@ mod tests {
                 planner: 1,
                 controller: 1,
                 seed: 42,
+                recovery: false,
             };
             let a = complete(config);
             let b = complete(config);
@@ -1103,6 +1408,7 @@ mod tests {
                             task,
                             planner,
                             controller,
+                            recovery: false,
                         };
                         let r = complete(c);
                         assert_ne!(r.state, State::Running, "{c:?}");

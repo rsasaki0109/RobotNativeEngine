@@ -72,6 +72,11 @@
     }
   }
   function signal(id) {
+    if (["experiment-run","experiment-compare","experiment-manual"].includes(id)) {
+      document.getElementById("nav-replay-enabled").value="0";
+      document.getElementById("arm-replay-enabled").value="0";
+      document.getElementById("arm-intent").value="0";
+    }
     const intent = {"experiment-manual": "0", "experiment-run": "1", "experiment-compare": "2"}[id];
     if (intent !== undefined) document.getElementById("experiment-intent").value = intent;
     const counter = document.getElementById(id);
@@ -90,7 +95,7 @@
     "応用 · 2秒後に通路を塞ぎます。再計画と停止・迂回の挙動に注目。",
     "自由設定 · 編集した同じシーンで4組を比較します。",
     "中級 · 幅0.96mの通路。追従誤差と障害物までの最小余裕を比較。",
-    "難関 · 障害物が0.4m/sで往復。現在位置を使って3Hzで再計画します。未来位置の予測は含みません。",
+    "難関 · 障害物が0.4m/sで往復。現在位置を使って3Hzで再計画します。待機設定で再試行できます。未来位置の予測は含みません。",
     "中級 · U字の壁から一度遠回りして脱出。大域的な迂回計画に注目。",
     "中級 · 番号順に3地点を巡回。目標の切替と曲がり角の追従を比較。"
   ];
@@ -115,6 +120,7 @@
   for (const action of ["run", "pause", "step", "compare", "manual"]) {
     document.getElementById("experiment-" + action + "-button").addEventListener("click", () => {
       releaseAll();
+      document.getElementById("nav-replay-enabled").value="0";
       if (action === "run" || action === "compare") { homeTargets(); sceneEditor.close(); }
       if (action === "manual") sceneEditor.close();
       signal("experiment-" + action);
@@ -123,6 +129,28 @@
   document.getElementById("experiment-results-button").addEventListener("click", () => {
     document.querySelector(".experiment-results").scrollIntoView({ block: "nearest" });
   });
+  document.getElementById("experiment-recovery-toggle").addEventListener("change",event=>{document.getElementById("experiment-recovery").value=event.target.checked?"1":"0";});
+  for (const action of ["run","compare","pause","step","stop"]) {
+    document.getElementById("arm-"+action+"-button").addEventListener("click",()=>{
+      releaseAll();document.getElementById("arm-replay-enabled").value="0";
+      if (action==="run" || action==="compare") {
+        sceneEditor.close();homeTargets();signal("experiment-manual");
+        document.getElementById("arm-intent").value=action==="compare"?"2":"1";
+      }
+      if (action==="stop") document.getElementById("arm-intent").value="0";
+      signal("arm-"+action);
+    });
+  }
+  for (const prefix of ["nav","arm"]) {
+    const select=document.getElementById(prefix+"-replay-record"), slider=document.getElementById(prefix+"-replay-frame"), enabled=document.getElementById(prefix+"-replay-enabled");
+    let times=[0];
+    const show=()=>{const tick=times[Number(slider.value)]||0;document.getElementById(prefix+"-replay-tick").value=String(tick);document.getElementById(prefix+"-replay-time").value=(tick/30).toFixed(2)+" s";};
+    const configure=()=>{const option=select.selectedOptions[0];times=option?option.dataset.times.split(",").map(Number):[0];slider.disabled=!option;slider.max=String(times.length-1);slider.value="0";show();};
+    new MutationObserver(()=>{enabled.value="0";configure();}).observe(select,{childList:true});
+    select.addEventListener("change",()=>{configure();enabled.value="1";});
+    slider.addEventListener("input",()=>{enabled.value="1";show();});
+    document.getElementById(prefix+"-replay-exit").addEventListener("click",()=>{enabled.value="0";});
+  }
   function takeManualControl() {
     sceneEditor.close();
     if (document.getElementById("playground").dataset.experimentActive === "true") signal("experiment-manual");
