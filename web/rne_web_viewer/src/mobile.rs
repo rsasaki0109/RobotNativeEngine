@@ -9,7 +9,12 @@ use rne_render::{RenderScene, VisualShape};
 use rne_world::Transform3;
 use std::{collections::VecDeque, fmt::Write, sync::Arc};
 
-const SCENARIOS: [&str; 3] = ["標準の運搬", "把持後に運搬経路が閉鎖", "配置棚が到達範囲外"];
+const SCENARIOS: [&str; 4] = [
+    "標準の運搬",
+    "把持後に運搬経路が閉鎖",
+    "配置棚が到達範囲外",
+    "運搬経路が5秒後に開通",
+];
 const DT: f64 = 1.0 / 30.0;
 const STAGES: [&str; 4] = [
     "棚へ移動・整列",
@@ -44,6 +49,9 @@ struct Frame {
     hand_travel_m: f64,
     path: Arc<Vec<Vec3>>,
     boxes: Arc<Vec<(Vec3, Vec3)>>,
+    waiting: bool,
+    waiting_ticks: u32,
+    retries: u32,
 }
 
 #[derive(Debug)]
@@ -88,7 +96,10 @@ impl Episode {
             (Vec3::new(0.7, 0.3, 0.0), Vec3::new(0.11, 0.3, 0.275)),
         ];
         let nav = NavigationLeg::new(
-            config.nav,
+            Config {
+                recovery: false,
+                ..config.nav
+            },
             (0.0, 0.0, 0.0),
             (PICK_DOCK.0, PICK_DOCK.1),
             obstacles.clone(),
@@ -105,6 +116,9 @@ impl Episode {
             stage_ticks: [0; 4],
             base_travel_m: 0.0,
             hand_travel_m: 0.0,
+            waiting: false,
+            waiting_ticks: 0,
+            retries: 0,
             path: Arc::new(nav.path()),
             boxes: Arc::new(vec![(
                 Vec3::new(0.7, 0.3, 0.0),
@@ -124,6 +138,20 @@ impl Episode {
             recorded: false,
         }
     }
+    fn navigation_obstacles(&self) -> Vec<BoxSpec> {
+        let extra = (self.arm.envelope_m() - 0.28).max(0.0);
+        self.frame
+            .boxes
+            .iter()
+            .map(|(center, half)| BoxSpec {
+                x_m: center.x,
+                z_m: center.z,
+                width_m: half.x * 2.0 + 2.0 * extra,
+                depth_m: half.z * 2.0 + 2.0 * extra,
+                appear_step: 0,
+            })
+            .collect()
+    }
     fn tick(&mut self) {
         if self.frame.state != "実行中" {
             return;
@@ -132,8 +160,23 @@ impl Episode {
         self.frame.tick += 1;
         self.frame.stage_ticks[self.frame.stage] += 1;
         if self.frame.stage == 0 || self.frame.stage == 2 {
+            if self.frame.stage == 2
+                && self.config.scenario == 3
+                && self.frame.stage_ticks[2] == 150
+            {
+                Arc::make_mut(&mut self.frame.boxes).truncate(1);
+                self.surfaces.truncate(3);
+                self.nav.replace_obstacles(self.navigation_obstacles());
+            }
             if !self.docking {
                 self.nav.tick();
+                let (waiting, ticks, retries) = self.nav.recovery_progress();
+                self.frame.waiting = waiting;
+                self.frame.waiting_ticks = ticks;
+                if retries != self.frame.retries {
+                    self.frame.path = Arc::new(self.nav.path());
+                }
+                self.frame.retries = retries;
                 self.frame.pose = self.nav.pose();
                 match self.nav.outcome() {
                     Some(Ok(())) => self.docking = true,
@@ -182,7 +225,7 @@ impl Episode {
                     } else {
                         self.frame.stage = 2;
                         self.docking = false;
-                        if self.config.scenario == 1 {
+                        if self.config.scenario == 1 || self.config.scenario == 3 {
                             // The gate closes only after the object has been grasped and lifted.
                             // Store geometry in the frame so earlier replay snapshots stay open.
                             for z in [-2.4, 0.0, 2.4] {
@@ -191,19 +234,7 @@ impl Episode {
                                 self.surfaces.push(barrier);
                             }
                         }
-                        let extra = (self.arm.envelope_m() - 0.28).max(0.0);
-                        let obstacles = self
-                            .frame
-                            .boxes
-                            .iter()
-                            .map(|(center, half)| BoxSpec {
-                                x_m: center.x,
-                                z_m: center.z,
-                                width_m: half.x * 2.0 + 2.0 * extra,
-                                depth_m: half.z * 2.0 + 2.0 * extra,
-                                appear_step: 0,
-                            })
-                            .collect();
+                        let obstacles = self.navigation_obstacles();
                         self.nav = NavigationLeg::new(
                             self.config.nav,
                             self.frame.pose,
@@ -211,6 +242,7 @@ impl Episode {
                             obstacles,
                         );
                         self.frame.path = Arc::new(self.nav.path());
+                        self.frame.waiting = self.nav.recovery_progress().0;
                     }
                 }
                 Some(Ok(())) => {
@@ -238,6 +270,8 @@ impl Episode {
         if self.frame.tick.is_multiple_of(3)
             || old.stage != self.frame.stage
             || old.attached != self.frame.attached
+            || old.waiting != self.frame.waiting
+            || !Arc::ptr_eq(&old.boxes, &self.frame.boxes)
             || self.frame.state != "実行中"
         {
             self.frames.push(self.frame.clone());
@@ -357,20 +391,26 @@ impl MobileTask {
             .and_then(|(i, _)| self.records.get(i).map(|r| r.config))
             .unwrap_or(self.episode.as_ref().unwrap().config);
         format!(
-            "{} · {} · {} · {:.2} s · {}{}",
+            "{} · {} · {} · {:.2} s · {} · 待機 {:.2} s · 再試行 {}回{}",
             SCENARIOS[c.scenario],
             if f.stage == 4 {
                 "全4段階完了"
             } else {
                 STAGES[f.stage]
             },
-            f.state,
+            if f.waiting {
+                "待機・再試行"
+            } else {
+                f.state
+            },
             f64::from(f.tick) * DT,
             if f.attached {
                 "物体保持中"
             } else {
                 "未保持"
             },
+            f64::from(f.waiting_ticks) * DT,
+            f.retries,
             if self.replay.is_some() {
                 " · リプレイ"
             } else if self.paused {
@@ -459,7 +499,7 @@ impl MobileTask {
                     }
                 })
                 .collect();
-            let _=write!(html,"<tr><td>{} · {} × {} · 腕 {} × {} · seed {}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2}</td><td>{:.3}</td></tr>",SCENARIOS[r.config.scenario],PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f.base_travel_m,(f.object-r.place).length());
+            let _=write!(html,"<tr><td>{} · {} × {} · 腕 {} × {} · seed {} · 再試行{}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2}</td><td>{:.3}</td></tr>",SCENARIOS[r.config.scenario],PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,if r.config.nav.recovery {"あり"} else {"なし"},f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f.base_travel_m,(f.object-r.place).length());
         }
         html
     }
@@ -490,7 +530,7 @@ impl MobileTask {
         if self.records.is_empty() {
             return String::new();
         }
-        let mut csv=String::from("schema_version,task,batch_state,expected_trials,completed_trials,seed,nav_planner,nav_controller,arm_planner,arm_controller,result,completed_stages,approach_s,grasp_s,carry_s,place_s,total_s,base_travel_m,hand_travel_m,final_error_m,scenario_id,scenario\r\n");
+        let mut csv=String::from("schema_version,task,batch_state,expected_trials,completed_trials,seed,nav_planner,nav_controller,arm_planner,arm_controller,result,completed_stages,approach_s,grasp_s,carry_s,place_s,total_s,base_travel_m,hand_travel_m,final_error_m,scenario_id,scenario,recovery,waiting_s,retries\r\n");
         let expected = if self.batch { 4 } else { 1 };
         let state = if self.records.len() == expected {
             "completed"
@@ -517,7 +557,7 @@ impl MobileTask {
                 .collect();
             let _ = write!(
                 csv,
-                "2,shelf_delivery,{state},{expected},{},{},{},{},{},{},{},{},{},{:.6},{:.6},{:.6},{:.6},{},{}\r\n",
+                "3,shelf_delivery,{state},{expected},{},{},{},{},{},{},{},{},{},{:.6},{:.6},{:.6},{:.6},{},{},{},{:.6},{}\r\n",
                 self.records.len(),
                 r.config.nav.seed,
                 r.config.nav.planner,
@@ -532,7 +572,10 @@ impl MobileTask {
                 f.hand_travel_m,
                 (f.object - r.place).length(),
                 r.config.scenario,
-                SCENARIOS[r.config.scenario]
+                SCENARIOS[r.config.scenario],
+                r.config.nav.recovery,
+                f64::from(f.waiting_ticks)*DT,
+                f.retries
             );
         }
         csv
@@ -662,7 +705,7 @@ mod tests {
         assert_eq!(summary.matches("100%").count(), 3);
         assert_eq!(task.csv().lines().count(), 5);
         for row in task.csv().lines().skip(1) {
-            assert_eq!(row.split(',').count(), 22);
+            assert_eq!(row.split(',').count(), 25);
         }
     }
     #[test]
@@ -824,8 +867,8 @@ mod tests {
             assert_eq!(csv.lines().count(), 5);
             for row in csv.lines().skip(1) {
                 let columns: Vec<_> = row.split(',').collect();
-                assert_eq!(columns.len(), 22);
-                assert_eq!(columns[0], "2");
+                assert_eq!(columns.len(), 25);
+                assert_eq!(columns[0], "3");
                 assert_eq!(columns[20], scenario.to_string());
             }
             let first = task.records[2].frames.first().unwrap().clone();
@@ -850,6 +893,120 @@ mod tests {
             for (a, b) in task.records.iter().zip(&repeat.records) {
                 assert_eq!(a.frames, b.frames);
             }
+        }
+    }
+    #[test]
+    fn temporary_closure_requires_recovery_and_resumes_without_payload_motion_while_waiting() {
+        for recovery in [false, true] {
+            let mut c = config();
+            c.scenario = 3;
+            c.nav.recovery = recovery;
+            let mut task = MobileTask::default();
+            task.start(c, true);
+            finish(&mut task);
+            assert_eq!(task.records.len(), 4);
+            for (i, r) in task.records.iter().enumerate() {
+                let end = r.frames.last().unwrap();
+                if i < 2 {
+                    assert_eq!(end.stage, 0);
+                    assert_eq!(end.waiting_ticks, 0);
+                    continue;
+                }
+                if !recovery {
+                    assert_eq!(end.stage, 2);
+                    assert_eq!(end.state, "計画失敗");
+                    assert_eq!(end.boxes.len(), 4);
+                    continue;
+                }
+                assert_eq!(end.state, "成功");
+                assert_eq!(end.stage, 4);
+                assert_eq!(end.waiting_ticks, 150);
+                assert_eq!(end.retries, 10);
+                let waits: Vec<_> = r.frames.iter().filter(|f| f.waiting).collect();
+                assert!(waits.len() > 10);
+                for f in &waits {
+                    assert!(f.attached);
+                    assert_eq!(f.pose, waits[0].pose);
+                    assert_eq!(f.object, waits[0].object);
+                    assert_eq!(f.joints, waits[0].joints);
+                    assert_eq!(f.boxes.len(), 4);
+                }
+                let opened = r
+                    .frames
+                    .iter()
+                    .find(|f| f.stage == 2 && !f.waiting && f.waiting_ticks == 150)
+                    .unwrap();
+                assert_eq!(opened.boxes.len(), 1);
+                assert!(!opened.path.is_empty());
+            }
+            let csv = task.csv();
+            for row in csv.lines().skip(1) {
+                let columns: Vec<_> = row.split(',').collect();
+                assert_eq!(columns.len(), 25);
+                assert_eq!(columns[22], recovery.to_string());
+            }
+            if recovery {
+                assert!(csv.contains(",true,5.000000,10"));
+            }
+        }
+    }
+    #[test]
+    fn recovery_pause_replay_and_permanent_closure_have_bounded_waits() {
+        let mut c = config();
+        c.scenario = 3;
+        c.nav.recovery = true;
+        c.nav.controller = 1;
+        let mut task = MobileTask::default();
+        task.start(c, false);
+        for _ in 0..3000 {
+            if task.frame().unwrap().waiting {
+                break;
+            }
+            task.advance(false);
+        }
+        assert!(task.frame().unwrap().waiting);
+        let start = task.frame().unwrap().clone();
+        task.paused = true;
+        for _ in 0..300 {
+            task.advance(false);
+        }
+        assert_eq!(task.frame().unwrap(), &start);
+        task.advance(true);
+        assert_eq!(task.frame().unwrap().waiting_ticks, 1);
+        assert_eq!(task.frame().unwrap().boxes.len(), 4);
+        task.paused = false;
+        for _ in 0..4000 {
+            task.advance(false);
+        }
+        assert_eq!(task.records[0].frames.last().unwrap().state, "成功");
+        let csv = task.csv();
+        let frames = task.records[0].frames.clone();
+        for f in frames
+            .iter()
+            .filter(|f| f.waiting || f.waiting_ticks == 150)
+            .step_by(7)
+        {
+            task.seek(0, f.tick);
+            assert_eq!(task.frame().unwrap(), f);
+            task.advance(false);
+            assert_eq!(task.csv(), csv);
+        }
+        let mut repeat = MobileTask::default();
+        repeat.start(c, false);
+        for _ in 0..7201 {
+            repeat.advance(false);
+        }
+        assert_eq!(task.records[0].frames, repeat.records[0].frames);
+        c.scenario = 1;
+        task.start(c, true);
+        finish(&mut task);
+        for r in &task.records[2..] {
+            let f = r.frames.last().unwrap();
+            assert_eq!(f.state, "計画失敗");
+            assert_eq!(f.waiting_ticks, 300);
+            assert_eq!(f.retries, 20);
+            assert_eq!(f.stage, 2);
+            assert!(f.attached);
         }
     }
     #[test]

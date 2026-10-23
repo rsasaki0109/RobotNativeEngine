@@ -441,13 +441,13 @@ impl App {
             let seed = value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32;
             self.mobile.start(
                 MobileConfig {
-                    scenario: (value("mobile-scenario")? as usize).min(2),
+                    scenario: (value("mobile-scenario")? as usize).min(3),
                     nav: Config {
                         task: 3,
                         planner: (value("experiment-planner")? as usize).min(1),
                         controller: (value("experiment-controller")? as usize).min(1),
                         seed,
-                        recovery: false,
+                        recovery: value("mobile-recovery")? == 1.0,
                     },
                     arm: ArmConfig {
                         task: 1,
