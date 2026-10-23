@@ -6,6 +6,7 @@
     <title>RNE G1 Playground</title>
     <link data-trunk rel="rust" data-wasm-opt="0" />
     <link data-trunk rel="copy-file" href="controls.js" />
+    <link data-trunk rel="copy-file" href="method_guide.js" />
     <link data-trunk rel="copy-file" href="i18n.js" />
     <link data-trunk rel="copy-file" href="share.js" />
     <link data-trunk rel="copy-file" href="result_filters.js" />
@@ -209,6 +210,11 @@
       #experiment-map { width: 100%; height: 180px; display: block; border: 1px solid #385061; border-radius: 4px; }
       .trace-legend { display: grid; grid-template-columns: 1fr 1fr; font-size: 12px; }
       .experiment-results { overflow-x: auto; }
+      #method-guide { margin: 10px 0; border-top: 1px solid #385061; padding-top: 8px; }
+      #method-guide h3 { margin: 12px 0 6px; }
+      #experiment-panel .method-card { display: grid; gap: 5px; width: 100%; margin: 6px 0; text-align: left; }
+      #experiment-panel .method-card[aria-pressed=true] { border-color: #8fe3c9; background: #183d36; }
+      .method-selected { color: #b0f5d6; }
       #experiment-panel.comparison-wide { left: 12px; right: 12px; width: auto; z-index: 10; }
       #mobile-matrix-view-tools { position: sticky; top: 22px; z-index: 4; padding: 6px 0; background: #0c1822; }
       #mobile-matrix-view-hint { margin-left: 8px; }
@@ -303,6 +309,11 @@
       <p id="demo-launch-status" role="status">エンジンの準備を待っています。</p>
       <a id="demo-result-link" href="#experiment-status" hidden>選んだデモの進行・結果へ</a>
       <p>移動・腕・運搬の計画と制御を比較。青＝現在の計画。実軌跡は手法別に色分け。</p>
+      <details id="method-guide"><summary>手法のしくみ・見るポイント</summary>
+        <p>次に実行する設定の解説です。カードを選んでも実行は始まりません。実行中の条件とリプレイは変わりません。</p>
+        <p>比較ボタンは対象の手法を総当たりします。実行中の条件は開始時に固定されています。</p>
+        <div id="method-guide-content"></div>
+      </details>
       <details id="share-panel"><summary>比較条件をリンクで共有</summary>
         <p>次回実行の設定を共有します。実行結果は含みません。カスタムシーンの配置も保存し、開いた人は開始ボタンで再現できます。</p>
         <label>共有する実行モード<select id="share-mode">
@@ -355,6 +366,7 @@
       <input id="scene-floor-click" type="hidden" value="0"><input id="scene-click-x" type="hidden" value="0"><input id="scene-click-y" type="hidden" value="0"><span id="scene-floor-result" hidden></span>
       <input id="experiment-seed" type="hidden" value="42">
       <input id="experiment-task" type="hidden" value="0"><input id="experiment-planner" type="hidden" value="0"><input id="experiment-controller" type="hidden" value="0">
+      <button type="button" data-method-guide-open="experiment-planner-select" aria-controls="method-guide">移動の手法を解説</button>
       <input id="experiment-intent" type="hidden" value="0">
       <input id="experiment-run" type="hidden" value="0"><input id="experiment-pause" type="hidden" value="0"><input id="experiment-step" type="hidden" value="0"><input id="experiment-compare" type="hidden" value="0"><input id="experiment-manual" type="hidden" value="0">
       <div class="experiment-buttons">
@@ -400,6 +412,7 @@
           <button type="button" id="arm-benchmark-button">3 seedで18試行</button>
           <button type="button" id="arm-pause-button" aria-pressed="false">一時停止</button><button type="button" id="arm-step-button">1ステップ</button><button type="button" id="arm-stop-button">腕を終了</button>
         </div>
+        <button type="button" data-method-guide-open="arm-planner" aria-controls="method-guide">腕の手法を解説</button>
         <input type="hidden" id="arm-run" value="0"><input type="hidden" id="arm-compare" value="0"><input type="hidden" id="arm-pause" value="0"><input type="hidden" id="arm-step" value="0"><input type="hidden" id="arm-stop" value="0"><input type="hidden" id="arm-intent" value="0">
         <div id="arm-benchmark" class="experiment-results" aria-live="polite"></div>
         <button type="button" id="arm-export-button" disabled>腕の結果をCSV保存</button><span id="arm-export-data" hidden></span>
@@ -580,12 +593,13 @@
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
     </details>
-    <script src="i18n.js?v=matrix-wide-v1"></script>
+    <script src="i18n.js?v=method-guide-v1"></script>
     <script src="scene_editor.js?v=experiment-link-v1"></script>
     <script src="share.js?v=matrix-v1"></script>
     <script src="result_filters.js?v=diagnostics-v1"></script>
     <script src="replay_player.js?v=playback-v1"></script>
-    <script src="controls.js?v=matrix-wide-v1"></script>
+    <script src="method_guide.js?v=method-guide-v1"></script>
+    <script src="controls.js?v=method-guide-v1"></script>
     <script src="demo_gallery.js?v=bilingual-v1"></script>
     <script src="replay.js"></script>
   </body>

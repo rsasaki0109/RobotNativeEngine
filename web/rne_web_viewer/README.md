@@ -632,3 +632,23 @@ and is not included in shared experiment conditions.
 python3 scripts/test_g1_mobile_matrix_browser.py --url http://127.0.0.1:8080/ \
   --output work/matrix-browser
 ```
+
+## Understand and select planning/control methods
+
+Open **How the methods work · What to watch**, or the navigation/arm explanation
+buttons near the controls, for nine method cards. Descriptions match the viewer's
+straight-line/A*, Pure Pursuit/DWA, joint interpolation/raised waypoints/RRT-Connect
+and velocity/acceleration-limited P implementations. Each card explains what to
+watch in plans, executed traces, collision stops or completion times.
+
+Selecting a card updates only the corresponding next-run selector, using its
+normal change event. It never starts a run or changes captured conditions, saved
+results or replay. Four independent selected indicators track the actual form,
+including manual edits, gallery presets and shared-link restoration. Compare
+buttons still enumerate their compared methods. Cards and selection indicators
+are available in Japanese and English, by keyboard and touch.
+
+```bash
+python3 scripts/test_g1_method_guide_browser.py --url http://127.0.0.1:8080/ \
+  --output work/method-guide-browser
+```

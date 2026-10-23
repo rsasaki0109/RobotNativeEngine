@@ -382,7 +382,38 @@ Object.assign(english, {
   "Escで通常表示に戻ります。": "Press Esc to return to normal view."
 });
 
-  const japanese = {
+Object.assign(english, {
+  "手法のしくみ・見るポイント": "How the methods work · What to watch",
+  "次に実行する設定の解説です。カードを選んでも実行は始まりません。実行中の条件とリプレイは変わりません。": "These cards explain the next-run settings. Selecting a card does not start a run or change an active experiment or replay.",
+  "比較ボタンは対象の手法を総当たりします。実行中の条件は開始時に固定されています。": "Compare buttons run every method in the comparison. Active experiments keep the settings captured at their start.",
+  "移動の手法を解説": "Explain navigation methods",
+  "腕の手法を解説": "Explain arm methods",
+  "次の実行に選択中": "Selected for next run",
+  "再開": "Resume",
+  "移動の計画": "Navigation planning",
+  "移動の制御": "Navigation control",
+  "腕の計画": "Arm planning",
+  "腕の制御": "Arm control",
+  "開始点と目標を結び、経路上の衝突を検証します。迂回路は探索しません。": "Connects start to goal and checks the path for collisions. It does not search for a detour.",
+  "障害物が直線を塞ぐと、移動前に計画失敗になる点を見てください。": "Watch for planning failure before movement when an obstacle blocks the straight path.",
+  "障害物を反映したコストマップ上で、目標までの経路を探索します。": "Searches for a route to the goal on a costmap containing the obstacles.",
+  "障害物を回り込む青い計画と、実際に通った軌跡を見比べてください。": "Compare the blue plan around obstacles with the actual executed trace.",
+  "計画経路上の少し先を目指して、移動速度と旋回速度を決めます。": "Chooses forward and turning speeds by aiming a short distance ahead on the planned path.",
+  "曲がり角での軌跡のふくらみと、狭い通路での追従誤差に注目してください。": "Watch the trace swing wide at corners and compare tracking error in narrow passages.",
+  "短時間の自分の動きを複数予測し、目標・経路・障害物との余裕から速度を選びます。": "Predicts several short motions of the robot and selects speeds using the goal, path and obstacle clearance.",
+  "狭い場所や横切る箱の近くで、減速・停止・旋回の違いを見てください。": "Compare slowing, stopping and turning near tight spaces or a crossing box.",
+  "IKで求めた目標姿勢へ、関節空間で補間します。障害物を避ける経由点は探索しません。": "Interpolates in joint space toward an IK goal pose without searching for waypoints around obstacles.",
+  "手先は直線に動くとは限りません。障害物に触れて止まる段階を見てください。": "The hand may follow a curved path. Watch the stage where obstacle contact stops motion.",
+  "手先の上方に経由目標を追加し、それぞれをIKと関節補間でつなぎます。": "Adds goals above the hand path, connecting each through IK and joint interpolation.",
+  "持ち上げる動きと、経由点の前後で実軌跡が障害物を避けられるかに注目してください。": "Watch the lifting motion and whether the executed trace clears obstacles around each waypoint.",
+  "関節空間で衝突を調べながら探索木を伸ばし、開始姿勢と目標姿勢をつなぎます。探索にはseedを使います。": "Grows search trees in joint space with collision checks to connect start and goal poses. The search uses the seed.",
+  "青い計画の迂回、探索回数、物体を保持した後の腕の通り道を見てください。": "Watch detours in the blue plan, search iterations and the arm path while holding an object.",
+  "関節の目標との差に比例して速度を決め、指令速度に上限を設けます。": "Chooses joint speed in proportion to target error and caps the commanded speed.",
+  "経由点への追従と、目標へ近づくときの減速を見てください。": "Watch waypoint tracking and slowing as the joints approach the target.",
+  "比例制御の指令に対し、速度の変化も抑えて関節を動かします。": "Moves the joints with proportional control while also limiting changes in commanded speed.",
+  "速度制限Pと同じ計画で、動き出し・目標切り替え・到達時間の違いを比べてください。": "Use the same plan as velocity-limited P and compare starts, target changes and completion time."
+});
+const japanese = {
   "RNE Web Viewer — drag to orbit, scroll to zoom": "RNE Web Viewer — ドラッグで視点回転、スクロールで拡大",
   "WASD / arrow keys: drive · sliders: G1 joints · Reset: home": "WASD・矢印キー：移動 · スライダー：G1の関節 · リセット：初期位置",
   "Checkpoint mission": "チェックポイントミッション",
