@@ -2041,6 +2041,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rne_planning"
+version = "0.4.0"
+dependencies = [
+ "bevy_ecs",
+ "rne_ecs",
+ "rne_math",
+ "rne_robot",
+ "roxmltree",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "rne_render"
 version = "0.4.0"
 dependencies = [
@@ -2129,6 +2141,7 @@ dependencies = [
  "rne_math",
  "rne_nav",
  "rne_physics",
+ "rne_planning",
  "rne_render",
  "rne_render_wgpu",
  "rne_robot",
