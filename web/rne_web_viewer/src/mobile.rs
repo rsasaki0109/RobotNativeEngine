@@ -287,12 +287,28 @@ struct Record {
     place: Vec3,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum Comparison {
+    #[default]
+    Single,
+    Navigation,
+    Recovery,
+}
+impl Comparison {
+    fn trials(self) -> usize {
+        match self {
+            Self::Single => 1,
+            Self::Navigation => 4,
+            Self::Recovery => 2,
+        }
+    }
+}
 #[derive(Debug, Default)]
 pub(crate) struct MobileTask {
     episode: Option<Episode>,
     queue: VecDeque<MobileConfig>,
     records: Vec<Record>,
-    batch: bool,
+    comparison: Comparison,
     pub(crate) paused: bool,
     pub(crate) replay: Option<(usize, u32)>,
 }
@@ -307,12 +323,26 @@ impl MobileTask {
         self.replay = None;
     }
     pub(crate) fn start(&mut self, c: MobileConfig, batch: bool) {
+        self.start_comparison(
+            c,
+            if batch {
+                Comparison::Navigation
+            } else {
+                Comparison::Single
+            },
+        );
+    }
+    /// Compare both recovery policies with all other captured conditions unchanged.
+    pub(crate) fn start_recovery_comparison(&mut self, c: MobileConfig) {
+        self.start_comparison(c, Comparison::Recovery);
+    }
+    fn start_comparison(&mut self, c: MobileConfig, comparison: Comparison) {
         self.queue.clear();
         self.records.clear();
         self.paused = false;
         self.replay = None;
-        self.batch = batch;
-        if batch {
+        self.comparison = comparison;
+        if comparison == Comparison::Navigation {
             for planner in 0..2 {
                 for controller in 0..2 {
                     self.queue.push_back(MobileConfig {
@@ -325,6 +355,13 @@ impl MobileTask {
                     });
                 }
             }
+        } else if comparison == Comparison::Recovery {
+            for recovery in [false, true] {
+                self.queue.push_back(MobileConfig {
+                    nav: Config { recovery, ..c.nav },
+                    ..c
+                });
+            }
         } else {
             self.queue.push_back(c);
         }
@@ -334,7 +371,11 @@ impl MobileTask {
         if self.replay.is_some() || (self.paused && !step) {
             return;
         }
-        for _ in 0..if self.batch && !step { 32 } else { 1 } {
+        for _ in 0..if self.comparison != Comparison::Single && !step {
+            32
+        } else {
+            1
+        } {
             let Some(e) = self.episode.as_mut() else {
                 return;
             };
@@ -424,7 +465,7 @@ impl MobileTask {
         if !self.active() && self.records.is_empty() {
             return String::new();
         }
-        let expected = if self.batch { 4 } else { 1 };
+        let expected = self.comparison.trials();
         let state = if self.records.len() == expected {
             "評価完了"
         } else if !self.active() {
@@ -434,45 +475,61 @@ impl MobileTask {
         } else {
             "実行中"
         };
-        let mut s=format!("<p>{state} · 完了 {}/{expected}試行。段階の成功率は、その段階まで到達した完了試行のみで計算します。</p><table><thead><tr><th>段階</th><th>成功 / 到達</th><th>成功率</th><th>成功時平均 s</th></tr></thead><tbody>",self.records.len());
-        for (i, name) in STAGES.iter().enumerate() {
-            let reached = self
+        let mut s=format!("<p>{state} · 完了 {}/{expected}試行。段階の成功率は、その段階まで到達した完了試行のみで計算します。</p>",self.records.len());
+        let policies: &[Option<bool>] = if self.comparison == Comparison::Recovery {
+            &[Some(false), Some(true)]
+        } else {
+            &[None]
+        };
+        for policy in policies {
+            let records: Vec<_> = self
                 .records
                 .iter()
-                .filter(|r| r.frames.last().unwrap().stage >= i)
-                .count();
-            let success: Vec<_> = self
-                .records
-                .iter()
-                .filter_map(|r| {
-                    let f = r.frames.last().unwrap();
-                    (f.stage > i).then_some(f)
-                })
+                .filter(|r| policy.is_none_or(|p| r.config.nav.recovery == p))
                 .collect();
-            let rate = if reached == 0 {
-                "—".into()
-            } else {
-                format!("{:.0}%", success.len() as f64 / reached as f64 * 100.0)
+            let caption = match policy {
+                Some(false) => "再試行なし",
+                Some(true) => "再試行あり",
+                None => "段階別の結果",
             };
-            let mean = if success.is_empty() {
-                "—".into()
-            } else {
-                format!(
-                    "{:.2}",
-                    success
-                        .iter()
-                        .map(|f| f64::from(f.stage_ticks[i]) * DT)
-                        .sum::<f64>()
-                        / success.len() as f64
-                )
-            };
-            let _ = write!(
-                s,
-                "<tr><td>{name}</td><td>{}/{reached}</td><td>{rate}</td><td>{mean}</td></tr>",
-                success.len()
-            );
+            let _=write!(s,"<table><caption>{caption}</caption><thead><tr><th>段階</th><th>成功 / 到達</th><th>成功率</th><th>成功時平均 s</th></tr></thead><tbody>");
+            for (i, name) in STAGES.iter().enumerate() {
+                let reached = records
+                    .iter()
+                    .filter(|r| r.frames.last().unwrap().stage >= i)
+                    .count();
+                let success: Vec<_> = records
+                    .iter()
+                    .filter_map(|r| {
+                        let f = r.frames.last().unwrap();
+                        (f.stage > i).then_some(f)
+                    })
+                    .collect();
+                let rate = if reached == 0 {
+                    "—".into()
+                } else {
+                    format!("{:.0}%", success.len() as f64 / reached as f64 * 100.0)
+                };
+                let mean = if success.is_empty() {
+                    "—".into()
+                } else {
+                    format!(
+                        "{:.2}",
+                        success
+                            .iter()
+                            .map(|f| f64::from(f.stage_ticks[i]) * DT)
+                            .sum::<f64>()
+                            / success.len() as f64
+                    )
+                };
+                let _ = write!(
+                    s,
+                    "<tr><td>{name}</td><td>{}/{reached}</td><td>{rate}</td><td>{mean}</td></tr>",
+                    success.len()
+                );
+            }
+            s.push_str("</tbody></table>");
         }
-        s.push_str("</tbody></table>");
         s
     }
     pub(crate) fn results_html(&self) -> String {
@@ -499,7 +556,7 @@ impl MobileTask {
                     }
                 })
                 .collect();
-            let _=write!(html,"<tr><td>{} · {} × {} · 腕 {} × {} · seed {} · 再試行{}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2}</td><td>{:.3}</td></tr>",SCENARIOS[r.config.scenario],PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,if r.config.nav.recovery {"あり"} else {"なし"},f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f.base_travel_m,(f.object-r.place).length());
+            let _=write!(html,"<tr><td>{} · {} × {} · 腕 {} × {} · seed {} · 再試行{}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2} / {}</td><td>{:.2}</td><td>{:.3}</td></tr>",SCENARIOS[r.config.scenario],PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,if r.config.nav.recovery {"あり"} else {"なし"},f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f64::from(f.waiting_ticks)*DT,f.retries,f.base_travel_m,(f.object-r.place).length());
         }
         html
     }
@@ -512,7 +569,7 @@ impl MobileTask {
             .enumerate()
             .map(|(i, r)| {
                 format!(
-                    "<option value='{i}' data-times='{}'>{} · {} × {} · {}</option>",
+                    "<option value='{i}' data-times='{}'>{} · {} × {} · 再試行{} · {}</option>",
                     r.frames
                         .iter()
                         .map(|f| f.tick.to_string())
@@ -521,6 +578,11 @@ impl MobileTask {
                     SCENARIOS[r.config.scenario],
                     PLANNERS[r.config.nav.planner],
                     CONTROLLERS[r.config.nav.controller],
+                    if r.config.nav.recovery {
+                        "あり"
+                    } else {
+                        "なし"
+                    },
                     r.frames.last().unwrap().state
                 )
             })
@@ -531,7 +593,7 @@ impl MobileTask {
             return String::new();
         }
         let mut csv=String::from("schema_version,task,batch_state,expected_trials,completed_trials,seed,nav_planner,nav_controller,arm_planner,arm_controller,result,completed_stages,approach_s,grasp_s,carry_s,place_s,total_s,base_travel_m,hand_travel_m,final_error_m,scenario_id,scenario,recovery,waiting_s,retries\r\n");
-        let expected = if self.batch { 4 } else { 1 };
+        let expected = self.comparison.trials();
         let state = if self.records.len() == expected {
             "completed"
         } else if !self.active() {
@@ -1008,6 +1070,107 @@ mod tests {
             assert_eq!(f.stage, 2);
             assert!(f.attached);
         }
+    }
+    #[test]
+    fn recovery_pair_changes_only_policy_and_keeps_stage_statistics_separate() {
+        let mut c = config();
+        c.scenario = 3;
+        c.nav.controller = 1;
+        c.nav.recovery = true;
+        let mut task = MobileTask::default();
+        task.start_recovery_comparison(c);
+        finish(&mut task);
+        assert_eq!(task.records.len(), 2);
+        assert!(!task.records[0].config.nav.recovery);
+        assert!(task.records[1].config.nav.recovery);
+        for r in &task.records {
+            assert_eq!(
+                Config {
+                    recovery: true,
+                    ..r.config.nav
+                },
+                c.nav
+            );
+            assert_eq!(
+                (
+                    r.config.arm.planner,
+                    r.config.arm.controller,
+                    r.config.arm.seed
+                ),
+                (c.arm.planner, c.arm.controller, c.arm.seed)
+            );
+            assert_eq!(r.config.scenario, c.scenario);
+        }
+        let off = task.records[0].frames.last().unwrap();
+        let on = task.records[1].frames.last().unwrap();
+        assert_eq!(off.state, "計画失敗");
+        assert_eq!(off.stage, 2);
+        assert_eq!(off.waiting_ticks, 0);
+        assert_eq!(on.state, "成功");
+        assert_eq!(on.stage, 4);
+        assert_eq!(on.waiting_ticks, 150);
+        assert_eq!(on.retries, 10);
+        let summary = task.summary_html();
+        assert!(summary.contains("完了 2/2試行"));
+        let (off, on) = summary.split_once("<caption>再試行あり</caption>").unwrap();
+        assert!(off.contains("0/1"));
+        assert!(off.contains("0/0"));
+        assert_eq!(on.matches("1/1").count(), 4);
+        assert!(!summary.contains("NaN"));
+        assert!(task.results_html().contains("5.00 / 10"));
+        let csv = task.csv();
+        assert_eq!(csv.lines().count(), 3);
+        for row in csv.lines().skip(1) {
+            let columns: Vec<_> = row.split(',').collect();
+            assert_eq!(columns.len(), 25);
+            assert_eq!(columns[3], "2");
+            assert_eq!(columns[4], "2");
+        }
+        assert!(task.replay_options().contains("再試行なし"));
+        assert!(task.replay_options().contains("再試行あり"));
+        for index in 0..2 {
+            let last = task.records[index].frames.last().unwrap().clone();
+            task.seek(index, last.tick);
+            assert_eq!(task.frame().unwrap(), &last);
+            task.advance(false);
+            assert_eq!(task.csv(), csv);
+            assert_eq!(task.summary_html(), summary);
+        }
+        let mut repeat = MobileTask::default();
+        repeat.start_recovery_comparison(c);
+        finish(&mut repeat);
+        assert_eq!(repeat.csv(), csv);
+        for (a, b) in task.records.iter().zip(&repeat.records) {
+            assert_eq!(a.frames, b.frames);
+        }
+    }
+    #[test]
+    fn recovery_pair_pause_interruption_and_mode_switch_preserve_trial_counts() {
+        let mut c = config();
+        c.nav.planner = 0;
+        let mut task = MobileTask::default();
+        task.start_recovery_comparison(c);
+        task.paused = true;
+        task.advance(false);
+        assert!(task.records.is_empty());
+        task.advance(true);
+        assert_eq!(task.records.len(), 1);
+        task.seek(0, 0);
+        assert!(task.replay.is_none());
+        task.stop();
+        let csv = task.csv();
+        assert_eq!(csv.lines().count(), 2);
+        assert!(csv.contains("shelf_delivery,interrupted,2,1,"));
+        assert!(task.summary_html().contains("中断"));
+        task.start(c, true);
+        finish(&mut task);
+        assert_eq!(task.records.len(), 4);
+        assert!(task.csv().contains("shelf_delivery,completed,4,4,"));
+        task.start(c, false);
+        finish(&mut task);
+        assert_eq!(task.records.len(), 1);
+        assert!(task.csv().contains("shelf_delivery,completed,1,1,"));
+        assert_eq!(task.summary_html().matches("<table>").count(), 1);
     }
     #[test]
     fn delivery_repeats_the_same_seeded_episode() {

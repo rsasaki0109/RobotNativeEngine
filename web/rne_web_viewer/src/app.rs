@@ -439,25 +439,27 @@ impl App {
             self.experiment.stop();
             self.manipulation.stop();
             let seed = value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32;
-            self.mobile.start(
-                MobileConfig {
-                    scenario: (value("mobile-scenario")? as usize).min(3),
-                    nav: Config {
-                        task: 3,
-                        planner: (value("experiment-planner")? as usize).min(1),
-                        controller: (value("experiment-controller")? as usize).min(1),
-                        seed,
-                        recovery: value("mobile-recovery")? == 1.0,
-                    },
-                    arm: ArmConfig {
-                        task: 1,
-                        planner: (value("arm-planner")? as usize).min(2),
-                        controller: (value("arm-controller")? as usize).min(1),
-                        seed,
-                    },
+            let config = MobileConfig {
+                scenario: (value("mobile-scenario")? as usize).min(3),
+                nav: Config {
+                    task: 3,
+                    planner: (value("experiment-planner")? as usize).min(1),
+                    controller: (value("experiment-controller")? as usize).min(1),
+                    seed,
+                    recovery: value("mobile-recovery")? == 1.0,
                 },
-                mobile_intent == 2,
-            );
+                arm: ArmConfig {
+                    task: 1,
+                    planner: (value("arm-planner")? as usize).min(2),
+                    controller: (value("arm-controller")? as usize).min(1),
+                    seed,
+                },
+            };
+            if mobile_intent == 3 {
+                self.mobile.start_recovery_comparison(config);
+            } else {
+                self.mobile.start(config, mobile_intent == 2);
+            }
         }
         if mobile_changed[4] && mobile_intent == 0 {
             self.mobile.stop();
