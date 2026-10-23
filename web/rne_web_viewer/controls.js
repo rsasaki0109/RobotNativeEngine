@@ -74,8 +74,10 @@
   function signal(id) {
     if (["experiment-run","experiment-compare","experiment-manual"].includes(id)) {
       document.getElementById("nav-replay-enabled").value="0";
+      document.getElementById("mobile-replay-enabled").value="0";
       document.getElementById("arm-replay-enabled").value="0";
       document.getElementById("arm-intent").value="0";
+      document.getElementById("mobile-intent").value="0";
     }
     const intent = {"experiment-manual": "0", "experiment-run": "1", "experiment-compare": "2"}[id];
     if (intent !== undefined) document.getElementById("experiment-intent").value = intent;
@@ -141,16 +143,35 @@
       signal("arm-"+(action==="benchmark"?"compare":action));
     });
   }
-  document.getElementById("arm-export-button").addEventListener("click",()=>{
-    const csv=document.getElementById("arm-export-data").textContent;
-    if (!csv) return;
-    const url=URL.createObjectURL(new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8"}));
-    const link=document.createElement("a");
-    link.href=url;link.download="rne-arm-results.csv";
-    document.body.appendChild(link);link.click();link.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  for (const action of ["run","compare","pause","step","stop"]) {
+    document.getElementById("mobile-"+action+"-button").addEventListener("click",()=>{
+      releaseAll();document.getElementById("mobile-replay-enabled").value="0";
+      if (action==="run" || action==="compare") {
+        sceneEditor.close();homeTargets();signal("experiment-manual");
+        document.getElementById("mobile-intent").value=action==="compare"?"2":"1";
+      }
+      if (action==="stop") document.getElementById("mobile-intent").value="0";
+      signal("mobile-"+action);
+    });
+  }
+  document.getElementById("mobile-example-button").addEventListener("click",()=>{
+    for (const [id,value] of [["experiment-planner-select","1"],["experiment-controller-select","1"],["arm-planner","2"],["arm-controller","0"],["experiment-seed-editor","42"]]) {
+      const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event("change",{bubbles:true}));
+    }
+    document.getElementById("mobile-run-button").click();
   });
-  for (const prefix of ["nav","arm"]) {
+  for (const prefix of ["arm","mobile"]) {
+    document.getElementById(prefix+"-export-button").addEventListener("click",()=>{
+      const csv=document.getElementById(prefix+"-export-data").textContent;
+      if (!csv) return;
+      const url=URL.createObjectURL(new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8"}));
+      const link=document.createElement("a");
+      link.href=url;link.download="rne-"+prefix+"-results.csv";
+      document.body.appendChild(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    });
+  }
+  for (const prefix of ["nav","arm","mobile"]) {
     const select=document.getElementById(prefix+"-replay-record"), slider=document.getElementById(prefix+"-replay-frame"), enabled=document.getElementById(prefix+"-replay-enabled");
     let times=[0];
     const show=()=>{const tick=times[Number(slider.value)]||0;document.getElementById(prefix+"-replay-tick").value=String(tick);document.getElementById(prefix+"-replay-time").value=(tick/30).toFixed(2)+" s";};

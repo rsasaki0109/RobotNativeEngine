@@ -3,6 +3,7 @@
 use crate::experiment::{Config, Experiment};
 use crate::humanoid::{G1Input, G1Scene};
 use crate::manipulation::{ArmConfig, Manipulation};
+use crate::mobile::{MobileConfig, MobileTask};
 use crate::scene_config::{pick_floor, SceneSpec};
 use rne_render_wgpu::{CameraOrbit, InteractiveViewer, ViewerError};
 use std::sync::Arc;
@@ -72,6 +73,8 @@ struct App {
     experiment_counters: [u32; 5],
     manipulation: Manipulation,
     manipulation_counters: [u32; 5],
+    mobile: MobileTask,
+    mobile_counters: [u32; 5],
     rendered_results: String,
     scene_revision: u32,
     floor_counter: u32,
@@ -328,6 +331,7 @@ impl App {
         let intent = value("experiment-intent")? as u32;
         if reset || mission {
             self.manipulation.stop();
+            self.mobile.stop();
             self.experiment.stop();
         } else if (changed[0] || changed[3]) && intent != 0 {
             let config = Config {
@@ -341,11 +345,13 @@ impl App {
                 self.experiment.stop();
             } else {
                 self.manipulation.stop();
+                self.mobile.stop();
                 self.experiment.start(config, intent == 2);
             }
         }
         if changed[4] && intent == 0 {
             self.manipulation.stop();
+            self.mobile.stop();
             self.experiment.stop();
         }
         if changed[1] && self.experiment.active() {
@@ -395,6 +401,7 @@ impl App {
         }
         if arm_changed[4] && arm_intent == 0 {
             self.manipulation.stop();
+            self.mobile.stop();
         }
         if arm_changed[1] {
             self.manipulation.replay = None;
@@ -413,6 +420,65 @@ impl App {
             self.manipulation.replay = None;
         }
         self.manipulation.advance(arm_changed[2]);
+        let mobile_counters: [u32; 5] = [
+            "mobile-run",
+            "mobile-pause",
+            "mobile-step",
+            "mobile-compare",
+            "mobile-stop",
+        ]
+        .map(|id| value(id).map(|v| v as u32))
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()?
+        .try_into()
+        .unwrap();
+        let mobile_changed: [bool; 5] =
+            std::array::from_fn(|i| mobile_counters[i] != self.mobile_counters[i]);
+        let mobile_intent = value("mobile-intent")? as u32;
+        if (mobile_changed[0] || mobile_changed[3]) && mobile_intent != 0 && !reset && !mission {
+            self.experiment.stop();
+            self.manipulation.stop();
+            let seed = value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32;
+            self.mobile.start(
+                MobileConfig {
+                    nav: Config {
+                        task: 3,
+                        planner: (value("experiment-planner")? as usize).min(1),
+                        controller: (value("experiment-controller")? as usize).min(1),
+                        seed,
+                        recovery: false,
+                    },
+                    arm: ArmConfig {
+                        task: 1,
+                        planner: (value("arm-planner")? as usize).min(2),
+                        controller: (value("arm-controller")? as usize).min(1),
+                        seed,
+                    },
+                },
+                mobile_intent == 2,
+            );
+        }
+        if mobile_changed[4] && mobile_intent == 0 {
+            self.mobile.stop();
+        }
+        if mobile_changed[1] {
+            self.mobile.replay = None;
+            self.mobile.paused = !self.mobile.paused;
+        }
+        if mobile_changed[2] {
+            self.mobile.replay = None;
+            self.mobile.paused = true;
+        }
+        if value("mobile-replay-enabled")? == 1.0 {
+            self.mobile.seek(
+                value("mobile-replay-record")? as usize,
+                value("mobile-replay-tick")? as u32,
+            );
+        } else {
+            self.mobile.replay = None;
+        }
+        self.mobile.advance(mobile_changed[2]);
+        self.mobile_counters = mobile_counters;
         self.manipulation_counters = arm_counters;
         self.experiment_counters = counters;
         let mut input = G1Input {
@@ -451,7 +517,12 @@ impl App {
                 false,
             )?;
         }
-        let mut render_scene = if self.manipulation.active() {
+        if let Some(targets) = self.mobile.targets() {
+            input.targets_rad = targets;
+        }
+        let mut render_scene = if let Some(pose) = self.mobile.pose() {
+            scene.recorded_frame(input, pose)?
+        } else if self.manipulation.active() {
             scene.recorded_frame(input, (0.0, 0.0, 0.0))?
         } else if let Some(pose) = self.experiment.pose() {
             if self.experiment.replaying() {
@@ -464,12 +535,14 @@ impl App {
         };
         self.experiment.overlay(&mut render_scene);
         self.manipulation.overlay(&mut render_scene);
+        self.mobile.overlay(&mut render_scene);
         if let Some(body) = document.get_element_by_id("playground") {
             let _ = body.set_attribute(
                 "data-experiment-active",
                 if self.experiment.active()
                     || self.experiment.editor_visible
                     || self.manipulation.active()
+                    || self.mobile.active()
                 {
                     "true"
                 } else {
@@ -480,6 +553,7 @@ impl App {
         for (id, text) in [
             ("experiment-status", self.experiment.status()),
             ("arm-status", self.manipulation.status()),
+            ("mobile-status", self.mobile.status()),
             ("experiment-metrics", self.experiment.metrics()),
             (
                 "experiment-comparison",
@@ -508,21 +582,28 @@ impl App {
                 self.rendered_results.clone_from(&results);
             }
         }
-        let csv = self.manipulation.results_csv();
-        if let Some(element) = document.get_element_by_id("arm-export-data") {
-            if element.text_content().as_deref() != Some(csv.as_str()) {
-                element.set_text_content(Some(&csv));
+        for (prefix, csv) in [
+            ("arm", self.manipulation.results_csv()),
+            ("mobile", self.mobile.csv()),
+        ] {
+            if let Some(element) = document.get_element_by_id(&format!("{prefix}-export-data")) {
+                if element.text_content().as_deref() != Some(csv.as_str()) {
+                    element.set_text_content(Some(&csv));
+                }
             }
-        }
-        if let Some(element) = document.get_element_by_id("arm-export-button") {
-            if csv.is_empty() {
-                let _ = element.set_attribute("disabled", "");
-            } else {
-                let _ = element.remove_attribute("disabled");
+            if let Some(element) = document.get_element_by_id(&format!("{prefix}-export-button")) {
+                if csv.is_empty() {
+                    let _ = element.set_attribute("disabled", "");
+                } else {
+                    let _ = element.remove_attribute("disabled");
+                }
             }
         }
         for (id, html) in [
             ("arm-records", self.manipulation.results_html()),
+            ("mobile-records", self.mobile.results_html()),
+            ("mobile-summary", self.mobile.summary_html()),
+            ("mobile-replay-record", self.mobile.replay_options()),
             ("arm-benchmark", self.manipulation.benchmark_html()),
             ("nav-replay-record", self.experiment.replay_options()),
             ("arm-replay-record", self.manipulation.replay_options()),
@@ -533,6 +614,12 @@ impl App {
                     let _ = element.set_attribute("data-rendered", &html);
                 }
             }
+        }
+        if let Some(element) = document.get_element_by_id("mobile-pause-button") {
+            let _ = element.set_attribute(
+                "aria-pressed",
+                if self.mobile.paused { "true" } else { "false" },
+            );
         }
         if let Some(element) = document.get_element_by_id("arm-pause-button") {
             let _ = element.set_attribute(

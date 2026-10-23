@@ -148,6 +148,7 @@ struct Run {
     pose: Pose2d,
     command: VelocityCommand2d,
     goal: Pose2d,
+    goal_tolerance_m: f64,
     remaining_goals: VecDeque<Pose2d>,
     reached_goals: u32,
     obstacles: Vec<Obstacle>,
@@ -247,6 +248,7 @@ impl Run {
             pose: Pose2d::IDENTITY,
             command: VelocityCommand2d::ZERO,
             goal: goals.pop_front().unwrap(),
+            goal_tolerance_m: 0.12,
             remaining_goals: goals,
             reached_goals: 0,
             map: make_map(&obstacles),
@@ -454,7 +456,7 @@ impl Run {
                 return;
             }
         }
-        if distance(self.pose, self.goal) <= 0.12 {
+        if distance(self.pose, self.goal) <= self.goal_tolerance_m {
             self.reach_goal();
             return;
         }
@@ -466,7 +468,7 @@ impl Run {
                     lookahead_m: 0.45,
                     max_linear_m_s: 0.55,
                     max_angular_rad_s: 1.6,
-                    goal_tolerance_m: 0.12,
+                    goal_tolerance_m: self.goal_tolerance_m,
                     slow_radius_m: 0.5,
                 },
             )
@@ -480,7 +482,7 @@ impl Run {
                 angular_samples: 15,
                 simulate_time_s: 1.2,
                 simulation_step_s: 0.1,
-                goal_tolerance_m: 0.12,
+                goal_tolerance_m: self.goal_tolerance_m,
                 heading_lookahead_m: 0.65,
                 heading_weight: 2.0,
                 path_weight: 2.0,
@@ -563,7 +565,7 @@ impl Run {
         if self.ticks.is_multiple_of(3) {
             self.trace.push(next);
         }
-        if distance(next, self.goal) <= 0.12 {
+        if distance(next, self.goal) <= self.goal_tolerance_m {
             self.reach_goal();
         } else if self.ticks >= MAX_TICKS {
             self.state = State::Timeout;
@@ -1473,5 +1475,53 @@ mod tests {
         e.stop();
         assert!(!e.active());
         assert_eq!(e.records, records);
+    }
+}
+
+/// A navigation leg reused by the mobile manipulation task, in world X/Z coordinates.
+#[derive(Debug)]
+pub(crate) struct NavigationLeg(Run);
+impl NavigationLeg {
+    pub(crate) fn new(
+        config: Config,
+        start: (f64, f64, f64),
+        goal: (f64, f64),
+        obstacles: Vec<BoxSpec>,
+    ) -> Self {
+        let scene = SceneSpec {
+            goal: Point {
+                x_m: goal.0,
+                z_m: goal.1,
+            },
+            obstacles,
+        };
+        let mut run = Run::with_scene(Config { task: 3, ..config }, Some(&scene));
+        run.pose = Pose2d::new(start.0, -start.1, start.2);
+        run.goal_tolerance_m = 0.035;
+        run.trace = vec![run.pose];
+        run.frames.clear();
+        run.plan();
+        Self(run)
+    }
+    pub(crate) fn tick(&mut self) {
+        self.0.tick();
+    }
+    pub(crate) fn pose(&self) -> (f64, f64, f64) {
+        (self.0.pose.x_m, -self.0.pose.y_m, self.0.pose.yaw_rad)
+    }
+    pub(crate) fn outcome(&self) -> Option<Result<(), &'static str>> {
+        match self.0.state {
+            State::Running | State::Waiting => None,
+            State::Success => Some(Ok(())),
+            state => Some(Err(state.label())),
+        }
+    }
+    pub(crate) fn path(&self) -> Vec<Vec3> {
+        self.0
+            .path
+            .waypoints()
+            .iter()
+            .map(|p| Vec3::new(p.x_m, 0.025, -p.y_m))
+            .collect()
     }
 }
