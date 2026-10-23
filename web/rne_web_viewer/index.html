@@ -222,6 +222,9 @@
         #replay-panel { top: 8px; right: 8px; width: min(260px, calc(100vw - 42px)); max-height: 23vh; overflow: auto; }
         #controls { bottom: 8px; left: 8px; max-height: 45vh; }
       }
+      #mobile-panel .mobile-results-table { min-width: 660px; }
+      #mobile-panel .mobile-results-table th:first-child { min-width: 150px; }
+      #mobile-panel .mobile-results-table th:nth-child(3) { min-width: 150px; }
     </style>
   </head>
   <body id="playground">
@@ -330,6 +333,20 @@
         <input type="range" id="arm-replay-frame" aria-label="腕のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
         <output id="arm-replay-time">0.00 s</output><button type="button" id="arm-replay-exit">リプレイを終了</button><input type="hidden" id="arm-replay-tick" value="0"><input type="hidden" id="arm-replay-enabled" value="0">
         <p>URDFの関節制限と位置IKを使用。物体は手先との距離で接続・解放する運動学的把持です。接触力・落下・姿勢IKは評価しません。接触検査は左前腕・手先・保持物と茶色の箱が対象です。RRT-Connectは段階ごとに最大600反復で探索します。探索に要した処理時間はシミュレーション時間に含みません。</p>
+      </details>
+      <details id="mobile-panel"><summary>移動 × 腕操作 · 棚から運んで配置</summary>
+        <p>棚へ移動 → 把持・持ち上げ → 配置先へ運搬 → 配置。上の移動・腕の設定とseedを開始時に固定します。「移動4組を比較」は腕の設定を固定して移動の2計画 × 2制御を評価します。</p>
+        <p>「成功例」はA*＋DWA、腕RRT-Connect＋速度制限P、seed 42に設定して実行します。</p>
+        <div class="experiment-buttons"><button type="button" id="mobile-example-button">成功例を実行（seed 42）</button><button type="button" id="mobile-run-button">運搬タスクを実行</button><button type="button" id="mobile-compare-button">移動4組を比較</button><button type="button" id="mobile-pause-button" aria-pressed="false">一時停止</button><button type="button" id="mobile-step-button">1ステップ</button><button type="button" id="mobile-stop-button">運搬を終了</button></div>
+        <input type="hidden" id="mobile-run" value="0"><input type="hidden" id="mobile-compare" value="0"><input type="hidden" id="mobile-pause" value="0"><input type="hidden" id="mobile-step" value="0"><input type="hidden" id="mobile-stop" value="0"><input type="hidden" id="mobile-intent" value="0">
+        <div id="mobile-summary" class="experiment-results"></div>
+        <p id="mobile-status" role="status">棚から取り、運んで置くタスク</p>
+        <div class="experiment-results"><table class="mobile-results-table"><caption>運搬タスク · 段階ごとの成否と時間</caption><thead><tr><th>移動計画 × 制御</th><th>結果</th><th>移動 / 把持 / 運搬 / 配置 s</th><th>合計 s</th><th>移動 m</th><th>配置誤差 m</th></tr></thead><tbody id="mobile-records"></tbody></table></div>
+        <button type="button" id="mobile-export-button" disabled>運搬結果をCSV保存</button><span id="mobile-export-data" hidden></span>
+        <label>運搬の時間リプレイ<select id="mobile-replay-record" aria-label="運搬のリプレイ記録"></select></label>
+        <input type="range" id="mobile-replay-frame" aria-label="運搬のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
+        <output id="mobile-replay-time">0.00 s</output><button type="button" id="mobile-replay-exit">リプレイを終了</button><input type="hidden" id="mobile-replay-tick" value="0"><input type="hidden" id="mobile-replay-enabled" value="0">
+        <p>運動学的な運搬です。移動中は腕の姿勢を固定し、荷物・前腕の水平範囲で障害物を膨張させます。停止後に最大0.8 rad/sで向きを整え、世界座標の物体に位置IKで到達します。左前腕・手先・荷物と棚板を接触検査します。棚の支柱、全身、重力、把持力、二足歩行の安定性は評価しません。</p>
       </details>
       <details><summary>モデルと比較条件</summary><p>半径0.28mの円形移動モデルです。二足歩行・接触力・バランス制御の評価は含みません。選択変更は次回の実行から適用します。</p></details>
     </details>
@@ -461,7 +478,7 @@
       </small>
     </details>
     <script src="scene_editor.js?v=1"></script>
-    <script src="controls.js?v=arm-csv-v1"></script>
+    <script src="controls.js?v=mobile-delivery-v1"></script>
     <script src="replay.js"></script>
   </body>
 </html>

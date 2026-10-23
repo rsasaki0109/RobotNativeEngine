@@ -20,8 +20,8 @@ const TASKS: [&str; 4] = [
     "障害物越しに配置",
     "到達範囲外",
 ];
-const PLANNERS: [&str; 3] = ["関節直結", "上方経由", "RRT-Connect"];
-const CONTROLLERS: [&str; 2] = ["速度制限P", "加速度制限P"];
+pub(crate) const PLANNERS: [&str; 3] = ["関節直結", "上方経由", "RRT-Connect"];
+pub(crate) const CONTROLLERS: [&str; 2] = ["速度制限P", "加速度制限P"];
 const COLORS: [[f32; 4]; 6] = [
     [0.45, 0.93, 0.69, 1.0],
     [1.0, 0.71, 0.37, 1.0],
@@ -45,6 +45,7 @@ struct Arm {
     elbow: Entity,
     active: Vec<bool>,
     viewer_order: Vec<usize>,
+    environment: Vec<(Vec3, Vec3)>,
 }
 impl Arm {
     fn load() -> Self {
@@ -130,6 +131,7 @@ impl Arm {
             planning,
             active,
             viewer_order,
+            environment: vec![],
         }
     }
     fn configure_scene(&mut self, blocker: Option<Vec3>, held_offset: Option<Vec3>) {
@@ -275,6 +277,17 @@ struct Frame {
     iterations: usize,
 }
 #[derive(Debug)]
+struct ActionTargets {
+    goals: Vec<Vec3>,
+    attach_at: usize,
+    release_at: usize,
+    object: Vec3,
+    place: Vec3,
+    attached: bool,
+    offset: Vec3,
+    blocker: Option<Vec3>,
+}
+#[derive(Debug)]
 struct Run {
     config: ArmConfig,
     q: Vec<f64>,
@@ -335,6 +348,34 @@ impl Run {
             )
         };
         let blocker = (config.task == 2).then_some((pick + place) * 0.5 - Vec3::Y * 0.04);
+        Self::from_targets(
+            arm,
+            config,
+            q,
+            ActionTargets {
+                goals,
+                attach_at,
+                release_at,
+                object: pick,
+                place,
+                attached: false,
+                offset: Vec3::ZERO,
+                blocker,
+            },
+        )
+    }
+    fn from_targets(arm: &mut Arm, config: ArmConfig, q: Vec<f64>, targets: ActionTargets) -> Self {
+        let ActionTargets {
+            goals,
+            attach_at,
+            release_at,
+            object,
+            place,
+            attached,
+            offset,
+            blocker,
+        } = targets;
+        let start = arm.tip(&q);
         let mut r = Self {
             velocity: vec![0.0; q.len()],
             q,
@@ -347,10 +388,10 @@ impl Run {
             stage: 0,
             attach_at,
             release_at,
-            object: pick,
+            object,
             place,
-            attached: false,
-            offset: Vec3::ZERO,
+            attached,
+            offset,
             blocker,
             state: "実行中",
             tick: 0,
@@ -451,7 +492,12 @@ impl Run {
             }
         }
         let mut hit = false;
-        if let Some(center) = self.blocker {
+        for (center, half) in self
+            .blocker
+            .into_iter()
+            .map(|c| (c, Vec3::splat(0.025)))
+            .chain(arm.environment.iter().copied())
+        {
             for n in 0..=8 {
                 let t = f64::from(n) / 8.0;
                 let q: Vec<_> = old
@@ -465,7 +511,7 @@ impl Run {
                 let elbow = fk.link_transform(arm.elbow).unwrap().translation;
                 for j in 0..=8 {
                     let p = elbow + (tip - elbow) * (f64::from(j) / 8.0);
-                    let delta = (p - center).abs() - Vec3::splat(0.025);
+                    let delta = (p - center).abs() - half;
                     if delta.max(Vec3::ZERO).length() <= 0.018 {
                         hit = true;
                         break;
@@ -473,11 +519,7 @@ impl Run {
                 }
                 if self.attached {
                     let object = tip + tool.rotation * self.offset;
-                    if ((object - center).abs() - Vec3::splat(0.025))
-                        .max(Vec3::ZERO)
-                        .length()
-                        <= 0.0225
-                    {
+                    if ((object - center).abs() - half).max(Vec3::ZERO).length() <= 0.0225 {
                         hit = true;
                     }
                 }
@@ -485,6 +527,9 @@ impl Run {
                     self.q = q;
                     break;
                 }
+            }
+            if hit {
+                break;
             }
         }
         let fk = arm.model.forward_kinematics(&self.q).unwrap();
@@ -1283,4 +1328,132 @@ mod tests {
             assert!(m.targets().is_none());
         }
     }
+}
+
+/// Continuous arm state for grasping and placing at different mobile base poses.
+#[derive(Debug)]
+pub(crate) struct MobileArm {
+    arm: Arm,
+    run: Run,
+}
+impl MobileArm {
+    pub(crate) fn new(config: ArmConfig) -> Self {
+        let mut arm = Arm::load();
+        let run = Run::new(&mut arm, ArmConfig { task: 0, ..config });
+        Self { arm, run }
+    }
+    pub(crate) fn pick_target(&self, seed: u32) -> Vec3 {
+        self.arm.tip(
+            &self
+                .arm
+                .known_pose(-0.85, 0.15 + f64::from(seed % 11) * 0.005, 0.7),
+        )
+    }
+    pub(crate) fn place_target(&self) -> Vec3 {
+        self.arm.tip(&self.arm.known_pose(-0.85, 0.20, 0.7))
+    }
+    pub(crate) fn begin(
+        &mut self,
+        config: ArmConfig,
+        pose: (f64, f64, f64),
+        object: Vec3,
+        target: Vec3,
+        grasp: bool,
+        surfaces: &[(Vec3, Vec3)],
+    ) {
+        let inverse = Quat::from_rotation_y(pose.2).inverse();
+        let origin = Vec3::new(pose.0, 0.0, pose.1);
+        let object = inverse * (object - origin);
+        let target = inverse * (target - origin);
+        let q = self.run.q.clone();
+        let fk = self.arm.model.forward_kinematics(&q).unwrap();
+        let tool = *fk.link_transform(self.arm.hand).unwrap();
+        for i in 0..self.arm.environment.len() {
+            self.arm
+                .planning
+                .remove_collision_object(&format!("mobile-{i}"));
+        }
+        self.arm.environment = surfaces
+            .iter()
+            .map(|(center, half)| (inverse * (*center - origin), *half))
+            .collect();
+        for (i, (center, half)) in self.arm.environment.iter().enumerate() {
+            self.arm.planning.add_collision_object(
+                format!("mobile-{i}"),
+                CollisionPrimitive::Cuboid {
+                    center_m: *center,
+                    axes: [Vec3::X, Vec3::Y, Vec3::Z],
+                    half_extents_m: *half,
+                },
+            );
+        }
+        let (goals, attach_at) = if grasp {
+            if config.planner == 1 {
+                (vec![object + Vec3::Y * 0.05, object, target], 1)
+            } else {
+                (vec![object, target], 0)
+            }
+        } else if config.planner == 1 {
+            (vec![target + Vec3::Y * 0.06, target], usize::MAX)
+        } else {
+            (vec![target], usize::MAX)
+        };
+        let release_at = if grasp { usize::MAX } else { goals.len() - 1 };
+        let targets = ActionTargets {
+            goals,
+            attach_at,
+            release_at,
+            object,
+            place: target,
+            attached: !grasp,
+            offset: tool.rotation.inverse() * (object - tool.translation),
+            blocker: None,
+        };
+        self.run = Run::from_targets(&mut self.arm, ArmConfig { task: 1, ..config }, q, targets);
+    }
+    pub(crate) fn tick(&mut self) {
+        self.run.tick(&mut self.arm);
+    }
+    pub(crate) fn outcome(&self) -> Option<Result<(), &'static str>> {
+        match self.run.state {
+            "実行中" => None,
+            "成功" => Some(Ok(())),
+            state => Some(Err(state)),
+        }
+    }
+    pub(crate) fn targets(&self) -> Vec<f64> {
+        self.arm
+            .viewer_order
+            .iter()
+            .map(|i| self.run.q[*i])
+            .collect()
+    }
+    pub(crate) fn attached(&self) -> bool {
+        self.run.attached
+    }
+    pub(crate) fn object(&self, pose: (f64, f64, f64)) -> Vec3 {
+        world_point(pose, self.run.object)
+    }
+    pub(crate) fn tip(&self, pose: (f64, f64, f64)) -> Vec3 {
+        world_point(pose, self.arm.tip(&self.run.q))
+    }
+    pub(crate) fn envelope_m(&self) -> f64 {
+        let tip = self.arm.tip(&self.run.q);
+        let elbow = self
+            .arm
+            .model
+            .forward_kinematics(&self.run.q)
+            .unwrap()
+            .link_transform(self.arm.elbow)
+            .unwrap()
+            .translation;
+        tip.x
+            .hypot(tip.z)
+            .max(self.run.object.x.hypot(self.run.object.z))
+            .max(elbow.x.hypot(elbow.z))
+            + 0.06
+    }
+}
+pub(crate) fn world_point(pose: (f64, f64, f64), local: Vec3) -> Vec3 {
+    Vec3::new(pose.0, 0.0, pose.1) + Quat::from_rotation_y(pose.2) * local
 }
