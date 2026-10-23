@@ -228,6 +228,10 @@
       .mobile-matrix-table [data-matrix-state="success"] { background: #163c32; }
       .mobile-matrix-table [data-matrix-state="failure"] { background: #402332; }
       .mobile-matrix-table [data-matrix-state="pending"] { color: #bac7d5; }
+      .mobile-outcomes-scroll { overflow-x: auto; }
+      #experiment-panel .mobile-ranking-table, #experiment-panel .mobile-failure-table { min-width: 680px; }
+      .mobile-matrix-outcomes h4 { margin: 12px 0 5px; }
+      .mobile-failure-table button { margin: 2px; }
       .mobile-benchmark-scroll { overflow-x: auto; }
       #experiment-panel .mobile-benchmark-table { min-width: 920px; }
       .mobile-benchmark-table td:first-child { min-width: 125px; }
@@ -593,7 +597,7 @@
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
     </details>
-    <script src="i18n.js?v=method-guide-v1"></script>
+    <script src="i18n.js?v=matrix-outcomes-v1"></script>
     <script src="scene_editor.js?v=experiment-link-v1"></script>
     <script src="share.js?v=matrix-v1"></script>
     <script src="result_filters.js?v=diagnostics-v1"></script>
