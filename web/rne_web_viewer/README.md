@@ -21,7 +21,10 @@ lines, framed windows, workbenches and equipment cabinets. All furniture stays
 outside the 8 × 8 m driving area. Concrete grain and HDR studio lighting are
 procedural and deterministic, with no external asset requests. Roughness, metallic
 materials and the renderer’s existing directional shadows provide surface depth.
-The static scenery is cached when the G1 loads. Furniture is visual scenery;
+Each box face has a full UV map. Concrete uses shared, tileable color, normal
+and roughness maps; G1 shells use separate satin paint and dark polymer coating
+responses while retaining the source mesh colors. The static scenery and
+material maps are cached when the G1 loads. Furniture is visual scenery;
 this kinematic viewer does not add collisions or contact physics.
 
 ## Walking, waving and checkpoint run

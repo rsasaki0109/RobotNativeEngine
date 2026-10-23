@@ -8,6 +8,7 @@ mod humanoid;
 mod lab;
 mod playground;
 mod scene;
+mod surfaces;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
