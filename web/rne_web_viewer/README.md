@@ -472,3 +472,26 @@ A* + DWA, standard delivery, recovery off and seed 42.
 python3 scripts/test_g1_mobile_arm_comparison_browser.py --url http://127.0.0.1:8080/ \
   --output work/arm-delivery-browser
 ```
+
+### Delivery benchmark across five seeds
+
+**5 seedで腕30試行** repeats the six arm methods on five consecutive u32 seeds,
+starting at the selected seed (wrapping at u32::MAX). Each seed is applied to both
+the delivery layout and arm planning. Scenario, navigation methods and recovery
+policy are captured at start; each method restarts the same world for that seed.
+Seed variation uses the existing seeded pick-target placement and RRT sampling,
+not arbitrary furniture randomization.
+
+The summary shows completed/expected counts, successes/completed, success rate,
+mean simulated time of successful trials only, and failure counts for each stage.
+Pending trials never count as failures. Missing rates and means are shown as —.
+Stopping retains completed rows and marks the batch interrupted. Once all thirty
+trials finish, the per-seed buttons jump to each success/failure endpoint in the
+saved replay. Replay selectors include arm methods and seed. CSV schema 3 remains
+unchanged, with expected_trials=30 and all individual measurements. These five
+deterministic layouts do not establish general robot or physical grasp performance.
+
+```bash
+python3 scripts/test_g1_mobile_benchmark_browser.py --url http://127.0.0.1:8080/ \
+  --output work/mobile-benchmark-browser
+```
