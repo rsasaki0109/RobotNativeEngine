@@ -441,6 +441,7 @@ impl App {
             let seed = value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32;
             self.mobile.start(
                 MobileConfig {
+                    scenario: (value("mobile-scenario")? as usize).min(2),
                     nav: Config {
                         task: 3,
                         planner: (value("experiment-planner")? as usize).min(1),
