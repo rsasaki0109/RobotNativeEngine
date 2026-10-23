@@ -10,7 +10,7 @@ use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
 use winit::platform::web::EventLoopExtWebSys;
 use winit::window::{Window, WindowId};
 
-const CLEAR_COLOR: [f32; 4] = [0.05, 0.08, 0.12, 1.0];
+const CLEAR_COLOR: [f32; 4] = [0.28, 0.33, 0.37, 1.0];
 
 fn status(message: &str) {
     if let Some(element) = web_sys::window()
@@ -44,9 +44,9 @@ pub fn run() {
     let app = App {
         proxy: Some(proxy),
         orbit: CameraOrbit {
-            yaw_rad: 0.9,
-            pitch_rad: 1.15,
-            distance_m: 3.2,
+            yaw_rad: 0.75,
+            pitch_rad: 1.0,
+            distance_m: 4.5,
             ..CameraOrbit::default()
         },
         ..App::default()
@@ -134,7 +134,8 @@ impl ApplicationHandler<ViewerInitEvent> for App {
         };
 
         match event.0 {
-            Ok(viewer) => {
+            Ok(mut viewer) => {
+                viewer.set_environment(crate::lab::lighting());
                 status("操作できます · G1 / 23関節");
                 self.init = InitState::Ready {
                     viewer: Box::new(viewer),

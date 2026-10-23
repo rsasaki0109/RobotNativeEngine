@@ -31,6 +31,7 @@ pub struct G1Scene {
     parts: Vec<Part>,
     heading_rad: f64,
     playground: Playground,
+    laboratory: RenderScene,
 }
 
 /// Complete command for one fixed kinematic preview tick.
@@ -105,6 +106,7 @@ impl G1Scene {
             parts,
             heading_rad: 0.0,
             playground: Playground::default(),
+            laboratory: crate::lab::scene(),
         })
     }
 
@@ -221,31 +223,7 @@ impl G1Scene {
     }
 
     fn render(&self) -> RenderScene {
-        let mut scene = RenderScene::new();
-        scene.items.push(RenderScene::item_from_visual(
-            Transform3::from_translation_rotation(Vec3::new(0.0, -0.025, 0.0), Quat::IDENTITY),
-            VisualShape::Box {
-                size_m: Vec3::new(10.0, 0.05, 10.0),
-            },
-            [0.18, 0.25, 0.29, 1.0],
-            Transform3::IDENTITY,
-        ));
-        // Floor markers make translation/rotation visible as the camera follows.
-        for x in -4..=4 {
-            for z in -4..=4 {
-                scene.items.push(RenderScene::item_from_visual(
-                    Transform3::from_translation_rotation(
-                        Vec3::new(x as f64, 0.002, z as f64),
-                        Quat::IDENTITY,
-                    ),
-                    VisualShape::Box {
-                        size_m: Vec3::new(0.05, 0.004, 0.05),
-                    },
-                    [0.4, 0.65, 0.7, 1.0],
-                    Transform3::IDENTITY,
-                ));
-            }
-        }
+        let mut scene = self.laboratory.clone();
         for (index, (x, z)) in GOALS.iter().copied().enumerate() {
             let color = if index < self.playground.course.reached {
                 [0.1, 0.9, 0.45, 1.0]
@@ -260,13 +238,13 @@ impl G1Scene {
                     Transform3::from_translation_rotation(
                         Vec3::new(
                             x + GOAL_RADIUS_M * angle.cos(),
-                            0.016,
+                            0.007,
                             z + GOAL_RADIUS_M * angle.sin(),
                         ),
                         Quat::from_rotation_y(-angle),
                     ),
                     VisualShape::Box {
-                        size_m: Vec3::new(0.065, 0.03, 0.14),
+                        size_m: Vec3::new(0.04, 0.006, 0.14),
                     },
                     color,
                     Transform3::IDENTITY,
@@ -274,8 +252,10 @@ impl G1Scene {
             }
             if index == self.playground.course.reached {
                 scene.items.push(RenderScene::item_from_visual(
-                    Transform3::from_translation_rotation(Vec3::new(x, 0.2, z), Quat::IDENTITY),
-                    VisualShape::Sphere { radius_m: 0.08 },
+                    Transform3::from_translation_rotation(Vec3::new(x, 0.008, z), Quat::IDENTITY),
+                    VisualShape::Box {
+                        size_m: Vec3::new(0.12, 0.006, 0.12),
+                    },
                     color,
                     Transform3::IDENTITY,
                 ));
