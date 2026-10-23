@@ -6,6 +6,7 @@
     <title>RNE G1 Playground</title>
     <link data-trunk rel="rust" data-wasm-opt="0" />
     <link data-trunk rel="copy-file" href="controls.js" />
+    <link data-trunk rel="copy-file" href="demo_gallery.js" />
     <link data-trunk rel="copy-file" href="scene_editor.js" />
     <link data-trunk rel="copy-file" href="replay.js" />
     <link data-trunk rel="copy-file" href="../../assets/robots/g1_description/LICENSE.unitree_ros" />
@@ -225,6 +226,16 @@
       #mobile-panel .mobile-results-table { min-width: 660px; }
       #mobile-panel .mobile-results-table th:first-child { min-width: 150px; }
       #mobile-panel .mobile-results-table th:nth-child(3) { min-width: 150px; }
+      #demo-grid { display: grid; gap: 8px; margin-top: 10px; }
+      .demo-card { box-sizing: border-box; min-width: 0; display: grid; gap: 5px; width: 100%; text-align: left; padding: 10px; line-height: 1.4; white-space: normal; }
+      .demo-kind { color: #89d9ed; font-size: 11px; }
+      .demo-title { font-size: 14px; font-weight: 700; }
+      .demo-note { color: #c4d0db; font-size: 12px; }
+      .demo-card[data-last-selected] { border-color: #91e6b7; }
+      .demo-card:focus-visible { outline: 2px solid #91e6b7; outline-offset: 2px; }
+      .demo-card:disabled { opacity: 0.5; cursor: wait; }
+      #demo-launch-status { font-size: 12px; }
+      [data-demo-back], #demo-result-link { color: #89d9ed; font-size: 12px; }
     </style>
   </head>
   <body id="playground">
@@ -241,7 +252,10 @@
     </section>
     <details id="experiment-panel" aria-label="Planning and control experiments">
       <summary>PLANNING × CONTROL · 比較デモ</summary>
-      <p>G1の平面移動モデルで手法を比較。青＝現在の計画、黄＝目標。実軌跡は手法別に色分け。</p>
+      <details id="demo-gallery" open><summary>デモ一覧 · 選んですぐ比較</summary><div id="demo-grid"></div></details>
+      <p id="demo-launch-status" role="status">エンジンの準備を待っています。</p>
+      <a id="demo-result-link" href="#experiment-status" hidden>選んだデモの進行・結果へ</a>
+      <p>移動・腕・運搬の計画と制御を比較。青＝現在の計画。実軌跡は手法別に色分け。</p>
       <div class="experiment-options">
       <label for="experiment-task-select">タスク
         <select id="experiment-task-select"><option value="0">目的地へ移動</option><option value="1">障害物を迂回</option><option value="2">途中で障害物を追加（2秒後）</option><option value="3">カスタムシーン</option><option value="4">狭い通路</option><option value="5">横切る障害物</option><option value="6">行き止まりを迂回</option><option value="7">3地点を巡回</option></select>
@@ -290,7 +304,8 @@
       </div>
       <label><input type="checkbox" id="experiment-recovery-toggle">計画失敗時に停止して再試行（0.5秒ごと・最大10秒）</label>
       <input type="hidden" id="experiment-recovery" value="0">
-      <p id="experiment-status" aria-live="off">手動操作 · タスクと手法を選んで実行</p>
+      <a href="#demo-gallery" data-demo-back>デモ一覧へ戻る</a>
+        <p id="experiment-status" aria-live="off">手動操作 · タスクと手法を選んで実行</p>
       <svg id="experiment-map" viewBox="-0.6 -2 4.1 4" role="img" aria-label="計画経路と実際の軌跡、障害物と目標の平面図"></svg>
       <p id="experiment-metrics"></p>
       <div class="trace-legend" aria-label="軌跡の表示切替">
@@ -327,6 +342,7 @@
         <input type="hidden" id="arm-run" value="0"><input type="hidden" id="arm-compare" value="0"><input type="hidden" id="arm-pause" value="0"><input type="hidden" id="arm-step" value="0"><input type="hidden" id="arm-stop" value="0"><input type="hidden" id="arm-intent" value="0">
         <div id="arm-benchmark" class="experiment-results" aria-live="polite"></div>
         <button type="button" id="arm-export-button" disabled>腕の結果をCSV保存</button><span id="arm-export-data" hidden></span>
+        <a href="#demo-gallery" data-demo-back>デモ一覧へ戻る</a>
         <p id="arm-status">手先リーチ・物体配置を選んで実行</p>
         <div class="experiment-results"><table><caption>腕の結果 · 3計画 × 2制御</caption><thead><tr><th>計画 × 制御</th><th>結果</th><th>最終誤差 m</th><th>関節目標RMSE rad</th><th>時間 s</th><th>探索回数</th></tr></thead><tbody id="arm-records"></tbody></table></div>
         <label>腕の時間リプレイ<select id="arm-replay-record" aria-label="腕のリプレイ記録"></select></label>
@@ -343,6 +359,7 @@
         <div class="experiment-buttons"><button type="button" id="mobile-example-button">成功例を実行（seed 42）</button><button type="button" id="mobile-run-button">運搬タスクを実行</button><button type="button" id="mobile-compare-button">移動4組を比較</button><button type="button" id="mobile-recovery-compare-button">再試行なし／ありを比較</button><button type="button" id="mobile-wait-example-button">待機比較の例（seed 42）</button><button type="button" id="mobile-pause-button" aria-pressed="false">一時停止</button><button type="button" id="mobile-step-button">1ステップ</button><button type="button" id="mobile-stop-button">運搬を終了</button></div>
         <input type="hidden" id="mobile-run" value="0"><input type="hidden" id="mobile-compare" value="0"><input type="hidden" id="mobile-pause" value="0"><input type="hidden" id="mobile-step" value="0"><input type="hidden" id="mobile-stop" value="0"><input type="hidden" id="mobile-intent" value="0">
         <div id="mobile-summary" class="experiment-results"></div>
+        <a href="#demo-gallery" data-demo-back>デモ一覧へ戻る</a>
         <p id="mobile-status" role="status">棚から取り、運んで置くタスク</p>
         <div class="experiment-results"><table class="mobile-results-table"><caption>運搬タスク · 段階ごとの成否と時間</caption><thead><tr><th>移動計画 × 制御</th><th>結果</th><th>移動 / 把持 / 運搬 / 配置 s</th><th>合計 s</th><th>待機 s / 回</th><th>移動 m</th><th>配置誤差 m</th></tr></thead><tbody id="mobile-records"></tbody></table></div>
         <button type="button" id="mobile-export-button" disabled>運搬結果をCSV保存</button><span id="mobile-export-data" hidden></span>
@@ -482,6 +499,7 @@
     </details>
     <script src="scene_editor.js?v=1"></script>
     <script src="controls.js?v=mobile-recovery-pair-v1"></script>
+    <script src="demo_gallery.js?v=gallery-v1"></script>
     <script src="replay.js"></script>
   </body>
 </html>
