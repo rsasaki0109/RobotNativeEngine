@@ -9,6 +9,7 @@ assert.equal(chooseLanguage('constructor','__proto__'),'ja');
 assert.equal(translate('  腕6組を比較\n','en'),'  Compare 6 arm pairs\n');
 assert.equal(translate('比較表を広く表示','en'),'Expand comparison table');
 assert.equal(translate('通常表示に戻す','en'),'Return to normal view');
+assert.equal(translate('再開','en'),'Resume');
 assert.equal(translate('Replay inspector','ja'),'リプレイ検査');
 assert.equal(translate('left knee','ja'),'左膝');
 assert.equal(translate('RRT-Connect','ja'),'RRT-Connect');
@@ -17,6 +18,14 @@ assert.equal(translate('成功.json: loaded 8 frames','en'),'成功.json: loaded
 assert.equal(translate('成功.json: loaded 8 frames','ja'),'成功.json: 8フレーム読込完了');
 const html=fs.readFileSync(__dirname+'/index.html','utf8').replace(/<script[\s\S]*?<\/script>/g,'').replace(/<style[\s\S]*?<\/style>/g,'');
 const strings=[...html.matchAll(/>([^<>]+)</g)].map(m=>m[1].trim());
+const {groups}=require('./method_guide.js');
+assert.equal(groups.reduce((n,g)=>n+g.methods.length,0),9);
+for(const group of groups) {
+  const select=html.match(new RegExp('<select id="'+group.field+'"[^>]*>([\\s\\S]*?)</select>'));
+  assert.ok(select,group.field);
+  assert.deepEqual([...select[1].matchAll(/value="(\d+)"/g)].map(m=>Number(m[1])),group.methods.map((_,i)=>i));
+  strings.push(group.title,...group.methods.flatMap(m=>[m.name,m.description,m.watch]));
+}
 strings.push(...[...html.matchAll(/(?:aria-label|title|placeholder)="([^"]+)"/g)].map(m=>m[1]));
 for(const text of strings) {
   if(['Language / 言語','日本語'].includes(text))continue;

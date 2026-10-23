@@ -254,4 +254,5 @@
   });
   root.RNEExperimentShare.init({document,sceneEditor});
   root.RNEMobileResults.init(document);
+  root.RNEMethodGuide.init(document);
 })(typeof window === "undefined" ? globalThis : window);
