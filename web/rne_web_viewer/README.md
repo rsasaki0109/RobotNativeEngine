@@ -404,3 +404,7 @@ every RRT edge passes a denser 24-subdivision check, placement succeeds, repeate
 runs produce identical frames, and colliding endpoints are rejected explicitly.
 The browser check also selects RRT directly, compares all six pairs on the same
 blocking task, and seeks its stored plan in replay.
+
+### 複数seedの腕ベンチマーク
+
+「3 seedで18試行」は現在のタスクとseedを固定し、seed、seed+1、seed+2（u32の末尾では0へ循環）の各条件で3計画×2制御を実行します。実行中の条件変更は次の開始時に反映します。成功率の分母は完了した試行のみです。平均時間（シミュレーション秒）と平均手先移動量（各tickのFK位置間距離の合計、m）は成功した試行のみで計算し、成功なしは「—」です。未完了と中断は成功に数えません。終了すると各seedの試行を個別にリプレイできます。画面の軌跡は現在のseedのみを重ねます。これは運動学的評価で、力学・計算実時間の評価ではありません。
