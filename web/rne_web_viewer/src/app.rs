@@ -455,7 +455,9 @@ impl App {
                     seed,
                 },
             };
-            if mobile_intent == 3 {
+            if mobile_intent == 4 {
+                self.mobile.start_arm_comparison(config);
+            } else if mobile_intent == 3 {
                 self.mobile.start_recovery_comparison(config);
             } else {
                 self.mobile.start(config, mobile_intent == 2);

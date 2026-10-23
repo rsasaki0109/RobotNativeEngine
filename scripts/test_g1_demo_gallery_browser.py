@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Launch six gallery presets using real WASM controls, keyboard and mobile layout."""
+"""Launch gallery presets using real WASM controls, keyboard and mobile layout."""
 import argparse
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -33,9 +33,9 @@ def main():
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.on('console', lambda message: errors.append(message.text) if any(x in message.text for x in ['GPUValidationError', 'Invalid ShaderModule', 'Error while parsing WGSL']) else None)
         page.goto(args.url)
-        assert page.locator('[data-demo-id]').count() == 6
+        assert page.locator('[data-demo-id]').count() == 7
         if not page.locator('#engine-status').text_content().startswith('操作できます'):
-            assert page.locator('[data-demo-id]:disabled').count() == 6
+            assert page.locator('[data-demo-id]:disabled').count() == 7
         page.wait_for_function("document.querySelector('#engine-status').textContent.startsWith('操作できます')", timeout=90000)
         page.wait_for_function('document.querySelectorAll("[data-demo-id]:disabled").length===0')
         page.locator('#experiment-panel').evaluate('e=>e.open=true')

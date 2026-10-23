@@ -143,15 +143,15 @@
       signal("arm-"+(action==="benchmark"?"compare":action));
     });
   }
-  for (const action of ["run","compare","recovery-compare","pause","step","stop"]) {
+  for (const action of ["run","compare","arm-compare","recovery-compare","pause","step","stop"]) {
     document.getElementById("mobile-"+action+"-button").addEventListener("click",()=>{
       releaseAll();document.getElementById("mobile-replay-enabled").value="0";
-      if (["run","compare","recovery-compare"].includes(action)) {
+      if (["run","compare","arm-compare","recovery-compare"].includes(action)) {
         sceneEditor.close();homeTargets();signal("experiment-manual");
-        document.getElementById("mobile-intent").value=action==="recovery-compare"?"3":action==="compare"?"2":"1";
+        document.getElementById("mobile-intent").value=action==="arm-compare"?"4":action==="recovery-compare"?"3":action==="compare"?"2":"1";
       }
       if (action==="stop") document.getElementById("mobile-intent").value="0";
-      signal("mobile-"+(action==="recovery-compare"?"compare":action));
+      signal("mobile-"+(["arm-compare","recovery-compare"].includes(action)?"compare":action));
     });
   }
   document.getElementById("mobile-recovery-toggle").addEventListener("change",event=>{document.getElementById("mobile-recovery").value=event.target.checked?"1":"0";});
