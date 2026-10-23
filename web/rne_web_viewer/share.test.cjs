@@ -29,4 +29,4 @@ reject(v=>{v.nav.task=3;v.scene={goal:{x_m:99,z_m:0},obstacles:[]};});
 reject(v=>{v.nav.task=3;v.scene=editor.preset('open');v.scene.obstacles=Array(25).fill({});});
 for(const hash of ['#rne=','#rne=*','#rne=A','#rne='+ 'a'.repeat(22000),'#rne='+btoa('{"version":1}'),'#rne='+btoa('not json'),'#rne=_w'])assert.throws(()=>decode(hash));
 const value=clone(base);const encoded=encode(value);value.nav.task=7;assert.equal(decode('#rne='+encoded).nav.task,1);
-console.log('PASS: all 10 modes × 3 seeds × 2 locales; custom layouts, scheduled obstacles, bounds, strict fields/types and malformed links');
+console.log('PASS: all 11 modes × 3 seeds × 2 locales; custom layouts, scheduled obstacles, bounds, strict fields/types and malformed links');
