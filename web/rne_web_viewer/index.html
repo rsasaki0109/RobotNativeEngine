@@ -285,6 +285,8 @@
         <button type="button" id="experiment-run-button">選択条件で実行</button><button type="button" id="experiment-compare-button">4組を比較（高速）</button>
         <button type="button" id="experiment-pause-button" aria-pressed="false">一時停止</button><button type="button" id="experiment-step-button">1ステップ</button><button type="button" id="experiment-manual-button">手動操作に戻る</button><button type="button" id="experiment-results-button" disabled>結果を見る</button>
       </div>
+      <label><input type="checkbox" id="experiment-recovery-toggle">計画失敗時に停止して再試行（0.5秒ごと・最大10秒）</label>
+      <input type="hidden" id="experiment-recovery" value="0">
       <p id="experiment-status" aria-live="off">手動操作 · タスクと手法を選んで実行</p>
       <svg id="experiment-map" viewBox="-0.6 -2 4.1 4" role="img" aria-label="計画経路と実際の軌跡、障害物と目標の平面図"></svg>
       <p id="experiment-metrics"></p>
@@ -299,6 +301,33 @@
       <p>軌跡はチェックで表示切替。PP = Pure Pursuit。障害物と青い計画は、現在／最後の組の時刻の状態です。</p>
       <p>同じタスク・seedの行を比較。時間は固定刻みのシミュレーション時間です。移動速度・加速度の上限は共通です。</p>
       <div class="experiment-results"><table><caption>実行結果（直近12件）· 手法を開くと詳細</caption><thead><tr><th>タスク / seed</th><th>手法</th><th>結果</th><th>時間 s</th><th>RMSE m</th><th>移動 m</th><th>最小余裕 m</th></tr></thead><tbody id="experiment-records"></tbody></table></div>
+      <details><summary>移動の時間リプレイ</summary>
+        <p>実行完了後、記録を選んで時刻を移動。ロボット・障害物・計画を同時刻で表示します。移動は平面の位置・向きの記録で、歩行演出は固定立ち姿です。</p>
+        <select id="nav-replay-record" aria-label="移動のリプレイ記録"></select>
+        <input type="range" id="nav-replay-frame" aria-label="移動のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
+        <output id="nav-replay-time">0.00 s</output><button type="button" id="nav-replay-exit">リプレイを終了</button>
+        <input type="hidden" id="nav-replay-tick" value="0"><input type="hidden" id="nav-replay-enabled" value="0">
+      </details>
+      <details id="manipulation-panel">
+        <summary>MANIPULATION · G1の腕と物体操作</summary>
+        <p>左腕の実モデルでリーチ・物体配置を比較。緑＝配置目標、橙＝物体、茶＝障害物。</p>
+        <div class="experiment-options">
+          <label>タスク<select id="arm-task"><option value="0">手先リーチ</option><option value="1">持ち上げて配置</option><option value="2">障害物越しに配置</option><option value="3">到達範囲外</option></select></label>
+          <label>腕の計画<select id="arm-planner"><option value="0">関節直結</option><option value="1">上方経由</option></select></label>
+          <label>腕の制御<select id="arm-controller"><option value="0">速度制限P</option><option value="1">加速度制限P</option></select></label>
+        </div>
+        <div class="experiment-buttons">
+          <button type="button" id="arm-run-button">腕を実行</button><button type="button" id="arm-compare-button">腕の4組を比較</button>
+          <button type="button" id="arm-pause-button" aria-pressed="false">一時停止</button><button type="button" id="arm-step-button">1ステップ</button><button type="button" id="arm-stop-button">腕を終了</button>
+        </div>
+        <input type="hidden" id="arm-run" value="0"><input type="hidden" id="arm-compare" value="0"><input type="hidden" id="arm-pause" value="0"><input type="hidden" id="arm-step" value="0"><input type="hidden" id="arm-stop" value="0"><input type="hidden" id="arm-intent" value="0">
+        <p id="arm-status">手先リーチ・物体配置を選んで実行</p>
+        <div class="experiment-results"><table><caption>腕の結果</caption><thead><tr><th>計画 × 制御</th><th>結果</th><th>最終誤差 m</th><th>関節目標RMSE rad</th><th>時間 s</th></tr></thead><tbody id="arm-records"></tbody></table></div>
+        <label>腕の時間リプレイ<select id="arm-replay-record" aria-label="腕のリプレイ記録"></select></label>
+        <input type="range" id="arm-replay-frame" aria-label="腕のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
+        <output id="arm-replay-time">0.00 s</output><button type="button" id="arm-replay-exit">リプレイを終了</button><input type="hidden" id="arm-replay-tick" value="0"><input type="hidden" id="arm-replay-enabled" value="0">
+        <p>URDFの関節制限と位置IKを使用。物体は手先との距離で接続・解放する運動学的把持です。接触力・落下・姿勢IKは評価しません。接触検査は左前腕・手先と茶色の箱が対象です。</p>
+      </details>
       <details><summary>モデルと比較条件</summary><p>半径0.28mの円形移動モデルです。二足歩行・接触力・バランス制御の評価は含みません。選択変更は次回の実行から適用します。</p></details>
     </details>
     <section id="controls" aria-label="Robot controls">
@@ -429,7 +458,7 @@
       </small>
     </details>
     <script src="scene_editor.js?v=1"></script>
-    <script src="controls.js?v=task-comparison-v2"></script>
+    <script src="controls.js?v=recovery-manipulation-v3"></script>
     <script src="replay.js"></script>
   </body>
 </html>

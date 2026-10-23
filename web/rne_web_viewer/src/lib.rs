@@ -8,6 +8,8 @@ mod app;
 mod experiment;
 mod humanoid;
 mod lab;
+#[cfg(any(target_arch = "wasm32", test))]
+mod manipulation;
 mod playground;
 mod scene;
 #[cfg(any(target_arch = "wasm32", test))]

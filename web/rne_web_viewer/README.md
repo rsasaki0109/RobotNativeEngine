@@ -295,3 +295,75 @@ Run `python scripts/test_g1_experiments_browser.py --url http://127.0.0.1:8084/
 --output work/comparison-browser` (on one line) against a built, locally served
 bundle to check the catalog, comparison traces, visibility controls, distinct
 U-wall outcomes, patrol completion and moving-obstacle single steps in real WASM.
+
+
+### Navigation recovery and recorded-time replay
+
+The optional recovery checkbox is captured with the next run's configuration,
+including all four comparison pairs. A global planning failure enters Waiting:
+the kinematic base stops immediately, simulation time and moving obstacles keep
+advancing, and planning retries every 15 ticks (0.5 s). After 300 consecutive
+waiting ticks (10 s), failure is terminal; the existing overall 60 s limit also
+applies. A moving obstacle can still collide with a waiting robot. Contact and
+control failures remain terminal. There is no obstacle-motion prediction. Waiting
+seconds and the recovery policy are retained in results. With seed 42, the
+straight/Pure Pursuit crossing example succeeds after 3 s of waiting. The checkbox
+defaults off, so the original comparison behavior remains available.
+
+Completed navigation runs record fixed-tick poses, obstacle locations, the current
+plan, remaining patrol goals, metrics and state. The navigation replay selector
+and timeline display one run's recorded frames, typically every 0.1 s plus state
+changes and the terminal frame. Navigation records planar base position/yaw, not
+walking-joint animation; replay uses a fixed stance, independent of redraw count.
+The timeline selects actual recorded samples, so
+its displayed time matches the visual state. It never reruns a controller or
+changes measured results. Other comparison traces are hidden while replaying to
+avoid mixing times. Starting another run, editing, manual control or reset exits
+replay. A completed current run must exist to enable the replay selector.
+
+### G1 manipulation experiments
+
+Open **MANIPULATION** in the comparison panel for left-hand reaching, pick/place,
+placement near a blocking box, or an unreachable target. Two planners (direct
+joint goals and fixed elevated task-space waypoints) combine with two servos
+(velocity-limited proportional and acceleration-limited proportional). All run at
+30 Hz with joint speed limited to 0.8 rad/s; the smoothed servo also limits its
+command acceleration to 1.6 rad/s². The task uses the navigation seed for a small,
+deterministic variation of the pick configuration. Selection changes apply only
+to the next run. Navigation and manipulation are mutually exclusive.
+
+The model is imported from the vendored G1 URDF and uses `rne_robot`'s real
+`KinematicModel` FK and active-joint damped least-squares IK. Only the five left
+arm joints move; a fixed tool frame is added 0.055 m along the rubber hand's local
+X axis. Viewer joint order is explicitly mapped from model DOF order. A headless
+test checks that FK and the rendered robot's actual tool position agree. IK is
+position-only and respects the source joint limits; out-of-range targets produce
+an explicit IK failure rather than a fabricated successful animation.
+
+Orange is the object and green is the target. Pick/place uses a distance-gated
+kinematic attachment (within 0.025 m), keeps the measured attachment offset while
+carrying, then releases without teleporting the object onto the target. Placement
+must finish within 0.025 m. This is not force-based grasping: gravity, finger
+contact, object orientation, torso/self-collision, and balance are not simulated.
+The blocking-box check samples the swept left forearm/tool (0.018 m radius) and
+held object (0.0225 m radius) against the 0.05 m box. The fixed elevated waypoint
+planner does not search for a collision-free path; the blocking scene can fail
+for all four pairs. These failures are preserved and can be inspected in replay.
+
+Arm results include final tool/object error, active-arm-joint target RMSE and
+elapsed simulation time. RMSE is absent for failures before any control step.
+Arm replay records joint coordinates, object position, attachment state and task
+stage, so the robot and held object remain synchronized when seeking. Completed
+comparison traces are colored consistently with the navigation palette. Replay
+selects a single pair's trace and never changes its measured results.
+
+Verification:
+
+```bash
+python scripts/test_g1_recovery_manipulation_browser.py --url http://127.0.0.1:8087/ --output work/recovery-browser
+```
+
+Run against a built static bundle served locally. The test exercises recovery,
+recorded-time navigation replay, manipulation pause/step, all four pick/place
+pairs, grasp/release replay, contact and unreachable failures, manual takeover,
+and mobile touch, using actual WASM and Chromium WebGPU.

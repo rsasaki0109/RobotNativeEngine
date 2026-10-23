@@ -2,6 +2,7 @@
 
 use crate::experiment::{Config, Experiment};
 use crate::humanoid::{G1Input, G1Scene};
+use crate::manipulation::{ArmConfig, Manipulation};
 use crate::scene_config::{pick_floor, SceneSpec};
 use rne_render_wgpu::{CameraOrbit, InteractiveViewer, ViewerError};
 use std::sync::Arc;
@@ -69,6 +70,8 @@ struct App {
     mission_counter: u32,
     experiment: Experiment,
     experiment_counters: [u32; 5],
+    manipulation: Manipulation,
+    manipulation_counters: [u32; 5],
     rendered_results: String,
     scene_revision: u32,
     floor_counter: u32,
@@ -247,8 +250,17 @@ impl App {
             use wasm_bindgen::JsCast;
             document
                 .get_element_by_id(id)
-                .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                .and_then(|input| input.value().parse::<f64>().ok())
+                .and_then(|element| {
+                    element
+                        .dyn_ref::<web_sys::HtmlInputElement>()
+                        .map(|input| input.value())
+                        .or_else(|| {
+                            element
+                                .dyn_ref::<web_sys::HtmlSelectElement>()
+                                .map(|select| select.value())
+                        })
+                })
+                .and_then(|text| text.parse::<f64>().ok())
                 .filter(|value| value.is_finite())
                 .ok_or_else(|| format!("invalid control: {id}"))
         };
@@ -315,6 +327,7 @@ impl App {
         let mission = mission_counter != self.mission_counter;
         let intent = value("experiment-intent")? as u32;
         if reset || mission {
+            self.manipulation.stop();
             self.experiment.stop();
         } else if (changed[0] || changed[3]) && intent != 0 {
             let config = Config {
@@ -322,14 +335,17 @@ impl App {
                 planner: (value("experiment-planner")? as usize).min(1),
                 controller: (value("experiment-controller")? as usize).min(1),
                 seed: value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32,
+                recovery: value("experiment-recovery")? == 1.0,
             };
             if config.task == 3 && self.scene_error.is_some() {
                 self.experiment.stop();
             } else {
+                self.manipulation.stop();
                 self.experiment.start(config, intent == 2);
             }
         }
         if changed[4] && intent == 0 {
+            self.manipulation.stop();
             self.experiment.stop();
         }
         if changed[1] && self.experiment.active() {
@@ -339,9 +355,65 @@ impl App {
             self.experiment.paused = true;
         }
         self.experiment.hidden_traces = value("experiment-hidden-traces")?.clamp(0.0, 15.0) as u8;
+        if value("nav-replay-enabled")? == 1.0 {
+            self.experiment.seek_replay(
+                value("nav-replay-record")? as usize,
+                value("nav-replay-tick")? as u32,
+            );
+        } else {
+            self.experiment.clear_replay();
+        }
         self.experiment.advance(changed[2]);
+        let arm_counters: [u32; 5] = [
+            "arm-run",
+            "arm-pause",
+            "arm-step",
+            "arm-compare",
+            "arm-stop",
+        ]
+        .map(|id| value(id).map(|v| v as u32))
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()?
+        .try_into()
+        .unwrap();
+        let arm_changed: [bool; 5] =
+            std::array::from_fn(|i| arm_counters[i] != self.manipulation_counters[i]);
+        let arm_intent = value("arm-intent")? as u32;
+        if (arm_changed[0] || arm_changed[3]) && arm_intent != 0 && !reset && !mission {
+            self.experiment.stop();
+            self.manipulation.start(
+                ArmConfig {
+                    task: (value("arm-task")? as usize).min(3),
+                    planner: (value("arm-planner")? as usize).min(1),
+                    controller: (value("arm-controller")? as usize).min(1),
+                    seed: value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32,
+                },
+                arm_intent == 2,
+            );
+        }
+        if arm_changed[4] && arm_intent == 0 {
+            self.manipulation.stop();
+        }
+        if arm_changed[1] {
+            self.manipulation.replay = None;
+            self.manipulation.paused = !self.manipulation.paused;
+        }
+        if arm_changed[2] {
+            self.manipulation.replay = None;
+            self.manipulation.paused = true;
+        }
+        if value("arm-replay-enabled")? == 1.0 {
+            self.manipulation.seek(
+                value("arm-replay-record")? as usize,
+                value("arm-replay-tick")? as u32,
+            );
+        } else {
+            self.manipulation.replay = None;
+        }
+        self.manipulation.advance(arm_changed[2]);
+        self.manipulation_counters = arm_counters;
         self.experiment_counters = counters;
-        let input = G1Input {
+        let mut input = G1Input {
             forward: value("control-forward")?,
             turn: value("control-turn")?,
             targets_rad,
@@ -361,16 +433,42 @@ impl App {
                 false,
             )?;
         }
-        let mut render_scene = if let Some(pose) = self.experiment.pose() {
-            scene.navigation_frame(input, animate, pose)?
+        if let Some(targets) = self.manipulation.targets() {
+            input.targets_rad = targets;
+        }
+        if self.manipulation.active() && (arm_changed[0] || arm_changed[3]) {
+            scene.play_frame(
+                G1Input {
+                    forward: 0.0,
+                    turn: 0.0,
+                    targets_rad: input.targets_rad.clone(),
+                    reset: true,
+                },
+                false,
+                false,
+                false,
+            )?;
+        }
+        let mut render_scene = if self.manipulation.active() {
+            scene.recorded_frame(input, (0.0, 0.0, 0.0))?
+        } else if let Some(pose) = self.experiment.pose() {
+            if self.experiment.replaying() {
+                scene.recorded_frame(input, pose)?
+            } else {
+                scene.navigation_frame(input, animate, pose)?
+            }
         } else {
             scene.play_frame(input, animate, wave_counter != self.wave_counter, mission)?
         };
         self.experiment.overlay(&mut render_scene);
+        self.manipulation.overlay(&mut render_scene);
         if let Some(body) = document.get_element_by_id("playground") {
             let _ = body.set_attribute(
                 "data-experiment-active",
-                if self.experiment.active() || self.experiment.editor_visible {
+                if self.experiment.active()
+                    || self.experiment.editor_visible
+                    || self.manipulation.active()
+                {
                     "true"
                 } else {
                     "false"
@@ -379,6 +477,7 @@ impl App {
         }
         for (id, text) in [
             ("experiment-status", self.experiment.status()),
+            ("arm-status", self.manipulation.status()),
             ("experiment-metrics", self.experiment.metrics()),
             (
                 "experiment-comparison",
@@ -407,6 +506,33 @@ impl App {
                 self.rendered_results.clone_from(&results);
             }
         }
+        for (id, html) in [
+            ("arm-records", self.manipulation.results_html()),
+            ("nav-replay-record", self.experiment.replay_options()),
+            ("arm-replay-record", self.manipulation.replay_options()),
+        ] {
+            if let Some(element) = document.get_element_by_id(id) {
+                if element.get_attribute("data-rendered").as_deref() != Some(html.as_str()) {
+                    element.set_inner_html(&html);
+                    let _ = element.set_attribute("data-rendered", &html);
+                }
+            }
+        }
+        if let Some(element) = document.get_element_by_id("arm-pause-button") {
+            let _ = element.set_attribute(
+                "aria-pressed",
+                if self.manipulation.paused {
+                    "true"
+                } else {
+                    "false"
+                },
+            );
+            element.set_text_content(Some(if self.manipulation.paused {
+                "再開"
+            } else {
+                "一時停止"
+            }));
+        }
         if let Some(element) = document.get_element_by_id("experiment-results-button") {
             if results.is_empty() {
                 let _ = element.set_attribute("disabled", "");
@@ -415,7 +541,10 @@ impl App {
             }
         }
         if let Some(element) = document.get_element_by_id("control-wave") {
-            if self.experiment.active() || self.experiment.editor_visible {
+            if self.experiment.active()
+                || self.experiment.editor_visible
+                || self.manipulation.active()
+            {
                 let _ = element.set_attribute("disabled", "");
             } else {
                 let _ = element.remove_attribute("disabled");
