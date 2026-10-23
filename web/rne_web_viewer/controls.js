@@ -154,6 +154,7 @@
       signal("mobile-"+action);
     });
   }
+  document.getElementById("mobile-recovery-toggle").addEventListener("change",event=>{document.getElementById("mobile-recovery").value=event.target.checked?"1":"0";});
   document.getElementById("mobile-example-button").addEventListener("click",()=>{
     for (const [id,value] of [["mobile-scenario","0"],["experiment-planner-select","1"],["experiment-controller-select","1"],["arm-planner","2"],["arm-controller","0"],["experiment-seed-editor","42"]]) {
       const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event("change",{bubbles:true}));

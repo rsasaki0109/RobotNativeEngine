@@ -335,7 +335,8 @@
         <p>URDFの関節制限と位置IKを使用。物体は手先との距離で接続・解放する運動学的把持です。接触力・落下・姿勢IKは評価しません。接触検査は左前腕・手先・保持物と茶色の箱が対象です。RRT-Connectは段階ごとに最大600反復で探索します。探索に要した処理時間はシミュレーション時間に含みません。</p>
       </details>
       <details id="mobile-panel"><summary>移動 × 腕操作 · 棚から運んで配置</summary>
-        <label>運搬条件<select id="mobile-scenario"><option value="0">標準の運搬</option><option value="1">把持後に運搬経路が閉鎖</option><option value="2">配置棚が到達範囲外</option></select></label>
+        <label>運搬条件<select id="mobile-scenario"><option value="0">標準の運搬</option><option value="1">把持後に運搬経路が閉鎖</option><option value="2">配置棚が到達範囲外</option><option value="3">運搬経路が5秒後に開通</option></select></label>
+        <label><input type="checkbox" id="mobile-recovery-toggle"> 運搬時に待機・再試行（0.5秒ごと・最大10秒）</label><input type="hidden" id="mobile-recovery" value="0">
         <p>棚へ移動 → 把持・持ち上げ → 配置先へ運搬 → 配置。上の移動・腕の設定とseedを開始時に固定します。「移動4組を比較」は腕の設定を固定して移動の2計画 × 2制御を評価します。</p>
         <p>「成功例」は標準の運搬、A*＋DWA、腕RRT-Connect＋速度制限P、seed 42に設定して実行します。</p>
         <div class="experiment-buttons"><button type="button" id="mobile-example-button">成功例を実行（seed 42）</button><button type="button" id="mobile-run-button">運搬タスクを実行</button><button type="button" id="mobile-compare-button">移動4組を比較</button><button type="button" id="mobile-pause-button" aria-pressed="false">一時停止</button><button type="button" id="mobile-step-button">1ステップ</button><button type="button" id="mobile-stop-button">運搬を終了</button></div>
@@ -479,7 +480,7 @@
       </small>
     </details>
     <script src="scene_editor.js?v=1"></script>
-    <script src="controls.js?v=mobile-scenarios-v1"></script>
+    <script src="controls.js?v=mobile-wait-v1"></script>
     <script src="replay.js"></script>
   </body>
 </html>

@@ -1506,6 +1506,22 @@ impl NavigationLeg {
     pub(crate) fn tick(&mut self) {
         self.0.tick();
     }
+    /// Update geometry without resetting the existing waiting/retry budget.
+    pub(crate) fn replace_obstacles(&mut self, obstacles: Vec<BoxSpec>) {
+        self.0.obstacles = obstacles.iter().map(obstacle).collect();
+        self.0.map = make_map(&self.0.obstacles);
+        self.0.pending.clear();
+        if self.0.state == State::Running {
+            self.0.plan();
+        }
+    }
+    pub(crate) fn recovery_progress(&self) -> (bool, u32, u32) {
+        (
+            self.0.state == State::Waiting,
+            self.0.waiting_total,
+            self.0.replans,
+        )
+    }
     pub(crate) fn pose(&self) -> (f64, f64, f64) {
         (self.0.pose.x_m, -self.0.pose.y_m, self.0.pose.yaw_rad)
     }
