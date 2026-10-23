@@ -3086,11 +3086,14 @@ fn unit_cube() -> (Vec<Vertex>, Vec<u16>) {
     let mut indices = Vec::new();
     for (face, normal) in faces {
         let base = vertices.len() as u16;
-        for corner in face {
+        for (corner, texcoord) in
+            face.into_iter()
+                .zip([[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]])
+        {
             vertices.push(Vertex {
                 position: p[corner],
                 normal,
-                texcoord: [0.0, 0.0],
+                texcoord,
                 joints: [0; 4],
                 weights: [0.0; 4],
             });
@@ -3214,6 +3217,25 @@ mod mesh_tests {
     };
     use crate::taa::{COPY_SHADER, TAA_SHADER};
     use rne_render::RenderSceneItem;
+
+    #[test]
+    fn cube_texture_triangles_cover_each_face_without_collapsing() {
+        let (vertices, indices) = unit_cube();
+        for face in vertices.chunks_exact(4) {
+            for axis in 0..2 {
+                assert!(face.iter().any(|v| v.texcoord[axis] == 0.0));
+                assert!(face.iter().any(|v| v.texcoord[axis] == 1.0));
+            }
+        }
+        for triangle in indices.chunks_exact(3) {
+            let [a, b, c] = [0, 1, 2].map(|k| vertices[triangle[k] as usize].texcoord);
+            let area = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+            assert_eq!(
+                area, 1.0,
+                "every face must map the whole texture with a usable tangent frame"
+            );
+        }
+    }
 
     #[test]
     fn every_unit_cylinder_and_sphere_triangle_faces_outward() {

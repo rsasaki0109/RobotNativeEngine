@@ -2,7 +2,7 @@
 use crate::playground::{Playground, GOALS, GOAL_RADIUS_M};
 use rne_ecs::{Entity, World};
 use rne_math::{Quat, Vec3};
-use rne_render::{load_stl_bytes, RenderScene, TriangleMesh, VisualShape};
+use rne_render::{load_stl_bytes, PbrMaterial, RenderScene, TriangleMesh, VisualShape};
 use rne_robot::Joint;
 use rne_urdf_import::{
     parse_urdf, rpy_to_quat, spawn_urdf_robot_with_config, UrdfGeometry, UrdfJoint, UrdfJointType,
@@ -19,6 +19,7 @@ struct Part {
     offset: Transform3,
     shape: VisualShape,
     color: [f32; 4],
+    material: PbrMaterial,
     mesh: Arc<TriangleMesh>,
 }
 
@@ -95,6 +96,7 @@ impl G1Scene {
                         scale: *scale,
                     },
                     color: visual.material_rgba.unwrap_or([0.7, 0.7, 0.75, 1.0]),
+                    material: shell_material(visual.material_rgba.unwrap_or([0.7, 0.7, 0.75, 1.0])),
                     mesh: Arc::new(mesh),
                 });
             }
@@ -269,9 +271,20 @@ impl G1Scene {
                 part.offset,
             );
             item.mesh = Some(Arc::clone(&part.mesh));
+            item.material = part.material.clone();
             scene.items.push(item);
         }
         scene
+    }
+}
+
+// Render-only coating response: keep authored color on each mesh and distinguish
+// matte dark polymer from satin painted shells. No change to source geometry.
+fn shell_material(color: [f32; 4]) -> PbrMaterial {
+    if color[..3].iter().all(|v| *v < 0.3) {
+        PbrMaterial::new([0.25, 0.25, 0.25, 1.0], 0.4, 0.0, [0.0; 3])
+    } else {
+        PbrMaterial::new([0.95, 0.95, 0.95, 1.0], 0.28, 0.08, [0.0; 3])
     }
 }
 

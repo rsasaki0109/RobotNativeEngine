@@ -3,7 +3,7 @@ use rne_math::{Quat, Vec3};
 use rne_render::VisualShape;
 #[cfg(any(target_arch = "wasm32", test))]
 use rne_render::{EnvironmentLighting, EnvironmentMap};
-use rne_render::{ImageFrame, PbrMaterial, RenderScene};
+use rne_render::{PbrMaterial, RenderScene};
 use rne_world::Transform3;
 use std::sync::Arc;
 
@@ -34,17 +34,7 @@ fn block(
 
 pub(crate) fn scene() -> RenderScene {
     let mut scene = RenderScene::new();
-    // One shared, deterministic micro-grain texture, rather than per-frame noise.
-    let mut pixels = Vec::with_capacity(64 * 64 * 4);
-    for y in 0..64_u32 {
-        for x in 0..64_u32 {
-            let grain =
-                ((x.wrapping_mul(1973) ^ y.wrapping_mul(9277)).wrapping_mul(26699) >> 8) % 13;
-            let value = 181 + grain as u8;
-            pixels.extend_from_slice(&[value, value, value - 2, 255]);
-        }
-    }
-    let concrete = Arc::new(ImageFrame::from_rgba8(64, 64, pixels));
+    let concrete = crate::surfaces::concrete();
     block(
         &mut scene,
         [0.0, -0.07, 0.0],
@@ -64,7 +54,8 @@ pub(crate) fn scene() -> RenderScene {
                 0.86,
                 0.0,
             );
-            scene.items.last_mut().unwrap().base_color_texture = Some(Arc::clone(&concrete));
+            scene.items.last_mut().unwrap().base_color_texture = Some(Arc::clone(&concrete.color));
+            scene.items.last_mut().unwrap().material = concrete.material.clone();
         }
     }
     // A roofless cutaway keeps the orbit camera and the operating area visible.
@@ -285,8 +276,8 @@ pub(crate) fn lighting() -> EnvironmentLighting {
         map: Some(Arc::new(
             EnvironmentMap::from_rgba32f(width as u32, height as u32, pixels).unwrap(),
         )),
-        diffuse_strength: 0.65,
-        specular_strength: 0.35,
+        diffuse_strength: 0.8,
+        specular_strength: 0.55,
         ..EnvironmentLighting::default()
     }
 }
