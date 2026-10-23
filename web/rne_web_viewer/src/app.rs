@@ -381,15 +381,17 @@ impl App {
         let arm_intent = value("arm-intent")? as u32;
         if (arm_changed[0] || arm_changed[3]) && arm_intent != 0 && !reset && !mission {
             self.experiment.stop();
-            self.manipulation.start(
-                ArmConfig {
-                    task: (value("arm-task")? as usize).min(3),
-                    planner: (value("arm-planner")? as usize).min(2),
-                    controller: (value("arm-controller")? as usize).min(1),
-                    seed: value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32,
-                },
-                arm_intent == 2,
-            );
+            let config = ArmConfig {
+                task: (value("arm-task")? as usize).min(3),
+                planner: (value("arm-planner")? as usize).min(2),
+                controller: (value("arm-controller")? as usize).min(1),
+                seed: value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32,
+            };
+            if arm_intent == 3 {
+                self.manipulation.start_benchmark(config);
+            } else {
+                self.manipulation.start(config, arm_intent == 2);
+            }
         }
         if arm_changed[4] && arm_intent == 0 {
             self.manipulation.stop();
@@ -508,6 +510,7 @@ impl App {
         }
         for (id, html) in [
             ("arm-records", self.manipulation.results_html()),
+            ("arm-benchmark", self.manipulation.benchmark_html()),
             ("nav-replay-record", self.experiment.replay_options()),
             ("arm-replay-record", self.manipulation.replay_options()),
         ] {

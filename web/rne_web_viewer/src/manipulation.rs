@@ -560,6 +560,8 @@ struct Record {
     rmse_rad: Option<f64>,
     frames: Vec<Frame>,
     trace: Vec<Vec3>,
+    goal: Vec3,
+    blocker: Option<Vec3>,
 }
 #[derive(Debug, Default)]
 pub(crate) struct Manipulation {
@@ -569,6 +571,7 @@ pub(crate) struct Manipulation {
     records: Vec<Record>,
     pub(crate) paused: bool,
     batch: bool,
+    benchmark: Option<ArmConfig>,
     pub(crate) replay: Option<(usize, u32)>,
 }
 impl Manipulation {
@@ -582,22 +585,33 @@ impl Manipulation {
         self.paused = false;
     }
     pub(crate) fn start(&mut self, c: ArmConfig, batch: bool) {
+        self.start_trials(c, batch, false);
+    }
+    /// Run all six methods on three consecutive, wrapping u32 seeds.
+    pub(crate) fn start_benchmark(&mut self, c: ArmConfig) {
+        self.start_trials(c, true, true);
+    }
+    fn start_trials(&mut self, c: ArmConfig, batch: bool, benchmark: bool) {
         if self.arm.is_none() {
             self.arm = Some(Arm::load());
         }
         self.queue.clear();
         self.records.clear();
         self.batch = batch;
+        self.benchmark = benchmark.then_some(c);
         self.paused = false;
         self.replay = None;
         if batch {
-            for planner in 0..3 {
-                for controller in 0..2 {
-                    self.queue.push_back(ArmConfig {
-                        planner,
-                        controller,
-                        ..c
-                    });
+            for offset in 0..if benchmark { 3 } else { 1 } {
+                for planner in 0..3 {
+                    for controller in 0..2 {
+                        self.queue.push_back(ArmConfig {
+                            planner,
+                            controller,
+                            seed: c.seed.wrapping_add(offset),
+                            ..c
+                        });
+                    }
                 }
             }
         } else {
@@ -633,6 +647,12 @@ impl Manipulation {
                         .then(|| (run.error_sq / f64::from(run.samples)).sqrt()),
                     frames: run.frames.clone(),
                     trace: run.trace.clone(),
+                    goal: if run.config.task == 1 || run.config.task == 2 {
+                        run.place
+                    } else {
+                        *run.goals.last().unwrap()
+                    },
+                    blocker: run.blocker,
                 });
                 run.recorded = true;
             }
@@ -720,6 +740,58 @@ impl Manipulation {
             }
         )
     }
+    /// Completed trials only; averages include successful trials only.
+    pub(crate) fn benchmark_html(&self) -> String {
+        let Some(c) = self.benchmark else {
+            return String::new();
+        };
+        let mut s = format!("<p>{} · seed {}, {}, {} · 完了 {}/18{} · 実行中・未実行は集計対象外。平均は成功時のみ。</p><table><caption>6手法 × 3 seed</caption><thead><tr><th>計画 × 制御</th><th>成功 / 完了</th><th>成功率</th><th>平均時間 s</th><th>平均手先移動 m</th></tr></thead><tbody>", TASKS[c.task], c.seed, c.seed.wrapping_add(1), c.seed.wrapping_add(2), self.records.len(), if self.run.is_none() { " · 中断" } else if self.records.len() == 18 { " · 評価完了" } else if self.paused { " · 一時停止" } else { " · 評価中" });
+        for (planner, name) in PLANNERS.iter().enumerate() {
+            for (controller, control) in CONTROLLERS.iter().enumerate() {
+                let trials: Vec<_> = self
+                    .records
+                    .iter()
+                    .filter(|r| r.config.planner == planner && r.config.controller == controller)
+                    .collect();
+                let successes: Vec<_> = trials.iter().filter(|r| r.state == "成功").collect();
+                let mean = |total: f64| {
+                    if successes.is_empty() {
+                        "—".into()
+                    } else {
+                        format!("{:.2}", total / successes.len() as f64)
+                    }
+                };
+                let time = mean(
+                    successes
+                        .iter()
+                        .map(|r| f64::from(r.frames.last().unwrap().tick) * DT)
+                        .sum(),
+                );
+                let movement = mean(
+                    successes
+                        .iter()
+                        .map(|r| {
+                            r.trace
+                                .windows(2)
+                                .map(|w| (w[1] - w[0]).length())
+                                .sum::<f64>()
+                        })
+                        .sum(),
+                );
+                let rate = if trials.is_empty() {
+                    "—".into()
+                } else {
+                    format!(
+                        "{:.0}%",
+                        100.0 * successes.len() as f64 / trials.len() as f64
+                    )
+                };
+                let _ = write!(s, "<tr><td>{name} × {control}</td><td>{}/{}</td><td>{rate}</td><td>{time}</td><td>{movement}</td></tr>", successes.len(), trials.len());
+            }
+        }
+        s.push_str("</tbody></table>");
+        s
+    }
     pub(crate) fn results_html(&self) -> String {
         let mut s = String::new();
         for r in &self.records {
@@ -728,9 +800,10 @@ impl Manipulation {
             ][r.config.planner * 2 + r.config.controller];
             let _ = write!(
                 s,
-                "<tr><td><span style='color:{color}'>●</span> {} × {}</td><td>{}</td><td>{:.3}</td><td>{}</td><td>{:.2}</td><td>{}</td></tr>",
+                "<tr><td><span style='color:{color}'>●</span> {} × {} · seed {}</td><td>{}</td><td>{:.3}</td><td>{}</td><td>{:.2}</td><td>{}</td></tr>",
                 PLANNERS[r.config.planner],
                 CONTROLLERS[r.config.controller],
+                r.config.seed,
                 r.state,
                 r.error_m,
                 r.rmse_rad.map_or_else(|| "—".into(), |v| format!("{v:.3}")),
@@ -749,7 +822,7 @@ impl Manipulation {
             .enumerate()
             .map(|(i, r)| {
                 format!(
-                    "<option value='{i}' data-times='{}'>{} × {} · {}</option>",
+                    "<option value='{i}' data-times='{}'>{} × {} · seed {} · {}</option>",
                     r.frames
                         .iter()
                         .map(|f| f.tick.to_string())
@@ -757,6 +830,7 @@ impl Manipulation {
                         .join(","),
                     PLANNERS[r.config.planner],
                     CONTROLLERS[r.config.controller],
+                    r.config.seed,
                     r.state
                 )
             })
@@ -774,22 +848,30 @@ impl Manipulation {
                 Transform3::IDENTITY,
             ))
         };
+        let selected = self.replay.and_then(|(i, _)| self.records.get(i));
+        let goal = selected.map_or_else(
+            || {
+                if r.config.task == 1 || r.config.task == 2 {
+                    r.place
+                } else {
+                    *r.goals.last().unwrap()
+                }
+            },
+            |record| record.goal,
+        );
         if r.config.task == 1 || r.config.task == 2 {
             cube(scene, f.object, Vec3::splat(0.045), [1.0, 0.55, 0.1, 1.0]);
-            cube(scene, r.place, Vec3::splat(0.065), [0.15, 0.8, 0.3, 0.35]);
+            cube(scene, goal, Vec3::splat(0.065), [0.15, 0.8, 0.3, 0.35]);
         } else {
-            cube(
-                scene,
-                *r.goals.last().unwrap(),
-                Vec3::splat(0.045),
-                [0.1, 0.9, 0.4, 1.0],
-            );
+            cube(scene, goal, Vec3::splat(0.045), [0.1, 0.9, 0.4, 1.0]);
         }
-        if let Some(b) = r.blocker {
+        if let Some(b) = selected.map_or(r.blocker, |record| record.blocker) {
             cube(scene, b, Vec3::splat(0.05), [0.7, 0.25, 0.1, 1.0]);
         }
         for (index, record) in self.records.iter().enumerate() {
-            if self.replay.is_some_and(|(i, _)| i != index) {
+            if self.replay.is_some_and(|(i, _)| i != index)
+                || (self.replay.is_none() && record.config.seed != r.config.seed)
+            {
                 continue;
             }
             for (n, p) in record.trace.iter().enumerate().step_by(8) {
@@ -822,6 +904,105 @@ impl Manipulation {
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn benchmark_counts_completed_trials_and_repeats_seeded_metrics() {
+        let config = ArmConfig {
+            task: 0,
+            planner: 0,
+            controller: 0,
+            seed: 42,
+        };
+        let mut m = Manipulation::default();
+        m.start_benchmark(config);
+        assert_eq!(m.queue.len(), 17);
+        assert!(m.benchmark_html().contains("完了 0/18"));
+        assert!(!m.benchmark_html().contains("NaN"));
+        m.paused = true;
+        m.advance(false);
+        assert_eq!(m.run.as_ref().unwrap().tick, 0);
+        m.advance(true);
+        assert_eq!(m.run.as_ref().unwrap().tick, 1);
+        m.paused = false;
+        for _ in 0..2000 {
+            m.advance(false);
+        }
+        assert_eq!(m.records.len(), 18);
+        assert!(m.records.iter().all(|r| r.state == "成功"));
+        let summary = m.benchmark_html();
+        assert_eq!(summary.matches("100%").count(), 6);
+        assert_eq!(summary.matches("3/3").count(), 6);
+        for (i, r) in m.records.iter().enumerate() {
+            assert_eq!(r.config.seed, 42 + (i / 6) as u32);
+            assert!(
+                r.trace
+                    .windows(2)
+                    .map(|w| (w[1] - w[0]).length())
+                    .sum::<f64>()
+                    > 0.0
+            );
+        }
+        m.seek(0, 3);
+        m.advance(false);
+        assert_eq!(m.benchmark_html(), summary);
+        assert!(m.replay_options().contains("seed 42"));
+        m.start_benchmark(config);
+        for _ in 0..2000 {
+            m.advance(false);
+        }
+        assert_eq!(m.benchmark_html(), summary);
+        // A failed trial contributes to the denominator but not either mean.
+        m.records[0].state = "接触";
+        let mixed = m.benchmark_html();
+        let expected_time = (f64::from(m.records[6].frames.last().unwrap().tick)
+            + f64::from(m.records[12].frames.last().unwrap().tick))
+            * DT
+            / 2.0;
+        let expected_distance = [6, 12]
+            .iter()
+            .map(|i| {
+                m.records[*i]
+                    .trace
+                    .windows(2)
+                    .map(|w| (w[1] - w[0]).length())
+                    .sum::<f64>()
+            })
+            .sum::<f64>()
+            / 2.0;
+        assert!(mixed.contains(&format!(
+            "<td>2/3</td><td>67%</td><td>{expected_time:.2}</td><td>{expected_distance:.2}</td>"
+        )));
+    }
+    #[test]
+    fn benchmark_failures_wrapping_seeds_and_interruption_are_explicit() {
+        let mut m = Manipulation::default();
+        let config = ArmConfig {
+            task: 3,
+            planner: 0,
+            controller: 0,
+            seed: u32::MAX,
+        };
+        m.start_benchmark(config);
+        m.paused = true;
+        m.advance(true);
+        assert_eq!(m.records.len(), 1);
+        assert!(m.benchmark_html().contains("完了 1/18"));
+        m.stop();
+        assert!(m.benchmark_html().contains("中断"));
+        assert_eq!(m.records.len(), 1);
+        m.start_benchmark(config);
+        m.advance(false);
+        assert_eq!(m.records.len(), 18);
+        assert_eq!(m.records[6].config.seed, 0);
+        assert_eq!(m.records[12].config.seed, 1);
+        let html = m.benchmark_html();
+        assert_eq!(html.matches("0/3").count(), 6);
+        assert_eq!(html.matches("0%").count(), 6);
+        assert_eq!(html.matches("<td>—</td>").count(), 12);
+        m.start(config, true);
+        assert!(m.benchmark_html().is_empty());
+        m.advance(false);
+        assert_eq!(m.records.len(), 6);
+    }
     use super::*;
     #[test]
     fn g1_arm_uses_urdf_limits_and_real_ik_and_rejects_unreachable_targets() {

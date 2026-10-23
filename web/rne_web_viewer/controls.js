@@ -130,15 +130,15 @@
     document.querySelector(".experiment-results").scrollIntoView({ block: "nearest" });
   });
   document.getElementById("experiment-recovery-toggle").addEventListener("change",event=>{document.getElementById("experiment-recovery").value=event.target.checked?"1":"0";});
-  for (const action of ["run","compare","pause","step","stop"]) {
+  for (const action of ["run","compare","benchmark","pause","step","stop"]) {
     document.getElementById("arm-"+action+"-button").addEventListener("click",()=>{
       releaseAll();document.getElementById("arm-replay-enabled").value="0";
-      if (action==="run" || action==="compare") {
+      if (action==="run" || action==="compare" || action==="benchmark") {
         sceneEditor.close();homeTargets();signal("experiment-manual");
-        document.getElementById("arm-intent").value=action==="compare"?"2":"1";
+        document.getElementById("arm-intent").value=action==="benchmark"?"3":action==="compare"?"2":"1";
       }
       if (action==="stop") document.getElementById("arm-intent").value="0";
-      signal("arm-"+action);
+      signal("arm-"+(action==="benchmark"?"compare":action));
     });
   }
   for (const prefix of ["nav","arm"]) {
