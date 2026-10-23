@@ -58,6 +58,9 @@ def main():
         assert [r['result'] for r in records] == ['腕が障害物に接触', '腕が障害物に接触', '成功', '腕が障害物に接触', '成功', '成功']
         assert page.locator('#mobile-replay-record option').count() == 6
         assert page.locator('#mobile-timeline .timeline-row').count() == 6
+        for phase, color in enumerate(['rgb(85, 222, 245)', 'rgb(205, 155, 255)', 'rgb(114, 237, 177)', 'rgb(246, 227, 121)']):
+            assert page.locator(f'.timeline-segment[data-phase="{phase}"]').first.evaluate('e=>getComputedStyle(e).backgroundColor') == color
+        assert page.locator('.timeline-terminal[data-success="false"]').first.evaluate('e=>getComputedStyle(e).color') == 'rgb(242, 155, 193)'
         for index, record in enumerate(records):
             choose(page, page.locator(f'.timeline-terminal[data-mobile-record="{index}"]'), keyboard=index == 5)
             assert ('全4段階完了' if record['result'] == '成功' else record['result']) in page.locator('#mobile-status').text_content()
