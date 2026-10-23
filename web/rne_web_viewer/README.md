@@ -445,7 +445,7 @@ seed 42でA*＋腕RRTを使うと、回復なしは運搬段階で即時失敗�
 
 ### デモ一覧
 
-PLANNING × CONTROLの先頭にある「デモ一覧」から6つのプリセットを開始できます。障害物迂回・横切る箱は移動4手法、腕の障害物回避は腕6手法、標準運搬・経路閉鎖は腕RRT固定の移動4手法、待機と再開はA*＋DWA・腕RRT固定の再試行2設定を比較します。seedはすべて42です。横切る箱はナビの再試行を有効にし、ほかの移動4手法の例は再試行なしです。
+PLANNING × CONTROLの先頭にある「デモ一覧」から7つのプリセットを開始できます。障害物迂回・横切る箱は移動4手法、腕の障害物回避は腕6手法、標準運搬・経路閉鎖は腕RRT固定の移動4手法、待機と再開はA*＋DWA・腕RRT固定の再試行2設定、腕の手法を変える運搬はA*＋DWA固定の腕6手法を比較します。seedはすべて42です。横切る箱はナビの再試行を有効にし、ほかの移動4手法の例は再試行なしです。
 
 カードはエンジン準備後に有効になります。カードから既存の比較ボタンを起動し、進行・結果の表示へ移動します。「デモ一覧へ戻る」で一覧に戻り、キーボードのフォーカスも選んだカードへ戻します。一覧への移動だけでは実行を停止しません。次のカードを選ぶと、そのデモを新規に開始します。「最後に選んだデモ」は選択履歴で、手動変更後の設定を表すものではありません。細かい条件は従来の選択欄で変更できます。
 
@@ -456,3 +456,19 @@ PLANNING × CONTROLの先頭にある「デモ一覧」から6つのプリセッ
 運搬の完了記録を、移動（青）・把持（紫）・運搬（緑）・配置（黄）・待機（橙）の時間区間で表示します。区間は保存した状態遷移のtickから作り、全試行で同じ時間軸を使います。短い失敗や未実行の段階を長く見せるための幅補正はしません。区間を選ぶと、その記録・時刻を既存リプレイで表示します。非常に短い区間はTab＋Enterでも選択でき、終了地点ボタンから成功・失敗時点へ直接移動できます。比較中・中断した比較の区間は再生できません。
 
 タイムラインの操作は結果・集計・CSVを変更しません。`scripts/test_g1_mobile_timeline_browser.py`は実WASMで途中の無効状態、待機・運搬・配置と失敗地点への移動、スライダー同期、キーボード・スマホ操作と記録不変性を確認します。
+
+### Compare arm methods during delivery
+
+**腕6組を比較** runs all three arm planners and both arm controllers through the
+complete delivery task. Navigation planner/controller, recovery policy, scenario,
+seed and initial world are captured once and held fixed. Changing selectors while
+a comparison runs affects only the next start. Each trial restarts the robot and
+object; failures retain their actual stage rather than receiving zero times for
+unexecuted stages. The six results share the existing CSV, stage summary and
+clickable replay timeline. The gallery's **腕の手法を変えて運ぶ** preset uses
+A* + DWA, standard delivery, recovery off and seed 42.
+
+```bash
+python3 scripts/test_g1_mobile_arm_comparison_browser.py --url http://127.0.0.1:8080/ \
+  --output work/arm-delivery-browser
+```

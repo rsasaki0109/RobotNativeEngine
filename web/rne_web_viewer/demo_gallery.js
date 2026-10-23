@@ -8,6 +8,7 @@
     { id: "nav-crossing", title: "横切る箱を待つ", kind: "移動 · 4手法", note: "往復する箱に対する停止・再試行を比較。seed 42。", domain: "nav", action: "experiment-compare-button", status: "experiment-status", recovery: true, values: { ...base, "experiment-task-select": "5" } },
     { id: "arm-obstacle", title: "腕で障害物を避ける", kind: "腕 · 6手法", note: "関節直結・上方経由・RRTと2つの制御を比較。seed 42。", domain: "arm", action: "arm-compare-button", status: "arm-status", values: { ...base, ...arm, "arm-task": "2" } },
     { id: "delivery", title: "棚から取って運ぶ", kind: "運搬 · 4手法", note: "腕RRTを固定し、移動・把持・運搬・配置を比較。seed 42。", domain: "mobile", action: "mobile-compare-button", status: "mobile-status", values: { ...base, ...arm, "mobile-scenario": "0" } },
+    { id: "delivery-arm", title: "腕の手法を変えて運ぶ", kind: "運搬 · 腕6手法", note: "A*＋DWAを固定し、腕の3計画×2制御で把持と配置を比較。seed 42。", domain: "mobile", action: "mobile-arm-compare-button", status: "mobile-status", values: { ...base, ...arm, "mobile-scenario": "0" } },
     { id: "closure", title: "運搬経路が閉鎖", kind: "運搬 · 4手法", note: "把持後の閉鎖で、失敗する段階を見比べる。seed 42。", domain: "mobile", action: "mobile-compare-button", status: "mobile-status", values: { ...base, ...arm, "mobile-scenario": "1" } },
     { id: "recovery-pair", title: "待って運搬を再開", kind: "再試行 · 2設定", note: "A*＋DWA・腕RRTで、再試行なし／ありを比較。5秒後に開通。seed 42。", domain: "mobile", action: "mobile-recovery-compare-button", status: "mobile-status", values: { ...base, ...arm, "mobile-scenario": "3" } },
   ];

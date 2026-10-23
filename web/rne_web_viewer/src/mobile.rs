@@ -325,6 +325,7 @@ enum Comparison {
     #[default]
     Single,
     Navigation,
+    Arm,
     Recovery,
 }
 impl Comparison {
@@ -332,6 +333,7 @@ impl Comparison {
         match self {
             Self::Single => 1,
             Self::Navigation => 4,
+            Self::Arm => ARM_PLANNERS.len() * ARM_CONTROLLERS.len(),
             Self::Recovery => 2,
         }
     }
@@ -369,6 +371,10 @@ impl MobileTask {
     pub(crate) fn start_recovery_comparison(&mut self, c: MobileConfig) {
         self.start_comparison(c, Comparison::Recovery);
     }
+    /// Compare arm methods while preserving navigation, scene, recovery and seeds.
+    pub(crate) fn start_arm_comparison(&mut self, c: MobileConfig) {
+        self.start_comparison(c, Comparison::Arm);
+    }
     fn start_comparison(&mut self, c: MobileConfig, comparison: Comparison) {
         self.queue.clear();
         self.records.clear();
@@ -383,6 +389,19 @@ impl MobileTask {
                             planner,
                             controller,
                             ..c.nav
+                        },
+                        ..c
+                    });
+                }
+            }
+        } else if comparison == Comparison::Arm {
+            for planner in 0..ARM_PLANNERS.len() {
+                for controller in 0..ARM_CONTROLLERS.len() {
+                    self.queue.push_back(MobileConfig {
+                        arm: ArmConfig {
+                            planner,
+                            controller,
+                            ..c.arm
                         },
                         ..c
                     });
@@ -1146,6 +1165,92 @@ mod tests {
             assert_eq!(f.stage, 2);
             assert!(f.attached);
         }
+    }
+    #[test]
+    fn arm_comparison_restarts_identical_worlds_and_matches_individual_runs() {
+        let mut c = config();
+        c.nav.controller = 1;
+        let mut task = MobileTask::default();
+        task.start_arm_comparison(c);
+        finish(&mut task);
+        assert_eq!(task.records.len(), 6);
+        let initial = &task.records[0].frames[0];
+        let expected = [
+            "腕が障害物に接触",
+            "腕が障害物に接触",
+            "成功",
+            "腕が障害物に接触",
+            "成功",
+            "成功",
+        ];
+        for (index, r) in task.records.iter().enumerate() {
+            assert_eq!(
+                (r.config.arm.planner, r.config.arm.controller),
+                (index / 2, index % 2)
+            );
+            assert_eq!(
+                r.config.nav,
+                Config {
+                    controller: 1,
+                    ..config().nav
+                }
+            );
+            assert_eq!(r.config.scenario, 0);
+            assert_eq!(r.config.arm.seed, 42);
+            assert_eq!(&r.frames[0], initial);
+            assert_eq!(r.frames.last().unwrap().state, expected[index]);
+            let mut individual = MobileTask::default();
+            individual.start(r.config, false);
+            finish(&mut individual);
+            assert_eq!(r.frames, individual.records[0].frames);
+        }
+        let csv = task.csv();
+        assert_eq!(csv.lines().count(), 7);
+        assert!(csv.contains("shelf_delivery,completed,6,6,"));
+        assert!(task.summary_html().contains("完了 6/6試行"));
+        assert_eq!(
+            task.timeline_html().matches("class='timeline-row'").count(),
+            6
+        );
+        for index in 0..6 {
+            let end = task.records[index].frames.last().unwrap().clone();
+            task.seek(index, end.tick);
+            assert_eq!(task.frame().unwrap(), &end);
+            task.advance(false);
+            assert_eq!(task.csv(), csv);
+        }
+    }
+    #[test]
+    fn arm_comparison_pause_stop_and_mode_changes_keep_counts_and_policy() {
+        let mut c = config();
+        c.nav.planner = 0; // Every arm method must fail at the same blocked approach.
+        c.nav.recovery = true;
+        c.scenario = 3;
+        let mut task = MobileTask::default();
+        task.start_arm_comparison(c);
+        task.paused = true;
+        task.advance(false);
+        assert!(task.records.is_empty());
+        task.advance(true);
+        assert_eq!(task.records.len(), 1);
+        assert!(task.records[0].config.nav.recovery);
+        task.stop();
+        assert!(task.csv().contains("shelf_delivery,interrupted,6,1,"));
+        assert!(!task.timeline_html().contains("data-phase='1'"));
+        task.seek(0, 1);
+        assert!(task.replay.is_none());
+        task.start_arm_comparison(c);
+        finish(&mut task);
+        assert_eq!(task.records.len(), 6);
+        assert!(task.records.iter().all(|r| r.config.nav.recovery
+            && r.config.scenario == 3
+            && r.frames.last().unwrap().stage == 0));
+        task.start(c, true);
+        finish(&mut task);
+        assert!(task.csv().contains("shelf_delivery,completed,4,4,"));
+        task.start_recovery_comparison(c);
+        finish(&mut task);
+        assert!(task.csv().contains("shelf_delivery,completed,2,2,"));
     }
     #[test]
     fn recovery_pair_changes_only_policy_and_keeps_stage_statistics_separate() {
