@@ -525,3 +525,30 @@ node web/rne_web_viewer/i18n.test.cjs
 python3 scripts/test_g1_bilingual_browser.py --url http://127.0.0.1:8080/ \
   --output work/bilingual-browser
 ```
+
+## Share experiment conditions
+
+Open **比較条件をリンクで共有 / Share experiment conditions**, choose an execution
+mode, then create a link from the current form settings. The link captures the
+next-run task, planners/controllers, seed, recovery policies, delivery scenario,
+and the selected language. Custom navigation tasks also include their validated
+goal and obstacle geometry, including scheduled appearance steps.
+
+Links use a versioned base64url JSON document in `#rne=…`, relative to the current
+project URL. Nothing is uploaded. Opening a link validates the complete document
+before changing any settings, previews the conditions, and does **not** start a
+simulation. **Run shared conditions** reapplies the captured snapshot and invokes
+the existing run/compare/benchmark action when the engine is ready. Later form
+edits do not silently alter this snapshot; create a new link to share those edits.
+
+Share links contain settings rather than recorded results or a frozen engine
+version; running on a later engine build may produce different results. CSV and
+replay exports remain the way to retain evidence. JSON is limited to 16 KiB, and
+unknown versions/fields or invalid settings/geometry are rejected. When clipboard
+access is unavailable, the generated link remains selectable for manual copying.
+
+```bash
+node web/rne_web_viewer/share.test.cjs
+python3 scripts/test_g1_share_browser.py --url http://127.0.0.1:8080/ \
+  --output work/share-browser
+```

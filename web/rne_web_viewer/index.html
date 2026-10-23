@@ -7,6 +7,7 @@
     <link data-trunk rel="rust" data-wasm-opt="0" />
     <link data-trunk rel="copy-file" href="controls.js" />
     <link data-trunk rel="copy-file" href="i18n.js" />
+    <link data-trunk rel="copy-file" href="share.js" />
     <link data-trunk rel="copy-file" href="demo_gallery.js" />
     <link data-trunk rel="copy-file" href="scene_editor.js" />
     <link data-trunk rel="copy-file" href="replay.js" />
@@ -195,6 +196,8 @@
         border-radius: 4px; font: inherit; cursor: pointer; }
       #experiment-panel .experiment-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
       #scene-editor-map { width: 100%; height: 230px; background: #101d28; touch-action: none; cursor: crosshair; }
+      #share-panel { border-top: 1px solid #385061; margin: 10px 0; padding-top: 8px; }
+      #share-status[data-error=true] { color: #ffb3a8; }
       #scene-editor { border-top: 1px solid #385061; margin-top: 8px; padding-top: 8px; }
       #scene-editor-status[data-error=true], #scene-native-status { color: #ffb3a8; }
       #experiment-panel input[type=checkbox] { width: auto; }
@@ -281,6 +284,18 @@
       <p id="demo-launch-status" role="status">エンジンの準備を待っています。</p>
       <a id="demo-result-link" href="#experiment-status" hidden>選んだデモの進行・結果へ</a>
       <p>移動・腕・運搬の計画と制御を比較。青＝現在の計画。実軌跡は手法別に色分け。</p>
+      <details id="share-panel"><summary>比較条件をリンクで共有</summary>
+        <p>次回実行の設定を共有します。実行結果は含みません。カスタムシーンの配置も保存し、開いた人は開始ボタンで再現できます。</p>
+        <label>共有する実行モード<select id="share-mode">
+          <option value="nav-run">移動 · 選択した1組</option><option value="nav-compare">移動 · 4組比較</option>
+          <option value="arm-run">腕 · 選択した1組</option><option value="arm-compare">腕 · 6組比較</option><option value="arm-benchmark">腕 · 3 seedで18試行</option>
+          <option value="mobile-run">運搬 · 選択した1組</option><option value="mobile-compare">運搬 · 移動4組比較</option><option value="mobile-arm">運搬 · 腕6組比較</option><option value="mobile-recovery">運搬 · 再試行なし／あり</option><option value="mobile-benchmark">運搬 · 5 seedで30試行</option>
+        </select></label>
+        <button type="button" id="share-create">現在の設定リンクを作成</button>
+        <label>共有リンク<input id="share-url" type="text" readonly data-i18n-ignore></label>
+        <button type="button" id="share-copy" disabled>リンクをコピー</button><button type="button" id="share-start" disabled>共有された条件で実行</button>
+        <p id="share-status" role="status">設定してリンクを作成するか、共有リンクを開いてください。</p>
+      </details>
       <div class="experiment-options">
       <label for="experiment-task-select">タスク
         <select id="experiment-task-select"><option value="0">目的地へ移動</option><option value="1">障害物を迂回</option><option value="2">途中で障害物を追加（2秒後）</option><option value="3">カスタムシーン</option><option value="4">狭い通路</option><option value="5">横切る障害物</option><option value="6">行き止まりを迂回</option><option value="7">3地点を巡回</option></select>
@@ -526,9 +541,10 @@
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
     </details>
-    <script src="i18n.js?v=bilingual-v1"></script>
-    <script src="scene_editor.js?v=1"></script>
-    <script src="controls.js?v=mobile-benchmark-v1"></script>
+    <script src="i18n.js?v=experiment-link-v1"></script>
+    <script src="scene_editor.js?v=experiment-link-v1"></script>
+    <script src="share.js?v=experiment-link-v1"></script>
+    <script src="controls.js?v=experiment-link-v1"></script>
     <script src="demo_gallery.js?v=bilingual-v1"></script>
     <script src="replay.js"></script>
   </body>

@@ -318,6 +318,32 @@ const english = {
   "回": "times"
 };
 Object.assign(english, {"開始":"Start", "1目盛=1m":"1 grid unit = 1 m", "適用":"Apply", "直線":"Straight line", "腕の計画":"Arm planner", "腕の制御":"Arm controller", "移動 · 4手法":"Navigation · 4 methods", "腕 · 6手法":"Arm · 6 methods", "運搬 · 4手法":"Delivery · 4 methods", "運搬 · 腕6手法":"Delivery · 6 arm methods", "再試行 · 2設定":"Retry · 2 settings", "の時間区間":" time intervals", "から":" to "});
+Object.assign(english, {
+  "比較条件をリンクで共有": "Share experiment conditions",
+  "次回実行の設定を共有します。実行結果は含みません。カスタムシーンの配置も保存し、開いた人は開始ボタンで再現できます。": "Share the settings for the next run, including custom layouts. Results are not included. Open the link and select Start to reproduce the conditions.",
+  "共有する実行モード": "Execution mode to share",
+  "移動 · 選択した1組": "Navigation · Selected pair",
+  "移動 · 4組比較": "Navigation · Compare 4 pairs",
+  "腕 · 選択した1組": "Arm · Selected pair",
+  "腕 · 6組比較": "Arm · Compare 6 pairs",
+  "腕 · 3 seedで18試行": "Arm · 18 trials across 3 seeds",
+  "運搬 · 選択した1組": "Delivery · Selected pair",
+  "運搬 · 移動4組比較": "Delivery · Compare 4 navigation pairs",
+  "運搬 · 腕6組比較": "Delivery · Compare 6 arm pairs",
+  "運搬 · 再試行なし／あり": "Delivery · Compare retry off/on",
+  "運搬 · 5 seedで30試行": "Delivery · 30 trials across 5 seeds",
+  "現在の設定リンクを作成": "Create link from current settings",
+  "共有リンク": "Share link",
+  "リンクをコピー": "Copy link",
+  "共有された条件で実行": "Run shared conditions",
+  "設定してリンクを作成するか、共有リンクを開いてください。": "Configure and create a link, or open a shared link.",
+  "共有リンクの形式・設定を確認してください": "Check the shared link format and settings",
+  "現在の設定リンクを作成しました。開始ボタンで同じ条件を実行できます。": "Link created from current settings. Select Start to run these conditions.",
+  "共有リンクをコピーしました": "Share link copied",
+  "リンク欄を選択しました。手動でコピーしてください。": "Link field selected. Please copy it manually.",
+  "共有された条件で実行を開始しました": "Started with the shared conditions",
+  "共有された条件を読み込みました。開始ボタンで実行します。": "Shared conditions loaded. Select Start to run."
+});
 const japanese = {
   "RNE Web Viewer — drag to orbit, scroll to zoom": "RNE Web Viewer — ドラッグで視点回転、スクロールで拡大",
   "WASD / arrow keys: drive · sliders: G1 joints · Reset: home": "WASD・矢印キー：移動 · スライダー：G1の関節 · リセット：初期位置",

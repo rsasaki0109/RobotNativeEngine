@@ -213,4 +213,5 @@
   document.getElementById("control-reset").addEventListener("click", () => {
     sceneEditor.close(); releaseAll(); homeTargets(); signal("control-reset-counter");
   });
+  root.RNEExperimentShare.init({document,sceneEditor});
 })(typeof window === "undefined" ? globalThis : window);
