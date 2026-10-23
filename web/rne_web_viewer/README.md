@@ -619,6 +619,15 @@ batches keep a read-only matrix, including unexecuted cells. Display filters do
 not hide matrix cells. CSV schema 3 remains unchanged and reports 24 expected
 trials; shared links support the `mobile-matrix` mode in Japanese and English.
 
+**Expand comparison table** widens the existing experiment panel so desktop
+screens can show all six arm columns together. On phones it uses the available
+height. Row labels and column headers remain fixed while scrolling the matrix.
+Return with the same button or Escape; keyboard focus returns to the button.
+Closing the experiment/delivery panel or switching out of matrix mode restores
+the normal layout. Live table updates and language changes preserve the view.
+This display preference never restarts, pauses or changes experiment/replay data
+and is not included in shared experiment conditions.
+
 ```bash
 python3 scripts/test_g1_mobile_matrix_browser.py --url http://127.0.0.1:8080/ \
   --output work/matrix-browser

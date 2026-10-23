@@ -46,6 +46,16 @@ def main():
         frozen = page.locator('#mobile-status').text_content()
         page.wait_for_timeout(1500)
         assert page.locator('#mobile-status').text_content() == frozen
+        # Widen the existing live table without starting or changing a trial.
+        view = page.locator('#mobile-matrix-view')
+        view.focus()
+        page.keyboard.press('Enter')
+        assert view.get_attribute('aria-expanded') == 'true'
+        assert page.locator('#experiment-panel').bounding_box()['width'] > 1100
+        assert page.locator('#mobile-pause-button').get_attribute('aria-pressed') == 'true'
+        assert page.locator('#mobile-status').text_content() == frozen
+        assert matrix.locator('thead th').first.evaluate('e=>getComputedStyle(e).position') == 'sticky'
+        assert matrix.locator('th[scope=row]').first.evaluate('e=>getComputedStyle(e).position') == 'sticky'
         # Form edits must not leak into the queued 24 trials.
         page.locator('#mobile-scenario').select_option('2')
         page.locator('#mobile-recovery-toggle').check()
@@ -63,6 +73,7 @@ def main():
         assert matrix.locator('[data-matrix-state="success"]').count() == 6
         assert matrix.locator('[data-matrix-state="failure"]').count() == 18
         assert matrix.locator('[data-matrix-state="pending"]').count() == 0
+        assert view.get_attribute('aria-expanded') == 'true'
         summary = page.locator('#mobile-summary').inner_html()
         for index in [0, 15, 23]:
             choose(page, matrix.locator(f'button[data-mobile-record="{index}"]'), keyboard=index == 15)
@@ -76,11 +87,31 @@ def main():
         page.locator('#language-select').select_option('ja')
         page.wait_for_function("document.querySelector('.mobile-matrix-table').textContent.includes('未実行')===false && document.querySelector('.mobile-matrix-table caption').textContent.includes('運搬24試行')")
         page.set_viewport_size({'width': 390, 'height': 844})
+        assert view.get_attribute('aria-expanded') == 'true'
+        assert '通常表示に戻す' in view.text_content()
+        assert page.locator('#experiment-panel').bounding_box()['height'] > 500
         choose(page, matrix.locator('button[data-mobile-record="23"]'))
         scroll = page.locator('.mobile-matrix-scroll')
         assert scroll.evaluate('e=>e.scrollWidth>e.clientWidth')
         assert page.evaluate('document.documentElement.scrollWidth<=window.innerWidth')
+        scroll.evaluate('e=>e.scrollLeft=e.scrollWidth')
+        left = scroll.bounding_box()['x']
+        assert abs(matrix.locator('th[scope=row]').first.bounding_box()['x'] - left) < 3
+        assert abs(matrix.locator('thead th').first.bounding_box()['x'] - left) < 3
         page.screenshot(path=str(args.output / 'matrix-ja-mobile.png'))
+        view.tap()
+        assert view.get_attribute('aria-expanded') == 'false'
+        assert page.locator('#experiment-panel').bounding_box()['height'] < 400
+        view.tap()
+        page.keyboard.press('Escape')
+        assert view.get_attribute('aria-expanded') == 'false'
+        assert view.evaluate('e=>document.activeElement===e')
+        assert page.locator('#mobile-export-data').text_content() == raw.decode('utf-8-sig')
+        view.tap()
+        page.locator('#mobile-panel').evaluate('e=>e.open=false')
+        page.wait_for_function("!document.querySelector('#experiment-panel').classList.contains('comparison-wide')")
+        page.locator('#mobile-panel').evaluate('e=>e.open=true')
+        print('PASS: wide view during live updates, fixed row/column headers, ja/en persistence, touch/Escape/focus, panel close and immutable CSV', flush=True)
         print('PASS: 24 real trials, captured conditions, mixed results, pending states, pause, original-index replay, keyboard/mobile and ja/en', flush=True)
         # Restore conditions through the new share mode without auto-starting.
         page.locator('#share-panel').evaluate('e=>e.open=true')
@@ -106,8 +137,12 @@ def main():
         _, partial = download(page, args.output / 'interrupted.csv')
         assert len(partial) < 24
         assert all(r['seed'] == '99' and r['scenario_id'] == '2' and r['recovery'] == 'true' and r['batch_state'] == 'interrupted' for r in partial)
+        view.tap()
+        page.locator('#experiment-planner-select').select_option('0')
+        page.locator('#mobile-run-button').tap()
+        page.wait_for_function("document.querySelector('#mobile-matrix-view-tools').hidden && !document.querySelector('#experiment-panel').classList.contains('comparison-wide')")
         assert not errors, errors
-        print('PASS: shared matrix launch, preview-only restore and read-only interrupted matrix', flush=True)
+        print('PASS: shared matrix launch, preview-only restore, read-only interrupted matrix and automatic normal view on mode switch', flush=True)
         browser.close()
 
 

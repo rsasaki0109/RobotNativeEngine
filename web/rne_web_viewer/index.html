@@ -209,9 +209,15 @@
       #experiment-map { width: 100%; height: 180px; display: block; border: 1px solid #385061; border-radius: 4px; }
       .trace-legend { display: grid; grid-template-columns: 1fr 1fr; font-size: 12px; }
       .experiment-results { overflow-x: auto; }
-      .mobile-matrix-scroll { overflow-x: auto; }
-      #experiment-panel .mobile-matrix-table { min-width: 1100px; }
+      #experiment-panel.comparison-wide { left: 12px; right: 12px; width: auto; z-index: 10; }
+      #mobile-matrix-view-tools { position: sticky; top: 22px; z-index: 4; padding: 6px 0; background: #0c1822; }
+      #mobile-matrix-view-hint { margin-left: 8px; }
+      .mobile-matrix-scroll { overflow: auto; max-height: min(60vh, 560px); isolation: isolate; }
+      #experiment-panel .mobile-matrix-table { min-width: 1100px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
       .mobile-matrix-table th { min-width: 140px; }
+      .mobile-matrix-table thead th { position: sticky; top: 0; z-index: 2; background: #152c3d; }
+      .mobile-matrix-table th[scope=row] { position: sticky; left: 0; z-index: 1; background: #152c3d; }
+      .mobile-matrix-table thead th:first-child { left: 0; z-index: 3; }
       .mobile-matrix-table button { width: 100%; text-align: left; }
       .mobile-matrix-table [data-matrix-state="success"] { background: #163c32; }
       .mobile-matrix-table [data-matrix-state="failure"] { background: #402332; }
@@ -230,6 +236,7 @@
       }
       @media (max-width: 700px) {
         #experiment-panel { top: auto; bottom: 8px; left: 8px; right: 8px; width: auto; max-height: 45vh; }
+        #experiment-panel.comparison-wide { top: 56px; bottom: 8px; left: 8px; right: 8px; max-height: calc(100vh - 64px); }
         body:has(#experiment-panel[open]) #controls { visibility: hidden; }
         body:has(#experiment-panel:not([open])) #controls { bottom: 50px; max-height: calc(45vh - 42px); }
       }
@@ -415,6 +422,7 @@
         <p>「成功例」は標準の運搬、A*＋DWA、腕RRT-Connect＋速度制限P、seed 42に設定して実行します。</p>
         <div class="experiment-buttons"><button type="button" id="mobile-example-button">成功例を実行（seed 42）</button><button type="button" id="mobile-run-button">運搬タスクを実行</button><button type="button" id="mobile-compare-button">移動4組を比較</button><button type="button" id="mobile-arm-compare-button">腕6組を比較</button><button type="button" id="mobile-matrix-button">移動 × 腕の24組を比較</button><button type="button" id="mobile-benchmark-button">5 seedで腕30試行</button><button type="button" id="mobile-recovery-compare-button">再試行なし／ありを比較</button><button type="button" id="mobile-wait-example-button">待機比較の例（seed 42）</button><button type="button" id="mobile-pause-button" aria-pressed="false">一時停止</button><button type="button" id="mobile-step-button">1ステップ</button><button type="button" id="mobile-stop-button">運搬を終了</button></div>
         <input type="hidden" id="mobile-run" value="0"><input type="hidden" id="mobile-compare" value="0"><input type="hidden" id="mobile-pause" value="0"><input type="hidden" id="mobile-step" value="0"><input type="hidden" id="mobile-stop" value="0"><input type="hidden" id="mobile-intent" value="0">
+        <div id="mobile-matrix-view-tools" hidden><button type="button" id="mobile-matrix-view" aria-expanded="false" aria-controls="mobile-summary"><span data-wide-open>比較表を広く表示</span><span data-wide-close hidden>通常表示に戻す</span></button><span id="mobile-matrix-view-hint" hidden>Escで通常表示に戻ります。</span></div>
         <div id="mobile-summary" class="experiment-results"></div>
         <a href="#demo-gallery" data-demo-back>デモ一覧へ戻る</a>
         <p id="mobile-status" role="status">棚から取り、運んで置くタスク</p>
@@ -572,12 +580,12 @@
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
     </details>
-    <script src="i18n.js?v=matrix-v1"></script>
+    <script src="i18n.js?v=matrix-wide-v1"></script>
     <script src="scene_editor.js?v=experiment-link-v1"></script>
     <script src="share.js?v=matrix-v1"></script>
     <script src="result_filters.js?v=diagnostics-v1"></script>
     <script src="replay_player.js?v=playback-v1"></script>
-    <script src="controls.js?v=matrix-v1"></script>
+    <script src="controls.js?v=matrix-wide-v1"></script>
     <script src="demo_gallery.js?v=bilingual-v1"></script>
     <script src="replay.js"></script>
   </body>

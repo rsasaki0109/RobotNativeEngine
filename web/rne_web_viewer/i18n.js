@@ -376,7 +376,10 @@ Object.assign(english, {
   "移動4組 × 腕6組 · 運搬24試行": "4 navigation × 6 arm pairs · 24 delivery trials",
   "移動の計画 × 制御 / 腕の計画 × 制御": "Navigation planner × controller / Arm planner × controller",
   "未実行": "Pending",
-  "評価中": "Running"
+  "評価中": "Running",
+  "比較表を広く表示": "Expand comparison table",
+  "通常表示に戻す": "Return to normal view",
+  "Escで通常表示に戻ります。": "Press Esc to return to normal view."
 });
 
   const japanese = {
