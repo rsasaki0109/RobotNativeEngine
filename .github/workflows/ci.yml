@@ -7,6 +7,11 @@ on:
   # Manual run from the Actions UI; useful when PR push events are dropped.
   workflow_dispatch:
 
+# Keep only the latest CI run for each branch or pull request.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # The former single `workspace` job ran every stage in sequence with no caching and
 # took 26-34 minutes cold. The stages are independent, so they run as parallel jobs
 # and wall-clock time becomes the slowest stage. Each job restores the shared

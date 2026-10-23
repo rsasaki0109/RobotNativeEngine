@@ -236,6 +236,20 @@
       .demo-card:disabled { opacity: 0.5; cursor: wait; }
       #demo-launch-status { font-size: 12px; }
       [data-demo-back], #demo-result-link { color: #89d9ed; font-size: 12px; }
+      .timeline-scale { display: flex; justify-content: space-between; font-size: 11px; color: #c4d0db; }
+      .timeline-row { margin: 12px 0; }
+      .timeline-row p { font-size: 11px; margin: 4px 0; }
+      .timeline-track { position: relative; height: 32px; background: #101c26; border-radius: 4px; }
+      .timeline-segment { position: absolute; top: 0; bottom: 0; min-width: 0; margin: 0; padding: 0; overflow: hidden; white-space: nowrap; border: 1px solid #101c26; border-radius: 0; color: #101c26; font-size: 11px; box-sizing: border-box; }
+      .timeline-segment[data-phase='0'] { background: #55def5; }
+      .timeline-segment[data-phase='1'] { background: #cd9bff; }
+      .timeline-segment[data-phase='2'] { background: #72edb1; }
+      .timeline-segment[data-phase='3'] { background: #f6e379; }
+      .timeline-segment[data-phase='waiting'] { background: #ffb45e; }
+      .timeline-segment:focus-visible { z-index: 1; outline: 2px solid white; outline-offset: 1px; }
+      .timeline-terminal { font-size: 11px; margin-top: 4px; }
+      .timeline-terminal[data-success='false'] { color: #f29bc1; }
+      .timeline-terminal[data-success='true'] { color: #72edb1; }
     </style>
   </head>
   <body id="playground">
@@ -363,6 +377,10 @@
         <p id="mobile-status" role="status">棚から取り、運んで置くタスク</p>
         <div class="experiment-results"><table class="mobile-results-table"><caption>運搬タスク · 段階ごとの成否と時間</caption><thead><tr><th>移動計画 × 制御</th><th>結果</th><th>移動 / 把持 / 運搬 / 配置 s</th><th>合計 s</th><th>待機 s / 回</th><th>移動 m</th><th>配置誤差 m</th></tr></thead><tbody id="mobile-records"></tbody></table></div>
         <button type="button" id="mobile-export-button" disabled>運搬結果をCSV保存</button><span id="mobile-export-data" hidden></span>
+        <details id="mobile-timeline-panel" open><summary>運搬のタイムライン · 区間から再生</summary>
+          <p>青＝移動、紫＝把持、緑＝運搬、黄＝配置、橙＝待機。全試行で同じ時間軸です。未実行の段階は表示しません。短い区間はTabキーでも選べます。</p>
+          <div id="mobile-timeline"></div>
+        </details>
         <label>運搬の時間リプレイ<select id="mobile-replay-record" aria-label="運搬のリプレイ記録"></select></label>
         <input type="range" id="mobile-replay-frame" aria-label="運搬のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
         <output id="mobile-replay-time">0.00 s</output><button type="button" id="mobile-replay-exit">リプレイを終了</button><input type="hidden" id="mobile-replay-tick" value="0"><input type="hidden" id="mobile-replay-enabled" value="0">
@@ -498,7 +516,7 @@
       </small>
     </details>
     <script src="scene_editor.js?v=1"></script>
-    <script src="controls.js?v=mobile-recovery-pair-v1"></script>
+    <script src="controls.js?v=mobile-timeline-v1"></script>
     <script src="demo_gallery.js?v=gallery-v1"></script>
     <script src="replay.js"></script>
   </body>

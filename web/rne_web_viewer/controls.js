@@ -183,6 +183,17 @@
     select.addEventListener("change",()=>{configure();enabled.value="1";});
     slider.addEventListener("input",()=>{enabled.value="1";show();});
     document.getElementById(prefix+"-replay-exit").addEventListener("click",()=>{enabled.value="0";});
+    if (prefix==="mobile") document.getElementById("mobile-timeline").addEventListener("click",event=>{
+      const button=event.target.closest("button[data-mobile-record]");
+      if (!button || button.disabled) return;
+      select.value=button.dataset.mobileRecord;
+      select.dispatchEvent(new Event("change",{bubbles:true}));
+      const tick=Number(button.dataset.mobileTick);
+      let index=0;
+      for (let i=0;i<times.length;i++) if (times[i]<=tick) index=i;
+      slider.value=String(index);
+      slider.dispatchEvent(new Event("input",{bubbles:true}));
+    });
   }
   function takeManualControl() {
     sceneEditor.close();
