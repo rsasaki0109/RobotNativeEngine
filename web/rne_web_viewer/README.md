@@ -14,6 +14,16 @@ The base is confined to an 8 × 8 m area. Reset restores its initial pose and
 zero joint targets; blur, backgrounding and pointer cancellation stop drive
 input. Drag to orbit the camera and scroll to zoom.
 
+## Laboratory environment
+
+The metre-scaled, roofless laboratory has concrete floor panels, painted boundary
+lines, framed windows, workbenches and equipment cabinets. All furniture stays
+outside the 8 × 8 m driving area. Concrete grain and HDR studio lighting are
+procedural and deterministic, with no external asset requests. Roughness, metallic
+materials and the renderer’s existing directional shadows provide surface depth.
+The static scenery is cached when the G1 loads. Furniture is visual scenery;
+this kinematic viewer does not add collisions or contact physics.
+
 ## Walking, waving and checkpoint run
 
 **Walking motion ON** adds a bounded, alternating leg/arm pose animation while

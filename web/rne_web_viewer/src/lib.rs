@@ -5,6 +5,7 @@
 #[cfg(target_arch = "wasm32")]
 mod app;
 mod humanoid;
+mod lab;
 mod playground;
 mod scene;
 
