@@ -4,6 +4,8 @@
 
 #[cfg(target_arch = "wasm32")]
 mod app;
+#[cfg(any(target_arch = "wasm32", test))]
+mod experiment;
 mod humanoid;
 mod lab;
 mod playground;

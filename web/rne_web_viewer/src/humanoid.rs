@@ -141,6 +141,33 @@ impl G1Scene {
         wave: bool,
         start: bool,
     ) -> Result<RenderScene, String> {
+        self.frame_inner(input, animate, wave, start, None)
+    }
+
+    /// Places the visual model at the planar experiment's validated pose.
+    #[cfg(any(target_arch = "wasm32", test))]
+    pub(crate) fn navigation_frame(
+        &mut self,
+        input: G1Input,
+        animate: bool,
+        pose: (f64, f64, f64),
+    ) -> Result<RenderScene, String> {
+        self.frame_inner(input, animate, false, false, Some(pose))
+    }
+
+    fn frame_inner(
+        &mut self,
+        input: G1Input,
+        animate: bool,
+        wave: bool,
+        start: bool,
+        navigation: Option<(f64, f64, f64)>,
+    ) -> Result<RenderScene, String> {
+        if navigation.is_some_and(|(x, z, yaw)| {
+            !x.is_finite() || !z.is_finite() || !yaw.is_finite() || x.abs() > 4.0 || z.abs() > 4.0
+        }) {
+            return Err("invalid navigation pose".into());
+        }
         if !input.forward.is_finite()
             || input.forward.abs() > 1.0
             || !input.turn.is_finite()
@@ -166,10 +193,21 @@ impl G1Scene {
             }
         }
         let previous = self.focus();
-        self.heading_rad =
-            (self.heading_rad + input.turn * 0.025).rem_euclid(std::f64::consts::TAU);
-        let yaw = Quat::from_rotation_y(self.heading_rad);
-        {
+        let turn = if let Some((x, z, yaw)) = navigation {
+            let delta = (yaw - self.heading_rad).abs();
+            self.heading_rad = yaw.rem_euclid(std::f64::consts::TAU);
+            let mut base = self
+                .world
+                .get_mut::<Transform3>(self.base)
+                .ok_or("missing pelvis")?;
+            base.translation.x = x;
+            base.translation.z = z;
+            base.rotation = Quat::from_rotation_y(self.heading_rad) * home().rotation;
+            delta.min(1.0)
+        } else {
+            self.heading_rad =
+                (self.heading_rad + input.turn * 0.025).rem_euclid(std::f64::consts::TAU);
+            let yaw = Quat::from_rotation_y(self.heading_rad);
             let mut base = self
                 .world
                 .get_mut::<Transform3>(self.base)
@@ -178,11 +216,12 @@ impl G1Scene {
             base.translation += yaw * Vec3::X * (input.forward * 0.015);
             base.translation.x = base.translation.x.clamp(-4.0, 4.0);
             base.translation.z = base.translation.z.clamp(-4.0, 4.0);
-        }
+            input.turn
+        };
         let position = self.focus();
         self.playground.tick(
             (position - previous).length(),
-            input.turn,
+            turn,
             animate,
             wave,
             position,
@@ -206,7 +245,7 @@ impl G1Scene {
                 coordinate.velocity = 0.0;
             }
         }
-        Ok(self.render())
+        Ok(self.render(navigation.is_none()))
     }
 
     /// Current course progress, distance and elapsed fixed preview ticks.
@@ -224,9 +263,9 @@ impl G1Scene {
         self.heading_rad
     }
 
-    fn render(&self) -> RenderScene {
+    fn render(&self, checkpoints: bool) -> RenderScene {
         let mut scene = self.laboratory.clone();
-        for (index, (x, z)) in GOALS.iter().copied().enumerate() {
+        for (index, (x, z)) in GOALS.iter().copied().enumerate().filter(|_| checkpoints) {
             let color = if index < self.playground.course.reached {
                 [0.1, 0.9, 0.45, 1.0]
             } else if index == self.playground.course.reached {
@@ -461,6 +500,21 @@ mod tests {
             targets_rad: vec![0.0; scene.joint_count()],
             reset: false,
         }
+    }
+    #[test]
+    fn planar_pose_rendering_is_validated_and_hides_checkpoint_markers() {
+        let mut scene = G1Scene::load().unwrap();
+        let frame = scene
+            .navigation_frame(neutral(&scene), true, (1.0, -0.5, 0.3))
+            .unwrap();
+        assert_eq!(scene.focus().x, 1.0);
+        assert_eq!(scene.focus().z, -0.5);
+        assert!(frame.items.len() < scene.render(true).items.len());
+        let before = scene.focus();
+        assert!(scene
+            .navigation_frame(neutral(&scene), true, (f64::NAN, 0.0, 0.0))
+            .is_err());
+        assert_eq!(scene.focus(), before);
     }
     #[test]
     fn g1_meshes_and_manual_control_work_without_gpu() {

@@ -27,6 +27,7 @@
     if (/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(event.target.tagName) || event.target.isContentEditable) return;
     if (!driveCodes.has(event.code)) return;
     event.preventDefault();
+    takeManualControl();
     keys.add(event.code);
     update();
   });
@@ -36,6 +37,7 @@
   for (const button of document.querySelectorAll("[data-drive]")) {
     button.addEventListener("pointerdown", event => {
       event.preventDefault();
+      takeManualControl();
       button.setPointerCapture(event.pointerId);
       pointers.set(event.pointerId, button.dataset.drive);
       update();
@@ -48,6 +50,7 @@
     button.addEventListener("keydown", event => {
       if (event.code !== "Space" && event.code !== "Enter") return;
       event.preventDefault();
+      takeManualControl();
       keys.add(button.dataset.drive); update();
     });
     button.addEventListener("keyup", event => {
@@ -61,7 +64,7 @@
     const show = () => { output.value = Number(input.value).toFixed(2) + " rad"; };
     input.addEventListener("input", show); show();
   }
-  document.getElementById("control-stop").addEventListener("click", releaseAll);
+  document.getElementById("control-stop").addEventListener("click", () => { releaseAll(); takeManualControl(); });
   function homeTargets() {
     for (const input of document.querySelectorAll("[data-angle]")) {
       input.value = input.defaultValue;
@@ -71,6 +74,32 @@
   function signal(id) {
     const counter = document.getElementById(id);
     counter.value = String((Number(counter.value) + 1) % 4294967296);
+  }
+  const experimentPanel = document.getElementById("experiment-panel");
+  if (root.innerWidth > 700) experimentPanel.open = true;
+  for (const field of ["task", "planner", "controller"]) {
+    const select = document.getElementById("experiment-" + field + "-select");
+    select.addEventListener("change", () => { document.getElementById("experiment-" + field).value = select.value; });
+  }
+  const seedEditor = document.getElementById("experiment-seed-editor");
+  seedEditor.addEventListener("change", () => {
+    const value = Number(seedEditor.value);
+    const seed = document.getElementById("experiment-seed");
+    if (seedEditor.value !== "" && Number.isInteger(value) && value >= 0 && value <= 4294967295) seed.value = String(value);
+    else seedEditor.value = seed.value;
+  });
+  for (const action of ["run", "pause", "step", "compare", "manual"]) {
+    document.getElementById("experiment-" + action + "-button").addEventListener("click", () => {
+      releaseAll();
+      if (action === "run" || action === "compare") homeTargets();
+      signal("experiment-" + action);
+    });
+  }
+  document.getElementById("experiment-results-button").addEventListener("click", () => {
+    document.querySelector(".experiment-results").scrollIntoView({ block: "nearest" });
+  });
+  function takeManualControl() {
+    if (document.getElementById("playground").dataset.experimentActive === "true") signal("experiment-manual");
   }
   document.getElementById("control-wave").addEventListener("click", () => signal("control-wave-counter"));
   const motionButton = document.getElementById("control-motion");

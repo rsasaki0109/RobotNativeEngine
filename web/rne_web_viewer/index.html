@@ -160,6 +160,7 @@
         border-radius: 6px; padding: 10px 14px; cursor: pointer; font: inherit;
       }
       #controls button:active { background: #376688; }
+      #controls button:disabled { opacity: .45; cursor: default; }
       button:focus-visible, input:focus-visible { outline: 2px solid #7ee1cd; outline-offset: 3px; }
       .drive-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 10px 0; }
       [data-drive] { touch-action: none; user-select: none; }
@@ -174,6 +175,33 @@
       .pose-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
       #controls button[aria-pressed=true] { border-color: #71d7bd; }
       #engine-motion { color: #8fe3c9; }
+      #experiment-panel { position: fixed; top: 72px; right: 12px; width: 350px; max-height: calc(100vh - 96px);
+        overflow: auto; box-sizing: border-box; padding: 12px; border: 1px solid #4c859d; border-radius: 8px;
+        background: rgba(8, 16, 24, .94); font-size: 12px; line-height: 1.5; }
+      #experiment-panel > summary { font-weight: 700; color: #a1e8fb; position: sticky; top: -12px; z-index: 1; padding: 6px 0; background: #0c1822; }
+      .experiment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
+      .experiment-options label { min-width: 0; }
+      #experiment-panel button:disabled { opacity: .45; cursor: default; }
+      #experiment-panel label { display: block; margin: 7px 0; }
+      #experiment-panel select, #experiment-panel input { width: 100%; box-sizing: border-box; padding: 5px;
+        background: #192e40; color: #edf4fa; border: 1px solid #53768b; border-radius: 4px; }
+      #experiment-panel button { padding: 7px 9px; background: #214858; color: #fff; border: 1px solid #668fa1;
+        border-radius: 4px; font: inherit; cursor: pointer; }
+      #experiment-panel .experiment-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+      #experiment-status { color: #a5e5c5; }
+      #experiment-map { width: 100%; height: 125px; display: block; border: 1px solid #385061; border-radius: 4px; }
+      .experiment-results { overflow-x: auto; }
+      #experiment-panel table { border-collapse: collapse; width: 100%; font-size: 11px; }
+      #experiment-panel td, #experiment-panel th { padding: 4px 2px; border-bottom: 1px solid #385061; text-align: left; }
+      body[data-experiment-active=true] #mission-panel { display: none; }
+      @media (max-width: 1000px) and (min-width: 701px) {
+        #experiment-panel { width: 280px; }
+      }
+      @media (max-width: 700px) {
+        #experiment-panel { top: auto; bottom: 8px; left: 8px; right: 8px; width: auto; max-height: 45vh; }
+        body:has(#experiment-panel[open]) #controls { visibility: hidden; }
+        body:has(#experiment-panel:not([open])) #controls { bottom: 50px; max-height: calc(45vh - 42px); }
+      }
       @media (min-width: 701px) and (max-height: 760px) {
         #mission-panel { left: auto; right: 12px; max-width: 300px; font-size: 12px; }
       }
@@ -188,7 +216,7 @@
       }
     </style>
   </head>
-  <body>
+  <body id="playground">
     <canvas id="canvas" width="1280" height="720"></canvas>
     <div id="hud">
       RNE Web Viewer — drag to orbit, scroll to zoom<br />
@@ -200,6 +228,35 @@
       <button id="mission-start" type="button">ミッション開始／再挑戦</button>
       <p>プレビュー時間：60描画フレーム＝1秒。描画速度で実時間は変わります。</p>
     </section>
+    <details id="experiment-panel" aria-label="Planning and control experiments">
+      <summary>PLANNING × CONTROL · 比較デモ</summary>
+      <p>G1の平面移動モデルで手法を比較。青＝計画、緑＝実軌跡、橙＝障害物。</p>
+      <div class="experiment-options">
+      <label for="experiment-task-select">タスク
+        <select id="experiment-task-select"><option value="0">目的地へ移動</option><option value="1">障害物を迂回</option><option value="2">途中で障害物を追加（2秒後）</option></select>
+      </label>
+      <label for="experiment-seed-editor">配置seed <input id="experiment-seed-editor" type="number" min="0" max="4294967295" step="1" value="42"></label>
+      <label for="experiment-planner-select">プランナー
+        <select id="experiment-planner-select"><option value="0">直線（衝突検証付き）</option><option value="1">A*（コストマップ）</option></select>
+      </label>
+      <label for="experiment-controller-select">コントローラー
+        <select id="experiment-controller-select"><option value="0">Pure Pursuit</option><option value="1">DWA（予測軌道を評価）</option></select>
+      </label>
+      </div>
+      <input id="experiment-seed" type="hidden" value="42">
+      <input id="experiment-task" type="hidden" value="0"><input id="experiment-planner" type="hidden" value="0"><input id="experiment-controller" type="hidden" value="0">
+      <input id="experiment-run" type="hidden" value="0"><input id="experiment-pause" type="hidden" value="0"><input id="experiment-step" type="hidden" value="0"><input id="experiment-compare" type="hidden" value="0"><input id="experiment-manual" type="hidden" value="0">
+      <div class="experiment-buttons">
+        <button type="button" id="experiment-run-button">選択条件で実行</button><button type="button" id="experiment-compare-button">4組を比較（高速）</button>
+        <button type="button" id="experiment-pause-button" aria-pressed="false">一時停止</button><button type="button" id="experiment-step-button">1ステップ</button><button type="button" id="experiment-manual-button">手動操作に戻る</button><button type="button" id="experiment-results-button" disabled>結果を見る</button>
+      </div>
+      <p id="experiment-status" aria-live="off">手動操作 · タスクと手法を選んで実行</p>
+      <svg id="experiment-map" viewBox="-0.6 -2 4.1 4" role="img" aria-label="計画経路と実際の軌跡、障害物と目標の平面図"></svg>
+      <p id="experiment-metrics"></p>
+      <p>同じタスク・seedの行を比較。時間は固定刻みのシミュレーション時間です。移動速度・加速度の上限は共通です。</p>
+      <div class="experiment-results"><table><caption>実行結果（直近12件）· 手法を開くと詳細</caption><thead><tr><th>タスク / seed</th><th>手法</th><th>結果</th><th>時間 s</th><th>RMSE m</th></tr></thead><tbody id="experiment-records"></tbody></table></div>
+      <details><summary>モデルと比較条件</summary><p>半径0.28mの円形移動モデルです。二足歩行・接触力・バランス制御の評価は含みません。選択変更は次回の実行から適用します。</p></details>
+    </details>
     <section id="controls" aria-label="Robot controls">
       <h1>RNE G1 Playground</h1>
       <p id="engine-status" role="status">G1を読み込み中…</p>

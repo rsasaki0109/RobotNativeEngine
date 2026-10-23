@@ -27,6 +27,55 @@ responses while retaining the source mesh colors. The static scenery and
 material maps are cached when the G1 loads. Furniture is visual scenery;
 this kinematic viewer does not add collisions or contact physics.
 
+## Planning × Control experiments
+
+Open **PLANNING × CONTROL** to select a task, global planner, local controller,
+and layout seed, then run or compare all four method pairs. The first three
+navigation tasks are an open-space goal, a static obstacle detour, and an
+obstacle inserted after 60 simulation steps (2 seconds). The fixed seed controls
+obstacle placement; the methods themselves are deterministic. Changing selectors
+applies to the next run. Every run restores the same initial pose and velocity.
+
+The straight-line baseline validates its entire path against the footprint-padded
+costmap and reports planning failure if blocked. A* uses `rne_nav::plan_path`;
+diagonal moves cannot cut through occupied cell corners. Local control uses
+`rne_nav::pure_pursuit_follow` or `DwaPlanner`, with common 0.55 m/s, 1.6 rad/s,
+1 m/s² and 3 rad/s² speed/acceleration limits. A newly inserted obstacle updates
+the map and triggers one replan. The swept circular footprint detects contact;
+controller failure and a 60-second simulation timeout are separate outcomes.
+
+This is a **planar unicycle model with a 0.28 m circular footprint**, shown using
+G1's animated mesh. It does not evaluate articulated balance, foot contact, or
+bipedal walking performance. Navigation uses `(x, y, yaw)` internally; the visual
+world maps these to `(X, -Z, yaw)` to keep RNE's Y-up convention.
+
+A `SimClock` advances explicitly by 33,333,333 ns per simulation step (about
+30 Hz), independent of elapsed browser time. Pause stops this clock and the
+controller; **1 step** pauses and advances exactly one tick. The fast four-pair
+comparison executes 32 of the same simulation steps per redraw; this changes
+presentation speed, not experiment conditions. **Manual mode**, drive input,
+Stop, Reset, or checkpoint start cancels automated navigation. Reset returns
+home; manual takeover preserves the current pose. A completed result is saved
+once and frozen, with the latest 12 completed runs kept in memory. A new four-pair
+comparison clears this history to show one task/seed batch.
+
+The 3D floor and the small overhead view show blue reference paths and green
+executed traces, orange obstacles and a gold goal. Results report simulation
+time, reference-tracking RMSE, travelled distance, minimum obstacle clearance,
+latest planned length and replan count (expand a method in the results table
+for the additional distance/clearance details). RMSE uses each executed tick against the
+reference active at that tick. No-obstacle clearance and error with no executed
+samples are shown as `—`; a failed plan is never presented as perfect tracking.
+These are single deterministic runs, not aggregate success-rate or wall-clock
+performance benchmarks. Planning compute time is not measured in this version.
+
+Browser interaction validation with an installed Chromium:
+
+```bash
+python3 scripts/test_g1_experiments_browser.py --url http://127.0.0.1:8080/ \
+  --browser /usr/bin/chromium --output work/experiments-browser
+```
+
 ## Walking, waving and checkpoint run
 
 **Walking motion ON** adds a bounded, alternating leg/arm pose animation while

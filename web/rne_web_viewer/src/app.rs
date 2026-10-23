@@ -1,5 +1,6 @@
 //! winit application loop for the browser viewer.
 
+use crate::experiment::{Config, Experiment};
 use crate::humanoid::{G1Input, G1Scene};
 use rne_render_wgpu::{CameraOrbit, InteractiveViewer, ViewerError};
 use std::sync::Arc;
@@ -65,6 +66,8 @@ struct App {
     reset_counter: u32,
     wave_counter: u32,
     mission_counter: u32,
+    experiment: Experiment,
+    experiment_counters: [u32; 5],
     dragging: bool,
     last_cursor: Option<PhysicalPosition<f64>>,
 }
@@ -250,17 +253,121 @@ impl App {
         let targets_rad = (0..scene.joint_count())
             .map(|index| value(&format!("control-joint-{index}")))
             .collect::<Result<Vec<_>, _>>()?;
-        let render_scene = scene.play_frame(
-            G1Input {
-                forward: value("control-forward")?,
-                turn: value("control-turn")?,
-                targets_rad,
-                reset: reset_counter != self.reset_counter,
-            },
-            value("control-motion-enabled")? == 1.0,
-            wave_counter != self.wave_counter,
-            mission_counter != self.mission_counter,
-        )?;
+        let counters: [u32; 5] = [
+            "experiment-run",
+            "experiment-pause",
+            "experiment-step",
+            "experiment-compare",
+            "experiment-manual",
+        ]
+        .map(|id| value(id).map(|v| v as u32))
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()?
+        .try_into()
+        .unwrap();
+        let changed: [bool; 5] =
+            std::array::from_fn(|i| counters[i] != self.experiment_counters[i]);
+        let reset = reset_counter != self.reset_counter;
+        let mission = mission_counter != self.mission_counter;
+        if reset || mission || changed[4] {
+            self.experiment.stop();
+        } else if changed[0] || changed[3] {
+            let config = Config {
+                task: (value("experiment-task")? as usize).min(2),
+                planner: (value("experiment-planner")? as usize).min(1),
+                controller: (value("experiment-controller")? as usize).min(1),
+                seed: value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32,
+            };
+            self.experiment.start(config, changed[3]);
+        }
+        if changed[1] && self.experiment.active() {
+            self.experiment.paused = !self.experiment.paused;
+        }
+        if changed[2] && self.experiment.active() {
+            self.experiment.paused = true;
+        }
+        self.experiment.advance(changed[2]);
+        self.experiment_counters = counters;
+        let input = G1Input {
+            forward: value("control-forward")?,
+            turn: value("control-turn")?,
+            targets_rad,
+            reset,
+        };
+        let animate = value("control-motion-enabled")? == 1.0;
+        if self.experiment.active() && (changed[0] || changed[3]) {
+            scene.play_frame(
+                G1Input {
+                    forward: 0.0,
+                    turn: 0.0,
+                    targets_rad: input.targets_rad.clone(),
+                    reset: true,
+                },
+                false,
+                false,
+                false,
+            )?;
+        }
+        let mut render_scene = if let Some(pose) = self.experiment.pose() {
+            scene.navigation_frame(input, animate, pose)?
+        } else {
+            scene.play_frame(input, animate, wave_counter != self.wave_counter, mission)?
+        };
+        self.experiment.overlay(&mut render_scene);
+        if let Some(body) = document.get_element_by_id("playground") {
+            let _ = body.set_attribute(
+                "data-experiment-active",
+                if self.experiment.active() {
+                    "true"
+                } else {
+                    "false"
+                },
+            );
+        }
+        for (id, text) in [
+            ("experiment-status", self.experiment.status()),
+            ("experiment-metrics", self.experiment.metrics()),
+        ] {
+            if let Some(element) = document.get_element_by_id(id) {
+                element.set_text_content(Some(&text));
+            }
+        }
+        if let Some(element) = document.get_element_by_id("experiment-map") {
+            element.set_inner_html(&self.experiment.map_svg());
+        }
+        let results = self.experiment.results_html();
+        if let Some(element) = document.get_element_by_id("experiment-records") {
+            element.set_inner_html(&results);
+        }
+        if let Some(element) = document.get_element_by_id("experiment-results-button") {
+            if results.is_empty() {
+                let _ = element.set_attribute("disabled", "");
+            } else {
+                let _ = element.remove_attribute("disabled");
+            }
+        }
+        if let Some(element) = document.get_element_by_id("control-wave") {
+            if self.experiment.active() {
+                let _ = element.set_attribute("disabled", "");
+            } else {
+                let _ = element.remove_attribute("disabled");
+            }
+        }
+        if let Some(element) = document.get_element_by_id("experiment-pause-button") {
+            element.set_text_content(Some(if self.experiment.paused {
+                "再開"
+            } else {
+                "一時停止"
+            }));
+            let _ = element.set_attribute(
+                "aria-pressed",
+                if self.experiment.paused {
+                    "true"
+                } else {
+                    "false"
+                },
+            );
+        }
         self.reset_counter = reset_counter;
         self.wave_counter = wave_counter;
         self.mission_counter = mission_counter;

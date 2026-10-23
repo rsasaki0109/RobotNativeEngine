@@ -171,6 +171,28 @@ pub fn plan_path(
             if !costmap.contains(neighbour) || !traversable(costmap, neighbour, config) {
                 continue;
             }
+            // A diagonal must not squeeze through two cells that block the
+            // swept edge, even when its destination cell is free.
+            if dx != 0
+                && dy != 0
+                && (!traversable(
+                    costmap,
+                    GridCoord {
+                        x: node.coord.x + dx,
+                        y: node.coord.y,
+                    },
+                    config,
+                ) || !traversable(
+                    costmap,
+                    GridCoord {
+                        x: node.coord.x,
+                        y: node.coord.y + dy,
+                    },
+                    config,
+                ))
+            {
+                continue;
+            }
             let neighbour_index = index(neighbour);
             if closed[neighbour_index] {
                 continue;
@@ -270,6 +292,36 @@ mod tests {
             }
         }
         Costmap::from_occupancy(&grid, &CostmapConfig::default()).unwrap()
+    }
+
+    #[test]
+    fn diagonal_cannot_pass_through_blocked_cell_corners() {
+        let grid = OccupancyGrid::from_log_odds(
+            2,
+            2,
+            1.0,
+            Pose2d::IDENTITY,
+            vec![-2000, 3500, 3500, -2000],
+        )
+        .unwrap();
+        let map = Costmap::from_occupancy(
+            &grid,
+            &CostmapConfig {
+                inscribed_radius_m: 0.0,
+                inflation_radius_m: 0.0,
+                ..CostmapConfig::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(
+            plan_path(
+                &map,
+                Vec3::new(0.5, 0.5, 0.0),
+                Vec3::new(1.5, 1.5, 0.0),
+                &GlobalPlannerConfig::default()
+            ),
+            Err(PlanError::NoPath)
+        );
     }
 
     #[test]

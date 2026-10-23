@@ -14,8 +14,10 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 rne_assets = { path = "../../crates/rne_assets" }
+rne_core = { path = "../../crates/rne_core" }
 rne_ecs = { path = "../../crates/rne_ecs" }
 rne_math = { path = "../../crates/rne_math" }
+rne_nav = { path = "../../crates/rne_nav" }
 rne_physics = { path = "../../crates/rne_physics" }
 rne_render = { path = "../../crates/rne_render" }
 rne_render_wgpu = { path = "../../crates/rne_render_wgpu", features = ["viewer"] }
