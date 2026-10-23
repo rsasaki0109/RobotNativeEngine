@@ -7,6 +7,8 @@ assert.equal(chooseLanguage('xx','en'),'en');
 assert.equal(chooseLanguage(null,null),'ja');
 assert.equal(chooseLanguage('constructor','__proto__'),'ja');
 assert.equal(translate('  腕6組を比較\n','en'),'  Compare 6 arm pairs\n');
+assert.equal(translate('比較表を広く表示','en'),'Expand comparison table');
+assert.equal(translate('通常表示に戻す','en'),'Return to normal view');
 assert.equal(translate('Replay inspector','ja'),'リプレイ検査');
 assert.equal(translate('left knee','ja'),'左膝');
 assert.equal(translate('RRT-Connect','ja'),'RRT-Connect');

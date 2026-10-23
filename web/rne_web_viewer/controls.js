@@ -91,6 +91,37 @@
   const sceneEditor = root.RNESceneEditor.init({document, signal, releaseAll});
   const experimentPanel = document.getElementById("experiment-panel");
   if (root.innerWidth > 700) experimentPanel.open = true;
+  const matrixTools = document.getElementById("mobile-matrix-view-tools");
+  const matrixView = document.getElementById("mobile-matrix-view");
+  const matrixSummary = document.getElementById("mobile-summary");
+  function setMatrixWide(expanded) {
+    experimentPanel.classList.toggle("comparison-wide", expanded);
+    matrixView.setAttribute("aria-expanded", String(expanded));
+    matrixView.querySelector("[data-wide-open]").hidden = expanded;
+    matrixView.querySelector("[data-wide-close]").hidden = !expanded;
+    document.getElementById("mobile-matrix-view-hint").hidden = !expanded;
+  }
+  matrixView.addEventListener("click", () => {
+    setMatrixWide(!experimentPanel.classList.contains("comparison-wide"));
+    matrixTools.scrollIntoView({block:"start"});
+  });
+  root.addEventListener("keydown", event => {
+    if (event.key !== "Escape" || event.defaultPrevented || !experimentPanel.classList.contains("comparison-wide")) return;
+    event.preventDefault();
+    setMatrixWide(false);
+    matrixView.focus({preventScroll:true});
+    matrixTools.scrollIntoView({block:"nearest"});
+  });
+  function syncMatrixView() {
+    const available = !!matrixSummary.querySelector(".mobile-matrix-table");
+    if (matrixTools.hidden === available) matrixTools.hidden = !available;
+    if (!available) setMatrixWide(false);
+  }
+  new MutationObserver(syncMatrixView).observe(matrixSummary, {childList:true});
+  for (const panel of [experimentPanel, document.getElementById("mobile-panel")]) {
+    panel.addEventListener("toggle", () => { if (!panel.open) setMatrixWide(false); });
+  }
+  syncMatrixView();
   for (const field of ["task", "planner", "controller"]) {
     const select = document.getElementById("experiment-" + field + "-select");
     select.addEventListener("change", () => { document.getElementById("experiment-" + field).value = select.value; if (field === "task") sceneEditor.selectTask(select.value); });
