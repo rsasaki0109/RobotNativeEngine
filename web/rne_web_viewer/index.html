@@ -9,6 +9,7 @@
     <link data-trunk rel="copy-file" href="i18n.js" />
     <link data-trunk rel="copy-file" href="share.js" />
     <link data-trunk rel="copy-file" href="result_filters.js" />
+    <link data-trunk rel="copy-file" href="replay_player.js" />
     <link data-trunk rel="copy-file" href="demo_gallery.js" />
     <link data-trunk rel="copy-file" href="scene_editor.js" />
     <link data-trunk rel="copy-file" href="replay.js" />
@@ -367,6 +368,8 @@
         <p>実行完了後、記録を選んで時刻を移動。ロボット・障害物・計画を同時刻で表示します。移動は平面の位置・向きの記録で、歩行演出は固定立ち姿です。</p>
         <select id="nav-replay-record" aria-label="移動のリプレイ記録"></select>
         <input type="range" id="nav-replay-frame" aria-label="移動のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
+        <div class="experiment-buttons"><button type="button" id="nav-replay-play" aria-pressed="false" disabled>リプレイを再生</button><button type="button" id="nav-replay-previous" disabled>前の記録コマ</button><button type="button" id="nav-replay-next" disabled>次の記録コマ</button></div>
+        <label>再生速度<select id="nav-replay-speed" disabled><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
         <output id="nav-replay-time">0.00 s</output><button type="button" id="nav-replay-exit">リプレイを終了</button>
         <input type="hidden" id="nav-replay-tick" value="0"><input type="hidden" id="nav-replay-enabled" value="0">
       </details>
@@ -391,6 +394,8 @@
         <div class="experiment-results"><table><caption>腕の結果 · 3計画 × 2制御</caption><thead><tr><th>計画 × 制御</th><th>結果</th><th>最終誤差 m</th><th>関節目標RMSE rad</th><th>時間 s</th><th>探索回数</th></tr></thead><tbody id="arm-records"></tbody></table></div>
         <label>腕の時間リプレイ<select id="arm-replay-record" aria-label="腕のリプレイ記録"></select></label>
         <input type="range" id="arm-replay-frame" aria-label="腕のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
+        <div class="experiment-buttons"><button type="button" id="arm-replay-play" aria-pressed="false" disabled>リプレイを再生</button><button type="button" id="arm-replay-previous" disabled>前の記録コマ</button><button type="button" id="arm-replay-next" disabled>次の記録コマ</button></div>
+        <label>再生速度<select id="arm-replay-speed" disabled><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
         <output id="arm-replay-time">0.00 s</output><button type="button" id="arm-replay-exit">リプレイを終了</button><input type="hidden" id="arm-replay-tick" value="0"><input type="hidden" id="arm-replay-enabled" value="0">
         <p>URDFの関節制限と位置IKを使用。物体は手先との距離で接続・解放する運動学的把持です。接触力・落下・姿勢IKは評価しません。接触検査は左前腕・手先・保持物と茶色の箱が対象です。RRT-Connectは段階ごとに最大600反復で探索します。探索に要した処理時間はシミュレーション時間に含みません。</p>
       </details>
@@ -425,6 +430,8 @@
         </details>
         <label>運搬の時間リプレイ<select id="mobile-replay-record" aria-label="運搬のリプレイ記録"></select></label>
         <input type="range" id="mobile-replay-frame" aria-label="運搬のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
+        <div class="experiment-buttons"><button type="button" id="mobile-replay-play" aria-pressed="false" disabled>リプレイを再生</button><button type="button" id="mobile-replay-previous" disabled>前の記録コマ</button><button type="button" id="mobile-replay-next" disabled>次の記録コマ</button></div>
+        <label>再生速度<select id="mobile-replay-speed" disabled><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
         <output id="mobile-replay-time">0.00 s</output><button type="button" id="mobile-replay-exit">リプレイを終了</button><input type="hidden" id="mobile-replay-tick" value="0"><input type="hidden" id="mobile-replay-enabled" value="0">
         <p>運動学的な運搬です。移動中は腕の姿勢を固定し、荷物・前腕の水平範囲で障害物を膨張させます。停止後に最大0.8 rad/sで向きを整え、世界座標の物体に位置IKで到達します。左前腕・手先・荷物と棚板を接触検査します。棚の支柱、全身、重力、把持力、二足歩行の安定性は評価しません。</p>
       </details>
@@ -557,11 +564,12 @@
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
     </details>
-    <script src="i18n.js?v=diagnostics-v1"></script>
+    <script src="i18n.js?v=playback-v1"></script>
     <script src="scene_editor.js?v=experiment-link-v1"></script>
     <script src="share.js?v=experiment-link-v1"></script>
     <script src="result_filters.js?v=diagnostics-v1"></script>
-    <script src="controls.js?v=diagnostics-v1"></script>
+    <script src="replay_player.js?v=playback-v1"></script>
+    <script src="controls.js?v=playback-v1"></script>
     <script src="demo_gallery.js?v=bilingual-v1"></script>
     <script src="replay.js"></script>
   </body>
