@@ -552,3 +552,30 @@ node web/rne_web_viewer/share.test.cjs
 python3 scripts/test_g1_share_browser.py --url http://127.0.0.1:8080/ \
   --output work/share-browser
 ```
+
+## Inspect completed delivery failures
+
+Use **運搬結果の絞り込みと失敗確認 / Filter delivery results and inspect failures**
+to combine outcome, terminal stage and seed filters. Results, trial diagnostics
+and timeline rows are hidden/shown together; original record indices and the
+full replay dropdown remain unchanged. Filter counts include completed trials
+only. Stage 0–3 means the stage where a trial failed; stage 4 means all stages
+succeeded. Empty matches have an explicit message and a reset control.
+
+Expand trial diagnostics to see the actual terminal result, stage, simulated
+time, accumulated waiting/retries and whether the object was held. After the
+comparison completes, jump to either its saved endpoint or the latest captured
+frame at/before one second before the end (the start for very short trials).
+The displayed replay time is the actual saved tick. Incomplete/interrupted
+comparisons retain read-only diagnostics.
+
+Filters change presentation only: aggregate statistics, CSV exports, stored
+snapshots and shared experiment conditions still cover the full batch. Changing
+language keeps filter selections. Starting a new batch resets an unavailable
+seed selection to All seeds; outcome/stage remain display preferences.
+
+```bash
+node web/rne_web_viewer/result_filters.test.cjs
+python3 scripts/test_g1_mobile_diagnostics_browser.py --url http://127.0.0.1:8080/ \
+  --output work/diagnostics-browser
+```

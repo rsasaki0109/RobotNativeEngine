@@ -43,6 +43,8 @@ jobs:
           node web/rne_web_viewer/i18n.test.cjs
           node --check web/rne_web_viewer/share.js
           node web/rne_web_viewer/share.test.cjs
+          node --check web/rne_web_viewer/result_filters.js
+          node web/rne_web_viewer/result_filters.test.cjs
           node --check web/rne_web_viewer/demo_gallery.js
           node web/rne_web_viewer/controls.test.cjs
           node web/rne_web_viewer/replay.test.cjs

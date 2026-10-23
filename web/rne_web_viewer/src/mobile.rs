@@ -296,6 +296,18 @@ struct TimelineSegment {
     waiting: bool,
 }
 impl Record {
+    fn display_attributes(&self, index: usize) -> String {
+        let f = self.frames.last().unwrap();
+        format!("data-mobile-index='{index}' data-mobile-outcome='{}' data-mobile-stage='{}' data-mobile-seed='{}'", if f.state == "成功" {"success"} else {"failure"}, f.stage, self.config.nav.seed)
+    }
+    fn before_end_tick(&self) -> u32 {
+        let target = self.frames.last().unwrap().tick.saturating_sub(30);
+        self.frames
+            .iter()
+            .rev()
+            .find(|f| f.tick <= target)
+            .map_or(0, |f| f.tick)
+    }
     fn timeline_segments(&self) -> Vec<TimelineSegment> {
         let mut segments: Vec<TimelineSegment> = Vec::new();
         for pair in self.frames.windows(2) {
@@ -695,7 +707,7 @@ impl MobileTask {
     }
     pub(crate) fn results_html(&self) -> String {
         let mut html = String::new();
-        for r in &self.records {
+        for (index, r) in self.records.iter().enumerate() {
             let f = r.frames.last().unwrap();
             let times: Vec<_> = f
                 .stage_ticks
@@ -717,7 +729,7 @@ impl MobileTask {
                     }
                 })
                 .collect();
-            let _=write!(html,"<tr><td>{} · {} × {} · 腕 {} × {} · seed {} · 再試行{}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2} / {}</td><td>{:.2}</td><td>{:.3}</td></tr>",SCENARIOS[r.config.scenario],PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,if r.config.nav.recovery {"あり"} else {"なし"},f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f64::from(f.waiting_ticks)*DT,f.retries,f.base_travel_m,(f.object-r.place).length());
+            let _=write!(html,"<tr {}><td>{} · {} × {} · 腕 {} × {} · seed {} · 再試行{}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2} / {}</td><td>{:.2}</td><td>{:.3}</td></tr>",r.display_attributes(index),SCENARIOS[r.config.scenario],PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,if r.config.nav.recovery {"あり"} else {"なし"},f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f64::from(f.waiting_ticks)*DT,f.retries,f.base_travel_m,(f.object-r.place).length());
         }
         html
     }
@@ -743,7 +755,7 @@ impl MobileTask {
             } else {
                 "なし"
             };
-            let _=write!(html,"<section class='timeline-row'><p>試行 {} · {} × {} · 腕 {} × {} · seed {} · 再試行{policy}</p><div class='timeline-track' role='group' aria-label='試行{}の時間区間'>",index+1,PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,index+1);
+            let _=write!(html,"<section class='timeline-row' {}><p>試行 {} · {} × {} · 腕 {} × {} · seed {} · 再試行{policy}</p><div class='timeline-track' role='group' aria-label='試行{}の時間区間'>",r.display_attributes(index),index+1,PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,index+1);
             for segment in r.timeline_segments() {
                 let name = if segment.waiting {
                     "待機"
@@ -761,6 +773,22 @@ impl MobileTask {
             }
             let success = f.state == "成功";
             let _=write!(html,"</div><button type='button' class='timeline-terminal' data-success='{success}' data-mobile-record='{index}' data-mobile-tick='{}'{disabled}>{} · {:.2} s · {}地点へ</button></section>",f.tick,f.state,f64::from(f.tick)*DT,if success {"完了"} else {"失敗"});
+        }
+        html
+    }
+    /// Completed-trial facts and jumps use the original record indices and saved ticks.
+    pub(crate) fn diagnostics_html(&self) -> String {
+        let enabled = self.queue.is_empty() && self.episode.as_ref().is_some_and(|e| e.recorded);
+        let disabled = if enabled { "" } else { " disabled" };
+        let mut html = String::new();
+        for (index, r) in self.records.iter().enumerate() {
+            let end = r.frames.last().unwrap();
+            let stage = if end.stage == 4 {
+                "全4段階完了"
+            } else {
+                STAGES[end.stage]
+            };
+            let _ = write!(html, "<article class='mobile-diagnostic' {}><p>試行 {} · seed {} · {} × {} · 腕 {} × {}</p><p>{stage} · {} · 完了 {}/4 · {:.2} s</p><p>待機 {:.2} s · 再試行 {}回 · {}</p><button type='button' data-mobile-record='{index}' data-mobile-tick='{}'{disabled}>終了の約1秒前へ</button><button type='button' data-mobile-record='{index}' data-mobile-tick='{}'{disabled}>{}</button></article>", r.display_attributes(index),index+1,r.config.nav.seed,PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],end.state,end.stage,f64::from(end.tick)*DT,f64::from(end.waiting_ticks)*DT,end.retries,if end.attached {"物体保持中"} else {"未保持"},r.before_end_tick(),end.tick,if end.state == "成功" {"完了地点へ"} else {"失敗地点へ"});
         }
         html
     }
@@ -1277,6 +1305,90 @@ mod tests {
             assert_eq!(f.stage, 2);
             assert!(f.attached);
         }
+    }
+    #[test]
+    fn diagnostic_facts_cover_all_terminal_stages_and_seek_only_saved_frames() {
+        for (scenario, nav_planner, arm_planner, expected_stage) in [
+            (0, 0, 2, 0),
+            (0, 1, 0, 1),
+            (1, 1, 2, 2),
+            (2, 1, 2, 3),
+            (0, 1, 2, 4),
+        ] {
+            let mut c = config();
+            c.scenario = scenario;
+            c.nav.planner = nav_planner;
+            c.nav.controller = 1;
+            c.arm.planner = arm_planner;
+            let mut task = MobileTask::default();
+            task.start(c, false);
+            finish(&mut task);
+            assert_eq!(task.records.len(), 1);
+            let r = &task.records[0];
+            let end = r.frames.last().unwrap().clone();
+            assert_eq!(end.stage, expected_stage);
+            let before = r.before_end_tick();
+            assert!(r.frames.iter().any(|f| f.tick == before));
+            assert!(before <= end.tick.saturating_sub(30));
+            assert!(end.tick - before <= 32 || end.tick < 30);
+            let attributes = r.display_attributes(0);
+            assert!(attributes.contains(&format!("data-mobile-stage='{expected_stage}'")));
+            assert!(attributes.contains(if expected_stage == 4 {
+                "data-mobile-outcome='success'"
+            } else {
+                "data-mobile-outcome='failure'"
+            }));
+            for html in [
+                task.results_html(),
+                task.timeline_html(),
+                task.diagnostics_html(),
+            ] {
+                assert!(html.contains(&attributes));
+            }
+            let html = task.diagnostics_html();
+            assert!(html.contains(end.state));
+            assert!(html.contains(&format!("data-mobile-tick='{before}'")));
+            assert!(html.contains(&format!("data-mobile-tick='{}'", end.tick)));
+            assert!(!html.contains(" disabled"));
+            let csv = task.csv();
+            let summary = task.summary_html();
+            for tick in [before, end.tick] {
+                task.seek(0, tick);
+                assert_eq!(task.frame().unwrap().tick, tick);
+                task.advance(false);
+                assert_eq!(task.csv(), csv);
+                assert_eq!(task.summary_html(), summary);
+                assert_eq!(task.diagnostics_html(), html);
+            }
+        }
+    }
+    #[test]
+    fn diagnostic_indices_survive_mixed_outcomes_and_interrupted_trials_are_read_only() {
+        let mut c = config();
+        c.nav.controller = 1;
+        let mut task = MobileTask::default();
+        task.start_arm_comparison(c);
+        finish(&mut task);
+        assert_eq!(task.records.len(), 6);
+        let html = task.diagnostics_html();
+        for (i, r) in task.records.iter().enumerate() {
+            assert!(html.contains(&r.display_attributes(i)));
+            assert_eq!(html.matches(&format!("data-mobile-index='{i}'")).count(), 1);
+            assert_eq!(
+                html.matches(&format!("data-mobile-record='{i}'")).count(),
+                2
+            );
+        }
+        c.nav.planner = 0;
+        task.start(c, true);
+        task.paused = true;
+        task.advance(true);
+        assert_eq!(task.records.len(), 1);
+        assert_eq!(task.diagnostics_html().matches(" disabled").count(), 2);
+        task.stop();
+        assert_eq!(task.diagnostics_html().matches(" disabled").count(), 2);
+        task.start(c, false);
+        assert!(task.diagnostics_html().is_empty());
     }
     #[test]
     fn arm_benchmark_pairs_five_seeded_worlds_and_matches_individual_replays() {
