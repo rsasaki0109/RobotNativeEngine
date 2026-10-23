@@ -9,6 +9,7 @@ use rne_render::{RenderScene, VisualShape};
 use rne_world::Transform3;
 use std::{collections::VecDeque, fmt::Write, sync::Arc};
 
+const SCENARIOS: [&str; 3] = ["標準の運搬", "把持後に運搬経路が閉鎖", "配置棚が到達範囲外"];
 const DT: f64 = 1.0 / 30.0;
 const STAGES: [&str; 4] = [
     "棚へ移動・整列",
@@ -23,6 +24,7 @@ const CONTROLLERS: [&str; 2] = ["Pure Pursuit", "DWA"];
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct MobileConfig {
+    pub(crate) scenario: usize,
     pub(crate) nav: Config,
     pub(crate) arm: ArmConfig,
 }
@@ -41,6 +43,7 @@ struct Frame {
     base_travel_m: f64,
     hand_travel_m: f64,
     path: Arc<Vec<Vec3>>,
+    boxes: Arc<Vec<(Vec3, Vec3)>>,
 }
 
 #[derive(Debug)]
@@ -53,7 +56,6 @@ struct Episode {
     frames: Vec<Frame>,
     pick: Vec3,
     place: Vec3,
-    obstacles: Vec<BoxSpec>,
     surfaces: Vec<(Vec3, Vec3)>,
     recorded: bool,
 }
@@ -61,7 +63,12 @@ impl Episode {
     fn new(config: MobileConfig) -> Self {
         let arm = MobileArm::new(config.arm);
         let pick = world_point(PICK_DOCK, arm.pick_target(config.nav.seed));
-        let place = world_point(PLACE_DOCK, arm.place_target());
+        let place = world_point(PLACE_DOCK, arm.place_target())
+            + if config.scenario == 2 {
+                Vec3::Y * 1.2
+            } else {
+                Vec3::ZERO
+            };
         let obstacles = vec![BoxSpec {
             x_m: 0.7,
             z_m: 0.0,
@@ -99,6 +106,10 @@ impl Episode {
             base_travel_m: 0.0,
             hand_travel_m: 0.0,
             path: Arc::new(nav.path()),
+            boxes: Arc::new(vec![(
+                Vec3::new(0.7, 0.3, 0.0),
+                Vec3::new(0.11, 0.3, 0.275),
+            )]),
         };
         Self {
             config,
@@ -109,7 +120,6 @@ impl Episode {
             frame,
             pick,
             place,
-            obstacles,
             surfaces,
             recorded: false,
         }
@@ -172,14 +182,26 @@ impl Episode {
                     } else {
                         self.frame.stage = 2;
                         self.docking = false;
+                        if self.config.scenario == 1 {
+                            // The gate closes only after the object has been grasped and lifted.
+                            // Store geometry in the frame so earlier replay snapshots stay open.
+                            for z in [-2.4, 0.0, 2.4] {
+                                let barrier = (Vec3::new(0.0, 0.8, z), Vec3::new(0.11, 0.8, 1.2));
+                                Arc::make_mut(&mut self.frame.boxes).push(barrier);
+                                self.surfaces.push(barrier);
+                            }
+                        }
                         let extra = (self.arm.envelope_m() - 0.28).max(0.0);
                         let obstacles = self
-                            .obstacles
+                            .frame
+                            .boxes
                             .iter()
-                            .map(|o| BoxSpec {
-                                width_m: o.width_m + 2.0 * extra,
-                                depth_m: o.depth_m + 2.0 * extra,
-                                ..o.clone()
+                            .map(|(center, half)| BoxSpec {
+                                x_m: center.x,
+                                z_m: center.z,
+                                width_m: half.x * 2.0 + 2.0 * extra,
+                                depth_m: half.z * 2.0 + 2.0 * extra,
+                                appear_step: 0,
                             })
                             .collect();
                         self.nav = NavigationLeg::new(
@@ -330,8 +352,13 @@ impl MobileTask {
         let Some(f) = self.frame() else {
             return "棚から取り、運んで置くタスク".into();
         };
+        let c = self
+            .replay
+            .and_then(|(i, _)| self.records.get(i).map(|r| r.config))
+            .unwrap_or(self.episode.as_ref().unwrap().config);
         format!(
-            "{} · {} · {:.2} s · {}{}",
+            "{} · {} · {} · {:.2} s · {}{}",
+            SCENARIOS[c.scenario],
             if f.stage == 4 {
                 "全4段階完了"
             } else {
@@ -432,7 +459,7 @@ impl MobileTask {
                     }
                 })
                 .collect();
-            let _=write!(html,"<tr><td>{} × {} · 腕 {} × {} · seed {}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2}</td><td>{:.3}</td></tr>",PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f.base_travel_m,(f.object-r.place).length());
+            let _=write!(html,"<tr><td>{} · {} × {} · 腕 {} × {} · seed {}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2}</td><td>{:.3}</td></tr>",SCENARIOS[r.config.scenario],PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f.base_travel_m,(f.object-r.place).length());
         }
         html
     }
@@ -445,12 +472,13 @@ impl MobileTask {
             .enumerate()
             .map(|(i, r)| {
                 format!(
-                    "<option value='{i}' data-times='{}'>{} × {} · {}</option>",
+                    "<option value='{i}' data-times='{}'>{} · {} × {} · {}</option>",
                     r.frames
                         .iter()
                         .map(|f| f.tick.to_string())
                         .collect::<Vec<_>>()
                         .join(","),
+                    SCENARIOS[r.config.scenario],
                     PLANNERS[r.config.nav.planner],
                     CONTROLLERS[r.config.nav.controller],
                     r.frames.last().unwrap().state
@@ -462,7 +490,7 @@ impl MobileTask {
         if self.records.is_empty() {
             return String::new();
         }
-        let mut csv=String::from("schema_version,task,batch_state,expected_trials,completed_trials,seed,nav_planner,nav_controller,arm_planner,arm_controller,result,completed_stages,approach_s,grasp_s,carry_s,place_s,total_s,base_travel_m,hand_travel_m,final_error_m\r\n");
+        let mut csv=String::from("schema_version,task,batch_state,expected_trials,completed_trials,seed,nav_planner,nav_controller,arm_planner,arm_controller,result,completed_stages,approach_s,grasp_s,carry_s,place_s,total_s,base_travel_m,hand_travel_m,final_error_m,scenario_id,scenario\r\n");
         let expected = if self.batch { 4 } else { 1 };
         let state = if self.records.len() == expected {
             "completed"
@@ -489,7 +517,7 @@ impl MobileTask {
                 .collect();
             let _ = write!(
                 csv,
-                "1,shelf_delivery,{state},{expected},{},{},{},{},{},{},{},{},{},{:.6},{:.6},{:.6},{:.6}\r\n",
+                "2,shelf_delivery,{state},{expected},{},{},{},{},{},{},{},{},{},{:.6},{:.6},{:.6},{:.6},{},{}\r\n",
                 self.records.len(),
                 r.config.nav.seed,
                 r.config.nav.planner,
@@ -502,7 +530,9 @@ impl MobileTask {
                 f64::from(f.tick) * DT,
                 f.base_travel_m,
                 f.hand_travel_m,
-                (f.object - r.place).length()
+                (f.object - r.place).length(),
+                r.config.scenario,
+                SCENARIOS[r.config.scenario]
             );
         }
         csv
@@ -536,13 +566,8 @@ impl MobileTask {
                 [0.25, 0.30, 0.35, 1.0],
             );
         }
-        for o in &e.obstacles {
-            cube(
-                scene,
-                Vec3::new(o.x_m, 0.3, o.z_m),
-                Vec3::new(o.width_m, 0.6, o.depth_m),
-                [0.65, 0.3, 0.12, 1.0],
-            );
+        for (center, half) in f.boxes.iter() {
+            cube(scene, *center, *half * 2.0, [0.65, 0.3, 0.12, 1.0]);
         }
         cube(scene, place, Vec3::splat(0.065), [0.15, 0.8, 0.3, 0.35]);
         cube(scene, f.object, Vec3::splat(0.045), [1.0, 0.55, 0.1, 1.0]);
@@ -566,6 +591,7 @@ mod tests {
     use super::*;
     fn config() -> MobileConfig {
         MobileConfig {
+            scenario: 0,
             nav: Config {
                 planner: 1,
                 seed: 42,
@@ -636,7 +662,7 @@ mod tests {
         assert_eq!(summary.matches("100%").count(), 3);
         assert_eq!(task.csv().lines().count(), 5);
         for row in task.csv().lines().skip(1) {
-            assert_eq!(row.split(',').count(), 20);
+            assert_eq!(row.split(',').count(), 22);
         }
     }
     #[test]
@@ -744,6 +770,85 @@ mod tests {
                 assert_eq!(end.state, expected, "arm {planner}/{controller}");
                 assert_eq!(end.stage, if expected == "成功" { 4 } else { 1 });
                 assert_eq!(end.stage_ticks.iter().sum::<u32>(), end.tick);
+            }
+        }
+    }
+    #[test]
+    fn delivery_scenarios_fail_at_the_measured_stage_and_preserve_geometry() {
+        for scenario in [1, 2] {
+            let mut c = config();
+            c.scenario = scenario;
+            let mut task = MobileTask::default();
+            task.start(c, true);
+            finish(&mut task);
+            assert_eq!(task.records.len(), 4);
+            for (i, r) in task.records.iter().enumerate() {
+                assert_eq!(r.config.scenario, scenario);
+                let end = r.frames.last().unwrap();
+                if i < 2 {
+                    assert_eq!(end.stage, 0);
+                    assert_eq!(end.state, "計画失敗");
+                } else {
+                    assert!(end.attached);
+                    assert_eq!(end.stage, if scenario == 1 { 2 } else { 3 });
+                    assert_eq!(
+                        end.state,
+                        if scenario == 1 {
+                            "計画失敗"
+                        } else {
+                            "IK失敗"
+                        }
+                    );
+                    if scenario == 1 {
+                        assert_eq!(end.stage_ticks[3], 0);
+                        assert_eq!(r.frames[0].boxes.len(), 1);
+                        assert_eq!(end.boxes.len(), 4);
+                        let closed = r.frames.iter().find(|f| f.boxes.len() == 4).unwrap();
+                        assert_eq!(closed.stage, 2);
+                        assert!(closed.attached);
+                        assert!(r
+                            .frames
+                            .iter()
+                            .filter(|f| f.tick < closed.tick)
+                            .all(|f| f.boxes.len() == 1));
+                        assert!(!Arc::ptr_eq(&r.frames[0].boxes, &end.boxes));
+                    } else {
+                        assert!(end.stage_ticks[2] > 0);
+                        assert!(r.place.y > 2.0);
+                        assert!(end.object.y < 1.5);
+                        assert_eq!(end.boxes.len(), 1);
+                    }
+                }
+            }
+            let csv = task.csv();
+            assert_eq!(csv.lines().count(), 5);
+            for row in csv.lines().skip(1) {
+                let columns: Vec<_> = row.split(',').collect();
+                assert_eq!(columns.len(), 22);
+                assert_eq!(columns[0], "2");
+                assert_eq!(columns[20], scenario.to_string());
+            }
+            let first = task.records[2].frames.first().unwrap().clone();
+            let last = task.records[2].frames.last().unwrap().clone();
+            for f in [&first, &last] {
+                task.seek(2, f.tick);
+                assert_eq!(task.frame().unwrap(), f);
+                let mut scene = RenderScene::default();
+                task.overlay(&mut scene);
+                assert!(!scene.items.is_empty());
+                assert!(task.status().contains(SCENARIOS[scenario]));
+                task.advance(false);
+                assert_eq!(task.csv(), csv);
+            }
+            assert!(task.results_html().contains(SCENARIOS[scenario]));
+            let summary = task.summary_html();
+            assert!(summary.contains(if scenario == 1 { "0/0" } else { "0/2" }));
+            assert!(!summary.contains("NaN"));
+            let mut repeat = MobileTask::default();
+            repeat.start(c, true);
+            finish(&mut repeat);
+            for (a, b) in task.records.iter().zip(&repeat.records) {
+                assert_eq!(a.frames, b.frames);
             }
         }
     }
