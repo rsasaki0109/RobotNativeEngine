@@ -158,6 +158,7 @@
     });
     publish();
     return {
+      currentDocument, restore,
       close(){cancelFloor();panel.open=false;byId('scene-editor-visible').value='0';},
       selectTask(task){if(task==='3')panel.open=true;else this.close();},
     };
