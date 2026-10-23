@@ -287,6 +287,39 @@ struct Record {
     place: Vec3,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct TimelineSegment {
+    start: u32,
+    end: u32,
+    stage: usize,
+    waiting: bool,
+}
+impl Record {
+    fn timeline_segments(&self) -> Vec<TimelineSegment> {
+        let mut segments: Vec<TimelineSegment> = Vec::new();
+        for pair in self.frames.windows(2) {
+            let (a, b) = (&pair[0], &pair[1]);
+            if a.stage >= 4 || b.tick <= a.tick {
+                continue;
+            }
+            if let Some(last) = segments
+                .last_mut()
+                .filter(|s| s.stage == a.stage && s.waiting == a.waiting && s.end == a.tick)
+            {
+                last.end = b.tick;
+            } else {
+                segments.push(TimelineSegment {
+                    start: a.tick,
+                    end: b.tick,
+                    stage: a.stage,
+                    waiting: a.waiting,
+                });
+            }
+        }
+        segments
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum Comparison {
     #[default]
@@ -557,6 +590,49 @@ impl MobileTask {
                 })
                 .collect();
             let _=write!(html,"<tr><td>{} · {} × {} · 腕 {} × {} · seed {} · 再試行{}</td><td>{} · {}/4完了</td><td>{}</td><td>{:.2}</td><td>{:.2} / {}</td><td>{:.2}</td><td>{:.3}</td></tr>",SCENARIOS[r.config.scenario],PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,if r.config.nav.recovery {"あり"} else {"なし"},f.state,f.stage,times.join(" / "),f64::from(f.tick)*DT,f64::from(f.waiting_ticks)*DT,f.retries,f.base_travel_m,(f.object-r.place).length());
+        }
+        html
+    }
+    /// Timeline intervals use captured transition ticks, on one shared time scale.
+    pub(crate) fn timeline_html(&self) -> String {
+        if self.records.is_empty() {
+            return String::new();
+        }
+        let enabled = self.queue.is_empty() && self.episode.as_ref().is_some_and(|e| e.recorded);
+        let disabled = if enabled { "" } else { " disabled" };
+        let max_tick = self
+            .records
+            .iter()
+            .filter_map(|r| r.frames.last().map(|f| f.tick))
+            .max()
+            .unwrap_or(0);
+        let scale = f64::from(max_tick.max(1));
+        let mut html=format!("<p>{}</p><div class='timeline-scale'><span>0.00 s</span><span>全試行共通 · {:.2} s</span></div>",if enabled {"区間・終了地点を押すと、その時刻のリプレイへ移動します。"} else {"比較完了後に区間を選んで再生できます。"},f64::from(max_tick)*DT);
+        for (index, r) in self.records.iter().enumerate() {
+            let f = r.frames.last().unwrap();
+            let policy = if r.config.nav.recovery {
+                "あり"
+            } else {
+                "なし"
+            };
+            let _=write!(html,"<section class='timeline-row'><p>試行 {} · {} × {} · 腕 {} × {} · seed {} · 再試行{policy}</p><div class='timeline-track' role='group' aria-label='試行{}の時間区間'>",index+1,PLANNERS[r.config.nav.planner],CONTROLLERS[r.config.nav.controller],ARM_PLANNERS[r.config.arm.planner],ARM_CONTROLLERS[r.config.arm.controller],r.config.nav.seed,index+1);
+            for segment in r.timeline_segments() {
+                let name = if segment.waiting {
+                    "待機"
+                } else {
+                    ["移動", "把持", "運搬", "配置"][segment.stage]
+                };
+                let kind = if segment.waiting {
+                    "waiting".into()
+                } else {
+                    segment.stage.to_string()
+                };
+                let start = f64::from(segment.start) * DT;
+                let end = f64::from(segment.end) * DT;
+                let _=write!(html,"<button type='button' class='timeline-segment' data-phase='{kind}' data-mobile-record='{index}' data-mobile-tick='{}' style='left:{:.6}%;width:{:.6}%' aria-label='試行{} {name} {start:.2}秒から{end:.2}秒' title='{name} {start:.2}–{end:.2} s'{disabled}>{name}</button>",segment.start,f64::from(segment.start)/scale*100.0,f64::from(segment.end-segment.start)/scale*100.0,index+1);
+            }
+            let success = f.state == "成功";
+            let _=write!(html,"</div><button type='button' class='timeline-terminal' data-success='{success}' data-mobile-record='{index}' data-mobile-tick='{}'{disabled}>{} · {:.2} s · {}地点へ</button></section>",f.tick,f.state,f64::from(f.tick)*DT,if success {"完了"} else {"失敗"});
         }
         html
     }
@@ -1171,6 +1247,86 @@ mod tests {
         assert_eq!(task.records.len(), 1);
         assert!(task.csv().contains("shelf_delivery,completed,1,1,"));
         assert_eq!(task.summary_html().matches("<table>").count(), 1);
+    }
+    #[test]
+    fn timeline_segments_cover_measured_time_and_use_saved_transition_frames() {
+        let mut c = config();
+        c.scenario = 3;
+        c.nav.controller = 1;
+        let mut task = MobileTask::default();
+        task.start_recovery_comparison(c);
+        finish(&mut task);
+        for r in &task.records {
+            let segments = r.timeline_segments();
+            let end = r.frames.last().unwrap();
+            assert_eq!(
+                segments.iter().map(|s| s.end - s.start).sum::<u32>(),
+                end.tick
+            );
+            assert_eq!(segments.first().unwrap().start, 0);
+            assert_eq!(segments.last().unwrap().end, end.tick);
+            for pair in segments.windows(2) {
+                assert_eq!(pair[0].end, pair[1].start);
+            }
+            for segment in &segments {
+                let f = r.frames.iter().find(|f| f.tick == segment.start).unwrap();
+                assert_eq!((f.stage, f.waiting), (segment.stage, segment.waiting));
+                assert!(segment.stage < 4 && segment.end > segment.start);
+            }
+            let wait = segments
+                .iter()
+                .filter(|s| s.waiting)
+                .map(|s| s.end - s.start)
+                .sum::<u32>();
+            assert_eq!(wait, end.waiting_ticks);
+        }
+        let off = task.records[0].timeline_segments();
+        assert!(!off.iter().any(|s| s.stage == 3 || s.waiting));
+        let on = task.records[1].timeline_segments();
+        assert_eq!(on.iter().filter(|s| s.waiting).count(), 1);
+        assert!(on.iter().any(|s| s.stage == 3));
+        let html = task.timeline_html();
+        assert!(html.contains("失敗地点へ"));
+        assert!(html.contains("完了地点へ"));
+        assert!(html.contains("data-phase='waiting'"));
+        assert!(!html.contains(" disabled"));
+        let csv = task.csv();
+        let summary = task.summary_html();
+        let f = task.records[1]
+            .frames
+            .iter()
+            .find(|f| f.waiting)
+            .unwrap()
+            .clone();
+        task.seek(1, f.tick);
+        assert_eq!(task.frame().unwrap(), &f);
+        task.advance(false);
+        assert_eq!(task.csv(), csv);
+        assert_eq!(task.summary_html(), summary);
+        assert_eq!(task.timeline_html(), html);
+    }
+    #[test]
+    fn timeline_waits_for_all_trials_and_keeps_interrupted_records_read_only() {
+        let mut c = config();
+        c.nav.planner = 0;
+        let mut task = MobileTask::default();
+        assert!(task.timeline_html().is_empty());
+        task.start_recovery_comparison(c);
+        task.paused = true;
+        task.advance(true);
+        assert_eq!(task.records.len(), 1);
+        assert!(task.timeline_html().contains(" disabled"));
+        task.seek(0, 1);
+        assert!(task.replay.is_none());
+        task.stop();
+        assert!(task.timeline_html().contains(" disabled"));
+        task.start(c, false);
+        finish(&mut task);
+        let segments = task.records[0].timeline_segments();
+        assert_eq!(segments.len(), 1);
+        assert_eq!(segments[0].stage, 0);
+        assert_eq!(segments[0].end, 1);
+        assert!(!task.timeline_html().contains(" disabled"));
     }
     #[test]
     fn delivery_repeats_the_same_seeded_episode() {
