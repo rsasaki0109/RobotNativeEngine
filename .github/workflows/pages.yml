@@ -39,6 +39,8 @@ jobs:
           tool: trunk@0.21.14
       - name: Check browser controls, scenes and replay inspector
         run: |
+          node --check web/rne_web_viewer/i18n.js
+          node web/rne_web_viewer/i18n.test.cjs
           node --check web/rne_web_viewer/demo_gallery.js
           node web/rne_web_viewer/controls.test.cjs
           node web/rne_web_viewer/replay.test.cjs

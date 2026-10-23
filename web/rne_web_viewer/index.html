@@ -6,6 +6,7 @@
     <title>RNE G1 Playground</title>
     <link data-trunk rel="rust" data-wasm-opt="0" />
     <link data-trunk rel="copy-file" href="controls.js" />
+    <link data-trunk rel="copy-file" href="i18n.js" />
     <link data-trunk rel="copy-file" href="demo_gallery.js" />
     <link data-trunk rel="copy-file" href="scene_editor.js" />
     <link data-trunk rel="copy-file" href="replay.js" />
@@ -22,6 +23,9 @@
         font-family: system-ui, sans-serif;
       }
 
+      #language-switch { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 10; background: #102432; border: 1px solid #668fa1; border-radius: 6px; padding: 6px 10px; font-size: 12px; }
+      #language-select { background: #192e40; color: #edf4fa; font: inherit; padding: 3px; }
+      @media(max-width:700px) { #language-switch { top: 58px; left: 12px; transform: none; } }
       #canvas {
         display: block;
         width: 100vw;
@@ -259,6 +263,7 @@
     </style>
   </head>
   <body id="playground">
+    <label id="language-switch">Language / 言語 <select id="language-select" aria-label="Language / 言語"><option value="ja">日本語</option><option value="en">English</option></select></label>
     <canvas id="canvas" width="1280" height="720"></canvas>
     <div id="hud">
       RNE Web Viewer — drag to orbit, scroll to zoom<br />
@@ -396,7 +401,7 @@
     </details>
     <section id="controls" aria-label="Robot controls">
       <h1>RNE G1 Playground</h1>
-      <p id="engine-status" role="status">G1を読み込み中…</p>
+      <p id="engine-status" role="status" data-ready="false">G1を読み込み中…</p>
       <p id="engine-position">X 0.00 m · Z 0.00 m</p>
       <p id="engine-motion">立ち姿</p>
       <div class="pose-buttons">
@@ -503,27 +508,28 @@
       <button id="replay-play" type="button" disabled>Play</button>
       <dl id="replay-details">
         <dt>Scene</dt>
-        <dd id="replay-scene">—</dd>
+        <dd id="replay-scene" data-i18n-ignore>—</dd>
         <dt>Clock</dt>
-        <dd id="replay-clock">—</dd>
+        <dd id="replay-clock" data-i18n-ignore>—</dd>
         <dt>Frame</dt>
-        <dd id="replay-frame">no frame</dd>
+        <dd id="replay-frame" data-i18n-ignore>no frame</dd>
         <dt>Action</dt>
-        <dd id="replay-action">—</dd>
+        <dd id="replay-action" data-i18n-ignore>—</dd>
         <dt>Observation</dt>
-        <dd id="replay-observation">—</dd>
+        <dd id="replay-observation" data-i18n-ignore>—</dd>
         <dt>Physics hash</dt>
-        <dd id="replay-hash">—</dd>
+        <dd id="replay-hash" data-i18n-ignore>—</dd>
         <dt>Report</dt>
-        <dd id="replay-report">—</dd>
+        <dd id="replay-report" data-i18n-ignore>—</dd>
       </dl>
       <small id="replay-note">
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
     </details>
+    <script src="i18n.js?v=bilingual-v1"></script>
     <script src="scene_editor.js?v=1"></script>
     <script src="controls.js?v=mobile-benchmark-v1"></script>
-    <script src="demo_gallery.js?v=arm-delivery-gallery-v1"></script>
+    <script src="demo_gallery.js?v=bilingual-v1"></script>
     <script src="replay.js"></script>
   </body>
 </html>

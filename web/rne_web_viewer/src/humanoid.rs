@@ -32,6 +32,7 @@ pub struct G1Scene {
     parts: Vec<Part>,
     heading_rad: f64,
     playground: Playground,
+    footstep: crate::footstep::Footstep,
     laboratory: RenderScene,
 }
 
@@ -65,7 +66,7 @@ impl G1Scene {
         )
         .map_err(|error| error.to_string())?;
         world.entity_mut(spawned.base_link).insert(home());
-        let joints = urdf
+        let joints: Vec<_> = urdf
             .joints
             .iter()
             .filter(|joint| joint.joint_type == UrdfJointType::Revolute)
@@ -101,6 +102,15 @@ impl G1Scene {
                 });
             }
         }
+        let footstep = crate::footstep::Footstep::new(
+            &world,
+            spawned.robot,
+            home(),
+            &joints
+                .iter()
+                .map(|(_, _, j)| j.name.clone())
+                .collect::<Vec<_>>(),
+        )?;
         Ok(Self {
             world,
             base: spawned.base_link,
@@ -108,6 +118,7 @@ impl G1Scene {
             parts,
             heading_rad: 0.0,
             playground: Playground::default(),
+            footstep,
             laboratory: crate::lab::scene(),
         })
     }
@@ -163,6 +174,7 @@ impl G1Scene {
         pose: (f64, f64, f64),
     ) -> Result<RenderScene, String> {
         self.playground = Playground::default();
+        self.footstep.reset();
         self.frame_inner(input, false, false, false, Some(pose))
     }
 
@@ -199,11 +211,15 @@ impl G1Scene {
             self.heading_rad = 0.0;
             self.world.entity_mut(self.base).insert(home());
             self.playground = Playground::default();
+            self.footstep.reset();
             if start {
                 self.playground.course.start();
             }
         }
         let previous = self.focus();
+        let mut previous_root = world_transform_of(&self.world, self.base);
+        previous_root.translation.y = home().translation.y;
+        let previous_heading = self.heading_rad;
         let turn = if let Some((x, z, yaw)) = navigation {
             let delta = (yaw - self.heading_rad).abs();
             self.heading_rad = yaw.rem_euclid(std::f64::consts::TAU);
@@ -231,18 +247,41 @@ impl G1Scene {
         };
         let position = self.focus();
         self.playground.tick(
-            (position - previous).length(),
+            (position.x - previous.x).hypot(position.z - previous.z),
             turn,
             animate,
             wave,
             position,
         );
-        for ((entity, child, joint), manual_rad) in self.joints.iter().zip(input.targets_rad) {
+        let mut root = world_transform_of(&self.world, self.base);
+        root.translation.y = home().translation.y;
+        let yaw_delta = (self.heading_rad - previous_heading)
+            .sin()
+            .atan2((self.heading_rad - previous_heading).cos());
+        let planted = self.footstep.angles(
+            root,
+            previous_root,
+            yaw_delta,
+            &input.targets_rad,
+            animate && !input.reset && !start,
+        );
+        if self.footstep.engaged() {
+            root.translation.y -= 0.04;
+        }
+        self.world.entity_mut(self.base).insert(root);
+        for (index, ((entity, child, joint), manual_rad)) in
+            self.joints.iter().zip(input.targets_rad).enumerate()
+        {
             let limit = joint.limit.ok_or("missing source joint limit")?;
-            let angle = self
-                .playground
-                .angle(&joint.name, manual_rad)
-                .clamp(limit.lower, limit.upper);
+            let leg = joint.name.contains("hip_")
+                || joint.name.contains("knee_")
+                || joint.name.contains("ankle_");
+            let angle = if leg {
+                planted.as_ref().map_or(manual_rad, |q| q[index])
+            } else {
+                self.playground.angle(&joint.name, manual_rad)
+            }
+            .clamp(limit.lower, limit.upper);
             let rotation = rpy_to_quat(joint.origin_rpy)
                 * Quat::from_axis_angle(joint.axis.normalize(), angle);
             self.world
@@ -452,6 +491,104 @@ fn mesh_bytes(path: &str) -> Result<&'static [u8], String> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn planted_support_foot_stays_in_world_during_forward_backward_and_turning() {
+        for (forward, turn) in [(1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (1.0, 0.4)] {
+            let mut scene = G1Scene::load().unwrap();
+            let mut input = neutral(&scene);
+            input.forward = forward;
+            input.turn = turn;
+            let feet = ["left_ankle_roll_joint", "right_ankle_roll_joint"]
+                .map(|n| scene.joints.iter().find(|(_, _, j)| j.name == n).unwrap().1);
+            let mut previous = feet.map(|f| world_transform_of(&scene.world, f));
+            let mut stationary = [0; 2];
+            let mut raised = [false; 2];
+            for _ in 0..100 {
+                scene.play_frame(input.clone(), true, false, false).unwrap();
+                let current = feet.map(|f| world_transform_of(&scene.world, f));
+                let targets = scene.footstep.targets().unwrap();
+                for side in 0..2 {
+                    let residual = (current[side].translation - targets[side].translation).length();
+                    assert!(
+                        residual < 0.001,
+                        "foot target missed {residual} for {forward}/{turn}"
+                    );
+                    assert!(current[side].rotation.dot(targets[side].rotation).abs() > 0.99999);
+                    let error = (current[side].translation - previous[side].translation).length();
+                    if error < 0.0015 {
+                        stationary[side] += 1;
+                    }
+                    if current[side].translation.y > previous[side].translation.y + 0.002 {
+                        raised[side] = true;
+                    }
+                }
+                let minimum_motion = (current[0].translation - previous[0].translation)
+                    .length()
+                    .min((current[1].translation - previous[1].translation).length());
+                assert!(
+                    minimum_motion < 0.002,
+                    "support slipped {minimum_motion} for {forward}/{turn}"
+                );
+                previous = current;
+            }
+            assert!(stationary.iter().all(|n| *n > 20), "{stationary:?}");
+            assert!(raised.into_iter().all(|v| v));
+        }
+    }
+    #[test]
+    fn stop_settles_feet_and_disabling_walk_restores_exact_manual_coordinates() {
+        let mut scene = G1Scene::load().unwrap();
+        let mut input = neutral(&scene);
+        input.forward = 1.0;
+        for _ in 0..17 {
+            scene.play_frame(input.clone(), true, false, false).unwrap();
+        }
+        input.forward = 0.0;
+        for _ in 0..15 {
+            scene.play_frame(input.clone(), true, false, false).unwrap();
+        }
+        let feet = ["left_ankle_roll_joint", "right_ankle_roll_joint"]
+            .map(|n| scene.joints.iter().find(|(_, _, j)| j.name == n).unwrap().1);
+        let planted = feet.map(|f| world_transform_of(&scene.world, f));
+        for _ in 0..12 {
+            scene.play_frame(input.clone(), true, false, false).unwrap();
+            for (foot, original) in feet.iter().zip(planted) {
+                assert!(
+                    (world_transform_of(&scene.world, *foot).translation - original.translation)
+                        .length()
+                        < 0.001
+                );
+            }
+        }
+        scene
+            .play_frame(input.clone(), false, false, false)
+            .unwrap();
+        assert!(!scene.footstep.engaged());
+        for (entity, _, _) in &scene.joints {
+            assert_eq!(scene.world.get::<Joint>(*entity).unwrap().position, 0.0);
+        }
+        assert_eq!(
+            world_transform_of(&scene.world, scene.base).translation.y,
+            home().translation.y
+        );
+        let knee = scene
+            .joints
+            .iter()
+            .position(|(_, _, j)| j.name == "left_knee_joint")
+            .unwrap();
+        input.targets_rad[knee] = 0.3;
+        input.forward = 1.0;
+        scene.play_frame(input, true, false, false).unwrap();
+        assert!(!scene.footstep.engaged());
+        assert_eq!(
+            scene
+                .world
+                .get::<Joint>(scene.joints[knee].0)
+                .unwrap()
+                .position,
+            0.3
+        );
+    }
     #[test]
     fn recorded_pose_is_independent_of_previous_gait_and_redraw_count() {
         let mut scene = G1Scene::load().unwrap();
