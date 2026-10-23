@@ -196,7 +196,8 @@
       #scene-editor p { margin: 6px 0; }
       body:has(#scene-editor[open]) #experiment-map { display: none; }
       #experiment-status { color: #a5e5c5; }
-      #experiment-map { width: 100%; height: 125px; display: block; border: 1px solid #385061; border-radius: 4px; }
+      #experiment-map { width: 100%; height: 180px; display: block; border: 1px solid #385061; border-radius: 4px; }
+      .trace-legend { display: grid; grid-template-columns: 1fr 1fr; font-size: 12px; }
       .experiment-results { overflow-x: auto; }
       #experiment-panel table { border-collapse: collapse; width: 100%; font-size: 11px; }
       #experiment-panel td, #experiment-panel th { padding: 4px 2px; border-bottom: 1px solid #385061; text-align: left; }
@@ -237,10 +238,10 @@
     </section>
     <details id="experiment-panel" aria-label="Planning and control experiments">
       <summary>PLANNING × CONTROL · 比較デモ</summary>
-      <p>G1の平面移動モデルで手法を比較。青＝計画、緑＝実軌跡、橙＝障害物。</p>
+      <p>G1の平面移動モデルで手法を比較。青＝現在の計画、黄＝目標。実軌跡は手法別に色分け。</p>
       <div class="experiment-options">
       <label for="experiment-task-select">タスク
-        <select id="experiment-task-select"><option value="0">目的地へ移動</option><option value="1">障害物を迂回</option><option value="2">途中で障害物を追加（2秒後）</option><option value="3">カスタムシーン</option></select>
+        <select id="experiment-task-select"><option value="0">目的地へ移動</option><option value="1">障害物を迂回</option><option value="2">途中で障害物を追加（2秒後）</option><option value="3">カスタムシーン</option><option value="4">狭い通路</option><option value="5">横切る障害物</option><option value="6">行き止まりを迂回</option><option value="7">3地点を巡回</option></select>
       </label>
       <label for="experiment-seed-editor">配置seed <input id="experiment-seed-editor" type="number" min="0" max="4294967295" step="1" value="42"></label>
       <label for="experiment-planner-select">プランナー
@@ -250,6 +251,7 @@
         <select id="experiment-controller-select"><option value="0">Pure Pursuit</option><option value="1">DWA（予測軌道を評価）</option></select>
       </label>
       </div>
+      <p id="experiment-task-description">基本 · 障害物のない床で、到達時間と経路への追従を比較します。</p>
       <details id="scene-editor">
         <summary>シーン編集・保存</summary>
         <p>平面図または3Dの床をクリックして配置。編集するとカスタムタスクに切り替わり、実行中の比較は停止します。</p>
@@ -286,8 +288,17 @@
       <p id="experiment-status" aria-live="off">手動操作 · タスクと手法を選んで実行</p>
       <svg id="experiment-map" viewBox="-0.6 -2 4.1 4" role="img" aria-label="計画経路と実際の軌跡、障害物と目標の平面図"></svg>
       <p id="experiment-metrics"></p>
+      <div class="trace-legend" aria-label="軌跡の表示切替">
+        <label style="color:#72edb1"><input type="checkbox" data-trace="0" checked>直線 / PP</label>
+        <label style="color:#ffb45e"><input type="checkbox" data-trace="1" checked>直線 / DWA</label>
+        <label style="color:#cd9bff"><input type="checkbox" data-trace="2" checked>A* / PP</label>
+        <label style="color:#55def5"><input type="checkbox" data-trace="3" checked>A* / DWA</label>
+      </div>
+      <input id="experiment-hidden-traces" type="hidden" value="0">
+      <p id="experiment-comparison" aria-live="polite"></p>
+      <p>軌跡はチェックで表示切替。PP = Pure Pursuit。障害物と青い計画は、現在／最後の組の時刻の状態です。</p>
       <p>同じタスク・seedの行を比較。時間は固定刻みのシミュレーション時間です。移動速度・加速度の上限は共通です。</p>
-      <div class="experiment-results"><table><caption>実行結果（直近12件）· 手法を開くと詳細</caption><thead><tr><th>タスク / seed</th><th>手法</th><th>結果</th><th>時間 s</th><th>RMSE m</th></tr></thead><tbody id="experiment-records"></tbody></table></div>
+      <div class="experiment-results"><table><caption>実行結果（直近12件）· 手法を開くと詳細</caption><thead><tr><th>タスク / seed</th><th>手法</th><th>結果</th><th>時間 s</th><th>RMSE m</th><th>移動 m</th><th>最小余裕 m</th></tr></thead><tbody id="experiment-records"></tbody></table></div>
       <details><summary>モデルと比較条件</summary><p>半径0.28mの円形移動モデルです。二足歩行・接触力・バランス制御の評価は含みません。選択変更は次回の実行から適用します。</p></details>
     </details>
     <section id="controls" aria-label="Robot controls">
@@ -418,7 +429,7 @@
       </small>
     </details>
     <script src="scene_editor.js?v=1"></script>
-    <script src="controls.js?v=scene-editor-v1"></script>
+    <script src="controls.js?v=task-comparison-v2"></script>
     <script src="replay.js"></script>
   </body>
 </html>

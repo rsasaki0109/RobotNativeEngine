@@ -69,6 +69,7 @@ struct App {
     mission_counter: u32,
     experiment: Experiment,
     experiment_counters: [u32; 5],
+    rendered_results: String,
     scene_revision: u32,
     floor_counter: u32,
     scene_error: Option<String>,
@@ -317,7 +318,7 @@ impl App {
             self.experiment.stop();
         } else if (changed[0] || changed[3]) && intent != 0 {
             let config = Config {
-                task: (value("experiment-task")? as usize).min(3),
+                task: (value("experiment-task")? as usize).min(7),
                 planner: (value("experiment-planner")? as usize).min(1),
                 controller: (value("experiment-controller")? as usize).min(1),
                 seed: value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32,
@@ -337,6 +338,7 @@ impl App {
         if changed[2] && self.experiment.active() {
             self.experiment.paused = true;
         }
+        self.experiment.hidden_traces = value("experiment-hidden-traces")?.clamp(0.0, 15.0) as u8;
         self.experiment.advance(changed[2]);
         self.experiment_counters = counters;
         let input = G1Input {
@@ -378,6 +380,10 @@ impl App {
         for (id, text) in [
             ("experiment-status", self.experiment.status()),
             ("experiment-metrics", self.experiment.metrics()),
+            (
+                "experiment-comparison",
+                self.experiment.comparison_summary(),
+            ),
         ] {
             if let Some(element) = document.get_element_by_id(id) {
                 element.set_text_content(Some(&text));
@@ -395,8 +401,11 @@ impl App {
             );
         }
         let results = self.experiment.results_html();
-        if let Some(element) = document.get_element_by_id("experiment-records") {
-            element.set_inner_html(&results);
+        if self.rendered_results != results {
+            if let Some(element) = document.get_element_by_id("experiment-records") {
+                element.set_inner_html(&results);
+                self.rendered_results.clone_from(&results);
+            }
         }
         if let Some(element) = document.get_element_by_id("experiment-results-button") {
             if results.is_empty() {

@@ -265,3 +265,33 @@ cargo test --lib
 cargo check --target wasm32-unknown-unknown
 cargo test --workspace
 ```
+
+
+### Representative task comparisons
+
+The task menu adds a 0.96 m corridor, a crossing obstacle, escape from a U-shaped
+wall, and an ordered three-goal patrol. Each task explains its difficulty and what
+to compare. The moving box follows a seed-phased triangle wave at 0.4 m/s using
+fixed simulation ticks; the costmap and global plan refresh every 10 ticks (3 Hz).
+Collision checks interpolate both robot and moving box through each step. This is
+reactive navigation with current obstacle positions, without motion prediction or
+waiting/recovery after planning failure. Failures are retained as outcomes; the
+crossing scenario can fail for every pair. Static corridor, U-wall and patrol
+geometry is fixed, so changing seed does not randomize these three tasks.
+
+A four-pair comparison keeps actual traces in both the overhead map and 3D view:
+green = straight/Pure Pursuit, orange = straight/DWA, purple = A*/Pure Pursuit,
+cyan = A*/DWA. Legend checkboxes toggle individual traces without changing results.
+Only the current comparison's traces are overlaid; a new run or editor session
+cannot mix trajectories from different conditions. Obstacles and the blue planned
+path depict the current/last pair's simulation time, not a synchronized replay.
+The result table shows distance and minimum obstacle clearance directly; the
+summary counts successes among completed pairs (one trial per pair, not a
+multi-seed success-rate estimate). Patrol success requires all three goals, and
+results include the reached-goal count. The planned-distance detail is the most
+recent global plan, while travelled distance and RMSE accumulate over the run.
+
+Run `python scripts/test_g1_experiments_browser.py --url http://127.0.0.1:8084/
+--output work/comparison-browser` (on one line) against a built, locally served
+bundle to check the catalog, comparison traces, visibility controls, distinct
+U-wall outcomes, patrol completion and moving-obstacle single steps in real WASM.
