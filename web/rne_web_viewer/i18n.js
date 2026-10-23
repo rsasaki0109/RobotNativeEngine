@@ -344,6 +344,28 @@ Object.assign(english, {
   "共有された条件で実行を開始しました": "Started with the shared conditions",
   "共有された条件を読み込みました。開始ボタンで実行します。": "Shared conditions loaded. Select Start to run."
 });
+Object.assign(english, {
+  "運搬結果の絞り込みと失敗確認": "Filter delivery results and inspect failures",
+  "結果で絞り込み": "Filter by outcome",
+  "すべての結果": "All outcomes",
+  "失敗のみ": "Failures only",
+  "成功のみ": "Successes only",
+  "終了した段階": "Terminal stage",
+  "全段階": "All stages",
+  "移動で停止": "Stopped during approach",
+  "把持で停止": "Stopped during grasp",
+  "運搬で停止": "Stopped during carry",
+  "配置で停止": "Stopped during place",
+  "seedで絞り込み": "Filter by seed",
+  "全seed": "All seeds",
+  "絞り込みを解除": "Reset filters",
+  "完了した試行はまだありません。": "No completed trials yet.",
+  "絞り込みは結果表・診断・タイムラインの表示に適用します。集計とCSVは全試行のままです。比較完了後に終了直前や失敗地点を再生できます。": "Filters affect the result table, diagnostics and timeline. Summaries and CSV still include all trials. After comparison completes, replay near the end or at a failure.",
+  "一致する完了試行がありません。絞り込みを変更してください。": "No completed trials match. Change the filters.",
+  "試行ごとの診断と終了直前の再生": "Trial diagnostics and replay near the end",
+  "終了の約1秒前へ": "About 1 s before the end",
+  "表示": "Showing"
+});
 const japanese = {
   "RNE Web Viewer — drag to orbit, scroll to zoom": "RNE Web Viewer — ドラッグで視点回転、スクロールで拡大",
   "WASD / arrow keys: drive · sliders: G1 joints · Reset: home": "WASD・矢印キー：移動 · スライダー：G1の関節 · リセット：初期位置",

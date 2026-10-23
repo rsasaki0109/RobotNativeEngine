@@ -618,6 +618,7 @@ impl App {
             ("arm-records", self.manipulation.results_html()),
             ("mobile-records", self.mobile.results_html()),
             ("mobile-timeline", self.mobile.timeline_html()),
+            ("mobile-diagnostics", self.mobile.diagnostics_html()),
             ("mobile-summary", self.mobile.summary_html()),
             ("mobile-replay-record", self.mobile.replay_options()),
             ("arm-benchmark", self.manipulation.benchmark_html()),

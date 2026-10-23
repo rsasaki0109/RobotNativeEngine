@@ -183,7 +183,7 @@
     select.addEventListener("change",()=>{configure();enabled.value="1";});
     slider.addEventListener("input",()=>{enabled.value="1";show();});
     document.getElementById(prefix+"-replay-exit").addEventListener("click",()=>{enabled.value="0";});
-    if (prefix==="mobile") for (const id of ["mobile-timeline","mobile-summary"]) document.getElementById(id).addEventListener("click",event=>{
+    if (prefix==="mobile") for (const id of ["mobile-timeline","mobile-summary","mobile-diagnostics"]) document.getElementById(id).addEventListener("click",event=>{
       const button=event.target.closest("button[data-mobile-record]");
       if (!button || button.disabled) return;
       select.value=button.dataset.mobileRecord;
@@ -214,4 +214,5 @@
     sceneEditor.close(); releaseAll(); homeTargets(); signal("control-reset-counter");
   });
   root.RNEExperimentShare.init({document,sceneEditor});
+  root.RNEMobileResults.init(document);
 })(typeof window === "undefined" ? globalThis : window);

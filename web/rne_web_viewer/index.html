@@ -8,6 +8,7 @@
     <link data-trunk rel="copy-file" href="controls.js" />
     <link data-trunk rel="copy-file" href="i18n.js" />
     <link data-trunk rel="copy-file" href="share.js" />
+    <link data-trunk rel="copy-file" href="result_filters.js" />
     <link data-trunk rel="copy-file" href="demo_gallery.js" />
     <link data-trunk rel="copy-file" href="scene_editor.js" />
     <link data-trunk rel="copy-file" href="replay.js" />
@@ -250,6 +251,9 @@
       #demo-launch-status { font-size: 12px; }
       [data-demo-back], #demo-result-link { color: #89d9ed; font-size: 12px; }
       .timeline-scale { display: flex; justify-content: space-between; font-size: 11px; color: #c4d0db; }
+      .mobile-diagnostic { border: 1px solid #385061; padding: 8px; margin: 8px 0; border-radius: 5px; }
+      .mobile-diagnostic p { margin: 4px 0; font-size: 11px; }
+      #mobile-result-filter { margin: 10px 0; border-top: 1px solid #385061; padding-top: 8px; }
       .timeline-row { margin: 12px 0; }
       .timeline-row p { font-size: 11px; margin: 4px 0; }
       .timeline-track { position: relative; height: 32px; background: #101c26; border-radius: 4px; }
@@ -401,6 +405,18 @@
         <div id="mobile-summary" class="experiment-results"></div>
         <a href="#demo-gallery" data-demo-back>デモ一覧へ戻る</a>
         <p id="mobile-status" role="status">棚から取り、運んで置くタスク</p>
+        <details id="mobile-result-filter" open><summary>運搬結果の絞り込みと失敗確認</summary>
+          <div class="experiment-options">
+            <label>結果で絞り込み<select id="mobile-filter-outcome"><option value="all">すべての結果</option><option value="failure">失敗のみ</option><option value="success">成功のみ</option></select></label>
+            <label>終了した段階<select id="mobile-filter-stage"><option value="all">全段階</option><option value="0">移動で停止</option><option value="1">把持で停止</option><option value="2">運搬で停止</option><option value="3">配置で停止</option><option value="4">全4段階完了</option></select></label>
+          </div>
+          <label>seedで絞り込み<select id="mobile-filter-seed"><option value="all">全seed</option></select></label>
+          <button type="button" id="mobile-filter-reset">絞り込みを解除</button>
+          <p id="mobile-filter-count" role="status">完了した試行はまだありません。</p>
+          <p>絞り込みは結果表・診断・タイムラインの表示に適用します。集計とCSVは全試行のままです。比較完了後に終了直前や失敗地点を再生できます。</p>
+          <p id="mobile-filter-empty" hidden>一致する完了試行がありません。絞り込みを変更してください。</p>
+          <details id="mobile-diagnostic-panel"><summary>試行ごとの診断と終了直前の再生</summary><div id="mobile-diagnostics"></div></details>
+        </details>
         <div class="experiment-results"><table class="mobile-results-table"><caption>運搬タスク · 段階ごとの成否と時間</caption><thead><tr><th>移動・腕の計画 × 制御</th><th>結果</th><th>移動 / 把持 / 運搬 / 配置 s</th><th>合計 s</th><th>待機 s / 回</th><th>移動 m</th><th>配置誤差 m</th></tr></thead><tbody id="mobile-records"></tbody></table></div>
         <button type="button" id="mobile-export-button" disabled>運搬結果をCSV保存</button><span id="mobile-export-data" hidden></span>
         <details id="mobile-timeline-panel" open><summary>運搬のタイムライン · 区間から再生</summary>
@@ -541,10 +557,11 @@
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
     </details>
-    <script src="i18n.js?v=experiment-link-v1"></script>
+    <script src="i18n.js?v=diagnostics-v1"></script>
     <script src="scene_editor.js?v=experiment-link-v1"></script>
     <script src="share.js?v=experiment-link-v1"></script>
-    <script src="controls.js?v=experiment-link-v1"></script>
+    <script src="result_filters.js?v=diagnostics-v1"></script>
+    <script src="controls.js?v=diagnostics-v1"></script>
     <script src="demo_gallery.js?v=bilingual-v1"></script>
     <script src="replay.js"></script>
   </body>
