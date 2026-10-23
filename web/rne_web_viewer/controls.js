@@ -84,6 +84,27 @@
     const select = document.getElementById("experiment-" + field + "-select");
     select.addEventListener("change", () => { document.getElementById("experiment-" + field).value = select.value; if (field === "task") sceneEditor.selectTask(select.value); });
   }
+  const taskNotes = [
+    "基本 · 障害物のない床で、到達時間と経路への追従を比較します。",
+    "基本 · 直線上の障害物を迂回。計画失敗と制御の成否を見比べます。",
+    "応用 · 2秒後に通路を塞ぎます。再計画と停止・迂回の挙動に注目。",
+    "自由設定 · 編集した同じシーンで4組を比較します。",
+    "中級 · 幅0.96mの通路。追従誤差と障害物までの最小余裕を比較。",
+    "難関 · 障害物が0.4m/sで往復。現在位置を使って3Hzで再計画します。未来位置の予測は含みません。",
+    "中級 · U字の壁から一度遠回りして脱出。大域的な迂回計画に注目。",
+    "中級 · 番号順に3地点を巡回。目標の切替と曲がり角の追従を比較。"
+  ];
+  const taskSelect = document.getElementById("experiment-task-select");
+  const updateTaskNote = () => { document.getElementById("experiment-task-description").textContent = taskNotes[Number(taskSelect.value)]; };
+  taskSelect.addEventListener("change", updateTaskNote);
+  new MutationObserver(updateTaskNote).observe(document.getElementById("scene-editor"), {attributes:true,attributeFilter:["open"]});
+  for (const checkbox of document.querySelectorAll("[data-trace]")) {
+    checkbox.addEventListener("change", () => {
+      let hidden = 0;
+      for (const item of document.querySelectorAll("[data-trace]")) if (!item.checked) hidden |= 1 << Number(item.dataset.trace);
+      document.getElementById("experiment-hidden-traces").value = String(hidden);
+    });
+  }
   const seedEditor = document.getElementById("experiment-seed-editor");
   seedEditor.addEventListener("change", () => {
     const value = Number(seedEditor.value);

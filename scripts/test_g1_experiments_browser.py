@@ -58,11 +58,50 @@ def main():
         page.locator('#experiment-results-button').click()
         page.screenshot(path=str(args.output / 'experiment-results.png'))
         print('Four-pair comparison finished with genuine results', flush=True)
+        # Completed traces persist together; legend toggles affect only drawing.
+        assert page.locator('#experiment-map polyline').count() == 5
+        assert '成功 4/4' in page.locator('#experiment-comparison').inner_text()
+        page.locator('[data-trace="2"]').uncheck()
+        page.wait_for_function('document.querySelectorAll("#experiment-map polyline").length === 4')
+        assert page.locator('#experiment-records tr').all_inner_texts() == rows
+        page.locator('[data-trace="2"]').check()
+        page.wait_for_function('document.querySelectorAll("#experiment-map polyline").length === 5')
+        detail = page.locator('#experiment-records details').first
+        detail.locator('summary').click()
+        page.evaluate('() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))')
+        assert detail.get_attribute('open') is not None
+        detail.locator('summary').click()
+        for task, title in [('4', '狭い通路'), ('6', '行き止まりを迂回'), ('7', '3地点を巡回')]:
+            page.locator('#experiment-task-select').select_option(task)
+            assert page.locator('#experiment-task-description').inner_text()
+            page.locator('#experiment-compare-button').click()
+            page.wait_for_function('(title) => document.querySelectorAll("#experiment-records tr").length === 4 && [...document.querySelectorAll("#experiment-records tr")].every(r => r.textContent.includes(title))', arg=title, timeout=240000)
+            current = page.locator('#experiment-records tr').all_inner_texts()
+            if task == '6':
+                assert any('計画失敗' in row for row in current), current
+                assert any('接触で停止' in row for row in current), current
+                assert any('成功' in row for row in current), current
+            else:
+                assert all('成功' in row for row in current), current
+            assert page.locator('#experiment-map polyline').count() == 5
+            if task == '7': assert all('到達 3地点' in row for row in page.locator('#experiment-records tr').all_text_contents()), current
+            print(f'Comparison passed: {title}', flush=True)
+        page.screenshot(path=str(args.output / 'patrol-comparison.png'))
+        page.locator('#experiment-task-select').select_option('5')
+        page.locator('#experiment-run-button').click()
+        page.wait_for_function("document.querySelector('#experiment-status').textContent.includes('横切る障害物')")
+        page.locator('#experiment-pause-button').click()
+        page.wait_for_function("document.querySelector('#experiment-pause-button').getAttribute('aria-pressed') === 'true'")
+        obstacle_y = page.locator('#experiment-map rect').nth(1).get_attribute('y')
+        page.locator('#experiment-step-button').click()
+        page.wait_for_function('(old) => document.querySelectorAll("#experiment-map rect")[1].getAttribute("y") !== old', arg=obstacle_y)
+        assert page.locator('#experiment-map polyline').count() == 2  # no previous batch traces
+        print('Task catalog, trace overlays/toggles, U-turn outcomes, patrol and moving obstacle passed', flush=True)
         page.locator('#experiment-manual-button').click()
         page.wait_for_function("document.querySelector('#playground').dataset.experimentActive === 'false'")
         page.locator('#control-reset').click()
         page.wait_for_function("document.querySelector('#engine-position').textContent === 'X 0.00 m · Z 0.00 m'")
-        assert page.locator('#experiment-records tr').count() == 4
+        assert page.locator('#experiment-records tr').count() >= 4
         page.set_viewport_size({'width': 390, 'height': 844})
         page.wait_for_function("document.querySelector('#canvas').width === 390")
         assert page.locator('#controls').evaluate('e => getComputedStyle(e).visibility') == 'hidden'
