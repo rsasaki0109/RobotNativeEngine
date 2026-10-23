@@ -200,6 +200,12 @@
       #experiment-map { width: 100%; height: 180px; display: block; border: 1px solid #385061; border-radius: 4px; }
       .trace-legend { display: grid; grid-template-columns: 1fr 1fr; font-size: 12px; }
       .experiment-results { overflow-x: auto; }
+      .mobile-benchmark-scroll { overflow-x: auto; }
+      #experiment-panel .mobile-benchmark-table { min-width: 920px; }
+      .mobile-benchmark-table td:first-child { min-width: 125px; }
+      .mobile-benchmark-table td:nth-child(6) { min-width: 180px; }
+      .mobile-benchmark-table td:last-child { min-width: 190px; }
+      .mobile-benchmark-table button { display: block; margin: 4px 0; }
       #experiment-panel table { border-collapse: collapse; width: 100%; font-size: 11px; }
       #experiment-panel td, #experiment-panel th { padding: 4px 2px; border-bottom: 1px solid #385061; text-align: left; }
       body[data-experiment-active=true] #mission-panel { display: none; }
@@ -367,10 +373,10 @@
       <details id="mobile-panel"><summary>移動 × 腕操作 · 棚から運んで配置</summary>
         <label>運搬条件<select id="mobile-scenario"><option value="0">標準の運搬</option><option value="1">把持後に運搬経路が閉鎖</option><option value="2">配置棚が到達範囲外</option><option value="3">運搬経路が5秒後に開通</option></select></label>
         <label><input type="checkbox" id="mobile-recovery-toggle"> 運搬時に待機・再試行（0.5秒ごと・最大10秒）</label><input type="hidden" id="mobile-recovery" value="0">
-        <p>棚へ移動 → 把持・持ち上げ → 配置先へ運搬 → 配置。上の移動・腕の設定とseedを開始時に固定します。「移動4組を比較」は腕の設定を固定して移動の2計画 × 2制御を評価します。「腕6組を比較」は移動と再試行の設定を固定して、腕の3計画 × 2制御を評価します。</p>
+        <p>棚へ移動 → 把持・持ち上げ → 配置先へ運搬 → 配置。上の移動・腕の設定とseedを開始時に固定します。「移動4組を比較」は腕の設定を固定して移動の2計画 × 2制御を評価します。「腕6組を比較」は移動と再試行の設定を固定して、腕の3計画 × 2制御を評価します。「5 seedで腕30試行」は開始seedから連続する5配置で、同じ6組を繰り返します。</p>
         <p>「再試行なし／ありを比較」は選択中のタスク・移動・腕・seedを固定し、2試行を実行します。「待機比較の例」は5秒後に開通する条件、A*＋DWA、腕RRT＋速度制限P、seed 42を設定します。</p>
         <p>「成功例」は標準の運搬、A*＋DWA、腕RRT-Connect＋速度制限P、seed 42に設定して実行します。</p>
-        <div class="experiment-buttons"><button type="button" id="mobile-example-button">成功例を実行（seed 42）</button><button type="button" id="mobile-run-button">運搬タスクを実行</button><button type="button" id="mobile-compare-button">移動4組を比較</button><button type="button" id="mobile-arm-compare-button">腕6組を比較</button><button type="button" id="mobile-recovery-compare-button">再試行なし／ありを比較</button><button type="button" id="mobile-wait-example-button">待機比較の例（seed 42）</button><button type="button" id="mobile-pause-button" aria-pressed="false">一時停止</button><button type="button" id="mobile-step-button">1ステップ</button><button type="button" id="mobile-stop-button">運搬を終了</button></div>
+        <div class="experiment-buttons"><button type="button" id="mobile-example-button">成功例を実行（seed 42）</button><button type="button" id="mobile-run-button">運搬タスクを実行</button><button type="button" id="mobile-compare-button">移動4組を比較</button><button type="button" id="mobile-arm-compare-button">腕6組を比較</button><button type="button" id="mobile-benchmark-button">5 seedで腕30試行</button><button type="button" id="mobile-recovery-compare-button">再試行なし／ありを比較</button><button type="button" id="mobile-wait-example-button">待機比較の例（seed 42）</button><button type="button" id="mobile-pause-button" aria-pressed="false">一時停止</button><button type="button" id="mobile-step-button">1ステップ</button><button type="button" id="mobile-stop-button">運搬を終了</button></div>
         <input type="hidden" id="mobile-run" value="0"><input type="hidden" id="mobile-compare" value="0"><input type="hidden" id="mobile-pause" value="0"><input type="hidden" id="mobile-step" value="0"><input type="hidden" id="mobile-stop" value="0"><input type="hidden" id="mobile-intent" value="0">
         <div id="mobile-summary" class="experiment-results"></div>
         <a href="#demo-gallery" data-demo-back>デモ一覧へ戻る</a>
@@ -516,7 +522,7 @@
       </small>
     </details>
     <script src="scene_editor.js?v=1"></script>
-    <script src="controls.js?v=mobile-arm-compare-v1"></script>
+    <script src="controls.js?v=mobile-benchmark-v1"></script>
     <script src="demo_gallery.js?v=arm-delivery-gallery-v1"></script>
     <script src="replay.js"></script>
   </body>

@@ -143,15 +143,15 @@
       signal("arm-"+(action==="benchmark"?"compare":action));
     });
   }
-  for (const action of ["run","compare","arm-compare","recovery-compare","pause","step","stop"]) {
+  for (const action of ["run","compare","arm-compare","benchmark","recovery-compare","pause","step","stop"]) {
     document.getElementById("mobile-"+action+"-button").addEventListener("click",()=>{
       releaseAll();document.getElementById("mobile-replay-enabled").value="0";
-      if (["run","compare","arm-compare","recovery-compare"].includes(action)) {
+      if (["run","compare","arm-compare","benchmark","recovery-compare"].includes(action)) {
         sceneEditor.close();homeTargets();signal("experiment-manual");
-        document.getElementById("mobile-intent").value=action==="arm-compare"?"4":action==="recovery-compare"?"3":action==="compare"?"2":"1";
+        document.getElementById("mobile-intent").value=action==="benchmark"?"5":action==="arm-compare"?"4":action==="recovery-compare"?"3":action==="compare"?"2":"1";
       }
       if (action==="stop") document.getElementById("mobile-intent").value="0";
-      signal("mobile-"+(["arm-compare","recovery-compare"].includes(action)?"compare":action));
+      signal("mobile-"+(["arm-compare","benchmark","recovery-compare"].includes(action)?"compare":action));
     });
   }
   document.getElementById("mobile-recovery-toggle").addEventListener("change",event=>{document.getElementById("mobile-recovery").value=event.target.checked?"1":"0";});
@@ -183,7 +183,7 @@
     select.addEventListener("change",()=>{configure();enabled.value="1";});
     slider.addEventListener("input",()=>{enabled.value="1";show();});
     document.getElementById(prefix+"-replay-exit").addEventListener("click",()=>{enabled.value="0";});
-    if (prefix==="mobile") document.getElementById("mobile-timeline").addEventListener("click",event=>{
+    if (prefix==="mobile") for (const id of ["mobile-timeline","mobile-summary"]) document.getElementById(id).addEventListener("click",event=>{
       const button=event.target.closest("button[data-mobile-record]");
       if (!button || button.disabled) return;
       select.value=button.dataset.mobileRecord;

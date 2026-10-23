@@ -15,6 +15,7 @@ const SCENARIOS: [&str; 4] = [
     "配置棚が到達範囲外",
     "運搬経路が5秒後に開通",
 ];
+const BENCHMARK_SEEDS: u32 = 5;
 const DT: f64 = 1.0 / 30.0;
 const STAGES: [&str; 4] = [
     "棚へ移動・整列",
@@ -326,6 +327,7 @@ enum Comparison {
     Single,
     Navigation,
     Arm,
+    ArmBenchmark,
     Recovery,
 }
 impl Comparison {
@@ -334,6 +336,9 @@ impl Comparison {
             Self::Single => 1,
             Self::Navigation => 4,
             Self::Arm => ARM_PLANNERS.len() * ARM_CONTROLLERS.len(),
+            Self::ArmBenchmark => {
+                BENCHMARK_SEEDS as usize * ARM_PLANNERS.len() * ARM_CONTROLLERS.len()
+            }
             Self::Recovery => 2,
         }
     }
@@ -344,6 +349,7 @@ pub(crate) struct MobileTask {
     queue: VecDeque<MobileConfig>,
     records: Vec<Record>,
     comparison: Comparison,
+    benchmark_config: Option<MobileConfig>,
     pub(crate) paused: bool,
     pub(crate) replay: Option<(usize, u32)>,
 }
@@ -375,12 +381,17 @@ impl MobileTask {
     pub(crate) fn start_arm_comparison(&mut self, c: MobileConfig) {
         self.start_comparison(c, Comparison::Arm);
     }
+    /// Compare six arm methods on five consecutive wrapping u32 layout seeds.
+    pub(crate) fn start_arm_benchmark(&mut self, c: MobileConfig) {
+        self.start_comparison(c, Comparison::ArmBenchmark);
+    }
     fn start_comparison(&mut self, c: MobileConfig, comparison: Comparison) {
         self.queue.clear();
         self.records.clear();
         self.paused = false;
         self.replay = None;
         self.comparison = comparison;
+        self.benchmark_config = (comparison == Comparison::ArmBenchmark).then_some(c);
         if comparison == Comparison::Navigation {
             for planner in 0..2 {
                 for controller in 0..2 {
@@ -394,17 +405,32 @@ impl MobileTask {
                     });
                 }
             }
-        } else if comparison == Comparison::Arm {
-            for planner in 0..ARM_PLANNERS.len() {
-                for controller in 0..ARM_CONTROLLERS.len() {
-                    self.queue.push_back(MobileConfig {
-                        arm: ArmConfig {
-                            planner,
-                            controller,
-                            ..c.arm
-                        },
-                        ..c
-                    });
+        } else if matches!(comparison, Comparison::Arm | Comparison::ArmBenchmark) {
+            let seeds = if comparison == Comparison::ArmBenchmark {
+                BENCHMARK_SEEDS
+            } else {
+                1
+            };
+            for offset in 0..seeds {
+                let seed = c.nav.seed.wrapping_add(offset);
+                let arm_seed = if comparison == Comparison::ArmBenchmark {
+                    seed
+                } else {
+                    c.arm.seed
+                };
+                for planner in 0..ARM_PLANNERS.len() {
+                    for controller in 0..ARM_CONTROLLERS.len() {
+                        self.queue.push_back(MobileConfig {
+                            nav: Config { seed, ..c.nav },
+                            arm: ArmConfig {
+                                planner,
+                                controller,
+                                seed: arm_seed,
+                                ..c.arm
+                            },
+                            ..c
+                        });
+                    }
                 }
             }
         } else if comparison == Comparison::Recovery {
@@ -514,7 +540,7 @@ impl MobileTask {
         )
     }
     pub(crate) fn summary_html(&self) -> String {
-        if !self.active() && self.records.is_empty() {
+        if !self.active() && self.records.is_empty() && self.benchmark_config.is_none() {
             return String::new();
         }
         let expected = self.comparison.trials();
@@ -528,6 +554,7 @@ impl MobileTask {
             "実行中"
         };
         let mut s=format!("<p>{state} · 完了 {}/{expected}試行。段階の成功率は、その段階まで到達した完了試行のみで計算します。</p>",self.records.len());
+        s.push_str(&self.arm_benchmark_html());
         let policies: &[Option<bool>] = if self.comparison == Comparison::Recovery {
             &[Some(false), Some(true)]
         } else {
@@ -583,6 +610,88 @@ impl MobileTask {
             s.push_str("</tbody></table>");
         }
         s
+    }
+    /// Aggregate only completed trials; successful runs alone contribute to mean time.
+    fn arm_benchmark_html(&self) -> String {
+        let Some(c) = self.benchmark_config else {
+            return String::new();
+        };
+        let seeds = (0..BENCHMARK_SEEDS)
+            .map(|i| c.nav.seed.wrapping_add(i).to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        let disabled = if self.queue.is_empty() && self.episode.as_ref().is_some_and(|e| e.recorded)
+        {
+            ""
+        } else {
+            " disabled"
+        };
+        let mut html = format!("<p>{} · {} × {} · 再試行{} · seed {seeds}。成功率の分母は完了試行のみ。実行中・未実行は集計対象外、平均時間は成功時のみ。比較完了後に試行を選んで再生できます。表は横にスクロールできます。</p><div class='mobile-benchmark-scroll' tabindex='0' role='region' aria-label='腕6手法の集計（横スクロール）'><table class='mobile-benchmark-table'><caption>腕6手法 × 5 seed · 運搬ベンチマーク</caption><thead><tr><th>腕の計画 × 制御</th><th>完了 / 予定</th><th>成功 / 完了</th><th>成功率</th><th>成功時平均 s</th><th>失敗段階の件数</th><th>試行の終了地点へ</th></tr></thead><tbody>", SCENARIOS[c.scenario], PLANNERS[c.nav.planner], CONTROLLERS[c.nav.controller], if c.nav.recovery {"あり"} else {"なし"});
+        for (planner, name) in ARM_PLANNERS.iter().enumerate() {
+            for (controller, control) in ARM_CONTROLLERS.iter().enumerate() {
+                let trials: Vec<_> = self
+                    .records
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, r)| {
+                        r.config.arm.planner == planner && r.config.arm.controller == controller
+                    })
+                    .collect();
+                let successes: Vec<_> = trials
+                    .iter()
+                    .filter_map(|(_, r)| {
+                        r.frames
+                            .last()
+                            .filter(|f| f.stage == 4 && f.state == "成功")
+                    })
+                    .collect();
+                let rate = if trials.is_empty() {
+                    "—".into()
+                } else {
+                    format!(
+                        "{:.0}%",
+                        successes.len() as f64 * 100.0 / trials.len() as f64
+                    )
+                };
+                let mean = if successes.is_empty() {
+                    "—".into()
+                } else {
+                    format!(
+                        "{:.2}",
+                        successes
+                            .iter()
+                            .map(|f| f64::from(f.tick) * DT)
+                            .sum::<f64>()
+                            / successes.len() as f64
+                    )
+                };
+                let failures = STAGES
+                    .iter()
+                    .enumerate()
+                    .map(|(stage, label)| {
+                        format!(
+                            "{label}: {}",
+                            trials
+                                .iter()
+                                .filter(|(_, r)| {
+                                    let f = r.frames.last().unwrap();
+                                    f.stage == stage && f.state != "成功"
+                                })
+                                .count()
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" / ");
+                let _ = write!(html, "<tr><td>{name} × {control}</td><td>{}/{BENCHMARK_SEEDS}</td><td>{}/{}</td><td>{rate}</td><td>{mean}</td><td>{failures}</td><td>", trials.len(), successes.len(), trials.len());
+                for (index, r) in trials {
+                    let f = r.frames.last().unwrap();
+                    let _ = write!(html, "<button type='button' data-mobile-record='{index}' data-mobile-tick='{}'{disabled}>seed {} · {} · {:.2} s</button>", f.tick, r.config.nav.seed, f.state, f64::from(f.tick) * DT);
+                }
+                html.push_str("</td></tr>");
+            }
+        }
+        html.push_str("</tbody></table></div>");
+        html
     }
     pub(crate) fn results_html(&self) -> String {
         let mut html = String::new();
@@ -664,7 +773,7 @@ impl MobileTask {
             .enumerate()
             .map(|(i, r)| {
                 format!(
-                    "<option value='{i}' data-times='{}'>{} · {} × {} · 再試行{} · {}</option>",
+                    "<option value='{i}' data-times='{}'>{} · {} × {} · 腕 {} × {} · seed {} · 再試行{} · {}</option>",
                     r.frames
                         .iter()
                         .map(|f| f.tick.to_string())
@@ -673,6 +782,9 @@ impl MobileTask {
                     SCENARIOS[r.config.scenario],
                     PLANNERS[r.config.nav.planner],
                     CONTROLLERS[r.config.nav.controller],
+                    ARM_PLANNERS[r.config.arm.planner],
+                    ARM_CONTROLLERS[r.config.arm.controller],
+                    r.config.nav.seed,
                     if r.config.nav.recovery {
                         "あり"
                     } else {
@@ -1165,6 +1277,141 @@ mod tests {
             assert_eq!(f.stage, 2);
             assert!(f.attached);
         }
+    }
+    #[test]
+    fn arm_benchmark_pairs_five_seeded_worlds_and_matches_individual_replays() {
+        let mut c = config();
+        c.nav.controller = 1;
+        let mut task = MobileTask::default();
+        task.start_arm_benchmark(c);
+        for _ in 0..5000 {
+            task.advance(false);
+        }
+        assert_eq!(task.records.len(), 30);
+        assert!(task.queue.is_empty());
+        for (index, r) in task.records.iter().enumerate() {
+            let seed = 42 + (index / 6) as u32;
+            assert_eq!(r.config.nav, Config { seed, ..c.nav });
+            assert_eq!(r.config.arm.seed, seed);
+            assert_eq!(
+                (r.config.arm.planner, r.config.arm.controller),
+                (index % 6 / 2, index % 2)
+            );
+            assert_eq!(r.config.scenario, c.scenario);
+            assert_eq!(r.frames[0], task.records[index / 6 * 6].frames[0]);
+            let mut individual = MobileTask::default();
+            individual.start(r.config, false);
+            finish(&mut individual);
+            assert_eq!(r.frames, individual.records[0].frames);
+        }
+        assert_ne!(task.records[0].pick, task.records[6].pick);
+        let csv = task.csv();
+        let summary = task.summary_html();
+        assert_eq!(csv.lines().count(), 31);
+        assert_eq!(csv.matches("shelf_delivery,completed,30,30,").count(), 30);
+        assert!(summary.contains("完了 30/30試行"));
+        assert!(summary.contains("seed 42, 43, 44, 45, 46"));
+        assert!(!task.arm_benchmark_html().contains(" disabled"));
+        assert_eq!(
+            task.arm_benchmark_html()
+                .matches("data-mobile-record=")
+                .count(),
+            30
+        );
+        assert!(task.replay_options().contains("seed 46"));
+        assert!(task
+            .replay_options()
+            .contains("腕 RRT-Connect × 加速度制限P"));
+        for index in 0..30 {
+            let end = task.records[index].frames.last().unwrap().clone();
+            task.seek(index, end.tick);
+            assert_eq!(task.frame().unwrap(), &end);
+            task.advance(false);
+            assert_eq!(task.csv(), csv);
+            assert_eq!(task.summary_html(), summary);
+        }
+        let mut repeat = MobileTask::default();
+        repeat.start_arm_benchmark(c);
+        for _ in 0..5000 {
+            repeat.advance(false);
+        }
+        assert_eq!(repeat.csv(), csv);
+    }
+    #[test]
+    fn arm_benchmark_statistics_exclude_pending_trials_and_failed_run_times() {
+        let mut c = config();
+        c.nav.planner = 0;
+        let mut task = MobileTask::default();
+        task.start_arm_benchmark(c);
+        assert!(task
+            .arm_benchmark_html()
+            .contains("<td>0/5</td><td>0/0</td><td>—</td><td>—</td>"));
+        finish(&mut task);
+        // A mixed-outcome fixture distinguishes successful mean from all-trial mean.
+        task.records
+            .retain(|r| r.config.arm.planner == 2 && r.config.arm.controller == 0);
+        task.records.truncate(2);
+        let end = task.records[0].frames.last_mut().unwrap();
+        end.stage = 4;
+        end.state = "成功";
+        end.tick = 90;
+        let end = task.records[1].frames.last_mut().unwrap();
+        end.stage = 2;
+        end.state = "計画失敗";
+        end.tick = 300;
+        task.stop();
+        let html = task.arm_benchmark_html();
+        assert!(html.contains("<td>2/5</td><td>1/2</td><td>50%</td><td>3.00</td>"));
+        assert!(html.contains("配置先へ運搬・整列: 1"));
+        assert_eq!(html.matches(" disabled").count(), 2);
+        assert!(task.summary_html().contains("中断 · 完了 2/30試行"));
+        assert!(task.csv().contains("shelf_delivery,interrupted,30,2,"));
+        assert!(!html.contains("NaN"));
+        assert!(!html.contains("inf"));
+    }
+    #[test]
+    fn arm_benchmark_wraps_seeds_and_preserves_policy_through_pause_and_stop() {
+        let mut c = config();
+        c.nav.planner = 0;
+        c.nav.recovery = true;
+        c.nav.seed = u32::MAX - 1;
+        c.scenario = 3;
+        let mut task = MobileTask::default();
+        task.start_arm_benchmark(c);
+        task.stop();
+        assert!(task.summary_html().contains("中断 · 完了 0/30試行"));
+        task.start_arm_benchmark(c);
+        task.paused = true;
+        task.advance(false);
+        assert!(task.records.is_empty());
+        task.advance(true);
+        assert_eq!(task.records.len(), 1);
+        assert_eq!(task.records[0].config.arm.seed, u32::MAX - 1);
+        task.seek(0, 1);
+        assert!(task.replay.is_none());
+        task.stop();
+        assert!(task.csv().contains("shelf_delivery,interrupted,30,1,"));
+        task.start_arm_benchmark(c);
+        finish(&mut task);
+        assert_eq!(task.records.len(), 30);
+        for (index, r) in task.records.iter().enumerate() {
+            assert_eq!(
+                r.config.nav.seed,
+                c.nav.seed.wrapping_add((index / 6) as u32)
+            );
+            assert_eq!(r.config.arm.seed, r.config.nav.seed);
+            assert!(r.config.nav.recovery);
+            assert_eq!(r.config.scenario, 3);
+            assert_eq!(r.frames.last().unwrap().stage, 0);
+        }
+        assert!(task
+            .summary_html()
+            .contains("seed 4294967294, 4294967295, 0, 1, 2"));
+        task.start_arm_comparison(c);
+        finish(&mut task);
+        assert!(task.arm_benchmark_html().is_empty());
+        assert!(task.records.iter().all(|r| r.config.arm.seed == c.arm.seed));
+        assert!(task.csv().contains("shelf_delivery,completed,6,6,"));
     }
     #[test]
     fn arm_comparison_restarts_identical_worlds_and_matches_individual_runs() {
