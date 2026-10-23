@@ -324,8 +324,9 @@ replay. A completed current run must exist to enable the replay selector.
 ### G1 manipulation experiments
 
 Open **MANIPULATION** in the comparison panel for left-hand reaching, pick/place,
-placement near a blocking box, or an unreachable target. Two planners (direct
-joint goals and fixed elevated task-space waypoints) combine with two servos
+placement near a blocking box, or an unreachable target. Three planners (direct
+joint goals, fixed elevated task-space waypoints, and RNE RRT-Connect) combine with
+two servos
 (velocity-limited proportional and acceleration-limited proportional). All run at
 30 Hz with joint speed limited to 0.8 rad/s; the smoothed servo also limits its
 command acceleration to 1.6 rad/s². The task uses the navigation seed for a small,
@@ -341,14 +342,15 @@ position-only and respects the source joint limits; out-of-range targets produce
 an explicit IK failure rather than a fabricated successful animation.
 
 Orange is the object and green is the target. Pick/place uses a distance-gated
-kinematic attachment (within 0.025 m), keeps the measured attachment offset while
-carrying, then releases without teleporting the object onto the target. Placement
+kinematic attachment (within 0.025 m), keeps the measured offset in the tool frame
+while carrying, then releases without teleporting the object onto the target. Placement
 must finish within 0.025 m. This is not force-based grasping: gravity, finger
 contact, object orientation, torso/self-collision, and balance are not simulated.
 The blocking-box check samples the swept left forearm/tool (0.018 m radius) and
 held object (0.0225 m radius) against the 0.05 m box. The fixed elevated waypoint
-planner does not search for a collision-free path; the blocking scene can fail
-for all four pairs. These failures are preserved and can be inspected in replay.
+planner does not search for a collision-free path. In the seed 42 blocking scene,
+these original four pairs contact the box, while the two RRT-Connect pairs reach
+the placement target. Failures are preserved and can be inspected in replay.
 
 Arm results include final tool/object error, active-arm-joint target RMSE and
 elapsed simulation time. RMSE is absent for failures before any control step.
@@ -364,6 +366,41 @@ python scripts/test_g1_recovery_manipulation_browser.py --url http://127.0.0.1:8
 ```
 
 Run against a built static bundle served locally. The test exercises recovery,
-recorded-time navigation replay, manipulation pause/step, all four pick/place
-pairs, grasp/release replay, contact and unreachable failures, manual takeover,
+recorded-time navigation replay, manipulation pause/step, all six pick/place
+pairs, RRT selection and blocking-scene outcomes, grasp/release replay, contact
+and unreachable failures, manual takeover,
 and mobile touch, using actual WASM and Chromium WebGPU.
+
+
+### Collision-aware arm planning
+
+The arm menu adds **RRT-Connect** from the existing `rne_planning` crate. The
+comparison now runs 3 planners × 2 controllers. It first checks the direct joint
+segment, then uses seeded bidirectional search when that segment is blocked.
+Each task stage has a 600-iteration search limit, a 0.20 rad extension step and
+12 collision-check subdivisions per edge. Search iteration counts are shown in
+results; CPU planning time is excluded from simulated execution time. A search
+limit, colliding start, colliding goal, and IK failure remain distinct outcomes.
+Seeds are captured with the run; the stage contributes a fixed seed offset.
+
+The scene uses the same URDF-derived model and a torso-to-left-tool planning
+group, holding every other joint fixed. Forearm and tool are conservative capsule
+and sphere proxies (0.026 m radius); the attached object uses a 0.0255 m sphere at
+its measured tool-local offset. These proxies are checked against the actual
+0.05 m scene box. No full-body/self-collision or force-based grasping is added.
+Execution still checks the original forearm/tool and held-object samples every
+tick; a valid plan does not bypass collision detection or guarantee controller
+tracking. The object follows a rigid tool-local offset consistently in planning,
+execution and replay, rather than a world-fixed displacement.
+
+The resulting joint waypoints become controller targets. Blue markers show the
+planned tool path; colored markers show measured motion. Each replay frame keeps
+its own immutable plan and search count, so seeking an earlier grasp stage does
+not show a later transfer plan. The two RRT/controller pairs use pink and gold,
+with matching markers in the results table.
+
+Headless tests verify that the blocking transfer's direct segment is invalid,
+every RRT edge passes a denser 24-subdivision check, placement succeeds, repeated
+runs produce identical frames, and colliding endpoints are rejected explicitly.
+The browser check also selects RRT directly, compares all six pairs on the same
+blocking task, and seeks its stored plan in replay.

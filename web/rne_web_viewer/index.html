@@ -310,23 +310,23 @@
       </details>
       <details id="manipulation-panel">
         <summary>MANIPULATION · G1の腕と物体操作</summary>
-        <p>左腕の実モデルでリーチ・物体配置を比較。緑＝配置目標、橙＝物体、茶＝障害物。</p>
+        <p>左腕の実モデルでリーチ・物体配置を比較。青＝計画上の手先経路、緑＝配置目標、橙＝物体、茶＝障害物。</p>
         <div class="experiment-options">
           <label>タスク<select id="arm-task"><option value="0">手先リーチ</option><option value="1">持ち上げて配置</option><option value="2">障害物越しに配置</option><option value="3">到達範囲外</option></select></label>
-          <label>腕の計画<select id="arm-planner"><option value="0">関節直結</option><option value="1">上方経由</option></select></label>
+          <label>腕の計画<select id="arm-planner"><option value="0">関節直結</option><option value="1">上方経由</option><option value="2">RRT-Connect（衝突回避探索）</option></select></label>
           <label>腕の制御<select id="arm-controller"><option value="0">速度制限P</option><option value="1">加速度制限P</option></select></label>
         </div>
         <div class="experiment-buttons">
-          <button type="button" id="arm-run-button">腕を実行</button><button type="button" id="arm-compare-button">腕の4組を比較</button>
+          <button type="button" id="arm-run-button">腕を実行</button><button type="button" id="arm-compare-button">腕の6組を比較</button>
           <button type="button" id="arm-pause-button" aria-pressed="false">一時停止</button><button type="button" id="arm-step-button">1ステップ</button><button type="button" id="arm-stop-button">腕を終了</button>
         </div>
         <input type="hidden" id="arm-run" value="0"><input type="hidden" id="arm-compare" value="0"><input type="hidden" id="arm-pause" value="0"><input type="hidden" id="arm-step" value="0"><input type="hidden" id="arm-stop" value="0"><input type="hidden" id="arm-intent" value="0">
         <p id="arm-status">手先リーチ・物体配置を選んで実行</p>
-        <div class="experiment-results"><table><caption>腕の結果</caption><thead><tr><th>計画 × 制御</th><th>結果</th><th>最終誤差 m</th><th>関節目標RMSE rad</th><th>時間 s</th></tr></thead><tbody id="arm-records"></tbody></table></div>
+        <div class="experiment-results"><table><caption>腕の結果 · 3計画 × 2制御</caption><thead><tr><th>計画 × 制御</th><th>結果</th><th>最終誤差 m</th><th>関節目標RMSE rad</th><th>時間 s</th><th>探索回数</th></tr></thead><tbody id="arm-records"></tbody></table></div>
         <label>腕の時間リプレイ<select id="arm-replay-record" aria-label="腕のリプレイ記録"></select></label>
         <input type="range" id="arm-replay-frame" aria-label="腕のリプレイ時刻" min="0" max="0" step="1" value="0" disabled>
         <output id="arm-replay-time">0.00 s</output><button type="button" id="arm-replay-exit">リプレイを終了</button><input type="hidden" id="arm-replay-tick" value="0"><input type="hidden" id="arm-replay-enabled" value="0">
-        <p>URDFの関節制限と位置IKを使用。物体は手先との距離で接続・解放する運動学的把持です。接触力・落下・姿勢IKは評価しません。接触検査は左前腕・手先と茶色の箱が対象です。</p>
+        <p>URDFの関節制限と位置IKを使用。物体は手先との距離で接続・解放する運動学的把持です。接触力・落下・姿勢IKは評価しません。接触検査は左前腕・手先・保持物と茶色の箱が対象です。RRT-Connectは段階ごとに最大600反復で探索します。探索に要した処理時間はシミュレーション時間に含みません。</p>
       </details>
       <details><summary>モデルと比較条件</summary><p>半径0.28mの円形移動モデルです。二足歩行・接触力・バランス制御の評価は含みません。選択変更は次回の実行から適用します。</p></details>
     </details>

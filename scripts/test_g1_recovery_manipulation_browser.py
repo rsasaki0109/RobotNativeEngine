@@ -68,10 +68,10 @@ def main():
         page.locator('#arm-step-button').click()
         page.wait_for_function('(old)=>document.querySelector("#arm-status").textContent!==old',arg=frozen)
         page.locator('#arm-compare-button').click()
-        page.wait_for_function('document.querySelectorAll("#arm-records tr").length===4',timeout=240000)
+        page.wait_for_function('document.querySelectorAll("#arm-records tr").length===6',timeout=240000)
         arm_rows=page.locator('#arm-records tr').all_text_contents()
         assert all('成功' in row for row in arm_rows),arm_rows
-        assert page.locator('#arm-replay-record option').count()==4
+        assert page.locator('#arm-replay-record option').count()==6
         page.locator('#arm-replay-record').select_option('2')
         seek(page,'arm',0)
         assert '未保持' in page.locator('#arm-status').inner_text()
@@ -88,10 +88,24 @@ def main():
         assert page.locator('#arm-records tr').all_text_contents()==arm_rows
         page.locator('#arm-replay-exit').click()
         print('Real G1 arm comparison, pause/step, grasp/release and replay passed',flush=True)
-        for task,expected in [('2','接触'),('3','IK失敗')]:
-            page.locator('#arm-task').select_option(task)
-            page.locator('#arm-compare-button').click()
-            page.wait_for_function('''expected=>document.querySelectorAll('#arm-records tr').length===4 && [...document.querySelectorAll('#arm-records tr')].every(r=>r.textContent.includes(expected))''',arg=expected,timeout=240000)
+        page.locator('#arm-task').select_option('2')
+        page.locator('#arm-planner').select_option('2')
+        page.locator('#arm-controller').select_option('1')
+        page.locator('#arm-run-button').click()
+        page.wait_for_function("document.querySelector('#arm-status').textContent.includes('RRT-Connect') && document.querySelector('#arm-status').textContent.includes('障害物越しに配置') && document.querySelector('#arm-status').textContent.includes('成功') && document.querySelectorAll('#arm-records tr').length===1",timeout=240000)
+        assert page.locator('#arm-records tr').count()==1
+        page.locator('#arm-compare-button').click()
+        page.wait_for_function('document.querySelectorAll("#arm-records tr").length===6',timeout=240000)
+        blocked=page.locator('#arm-records tr').all_text_contents()
+        assert all('接触' in row for row in blocked[:4]),blocked
+        assert all('RRT-Connect' in row and '成功' in row for row in blocked[4:]),blocked
+        page.locator('#arm-replay-record').select_option('4')
+        seek(page,'arm',0.5)
+        page.screenshot(path=str(args.output/'rrt-obstacle-replay.png'))
+        page.locator('#arm-task').select_option('3')
+        page.locator('#arm-compare-button').click()
+        page.wait_for_function("document.querySelectorAll('#arm-records tr').length===6 && [...document.querySelectorAll('#arm-records tr')].every(r=>r.textContent.includes('IK失敗'))",timeout=240000)
+        print('RRT-Connect selection, blocked six-pair comparison, saved plans and unreachable failures passed',flush=True)
         page.locator('#experiment-manual-button').click()
         page.wait_for_function("document.querySelector('#playground').dataset.experimentActive==='false'")
         page.set_viewport_size({'width':390,'height':844})

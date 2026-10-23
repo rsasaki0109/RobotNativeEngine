@@ -384,7 +384,7 @@ impl App {
             self.manipulation.start(
                 ArmConfig {
                     task: (value("arm-task")? as usize).min(3),
-                    planner: (value("arm-planner")? as usize).min(1),
+                    planner: (value("arm-planner")? as usize).min(2),
                     controller: (value("arm-controller")? as usize).min(1),
                     seed: value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32,
                 },

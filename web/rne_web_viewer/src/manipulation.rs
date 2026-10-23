@@ -1,32 +1,46 @@
 //! Deterministic G1 left-arm experiments using RNE's URDF-derived FK and IK.
 use rne_ecs::{Entity, World};
 use rne_math::{Pose3, Quat, Vec3};
+use rne_planning::{
+    GoalConstraint, JointInterpolationPlanner, MotionPlanRequest, MotionPlanner, PlanningGroup,
+    PlanningOptions, PlanningScene, RrtConnectPlanner,
+};
 use rne_render::{RenderScene, VisualShape};
-use rne_robot::{IkOptions, KinematicModel};
+use rne_robot::{ColliderShape, CollisionPrimitive, IkOptions, KinematicModel};
 use rne_urdf_import::{parse_urdf, spawn_urdf_robot_with_config, UrdfJointType, UrdfSpawnConfig};
 use rne_world::Transform3;
-use std::{collections::VecDeque, fmt::Write};
+use std::{collections::VecDeque, fmt::Write, sync::Arc};
 
 const DT: f64 = 1.0 / 30.0;
 const LIMIT: u32 = 1800;
+const SEARCH_LIMIT: usize = 600;
 const TASKS: [&str; 4] = [
     "手先リーチ",
     "持ち上げて配置",
     "障害物越しに配置",
     "到達範囲外",
 ];
-const PLANNERS: [&str; 2] = ["関節直結", "上方経由"];
+const PLANNERS: [&str; 3] = ["関節直結", "上方経由", "RRT-Connect"];
 const CONTROLLERS: [&str; 2] = ["速度制限P", "加速度制限P"];
-const COLORS: [[f32; 4]; 4] = [
+const COLORS: [[f32; 4]; 6] = [
     [0.45, 0.93, 0.69, 1.0],
     [1.0, 0.71, 0.37, 1.0],
     [0.80, 0.61, 1.0, 1.0],
     [0.33, 0.87, 0.96, 1.0],
+    [0.95, 0.61, 0.76, 1.0],
+    [0.96, 0.89, 0.47, 1.0],
 ];
+
+#[derive(Debug)]
+struct SearchFailure {
+    label: &'static str,
+    iterations: usize,
+}
 
 #[derive(Debug)]
 struct Arm {
     model: KinematicModel,
+    planning: PlanningScene,
     hand: Entity,
     elbow: Entity,
     active: Vec<bool>,
@@ -70,14 +84,131 @@ impl Arm {
             .filter(|j| j.joint_type == UrdfJointType::Revolute)
             .map(|j| names.iter().position(|n| n == &j.name).unwrap())
             .collect();
+        let hand = robot.links["rne_left_tool"];
+        let elbow = robot.links["left_elbow_link"];
+        let group =
+            PlanningGroup::chain(&model, "left_arm", robot.links["torso_link"], hand).unwrap();
+        let mut planning = PlanningScene::from_world(&world, robot.robot)
+            .unwrap()
+            .with_group(group);
+        let q = vec![0.0; model.dof()];
+        let fk = model.forward_kinematics(&q).unwrap();
+        let e = fk.link_transform(elbow).unwrap();
+        let segment =
+            e.rotation.inverse() * (fk.link_transform(hand).unwrap().translation - e.translation);
+        let touch: Vec<_> = (0..model.link_count())
+            .map(|i| model.link_entity(i).unwrap())
+            .collect();
+        planning
+            .attach_body(
+                "forearm",
+                elbow,
+                ColliderShape::Capsule {
+                    half_height_m: segment.length() / 2.0,
+                    radius_m: 0.026,
+                },
+                Transform3::from_translation_rotation(
+                    segment * 0.5,
+                    Quat::from_rotation_arc(Vec3::Y, segment.normalize()),
+                ),
+                touch.clone(),
+            )
+            .unwrap();
+        planning
+            .attach_body(
+                "tool",
+                hand,
+                ColliderShape::Sphere { radius_m: 0.026 },
+                Transform3::IDENTITY,
+                touch,
+            )
+            .unwrap();
         Self {
-            hand: robot.links["rne_left_tool"],
-            elbow: robot.links["left_elbow_link"],
+            hand,
+            elbow,
             model,
+            planning,
             active,
             viewer_order,
         }
     }
+    fn configure_scene(&mut self, blocker: Option<Vec3>, held_offset: Option<Vec3>) {
+        self.planning.remove_collision_object("blocker");
+        if let Some(center_m) = blocker {
+            self.planning.add_collision_object(
+                "blocker",
+                CollisionPrimitive::Cuboid {
+                    center_m,
+                    axes: [Vec3::X, Vec3::Y, Vec3::Z],
+                    half_extents_m: Vec3::splat(0.025),
+                },
+            );
+        }
+        self.planning.detach_body("held");
+        if let Some(offset) = held_offset {
+            let touch = (0..self.model.link_count())
+                .map(|i| self.model.link_entity(i).unwrap())
+                .collect();
+            // The object keeps its measured offset in the tool frame.
+            self.planning
+                .attach_body(
+                    "held",
+                    self.hand,
+                    ColliderShape::Sphere { radius_m: 0.0255 },
+                    Transform3::from_translation_rotation(offset, Quat::IDENTITY),
+                    touch,
+                )
+                .unwrap();
+        }
+    }
+    fn search(
+        &mut self,
+        start: &[f64],
+        goal: &[f64],
+        seed: u64,
+    ) -> Result<(VecDeque<Vec<f64>>, usize), SearchFailure> {
+        let request = MotionPlanRequest::new(
+            start.to_vec(),
+            GoalConstraint::joint(goal.to_vec()),
+            PlanningOptions {
+                seed,
+                max_iterations: SEARCH_LIMIT,
+                step_size: 0.20,
+                collision_check_steps: 12,
+                waypoint_count: 2,
+                ..PlanningOptions::default()
+            },
+        )
+        .with_group("left_arm");
+        let response = JointInterpolationPlanner::new()
+            .plan(&self.planning, &request)
+            .or_else(|_| RrtConnectPlanner::new().plan(&self.planning, &request));
+        response
+            .map(|r| {
+                (
+                    r.trajectory
+                        .points()
+                        .iter()
+                        .skip(1)
+                        .map(|p| p.positions.clone())
+                        .collect(),
+                    r.iterations,
+                )
+            })
+            .map_err(|e| SearchFailure {
+                iterations: if matches!(e, rne_planning::PlanningError::IterationLimit) {
+                    SEARCH_LIMIT
+                } else {
+                    0
+                },
+                label: match e {
+                    rne_planning::PlanningError::StartInCollision => "開始姿勢が衝突",
+                    rne_planning::PlanningError::GoalInCollision => "目標姿勢が衝突",
+                    _ => "経路未発見（探索上限）",
+                },
+            })
+    }
+
     fn position(&self, q: &[f64], link: Entity) -> Vec3 {
         self.model
             .forward_kinematics(q)
@@ -140,6 +271,8 @@ struct Frame {
     attached: bool,
     stage: usize,
     state: &'static str,
+    planned: Arc<Vec<Vec3>>,
+    iterations: usize,
 }
 #[derive(Debug)]
 struct Run {
@@ -148,6 +281,9 @@ struct Run {
     velocity: Vec<f64>,
     goals: Vec<Vec3>,
     joint_goal: Option<Vec<f64>>,
+    route: VecDeque<Vec<f64>>,
+    planned: Arc<Vec<Vec3>>,
+    iterations: usize,
     stage: usize,
     attach_at: usize,
     release_at: usize,
@@ -165,7 +301,7 @@ struct Run {
     recorded: bool,
 }
 impl Run {
-    fn new(arm: &Arm, config: ArmConfig) -> Self {
+    fn new(arm: &mut Arm, config: ArmConfig) -> Self {
         let q = vec![0.0; arm.model.dof()];
         let pick = arm.tip(&arm.known_pose(-0.85, 0.15 + f64::from(config.seed % 11) * 0.005, 0.7));
         let place = arm.tip(&arm.known_pose(-1.05, 0.65, 0.8));
@@ -174,7 +310,7 @@ impl Run {
             (vec![Vec3::new(1.8, 1.6, -0.25)], usize::MAX, usize::MAX)
         } else if config.task == 0 {
             (
-                if config.planner == 0 {
+                if config.planner != 1 {
                     vec![pick]
                 } else {
                     vec![(start + pick) * 0.5 + Vec3::Y * 0.12, pick]
@@ -182,7 +318,7 @@ impl Run {
                 usize::MAX,
                 usize::MAX,
             )
-        } else if config.planner == 0 {
+        } else if config.planner != 1 {
             (vec![pick, place], 0, 1)
         } else {
             (
@@ -205,6 +341,9 @@ impl Run {
             config,
             goals,
             joint_goal: None,
+            route: VecDeque::new(),
+            planned: Arc::new(vec![]),
+            iterations: 0,
             stage: 0,
             attach_at,
             release_at,
@@ -225,10 +364,51 @@ impl Run {
         r.capture(arm);
         r
     }
-    fn plan(&mut self, arm: &Arm) {
-        self.joint_goal = arm.solve(self.goals[self.stage], &self.q);
-        if self.joint_goal.is_none() {
+    fn plan(&mut self, arm: &mut Arm) {
+        self.route.clear();
+        self.planned = Arc::new(vec![]);
+        let Some(goal) = arm.solve(self.goals[self.stage], &self.q) else {
             self.state = "IK失敗";
+            return;
+        };
+        if self.config.planner == 2 {
+            arm.configure_scene(self.blocker, self.attached.then_some(self.offset));
+            match arm.search(
+                &self.q,
+                &goal,
+                u64::from(self.config.seed) + self.stage as u64 * 7919,
+            ) {
+                Ok((route, iterations)) => {
+                    self.route = route;
+                    self.iterations += iterations;
+                }
+                Err(failure) => {
+                    self.iterations += failure.iterations;
+                    self.state = failure.label;
+                    return;
+                }
+            }
+        } else {
+            self.route.push_back(goal);
+        }
+        let mut points = vec![arm.tip(&self.q)];
+        let mut previous = self.q.as_slice();
+        for waypoint in &self.route {
+            for n in 1..=8 {
+                let t = f64::from(n) / 8.0;
+                let q: Vec<_> = previous
+                    .iter()
+                    .zip(waypoint)
+                    .map(|(a, b)| a + (b - a) * t)
+                    .collect();
+                points.push(arm.tip(&q));
+            }
+            previous = waypoint;
+        }
+        self.planned = Arc::new(points);
+        self.joint_goal = self.route.pop_front();
+        if self.joint_goal.is_none() {
+            self.state = "経路が空";
         }
     }
     fn capture(&mut self, arm: &Arm) {
@@ -240,9 +420,11 @@ impl Run {
             attached: self.attached,
             stage: self.stage,
             state: self.state,
+            planned: self.planned.clone(),
+            iterations: self.iterations,
         });
     }
-    fn tick(&mut self, arm: &Arm) {
+    fn tick(&mut self, arm: &mut Arm) {
         if self.state != "実行中" {
             return;
         }
@@ -277,8 +459,10 @@ impl Run {
                     .zip(&self.q)
                     .map(|(a, b)| a + (b - a) * t)
                     .collect();
-                let tip = arm.tip(&q);
-                let elbow = arm.position(&q, arm.elbow);
+                let fk = arm.model.forward_kinematics(&q).unwrap();
+                let tool = fk.link_transform(arm.hand).unwrap();
+                let tip = tool.translation;
+                let elbow = fk.link_transform(arm.elbow).unwrap().translation;
                 for j in 0..=8 {
                     let p = elbow + (tip - elbow) * (f64::from(j) / 8.0);
                     let delta = (p - center).abs() - Vec3::splat(0.025);
@@ -288,7 +472,7 @@ impl Run {
                     }
                 }
                 if self.attached {
-                    let object = tip + self.offset;
+                    let object = tip + tool.rotation * self.offset;
                     if ((object - center).abs() - Vec3::splat(0.025))
                         .max(Vec3::ZERO)
                         .length()
@@ -303,9 +487,11 @@ impl Run {
                 }
             }
         }
-        let tip = arm.tip(&self.q);
+        let fk = arm.model.forward_kinematics(&self.q).unwrap();
+        let tool = fk.link_transform(arm.hand).unwrap();
+        let tip = tool.translation;
         if self.attached {
-            self.object = tip + self.offset;
+            self.object = tip + tool.rotation * self.offset;
         }
         let error = target
             .iter()
@@ -319,13 +505,22 @@ impl Run {
         self.samples += 1;
         if hit {
             self.state = "腕が障害物に接触";
+        } else if !self.route.is_empty() {
+            let remaining = target
+                .iter()
+                .zip(&self.q)
+                .map(|(a, b)| (a - b).abs())
+                .fold(0.0, f64::max);
+            if remaining < 0.008 {
+                self.joint_goal = self.route.pop_front();
+            }
         } else if (tip - self.goals[self.stage]).length() < 0.008 {
             if self.stage == self.attach_at {
                 self.attached = (tip - self.object).length() <= 0.025;
                 if !self.attached {
                     self.state = "把持距離超過";
                 }
-                self.offset = self.object - tip;
+                self.offset = tool.rotation.inverse() * (self.object - tip);
             }
             if self.stage == self.release_at {
                 self.attached = false;
@@ -396,7 +591,7 @@ impl Manipulation {
         self.paused = false;
         self.replay = None;
         if batch {
-            for planner in 0..2 {
+            for planner in 0..3 {
                 for controller in 0..2 {
                     self.queue.push_back(ArmConfig {
                         planner,
@@ -409,7 +604,7 @@ impl Manipulation {
             self.queue.push_back(c);
         }
         self.run = Some(Run::new(
-            self.arm.as_ref().unwrap(),
+            self.arm.as_mut().unwrap(),
             self.queue.pop_front().unwrap(),
         ));
     }
@@ -418,7 +613,7 @@ impl Manipulation {
             return;
         }
         for _ in 0..if self.batch && !step { 32 } else { 1 } {
-            let (Some(arm), Some(run)) = (&self.arm, &mut self.run) else {
+            let (Some(arm), Some(run)) = (&mut self.arm, &mut self.run) else {
                 return;
             };
             run.tick(arm);
@@ -473,6 +668,8 @@ impl Manipulation {
             attached: r.attached,
             stage: r.stage,
             state: r.state,
+            planned: r.planned.clone(),
+            iterations: r.iterations,
         })
     }
     pub(crate) fn seek(&mut self, index: usize, tick: u32) {
@@ -503,13 +700,14 @@ impl Manipulation {
             .and_then(|(i, _)| self.records.get(i).map(|r| r.config))
             .unwrap_or(self.run.as_ref().unwrap().config);
         format!(
-            "{} · {} × {} · {} · {:.2} s · 完了段階 {} · {}{}",
+            "{} · {} × {} · {} · {:.2} s · 完了段階 {} · 探索 {}回 · {}{}",
             TASKS[c.task],
             PLANNERS[c.planner],
             CONTROLLERS[c.controller],
             f.state,
             f64::from(f.tick) * DT,
             f.stage,
+            f.iterations,
             if f.attached {
                 "物体保持中"
             } else {
@@ -525,17 +723,19 @@ impl Manipulation {
     pub(crate) fn results_html(&self) -> String {
         let mut s = String::new();
         for r in &self.records {
-            let color = ["#72edb1", "#ffb45e", "#cd9bff", "#55def5"]
-                [r.config.planner * 2 + r.config.controller];
+            let color = [
+                "#72edb1", "#ffb45e", "#cd9bff", "#55def5", "#f29bc1", "#f6e379",
+            ][r.config.planner * 2 + r.config.controller];
             let _ = write!(
                 s,
-                "<tr><td><span style='color:{color}'>●</span> {} × {}</td><td>{}</td><td>{:.3}</td><td>{}</td><td>{:.2}</td></tr>",
+                "<tr><td><span style='color:{color}'>●</span> {} × {}</td><td>{}</td><td>{:.3}</td><td>{}</td><td>{:.2}</td><td>{}</td></tr>",
                 PLANNERS[r.config.planner],
                 CONTROLLERS[r.config.controller],
                 r.state,
                 r.error_m,
                 r.rmse_rad.map_or_else(|| "—".into(), |v| format!("{v:.3}")),
-                f64::from(r.frames.last().unwrap().tick) * DT
+                f64::from(r.frames.last().unwrap().tick) * DT,
+                r.frames.last().unwrap().iterations
             );
         }
         s
@@ -614,6 +814,9 @@ impl Manipulation {
                 );
             }
         }
+        for p in f.planned.iter() {
+            cube(scene, *p, Vec3::splat(0.007), [0.1, 0.5, 1.0, 1.0]);
+        }
         cube(scene, f.tip, Vec3::splat(0.018), [0.9, 0.95, 1.0, 1.0]);
     }
 }
@@ -652,6 +855,77 @@ mod tests {
         }
     }
     #[test]
+    fn rrt_routes_a_blocked_transfer_and_repeats_the_same_result() {
+        let config = ArmConfig {
+            task: 2,
+            planner: 2,
+            controller: 0,
+            seed: 42,
+        };
+        let mut arm = Arm::load();
+        let mut r = Run::new(&mut arm, config);
+        for _ in 0..LIMIT {
+            if r.stage == 1 || r.state != "実行中" {
+                break;
+            }
+            r.tick(&mut arm);
+        }
+        assert_eq!(r.state, "実行中");
+        assert_eq!(r.stage, 1);
+        assert!(r.iterations > 0);
+        let route: Vec<_> = std::iter::once(r.q.clone())
+            .chain(r.joint_goal.clone())
+            .chain(r.route.iter().cloned())
+            .collect();
+        let direct = MotionPlanRequest::new(
+            r.q.clone(),
+            GoalConstraint::joint(route.last().unwrap().clone()),
+            PlanningOptions {
+                collision_check_steps: 24,
+                ..PlanningOptions::default()
+            },
+        )
+        .with_group("left_arm");
+        assert!(JointInterpolationPlanner::new()
+            .plan(&arm.planning, &direct)
+            .is_err());
+        assert!(route
+            .windows(2)
+            .all(|w| arm.planning.is_motion_valid(&w[0], &w[1], 24).unwrap()));
+        for _ in 0..LIMIT {
+            if r.state != "実行中" {
+                break;
+            }
+            r.tick(&mut arm);
+        }
+        assert_eq!(r.state, "成功");
+        assert!((r.object - r.place).length() < 0.025);
+        let mut repeated = Run::new(&mut arm, config);
+        for _ in 0..LIMIT {
+            if repeated.state != "実行中" {
+                break;
+            }
+            repeated.tick(&mut arm);
+        }
+        assert_eq!(repeated.frames, r.frames);
+    }
+    #[test]
+    fn rrt_rejects_colliding_endpoints_without_claiming_success() {
+        let mut arm = Arm::load();
+        let start = vec![0.0; arm.model.dof()];
+        let goal = arm.known_pose(-0.85, 0.2, 0.7);
+        arm.configure_scene(Some(arm.tip(&start)), None);
+        assert_eq!(
+            arm.search(&start, &goal, 42).unwrap_err().label,
+            "開始姿勢が衝突"
+        );
+        arm.configure_scene(Some(arm.tip(&goal)), None);
+        assert_eq!(
+            arm.search(&start, &goal, 42).unwrap_err().label,
+            "目標姿勢が衝突"
+        );
+    }
+    #[test]
     fn manipulation_matrix_completes_and_replay_does_not_change_results() {
         let mut m = Manipulation::default();
         for task in 0..4 {
@@ -666,11 +940,11 @@ mod tests {
             );
             for _ in 0..8000 {
                 m.advance(false);
-                if m.records.len() == 4 {
+                if m.records.len() == 6 {
                     break;
                 }
             }
-            assert_eq!(m.records.len(), 4);
+            assert_eq!(m.records.len(), 6);
             for r in &m.records {
                 println!(
                     "task {task}, {} {}: {} {}",
@@ -682,6 +956,13 @@ mod tests {
                 }
                 if task == 3 {
                     assert_eq!(r.state, "IK失敗");
+                }
+                if task == 2 && r.config.planner == 2 {
+                    assert_eq!(r.state, "成功");
+                    assert!(r.frames.last().unwrap().iterations > 0);
+                }
+                if task == 2 && r.config.planner < 2 {
+                    assert_eq!(r.state, "腕が障害物に接触");
                 }
             }
             assert!(m.active());
