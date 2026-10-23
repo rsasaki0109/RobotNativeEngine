@@ -21,6 +21,14 @@ fn status(message: &str) {
         .and_then(|window| window.document())
         .and_then(|document| document.get_element_by_id("engine-status"))
     {
+        let _ = element.set_attribute(
+            "data-ready",
+            if message.starts_with("操作できます") {
+                "true"
+            } else {
+                "false"
+            },
+        );
         element.set_text_content(Some(message));
     }
 }

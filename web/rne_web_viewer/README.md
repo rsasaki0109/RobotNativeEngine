@@ -138,11 +138,19 @@ python3 scripts/test_g1_scene_editor_browser.py --url http://127.0.0.1:8080/ \
 
 ## Walking, waving and checkpoint run
 
-**Walking motion ON** adds a bounded, alternating leg/arm pose animation while
-moving or turning. Stopping blends back to the manual slider pose. Toggle it
-off for manual inspection. **Wave** raises the left arm and waves for 180
+**Walking motion ON** uses kinematic foot planting while moving or turning.
+The support ankle keeps its world position and orientation; the other foot
+follows a raised swing arc. URDF-based leg IK matches the actual base displacement
+(including reverse motion and turns), with a 4 cm crouch for reachability. On stop,
+the swing settles and both feet hold their positions. Toggle walking off for the
+exact manual pose. Nonzero leg sliders also select manual leg poses; zero them or
+reset to resume foot planting. Large pose jumps in accelerated comparisons reset
+the foot anchors. Arm swing and waving remain pose animations. **Wave** raises the left arm and waves for 180
 preview ticks, then restores the pose; another press restarts the gesture.
 All composed joint coordinates are clamped to the original URDF limits.
+Foot planting reduces visible skating; it does not add contact forces, balance
+control or a physical biped controller. Recorded replays retain the fixed standing
+pose so previous animation cannot alter recorded joint coordinates.
 These are authored pose animations, not a physics-based walking controller.
 
 **Mission start / Retry** restores the base and joint targets, clears the old
@@ -494,4 +502,26 @@ deterministic layouts do not establish general robot or physical grasp performan
 ```bash
 python3 scripts/test_g1_mobile_benchmark_browser.py --url http://127.0.0.1:8080/ \
   --output work/mobile-benchmark-browser
+```
+
+## Japanese and English versions
+
+Use **Language / 言語** to switch without reloading or resetting the simulation.
+Direct links work under the GitHub Pages project path:
+
+- Japanese: `https://rsasaki0109.github.io/RobotNativeEngine/?lang=ja`
+- English: `https://rsasaki0109.github.io/RobotNativeEngine/?lang=en`
+
+An explicit supported URL language takes priority over the saved browser choice;
+otherwise Japanese is the initial default. Selection is remembered in local
+storage when available. If storage is blocked, the URL and selector still work.
+UI labels, descriptions, results, timeline text and accessibility labels are
+localized. Numeric inputs, option values, saved scenes, replay payloads and CSV
+records keep their existing canonical format (including Japanese result labels);
+changing the display language never rewrites experiment evidence or restarts runs.
+
+```bash
+node web/rne_web_viewer/i18n.test.cjs
+python3 scripts/test_g1_bilingual_browser.py --url http://127.0.0.1:8080/ \
+  --output work/bilingual-browser
 ```

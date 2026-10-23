@@ -23,7 +23,7 @@
     const Event = document.defaultView.Event;
     const buttons = [];
     let selected = null;
-    const ready = () => engine.textContent.startsWith("操作できます");
+    const ready = () => engine.dataset.ready === "true";
     const setValue = (id, value) => {
       const input = document.getElementById(id);
       input.value = value;
@@ -88,7 +88,7 @@
       if (!ready()) message.textContent = "エンジンの準備を待っています。";
       else if (!selected) message.textContent = "デモを選ぶと、条件を設定して比較を開始します。";
     };
-    new document.defaultView.MutationObserver(updateReady).observe(engine, { childList: true, subtree: true, characterData: true });
+    new document.defaultView.MutationObserver(updateReady).observe(engine, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["data-ready"] });
     updateReady();
     resultLink.addEventListener("click", (event) => {
       event.preventDefault();
