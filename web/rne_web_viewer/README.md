@@ -579,3 +579,28 @@ node web/rne_web_viewer/result_filters.test.cjs
 python3 scripts/test_g1_mobile_diagnostics_browser.py --url http://127.0.0.1:8080/ \
   --output work/diagnostics-browser
 ```
+
+## Play saved experiment replays
+
+Navigation, arm and delivery replay panels have Play/Pause, previous/next saved
+frame, and 0.5× / 1× / 2× / 4× playback speeds. Playback follows the actual saved
+30 Hz tick values, including irregular capture intervals. The display chooses
+the latest saved frame at/before the presentation time, so slow displays may
+skip intermediate snapshots. The reported time is always the selected saved tick.
+Previous/next moves between captured frames, rather than advancing simulation.
+
+Scrubbing, choosing another record or a diagnostic/timeline jump pauses playback.
+Reaching the end pauses; pressing Play there restarts that record. Changing speed
+keeps playback active from the currently displayed tick. Leaving replay, starting
+a new task, resetting or hiding the tab stops playback. One player runs at a
+time. Language changes preserve playback and its selected speed.
+
+This is a browser presentation clock over immutable records: it does not rerun
+planning, control, physics or SimClock, and cannot change results, summaries or
+CSV evidence. The separate imported-artifact replay inspector is unchanged.
+
+```bash
+node web/rne_web_viewer/replay_player.test.cjs
+python3 scripts/test_g1_replay_player_browser.py --url http://127.0.0.1:8080/ \
+  --output work/replay-player-browser
+```

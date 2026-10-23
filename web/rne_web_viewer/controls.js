@@ -10,6 +10,7 @@
   if (typeof module !== "undefined") module.exports = { driveAxes };
   if (!root.document) return;
   const document = root.document;
+  const replayPlayers = new Map();
   const keys = new Set();
   const pointers = new Map();
   const forward = document.getElementById("control-forward");
@@ -72,6 +73,9 @@
     }
   }
   function signal(id) {
+    for (const [prefix,player] of replayPlayers) {
+      if (id.startsWith("experiment-") || id.startsWith("scene-") || id.startsWith(prefix+"-") || ["control-reset-counter","control-mission-counter"].includes(id)) player.pause();
+    }
     if (["experiment-run","experiment-compare","experiment-manual"].includes(id)) {
       document.getElementById("nav-replay-enabled").value="0";
       document.getElementById("mobile-replay-enabled").value="0";
@@ -176,13 +180,17 @@
   }
   for (const prefix of ["nav","arm","mobile"]) {
     const select=document.getElementById(prefix+"-replay-record"), slider=document.getElementById(prefix+"-replay-frame"), enabled=document.getElementById(prefix+"-replay-enabled");
-    let times=[0];
-    const show=()=>{const tick=times[Number(slider.value)]||0;document.getElementById(prefix+"-replay-tick").value=String(tick);document.getElementById(prefix+"-replay-time").value=(tick/30).toFixed(2)+" s";};
+    let times=[0], player;
+    const show=()=>{const tick=times[Number(slider.value)]||0;document.getElementById(prefix+"-replay-tick").value=String(tick);document.getElementById(prefix+"-replay-time").value=(tick/30).toFixed(2)+" s";if(player)player.sync();};
     const configure=()=>{const option=select.selectedOptions[0];times=option?option.dataset.times.split(",").map(Number):[0];slider.disabled=!option;slider.max=String(times.length-1);slider.value="0";show();};
-    new MutationObserver(()=>{enabled.value="0";configure();}).observe(select,{childList:true});
-    select.addEventListener("change",()=>{configure();enabled.value="1";});
-    slider.addEventListener("input",()=>{enabled.value="1";show();});
-    document.getElementById(prefix+"-replay-exit").addEventListener("click",()=>{enabled.value="0";});
+    player=root.RNEReplayPlayer.init({document,prefix,getTimes:()=>times,seek:index=>{slider.value=String(index);enabled.value="1";show();},onPlay:()=>{
+      for(const [other,controller] of replayPlayers) if(other!==prefix) {controller.pause();document.getElementById(other+"-replay-enabled").value="0";}
+    }});
+    replayPlayers.set(prefix,player);
+    new MutationObserver(()=>{player.pause();enabled.value="0";configure();}).observe(select,{childList:true});
+    select.addEventListener("change",()=>{player.pause();configure();enabled.value="1";});
+    slider.addEventListener("input",()=>{player.pause();enabled.value="1";show();});
+    document.getElementById(prefix+"-replay-exit").addEventListener("click",()=>{player.pause();enabled.value="0";});
     if (prefix==="mobile") for (const id of ["mobile-timeline","mobile-summary","mobile-diagnostics"]) document.getElementById(id).addEventListener("click",event=>{
       const button=event.target.closest("button[data-mobile-record]");
       if (!button || button.disabled) return;

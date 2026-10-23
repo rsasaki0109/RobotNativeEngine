@@ -366,6 +366,7 @@ Object.assign(english, {
   "終了の約1秒前へ": "About 1 s before the end",
   "表示": "Showing"
 });
+Object.assign(english, {"リプレイを再生":"Play replay", "リプレイを一時停止":"Pause replay", "前の記録コマ":"Previous saved frame", "次の記録コマ":"Next saved frame", "再生速度":"Playback speed"});
 const japanese = {
   "RNE Web Viewer — drag to orbit, scroll to zoom": "RNE Web Viewer — ドラッグで視点回転、スクロールで拡大",
   "WASD / arrow keys: drive · sliders: G1 joints · Reset: home": "WASD・矢印キー：移動 · スライダー：G1の関節 · リセット：初期位置",
