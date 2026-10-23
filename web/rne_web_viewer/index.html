@@ -323,6 +323,7 @@
         </div>
         <input type="hidden" id="arm-run" value="0"><input type="hidden" id="arm-compare" value="0"><input type="hidden" id="arm-pause" value="0"><input type="hidden" id="arm-step" value="0"><input type="hidden" id="arm-stop" value="0"><input type="hidden" id="arm-intent" value="0">
         <div id="arm-benchmark" class="experiment-results" aria-live="polite"></div>
+        <button type="button" id="arm-export-button" disabled>腕の結果をCSV保存</button><span id="arm-export-data" hidden></span>
         <p id="arm-status">手先リーチ・物体配置を選んで実行</p>
         <div class="experiment-results"><table><caption>腕の結果 · 3計画 × 2制御</caption><thead><tr><th>計画 × 制御</th><th>結果</th><th>最終誤差 m</th><th>関節目標RMSE rad</th><th>時間 s</th><th>探索回数</th></tr></thead><tbody id="arm-records"></tbody></table></div>
         <label>腕の時間リプレイ<select id="arm-replay-record" aria-label="腕のリプレイ記録"></select></label>
@@ -460,7 +461,7 @@
       </small>
     </details>
     <script src="scene_editor.js?v=1"></script>
-    <script src="controls.js?v=multi-seed-v1"></script>
+    <script src="controls.js?v=arm-csv-v1"></script>
     <script src="replay.js"></script>
   </body>
 </html>

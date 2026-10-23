@@ -508,6 +508,19 @@ impl App {
                 self.rendered_results.clone_from(&results);
             }
         }
+        let csv = self.manipulation.results_csv();
+        if let Some(element) = document.get_element_by_id("arm-export-data") {
+            if element.text_content().as_deref() != Some(csv.as_str()) {
+                element.set_text_content(Some(&csv));
+            }
+        }
+        if let Some(element) = document.get_element_by_id("arm-export-button") {
+            if csv.is_empty() {
+                let _ = element.set_attribute("disabled", "");
+            } else {
+                let _ = element.remove_attribute("disabled");
+            }
+        }
         for (id, html) in [
             ("arm-records", self.manipulation.results_html()),
             ("arm-benchmark", self.manipulation.benchmark_html()),

@@ -141,6 +141,15 @@
       signal("arm-"+(action==="benchmark"?"compare":action));
     });
   }
+  document.getElementById("arm-export-button").addEventListener("click",()=>{
+    const csv=document.getElementById("arm-export-data").textContent;
+    if (!csv) return;
+    const url=URL.createObjectURL(new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8"}));
+    const link=document.createElement("a");
+    link.href=url;link.download="rne-arm-results.csv";
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
   for (const prefix of ["nav","arm"]) {
     const select=document.getElementById(prefix+"-replay-record"), slider=document.getElementById(prefix+"-replay-frame"), enabled=document.getElementById(prefix+"-replay-enabled");
     let times=[0];
