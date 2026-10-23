@@ -604,6 +604,7 @@ impl MobileTask {
         let mut s=format!("<p>{state} · 完了 {}/{expected}試行。段階の成功率は、その段階まで到達した完了試行のみで計算します。</p>",self.records.len());
         s.push_str(&self.arm_benchmark_html());
         s.push_str(&self.matrix_html());
+        s.push_str(&self.matrix_outcomes_html());
         let policies: &[Option<bool>] = if self.comparison == Comparison::Recovery {
             &[Some(false), Some(true)]
         } else {
@@ -710,6 +711,78 @@ impl MobileTask {
             }
         }
         html.push_str("</tbody></table></div>");
+        html
+    }
+    /// Rank successful matrix trials and group actual terminal failures without reordering records.
+    fn matrix_outcomes_html(&self) -> String {
+        if self.matrix_config.is_none() {
+            return String::new();
+        }
+        let mut successes: Vec<_> = self
+            .records
+            .iter()
+            .enumerate()
+            .filter(|(_, r)| {
+                let f = r.frames.last().unwrap();
+                f.stage == 4 && f.state == "成功"
+            })
+            .collect();
+        successes.sort_by_key(|(index, r)| (r.frames.last().unwrap().tick, *index));
+        let mut failures = std::collections::BTreeMap::new();
+        for (index, r) in self.records.iter().enumerate() {
+            let f = r.frames.last().unwrap();
+            if f.stage != 4 || f.state != "成功" {
+                failures
+                    .entry((f.stage, f.state))
+                    .or_insert_with(Vec::new)
+                    .push((index, f.tick));
+            }
+        }
+        let disabled = if self.queue.is_empty() && self.episode.as_ref().is_some_and(|e| e.recorded)
+        {
+            ""
+        } else {
+            " disabled"
+        };
+        let state = if self.records.len() == self.comparison.trials() {
+            "確定集計"
+        } else {
+            "途中集計"
+        };
+        let mut html = format!("<section class='mobile-matrix-outcomes'><h4>成功組のランキング・失敗理由</h4><p>{state} · 成功 {} · 失敗 {} · 未完了 {}</p><p>この配置・seed・再試行設定での結果です。成功した完了試行を総時間順に表示します。同時間は同順位。未完了は失敗に含めません。</p><h4>成功組 · 総時間の短い順</h4>", successes.len(), self.records.len() - successes.len(), self.comparison.trials() - self.records.len());
+        if successes.is_empty() {
+            html.push_str("<p class='mobile-ranking-empty'>成功した完了試行はありません。</p>");
+        } else {
+            html.push_str("<div class='mobile-outcomes-scroll' tabindex='0' role='region' aria-label='成功組のランキング（横スクロール）'><table class='mobile-ranking-table'><thead><tr><th>順位</th><th>移動・腕の計画 × 制御</th><th>総時間 s</th><th>リプレイ</th></tr></thead><tbody>");
+            let mut rank = 0;
+            let mut previous_tick = None;
+            for (position, (index, r)) in successes.iter().enumerate() {
+                let f = r.frames.last().unwrap();
+                if previous_tick != Some(f.tick) {
+                    rank = position + 1;
+                }
+                previous_tick = Some(f.tick);
+                let c = r.config;
+                let _ = write!(html, "<tr data-ranking-record='{index}'><td>{rank}</td><td>{} × {} · 腕 {} × {}</td><td>{:.2}</td><td><button type='button' data-mobile-record='{index}' data-mobile-tick='{}'{disabled}>試行 {} · 終了地点へ</button></td></tr>", PLANNERS[c.nav.planner], CONTROLLERS[c.nav.controller], ARM_PLANNERS[c.arm.planner], ARM_CONTROLLERS[c.arm.controller], f64::from(f.tick) * DT, f.tick, index + 1);
+            }
+            html.push_str("</tbody></table></div>");
+        }
+        html.push_str("<h4>失敗した段階・理由</h4>");
+        if failures.is_empty() {
+            html.push_str("<p class='mobile-failure-empty'>失敗した完了試行はありません。</p>");
+        } else {
+            html.push_str("<div class='mobile-outcomes-scroll' tabindex='0' role='region' aria-label='失敗理由の集計（横スクロール）'><table class='mobile-failure-table'><thead><tr><th>段階</th><th>実際の終了理由</th><th>件数</th><th>該当試行のリプレイ</th></tr></thead><tbody>");
+            for ((stage, reason), trials) in failures {
+                let label = STAGES.get(stage).copied().unwrap_or("全4段階完了");
+                let _ = write!(html, "<tr data-failure-stage='{stage}'><td>{label}</td><td>{reason}</td><td>{}</td><td>", trials.len());
+                for (index, tick) in trials {
+                    let _ = write!(html, "<button type='button' data-mobile-record='{index}' data-mobile-tick='{tick}'{disabled}>試行 {}</button>", index + 1);
+                }
+                html.push_str("</td></tr>");
+            }
+            html.push_str("</tbody></table></div>");
+        }
+        html.push_str("</section>");
         html
     }
     /// Aggregate only completed trials; successful runs alone contribute to mean time.
@@ -1101,6 +1174,12 @@ mod tests {
         assert_eq!(html.matches("data-matrix-state='success'").count(), 6);
         assert!(!html.contains("pending"));
         assert!(!html.contains(" disabled"));
+        let outcomes = task.matrix_outcomes_html();
+        assert!(outcomes.contains("確定集計 · 成功 6 · 失敗 18 · 未完了 0"));
+        assert_eq!(outcomes.matches("data-ranking-record=").count(), 6);
+        assert_eq!(outcomes.matches("data-failure-stage=").count(), 2);
+        assert_eq!(outcomes.matches("data-mobile-record=").count(), 24);
+        assert!(!outcomes.contains(" disabled"));
         let csv = task.csv();
         let summary = task.summary_html();
         assert_eq!(csv.lines().count(), 25);
@@ -1118,6 +1197,79 @@ mod tests {
             assert_eq!(task.csv(), csv);
             assert_eq!(task.summary_html(), summary);
         }
+    }
+    #[test]
+    fn matrix_outcomes_rank_ties_and_group_only_completed_failures() {
+        let mut task = MobileTask::default();
+        task.start_matrix(config());
+        let empty = task.matrix_outcomes_html();
+        assert!(empty.contains("途中集計 · 成功 0 · 失敗 0 · 未完了 24"));
+        assert!(empty.contains("成功した完了試行はありません。"));
+        assert!(empty.contains("失敗した完了試行はありません。"));
+        task.advance(true);
+        let base = &task.records[0];
+        task.records = [
+            (4, "成功", 300),
+            (4, "成功", 60),
+            (4, "成功", 60),
+            (0, "計画失敗", 1),
+            (1, "腕が障害物に接触", 250),
+            (1, "腕が障害物に接触", 350),
+            (1, "IK失敗", 4),
+        ]
+        .into_iter()
+        .map(|(stage, state, tick)| Record {
+            config: base.config,
+            frames: vec![Frame {
+                stage,
+                state,
+                tick,
+                ..base.frames.last().unwrap().clone()
+            }],
+            pick: base.pick,
+            place: base.place,
+        })
+        .collect();
+        let csv = task.csv();
+        let html = task.matrix_outcomes_html();
+        assert!(html.contains("途中集計 · 成功 3 · 失敗 4 · 未完了 17"));
+        assert!(html.contains("data-ranking-record='1'><td>1</td>"));
+        assert!(html.contains("data-ranking-record='2'><td>1</td>"));
+        assert!(html.contains("data-ranking-record='0'><td>3</td>"));
+        assert!(html.find("data-ranking-record='1'") < html.find("data-ranking-record='2'"));
+        assert!(html.find("data-ranking-record='2'") < html.find("data-ranking-record='0'"));
+        assert!(html
+            .contains("data-failure-stage='0'><td>棚へ移動・整列</td><td>計画失敗</td><td>1</td>"));
+        assert!(html.contains(
+            "data-failure-stage='1'><td>把持・持ち上げ</td><td>腕が障害物に接触</td><td>2</td>"
+        ));
+        assert!(html
+            .contains("data-failure-stage='1'><td>把持・持ち上げ</td><td>IK失敗</td><td>1</td>"));
+        assert_eq!(html.matches("data-failure-stage=").count(), 3);
+        assert_eq!(html.matches(" disabled").count(), 7);
+        assert_eq!(task.csv(), csv);
+        task.stop();
+        assert_eq!(task.matrix_outcomes_html(), html);
+        task.records.truncate(3);
+        assert!(task
+            .matrix_outcomes_html()
+            .contains("失敗した完了試行はありません。"));
+        for record in &mut task.records {
+            let frame = record.frames.last_mut().unwrap();
+            frame.stage = 2;
+            frame.state = "計画失敗";
+        }
+        assert!(task
+            .matrix_outcomes_html()
+            .contains("成功した完了試行はありません。"));
+        assert_eq!(
+            task.matrix_outcomes_html()
+                .matches("data-failure-stage=")
+                .count(),
+            1
+        );
+        task.start_arm_comparison(config());
+        assert!(task.matrix_outcomes_html().is_empty());
     }
     #[test]
     fn full_matrix_pause_stop_and_pending_cells_preserve_captured_conditions() {

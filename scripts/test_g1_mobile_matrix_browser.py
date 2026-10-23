@@ -43,6 +43,13 @@ def main():
         assert matrix.locator('[data-matrix-state="pending"]').count() == 11
         assert matrix.locator('[data-matrix-state="running"]').count() == 1
         assert matrix.locator('button:enabled').count() == 0
+        outcomes = page.locator('.mobile-matrix-outcomes')
+        assert 'Provisional results' in outcomes.text_content()
+        assert 'Incomplete 12' in outcomes.text_content()
+        assert outcomes.locator('.mobile-ranking-empty').count() == 1
+        assert outcomes.locator('.mobile-failure-table tbody tr').count() == 1
+        assert outcomes.locator('.mobile-failure-table tbody tr td').nth(2).text_content() == '12'
+        assert outcomes.locator('button:enabled').count() == 0
         frozen = page.locator('#mobile-status').text_content()
         page.wait_for_timeout(1500)
         assert page.locator('#mobile-status').text_content() == frozen
@@ -75,6 +82,18 @@ def main():
         assert matrix.locator('[data-matrix-state="pending"]').count() == 0
         assert view.get_attribute('aria-expanded') == 'true'
         summary = page.locator('#mobile-summary').inner_html()
+        expected = sorted((float(r['total_s']), index) for index, r in enumerate(records) if r['result'] == '成功')
+        ranked = outcomes.locator('[data-ranking-record]').evaluate_all('es=>es.map(e=>Number(e.dataset.rankingRecord))')
+        assert ranked == [index for _, index in expected]
+        assert 'Final results' in outcomes.text_content()
+        assert 'Incomplete 0' in outcomes.text_content()
+        assert outcomes.locator('button:enabled').count() == 24
+        failures = outcomes.locator('.mobile-failure-table tbody tr')
+        assert failures.evaluate_all('es=>es.map(e=>[Number(e.dataset.failureStage),Number(e.cells[2].textContent)])') == [[0, 12], [1, 6]]
+        choose(page, outcomes.locator('.mobile-ranking-table button').first, keyboard=True)
+        assert page.locator('#mobile-replay-record').input_value() == str(ranked[0])
+        choose(page, outcomes.locator('.mobile-failure-table button[data-mobile-record="15"]'))
+        assert 'Arm contacted obstacle' in page.locator('#mobile-status').text_content()
         for index in [0, 15, 23]:
             choose(page, matrix.locator(f'button[data-mobile-record="{index}"]'), keyboard=index == 15)
         assert 'All 4 stages completed' in page.locator('#mobile-status').text_content()
@@ -84,6 +103,8 @@ def main():
         assert page.locator('#mobile-summary').inner_html() == summary
         english_only(page)
         page.screenshot(path=str(args.output / 'matrix-en.png'))
+        outcomes.scroll_into_view_if_needed()
+        page.screenshot(path=str(args.output / 'outcomes-en.png'))
         page.locator('#language-select').select_option('ja')
         page.wait_for_function("document.querySelector('.mobile-matrix-table').textContent.includes('未実行')===false && document.querySelector('.mobile-matrix-table caption').textContent.includes('運搬24試行')")
         page.set_viewport_size({'width': 390, 'height': 844})
@@ -99,6 +120,9 @@ def main():
         assert abs(matrix.locator('th[scope=row]').first.bounding_box()['x'] - left) < 3
         assert abs(matrix.locator('thead th').first.bounding_box()['x'] - left) < 3
         page.screenshot(path=str(args.output / 'matrix-ja-mobile.png'))
+        choose(page, outcomes.locator('.mobile-ranking-table button').first)
+        assert '全4段階完了' in page.locator('#mobile-status').text_content()
+        page.screenshot(path=str(args.output / 'outcomes-ja-mobile.png'))
         view.tap()
         assert view.get_attribute('aria-expanded') == 'false'
         assert page.locator('#experiment-panel').bounding_box()['height'] < 400
@@ -134,6 +158,8 @@ def main():
         assert matrix.locator('[data-matrix-state]').count() == 24
         assert matrix.locator('button:enabled').count() == 0
         assert matrix.locator('[data-matrix-state="pending"]').count() > 0
+        assert '途中集計' in outcomes.text_content()
+        assert outcomes.locator('button:enabled').count() == 0
         _, partial = download(page, args.output / 'interrupted.csv')
         assert len(partial) < 24
         assert all(r['seed'] == '99' and r['scenario_id'] == '2' and r['recovery'] == 'true' and r['batch_state'] == 'interrupted' for r in partial)
@@ -142,6 +168,7 @@ def main():
         page.locator('#mobile-run-button').tap()
         page.wait_for_function("document.querySelector('#mobile-matrix-view-tools').hidden && !document.querySelector('#experiment-panel').classList.contains('comparison-wide')")
         assert not errors, errors
+        print('PASS: CSV-verified success order, stage/reason counts, partial/empty results, full-batch filter-independent summaries and original-index success/failure replays in ja/en/mobile', flush=True)
         print('PASS: shared matrix launch, preview-only restore, read-only interrupted matrix and automatic normal view on mode switch', flush=True)
         browser.close()
 

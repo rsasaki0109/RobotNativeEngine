@@ -413,6 +413,25 @@ Object.assign(english, {
   "比例制御の指令に対し、速度の変化も抑えて関節を動かします。": "Moves the joints with proportional control while also limiting changes in commanded speed.",
   "速度制限Pと同じ計画で、動き出し・目標切り替え・到達時間の違いを比べてください。": "Use the same plan as velocity-limited P and compare starts, target changes and completion time."
 });
+Object.assign(english, {
+  "成功組のランキング・失敗理由": "Successful pairs and failure reasons",
+  "確定集計": "Final results",
+  "途中集計": "Provisional results",
+  "未完了": "Incomplete",
+  "この配置・seed・再試行設定での結果です。成功した完了試行を総時間順に表示します。同時間は同順位。未完了は失敗に含めません。": "Results apply to this layout, seed and recovery policy. Completed successful trials are ordered by total simulated time. Equal times share a rank. Incomplete trials do not count as failures.",
+  "成功組 · 総時間の短い順": "Successful pairs · Shortest total time first",
+  "成功した完了試行はありません。": "No completed successful trials.",
+  "失敗した完了試行はありません。": "No completed failed trials.",
+  "成功組のランキング（横スクロール）": "Successful pairs (scroll horizontally)",
+  "失敗理由の集計（横スクロール）": "Failure reasons (scroll horizontally)",
+  "順位": "Rank",
+  "総時間 s": "Total time s",
+  "失敗した段階・理由": "Terminal failure stages and reasons",
+  "実際の終了理由": "Recorded terminal reason",
+  "件数": "Count",
+  "該当試行のリプレイ": "Replay matching trials",
+  "終了地点へ": "Replay endpoint"
+});
 const japanese = {
   "RNE Web Viewer — drag to orbit, scroll to zoom": "RNE Web Viewer — ドラッグで視点回転、スクロールで拡大",
   "WASD / arrow keys: drive · sliders: G1 joints · Reset: home": "WASD・矢印キー：移動 · スライダー：G1の関節 · リセット：初期位置",

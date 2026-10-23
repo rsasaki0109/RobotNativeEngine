@@ -619,6 +619,18 @@ batches keep a read-only matrix, including unexecuted cells. Display filters do
 not hide matrix cells. CSV schema 3 remains unchanged and reports 24 expected
 trials; shared links support the `mobile-matrix` mode in Japanese and English.
 
+Below the matrix, successful completed trials are ranked by total simulated time
+under the captured layout, seed and recovery policy. Equal tick counts share a
+competition rank (1, 1, 3); ties retain original trial order. Failed completed
+trials are grouped by their recorded terminal stage and reason, with a replay
+button for every matching trial. These are observed terminal reasons, rather
+than inferred root causes. Rankings apply to this one set of conditions.
+
+Results stay provisional until all 24 trials complete. Incomplete trials never
+count as failures. Interrupted batches keep read-only summaries; replay buttons
+become available after the full comparison. Display filters do not change these
+batch-wide summaries. Ranking does not reorder records, CSV or replay IDs.
+
 **Expand comparison table** widens the existing experiment panel so desktop
 screens can show all six arm columns together. On phones it uses the available
 height. Row labels and column headers remain fixed while scrolling the matrix.
