@@ -10,6 +10,8 @@ mod humanoid;
 mod lab;
 mod playground;
 mod scene;
+#[cfg(any(target_arch = "wasm32", test))]
+mod scene_config;
 mod surfaces;
 
 #[cfg(target_arch = "wasm32")]

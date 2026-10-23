@@ -76,6 +76,66 @@ python3 scripts/test_g1_experiments_browser.py --url http://127.0.0.1:8080/ \
   --browser /usr/bin/chromium --output work/experiments-browser
 ```
 
+## Scene editor and saved settings
+
+Open **Scene editing / Save** in the experiment panel. This selects the custom
+task and stops an active experiment. Click the overhead editor or a visible
+point on the 3D floor to place a goal or rectangular obstacle. Dragging the 3D
+view still orbits the camera; a click moves geometry only after floor picking
+completes. Coordinates are world **X/Z in metres**, with optional 0.1 m snapping.
+The coordinate inputs provide an alternative to pointer input. Erase removes the
+last obstacle under the pointer; undo keeps up to 40 editor states. Presets cover
+an open floor, narrow corridor, alternating obstacles and an unreachable enclosure.
+
+New obstacles can appear after 60 simulation steps (about two seconds). Imported
+obstacles may specify any `appear_step` from 0 to 900. Zero means present at start.
+All obstacles appearing at the same step trigger one map update and replan. The
+preview draws future obstacles as flat blue markers and dashed outlines; they
+are not collision obstacles until their insertion step. All four comparisons
+snapshot the same scene at start, including scheduled obstacles. Later draft
+changes cannot alter queued runs. Results include a scene ID so edited layouts
+with the same seed are distinguishable. In a custom task the geometry is explicit;
+seed is retained as metadata and does not randomize the edited layout.
+
+**Save in browser** stores one document in this origin's local storage, and
+**Load saved** restores it. JSON export/import lets a scene move between browsers.
+Loading restores the planner, controller and seed, stops any active run and
+previews the scene; it never starts playback automatically. File size is bounded
+to 64 KiB. Unsupported versions, unknown fields, non-finite values, invalid
+geometry and invalid selections are rejected before changing the current scene.
+A second validation boundary in Rust checks geometry before the simulation uses it.
+
+Version 1 document (planner/controller 0 or 1; seed is a u32):
+
+```json
+{
+  "format": "rne-navigation-scene",
+  "version": 1,
+  "selection": {"planner": 1, "controller": 1, "seed": 42},
+  "scene": {
+    "goal": {"x_m": 2.8, "z_m": -0.55},
+    "obstacles": [
+      {"x_m": 1.8, "z_m": 0, "width_m": 0.44, "depth_m": 1, "appear_step": 60}
+    ]
+  }
+}
+```
+
+Start remains at X/Z = 0 with heading +X and zero velocity. Goals are bounded to
+±3.4 m and at least 0.55 m from the start. Up to 24 obstacles may have dimensions
+0.2–3 m and outer edges within ±3.65 m. Static obstacles must leave 0.43 m from
+the start/goal centre (robot radius plus clearance). Overlapping walls and a
+valid but unreachable goal are allowed, so planning failure can be demonstrated.
+Storage is local to the browser; there is no scene upload service.
+
+Editor checks:
+
+```bash
+node --test web/rne_web_viewer/scene_editor.test.cjs
+python3 scripts/test_g1_scene_editor_browser.py --url http://127.0.0.1:8080/ \
+  --browser /usr/bin/chromium --output work/editor-browser
+```
+
 ## Walking, waving and checkpoint run
 
 **Walking motion ON** adds a bounded, alternating leg/arm pose animation while

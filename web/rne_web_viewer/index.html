@@ -6,6 +6,7 @@
     <title>RNE G1 Playground</title>
     <link data-trunk rel="rust" data-wasm-opt="0" />
     <link data-trunk rel="copy-file" href="controls.js" />
+    <link data-trunk rel="copy-file" href="scene_editor.js" />
     <link data-trunk rel="copy-file" href="replay.js" />
     <link data-trunk rel="copy-file" href="../../assets/robots/g1_description/LICENSE.unitree_ros" />
     <style>
@@ -188,6 +189,12 @@
       #experiment-panel button { padding: 7px 9px; background: #214858; color: #fff; border: 1px solid #668fa1;
         border-radius: 4px; font: inherit; cursor: pointer; }
       #experiment-panel .experiment-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+      #scene-editor-map { width: 100%; height: 230px; background: #101d28; touch-action: none; cursor: crosshair; }
+      #scene-editor { border-top: 1px solid #385061; margin-top: 8px; padding-top: 8px; }
+      #scene-editor-status[data-error=true], #scene-native-status { color: #ffb3a8; }
+      #experiment-panel input[type=checkbox] { width: auto; }
+      #scene-editor p { margin: 6px 0; }
+      body:has(#scene-editor[open]) #experiment-map { display: none; }
       #experiment-status { color: #a5e5c5; }
       #experiment-map { width: 100%; height: 125px; display: block; border: 1px solid #385061; border-radius: 4px; }
       .experiment-results { overflow-x: auto; }
@@ -233,7 +240,7 @@
       <p>G1の平面移動モデルで手法を比較。青＝計画、緑＝実軌跡、橙＝障害物。</p>
       <div class="experiment-options">
       <label for="experiment-task-select">タスク
-        <select id="experiment-task-select"><option value="0">目的地へ移動</option><option value="1">障害物を迂回</option><option value="2">途中で障害物を追加（2秒後）</option></select>
+        <select id="experiment-task-select"><option value="0">目的地へ移動</option><option value="1">障害物を迂回</option><option value="2">途中で障害物を追加（2秒後）</option><option value="3">カスタムシーン</option></select>
       </label>
       <label for="experiment-seed-editor">配置seed <input id="experiment-seed-editor" type="number" min="0" max="4294967295" step="1" value="42"></label>
       <label for="experiment-planner-select">プランナー
@@ -243,8 +250,34 @@
         <select id="experiment-controller-select"><option value="0">Pure Pursuit</option><option value="1">DWA（予測軌道を評価）</option></select>
       </label>
       </div>
+      <details id="scene-editor">
+        <summary>シーン編集・保存</summary>
+        <p>平面図または3Dの床をクリックして配置。編集するとカスタムタスクに切り替わり、実行中の比較は停止します。</p>
+        <div class="experiment-options">
+          <label>プリセット<select id="scene-preset"><option value="open">開けた床</option><option value="narrow">狭い通路</option><option value="slalom">交互の障害物</option><option value="blocked">到達不能な囲い</option></select></label>
+          <button type="button" id="scene-preset-apply">適用</button>
+          <label>編集ツール<select id="scene-tool"><option value="goal">目標を置く</option><option value="obstacle">障害物を置く</option><option value="erase">障害物を消す</option><option value="view">視点操作のみ</option></select></label>
+          <label><input id="scene-snap" type="checkbox" checked> 0.1m刻み</label>
+          <label>障害物の幅 m<input id="scene-width" type="number" min="0.2" max="3" step="0.1" value="0.5"></label>
+          <label>奥行 m<input id="scene-depth" type="number" min="0.2" max="3" step="0.1" value="0.8"></label>
+        </div>
+        <label><input id="scene-delayed" type="checkbox"> 新しい障害物を2秒後に出現させる</label>
+        <svg id="scene-editor-map" viewBox="-4 -4 8 8" role="img" aria-label="クリックして目標と障害物を配置する床の平面図"></svg>
+        <p id="scene-obstacles"></p>
+        <div class="experiment-options"><label>X m<input id="scene-x" type="number" step="0.1" value="2.8"></label><label>Z m<input id="scene-z" type="number" step="0.1" value="-0.6"></label></div>
+        <div class="experiment-buttons"><button type="button" id="scene-place">座標で配置</button><button type="button" id="scene-undo" disabled>元に戻す</button><button type="button" id="scene-clear">障害物を全削除</button></div>
+        <div class="experiment-buttons"><button type="button" id="scene-save-local">ブラウザに保存</button><button type="button" id="scene-load-local">保存を読込</button><button type="button" id="scene-export">JSONを書き出す</button></div>
+        <label>JSONを読み込む<input id="scene-import" type="file" accept=".json,application/json"></label>
+        <p id="scene-editor-status" role="status">編集内容は次の実行から適用します。橙＝障害物、枠だけ＝時間指定の障害物。</p>
+        <p id="scene-native-status" role="status"></p>
+        <p>開始点はX/Z=0、向きは+X固定。目標は±3.4m以内、障害物は最大24個です。保存・読込だけでは実行しません。カスタムではseedは配置を変更しません。</p>
+      </details>
+      <input id="scene-json" type="hidden" value='{"goal":{"x_m":2.8,"z_m":-0.55},"obstacles":[]}'>
+      <input id="scene-revision" type="hidden" value="0"><input id="scene-editor-visible" type="hidden" value="0">
+      <input id="scene-floor-click" type="hidden" value="0"><input id="scene-click-x" type="hidden" value="0"><input id="scene-click-y" type="hidden" value="0"><span id="scene-floor-result" hidden></span>
       <input id="experiment-seed" type="hidden" value="42">
       <input id="experiment-task" type="hidden" value="0"><input id="experiment-planner" type="hidden" value="0"><input id="experiment-controller" type="hidden" value="0">
+      <input id="experiment-intent" type="hidden" value="0">
       <input id="experiment-run" type="hidden" value="0"><input id="experiment-pause" type="hidden" value="0"><input id="experiment-step" type="hidden" value="0"><input id="experiment-compare" type="hidden" value="0"><input id="experiment-manual" type="hidden" value="0">
       <div class="experiment-buttons">
         <button type="button" id="experiment-run-button">選択条件で実行</button><button type="button" id="experiment-compare-button">4組を比較（高速）</button>
@@ -384,7 +417,8 @@
         Inspection only: recorded frames are read in the browser; policy and physics are not rerun.
       </small>
     </details>
-    <script src="controls.js"></script>
+    <script src="scene_editor.js?v=1"></script>
+    <script src="controls.js?v=scene-editor-v1"></script>
     <script src="replay.js"></script>
   </body>
 </html>

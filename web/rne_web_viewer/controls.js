@@ -72,14 +72,17 @@
     }
   }
   function signal(id) {
+    const intent = {"experiment-manual": "0", "experiment-run": "1", "experiment-compare": "2"}[id];
+    if (intent !== undefined) document.getElementById("experiment-intent").value = intent;
     const counter = document.getElementById(id);
     counter.value = String((Number(counter.value) + 1) % 4294967296);
   }
+  const sceneEditor = root.RNESceneEditor.init({document, signal, releaseAll});
   const experimentPanel = document.getElementById("experiment-panel");
   if (root.innerWidth > 700) experimentPanel.open = true;
   for (const field of ["task", "planner", "controller"]) {
     const select = document.getElementById("experiment-" + field + "-select");
-    select.addEventListener("change", () => { document.getElementById("experiment-" + field).value = select.value; });
+    select.addEventListener("change", () => { document.getElementById("experiment-" + field).value = select.value; if (field === "task") sceneEditor.selectTask(select.value); });
   }
   const seedEditor = document.getElementById("experiment-seed-editor");
   seedEditor.addEventListener("change", () => {
@@ -91,7 +94,8 @@
   for (const action of ["run", "pause", "step", "compare", "manual"]) {
     document.getElementById("experiment-" + action + "-button").addEventListener("click", () => {
       releaseAll();
-      if (action === "run" || action === "compare") homeTargets();
+      if (action === "run" || action === "compare") { homeTargets(); sceneEditor.close(); }
+      if (action === "manual") sceneEditor.close();
       signal("experiment-" + action);
     });
   }
@@ -99,6 +103,7 @@
     document.querySelector(".experiment-results").scrollIntoView({ block: "nearest" });
   });
   function takeManualControl() {
+    sceneEditor.close();
     if (document.getElementById("playground").dataset.experimentActive === "true") signal("experiment-manual");
   }
   document.getElementById("control-wave").addEventListener("click", () => signal("control-wave-counter"));
@@ -110,9 +115,9 @@
     motionButton.textContent = "歩行モーション " + (enabled.value === "1" ? "ON" : "OFF");
   });
   document.getElementById("mission-start").addEventListener("click", () => {
-    releaseAll(); homeTargets(); signal("control-mission-counter");
+    sceneEditor.close(); releaseAll(); homeTargets(); signal("control-mission-counter");
   });
   document.getElementById("control-reset").addEventListener("click", () => {
-    releaseAll(); homeTargets(); signal("control-reset-counter");
+    sceneEditor.close(); releaseAll(); homeTargets(); signal("control-reset-counter");
   });
 })(typeof window === "undefined" ? globalThis : window);
