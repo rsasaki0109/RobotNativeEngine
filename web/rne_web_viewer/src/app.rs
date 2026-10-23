@@ -2,6 +2,7 @@
 
 use crate::experiment::{Config, Experiment};
 use crate::humanoid::{G1Input, G1Scene};
+use crate::scene_config::{pick_floor, SceneSpec};
 use rne_render_wgpu::{CameraOrbit, InteractiveViewer, ViewerError};
 use std::sync::Arc;
 use winit::application::ApplicationHandler;
@@ -68,6 +69,9 @@ struct App {
     mission_counter: u32,
     experiment: Experiment,
     experiment_counters: [u32; 5],
+    scene_revision: u32,
+    floor_counter: u32,
+    scene_error: Option<String>,
     dragging: bool,
     last_cursor: Option<PhysicalPosition<f64>>,
 }
@@ -247,6 +251,45 @@ impl App {
                 .filter(|value| value.is_finite())
                 .ok_or_else(|| format!("invalid control: {id}"))
         };
+        let scene_revision = value("scene-revision")? as u32;
+        if scene_revision != self.scene_revision {
+            use wasm_bindgen::JsCast;
+            let json = document
+                .get_element_by_id("scene-json")
+                .and_then(|e| e.dyn_into::<web_sys::HtmlInputElement>().ok())
+                .map(|e| e.value())
+                .unwrap_or_default();
+            match SceneSpec::parse(&json) {
+                Ok(spec) => {
+                    self.experiment.draft = spec;
+                    self.scene_error = None;
+                }
+                Err(error) => {
+                    self.scene_error = Some(error);
+                }
+            }
+            if let Some(element) = document.get_element_by_id("scene-native-status") {
+                element.set_text_content(self.scene_error.as_deref());
+            }
+            self.scene_revision = scene_revision;
+        }
+        self.experiment.editor_visible = value("scene-editor-visible")? == 1.0;
+        let floor_counter = value("scene-floor-click")? as u32;
+        if floor_counter != self.floor_counter {
+            let hit = pick_floor(
+                viewer.camera(),
+                &self.orbit.camera_transform(),
+                value("scene-click-x")?,
+                value("scene-click-y")?,
+            );
+            if let Some(element) = document.get_element_by_id("scene-floor-result") {
+                element.set_text_content(Some(&hit.map_or_else(
+                    || format!("{floor_counter},error,error"),
+                    |p| format!("{floor_counter},{},{}", p.x_m, p.z_m),
+                )));
+            }
+            self.floor_counter = floor_counter;
+        }
         let reset_counter = value("control-reset-counter")? as u32;
         let wave_counter = value("control-wave-counter")? as u32;
         let mission_counter = value("control-mission-counter")? as u32;
@@ -269,16 +312,24 @@ impl App {
             std::array::from_fn(|i| counters[i] != self.experiment_counters[i]);
         let reset = reset_counter != self.reset_counter;
         let mission = mission_counter != self.mission_counter;
-        if reset || mission || changed[4] {
+        let intent = value("experiment-intent")? as u32;
+        if reset || mission {
             self.experiment.stop();
-        } else if changed[0] || changed[3] {
+        } else if (changed[0] || changed[3]) && intent != 0 {
             let config = Config {
-                task: (value("experiment-task")? as usize).min(2),
+                task: (value("experiment-task")? as usize).min(3),
                 planner: (value("experiment-planner")? as usize).min(1),
                 controller: (value("experiment-controller")? as usize).min(1),
                 seed: value("experiment-seed")?.clamp(0.0, f64::from(u32::MAX)) as u32,
             };
-            self.experiment.start(config, changed[3]);
+            if config.task == 3 && self.scene_error.is_some() {
+                self.experiment.stop();
+            } else {
+                self.experiment.start(config, intent == 2);
+            }
+        }
+        if changed[4] && intent == 0 {
+            self.experiment.stop();
         }
         if changed[1] && self.experiment.active() {
             self.experiment.paused = !self.experiment.paused;
@@ -317,7 +368,7 @@ impl App {
         if let Some(body) = document.get_element_by_id("playground") {
             let _ = body.set_attribute(
                 "data-experiment-active",
-                if self.experiment.active() {
+                if self.experiment.active() || self.experiment.editor_visible {
                     "true"
                 } else {
                     "false"
@@ -334,6 +385,14 @@ impl App {
         }
         if let Some(element) = document.get_element_by_id("experiment-map") {
             element.set_inner_html(&self.experiment.map_svg());
+            let _ = element.set_attribute(
+                "viewBox",
+                if self.experiment.full_map() {
+                    "-4 -4 8 8"
+                } else {
+                    "-0.6 -2 4.1 4"
+                },
+            );
         }
         let results = self.experiment.results_html();
         if let Some(element) = document.get_element_by_id("experiment-records") {
@@ -347,7 +406,7 @@ impl App {
             }
         }
         if let Some(element) = document.get_element_by_id("control-wave") {
-            if self.experiment.active() {
+            if self.experiment.active() || self.experiment.editor_visible {
                 let _ = element.set_attribute("disabled", "");
             } else {
                 let _ = element.remove_attribute("disabled");

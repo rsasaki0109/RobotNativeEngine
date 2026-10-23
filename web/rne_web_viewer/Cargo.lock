@@ -2134,6 +2134,8 @@ dependencies = [
  "rne_robot",
  "rne_urdf_import",
  "rne_world",
+ "serde",
+ "serde_json",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",

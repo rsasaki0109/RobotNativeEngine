@@ -1,4 +1,5 @@
 //! Reproducible planner/controller experiments on a planar circular footprint.
+use crate::scene_config::{BoxSpec, Point, SceneSpec};
 use rne_core::{SimClock, SimDuration};
 use rne_math::{Quat, Vec3};
 use rne_nav::{
@@ -14,7 +15,12 @@ use std::fmt::Write;
 const DT_S: f64 = 33_333_333.0 / 1_000_000_000.0;
 const RADIUS_M: f64 = 0.28;
 const MAX_TICKS: u32 = 1800;
-const TASKS: [&str; 3] = ["目的地へ移動", "障害物を迂回", "途中で障害物を追加"];
+const TASKS: [&str; 4] = [
+    "目的地へ移動",
+    "障害物を迂回",
+    "途中で障害物を追加",
+    "カスタムシーン",
+];
 const PLANNERS: [&str; 2] = ["直線", "A*"];
 const CONTROLLERS: [&str; 2] = ["Pure Pursuit", "DWA"];
 
@@ -116,6 +122,8 @@ struct Run {
     command: VelocityCommand2d,
     goal: Pose2d,
     obstacles: Vec<Obstacle>,
+    pending: Vec<BoxSpec>,
+    scene_id: Option<String>,
     map: Costmap,
     path: Path2d,
     trace: Vec<Pose2d>,
@@ -131,28 +139,65 @@ struct Run {
 }
 
 impl Run {
+    #[cfg(test)]
     fn new(config: Config) -> Self {
+        Self::with_scene(config, None)
+    }
+
+    fn with_scene(config: Config, custom: Option<&SceneSpec>) -> Self {
         let shift = f64::from(config.seed.wrapping_mul(1664525).wrapping_add(1013904223) >> 24)
             / 255.0
             * 0.2
             - 0.1;
-        let obstacles = if config.task == 1 {
-            vec![Obstacle {
-                x: 1.4,
-                y: shift,
-                hx: 0.25,
-                hy: 0.5,
-            }]
+        let spec = if config.task == 3 {
+            custom.cloned().unwrap_or_default()
         } else {
-            vec![]
+            SceneSpec {
+                goal: Point {
+                    x_m: 2.8,
+                    z_m: if config.task == 0 { -0.55 } else { 0.0 },
+                },
+                obstacles: match config.task {
+                    1 => vec![BoxSpec {
+                        x_m: 1.4,
+                        z_m: -shift,
+                        width_m: 0.5,
+                        depth_m: 1.0,
+                        appear_step: 0,
+                    }],
+                    2 => vec![BoxSpec {
+                        x_m: 1.8,
+                        z_m: -(f64::from(config.seed % 11) * 0.015 - 0.075),
+                        width_m: 0.44,
+                        depth_m: 1.0,
+                        appear_step: 60,
+                    }],
+                    _ => vec![],
+                },
+            }
         };
+        let obstacles: Vec<_> = spec
+            .obstacles
+            .iter()
+            .filter(|o| o.appear_step == 0)
+            .map(obstacle)
+            .collect();
+        let pending = spec
+            .obstacles
+            .iter()
+            .filter(|o| o.appear_step > 0)
+            .cloned()
+            .collect();
+        let scene_id = (config.task == 3).then(|| spec.id());
         let mut run = Self {
             config,
             pose: Pose2d::IDENTITY,
             command: VelocityCommand2d::ZERO,
-            goal: Pose2d::new(2.8, if config.task == 0 { 0.55 } else { 0.0 }, 0.0),
+            goal: Pose2d::new(spec.goal.x_m, -spec.goal.z_m, 0.0),
             map: make_map(&obstacles),
             obstacles,
+            pending,
+            scene_id,
             path: Path2d::from_points(&[]),
             trace: vec![Pose2d::IDENTITY],
             state: State::Running,
@@ -205,14 +250,15 @@ impl Run {
         if self.state != State::Running {
             return;
         }
-        if self.config.task == 2 && self.ticks == 60 {
-            let shift = f64::from(self.config.seed % 11) * 0.015 - 0.075;
-            self.obstacles.push(Obstacle {
-                x: 1.8,
-                y: shift,
-                hx: 0.22,
-                hy: 0.5,
-            });
+        let due: Vec<_> = self
+            .pending
+            .iter()
+            .filter(|o| o.appear_step == self.ticks)
+            .map(obstacle)
+            .collect();
+        if !due.is_empty() {
+            self.obstacles.extend(due);
+            self.pending.retain(|o| o.appear_step != self.ticks);
             self.map = make_map(&self.obstacles);
             self.min_clearance_m = self.min_clearance_m.min(
                 self.obstacles
@@ -337,6 +383,7 @@ impl Run {
 #[derive(Clone, Debug, PartialEq)]
 struct Record {
     config: Config,
+    scene_id: Option<String>,
     state: State,
     elapsed_s: f64,
     rmse_m: Option<f64>,
@@ -353,6 +400,9 @@ pub(crate) struct Experiment {
     records: Vec<Record>,
     pub(crate) paused: bool,
     batch: bool,
+    pub(crate) draft: SceneSpec,
+    batch_scene: Option<SceneSpec>,
+    pub(crate) editor_visible: bool,
 }
 
 impl Experiment {
@@ -360,6 +410,7 @@ impl Experiment {
         self.queue.clear();
         self.paused = false;
         self.batch = batch;
+        self.batch_scene = (config.task == 3).then(|| self.draft.clone());
         if batch {
             self.records.clear();
             for planner in 0..2 {
@@ -371,9 +422,12 @@ impl Experiment {
                     });
                 }
             }
-            self.run = Some(Run::new(self.queue.pop_front().unwrap()));
+            self.run = Some(Run::with_scene(
+                self.queue.pop_front().unwrap(),
+                self.batch_scene.as_ref(),
+            ));
         } else {
-            self.run = Some(Run::new(config));
+            self.run = Some(Run::with_scene(config, self.batch_scene.as_ref()));
         }
     }
     pub(crate) fn stop(&mut self) {
@@ -401,6 +455,7 @@ impl Experiment {
                 }
                 self.records.push(Record {
                     config: run.config,
+                    scene_id: run.scene_id.clone(),
                     state: run.state,
                     elapsed_s: run.clock.sim_time().as_seconds().value(),
                     rmse_m: run.rmse(),
@@ -416,7 +471,7 @@ impl Experiment {
             }
             if run.recorded {
                 if let Some(config) = self.queue.pop_front() {
-                    self.run = Some(Run::new(config));
+                    self.run = Some(Run::with_scene(config, self.batch_scene.as_ref()));
                 } else {
                     return;
                 }
@@ -427,10 +482,19 @@ impl Experiment {
         self.run
             .as_ref()
             .map(|r| (r.pose.x_m, -r.pose.y_m, r.pose.yaw_rad))
+            .or_else(|| self.editor_visible.then_some((0.0, 0.0, 0.0)))
+    }
+    pub(crate) fn full_map(&self) -> bool {
+        self.run.as_ref().is_some_and(|r| r.config.task == 3)
     }
     pub(crate) fn status(&self) -> String {
         let Some(r) = &self.run else {
-            return "手動操作 · タスクと手法を選んで実行".into();
+            return if self.editor_visible {
+                "シーン編集中 · 編集を終えて選択条件で実行"
+            } else {
+                "手動操作 · タスクと手法を選んで実行"
+            }
+            .into();
         };
         format!(
             "{} · {} × {} · {}{} · {:.2} s · 再計画 {}回",
@@ -462,8 +526,12 @@ impl Experiment {
     pub(crate) fn results_html(&self) -> String {
         let mut html = String::new();
         for r in self.records.iter().rev() {
-            let tag = ["移動", "迂回", "途中追加"][r.config.task];
-            let _ = write!(html, "<tr><td title='{}'>{tag}<br>seed {}</td><td><details><summary>{}<br>{}</summary><p>移動 {:.2} m<br>最小余裕 {} m<br>計画 {:.2} m<br>再計画 {}回</p></details></td><td>{}</td><td>{:.2}</td><td>{}</td></tr>",
+            let tag = ["移動", "迂回", "途中追加", "カスタム"][r.config.task];
+            let scene_tag = r
+                .scene_id
+                .as_ref()
+                .map_or_else(String::new, |id| format!("<br>scene {}", &id[..8]));
+            let _ = write!(html, "<tr><td title='{}'>{tag}<br>seed {}{scene_tag}</td><td><details><summary>{}<br>{}</summary><p>移動 {:.2} m<br>最小余裕 {} m<br>計画 {:.2} m<br>再計画 {}回</p></details></td><td>{}</td><td>{:.2}</td><td>{}</td></tr>",
                 TASKS[r.config.task], r.config.seed, PLANNERS[r.config.planner], CONTROLLERS[r.config.controller],
                 r.travelled_m, number(r.clearance_m.is_finite().then_some(r.clearance_m)), r.planned_m, r.replans,
                 r.state.label(), r.elapsed_s, number(r.rmse_m));
@@ -474,7 +542,7 @@ impl Experiment {
         let Some(r) = &self.run else {
             return String::new();
         };
-        let mut svg = String::from("<rect x='-0.6' y='-2' width='4.1' height='4' fill='#101d28'/>");
+        let mut svg = String::from("<rect x='-4' y='-4' width='8' height='8' fill='#101d28'/>");
         for o in &r.obstacles {
             let _ = write!(
                 svg,
@@ -504,6 +572,12 @@ impl Experiment {
     }
     pub(crate) fn overlay(&self, scene: &mut RenderScene) {
         let Some(r) = &self.run else {
+            if self.editor_visible {
+                for spec in &self.draft.obstacles {
+                    draw_obstacle(scene, obstacle(spec), spec.appear_step > 0);
+                }
+                draw_goal(scene, self.draft.goal);
+            }
             return;
         };
         for o in &r.obstacles {
@@ -555,6 +629,42 @@ impl Experiment {
         ));
     }
 }
+fn obstacle(spec: &BoxSpec) -> Obstacle {
+    Obstacle {
+        x: spec.x_m,
+        y: -spec.z_m,
+        hx: spec.width_m * 0.5,
+        hy: spec.depth_m * 0.5,
+    }
+}
+fn draw_obstacle(scene: &mut RenderScene, o: Obstacle, timed: bool) {
+    scene.items.push(RenderScene::item_from_visual(
+        Transform3::from_translation_rotation(
+            Vec3::new(o.x, if timed { 0.02 } else { 0.3 }, -o.y),
+            Quat::IDENTITY,
+        ),
+        VisualShape::Box {
+            size_m: Vec3::new(o.hx * 2.0, if timed { 0.03 } else { 0.6 }, o.hy * 2.0),
+        },
+        if timed {
+            [0.1, 0.45, 0.8, 1.0]
+        } else {
+            [0.55, 0.24, 0.07, 1.0]
+        },
+        Transform3::IDENTITY,
+    ));
+}
+fn draw_goal(scene: &mut RenderScene, goal: Point) {
+    scene.items.push(RenderScene::item_from_visual(
+        Transform3::from_translation_rotation(Vec3::new(goal.x_m, 0.03, goal.z_m), Quat::IDENTITY),
+        VisualShape::Box {
+            size_m: Vec3::new(0.2, 0.02, 0.2),
+        },
+        [1.0, 0.7, 0.1, 1.0],
+        Transform3::IDENTITY,
+    ));
+}
+
 fn number(value: Option<f64>) -> String {
     value.map_or_else(|| "—".into(), |v| format!("{v:.3}"))
 }
@@ -615,6 +725,93 @@ mod tests {
             assert!(r.min_clearance_m > 0.0);
             assert_eq!(r.replans, u32::from(task == 2));
         }
+    }
+    #[test]
+    fn custom_batch_snapshots_geometry_and_records_its_identity() {
+        let mut e = Experiment {
+            editor_visible: true,
+            ..Experiment::default()
+        };
+        assert!(!e.active());
+        assert_eq!(e.pose(), Some((0.0, 0.0, 0.0)));
+        let id = e.draft.id();
+        e.start(
+            Config {
+                task: 3,
+                seed: 42,
+                ..Config::default()
+            },
+            true,
+        );
+        assert!(e.full_map());
+        e.draft.goal.x_m = -2.0; // Later edits must not change queued comparisons.
+        assert_ne!(e.draft.id(), id);
+        for _ in 0..MAX_TICKS {
+            e.advance(false);
+            if e.records.len() == 4 {
+                break;
+            }
+        }
+        assert_eq!(e.records.len(), 4);
+        assert!(e
+            .records
+            .iter()
+            .all(|r| r.state == State::Success && r.scene_id.as_ref() == Some(&id)));
+        assert!(e.results_html().contains(&id[..8]));
+    }
+    #[test]
+    fn custom_enclosure_is_valid_but_unreachable_and_timed_scene_replans() {
+        let mut spec = SceneSpec {
+            goal: Point { x_m: 2.0, z_m: 0.0 },
+            obstacles: vec![],
+        };
+        for (x, z, w, d) in [
+            (1.1, 0.0, 0.2, 2.0),
+            (2.9, 0.0, 0.2, 2.0),
+            (2.0, -0.9, 1.8, 0.2),
+            (2.0, 0.9, 1.8, 0.2),
+        ] {
+            spec.obstacles.push(BoxSpec {
+                x_m: x,
+                z_m: z,
+                width_m: w,
+                depth_m: d,
+                appear_step: 0,
+            });
+        }
+        spec.validate().unwrap();
+        let r = Run::with_scene(
+            Config {
+                task: 3,
+                planner: 1,
+                ..Config::default()
+            },
+            Some(&spec),
+        );
+        assert_eq!(r.state, State::PlanFailed);
+        assert_eq!(r.rmse(), None);
+        let mut timed = SceneSpec::default();
+        timed.obstacles.push(BoxSpec {
+            x_m: 1.8,
+            z_m: 0.0,
+            width_m: 0.44,
+            depth_m: 1.0,
+            appear_step: 60,
+        });
+        timed.validate().unwrap();
+        let mut r = Run::with_scene(
+            Config {
+                task: 3,
+                ..Config::default()
+            },
+            Some(&timed),
+        );
+        for _ in 0..61 {
+            r.tick();
+        }
+        assert_eq!(r.replans, 1);
+        assert_eq!(r.obstacles.len(), 1);
+        assert_eq!(r.state, State::PlanFailed);
     }
     #[test]
     fn contact_and_no_admissible_command_are_distinct_terminal_failures() {
