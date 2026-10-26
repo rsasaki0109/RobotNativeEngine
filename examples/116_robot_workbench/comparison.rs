@@ -1,0 +1,272 @@
+//! Offline comparison of evaluation evidence; never runs or modifies a recording.
+use anyhow::{ensure, Context, Result};
+use serde::{Deserialize, Serialize};
+use std::{collections::BTreeSet, io::Read, path::Path};
+
+const TOLERANCE_M: f64 = 0.001;
+const MAX_REPORT_BYTES: u64 = 1024 * 1024;
+
+#[derive(Debug, Deserialize)]
+struct Report {
+    schema_version: u32,
+    catalog: String,
+    passed: bool,
+    cases: Vec<Case>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Case {
+    name: String,
+    expected: String,
+    expected_reason: Option<String>,
+    expected_phase: Option<String>,
+    outcome: String,
+    expectation_met: bool,
+    reason: Option<String>,
+    failed_phase: Option<String>,
+    replay_verified: Option<bool>,
+    placement: Option<Placement>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Placement {
+    planned_destination_m: [f64; 3],
+    placement_error_x_z_m: [f64; 2],
+    maximum_settled_drift_m: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub(crate) struct Comparison {
+    pub passed: bool,
+    tolerance_m: f64,
+    regressions: Vec<String>,
+}
+
+fn read(path: &Path) -> Result<Report> {
+    let mut bytes = Vec::new();
+    std::fs::File::open(path)?
+        .take(MAX_REPORT_BYTES + 1)
+        .read_to_end(&mut bytes)?;
+    ensure!(
+        bytes.len() as u64 <= MAX_REPORT_BYTES,
+        "report exceeds 1 MiB"
+    );
+    serde_json::from_slice(&bytes).context("invalid evaluation report")
+}
+
+fn validate(report: &Report) -> Result<()> {
+    ensure!(report.schema_version == 1, "unsupported report schema");
+    ensure!(
+        report.catalog == "lekiwi-pick-place-v1",
+        "unsupported catalog"
+    );
+    let names: BTreeSet<_> = report.cases.iter().map(|c| c.name.as_str()).collect();
+    ensure!(
+        report.cases.len() == 6
+            && names
+                == BTreeSet::from([
+                    "nominal",
+                    "diagonal",
+                    "reverse",
+                    "missed-block",
+                    "unequal-height",
+                    "out-of-range"
+                ]),
+        "catalog must contain exactly six unique cases"
+    );
+    for case in &report.cases {
+        ensure!(
+            ["completed", "failed", "rejected", "error"].contains(&case.outcome.as_str()),
+            "invalid outcome"
+        );
+        if let Some(p) = &case.placement {
+            ensure!(
+                p.planned_destination_m
+                    .iter()
+                    .chain(&p.placement_error_x_z_m)
+                    .all(|v| v.is_finite())
+                    && p.maximum_settled_drift_m.is_finite()
+                    && p.maximum_settled_drift_m >= 0.0,
+                "invalid placement metrics"
+            );
+        }
+    }
+    Ok(())
+}
+
+fn healthy(case: &Case) -> bool {
+    case.expectation_met
+        && case.outcome == case.expected
+        && case.outcome != "error"
+        && case.expected_reason.as_ref().is_none_or(|r| {
+            case.reason
+                .as_ref()
+                .is_some_and(|actual| actual.contains(r))
+        })
+        && case
+            .expected_phase
+            .as_ref()
+            .is_none_or(|p| case.failed_phase.as_ref() == Some(p))
+        && match case.outcome.as_str() {
+            "completed" => case.replay_verified == Some(true) && case.placement.is_some(),
+            "failed" => case.replay_verified == Some(true),
+            "rejected" => case.replay_verified.is_none(),
+            _ => false,
+        }
+}
+
+fn compare(baseline: &Report, candidate: &Report) -> Result<Comparison> {
+    validate(baseline)?;
+    validate(candidate)?;
+    ensure!(
+        baseline.passed && baseline.cases.iter().all(healthy),
+        "baseline must be a passing evaluation with valid evidence"
+    );
+    let mut regressions = Vec::new();
+    if !candidate.passed {
+        regressions.push("candidate evaluation did not pass".into());
+    }
+    for old in &baseline.cases {
+        let new = candidate.cases.iter().find(|c| c.name == old.name).unwrap();
+        ensure!(
+            old.expected == new.expected
+                && old.expected_reason == new.expected_reason
+                && old.expected_phase == new.expected_phase,
+            "{}: changed case expectations",
+            old.name
+        );
+        if !healthy(new) {
+            regressions.push(format!(
+                "{}: outcome, expectation, or replay evidence failed",
+                old.name
+            ));
+        }
+        if let (Some(a), Some(b)) = (&old.placement, &new.placement) {
+            ensure!(
+                a.planned_destination_m == b.planned_destination_m,
+                "{}: changed destination",
+                old.name
+            );
+            let error =
+                |p: &Placement| p.placement_error_x_z_m[0].hypot(p.placement_error_x_z_m[1]);
+            for (label, before, after) in [
+                ("placement error", error(a), error(b)),
+                (
+                    "settled drift",
+                    a.maximum_settled_drift_m,
+                    b.maximum_settled_drift_m,
+                ),
+            ] {
+                if after > before + TOLERANCE_M {
+                    regressions.push(format!(
+                        "{}: {label} increased from {before:.6} m to {after:.6} m",
+                        old.name
+                    ));
+                }
+            }
+        }
+    }
+    Ok(Comparison {
+        passed: regressions.is_empty(),
+        tolerance_m: TOLERANCE_M,
+        regressions,
+    })
+}
+
+/// Compares reports with a fixed 1 mm allowance for placement error and drift.
+pub(crate) fn run(baseline: &Path, candidate: &Path) -> Result<Comparison> {
+    compare(&read(baseline)?, &read(candidate)?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn fixture() -> Report {
+        let cases = [
+            "nominal",
+            "diagonal",
+            "reverse",
+            "missed-block",
+            "unequal-height",
+            "out-of-range",
+        ]
+        .into_iter()
+        .map(|name| Case {
+            name: name.into(),
+            expected: "completed".into(),
+            expected_reason: None,
+            expected_phase: None,
+            outcome: "completed".into(),
+            expectation_met: true,
+            reason: None,
+            failed_phase: None,
+            replay_verified: Some(true),
+            placement: Some(Placement {
+                planned_destination_m: [0.0; 3],
+                placement_error_x_z_m: [0.001, 0.0],
+                maximum_settled_drift_m: 0.0,
+            }),
+        })
+        .collect();
+        Report {
+            schema_version: 1,
+            catalog: "lekiwi-pick-place-v1".into(),
+            passed: true,
+            cases,
+        }
+    }
+    #[test]
+    fn order_is_irrelevant_and_improvement_passes() {
+        let mut candidate = fixture();
+        candidate.cases.reverse();
+        candidate.cases[0]
+            .placement
+            .as_mut()
+            .unwrap()
+            .placement_error_x_z_m = [0.0; 2];
+        assert!(compare(&fixture(), &candidate).unwrap().passed);
+    }
+    #[test]
+    fn detects_metrics_and_replay_even_with_stale_pass_flag() {
+        let mut candidate = fixture();
+        candidate.cases[0]
+            .placement
+            .as_mut()
+            .unwrap()
+            .placement_error_x_z_m = [0.003, 0.0];
+        candidate.cases[1]
+            .placement
+            .as_mut()
+            .unwrap()
+            .maximum_settled_drift_m = 0.002;
+        candidate.cases[2].replay_verified = Some(false);
+        assert_eq!(
+            compare(&fixture(), &candidate).unwrap().regressions.len(),
+            3
+        );
+        candidate.cases[3].placement = None;
+        assert_eq!(
+            compare(&fixture(), &candidate).unwrap().regressions.len(),
+            4
+        );
+    }
+    #[test]
+    fn incompatible_or_unhealthy_reports_are_rejected() {
+        let mut candidate = fixture();
+        candidate.cases[1].name = "nominal".into();
+        assert!(compare(&fixture(), &candidate).is_err());
+        candidate = fixture();
+        candidate.schema_version = 2;
+        assert!(compare(&fixture(), &candidate).is_err());
+        candidate = fixture();
+        candidate.cases[0]
+            .placement
+            .as_mut()
+            .unwrap()
+            .planned_destination_m[0] = 1.0;
+        assert!(compare(&fixture(), &candidate).is_err());
+        candidate = fixture();
+        candidate.passed = false;
+        assert!(compare(&candidate, &fixture()).is_err());
+    }
+}
