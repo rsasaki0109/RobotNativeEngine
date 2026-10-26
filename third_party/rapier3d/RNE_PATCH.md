@@ -147,3 +147,22 @@ replay and constructor/coordinate arithmetic checks. A separate unchanged
 72-world source-transition run retains scalar calibration FAIL 0/4. These results
 do not establish full private-state equality, motor accuracy, convergence or
 production readiness; the inverse-diagonal candidate remains rejected.
+
+
+## Branched multibody island connectivity
+
+`src/dynamics/island_manager.rs` keeps every reduced-coordinate multibody in a
+single solver island when its root is fixed or kinematic. Dynamic-root traversal
+is unchanged. Ordinary adjacency traversal stops at a fixed/kinematic
+root, which can separate its dynamic branches (or let the first branch sleep
+while another remains active). Internal joint constraints then reference a
+multibody velocity slice that was not allocated for that island, causing a
+matrix slicing panic. Dynamic links are connected through link 1, the existing
+solver allocation representative for a non-dynamic root, using linear total
+traversal work. This changes island membership/wake propagation, not contact
+geometry or motor forces. Public APIs and serialized fields are unchanged.
+
+The backend regression `kinematic_root_branches_share_a_solver_island` sets the
+minimum island size to one so merging heuristics cannot hide the split. The
+workbench contact-grasp test covers a three-wheel kinematic root, arm motors,
+a separate dynamic object, sustained holding, release and exact input replay.

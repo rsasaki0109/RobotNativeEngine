@@ -120,6 +120,9 @@ fn handle(stream: &mut TcpStream, host_name: &str, host: &mut Host) -> Result<()
             "text/css; charset=utf-8",
             include_bytes!("ui/workbench.css"),
         ),
+        ("GET", "/api/recording") => {
+            write_response(stream, "200 OK", "application/json", &host.recording()?)
+        }
         ("GET", "/api/state") => write_response(
             stream,
             "200 OK",

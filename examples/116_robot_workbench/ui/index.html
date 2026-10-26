@@ -8,11 +8,22 @@
 <div id="status" role="status" aria-live="polite">ネイティブシミュレーターに接続中…</div>
 <main>
 <aside>
-<section><h2>ロボット</h2><label>切り替えるプリセット<select id="preset"><option value="so101">SO-101 · URDFメッシュ</option><option value="arm">2関節アーム · MJCF</option><option value="slider">直動スライダー · URDF</option></select></label>
+<section><h2>ロボット</h2><label>切り替えるプリセット<select id="preset"><option value="lekiwi_pick_place">LeKiwi＋SO-101 · ピック＆プレース</option><option value="lekiwi_grasp">LeKiwi＋SO-101 · 把持シーン</option><option value="lekiwi_so101">LeKiwi＋SO-101 · 全方向移動</option><option value="so101">SO-101 · URDFメッシュ</option><option value="arm">2関節アーム · MJCF</option><option value="slider">直動スライダー · URDF</option></select></label>
 <label class="file-button">URDF / MJCFを読み込む<input id="robot-file" type="file" accept=".urdf,.xml,.mjcf"></label>
-<p class="hint">固定ベースの物理プレビュー。メッシュ付きモデルは起動時にアセットルートを指定します。</p><p id="servo-note" class="hint"></p><label>物理モデル<select id="inertias"><option value="preview">簡易プレビュー（既定の質量）</option><option value="declared">URDFに記載された質量・慣性</option></select></label><label>入力モデルの上方向<select id="up-axis"><option value="y">Y-up</option><option value="z">Z-up → Y-upに変換</option></select></label></section>
+<p class="hint">SO-101単体は固定ベース、LeKiwiは移動ベースのプレビュー。メッシュ付きモデルは起動時にアセットルートを指定します。</p><p id="servo-note" class="hint"></p><label>物理モデル<select id="inertias"><option value="preview">簡易プレビュー（既定の質量）</option><option value="declared">URDFに記載された質量・慣性</option></select></label><label>入力モデルの上方向<select id="up-axis"><option value="y">Y-up</option><option value="z">Z-up → Y-upに変換</option></select></label></section>
+<section id="drive-panel" hidden><h2>LeKiwi · 台車操作</h2>
+<p class="hint">速度指令による平面移動。台車は障害物で停止しません。滑り・車輪接触による走行精度は未検証です。値を適用して再生すると移動します。</p>
+<label>前後 X <small>m/s</small><input id="drive-x" type="number" min="-0.1" max="0.1" step="0.01" value="0"></label>
+<label>横移動 Z <small>m/s</small><input id="drive-z" type="number" min="-0.1" max="0.1" step="0.01" value="0"></label>
+<label>旋回 +Y <small>rad/s</small><input id="drive-yaw" type="number" min="-0.5" max="0.5" step="0.05" value="0"></label>
+<div class="row"><button id="drive-apply">速度を適用</button><button id="drive-stop">台車停止</button></div>
+<p class="hint">並進速度の合計上限は0.1 m/s。+Y旋回は+Xから−Z方向です。停止するとアームはそのまま動作できます。</p><output id="base-pose"></output><p id="wheel-speeds" class="hint"></p>
+</section>
+<section><h2>工程ごとに実行</h2><p class="hint">ピック＆プレースのシーンを選択して初期化。再生／一時停止、0.1秒送り、次の工程までの実行ができます。停止中は物理時間も止まります。</p><p class="hint">右のplace-tableのX/Zを編集して反映すると搬送先が変わります。台の高さは揃えてください。搬送は直線移動です。</p><p id="task-plan" class="hint"></p><button id="task-start">現在のシーンを初期化して準備</button><div class="row"><button id="task-next">次の工程まで</button><button id="task-cancel">終了して手動操作へ</button></div><p id="task-progress" class="hint">準備前</p><p id="task-error" role="status"></p><p class="hint">編集したシーンも使用します。失敗時は工程と理由を表示。終了すると台車指令をゼロにし、姿勢と記録を残します。</p></section>
+<section><h2>接触把持デモ</h2><p class="hint">専用シーンを初期化し、接近→把持→持ち上げ→2秒保持を実行します。20 g・2 cmの箱と簡略化した指パッドを使用。</p><button id="grasp-demo">初期化して把持デモを実行</button><p id="grasp-report" class="hint"></p><button id="pick-place-demo">初期化してピック＆プレースを実行</button><p class="hint">把持後に台車を20 cm横移動。緑の台に置いて解放・後退し、台上で2秒間安定することを検証します。専用シーンの固定手順です。</p><p id="pick-place-report" class="hint"></p><p class="hint">把持のみの完了後はgripper目標を0.8にして再生すると解放できます。操作記録の保存・再生にも対応。</p></section>
 <section><h2>関節の目標</h2><p class="hint">目標値を設定して再生。実測値と目標値を別々に表示します。</p><div id="joints"></div></section>
 <section><h2>保存した姿勢</h2><div class="row"><input id="pose-name" aria-label="姿勢名" placeholder="姿勢名" maxlength="128"><button id="save-pose">目標を保存</button></div><div class="row"><select id="poses" aria-label="保存した姿勢"></select><button id="apply-pose">適用</button></div></section>
+<section><h2>操作の記録</h2><p class="hint">リセットからの操作を記録。読み込み時に物理を再実行して状態ハッシュを照合します。モデル変更・シーン編集で記録はリセットされます。</p><button id="download-recording">記録を保存</button><label class="file-button">記録を検証して再生<input id="recording-file" type="file" accept=".json"></label></section>
 <section><h2>プロジェクト</h2><button id="download-project">JSONを保存</button><label class="file-button">JSONを読み込む<input id="project-file" type="file" accept=".json"></label></section>
 </aside>
 <div class="stage">
@@ -24,11 +35,14 @@
 <section><h2>LiDAR <small>XZ平面</small></h2><canvas id="lidar" width="240" height="180"></canvas><output id="lidar-info">—</output></section>
 </div><div id="sensor-time" class="hint"></div>
 </div>
-<aside class="scene-editor"><section><h2>床・障害物</h2><p class="hint">編集を反映するとロボットを初期状態に戻します。静的な箱を床や壁として配置できます。</p>
+<aside class="scene-editor"><section><h2>床・障害物</h2><p class="hint">編集を反映するとロボットを初期状態に戻します。固定の床・壁や、質量を持つ箱を配置できます。</p>
 <select id="objects" aria-label="シーンオブジェクト" size="5"></select>
 <label>名前<input id="object-name" maxlength="128"></label>
 <fieldset><legend>位置 <small>m</small></legend><div class="triple"><label>X<input id="pos-x" type="number" step="0.05"></label><label>Y<input id="pos-y" type="number" step="0.05"></label><label>Z<input id="pos-z" type="number" step="0.05"></label></div></fieldset>
 <fieldset><legend>サイズ <small>m</small></legend><div class="triple"><label>X<input id="size-x" type="number" step="0.05" min="0.001"></label><label>Y<input id="size-y" type="number" step="0.05" min="0.001"></label><label>Z<input id="size-z" type="number" step="0.05" min="0.001"></label></div></fieldset>
+<label>動作<select id="object-body"><option value="static">固定</option><option value="dynamic">動く物体</option></select></label>
+<div class="row"><label>質量 kg<input id="object-mass" type="number" min="0.001" max="1000" step="0.01" value="0.1"></label><label>摩擦係数<input id="object-friction" type="number" min="0" max="2" step="0.05" value="0.5"></label></div>
+<p id="object-reading" class="hint"></p>
 <label>色<input id="object-color" type="color" value="#d98d42"></label>
 <button id="apply-object" class="primary">編集を反映してリセット</button><div class="row"><button id="add-object">箱を追加</button><button id="remove-object">削除</button></div>
 </section><section><h2>実行情報</h2><dl><dt>物理刻み</dt><dd>約 1 / 240 s</dd><dt>状態ハッシュ</dt><dd id="hash">—</dd><dt>センサー</dt><dd>瞬時取得・ノイズなし</dd></dl></section></aside>

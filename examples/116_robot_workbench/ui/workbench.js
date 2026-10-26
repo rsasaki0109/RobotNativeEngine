@@ -46,7 +46,11 @@ function request(command) {
 async function tick(epoch) {
   if (!playing || epoch !== playEpoch) return;
   try {
-    await request({command: "step", steps: 4});
+    await request(() => {
+      if (!playing || epoch !== playEpoch) return null;
+      return state.task ? {command: "task_advance", to_boundary: false} : {command: "step", steps: 4};
+    });
+    if (state.task && state.task.status !== "running") { pause(); return; }
     if (playing && epoch === playEpoch) setTimeout(() => tick(epoch), 80);
   } catch (error) { failed(error); }
 }
@@ -58,18 +62,31 @@ $("play").onclick = () => {
   $("mode").textContent = "固定刻みで実行中";
   tick(epoch);
 };
-$("step").onclick = () => run(async () => { pause(); await request({command: "step", steps: 1}); });
+$("step").onclick = () => run(async () => { pause(); await request(() => state.task ? {command: "task_advance", to_boundary: false} : {command: "step", steps: 1}); });
+$("task-start").onclick = () => run(async () => { pause(); await request({command: "task_start"}); });
+$("task-next").onclick = () => run(async () => { pause(); await request({command: "task_advance", to_boundary: true}); });
+$("task-cancel").onclick = () => run(async () => { pause(); await request({command: "task_cancel"}); });
 $("reset").onclick = () => run(async () => { pause(); await request({command: "reset"}); });
 $("preset").onchange = () => run(async () => { pause(); await request({command: "preset", name: $("preset").value}); });
+
+$("drive-apply").onclick = () => run(() => request({command: "drive", velocity: {
+  vx_m_s: Number($("drive-x").value), vz_m_s: Number($("drive-z").value), yaw_rad_s: Number($("drive-yaw").value),
+}}));
+$("drive-stop").onclick = () => run(() => request({command: "drive", velocity: {vx_m_s: 0, vz_m_s: 0, yaw_rad_s: 0}}));
 
 function position(value, linear) {
   if (!Number.isFinite(value)) throw new Error("関節目標は有限の数値で指定してください");
   return linear ? {kind: "prismatic", position_m: value} : {kind: "revolute", position_rad: value};
 }
 function displayJoints() {
-  const key = JSON.stringify([state.project.robot, state.joints.map(j => j.info)]);
+  const hasPlaceTable = state.project.objects.some(o => o.name === "place-table");
+  const key = JSON.stringify([state.project.robot, state.joints.map(j => j.info), hasPlaceTable]);
   if (key !== modelKey) {
     modelKey = key;
+    const xml = new DOMParser().parseFromString(state.project.robot.xml, "application/xml").documentElement;
+    const name = xml.getAttribute("name") || xml.getAttribute("model");
+    const preset = {lekiwi_so101: "lekiwi_so101", so101_new_calib: "so101", prismatic_slider: "slider", two_link_arm: "arm"}[name];
+    $("preset").value = name === "lekiwi_so101" && state.project.robot.xml.includes('name="grip_pad"') ? (hasPlaceTable ? "lekiwi_pick_place" : "lekiwi_grasp") : preset || "";
     jointControls.clear();
     $("joints").replaceChildren();
     for (const joint of state.joints) {
@@ -135,13 +152,32 @@ function selectObject() {
   $("remove-object").disabled = !object;
   if (!object) return;
   $("object-name").value = object.name;
+  $("object-body").value = object.dynamics ? "dynamic" : "static";
+  $("object-mass").value = object.dynamics?.mass_kg ?? 0.1;
+  $("object-friction").value = object.dynamics?.friction ?? 0.5;
   ["x", "y", "z"].forEach((axis, i) => {
     $(`pos-${axis}`).value = object.position_m[i];
     $(`size-${axis}`).value = object.size_m[i];
   });
   $("object-color").value = "#" + object.color_rgba.slice(0, 3).map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join("");
 }
-$("objects").onchange = selectObject;
+$("objects").onchange = () => { selectObject(); displayObjectReading(); };
+async function executeDemo(command) {
+  pause();
+  $("grasp-demo").disabled = true;
+  $("pick-place-demo").disabled = true;
+  status(command === "pick_place_demo" ? "ピック＆プレースを計算しています…" : "接触把持を計算しています…");
+  try {
+    await request({command});
+    $("objects").value = "target-block";
+    selectObject(); displayObjectReading();
+  } finally {
+    $("grasp-demo").disabled = false;
+    $("pick-place-demo").disabled = false;
+  }
+}
+$("grasp-demo").onclick = () => run(() => executeDemo("grasp_demo"));
+$("pick-place-demo").onclick = () => run(() => executeDemo("pick_place_demo"));
 $("save-pose").onclick = () => run(() => request({command: "save_pose", name: $("pose-name").value.trim()}));
 $("apply-pose").onclick = () => run(() => request({command: "apply_pose", name: $("poses").value}));
 async function replaceProject(project) { pause(); await request({command: "replace_project", project}); }
@@ -152,10 +188,12 @@ $("apply-object").onclick = () => run(async () => {
   const color = $("object-color").value;
   project.objects[index] = {
     name: $("object-name").value.trim(),
+    ...($("object-body").value === "dynamic" ? {dynamics: {mass_kg: Number($("object-mass").value), friction: Number($("object-friction").value)}} : {}),
     position_m: ["x", "y", "z"].map(a => Number($(`pos-${a}`).value)),
     size_m: ["x", "y", "z"].map(a => Number($(`size-${a}`).value)),
     color_rgba: [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16) / 255).concat(1),
   };
+  if ($("object-body").value === "dynamic") project.schema_version = 3;
   await replaceProject(project);
 });
 $("add-object").onclick = () => run(async () => {
@@ -210,6 +248,15 @@ $("depth").onmousemove = event => {
   $("depth-value").textContent = Number.isFinite(value) ? `(${x}, ${y}) ${value.toFixed(4)} m` : `(${x}, ${y}) 範囲外`;
 };
 function display() {
+  $("drive-panel").hidden = !state.project.planar_base;
+  if (state.project.planar_base) {
+    for (const [id, key] of [["drive-x", "vx_m_s"], ["drive-z", "vz_m_s"], ["drive-yaw", "yaw_rad_s"]]) {
+      if (document.activeElement !== $(id)) $(id).value = state.base.command[key];
+    }
+    const p = state.base.pose_x_z_yaw;
+    $("base-pose").textContent = `X ${p[0].toFixed(3)} m · Z ${p[1].toFixed(3)} m · yaw ${p[2].toFixed(3)} rad`;
+    $("wheel-speeds").textContent = `車輪目標 rad/s: ${state.base.wheel_targets_rad_s.map(v => v.toFixed(3)).join(" / ")}`;
+  }
   $("clock").textContent = `${(Number(state.sim_time_ticks) / 1e9).toFixed(3)} s`;
   $("hash").textContent = state.state_hash;
   $("inertias").value = state.project.use_declared_inertias ? "declared" : "preview";
@@ -219,12 +266,51 @@ function display() {
   }
   $("view").src = `data:image/png;base64,${state.view_png_base64}`;
   displayJoints(); displayLists(); displaySensors();
+  displayObjectReading();
+  displayTask();
+  const placement = state.pick_place_report;
+  $("pick-place-report").textContent = placement ? `直近デモの検証結果: 搬送中の両指接触 ${placement.transport_contact_samples}回 · 解放後の台上安定 ${placement.stable_duration_s.toFixed(1)}秒 · 目標からの誤差 ${(Math.hypot(...placement.placement_error_x_z_m) * 1000).toFixed(1)} mm · 最大移動 ${(placement.maximum_settled_drift_m * 1000).toFixed(2)} mm` : "";
+  const report = state.grasp_report;
+  $("grasp-report").textContent = report ? `直近デモの検証結果: 最小持ち上げ ${(report.minimum_hold_lift_m * 1000).toFixed(1)} mm · ${report.hold_duration_s.toFixed(1)}秒保持 · 両指接触 ${report.contact_samples}回確認` : "";
+}
+function displayTask() {
+  const task = state.task;
+  const preview = state.transfer_preview;
+  const plan = preview?.plan;
+  $("task-plan").textContent = plan ? `搬送予定: ΔX ${plan.delta_x_z_m[0].toFixed(3)} m / ΔZ ${plan.delta_x_z_m[1].toFixed(3)} m · ${plan.duration_s.toFixed(1)}秒 · ${plan.batches}区間` : (state.project.objects.some(o => o.name === "place-table") ? `設定を確認: ${preview?.error || "計画なし"}` : "ピック＆プレースのシーンを選択してください");
+  $("task-start").disabled = !plan;
+  const labels = {open: "指を開く", roll: "手首を回す", approach: "接近", close: "把持", lift: "持ち上げ", hold: "保持確認", carry: "搬送", lower: "設置", release: "解放", retreat: "後退", settle: "静定", verify: "設置確認"};
+  $("task-progress").textContent = task ? `${labels[task.phase]} · ${task.phase_batch} / ${task.phase_batches}区間 · 全体 ${task.completed_batches} / ${task.total_batches} · ${task.status === "completed" ? "完了" : task.status === "failed" ? "失敗" : "実行可能"}` : "準備前";
+  $("task-error").textContent = task?.error || "";
+  $("task-next").disabled = !task || task.status !== "running";
+  $("task-cancel").disabled = !task;
+  $("step").textContent = task ? "0.1秒進める" : "1ステップ";
+  $("step").disabled = Boolean(task && task.status !== "running");
+  $("play").disabled = Boolean(task && task.status !== "running");
+  document.querySelectorAll("#joints input, #drive-apply, #drive-stop, #apply-pose").forEach(input => { input.disabled = Boolean(task) || (input.id === "apply-pose" && !Object.keys(state.project.poses).length); });
+}
+function displayObjectReading() {
+  const object = state.objects.find(o => o.name === $("objects").value);
+  $("object-reading").textContent = object ? `実測位置 m: ${object.position_m.map(v => v.toFixed(3)).join(" / ")} · 高さ変化 ${object.height_gain_m.toFixed(3)} m · 接触 ${object.robot_contacts.join(", ") || "なし"}` : "";
 }
 function download(name, data) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(data) + "\n"], {type: "application/json"}));
   const a = document.createElement("a"); a.href = url; a.download = name; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+$("download-recording").onclick = () => run(async () => {
+  pause();
+  await queue;
+  const response = await fetch("/api/recording", {cache: "no-store"});
+  if (!response.ok) throw new Error("記録の取得に失敗しました");
+  download("robot.rne.workbench-replay.json", await response.json());
+});
+$("recording-file").onchange = () => run(async () => {
+  pause();
+  const file = await readFile($("recording-file"), 4 * 1024 * 1024);
+  if (file) await request({command: "replay", recording: JSON.parse(file.text)});
+  $("recording-file").value = "";
+});
 $("download-project").onclick = () => run(() => download("robot.rne.workbench.json", state.project));
 async function readFile(input, maxBytes) {
   const file = input.files[0];

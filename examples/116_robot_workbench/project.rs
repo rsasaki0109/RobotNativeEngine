@@ -87,14 +87,31 @@ pub(crate) struct SavedPose {
     pub joints: BTreeMap<String, JointPosition>,
 }
 
-/// Static floor or obstacle; dimensions and position are in metres.
+/// Static or dynamic scene box; dimensions and position are in metres.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct SceneObject {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dynamics: Option<ObjectDynamics>,
     pub name: String,
     pub position_m: [f64; 3],
     pub size_m: [f64; 3],
     pub color_rgba: [f32; 4],
+}
+
+/// Complete mass and Coulomb friction for a freely moving box.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ObjectDynamics {
+    pub mass_kg: f64,
+    pub friction: f32,
+}
+
+/// Prescribed planar motion preview, not a wheel/contact dynamics model.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct PlanarBase {
+    pub height_m: f64,
 }
 
 /// Self-contained editor project. Mesh files are resolved by the host asset root.
@@ -107,6 +124,8 @@ pub(crate) struct Project {
     pub use_declared_inertias: bool,
     #[serde(default)]
     pub robot_rotation_rpy_rad: [f64; 3],
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub planar_base: Option<PlanarBase>,
     pub targets: BTreeMap<String, JointPosition>,
     pub poses: BTreeMap<String, SavedPose>,
     pub objects: Vec<SceneObject>,
@@ -119,9 +138,11 @@ impl Project {
             robot,
             use_declared_inertias: false,
             robot_rotation_rpy_rad: [0.0; 3],
+            planar_base: None,
             targets: BTreeMap::new(),
             poses: BTreeMap::new(),
             objects: vec![SceneObject {
+                dynamics: None,
                 name: "floor".into(),
                 position_m: [0.0, -0.15, 0.0],
                 size_m: [6.0, 0.1, 6.0],
@@ -183,7 +204,10 @@ impl Project {
         let mut catalog = Vec::new();
         for joint in &document.robot.joints {
             ensure!(names.insert(joint.name.clone()), "duplicate joint name");
-            if joint.joint_type == UrdfJointType::Fixed || joint.mimic.is_some() {
+            if joint.joint_type == UrdfJointType::Fixed
+                || joint.mimic.is_some()
+                || (self.planar_base.is_some() && crate::drive::wheel_index(&joint.child).is_some())
+            {
                 continue;
             }
             let linear = joint.joint_type == UrdfJointType::Prismatic;
@@ -235,7 +259,20 @@ impl Project {
     }
 
     pub(crate) fn validate(&self) -> Result<()> {
-        ensure!(self.schema_version == 1, "unsupported project schema");
+        ensure!(
+            matches!(self.schema_version, 1..=3),
+            "unsupported project schema"
+        );
+        ensure!(
+            self.planar_base.is_none() || self.schema_version >= 2,
+            "planar base requires project schema 2"
+        );
+        if let Some(base) = &self.planar_base {
+            ensure!(
+                base.height_m.is_finite() && (0.0..=10.0).contains(&base.height_m),
+                "base height must be within [0, 10] m"
+            );
+        }
         ensure!(
             self.robot_rotation_rpy_rad
                 .iter()
@@ -257,6 +294,20 @@ impl Project {
         }
         let mut names = BTreeSet::new();
         for object in &self.objects {
+            if let Some(dynamics) = &object.dynamics {
+                ensure!(
+                    self.schema_version >= 3,
+                    "dynamic objects require project schema 3"
+                );
+                ensure!(
+                    dynamics.mass_kg.is_finite() && (0.001..=1000.0).contains(&dynamics.mass_kg),
+                    "object mass must be within [0.001, 1000] kg"
+                );
+                ensure!(
+                    dynamics.friction.is_finite() && (0.0..=2.0).contains(&dynamics.friction),
+                    "object friction must be within [0, 2]"
+                );
+            }
             validate_name(&object.name)?;
             ensure!(names.insert(&object.name), "duplicate scene object name");
             ensure!(
@@ -401,7 +452,7 @@ mod tests {
         bad.objects[0].size_m[1] = -0.1;
         assert!(bad.validate().is_err());
         let mut bad = project.clone();
-        bad.schema_version = 2;
+        bad.schema_version = 4;
         assert!(Project::from_json(&serde_json::to_vec(&bad).unwrap()).is_err());
     }
 
@@ -423,5 +474,48 @@ mod tests {
             .targets
             .values()
             .all(|p| matches!(p, JointPosition::Revolute { .. })));
+    }
+    #[test]
+    fn planar_projects_require_v2_and_v1_remains_readable() {
+        let mut project = slider();
+        let legacy = serde_json::to_vec(&project).unwrap();
+        assert!(!String::from_utf8_lossy(&legacy).contains("planar_base"));
+        assert_eq!(Project::from_json(&legacy).unwrap(), project);
+        project.planar_base = Some(PlanarBase { height_m: 0.06 });
+        assert!(project.validate().is_err());
+        project.schema_version = 2;
+        assert_eq!(
+            Project::from_json(&serde_json::to_vec(&project).unwrap()).unwrap(),
+            project
+        );
+        project.planar_base.as_mut().unwrap().height_m = f64::NAN;
+        assert!(project.validate().is_err());
+    }
+    #[test]
+    fn dynamic_scene_requires_v3_and_valid_mass_and_friction() {
+        let mut project = slider();
+        assert!(!serde_json::to_string(&project)
+            .unwrap()
+            .contains("dynamics"));
+        project.objects[0].dynamics = Some(ObjectDynamics {
+            mass_kg: 0.02,
+            friction: 1.0,
+        });
+        assert!(project.validate().is_err());
+        project.schema_version = 3;
+        assert_eq!(
+            Project::from_json(&serde_json::to_vec(&project).unwrap()).unwrap(),
+            project
+        );
+        for mass_kg in [0.0, -1.0, 1001.0, f64::NAN] {
+            let mut invalid = project.clone();
+            invalid.objects[0].dynamics.as_mut().unwrap().mass_kg = mass_kg;
+            assert!(invalid.validate().is_err());
+        }
+        for friction in [-0.1, 2.1, f32::NAN] {
+            let mut invalid = project.clone();
+            invalid.objects[0].dynamics.as_mut().unwrap().friction = friction;
+            assert!(invalid.validate().is_err());
+        }
     }
 }
