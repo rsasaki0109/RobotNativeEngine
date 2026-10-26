@@ -295,6 +295,26 @@ impl IslandManager {
                 self.stack.push(other);
             }
 
+            // A reduced-coordinate multibody must stay in one island, including
+            // branches separated by a fixed/kinematic root. Connect only root
+            // children through link 1, preserving ordinary traversal within each
+            // branch and keeping the solver allocation representative awake.
+            if let Some(id) = multibody_joints.rigid_body_link(handle) {
+                let multibody = &multibody_joints[id.multibody];
+                if !multibody.root_is_dynamic {
+                    if id.id == 1 {
+                        for link in multibody.links() {
+                            if link.parent_id() == Some(0) && link.link_id() != 1 {
+                                self.stack.push(link.rigid_body);
+                            }
+                        }
+                    } else if multibody.link(id.id).unwrap().parent_id() == Some(0) {
+                        let link = multibody.link(1).unwrap();
+                        self.stack.push(link.rigid_body);
+                    }
+                }
+            }
+
             rb.activation.wake_up(false);
             rb.ids.active_island_id = self.active_islands.len() - 1;
             rb.ids.active_set_id = self.active_dynamic_set.len();

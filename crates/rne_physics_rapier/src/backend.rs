@@ -5613,6 +5613,72 @@ mod tests {
         assert!(effort.position_rad().unwrap() > 0.01);
     }
 
+    #[test]
+    fn kinematic_root_branches_share_a_solver_island() {
+        let mut backend = RapierBackend::new();
+        let id = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                ..PhysicsWorldDesc::default()
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "branch_root");
+        world.entity_mut(parent).insert((
+            RigidBody {
+                body_type: RigidBodyType::Kinematic,
+                ..RigidBody::default()
+            },
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let mut children = Vec::new();
+        for name in ["branch_a", "branch_b"] {
+            let child = spawn_named(&mut world, name);
+            world.entity_mut(child).insert((
+                RigidBody::default(),
+                MultibodyLink,
+                Transform3::default(),
+                PrismaticJointDesc {
+                    parent,
+                    axis: Vec3::X,
+                    anchor_parent_m: Vec3::ZERO,
+                    anchor_child_m: Vec3::ZERO,
+                    relative_rotation: Quat::IDENTITY,
+                    lower_m: Some(-0.25),
+                    upper_m: Some(0.25),
+                },
+                JointActuation::PrismaticPosition {
+                    target_position_m: 0.15,
+                    stiffness_n_per_m: 80.0,
+                    damping_n_s_per_m: 8.0,
+                    max_force_n: 30.0,
+                },
+            ));
+            children.push(child);
+        }
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        // Do not let the small-island merging heuristic mask split branches.
+        backend
+            .world_mut(id)
+            .unwrap()
+            .integration_parameters
+            .min_island_size = 1;
+        for _ in 0..60 {
+            step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+        }
+        for child in children {
+            assert!(
+                world
+                    .get::<JointState>(child)
+                    .unwrap()
+                    .position_m()
+                    .unwrap()
+                    > 0.05
+            );
+        }
+    }
+
     fn run_prismatic_actuation(command: JointActuation) -> JointState {
         let mut backend = RapierBackend::new();
         let physics_world = backend

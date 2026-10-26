@@ -69,8 +69,8 @@ normal upload/download flow; the server does not overwrite project files.
 
 ## Load another robot
 
-The model picker offers SO-101, a prismatic URDF slider, and a two-joint MJCF
-arm. The file picker accepts URDF or MJCF source XML. For meshes, set the asset
+The model picker offers SO-101, LeKiwi + SO-101, a prismatic URDF slider, and a
+two-joint MJCF arm. The file picker accepts URDF or MJCF source XML. For meshes, set the asset
 root to the robot package directory:
 
 ```bash
@@ -87,9 +87,9 @@ reopening a mesh project on another machine also requires that asset root.
 The default **simple preview** mode deliberately uses the importer's existing
 default link masses and collision-derived inertia. Select **URDF mass/inertia**
 for models with valid declared inertials. Invalid tensors are rejected rather
-than repaired silently. The vendored SO-101 has a near-massless dummy frame with
-a zero inertia tensor, so its default preset uses simple preview. The workbench
-fixes the robot base and disables robot self-collision; it is an interactive
+than repaired silently. The SO-101 fixed-base preset defaults to simple preview. The importer treats
+its near-massless dummy frame as a frame marker rather than a physical inertia. The fixed-base presets
+fix the robot base and disable robot self-collision; it is an interactive
 control/model inspection tool, not a calibrated hardware or locomotion proof.
 
 MJCF support is exactly the existing strict `rne_mjcf` subset: hinge/slide
@@ -136,3 +136,214 @@ files are small diagnostic artifacts; normal use records no video.
 All workbench code lives in the non-published application example
 `examples/116_robot_workbench`. No public core API, frozen compatibility
 baseline, ROS dependency, or rendering requirement for simulation tests changes.
+
+## LeKiwi + SO-101 planar workbench
+
+Run the vendored mobile manipulator without hardware:
+
+```bash
+cargo run --release --locked -p robot_workbench -- --preset lekiwi_so101
+```
+
+The workbench uses `lekiwi_so101_workbench.urdf`, regenerated with
+`python3 scripts/gen_lekiwi_so101_urdf.py --workbench`. This separate preview
+retains the SO-101 collision geometry and authored arm inertials, and aligns
+the two Z-up source frames before the single whole-robot Y-up conversion. The
+historical combined asset stripped arm collisions and inertials. The
+existing generated asset and its consumers are unchanged.
+
+The bundled presets now resolve meshes beneath `assets/robots`, including the
+LeKiwi chassis and SO-101 arm. The LeKiwi preset converts the CAD Z-up frame to
+RNE Y-up, starts the base at 0.06 m, and provides a floor, pickup table, target
+block and inspection wall. The table and block are **static reference geometry**;
+this movement preset does not implement grasping. Use `lekiwi_grasp` below for
+the contact grasp task. Autonomous pick/place planning is not implemented.
+
+The base panel accepts body-frame X/Z velocity in m/s and +Y yaw in rad/s.
+Apply the command, then Play or Single Step. Translation magnitude is limited to
+0.1 m/s and yaw to pi/6 rad/s; invalid commands leave the previous command
+unchanged. Positive yaw turns +X toward -Z. Stop Base zeros only the base command,
+so the six named SO-101 joint servos can continue. Pause suspends stepping and
+retains the command; Reset and project/model replacement start with zero drive.
+
+This is an explicitly **prescribed planar preview**: constant-twist integration
+commands the kinematic root at the same fixed step as the articulated physics.
+The three wheel motor setpoints use the existing LeKiwi mount geometry and
+0.0508 m wheel radius; they are shown separately from measured arm positions.
+Wheel/contact dynamics do not determine the chassis trajectory. Obstacles do
+not stop the commanded base, and wheel slip, motor calibration, physical
+odometry accuracy and hardware performance are not established. Arm links use
+Rapier articulation and bounded servos. The preset enables authored SO-101
+inertials; the chassis still uses preview properties where its source lacks them.
+The RGB-D and LiDAR views remain the existing world-mounted inspection sensors.
+
+Mobile projects use schema 2 with `planar_base.height_m`. Existing schema-1
+fixed-base projects remain readable and are still saved without that field.
+Drive commands are transient and are never restored by loading a project.
+
+### Record and verify operations
+
+Every Step/Play batch records the applied arm targets, base command, step count,
+simulation timestamp and complete physics-state-v2 hash. **Save recording**
+exports the initial project and those inputs. **Verify and replay recording**
+constructs a fresh simulation, executes the inputs, and checks every recorded
+batch before replacing the displayed session; rejected recordings leave the
+current session intact. The result is shown paused at its final state with the
+base command zeroed. This is input replay verification, not animated timeline
+playback. Scene/model edits and Reset begin a new recording; save first if needed.
+Records are bounded to 2,400 batches and 4 MiB. When full, stepping fails before
+advancing; export and reset to continue. Mesh assets are not embedded. Exact
+hash verification requires the same compatible engine/runtime and asset bytes.
+
+The same workflow is available without a renderer:
+
+```bash
+cargo run --locked -p robot_workbench --no-default-features -- --smoke-lekiwi
+cargo run --locked -p robot_workbench --no-default-features -- \
+  --replay robot.rne.workbench-replay.json --asset-root assets/robots
+```
+
+The LeKiwi smoke checks diagonal motion, turning, stopping, six arm joints and
+exact recording verification using the vendored model. Unit tests additionally
+check rotated body-frame motion, invalid-command atomicity, a moving articulated
+slider, schema compatibility, recording bounds and altered-recording rejection.
+
+
+## Contact grasp without hardware
+
+```bash
+cargo run --release --locked -p robot_workbench -- --preset lekiwi_grasp
+cargo run --release --locked -p robot_workbench --no-default-features -- --smoke-grasp
+```
+
+The **接触把持デモ** button resets a dedicated scene, drives the base 0.2 m,
+closes the SO-101 jaw on a 20 g, 2 cm cube, lifts it and checks two seconds
+of support. Success requires at least 50 mm of lift and positive contact
+impulses on both finger pads at each of 20 hold samples. The displayed report
+is the last demo result, not a continuously evaluated task score. Set the
+gripper target to 0.8 and resume playback to release. The smoke command also
+replays the recorded inputs and verifies every state hash. Tests include
+release under gravity and a missed-block failure case.
+
+The grasp variant replaces the two gripper mesh bounding boxes with explicit
+box pads, preserves authored arm inertias, and caps gripper effort at 0.06 N·m.
+It uses contact and Coulomb friction, without attaching, welding or prescribing
+the cube pose. Regenerate with `python3 scripts/gen_lekiwi_so101_urdf.py --grasp`.
+These simplified pads and tuned scene demonstrate simulated grasping; they do
+not establish real SO-101 payload capacity. The base remains a prescribed
+kinematic preview, and robot self-collision is disabled.
+
+The scene editor supports fixed boxes and dynamic boxes with mass (0.001–1000 kg)
+and friction (0–2). Dynamic boxes use exact solid-box inertia and require
+project schema 3; static schema 1/2 files remain readable. Live object telemetry
+shows position, height relative to the authored initial position, and contacting
+robot links. Scene edits reset dynamics and the operation recording.
+
+
+## Pick, carry and place
+
+```bash
+cargo run --release --locked -p robot_workbench -- --preset lekiwi_pick_place
+cargo run --release --locked -p robot_workbench --no-default-features -- --smoke-pick-place
+```
+
+**初期化してピック＆プレースを実行** creates the dedicated two-table scene and
+runs the contact grasp above. In the default scene the base travels 0.20 m
+sideways at at most 0.025 m/s, with both finger contacts checked every
+0.1 simulated seconds (80 samples).
+The arm lowers onto the green destination table, verifies support before opening
+the jaw, releases the cube, and retreats 0.10 m. No cube pose is prescribed and
+no attachment/weld is introduced. The grasp/lowering sequence is scripted; carry translation can be derived from
+an edited destination as described below. This is not perception, arbitrary-goal
+planning or obstacle avoidance.
+
+After one second of settling, success requires all of the following at each of
+20 samples over two seconds:
+
+- Positive contact impulse between the cube and `place-table`, and no contact
+  impulses between the cube and robot links.
+- The cube's rotated world-space bounds fit inside the tabletop footprint; its
+  bottom is within 5 mm of the tabletop height (contact tolerance).
+- Linear speed below 0.005 m/s, angular speed below 0.05 rad/s, and displacement
+  from the start of the observation window below 1 mm.
+
+The result panel reports the last completed demo. Reset, scene replacement and
+recording import clear it; replay still verifies each recorded physics hash.
+The headless smoke runs the complete sequence and verifies its recording.
+Tests additionally move the destination out of reach to require a failure and
+continue stepping after a successful release to check continued support.
+Both demo buttons initialize their own presets; edited scenes do not change
+their fixed scripts. The kinematic-base and simplified-finger limitations of
+the grasp demo also apply here; real hardware has not been validated.
+
+## Inspect pick/place one phase at a time
+
+Choose `lekiwi_pick_place`, then **現在のシーンを初期化して準備** in
+**工程ごとに実行**. This preserves scene edits, resets simulation time and the
+recording, and restores neutral motor targets (zero clamped to joint limits).
+The existing one-shot pick/place demo and CLI now use the same task executor.
+
+- Play requests one 24-step batch (about 0.1 simulated seconds) per response.
+  Pause stops new requests; an in-flight batch may finish. No wall-clock timer
+  advances the physics. Reloading the page leaves the task paused in place.
+- Single Step advances one batch; **次の工程まで** advances to the next phase
+  boundary. A boundary request can include up to sixteen simulated seconds and
+  completes before another command is handled.
+- Progress shows the phase, batch count, and computed total (330 in the default scene). Phases are open,
+  wrist roll, approach, close, lift, hold, carry, lower, release, retreat, settle,
+  and placement verification. The same contact and stability checks apply.
+- Failure zeros base velocity and retains the failed phase, reason and world
+  state. Terminal tasks cannot advance. Export the operation recording to
+  reproduce the physics up to failure; task progress itself is not saved in
+  project/recording JSON and recording import clears the task.
+- Manual stepping, drive, joint targets and saved-pose application are rejected
+  while a task is attached. **終了して手動操作へ** clears the task, zeros base
+  velocity and retains world state, joint targets and recording. It does not
+  release a held object. Reset, model/project replacement and demos clear tasks.
+
+This remains a scripted task, not an arbitrary-goal planner. Interactive pausing
+freezes the simulated world; it is not a model of a real robot holding against
+loads while external time continues. The default task's recording contains 330
+batches; edited destinations change that count. Both verify using the existing
+replay command.
+
+Focused UI checks, including failure inspection and cancellation:
+
+```bash
+python3 scripts/test_workbench_task_browser.py --url http://127.0.0.1:8765 \
+  --browser /usr/bin/chromium --output /tmp/workbench-task-checks
+```
+
+
+### Change the placement destination
+
+In the `lekiwi_pick_place` scene, select **place-table** in the scene editor and
+change its X/Z position, apply the edit, then use **現在のシーンを初期化して準備**.
+The task panel previews the base translation, simulated duration and batch count.
+For example, X = 0.68 m and Z = 0.254 m requests a diagonal transfer of
++0.08 m in X and +0.30 m in Z from the default pickup table. Negative Z transfers
+are also supported. The one-shot demo button still restores the bundled scene;
+use the phase runner for edited scenes.
+
+The transfer uses table-center displacement. Duration rounds up to complete
+24-step batches, and velocity is reduced to reach that endpoint without
+exceeding 0.025 m/s. Each transport batch checks both finger contacts. Final
+verification additionally requires the released block's horizontal center to
+be within 15 mm of the destination center; the report shows that measured error.
+The input recording includes the edited scene and derived velocity commands.
+
+This version deliberately supports only equal-height fixed tables (height
+matching tolerance 1 µm), translation distance 0.12–0.40 m, |X offset| ≤ 0.12 m,
+and |Z offset| ≥ 0.12 m. Tables must be separated by at least 20 mm on at least
+one horizontal axis. The destination footprint must fit the block's bounding
+sphere diameter plus 20 mm. Invalid geometry is shown in the preview and rejected
+before initialization replaces the current world. These bounds define the
+implemented operating region, not hardware capability or collision-free motion.
+There is no obstacle search, wheel-contact locomotion planning, or adaptation
+of the original grasp pose to a relocated pickup table.
+
+```bash
+python3 scripts/test_workbench_task_browser.py --url http://127.0.0.1:8765 \
+  --browser /usr/bin/chromium --output /tmp/workbench-destination-checks \
+  --destination 0.68 0.254
+```
