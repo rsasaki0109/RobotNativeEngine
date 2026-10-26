@@ -157,9 +157,11 @@ is unchanged. Ordinary adjacency traversal stops at a fixed/kinematic
 root, which can separate its dynamic branches (or let the first branch sleep
 while another remains active). Internal joint constraints then reference a
 multibody velocity slice that was not allocated for that island, causing a
-matrix slicing panic. Dynamic links are connected through link 1, the existing
-solver allocation representative for a non-dynamic root, using linear total
-traversal work. This changes island membership/wake propagation, not contact
+matrix slicing panic. Only the root children are connected through link 1, the
+existing solver allocation representative for a non-dynamic root, using linear
+total traversal work. Ordinary traversal within each branch is preserved; adding
+edges to all descendants also changed serial-chain solver ordering and regressed
+the existing G1 workbench grasp smoke. This changes island membership/wake propagation, not contact
 geometry or motor forces. Public APIs and serialized fields are unchanged.
 
 The backend regression `kinematic_root_branches_share_a_solver_island` sets the

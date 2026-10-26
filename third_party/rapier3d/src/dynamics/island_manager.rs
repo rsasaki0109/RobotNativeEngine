@@ -296,17 +296,20 @@ impl IslandManager {
             }
 
             // A reduced-coordinate multibody must stay in one island, including
-            // branches separated by a fixed/kinematic root. Connect every link
-            // through link 1 so a sleeping first branch cannot leave the other
-            // branches without a generalized velocity allocation.
+            // branches separated by a fixed/kinematic root. Connect only root
+            // children through link 1, preserving ordinary traversal within each
+            // branch and keeping the solver allocation representative awake.
             if let Some(id) = multibody_joints.rigid_body_link(handle) {
                 let multibody = &multibody_joints[id.multibody];
                 if !multibody.root_is_dynamic {
                     if id.id == 1 {
                         for link in multibody.links() {
-                            self.stack.push(link.rigid_body);
+                            if link.parent_id() == Some(0) && link.link_id() != 1 {
+                                self.stack.push(link.rigid_body);
+                            }
                         }
-                    } else if let Some(link) = multibody.link(1) {
+                    } else if multibody.link(id.id).unwrap().parent_id() == Some(0) {
+                        let link = multibody.link(1).unwrap();
                         self.stack.push(link.rigid_body);
                     }
                 }
