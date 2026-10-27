@@ -347,3 +347,54 @@ python3 scripts/test_workbench_task_browser.py --url http://127.0.0.1:8765 \
   --browser /usr/bin/chromium --output /tmp/workbench-destination-checks \
   --destination 0.68 0.254
 ```
+
+### Evaluate the pick/place regression catalog
+
+```bash
+cargo run --locked -p robot_workbench --no-default-features -- \
+  --evaluate-pick-place /tmp/lekiwi-evaluation-001
+```
+
+The output directory must be new and its parent must exist. The command never
+reuses an existing directory. It writes `report.json` and a separate
+`NAME.recording.json` for every completed or task-failed case. No GPU or hardware is needed.
+The fixed `lekiwi-pick-place-v1` catalog includes nominal, diagonal and reverse
+placements; a displaced block that must fail at the closing phase; and
+unequal-height/out-of-range destinations that must be rejected before stepping.
+
+The report separates physical completion from matching the expected outcome.
+A healthy catalog has three completed cases out of four executed cases (75%
+completion), one expected grasp failure, and two preflight rejections. All six
+expectations must match for `passed: true` and exit status zero. Expected failures
+must match the specified phase and reason; setup errors and replay divergence
+always fail the evaluation. Setup/evaluation errors are counted separately in
+`error_cases` and excluded from the completion-rate denominator. Rejected cases have no recording and
+`replay_verified: null`, rather than claiming that a simulation was replayed.
+The command continues after a case error and returns nonzero after writing the
+report when any expectation is unmet.
+
+Each executed case is replayed from its serialized recording and checked against
+every recorded physics hash, including the failed grasp. Successful cases also
+include the measured placement error, lift and stability report. Replay an
+individual case with the existing `--replay` command and `--asset-root
+assets/robots` (from the repository root). This small deterministic regression
+catalog measures the bounded scripted task; it does not estimate real-world
+reliability or coverage of arbitrary layouts.
+
+Compare two saved evaluations without running physics or loading robot assets:
+
+```bash
+cargo run --locked -p robot_workbench --no-default-features -- \
+  --compare-evaluations /tmp/lekiwi-evaluation-001/report.json \
+  /tmp/lekiwi-evaluation-002/report.json
+```
+
+The baseline must pass. Both reports must use schema 1 and the same six unique
+`lekiwi-pick-place-v1` cases, expectations, and planned destinations. Case order
+is irrelevant. The comparator checks per-case outcomes and replay evidence even
+if the top-level `passed` flag is stale. It fails if placement error (XZ Euclidean
+norm) or maximum settled drift increases by more than 1 mm in any completed case.
+Improvements pass. JSON comparison results go to stdout; regressions or invalid
+reports produce a nonzero exit status. Inputs are limited to 1 MiB each and are
+never modified. This checks reported evidence; use `--replay` to independently
+verify the underlying recordings.
