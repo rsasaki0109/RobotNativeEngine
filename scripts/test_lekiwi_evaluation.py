@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+BASELINE = ROOT / "tests" / "golden" / "lekiwi_pick_place_v1" / "report.json"
 CARGO = ["cargo", "run", "--locked", "-p", "robot_workbench", "--no-default-features", "--"]
 
 
@@ -37,6 +38,9 @@ def fingerprints(directory):
 
 
 def check(output):
+    # Retain the exact reviewed reference with every run; never update it here.
+    baseline = output / "baseline.json"
+    baseline.write_bytes(BASELINE.read_bytes())
     evidence = output / "evaluation"
     require(run(output, "evaluate", "--evaluate-pick-place", evidence) == 0,
             "evaluation failed; inspect evaluate.stderr.log and evaluation/report.json")
@@ -56,6 +60,10 @@ def check(output):
         if executed:
             require(case["recording"] == f"{case['name']}.recording.json", "unexpected recording path")
             require((evidence / case["recording"]).is_file(), "recording missing")
+
+    require(run(output, "baseline", "--compare-evaluations", baseline, report_path) == 0,
+            "baseline comparison failed; inspect baseline.stdout.log and baseline.stderr.log")
+    require(read_stdout(output, "baseline")["passed"] is True, "baseline comparison did not pass")
 
     before = fingerprints(evidence)
     require(run(output, "unchanged", "--compare-evaluations", report_path, report_path) == 0,
@@ -91,7 +99,8 @@ def check(output):
             "existing evidence directory was reused")
     require(fingerprints(evidence) == before, "evaluation evidence was modified")
     return {"passed": True, "catalog_cases": 6, "verified_recordings": 4,
-            "checks": ["catalog", "unchanged", "degraded", "incomplete", "no-overwrite"]}
+            "baseline_sha256": hashlib.sha256(baseline.read_bytes()).hexdigest(),
+            "checks": ["catalog", "baseline", "unchanged", "degraded", "incomplete", "no-overwrite"]}
 
 
 
@@ -105,6 +114,18 @@ def markdown_summary(output, summary):
              "Hardware-free simulation; expected task failures are not successful placements.", ""]
     if not summary["passed"]:
         lines += [f"Failure: {cell(summary.get('error', 'unknown'))}", ""]
+    baseline_log = output / "baseline.stdout.log"
+    if baseline_log.exists():
+        try:
+            comparison = json.loads(baseline_log.read_text())
+            lines += [f"Reviewed baseline: **{'PASS' if comparison['passed'] else 'FAIL'}** "
+                      "(1 mm allowance for increases in placement error or settled drift).", ""]
+            lines += [f"- {cell(reason)}" for reason in comparison["regressions"]]
+            lines += [""]
+        except (OSError, ValueError, KeyError, TypeError):
+            lines += ["Baseline comparison unavailable; inspect baseline.stderr.log.", ""]
+    else:
+        lines += ["Baseline comparison: not run.", ""]
     try:
         report = json.loads((output / "evaluation" / "report.json").read_text())
         lines += [f"Physical completion: {report['completed_cases']}/{report['executed_cases']} executed cases; "

@@ -417,8 +417,15 @@ physical evaluation results. Each CLI invocation has a ten-minute timeout, with
 partial logs retained. CI uploads the directory as the `lekiwi-evaluation`
 artifact even when the gate fails (14-day retention). If an earlier headless
 check fails before evaluation starts, no evaluation artifact is produced.
-This gate checks the current catalog and comparator behavior; it does not compare
-against a historical CI run or claim hardware validation.
+The gate compares every run against the reviewed reference at
+`tests/golden/lekiwi_pick_place_v1/report.json`. A completed case whose XZ
+placement error or settled drift increases by more than 1 mm fails the gate,
+even if its task still succeeds. The exact reference is retained as `baseline.json`,
+with comparison logs and a baseline verdict in the job summary. The success
+summary includes its SHA-256. This is a fixed repository reference, not the latest
+successful CI artifact, and is never refreshed automatically. It does not claim
+hardware validation. See the reference directory's README for provenance and the
+review process for an intentional baseline update.
 
 The gate also writes `summary.md` and appends it to the GitHub Actions job summary.
 It separates the CI verdict from physical completion counts and shows each case's

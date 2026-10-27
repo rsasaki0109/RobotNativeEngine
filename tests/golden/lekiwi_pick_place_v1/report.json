@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "catalog": "lekiwi-pick-place-v1",
+  "engine_version": "0.4.0",
+  "passed": true,
+  "completed_cases": 3,
+  "executed_cases": 4,
+  "rejected_cases": 2,
+  "error_cases": 0,
+  "completion_rate": 0.75,
+  "cases": [
+    {
+      "name": "nominal",
+      "expected": "completed",
+      "expected_reason": null,
+      "expected_phase": null,
+      "outcome": "completed",
+      "expectation_met": true,
+      "reason": null,
+      "failed_phase": null,
+      "completed_batches": 330,
+      "replay_verified": true,
+      "replay_error": null,
+      "recording": "nominal.recording.json",
+      "placement": {
+        "grasp": {
+          "lift_m": 0.08858096599578857,
+          "minimum_hold_lift_m": 0.08858096599578857,
+          "hold_duration_s": 2.00000016,
+          "contact_samples": 20
+        },
+        "final_position_m": [
+          0.6012442708015442,
+          0.37772876024246216,
+          0.15457719564437866
+        ],
+        "transport_contact_samples": 80,
+        "planned_destination_m": [
+          0.6,
+          0.379,
+          0.154
+        ],
+        "placement_error_x_z_m": [
+          0.0012442708015442117,
+          0.0005771956443786641
+        ],
+        "stable_duration_s": 2.00000016,
+        "placement_samples": 20,
+        "maximum_settled_drift_m": 0.0
+      }
+    },
+    {
+      "name": "diagonal",
+      "expected": "completed",
+      "expected_reason": null,
+      "expected_phase": null,
+      "outcome": "completed",
+      "expectation_met": true,
+      "reason": null,
+      "failed_phase": null,
+      "completed_batches": 375,
+      "replay_verified": true,
+      "replay_error": null,
+      "recording": "diagonal.recording.json",
+      "placement": {
+        "grasp": {
+          "lift_m": 0.08858096599578857,
+          "minimum_hold_lift_m": 0.08858096599578857,
+          "hold_duration_s": 2.00000016,
+          "contact_samples": 20
+        },
+        "final_position_m": [
+          0.6812155842781067,
+          0.37772902846336365,
+          0.25458505749702454
+        ],
+        "transport_contact_samples": 125,
+        "planned_destination_m": [
+          0.68,
+          0.379,
+          0.254
+        ],
+        "placement_error_x_z_m": [
+          0.0012155842781066406,
+          0.0005850574970245326
+        ],
+        "stable_duration_s": 2.00000016,
+        "placement_samples": 20,
+        "maximum_settled_drift_m": 0.0
+      }
+    },
+    {
+      "name": "reverse",
+      "expected": "completed",
+      "expected_reason": null,
+      "expected_phase": null,
+      "outcome": "completed",
+      "expectation_met": true,
+      "reason": null,
+      "failed_phase": null,
+      "completed_batches": 334,
+      "replay_verified": true,
+      "replay_error": null,
+      "recording": "reverse.recording.json",
+      "placement": {
+        "grasp": {
+          "lift_m": 0.08858096599578857,
+          "minimum_hold_lift_m": 0.08858096599578857,
+          "hold_duration_s": 2.00000016,
+          "contact_samples": 20
+        },
+        "final_position_m": [
+          0.5412302613258362,
+          0.377728670835495,
+          -0.24542181193828583
+        ],
+        "transport_contact_samples": 84,
+        "planned_destination_m": [
+          0.54,
+          0.379,
+          -0.246
+        ],
+        "placement_error_x_z_m": [
+          0.0012302613258361461,
+          0.0005781880617141688
+        ],
+        "stable_duration_s": 2.00000016,
+        "placement_samples": 20,
+        "maximum_settled_drift_m": 0.0
+      }
+    },
+    {
+      "name": "missed-block",
+      "expected": "failed",
+      "expected_reason": "block must contact both grasp pads",
+      "expected_phase": "close",
+      "outcome": "failed",
+      "expectation_met": true,
+      "reason": "Close: block must contact both grasp pads; actual contacts: []",
+      "failed_phase": "close",
+      "completed_batches": 100,
+      "replay_verified": true,
+      "replay_error": null,
+      "recording": "missed-block.recording.json",
+      "placement": null
+    },
+    {
+      "name": "unequal-height",
+      "expected": "rejected",
+      "expected_reason": "tabletop heights must match",
+      "expected_phase": null,
+      "outcome": "rejected",
+      "expectation_met": true,
+      "reason": "destination not supported: tabletop heights must match",
+      "failed_phase": null,
+      "completed_batches": 0,
+      "replay_verified": null,
+      "replay_error": null,
+      "recording": null,
+      "placement": null
+    },
+    {
+      "name": "out-of-range",
+      "expected": "rejected",
+      "expected_reason": "distance 0.12–0.40 m",
+      "expected_phase": null,
+      "outcome": "rejected",
+      "expectation_met": true,
+      "reason": "destination not supported: distance 0.12–0.40 m, |X offset| ≤ 0.12 m, |Z offset| ≥ 0.12 m required",
+      "failed_phase": null,
+      "completed_batches": 0,
+      "replay_verified": null,
+      "replay_error": null,
+      "recording": null,
+      "placement": null
+    }
+  ]
+}
