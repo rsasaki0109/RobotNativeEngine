@@ -398,3 +398,30 @@ Improvements pass. JSON comparison results go to stdout; regressions or invalid
 reports produce a nonzero exit status. Inputs are limited to 1 MiB each and are
 never modified. This checks reported evidence; use `--replay` to independently
 verify the underlying recordings.
+
+The CPU-only CI gate (`cargo run --locked -p xtask -- ci-headless`) also runs
+this six-case catalog and exercises the comparison CLI. Run just this check with:
+
+```bash
+cargo run --locked -p xtask -- ci-lekiwi-evaluation
+```
+
+Python 3 (standard library only) is required. The check verifies all four executed
+recordings, confirms identical reports pass, detects deliberately degraded
+placement/replay evidence despite a stale success flag, rejects a missing case,
+and checks that rerunning into an existing directory leaves evidence unchanged.
+Each invocation retains a fresh `target/lekiwi-evaluation-runs/run-*/` directory
+containing the evaluation report, recordings, CLI logs, comparison fixtures, and
+`ci-summary.json`. These fixtures exercise regression detection; they are not
+physical evaluation results. Each CLI invocation has a ten-minute timeout, with
+partial logs retained. CI uploads the directory as the `lekiwi-evaluation`
+artifact even when the gate fails (14-day retention). If an earlier headless
+check fails before evaluation starts, no evaluation artifact is produced.
+This gate checks the current catalog and comparator behavior; it does not compare
+against a historical CI run or claim hardware validation.
+
+The gate also writes `summary.md` and appends it to the GitHub Actions job summary.
+It separates the CI verdict from physical completion counts and shows each case's
+outcome, expected-result check, replay status, and XZ placement error in millimeters.
+Expected grasp failures remain labeled as failures; preflight rejections have no
+replay claim. Setup failures or missing reports still produce a failure summary.

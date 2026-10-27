@@ -98,6 +98,14 @@ jobs:
           shared-key: ci
       - name: Explicit CPU-only headless gate
         run: cargo run --locked -p xtask -- ci-headless
+      - name: Upload LeKiwi evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lekiwi-evaluation
+          path: target/lekiwi-evaluation-runs/
+          if-no-files-found: warn
+          retention-days: 14
 
   flagship:
     strategy:

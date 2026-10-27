@@ -159,6 +159,7 @@ fn run() -> anyhow::Result<()> {
             ci_smoke(partition.as_deref())
         }
         "ci-headless" => ci_headless(),
+        "ci-lekiwi-evaluation" => ci_lekiwi_evaluation(),
         "ci-rl" => ci_rl(),
         "ci-ros2" => ci_ros2(),
         "ci-ros2-bridge" => ci_ros2_bridge(),
@@ -2822,11 +2823,21 @@ fn parse_smoke_partition(partition: Option<&str>) -> anyhow::Result<SmokePartiti
     }
 }
 
+/// Exercises the LeKiwi catalog and comparison CLI, retaining evidence on failure.
+fn ci_lekiwi_evaluation() -> anyhow::Result<()> {
+    let python = python_command()?;
+    run_step(&format!(
+        "{python} -m unittest discover -s scripts -p test_lekiwi_summary.py"
+    ))?;
+    run_step(&format!("{python} scripts/test_lekiwi_evaluation.py"))
+}
+
 /// Runs the explicit CPU-only headless renderer and sensor test gates.
 fn ci_headless() -> anyhow::Result<()> {
     accelerator::validate_contract(&workspace_root()?)?;
     run_step("cargo test --locked -p robot_workbench --no-default-features")?;
     run_step("cargo run --locked -p robot_workbench --no-default-features -- --smoke")?;
+    ci_lekiwi_evaluation()?;
     run_step("cargo test --locked -p rne_render --lib")?;
     run_step("cargo test --locked -p rne_sensor --lib")?;
     run_step("cargo test --locked -p rne_hardware_gateway")?;
@@ -3918,7 +3929,7 @@ fn python_command() -> anyhow::Result<&'static str> {
             }
         }
     }
-    anyhow::bail!("python or python3 is required for house-gif-demo")
+    anyhow::bail!("python or python3 is required for this command")
 }
 
 fn validate_repo_assets() -> anyhow::Result<()> {
