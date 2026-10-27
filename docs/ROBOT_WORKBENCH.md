@@ -432,3 +432,19 @@ It separates the CI verdict from physical completion counts and shows each case'
 outcome, expected-result check, replay status, and XZ placement error in millimeters.
 Expected grasp failures remain labeled as failures; preflight rejections have no
 replay claim. Setup failures or missing reports still produce a failure summary.
+
+The summary's metric-change table shows baseline, current value, and signed change
+for XZ placement error and settled drift, in millimeters. Positive changes indicate
+larger error/drift; negative changes indicate improvements. Values are displayed to
+three decimal places; the comparison gate uses unrounded measurements. Only cases
+with completed placement evidence in both reports are listed, matched by case name.
+Missing evidence is not shown as zero. Schema/catalog or destination changes suppress
+the metric table with an explanation, since those measurements are not comparable.
+
+The metric table highlights the case and metric with the least remaining margin:
+`baseline + 1 mm - current`. Placement error and settled drift are both considered.
+A positive margin is remaining allowance; zero is at the limit; a negative margin
+exceeds it. The accompanying label uses unrounded values, so even an exceedance
+that displays as `-0.000 mm` remains explicit. This is a placement-metric diagnostic,
+not a replacement for the overall gate verdict (which also checks outcomes and
+replay). Missing or incompatible evidence produces no margin claim.
