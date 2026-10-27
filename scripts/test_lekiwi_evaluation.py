@@ -88,6 +88,18 @@ def check(output):
     require(any("nominal: placement error" in r for r in comparison["regressions"])
             and any("diagonal:" in r for r in comparison["regressions"]), "wrong regressions reported")
 
+    grasp_degraded = copy.deepcopy(report)
+    nominal = next(case for case in grasp_degraded["cases"] if case["name"] == "nominal")
+    nominal["placement"]["grasp"]["minimum_hold_lift_m"] -= 0.002
+    grasp_path = output / "grasp-degraded.json"
+    grasp_path.write_text(json.dumps(grasp_degraded, indent=2))
+    require(run(output, "grasp-degraded", "--compare-evaluations", report_path, grasp_path) == 1,
+            "grasp regression was accepted")
+    comparison = read_stdout(output, "grasp-degraded")
+    require(comparison["passed"] is False and len(comparison["regressions"]) == 1
+            and "nominal: minimum hold lift decreased" in comparison["regressions"][0],
+            "wrong grasp regression reported")
+
     incomplete = copy.deepcopy(report)
     incomplete["cases"].pop()
     incomplete_path = output / "incomplete.json"
@@ -101,7 +113,7 @@ def check(output):
     require(fingerprints(evidence) == before, "evaluation evidence was modified")
     return {"passed": True, "catalog_cases": 6, "verified_recordings": 4,
             "baseline_sha256": hashlib.sha256(baseline.read_bytes()).hexdigest(),
-            "checks": ["catalog", "baseline", "unchanged", "degraded", "incomplete", "no-overwrite"]}
+            "checks": ["catalog", "baseline", "unchanged", "degraded", "grasp-degraded", "incomplete", "no-overwrite"]}
 
 
 
@@ -150,7 +162,7 @@ def metric_delta_table(output):
                        f"**{margin * 1000:+.3f} mm** "
                        f"({'exceeds allowance' if exceeded else 'within allowance'}).")
         return ["### Metric changes (mm)", "", margin_note, "",
-                "Margin = baseline + 1 mm − current. This describes placement metrics only; the overall gate also checks outcomes and replay.", "",
+                "Margin = baseline + 1 mm − current. This describes placement metrics only; the overall gate also checks grasp lift, outcomes, and replay.", "",
                 "Positive changes mean larger error or drift. The gate compares unrounded values; the allowance is 1 mm.", "",
                 "| Case | Error baseline | Error current | Error change | Drift baseline | Drift current | Drift change |",
                 "| --- | --- | --- | --- | --- | --- | --- |", *rows, ""]
@@ -173,7 +185,7 @@ def markdown_summary(output, summary):
         try:
             comparison = json.loads(baseline_log.read_text())
             lines += [f"Reviewed baseline: **{'PASS' if comparison['passed'] else 'FAIL'}** "
-                      "(1 mm allowance for increases in placement error or settled drift).", ""]
+                      "(1 mm allowance for error/drift increases or grasp/hold lift decreases).", ""]
             lines += [f"- {cell(reason)}" for reason in comparison["regressions"]]
             lines += [""]
         except (OSError, ValueError, KeyError, TypeError):

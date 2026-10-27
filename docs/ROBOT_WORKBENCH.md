@@ -394,6 +394,10 @@ The baseline must pass. Both reports must use schema 1 and the same six unique
 is irrelevant. The comparator checks per-case outcomes and replay evidence even
 if the top-level `passed` flag is stale. It fails if placement error (XZ Euclidean
 norm) or maximum settled drift increases by more than 1 mm in any completed case.
+It also fails if grasp lift or minimum hold lift decreases by more than 1 mm.
+Completed placements must include finite, nonnegative grasp measurements; missing
+grasp evidence cannot pass, even with a stale success flag. The same requirement
+applies to the baseline. Exactly 1 mm of change is allowed using unrounded values.
 Improvements pass. JSON comparison results go to stdout; regressions or invalid
 reports produce a nonzero exit status. Inputs are limited to 1 MiB each and are
 never modified. This checks reported evidence; use `--replay` to independently
@@ -408,7 +412,7 @@ cargo run --locked -p xtask -- ci-lekiwi-evaluation
 
 Python 3 (standard library only) is required. The check verifies all four executed
 recordings, confirms identical reports pass, detects deliberately degraded
-placement/replay evidence despite a stale success flag, rejects a missing case,
+placement/replay and grasp evidence despite a stale success flag, rejects a missing case,
 and checks that rerunning into an existing directory leaves evidence unchanged.
 Each invocation retains a fresh `target/lekiwi-evaluation-runs/run-*/` directory
 containing the evaluation report, recordings, CLI logs, comparison fixtures, and
@@ -419,7 +423,8 @@ artifact even when the gate fails (14-day retention). If an earlier headless
 check fails before evaluation starts, no evaluation artifact is produced.
 The gate compares every run against the reviewed reference at
 `tests/golden/lekiwi_pick_place_v1/report.json`. A completed case whose XZ
-placement error or settled drift increases by more than 1 mm fails the gate,
+placement error or settled drift increases by more than 1 mm, or whose grasp/hold
+lift decreases by more than 1 mm, fails the gate,
 even if its task still succeeds. The exact reference is retained as `baseline.json`,
 with comparison logs and a baseline verdict in the job summary. The success
 summary includes its SHA-256. This is a fixed repository reference, not the latest
@@ -446,7 +451,7 @@ The metric table highlights the case and metric with the least remaining margin:
 A positive margin is remaining allowance; zero is at the limit; a negative margin
 exceeds it. The accompanying label uses unrounded values, so even an exceedance
 that displays as `-0.000 mm` remains explicit. This is a placement-metric diagnostic,
-not a replacement for the overall gate verdict (which also checks outcomes and
+not a replacement for the overall gate verdict (which also checks grasp lift, outcomes, and
 replay). Missing or incompatible evidence produces no margin claim.
 
 The failure and rejection diagnostics table shows recorded failure phases, completed

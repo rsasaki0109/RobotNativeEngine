@@ -30,9 +30,16 @@ struct Case {
 
 #[derive(Debug, Deserialize)]
 struct Placement {
+    grasp: Option<Grasp>,
     planned_destination_m: [f64; 3],
     placement_error_x_z_m: [f64; 2],
     maximum_settled_drift_m: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct Grasp {
+    lift_m: f64,
+    minimum_hold_lift_m: f64,
 }
 
 #[derive(Debug, Serialize)]
@@ -80,6 +87,14 @@ fn validate(report: &Report) -> Result<()> {
             "invalid outcome"
         );
         if let Some(p) = &case.placement {
+            if let Some(grasp) = &p.grasp {
+                ensure!(
+                    [grasp.lift_m, grasp.minimum_hold_lift_m]
+                        .iter()
+                        .all(|v| v.is_finite() && *v >= 0.0),
+                    "invalid grasp metrics"
+                );
+            }
             ensure!(
                 p.planned_destination_m
                     .iter()
@@ -108,7 +123,10 @@ fn healthy(case: &Case) -> bool {
             .as_ref()
             .is_none_or(|p| case.failed_phase.as_ref() == Some(p))
         && match case.outcome.as_str() {
-            "completed" => case.replay_verified == Some(true) && case.placement.is_some(),
+            "completed" => {
+                case.replay_verified == Some(true)
+                    && case.placement.as_ref().is_some_and(|p| p.grasp.is_some())
+            }
             "failed" => case.replay_verified == Some(true),
             "rejected" => case.replay_verified.is_none(),
             _ => false,
@@ -137,7 +155,7 @@ fn compare(baseline: &Report, candidate: &Report) -> Result<Comparison> {
         );
         if !healthy(new) {
             regressions.push(format!(
-                "{}: outcome, expectation, or replay evidence failed",
+                "{}: outcome, expectation, replay, or grasp evidence failed",
                 old.name
             ));
         }
@@ -164,6 +182,23 @@ fn compare(baseline: &Report, candidate: &Report) -> Result<Comparison> {
                     ));
                 }
             }
+            if let (Some(a), Some(b)) = (&a.grasp, &b.grasp) {
+                for (label, before, after) in [
+                    ("grasp lift", a.lift_m, b.lift_m),
+                    (
+                        "minimum hold lift",
+                        a.minimum_hold_lift_m,
+                        b.minimum_hold_lift_m,
+                    ),
+                ] {
+                    if after < before - TOLERANCE_M {
+                        regressions.push(format!(
+                            "{}: {label} decreased from {before:.6} m to {after:.6} m",
+                            old.name
+                        ));
+                    }
+                }
+            }
         }
     }
     Ok(Comparison {
@@ -173,7 +208,7 @@ fn compare(baseline: &Report, candidate: &Report) -> Result<Comparison> {
     })
 }
 
-/// Compares reports with a fixed 1 mm allowance for placement error and drift.
+/// Compares reports with a 1 mm allowance for error/drift increases or lift decreases.
 pub(crate) fn run(baseline: &Path, candidate: &Path) -> Result<Comparison> {
     compare(&read(baseline)?, &read(candidate)?)
 }
@@ -202,6 +237,10 @@ mod tests {
             failed_phase: None,
             replay_verified: Some(true),
             placement: Some(Placement {
+                grasp: Some(Grasp {
+                    lift_m: 0.09,
+                    minimum_hold_lift_m: 0.088,
+                }),
                 planned_destination_m: [0.0; 3],
                 placement_error_x_z_m: [0.001, 0.0],
                 maximum_settled_drift_m: 0.0,
@@ -250,6 +289,82 @@ mod tests {
             4
         );
     }
+    #[test]
+    fn lift_decreases_are_detected_even_when_placement_and_pass_flag_are_unchanged() {
+        let baseline = fixture();
+        let mut candidate = fixture();
+        let grasp = candidate.cases[0]
+            .placement
+            .as_mut()
+            .unwrap()
+            .grasp
+            .as_mut()
+            .unwrap();
+        grasp.lift_m -= 0.002;
+        grasp.minimum_hold_lift_m -= 0.002;
+        let result = compare(&baseline, &candidate).unwrap();
+        assert!(!result.passed);
+        assert_eq!(result.regressions.len(), 2);
+        assert!(result.regressions[0].contains("nominal: grasp lift decreased"));
+        assert!(result.regressions[1].contains("nominal: minimum hold lift decreased"));
+    }
+
+    #[test]
+    fn lift_allowance_boundary_and_improvement_pass_but_tiny_exceedance_fails() {
+        for minimum_hold in [false, true] {
+            let mut candidate = fixture();
+            let before = if minimum_hold { 0.088 } else { 0.09 };
+            for after in [
+                before + 0.01,
+                before - TOLERANCE_M,
+                before - TOLERANCE_M - 1e-9,
+            ] {
+                let grasp = candidate.cases[0]
+                    .placement
+                    .as_mut()
+                    .unwrap()
+                    .grasp
+                    .as_mut()
+                    .unwrap();
+                if minimum_hold {
+                    grasp.minimum_hold_lift_m = after;
+                } else {
+                    grasp.lift_m = after;
+                }
+                assert_eq!(
+                    compare(&fixture(), &candidate).unwrap().passed,
+                    after >= before - TOLERANCE_M
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn missing_or_invalid_grasp_evidence_cannot_pass() {
+        let mut candidate = fixture();
+        candidate.cases[0].placement.as_mut().unwrap().grasp = None;
+        assert!(!compare(&fixture(), &candidate).unwrap().passed);
+        assert!(compare(&candidate, &fixture()).is_err());
+        for value in [-0.001, f64::NAN, f64::INFINITY] {
+            for minimum_hold in [false, true] {
+                let mut candidate = fixture();
+                let grasp = candidate.cases[0]
+                    .placement
+                    .as_mut()
+                    .unwrap()
+                    .grasp
+                    .as_mut()
+                    .unwrap();
+                if minimum_hold {
+                    grasp.minimum_hold_lift_m = value;
+                } else {
+                    grasp.lift_m = value;
+                }
+                assert!(compare(&fixture(), &candidate).is_err());
+            }
+        }
+    }
+
     #[test]
     fn incompatible_or_unhealthy_reports_are_rejected() {
         let mut candidate = fixture();
