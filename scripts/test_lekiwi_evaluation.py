@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Exercise the hardware-free evaluation CLI and retain evidence for CI debugging."""
+import argparse
 import copy
 import hashlib
 import html
@@ -194,6 +195,26 @@ def markdown_summary(output, summary):
             replay = {True: "pass", False: "FAIL", None: "not executed"}[case["replay_verified"]]
             lines.append("| " + " | ".join(map(cell, [case["name"], case["outcome"],
                          "yes" if case["expectation_met"] else "NO", replay, error])) + " |")
+        diagnostics = []
+        for case in report["cases"]:
+            if (case["outcome"] == "completed" and case["expectation_met"]
+                    and case["replay_verified"] is True):
+                continue
+            phase = case.get("failed_phase")
+            if phase is None:
+                phase = "not executed" if case["outcome"] == "rejected" else "not reported"
+            diagnostics.append("| " + " | ".join(map(cell, [
+                case["name"], case.get("expected", "not reported"), phase,
+                case.get("completed_batches", "not reported"),
+                case.get("reason") or "not reported",
+                case.get("replay_error") or "not reported",
+            ])) + " |")
+        if diagnostics:
+            lines += ["", "### Failure and rejection diagnostics", "",
+                      "Includes expected task failures and preflight rejections, plus expectation or replay failures. "
+                      "Reasons below are recorded evidence; missing details are not inferred.", "",
+                      "| Case | Expected outcome | Failed phase | Completed batches | Task / setup reason | Replay error |",
+                      "| --- | --- | --- | --- | --- | --- |", *diagnostics]
     except (OSError, ValueError, KeyError, TypeError):
         lines += ["Evaluation report unavailable or incomplete; inspect retained logs."]
     lines += [""] + metric_delta_table(output)
@@ -211,7 +232,20 @@ def save_summary(output, summary):
             stream.write(markdown)
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--summarize", type=Path, metavar="RUN_DIRECTORY",
+                        help="render retained evidence to stdout without running physics or changing files")
+    args = parser.parse_args(argv)
+    if args.summarize is not None:
+        try:
+            summary = json.loads((args.summarize / "ci-summary.json").read_text())
+            if not isinstance(summary, dict) or type(summary.get("passed")) is not bool:
+                raise ValueError("ci-summary.json must contain a boolean passed verdict")
+        except (OSError, ValueError) as error:
+            parser.error(f"cannot read retained CI verdict: {error}")
+        print(markdown_summary(args.summarize, summary))
+        return
     parent = ROOT / "target" / "lekiwi-evaluation-runs"
     parent.mkdir(parents=True, exist_ok=True)
     output = Path(tempfile.mkdtemp(prefix="run-", dir=parent))
