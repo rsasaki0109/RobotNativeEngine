@@ -51,3 +51,24 @@ class SummaryTests(unittest.TestCase):
             text = markdown_summary(output, {"passed": False, "error": "bad report"})
             self.assertIn("**FAIL**", text)
             self.assertIn("unavailable or incomplete", text)
+
+    def test_baseline_regression_remains_visible_with_physical_report_missing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "baseline.stdout.log").write_text(json.dumps({
+                "passed": False, "regressions": ["nominal: placement error increased <limit>"]}))
+            text = markdown_summary(output, {"passed": False, "error": "baseline comparison failed"})
+            self.assertIn("Reviewed baseline: **FAIL**", text)
+            self.assertIn("placement error increased &lt;limit&gt;", text)
+            self.assertIn("unavailable or incomplete", text)
+
+    def test_setup_failure_retains_the_reference_without_modifying_it(self):
+        from test_lekiwi_evaluation import BASELINE, check
+        before = BASELINE.read_bytes()
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            with patch("test_lekiwi_evaluation.run", return_value=1):
+                with self.assertRaisesRegex(RuntimeError, "evaluation failed"):
+                    check(output)
+            self.assertEqual((output / "baseline.json").read_bytes(), before)
+        self.assertEqual(BASELINE.read_bytes(), before)
