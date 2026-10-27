@@ -4,6 +4,9 @@ use serde::{Deserialize, Serialize};
 use std::{collections::BTreeSet, io::Read, path::Path};
 
 const TOLERANCE_M: f64 = 0.001;
+// The v1 catalog observes both grasp pads for 20 batches over two seconds.
+const MIN_HOLD_DURATION_S: f64 = 2.0;
+const MIN_HOLD_CONTACT_SAMPLES: usize = 20;
 const MAX_REPORT_BYTES: u64 = 1024 * 1024;
 
 #[derive(Debug, Deserialize)]
@@ -40,6 +43,18 @@ struct Placement {
 struct Grasp {
     lift_m: f64,
     minimum_hold_lift_m: f64,
+    hold_duration_s: Option<f64>,
+    contact_samples: Option<usize>,
+}
+
+impl Grasp {
+    fn hold_complete(&self) -> bool {
+        self.hold_duration_s
+            .is_some_and(|s| s >= MIN_HOLD_DURATION_S)
+            && self
+                .contact_samples
+                .is_some_and(|n| n >= MIN_HOLD_CONTACT_SAMPLES)
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -94,6 +109,12 @@ fn validate(report: &Report) -> Result<()> {
                         .all(|v| v.is_finite() && *v >= 0.0),
                     "invalid grasp metrics"
                 );
+                ensure!(
+                    grasp
+                        .hold_duration_s
+                        .is_none_or(|s| s.is_finite() && s >= 0.0),
+                    "invalid hold duration"
+                );
             }
             ensure!(
                 p.planned_destination_m
@@ -125,7 +146,10 @@ fn healthy(case: &Case) -> bool {
         && match case.outcome.as_str() {
             "completed" => {
                 case.replay_verified == Some(true)
-                    && case.placement.as_ref().is_some_and(|p| p.grasp.is_some())
+                    && case
+                        .placement
+                        .as_ref()
+                        .is_some_and(|p| p.grasp.as_ref().is_some_and(Grasp::hold_complete))
             }
             "failed" => case.replay_verified == Some(true),
             "rejected" => case.replay_verified.is_none(),
@@ -154,10 +178,18 @@ fn compare(baseline: &Report, candidate: &Report) -> Result<Comparison> {
             old.name
         );
         if !healthy(new) {
-            regressions.push(format!(
-                "{}: outcome, expectation, replay, or grasp evidence failed",
-                old.name
-            ));
+            let reason = if new.outcome == "completed"
+                && new
+                    .placement
+                    .as_ref()
+                    .and_then(|p| p.grasp.as_ref())
+                    .is_some_and(|g| !g.hold_complete())
+            {
+                "hold evidence incomplete: requires at least 2 s and 20 contact samples"
+            } else {
+                "outcome, expectation, replay, or grasp evidence failed"
+            };
+            regressions.push(format!("{}: {reason}", old.name));
         }
         if let (Some(a), Some(b)) = (&old.placement, &new.placement) {
             ensure!(
@@ -240,6 +272,8 @@ mod tests {
                 grasp: Some(Grasp {
                     lift_m: 0.09,
                     minimum_hold_lift_m: 0.088,
+                    hold_duration_s: Some(2.000_000_16),
+                    contact_samples: Some(20),
                 }),
                 planned_destination_m: [0.0; 3],
                 placement_error_x_z_m: [0.001, 0.0],
@@ -362,6 +396,53 @@ mod tests {
                 }
                 assert!(compare(&fixture(), &candidate).is_err());
             }
+        }
+    }
+
+    #[test]
+    fn incomplete_hold_evidence_fails_despite_successful_placement() {
+        for (duration, samples, passes) in [
+            (Some(2.0), Some(20), true),
+            (Some(3.0), Some(30), true),
+            (Some(2.0 - 1e-9), Some(20), false),
+            (Some(2.0), Some(19), false),
+            (Some(0.0), Some(0), false),
+            (None, Some(20), false),
+            (Some(2.0), None, false),
+        ] {
+            let mut candidate = fixture();
+            let grasp = candidate.cases[0]
+                .placement
+                .as_mut()
+                .unwrap()
+                .grasp
+                .as_mut()
+                .unwrap();
+            grasp.hold_duration_s = duration;
+            grasp.contact_samples = samples;
+            let result = compare(&fixture(), &candidate).unwrap();
+            assert_eq!(result.passed, passes);
+            if !passes {
+                assert_eq!(result.regressions.len(), 1);
+                assert!(result.regressions[0].contains("nominal: hold evidence incomplete"));
+                assert!(compare(&candidate, &fixture()).is_err());
+            }
+        }
+    }
+
+    #[test]
+    fn invalid_hold_duration_is_rejected() {
+        for duration in [-1.0, f64::NAN, f64::INFINITY] {
+            let mut candidate = fixture();
+            candidate.cases[0]
+                .placement
+                .as_mut()
+                .unwrap()
+                .grasp
+                .as_mut()
+                .unwrap()
+                .hold_duration_s = Some(duration);
+            assert!(compare(&fixture(), &candidate).is_err());
         }
     }
 

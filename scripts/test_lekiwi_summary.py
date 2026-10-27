@@ -1,5 +1,6 @@
 """Summary checks without running physics."""
 import json
+import copy
 import contextlib
 import io
 import os
@@ -11,6 +12,61 @@ from test_lekiwi_evaluation import main, markdown_summary, save_summary
 
 
 class SummaryTests(unittest.TestCase):
+    def test_grasp_changes_match_names_and_show_decreases_and_improvements(self):
+        from test_lekiwi_evaluation import BASELINE, metric_delta_table
+        baseline = json.loads(BASELINE.read_text())
+        current = copy.deepcopy(baseline)
+        current["cases"].reverse()
+        nominal = next(case for case in current["cases"] if case["name"] == "nominal")
+        nominal["placement"]["grasp"]["lift_m"] += 0.002
+        nominal["placement"]["grasp"]["minimum_hold_lift_m"] -= 0.002
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            (output / "baseline.json").write_text(json.dumps(baseline))
+            (output / "evaluation" / "report.json").write_text(json.dumps(current))
+            text = "\n".join(metric_delta_table(output, grasp=True))
+            self.assertIn("nominal | 88.581 | 90.581 | +2.000 | 88.581 | 86.581 | -2.000", text)
+            self.assertIn("nominal / minimum hold lift**, **-1.000 mm** (exceeds allowance)", text)
+            self.assertNotIn("| missed-block |", text)
+
+    def test_grasp_margin_uses_lower_unrounded_boundary_for_both_heights(self):
+        from test_lekiwi_evaluation import BASELINE, metric_delta_table
+        baseline = json.loads(BASELINE.read_text())
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            (output / "baseline.json").write_text(json.dumps(baseline))
+            for key, label in [("lift_m", "grasp lift"), ("minimum_hold_lift_m", "minimum hold lift")]:
+                for extra, status in [(0, "within allowance"), (1e-9, "exceeds allowance")]:
+                    with self.subTest(key=key, extra=extra):
+                        current = copy.deepcopy(baseline)
+                        grasp = current["cases"][0]["placement"]["grasp"]
+                        grasp[key] = grasp[key] - 0.001 - extra
+                        (output / "evaluation" / "report.json").write_text(json.dumps(current))
+                        text = "\n".join(metric_delta_table(output, grasp=True))
+                        self.assertIn(f"nominal / {label}", text)
+                        self.assertIn(status, text)
+
+    def test_invalid_grasp_evidence_does_not_hide_placement_table_or_claim_margin(self):
+        from test_lekiwi_evaluation import BASELINE
+        baseline = json.loads(BASELINE.read_text())
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            (output / "baseline.json").write_text(json.dumps(baseline))
+            for evidence in [None, {}, {"lift_m": -1, "minimum_hold_lift_m": 0},
+                             {"lift_m": float("nan"), "minimum_hold_lift_m": 0}]:
+                with self.subTest(evidence=evidence):
+                    current = copy.deepcopy(baseline)
+                    current["cases"][0]["placement"]["grasp"] = evidence
+                    (output / "evaluation" / "report.json").write_text(json.dumps(current))
+                    text = markdown_summary(output, {"passed": False})
+                    self.assertIn("Grasp changes unavailable", text)
+                    self.assertNotIn("Least remaining grasp margin", text)
+                    self.assertIn("### Metric changes (mm)", text)
+                    self.assertIn("CI gate: **FAIL**", text)
+
     def test_offline_summary_preserves_evidence_and_does_not_run_evaluation(self):
         from test_lekiwi_evaluation import BASELINE, fingerprints
         with tempfile.TemporaryDirectory() as directory:

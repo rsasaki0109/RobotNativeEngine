@@ -398,6 +398,12 @@ It also fails if grasp lift or minimum hold lift decreases by more than 1 mm.
 Completed placements must include finite, nonnegative grasp measurements; missing
 grasp evidence cannot pass, even with a stale success flag. The same requirement
 applies to the baseline. Exactly 1 mm of change is allowed using unrounded values.
+The v1 catalog also requires at least 2 seconds of holding and 20 contact samples
+for completed placements, independently of the height-change allowance. Missing
+duration/sample evidence, shorter holds, or fewer samples fail even with a stale
+success flag; invalid negative/non-finite durations are rejected as malformed input.
+The baseline must meet the same contract. These are checks on recorded evidence;
+replaying the underlying recording is a separate check.
 Improvements pass. JSON comparison results go to stdout; regressions or invalid
 reports produce a nonzero exit status. Inputs are limited to 1 MiB each and are
 never modified. This checks reported evidence; use `--replay` to independently
@@ -412,7 +418,8 @@ cargo run --locked -p xtask -- ci-lekiwi-evaluation
 
 Python 3 (standard library only) is required. The check verifies all four executed
 recordings, confirms identical reports pass, detects deliberately degraded
-placement/replay and grasp evidence despite a stale success flag, rejects a missing case,
+placement/replay and grasp evidence despite a stale success flag, rejects incomplete
+hold-contact evidence and a missing case,
 and checks that rerunning into an existing directory leaves evidence unchanged.
 Each invocation retains a fresh `target/lekiwi-evaluation-runs/run-*/` directory
 containing the evaluation report, recordings, CLI logs, comparison fixtures, and
@@ -453,6 +460,14 @@ exceeds it. The accompanying label uses unrounded values, so even an exceedance
 that displays as `-0.000 mm` remains explicit. This is a placement-metric diagnostic,
 not a replacement for the overall gate verdict (which also checks grasp lift, outcomes, and
 replay). Missing or incompatible evidence produces no margin claim.
+
+A separate grasp-change table shows baseline/current grasp lift and minimum hold
+lift, their signed changes, and the least remaining grasp margin. Its margin is
+`current - (baseline - 1 mm)`: negative changes mean lower lift, and a negative
+margin exceeds the allowance. Labels use the same unrounded lower-bound comparison
+as the Rust gate, even if a tiny exceedance rounds to `-0.000 mm`. Missing or invalid
+grasp evidence suppresses the grasp table with an explanation while leaving valid
+placement metrics visible. Neither table replaces the overall gate verdict.
 
 The failure and rejection diagnostics table shows recorded failure phases, completed
 batch counts, task/setup reasons, and replay errors. It includes expected grasp
