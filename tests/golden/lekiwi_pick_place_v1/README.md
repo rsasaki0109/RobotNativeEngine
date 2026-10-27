@@ -13,7 +13,8 @@ and verify their own recordings and retain a copy of this reference alongside th
 
 The gate uses `--compare-evaluations` with its fixed 1 mm allowance for increases
 in XZ placement error and settled drift, and decreases in grasp lift and minimum
-hold lift. Completed cases require grasp measurements. Outcomes, replay evidence, expected
+hold lift. Completed cases require grasp measurements, a hold duration of at least
+2 seconds, and at least 20 contact samples. Outcomes, replay evidence, expected
 failure reasons/phases, case identity, and destination compatibility are checked
 by the comparator. Improvements pass. Incompatible schemas or catalogs fail.
 

@@ -100,6 +100,18 @@ def check(output):
             and "nominal: minimum hold lift decreased" in comparison["regressions"][0],
             "wrong grasp regression reported")
 
+    hold_incomplete = copy.deepcopy(report)
+    nominal = next(case for case in hold_incomplete["cases"] if case["name"] == "nominal")
+    nominal["placement"]["grasp"]["contact_samples"] = 19
+    hold_path = output / "hold-incomplete.json"
+    hold_path.write_text(json.dumps(hold_incomplete, indent=2))
+    require(run(output, "hold-incomplete", "--compare-evaluations", report_path, hold_path) == 1,
+            "incomplete hold evidence was accepted")
+    comparison = read_stdout(output, "hold-incomplete")
+    require(comparison["passed"] is False and len(comparison["regressions"]) == 1
+            and "nominal: hold evidence incomplete" in comparison["regressions"][0],
+            "wrong hold evidence failure reported")
+
     incomplete = copy.deepcopy(report)
     incomplete["cases"].pop()
     incomplete_path = output / "incomplete.json"
@@ -113,17 +125,19 @@ def check(output):
     require(fingerprints(evidence) == before, "evaluation evidence was modified")
     return {"passed": True, "catalog_cases": 6, "verified_recordings": 4,
             "baseline_sha256": hashlib.sha256(baseline.read_bytes()).hexdigest(),
-            "checks": ["catalog", "baseline", "unchanged", "degraded", "grasp-degraded", "incomplete", "no-overwrite"]}
+            "checks": ["catalog", "baseline", "unchanged", "degraded", "grasp-degraded",
+                       "hold-incomplete", "incomplete", "no-overwrite"]}
 
 
 
-def metric_delta_table(output):
+def metric_delta_table(output, *, grasp=False):
     """Show measured changes only where both reports contain placement evidence."""
+    title = "Grasp changes" if grasp else "Metric changes"
     try:
         baseline = json.loads((output / "baseline.json").read_text())
         report = json.loads((output / "evaluation" / "report.json").read_text())
         if (baseline["schema_version"], baseline["catalog"]) != (report["schema_version"], report["catalog"]):
-            return ["Metric changes unavailable: report schema or catalog changed.", ""]
+            return [f"{title} unavailable: report schema or catalog changed.", ""]
         old_cases = {case["name"]: case for case in baseline["cases"]}
         rows = []
         margins = []
@@ -135,8 +149,14 @@ def metric_delta_table(output):
             if before is None or after is None:
                 continue
             if before["planned_destination_m"] != after["planned_destination_m"]:
-                return ["Metric changes unavailable: a completed case changed destination.", ""]
+                return [f"{title} unavailable: a completed case changed destination.", ""]
             def metrics(placement):
+                if grasp:
+                    evidence = placement["grasp"]
+                    values = (evidence["lift_m"], evidence["minimum_hold_lift_m"])
+                    if not all(math.isfinite(value) and value >= 0 for value in values):
+                        raise ValueError("invalid grasp metric")
+                    return values
                 error = placement["placement_error_x_z_m"]
                 if len(error) != 2:
                     raise ValueError("invalid placement vector")
@@ -144,30 +164,41 @@ def metric_delta_table(output):
                 if not all(math.isfinite(value) for value in values):
                     raise ValueError("non-finite metric")
                 return values
-            old_error, old_drift = metrics(before)
-            new_error, new_drift = metrics(after)
+            old_first, old_second = metrics(before)
+            new_first, new_second = metrics(after)
             name = html.escape(str(case["name"])).replace("|", "&#124;").replace("\n", " ").replace("\r", " ")
-            for metric, previous, current in [("placement error", old_error, new_error),
-                                               ("settled drift", old_drift, new_drift)]:
-                limit = previous + 0.001
-                margins.append((limit - current, name, metric, current > limit))
-            old_error, new_error, old_drift, new_drift = [
-                value * 1000 for value in (old_error, new_error, old_drift, new_drift)]
-            rows.append(f"| {name} | {old_error:.3f} | {new_error:.3f} | {new_error - old_error:+.3f} | "
-                        f"{old_drift:.3f} | {new_drift:.3f} | {new_drift - old_drift:+.3f} |")
+            labels = ("grasp lift", "minimum hold lift") if grasp else ("placement error", "settled drift")
+            for metric, previous, current in [(labels[0], old_first, new_first),
+                                               (labels[1], old_second, new_second)]:
+                if grasp:
+                    limit = previous - 0.001
+                    margins.append((current - limit, name, metric, current < limit))
+                else:
+                    limit = previous + 0.001
+                    margins.append((limit - current, name, metric, current > limit))
+            old_first, new_first, old_second, new_second = [
+                value * 1000 for value in (old_first, new_first, old_second, new_second)]
+            rows.append(f"| {name} | {old_first:.3f} | {new_first:.3f} | {new_first - old_first:+.3f} | "
+                        f"{old_second:.3f} | {new_second:.3f} | {new_second - old_second:+.3f} |")
         if not rows:
-            return ["Metric changes unavailable: no matching completed placements.", ""]
+            return [f"{title} unavailable: no matching completed placements.", ""]
         margin, name, metric, exceeded = min(margins)
-        margin_note = (f"Least remaining metric margin: **{name} / {metric}**, "
+        margin_note = (f"Least remaining {'grasp' if grasp else 'metric'} margin: **{name} / {metric}**, "
                        f"**{margin * 1000:+.3f} mm** "
                        f"({'exceeds allowance' if exceeded else 'within allowance'}).")
+        if grasp:
+            return ["### Grasp changes (mm)", "", margin_note, "",
+                    "Margin = current − (baseline − 1 mm). Negative changes mean lower lift; the gate compares unrounded values. "
+                    "This describes grasp heights only; the overall gate also checks hold duration/contact samples, placement, outcomes, and replay.", "",
+                    "| Case | Lift baseline | Lift current | Lift change | Minimum hold baseline | Minimum hold current | Minimum hold change |",
+                    "| --- | --- | --- | --- | --- | --- | --- |", *rows, ""]
         return ["### Metric changes (mm)", "", margin_note, "",
                 "Margin = baseline + 1 mm − current. This describes placement metrics only; the overall gate also checks grasp lift, outcomes, and replay.", "",
                 "Positive changes mean larger error or drift. The gate compares unrounded values; the allowance is 1 mm.", "",
                 "| Case | Error baseline | Error current | Error change | Drift baseline | Drift current | Drift change |",
                 "| --- | --- | --- | --- | --- | --- | --- |", *rows, ""]
     except (OSError, ValueError, KeyError, TypeError):
-        return ["Metric changes unavailable; inspect baseline.json and evaluation/report.json.", ""]
+        return [f"{title} unavailable; inspect baseline.json and evaluation/report.json.", ""]
 
 
 def markdown_summary(output, summary):
@@ -230,6 +261,7 @@ def markdown_summary(output, summary):
     except (OSError, ValueError, KeyError, TypeError):
         lines += ["Evaluation report unavailable or incomplete; inspect retained logs."]
     lines += [""] + metric_delta_table(output)
+    lines += [""] + metric_delta_table(output, grasp=True)
     lines += ["", "Reports, recordings, and CLI logs are retained in the `lekiwi-evaluation` artifact.",
               "Comparison fixtures are synthetic checks, not additional physical trials.", ""]
     return "\n".join(lines)
