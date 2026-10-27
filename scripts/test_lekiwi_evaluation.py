@@ -104,6 +104,59 @@ def check(output):
 
 
 
+def metric_delta_table(output):
+    """Show measured changes only where both reports contain placement evidence."""
+    try:
+        baseline = json.loads((output / "baseline.json").read_text())
+        report = json.loads((output / "evaluation" / "report.json").read_text())
+        if (baseline["schema_version"], baseline["catalog"]) != (report["schema_version"], report["catalog"]):
+            return ["Metric changes unavailable: report schema or catalog changed.", ""]
+        old_cases = {case["name"]: case for case in baseline["cases"]}
+        rows = []
+        margins = []
+        for case in report["cases"]:
+            old_case = old_cases.get(case["name"])
+            if not old_case or case["outcome"] != "completed" or old_case["outcome"] != "completed":
+                continue
+            before, after = old_case.get("placement"), case.get("placement")
+            if before is None or after is None:
+                continue
+            if before["planned_destination_m"] != after["planned_destination_m"]:
+                return ["Metric changes unavailable: a completed case changed destination.", ""]
+            def metrics(placement):
+                error = placement["placement_error_x_z_m"]
+                if len(error) != 2:
+                    raise ValueError("invalid placement vector")
+                values = (math.hypot(*error), placement["maximum_settled_drift_m"])
+                if not all(math.isfinite(value) for value in values):
+                    raise ValueError("non-finite metric")
+                return values
+            old_error, old_drift = metrics(before)
+            new_error, new_drift = metrics(after)
+            name = html.escape(str(case["name"])).replace("|", "&#124;").replace("\n", " ").replace("\r", " ")
+            for metric, previous, current in [("placement error", old_error, new_error),
+                                               ("settled drift", old_drift, new_drift)]:
+                limit = previous + 0.001
+                margins.append((limit - current, name, metric, current > limit))
+            old_error, new_error, old_drift, new_drift = [
+                value * 1000 for value in (old_error, new_error, old_drift, new_drift)]
+            rows.append(f"| {name} | {old_error:.3f} | {new_error:.3f} | {new_error - old_error:+.3f} | "
+                        f"{old_drift:.3f} | {new_drift:.3f} | {new_drift - old_drift:+.3f} |")
+        if not rows:
+            return ["Metric changes unavailable: no matching completed placements.", ""]
+        margin, name, metric, exceeded = min(margins)
+        margin_note = (f"Least remaining metric margin: **{name} / {metric}**, "
+                       f"**{margin * 1000:+.3f} mm** "
+                       f"({'exceeds allowance' if exceeded else 'within allowance'}).")
+        return ["### Metric changes (mm)", "", margin_note, "",
+                "Margin = baseline + 1 mm − current. This describes placement metrics only; the overall gate also checks outcomes and replay.", "",
+                "Positive changes mean larger error or drift. The gate compares unrounded values; the allowance is 1 mm.", "",
+                "| Case | Error baseline | Error current | Error change | Drift baseline | Drift current | Drift change |",
+                "| --- | --- | --- | --- | --- | --- | --- |", *rows, ""]
+    except (OSError, ValueError, KeyError, TypeError):
+        return ["Metric changes unavailable; inspect baseline.json and evaluation/report.json.", ""]
+
+
 def markdown_summary(output, summary):
     """Render actual evaluation evidence separately from the CI contract verdict."""
     def cell(value):
@@ -143,6 +196,7 @@ def markdown_summary(output, summary):
                          "yes" if case["expectation_met"] else "NO", replay, error])) + " |")
     except (OSError, ValueError, KeyError, TypeError):
         lines += ["Evaluation report unavailable or incomplete; inspect retained logs."]
+    lines += [""] + metric_delta_table(output)
     lines += ["", "Reports, recordings, and CLI logs are retained in the `lekiwi-evaluation` artifact.",
               "Comparison fixtures are synthetic checks, not additional physical trials.", ""]
     return "\n".join(lines)

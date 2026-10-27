@@ -72,3 +72,83 @@ class SummaryTests(unittest.TestCase):
                     check(output)
             self.assertEqual((output / "baseline.json").read_bytes(), before)
         self.assertEqual(BASELINE.read_bytes(), before)
+
+    def test_metric_changes_match_cases_by_name_and_show_signed_millimeters(self):
+        from test_lekiwi_evaluation import metric_delta_table
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            def case(name, error, drift, outcome="completed"):
+                return {"name": name, "outcome": outcome, "placement": {
+                    "placement_error_x_z_m": error, "maximum_settled_drift_m": drift, "planned_destination_m": [0, 0, 0]}}
+            baseline = {"schema_version": 1, "catalog": "v1", "cases": [case("better", [0.003, 0.004], 0.002),
+                                  case("worse", [0.0, 0.001], 0.0),
+                                  case("failed", [0.0, 0.0], 0.0, "failed")]}
+            current = {"schema_version": 1, "catalog": "v1", "cases": [case("worse", [0.0, 0.003], 0.001),
+                                 case("better", [0.003, 0.0], 0.001),
+                                 case("failed", [0.0, 0.0], 0.0, "failed")]}
+            (output / "baseline.json").write_text(json.dumps(baseline))
+            (output / "evaluation" / "report.json").write_text(json.dumps(current))
+            text = "\n".join(metric_delta_table(output))
+            self.assertIn("worse | 1.000 | 3.000 | +2.000 | 0.000 | 1.000 | +1.000", text)
+            self.assertIn("better | 5.000 | 3.000 | -2.000 | 2.000 | 1.000 | -1.000", text)
+            self.assertNotIn("| failed |", text)
+
+    def test_metric_changes_with_no_baseline_do_not_claim_zero_change(self):
+        from test_lekiwi_evaluation import metric_delta_table
+        with tempfile.TemporaryDirectory() as directory:
+            text = "\n".join(metric_delta_table(Path(directory)))
+            self.assertIn("unavailable", text)
+            self.assertNotIn("+0.000", text)
+
+    def test_metric_changes_reject_changed_destination_or_catalog(self):
+        from test_lekiwi_evaluation import metric_delta_table
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            report = {"schema_version": 1, "catalog": "v1", "cases": [
+                {"name": "nominal", "outcome": "completed", "placement": {
+                    "planned_destination_m": [0, 0, 0], "placement_error_x_z_m": [0.001, 0],
+                    "maximum_settled_drift_m": 0.0}}]}
+            (output / "baseline.json").write_text(json.dumps(report))
+            report["cases"][0]["placement"]["planned_destination_m"][0] = 1
+            (output / "evaluation" / "report.json").write_text(json.dumps(report))
+            self.assertIn("changed destination", "\n".join(metric_delta_table(output)))
+            report["catalog"] = "v2"
+            (output / "evaluation" / "report.json").write_text(json.dumps(report))
+            self.assertIn("catalog changed", "\n".join(metric_delta_table(output)))
+
+    def test_smallest_margin_uses_unrounded_limit_and_includes_drift(self):
+        from test_lekiwi_evaluation import metric_delta_table
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            report = {"schema_version": 1, "catalog": "v1", "cases": [
+                {"name": "nominal", "outcome": "completed", "placement": {
+                    "planned_destination_m": [0, 0, 0], "placement_error_x_z_m": [0, 0],
+                    "maximum_settled_drift_m": 0.0}}]}
+            (output / "baseline.json").write_text(json.dumps(report))
+            for drift, label in [(0.001, 'within allowance'), (0.0010001, 'exceeds allowance')]:
+                report['cases'][0]['placement']['maximum_settled_drift_m'] = drift
+                (output / "evaluation" / "report.json").write_text(json.dumps(report))
+                text = "\n".join(metric_delta_table(output))
+                self.assertIn('nominal / settled drift', text)
+                self.assertIn(label, text)
+                self.assertIn('placement metrics only', text)
+
+    def test_smallest_margin_selects_worst_case_independent_of_order(self):
+        from test_lekiwi_evaluation import metric_delta_table
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            def case(name, error):
+                return {"name": name, "outcome": "completed", "placement": {
+                    "planned_destination_m": [0, 0, 0], "placement_error_x_z_m": [error, 0],
+                    "maximum_settled_drift_m": 0.0}}
+            baseline = {"schema_version": 1, "catalog": "v1", "cases": [case('first', 0), case('second', 0)]}
+            (output / 'baseline.json').write_text(json.dumps(baseline))
+            current = {**baseline, 'cases': [case('second', 0.0008), case('first', 0.0002)]}
+            for cases in [current['cases'], list(reversed(current['cases']))]:
+                (output / 'evaluation' / 'report.json').write_text(json.dumps({**current, 'cases': cases}))
+                text = '\n'.join(metric_delta_table(output))
+                self.assertIn('second / placement error**, **+0.200 mm**', text)
