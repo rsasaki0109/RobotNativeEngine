@@ -448,3 +448,26 @@ exceeds it. The accompanying label uses unrounded values, so even an exceedance
 that displays as `-0.000 mm` remains explicit. This is a placement-metric diagnostic,
 not a replacement for the overall gate verdict (which also checks outcomes and
 replay). Missing or incompatible evidence produces no margin claim.
+
+The failure and rejection diagnostics table shows recorded failure phases, completed
+batch counts, task/setup reasons, and replay errors. It includes expected grasp
+failures and preflight rejections as well as unexpected outcomes and replay failures
+(even if placement completed). The outcome table above remains the source for whether
+the expected result was met. Rejected cases are labeled `not executed`; missing
+diagnostic fields are labeled `not reported`, without inventing a failure phase or
+reason. Full recordings and CLI logs remain available in the evaluation artifact.
+
+To inspect a downloaded artifact with the current summary formatter, select one
+`run-*` directory (containing `ci-summary.json`) and run:
+
+```bash
+python3 scripts/test_lekiwi_evaluation.py --summarize /path/to/run-abc > /tmp/lekiwi-summary.md
+```
+
+This command needs only Python's standard library. It reads the retained CI verdict,
+reports, and comparison log; it does not run Cargo, physics, or replay, modify the
+artifact, or append to `GITHUB_STEP_SUMMARY`. Exit zero means rendering succeeded,
+even when the recorded gate verdict is FAIL. A missing or invalid `ci-summary.json`
+is an error (exit 2), rather than an inferred verdict. Missing optional evidence is
+identified in the rendered summary. Running without arguments still runs the full
+evaluation gate.

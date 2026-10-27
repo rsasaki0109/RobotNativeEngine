@@ -1,14 +1,109 @@
 """Summary checks without running physics."""
 import json
+import contextlib
+import io
 import os
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
-from test_lekiwi_evaluation import markdown_summary, save_summary
+from test_lekiwi_evaluation import main, markdown_summary, save_summary
 
 
 class SummaryTests(unittest.TestCase):
+    def test_offline_summary_preserves_evidence_and_does_not_run_evaluation(self):
+        from test_lekiwi_evaluation import BASELINE, fingerprints
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            (output / "evaluation" / "report.json").write_bytes(BASELINE.read_bytes())
+            (output / "baseline.json").write_bytes(BASELINE.read_bytes())
+            step = output / "step.md"
+            step.write_text("existing summary")
+            for passed in (True, False):
+                with self.subTest(passed=passed):
+                    (output / "ci-summary.json").write_text(json.dumps({"passed": passed, "error": "recorded failure"}))
+                    before = fingerprints(output), fingerprints(output / "evaluation")
+                    stream = io.StringIO()
+                    with patch("test_lekiwi_evaluation.check") as check, \
+                            patch("test_lekiwi_evaluation.subprocess.run") as run, \
+                            patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(step)}), \
+                            contextlib.redirect_stdout(stream):
+                        main(["--summarize", str(output)])
+                    check.assert_not_called()
+                    run.assert_not_called()
+                    self.assertEqual(before, (fingerprints(output), fingerprints(output / "evaluation")))
+                    self.assertIn(f"CI gate: **{'PASS' if passed else 'FAIL'}**", stream.getvalue())
+                    self.assertIn("missed-block | failed | close | 100", stream.getvalue())
+
+    def test_offline_summary_requires_an_explicit_boolean_verdict(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            for content in (None, "{broken", "[]", '{}', '{"passed": "false"}', '{"passed": 1}'):
+                with self.subTest(content=content):
+                    if content is not None:
+                        (output / "ci-summary.json").write_text(content)
+                    stdout, stderr = io.StringIO(), io.StringIO()
+                    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                        with self.assertRaises(SystemExit) as error:
+                            main(["--summarize", str(output)])
+                    self.assertEqual(error.exception.code, 2)
+                    self.assertEqual(stdout.getvalue(), "")
+                    self.assertIn("cannot read retained CI verdict", stderr.getvalue())
+
+    def test_offline_setup_failure_can_render_without_physical_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "ci-summary.json").write_text(json.dumps({"passed": False, "error": "setup failed"}))
+            stream = io.StringIO()
+            with contextlib.redirect_stdout(stream):
+                main(["--summarize", str(output)])
+            self.assertIn("CI gate: **FAIL**", stream.getvalue())
+            self.assertIn("setup failed", stream.getvalue())
+            self.assertIn("unavailable or incomplete", stream.getvalue())
+
+    def test_diagnostics_show_recorded_grasp_failure_and_preflight_rejections(self):
+        from test_lekiwi_evaluation import BASELINE
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            (output / "evaluation" / "report.json").write_bytes(BASELINE.read_bytes())
+            text = markdown_summary(output, {"passed": True})
+            details = text.split("### Failure and rejection diagnostics")[1]
+            self.assertIn("missed-block | failed | close | 100 | Close: block must contact both grasp pads", details)
+            self.assertIn("unequal-height | rejected | not executed | 0 | destination not supported", details)
+            self.assertNotIn("| nominal |", details)
+            self.assertIn("CI gate: **PASS**", text)
+
+    def test_completed_placement_with_replay_failure_has_separate_diagnostic(self):
+        from test_lekiwi_evaluation import BASELINE
+        report = json.loads(BASELINE.read_text())
+        case = report["cases"][0]
+        case["replay_verified"] = False
+        case["replay_error"] = "hash | mismatch <step>\nnext"
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            (output / "evaluation" / "report.json").write_text(json.dumps(report))
+            text = markdown_summary(output, {"passed": False, "error": "replay failed"})
+            self.assertIn("nominal | completed | yes | FAIL", text)
+            self.assertIn("nominal | completed | not reported | 330 | not reported | hash &#124; mismatch &lt;step&gt; next", text)
+
+    def test_diagnostics_preserve_unexpected_outcomes_without_inventing_evidence(self):
+        from test_lekiwi_evaluation import BASELINE
+        report = json.loads(BASELINE.read_text())
+        report["cases"] = [{"name": "unexpected", "outcome": "error", "expectation_met": False,
+                            "replay_verified": None, "reason": "setup <failed> | retry\nlog"},
+                           {"name": "unexpected-success", "outcome": "completed", "expectation_met": False,
+                            "replay_verified": True, "expected": "failed"}]
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "evaluation").mkdir()
+            (output / "evaluation" / "report.json").write_text(json.dumps(report))
+            text = markdown_summary(output, {"passed": False})
+            self.assertIn("unexpected | not reported | not reported | not reported | setup &lt;failed&gt; &#124; retry log", text)
+            self.assertIn("unexpected-success | failed | not reported", text)
+
     def test_expected_failure_is_not_physical_success(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)
