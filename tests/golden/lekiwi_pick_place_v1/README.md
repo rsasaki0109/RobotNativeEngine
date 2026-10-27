@@ -12,7 +12,8 @@ refer to the original run; recordings are not vendored here. New CI runs generat
 and verify their own recordings and retain a copy of this reference alongside them.
 
 The gate uses `--compare-evaluations` with its fixed 1 mm allowance for increases
-in XZ placement error and settled drift. Outcomes, replay evidence, expected
+in XZ placement error and settled drift, and decreases in grasp lift and minimum
+hold lift. Completed cases require grasp measurements. Outcomes, replay evidence, expected
 failure reasons/phases, case identity, and destination compatibility are checked
 by the comparator. Improvements pass. Incompatible schemas or catalogs fail.
 
