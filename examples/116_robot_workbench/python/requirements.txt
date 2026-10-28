@@ -1,0 +1,2 @@
+gymnasium==1.2.3
+numpy>=1.24,<3

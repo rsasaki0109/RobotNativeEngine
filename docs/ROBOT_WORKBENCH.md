@@ -506,3 +506,521 @@ even when the recorded gate verdict is FAIL. A missing or invalid `ci-summary.js
 is an error (exit 2), rather than an inferred verdict. Missing optional evidence is
 identified in the rendered summary. Running without arguments still runs the full
 evaluation gate.
+
+## Shared-world contact and torque arena (experimental)
+
+The headless contact arena runs 1–8 LeKiwi + SO-101 agents in **one Rapier
+world**. Bases and articulated links are dynamic: gravity, floor/wall contact,
+robot–robot contact, and a shared dynamic box participate in the same solver.
+There is no commanded base pose, planar velocity integration, grasp weld, or
+position servo. All nine actuated joints per robot (three wheels and six arm /
+gripper joints) accept direct torque. This is a physics/control experiment, not
+a working cooperative pick/place policy or a hardware-calibrated digital twin.
+
+Run the bundled two-agent episode:
+
+```sh
+cargo run -p robot_workbench --no-default-features -- \
+  --run-contact-arena examples/116_robot_workbench/scenarios/contact_arena.json \
+  > /tmp/contact-arena-observations.json
+```
+
+The JSON input contains `config.agents` (unique `id`, `position_m`, `yaw_rad`),
+an explicit `config.self_collisions` flag, and `actions`. Each action specifies
+`steps` (1–240) and a `torques_nm` map from agent ID to URDF **joint name** to
+N·m. The example applies opposite shoulder-pan torques to `alice` and `bob`.
+Output joint keys list the available names, including the three authored wheel
+joint names. Inputs are limited to 4 MiB, 1,000 action frames, and 24,000 physics
+steps (approximately 100 simulation seconds). The fixed step is 4,166,667 ns.
+
+Every action advances all agents together. Unknown agent/joint IDs and nonfinite
+torques reject the entire action before changing any command or advancing time.
+Omitted agents/joints receive zero torque for that action; zero torque does not
+hold position or stop motion. Commands clamp to the authored effort limit; the
+three wheels, whose URDF has no effort rating, use an explicitly experimental
+1 N·m ceiling. No velocity servo or implicit speed ceiling is added. The arm's
+URDF ratings are simulation inputs, not verified hardware capabilities.
+
+Each action returns the common simulation timestamp, stable physics-state hash,
+per-agent base pose/velocity, joint position/velocity, capped commanded effort,
+and backend-applied effort (not a torque-sensor model). Shared object positions
+are included. Named contact pairs report positive normal solver impulses summed
+over **all** physics steps in the action; these are N·s, not forces or final-step
+contact flags. Observations are instantaneous simulator state without sensor
+noise or latency. Agent IDs determine spawn order, so reordering the config's
+agent array does not change a replay. Constructing a new arena resets the entire
+shared world; per-agent resets and isolated parallel training workers are not
+implemented by this interface. This mode is CLI-only, separate from the browser
+Workbench's existing planar-base preview.
+
+The supplied scenario enables self-contact (subject to connected-joint exclusions
+in the backend). Setting `self_collisions` to false excludes only contacts within
+each robot; it preserves collisions between different agents. CAD meshes use
+AABB collision proxies and the grasp model's simplified pads. Those proxies can
+overlap internally, creating self-contact at rest; enabling contact is **not** a
+qualification of those shapes or of stable whole-body control. In the default CAD-based configuration, wheel rollers,
+anisotropic rolling/sliding friction, calibrated wheel inertia, actuator dynamics,
+and physical motor calibration are not reproduced. In particular, wheel torque
+must not be interpreted as a validated omnidirectional velocity command.
+
+Tests cover dynamic settling and floor contact, direct effort response and
+per-agent isolation, clamping and zeroing, rejected-action atomicity, exact fresh
+replay, self-contact, and robot–robot solver impulses in a gravity-driven drop
+with within-robot contact disabled. The drop checks cross-agent collision routing;
+it is not a coordinated driving or manipulation demonstration.
+
+### Idealized passive-roller driving experiment
+
+Set `config.idealized_omni` to `true` to select a separate experimental rolling
+model. The default is `false`, preserving the CAD-cylinder arena and previous
+pick/place behavior. This option changes collision geometry **and** base inertial
+parameters; a difference from the default cannot be attributed to rollers alone.
+
+```sh
+cargo run -p robot_workbench --no-default-features -- \
+  --run-contact-arena examples/116_robot_workbench/scenarios/contact_drive.json \
+  > /tmp/contact-drive-observations.json
+```
+
+Each wheel has sixteen 8 mm-radius, 5 g spherical rollers on a 42.8 mm-radius
+ring, giving a 50.8 mm outer radius. Each roller has a free continuous joint
+about the tangent to the ring, with no motor or commanded effort. The ring is
+centered on the authored drive axle and retains the wheel's axial offset.
+Roller sphere inertia is `2 m r² / 5`. Contact and passive rotation are solved
+by Rapier; the code does not inject a planar traction force or set a base pose.
+The extra 48 degrees of freedom per agent make this mode substantially slower.
+Only the original nine actuator joints accept commands; rollers are passive.
+
+Overlapping base-part CAD AABBs are replaced by a 0.20 × 0.18 × 0.03 m chassis
+collision box centered 0.04 m above the URDF base origin. The base link is 1.5 kg
+with an isotropic 0.01 kg·m² inertia about that origin. Each wheel hub and its
+fixed wheel body is 40 g; remaining base-part links use 1 g. Their diagonal
+inertias are `mass × 0.0005 m²`. Original arm geometry and inertials are retained.
+These are explicit experimental parameters, not measured LeKiwi mass properties.
+CAD visuals remain authored and are not a collision-geometry rendering.
+
+The scenario starts with the arm facing away from the wall, settles for 0.5 s,
+drives toward +world X using wheel torques `[+1, -0.5, -0.5]` N·m in authored
+wheel order (`-2`, `-1`, unsuffixed), then sets all torques to zero for 0.5 s.
+There is no initial wall contact, velocity target, position tracking, or active
+braking controller. A local run advanced about 16 cm in X and 10 cm laterally,
+produced positive roller/wall impulses, and settled below 0.01 m/s planar speed.
+Tests require forward travel, wall contact, nonzero passive roller velocity,
+no wall crossing, and settling, as well as exact fresh replay of a short run.
+This establishes torque-driven contact motion in this model; it does not
+establish accurate straight-line tracking or free-space braking performance.
+
+The spherical ring has a scalloped outer profile and can stick under low torque.
+The arm can also touch the floor when unpowered. Actual barrel roller geometry,
+bearing losses, realistic mass distribution, calibrated friction, and a torque
+feedback controller remain necessary before treating this as a realistic kiwi
+base. The driving scenario disables same-robot collision to isolate rolling;
+robot/environment and cross-agent collisions remain enabled. Self-contact of the
+new model is not qualified by this driving test.
+
+### Wheel-speed feedback with explicit torque output
+
+The sampled PI controller accepts wheel angular speeds and computes direct joint
+torques from completed joint-velocity feedback at every 4,166,667 ns physics
+step. It does not install backend velocity motors, command a base velocity, or
+edit poses. Its state is independent for each agent and wheel.
+
+```sh
+cargo run -p robot_workbench --no-default-features -- \
+  --run-wheel-control examples/116_robot_workbench/scenarios/wheel_feedback.json \
+  > /tmp/wheel-feedback-observations.json
+```
+
+The input contains the arena `config`, `gain_nm_s_per_rad` (Kp), optional
+`integral_gain_nm_per_rad` (Ki, default zero), and `phases`. Each phase specifies
+`steps` and `wheel_speeds_rad_s`, a map from agent ID to three speeds in authored
+wheel order (`-2`, `-1`, unsuffixed). Each speed must be finite and within
+±20 rad/s; gains must be finite and in [0, 1]. Those input bounds are not a
+stability guarantee. Each phase permits 1–2,400 steps and an episode permits at
+most 1,000 phases and 24,000 total steps. All IDs, setpoints, and gains are
+validated before stepping the world.
+
+For each wheel, `error = target_speed - measured_speed`, and the controller
+integrates `Ki * error * dt` in torque units. Torque and integral memory are
+bounded by the actuator's effort ceiling. Conditional integration prevents
+further winding up when the error would push the actuator farther into
+saturation, while permitting the integral to unwind. Every new phase resets
+integral memory, including the drive-to-brake transition. Use one phase for
+continuous integration over a sustained setpoint.
+
+An explicit `[0, 0, 0]` target enables zero-speed feedback. Omitting an agent
+instead commands zero wheel torque (coasting); it is not active braking. Arm
+joints default to zero torque; the optional `arm_hold` configuration below
+keeps selected joints under direct-torque posture control. Existing `--run-contact-arena`
+remains the interface for arbitrary direct joint torque sequences.
+
+Output samples contain phase index, completed phase-step count, and an arena
+observation every 24 physics steps, plus a final shorter window when needed.
+Contact impulses are accumulated over every step in that window, not sampled
+only at its end. Joint velocity, command, and backend-applied torque describe
+the last step; the command was computed from that step's **preceding** feedback.
+Feedback is instantaneous simulator state, not a hardware encoder/latency model.
+
+The example settles, drives for 1 s, then requests zero speed for 1 s in open
+space away from the wall and shared box. With Kp=0.03 and Ki=0.1, a local run
+advanced about 12 cm in X, drifted about 3 cm laterally, and settled below
+0.01 m/s planar speed and 0.1 rad/s wheel speed. The driven wheel speeds still
+lag their `[12, -6, -6]` rad/s targets: this is not a qualified speed-tracking or
+heading controller. A higher Kp=0.3 trial oscillated near the torque limits.
+
+The matching coast counterfactual shares the exact drive states, changing only
+the final phase's speed map to `{}`. Both cases stop quickly because the model
+has substantial ground/arm friction; the measured final displacements during
+stopping differed by only about 0.15 mm. Do not infer a useful braking-distance
+advantage from this case. Tests check free-space motion, final speed, torque
+bounds, active-versus-coast command semantics, identical pre-stop states, and
+independent multi-agent commands with exact replay. Motor calibration, robust
+gain tuning, arm posture control, and body-frame heading feedback remain open.
+
+### Keep the arm off the floor while driving
+
+`--run-wheel-control` also accepts an optional episode-level `arm_hold` map
+from agent ID to arm-joint name to a PD target. Each target specifies
+`position_rad`, `stiffness_nm_per_rad`, `damping_nm_s_per_rad`, and
+`effort_limit_nm`. At every physics step the controller applies
+`Kp * (target - measured_position) - Kd * measured_velocity`, capped by that
+joint's configured effort ceiling. It uses direct effort actuation, not a
+backend position motor, weld, or pose correction. Arm targets persist through
+all wheel phases, including coasting and zero-speed braking. Omitted arm joints
+remain unpowered; wheel names cannot be assigned to this controller.
+
+```sh
+cargo run -p robot_workbench --no-default-features -- \
+  --run-wheel-control examples/116_robot_workbench/scenarios/wheel_arm_hold.json \
+  > /tmp/wheel-arm-hold-observations.json
+```
+
+The supplied scenario holds all six arm joints near zero radians while using
+the same wheel-speed phases as `wheel_feedback.json`. Targets must be inside
+the authored joint limits. Gains must be finite and nonnegative, with Kp ≤20
+N·m/rad and Kd ≤1 N·m·s/rad; the per-joint effort ceiling must not exceed the
+model's actuator limit. These numeric bounds do not guarantee stable tuning.
+All targets and agent IDs are validated before simulation advances.
+
+In the local run, maximum sampled posture error was approximately 0.15 rad and
+no positive arm/floor contact impulse was reported during settling, driving,
+or braking. Only the wheel rollers supported the robot on the floor. The same
+initial scene with the arm unpowered produced gripper/floor contact during
+settling. Tests compare these cases, require sampled errors below 0.2 rad, check the
+configured torque ceilings, and verify persistent independent arm holds for
+two agents through wheel-command changes and exact replay.
+
+The held-arm run moved roughly 6 cm in X and 9 cm laterally, then settled below
+0.01 m/s planar speed. This is not straight-line tracking. Removing arm support
+also did not establish a meaningful braking advantage: active and coast stop
+displacements differed by only about 0.3 mm in this model. The passive spherical
+roller profile and contact friction remain significant limitations. PD holding
+has gravity-dependent position bias; there is no gravity feed-forward,
+trajectory planner, grasp policy, or whole-body stabilizer in this controller.
+
+## Independent environments for learning
+
+`--serve-vector-arena CONFIG.json` keeps multiple **independent physics worlds**
+alive for an external learner. Each environment has its own arena, robot
+entities, object/contact state, torque commands, and simulation clock. Identical
+agent IDs and overlapping coordinates across environments do not imply shared
+bodies or collisions. The default vector example has one robot in each of two
+worlds. Multiple agents inside one environment still share that environment's
+physics; that is separate from independent training lanes.
+
+```sh
+cargo run -p robot_workbench --no-default-features -- \
+  --serve-vector-arena examples/116_robot_workbench/scenarios/vector_arena.json
+```
+
+The config contains `environments`, an ordered array of 1–16 arena configs, and
+`workers` (1–8). Each environment can opt into the idealized roller model.
+Stepping uses disjoint CPU worker chunks, with at most `workers` scoped threads;
+results remain in environment-index order regardless of scheduling. This is
+CPU parallelism, not GPU-vectorized physics or a throughput qualification.
+
+The process writes one JSON response per line and flushes it immediately. It
+first emits `{"kind":"ready","observations":[...]}` at zero simulation time.
+Send JSON-line requests on stdin:
+
+```json
+{"op":"step","actions":[{"steps":24,"torques_nm":{"alice":{"shoulder_pan":0.02}}},{"steps":24,"torques_nm":{}}]}
+{"op":"reset","indices":[0]}
+{"op":"observe"}
+```
+
+`step` requires exactly one direct-torque arena action per environment. Choose
+identical step counts for a common control cadence; different counts are allowed
+and each observation retains its own timestamp. The reply is
+`{"kind":"step","results":[{"status":"stepped","observation":...},...]}`.
+All action IDs, values, lengths, and step counts are validated before any lane
+advances. Input errors return `{"kind":"error","error":"..."}` and permit
+another request; invalid batches do not partially advance earlier lanes.
+
+`reset` reconstructs only the selected environment indices from their original
+configs, clearing their commands, physics state, and clocks. Returned indices
+and observations follow the requested order. Other environments remain untouched.
+Duplicate/out-of-range indices and construction failures leave all old worlds
+in place. There is no implicit reset when stepping. `observe` neither advances
+time nor synthesizes a new contact interval; its contact lists are empty.
+
+A normal backend error during step returns `status:"failed"` for that lane;
+successfully stepped peers retain their results. This is not rollback of a
+physics failure. Reset failed lanes before the next step/observe request.
+Worker panics terminate the process rather than pretending a valid transition
+was produced. Request lines and the startup config are bounded to 4 MiB;
+an oversized request terminates the process, while EOF shuts it down normally.
+
+Tests compare sequential and parallel complete observations, including roller
+contact worlds, and compare a lane against a separately stepped reference world.
+They also verify selective-reset isolation, exact fresh-reset replay, and batch
+validation before mutation. The JSON-lines smoke covers ready, step, reset,
+observe, and recovery after an invalid request.
+
+This interface supplies independent transition dynamics and reset semantics.
+It does not yet define task rewards, success/termination/truncation conditions,
+auto-reset, domain-randomization seeds, Gymnasium spaces, or a training algorithm.
+Resets are deterministic copies of the supplied per-environment configuration.
+The learner must provide torque actions; the standalone wheel/arm feedback runner
+is not implicitly running inside these worlds. Those task/controller wrappers
+can be added without mixing the underlying physics worlds.
+
+### Gymnasium shoulder-target task
+
+`python/rne_gym.py` adds `ShoulderVectorEnv` (Gymnasium 1.2.3 `VectorEnv`) and
+`ShoulderEnv` (single-world `Env`) over that JSON-lines service. This is an
+initial torque-learning task, not a pick-and-place policy or hardware model
+qualification. Each lane must contain exactly one LeKiwi + SO-101 robot.
+The world config can still select idealized rollers; the sample uses CAD proxies.
+
+```sh
+cargo build -p robot_workbench --no-default-features
+python -m venv .venv-gym
+.venv-gym/bin/pip install -r examples/116_robot_workbench/python/requirements.txt
+.venv-gym/bin/python examples/116_robot_workbench/python/rollout.py \
+  target/debug/rne-workbench --steps 60
+.venv-gym/bin/python -m unittest discover -s examples/116_robot_workbench/python -v
+```
+
+`RNE_WORKBENCH` overrides the test binary path. The rollout collects seeded random
+transitions and resets finished lanes; it does not train a policy or demonstrate
+learning convergence. Use `ShoulderEnv` with learners accepting Gymnasium `Env`,
+or `ShoulderVectorEnv` with learners supporting Gymnasium's **Disabled** autoreset
+mode (this is not the Stable-Baselines3 VecEnv protocol).
+
+The nine-dimensional action is normalized direct torque in `[-1, 1]`, ordered by
+`env.joint_names` (sorted joint names). Each component is multiplied by that
+joint's reported effort cap. There is no implicit arm holding or wheel controller.
+Invalid shapes, nonfinite actions and out-of-range values are rejected before
+sending the batch. Observations are float64 vectors in this order:
+
+- Nine joint positions (rad), then nine joint velocities (rad/s), in joint order.
+- Base position (m), quaternion (xyzw), and linear velocity (m/s).
+- Shoulder-pan target (rad), consecutive hold count / 10, remaining horizon fraction.
+
+The observation is partial state: it excludes passive roller states, contact
+solver caches and base angular velocity. Continuous physical values use unbounded
+Box limits rather than clipping physical measurements. Normalization for a
+particular learner remains the caller's responsibility.
+
+Every reset samples a shoulder-pan target with magnitude uniform in `[0.15, 0.3]`
+rad and uniformly chosen sign. Integer seeds become `seed + lane_index`; a list
+can specify per-lane seeds. Only reset lanes consume their own random streams.
+Physics resets to the original config; this adds target randomization, not physics
+or domain randomization. Default actions advance four physics ticks (~1/60 s).
+The task reward per control step is
+`-angle_error_rad² - 0.001 * mean(normalized_action²) + success - fallen`.
+Success requires ten consecutive control observations within 0.05 rad and below
+0.1 rad/s. Fall means base height below 0.02 m or the robot's local +Z axis more
+than 60 degrees from world +Y. Success/fall set `terminated`; the default 200-step
+limit sets `truncated` only if no termination occurred. The hold duration is
+measured at control boundaries, so changing `physics_steps` changes its duration.
+
+Call `reset()` before stepping. After any lane finishes, call
+`reset(options={"reset_mask": terminated | truncated})` before the next batch.
+Reset returns all lane observations; unselected lanes retain physics, targets,
+counters and random streams. Terminal observations are returned directly by step
+and are never overwritten by autoreset. `info` contains per-lane targets,
+simulation timestamps and hashes; step additionally returns angle errors,
+`is_success` and `fallen`. Physics/protocol errors raise and require resetting all
+lanes (recreate the environment if the process exited), rather than supplying
+fabricated terminal transitions. Close the environment
+(or use the vector environment as a context manager) to reap the child process.
+
+Tests run Gymnasium's single-environment checker against the real Rust process,
+compare seeded serial/parallel transitions and hashes, check partial reset and
+truncation, and use controlled observations for success/fall/backend-error cases.
+A seeded direct-torque PD baseline also reaches success in a real contact world;
+this demonstrates task feasibility for that case, not a learned policy.
+
+### Parallel policy search and held-out evaluation
+
+`python/train_shoulder.py` runs cross-entropy method (CEM) policy search using
+only NumPy and Gymnasium. It learns **two shoulder-pan PD gains**, not a neural
+policy or full-body controller. The policy explicitly applies fixed PD holding
+to the other arm joints and zero wheel torque; those fixed gains come from the
+existing arm-hold scenario. The environment itself still accepts nine torques.
+This keeps the first learning experiment small enough to reproduce on CPU.
+
+```sh
+.venv-gym/bin/python examples/116_robot_workbench/python/train_shoulder.py \
+  target/debug/rne-workbench /tmp/shoulder-search.json
+.venv-gym/bin/python examples/116_robot_workbench/python/evaluate_shoulder.py \
+  target/debug/rne-workbench /tmp/shoulder-search.json --check
+```
+
+The output path must be new. Defaults are six independent candidate worlds,
+four generations, optimizer seed 42, and two training target seeds (11, 29).
+All candidates in a generation see exactly the same targets and starting world.
+The search samples bounded log gains, fits the best half, and retains the
+incumbent. Initial shoulder gains are 0.3 Nm/rad and 0.02 Nm·s/rad; shoulder
+torque is capped at 1 Nm by the policy. Control runs every physics tick, with a
+300-tick horizon (~1.25 seconds); success still requires ten control observations.
+
+The selected policy is frozen before evaluating held-out target seeds
+101, 202, 303 and 404. Initial and learned policies run in paired independent
+worlds. When one candidate finishes early, subsequent episodes in its lane are
+excluded from its score while peers finish. Fitness is undiscounted episode
+return under the existing reward, so both tracking error and time to success
+matter. Training targets are deliberately few: these results do not establish
+robustness to varied hardware, contacts, world layouts or unseen target ranges.
+
+The committed example `python/results/shoulder_search.json` records the complete
+world, fixed controller, exact learned log parameters, seed sets, candidate
+scores, episode lengths, success/fall outcomes, final errors and physics hashes.
+`evaluate_shoulder.py --check` reloads the policy and requires exact equality of
+all saved evaluation records, including hashes. Exact replay is checked on this
+runtime; cross-platform floating-point equivalence is not promised.
+
+In the recorded CAD-proxy experiment, initial and learned policies both succeeded
+on all four held-out targets. Mean return improved from -3.2276 to -0.7511, and
+mean absolute final error fell from 0.04062 to 0.01398 rad. The selected shoulder
+gains were approximately 0.86183 Nm/rad and 0.05086 Nm·s/rad. These are simulation
+results from a structured feedback policy search, not measured robot performance.
+Tests additionally verify seeded search replay and that resetting finished
+candidate lanes cannot contaminate the original episode return.
+
+### Simultaneous shoulder and elbow pose learning
+
+`ArmPoseVectorEnv` and `ArmPoseEnv` extend the torque task to three simultaneous
+joint targets: `shoulder_pan`, `shoulder_lift`, `elbow_flex`, in that order.
+Each target independently chooses a sign and magnitude uniform in `[0.1, 0.3]`
+rad, within the authored URDF limits. The 33-dimensional observation has the same
+joint/base fields as the shoulder task, followed by these three targets, the
+shared hold count / 10, and remaining horizon fraction. `target_rad` and
+`angle_error_rad` in vector info have shape `(num_envs, 3)`.
+
+All three angles must be within 0.05 rad and all three speeds below 0.1 rad/s for
+ten consecutive control observations to succeed. An excursion of any one joint
+resets the shared count. Reward uses the **mean squared error across all three
+joints**, with the same action penalty, success bonus, fall penalty and timeout
+semantics as the single-joint task. Single-joint observation shapes, seeds and
+saved-policy replay remain compatible.
+
+```sh
+.venv-gym/bin/python examples/116_robot_workbench/python/train_arm_pose.py \
+  target/debug/rne-workbench /tmp/arm-pose-search.json
+.venv-gym/bin/python examples/116_robot_workbench/python/evaluate_shoulder.py \
+  target/debug/rne-workbench /tmp/arm-pose-search.json --check
+```
+
+The replay command detects the task from the report. Training learns six log
+parameters: proportional and damping gains for each of the three joints, in
+that order. Wrist/gripper holding gains and the 1/2/1.5 Nm respective shoulder
+pan/lift/elbow torque caps are fixed in the policy; wheels coast. The optimizer
+uses eight independent CPU worlds, six generations, optimizer seed 42 and four
+training target seeds (11, 29, 47, 83). It freezes the selected controller before
+paired evaluation on eight held-out target seeds (101, 202, 303, 404, 505, 606,
+707, 808). Each action lasts one physics tick, with a 480-tick (~2 s) horizon.
+The ten-observation hold is therefore only about 42 ms, not a long-duration
+stability qualification.
+
+These are joint-space pose tasks with CAD contact proxies. They do not constrain
+end-effector position, prohibit arm/floor support, randomize robot dynamics, or
+establish collision-free manipulation. Full-body reinforcement learning,
+cartesian reaching and grasping remain separate work. Tests cover all-joint
+success/reward semantics, Gymnasium compliance, selective target reset,
+serial/parallel policy replay and task-aware saved-controller replay.
+
+The committed `python/results/arm_pose_search.json` is a **mixed result**, not a
+qualified improved controller. On the eight held-out targets, initial gains
+succeeded on 0/8 and selected gains on 3/8. Mean absolute final error decreased
+from 0.06102 to 0.03865 rad, but mean return worsened from -4.8794 to -12.4871.
+In particular, target seed 505 returned -78.0597 with the selected gains. All
+non-successes reached the time limit; neither policy triggered the fall rule.
+A small final error therefore does not establish a good trajectory or stable
+holding. The selected policy was not retuned on these evaluation targets.
+The result exposes limited generalization from four training targets and is
+retained so later changes can be compared against the full outcome, not just
+success rate. The report replays exactly, including per-joint errors and state
+hashes, on the tested runtime.
+
+### Bounded-reference PID and worst-case-first selection
+
+The seed-505 regression prompted a controller change rather than another search
+for higher PD gains. `arm_controller.py` holds a zero reference for 120 physics
+ticks, then advances each of the three joint references at no more than 0.5
+rad/s. PID uses the same direct torque interface and existing torque caps.
+Integral gains are `[0.4, 4, 3]` Nm/(rad·s), with integral torque contributions
+bounded to `[0.3, 1, 0.7]` Nm, in pan/lift/elbow order. Conditional integration
+prevents accumulating error into saturation while permitting unwinding. All
+controller timing uses the fixed simulation timestep (4,166,667 ns), not wall
+clock. Wrist/gripper use the same fixed holding controller and wheels coast.
+
+Controller reference, integral and elapsed-step state are owned per lane.
+The evaluator resets only the controller lanes whose physical worlds it resets,
+including lanes that finish while peers are still running. Controller state is
+part of the policy, not added to the environment observation or reward. The
+three-joint task's targets, torque limits, reward and success rule are unchanged.
+
+```sh
+.venv-gym/bin/python examples/116_robot_workbench/python/train_stable_arm.py \
+  target/debug/rne-workbench /tmp/stable-arm-search.json
+.venv-gym/bin/python examples/116_robot_workbench/python/train_stable_arm.py \
+  target/debug/rne-workbench /tmp/stable-arm-search.json --replay
+.venv-gym/bin/python examples/116_robot_workbench/python/diagnose_arm.py \
+  target/debug/rne-workbench /tmp/stable-arm-search.json /tmp/seed-505.json --seed 505
+```
+
+CEM now selects lexicographically by success count, worst episode return, then
+mean return. This avoids trading away a completed target for a good average.
+The six-gain search uses six candidates, four generations, optimizer seed 42,
+and development/training seeds 11, 29, 47, 83, 505, 909. Seed 505 is deliberately
+a regression target used in development, **not held-out evidence**. Evaluation
+uses fresh seeds 1001–1008 only after policy selection is frozen, comparing the
+original PD, previous learned PD and new selected PID on the same targets.
+
+`diagnose_arm.py` records target joint positions, speeds, errors and commanded
+torques every twelve control steps and at termination. Peak metrics accumulate
+over every control step, not just recorded samples. It also retains terminal
+hashes, returns, lengths and outcomes. In the previous PD controller's seed-505
+trajectory the shoulder pan reached 1.669 rad and shoulder lift speed peaked at
+19.679 rad/s; a small final error had hidden the poor transient.
+The reference ramp and integral correction address that transient and residual
+error respectively, but do not provide a general stability guarantee or a
+calibrated hardware controller. These experiments still use CAD contact proxies,
+a short (~42 ms) success hold, and a two-second horizon.
+
+The saved `python/results/stable_arm_search.json` compares all three controllers
+on the new, held-out seeds:
+
+| Metric (8 targets) | Original PD | Previous learned PD | Bounded-reference PID |
+| --- | ---: | ---: | ---: |
+| Successes | 0/8 | 7/8 | 8/8 |
+| Mean episode return | -16.5015 | -13.1025 | -8.1353 |
+| Mean final absolute joint error (rad) | 0.06144 | 0.08382 | 0.01582 |
+| Mean episode length (ticks, including failures) | 480 | 365.25 | 348.25 |
+
+This is improvement on this eight-target simulation evaluation, not broad
+robustness evidence. The controller structure and selection objective changed
+together; this comparison does not isolate their individual contributions.
+The paired seed-505 regression trajectory is retained separately in
+`python/results/stable_arm_seed_505.json`. Replay validates every saved evaluation
+record, including terminal state hashes. Unit/integration coverage also checks
+reference slew limits, integral anti-windup, selective controller resets,
+lexicographic candidate selection, and repeated physical-episode replay after
+resetting controller state.
+For that development regression, the new policy succeeds at tick 361 and reduces
+the peak absolute shoulder-pan angle from 1.66935 to 0.13475 rad. Peak lift and
+elbow velocities still reach 12.85 and 16.55 rad/s during the episode, so this
+should not be read as hardware-safe motion or a general joint-speed guarantee.

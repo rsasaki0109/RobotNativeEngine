@@ -1,0 +1,85 @@
+{
+  "config": {
+    "self_collisions": false,
+    "idealized_omni": true,
+    "agents": [
+      {
+        "id": "alice",
+        "position_m": [
+          0.0,
+          0.12,
+          -1.0
+        ],
+        "yaw_rad": 3.141592653589793
+      }
+    ]
+  },
+  "gain_nm_s_per_rad": 0.03,
+  "phases": [
+    {
+      "steps": 120,
+      "wheel_speeds_rad_s": {}
+    },
+    {
+      "steps": 240,
+      "wheel_speeds_rad_s": {
+        "alice": [
+          12,
+          -6,
+          -6
+        ]
+      }
+    },
+    {
+      "steps": 240,
+      "wheel_speeds_rad_s": {
+        "alice": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "integral_gain_nm_per_rad": 0.1,
+  "arm_hold": {
+    "alice": {
+      "shoulder_pan": {
+        "position_rad": 0.0,
+        "stiffness_nm_per_rad": 3,
+        "damping_nm_s_per_rad": 0.06,
+        "effort_limit_nm": 1
+      },
+      "shoulder_lift": {
+        "position_rad": 0.0,
+        "stiffness_nm_per_rad": 8,
+        "damping_nm_s_per_rad": 0.16,
+        "effort_limit_nm": 2
+      },
+      "elbow_flex": {
+        "position_rad": 0.0,
+        "stiffness_nm_per_rad": 6,
+        "damping_nm_s_per_rad": 0.12,
+        "effort_limit_nm": 1.5
+      },
+      "wrist_flex": {
+        "position_rad": 0.0,
+        "stiffness_nm_per_rad": 1.5,
+        "damping_nm_s_per_rad": 0.03,
+        "effort_limit_nm": 0.5
+      },
+      "wrist_roll": {
+        "position_rad": 0.0,
+        "stiffness_nm_per_rad": 0.5,
+        "damping_nm_s_per_rad": 0.01,
+        "effort_limit_nm": 0.3
+      },
+      "gripper": {
+        "position_rad": 0.0,
+        "stiffness_nm_per_rad": 0.3,
+        "damping_nm_s_per_rad": 0.005,
+        "effort_limit_nm": 0.06
+      }
+    }
+  }
+}

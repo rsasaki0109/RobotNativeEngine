@@ -81,7 +81,7 @@ impl std::fmt::Debug for Simulation {
     }
 }
 
-fn resolve_meshes(
+pub(crate) fn resolve_meshes(
     document: &mut rne_urdf_import::UrdfDocument,
     asset_root: Option<&Path>,
 ) -> Result<()> {

@@ -1,0 +1,2930 @@
+{
+  "schema_version": 1,
+  "task": "stable_arm_pose_v1",
+  "algorithm": "cem_lexicographic",
+  "selection_order": [
+    "success_count",
+    "worst_return",
+    "mean_return"
+  ],
+  "seed": 42,
+  "train_seeds": [
+    11,
+    29,
+    47,
+    83,
+    505,
+    909
+  ],
+  "evaluation_seeds": [
+    1001,
+    1002,
+    1003,
+    1004,
+    1005,
+    1006,
+    1007,
+    1008
+  ],
+  "world": {
+    "self_collisions": false,
+    "agents": [
+      {
+        "id": "alice",
+        "position_m": [
+          -0.5,
+          0.12,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      }
+    ]
+  },
+  "horizon": 480,
+  "physics_steps": 1,
+  "fixed_arm_hold": {
+    "shoulder_pan": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 3,
+      "damping_nm_s_per_rad": 0.06,
+      "effort_limit_nm": 1
+    },
+    "shoulder_lift": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 8,
+      "damping_nm_s_per_rad": 0.16,
+      "effort_limit_nm": 2
+    },
+    "elbow_flex": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 6,
+      "damping_nm_s_per_rad": 0.12,
+      "effort_limit_nm": 1.5
+    },
+    "wrist_flex": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 1.5,
+      "damping_nm_s_per_rad": 0.03,
+      "effort_limit_nm": 0.5
+    },
+    "wrist_roll": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 0.5,
+      "damping_nm_s_per_rad": 0.01,
+      "effort_limit_nm": 0.3
+    },
+    "gripper": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 0.3,
+      "damping_nm_s_per_rad": 0.005,
+      "effort_limit_nm": 0.06
+    }
+  },
+  "controller": {
+    "dt_s": 0.004166667,
+    "settle_steps": 120,
+    "reference_speed_rad_s": 0.5,
+    "integral_gain_nm_per_rad_s": [
+      0.4,
+      4.0,
+      3.0
+    ],
+    "integral_limit_nm": [
+      0.3,
+      1.0,
+      0.7
+    ]
+  },
+  "policy_log_gains": {
+    "initial": [
+      -1.2039728043259361,
+      -3.912023005428146,
+      2.0794415416798357,
+      -1.8325814637483102,
+      1.791759469228055,
+      -2.120263536200091
+    ],
+    "previous": [
+      -0.6476623930649158,
+      -3.9760259349722946,
+      2.3315991160067115,
+      -1.9343383904335005,
+      2.524098030025397,
+      -2.3458543311781557
+    ],
+    "learned": [
+      1.098263426086044,
+      -2.973582621247908,
+      2.0581602880618695,
+      -2.0641858798453683,
+      2.4263785610453037,
+      -1.8940680363946756
+    ]
+  },
+  "training_initial_log_gains": [
+    1.0986122886681098,
+    -2.8134107167600364,
+    2.0794415416798357,
+    -1.8325814637483102,
+    1.791759469228055,
+    -2.120263536200091
+  ],
+  "training": [
+    {
+      "generation": 0,
+      "gains": [
+        [
+          3.0000000000000004,
+          0.06,
+          7.999999999999998,
+          0.15999999999999998,
+          6.0,
+          0.12000000000000001
+        ],
+        [
+          3.1172911689314216,
+          0.05456931806048173,
+          7.959778671872246,
+          0.12387346944855507,
+          7.811358260189595,
+          0.15153692481596562
+        ],
+        [
+          3.06002014090117,
+          0.08414293200615668,
+          9.204517023287194,
+          0.12364147863257631,
+          6.701857350370916,
+          0.0900015563117333
+        ],
+        [
+          3.904568895274879,
+          0.05910803013828065,
+          7.568408689593733,
+          0.13043760005541302,
+          8.658330064926393,
+          0.1145639174403434
+        ],
+        [
+          2.638245049196911,
+          0.05398490643741045,
+          9.385202974474538,
+          0.1785389946069249,
+          6.79087128851193,
+          0.13655644473375023
+        ],
+        [
+          5.703651415353454,
+          0.05311291172256737,
+          6.860420402054428,
+          0.12534149806798658,
+          7.217822365618631,
+          0.1683732818880043
+        ]
+      ],
+      "scores": [
+        [
+          6.0,
+          -9.012298258662323,
+          -5.388240171281683
+        ],
+        [
+          6.0,
+          -8.602467277616558,
+          -5.423532170967384
+        ],
+        [
+          6.0,
+          -9.010500625349998,
+          -5.444390302528004
+        ],
+        [
+          6.0,
+          -8.385253811506832,
+          -5.446075733638036
+        ],
+        [
+          6.0,
+          -8.930499991164304,
+          -5.202481861806741
+        ],
+        [
+          6.0,
+          -8.62545238597739,
+          -5.508835537751017
+        ]
+      ],
+      "episodes": [
+        [
+          {
+            "seed": 11,
+            "return": -4.354719474081052,
+            "steps": 375,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002162687869738028,
+              0.023035557908130402,
+              0.029510496702398803
+            ],
+            "state_hash": "12542399f7f4dd7c"
+          },
+          {
+            "seed": 29,
+            "return": -4.563069128289331,
+            "steps": 299,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0054665320484053315,
+              0.02022658153464213,
+              0.03002267397754263
+            ],
+            "state_hash": "e46f694337524d54"
+          },
+          {
+            "seed": 47,
+            "return": -5.224198892306925,
+            "steps": 296,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.009265418015358823,
+              0.03602118711915328,
+              0.03187270406135462
+            ],
+            "state_hash": "31b68e418d8a3083"
+          },
+          {
+            "seed": 83,
+            "return": -5.676767912830475,
+            "steps": 295,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002099723807155923,
+              0.01793781144681561,
+              0.028330921347312937
+            ],
+            "state_hash": "e7589ebaed117249"
+          },
+          {
+            "seed": 505,
+            "return": -9.012298258662323,
+            "steps": 314,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0005609629225024476,
+              0.04886410685096593,
+              0.03487571275980056
+            ],
+            "state_hash": "e9945fca975629c2"
+          },
+          {
+            "seed": 909,
+            "return": -3.49838736151999,
+            "steps": 377,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0016263134883121588,
+              0.03126464165639009,
+              0.02391295765778481
+            ],
+            "state_hash": "424e6f8f6076e8ed"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.430476695151616,
+            "steps": 366,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0017426221981228507,
+              0.019775984789217382,
+              0.02568351317206452
+            ],
+            "state_hash": "a228e4d61ad3d657"
+          },
+          {
+            "seed": 29,
+            "return": -4.648918934088694,
+            "steps": 327,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.00373257293045956,
+              0.04388773155267414,
+              0.04499451829343104
+            ],
+            "state_hash": "4c29509d9bc0c7d1"
+          },
+          {
+            "seed": 47,
+            "return": -5.500633569177708,
+            "steps": 295,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010216989268498622,
+              0.03993254418039449,
+              0.03207934473755597
+            ],
+            "state_hash": "d2e73fcf6cdefd82"
+          },
+          {
+            "seed": 83,
+            "return": -5.82992924968066,
+            "steps": 325,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.006043889785629114,
+              0.045398482325952755,
+              0.04691131100473764
+            ],
+            "state_hash": "17800e7fd42488ad"
+          },
+          {
+            "seed": 505,
+            "return": -8.602467277616558,
+            "steps": 368,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0018955849809638159,
+              0.04055861883568351,
+              0.02775938483397472
+            ],
+            "state_hash": "c34d765ed99a59f3"
+          },
+          {
+            "seed": 909,
+            "return": -3.5287673000890654,
+            "steps": 368,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0008609813035481972,
+              0.028959768067323255,
+              0.021834107875087744
+            ],
+            "state_hash": "70d4fd8d6dcd223c"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.380274209781361,
+            "steps": 402,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0028310683541195036,
+              0.0390733097404653,
+              0.04523362660362587
+            ],
+            "state_hash": "9d82dec95f593bbf"
+          },
+          {
+            "seed": 29,
+            "return": -4.539183461678515,
+            "steps": 366,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0020840594655673894,
+              0.016331778596701485,
+              0.023953247689684792
+            ],
+            "state_hash": "fc6bf628e106b66c"
+          },
+          {
+            "seed": 47,
+            "return": -5.398461368324995,
+            "steps": 309,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.007352071098894963,
+              0.04328270018408126,
+              0.04119881807339415
+            ],
+            "state_hash": "8619135ff28ff65e"
+          },
+          {
+            "seed": 83,
+            "return": -5.692445565914325,
+            "steps": 364,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002465238387618668,
+              0.014321448854648144,
+              0.022241455468844873
+            ],
+            "state_hash": "6a024c224c7af144"
+          },
+          {
+            "seed": 505,
+            "return": -9.010500625349998,
+            "steps": 370,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.001380522704060791,
+              0.031274998580691604,
+              0.022968785127585545
+            ],
+            "state_hash": "914fd94f4492e199"
+          },
+          {
+            "seed": 909,
+            "return": -3.6454765841188315,
+            "steps": 364,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0016495393475413345,
+              0.02447316390467255,
+              0.01800652231752764
+            ],
+            "state_hash": "1572ed7ebe472b48"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.468700690069383,
+            "steps": 368,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002214367979835874,
+              0.0179108864697487,
+              0.023976174917294896
+            ],
+            "state_hash": "b940e76bcc95074f"
+          },
+          {
+            "seed": 29,
+            "return": -4.7702896115687246,
+            "steps": 330,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0018881919570758465,
+              0.04608659591298189,
+              0.042667618061375784
+            ],
+            "state_hash": "2af0c9a0870b77f9"
+          },
+          {
+            "seed": 47,
+            "return": -5.554451417431452,
+            "steps": 287,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010375361409423606,
+              0.037211430605964074,
+              0.02722953859191085
+            ],
+            "state_hash": "4b64b642b2b30ab5"
+          },
+          {
+            "seed": 83,
+            "return": -5.997357460388224,
+            "steps": 369,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0017887492251444648,
+              0.01702088609772784,
+              0.024934129603447708
+            ],
+            "state_hash": "ee275d1b86369e0c"
+          },
+          {
+            "seed": 505,
+            "return": -8.385253811506832,
+            "steps": 373,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0037115324189804927,
+              0.04018366774536514,
+              0.02646144165408129
+            ],
+            "state_hash": "3bd02d18b3dcfdf0"
+          },
+          {
+            "seed": 909,
+            "return": -3.5004014108636015,
+            "steps": 370,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0029431234941563744,
+              0.027893202454385313,
+              0.020532518815891354
+            ],
+            "state_hash": "81b8d645963f9902"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.048239072741628,
+            "steps": 316,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.007941178949114308,
+              0.040800831785953395,
+              0.04782449373019834
+            ],
+            "state_hash": "53ad701d5850a7df"
+          },
+          {
+            "seed": 29,
+            "return": -4.210787090222547,
+            "steps": 287,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002804401336559459,
+              0.025116546250757238,
+              0.03376998810384804
+            ],
+            "state_hash": "55bd02ac3b70cfba"
+          },
+          {
+            "seed": 47,
+            "return": -5.228420429429978,
+            "steps": 301,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.009445699334661939,
+              0.03870080595678291,
+              0.036192985158741586
+            ],
+            "state_hash": "21b6648e16c17cce"
+          },
+          {
+            "seed": 83,
+            "return": -5.350272709851548,
+            "steps": 281,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.004571770194216784,
+              0.020958173163668853,
+              0.03003258742347248
+            ],
+            "state_hash": "9ec138f16db6863b"
+          },
+          {
+            "seed": 505,
+            "return": -8.930499991164304,
+            "steps": 350,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0013940930580571415,
+              0.039705767241098866,
+              0.028942972065282735
+            ],
+            "state_hash": "6db6497038b97f7f"
+          },
+          {
+            "seed": 909,
+            "return": -3.446671877430438,
+            "steps": 319,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.009899432266398112,
+              0.04626114330966441,
+              0.03908254510413506
+            ],
+            "state_hash": "31b75e3bfda451c4"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.491113189600245,
+            "steps": 336,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0002765709238820857,
+              0.04734007659272584,
+              0.04588672281881248
+            ],
+            "state_hash": "2013c7b5fc0f2097"
+          },
+          {
+            "seed": 29,
+            "return": -4.956715475697857,
+            "steps": 342,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002164796758004739,
+              0.0438858270440418,
+              0.04516824021127974
+            ],
+            "state_hash": "41ed0a9f2bb2eca0"
+          },
+          {
+            "seed": 47,
+            "return": -5.441339047947094,
+            "steps": 305,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -7.136998845663767e-06,
+              0.03253112630152388,
+              0.02767896365759448
+            ],
+            "state_hash": "0165d4bbc4e5155e"
+          },
+          {
+            "seed": 83,
+            "return": -6.114070538435115,
+            "steps": 339,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0003299263816896325,
+              0.044420846895590796,
+              0.04633294767370563
+            ],
+            "state_hash": "dbc3357802463d73"
+          },
+          {
+            "seed": 505,
+            "return": -8.62545238597739,
+            "steps": 318,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.005008387810049725,
+              0.04434467563219313,
+              0.02848756487270407
+            ],
+            "state_hash": "f77b3dbf16bef410"
+          },
+          {
+            "seed": 909,
+            "return": -3.4243225888484026,
+            "steps": 383,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0018318281585398277,
+              0.029225296792165234,
+              0.023027905533555076
+            ],
+            "state_hash": "1b5c252e8fc70f4b"
+          }
+        ]
+      ],
+      "best_score": [
+        6,
+        -8.385253811506832,
+        -5.446075733638036
+      ]
+    },
+    {
+      "generation": 1,
+      "gains": [
+        [
+          3.904568895274879,
+          0.05910803013828065,
+          7.568408689593733,
+          0.13043760005541302,
+          8.658330064926393,
+          0.1145639174403434
+        ],
+        [
+          3.4816344378272954,
+          0.05750721445472969,
+          7.580307666198729,
+          0.13073893663524833,
+          8.973409099303163,
+          0.14827144715446577
+        ],
+        [
+          4.86784738047305,
+          0.05610489539553196,
+          7.778930232380071,
+          0.1390859975297571,
+          6.3279603830192945,
+          0.13574464412851353
+        ],
+        [
+          3.655187444533876,
+          0.05046371347800609,
+          7.147621035141535,
+          0.15832349742276014,
+          6.914887358116198,
+          0.16734200846615666
+        ],
+        [
+          2.7017106476625563,
+          0.05281807468713261,
+          7.6328696570825585,
+          0.13814896298723794,
+          8.760345368580898,
+          0.162652678360194
+        ],
+        [
+          3.767730323949452,
+          0.05181778558268084,
+          8.471836411979954,
+          0.12294087472123415,
+          6.5025759236197995,
+          0.11893538503137142
+        ]
+      ],
+      "scores": [
+        [
+          6.0,
+          -8.385253811506832,
+          -5.446075733638036
+        ],
+        [
+          6.0,
+          -8.323860156270623,
+          -5.422876485783912
+        ],
+        [
+          6.0,
+          -8.919496460805641,
+          -5.3876322998624575
+        ],
+        [
+          6.0,
+          -8.681703980806011,
+          -5.381685647459098
+        ],
+        [
+          6.0,
+          -8.335569988718778,
+          -5.416689693296715
+        ],
+        [
+          6.0,
+          -9.027760719198795,
+          -5.428722406574143
+        ]
+      ],
+      "episodes": [
+        [
+          {
+            "seed": 11,
+            "return": -4.468700690069383,
+            "steps": 368,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002214367979835874,
+              0.0179108864697487,
+              0.023976174917294896
+            ],
+            "state_hash": "b940e76bcc95074f"
+          },
+          {
+            "seed": 29,
+            "return": -4.7702896115687246,
+            "steps": 330,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0018881919570758465,
+              0.04608659591298189,
+              0.042667618061375784
+            ],
+            "state_hash": "2af0c9a0870b77f9"
+          },
+          {
+            "seed": 47,
+            "return": -5.554451417431452,
+            "steps": 287,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010375361409423606,
+              0.037211430605964074,
+              0.02722953859191085
+            ],
+            "state_hash": "4b64b642b2b30ab5"
+          },
+          {
+            "seed": 83,
+            "return": -5.997357460388224,
+            "steps": 369,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0017887492251444648,
+              0.01702088609772784,
+              0.024934129603447708
+            ],
+            "state_hash": "ee275d1b86369e0c"
+          },
+          {
+            "seed": 505,
+            "return": -8.385253811506832,
+            "steps": 373,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0037115324189804927,
+              0.04018366774536514,
+              0.02646144165408129
+            ],
+            "state_hash": "3bd02d18b3dcfdf0"
+          },
+          {
+            "seed": 909,
+            "return": -3.5004014108636015,
+            "steps": 370,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0029431234941563744,
+              0.027893202454385313,
+              0.020532518815891354
+            ],
+            "state_hash": "81b8d645963f9902"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.463102809021945,
+            "steps": 366,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0017343454345666032,
+              0.019995894362410185,
+              0.02483601772639943
+            ],
+            "state_hash": "4329c5b1ca4ea9da"
+          },
+          {
+            "seed": 29,
+            "return": -4.7298237952629805,
+            "steps": 328,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0028877718779753148,
+              0.04388724892267766,
+              0.040434650079320705
+            ],
+            "state_hash": "1772bde027e342c9"
+          },
+          {
+            "seed": 47,
+            "return": -5.58966008291638,
+            "steps": 291,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010351077951713222,
+              0.040362097928318186,
+              0.02909419868356128
+            ],
+            "state_hash": "3e2a3093659b0a2a"
+          },
+          {
+            "seed": 83,
+            "return": -5.9369211695517885,
+            "steps": 325,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.005491011877042262,
+              0.04557800638977341,
+              0.04200911747643146
+            ],
+            "state_hash": "6c048db3e1d3c447"
+          },
+          {
+            "seed": 505,
+            "return": -8.323860156270623,
+            "steps": 366,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.003280104572846304,
+              0.042136340777170045,
+              0.026744546826516613
+            ],
+            "state_hash": "eac2ef9431893141"
+          },
+          {
+            "seed": 909,
+            "return": -3.493890901679758,
+            "steps": 368,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0015597656597826082,
+              0.029662063524918125,
+              0.02126954090702962
+            ],
+            "state_hash": "83b42d66df66cea1"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.309883288006606,
+            "steps": 375,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0033663334676209133,
+              0.02180854831464181,
+              0.028722090273384016
+            ],
+            "state_hash": "5ade222ca3e6d384"
+          },
+          {
+            "seed": 29,
+            "return": -4.630787468866624,
+            "steps": 298,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.005691223707575327,
+              0.0183783266341771,
+              0.02845716522935121
+            ],
+            "state_hash": "d57ea1978b1b22cf"
+          },
+          {
+            "seed": 47,
+            "return": -5.215718034330761,
+            "steps": 291,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.007266692895262633,
+              0.03641075710244629,
+              0.031973339435680204
+            ],
+            "state_hash": "d5e54d8db0ebf645"
+          },
+          {
+            "seed": 83,
+            "return": -5.824540272869414,
+            "steps": 377,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.003183129944860863,
+              0.019824676896318005,
+              0.029260089631121283
+            ],
+            "state_hash": "2a6b96a2c731525f"
+          },
+          {
+            "seed": 505,
+            "return": -8.919496460805641,
+            "steps": 304,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0031557988183868596,
+              0.047738713280002065,
+              0.033174123445416315
+            ],
+            "state_hash": "cb6175635bab74da"
+          },
+          {
+            "seed": 909,
+            "return": -3.4253682742957015,
+            "steps": 377,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0038760566115156325,
+              0.029926025157859304,
+              0.023312148774847413
+            ],
+            "state_hash": "fbd6f06f6adcc9a2"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.372252788629865,
+            "steps": 330,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.003309455835474956,
+              0.04183157534841336,
+              0.043642222148377624
+            ],
+            "state_hash": "0f983d18f0a2eff0"
+          },
+          {
+            "seed": 29,
+            "return": -4.7106521071763545,
+            "steps": 301,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.005599223797736946,
+              0.022613603539906074,
+              0.031681639521794536
+            ],
+            "state_hash": "97929567fec54caa"
+          },
+          {
+            "seed": 47,
+            "return": -5.330096426365375,
+            "steps": 309,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.006958754652099303,
+              0.03509405864565454,
+              0.029749026963219294
+            ],
+            "state_hash": "37b3634c893638f6"
+          },
+          {
+            "seed": 83,
+            "return": -5.8878724926832176,
+            "steps": 334,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.003585347102493003,
+              0.03844312591880783,
+              0.043730813480149455
+            ],
+            "state_hash": "4200737c3e66bd1d"
+          },
+          {
+            "seed": 505,
+            "return": -8.681703980806011,
+            "steps": 330,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002702567868167166,
+              0.048550656013524485,
+              0.03140034879023443
+            ],
+            "state_hash": "055ac12e3f24f7ff"
+          },
+          {
+            "seed": 909,
+            "return": -3.3075360890937686,
+            "steps": 299,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010975890067089045,
+              0.033927687760681,
+              0.023977543988942668
+            ],
+            "state_hash": "53f175ed08a2df23"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.455993690488045,
+            "steps": 323,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.007832748543157159,
+              0.04754079431801977,
+              0.0420554568772851
+            ],
+            "state_hash": "b00ef29e71cfd921"
+          },
+          {
+            "seed": 29,
+            "return": -4.681737074154324,
+            "steps": 327,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.004880821709681543,
+              0.04161398899467535,
+              0.03984342451818565
+            ],
+            "state_hash": "729fb787a5b23567"
+          },
+          {
+            "seed": 47,
+            "return": -5.613273160559873,
+            "steps": 300,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.009622634999378876,
+              0.04070443334124263,
+              0.030381984083221347
+            ],
+            "state_hash": "9afc86578d701752"
+          },
+          {
+            "seed": 83,
+            "return": -5.889408881771459,
+            "steps": 325,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.006465218506720827,
+              0.04296244572462289,
+              0.041275444221210794
+            ],
+            "state_hash": "ce64734b0ae99523"
+          },
+          {
+            "seed": 505,
+            "return": -8.335569988718778,
+            "steps": 352,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0016604144573901108,
+              0.04652920561333612,
+              0.02901275344716911
+            ],
+            "state_hash": "e47ffda0426d41c2"
+          },
+          {
+            "seed": 909,
+            "return": -3.5241553640878136,
+            "steps": 368,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0009790102689093694,
+              0.03122600599984987,
+              0.022407791868531785
+            ],
+            "state_hash": "a15463d3a9a424be"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.329117504035491,
+            "steps": 369,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0021804632542188063,
+              0.018261073765153235,
+              0.02474952102427061
+            ],
+            "state_hash": "d6e151bea24f4771"
+          },
+          {
+            "seed": 29,
+            "return": -4.623149420756615,
+            "steps": 373,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.00239892451341181,
+              0.018750468735326598,
+              0.027001262428706208
+            ],
+            "state_hash": "511d0f0f46592ca7"
+          },
+          {
+            "seed": 47,
+            "return": -5.298867794701796,
+            "steps": 289,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.011144600624195228,
+              0.03484041281557784,
+              0.030355135507865283
+            ],
+            "state_hash": "5be7d1f42b3b1811"
+          },
+          {
+            "seed": 83,
+            "return": -5.755232397956228,
+            "steps": 371,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0018144362322808916,
+              0.017225269239157015,
+              0.025899824149653944
+            ],
+            "state_hash": "a2e4f72e4a926b40"
+          },
+          {
+            "seed": 505,
+            "return": -9.027760719198795,
+            "steps": 376,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.004098032793283343,
+              0.03775725117079831,
+              0.027852998539772494
+            ],
+            "state_hash": "cf522657afc396da"
+          },
+          {
+            "seed": 909,
+            "return": -3.5382066027959373,
+            "steps": 371,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0028246494139612666,
+              0.02699351303505182,
+              0.020588789421193687
+            ],
+            "state_hash": "f8bc945058534dc4"
+          }
+        ]
+      ],
+      "best_score": [
+        6,
+        -8.323860156270623,
+        -5.422876485783912
+      ]
+    },
+    {
+      "generation": 2,
+      "gains": [
+        [
+          3.4816344378272954,
+          0.05750721445472969,
+          7.580307666198729,
+          0.13073893663524833,
+          8.973409099303163,
+          0.14827144715446577
+        ],
+        [
+          3.659905535256341,
+          0.05385569942135419,
+          8.132348779990034,
+          0.120484498643081,
+          8.330161772057474,
+          0.1325116925645594
+        ],
+        [
+          2.7653715662638554,
+          0.060688613253387536,
+          7.0775170567615655,
+          0.13331091564728612,
+          9.454141998774084,
+          0.15004139876847314
+        ],
+        [
+          3.68238457829749,
+          0.05558633485837332,
+          7.1266319976136945,
+          0.1314796730645405,
+          6.8294270875236744,
+          0.11294090310513456
+        ],
+        [
+          2.711915311475889,
+          0.048575689691828135,
+          8.063112377516472,
+          0.11616227495419494,
+          8.311304451744695,
+          0.17051372910141854
+        ],
+        [
+          3.1467179997686427,
+          0.06301277937648606,
+          6.601460068247505,
+          0.12902347443477963,
+          7.628091211708786,
+          0.1333632502328797
+        ]
+      ],
+      "scores": [
+        [
+          6.0,
+          -8.323860156270623,
+          -5.422876485783912
+        ],
+        [
+          6.0,
+          -8.51440063030877,
+          -5.404173750378995
+        ],
+        [
+          6.0,
+          -8.180035057192232,
+          -5.523594201374796
+        ],
+        [
+          6.0,
+          -8.712993102854368,
+          -5.562249125623283
+        ],
+        [
+          6.0,
+          -8.401564199490876,
+          -5.420395904315843
+        ],
+        [
+          6.0,
+          -8.461910124355297,
+          -5.640518008317053
+        ]
+      ],
+      "episodes": [
+        [
+          {
+            "seed": 11,
+            "return": -4.463102809021945,
+            "steps": 366,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0017343454345666032,
+              0.019995894362410185,
+              0.02483601772639943
+            ],
+            "state_hash": "4329c5b1ca4ea9da"
+          },
+          {
+            "seed": 29,
+            "return": -4.7298237952629805,
+            "steps": 328,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0028877718779753148,
+              0.04388724892267766,
+              0.040434650079320705
+            ],
+            "state_hash": "1772bde027e342c9"
+          },
+          {
+            "seed": 47,
+            "return": -5.58966008291638,
+            "steps": 291,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010351077951713222,
+              0.040362097928318186,
+              0.02909419868356128
+            ],
+            "state_hash": "3e2a3093659b0a2a"
+          },
+          {
+            "seed": 83,
+            "return": -5.9369211695517885,
+            "steps": 325,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.005491011877042262,
+              0.04557800638977341,
+              0.04200911747643146
+            ],
+            "state_hash": "6c048db3e1d3c447"
+          },
+          {
+            "seed": 505,
+            "return": -8.323860156270623,
+            "steps": 366,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.003280104572846304,
+              0.042136340777170045,
+              0.026744546826516613
+            ],
+            "state_hash": "eac2ef9431893141"
+          },
+          {
+            "seed": 909,
+            "return": -3.493890901679758,
+            "steps": 368,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0015597656597826082,
+              0.029662063524918125,
+              0.02126954090702962
+            ],
+            "state_hash": "83b42d66df66cea1"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.384108948076481,
+            "steps": 363,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0015502664891220153,
+              0.017634058983876932,
+              0.023481432407089775
+            ],
+            "state_hash": "a2b6c0560afb2f32"
+          },
+          {
+            "seed": 29,
+            "return": -4.634332201985426,
+            "steps": 324,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.003025178484619029,
+              0.04594527583839006,
+              0.04493715902907461
+            ],
+            "state_hash": "fb4b35512aeed18b"
+          },
+          {
+            "seed": 47,
+            "return": -5.52114445427935,
+            "steps": 301,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.009467627305296489,
+              0.043762820662951424,
+              0.03430755018521836
+            ],
+            "state_hash": "31c4625b22994566"
+          },
+          {
+            "seed": 83,
+            "return": -5.8546281485892635,
+            "steps": 364,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.001447078139863528,
+              0.017150443069272436,
+              0.024795429564341914
+            ],
+            "state_hash": "fb2b413db8e8f80d"
+          },
+          {
+            "seed": 505,
+            "return": -8.51440063030877,
+            "steps": 369,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.004206086174891599,
+              0.0363805505532111,
+              0.024858587563581613
+            ],
+            "state_hash": "2b047f8b9acd0d69"
+          },
+          {
+            "seed": 909,
+            "return": -3.5164281190346798,
+            "steps": 365,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0016052461387439099,
+              0.02773332041494611,
+              0.020508184907124638
+            ],
+            "state_hash": "7fe2c1a80ddf7f24"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.659162961905497,
+            "steps": 371,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002325621513055043,
+              0.02046105286276033,
+              0.024932324826447083
+            ],
+            "state_hash": "f5ac44806f855eea"
+          },
+          {
+            "seed": 29,
+            "return": -4.884646350190994,
+            "steps": 333,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.004026578715071338,
+              0.04393638007158246,
+              0.03835311931701865
+            ],
+            "state_hash": "dd3339ec22347026"
+          },
+          {
+            "seed": 47,
+            "return": -5.748753455875898,
+            "steps": 299,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.008782120306259161,
+              0.038453507174415674,
+              0.027041182134045993
+            ],
+            "state_hash": "c545319e352395d4"
+          },
+          {
+            "seed": 83,
+            "return": -6.109769442657965,
+            "steps": 329,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.00591254453479545,
+              0.045334724313113306,
+              0.03958130323449616
+            ],
+            "state_hash": "880397527ab258ea"
+          },
+          {
+            "seed": 505,
+            "return": -8.180035057192232,
+            "steps": 366,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -8.31244050761154e-05,
+              0.047056613162228866,
+              0.027987131620544198
+            ],
+            "state_hash": "6a0824a815894c0a"
+          },
+          {
+            "seed": 909,
+            "return": -3.5591979404261935,
+            "steps": 373,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0012642587941173455,
+              0.029871745377816117,
+              0.021113410644985203
+            ],
+            "state_hash": "b1c8cf27122911ba"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.603376682352292,
+            "steps": 382,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.003048348422671293,
+              0.01838841277898451,
+              0.0260989730945492
+            ],
+            "state_hash": "2e50bbcdcb98f412"
+          },
+          {
+            "seed": 29,
+            "return": -4.928386636584079,
+            "steps": 343,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0015400783345344282,
+              0.046412264258015964,
+              0.04907933411750465
+            ],
+            "state_hash": "bbceaa35d46353bb"
+          },
+          {
+            "seed": 47,
+            "return": -5.4727133540382225,
+            "steps": 304,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.008298218094496185,
+              0.030232109279850733,
+              0.025787116303276847
+            ],
+            "state_hash": "4dfcd43102824990"
+          },
+          {
+            "seed": 83,
+            "return": -6.108582879400282,
+            "steps": 384,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002575787108809735,
+              0.016318650580724042,
+              0.026514051534610172
+            ],
+            "state_hash": "5c624951e4b981f3"
+          },
+          {
+            "seed": 505,
+            "return": -8.712993102854368,
+            "steps": 315,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.004360299388119909,
+              0.042612058881747406,
+              0.028631706841142662
+            ],
+            "state_hash": "86b8748cf33c1c91"
+          },
+          {
+            "seed": 909,
+            "return": -3.5474420985104587,
+            "steps": 384,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0038332286430630136,
+              0.02696488715694606,
+              0.02118474883456878
+            ],
+            "state_hash": "b3f046a818b17dd1"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.469404937896162,
+            "steps": 362,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0025318789595648317,
+              0.01945324166389696,
+              0.024935630106537127
+            ],
+            "state_hash": "32a7bd23a38914eb"
+          },
+          {
+            "seed": 29,
+            "return": -4.628896050869263,
+            "steps": 323,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.005360570872487702,
+              0.04426063285094732,
+              0.0435616693580233
+            ],
+            "state_hash": "9cf71586aa4c205c"
+          },
+          {
+            "seed": 47,
+            "return": -5.598175518491911,
+            "steps": 300,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010139889069727903,
+              0.04279575879798944,
+              0.03357844909490321
+            ],
+            "state_hash": "d86f48d65ffd609d"
+          },
+          {
+            "seed": 83,
+            "return": -5.856214326961883,
+            "steps": 363,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0028621275335822816,
+              0.018748629599907612,
+              0.02621417377679694
+            ],
+            "state_hash": "6d4f93f79f7a2864"
+          },
+          {
+            "seed": 505,
+            "return": -8.401564199490876,
+            "steps": 280,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.013479098468239442,
+              0.04146342711014034,
+              0.02545341325129527
+            ],
+            "state_hash": "c690ec28f126066e"
+          },
+          {
+            "seed": 909,
+            "return": -3.568120392184965,
+            "steps": 364,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0008146779433390594,
+              0.02894782096283638,
+              0.021561664733686592
+            ],
+            "state_hash": "a385dea7ef599dc3"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.781604874894047,
+            "steps": 385,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0026059393834987066,
+              0.018982738121445533,
+              0.026632381430810564
+            ],
+            "state_hash": "76a2e949042f69b9"
+          },
+          {
+            "seed": 29,
+            "return": -5.087573272687607,
+            "steps": 346,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002204818415773635,
+              0.04579883073303492,
+              0.04455625326010226
+            ],
+            "state_hash": "fb1b56e84531b2ef"
+          },
+          {
+            "seed": 47,
+            "return": -5.665787556637188,
+            "steps": 308,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.008739855971511057,
+              0.029666387040925307,
+              0.024835543345927913
+            ],
+            "state_hash": "07038e3e103d1e99"
+          },
+          {
+            "seed": 83,
+            "return": -6.267452401944836,
+            "steps": 342,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0037938195645648987,
+              0.046096246117871525,
+              0.04537171283241201
+            ],
+            "state_hash": "ef52a0077a6e31e4"
+          },
+          {
+            "seed": 505,
+            "return": -8.461910124355297,
+            "steps": 322,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0017665395177749454,
+              0.04215138278581304,
+              0.027074723239980003
+            ],
+            "state_hash": "e2b470fce18ae36a"
+          },
+          {
+            "seed": 909,
+            "return": -3.5787798193833433,
+            "steps": 386,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0026360061391094425,
+              0.0274516305103574,
+              0.021709023241276798
+            ],
+            "state_hash": "9b79223d0ddecb99"
+          }
+        ]
+      ],
+      "best_score": [
+        6,
+        -8.180035057192232,
+        -5.523594201374796
+      ]
+    },
+    {
+      "generation": 3,
+      "gains": [
+        [
+          2.7653715662638554,
+          0.060688613253387536,
+          7.0775170567615655,
+          0.13331091564728612,
+          9.454141998774084,
+          0.15004139876847314
+        ],
+        [
+          2.9989535947902275,
+          0.051119838852886214,
+          7.8315487553530705,
+          0.1269215779327803,
+          11.317820976969896,
+          0.15045849156411883
+        ],
+        [
+          2.544462364550675,
+          0.056854075673737924,
+          7.816667860508211,
+          0.15511545546317876,
+          10.088320960593403,
+          0.16453465975010548
+        ],
+        [
+          3.6948480618112827,
+          0.04630648916140305,
+          6.870907038728458,
+          0.11009076766191012,
+          8.395033297526409,
+          0.1268604501469176
+        ],
+        [
+          3.263227192130185,
+          0.05353111959827952,
+          6.0656269701640095,
+          0.10863077156702723,
+          9.329102400198693,
+          0.17685135401141874
+        ],
+        [
+          4.00263795972305,
+          0.08568484172984771,
+          8.047973103570033,
+          0.10905592884498305,
+          6.46436499372113,
+          0.16234883230363215
+        ]
+      ],
+      "scores": [
+        [
+          6.0,
+          -8.180035057192232,
+          -5.523594201374796
+        ],
+        [
+          6.0,
+          -8.007517733444645,
+          -5.4064599189846625
+        ],
+        [
+          6.0,
+          -8.105457217686793,
+          -5.339882700186446
+        ],
+        [
+          6.0,
+          -8.386767847193994,
+          -5.657786171300799
+        ],
+        [
+          6.0,
+          -8.214719135313523,
+          -5.841647434310345
+        ],
+        [
+          6.0,
+          -8.924194068185315,
+          -5.449999724544263
+        ]
+      ],
+      "episodes": [
+        [
+          {
+            "seed": 11,
+            "return": -4.659162961905497,
+            "steps": 371,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002325621513055043,
+              0.02046105286276033,
+              0.024932324826447083
+            ],
+            "state_hash": "f5ac44806f855eea"
+          },
+          {
+            "seed": 29,
+            "return": -4.884646350190994,
+            "steps": 333,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.004026578715071338,
+              0.04393638007158246,
+              0.03835311931701865
+            ],
+            "state_hash": "dd3339ec22347026"
+          },
+          {
+            "seed": 47,
+            "return": -5.748753455875898,
+            "steps": 299,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.008782120306259161,
+              0.038453507174415674,
+              0.027041182134045993
+            ],
+            "state_hash": "c545319e352395d4"
+          },
+          {
+            "seed": 83,
+            "return": -6.109769442657965,
+            "steps": 329,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.00591254453479545,
+              0.045334724313113306,
+              0.03958130323449616
+            ],
+            "state_hash": "880397527ab258ea"
+          },
+          {
+            "seed": 505,
+            "return": -8.180035057192232,
+            "steps": 366,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -8.31244050761154e-05,
+              0.047056613162228866,
+              0.027987131620544198
+            ],
+            "state_hash": "6a0824a815894c0a"
+          },
+          {
+            "seed": 909,
+            "return": -3.5591979404261935,
+            "steps": 373,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0012642587941173455,
+              0.029871745377816117,
+              0.021113410644985203
+            ],
+            "state_hash": "b1c8cf27122911ba"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.479045896434259,
+            "steps": 357,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002101640555322387,
+              0.019139729701490027,
+              0.02183856986815988
+            ],
+            "state_hash": "44c6de9cb8010179"
+          },
+          {
+            "seed": 29,
+            "return": -4.681153879795877,
+            "steps": 318,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0050741625576455895,
+              0.04453348639140929,
+              0.03491128149487366
+            ],
+            "state_hash": "4760d99deae8d680"
+          },
+          {
+            "seed": 47,
+            "return": -5.777745084049888,
+            "steps": 297,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010565849975589459,
+              0.04721609660129941,
+              0.02925300198083114
+            ],
+            "state_hash": "3b2fc8236945a031"
+          },
+          {
+            "seed": 83,
+            "return": -5.954114680407435,
+            "steps": 357,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002629672535470945,
+              0.018917986211497595,
+              0.022901841534176015
+            ],
+            "state_hash": "074ddf0c6dfa6e17"
+          },
+          {
+            "seed": 505,
+            "return": -8.007517733444645,
+            "steps": 361,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.00013820151919345658,
+              0.03618686408898153,
+              0.02154920680853853
+            ],
+            "state_hash": "7c7769be87e44fa2"
+          },
+          {
+            "seed": 909,
+            "return": -3.539182239775871,
+            "steps": 359,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0003733238532689642,
+              0.030369682329736747,
+              0.019560681211575642
+            ],
+            "state_hash": "fadbbd5f55b1b7e4"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.3911293110344305,
+            "steps": 317,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.007395822489713988,
+              0.04560935200693642,
+              0.03722201508556924
+            ],
+            "state_hash": "b75dd92a9929592d"
+          },
+          {
+            "seed": 29,
+            "return": -4.5674092498390015,
+            "steps": 287,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002175448493054677,
+              0.024931402971386407,
+              0.027151247724864547
+            ],
+            "state_hash": "1a896c14e7c70546"
+          },
+          {
+            "seed": 47,
+            "return": -5.674529385310494,
+            "steps": 302,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.008727986891914397,
+              0.04169027688601945,
+              0.02822034140855406
+            ],
+            "state_hash": "f6436071711d8fe7"
+          },
+          {
+            "seed": 83,
+            "return": -5.798891113664007,
+            "steps": 282,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.004585521021630873,
+              0.02055789175308384,
+              0.025021172510922812
+            ],
+            "state_hash": "9f00818d16353052"
+          },
+          {
+            "seed": 505,
+            "return": -8.105457217686793,
+            "steps": 354,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0009208973394452674,
+              0.04184459217306119,
+              0.024719314385547586
+            ],
+            "state_hash": "1a7d65214aa66923"
+          },
+          {
+            "seed": 909,
+            "return": -3.5018799235839513,
+            "steps": 361,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002140372633046561,
+              0.033953371163086776,
+              0.02221511182585187
+            ],
+            "state_hash": "3a3b17a17a53dd4a"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.762201925340362,
+            "steps": 379,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002966020537847447,
+              0.01416156569018108,
+              0.022850642991697062
+            ],
+            "state_hash": "f156b231f5a9935b"
+          },
+          {
+            "seed": 29,
+            "return": -5.113711406497282,
+            "steps": 384,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0028107473495711244,
+              0.013650429078250093,
+              0.023772669970847676
+            ],
+            "state_hash": "1fd298ef31c34a32"
+          },
+          {
+            "seed": 47,
+            "return": -5.744507461360546,
+            "steps": 297,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.010861745497584563,
+              0.028830570869757793,
+              0.023156243552556466
+            ],
+            "state_hash": "56e249ec9c8a456d"
+          },
+          {
+            "seed": 83,
+            "return": -6.3090033080808805,
+            "steps": 380,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0024038098542744912,
+              0.012399698862836012,
+              0.023321845707204636
+            ],
+            "state_hash": "daea8c9d3c406c33"
+          },
+          {
+            "seed": 505,
+            "return": -8.386767847193994,
+            "steps": 309,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.005703958697903605,
+              0.03928641720749754,
+              0.024903066938918472
+            ],
+            "state_hash": "1a41f911a9d417a2"
+          },
+          {
+            "seed": 909,
+            "return": -3.6305250793317296,
+            "steps": 380,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.003884817714260136,
+              0.02314103847867993,
+              0.018767189113834182
+            ],
+            "state_hash": "8e16ec71bd0ed845"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -5.047130082406738,
+            "steps": 388,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002926685095698933,
+              0.015386241435693435,
+              0.02396357138142871
+            ],
+            "state_hash": "709706b2839bf56d"
+          },
+          {
+            "seed": 29,
+            "return": -5.41637763269785,
+            "steps": 395,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002992979713741073,
+              0.013626750113710506,
+              0.024219166064386177
+            ],
+            "state_hash": "8be0ee22aa362259"
+          },
+          {
+            "seed": 47,
+            "return": -6.038322513873444,
+            "steps": 345,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0006426836527014257,
+              0.046758963666946374,
+              0.03185136128525651
+            ],
+            "state_hash": "f09232ec650036d0"
+          },
+          {
+            "seed": 83,
+            "return": -6.639670286979481,
+            "steps": 390,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0027443318695259955,
+              0.01290738023006821,
+              0.02416632664275689
+            ],
+            "state_hash": "a7860606f7ce2205"
+          },
+          {
+            "seed": 505,
+            "return": -8.214719135313523,
+            "steps": 325,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0035614866665104328,
+              0.035913334825702026,
+              0.02240108464751972
+            ],
+            "state_hash": "8f15827239351625"
+          },
+          {
+            "seed": 909,
+            "return": -3.6936649545910307,
+            "steps": 389,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0033334393803342854,
+              0.023861152049051065,
+              0.019721613376089298
+            ],
+            "state_hash": "552700d9295b53e8"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.392578484018097,
+            "steps": 371,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.002344930038806342,
+              0.020539801761508658,
+              0.02750983006200905
+            ],
+            "state_hash": "f90685528fcbec45"
+          },
+          {
+            "seed": 29,
+            "return": -4.702601629379602,
+            "steps": 376,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.002237669501002154,
+              0.020426798188769996,
+              0.029189930501445166
+            ],
+            "state_hash": "d6303873b4a45976"
+          },
+          {
+            "seed": 47,
+            "return": -5.325574559295159,
+            "steps": 285,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.007735528826909116,
+              0.036059093796064506,
+              0.03205414200108664
+            ],
+            "state_hash": "3409ca404e8dbfeb"
+          },
+          {
+            "seed": 83,
+            "return": -5.8397969985049984,
+            "steps": 374,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              -0.0021337934750391974,
+              0.019094256387984454,
+              0.028367241808591376
+            ],
+            "state_hash": "f65dc1f7f2d970e2"
+          },
+          {
+            "seed": 505,
+            "return": -8.924194068185315,
+            "steps": 296,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0011118948759592379,
+              0.043924849472264105,
+              0.03052968250453192
+            ],
+            "state_hash": "1df4748c521a08fe"
+          },
+          {
+            "seed": 909,
+            "return": -3.515252607882403,
+            "steps": 373,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": [
+              0.0027767432873280207,
+              0.028495942831550325,
+              0.02250885898872279
+            ],
+            "state_hash": "cb1797b13988e714"
+          }
+        ]
+      ],
+      "best_score": [
+        6,
+        -8.007517733444645,
+        -5.4064599189846625
+      ]
+    }
+  ],
+  "evaluation": {
+    "initial": [
+      {
+        "seed": 1001,
+        "return": -103.01066200948004,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          -0.10973795151482459,
+          0.0802503885293091,
+          0.06256556449146565
+        ],
+        "state_hash": "366cba27618195c3"
+      },
+      {
+        "seed": 1002,
+        "return": -3.662444219839503,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          -0.042180419052440216,
+          0.0648156615533261,
+          0.07278003741252992
+        ],
+        "state_hash": "d1beb49f76a5a37b"
+      },
+      {
+        "seed": 1003,
+        "return": -2.9206350501783325,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          0.04019203257175055,
+          0.06264730603392271,
+          0.07341450404923372
+        ],
+        "state_hash": "94bb045412c1b531"
+      },
+      {
+        "seed": 1004,
+        "return": -5.90336343962669,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          -0.0197091404960113,
+          0.07160391662198957,
+          0.07901407471525837
+        ],
+        "state_hash": "48ce4cda87dd5fff"
+      },
+      {
+        "seed": 1005,
+        "return": -2.582344109760707,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          0.03289583727935995,
+          0.06272388066684423,
+          0.07314394679265152
+        ],
+        "state_hash": "4de8e744b71b10e3"
+      },
+      {
+        "seed": 1006,
+        "return": -6.253087841878055,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          -0.026200362018623607,
+          0.07344945437970195,
+          0.07927323276077189
+        ],
+        "state_hash": "917c26456c9c807f"
+      },
+      {
+        "seed": 1007,
+        "return": -3.7677834468139935,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          0.04723955081642292,
+          0.06686179621175169,
+          0.07249036100233319
+        ],
+        "state_hash": "5d063cbb3d0a11c7"
+      },
+      {
+        "seed": 1008,
+        "return": -3.91183147259732,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          0.027446196965508193,
+          0.06042520399895698,
+          0.07358116195764053
+        ],
+        "state_hash": "ef06192db1cd09f1"
+      }
+    ],
+    "previous": [
+      {
+        "seed": 1001,
+        "return": -87.45179681293554,
+        "steps": 480,
+        "success": false,
+        "fallen": false,
+        "truncated": true,
+        "final_error_rad": [
+          1.333789957573634,
+          0.0226621267658349,
+          0.0033378266418071234
+        ],
+        "state_hash": "f079b97a3531e146"
+      },
+      {
+        "seed": 1002,
+        "return": -1.2899826803772423,
+        "steps": 288,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          -0.03617796309666349,
+          0.04027692350715045,
+          0.029393323711506658
+        ],
+        "state_hash": "e3c0915eef0cf1f3"
+      },
+      {
+        "seed": 1003,
+        "return": -0.46137228213082127,
+        "steps": 299,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          0.026549605193266435,
+          0.04350600737619445,
+          0.03211520654823247
+        ],
+        "state_hash": "99a92388c551f7fd"
+      },
+      {
+        "seed": 1004,
+        "return": -6.440512434806041,
+        "steps": 422,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          -0.012750292952063341,
+          0.0390707021496737,
+          0.029178840857778526
+        ],
+        "state_hash": "166f700cb0d66060"
+      },
+      {
+        "seed": 1005,
+        "return": -0.02104054170293601,
+        "steps": 239,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          0.01797640550669083,
+          0.04190961128390297,
+          0.031030759029778532
+        ],
+        "state_hash": "bda865e566784758"
+      },
+      {
+        "seed": 1006,
+        "return": -6.78848882465107,
+        "steps": 424,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          -0.016889091338282813,
+          0.03960986782275122,
+          0.028917615758947163
+        ],
+        "state_hash": "0cdae105c366ac71"
+      },
+      {
+        "seed": 1007,
+        "return": -0.6903420318543352,
+        "steps": 313,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          0.03113397415899663,
+          0.04475003581692073,
+          0.030779058805582432
+        ],
+        "state_hash": "3ab240e4e4d174cc"
+      },
+      {
+        "seed": 1008,
+        "return": -1.6761960888585876,
+        "steps": 457,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          0.016549742569823084,
+          0.03468743636464833,
+          0.028733868210983005
+        ],
+        "state_hash": "cdb0940a0de7e528"
+      }
+    ],
+    "learned": [
+      {
+        "seed": 1001,
+        "return": -3.2448686819989905,
+        "steps": 275,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          -0.012961926120472395,
+          0.047446616483355575,
+          0.024719347983058734
+        ],
+        "state_hash": "43f2158caf605a0a"
+      },
+      {
+        "seed": 1002,
+        "return": -7.054576757226661,
+        "steps": 354,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          -0.004509383652143262,
+          0.01952961786018606,
+          0.023567926508079623
+        ],
+        "state_hash": "fb23493416244fd7"
+      },
+      {
+        "seed": 1003,
+        "return": -9.220177668057309,
+        "steps": 349,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          0.0013372645965148977,
+          0.017131273526037327,
+          0.02371312763310146
+        ],
+        "state_hash": "a9b128f6b3a66c8a"
+      },
+      {
+        "seed": 1004,
+        "return": -7.162024438609439,
+        "steps": 287,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          -0.0018017821431935976,
+          0.015800366946487204,
+          0.020720634727487613
+        ],
+        "state_hash": "9adcc5ef7e85bf6f"
+      },
+      {
+        "seed": 1005,
+        "return": -8.572379820713813,
+        "steps": 305,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          0.003196059282896291,
+          0.04103644694351796,
+          0.035698752782685084
+        ],
+        "state_hash": "0c14742c4c812fa2"
+      },
+      {
+        "seed": 1006,
+        "return": -8.248169515747826,
+        "steps": 380,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          -0.00252203702128459,
+          0.010237313472481052,
+          0.017799570981381796
+        ],
+        "state_hash": "7c1b785f80507bc8"
+      },
+      {
+        "seed": 1007,
+        "return": -6.659086799157935,
+        "steps": 360,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          0.0021872051253991887,
+          0.01686403576790685,
+          0.02138949894094444
+        ],
+        "state_hash": "510efd5f9e724cc0"
+      },
+      {
+        "seed": 1008,
+        "return": -14.921472213479703,
+        "steps": 476,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": [
+          0.000976825918677815,
+          -0.0004368116858205484,
+          0.014101207753669853
+        ],
+        "state_hash": "f1c149a8bb0ebf00"
+      }
+    ]
+  },
+  "summary": {
+    "initial": {
+      "mean_return": -16.50151894877183,
+      "mean_steps": 480.0,
+      "success_rate": 0.0,
+      "mean_abs_final_error_rad": 0.06144341591219286
+    },
+    "previous": {
+      "mean_return": -13.102466462164571,
+      "mean_steps": 365.25,
+      "success_rate": 0.875,
+      "mean_abs_final_error_rad": 0.08382401012671305
+    },
+    "learned": {
+      "mean_return": -8.135344486873958,
+      "mean_steps": 348.25,
+      "success_rate": 1.0,
+      "mean_abs_final_error_rad": 0.015820209744032632
+    }
+  }
+}
