@@ -412,6 +412,13 @@ shortened hold window reports its observed duration/count rather than the normal
 2-second/20-sample values. Samples describe batch-end observations, not continuous
 contact at every physics step. Both the resumable task and standalone grasp check
 derive these values from execution.
+Transport contact samples likewise count successful Carry-phase pad checks rather
+than planned batches. Placement samples and stable duration count only Verify
+batches that pass support, robot-clearance, destination, and drift checks; duration
+comes from simulation-clock ticks and excludes settling. Shortened verification
+windows report their actual evidence. Failed observations add neither successful
+samples nor stable time, and paused progress reads leave these measurements alone.
+The normal placement window still yields 20 observations over 2.00000016 seconds.
 Improvements pass. JSON comparison results go to stdout; regressions or invalid
 reports produce a nonzero exit status. Inputs are limited to 1 MiB each and are
 never modified. This checks reported evidence; use `--replay` to independently

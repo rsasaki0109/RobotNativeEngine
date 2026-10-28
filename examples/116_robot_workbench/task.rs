@@ -78,6 +78,12 @@ pub(crate) struct Task {
     #[serde(skip)]
     hold_contact_samples: usize,
     #[serde(skip)]
+    transport_contact_samples: usize,
+    #[serde(skip)]
+    placement_ticks: u64,
+    #[serde(skip)]
+    placement_samples: usize,
+    #[serde(skip)]
     grasp: Option<GraspReport>,
     #[serde(skip)]
     settled: Vec3,
@@ -129,6 +135,9 @@ impl Task {
             minimum_lift_m: f64::INFINITY,
             hold_ticks: 0,
             hold_contact_samples: 0,
+            transport_contact_samples: 0,
+            placement_ticks: 0,
+            placement_samples: 0,
             grasp: None,
             settled: Vec3::ZERO,
             maximum_drift_m: 0.0,
@@ -200,7 +209,10 @@ impl Task {
                     });
                 }
             }
-            Phase::Carry => grasp::check_pads(sim).context("lost grasp during transport")?,
+            Phase::Carry => {
+                grasp::check_pads(sim).context("lost grasp during transport")?;
+                self.transport_contact_samples += 1;
+            }
             Phase::Lower if end => {
                 ensure!(
                     sim.objects_in_contact("target-block", "place-table")?,
@@ -221,6 +233,8 @@ impl Task {
                 let drift = (sim.object_position("target-block")? - self.settled).length();
                 self.maximum_drift_m = self.maximum_drift_m.max(drift);
                 ensure!(drift < 0.001, "placed block is not stable: drift {drift} m");
+                self.placement_ticks += sim.sim_time_ticks() - before_ticks;
+                self.placement_samples += 1;
             }
             _ => {}
         }
@@ -230,7 +244,7 @@ impl Task {
                 self.report = Some(PickPlaceReport {
                     grasp: self.grasp.take().context("missing grasp result")?,
                     final_position_m: sim.object_position("target-block")?.to_array(),
-                    transport_contact_samples: self.transfer.batches as usize,
+                    transport_contact_samples: self.transport_contact_samples,
                     planned_destination_m: self.transfer.destination_m,
                     placement_error_x_z_m: {
                         let position = sim.object_position("target-block")?;
@@ -239,8 +253,10 @@ impl Task {
                             position.z - self.transfer.destination_m[2],
                         ]
                     },
-                    stable_duration_s: 2.000_000_16,
-                    placement_samples: 20,
+                    stable_duration_s: SimDuration::from_ticks(self.placement_ticks)
+                        .as_seconds()
+                        .value(),
+                    placement_samples: self.placement_samples,
                     maximum_settled_drift_m: self.maximum_drift_m,
                 });
                 self.status = Status::Completed;
@@ -298,6 +314,10 @@ mod tests {
         assert_eq!(task.status, Status::Completed);
         assert_eq!(task.completed_batches, 330);
         assert!(task.report.is_some());
+        let report = task.report.as_ref().unwrap();
+        assert_eq!(report.transport_contact_samples, 80);
+        assert_eq!(report.placement_samples, 20);
+        assert_eq!(report.stable_duration_s, 2.000_000_16);
         let grasp = &task.report.as_ref().unwrap().grasp;
         assert_eq!(grasp.contact_samples, 20);
         assert_eq!(grasp.hold_duration_s, 2.000_000_16);
@@ -372,6 +392,88 @@ mod tests {
         assert_eq!(task.hold_ticks, held_ticks);
         assert!(task.grasp.is_none());
         assert!(task.report.is_none());
+    }
+
+    #[test]
+    fn placement_evidence_tracks_successful_observations_and_shortened_windows() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/robots");
+        for fail in [false, true] {
+            let mut sim = Simulation::new(
+                crate::presets::preset("lekiwi_pick_place").unwrap(),
+                Some(&root),
+            )
+            .unwrap();
+            let mut task = Task::new(&sim).unwrap();
+            let mut carry_samples = 0;
+            while task.phase != Phase::Verify {
+                let carrying = task.phase == Phase::Carry;
+                task.advance(&mut sim).unwrap();
+                assert_eq!(task.status, Status::Running, "{:?}", task.error);
+                carry_samples += usize::from(carrying);
+                assert_eq!(task.transport_contact_samples, carry_samples);
+            }
+            // Mutating the plan must not rewrite already observed transport evidence.
+            task.transfer.batches += 7;
+            task.phase_batches = 5;
+            let start_ticks = sim.sim_time_ticks();
+            for sample in 1..=5 {
+                task.advance(&mut sim).unwrap();
+                assert_eq!(task.placement_samples, sample);
+                let ticks = sim.sim_time_ticks();
+                let placement_ticks = task.placement_ticks;
+                serde_json::to_string(&task).unwrap();
+                sim.object_readings().unwrap();
+                assert_eq!(sim.sim_time_ticks(), ticks);
+                assert_eq!(task.placement_ticks, placement_ticks);
+                if fail {
+                    // Force excessive drift on the next observation, without moving physics.
+                    task.settled.y += 1.0;
+                    task.advance(&mut sim).unwrap();
+                    assert_eq!(task.status, Status::Failed);
+                    assert!(task.error.as_ref().unwrap().contains("not stable"));
+                    assert_eq!(task.placement_samples, sample);
+                    assert_eq!(task.placement_ticks, placement_ticks);
+                    assert!(task.report.is_none());
+                    break;
+                }
+            }
+            if !fail {
+                assert_eq!(task.status, Status::Completed, "{:?}", task.error);
+                let report = task.report.unwrap();
+                assert_eq!(report.transport_contact_samples, carry_samples);
+                assert_eq!(report.placement_samples, 5);
+                assert_eq!(
+                    report.stable_duration_s,
+                    SimDuration::from_ticks(sim.sim_time_ticks() - start_ticks)
+                        .as_seconds()
+                        .value()
+                );
+                assert!(report.stable_duration_s < 1.0);
+            }
+        }
+    }
+
+    #[test]
+    fn failed_transport_observation_does_not_count_as_contact_evidence() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/robots");
+        let mut sim = Simulation::new(
+            crate::presets::preset("lekiwi_pick_place").unwrap(),
+            Some(&root),
+        )
+        .unwrap();
+        let mut task = Task::new(&sim).unwrap();
+        // Enter transport without grasping the block to exercise contact failure.
+        task.phase = Phase::Carry;
+        task.advance(&mut sim).unwrap();
+        assert_eq!(task.status, Status::Failed);
+        assert!(task
+            .error
+            .as_ref()
+            .unwrap()
+            .contains("lost grasp during transport"));
+        assert_eq!(task.transport_contact_samples, 0);
+        assert!(task.report.is_none());
+        assert_eq!(sim.base_reading().1, DriveCommand::default());
     }
 
     #[test]
