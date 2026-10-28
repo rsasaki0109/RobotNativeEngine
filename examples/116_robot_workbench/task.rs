@@ -5,6 +5,7 @@ use crate::{
     simulation::Simulation,
 };
 use anyhow::{ensure, Context, Result};
+use rne_core::SimDuration;
 use rne_math::Vec3;
 use serde::Serialize;
 
@@ -73,6 +74,10 @@ pub(crate) struct Task {
     #[serde(skip)]
     minimum_lift_m: f64,
     #[serde(skip)]
+    hold_ticks: u64,
+    #[serde(skip)]
+    hold_contact_samples: usize,
+    #[serde(skip)]
     grasp: Option<GraspReport>,
     #[serde(skip)]
     settled: Vec3,
@@ -122,6 +127,8 @@ impl Task {
             report: None,
             initial_y: 0.0,
             minimum_lift_m: f64::INFINITY,
+            hold_ticks: 0,
+            hold_contact_samples: 0,
             grasp: None,
             settled: Vec3::ZERO,
             maximum_drift_m: 0.0,
@@ -167,6 +174,7 @@ impl Task {
         if self.phase_batch == 0 {
             self.enter(sim)?;
         }
+        let before_ticks = sim.sim_time_ticks();
         sim.step(24)?;
         self.phase_batch += 1;
         self.completed_batches += 1;
@@ -179,12 +187,16 @@ impl Task {
                 let lift = sim.object_position("target-block")?.y - self.initial_y;
                 ensure!(lift >= 0.05, "block lift below 50 mm: {lift}");
                 self.minimum_lift_m = self.minimum_lift_m.min(lift);
+                self.hold_ticks += sim.sim_time_ticks() - before_ticks;
+                self.hold_contact_samples += 1;
                 if end {
                     self.grasp = Some(GraspReport {
                         lift_m: lift,
                         minimum_hold_lift_m: self.minimum_lift_m,
-                        hold_duration_s: 2.000_000_16,
-                        contact_samples: 20,
+                        hold_duration_s: SimDuration::from_ticks(self.hold_ticks)
+                            .as_seconds()
+                            .value(),
+                        contact_samples: self.hold_contact_samples,
                     });
                 }
             }
@@ -286,11 +298,80 @@ mod tests {
         assert_eq!(task.status, Status::Completed);
         assert_eq!(task.completed_batches, 330);
         assert!(task.report.is_some());
+        let grasp = &task.report.as_ref().unwrap().grasp;
+        assert_eq!(grasp.contact_samples, 20);
+        assert_eq!(grasp.hold_duration_s, 2.000_000_16);
         let ticks = sim.sim_time_ticks();
         assert!(task.advance(&mut sim).is_err());
         assert_eq!(sim.sim_time_ticks(), ticks);
         let replay = sim.recording().verify(Some(&root)).unwrap();
         assert_eq!(replay.state_hash(), sim.state_hash());
+    }
+
+    #[test]
+    fn shortened_hold_reports_only_observed_batches_and_simulation_time() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/robots");
+        let mut sim = Simulation::new(
+            crate::presets::preset("lekiwi_pick_place").unwrap(),
+            Some(&root),
+        )
+        .unwrap();
+        let mut task = Task::new(&sim).unwrap();
+        while task.phase != Phase::Hold {
+            task.advance(&mut sim).unwrap();
+            assert_eq!(task.status, Status::Running, "{:?}", task.error);
+        }
+        // A shortened observation window must not claim the standard 2 s / 20 samples.
+        task.phase_batches = 5;
+        let start_ticks = sim.sim_time_ticks();
+        for sample in 1..=5 {
+            task.advance(&mut sim).unwrap();
+            assert_eq!(task.status, Status::Running, "{:?}", task.error);
+            assert_eq!(task.hold_contact_samples, sample);
+            let ticks = sim.sim_time_ticks();
+            let held_ticks = task.hold_ticks;
+            serde_json::to_string(&task).unwrap();
+            sim.object_readings().unwrap();
+            assert_eq!(sim.sim_time_ticks(), ticks);
+            assert_eq!(task.hold_ticks, held_ticks);
+        }
+        assert_eq!(task.phase, Phase::Carry);
+        let report = task.grasp.as_ref().unwrap();
+        assert_eq!(report.contact_samples, 5);
+        assert_eq!(
+            report.hold_duration_s,
+            SimDuration::from_ticks(sim.sim_time_ticks() - start_ticks)
+                .as_seconds()
+                .value()
+        );
+        assert!(report.hold_duration_s < 1.0);
+    }
+
+    #[test]
+    fn failed_hold_observation_does_not_count_as_successful_evidence() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/robots");
+        let mut sim = Simulation::new(
+            crate::presets::preset("lekiwi_pick_place").unwrap(),
+            Some(&root),
+        )
+        .unwrap();
+        let mut task = Task::new(&sim).unwrap();
+        while task.phase != Phase::Hold {
+            task.advance(&mut sim).unwrap();
+            assert_eq!(task.status, Status::Running, "{:?}", task.error);
+        }
+        task.advance(&mut sim).unwrap();
+        assert_eq!(task.hold_contact_samples, 1);
+        let held_ticks = task.hold_ticks;
+        // Force the next measured lift below the threshold without changing physics.
+        task.initial_y += 1.0;
+        task.advance(&mut sim).unwrap();
+        assert_eq!(task.status, Status::Failed);
+        assert!(task.error.as_ref().unwrap().contains("below 50 mm"));
+        assert_eq!(task.hold_contact_samples, 1);
+        assert_eq!(task.hold_ticks, held_ticks);
+        assert!(task.grasp.is_none());
+        assert!(task.report.is_none());
     }
 
     #[test]

@@ -404,6 +404,14 @@ duration/sample evidence, shorter holds, or fewer samples fail even with a stale
 success flag; invalid negative/non-finite durations are rejected as malformed input.
 The baseline must meet the same contract. These are checks on recorded evidence;
 replaying the underlying recording is a separate check.
+Hold duration is measured from simulation-clock ticks, and contact samples count
+successful batch-end pad-contact and lift checks. The resumable task accumulates
+only batches that passed these checks; failed observations add no successful hold
+evidence. Reading progress while paused does not advance either measurement. A
+shortened hold window reports its observed duration/count rather than the normal
+2-second/20-sample values. Samples describe batch-end observations, not continuous
+contact at every physics step. Both the resumable task and standalone grasp check
+derive these values from execution.
 Improvements pass. JSON comparison results go to stdout; regressions or invalid
 reports produce a nonzero exit status. Inputs are limited to 1 MiB each and are
 never modified. This checks reported evidence; use `--replay` to independently

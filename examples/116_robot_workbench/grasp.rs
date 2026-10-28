@@ -1,6 +1,7 @@
 //! Scripted SO-101 contact grasp on a freely simulated box.
 use crate::{drive::DriveCommand, project::JointPosition, simulation::Simulation};
 use anyhow::{ensure, Context, Result};
+use rne_core::SimDuration;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -53,18 +54,23 @@ pub(crate) fn run(sim: &mut Simulation) -> Result<GraspReport> {
     target(sim, "shoulder_lift", -0.3)?;
     advance(sim, 2)?;
     let mut minimum_hold_lift_m = f64::INFINITY;
+    let hold_start_ticks = sim.sim_time_ticks();
+    let mut contact_samples = 0;
     for _ in 0..20 {
         sim.step(24)?;
         check_pads(sim)?;
         let lift = sim.object_position("target-block")?.y - initial_y;
         ensure!(lift >= 0.05, "block lift below 50 mm: {lift}");
         minimum_hold_lift_m = minimum_hold_lift_m.min(lift);
+        contact_samples += 1;
     }
     Ok(GraspReport {
         lift_m: sim.object_position("target-block")?.y - initial_y,
         minimum_hold_lift_m,
-        hold_duration_s: 480.0 * 0.004_166_667,
-        contact_samples: 20,
+        hold_duration_s: SimDuration::from_ticks(sim.sim_time_ticks() - hold_start_ticks)
+            .as_seconds()
+            .value(),
+        contact_samples,
     })
 }
 
