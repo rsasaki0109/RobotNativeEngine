@@ -1,5 +1,8 @@
 # Robot workbench
 
+For the LeKiwi/SO-101 evaluation strategy and measured MuJoCo comparison, see
+[the development brief](LEKIWI_MUJOCO_DEVELOPMENT.md) (Japanese, with a printable PDF).
+
 The local workbench combines native joint control, saved poses, a floor/obstacle
 editor, RGB/depth/LiDAR inspection, and URDF/MJCF loading in one browser window.
 Rapier runs the physics and wgpu renders the images on the host. The browser
