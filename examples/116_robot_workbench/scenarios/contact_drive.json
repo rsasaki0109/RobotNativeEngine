@@ -1,0 +1,47 @@
+{
+  "config": {
+    "self_collisions": false,
+    "agents": [
+      {
+        "id": "alice",
+        "position_m": [
+          1.15,
+          0.12,
+          0
+        ],
+        "yaw_rad": 3.141592653589793
+      }
+    ],
+    "idealized_omni": true
+  },
+  "actions": [
+    {
+      "steps": 120,
+      "torques_nm": {}
+    },
+    {
+      "steps": 240,
+      "torques_nm": {
+        "alice": {
+          "ST3215_Servo_Motor-v1-2_Revolute-60": 1.0,
+          "ST3215_Servo_Motor-v1-1_Revolute-62": -0.5,
+          "ST3215_Servo_Motor-v1_Revolute-64": -0.5
+        }
+      }
+    },
+    {
+      "steps": 120,
+      "torques_nm": {
+        "alice": {
+          "ST3215_Servo_Motor-v1-2_Revolute-60": 1.0,
+          "ST3215_Servo_Motor-v1-1_Revolute-62": -0.5,
+          "ST3215_Servo_Motor-v1_Revolute-64": -0.5
+        }
+      }
+    },
+    {
+      "steps": 120,
+      "torques_nm": {}
+    }
+  ]
+}

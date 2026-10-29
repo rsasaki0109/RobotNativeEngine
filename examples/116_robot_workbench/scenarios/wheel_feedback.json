@@ -1,0 +1,45 @@
+{
+  "config": {
+    "self_collisions": false,
+    "idealized_omni": true,
+    "agents": [
+      {
+        "id": "alice",
+        "position_m": [
+          0.0,
+          0.12,
+          -1.0
+        ],
+        "yaw_rad": 3.141592653589793
+      }
+    ]
+  },
+  "gain_nm_s_per_rad": 0.03,
+  "phases": [
+    {
+      "steps": 120,
+      "wheel_speeds_rad_s": {}
+    },
+    {
+      "steps": 240,
+      "wheel_speeds_rad_s": {
+        "alice": [
+          12,
+          -6,
+          -6
+        ]
+      }
+    },
+    {
+      "steps": 240,
+      "wheel_speeds_rad_s": {
+        "alice": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "integral_gain_nm_per_rad": 0.1
+}

@@ -1,11 +1,13 @@
 //! Local robot workbench application.
 
+mod arena;
 mod comparison;
 mod drive;
 mod evaluation;
 mod grasp;
 #[cfg(feature = "gpu")]
 mod host;
+mod omni;
 mod presets;
 mod project;
 mod replay;
@@ -14,6 +16,8 @@ mod server;
 mod simulation;
 mod task;
 mod transfer;
+mod vector_arena;
+mod wheel_control;
 
 use anyhow::{bail, ensure, Context, Result};
 use project::{JointPosition, Project, RobotFormat, RobotSource};
@@ -201,12 +205,33 @@ fn main() -> Result<()> {
             );
             Ok(())
         }
+        [command, input] if command == "--serve-vector-arena" => {
+            let config: vector_arena::BatchConfig = serde_json::from_slice(&read_bounded(input)?)?;
+            let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/robots");
+            vector_arena::serve(config, &root)
+        }
+        [command, input] if command == "--run-wheel-control" => {
+            let episode: wheel_control::Episode = serde_json::from_slice(&read_bounded(input)?)?;
+            let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/robots");
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&wheel_control::run(&episode, &root)?)?
+            );
+            Ok(())
+        }
+        [command, input] if command == "--run-contact-arena" => {
+            let episode: arena::Episode = serde_json::from_slice(&read_bounded(input)?)?;
+            let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/robots");
+            let observations = arena::run(&episode, &root)?;
+            println!("{}", serde_json::to_string_pretty(&observations)?);
+            Ok(())
+        }
         [command] if command == "--smoke" => smoke(),
         [command] if command == "--smoke-pick-place" => smoke_pick_place(),
         [command] if command == "--smoke-grasp" => smoke_grasp(),
         [command] if command == "--smoke-lekiwi" => smoke_lekiwi(),
         [command] if command == "--help" => {
-            println!("rne-workbench [--port PORT] [--preset so101|lekiwi_so101|lekiwi_grasp|lekiwi_pick_place|arm|slider] [--robot MODEL.urdf|MODEL.xml] [--asset-root DIRECTORY]\nrne-workbench --check-project PROJECT.json\nrne-workbench --smoke\nrne-workbench --smoke-lekiwi\nrne-workbench --smoke-grasp\nrne-workbench --smoke-pick-place\nrne-workbench --compare-evaluations BASELINE.json CANDIDATE.json\nrne-workbench --evaluate-pick-place NEW_DIRECTORY\nrne-workbench --replay RECORDING.json [--asset-root DIRECTORY]");
+            println!("rne-workbench [--port PORT] [--preset so101|lekiwi_so101|lekiwi_grasp|lekiwi_pick_place|arm|slider] [--robot MODEL.urdf|MODEL.xml] [--asset-root DIRECTORY]\nrne-workbench --check-project PROJECT.json\nrne-workbench --serve-vector-arena CONFIG.json\nrne-workbench --run-wheel-control EPISODE.json\nrne-workbench --run-contact-arena EPISODE.json\nrne-workbench --smoke\nrne-workbench --smoke-lekiwi\nrne-workbench --smoke-grasp\nrne-workbench --smoke-pick-place\nrne-workbench --compare-evaluations BASELINE.json CANDIDATE.json\nrne-workbench --evaluate-pick-place NEW_DIRECTORY\nrne-workbench --replay RECORDING.json [--asset-root DIRECTORY]");
             Ok(())
         }
         _ => serve(&args),

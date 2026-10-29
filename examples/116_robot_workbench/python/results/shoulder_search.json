@@ -1,0 +1,877 @@
+{
+  "schema_version": 1,
+  "algorithm": "cross_entropy_pd_gain_search",
+  "seed": 42,
+  "train_seeds": [
+    11,
+    29
+  ],
+  "evaluation_seeds": [
+    101,
+    202,
+    303,
+    404
+  ],
+  "world": {
+    "self_collisions": false,
+    "agents": [
+      {
+        "id": "alice",
+        "position_m": [
+          -0.5,
+          0.12,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      }
+    ]
+  },
+  "horizon": 300,
+  "physics_steps": 1,
+  "fixed_arm_hold": {
+    "shoulder_pan": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 3,
+      "damping_nm_s_per_rad": 0.06,
+      "effort_limit_nm": 1
+    },
+    "shoulder_lift": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 8,
+      "damping_nm_s_per_rad": 0.16,
+      "effort_limit_nm": 2
+    },
+    "elbow_flex": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 6,
+      "damping_nm_s_per_rad": 0.12,
+      "effort_limit_nm": 1.5
+    },
+    "wrist_flex": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 1.5,
+      "damping_nm_s_per_rad": 0.03,
+      "effort_limit_nm": 0.5
+    },
+    "wrist_roll": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 0.5,
+      "damping_nm_s_per_rad": 0.01,
+      "effort_limit_nm": 0.3
+    },
+    "gripper": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 0.3,
+      "damping_nm_s_per_rad": 0.005,
+      "effort_limit_nm": 0.06
+    }
+  },
+  "initial_gains": [
+    0.3,
+    0.02
+  ],
+  "policy_log_gains": {
+    "initial": [
+      -1.2039728043259361,
+      -3.912023005428146
+    ],
+    "learned": [
+      -0.1486952344905419,
+      -2.978672682913408
+    ]
+  },
+  "learned_gains": [
+    0.8618317314653969,
+    0.05086029682362821
+  ],
+  "training": [
+    {
+      "generation": 0,
+      "gains": [
+        [
+          0.3,
+          0.02
+        ],
+        [
+          0.7382805560615271,
+          0.06183131388000285
+        ],
+        [
+          0.05000000000000001,
+          0.004191743953335526
+        ],
+        [
+          0.34974032776648944,
+          0.01368419014907188
+        ],
+        [
+          0.29401214783479984,
+          0.007185603859489973
+        ],
+        [
+          0.8618317314653969,
+          0.05086029682362821
+        ]
+      ],
+      "scores": [
+        -3.015376474044762,
+        -1.1218925294316147,
+        -11.724834117341814,
+        -2.4123568906592747,
+        -2.885292921620868,
+        -0.856400819378478
+      ],
+      "episodes": [
+        [
+          {
+            "seed": 11,
+            "return": -4.401249509908168,
+            "steps": 271,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.04925981754788855,
+            "state_hash": "7b15c71d16c6e49b"
+          },
+          {
+            "seed": 29,
+            "return": -1.6295034381813558,
+            "steps": 137,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.02008466015332283,
+            "state_hash": "f759a484c613ace1"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.4812803507506052,
+            "steps": 171,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.021177336745517222,
+            "state_hash": "149e1dd549577cf8"
+          },
+          {
+            "seed": 29,
+            "return": -0.762504708112624,
+            "steps": 136,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.009292033586034254,
+            "state_hash": "47b68343f7522f39"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -17.25788140684297,
+            "steps": 300,
+            "success": false,
+            "fallen": false,
+            "truncated": true,
+            "final_error_rad": 0.20100011070446094,
+            "state_hash": "48c8b779fa581104"
+          },
+          {
+            "seed": 29,
+            "return": -6.191786827840657,
+            "steps": 300,
+            "success": false,
+            "fallen": false,
+            "truncated": true,
+            "final_error_rad": -0.10980727409653142,
+            "state_hash": "2469d5643c744527"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -3.435768967306063,
+            "steps": 215,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.04344033921764062,
+            "state_hash": "53e03a972c1e6eac"
+          },
+          {
+            "seed": 29,
+            "return": -1.388944814012486,
+            "steps": 136,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.003376297855626098,
+            "state_hash": "7be1ab7cd0e38e9c"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -4.209125359074414,
+            "steps": 244,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.04787590818962381,
+            "state_hash": "a861ccdc3d215540"
+          },
+          {
+            "seed": 29,
+            "return": -1.5614604841673219,
+            "steps": 140,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.0096009650357963,
+            "state_hash": "f2bfb1ed02ac3176"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.0425340820065037,
+            "steps": 160,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.013687182551351179,
+            "state_hash": "1bffef653b10c12b"
+          },
+          {
+            "seed": 29,
+            "return": -0.6702675567504524,
+            "steps": 208,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.020598271216647368,
+            "state_hash": "4924be602248f93b"
+          }
+        ]
+      ],
+      "best_score": -0.856400819378478
+    },
+    {
+      "generation": 1,
+      "gains": [
+        [
+          0.8618317314653969,
+          0.05086029682362821
+        ],
+        [
+          0.7284734182000865,
+          0.01970996417313901
+        ],
+        [
+          0.7006879404478124,
+          0.01843830836270671
+        ],
+        [
+          0.856426785922291,
+          0.03389079220786751
+        ],
+        [
+          0.563441992934578,
+          0.022210628287224858
+        ],
+        [
+          0.9806962679382855,
+          0.031597946146228524
+        ]
+      ],
+      "scores": [
+        -0.856400819378478,
+        -0.9176476089188507,
+        -0.9725314287540878,
+        -0.9022241160000548,
+        -1.3702360221990966,
+        -2.5928465437626937
+      ],
+      "episodes": [
+        [
+          {
+            "seed": 11,
+            "return": -1.0425340820065037,
+            "steps": 160,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.013687182551351179,
+            "state_hash": "1bffef653b10c12b"
+          },
+          {
+            "seed": 29,
+            "return": -0.6702675567504524,
+            "steps": 208,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.020598271216647368,
+            "state_hash": "4924be602248f93b"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.180697880237767,
+            "steps": 166,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.01135452826416633,
+            "state_hash": "104625583548ab62"
+          },
+          {
+            "seed": 29,
+            "return": -0.6545973375999343,
+            "steps": 217,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.02594654948630576,
+            "state_hash": "d8fa70747c1af7b7"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.2540979274405077,
+            "steps": 169,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.011235023737765054,
+            "state_hash": "f0d088ff9836f660"
+          },
+          {
+            "seed": 29,
+            "return": -0.690964930067668,
+            "steps": 219,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.02630793607744819,
+            "state_hash": "b97a38a962023974"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -0.9447748657287661,
+            "steps": 159,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.010684219161579411,
+            "state_hash": "7c2b9fbcd34a97f6"
+          },
+          {
+            "seed": 29,
+            "return": -0.8596733662713436,
+            "steps": 217,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.03132206375339677,
+            "state_hash": "84e53efb5f91840d"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.8455811215218687,
+            "steps": 183,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.020992536050661398,
+            "state_hash": "07790871bf87845c"
+          },
+          {
+            "seed": 29,
+            "return": -0.8948909228763247,
+            "steps": 136,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.021661115458390695,
+            "state_hash": "63690692c4014f5a"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -0.687812065796333,
+            "steps": 151,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.007135511167533415,
+            "state_hash": "bd53adb95b2c8621"
+          },
+          {
+            "seed": 29,
+            "return": -4.497881021729055,
+            "steps": 255,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.015088277838246816,
+            "state_hash": "1e2c8bc8d1dd87cb"
+          }
+        ]
+      ],
+      "best_score": -0.856400819378478
+    },
+    {
+      "generation": 2,
+      "gains": [
+        [
+          0.8618317314653969,
+          0.05086029682362821
+        ],
+        [
+          0.8807493237226868,
+          0.037326219994281
+        ],
+        [
+          0.8650926087024603,
+          0.03828598124220399
+        ],
+        [
+          1.1212212944647826,
+          0.02765926059780648
+        ],
+        [
+          0.7530188511277844,
+          0.02361239277214841
+        ],
+        [
+          0.8918728565600461,
+          0.05020910324222778
+        ]
+      ],
+      "scores": [
+        -0.856400819378478,
+        -0.9287870043858926,
+        -0.8934232704497818,
+        -3.7474327512735326,
+        -0.8788001492394251,
+        -0.8621138453362602
+      ],
+      "episodes": [
+        [
+          {
+            "seed": 11,
+            "return": -1.0425340820065037,
+            "steps": 160,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.013687182551351179,
+            "state_hash": "1bffef653b10c12b"
+          },
+          {
+            "seed": 29,
+            "return": -0.6702675567504524,
+            "steps": 208,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.020598271216647368,
+            "state_hash": "4924be602248f93b"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -0.9099692718592635,
+            "steps": 157,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.010417097130320796,
+            "state_hash": "0f88c71c0b4a15a3"
+          },
+          {
+            "seed": 29,
+            "return": -0.9476047369125216,
+            "steps": 218,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.031883458889753385,
+            "state_hash": "62c364d1d0cfc242"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -0.9551523807428246,
+            "steps": 159,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.011230367157986587,
+            "state_hash": "540269f72024972e"
+          },
+          {
+            "seed": 29,
+            "return": -0.8316941601567388,
+            "steps": 215,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.029223179705842428,
+            "state_hash": "c18eb5c6badb08b5"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -0.46769553177559664,
+            "steps": 145,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.00511917102247153,
+            "state_hash": "9e921c941cc316f9"
+          },
+          {
+            "seed": 29,
+            "return": -7.027169970771468,
+            "steps": 300,
+            "success": false,
+            "fallen": false,
+            "truncated": true,
+            "final_error_rad": 0.0016663204922395536,
+            "state_hash": "aa2748ccfc43cdb1"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.1271236474086703,
+            "steps": 165,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.011765487561766541,
+            "state_hash": "5628930ec95a0171"
+          },
+          {
+            "seed": 29,
+            "return": -0.6304766510701797,
+            "steps": 214,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.02428109753205629,
+            "state_hash": "b35dce324334e8fb"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -0.9747605726281661,
+            "steps": 159,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.012520601335435005,
+            "state_hash": "a6056b6a65515c74"
+          },
+          {
+            "seed": 29,
+            "return": -0.7494671180443544,
+            "steps": 213,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.023627964385780104,
+            "state_hash": "49b4b4ed7bf2c80a"
+          }
+        ]
+      ],
+      "best_score": -0.856400819378478
+    },
+    {
+      "generation": 3,
+      "gains": [
+        [
+          0.8618317314653969,
+          0.05086029682362821
+        ],
+        [
+          0.7364336288347648,
+          0.04952087658188167
+        ],
+        [
+          0.9316706970301353,
+          0.047648660170468204
+        ],
+        [
+          0.7542054727101373,
+          0.042618850232664096
+        ],
+        [
+          0.8480962812645262,
+          0.04241337577513607
+        ],
+        [
+          0.9497564790525137,
+          0.042488097446748516
+        ]
+      ],
+      "scores": [
+        -0.856400819378478,
+        -1.054322438981379,
+        -0.9584302724865288,
+        -0.9764062392345911,
+        -0.8609457893075767,
+        -1.0907891247419321
+      ],
+      "episodes": [
+        [
+          {
+            "seed": 11,
+            "return": -1.0425340820065037,
+            "steps": 160,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.013687182551351179,
+            "state_hash": "1bffef653b10c12b"
+          },
+          {
+            "seed": 29,
+            "return": -0.6702675567504524,
+            "steps": 208,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.020598271216647368,
+            "state_hash": "4924be602248f93b"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.386460868771254,
+            "steps": 169,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.018348720025702703,
+            "state_hash": "8bb4930e3a7f379f"
+          },
+          {
+            "seed": 29,
+            "return": -0.7221840091915039,
+            "steps": 197,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.014110689715371522,
+            "state_hash": "789bd94a0b77f87a"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -0.8745541084109774,
+            "steps": 156,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.010573706042878162,
+            "state_hash": "947633ce0e7cd7d9"
+          },
+          {
+            "seed": 29,
+            "return": -1.0423064365620802,
+            "steps": 215,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.029457870966037775,
+            "state_hash": "b48ca372be63b6e5"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.2783270381915828,
+            "steps": 167,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.015564091900252514,
+            "state_hash": "cea1eac681600a28"
+          },
+          {
+            "seed": 29,
+            "return": -0.6744854402775996,
+            "steps": 203,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.017242072247539514,
+            "state_hash": "b1367ef4370bfe51"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -1.0191155028276104,
+            "steps": 160,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.012377835152700023,
+            "state_hash": "4eba60ae2420350c"
+          },
+          {
+            "seed": 29,
+            "return": -0.7027760757875429,
+            "steps": 210,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.023588772918745615,
+            "state_hash": "e5bced1cf73d882b"
+          }
+        ],
+        [
+          {
+            "seed": 11,
+            "return": -0.8071018582036328,
+            "steps": 154,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": 0.009021598547267584,
+            "state_hash": "b2df9a61af3f1a97"
+          },
+          {
+            "seed": 29,
+            "return": -1.3744763912802314,
+            "steps": 216,
+            "success": true,
+            "fallen": false,
+            "truncated": false,
+            "final_error_rad": -0.030652631303079547,
+            "state_hash": "797af759d67229a2"
+          }
+        ]
+      ],
+      "best_score": -0.856400819378478
+    }
+  ],
+  "evaluation": {
+    "initial": [
+      {
+        "seed": 101,
+        "return": -3.547831946562978,
+        "steps": 248,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": 0.04791998652169402,
+        "state_hash": "da10d7f3f3eb6227"
+      },
+      {
+        "seed": 202,
+        "return": -4.04801980776686,
+        "steps": 260,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": 0.04860201472474707,
+        "state_hash": "0b1b635c381498c6"
+      },
+      {
+        "seed": 303,
+        "return": -3.886752193795536,
+        "steps": 254,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": 0.04833062640718114,
+        "state_hash": "671a4b64f9f31653"
+      },
+      {
+        "seed": 404,
+        "return": -1.427665620912467,
+        "steps": 136,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": -0.01762773706554846,
+        "state_hash": "e2d0869ea79731fb"
+      }
+    ],
+    "learned": [
+      {
+        "seed": 101,
+        "return": -0.7363068101283298,
+        "steps": 161,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": 0.011942646979959115,
+        "state_hash": "2e5d6fc9664c3c53"
+      },
+      {
+        "seed": 202,
+        "return": -0.9172843378244896,
+        "steps": 161,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": 0.013231337176061397,
+        "state_hash": "56bce1bc8390504b"
+      },
+      {
+        "seed": 303,
+        "return": -0.8537775198045454,
+        "steps": 161,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": 0.013225651688652112,
+        "state_hash": "6cda82e42b671907"
+      },
+      {
+        "seed": 404,
+        "return": -0.4969952224286083,
+        "steps": 201,
+        "success": true,
+        "fallen": false,
+        "truncated": false,
+        "final_error_rad": -0.017536466660590916,
+        "state_hash": "758edd5550110acd"
+      }
+    ]
+  },
+  "summary": {
+    "initial": {
+      "mean_return": -3.22756739225946,
+      "mean_steps": 224.5,
+      "success_rate": 1.0,
+      "mean_abs_final_error_rad": 0.04062009117979267
+    },
+    "learned": {
+      "mean_return": -0.7510909725464932,
+      "mean_steps": 171.0,
+      "success_rate": 1.0,
+      "mean_abs_final_error_rad": 0.013984025626315885
+    }
+  }
+}
