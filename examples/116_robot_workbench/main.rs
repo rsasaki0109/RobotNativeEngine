@@ -15,6 +15,7 @@ mod replay;
 mod server;
 mod simulation;
 mod task;
+mod torque_benchmark;
 mod transfer;
 mod vector_arena;
 mod wheel_control;
@@ -169,6 +170,11 @@ fn smoke() -> Result<()> {
 fn main() -> Result<()> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     match args.as_slice() {
+        [command, path] if command == "--torque-benchmark" => {
+            let input = serde_json::from_slice(&read_bounded(path)?)?;
+            println!("{}", serde_json::to_string(&torque_benchmark::run(input)?)?);
+            Ok(())
+        }
         [command, path] if command == "--check-project" => {
             let bytes = read_bounded(path).context("read workbench project")?;
             let project = Project::from_json(&bytes)?;
@@ -231,7 +237,7 @@ fn main() -> Result<()> {
         [command] if command == "--smoke-grasp" => smoke_grasp(),
         [command] if command == "--smoke-lekiwi" => smoke_lekiwi(),
         [command] if command == "--help" => {
-            println!("rne-workbench [--port PORT] [--preset so101|lekiwi_so101|lekiwi_grasp|lekiwi_pick_place|arm|slider] [--robot MODEL.urdf|MODEL.xml] [--asset-root DIRECTORY]\nrne-workbench --check-project PROJECT.json\nrne-workbench --serve-vector-arena CONFIG.json\nrne-workbench --run-wheel-control EPISODE.json\nrne-workbench --run-contact-arena EPISODE.json\nrne-workbench --smoke\nrne-workbench --smoke-lekiwi\nrne-workbench --smoke-grasp\nrne-workbench --smoke-pick-place\nrne-workbench --compare-evaluations BASELINE.json CANDIDATE.json\nrne-workbench --evaluate-pick-place NEW_DIRECTORY\nrne-workbench --replay RECORDING.json [--asset-root DIRECTORY]");
+            println!("rne-workbench [--port PORT] [--preset so101|lekiwi_so101|lekiwi_grasp|lekiwi_pick_place|arm|slider] [--robot MODEL.urdf|MODEL.xml] [--asset-root DIRECTORY]\nrne-workbench --torque-benchmark INPUT.json\nrne-workbench --check-project PROJECT.json\nrne-workbench --serve-vector-arena CONFIG.json\nrne-workbench --run-wheel-control EPISODE.json\nrne-workbench --run-contact-arena EPISODE.json\nrne-workbench --smoke\nrne-workbench --smoke-lekiwi\nrne-workbench --smoke-grasp\nrne-workbench --smoke-pick-place\nrne-workbench --compare-evaluations BASELINE.json CANDIDATE.json\nrne-workbench --evaluate-pick-place NEW_DIRECTORY\nrne-workbench --replay RECORDING.json [--asset-root DIRECTORY]");
             Ok(())
         }
         _ => serve(&args),

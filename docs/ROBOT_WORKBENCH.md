@@ -1177,3 +1177,71 @@ so recovery can be required even when angle error stays below 0.05 rad. Release
 to completion of both peers took 2.238–3.133 s at 2 N and 2.354–3.525 s at 4 N,
 including the required two-second hold. These results expand the measured
 coverage; they do not locate the controller's failure boundary.
+
+### SO-101 torque response against MuJoCo
+
+`python/benchmark_mujoco.py` provides the first shared-model dynamics baseline.
+It compares the current Workbench **RNE/Rapier** path with native MuJoCo 3.9.0;
+it does not exercise `rne_physics_native`. Both read the same normalized SO-101
+URDF, retaining link frames, masses, centres of mass and physical inertia tensors.
+Nonidentity inertial-origin rotations are folded into the full tensor in link
+coordinates, and inertial `rpy` is reset to zero in both inputs. The rotated-rotor
+fixture exposed a MuJoCo 3.9.0 direct-URDF interpretation mismatch (effective
+I=0.03 instead of 0.05 kg·m²); this common canonicalization makes both engines
+satisfy the analytic fixture without changing the physical model.
+The base is fixed at the URDF origin, gravity is zero, and geometry, joint stops,
+passive joint losses and actuators are absent. Initial joint positions and
+velocities are zero, subject to backend floating-point representation. This
+isolates inertial torque response before adding contact, gravity or task control.
+
+```sh
+cargo build -p robot_workbench --no-default-features
+.venv-gym/bin/pip install -r examples/116_robot_workbench/python/requirements-mujoco.txt
+.venv-gym/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py \
+  target/debug/rne-workbench assets/robots/so101/so101.urdf /tmp/so101-cross-sim.json.gz
+.venv-gym/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py \
+  target/debug/rne-workbench /tmp/so101-cross-sim.json.gz --replay
+```
+
+Each of six joints receives +0.001 N·m from 20–60 ms, −0.001 N·m from 60–100 ms,
+then zero until 200 ms. A separate zero-input case checks drift. All seven cases
+run at both 1 ms and 0.5 ms, for 14 cases total. Joint ordering is matched by name;
+inputs, complete position/velocity traces, per-joint maximum/RMS differences,
+source/normalized model hashes, executable hash and MuJoCo version are recorded.
+`.json.gz` retains full traces with deterministic gzip framing; `.json` is also
+supported. Replay compares trajectories and metrics exactly within each backend,
+excluding host timings. It does not require RNE and MuJoCo to match each other.
+
+The analytic test uses a rotor with I=0.02 kg·m² and a 0.01 N·m pulse, checking
+alpha=0.5 rad/s² and constant velocity after release. A second fixture rotates
+an anisotropic inertia tensor and offsets the centre of mass, checking the
+parallel-axis result I=0.05 kg·m² in both engines. Position is checked against
+the continuous solution with an explicit first-order integration error bound,
+not against the other engine's integration formula. MuJoCo uses Euler; Rapier
+retains its default integration settings. MuJoCo tests are optional when its
+separate dependency is not installed; RNE analytic tests still run. CI installs
+the pinned dependency, runs both analytic fixtures and a fresh 14-case sweep,
+replays it on the same runner and uploads the full trace as an artifact.
+
+The saved `python/results/so101_cross_sim.json.gz` shows:
+
+| Driven joint | Maximum angle difference, 1 ms (rad) | Maximum angle difference, 0.5 ms (rad) |
+| --- | ---: | ---: |
+| No torque | 0.000000060 | 0.000000060 |
+| elbow_flex | 0.00003055 | 0.00001532 |
+| gripper | 0.00134896 | 0.00067494 |
+| shoulder_lift | 0.00000531 | 0.00000265 |
+| shoulder_pan | 0.00010621 | 0.00010621 |
+| wrist_flex | 0.00011387 | 0.00005697 |
+| wrist_roll | 0.00046773 | 0.00024001 |
+
+Each maximum covers every observed joint and sample, not just the driven joint.
+Most differences decrease with timestep; the shoulder-pan excitation leaves a
+non-converging residual, largest in wrist-roll response, that needs separate
+investigation. These are cross-engine differences, not errors against ground
+truth, and do not establish a hardware or contact-physics accuracy ranking.
+
+`runner_loop_s` excludes model construction and process startup but includes
+actuation, stepping and state collection; RNE also synchronizes ECS state. The
+Rust and Python runners have different overheads, and these single-pass timings
+are diagnostic only, **not a physics-kernel throughput or learning-speed ranking**.

@@ -87,14 +87,23 @@ jobs:
           cache-dependency-path: |
             examples/27_mobile_manipulator_rl/requirements-ci.txt
             examples/116_robot_workbench/python/requirements.txt
+            examples/116_robot_workbench/python/requirements-mujoco.txt
       - name: Python RL smokes
         run: cargo run --locked -p xtask -- ci-rl
       - name: Independent contact-world Gymnasium tests
         run: |
           cargo build --locked -p robot_workbench --no-default-features
           python -m venv .venv-workbench
-          .venv-workbench/bin/pip install -r examples/116_robot_workbench/python/requirements.txt
+          .venv-workbench/bin/pip install -r examples/116_robot_workbench/python/requirements.txt -r examples/116_robot_workbench/python/requirements-mujoco.txt
           .venv-workbench/bin/python -m unittest discover -s examples/116_robot_workbench/python -v
+      - name: SO-101 cross-simulator torque response and replay
+        run: |
+          .venv-workbench/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py target/debug/rne-workbench assets/robots/so101/so101.urdf "$RUNNER_TEMP/so101-cross-sim.json.gz"
+          .venv-workbench/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py target/debug/rne-workbench "$RUNNER_TEMP/so101-cross-sim.json.gz" --replay
+      - uses: actions/upload-artifact@v4
+        with:
+          name: so101-cross-sim
+          path: ${{ runner.temp }}/so101-cross-sim.json.gz
 
   headless:
     runs-on: ubuntu-latest
