@@ -48,7 +48,7 @@ def main():
               "normalized_urdf": urdf, "normalized_urdf_sha256": hashlib.sha256(urdf.encode()).hexdigest(),
               "joint_names": names,
               "binary_sha256": {k: hashlib.sha256(p.read_bytes()).hexdigest() for k, p in binaries.items()},
-              "conditions": "fixed base, zero gravity, no contact/stops/losses; 200 ms biphasic pulse",
+              "requested_conditions": "fixed base, zero gravity, no contact/stops/losses; 200 ms biphasic pulse",
               "results": []}
     for amplitude, request in requests(urdf, names):
         responses = {k: run_rne(p, request) for k, p in binaries.items()}
