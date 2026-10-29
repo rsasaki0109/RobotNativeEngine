@@ -48,7 +48,8 @@ def compare(executable, report):
     settings = report["controller"]
     if settings["dt_s"] != 0.004166667 or report["physics_steps"] != 1:
         raise ValueError("controller and physical timestep must match")
-    with ArmPoseVectorEnv(executable, config, horizon=report["horizon"], physics_steps=1) as env:
+    with ArmPoseVectorEnv(executable, config, horizon=report["horizon"], physics_steps=1,
+                          hold_steps=report.get("hold_steps", 10)) as env:
         policy = ComparisonPolicy(settings)
         rows = evaluate(env, gains, report["evaluation_seeds"], report["fixed_arm_hold"],
                         action_fn=policy, reset_fn=policy.reset)

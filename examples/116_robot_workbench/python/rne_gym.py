@@ -24,11 +24,14 @@ class ShoulderVectorEnv(VectorEnv):
     target_joints = ("shoulder_pan",)
     _target_shape = ()
 
-    def __init__(self, executable, config, *, horizon=200, physics_steps=4):
+    def __init__(self, executable, config, *, horizon=200, physics_steps=4, hold_steps=10):
         if not isinstance(horizon, int) or horizon < 1:
             raise ValueError("horizon must be a positive integer")
         if not isinstance(physics_steps, int) or not 1 <= physics_steps <= 240:
             raise ValueError("physics_steps must be in 1..240")
+        if not isinstance(hold_steps, int) or hold_steps < 1:
+            raise ValueError("hold_steps must be a positive integer")
+        self.hold_steps = hold_steps
         config = json.loads(json.dumps(config))
         if not config.get("environments") or any(
             len(c["agents"]) != 1 for c in config["environments"]
@@ -107,7 +110,7 @@ class ShoulderVectorEnv(VectorEnv):
                 + [agent["joints"][j]["velocity_rad_s"] for j in self.joint_names]
                 + agent["position_m"] + agent["rotation_xyzw"] + agent["linear_velocity_m_s"]
                 + np.atleast_1d(self.targets[i]).tolist()
-                + [self._held[i] / 10, 1 - self._elapsed[i] / self.horizon]
+                + [self._held[i] / self.hold_steps, 1 - self._elapsed[i] / self.horizon]
             )
         return np.asarray(rows, dtype=np.float64)
 
@@ -170,7 +173,7 @@ class ShoulderVectorEnv(VectorEnv):
                            & (np.abs(speed.reshape(self.num_envs, -1)) < 0.1), axis=1)
         self._held = np.where(in_target, self._held + 1, 0)
         fallen = np.array([self._fallen(self._agent(i)) for i in range(self.num_envs)])
-        success = (self._held >= 10) & ~fallen
+        success = (self._held >= self.hold_steps) & ~fallen
         terminated = success | fallen
         truncated = (self._elapsed >= self.horizon) & ~terminated
         reward = -np.mean(error.reshape(self.num_envs, -1)**2, axis=1) - 0.001 * np.mean(actions**2, axis=1) + success - fallen
