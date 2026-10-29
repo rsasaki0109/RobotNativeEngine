@@ -65,10 +65,37 @@ class TorqueBenchmarkTests(unittest.TestCase):
         for field in ("q_rad", "dq_rad_s"):
             np.testing.assert_array_equal(implicit[field], explicit[field])
 
+    def test_gravity_pendulum_initial_acceleration_and_direction(self):
+        # COM=(0.1,0,0), mass=1, axis=Y: I_eff=.02+1*.1²=.03.
+        # At q=0, gravity along -Z gives tau_Y=+.981 N m, alpha=32.7.
+        source = ROTOR.replace('<origin xyz="0 0 0"/>', '<origin xyz="0.1 0 0"/>')
+        source = source.replace('<axis xyz="0 0 1"/>', '<axis xyz="0 1 0"/>')
+        urdf, names = normalize_urdf(source)
+        runners = [run_rne]
+        if importlib.util.find_spec("mujoco"):
+            runners.append(run_mujoco)
+        for gravity, expected_alpha in (([0, 0, -9.81], 32.7),
+                                        ([0, 0, 9.81], -32.7), ([0, -9.81, 0], 0)):
+            request = {"urdf": urdf, "joint_names": names, "dt_ticks": 250_000,
+                       "gravity_m_s2": gravity, "torques_nm": [[0.0]]}
+            for runner in runners:
+                with self.subTest(gravity=gravity, backend=runner.__name__):
+                    result = runner(BINARY, request) if runner is run_rne else runner(request)
+                    alpha = (result["dq_rad_s"][1][0] - result["dq_rad_s"][0][0]) / 0.00025
+                    self.assertAlmostEqual(alpha, expected_alpha, delta=1e-3)
+
+    def test_default_gravity_preserves_zero_gravity_trajectory(self):
+        request = self.request()
+        implicit = run_rne(BINARY, request)
+        explicit = run_rne(BINARY, {**request, "gravity_m_s2": [0, 0, 0]})
+        for field in ("q_rad", "dq_rad_s"):
+            self.assertEqual(implicit[field], explicit[field])
+
     def test_rne_rejects_wrong_joint_order_and_invalid_torque_matrix(self):
         request = self.request()
         for change in ({"joint_names": ["missing"]}, {"torques_nm": [[3.0]]},
-                       {"torques_nm": [[]]}):
+                       {"torques_nm": [[]]}, {"gravity_m_s2": [0, 0, 101]},
+                       {"gravity_m_s2": [0, 0]}):
             with self.assertRaises(subprocess.CalledProcessError):
                 run_rne(BINARY, {**request, **change})
 

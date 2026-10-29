@@ -1,4 +1,4 @@
-"""Compare fixed-base, zero-gravity URDF torque responses with MuJoCo 3.9.0.
+"""Compare fixed-base, configurable-gravity URDF torque responses with MuJoCo 3.9.0.
 
 Runner-loop times include state reads and language/bridge overhead; they are not
 an isolated physics-kernel throughput comparison. No contacts or joint stops.
@@ -79,7 +79,7 @@ def run_mujoco(request):
     import mujoco
     model = mujoco.MjModel.from_xml_string(request["urdf"])
     model.opt.timestep = request["dt_ticks"] * 1e-9
-    model.opt.gravity[:] = 0
+    model.opt.gravity[:] = request.get("gravity_m_s2", [0, 0, 0])
     model.opt.integrator = mujoco.mjtIntegrator.mjINT_EULER
     model.dof_damping[:] = 0
     model.dof_frictionloss[:] = 0
@@ -118,7 +118,7 @@ def compare(a, b):
     return result
 
 
-def evaluate(binary, urdf, names):
+def evaluate(binary, urdf, names, gravity_m_s2=(0, 0, 0)):
     results = []
     for dt_ticks in (1_000_000, 500_000):
         steps = 200_000_000 // dt_ticks
@@ -129,7 +129,7 @@ def evaluate(binary, urdf, names):
                 torques[20_000_000 // dt_ticks:60_000_000 // dt_ticks, j] = 0.001
                 torques[60_000_000 // dt_ticks:100_000_000 // dt_ticks, j] = -0.001
             request = {"urdf": urdf, "joint_names": names, "dt_ticks": dt_ticks,
-                       "torques_nm": torques.tolist()}
+                       "torques_nm": torques.tolist(), "gravity_m_s2": list(gravity_m_s2)}
             rne, mj = run_rne(binary, request), run_mujoco(request)
             record = {"driven_joint": driven, "dt_ticks": dt_ticks,
                       "torques_nm": request["torques_nm"], "rne": rne, "mujoco": mj,
@@ -153,13 +153,20 @@ def main():
     parser.add_argument("source", type=Path, help="URDF, or saved report with --replay")
     parser.add_argument("output", type=Path, nargs="?")
     parser.add_argument("--replay", action="store_true")
+    parser.add_argument("--gravity", type=float, nargs=3, metavar=("GX", "GY", "GZ"),
+                        help="world gravity in m/s²; defaults to zero, replay uses saved gravity")
     args = parser.parse_args()
+    if args.gravity is not None and (not np.isfinite(args.gravity).all() or max(map(abs, args.gravity)) > 100):
+        parser.error("gravity components must be finite and at most 100 m/s² in magnitude")
     if args.replay:
+        if args.gravity is not None:
+            parser.error("replay uses saved gravity; omit --gravity")
         raw = args.source.read_bytes()
         report = json.loads(gzip.decompress(raw) if args.source.suffix == ".gz" else raw)
-        if report.get("benchmark") != "so101_free_torque_v1":
+        if report.get("benchmark") not in ("so101_free_torque_v1", "so101_gravity_torque_v1"):
             parser.error("expected a torque benchmark report")
-        results = evaluate(args.binary.resolve(), report["normalized_urdf"], report["joint_names"])
+        results = evaluate(args.binary.resolve(), report["normalized_urdf"], report["joint_names"],
+                           report["conditions"]["gravity_m_s2"])
         if trajectory_records(results) != trajectory_records(report["results"]):
             raise SystemExit("trajectory replay mismatch")
         print("exact cross-simulator trajectory replay passed (timings excluded)")
@@ -168,17 +175,18 @@ def main():
         parser.error("provide a new output path")
     source = args.source.read_bytes()
     urdf, names = normalize_urdf(source.decode())
-    report = {"benchmark": "so101_free_torque_v1", "source_urdf_sha256": hashlib.sha256(source).hexdigest(),
+    gravity = args.gravity if args.gravity is not None else [0, 0, 0]
+    report = {"benchmark": "so101_gravity_torque_v1" if any(gravity) else "so101_free_torque_v1", "source_urdf_sha256": hashlib.sha256(source).hexdigest(),
               "normalized_urdf_sha256": hashlib.sha256(urdf.encode()).hexdigest(),
               "normalized_urdf": urdf, "joint_names": names,
-              "conditions": {"base": "fixed", "gravity_m_s2": [0, 0, 0], "contacts": False,
+              "conditions": {"base": "fixed", "gravity_m_s2": gravity, "contacts": False,
                              "joint_limits": False, "joint_losses": False, "initial_q_dq": "zero",
                              "pulse_nm": 0.001, "positive_interval_s": [0.02, 0.06],
                              "negative_interval_s": [0.06, 0.10], "duration_s": 0.2},
               "timing_scope": "runner loop including actuation, stepping and state reads; not kernel throughput",
               "platform": platform.platform(), "python": platform.python_version(),
               "rne_binary_sha256": hashlib.sha256(args.binary.read_bytes()).hexdigest()}
-    report["results"] = evaluate(args.binary.resolve(), urdf, names)
+    report["results"] = evaluate(args.binary.resolve(), urdf, names, gravity)
     raw = (json.dumps(report, indent=2, allow_nan=False) + "\n").encode()
     with args.output.open("xb") as output:
         output.write(gzip.compress(raw, mtime=0) if args.output.suffix == ".gz" else raw)

@@ -22,6 +22,8 @@ pub(crate) struct Input {
     pub urdf: String,
     pub joint_names: Vec<String>,
     pub dt_ticks: u64,
+    #[serde(default)]
+    pub gravity_m_s2: [f64; 3],
     pub torques_nm: Vec<Vec<f64>>,
 }
 #[derive(Debug, Serialize)]
@@ -35,6 +37,13 @@ pub(crate) struct Output {
 }
 
 fn validate(input: &Input) -> Result<(rne_urdf_import::UrdfDocument, Vec<String>)> {
+    ensure!(
+        input
+            .gravity_m_s2
+            .iter()
+            .all(|v| v.is_finite() && v.abs() <= 100.0),
+        "gravity components must be finite and at most 100 m/s² in magnitude"
+    );
     ensure!(
         (1..=10_000_000).contains(&input.dt_ticks),
         "invalid timestep"
@@ -152,7 +161,11 @@ pub(crate) fn run(input: Input) -> Result<Output> {
     }
     let mut backend = RapierBackend::new();
     let id = backend.create_world(PhysicsWorldDesc {
-        gravity_m_s2: Vec3::ZERO,
+        gravity_m_s2: Vec3::new(
+            input.gravity_m_s2[0],
+            input.gravity_m_s2[1],
+            input.gravity_m_s2[2],
+        ),
         solver_iterations: 12,
     })?;
     backend.sync_from_ecs(&mut world, id)?;

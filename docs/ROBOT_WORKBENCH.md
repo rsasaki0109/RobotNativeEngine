@@ -1183,6 +1183,11 @@ coverage; they do not locate the controller's failure boundary.
 
 ### SO-101 torque response against MuJoCo
 
+The runner also accepts `--gravity GX GY GZ` in world-frame m/s²; omission
+keeps zero gravity. Replay restores the saved gravity and rejects an override.
+See [the gravity comparison](SO101_GRAVITY_COMPARISON.md) for the analytic
+pendulum test, measured 14-case result, and remaining joint-limit work.
+
 `python/benchmark_mujoco.py` provides the first shared-model dynamics baseline.
 It compares the current Workbench **RNE/Rapier** path with native MuJoCo 3.9.0;
 it does not exercise `rne_physics_native`. Both read the same normalized SO-101
@@ -1192,7 +1197,7 @@ coordinates, and inertial `rpy` is reset to zero in both inputs. The rotated-rot
 fixture exposed a MuJoCo 3.9.0 direct-URDF interpretation mismatch (effective
 I=0.03 instead of 0.05 kg·m²); this common canonicalization makes both engines
 satisfy the analytic fixture without changing the physical model.
-The base is fixed at the URDF origin, gravity is zero, and geometry, joint stops,
+For the default baseline the base is fixed at the URDF origin, gravity is zero, and geometry, joint stops,
 passive joint losses and actuators are absent. Initial joint positions and
 velocities are zero, subject to backend floating-point representation. This
 isolates inertial torque response before adding contact, gravity or task control.
