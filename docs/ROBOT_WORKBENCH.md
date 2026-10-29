@@ -1024,3 +1024,46 @@ For that development regression, the new policy succeeds at tick 361 and reduces
 the peak absolute shoulder-pan angle from 1.66935 to 0.13475 rad. Peak lift and
 elbow velocities still reach 12.85 and 16.55 rad/s during the episode, so this
 should not be read as hardware-safe motion or a general joint-speed guarantee.
+
+### Sustained-hold audit of frozen policies
+
+The Gymnasium environments accept `hold_steps` (default 10). Success now uses
+that configured count of consecutive qualifying control observations; the
+observation's hold-progress component is normalized by the same count. Every
+joint must remain within 0.05 rad and below 0.1 rad/s, and any violation resets
+progress to zero. Existing callers retain the ten-step behavior.
+
+```sh
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_hold.py \
+  target/debug/rne-workbench \
+  examples/116_robot_workbench/python/results/stable_arm_search.json \
+  /tmp/arm-sustained-hold.json
+.venv-gym/bin/python examples/116_robot_workbench/python/train_stable_arm.py \
+  target/debug/rne-workbench /tmp/arm-sustained-hold.json --replay
+```
+
+This audit freezes all three saved controllers and uses the same eight evaluation
+targets; there is no retraining, candidate reselection or new held-out target
+claim. It requires 480 consecutive observations at one physics tick per action
+(2.00000016 s) and allows 2,400 ticks (~10 s) to reach that condition. The audit
+report saves the hold requirement, time budget, outcomes, full source controller
+settings and terminal physics hashes. It can be replayed by the existing
+stable-arm replay command. Episode returns across different hold requirements
+are not directly comparable because the episode lengths and termination times
+change. The audit checks state at control boundaries, not continuous-time
+interpolation between physics steps; it ends when the required hold is achieved.
+
+The saved `python/results/arm_sustained_hold.json` records:
+
+| Frozen controller | 2-second holds achieved | Mean final absolute error (rad) |
+| --- | ---: | ---: |
+| Original PD | 0/8 | 0.05639 |
+| Previous learned PD | 3/8 | 0.03497 |
+| Bounded-reference PID | 8/8 | 0.00829 |
+
+The bounded-reference PID completes the required hold after 745–1,033 ticks
+(~3.10–4.30 s), including the two-second hold itself. All unsuccessful episodes
+reach the ten-second limit; none trigger the fall rule. The previous learned PD
+had passed 7/8 under the ten-tick rule, showing why a brief successful observation
+was not sufficient evidence of sustained holding. Results remain confined to
+these eight target configurations in the existing uncalibrated simulation.
