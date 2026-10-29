@@ -1067,3 +1067,62 @@ reach the ten-second limit; none trigger the fall rule. The previous learned PD
 had passed 7/8 under the ten-tick rule, showing why a brief successful observation
 was not sufficient evidence of sustained holding. Results remain confined to
 these eight target configurations in the existing uncalibrated simulation.
+
+### Physical force pulses and recovery audit
+
+Arena actions accept optional `forces_n`, with the same agent/joint key layout
+as torque commands, but a three-element **world-frame force vector in newtons**
+for each target. A joint selects its actuated child link; the force is applied
+at that link's current origin, recomputed each physics tick. Each vector must
+be finite and have magnitude at most 20 N. Unknown agents/joints and oversized
+forces are rejected before any batch world advances. Missing forces mean zero.
+
+```json
+{"op":"step","actions":[{"steps":24,"torques_nm":{},"forces_n":{"alice":{"wrist_flex":[0,0,2]}}},{"steps":24,"torques_nm":{}}]}
+```
+
+These are external body wrenches passed to the physics backend after ECS sync,
+not modified motor torques or edited poses. Each accepted force lasts one physics
+tick; the arena reapplies it for every tick in that action. The backend clears
+it after each tick, so it does not persist into subsequent actions. The API
+supplies no free moment or arbitrary application point. It is a force-pulse
+experiment, not a modeled impactor collision or calibrated hardware load.
+Gymnasium vector environments expose it as `step(actions, forces_n=[...])`;
+omitting the keyword preserves the existing wire protocol and action behavior.
+
+`audit_arm_disturbance.py` compares two independent copies of the frozen PID
+controller on each of the eight existing targets. Both copies must first meet
+the two-second hold condition, and their state hashes must match before the
+intervention. Only the second world then receives +2 N along world Z on the
+`wrist_flex` child link for 24 physics ticks (~0.1 s; 0.200000016 N·s impulse).
+After release, a fresh 480-tick (~2 s) uninterrupted hold is required. Counts
+from before/during the pulse cannot satisfy recovery. Both worlds keep running
+until both qualify, a fall occurs, or the total ten-second budget expires.
+
+```sh
+cargo build -p robot_workbench --no-default-features
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_disturbance.py \
+  target/debug/rne-workbench \
+  examples/116_robot_workbench/python/results/stable_arm_search.json \
+  /tmp/arm-force-recovery.json
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_disturbance.py \
+  target/debug/rne-workbench /tmp/arm-force-recovery.json --replay
+```
+
+The committed `python/results/arm_force_recovery.json` records that all eight
+forced cases left the holding conditions and then recovered; all eight unforced
+peers also achieved the post-release hold. Forced shoulder-pan peak errors were
+0.084–0.109 rad, and peak pan-angle differences from the unforced peers were
+0.083–0.111 rad. Release to verified recovery took 2.325–2.708 s, **including**
+the required two-second hold. This is one fixed force direction, magnitude,
+application link and duration, on existing targets with no retraining; it does
+not establish recovery from arbitrary disturbances.
+
+Reports retain applied force duration/impulse, per-joint peak errors/speeds,
+paired trajectory differences, outcomes and terminal hashes. `pulse_start_step`
+is a zero-based action index. Peak metrics start at the pulse; `return` is the
+sum of running task rewards without a success bonus, because audit phases own
+termination. Exact replay compares the whole report's episode records. Tests
+cover force scope and clearing, unchanged motor commands, batch validation before
+mutation, worker-count invariance, initial-stability gating, and a fresh hold
+following a recovery interruption.

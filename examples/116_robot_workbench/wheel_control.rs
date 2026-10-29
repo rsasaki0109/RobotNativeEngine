@@ -151,6 +151,7 @@ pub(crate) fn run(input: &Episode, root: &Path) -> Result<Vec<Sample>> {
             }
             let mut observation = sim.step(&Action {
                 steps: 1,
+                forces_n: BTreeMap::new(),
                 torques_nm,
             })?;
             for c in &observation.contacts {
