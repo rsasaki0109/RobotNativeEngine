@@ -1126,3 +1126,54 @@ termination. Exact replay compares the whole report's episode records. Tests
 cover force scope and clearing, unchanged motor commands, batch validation before
 mutation, worker-count invariance, initial-stability gating, and a fresh hold
 following a recovery interruption.
+
+### Direction and strength sweep
+
+`audit_arm_force_sweep.py` schedules all six signed world axes at 2 N and 4 N
+before running any simulation (96 pairs: 12 conditions × 8 original targets).
+It reuses the same frozen PID, wrist link, 24-tick pulse and fresh 480-tick
+post-release hold. Each condition includes an identical unforced peer. The
+source gains and target seeds are neither trained nor selected by sweep results.
+Up to four conditions run concurrently in separate engine processes, with two
+independent worlds per process. Reports retain protocol order regardless of
+worker completion order.
+
+```sh
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_force_sweep.py \
+  target/debug/rne-workbench \
+  examples/116_robot_workbench/python/results/stable_arm_search.json \
+  /tmp/arm-force-sweep.json
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_force_sweep.py \
+  target/debug/rne-workbench /tmp/arm-force-sweep.json --replay
+```
+
+`--strengths-n 2 4` sets the tested positive magnitudes (maximum 20 N); all six
+signed axes are always included. Reports retain every trial and terminal state
+hash. Summaries distinguish displaced-and-recovered cases from cases that never
+left the hold tolerances, list unsuccessful seeds, and retain missing initial
+holds, incomplete pulses, falls and unforced-peer outcomes. Replay verifies both
+records and their summaries. These are sampled force conditions, not a certified
+force limit or collision-impact test; results do not imply monotonic behavior
+between tested strengths or transfer to hardware.
+
+The committed `python/results/arm_force_sweep.json` records 96/96 forced trials
+leaving the holding conditions and subsequently recovering. All 96 unforced
+peers also completed the post-release hold. There were no falls, initial-hold
+failures or incomplete pulses. The original +Z / 2 N audit matches exactly,
+including terminal hashes, despite running alongside other conditions.
+
+| World direction | Recovered at 2 N | Recovered at 4 N | Peak joint error at 2 N (rad) | Peak joint error at 4 N (rad) |
+| --- | ---: | ---: | ---: | ---: |
+| +X | 8/8 | 8/8 | 0.052 | 0.099 |
+| -X | 8/8 | 8/8 | 0.047 | 0.098 |
+| +Y | 8/8 | 8/8 | 0.054 | 0.096 |
+| -Y | 8/8 | 8/8 | 0.074 | 0.132 |
+| +Z | 8/8 | 8/8 | 0.109 | 0.218 |
+| -Z | 8/8 | 8/8 | 0.114 | 0.226 |
+
+Peaks cover the three tracked joints and eight targets, sampled every physics
+tick from pulse onset. Leaving the hold condition can be caused by velocity,
+so recovery can be required even when angle error stays below 0.05 rad. Release
+to completion of both peers took 2.238–3.133 s at 2 N and 2.354–3.525 s at 4 N,
+including the required two-second hold. These results expand the measured
+coverage; they do not locate the controller's failure boundary.
