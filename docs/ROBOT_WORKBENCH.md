@@ -1226,7 +1226,7 @@ separate dependency is not installed; RNE analytic tests still run. CI installs
 the pinned dependency, runs both analytic fixtures and a fresh 14-case sweep,
 replays it on the same runner and uploads the full trace as an artifact.
 
-The saved `python/results/so101_cross_sim.json.gz` shows:
+The historical, **pre-fix** `python/results/so101_cross_sim.json.gz` shows:
 
 | Driven joint | Maximum angle difference, 1 ms (rad) | Maximum angle difference, 0.5 ms (rad) |
 | --- | ---: | ---: |
@@ -1239,9 +1239,13 @@ The saved `python/results/so101_cross_sim.json.gz` shows:
 | wrist_roll | 0.00046773 | 0.00024001 |
 
 Each maximum covers every observed joint and sample, not just the driven joint.
-Most differences decrease with timestep; the shoulder-pan excitation leaves a
-non-converging residual, largest in wrist-roll response, that needs separate
-investigation. These are cross-engine differences, not errors against ground
+The shoulder-pan residual was traced to legacy Rapier damping retained when
+URDF dynamics were absent. The benchmark now explicitly sets zero passive
+dynamics on every movable joint. At 0.001 N·m its maximum difference is now
+2.04 / 1.11 / 0.59 microradians at 1 / 0.5 / 0.25 ms.
+See [the diagnosis and six-condition before/after audit](SO101_ZERO_LOSS_DIAGNOSIS.md).
+The corrected 14-case report is `python/results/so101_zero_loss_cross_sim.json.gz`;
+the historical report cannot replay against the corrected binary. These are cross-engine differences, not errors against ground
 truth, and do not establish a hardware or contact-physics accuracy ranking.
 
 `runner_loop_s` excludes model construction and process startup but includes

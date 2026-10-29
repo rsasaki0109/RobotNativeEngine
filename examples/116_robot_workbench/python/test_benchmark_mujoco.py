@@ -1,4 +1,5 @@
 """Analytic torque check and shared-model normalization contract."""
+from pathlib import Path
 import importlib.util
 import subprocess
 import unittest
@@ -47,6 +48,22 @@ class TorqueBenchmarkTests(unittest.TestCase):
         self.assert_rotor(run_rne(BINARY, request), inertia=0.05)
         if importlib.util.find_spec("mujoco"):
             self.assert_rotor(run_mujoco(request), inertia=0.05)
+
+    def test_so101_missing_dynamics_means_explicit_zero_loss(self):
+        # A single rotor misses legacy damping introduced when assembling a chain.
+        source = Path(__file__).resolve().parents[3] / "assets/robots/so101/so101.urdf"
+        urdf, names = normalize_urdf(source.read_text())
+        root = ET.fromstring(urdf)
+        for joint in root.findall("joint"):
+            if joint.get("type") == "continuous":
+                ET.SubElement(joint, "dynamics", damping="0", friction="0")
+        pulse = [0.01 if name == "shoulder_pan" else 0.0 for name in names]
+        request = {"urdf": urdf, "joint_names": names, "dt_ticks": 1_000_000,
+                   "torques_nm": [pulse] * 100 + [[0.0] * len(names)] * 100}
+        implicit = run_rne(BINARY, request)
+        explicit = run_rne(BINARY, {**request, "urdf": ET.tostring(root, encoding="unicode")})
+        for field in ("q_rad", "dq_rad_s"):
+            np.testing.assert_array_equal(implicit[field], explicit[field])
 
     def test_rne_rejects_wrong_joint_order_and_invalid_torque_matrix(self):
         request = self.request()

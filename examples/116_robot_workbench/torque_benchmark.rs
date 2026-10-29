@@ -4,7 +4,8 @@ use rne_core::SimDuration;
 use rne_ecs::World;
 use rne_math::Vec3;
 use rne_physics::{
-    JointActuation, JointMotor, PhysicsBackend, PhysicsOwnedPose, PhysicsWorldDesc, RigidBodyType,
+    JointActuation, JointMotor, JointPassiveDynamics, PhysicsBackend, PhysicsOwnedPose,
+    PhysicsWorldDesc, RigidBodyType,
 };
 use rne_physics_rapier::RapierBackend;
 use rne_urdf_import::{
@@ -138,10 +139,16 @@ pub(crate) fn run(input: Input) -> Result<Output> {
         })
         .collect::<Vec<_>>();
     for entity in &joints {
-        world
-            .entity_mut(*entity)
-            .remove::<JointMotor>()
-            .insert(JointActuation::Disabled);
+        world.entity_mut(*entity).remove::<JointMotor>().insert((
+            JointActuation::Disabled,
+            // Missing URDF dynamics preserves Rapier's legacy damping.
+            // This runner promises a lossless plant, so explicitly own zero.
+            JointPassiveDynamics::Revolute {
+                viscous_damping_nm_s_per_rad: 0.0,
+                coulomb_friction_nm: 0.0,
+                coulomb_transition_velocity_rad_s: 0.01,
+            },
+        ));
     }
     let mut backend = RapierBackend::new();
     let id = backend.create_world(PhysicsWorldDesc {
