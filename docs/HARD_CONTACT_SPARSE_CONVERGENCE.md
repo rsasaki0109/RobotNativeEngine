@@ -131,3 +131,5 @@ python scripts/contact_benchmark/contact_bridge.py BEFORE AFTER /tmp/bridge.json
 python scripts/contact_benchmark/contact_clusters.py BEFORE AFTER /tmp/clusters.json
 python scripts/contact_benchmark/contact_batch.py BEFORE AFTER /tmp/batch.json
 ```
+
+次の改善: [法線を先に評価して未使用の接線計算を省略](HARD_CONTACT_NORMAL_FIRST_BIAS.md)。

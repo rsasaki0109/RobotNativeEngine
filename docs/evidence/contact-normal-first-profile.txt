@@ -1,0 +1,56 @@
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+2.572 100.00  2.572 100.00   <Total>
+0.951  36.96  1.311  50.97   rne_dynamics::contact::solve_contact_impulses
+0.811  31.52  2.502  97.28   rne_dynamics::contact::coupled::step_with_external
+0.170   6.61  0.180   7.00   rne_dynamics::contact::SparseBiasRows::new
+0.160   6.23  0.160   6.23   <static>@0x75c93 (<libm.so.6>)
+0.140   5.45  0.140   5.45   <static>@0x162127 (<libc.so.6>)
+0.070   2.72  0.070   2.72   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.040   1.56  0.050   1.95   <static>@0x9ff23 (<libc.so.6>)
+0.040   1.56  0.040   1.56   rne_dynamics::contact::coupled::SparseDotRow::new
+0.030   1.17  0.030   1.17   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.030   1.17  0.030   1.17   rne_dynamics::contact::Cholesky::solve
+0.020   0.78  0.070   2.72   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+0.020   0.78  0.020   0.78   <std::hash::random::DefaultHasher as core::hash::Hasher>::write
+0.020   0.78  0.020   0.78   hypot
+0.020   0.78  0.030   1.17   rne_physics_native::world_step::push_box_box
+0.010   0.39  0.010   0.39   <static>@0x9e0c0 (<libc.so.6>)
+0.010   0.39  0.010   0.39   core::slice::<impl [T]>::partition_point
+0.010   0.39  0.010   0.39   rne_dynamics::algorithms::mass_matrix_from_xup
+0.010   0.39  0.010   0.39   rne_physics_native::collide::box_box
+0.010   0.39  1.521  59.14   rne_physics_native::world_step::step_world
+0.      0.    0.010   0.39   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+0.      0.    0.010   0.39   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+0.      0.    0.070   2.72   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.      0.    0.040   1.56   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.      0.    0.040   1.56   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+0.      0.    0.010   0.39   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::try_fold
+0.      0.    0.010   0.39   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::try_fold
+0.      0.    0.030   1.17   <rne_physics_native::NativeBackend as rne_physics::backend::PhysicsBackend>::step
+0.      0.    0.030   1.17   <static>@0x29c21 (<libc.so.6>)
+0.      0.    0.010   0.39   alloc::raw_vec::RawVec<T,A>::grow_one
+0.      0.    0.010   0.39   alloc::raw_vec::RawVecInner<A>::finish_grow
+0.      0.    0.010   0.39   calloc
+0.      0.    0.030   1.17   contact_crowd::main
+0.      0.    0.030   1.17   contact_crowd::run
+0.      0.    0.010   0.39   core::hash::BuildHasher::hash_one
+0.      0.    0.010   0.39   core::hash::BuildHasher::hash_one
+0.      0.    0.010   0.39   core::iter::adapters::try_process
+0.      0.    0.010   0.39   core::iter::adapters::try_process
+0.      0.    0.020   0.78   free
+0.      0.    0.010   0.39   hashbrown::map::HashMap<K,V,S,A>::insert
+0.      0.    0.010   0.39   hashbrown::raw::RawTable<T,A>::reserve_rehash
+0.      0.    0.030   1.17   main
+0.      0.    0.010   0.39   malloc
+0.      0.    0.010   0.39   realloc
+0.      0.    1.451  56.42   rne_dynamics::contact::coupled::contact_step_coupled
+0.      0.    0.010   0.39   rne_physics_native::assembly::Assembly::sim_transforms
+0.      0.    0.010   0.39   rne_robot::kinematics::KinematicModel::forward_kinematics
+0.      0.    0.030   1.17   std::rt::lang_start::{{closure}}
+0.      0.    0.030   1.17   std::rt::lang_start_internal
+0.      0.    0.030   1.17   std::sys::backtrace::__rust_begin_short_backtrace
+

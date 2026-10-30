@@ -284,24 +284,21 @@ pub fn solve_contact_impulses(
         before.copy_from_slice(&impulses);
         for contact in 0..count {
             // Velocity of this contact with its own impulse removed.
-            let mut bias = [0.0; 3];
-            for (axis, value) in bias.iter_mut().enumerate() {
+            let evaluate_bias = |axis| {
                 let row = 3 * contact + axis;
-                *value = sparse_bias
+                sparse_bias
                     .as_ref()
                     .and_then(|sparse| {
                         sparse.evaluate(row, free_velocity_m_s[row], &impulses, finite_impulses)
                     })
                     .unwrap_or_else(|| {
                         dense_contact_bias(delassus, row, free_velocity_m_s[row], &impulses)
-                    });
-            }
-            let (local, state) = solve_single_contact(
-                &blocks[contact],
-                bias,
-                friction_coefficients[contact],
-                config.bisection_iterations,
-            );
+                    })
+            };
+            let mu = friction_coefficients[contact];
+            let bias = contact_bias(&blocks[contact], mu, evaluate_bias);
+            let (local, state) =
+                solve_single_contact(&blocks[contact], bias, mu, config.bisection_iterations);
             let previous = impulses[contact];
             let blended = [
                 previous[0] + config.relaxation * (local[0] - previous[0]),
@@ -511,6 +508,17 @@ fn project_onto_cone(impulse: [f64; 3], mu: f64) -> [f64; 3] {
         let scale = limit / tangential;
         [impulse[0] * scale, impulse[1] * scale, normal]
     }
+}
+
+fn contact_bias(g: &[[f64; 3]; 3], mu: f64, mut evaluate: impl FnMut(usize) -> f64) -> [f64; 3] {
+    let mut bias = [0.0, 0.0, evaluate(2)];
+    // Match the local solver's early returns exactly, including NaN
+    // comparisons. These branches never inspect tangential bias.
+    if !(bias[2] >= 0.0 || mu == 0.0 || g[2][2] <= 0.0) {
+        bias[0] = evaluate(0);
+        bias[1] = evaluate(1);
+    }
+    bias
 }
 
 /// Solves one contact `v = G λ + b` exactly against the Coulomb cone.
@@ -1647,6 +1655,44 @@ mod tests {
 
     const HALF_EXTENTS_M: [f64; 3] = [0.1, 0.05, 0.1];
     const BOX_MASS_KG: f64 = 2.0;
+
+    #[test]
+    fn unused_tangential_bias_preserves_local_solution() {
+        for (normal, mu, response) in [
+            (1.0, 0.5, 1.0),
+            (0.0, 0.5, 1.0),
+            (-0.0, 0.5, 1.0),
+            (-1.0, 0.0, 2.0),
+            (-1.0, 0.5, 0.0),
+            (-1.0, 0.5, -1.0),
+        ] {
+            let g = [[1.0, 0.2, 0.1], [0.2, 1.0, 0.1], [0.1, 0.1, response]];
+            let bias = contact_bias(&g, mu, |axis| {
+                assert_eq!(axis, 2, "unused tangent evaluated");
+                normal
+            });
+            let expected = solve_single_contact(&g, bias, mu, 40);
+            for tangent in [1.0, -1e300, f64::INFINITY, f64::NAN] {
+                let actual = solve_single_contact(&g, [tangent, -tangent, normal], mu, 40);
+                assert_eq!(actual.0.map(f64::to_bits), expected.0.map(f64::to_bits));
+                assert_eq!(actual.1, expected.1);
+            }
+        }
+        for (normal, response) in [(-1.0, 1.0), (f64::NAN, 1.0), (-1.0, f64::NAN)] {
+            let mut g = [[0.0; 3]; 3];
+            g[2][2] = response;
+            let mut order = Vec::new();
+            let bias = contact_bias(&g, 0.5, |axis| {
+                order.push(axis);
+                [0.2, -0.3, normal][axis]
+            });
+            assert_eq!(order, [2, 0, 1]);
+            assert_eq!(
+                bias.map(f64::to_bits),
+                [0.2, -0.3, normal].map(f64::to_bits)
+            );
+        }
+    }
 
     #[test]
     fn velocity_stopping_matches_full_maximum() {
