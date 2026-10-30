@@ -149,6 +149,11 @@ jobs:
         run: |
           .venv-contact/bin/python scripts/contact_benchmark/stack_matched.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-matched"
           .venv-contact/bin/python scripts/contact_benchmark/verify_stack_matched.py "$RUNNER_TEMP/stack-matched"
+      - name: Frozen contact-phase robustness study
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/stack_phase.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-phase"
+          .venv-contact/bin/python scripts/contact_benchmark/stack_phase.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-phase" --verify
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -160,6 +165,7 @@ jobs:
             ${{ runner.temp }}/stack-contact.json.xz
             ${{ runner.temp }}/mujoco-stack.json.xz
             ${{ runner.temp }}/stack-matched/
+            ${{ runner.temp }}/stack-phase/
           if-no-files-found: warn
 
   headless:

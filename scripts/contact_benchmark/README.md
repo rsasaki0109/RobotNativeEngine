@@ -154,3 +154,10 @@ passing timestep is fixed for independent 0.3/3 kg validation at 2/3 levels.
 `verify_stack_matched.py DIRECTORY` recomputes the raw records, calibration order
 and conditional comparison. See
 [protocol and results](../../docs/HARD_CONTACT_STACK_MATCHED_RESULTS.md).
+
+## Impact-phase robustness
+
+`stack_phase.py BINARY NEW_DIRECTORY` retains the selected settings and changes
+initial gaps to vary analytic impact phase in both backends. `--verify` recomputes
+all eight saved records. A failed or missing phase suppresses the comparison.
+See [protocol and results](../../docs/HARD_CONTACT_STACK_PHASE_RESULTS.md).
