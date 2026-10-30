@@ -574,6 +574,23 @@ fn block_delassus(
             column
         })
         .collect();
+    let sparse_rows = (total_nv >= 48).then(|| {
+        (0..rows)
+            .map(|row| {
+                if nonzero[row] {
+                    SparseDotRow::new(row_of(row))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>()
+    });
+    let finite_response = sparse_rows.as_ref().map(|_| {
+        response
+            .iter()
+            .map(|column| column.iter().all(|v| v.is_finite()))
+            .collect::<Vec<_>>()
+    });
     let mut delassus = DenseMatrix::zeros(rows, rows);
     for row in 0..rows {
         if !nonzero[row] {
@@ -584,14 +601,132 @@ fn block_delassus(
             if !nonzero[col] {
                 continue;
             }
-            let value: f64 = jacobian_row
-                .iter()
-                .zip(&response[col])
-                .map(|(a, b)| a * b)
-                .sum();
+            let value = sparse_rows
+                .as_ref()
+                .and_then(|sparse| {
+                    sparse[row].as_ref().and_then(|row| {
+                        row.evaluate(
+                            &response[col],
+                            finite_response.as_ref().is_some_and(|finite| finite[col]),
+                        )
+                    })
+                })
+                .unwrap_or_else(|| {
+                    jacobian_row
+                        .iter()
+                        .zip(&response[col])
+                        .map(|(a, b)| a * b)
+                        .sum()
+                });
             delassus.set(row, col, value);
             delassus.set(col, row, value);
         }
     }
     (response, delassus)
+}
+
+/// Ordered exact-nonzero Jacobian coefficients for one Delassus dot product.
+struct SparseDotRow {
+    entries: Vec<(usize, f64)>,
+    zero: Option<(usize, bool)>,
+}
+
+impl SparseDotRow {
+    fn new(row: &[f64]) -> Option<Self> {
+        let mut entries = Vec::new();
+        let mut zero = None;
+        for (column, &value) in row.iter().enumerate() {
+            if value == 0.0 {
+                // Prefer +0: untouched response components are initialized +0.
+                if zero.is_none()
+                    || (!value.is_sign_negative() && zero.is_some_and(|(_, negative)| negative))
+                {
+                    zero = Some((column, value.is_sign_negative()));
+                }
+            } else {
+                if entries.len() == row.len() / 4 {
+                    return None;
+                }
+                entries.push((column, value));
+            }
+        }
+        Some(Self { entries, zero })
+    }
+
+    fn evaluate(&self, response: &[f64], finite_response: bool) -> Option<f64> {
+        // A skipped zero times infinity/NaN must still reach the dense path.
+        if !finite_response {
+            return None;
+        }
+        let mut sum = 0.0;
+        for &(column, coefficient) in &self.entries {
+            sum += coefficient * response[column];
+        }
+        if !sum.is_finite() {
+            return None;
+        }
+        if sum != 0.0 {
+            return Some(sum);
+        }
+        // Iterator::sum may preserve -0 when every product is -0. A known
+        // +0 product proves a zero result must instead be +0 under default
+        // round-to-nearest arithmetic. Otherwise repeat the original dot.
+        self.zero.and_then(|(column, negative)| {
+            (response[column].is_sign_negative() == negative).then_some(0.0)
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn dense(a: &[f64], b: &[f64]) -> f64 {
+        a.iter().zip(b).map(|(a, b)| a * b).sum()
+    }
+
+    #[test]
+    fn sparse_dot_preserves_dense_bits_across_scales_and_signed_zeros() {
+        for size in [48, 96, 186] {
+            for scale in [1e-300, 1.0, 1e300] {
+                let mut a = vec![0.0; size];
+                a[0] = -0.0;
+                a[3] = scale;
+                a[17] = -scale;
+                let row = SparseDotRow::new(&a).unwrap();
+                assert_eq!(row.entries.len(), 2);
+                for magnitude in [0.0, -0.0, 1e-300, 1.0, 1e300, f64::INFINITY, f64::NAN] {
+                    for sign in [-1.0, 1.0] {
+                        let mut b = vec![sign * magnitude; size];
+                        b[17] = magnitude;
+                        let expected = dense(&a, &b);
+                        let actual = row
+                            .evaluate(&b, b.iter().all(|v| v.is_finite()))
+                            .unwrap_or_else(|| dense(&a, &b));
+                        assert_eq!(actual.to_bits(), expected.to_bits());
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn sparse_dot_requires_a_positive_zero_product_for_zero_fast_path() {
+        let a = vec![-0.0; 48];
+        let row = SparseDotRow::new(&a).unwrap();
+        let positive = vec![1.0; 48];
+        assert!(row.evaluate(&positive, true).is_none());
+        assert_eq!(dense(&a, &positive).to_bits(), (-0.0_f64).to_bits());
+        let negative = vec![-1.0; 48];
+        assert_eq!(
+            row.evaluate(&negative, true).unwrap().to_bits(),
+            0.0_f64.to_bits()
+        );
+        assert_eq!(dense(&a, &negative).to_bits(), 0.0_f64.to_bits());
+        assert!(row.evaluate(&[f64::INFINITY; 48], false).is_none());
+        assert!(SparseDotRow::new(&[1.0; 48]).is_none());
+        let mut tiny = vec![0.0; 48];
+        tiny[5] = 1e-300;
+        assert_eq!(SparseDotRow::new(&tiny).unwrap().entries[0], (5, 1e-300));
+    }
 }

@@ -1,0 +1,17 @@
+{
+  "base_commit": "a0fdb425",
+  "source_sha256": {
+    "crates/rne_dynamics/src/contact/coupled.rs": "477cc546e95d8834a84834e838451322a31464410037977836138f284a38f890",
+    "crates/rne_dynamics/src/contact.rs": "d727952b1528eec8f4f56be6c28a8783eae8a68513caaaf98cc14bdd36d4f577",
+    "crates/rne_physics_native/examples/contact_crowd.rs": "0ee6274a7047d5b1340b485626e12a12ac4ab8a29413e91752b7de1e0a419d24",
+    "scripts/contact_benchmark/contact_bridge.py": "d9c8cec81f42b546aa0e863d7d24a929f6e38283f708fed0f702e738db0a74c1",
+    "scripts/contact_benchmark/contact_clusters.py": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d",
+    "scripts/contact_benchmark/contact_crowd.py": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87",
+    "scripts/contact_benchmark/contact_batch.py": "a72d9c86d9a0853144886711a1d0bac9ef4beabbd9117c42d85d8caf4a5cc97e"
+  },
+  "before_coupled_sha256": "3bee94a56539c171aef2152d0de9f31a797eedbe76b666d6031b830fca735772",
+  "binary_sha256": {
+    "before": "11ae4bf55bd04ac0ba11007a15831d6842e437af9774ecfee3de368599684edc",
+    "after": "acc7349b4d06ac12aa0b838dc601bde8b22fd1a4756cc84f8589db6e7e7ba9a3"
+  }
+}
