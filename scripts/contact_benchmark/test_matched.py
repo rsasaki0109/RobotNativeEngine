@@ -1,5 +1,7 @@
 import copy
 import gzip
+import hashlib
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -7,6 +9,9 @@ import unittest
 import numpy as np
 
 from matched import choose, comparison, save_trace
+from verify_matched import verify
+import drop
+import test_drop
 
 
 def record(passed=True, cost=1, mass=1):
@@ -31,6 +36,30 @@ class MatchedTests(unittest.TestCase):
         b[1]["case"]["mass_kg"] = 999
         with self.assertRaises(ValueError):
             comparison(a, b)
+
+    def test_archive_verification_rejects_changed_metrics_and_bytes(self):
+        case, samples, _ = test_drop.AuditTests().ideal()
+        quality = drop.metrics(case, samples)
+        quality["gates"]["backend_health"] = True
+        rec = {"case": case, "phase": "calibration", "backend": "native", "metrics": quality,
+               "audit": {"trace": samples, "final_gap_m": samples[-1][1],
+                         "final_velocity_m_s": samples[-1][2]}}
+        report = {"status": "complete", "gates": drop.GATES, "records": [rec],
+                  "source_sha256": {"drop.py": hashlib.sha256(Path(drop.__file__).read_bytes()).hexdigest()},
+                  "comparison": {"eligible": False, "reason": "missing validation"}}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            save_trace(root, rec, 0)
+            path = root / "report.json"
+            path.write_text(json.dumps(report))
+            verify(path, root)
+            rec["metrics"]["max_penetration_m"] = 999
+            path.write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError, "quality metrics differ"):
+                verify(path, root)
+            (root / rec["audit"]["trace_file"]).write_bytes(b"changed")
+            with self.assertRaisesRegex(ValueError, "checksum mismatch"):
+                verify(path, root)
 
     def test_lossless_trace_roundtrip(self):
         samples = [[0, .1, 0, 0], [.001, -.00000001, .002, .1]]

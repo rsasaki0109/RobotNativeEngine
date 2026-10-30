@@ -127,11 +127,15 @@ jobs:
           .venv-contact/bin/pip install -r examples/116_robot_workbench/python/requirements-mujoco.txt
           RNE_CONTACT_DROP=target/release/examples/contact_drop .venv-contact/bin/python -m unittest discover -s scripts/contact_benchmark -v
           .venv-contact/bin/python scripts/contact_benchmark/drop.py target/release/examples/contact_drop "$RUNNER_TEMP/contact-drop.json.gz"
+          .venv-contact/bin/python scripts/contact_benchmark/matched.py target/release/examples/contact_drop "$RUNNER_TEMP/contact-matched" --overdamped
+          .venv-contact/bin/python scripts/contact_benchmark/verify_matched.py "$RUNNER_TEMP/contact-matched/report.json" --require-comparison
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: hard-contact-drop
-          path: ${{ runner.temp }}/contact-drop.json.gz
+          path: |
+            ${{ runner.temp }}/contact-drop.json.gz
+            ${{ runner.temp }}/contact-matched/
           if-no-files-found: warn
 
   headless:

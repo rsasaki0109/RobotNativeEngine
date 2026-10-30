@@ -85,3 +85,27 @@ Discrete geometric samples do not prove the absence of inter-step tunnelling.
 Multiple contacts, friction, angular motion, changing contact topology and parallel
 environments remain separate tests. Use `plot.py` (matplotlib required) to plot
 the committed report; benchmark execution itself does not need matplotlib.
+
+
+## Matched-quality refinement (v2/v3)
+
+`matched.py` reuses the v1 runners and gates unchanged. Default mode reproduces
+v2's finer-step critical-damping search. `--overdamped` runs the separately
+frozen v3 grid after v2 failed on rebound. Both calibrate on known 0.1/0.5 m
+drops at 1 kg, then freeze settings and validate on 0.3/3 kg × 0.03/0.3 m.
+No validation-based reselection is allowed, and no ratio is reported when
+validation fails. RNE uses the fixed zero-regularization, 20-iteration, 2 ms
+reference. See `docs/HARD_CONTACT_MATCHED_RESULTS.md` for grids and limitations.
+
+```sh
+.venv-contact/bin/python scripts/contact_benchmark/matched.py target/release/examples/contact_drop /tmp/h1-v3 --overdamped
+.venv-contact/bin/python scripts/contact_benchmark/verify_matched.py /tmp/h1-v3/report.json --require-comparison
+```
+
+Use a fresh directory. Reports checkpoint after every case, retaining failed
+quality cases. Full samples are lossless float64 `.npy.gz` files; Git stores the
+small summaries, while CI uploads report and traces together. The current local
+captures are provided as workspace archives, not asserted to be permanently
+hosted. `verify_matched.py --traces DIR` verifies a stored report against its
+matching archive, recomputing all quality metrics and the comparison summary.
+The v1 capture uses lossless XZ compression below the ADR 034 inline size limit.
