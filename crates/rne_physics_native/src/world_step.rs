@@ -44,6 +44,7 @@ fn same_self_collision_owner(a: Option<Entity>, b: Option<Entity>) -> bool {
 
 /// Advances every assembly by `dt_s`. Assemblies that touch through a
 /// contact are solved together; the others are solved one island each.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn step_world(
     assemblies: &mut [Assembly],
     statics: &[StaticCollider],
@@ -52,6 +53,7 @@ pub(crate) fn step_world(
     margin_m: f64,
     dt_s: f64,
     external: &[Vec<f64>],
+    mut diagnostics: Option<&mut Vec<crate::NativeContactImpulse>>,
 ) -> Result<Vec<ContactRecord>, PhysicsError> {
     let transforms = assemblies
         .iter()
@@ -148,6 +150,23 @@ pub(crate) fn step_world(
                 candidate.key,
                 [impulse.dot(t1), impulse.dot(t2), impulse.dot(n)],
             );
+            if let Some(samples) = diagnostics.as_deref_mut() {
+                let to_world = crate::collide::world_to_sim().conjugate();
+                let normal = candidate.contact.normal_world;
+                let half_gap = normal * (0.5 * candidate.record.gap_m);
+                samples.push(crate::NativeContactImpulse {
+                    body_entity: candidate.record.body_entity,
+                    other_entity: candidate.record.other_entity,
+                    point_world_m: to_world * (candidate.place_m + half_gap),
+                    other_point_world_m: to_world * (candidate.place_m - half_gap),
+                    normal_world: to_world * normal,
+                    gap_m: candidate.record.gap_m,
+                    normal_impulse_n_s: impulse.dot(normal),
+                    tangential_impulse_world_n_s: to_world
+                        * (impulse - normal * impulse.dot(normal)),
+                    dt_s,
+                });
+            }
             records.push(ContactRecord {
                 normal_impulse_n_s: impulse.dot(n),
                 ..candidate.record

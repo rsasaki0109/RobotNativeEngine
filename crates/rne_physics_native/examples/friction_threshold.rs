@@ -14,9 +14,9 @@ use std::{error::Error, time::Instant};
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
-    if !(7..=8).contains(&args.len()) {
+    if !(7..=9).contains(&args.len()) {
         return Err(
-            "usage: friction_threshold DT_TICKS MASS_KG FORCE_RATIO REGULARIZATION ITERATIONS audit|timing MU [wrench]"
+            "usage: friction_threshold DT_TICKS MASS_KG FORCE_RATIO REGULARIZATION ITERATIONS audit|timing MU [wrench [diagnostics]]"
                 .into(),
         );
     }
@@ -35,6 +35,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         "audit" => true,
         "timing" => false,
         _ => return Err("mode must be audit or timing".into()),
+    };
+    let diagnostics = match args.get(8).map(String::as_str) {
+        None => false,
+        Some("diagnostics") if wrench && audit => true,
+        _ => return Err("diagnostics requires audit wrench".into()),
     };
     if ![250_000, 500_000, 1_000_000, 2_000_000].contains(&ticks)
         || !mu.is_finite()
@@ -104,8 +109,15 @@ fn main() -> Result<(), Box<dyn Error>> {
             Transform3::from_translation_rotation(Vec3::new(0.0, half, 0.0), rotation),
         ))
         .id();
+    backend.set_contact_diagnostics_enabled(id, diagnostics)?;
     backend.sync_from_ecs(&mut world, id)?;
-    let steps = 2_000_000_000 / ticks;
+    let duration_ticks = if diagnostics {
+        50_000_000
+    } else {
+        2_000_000_000
+    };
+    let steps = duration_ticks / ticks;
+    let mut contact_diagnostics = Vec::new();
     let dt = SimDuration::from_ticks(ticks);
     let mut trace = Vec::new();
     if audit {
@@ -114,6 +126,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut start = Instant::now();
     let mut prefix_elapsed = 0.0;
     for i in 0..steps {
+        let before = if diagnostics {
+            Some(sample(&world, ball, i as f64 * ticks as f64 * 1e-9, 0.0)?)
+        } else {
+            None
+        };
         if !wrench && !audit && i + 1 == steps {
             // ECS velocity is pose-differenced against the last write-back.
             // Sample the penultimate pose outside timing so final velocity
@@ -140,6 +157,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         if wrench {
             backend.sync_to_ecs(&mut world, id)?;
         }
+        if let Some(before) = before {
+            let points: Vec<_> = backend.contact_impulse_diagnostics(id)?.iter().map(|p| json!({
+                "body_index":p.body_entity.index(), "other_index":p.other_entity.index(),
+                "point_world_m":[p.point_world_m.x,p.point_world_m.y,p.point_world_m.z],
+                "other_point_world_m":[p.other_point_world_m.x,p.other_point_world_m.y,p.other_point_world_m.z],
+                "normal_world":[p.normal_world.x,p.normal_world.y,p.normal_world.z],
+                "gap_m":p.gap_m,"normal_impulse_n_s":p.normal_impulse_n_s,
+                "tangential_impulse_world_n_s":[p.tangential_impulse_world_n_s.x,p.tangential_impulse_world_n_s.y,p.tangential_impulse_world_n_s.z],"dt_s":p.dt_s
+            })).collect();
+            contact_diagnostics
+                .push(json!({"before":before,"points":points,"body_index":ball.index()}));
+        }
         if audit {
             if !wrench {
                 backend.sync_to_ecs(&mut world, id)?;
@@ -161,11 +190,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     if !audit && !wrench {
         backend.sync_to_ecs(&mut world, id)?;
     }
-    let final_state = sample(&world, ball, 2.0, 0.0)?;
+    let final_state = sample(&world, ball, duration_ticks as f64 * 1e-9, 0.0)?;
     println!(
         "{}",
         json!({"backend":"rne_native", "debug_assertions":cfg!(debug_assertions), "mode":args[5], "elapsed_s":elapsed,
-        "trace":trace, "final_state":final_state,
+        "trace":trace, "final_state":final_state, "contact_diagnostics":contact_diagnostics,
         "load_mode":if wrench { "external_body_wrench" } else { "equivalent_gravity" },
         "settings":{"equivalent_force_n":mass * ratio * f64::from(mu) * 9.81,"friction_coefficient":mu,"regularization":regularization,"max_iterations":iterations,
         "contact_margin_m":config.contact_margin_m,"penetration_recovery":config.contact.penetration_recovery,

@@ -143,6 +143,32 @@ impl Default for NativeBackendConfig {
     }
 }
 
+/// One solved contact, expressed in world coordinates at the pre-integration pose.
+/// Impulses act on `body_entity`; their opposites act on `other_entity`.
+/// Entity order follows the solver, not canonical entity-index order. Predictive
+/// contacts and zero impulses are retained after manifold reduction.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct NativeContactImpulse {
+    /// Body receiving the reported impulse.
+    pub body_entity: Entity,
+    /// Opposite body, which may be static or dynamic.
+    pub other_entity: Entity,
+    /// Solver application point on the receiving body, not the surface midpoint.
+    pub point_world_m: Vec3,
+    /// Opposite surface point used by the other body's solver Jacobian.
+    pub other_point_world_m: Vec3,
+    /// Unit normal from the opposite body into the receiving body.
+    pub normal_world: Vec3,
+    /// Signed separation at contact generation, in meters.
+    pub gap_m: f64,
+    /// Solved normal impulse magnitude in N s.
+    pub normal_impulse_n_s: f64,
+    /// Solved tangential impulse on the receiving body, in N s.
+    pub tangential_impulse_world_n_s: Vec3,
+    /// Duration of the completed step; divide impulses by this for average force.
+    pub dt_s: f64,
+}
+
 /// Topology entry of one rigid body: entity, type, and joint parent and kind.
 type TopologyEntry = (Entity, RigidBodyType, Option<(Entity, u8)>);
 
@@ -163,6 +189,8 @@ struct NativeWorld {
     /// Total simulated time stepped, in seconds.
     elapsed_s: f64,
     pending_wrenches: Vec<ExternalBodyWrench>,
+    contact_diagnostics_enabled: bool,
+    contact_diagnostics: Vec<NativeContactImpulse>,
 }
 
 /// Physics backend that simulates articulated assemblies with
@@ -205,6 +233,29 @@ impl NativeBackend {
     /// sync.
     pub fn assembly_count(&self, physics_world: PhysicsWorldId) -> Result<usize, PhysicsError> {
         Ok(self.world(physics_world)?.assemblies.len())
+    }
+
+    /// Enables per-point impulse diagnostics for one world (disabled by default).
+    /// Clears previous samples. Recording does not change solver inputs or warm starts.
+    pub fn set_contact_diagnostics_enabled(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        enabled: bool,
+    ) -> Result<(), PhysicsError> {
+        let state = self.world_mut(physics_world)?;
+        state.contact_diagnostics_enabled = enabled;
+        state.contact_diagnostics.clear();
+        Ok(())
+    }
+
+    /// Samples from the last completed step, in solver order. Empty when disabled,
+    /// before the first step, after `sync_from_ecs`, or when no contacts were generated.
+    /// A failed step does not publish partially collected samples.
+    pub fn contact_impulse_diagnostics(
+        &self,
+        physics_world: PhysicsWorldId,
+    ) -> Result<&[NativeContactImpulse], PhysicsError> {
+        Ok(&self.world(physics_world)?.contact_diagnostics)
     }
 
     fn world(&self, physics_world: PhysicsWorldId) -> Result<&NativeWorld, PhysicsError> {
@@ -307,6 +358,7 @@ impl PhysicsBackend for NativeBackend {
         physics_world: PhysicsWorldId,
     ) -> Result<(), PhysicsError> {
         let state = self.world_mut(physics_world)?;
+        state.contact_diagnostics.clear();
         let mut bodies: Vec<(Entity, RigidBodyType)> = world
             .iter_entities()
             .filter_map(|entity_ref| {
@@ -439,6 +491,7 @@ impl PhysicsBackend for NativeBackend {
                 .map(|a| a.external_efforts(&state.pending_wrenches))
                 .collect::<Result<Vec<_>, _>>()?
         };
+        let mut diagnostics = Vec::new();
         let records = step_world(
             &mut state.assemblies,
             &state.statics,
@@ -447,7 +500,11 @@ impl PhysicsBackend for NativeBackend {
             config.contact_margin_m,
             dt_s,
             &external,
+            state
+                .contact_diagnostics_enabled
+                .then_some(&mut diagnostics),
         )?;
+        state.contact_diagnostics = diagnostics;
         state.pending_wrenches.clear();
         let mut events: BTreeMap<(u32, u32), ContactEvent> = BTreeMap::new();
         let to_world = world_to_sim().conjugate();

@@ -214,3 +214,11 @@ recomputes diagnostics. Native per-point forces are not available in this audit.
 `plot_friction_contact_diagnostics.py DIRECTORY OUTPUT.png` plots the support
 transition, torque decomposition and angular speed. See
 [findings and observation limits](../../docs/HARD_CONTACT_FRICTION_CONTACT_DIAGNOSTICS.md).
+
+Native now has opt-in `set_contact_diagnostics_enabled` /
+`contact_impulse_diagnostics` methods for solved per-point impulses and both
+application points. The threshold example's `audit MU wrench diagnostics`
+suffix records 50 ms. `native_contact_diagnostics.py BINARY MUJOCO_DIRECTORY
+OUTPUT.json` checks point-level momentum balance, observation invariance and
+replay, then compares with the saved MuJoCo diagnostics; `--verify` recomputes
+both sides. See [API and direct comparison](../../docs/NATIVE_CONTACT_IMPULSE_DIAGNOSTICS.md).
