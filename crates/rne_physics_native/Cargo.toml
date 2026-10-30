@@ -22,4 +22,5 @@ rne_world = { workspace = true }
 uuid = { workspace = true }
 
 [dev-dependencies]
+serde_json = { workspace = true }
 rne_physics_conformance = { workspace = true }

@@ -4648,6 +4648,7 @@ dependencies = [
  "rne_physics_conformance",
  "rne_robot",
  "rne_world",
+ "serde_json",
  "uuid",
 ]
 
