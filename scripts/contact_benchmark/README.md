@@ -109,3 +109,13 @@ captures are provided as workspace archives, not asserted to be permanently
 hosted. `verify_matched.py --traces DIR` verifies a stored report against its
 matching archive, recomputing all quality metrics and the comparison summary.
 The v1 capture uses lossless XZ compression below the ADR 034 inline size limit.
+
+## H2 box contact audit
+
+`box.py` runs a separate frozen 48-case native cube/floor diagnostic. It audits
+all eight world-space corners and includes rotational kinetic energy and settled
+angular speed. It does not reuse the sphere's impact/rebound assumptions or claim
+a MuJoCo speedup. Build `--example box_drop`, run `box.py BINARY OUTPUT.json.xz`,
+then `verify_box.py OUTPUT.json.xz --require-pass`. Set `RNE_BOX_DROP` for the
+native four-corner regression test. See
+[protocol and results](../../docs/HARD_CONTACT_BOX_RESULTS.md).
