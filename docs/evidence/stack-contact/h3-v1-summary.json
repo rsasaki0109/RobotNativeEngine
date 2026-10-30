@@ -1,0 +1,2583 @@
+{
+  "protocol": "stack_h3_v1",
+  "status": "complete",
+  "gates": {
+    "max_floor_penetration_m": 1e-05,
+    "max_pair_penetration_m": 1e-05,
+    "settled_linear_speed_m_s": 0.001,
+    "settled_angular_speed_rad_s": 0.01,
+    "energy_excess_fraction": 1e-06,
+    "max_support_relative_error": 0.01,
+    "final_height_error_m": 0.0001
+  },
+  "columns_per_body": [
+    "time_s",
+    "x_m",
+    "y_m",
+    "z_m",
+    "qx",
+    "qy",
+    "qz",
+    "qw",
+    "vx_m_s",
+    "vy_m_s",
+    "vz_m_s",
+    "wx_rad_s",
+    "wy_rad_s",
+    "wz_rad_s",
+    "normal_impulse_n_s"
+  ],
+  "impulse_semantics": "normal impulse from immediately lower body (floor at level 0)",
+  "half_extents_m": [
+    0.05,
+    0.05,
+    0.05
+  ],
+  "gravity_m_s2": [
+    0,
+    -9.81,
+    0
+  ],
+  "friction": 0,
+  "restitution": 0,
+  "duration_s": 2,
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+  "cpu_affinity": [
+    0
+  ],
+  "timing_scope": "release backend batch; excludes setup, IPC, traces and ECS sync",
+  "binary_sha256": "f39c926529e73a9d197b586c13a7f51c611e24ca036343714ac390b9bb53d95b",
+  "source_sha256": {
+    "stack.py": "148d8dec128bee5c54a2d56a47bbf2968163b6b04a1c41717f17b8f607dc49cc",
+    "box.py": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+  },
+  "results": [
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 0.1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.051690293,
+        "final_state": [
+          [
+            2.0,
+            -1.508820490954919e-09,
+            0.05000000031768013,
+            -3.5460278575214225e-10,
+            1.9917345550624077e-11,
+            -1.1951370979599856e-18,
+            2.541225339012901e-11,
+            1.0,
+            -1.601349566268767e-09,
+            3.355134919891256e-08,
+            -4.041697365986899e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.5265846893204636e-09,
+            0.15000000037794406,
+            -3.3215298030704295e-10,
+            -4.634379546786249e-10,
+            7.30384192470216e-17,
+            -8.926916732904227e-11,
+            1.0,
+            -1.614418327542545e-09,
+            3.179215224413667e-08,
+            -3.947257524805602e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.119122319948114e-13,
+        "max_pair_penetration_m": 6.32396912614297e-12,
+        "settled_linear_speed_m_s": 9.688627946235076e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 4.657562113763447e-09,
+        "support_relative_error_by_interface": [
+          3.90238907854723e-09,
+          4.657562113763447e-09
+        ],
+        "final_height_error_m": 3.7794403717761327e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0233111935,
+        0.0259996535,
+        0.023487514,
+        0.024665833499999998,
+        0.023095222500000002
+      ],
+      "median_cost": 0.023487514
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 0.1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.047598252,
+        "final_state": [
+          [
+            2.0,
+            -1.508820490954919e-09,
+            0.05000000031768013,
+            -3.5460278575214225e-10,
+            1.9917345550624077e-11,
+            -1.1951370979599856e-18,
+            2.541225339012901e-11,
+            1.0,
+            -1.601349566268767e-09,
+            3.355134919891256e-08,
+            -4.041697365986899e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.5265846893204636e-09,
+            0.15000000037794406,
+            -3.3215298030704295e-10,
+            -4.634379546786249e-10,
+            7.30384192470216e-17,
+            -8.926916732904227e-11,
+            1.0,
+            -1.614418327542545e-09,
+            3.179215224413667e-08,
+            -3.947257524805602e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.119122319948114e-13,
+        "max_pair_penetration_m": 6.32396912614297e-12,
+        "settled_linear_speed_m_s": 9.688627946235076e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 4.657562113763447e-09,
+        "support_relative_error_by_interface": [
+          3.90238907854723e-09,
+          4.657562113763447e-09
+        ],
+        "final_height_error_m": 3.7794403717761327e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.02259435,
+        0.022789595500000003,
+        0.023285411,
+        0.0224643525,
+        0.022437208
+      ],
+      "median_cost": 0.02259435
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.063001229,
+        "final_state": [
+          [
+            2.0,
+            -1.3548276312528312e-09,
+            0.050000000169099224,
+            -1.8476562036628137e-09,
+            -2.8825830611367564e-12,
+            -6.501457243362182e-16,
+            4.7647250450699894e-12,
+            1.0,
+            -1.1295441752863657e-09,
+            7.774100807544926e-08,
+            -8.232334071111577e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -4.59754942117372e-10,
+            0.15000000028138863,
+            2.445006647351456e-09,
+            -7.824874637130108e-10,
+            1.4378406490733665e-15,
+            -3.384375361972729e-10,
+            1.0,
+            -6.995340329918506e-10,
+            7.884007335867693e-08,
+            1.3612149998335486e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.934748504057701e-10,
+        "max_pair_penetration_m": 1.1739331728932711e-10,
+        "settled_linear_speed_m_s": 4.58620905284722e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 5.8328705199173214e-09,
+        "support_relative_error_by_interface": [
+          5.369582556369323e-09,
+          5.8328705199173214e-09
+        ],
+        "final_height_error_m": 2.813886068597782e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.027527769,
+        0.033534511,
+        0.027710106,
+        0.029674511499999997,
+        0.028773440999999997
+      ],
+      "median_cost": 0.028773440999999997
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.064917565,
+        "final_state": [
+          [
+            2.0,
+            -9.526394224353579e-10,
+            0.050000000426294225,
+            2.861872409339003e-10,
+            2.0690560376124267e-11,
+            -2.4098528953648905e-16,
+            3.145343138721819e-11,
+            1.0,
+            -9.794483058015096e-10,
+            1.1016237921879224e-07,
+            2.8820955990759636e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.0496686139486337e-09,
+            0.15000000056930998,
+            3.456439278453636e-10,
+            -9.697802005881329e-10,
+            1.016580743570156e-15,
+            -4.0801128269040736e-10,
+            1.0,
+            -1.0587377365848275e-09,
+            1.1108314268426511e-07,
+            3.0278728696500823e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.26145738910104e-12,
+        "max_pair_penetration_m": 7.235462229360223e-12,
+        "settled_linear_speed_m_s": 5.307027734826889e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.984789193583026e-09,
+        "support_relative_error_by_interface": [
+          2.984789193583026e-09,
+          2.794917186577095e-09
+        ],
+        "final_height_error_m": 5.693099602854801e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.029158399,
+        0.0269342235,
+        0.02741714,
+        0.0278422165,
+        0.0282563815
+      ],
+      "median_cost": 0.0278422165
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.067434773,
+        "final_state": [
+          [
+            2.0,
+            -0.0013525034412154695,
+            0.05000000001741039,
+            0.0010138976842366735,
+            -4.244046225565512e-10,
+            -0.0033235967390836518,
+            -2.852458230555299e-10,
+            0.9999944768371053,
+            -0.0006919844277464976,
+            -5.48172618408671e-13,
+            0.0005173777837923221,
+            -6.997722332635687e-12,
+            -0.0034129654557636226,
+            8.709373518560012e-12,
+            0.0
+          ],
+          [
+            2.0,
+            0.0001352503667455279,
+            0.1500247269500079,
+            -0.00010138974801260151,
+            8.173612403572506e-08,
+            0.0003322512765993234,
+            0.0002473302073059397,
+            0.9999999142184219,
+            6.919845403012114e-05,
+            2.7922109069322687e-08,
+            -5.1737767585728536e-05,
+            3.664270693310301e-10,
+            0.00034141839712983186,
+            5.587533333153315e-07,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 8.973125823066477e-05,
+        "max_pair_penetration_m": 6.226854537508264e-06,
+        "settled_linear_speed_m_s": 0.0008640151731338418,
+        "settled_angular_speed_rad_s": 0.0034129654557636226,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.9139105855714433e-09,
+        "support_relative_error_by_interface": [
+          1.0715688336659923e-09,
+          1.9139105855714433e-09
+        ],
+        "final_height_error_m": 2.472695000788061e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.03291743,
+        0.033514548000000005,
+        0.033383155500000004,
+        0.0324836665,
+        0.0326614495
+      ],
+      "median_cost": 0.03291743
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.060298468,
+        "final_state": [
+          [
+            2.0,
+            1.9021116150645395e-08,
+            0.04999999999342571,
+            8.400781441882434e-08,
+            3.257860647920552e-10,
+            -1.072153228309266e-12,
+            2.7501671978710053e-10,
+            1.0,
+            2.139573431197399e-08,
+            -3.305475337889163e-08,
+            8.754403694553312e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.905614854861407e-09,
+            0.15000000442154793,
+            -8.392614809716291e-09,
+            3.2710819219960996e-08,
+            1.0497897059097955e-13,
+            1.2305040463347246e-08,
+            0.9999999999999993,
+            -2.141364873123249e-09,
+            -3.5448616264588395e-08,
+            -8.750227327071302e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 2.2277388777469957e-10,
+        "max_pair_penetration_m": 4.032277289844899e-11,
+        "settled_linear_speed_m_s": 1.32022106801514e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.6465707242119265e-08,
+        "support_relative_error_by_interface": [
+          1.6465707242119265e-08,
+          1.6161911919887473e-08
+        ],
+        "final_height_error_m": 4.421547905586465e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0280051555,
+        0.025980527,
+        0.026663544499999997,
+        0.025946363,
+        0.0275779445
+      ],
+      "median_cost": 0.026663544499999997
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 0.1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.115527771,
+        "final_state": [
+          [
+            2.0,
+            -1.3795497339261663e-09,
+            0.050000000186688806,
+            -1.2907804111701292e-09,
+            -3.353539668182748e-12,
+            -2.6850076868969433e-14,
+            2.9225427078392393e-12,
+            1.0,
+            -1.202655719894144e-09,
+            1.2277953653772045e-07,
+            -5.030754183981864e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -4.71848870118023e-10,
+            0.15000000019943124,
+            2.2265050825766933e-09,
+            -1.1462741866807846e-10,
+            2.7411894136367122e-14,
+            1.4316078227393672e-11,
+            1.0,
+            -7.100292146406258e-10,
+            1.2428569284850255e-07,
+            1.5067824469301764e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -7.137027741174345e-10,
+            0.250000000273443,
+            -3.0238317451633025e-09,
+            5.901113486750376e-10,
+            1.2754030281552475e-14,
+            -2.106294256370128e-11,
+            1.0,
+            -1.1552027170912823e-09,
+            1.2488537981525383e-07,
+            -3.5779375794776496e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 1.2161256849492729e-09,
+        "max_pair_penetration_m": 1.1739331728932711e-10,
+        "settled_linear_speed_m_s": 1.2497702821964842e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.382305994812043e-08,
+        "support_relative_error_by_interface": [
+          6.382305994812043e-08,
+          1.966384499674234e-09,
+          3.97250375927527e-08
+        ],
+        "final_height_error_m": 2.7344299047271647e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.053816427,
+        0.054205953,
+        0.0551955275,
+        0.05788236,
+        0.056533506000000004
+      ],
+      "median_cost": 0.0551955275
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 0.1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.117384651,
+        "final_state": [
+          [
+            2.0,
+            -9.245822431763445e-10,
+            0.05000000007315974,
+            2.8893715967261505e-10,
+            1.8461676631886803e-11,
+            -1.7962922443995477e-16,
+            4.800732793935824e-11,
+            1.0,
+            -9.713207262782622e-10,
+            -1.1721673631726048e-07,
+            2.946526606665995e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.4055452775459454e-09,
+            0.15000000010180867,
+            8.95771134559854e-10,
+            -1.3946443999657276e-10,
+            1.6577886292075087e-15,
+            -8.856203484582676e-11,
+            1.0,
+            -1.4856083277915763e-09,
+            -1.1835854518693623e-07,
+            9.017783251856339e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            3.959097788083561e-09,
+            0.2500000001178002,
+            -5.0883668719561024e-09,
+            -2.2064933213883364e-10,
+            9.258099342433435e-16,
+            -1.7602747356958845e-10,
+            1.0,
+            4.21108210537337e-09,
+            -1.191043930148794e-07,
+            -5.426797730913986e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.191707556778523e-12,
+        "max_pair_penetration_m": 6.463204971218772e-12,
+        "settled_linear_speed_m_s": 1.1930419280740115e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 5.093888266749502e-08,
+        "support_relative_error_by_interface": [
+          3.091189859638632e-08,
+          1.966384499674234e-09,
+          5.093888266749502e-08
+        ],
+        "final_height_error_m": 1.1780021402785223e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.072399534,
+        0.099194032,
+        0.09054262149999999,
+        0.090874677,
+        0.066312437
+      ],
+      "median_cost": 0.09054262149999999
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.107138292,
+        "final_state": [
+          [
+            2.0,
+            -2.196384198472616e-06,
+            0.05000000012199844,
+            1.240708247433498e-06,
+            9.755002361444554e-11,
+            -1.6653145057791217e-07,
+            8.231584575736014e-11,
+            0.9999999999999861,
+            -1.127251537152023e-06,
+            1.0935372052323089e-07,
+            6.384808696452094e-07,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -5.660432645336306e-06,
+            0.1500000091451661,
+            3.9255212762315477e-07,
+            6.562714593982832e-09,
+            1.0548404466035019e-07,
+            -8.37035472102816e-08,
+            0.9999999999999909,
+            -4.535842621303661e-06,
+            9.976086623453284e-08,
+            1.9060118558895544e-07,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            7.856952311430098e-06,
+            0.2500000111169332,
+            -1.6328298784412597e-06,
+            2.6305527534020712e-08,
+            6.160331451626306e-08,
+            -8.368713510238511e-08,
+            0.9999999999999942,
+            5.663339741934689e-06,
+            9.945472223549245e-08,
+            -8.285554299513705e-07,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 1.092454963450775e-06,
+        "max_pair_penetration_m": 3.845187099144054e-07,
+        "settled_linear_speed_m_s": 5.728685335138535e-06,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.606563964668851e-08,
+        "support_relative_error_by_interface": [
+          2.581247704469547e-08,
+          2.321755854239882e-08,
+          2.606563964668851e-08
+        ],
+        "final_height_error_m": 1.1116933207322433e-08,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.056851188,
+        0.093447612,
+        0.0574948535,
+        0.052122975999999994,
+        0.053978436000000005
+      ],
+      "median_cost": 0.056851188
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.116299763,
+        "final_state": [
+          [
+            2.0,
+            -2.2684910191591552e-10,
+            0.04999999998360851,
+            7.526973660226016e-10,
+            -8.955863828319366e-11,
+            3.1056407259041012e-15,
+            -6.583018911238003e-11,
+            1.0,
+            -2.320730813060219e-10,
+            -3.172922341532214e-08,
+            8.849379218663758e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            1.6206143028683244e-07,
+            0.15000000335096358,
+            -2.505226480766264e-07,
+            2.0228364761010198e-08,
+            1.6444197381057767e-13,
+            1.3292510248705776e-08,
+            0.9999999999999996,
+            2.5209834002473315e-07,
+            -3.631683842542088e-08,
+            -3.862536794781626e-07,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.6144866716736586e-07,
+            0.2500000044978468,
+            2.506989894940081e-07,
+            2.5162059325012365e-08,
+            6.4077295581869134e-15,
+            1.982115712760192e-08,
+            0.9999999999999996,
+            -2.514713958334861e-07,
+            -3.438155316004554e-08,
+            3.862561652839641e-07,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 5.690657389705042e-11,
+        "max_pair_penetration_m": 1.794527026977022e-11,
+        "settled_linear_speed_m_s": 6.557485753689874e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 3.93414956167959e-09,
+        "support_relative_error_by_interface": [
+          3.93414956167959e-09,
+          3.7442775546736584e-09,
+          2.4151729505206276e-09
+        ],
+        "final_height_error_m": 4.497846817219653e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.059454455,
+        0.0541537285,
+        0.052276704,
+        0.052108116,
+        0.053565586
+      ],
+      "median_cost": 0.053565586
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.111621367,
+        "final_state": [
+          [
+            2.0,
+            0.008336758876431335,
+            0.04999999997426654,
+            1.0564559518577377,
+            -2.4606544579697243e-10,
+            0.19140520513029174,
+            5.5130622289567555e-11,
+            0.9815111040885024,
+            0.030482956272396416,
+            5.975865635665656e-09,
+            0.8566782535202044,
+            1.1280972493760717e-07,
+            0.6183525217722098,
+            -4.40052033116222e-08,
+            0.0
+          ],
+          [
+            2.0,
+            -0.04967484178918905,
+            0.04999999999247547,
+            1.1823841973580018,
+            -7.372202848188181e-11,
+            0.13975070369310102,
+            1.1110695696814332e-11,
+            0.9901867201782111,
+            -0.061146545370011074,
+            1.8852419625403627e-09,
+            0.9412650105327103,
+            3.6475879399037625e-08,
+            0.6181452164494446,
+            -1.0294081022241908e-08,
+            0.0
+          ],
+          [
+            2.0,
+            0.004129878471581595,
+            0.0500000001222583,
+            -0.22419683541669957,
+            2.157996004115148e-12,
+            -0.06824198115701689,
+            7.542910740454545e-12,
+            0.9976687987542585,
+            0.00306492172393643,
+            8.389539063458074e-10,
+            -0.18016882753010832,
+            -5.139058207915032e-09,
+            -0.12924824215016642,
+            -1.2065117562345587e-09,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.00032849878580405994,
+        "max_pair_penetration_m": 0.00015465708527914734,
+        "settled_linear_speed_m_s": 0.9432490233569447,
+        "settled_angular_speed_rad_s": 1.163162476990592,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.0,
+        "support_relative_error_by_interface": [
+          0.9166666670419805,
+          0.9991421375746333,
+          1.0
+        ],
+        "final_height_error_m": 0.1999999998777417,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": false,
+          "settled_angular_speed_rad_s": false,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": false,
+          "final_height_error_m": false,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0594188695,
+        0.060979172000000005,
+        0.056464341,
+        0.0550425085,
+        0.0571986205
+      ],
+      "median_cost": 0.0571986205
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.118467934,
+        "final_state": [
+          [
+            2.0,
+            -8.100538672041768e-07,
+            0.049999999962899375,
+            -1.4919270633620445e-07,
+            4.5875969689745943e-10,
+            -1.0500087939698961e-09,
+            2.51019632461092e-10,
+            1.0,
+            -4.2515357953560607e-07,
+            -4.44013506517571e-08,
+            -2.8923644001232705e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.2035452864698899e-05,
+            0.1500000130121029,
+            -5.26786195186677e-06,
+            3.9593898548684336e-08,
+            1.317095799796327e-10,
+            -9.16315997427222e-08,
+            0.9999999999999949,
+            -1.7705933817730777e-05,
+            -4.81607809188489e-08,
+            -7.636809544137088e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            1.284539407639081e-06,
+            0.2500000167241075,
+            5.417431512587519e-07,
+            6.404209446086995e-08,
+            7.937050906333614e-11,
+            -7.88542395469722e-08,
+            0.9999999999999949,
+            1.813104283777661e-06,
+            -5.08670883192508e-08,
+            7.665931298777874e-07,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 3.816803213188919e-08,
+        "max_pair_penetration_m": 1.736116531092513e-08,
+        "settled_linear_speed_m_s": 1.9282719513390853e-05,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.2403525146152958e-08,
+        "support_relative_error_by_interface": [
+          1.697203266814995e-08,
+          2.2403525146152958e-08,
+          2.208592098096318e-08
+        ],
+        "final_height_error_m": 1.6724107487764428e-08,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0580116045,
+        0.058442186,
+        0.0569104645,
+        0.0566317245,
+        0.059676018500000004
+      ],
+      "median_cost": 0.0580116045
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 0.1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.025253615,
+        "final_state": [
+          [
+            2.0,
+            -5.8563419165043e-10,
+            0.050000000493677116,
+            -6.971605190335093e-10,
+            -3.4219738154206425e-11,
+            -4.9602146187505715e-18,
+            1.4875691319373638e-11,
+            1.0,
+            -7.489991030964e-10,
+            1.0828490881742425e-10,
+            -8.059370066715174e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -5.751876384078198e-10,
+            0.15000000063970775,
+            -7.324496592817107e-10,
+            -8.723786693032309e-10,
+            7.1589833177348e-17,
+            -6.187982054817078e-10,
+            1.0,
+            -7.427323726528687e-10,
+            -9.441197823534253e-10,
+            -8.361908887553734e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 3.1266519779222612e-12,
+        "max_pair_penetration_m": 1.0797487903779768e-11,
+        "settled_linear_speed_m_s": 4.6777761162554547e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 3.649341606681844e-09,
+        "support_relative_error_by_interface": [
+          1.831057083734322e-09,
+          3.649341606681844e-09
+        ],
+        "final_height_error_m": 6.397077312314536e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.014647061000000001,
+        0.012069525,
+        0.012216115999999999,
+        0.011475707,
+        0.0123964955
+      ],
+      "median_cost": 0.012216115999999999
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 0.1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.025514501,
+        "final_state": [
+          [
+            2.0,
+            -5.8563419165043e-10,
+            0.050000000493677116,
+            -6.971605190335093e-10,
+            -3.4219738154206425e-11,
+            -4.9602146187505715e-18,
+            1.4875691319373638e-11,
+            1.0,
+            -7.489991030964e-10,
+            1.0828490881742425e-10,
+            -8.059370066715174e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -5.751876384078198e-10,
+            0.15000000063970775,
+            -7.324496592817107e-10,
+            -8.723786693032309e-10,
+            7.1589833177348e-17,
+            -6.187982054817078e-10,
+            1.0,
+            -7.427323726528687e-10,
+            -9.441197823534253e-10,
+            -8.361908887553734e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 3.1266519779222612e-12,
+        "max_pair_penetration_m": 1.0797487903779768e-11,
+        "settled_linear_speed_m_s": 4.6777761162554547e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 3.649341606681844e-09,
+        "support_relative_error_by_interface": [
+          1.831057083734322e-09,
+          3.649341606681844e-09
+        ],
+        "final_height_error_m": 6.397077312314536e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.014517605000000001,
+        0.012913763,
+        0.011544839500000001,
+        0.012481602,
+        0.0117024585
+      ],
+      "median_cost": 0.012481602
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.026334874,
+        "final_state": [
+          [
+            2.0,
+            -2.0940031118227964e-10,
+            0.05000000014674896,
+            5.104384362754066e-10,
+            7.440581484274844e-11,
+            -6.484463647373362e-15,
+            2.1761663526742618e-11,
+            1.0,
+            4.513688091025774e-11,
+            7.526077330788361e-08,
+            1.0013781964442839e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            1.2071803503467746e-10,
+            0.15000000053762902,
+            -5.393324037962066e-10,
+            1.3786834451856578e-09,
+            6.390963918044939e-15,
+            2.6903740175388012e-09,
+            1.0,
+            -1.4880247312722608e-10,
+            7.435280169332259e-08,
+            -1.337467035158262e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 1.6781515595258528e-09,
+        "max_pair_penetration_m": 3.667440934274069e-10,
+        "settled_linear_speed_m_s": 2.639112417884159e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.543280303550887e-08,
+        "support_relative_error_by_interface": [
+          1.3154338063259274e-08,
+          1.543280303550887e-08
+        ],
+        "final_height_error_m": 5.376289968772596e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.012366885499999999,
+        0.012962897499999999,
+        0.0128082675,
+        0.012473221,
+        0.0130090105
+      ],
+      "median_cost": 0.0128082675
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.028243115,
+        "final_state": [
+          [
+            2.0,
+            4.996874707781189e-10,
+            0.050000000232689606,
+            -4.2532412332823123e-10,
+            5.588640661358113e-12,
+            -1.4506037963241177e-15,
+            9.723971267083916e-12,
+            1.0,
+            4.83087910165297e-10,
+            4.5376161161847506e-08,
+            -3.9506099327820625e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -4.2520268186673647e-10,
+            0.15000000071524633,
+            4.5448715924180575e-10,
+            1.376913694173254e-09,
+            1.1280191082648112e-15,
+            3.493688303241051e-09,
+            1.0,
+            -4.679233802858136e-10,
+            4.50096071524797e-08,
+            4.5974303208902867e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 3.383193280871169e-11,
+        "max_pair_penetration_m": 1.451928854923068e-11,
+        "settled_linear_speed_m_s": 2.602193348563215e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 5.17971043834109e-09,
+        "support_relative_error_by_interface": [
+          5.17971043834109e-09,
+          2.521501230035028e-09
+        ],
+        "final_height_error_m": 7.152463066262271e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.013202347500000001,
+        0.013240164,
+        0.012637578500000001,
+        0.014354835500000001,
+        0.014189211
+      ],
+      "median_cost": 0.013240164
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.041601777,
+        "final_state": [
+          [
+            2.0,
+            -0.004453616915714106,
+            0.05000000044024891,
+            0.018145721960125618,
+            -5.446761880412154e-08,
+            -0.007563900924570811,
+            3.6046135347845426e-08,
+            0.9999713932922276,
+            -0.002331957323778791,
+            -7.617503849921547e-09,
+            0.017362083101416306,
+            -2.398224251571401e-07,
+            -0.02339389744813538,
+            6.218469700630367e-08,
+            0.0
+          ],
+          [
+            2.0,
+            0.00044536140945649374,
+            0.1500028131992559,
+            -0.001814571874294833,
+            -4.693612881973008e-05,
+            2.815826175340241e-05,
+            -6.331891130880575e-07,
+            0.9999999985018557,
+            0.0002331955481102389,
+            -9.826897767739595e-07,
+            -0.0017362078868313506,
+            -2.7953235653241537e-05,
+            2.8795033018675143e-05,
+            -2.4945769807702326e-06,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0002271284077044343,
+        "max_pair_penetration_m": 2.1729466695971644e-05,
+        "settled_linear_speed_m_s": 0.017517989455998348,
+        "settled_angular_speed_rad_s": 0.023393897449447296,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 4.394537622687267e-08,
+        "support_relative_error_by_interface": [
+          4.394537622687267e-08,
+          4.076933413088568e-08
+        ],
+        "final_height_error_m": 2.8131992558799723e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": false,
+          "settled_angular_speed_rad_s": false,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.022189611999999997,
+        0.0211411185,
+        0.021076380000000002,
+        0.019129444,
+        0.02059631
+      ],
+      "median_cost": 0.021076380000000002
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.028017114,
+        "final_state": [
+          [
+            2.0,
+            4.86122912992586e-08,
+            0.04999999982319136,
+            1.5996322483651762e-07,
+            -1.14683978980068e-09,
+            -1.054807390096207e-12,
+            6.847769208892554e-10,
+            1.0,
+            5.203321261551026e-08,
+            -2.2872613525404262e-08,
+            1.6583123252212325e-07,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -4.86283652697754e-09,
+            0.1500000040846211,
+            -1.6003640271573414e-08,
+            2.9328164896647024e-08,
+            1.0385120156257497e-13,
+            1.2761751106900622e-08,
+            0.9999999999999994,
+            -5.204143432474645e-09,
+            -1.8066909079905713e-08,
+            -1.658686233853132e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 4.3735031236786435e-10,
+        "max_pair_penetration_m": 4.831438027430579e-11,
+        "settled_linear_speed_m_s": 1.9134693796936045e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.3565842671425798e-08,
+        "support_relative_error_by_interface": [
+          1.3565842671425798e-08,
+          8.263233208793963e-09
+        ],
+        "final_height_error_m": 4.0846210858092036e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0149480385,
+        0.013774132,
+        0.0136038505,
+        0.01459065,
+        0.014284245
+      ],
+      "median_cost": 0.014284245
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 0.1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.08202193,
+        "final_state": [
+          [
+            2.0,
+            2.2201978786854972e-11,
+            0.05000000012642477,
+            2.932530657610243e-09,
+            -4.6641357442922526e-11,
+            -6.756661641462089e-14,
+            -9.817671733913395e-11,
+            1.0,
+            1.244337651970614e-10,
+            6.572270505600386e-08,
+            1.3239907635256954e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            2.505987721811006e-09,
+            0.15000000076399395,
+            -7.292182731165619e-09,
+            4.3994615173126306e-09,
+            6.313168458018302e-14,
+            1.8333229094991696e-09,
+            1.0,
+            3.8330639355580155e-09,
+            6.664342688811331e-08,
+            -9.22194622163076e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.9596790405936893e-08,
+            0.2500000015776596,
+            3.928081080093724e-08,
+            1.1072194994188322e-08,
+            2.679379051402471e-14,
+            3.3093382442730377e-09,
+            1.0,
+            -3.358537009292499e-08,
+            6.714970246513019e-08,
+            7.451155586904627e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 2.094304636350218e-09,
+        "max_pair_penetration_m": 3.667440934274069e-10,
+        "settled_linear_speed_m_s": 2.436869328539251e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 5.5211004656996465e-08,
+        "support_relative_error_by_interface": [
+          4.53783430831578e-08,
+          4.912646733856718e-08,
+          5.5211004656996465e-08
+        ],
+        "final_height_error_m": 1.5776596140604227e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.033931721,
+        0.033606936999999996,
+        0.030166405,
+        0.0284903795,
+        0.0324934985
+      ],
+      "median_cost": 0.0324934985
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 0.1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.068987577,
+        "final_state": [
+          [
+            2.0,
+            2.847451405251417e-10,
+            0.050000000327630634,
+            -4.163405934206641e-10,
+            -7.344785890595062e-11,
+            -2.5291847349419325e-15,
+            -2.4000639253785153e-11,
+            1.0,
+            2.1829219215397533e-10,
+            3.629224004653153e-08,
+            -4.0586004229153747e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            3.5116242425182515e-09,
+            0.15000000099523358,
+            -5.596336870734738e-09,
+            4.656069751973746e-09,
+            -1.912357690389115e-15,
+            1.8741553158545896e-09,
+            1.0,
+            4.856211160866712e-09,
+            3.667020853637126e-08,
+            -8.855749933738075e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -3.200467223520411e-08,
+            0.25000000133032313,
+            5.61903163289305e-08,
+            6.6256984898593885e-09,
+            1.0722319942783643e-15,
+            3.2274553120881434e-09,
+            1.0,
+            -4.4310188135027055e-08,
+            3.7350456061346904e-08,
+            8.805996436121427e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 2.956788178916239e-11,
+        "max_pair_penetration_m": 1.5927342777999343e-11,
+        "settled_linear_speed_m_s": 2.440305345013043e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 8.87082396427985e-09,
+        "support_relative_error_by_interface": [
+          8.509162818803873e-09,
+          8.87082396427985e-09,
+          4.5987019747784075e-09
+        ],
+        "final_height_error_m": 1.3303231294337081e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.035119608999999996,
+        0.0305483065,
+        0.032770095,
+        0.0421115385,
+        0.034366656
+      ],
+      "median_cost": 0.034366656
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.079215839,
+        "final_state": [
+          [
+            2.0,
+            -1.427326395150787e-06,
+            0.0499999999763479,
+            2.256059839959718e-06,
+            -4.175298995434673e-11,
+            -3.8069726938047064e-07,
+            -3.858888056304582e-10,
+            0.9999999999999274,
+            -7.27976866508879e-07,
+            -1.144223604754302e-11,
+            1.1613200031886182e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.9819929249311127e-05,
+            0.15000004530317068,
+            1.7800866828567961e-06,
+            -3.551287786063284e-08,
+            2.3798277750686513e-07,
+            -4.183425860986918e-07,
+            0.9999999999998834,
+            -1.7809900682953328e-05,
+            2.9064944895296208e-09,
+            1.653662904906964e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            2.1247255024325e-05,
+            0.25000005466464226,
+            -4.036160714533093e-06,
+            3.636738477030832e-08,
+            1.4512656680154398e-07,
+            -4.404243919237555e-07,
+            0.9999999999998919,
+            1.8537877228485424e-05,
+            3.542166560066562e-09,
+            -2.81499014418296e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 2.5161190907269727e-06,
+        "max_pair_penetration_m": 8.539586548728106e-07,
+        "settled_linear_speed_m_s": 1.8750388641230602e-05,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 8.217663660659014e-09,
+        "support_relative_error_by_interface": [
+          1.529103177411173e-09,
+          8.217663660659014e-09,
+          6.318942924465887e-09
+        ],
+        "final_height_error_m": 5.4664642257229445e-08,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.040235249,
+        0.035993947,
+        0.043207682500000004,
+        0.042501652,
+        0.040858331500000004
+      ],
+      "median_cost": 0.040858331500000004
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.076519297,
+        "final_state": [
+          [
+            2.0,
+            1.904998053384815e-09,
+            0.04999999996280757,
+            5.8938086358565564e-09,
+            -3.652385061059249e-10,
+            -3.881952501878944e-16,
+            2.6225015437032457e-11,
+            1.0,
+            1.8341340558482916e-09,
+            4.9920380329471215e-09,
+            6.00641241697501e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -4.893554152875339e-08,
+            0.15000000082818143,
+            -4.918238891196523e-08,
+            3.624473443597509e-09,
+            1.6612217026187648e-14,
+            -4.650913422027347e-09,
+            1.0,
+            -7.880751176877512e-08,
+            6.210795766570243e-09,
+            -7.943491625032535e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            4.705754667405816e-08,
+            0.25000000106445996,
+            4.3229973732029655e-08,
+            5.421855020504296e-09,
+            4.484579993690784e-15,
+            -4.082298031005142e-09,
+            1.0,
+            7.697476643143566e-08,
+            6.225464588283103e-09,
+            7.335248821576489e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 1.2174215585240532e-10,
+        "max_pair_penetration_m": 3.428883565970153e-11,
+        "settled_linear_speed_m_s": 1.329902949879275e-07,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.3154338063259274e-08,
+        "support_relative_error_by_interface": [
+          9.61005919286606e-09,
+          1.3154338063259274e-08,
+          1.2015105355089872e-08
+        ],
+        "final_height_error_m": 1.064459964617015e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0427927995,
+        0.046336702,
+        0.043607186,
+        0.043279917,
+        0.0486198835
+      ],
+      "median_cost": 0.043607186
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 20
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.048566083,
+        "final_state": [
+          [
+            2.0,
+            -1.3244778645590065,
+            0.05000000034653769,
+            -0.1223759793438222,
+            3.922578928339249e-11,
+            0.823954977402269,
+            1.843419861202733e-11,
+            0.566655270172286,
+            -1.08848968125419,
+            -1.0719647391965736e-08,
+            -0.14522084489805576,
+            8.36617386314835e-09,
+            2.3451609956968893,
+            -2.824615738151159e-08,
+            0.0
+          ],
+          [
+            2.0,
+            -1.159899559350687,
+            0.050000000002933934,
+            0.22710163347147652,
+            1.7627788118090848e-11,
+            0.9342659875093932,
+            -8.344824831141295e-12,
+            0.3565768705105512,
+            -0.7757932922159982,
+            -5.413006848309365e-09,
+            0.18339036366846195,
+            -1.5992980968205486e-09,
+            2.348413003447262,
+            -1.932094057040504e-08,
+            0.0
+          ],
+          [
+            2.0,
+            0.24928645324687534,
+            0.05000000000731848,
+            -0.010049043072756739,
+            -2.6620927684462004e-12,
+            0.7874591885189574,
+            8.516520821899576e-13,
+            0.6163667953557079,
+            0.18703337817928267,
+            3.6129571556742235e-09,
+            -0.0033943465384926597,
+            -1.873927975747642e-09,
+            1.4796198755216283,
+            5.576256746302069e-09,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0005695935708353429,
+        "max_pair_penetration_m": 0.0004649742820821423,
+        "settled_linear_speed_m_s": 1.0981342722954026,
+        "settled_angular_speed_rad_s": 2.3484130034476505,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.0,
+        "support_relative_error_by_interface": [
+          0.9166666669628671,
+          1.0,
+          1.0
+        ],
+        "final_height_error_m": 0.19999999999268153,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": false,
+          "settled_angular_speed_rad_s": false,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": false,
+          "final_height_error_m": false,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0255453685,
+        0.0255887895,
+        0.026882,
+        0.0239222,
+        0.024730560500000002
+      ],
+      "median_cost": 0.0255453685
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.105300816,
+        "final_state": [
+          [
+            2.0,
+            -8.65391713080487e-07,
+            0.0499999999093778,
+            -1.9161768762640844e-07,
+            -3.7563369081894393e-10,
+            -2.677398192018233e-09,
+            -2.1451439685303552e-09,
+            1.0,
+            -5.479373967959416e-07,
+            1.0573569450555986e-07,
+            -1.943805232995591e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -1.975013354753888e-05,
+            0.15000002074746782,
+            -5.198648436037825e-06,
+            1.506597335776405e-08,
+            -2.847677146603066e-09,
+            -1.9751652713319925e-07,
+            0.9999999999999805,
+            -3.085282247506876e-05,
+            2.0831529556897266e-07,
+            -5.870977087710562e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            2.06155424456969e-06,
+            0.25000002243296565,
+            5.390258112219459e-07,
+            2.4626042982589524e-08,
+            1.876368784555977e-10,
+            -2.048993073743305e-07,
+            0.9999999999999787,
+            3.140076866265596e-06,
+            2.093255291324425e-07,
+            5.890411065945397e-07,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.51374869838893e-08,
+        "max_pair_penetration_m": 3.846507964921919e-08,
+        "settled_linear_speed_m_s": 3.1407139664491865e-05,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 4.608851411624926e-08,
+        "support_relative_error_by_interface": [
+          4.4293359868774473e-08,
+          4.608851411624926e-08,
+          4.368576922431089e-08
+        ],
+        "final_height_error_m": 2.243296565174191e-08,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0310898965,
+        0.027225133,
+        0.027043746,
+        0.0274388265,
+        0.030478538
+      ],
+      "median_cost": 0.0274388265
+    }
+  ],
+  "raw_archive": {
+    "filename": "stack-h3-v1.json.xz",
+    "bytes": 6444352,
+    "sha256": "1752385b998c1c290e0ac01b3b1ebc9434eee2f0d98b02188bafe565ca60e239",
+    "availability": "Local delivered artifact; no permanent remote URL. CI uploads newly generated raw records."
+  },
+  "trace_storage": "Full trace omitted from this summary; retained losslessly in raw_archive"
+}

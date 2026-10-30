@@ -119,3 +119,13 @@ a MuJoCo speedup. Build `--example box_drop`, run `box.py BINARY OUTPUT.json.xz`
 then `verify_box.py OUTPUT.json.xz --require-pass`. Set `RNE_BOX_DROP` for the
 native four-corner regression test. See
 [protocol and results](../../docs/HARD_CONTACT_BOX_RESULTS.md).
+
+## H3 dynamic stacks
+
+Build `--example stack_drop`, then run `stack.py BINARY OUTPUT.json.xz` and
+`stack.py BINARY OUTPUT.json.xz --verify`. The 24-case grid retains failures at
+20 iterations; `RNE_STACK_DROP` enables the fixed 200-iteration reference gate
+for all 12 mass/height/timestep combinations. Verification checks stored records,
+not universal quality success. Geometry uses all OBB separating axes and load
+impulses are resolved per interface. See
+[stack protocol and failures](../../docs/HARD_CONTACT_STACK_RESULTS.md).
