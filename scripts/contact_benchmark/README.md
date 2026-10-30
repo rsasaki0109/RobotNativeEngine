@@ -145,3 +145,12 @@ the saved full-state records and costs. See
 MuJoCo 3.9.0. `verify_mujoco_stack.py OUTPUT.json.xz` recomputes quality from all
 saved poses. Calibration failures are retained and do not imply a valid speed
 comparison. See [results and settings](../../docs/HARD_CONTACT_MUJOCO_STACK_RESULTS.md).
+
+## Matched-quality stack study
+
+`stack_matched.py BINARY NEW_DIRECTORY` freezes the fine timestep grid and
+solref before calibrating on 3-level stacks with 1/10 kg top masses. The first
+passing timestep is fixed for independent 0.3/3 kg validation at 2/3 levels.
+`verify_stack_matched.py DIRECTORY` recomputes the raw records, calibration order
+and conditional comparison. See
+[protocol and results](../../docs/HARD_CONTACT_STACK_MATCHED_RESULTS.md).

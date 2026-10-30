@@ -144,6 +144,11 @@ jobs:
         run: |
           .venv-contact/bin/python scripts/contact_benchmark/mujoco_stack.py "$RUNNER_TEMP/mujoco-stack.json.xz"
           .venv-contact/bin/python scripts/contact_benchmark/verify_mujoco_stack.py "$RUNNER_TEMP/mujoco-stack.json.xz"
+      - name: Fine stack calibration and independent validation
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/stack_matched.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-matched"
+          .venv-contact/bin/python scripts/contact_benchmark/verify_stack_matched.py "$RUNNER_TEMP/stack-matched"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -154,6 +159,7 @@ jobs:
             ${{ runner.temp }}/box-contact.json.xz
             ${{ runner.temp }}/stack-contact.json.xz
             ${{ runner.temp }}/mujoco-stack.json.xz
+            ${{ runner.temp }}/stack-matched/
           if-no-files-found: warn
 
   headless:
