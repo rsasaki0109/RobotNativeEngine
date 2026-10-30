@@ -167,6 +167,35 @@ pub struct NativeContactImpulse {
     pub tangential_impulse_world_n_s: Vec3,
     /// Duration of the completed step; divide impulses by this for average force.
     pub dt_s: f64,
+    /// Relative velocity of the receiving point minus the opposite point after
+    /// the solve, evaluated at the pre-integration configuration, in world coordinates.
+    pub relative_velocity_world_m_s: Vec3,
+    /// Normal relative velocity plus the gap/recovery bias. This is the rigid
+    /// normal constraint velocity; it excludes compliance when regularization > 0.
+    pub normal_constraint_velocity_m_s: f64,
+    /// Coulomb coefficient of this solved contact.
+    pub friction_coefficient: f64,
+    /// Gauss-Seidel sweeps in this contact's island (zero for a normal-block solve).
+    pub solver_iterations: usize,
+    /// Island solver stopping flag, not an independent complementarity certificate.
+    pub solver_converged: bool,
+}
+
+/// Counts of contact candidates at successive stages, before solving islands.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct NativeContactPipeline {
+    /// Narrow-phase candidates before duplicate removal.
+    pub generated_candidates: usize,
+    /// Candidates remaining after duplicate removal.
+    pub deduplicated_candidates: usize,
+    /// Candidates retained by support-patch reduction and passed to the solver.
+    pub retained_candidates: usize,
+}
+
+#[derive(Debug, Default)]
+pub(crate) struct NativeContactDiagnostics {
+    samples: Vec<NativeContactImpulse>,
+    pipeline: NativeContactPipeline,
 }
 
 /// Topology entry of one rigid body: entity, type, and joint parent and kind.
@@ -191,6 +220,7 @@ struct NativeWorld {
     pending_wrenches: Vec<ExternalBodyWrench>,
     contact_diagnostics_enabled: bool,
     contact_diagnostics: Vec<NativeContactImpulse>,
+    contact_pipeline: Option<NativeContactPipeline>,
 }
 
 /// Physics backend that simulates articulated assemblies with
@@ -245,6 +275,7 @@ impl NativeBackend {
         let state = self.world_mut(physics_world)?;
         state.contact_diagnostics_enabled = enabled;
         state.contact_diagnostics.clear();
+        state.contact_pipeline = None;
         Ok(())
     }
 
@@ -256,6 +287,15 @@ impl NativeBackend {
         physics_world: PhysicsWorldId,
     ) -> Result<&[NativeContactImpulse], PhysicsError> {
         Ok(&self.world(physics_world)?.contact_diagnostics)
+    }
+
+    /// Candidate counts for the last diagnosed step, with the same lifetime as
+    /// [`Self::contact_impulse_diagnostics`]. `None` means no observation is available.
+    pub fn contact_pipeline_diagnostics(
+        &self,
+        physics_world: PhysicsWorldId,
+    ) -> Result<Option<&NativeContactPipeline>, PhysicsError> {
+        Ok(self.world(physics_world)?.contact_pipeline.as_ref())
     }
 
     fn world(&self, physics_world: PhysicsWorldId) -> Result<&NativeWorld, PhysicsError> {
@@ -359,6 +399,7 @@ impl PhysicsBackend for NativeBackend {
     ) -> Result<(), PhysicsError> {
         let state = self.world_mut(physics_world)?;
         state.contact_diagnostics.clear();
+        state.contact_pipeline = None;
         let mut bodies: Vec<(Entity, RigidBodyType)> = world
             .iter_entities()
             .filter_map(|entity_ref| {
@@ -491,7 +532,7 @@ impl PhysicsBackend for NativeBackend {
                 .map(|a| a.external_efforts(&state.pending_wrenches))
                 .collect::<Result<Vec<_>, _>>()?
         };
-        let mut diagnostics = Vec::new();
+        let mut diagnostics = NativeContactDiagnostics::default();
         let records = step_world(
             &mut state.assemblies,
             &state.statics,
@@ -504,7 +545,10 @@ impl PhysicsBackend for NativeBackend {
                 .contact_diagnostics_enabled
                 .then_some(&mut diagnostics),
         )?;
-        state.contact_diagnostics = diagnostics;
+        state.contact_diagnostics = diagnostics.samples;
+        state.contact_pipeline = state
+            .contact_diagnostics_enabled
+            .then_some(diagnostics.pipeline);
         state.pending_wrenches.clear();
         let mut events: BTreeMap<(u32, u32), ContactEvent> = BTreeMap::new();
         let to_world = world_to_sim().conjugate();

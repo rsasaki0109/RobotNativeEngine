@@ -164,10 +164,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "other_point_world_m":[p.other_point_world_m.x,p.other_point_world_m.y,p.other_point_world_m.z],
                 "normal_world":[p.normal_world.x,p.normal_world.y,p.normal_world.z],
                 "gap_m":p.gap_m,"normal_impulse_n_s":p.normal_impulse_n_s,
+                "relative_velocity_world_m_s":[p.relative_velocity_world_m_s.x,p.relative_velocity_world_m_s.y,p.relative_velocity_world_m_s.z],
+                "normal_constraint_velocity_m_s":p.normal_constraint_velocity_m_s,"friction_coefficient":p.friction_coefficient,
+                "solver_iterations":p.solver_iterations,"solver_converged":p.solver_converged,
                 "tangential_impulse_world_n_s":[p.tangential_impulse_world_n_s.x,p.tangential_impulse_world_n_s.y,p.tangential_impulse_world_n_s.z],"dt_s":p.dt_s
             })).collect();
-            contact_diagnostics
-                .push(json!({"before":before,"points":points,"body_index":ball.index()}));
+            let pipeline = backend
+                .contact_pipeline_diagnostics(id)?
+                .ok_or("missing pipeline diagnostics")?;
+            contact_diagnostics.push(json!({"before":before,"points":points,"body_index":ball.index(),
+                "pipeline":{"generated":pipeline.generated_candidates,"deduplicated":pipeline.deduplicated_candidates,"retained":pipeline.retained_candidates}}));
         }
         if audit {
             if !wrench {

@@ -2388,6 +2388,17 @@ fn contact_diagnostics_preserve_state_and_balance_impulses() {
             let samples = backend.contact_impulse_diagnostics(id).unwrap();
             if enabled {
                 assert!(!samples.is_empty());
+                let pipeline = backend.contact_pipeline_diagnostics(id).unwrap().unwrap();
+                assert_eq!(pipeline.generated_candidates, 4);
+                assert_eq!(pipeline.deduplicated_candidates, 4);
+                assert_eq!(pipeline.retained_candidates, samples.len());
+                for p in samples {
+                    assert!(p.relative_velocity_world_m_s.is_finite());
+                    assert!(p.normal_constraint_velocity_m_s >= -1e-7);
+                    assert!((p.normal_impulse_n_s * p.normal_constraint_velocity_m_s).abs() < 1e-8);
+                    assert!(p.solver_converged);
+                    assert!(p.solver_iterations < 200);
+                }
                 let mut impulse = Vec3::ZERO;
                 let mut angular_impulse = Vec3::ZERO;
                 for p in samples {
@@ -2414,6 +2425,7 @@ fn contact_diagnostics_preserve_state_and_balance_impulses() {
                 assert!((impulse - expected).length() < 1e-8);
                 assert!(angular_impulse.length() < 1e-8);
             } else {
+                assert!(backend.contact_pipeline_diagnostics(id).unwrap().is_none());
                 assert!(samples.is_empty());
             }
             hashes.push(
@@ -2494,4 +2506,79 @@ fn contact_diagnostics_dynamic_pair_has_opposite_impulses_and_world_isolation() 
     backend.worlds.remove(&id);
     assert!(backend.contact_impulse_diagnostics(id).is_err());
     assert!(backend.set_contact_diagnostics_enabled(id, true).is_err());
+}
+
+#[test]
+fn contact_pipeline_exposes_patch_reduction() {
+    let mut backend = NativeBackend::new();
+    let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+    backend.set_contact_diagnostics_enabled(id, true).unwrap();
+    let mut world = World::new();
+    ground(&mut world);
+    let parts = [(-0.4, -0.4), (-0.4, 0.4), (0.4, -0.4), (0.4, 0.4)]
+        .into_iter()
+        .map(|(x, z)| CompoundPart {
+            shape: ColliderShape::Cuboid {
+                half_extents_m: Vec3::splat(0.05),
+            },
+            local_offset: Transform3::from_translation_rotation(
+                Vec3::new(x, 0.05, z),
+                Quat::IDENTITY,
+            ),
+        })
+        .collect::<Vec<_>>();
+    world.spawn((
+        RigidBody::default(),
+        Collider {
+            shape: ColliderShape::Compound {
+                parts: parts.into(),
+            },
+            ..Collider::cuboid(Vec3::ONE)
+        },
+        Transform3::default(),
+    ));
+    step(&mut backend, &mut world, id);
+    let p = backend.contact_pipeline_diagnostics(id).unwrap().unwrap();
+    assert_eq!(p.generated_candidates, 16);
+    assert_eq!(p.deduplicated_candidates, 16);
+    assert_eq!(p.retained_candidates, 4);
+    backend.sync_from_ecs(&mut world, id).unwrap();
+    assert!(backend.contact_pipeline_diagnostics(id).unwrap().is_none());
+}
+
+#[test]
+fn normal_constraint_velocity_accounts_for_predictive_and_penetration_bias() {
+    for height in [0.052, 0.049] {
+        let mut config = NativeBackendConfig::default();
+        config.contact.solver.regularization = 0.0;
+        let mut backend = NativeBackend::with_config(config);
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        backend.set_contact_diagnostics_enabled(id, true).unwrap();
+        let mut world = World::new();
+        ground(&mut world);
+        world.spawn((
+            RigidBody::default(),
+            Collider::cuboid(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::Y * height, Quat::IDENTITY),
+        ));
+        step(&mut backend, &mut world, id);
+        let samples = backend.contact_impulse_diagnostics(id).unwrap();
+        assert_eq!(samples.len(), 4);
+        for p in samples {
+            let bias = p.gap_m / 0.002 * if p.gap_m >= 0.0 { 1.0 } else { 0.2 };
+            assert!(
+                (p.normal_constraint_velocity_m_s
+                    - (p.normal_world.dot(p.relative_velocity_world_m_s) + bias))
+                    .abs()
+                    < 1e-12
+            );
+            if height > 0.05 {
+                assert_eq!(p.normal_impulse_n_s, 0.0);
+                assert!((p.normal_constraint_velocity_m_s - 0.98038).abs() < 1e-8);
+            } else {
+                assert!(p.normal_impulse_n_s > 0.0);
+                assert!(p.normal_constraint_velocity_m_s.abs() < 1e-7);
+            }
+        }
+    }
 }

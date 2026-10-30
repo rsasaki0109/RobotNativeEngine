@@ -222,3 +222,11 @@ suffix records 50 ms. `native_contact_diagnostics.py BINARY MUJOCO_DIRECTORY
 OUTPUT.json` checks point-level momentum balance, observation invariance and
 replay, then compares with the saved MuJoCo diagnostics; `--verify` recomputes
 both sides. See [API and direct comparison](../../docs/NATIVE_CONTACT_IMPULSE_DIAGNOSTICS.md).
+
+`contact_constraint_audit.py BINARY NEW_DIRECTORY` records Native candidate-stage
+counts and rigid normal velocity/complementarity, plus MuJoCo soft-cone KKT
+metrics and geometric/constraint/loaded contact counts. A `margin=gap=0.1 mm`
+control separates detection retention from constraint admission. `--verify`
+checks source/binary/trace provenance and recomputes the metrics. Different
+residual units/models are reported separately. See
+[findings and API details](../../docs/NATIVE_CONTACT_CONSTRAINT_DIAGNOSTICS.md).
