@@ -244,3 +244,12 @@ See [results and correction to the prior margin/gap interpretation](../../docs/H
 conditions with initial gaps, horizontal speeds, candidate distances, and two
 step sizes. The verifier checks pre-contact semi-implicit free flight and exact
 replays. See [finite-gap results](../../docs/HARD_CONTACT_PREDICTIVE_GAP.md).
+
+### Box pair rejection cost
+
+`contact_crowd.py BEFORE_BINARY AFTER_BINARY NEW_REPORT.json [--verify]` compares
+1/16/64/128 falling boxes at the same 20 mm candidate distance. Audit snapshots
+must match at every step; timing runs must match the audited final hash. Timing
+uses one CPU, warmups, five alternating before/after samples, and medians. Build
+the same `contact_crowd` example against each backend revision before measuring.
+See [face rejection results](../../docs/HARD_CONTACT_FACE_REJECTION.md).

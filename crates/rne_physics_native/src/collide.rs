@@ -423,6 +423,12 @@ pub(crate) fn box_box(
     let Some((face_gap, face_normal)) = face else {
         return Vec::new();
     };
+    // A separating face already excludes this pair at the configured margin.
+    // Preserve the selected face (including its tie tolerance) and avoid the
+    // nine edge-axis tests; they cannot make a separated pair admissible.
+    if face_gap > margin_m {
+        return Vec::new();
+    }
     let mut edge: Option<(f64, Vec3, usize, usize)> = None;
     for i in 0..3 {
         for j in 0..3 {
@@ -438,7 +444,7 @@ pub(crate) fn box_box(
             }
         }
     }
-    if face_gap > margin_m || edge.is_some_and(|(gap, ..)| gap > margin_m) {
+    if edge.is_some_and(|(gap, ..)| gap > margin_m) {
         return Vec::new();
     }
     if let Some((gap, normal, i, j)) = edge.filter(|(gap, ..)| *gap > face_gap + EDGE_AXIS_BIAS_M) {
@@ -776,6 +782,26 @@ mod tests {
         assert!(samples
             .iter()
             .any(|sample| sample.center_m == Vec3::new(0.5, 1.5, 0.5)));
+    }
+
+    #[test]
+    fn box_face_rejection_keeps_the_inclusive_margin_boundary() {
+        let half = Vec3::splat(0.5);
+        let lower = Transform3::IDENTITY;
+        for (gap, expected) in [(0.125 - 1e-8, true), (0.125, true), (0.125 + 1e-8, false)] {
+            let upper = Transform3::from_translation_rotation(
+                Vec3::new(0.0, 0.0, 1.0 + gap),
+                Quat::IDENTITY,
+            );
+            assert_eq!(
+                !box_box(half, &upper, half, &lower, 0.125).is_empty(),
+                expected
+            );
+            assert_eq!(
+                !box_box(half, &lower, half, &upper, 0.125).is_empty(),
+                expected
+            );
+        }
     }
 
     #[test]
