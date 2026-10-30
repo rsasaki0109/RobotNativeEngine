@@ -1,0 +1,33 @@
+{
+  "source_sha256": {
+    "crates/rne_physics_native/examples/contact_crowd.rs": "b9fc4061beb22f4536fe07d0231f8c152dee855c3e0703d667407a0d25557ea4",
+    "scripts/contact_benchmark/contact_batch.py": "a72d9c86d9a0853144886711a1d0bac9ef4beabbd9117c42d85d8caf4a5cc97e",
+    "scripts/contact_benchmark/contact_crowd.py": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87"
+  },
+  "solver_overlay": {
+    "base": {
+      "commit": "3edd40ca",
+      "path": "crates/rne_dynamics/src/contact.rs",
+      "sha256": "b18fd9a921297a1d77328ce9a9e54312e00f751c85f0bf802f1631ee1d6ae66d"
+    },
+    "early": {
+      "commit": "3b801079",
+      "path": "crates/rne_dynamics/src/contact.rs",
+      "sha256": "8cc34233dbaf0f35eefec0ee4faf955ce5481f7e70d6c87321de15ce1827fbbc"
+    },
+    "hybrid": {
+      "commit": "35d5415c",
+      "path": "crates/rne_dynamics/src/contact.rs",
+      "sha256": "5d110f7bbff5e18d62e7dba9da924a95cbd368fa09af6bb5cb857783368839df"
+    }
+  },
+  "binary_sha256": {
+    "base": "d559a6decc16a95d805948aefc6d7829ebb38c6269ff38ff51c0cf2146c642d4",
+    "early": "c274a368cec731876eb2f7af7f54d79e3a5855d21b5187f097deceb8bb69bc1d",
+    "hybrid": "1ad456c59710a52e4d0339f5cc21b768545369d3e4e84ef01bbaa1396bf63439"
+  },
+  "build": "cargo build --release -p rne_physics_native --example contact_crowd; same working tree except contact.rs overlays; final source restored",
+  "selected_source_sha256": "ac31075d1ab547b978b0ee1a6415f82da18baff8d551bbfa0db001e089f1e796",
+  "selected_binary_sha256": "7828f0611548de2f850cd76d2ee47f306332bc1d2a2332d4ee1a6d3a2c04cdbc",
+  "selected_note": "same production helper as early; retains expanded tests; rebuilt final binary has a different digest, so benchmark separately"
+}

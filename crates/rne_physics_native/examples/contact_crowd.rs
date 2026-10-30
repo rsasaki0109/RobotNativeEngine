@@ -11,11 +11,12 @@ use rne_world::Transform3;
 use serde_json::json;
 use std::{error::Error, time::Instant};
 
-#[allow(clippy::too_many_lines)]
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    if !(2..=3).contains(&args.len()) {
-        return Err("usage: contact_crowd COUNT audit|timing [separated|stacks|clusters]".into());
+    if !(2..=4).contains(&args.len()) {
+        return Err(
+            "usage: contact_crowd COUNT audit|timing [separated|stacks|clusters] [REPEATS]".into(),
+        );
     }
     let layout = args.get(2).map_or("separated", String::as_str);
     if !["separated", "stacks", "clusters"].contains(&layout) {
@@ -33,6 +34,31 @@ fn main() -> Result<(), Box<dyn Error>> {
     if layout != "separated" && ![64, 128].contains(&count) {
         return Err("contact layouts require 64 or 128 boxes".into());
     }
+    let repeats: usize = args.get(3).map_or(Ok(1), |s| s.parse())?;
+    if !(1..=1000).contains(&repeats) || (repeats != 1 && (audit || count != 1)) {
+        return Err("repeats must be 1..=1000; batching requires one box in timing mode".into());
+    }
+    let mut result = run(count, audit, layout)?;
+    if repeats > 1 {
+        let mut elapsed = vec![result["elapsed_s"].as_f64().ok_or("missing elapsed")?];
+        let mut hashes = vec![result["final_hash"].as_u64().ok_or("missing hash")?];
+        for _ in 1..repeats {
+            // Fresh backend and ECS: repeat the same landing, not a longer settle.
+            let next = run(count, audit, layout)?;
+            elapsed.push(next["elapsed_s"].as_f64().ok_or("missing elapsed")?);
+            hashes.push(next["final_hash"].as_u64().ok_or("missing hash")?);
+        }
+        result["elapsed_s"] = json!(elapsed.iter().sum::<f64>());
+        result["repeats"] = json!(repeats);
+        result["repeat_elapsed_s"] = json!(elapsed);
+        result["repeat_final_hashes"] = json!(hashes);
+    }
+    println!("{result}");
+    Ok(())
+}
+
+#[allow(clippy::too_many_lines)]
+fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box<dyn Error>> {
     let mut config = NativeBackendConfig::default();
     config.contact.solver.regularization = 0.0;
     config.contact.solver.max_iterations = 200;
@@ -146,16 +172,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let elapsed_s = start.elapsed().as_secs_f64();
     let final_hash =
         capture_physics_snapshot(&world, backend.contacts(id)?, 100, 200_000_000)?.stable_hash();
-    println!(
-        "{}",
-        json!({"count":count,"mode":args[1],"debug_assertions":cfg!(debug_assertions),
+    Ok(
+        json!({"count":count,"mode":if audit { "audit" } else { "timing" },"debug_assertions":cfg!(debug_assertions),
         "elapsed_s":elapsed_s,"hashes":hashes,"final_hash":final_hash,
         "max_penetration_m":if audit {Some(max_penetration)} else {None},
         "max_spin_rad_s":if audit {Some(max_spin)} else {None},
         "steps":100,"dt_ticks":2_000_000,"margin_m":config.contact_margin_m,
-        "layout":layout,"contact_frames":contact_frames})
-    );
-    Ok(())
+        "layout":layout,"contact_frames":contact_frames}),
+    )
 }
 
 fn initial_position(index: usize, layout: &str) -> Vec3 {
