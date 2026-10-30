@@ -3,8 +3,8 @@ use rne_core::SimDuration;
 use rne_ecs::World;
 use rne_math::{Quat, Vec3};
 use rne_physics::{
-    Collider, PhysicsBackend, PhysicsMaterial, PhysicsWorldDesc, RigidBody, RigidBodyInertia,
-    RigidBodyType,
+    Collider, ExternalBodyWrench, PhysicsBackend, PhysicsMaterial, PhysicsWorldDesc, RigidBody,
+    RigidBodyInertia, RigidBodyType,
 };
 use rne_physics_native::{NativeBackend, NativeBackendConfig};
 use rne_world::Transform3;
@@ -14,12 +14,17 @@ use std::{error::Error, time::Instant};
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
-    if args.len() != 7 {
+    if !(7..=8).contains(&args.len()) {
         return Err(
-            "usage: friction_threshold DT_TICKS MASS_KG FORCE_RATIO REGULARIZATION ITERATIONS audit|timing MU"
+            "usage: friction_threshold DT_TICKS MASS_KG FORCE_RATIO REGULARIZATION ITERATIONS audit|timing MU [wrench]"
                 .into(),
         );
     }
+    let wrench = match args.get(7).map(String::as_str) {
+        None => false,
+        Some("wrench") => true,
+        _ => return Err("load mode must be wrench when provided".into()),
+    };
     let ticks: u64 = args[0].parse()?;
     let mass: f64 = args[1].parse()?;
     let ratio: f64 = args[2].parse()?;
@@ -48,7 +53,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     config.contact.solver.max_iterations = iterations;
     let mut backend = NativeBackend::with_config(config);
     let id = backend.create_world(PhysicsWorldDesc {
-        gravity_m_s2: Vec3::new(ratio * f64::from(mu) * 9.81, -9.81, 0.0),
+        gravity_m_s2: Vec3::new(
+            if wrench {
+                0.0
+            } else {
+                ratio * f64::from(mu) * 9.81
+            },
+            -9.81,
+            0.0,
+        ),
         ..Default::default()
     })?;
     let mut world = World::new();
@@ -101,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut start = Instant::now();
     let mut prefix_elapsed = 0.0;
     for i in 0..steps {
-        if !audit && i + 1 == steps {
+        if !wrench && !audit && i + 1 == steps {
             // ECS velocity is pose-differenced against the last write-back.
             // Sample the penultimate pose outside timing so final velocity
             // has the same one-step meaning as the audit, without full tracing.
@@ -109,9 +122,28 @@ fn main() -> Result<(), Box<dyn Error>> {
             backend.sync_to_ecs(&mut world, id)?;
             start = Instant::now();
         }
+        if wrench {
+            backend.apply_external_body_wrench(
+                id,
+                ExternalBodyWrench {
+                    entity: ball,
+                    point_world_m: world
+                        .get::<Transform3>(ball)
+                        .ok_or("missing pose")?
+                        .translation,
+                    force_world_n: Vec3::X * (mass * ratio * f64::from(mu) * 9.81),
+                    torque_world_nm: Vec3::ZERO,
+                },
+            )?;
+        }
         backend.step(id, dt)?;
-        if audit {
+        if wrench {
             backend.sync_to_ecs(&mut world, id)?;
+        }
+        if audit {
+            if !wrench {
+                backend.sync_to_ecs(&mut world, id)?;
+            }
             let impulse: f64 = backend
                 .contacts(id)?
                 .iter()
@@ -126,7 +158,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     let elapsed = prefix_elapsed + start.elapsed().as_secs_f64();
-    if !audit {
+    if !audit && !wrench {
         backend.sync_to_ecs(&mut world, id)?;
     }
     let final_state = sample(&world, ball, 2.0, 0.0)?;
@@ -134,6 +166,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "{}",
         json!({"backend":"rne_native", "debug_assertions":cfg!(debug_assertions), "mode":args[5], "elapsed_s":elapsed,
         "trace":trace, "final_state":final_state,
+        "load_mode":if wrench { "external_body_wrench" } else { "equivalent_gravity" },
         "settings":{"equivalent_force_n":mass * ratio * f64::from(mu) * 9.81,"friction_coefficient":mu,"regularization":regularization,"max_iterations":iterations,
         "contact_margin_m":config.contact_margin_m,"penetration_recovery":config.contact.penetration_recovery,
         "tolerance_n_s":config.contact.solver.tolerance_n_s,

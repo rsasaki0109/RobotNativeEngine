@@ -178,3 +178,14 @@ by horizontal body acceleration with a fixed floor; this does not exercise the
 external-wrench API. Ratios ±0.8/±1.2 bracket μmg without claiming exact threshold
 identification. `RNE_THRESHOLD` enables native integration coverage. See
 [protocol and results](../../docs/HARD_CONTACT_FRICTION_THRESHOLD_RESULTS.md).
+
+### Actual-force friction comparison
+
+`force_friction.py BINARY OUTPUT.json.xz` compares 16 common-2-ms cases using
+Native external body wrenches and MuJoCo COM forces. It preserves H5 quality
+gates, verifies audit replay and timed final states, and suppresses the cost
+ratio unless both backends pass every case. `--verify` recomputes gates from
+stored traces. Requires MuJoCo 3.9.0 and NumPy. The existing seven-argument
+`friction_threshold` example keeps equivalent-gravity behavior; append `wrench`
+to use actual forces with per-step ECS write-back included in timing.
+See [results and limitations](../../docs/HARD_CONTACT_FORCE_FRICTION_RESULTS.md).

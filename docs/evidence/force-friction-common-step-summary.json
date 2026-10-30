@@ -1,0 +1,1375 @@
+{
+  "protocol": "force_friction_common_step_v1",
+  "status": "complete",
+  "setting": {
+    "dt_ticks": 2000000,
+    "native_regularization": 0,
+    "iterations": 200,
+    "mujoco_solref": [
+      2e-06,
+      10
+    ],
+    "mujoco_solimp": [
+      0.999,
+      0.999,
+      0.001,
+      0.5,
+      2
+    ]
+  },
+  "gates": {
+    "max_penetration_m": 1e-05,
+    "position_error_m": 0.003,
+    "velocity_error_m_s": 0.002,
+    "static_drift_m": 1e-05,
+    "static_speed_m_s": 0.0001,
+    "spin_rad_s": 0.01,
+    "lateral_drift_m": 1e-05,
+    "work_energy_excess_fraction": 1e-06
+  },
+  "mujoco_version": "3.9.0",
+  "cpu_affinity": [
+    0
+  ],
+  "binary_sha256": "aa920b3c59bf374711463daeabf7be1a735f0f5bbf368b21083371444ebd064f",
+  "source_sha256": {
+    "force_friction.py": "6705a92fcbe939dae9a0944e61fbaa69460f369f555d89d6a41d8be6322974fa",
+    "threshold.py": "8ebb4fd2d682c588129db0ff4e94c88b6b1a15e6aba528804fc46a28959d5be5",
+    "box.py": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d",
+    "mujoco_stack.py": "6eb6611ae1f49bfa6fbbe0b3e3db7f35208ddda3b3ff17a9b01d62e93cf7cd06"
+  },
+  "comparison": {
+    "eligible": false,
+    "mujoco_over_native_cost": null
+  },
+  "raw_artifact": {
+    "filename": "force-friction-common-step-v1.json.xz",
+    "sha256": "b3274837d0b60d7aad15cbd17a66875e60f62ab132179aa8fe7976258b1eb17b",
+    "size_bytes": 2233220,
+    "retention": "session artifact; no durable hosted URL"
+  },
+  "results": [
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -1.2,
+        "mu": 0.2
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 2.3657426901520225e-11,
+          "position_error_m": 0.0007848008248687588,
+          "velocity_error_m_s": 5.653816892436936e-08,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 1.668393602460223e-09,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.3924000058472156,
+          "equivalent_force_n": -0.7063200105249882,
+          "final_displacement_m": -0.7855848125193,
+          "final_velocity_m_s": -0.7847999948205064,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.083491143,
+          0.0625517065,
+          0.066077306,
+          0.0635836545,
+          0.0630277805
+        ],
+        "median_cost": 0.0635836545
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 0.00029858292496771704,
+          "position_error_m": 0.0006924304564529526,
+          "velocity_error_m_s": 0.01796430808071403,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 2.3625456808403773,
+          "lateral_drift_m": 2.4360667196894785e-12,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.3924000058472156,
+          "equivalent_force_n": -0.7063200105249882,
+          "final_displacement_m": -0.7854689253761165,
+          "final_velocity_m_s": -0.7971296751987111,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": false,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0027585095012909733,
+          0.002765566998277791,
+          0.0027514575012901332,
+          0.00263647250176291,
+          0.0028992850020586047
+        ],
+        "median_cost": 0.0027585095012909733
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -1.2,
+        "mu": 0.5
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 6.667815032757412e-11,
+          "position_error_m": 0.001962001161104787,
+          "velocity_error_m_s": 1.9035374451692455e-07,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 7.727521603275498e-10,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.9809999999999999,
+          "equivalent_force_n": -1.7658,
+          "final_displacement_m": -1.9639620011611045,
+          "final_velocity_m_s": -1.961999970289674,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.035931498,
+          0.0374043485,
+          0.0347995405,
+          0.0340284495,
+          0.0370883475
+        ],
+        "median_cost": 0.035931498
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 0.000961083317624129,
+          "position_error_m": 0.019845657027241614,
+          "velocity_error_m_s": 0.4013473761861912,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 15.109482922808247,
+          "lateral_drift_m": 6.779847309944623e-14,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.9809999999999999,
+          "equivalent_force_n": -1.7658,
+          "final_displacement_m": -1.9423689792108962,
+          "final_velocity_m_s": -2.002102623813804,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": false,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": false,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0022080284979892895,
+          0.0019617190009739716,
+          0.0019157614988216665,
+          0.001898902999528218,
+          0.0023210715007735416
+        ],
+        "median_cost": 0.0019617190009739716
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -0.8,
+        "mu": 0.2
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 8.693417986839382e-11,
+          "position_error_m": 1.0955498562687047e-09,
+          "velocity_error_m_s": 1.8837679171645605e-08,
+          "static_drift_m": 1.0955498562687047e-09,
+          "static_speed_m_s": 4.4366853777418e-07,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 1.0026399275498106e-09,
+          "work_energy_excess_fraction": 1.7688062192345184e-08,
+          "analytic_acceleration_m_s2": -0.0,
+          "equivalent_force_n": -0.4708800070166588,
+          "final_displacement_m": -1.0667507549310628e-09,
+          "final_velocity_m_s": -1.1210995937390634e-09,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.015602156,
+          0.0155511675,
+          0.0142094575,
+          0.0154745765,
+          0.0150832705
+        ],
+        "median_cost": 0.0154745765
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 3.9240000000002884e-05,
+          "position_error_m": 8.418021789964183e-06,
+          "velocity_error_m_s": 0.0031392000467777253,
+          "static_drift_m": 8.418021789964183e-06,
+          "static_speed_m_s": 0.019869548986670264,
+          "spin_rad_s": 3.140586126464115e-05,
+          "lateral_drift_m": 5.460877829104809e-22,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.0,
+          "equivalent_force_n": -0.4708800070166588,
+          "final_displacement_m": -8.418021789964183e-06,
+          "final_velocity_m_s": -8.492196344782628e-07,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": false,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.003980596498877276,
+          0.005039076499087969,
+          0.004179095998551929,
+          0.004108414002985228,
+          0.003967704000388039
+        ],
+        "median_cost": 0.004108414002985228
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -0.8,
+        "mu": 0.5
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 3.8392165199389695e-11,
+          "position_error_m": 4.990451082604643e-10,
+          "velocity_error_m_s": 1.5868579235251645e-08,
+          "static_drift_m": 4.990451082604643e-10,
+          "static_speed_m_s": 3.9722685683173743e-07,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 4.861180538161547e-10,
+          "work_energy_excess_fraction": 1.7548825446149483e-08,
+          "analytic_acceleration_m_s2": -0.0,
+          "equivalent_force_n": -1.1772,
+          "final_displacement_m": -4.732660421040553e-10,
+          "final_velocity_m_s": 5.944220145143586e-12,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.010716647,
+          0.0106523205,
+          0.0107955625,
+          0.011090737,
+          0.010721776
+        ],
+        "median_cost": 0.010721776
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 3.9240000000002884e-05,
+          "position_error_m": 2.220596063893994e-05,
+          "velocity_error_m_s": 0.007848,
+          "static_drift_m": 2.220596063893994e-05,
+          "static_speed_m_s": 0.021131386703195795,
+          "spin_rad_s": 8.823439582068723e-05,
+          "lateral_drift_m": 1.4502265327987392e-22,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.0,
+          "equivalent_force_n": -1.1772,
+          "final_displacement_m": -2.220596063893994e-05,
+          "final_velocity_m_s": -2.633723813668635e-06,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": false,
+            "static_speed_m_s": false,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.005150087501533562,
+          0.0047228969997377135,
+          0.00461833699955605,
+          0.004998288000933826,
+          0.0047468584998568986
+        ],
+        "median_cost": 0.0047468584998568986
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 0.8,
+        "mu": 0.2
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 1.9247749478483124e-11,
+          "position_error_m": 3.4083387535756076e-09,
+          "velocity_error_m_s": 2.784178940255428e-08,
+          "static_drift_m": 3.4083387535756076e-09,
+          "static_speed_m_s": 3.5856444731221236e-07,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 3.2681476908434454e-09,
+          "work_energy_excess_fraction": 1.3805854588867912e-08,
+          "analytic_acceleration_m_s2": 0.0,
+          "equivalent_force_n": 0.4708800070166588,
+          "final_displacement_m": 3.3793265656030408e-09,
+          "final_velocity_m_s": 5.144922314602978e-10,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.026374281,
+          0.0265712275,
+          0.0261820705,
+          0.026211644,
+          0.0275083525
+        ],
+        "median_cost": 0.026374281
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 3.9240000000002884e-05,
+          "position_error_m": 8.418021789964188e-06,
+          "velocity_error_m_s": 0.0031392000467777253,
+          "static_drift_m": 8.418021789964188e-06,
+          "static_speed_m_s": 0.019869548986670264,
+          "spin_rad_s": 3.140586126466011e-05,
+          "lateral_drift_m": 2.417802966847197e-22,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.0,
+          "equivalent_force_n": 0.4708800070166588,
+          "final_displacement_m": 8.418021789964188e-06,
+          "final_velocity_m_s": 8.492196344782615e-07,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": false,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0036914525007887278,
+          0.004028509498311905,
+          0.004178089999186341,
+          0.00399234799988335,
+          0.004010876498796279
+        ],
+        "median_cost": 0.004010876498796279
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 0.8,
+        "mu": 0.5
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 8.016447323132976e-12,
+          "position_error_m": 5.2245674563115675e-09,
+          "velocity_error_m_s": 2.3435767123016617e-08,
+          "static_drift_m": 5.2245674563115675e-09,
+          "static_speed_m_s": 1.2943169027552516e-07,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 4.109538074469733e-09,
+          "work_energy_excess_fraction": 3.8336653493606115e-09,
+          "analytic_acceleration_m_s2": 0.0,
+          "equivalent_force_n": 1.1772,
+          "final_displacement_m": 5.2245674563115675e-09,
+          "final_velocity_m_s": 1.642644739440239e-08,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.088451926,
+          0.08520978,
+          0.0841520705,
+          0.0861511985,
+          0.086051287
+        ],
+        "median_cost": 0.086051287
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 3.9240000000002884e-05,
+          "position_error_m": 2.220596063893994e-05,
+          "velocity_error_m_s": 0.007848,
+          "static_drift_m": 2.220596063893994e-05,
+          "static_speed_m_s": 0.021131386703195795,
+          "spin_rad_s": 8.823439582068724e-05,
+          "lateral_drift_m": 2.676845694474025e-22,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.0,
+          "equivalent_force_n": 1.1772,
+          "final_displacement_m": 2.220596063893994e-05,
+          "final_velocity_m_s": 2.633723813668635e-06,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": false,
+            "static_speed_m_s": false,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.004819734498596517,
+          0.004830387500987854,
+          0.004777044501679484,
+          0.004910808002023259,
+          0.00452430250152247
+        ],
+        "median_cost": 0.004819734498596517
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 1.2,
+        "mu": 0.2
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 2.6745513443392702e-11,
+          "position_error_m": 0.0007848011690880785,
+          "velocity_error_m_s": 8.062901622751806e-08,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 6.323513509962359e-10,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.3924000058472156,
+          "equivalent_force_n": 0.7063200105249882,
+          "final_displacement_m": 0.7855848128635193,
+          "final_velocity_m_s": 0.7847999955068463,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.035352385,
+          0.035324805,
+          0.0351819205,
+          0.0365406585,
+          0.0358712105
+        ],
+        "median_cost": 0.035352385
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 0.00029858292501038533,
+          "position_error_m": 0.0006924304562173633,
+          "velocity_error_m_s": 0.01796430808061167,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 2.3625456808396548,
+          "lateral_drift_m": 2.5388344592158257e-12,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.3924000058472156,
+          "equivalent_force_n": 0.7063200105249882,
+          "final_displacement_m": 0.7854689253758845,
+          "final_velocity_m_s": 0.7971296751988454,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": false,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.002706785500777187,
+          0.0028116214998590294,
+          0.0029233940003905445,
+          0.0027802394979516976,
+          0.0029859464993933216
+        ],
+        "median_cost": 0.0028116214998590294
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 1.2,
+        "mu": 0.5
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 4.143600782883471e-11,
+          "position_error_m": 0.0019620008011900225,
+          "velocity_error_m_s": 2.19804964965431e-07,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 8.586487551672515e-11,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.9809999999999999,
+          "equivalent_force_n": 1.7658,
+          "final_displacement_m": 1.9639620008011898,
+          "final_velocity_m_s": 1.9619999910174268,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0278237905,
+          0.026801898,
+          0.0273869095,
+          0.0321649535,
+          0.028180718
+        ],
+        "median_cost": 0.0278237905
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 0.0009610833175441877,
+          "position_error_m": 0.01984565702697383,
+          "velocity_error_m_s": 0.40134737618544425,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 15.109482922810367,
+          "lateral_drift_m": 6.802770333966173e-14,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.9809999999999999,
+          "equivalent_force_n": 1.7658,
+          "final_displacement_m": 1.9423689792111716,
+          "final_velocity_m_s": 2.0021026238145514,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": false,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": false,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0020368135010357946,
+          0.0019238140012021177,
+          0.0018734784971456975,
+          0.001873260502179619,
+          0.0019979860007879324
+        ],
+        "median_cost": 0.0019238140012021177
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -1.2,
+        "mu": 0.2
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 2.3657426914010236e-11,
+          "position_error_m": 0.0007848008248679816,
+          "velocity_error_m_s": 5.654204082716774e-08,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 1.6683926885890719e-09,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.3924000058472156,
+          "equivalent_force_n": -7.063200105249882,
+          "final_displacement_m": -0.7855848125192992,
+          "final_velocity_m_s": -0.7847999948203399,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.063226461,
+          0.065893904,
+          0.0621930845,
+          0.063588214,
+          0.063102112
+        ],
+        "median_cost": 0.063226461
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 0.00029858292487640976,
+          "position_error_m": 0.0006924304573463491,
+          "velocity_error_m_s": 0.017964308082051628,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 2.362545680836121,
+          "lateral_drift_m": 3.0715285988237826e-12,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.3924000058472156,
+          "equivalent_force_n": -7.063200105249882,
+          "final_displacement_m": -0.7854689253771744,
+          "final_velocity_m_s": -0.7971296752003822,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": false,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.002828207998391008,
+          0.0026792424978339113,
+          0.0031237729999702424,
+          0.0027211285014345776,
+          0.002851953002391383
+        ],
+        "median_cost": 0.002828207998391008
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -1.2,
+        "mu": 0.5
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 6.667815033173748e-11,
+          "position_error_m": 0.001962001246163858,
+          "velocity_error_m_s": 1.919686373752505e-07,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 6.962475132008536e-10,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.9809999999999999,
+          "equivalent_force_n": -17.658,
+          "final_displacement_m": -1.9639620012461636,
+          "final_velocity_m_s": -1.962000075555581,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0332303935,
+          0.0339420495,
+          0.035530416,
+          0.0344954165,
+          0.0331904335
+        ],
+        "median_cost": 0.0339420495
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 0.0009610833221096026,
+          "position_error_m": 0.01984565703770924,
+          "velocity_error_m_s": 0.4013473762006745,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 15.109482922869864,
+          "lateral_drift_m": 7.910102128771139e-14,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.9809999999999999,
+          "equivalent_force_n": -17.658,
+          "final_displacement_m": -1.9423689792002838,
+          "final_velocity_m_s": -2.002102623799321,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": false,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": false,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0020145069975114893,
+          0.001845079503254965,
+          0.00212640649988316,
+          0.003801338498305995,
+          0.0019662129998323508
+        ],
+        "median_cost": 0.0020145069975114893
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -0.8,
+        "mu": 0.2
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 9.58248799479456e-11,
+          "position_error_m": 1.1203100138618255e-09,
+          "velocity_error_m_s": 2.3267173763144017e-08,
+          "static_drift_m": 1.1203100138618255e-09,
+          "static_speed_m_s": 4.603899542346571e-07,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 1.0425977236210134e-09,
+          "work_energy_excess_fraction": 1.7684702495223484e-08,
+          "analytic_acceleration_m_s2": -0.0,
+          "equivalent_force_n": -4.708800070166588,
+          "final_displacement_m": -1.1194853782285914e-09,
+          "final_velocity_m_s": -9.435820295464688e-09,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0152007895,
+          0.0153643125,
+          0.0154087515,
+          0.015287941,
+          0.014815371
+        ],
+        "median_cost": 0.015287941
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 3.9240000000002884e-05,
+          "position_error_m": 8.418021789964191e-06,
+          "velocity_error_m_s": 0.0031392000467777253,
+          "static_drift_m": 8.418021789964191e-06,
+          "static_speed_m_s": 0.01986954898667026,
+          "spin_rad_s": 3.1405861264663884e-05,
+          "lateral_drift_m": 3.518797019743351e-22,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.0,
+          "equivalent_force_n": -4.708800070166588,
+          "final_displacement_m": -8.418021789964191e-06,
+          "final_velocity_m_s": -8.492196344782623e-07,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": false,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.003860822500428185,
+          0.003721194498211844,
+          0.004190618499706034,
+          0.004381012502562953,
+          0.0038519800000358373
+        ],
+        "median_cost": 0.003860822500428185
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -0.8,
+        "mu": 0.5
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 3.165797692704986e-11,
+          "position_error_m": 7.17517739565053e-10,
+          "velocity_error_m_s": 1.5931189661625114e-08,
+          "static_drift_m": 7.17517739565053e-10,
+          "static_speed_m_s": 4.090886532192555e-07,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 7.10105034043735e-10,
+          "work_energy_excess_fraction": 1.6485741345409236e-08,
+          "analytic_acceleration_m_s2": -0.0,
+          "equivalent_force_n": -11.772000000000002,
+          "final_displacement_m": -6.912232553349124e-10,
+          "final_velocity_m_s": 1.0569597373893846e-10,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0127028205,
+          0.0129787615,
+          0.0123176475,
+          0.0124872095,
+          0.0130006505
+        ],
+        "median_cost": 0.0127028205
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 3.9240000000002884e-05,
+          "position_error_m": 2.220596063893994e-05,
+          "velocity_error_m_s": 0.007848,
+          "static_drift_m": 2.220596063893994e-05,
+          "static_speed_m_s": 0.021131386703195792,
+          "spin_rad_s": 8.82343958207251e-05,
+          "lateral_drift_m": 1.6221705607812296e-22,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": -0.0,
+          "equivalent_force_n": -11.772000000000002,
+          "final_displacement_m": -2.220596063893994e-05,
+          "final_velocity_m_s": -2.6337238136686365e-06,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": false,
+            "static_speed_m_s": false,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.006112783998105442,
+          0.005026439001085237,
+          0.005117521501233568,
+          0.005326226502802456,
+          0.004433778001839528
+        ],
+        "median_cost": 0.005117521501233568
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 0.8,
+        "mu": 0.2
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 1.9247752040322754e-11,
+          "position_error_m": 3.4083389049153933e-09,
+          "velocity_error_m_s": 2.7841789398010834e-08,
+          "static_drift_m": 3.4083389049153933e-09,
+          "static_speed_m_s": 3.585650611226666e-07,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 3.2681473227550845e-09,
+          "work_energy_excess_fraction": 1.3805878865035655e-08,
+          "analytic_acceleration_m_s2": 0.0,
+          "equivalent_force_n": 4.708800070166588,
+          "final_displacement_m": 3.379326535275326e-09,
+          "final_velocity_m_s": 5.144396960123244e-10,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0265563015,
+          0.027975761,
+          0.025400569,
+          0.0267752465,
+          0.0270881225
+        ],
+        "median_cost": 0.0267752465
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 3.9240000000002884e-05,
+          "position_error_m": 8.418021789964186e-06,
+          "velocity_error_m_s": 0.0031392000467777253,
+          "static_drift_m": 8.418021789964186e-06,
+          "static_speed_m_s": 0.01986954898667026,
+          "spin_rad_s": 3.140586126467905e-05,
+          "lateral_drift_m": 3.9153370051377645e-22,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.0,
+          "equivalent_force_n": 4.708800070166588,
+          "final_displacement_m": 8.418021789964186e-06,
+          "final_velocity_m_s": 8.492196344782624e-07,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": false,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.004014584501419449,
+          0.003947010496631265,
+          0.003988444001151947,
+          0.00385417099823826,
+          0.004139699500228744
+        ],
+        "median_cost": 0.003988444001151947
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 0.8,
+        "mu": 0.5
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 8.016447345337428e-12,
+          "position_error_m": 5.2245676471576055e-09,
+          "velocity_error_m_s": 2.3435767129955514e-08,
+          "static_drift_m": 5.2245676471576055e-09,
+          "static_speed_m_s": 1.2943169027533773e-07,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 4.109538232663132e-09,
+          "work_energy_excess_fraction": 3.833665348902818e-09,
+          "analytic_acceleration_m_s2": 0.0,
+          "equivalent_force_n": 11.772000000000002,
+          "final_displacement_m": 5.2245676471576055e-09,
+          "final_velocity_m_s": 1.6426447417430272e-08,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0887363325,
+          0.0839770915,
+          0.0859774655,
+          0.0883468495,
+          0.0843233705
+        ],
+        "median_cost": 0.0859774655
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 3.9240000000002884e-05,
+          "position_error_m": 2.220596063893994e-05,
+          "velocity_error_m_s": 0.007848,
+          "static_drift_m": 2.220596063893994e-05,
+          "static_speed_m_s": 0.021131386703195792,
+          "spin_rad_s": 8.82343958207251e-05,
+          "lateral_drift_m": 1.6221705607811936e-22,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.0,
+          "equivalent_force_n": 11.772000000000002,
+          "final_displacement_m": 2.220596063893994e-05,
+          "final_velocity_m_s": 2.6337238136686365e-06,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": false,
+            "static_speed_m_s": false,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.004872792000242043,
+          0.004521264498180244,
+          0.004498813999816775,
+          0.0050127989998145495,
+          0.004928459999064216
+        ],
+        "median_cost": 0.004872792000242043
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 1.2,
+        "mu": 0.2
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 2.6745513440617136e-11,
+          "position_error_m": 0.0007848012288504957,
+          "velocity_error_m_s": 8.416042539260982e-08,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 6.735365412714364e-10,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.3924000058472156,
+          "equivalent_force_n": 7.063200105249882,
+          "final_displacement_m": 0.7855848129232818,
+          "final_velocity_m_s": 0.7847999955378215,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.035223226,
+          0.034407645,
+          0.03456381,
+          0.0345426065,
+          0.037237441
+        ],
+        "median_cost": 0.03456381
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 0.00029858292489725984,
+          "position_error_m": 0.0006924304574139617,
+          "velocity_error_m_s": 0.01796430808234717,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 2.362545680836761,
+          "lateral_drift_m": 3.377908943384165e-12,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.3924000058472156,
+          "equivalent_force_n": 7.063200105249882,
+          "final_displacement_m": 0.7854689253772767,
+          "final_velocity_m_s": 0.797129675200732,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": true,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": false,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0026572434981062543,
+          0.0026432844970258884,
+          0.002647488498041639,
+          0.002790736500173807,
+          0.002910848499595886
+        ],
+        "median_cost": 0.0026572434981062543
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 1.2,
+        "mu": 0.5
+      },
+      "native": {
+        "metrics": {
+          "max_penetration_m": 4.143600783438583e-11,
+          "position_error_m": 0.001962000872190117,
+          "velocity_error_m_s": 2.1980496490991985e-07,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 0.0,
+          "lateral_drift_m": 9.293709850521258e-11,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.9809999999999999,
+          "equivalent_force_n": 17.658,
+          "final_displacement_m": 1.9639620008721899,
+          "final_velocity_m_s": 1.9619999759016293,
+          "gates": {
+            "max_penetration_m": true,
+            "position_error_m": true,
+            "velocity_error_m_s": true,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": true,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": true
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.027311793,
+          0.02723434,
+          0.0273020935,
+          0.029401601,
+          0.0281740195
+        ],
+        "median_cost": 0.027311793
+      },
+      "mujoco": {
+        "metrics": {
+          "max_penetration_m": 0.0009610833219116403,
+          "position_error_m": 0.019845657037325104,
+          "velocity_error_m_s": 0.4013473762001891,
+          "static_drift_m": 0,
+          "static_speed_m_s": 0,
+          "spin_rad_s": 15.109482922869235,
+          "lateral_drift_m": 3.124484837256279e-14,
+          "work_energy_excess_fraction": 0,
+          "analytic_acceleration_m_s2": 0.9809999999999999,
+          "equivalent_force_n": 17.658,
+          "final_displacement_m": 1.9423689792006729,
+          "final_velocity_m_s": 2.0021026237998063,
+          "gates": {
+            "max_penetration_m": false,
+            "position_error_m": false,
+            "velocity_error_m_s": false,
+            "static_drift_m": true,
+            "static_speed_m_s": true,
+            "spin_rad_s": false,
+            "lateral_drift_m": true,
+            "work_energy_excess_fraction": true,
+            "backend_health": true
+          },
+          "passed": false
+        },
+        "exact_replay": true,
+        "seconds_per_simulated_second": [
+          0.0021337930011213757,
+          0.0020762895001098514,
+          0.001990762000787072,
+          0.001831358498748159,
+          0.0019428989980951883
+        ],
+        "median_cost": 0.001990762000787072
+      }
+    }
+  ],
+  "aggregate": {
+    "native": {
+      "passed": 16,
+      "mean_median_seconds_per_simulated_second": 0.03756880221875
+    },
+    "mujoco": {
+      "passed": 0,
+      "mean_median_seconds_per_simulated_second": 0.0034044905000882864
+    }
+  }
+}
