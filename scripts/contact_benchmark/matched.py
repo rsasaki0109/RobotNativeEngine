@@ -1,4 +1,4 @@
-"""H1 v2: frozen staged search for matched-quality sphere-drop cost.
+"""H1 v2/v3: frozen staged search for matched-quality sphere-drop cost.
 
 Uses unmodified H1 v1 runners, metrics and gates. Prior 0.5 m failures inform
 calibration; new validation cases never participate in selection.
@@ -68,7 +68,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("binary", type=Path)
     parser.add_argument("output_dir", type=Path)
+    parser.add_argument("--overdamped", action="store_true",
+                        help="H1 v3: separately frozen overdamped search following v2 rebound failures")
     args = parser.parse_args()
+    timesteps = (31_250, 15_625, 10_000, 5_000, 2_500) if args.overdamped else TIMESTEPS
+    solrefs = ((0.000002, 10), (0.000002, 20)) if args.overdamped else SOLREFS
     if args.output_dir.exists():
         parser.error("provide a new output directory")
     if mujoco.__version__ != "3.9.0":
@@ -76,7 +80,7 @@ def main():
     binary = args.binary.resolve()
     os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
     args.output_dir.mkdir(parents=True)
-    report = {"protocol": "hard_contact_drop_h1_v2", "status": "running",
+    report = {"protocol": "hard_contact_drop_h1_v3" if args.overdamped else "hard_contact_drop_h1_v2", "status": "running",
               "gates": drop.GATES, "duration_s": drop.DURATION,
               "radius_m": drop.RADIUS, "gravity_m_s2": [0, -drop.G, 0],
               "platform": platform.platform(), "python": platform.python_version(),
@@ -84,9 +88,9 @@ def main():
               "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
               "source_sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                                 for p in (Path(__file__), Path(drop.__file__))},
-              "planned_timesteps_ticks": TIMESTEPS, "planned_solrefs": SOLREFS,
+              "planned_timesteps_ticks": timesteps, "planned_solrefs": solrefs,
               "calibration_cases": CALIBRATION, "validation_cases": VALIDATION,
-              "selection": "all three settings per stage; first stage with both calibration cases passing; lowest mean median cost within that stage",
+              "selection": "all planned settings per stage; first stage with both calibration cases passing; lowest mean median cost within that stage",
               "timing_scope": "H1 v1 release backend batch loop; one warm-up, five fresh-world samples; no ECS or per-step IPC; one logical CPU",
               "records": [], "selected_mujoco": None}
 
@@ -112,9 +116,9 @@ def main():
     checkpoint()
     native_calibration = measure("native", 2_000_000, NATIVE_SETTING, CALIBRATION, "calibration")
     chosen = None
-    for dt in TIMESTEPS:
+    for dt in timesteps:
         candidates = []
-        for solref in SOLREFS:
+        for solref in solrefs:
             setting = {"iterations": 20, "solref": list(solref)}
             records = measure("mujoco", dt, setting, CALIBRATION, "calibration")
             candidates.append({"dt_ticks": dt, "setting": setting, "records": records})
