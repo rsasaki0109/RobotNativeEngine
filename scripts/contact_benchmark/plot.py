@@ -1,5 +1,5 @@
 """Plot the recorded H1 quality/cost samples; does not rerun or fit physics."""
-import gzip
+import lzma
 import json
 from pathlib import Path
 
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "docs/evidence/hard-contact-drop"
-report = json.loads(gzip.decompress((OUT / "h1-v1.json.gz").read_bytes()))
+report = json.loads(lzma.decompress((OUT / "h1-v1.json.xz").read_bytes()))
 fig, ax = plt.subplots(figsize=(9, 5), layout="constrained")
 for backend, color, marker in (("native", "#176b57", "o"), ("mujoco", "#c16a22", "x")):
     rows = [r for r in report["results"] if r["backend"] == backend]
