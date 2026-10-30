@@ -205,3 +205,12 @@ calibration protocol and runs a separate frozen 20/10/5 ms time-constant scan at
 `plot_force_friction_time_constant.py DIRECTORY OUTPUT.png` plots static drift,
 sliding spin onset and penetration from the saved 8 us traces (requires Matplotlib).
 See [results](../../docs/HARD_CONTACT_FORCE_FRICTION_TIME_CONSTANT.md).
+
+`friction_contact_diagnostics.py BINARY NEW_DIRECTORY` records the first 50 ms of
+per-point MuJoCo forces and COM moments for three contact settings plus two
+margin controls, checks force/moment balance and exact replay, and captures a
+Native aggregate momentum-balance reference. `--verify` checks provenance and
+recomputes diagnostics. Native per-point forces are not available in this audit.
+`plot_friction_contact_diagnostics.py DIRECTORY OUTPUT.png` plots the support
+transition, torque decomposition and angular speed. See
+[findings and observation limits](../../docs/HARD_CONTACT_FRICTION_CONTACT_DIAGNOSTICS.md).
