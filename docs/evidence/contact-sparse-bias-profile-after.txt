@@ -1,0 +1,30 @@
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+0.931 100.00  0.931 100.00   <Total>
+0.670  72.04  0.921  98.92   rne_dynamics::contact::coupled::step_with_external
+0.210  22.58  0.240  25.81   rne_dynamics::contact::solve_contact_impulses
+0.020   2.15  0.020   2.15   <static>@0x75c93 (<libm.so.6>)
+0.010   1.08  0.010   1.08   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+0.010   1.08  0.010   1.08   <static>@0x9ff23 (<libc.so.6>)
+0.010   1.08  0.010   1.08   rne_dynamics::contact::diagonal_block
+0.      0.    0.010   1.08   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+0.      0.    0.010   1.08   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.      0.    0.010   1.08   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.      0.    0.010   1.08   <rne_physics_native::NativeBackend as rne_physics::backend::PhysicsBackend>::step
+0.      0.    0.010   1.08   <static>@0x29c21 (<libc.so.6>)
+0.      0.    0.010   1.08   alloc::raw_vec::RawVecInner<A>::finish_grow
+0.      0.    0.010   1.08   alloc::raw_vec::RawVecInner<A>::reserve::do_reserve_and_handle
+0.      0.    0.010   1.08   contact_crowd::main
+0.      0.    0.010   1.08   contact_crowd::run
+0.      0.    0.010   1.08   core::iter::adapters::try_process
+0.      0.    0.010   1.08   main
+0.      0.    0.010   1.08   realloc
+0.      0.    0.570  61.29   rne_dynamics::contact::coupled::contact_step_coupled
+0.      0.    0.580  62.37   rne_physics_native::world_step::step_world
+0.      0.    0.010   1.08   std::rt::lang_start::{{closure}}
+0.      0.    0.010   1.08   std::rt::lang_start_internal
+0.      0.    0.010   1.08   std::sys::backtrace::__rust_begin_short_backtrace
+

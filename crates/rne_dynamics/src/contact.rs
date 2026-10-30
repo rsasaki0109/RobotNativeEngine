@@ -270,6 +270,9 @@ pub fn solve_contact_impulses(
         })
         .collect();
 
+    let sparse_bias = SparseBiasRows::new(delassus);
+    let mut finite_impulses =
+        sparse_bias.is_some() && impulses.iter().flatten().all(|v| v.is_finite());
     let mut iterations = 0;
     let mut last_change = 0.0;
     let mut converged = count == 0;
@@ -284,20 +287,14 @@ pub fn solve_contact_impulses(
             let mut bias = [0.0; 3];
             for (axis, value) in bias.iter_mut().enumerate() {
                 let row = 3 * contact + axis;
-                let mut sum = free_velocity_m_s[row];
-                let coefficients = &delassus.data()[row * size..(row + 1) * size];
-                for (other, (coefficients, impulse)) in
-                    coefficients.chunks_exact(3).zip(&impulses).enumerate()
-                {
-                    if other == contact {
-                        continue;
-                    }
-                    // Keep the original scalar addition order, including zero terms.
-                    sum += coefficients[0] * impulse[0];
-                    sum += coefficients[1] * impulse[1];
-                    sum += coefficients[2] * impulse[2];
-                }
-                *value = sum;
+                *value = sparse_bias
+                    .as_ref()
+                    .and_then(|sparse| {
+                        sparse.evaluate(row, free_velocity_m_s[row], &impulses, finite_impulses)
+                    })
+                    .unwrap_or_else(|| {
+                        dense_contact_bias(delassus, row, free_velocity_m_s[row], &impulses)
+                    });
             }
             let (local, state) = solve_single_contact(
                 &blocks[contact],
@@ -316,6 +313,9 @@ pub fn solve_contact_impulses(
                 + (blended[2] - previous[2]).powi(2))
             .sqrt();
             last_change = last_change.max(change);
+            if sparse_bias.is_some() {
+                finite_impulses &= blended.iter().all(|v| v.is_finite());
+            }
             impulses[contact] = blended;
             states[contact] = state;
         }
@@ -338,6 +338,75 @@ pub fn solve_contact_impulses(
         converged,
         last_change_n_s: last_change,
     })
+}
+
+/// Exact nonzero off-diagonal rows, preserving scalar column order.
+/// Small or dense systems retain the original scan; no magnitude threshold is used.
+struct SparseBiasRows {
+    offsets: Vec<usize>,
+    entries: Vec<(usize, f64)>,
+}
+
+impl SparseBiasRows {
+    fn new(matrix: &DenseMatrix) -> Option<Self> {
+        let size = matrix.rows();
+        if size < 96 {
+            return None;
+        }
+        let budget = matrix.data().len() / 4;
+        let mut offsets = Vec::with_capacity(size + 1);
+        let mut entries = Vec::new();
+        offsets.push(0);
+        for (row, coefficients) in matrix.data().chunks_exact(size).enumerate() {
+            for (column, &coefficient) in coefficients.iter().enumerate() {
+                if column / 3 != row / 3 && coefficient != 0.0 {
+                    if entries.len() == budget {
+                        return None;
+                    }
+                    entries.push((column, coefficient));
+                }
+            }
+            offsets.push(entries.len());
+        }
+        Some(Self { offsets, entries })
+    }
+
+    /// Caller must ensure every impulse is finite, including skipped columns.
+    fn evaluate(
+        &self,
+        row: usize,
+        free: f64,
+        impulses: &[[f64; 3]],
+        finite_impulses: bool,
+    ) -> Option<f64> {
+        // Adding signed zero can change -0 to +0. Retain the dense evaluation
+        // in that case. From any other finite seed, omitting zero products
+        // cannot change the sum's bits under round-to-nearest arithmetic.
+        if !finite_impulses || free.to_bits() == (-0.0_f64).to_bits() {
+            return None;
+        }
+        let mut sum = free;
+        for &(column, coefficient) in &self.entries[self.offsets[row]..self.offsets[row + 1]] {
+            sum += coefficient * impulses[column / 3][column % 3];
+        }
+        // Overflow/NaN must use the original operations, including zero terms.
+        sum.is_finite().then_some(sum)
+    }
+}
+
+fn dense_contact_bias(matrix: &DenseMatrix, row: usize, free: f64, impulses: &[[f64; 3]]) -> f64 {
+    let size = matrix.cols();
+    let coefficients = &matrix.data()[row * size..(row + 1) * size];
+    let mut sum = free;
+    for (other, (coefficients, impulse)) in coefficients.chunks_exact(3).zip(impulses).enumerate() {
+        if other == row / 3 {
+            continue;
+        }
+        sum += coefficients[0] * impulse[0];
+        sum += coefficients[1] * impulse[1];
+        sum += coefficients[2] * impulse[2];
+    }
+    sum
 }
 
 /// Whether every contact velocity change over one sweep is within tolerance.
@@ -1567,6 +1636,67 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn sparse_bias_matches_dense_bits_and_keeps_tiny_entries() {
+        let mut rng = Lcg(2941);
+        for count in [32, 33, 64] {
+            let size = 3 * count;
+            let mut matrix = DenseMatrix::zeros(size, size);
+            for row in 0..size {
+                for (offset, scale) in [(3, 1.0), (17, 1e-300), (41, 1e300)] {
+                    matrix.set(row, (row + offset) % size, rng.next() * scale);
+                }
+                matrix.set(row, (row + 1) % size, -0.0);
+            }
+            let sparse = SparseBiasRows::new(&matrix).unwrap();
+            assert!(sparse
+                .entries
+                .iter()
+                .any(|(_, v)| v.abs() < 1e-299 && *v != 0.0));
+            for scale in [0.0, 1.0, 1e-300, 1e300] {
+                let impulses: Vec<_> = (0..count)
+                    .map(|_| [rng.next() * scale, -0.0, rng.next() * scale])
+                    .collect();
+                for row in 0..size {
+                    for free in [0.0, -0.0, -1.0, 1e300] {
+                        let expected = dense_contact_bias(&matrix, row, free, &impulses);
+                        let actual = sparse
+                            .evaluate(row, free, &impulses, true)
+                            .unwrap_or_else(|| dense_contact_bias(&matrix, row, free, &impulses));
+                        assert_eq!(
+                            actual.to_bits(),
+                            expected.to_bits(),
+                            "count {count} row {row}"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn sparse_bias_falls_back_for_small_dense_and_nonfinite_cases() {
+        assert!(SparseBiasRows::new(&DenseMatrix::zeros(93, 93)).is_none());
+        let mut matrix = DenseMatrix::zeros(96, 96);
+        let sparse = SparseBiasRows::new(&matrix).unwrap();
+        let mut impulses = vec![[0.0; 3]; 32];
+        impulses[31][2] = f64::INFINITY;
+        assert!(sparse.evaluate(0, 0.0, &impulses, false).is_none());
+        assert!(dense_contact_bias(&matrix, 0, 0.0, &impulses).is_nan());
+        assert!(sparse.evaluate(0, -0.0, &[[0.0; 3]; 32], true).is_none());
+        matrix.set(0, 3, f64::MAX);
+        let sparse = SparseBiasRows::new(&matrix).unwrap();
+        impulses[31][2] = 0.0;
+        impulses[1][0] = 2.0;
+        assert!(sparse.evaluate(0, 0.0, &impulses, true).is_none());
+        for row in 0..96 {
+            for col in 0..96 {
+                matrix.set(row, col, 1.0);
+            }
+        }
+        assert!(SparseBiasRows::new(&matrix).is_none());
     }
 
     /// Small deterministic generator for test matrices.
