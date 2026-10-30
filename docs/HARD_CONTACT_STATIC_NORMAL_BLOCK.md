@@ -119,3 +119,5 @@ PythonにはNumPy、CPU固定にはLinux affinity APIが必要。
 [ソース・バイナリ・生データのSHA-256](evidence/contact-static-normal-provenance.json)。
 大きな姿勢・接触フレームを含む生データは `/workspace/artifacts/static-normal-{a,b}.json`
 に保存し、コミットする要約からフレームを除いた。永続的な共有URLは未整備。
+
+続く評価: [横速度・傾きを加えた積層の収束限界](HARD_CONTACT_DISTURBED_TOWER.md)。

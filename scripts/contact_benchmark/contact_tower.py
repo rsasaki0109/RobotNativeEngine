@@ -22,9 +22,9 @@ SOURCES = ['contact_tower.py', 'contact_bridge.py', 'contact_clusters.py',
            'contact_crowd.py', 'stack.py', 'box.py']
 
 
-def metrics(audit, count):
+def metrics(audit, count, *, layout="tower", initial=None):
     frames = audit['contact_frames']
-    if (count not in COUNTS or audit['count'] != count or audit['layout'] != 'tower'
+    if (count not in COUNTS or audit['count'] != count or audit['layout'] != layout
             or audit['mode'] != 'audit' or audit['debug_assertions']
             or audit['steps'] != 100 or audit['dt_ticks'] != 2000000
             or audit['margin_m'] != .02 or len(frames) != 100
@@ -35,10 +35,11 @@ def metrics(audit, count):
             or not np.allclose(poses[:,:,0], (np.arange(1,101)*.002)[:,None], atol=1e-12, rtol=0)
             or not np.allclose(np.linalg.norm(poses[:,:,4:8],axis=2), 1, atol=1e-10, rtol=0)):
         raise ValueError('invalid pose trace')
-    initial = np.zeros((count,8))
-    initial[:,0] = .002
-    initial[:,2] = .055 + np.arange(count)*.105 - 9.81*.002**2
-    initial[:,7] = 1
+    if initial is None:
+        initial = np.zeros((count,8))
+        initial[:,0] = .002
+        initial[:,2] = .055 + np.arange(count)*.105 - 9.81*.002**2
+        initial[:,7] = 1
     if not np.allclose(poses[0], initial, atol=1e-12, rtol=0):
         raise ValueError('first free-flight step differs')
     for f in frames:

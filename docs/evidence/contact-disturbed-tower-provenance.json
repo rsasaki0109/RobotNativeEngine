@@ -1,0 +1,65 @@
+{
+  "base_commit": "53efc84e58b96d63589ff379e375ddb44503092b",
+  "binary": {
+    "path": "/workspace/artifacts/contact-disturbed-tower-v1",
+    "bytes": 1547416,
+    "sha256": "7dda08b8bab8cd7153e113614446febe84a36d2637beaeffb8118ab7c7abc2d3"
+  },
+  "raw": {
+    "path": "/workspace/artifacts/contact-disturbed-tower-final.json",
+    "bytes": 5178120,
+    "sha256": "726cb651a7ee8a0c4cb9dc97cb2eea6fc435a5437d55d666b1153325065c1e00"
+  },
+  "sources": [
+    {
+      "path": "crates/rne_physics_native/examples/contact_crowd.rs",
+      "bytes": 12147,
+      "sha256": "80875c3ea01a540499876b202d2379a501fcf3b0d19e11d8d5cc656ed189cc86"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_disturbed_tower.py",
+      "bytes": 3514,
+      "sha256": "0153cfaf9889aff0da20d84b5e4ee6c9e58123290cda79fa6937550b536eda96"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_disturbed_tower.py",
+      "bytes": 4666,
+      "sha256": "6e344575e5ae87d7b2aa013d44b81fb3531e564c0f466ab610064ddda66863d9"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_static_normal.py",
+      "bytes": 6687,
+      "sha256": "847af642ffb94a42dcc09112ab8e440b1d23b9871ae0a417918a43aef48dbe41"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_tower.py",
+      "bytes": 6624,
+      "sha256": "ac32b59d418a5558b8025f489090316a9c7abe43a0599065cca88c2bb19b78c8"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_bridge.py",
+      "bytes": 7465,
+      "sha256": "d9c8cec81f42b546aa0e863d7d24a929f6e38283f708fed0f702e738db0a74c1"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_clusters.py",
+      "bytes": 5027,
+      "sha256": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_crowd.py",
+      "bytes": 4447,
+      "sha256": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87"
+    },
+    {
+      "path": "scripts/contact_benchmark/stack.py",
+      "bytes": 8530,
+      "sha256": "148d8dec128bee5c54a2d56a47bbf2968163b6b04a1c41717f17b8f607dc49cc"
+    },
+    {
+      "path": "scripts/contact_benchmark/box.py",
+      "bytes": 6066,
+      "sha256": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+    }
+  ]
+}

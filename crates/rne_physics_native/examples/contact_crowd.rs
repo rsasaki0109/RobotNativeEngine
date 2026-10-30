@@ -15,12 +15,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if !(2..=4).contains(&args.len()) {
         return Err(
-            "usage: contact_crowd COUNT audit|timing [separated|stacks|clusters|bridge|tower] [REPEATS]"
+            "usage: contact_crowd COUNT audit|timing [separated|stacks|clusters|bridge|tower|tower-slide|tower-tilt] [REPEATS]"
                 .into(),
         );
     }
     let layout = args.get(2).map_or("separated", String::as_str);
-    if !["separated", "stacks", "clusters", "bridge", "tower"].contains(&layout) {
+    if ![
+        "separated",
+        "stacks",
+        "clusters",
+        "bridge",
+        "tower",
+        "tower-slide",
+        "tower-tilt",
+    ]
+    .contains(&layout)
+    {
         return Err("unknown layout".into());
     }
     let count: usize = args[0].parse()?;
@@ -35,7 +45,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     if layout == "tower" && ![4, 8, 16].contains(&count) {
         return Err("tower requires 4, 8 or 16 boxes".into());
     }
-    if !["bridge", "tower"].contains(&layout) && ![1, 16, 64, 128].contains(&count) {
+    if ["tower-slide", "tower-tilt"].contains(&layout) && ![4, 8].contains(&count) {
+        return Err("disturbed towers require 4 or 8 boxes".into());
+    }
+    if layout != "bridge" && !layout.starts_with("tower") && ![1, 16, 64, 128].contains(&count) {
         return Err("count outside benchmark grid".into());
     }
     if ["stacks", "clusters"].contains(&layout) && ![64, 128].contains(&count) {
@@ -99,6 +112,11 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
             .spawn((
                 RigidBody {
                     mass_kg: 3.0,
+                    linear_velocity_m_s: if layout == "tower-slide" && index + 1 == count {
+                        Vec3::X * 0.1
+                    } else {
+                        Vec3::ZERO
+                    },
                     ..Default::default()
                 },
                 cube,
@@ -113,7 +131,11 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
                 },
                 Transform3::from_translation_rotation(
                     initial_position(index, count, layout),
-                    Quat::IDENTITY,
+                    if layout == "tower-tilt" {
+                        Quat::from_rotation_z(0.03)
+                    } else {
+                        Quat::IDENTITY
+                    },
                 ),
             ))
             .id();
@@ -155,7 +177,7 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
                     "pre_step_dynamic_penetration_m":penetration,"max_solver_iterations":iterations,
                     "all_solver_stopping_flags":converged,"generated":pipeline.generated_candidates,
                     "retained":pipeline.retained_candidates});
-                if layout == "tower" {
+                if layout.starts_with("tower") {
                     // Raw world-space data for an independent contact-law audit.
                     let samples: Vec<_> = points
                         .iter()
@@ -181,7 +203,7 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
                         .collect();
                     frame["contact_samples"] = json!(samples);
                 }
-                if ["bridge", "tower"].contains(&layout) {
+                if layout == "bridge" || layout.starts_with("tower") {
                     // Post-step poses allow an independent all-pairs OBB audit.
                     let poses: Vec<_> = entities
                         .iter()
@@ -239,7 +261,7 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
 
 fn initial_position(index: usize, count: usize, layout: &str) -> Vec3 {
     match layout {
-        "tower" => Vec3::new(0.0, 0.055 + index as f64 * 0.105, 0.0),
+        "tower" | "tower-slide" | "tower-tilt" => Vec3::new(0.0, 0.055 + index as f64 * 0.105, 0.0),
         "bridge" => {
             let lower = count.div_ceil(2);
             let upper = index >= lower;
