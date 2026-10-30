@@ -70,6 +70,7 @@
 #![deny(missing_docs)]
 
 mod assembly;
+mod box_pairs;
 mod collide;
 mod hull;
 mod mesh;

@@ -253,3 +253,8 @@ must match at every step; timing runs must match the audited final hash. Timing
 uses one CPU, warmups, five alternating before/after samples, and medians. Build
 the same `contact_crowd` example against each backend revision before measuring.
 See [face rejection results](../../docs/HARD_CONTACT_FACE_REJECTION.md).
+
+The same paired benchmark also covers the subsequent
+[conservative box-pair sweep](../../docs/HARD_CONTACT_BOX_SWEEP.md), using PR #480
+as its baseline. The sweep is enabled for worlds with at least 64 moving colliders;
+unknown shapes retain the original pair enumeration.

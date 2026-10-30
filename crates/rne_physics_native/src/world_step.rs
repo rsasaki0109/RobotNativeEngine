@@ -411,6 +411,18 @@ fn contact_candidates(
     margin_m: f64,
 ) -> Vec<Candidate> {
     let mut candidates = Vec::new();
+    // Small worlds avoid the sweep setup. Unknown/non-box shapes retain all
+    // pairs; box neighbors are sorted back into the original moving order.
+    let neighbors = (moving.len() >= 64).then(|| {
+        let bounds: Vec<_> = moving
+            .iter()
+            .map(|entry| {
+                cuboid_half(&entry.collider.shape)
+                    .map(|half| (entry.collider.pose.translation, half.length()))
+            })
+            .collect();
+        crate::box_pairs::candidates(&bounds, margin_m)
+    });
     let side_of = |assembly: usize, body: usize| {
         let entry = &assemblies[assembly].bodies[body];
         Side {
@@ -467,7 +479,17 @@ fn contact_candidates(
                     }
                 }
             }
-            for other in moving {
+            let indices = neighbors.as_ref().and_then(|lists| {
+                let index = moving
+                    .binary_search_by_key(&(assembly_index, body_index), |entry| {
+                        (entry.assembly, entry.body)
+                    })
+                    .ok()?;
+                lists[index].as_deref()
+            });
+            for position in 0..indices.map_or(moving.len(), <[usize]>::len) {
+                let other_index = indices.map_or(position, |list| list[position]);
+                let other = &moving[other_index];
                 let (groups, other_groups) = if body.self_collision_owner.is_some()
                     || other.collider.self_collision_owner.is_some()
                 {
