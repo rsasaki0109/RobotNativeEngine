@@ -1,0 +1,27 @@
+{
+  "evidence_kind": "single exploratory audit; not a paired timing/replay comparison",
+  "count": 63,
+  "quality": {
+    "floor_penetration_m": 7.926938615040964e-10,
+    "pair_penetration_m": 3.6216858678717045e-10,
+    "final_loaded_pairs": 62,
+    "connected_steps": 78,
+    "max_solver_iterations": 131,
+    "unconverged_steps": 0,
+    "gates": {
+      "floor_penetration_m": true,
+      "pair_penetration_m": true,
+      "final_connected": true,
+      "expected_final_support": true,
+      "solver_stopped": true
+    },
+    "passed": true
+  },
+  "raw_artifact": {
+    "path": "/workspace/artifacts/bridge-probe-63.json",
+    "sha256": "1156501be5cf3da7ce6c51be85d36839d721fd62b8a5b39222bf27e2dd476557",
+    "bytes": 875235
+  },
+  "audit_elapsed_s": 107.65146254,
+  "final_hash": 8683538621287182574
+}

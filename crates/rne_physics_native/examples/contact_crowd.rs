@@ -15,11 +15,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if !(2..=4).contains(&args.len()) {
         return Err(
-            "usage: contact_crowd COUNT audit|timing [separated|stacks|clusters] [REPEATS]".into(),
+            "usage: contact_crowd COUNT audit|timing [separated|stacks|clusters|bridge] [REPEATS]"
+                .into(),
         );
     }
     let layout = args.get(2).map_or("separated", String::as_str);
-    if !["separated", "stacks", "clusters"].contains(&layout) {
+    if !["separated", "stacks", "clusters", "bridge"].contains(&layout) {
         return Err("unknown layout".into());
     }
     let count: usize = args[0].parse()?;
@@ -28,10 +29,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         "timing" => false,
         _ => return Err("expected audit or timing".into()),
     };
-    if ![1, 16, 64, 128].contains(&count) {
+    if layout == "bridge" && ![15, 31, 63].contains(&count) {
+        return Err("bridge requires 15, 31 or 63 boxes".into());
+    }
+    if layout != "bridge" && ![1, 16, 64, 128].contains(&count) {
         return Err("count outside benchmark grid".into());
     }
-    if layout != "separated" && ![64, 128].contains(&count) {
+    if ["stacks", "clusters"].contains(&layout) && ![64, 128].contains(&count) {
         return Err("contact layouts require 64 or 128 boxes".into());
     }
     let repeats: usize = args.get(3).map_or(Ok(1), |s| s.parse())?;
@@ -105,7 +109,7 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
                     iyz_kg_m2: 0.0,
                 },
                 Transform3::from_translation_rotation(
-                    initial_position(index, layout),
+                    initial_position(index, count, layout),
                     Quat::IDENTITY,
                 ),
             ))
@@ -144,10 +148,32 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
                 let pipeline = backend
                     .contact_pipeline_diagnostics(id)?
                     .ok_or("missing pipeline")?;
-                contact_frames.push(json!({"loaded_dynamic_pairs":loaded_pairs,
+                let mut frame = json!({"loaded_dynamic_pairs":loaded_pairs,
                     "pre_step_dynamic_penetration_m":penetration,"max_solver_iterations":iterations,
                     "all_solver_stopping_flags":converged,"generated":pipeline.generated_candidates,
-                    "retained":pipeline.retained_candidates}));
+                    "retained":pipeline.retained_candidates});
+                if layout == "bridge" {
+                    // Post-step poses allow an independent all-pairs OBB audit.
+                    let poses: Vec<_> = entities
+                        .iter()
+                        .map(|&entity| {
+                            let pose = world.get::<Transform3>(entity).expect("box pose");
+                            let q = pose.rotation;
+                            vec![
+                                (tick + 1) as f64 * 0.002,
+                                pose.translation.x,
+                                pose.translation.y,
+                                pose.translation.z,
+                                q.x,
+                                q.y,
+                                q.z,
+                                q.w,
+                            ]
+                        })
+                        .collect();
+                    frame["post_step_poses"] = json!(poses);
+                }
+                contact_frames.push(frame);
             }
             hashes.push(
                 capture_physics_snapshot(
@@ -182,8 +208,18 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
     )
 }
 
-fn initial_position(index: usize, layout: &str) -> Vec3 {
+fn initial_position(index: usize, count: usize, layout: &str) -> Vec3 {
     match layout {
+        "bridge" => {
+            let lower = count.div_ceil(2);
+            let upper = index >= lower;
+            let column = if upper { index - lower } else { index };
+            Vec3::new(
+                (column as f64 - (lower - 1) as f64 / 2.0 + if upper { 0.5 } else { 0.0 }) * 0.105,
+                if upper { 0.160 } else { 0.055 },
+                0.0,
+            )
+        }
         "stacks" => Vec3::new(
             ((index / 2) % 8) as f64 * 0.3,
             0.055 + (index % 2) as f64 * 0.105,
