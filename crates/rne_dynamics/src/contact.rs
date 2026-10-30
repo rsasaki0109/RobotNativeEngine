@@ -326,6 +326,7 @@ pub fn solve_contact_impulses(
                 &before,
                 &mut delta,
                 config.velocity_tolerance_m_s,
+                sparse_bias.as_ref(),
             );
     }
 
@@ -369,6 +370,26 @@ impl SparseBiasRows {
             offsets.push(entries.len());
         }
         Some(Self { offsets, entries })
+    }
+
+    /// Absolute velocity change, inserting the original self block in column order.
+    /// Caller verifies that every delta is finite, including skipped columns.
+    fn velocity_change(&self, row: usize, diagonal: &[f64], delta: &[f64]) -> Option<f64> {
+        let start = 3 * (row / 3);
+        let entries = &self.entries[self.offsets[row]..self.offsets[row + 1]];
+        let middle = entries.partition_point(|(column, _)| *column < start);
+        let mut sum = 0.0;
+        for &(column, coefficient) in &entries[..middle] {
+            sum += coefficient * delta[column];
+        }
+        for (coefficient, value) in diagonal.iter().zip(&delta[start..start + 3]) {
+            sum += coefficient * value;
+        }
+        for &(column, coefficient) in &entries[middle..] {
+            sum += coefficient * delta[column];
+        }
+        // abs erases the sign of zero. Nonfinite sums use the original row.
+        sum.is_finite().then_some(sum.abs())
     }
 
     /// Caller must ensure every impulse is finite, including skipped columns.
@@ -422,6 +443,7 @@ fn sweep_velocity_converged(
     before: &[[f64; 3]],
     delta: &mut [f64],
     tolerance_m_s: f64,
+    sparse: Option<&SparseBiasRows>,
 ) -> bool {
     if tolerance_m_s.is_nan() || tolerance_m_s < 0.0 {
         return false;
@@ -429,6 +451,32 @@ fn sweep_velocity_converged(
     for ((now, then), change) in impulses.iter().zip(before).zip(delta.chunks_exact_mut(3)) {
         change.copy_from_slice(&[now[0] - then[0], now[1] - then[1], now[2] - then[2]]);
     }
+    // On short rows, scanning contiguous coefficients is cheaper than the
+    // sparse indirection and its finite-delta check. Keep their original loop.
+    let Some(sparse) = sparse.filter(|_| delta.len() >= 192 && delta.iter().all(|v| v.is_finite()))
+    else {
+        return dense_velocity_converged(delassus, delta, tolerance_m_s);
+    };
+    delassus
+        .data()
+        .chunks_exact(delta.len())
+        .enumerate()
+        .all(|(index, row)| {
+            let start = 3 * (index / 3);
+            let change = sparse
+                .velocity_change(index, &row[start..start + 3], delta)
+                .unwrap_or_else(|| {
+                    row.iter()
+                        .zip(delta.iter())
+                        .map(|(a, b)| a * b)
+                        .sum::<f64>()
+                        .abs()
+                });
+            change.is_nan() || change <= tolerance_m_s
+        })
+}
+
+fn dense_velocity_converged(delassus: &DenseMatrix, delta: &[f64], tolerance_m_s: f64) -> bool {
     delassus
         .data()
         .chunks_exact(delta.len())
@@ -1627,7 +1675,8 @@ mod tests {
                                     &impulses,
                                     &vec![[0.0; 3]; count],
                                     &mut vec![0.0; dimension],
-                                    tolerance
+                                    tolerance,
+                                    None,
                                 ),
                                 maximum <= tolerance,
                             );
@@ -1697,6 +1746,61 @@ mod tests {
             }
         }
         assert!(SparseBiasRows::new(&matrix).is_none());
+    }
+
+    #[test]
+    fn sparse_velocity_stopping_matches_dense_with_self_blocks_and_overflow() {
+        for count in [32, 33, 63, 64, 65] {
+            let size = 3 * count;
+            let mut matrix = DenseMatrix::zeros(size, size);
+            for row in 0..size {
+                matrix.set(row, row, 1.5);
+                matrix.set(row, 3 * (row / 3) + (row + 1) % 3, -0.25);
+                matrix.set(row, (row + 7) % size, 0.125);
+                matrix.set(row, (row + 17) % size, 1e-300);
+            }
+            let sparse = SparseBiasRows::new(&matrix).unwrap();
+            for scale in [0.0, -0.0, 1.0, 1e-300, 1e300, f64::MAX, f64::INFINITY] {
+                let before = vec![[scale, -scale, scale]; count];
+                let impulses = vec![[-scale, scale, scale]; count];
+                for tolerance in [0.0, 1e-8, 1.0, 1e300, f64::INFINITY, f64::NAN, -1.0] {
+                    let dense = sweep_velocity_converged(
+                        &matrix,
+                        &impulses,
+                        &before,
+                        &mut vec![0.0; size],
+                        tolerance,
+                        None,
+                    );
+                    let compressed = sweep_velocity_converged(
+                        &matrix,
+                        &impulses,
+                        &before,
+                        &mut vec![0.0; size],
+                        tolerance,
+                        Some(&sparse),
+                    );
+                    assert_eq!(
+                        dense, compressed,
+                        "count {count}, scale {scale}, tolerance {tolerance}"
+                    );
+                }
+            }
+            let delta: Vec<_> = (0..size).map(|i| (i as f64 - 11.0) * 0.25).collect();
+            for (index, row) in matrix.data().chunks_exact(size).enumerate() {
+                let start = 3 * (index / 3);
+                let expected = row
+                    .iter()
+                    .zip(&delta)
+                    .map(|(a, b)| a * b)
+                    .sum::<f64>()
+                    .abs();
+                let actual = sparse
+                    .velocity_change(index, &row[start..start + 3], &delta)
+                    .unwrap();
+                assert_eq!(actual.to_bits(), expected.to_bits());
+            }
+        }
     }
 
     /// Small deterministic generator for test matrices.

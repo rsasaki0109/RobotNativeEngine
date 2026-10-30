@@ -1,0 +1,351 @@
+{
+  "protocol": "external_process_cpu_diagnostic_v1",
+  "scope": "CPU includes startup, initialization, stepping and output; step wall excludes setup/output. Not interchangeable cost measures.",
+  "cpu_affinity": [
+    0
+  ],
+  "binary_sha256": {
+    "before": "acc7349b4d06ac12aa0b838dc601bde8b22fd1a4756cc84f8589db6e7e7ba9a3",
+    "after": "e966bafef76609a386120e608de6b6ff609884dff3159239eba7c0053d2c7a49"
+  },
+  "samples": {
+    "before": [
+      {
+        "process_cpu_s": 0.46588000000000007,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.462054774,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.42726499999999995,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.424301512,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.45478199999999985,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.450924329,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.4506870000000001,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.447959442,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.4311449999999999,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.427890327,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.4229630000000003,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.419524722,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.4269279999999994,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.424159068,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.6208240000000009,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.613726661,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.7681340000000003,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.760317935,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      }
+    ],
+    "after": [
+      {
+        "process_cpu_s": 0.47850699999999985,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.474210685,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.42624700000000043,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.423300783,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.4864430000000005,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.483063368,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.4496149999999999,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.438546725,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.4197330000000001,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.417138706,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.4599129999999999,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.455935907,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.44601699999999933,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.441545037,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.5746020000000001,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.569045734,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      },
+      {
+        "process_cpu_s": 0.48880400000000035,
+        "sample": {
+          "contact_frames": [],
+          "count": 64,
+          "debug_assertions": false,
+          "dt_ticks": 2000000,
+          "elapsed_s": 0.483259373,
+          "final_hash": 9688919098293502477,
+          "hashes": [],
+          "layout": "clusters",
+          "margin_m": 0.02,
+          "max_penetration_m": null,
+          "max_spin_rad_s": null,
+          "mode": "timing",
+          "steps": 100
+        }
+      }
+    ]
+  },
+  "medians": {
+    "before": {
+      "process_cpu_s": 0.4506870000000001,
+      "step_wall_s": 0.447959442
+    },
+    "after": {
+      "process_cpu_s": 0.4599129999999999,
+      "step_wall_s": 0.455935907
+    }
+  }
+}
