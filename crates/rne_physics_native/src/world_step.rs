@@ -192,6 +192,7 @@ pub(crate) fn step_world(
                     friction_coefficient: contact.friction_coefficient,
                     solver_iterations: step.solver_iterations,
                     solver_converged: step.solver_converged,
+                    solver_contact_law_satisfied: step.solver_contact_law_satisfied,
                 });
             }
             records.push(ContactRecord {

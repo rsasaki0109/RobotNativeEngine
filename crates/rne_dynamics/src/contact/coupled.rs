@@ -85,6 +85,8 @@ pub struct CoupledStep {
     pub solver_iterations: usize,
     /// Whether the contact solver converged within its sweep budget.
     pub solver_converged: bool,
+    /// Coupled contact-law validation; see [`super::ContactSolution::contact_law_satisfied`].
+    pub solver_contact_law_satisfied: bool,
 }
 
 /// Quantities of one model that do not depend on actuator saturation.
@@ -413,6 +415,7 @@ fn solve(
             saturated_joints: Vec::new(),
             solver_iterations: solution.iterations,
             solver_converged: solution.converged,
+            solver_contact_law_satisfied: solution.contact_law_satisfied,
         });
     }
     let outcomes = solution.impulses_n_s[..count]
@@ -431,6 +434,7 @@ fn solve(
         contacts: outcomes,
         solver_iterations: solution.iterations,
         solver_converged: solution.converged,
+        solver_contact_law_satisfied: solution.contact_law_satisfied,
     })
 }
 

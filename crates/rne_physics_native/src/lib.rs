@@ -180,6 +180,10 @@ pub struct NativeContactImpulse {
     pub solver_iterations: usize,
     /// Island solver stopping flag, not an independent complementarity certificate.
     pub solver_converged: bool,
+    /// Island contact-law check using solver tolerances and normal compliance.
+    /// Independent of the iterate-change stopping flag; friction alignment is
+    /// velocity-scaled rather than an absolute dissipation-energy bound.
+    pub solver_contact_law_satisfied: bool,
 }
 
 /// Counts of contact candidates at successive stages, before solving islands.

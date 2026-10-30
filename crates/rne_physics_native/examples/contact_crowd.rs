@@ -158,6 +158,7 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
                 let mut penetration: f64 = 0.0;
                 let mut iterations = 0;
                 let mut converged = true;
+                let mut law_satisfied = true;
                 for point in points {
                     if point.body_entity != floor_entity && point.other_entity != floor_entity {
                         penetration = penetration.max(-point.gap_m);
@@ -169,13 +170,14 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
                     }
                     iterations = iterations.max(point.solver_iterations);
                     converged &= point.solver_converged;
+                    law_satisfied &= point.solver_contact_law_satisfied;
                 }
                 let pipeline = backend
                     .contact_pipeline_diagnostics(id)?
                     .ok_or("missing pipeline")?;
                 let mut frame = json!({"loaded_dynamic_pairs":loaded_pairs,
                     "pre_step_dynamic_penetration_m":penetration,"max_solver_iterations":iterations,
-                    "all_solver_stopping_flags":converged,"generated":pipeline.generated_candidates,
+                    "all_solver_stopping_flags":converged,"all_contact_law_flags":law_satisfied,"generated":pipeline.generated_candidates,
                     "retained":pipeline.retained_candidates});
                 if layout.starts_with("tower") {
                     // Raw world-space data for an independent contact-law audit.

@@ -29,6 +29,7 @@
 
 mod coupled;
 mod normal;
+mod residual;
 
 pub use coupled::{
     contact_step_coupled, contact_step_coupled_with_external_forces, ContactAnchor, CoupledBody,
@@ -158,6 +159,11 @@ pub struct ContactSolution {
     /// Whether a block candidate satisfied complementarity, or the sweep
     /// impulse/velocity change dropped below the configured tolerance.
     pub converged: bool,
+    /// Whether the current coupled contact law passes the configured impulse
+    /// and velocity tolerances, including normal compliance. Independent of
+    /// the iterate-change stopping flag. Friction alignment is velocity-scaled,
+    /// not an absolute dissipation-energy bound.
+    pub contact_law_satisfied: bool,
     /// Largest per-contact impulse change in the last sweep, or from the warm
     /// start to the block solution, in newton-seconds.
     pub last_change_n_s: f64,
@@ -319,6 +325,13 @@ pub fn solve_contact_impulses(
             );
     }
 
+    let contact_law_satisfied = residual::satisfied(
+        delassus,
+        free_velocity_m_s,
+        friction_coefficients,
+        &impulses,
+        config,
+    );
     Ok(ContactSolution {
         impulses_n_s: impulses,
         states,
@@ -326,6 +339,7 @@ pub fn solve_contact_impulses(
         normal_block_iterations,
         normal_block_solved: false,
         converged,
+        contact_law_satisfied,
         last_change_n_s: last_change,
     })
 }
@@ -779,6 +793,8 @@ pub struct ContactStep {
     pub solver_iterations: usize,
     /// Whether the contact solver converged within its sweep budget.
     pub solver_converged: bool,
+    /// Coupled contact-law validation; see [`ContactSolution::contact_law_satisfied`].
+    pub solver_contact_law_satisfied: bool,
 }
 
 /// Advances an articulated model one step with hard contacts and implicit PD.
@@ -1085,6 +1101,7 @@ fn step_with_actuation(
         saturated_joints: Vec::new(),
         solver_iterations: solution.iterations,
         solver_converged: solution.converged,
+        solver_contact_law_satisfied: solution.contact_law_satisfied,
     })
 }
 
