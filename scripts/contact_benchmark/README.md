@@ -161,3 +161,11 @@ and conditional comparison. See
 initial gaps to vary analytic impact phase in both backends. `--verify` recomputes
 all eight saved records. A failed or missing phase suppresses the comparison.
 See [protocol and results](../../docs/HARD_CONTACT_STACK_PHASE_RESULTS.md).
+
+## H4 frictional sliding
+
+Build `--example friction_slide`, then run `slide.py BINARY NEW_OUTPUT.json.xz`
+and repeat with `--verify` to recompute all 32 records. The fixed analytic gates
+cover speed, stopping distance/time, penetration, energy and lateral/rotational
+drift. `RNE_SLIDE` enables the native high-friction integration test. See
+[protocol and results](../../docs/HARD_CONTACT_FRICTION_SLIDE_RESULTS.md).

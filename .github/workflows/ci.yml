@@ -122,10 +122,10 @@ jobs:
           python-version: "3.11"
       - name: H1 analytic audit tests and native/MuJoCo batch comparison
         run: |
-          cargo build --locked --release -p rne_physics_native --example contact_drop --example box_drop --example stack_drop
+          cargo build --locked --release -p rne_physics_native --example contact_drop --example box_drop --example stack_drop --example friction_slide
           python -m venv .venv-contact
           .venv-contact/bin/pip install -r examples/116_robot_workbench/python/requirements-mujoco.txt
-          RNE_STACK_DROP=target/release/examples/stack_drop RNE_BOX_DROP=target/release/examples/box_drop RNE_CONTACT_DROP=target/release/examples/contact_drop .venv-contact/bin/python -m unittest discover -s scripts/contact_benchmark -v
+          RNE_SLIDE=target/release/examples/friction_slide RNE_STACK_DROP=target/release/examples/stack_drop RNE_BOX_DROP=target/release/examples/box_drop RNE_CONTACT_DROP=target/release/examples/contact_drop .venv-contact/bin/python -m unittest discover -s scripts/contact_benchmark -v
           .venv-contact/bin/python scripts/contact_benchmark/drop.py target/release/examples/contact_drop "$RUNNER_TEMP/contact-drop.json.gz"
           .venv-contact/bin/python scripts/contact_benchmark/matched.py target/release/examples/contact_drop "$RUNNER_TEMP/contact-matched" --overdamped
           .venv-contact/bin/python scripts/contact_benchmark/verify_matched.py "$RUNNER_TEMP/contact-matched/report.json" --require-comparison
@@ -154,6 +154,11 @@ jobs:
         run: |
           .venv-contact/bin/python scripts/contact_benchmark/stack_phase.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-phase"
           .venv-contact/bin/python scripts/contact_benchmark/stack_phase.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-phase" --verify
+      - name: Analytic Coulomb sliding audit
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/slide.py target/release/examples/friction_slide "$RUNNER_TEMP/friction-slide.json.xz"
+          .venv-contact/bin/python scripts/contact_benchmark/slide.py target/release/examples/friction_slide "$RUNNER_TEMP/friction-slide.json.xz" --verify
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -166,6 +171,7 @@ jobs:
             ${{ runner.temp }}/mujoco-stack.json.xz
             ${{ runner.temp }}/stack-matched/
             ${{ runner.temp }}/stack-phase/
+            ${{ runner.temp }}/friction-slide.json.xz
           if-no-files-found: warn
 
   headless:

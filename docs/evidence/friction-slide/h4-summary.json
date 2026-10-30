@@ -1,0 +1,2558 @@
+{
+  "protocol": "friction_slide_h4_v1",
+  "status": "complete",
+  "gates": {
+    "max_penetration_m": 1e-05,
+    "distance_error_m": 0.001,
+    "stop_time_error_s": 0.004,
+    "velocity_error_m_s": 0.01,
+    "settled_speed_m_s": 0.001,
+    "settled_spin_rad_s": 0.01,
+    "lateral_drift_m": 1e-05,
+    "energy_excess_fraction": 1e-06
+  },
+  "cpu_affinity": [
+    0
+  ],
+  "binary_sha256": "a92361f581d2166c8d16aa9efb6e07b85b30fdf04cc514737286279fab46d1c3",
+  "source_sha256": {
+    "slide.py": "ecd8a06cb8c30d9bf4bded7b531f2a5f108f06b359ddc8f10b01e021dc17a8f0",
+    "box.py": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+  },
+  "results": [
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.023482331,
+        "final_state": [
+          2.0,
+          0.010093737719829987,
+          0.05000000010698506,
+          -1.9756274043434914e-11,
+          -6.48925357893404e-12,
+          -2.1970243120928713e-10,
+          -4.2646990388806925e-12,
+          1.0,
+          2.4284393940199323e-11,
+          -4.46975789714088e-10,
+          1.9124842012631718e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.2705071771350826e-12,
+        "distance_error_m": 9.994204672290896e-05,
+        "stop_time_error_s": 6.320233447106027e-05,
+        "velocity_error_m_s": 1.651699541027618e-07,
+        "settled_speed_m_s": 9.539140722754653e-10,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 2.110062857028088e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.010193679766552896,
+        "analytic_stop_time_s": 0.10193679766552895,
+        "final_distance_m": 0.010093737719829987,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.011019902,
+        0.010755784499999999,
+        0.0105043515,
+        0.0101566905,
+        0.0108566105
+      ],
+      "median_cost": 0.010755784499999999
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.022701369,
+        "final_state": [
+          2.0,
+          0.010093738297031057,
+          0.04999995096525625,
+          -4.629045606916389e-10,
+          2.6785740292467608e-11,
+          -4.563566235282597e-09,
+          3.344894022441517e-10,
+          1.0,
+          5.463650365467032e-10,
+          -3.709532681028804e-11,
+          -4.715570938704075e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 5.885791197916659e-08,
+        "distance_error_m": 9.994146952183904e-05,
+        "stop_time_error_s": 6.320233447106027e-05,
+        "velocity_error_m_s": 1.9600628165805656e-06,
+        "settled_speed_m_s": 2.323705405151562e-09,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 6.516075535003942e-10,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.010193679766552896,
+        "analytic_stop_time_s": 0.10193679766552895,
+        "final_distance_m": 0.010093738297031057,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0107265965,
+        0.009967018000000001,
+        0.009465291,
+        0.0101028235,
+        0.0109472735
+      ],
+      "median_cost": 0.0101028235
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.020538628,
+        "final_state": [
+          2.0,
+          0.003977899740738375,
+          0.050000000448433196,
+          2.5732644030916857e-12,
+          -1.672800786778339e-11,
+          8.446273344930347e-11,
+          2.8249296787711447e-11,
+          1.0,
+          -1.1247079656495629e-11,
+          -1.8368015441971863e-09,
+          -4.236219276528761e-12,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 6.622919074227513e-13,
+        "distance_error_m": 9.957222664184941e-05,
+        "stop_time_error_s": 0.00022528032619775762,
+        "velocity_error_m_s": 8.126381918077685e-08,
+        "settled_speed_m_s": 1.3572538569355534e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 1.1235737251238362e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.004077471967380225,
+        "analytic_stop_time_s": 0.040774719673802244,
+        "final_distance_m": 0.003977899740738375,
+        "measured_stop_time_s": 0.041,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.009887976,
+        0.0101231445,
+        0.009778202,
+        0.0106902035,
+        0.009886854
+      ],
+      "median_cost": 0.009887976
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.024853351,
+        "final_state": [
+          2.0,
+          0.003977955557199934,
+          0.049999951058871395,
+          -2.1151819110084107e-09,
+          3.350982269445524e-10,
+          3.2908239851128057e-07,
+          2.0103253432086617e-09,
+          0.9999999999999458,
+          7.024537201916203e-10,
+          -2.3996082898491977e-10,
+          -3.3322486150342553e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 7.356270966902662e-08,
+        "distance_error_m": 9.951641018029079e-05,
+        "stop_time_error_s": 0.00022528032619775762,
+        "velocity_error_m_s": 4.899930232643568e-06,
+        "settled_speed_m_s": 2.3651903059598225e-09,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 2.1151819110084107e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.004077471967380225,
+        "analytic_stop_time_s": 0.040774719673802244,
+        "final_distance_m": 0.003977955557199934,
+        "measured_stop_time_s": 0.041,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.010994069499999998,
+        0.012535057,
+        0.0117032105,
+        0.011889621,
+        0.012649746
+      ],
+      "median_cost": 0.011889621
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.5,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.03188946,
+        "final_state": [
+          2.0,
+          0.06346062899947227,
+          0.050000000059421484,
+          -3.3641419688396066e-11,
+          6.332323554403274e-12,
+          -3.3596154896526165e-10,
+          -7.73216340902181e-12,
+          1.0,
+          -5.564992910933597e-12,
+          2.0240503717516845e-08,
+          -2.086539214370255e-12,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 1.5812169456944246e-12,
+        "distance_error_m": 0.0002498695414833163,
+        "stop_time_error_s": 0.00015800583617764374,
+        "velocity_error_m_s": 1.7256432943701938e-07,
+        "settled_speed_m_s": 9.017380031808747e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 4.1912486743081736e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.06371049854095559,
+        "analytic_stop_time_s": 0.25484199416382236,
+        "final_distance_m": 0.06346062899947227,
+        "measured_stop_time_s": 0.255,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.014701065499999999,
+        0.0147686495,
+        0.015288116,
+        0.014564058,
+        0.0139077935
+      ],
+      "median_cost": 0.014701065499999999
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.5,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.022973764,
+        "final_state": [
+          2.0,
+          0.0634606294140052,
+          0.049999950971375,
+          -3.7153303767336495e-10,
+          3.8560987736246943e-11,
+          -3.60828740761913e-09,
+          4.709054047780088e-10,
+          1.0,
+          8.187062139342061e-10,
+          -5.2007009809784677e-11,
+          -7.134909216241416e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 5.8858425721506373e-08,
+        "distance_error_m": 0.0002498691269503944,
+        "stop_time_error_s": 0.00015800583617764374,
+        "velocity_error_m_s": 1.9600381667150835e-06,
+        "settled_speed_m_s": 2.013348476359113e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 6.791995476792311e-10,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.06371049854095559,
+        "analytic_stop_time_s": 0.25484199416382236,
+        "final_distance_m": 0.0634606294140052,
+        "measured_stop_time_s": 0.255,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.011382402,
+        0.0106226185,
+        0.0183605915,
+        0.0209968955,
+        0.016309498000000002
+      ],
+      "median_cost": 0.016309498000000002
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.5,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.022828573,
+        "final_state": [
+          2.0,
+          0.02523434466070619,
+          0.050000000229514646,
+          1.0946994865056713e-11,
+          -1.0705047959191916e-11,
+          1.744858782483456e-10,
+          1.467406121325295e-11,
+          1.0,
+          3.6012859361278515e-11,
+          7.759161368969814e-09,
+          2.115442107744844e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 1.3133815062386334e-11,
+        "distance_error_m": 0.00024985513542021,
+        "stop_time_error_s": 6.320081549440748e-05,
+        "velocity_error_m_s": 1.1527173643388622e-07,
+        "settled_speed_m_s": 9.241522586637005e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 1.7248656097259284e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.0254841997961264,
+        "analytic_stop_time_s": 0.1019367991845056,
+        "final_distance_m": 0.02523434466070619,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.011032604500000001,
+        0.0114359855,
+        0.0110734795,
+        0.011460244000000001,
+        0.0111203975
+      ],
+      "median_cost": 0.0111203975
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.5,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.025116253,
+        "final_state": [
+          2.0,
+          0.02523439625408187,
+          0.04999995108136501,
+          -8.038764416053748e-10,
+          3.920395119649811e-10,
+          3.045575045619453e-07,
+          2.412361356928535e-09,
+          0.9999999999999536,
+          4.230817085559835e-10,
+          -2.8947677588320175e-10,
+          2.209932117755284e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 7.357307794081104e-08,
+        "distance_error_m": 0.0002498035420445306,
+        "stop_time_error_s": 6.320081549440748e-05,
+        "velocity_error_m_s": 4.9000000161836255e-06,
+        "settled_speed_m_s": 2.2152672765076108e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 1.39487798424911e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.0254841997961264,
+        "analytic_stop_time_s": 0.1019367991845056,
+        "final_distance_m": 0.02523439625408187,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0124997515,
+        0.0123349585,
+        0.012794019,
+        0.012141942,
+        0.011765803
+      ],
+      "median_cost": 0.0123349585
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.022267114,
+        "final_state": [
+          2.0,
+          0.010093737692225274,
+          0.050000000772384784,
+          2.9034853738193487e-11,
+          4.2591707938299805e-11,
+          2.1444574003244483e-10,
+          -5.278675651003589e-11,
+          1.0,
+          -8.191364253562483e-12,
+          4.535030684316155e-08,
+          -3.0594269825914403e-12,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 1.2498015067241852e-12,
+        "distance_error_m": 9.994207432762262e-05,
+        "stop_time_error_s": 6.320233447106027e-05,
+        "velocity_error_m_s": 1.4925880421901017e-07,
+        "settled_speed_m_s": 8.962875585574331e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 3.0489328876959323e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.010193679766552896,
+        "analytic_stop_time_s": 0.10193679766552895,
+        "final_distance_m": 0.010093737692225274,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.010517232999999999,
+        0.010898591999999999,
+        0.011025112,
+        0.010502033,
+        0.010349607
+      ],
+      "median_cost": 0.010517232999999999
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.021455356,
+        "final_state": [
+          2.0,
+          0.010093738297031054,
+          0.049999950965256265,
+          -4.629045151977869e-10,
+          2.6785740292467608e-11,
+          -4.56356624731747e-09,
+          3.3448941033494053e-10,
+          1.0,
+          5.463650365467032e-10,
+          -3.7088387916384136e-11,
+          -4.715570152037735e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 5.885791197916867e-08,
+        "distance_error_m": 9.99414695218425e-05,
+        "stop_time_error_s": 6.320233447106027e-05,
+        "velocity_error_m_s": 1.9600628165805656e-06,
+        "settled_speed_m_s": 2.323707049371033e-09,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 6.516075850887772e-10,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.010193679766552896,
+        "analytic_stop_time_s": 0.10193679766552895,
+        "final_distance_m": 0.010093738297031054,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.010684793,
+        0.010285645,
+        0.0096720225,
+        0.0095629695,
+        0.010314215
+      ],
+      "median_cost": 0.010285645
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.022546612,
+        "final_state": [
+          2.0,
+          0.003977899741331933,
+          0.05000000036725637,
+          2.7913099013305217e-12,
+          -1.4545975535185107e-11,
+          8.445598504402881e-11,
+          2.232044176251174e-11,
+          1.0,
+          -1.1443103409281008e-11,
+          -1.8670967549816453e-09,
+          -4.239940102859057e-12,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 6.622919074227513e-13,
+        "distance_error_m": 9.957222604829122e-05,
+        "stop_time_error_s": 0.00022528032619775762,
+        "velocity_error_m_s": 8.126381918077685e-08,
+        "settled_speed_m_s": 1.3534029790055694e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 1.1205225866402196e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.004077471967380225,
+        "analytic_stop_time_s": 0.040774719673802244,
+        "final_distance_m": 0.003977899741331933,
+        "measured_stop_time_s": 0.041,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.010759313500000001,
+        0.009912364,
+        0.0101766295,
+        0.009947113,
+        0.0102712405
+      ],
+      "median_cost": 0.0101766295
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.023392149,
+        "final_state": [
+          2.0,
+          0.003977955557199924,
+          0.049999951058871395,
+          -2.115182065168613e-09,
+          3.350982269445524e-10,
+          3.29082398560719e-07,
+          2.0103253402244058e-09,
+          0.9999999999999458,
+          7.024545875533583e-10,
+          -2.3996082898491977e-10,
+          -3.3322484546108473e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 7.356270966903566e-08,
+        "distance_error_m": 9.951641018030033e-05,
+        "stop_time_error_s": 0.00022528032619775762,
+        "velocity_error_m_s": 4.899930232643568e-06,
+        "settled_speed_m_s": 2.365190409522432e-09,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 2.115182065168613e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.004077471967380225,
+        "analytic_stop_time_s": 0.040774719673802244,
+        "final_distance_m": 0.003977955557199924,
+        "measured_stop_time_s": 0.041,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0111733295,
+        0.011024055,
+        0.0117589495,
+        0.011863197,
+        0.011478949499999998
+      ],
+      "median_cost": 0.011478949499999998
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.5,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.030428118,
+        "final_state": [
+          2.0,
+          0.06346062898821007,
+          0.0500000001016716,
+          -5.98829592526357e-11,
+          -3.0356273050813343e-12,
+          -6.274914564458619e-10,
+          -7.221779624536382e-12,
+          1.0,
+          -8.743006318923108e-13,
+          -1.4203915821298096e-11,
+          -6.873807156824945e-13,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.1997204215774753e-12,
+        "distance_error_m": 0.0002498695527455158,
+        "stop_time_error_s": 0.00015800583617764374,
+        "velocity_error_m_s": 1.726860757722548e-07,
+        "settled_speed_m_s": 7.52817642039497e-11,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 6.022405801168436e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.06371049854095559,
+        "analytic_stop_time_s": 0.25484199416382236,
+        "final_distance_m": 0.06346062898821007,
+        "measured_stop_time_s": 0.255,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0145171555,
+        0.0140075725,
+        0.0143849635,
+        0.0142082325,
+        0.0139761325
+      ],
+      "median_cost": 0.0142082325
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.5,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.021546107,
+        "final_state": [
+          2.0,
+          0.06346062941400521,
+          0.049999950971375,
+          -3.7153317098588164e-10,
+          3.8560987736246943e-11,
+          -3.6082873884800547e-09,
+          4.709053680158591e-10,
+          1.0,
+          8.187062139342061e-10,
+          -5.200007091588077e-11,
+          -7.134939678385496e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 5.885842572443735e-08,
+        "distance_error_m": 0.00024986912695038055,
+        "stop_time_error_s": 0.00015800583617764374,
+        "velocity_error_m_s": 1.9600381667150835e-06,
+        "settled_speed_m_s": 2.013348961891961e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 6.791995381944547e-10,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.06371049854095559,
+        "analytic_stop_time_s": 0.25484199416382236,
+        "final_distance_m": 0.06346062941400521,
+        "measured_stop_time_s": 0.255,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0104250565,
+        0.0108658015,
+        0.0116291905,
+        0.0106788215,
+        0.010214075000000001
+      ],
+      "median_cost": 0.0106788215
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.5,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.024274982,
+        "final_state": [
+          2.0,
+          0.025234344687776748,
+          0.05000000021266822,
+          1.891705467768695e-11,
+          -7.751188579874224e-12,
+          4.168732637589616e-11,
+          1.3596398276027006e-11,
+          1.0,
+          -1.075181610410425e-11,
+          -4.697351535520866e-08,
+          -3.995024071740117e-12,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 1.3851507494185174e-11,
+        "distance_error_m": 0.0002498551083496524,
+        "stop_time_error_s": 6.320081549440748e-05,
+        "velocity_error_m_s": 3.3273105298770034e-07,
+        "settled_speed_m_s": 1.3701146809291574e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 2.5488355905115157e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.0254841997961264,
+        "analytic_stop_time_s": 0.1019367991845056,
+        "final_distance_m": 0.025234344687776748,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.012241891,
+        0.0191279885,
+        0.0147043965,
+        0.0121467055,
+        0.011782026499999999
+      ],
+      "median_cost": 0.012241891
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.5,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.032701557,
+        "final_state": [
+          2.0,
+          0.025234396254081838,
+          0.04999995108136501,
+          -8.038760201425027e-10,
+          3.920395119649811e-10,
+          3.045575045797011e-07,
+          2.4123613978258267e-09,
+          0.9999999999999536,
+          4.2307823910903153e-10,
+          -2.8947677588320175e-10,
+          2.2099326161936417e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 7.357307794084365e-08,
+        "distance_error_m": 0.00024980354204456184,
+        "stop_time_error_s": 6.320081549440748e-05,
+        "velocity_error_m_s": 4.9000000161836255e-06,
+        "settled_speed_m_s": 2.215271579034114e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 1.3948779906097847e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.0254841997961264,
+        "analytic_stop_time_s": 0.1019367991845056,
+        "final_distance_m": 0.025234396254081838,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.011304479,
+        0.012634555,
+        0.011743864,
+        0.019372898,
+        0.0117631415
+      ],
+      "median_cost": 0.0117631415
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012346172,
+        "final_state": [
+          2.0,
+          0.009993799739494321,
+          0.05000000006059873,
+          3.569526783173132e-11,
+          1.935784865736423e-11,
+          3.097416175073732e-10,
+          -1.9256260285912994e-11,
+          1.0,
+          7.509765378999056e-10,
+          8.594229494729433e-09,
+          6.000942715088424e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 3.899997055895401e-12,
+        "distance_error_m": 0.00019988002705857537,
+        "stop_time_error_s": 6.320233447106027e-05,
+        "velocity_error_m_s": 6.820239627225444e-08,
+        "settled_speed_m_s": 1.3030491593570532e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 4.0286753286922204e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.010193679766552896,
+        "analytic_stop_time_s": 0.10193679766552895,
+        "final_distance_m": 0.009993799739494321,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005936782,
+        0.0060791395000000005,
+        0.0056055125,
+        0.0059416285,
+        0.0053975365
+      ],
+      "median_cost": 0.005936782
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012526621,
+        "final_state": [
+          2.0,
+          0.009993799969356024,
+          0.04999980379999968,
+          1.0982887391782962e-10,
+          8.540901319520344e-10,
+          4.1681023954851817e-10,
+          -1.0249083872470664e-09,
+          1.0,
+          -1.863457305129046e-10,
+          0.0,
+          -1.5529100060785982e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.354276001756892e-07,
+        "distance_error_m": 0.00019987979719687278,
+        "stop_time_error_s": 6.320233447106027e-05,
+        "velocity_error_m_s": 3.920026804771215e-06,
+        "settled_speed_m_s": 6.010770840141665e-10,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 2.510279928270276e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.010193679766552896,
+        "analytic_stop_time_s": 0.10193679766552895,
+        "final_distance_m": 0.009993799969356024,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.007147437,
+        0.004999935,
+        0.0050574339999999995,
+        0.004831009000000001,
+        0.004730838
+      ],
+      "median_cost": 0.004999935
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.0109558,
+        "final_state": [
+          2.0,
+          0.0038797997869136065,
+          0.050000000431675774,
+          3.8854877206055645e-11,
+          -2.135536192326981e-11,
+          4.729100904269007e-10,
+          2.7838927689686146e-11,
+          1.0,
+          3.89085465235528e-11,
+          9.182456878198408e-09,
+          2.2858447336114193e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 4.903129467577699e-11,
+        "distance_error_m": 0.00019767218046661808,
+        "stop_time_error_s": 0.0012252803261977585,
+        "velocity_error_m_s": 7.555282986737577e-08,
+        "settled_speed_m_s": 3.7227037595832643e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 4.7109691848552286e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.004077471967380225,
+        "analytic_stop_time_s": 0.040774719673802244,
+        "final_distance_m": 0.0038797997869136065,
+        "measured_stop_time_s": 0.042,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005445193,
+        0.0051373239999999995,
+        0.0058355429999999995,
+        0.005201989000000001,
+        0.0050527285
+      ],
+      "median_cost": 0.005201989000000001
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.013539537,
+        "final_state": [
+          2.0,
+          0.0038800125753777246,
+          0.04999980378118273,
+          4.922438752155273e-09,
+          1.6902368948912283e-09,
+          1.20033973844772e-06,
+          -1.1732638311616487e-09,
+          0.9999999999992796,
+          1.2608076041531469e-08,
+          3.600938991432656e-11,
+          -8.089012834056493e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.9089846264576566e-07,
+        "distance_error_m": 0.0001974593920025,
+        "stop_time_error_s": 0.0012252803261977585,
+        "velocity_error_m_s": 9.799835229029608e-06,
+        "settled_speed_m_s": 3.241532063650518e-08,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 8.781103698867159e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.004077471967380225,
+        "analytic_stop_time_s": 0.040774719673802244,
+        "final_distance_m": 0.0038800125753777246,
+        "measured_stop_time_s": 0.042,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.006078712500000001,
+        0.005799525,
+        0.006450506,
+        0.0063552009999999996,
+        0.00625011
+      ],
+      "median_cost": 0.00625011
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.5,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.014900705,
+        "final_state": [
+          2.0,
+          0.063211454914196,
+          0.05000000020901326,
+          3.908565259133483e-12,
+          2.5612623133497436e-11,
+          3.026039045450757e-11,
+          -2.959493508654211e-11,
+          1.0,
+          6.087283455080694e-10,
+          1.6667382751744952e-08,
+          4.834853241979477e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 1.0826830606462768e-11,
+        "distance_error_m": 0.0004990436267595932,
+        "stop_time_error_s": 0.0011580058361776446,
+        "velocity_error_m_s": 7.011547031865462e-08,
+        "settled_speed_m_s": 3.8933223094258805e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 3.511258988759054e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.06371049854095559,
+        "analytic_stop_time_s": 0.25484199416382236,
+        "final_distance_m": 0.063211454914196,
+        "measured_stop_time_s": 0.256,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0075256045,
+        0.0074741855,
+        0.0068585415,
+        0.007494669999999999,
+        0.007181554
+      ],
+      "median_cost": 0.0074741855
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.5,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.011372562,
+        "final_state": [
+          2.0,
+          0.06321145520932257,
+          0.04999980379999953,
+          1.8751562342562558e-10,
+          1.2179897646014126e-09,
+          9.6680022143514e-10,
+          -1.461588606375928e-09,
+          1.0,
+          -2.6574575873183903e-10,
+          6.938893903907228e-15,
+          -2.2145123738711402e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.354323178385833e-07,
+        "distance_error_m": 0.0004990433316330173,
+        "stop_time_error_s": 0.0011580058361776446,
+        "velocity_error_m_s": 3.920026262982379e-06,
+        "settled_speed_m_s": 8.57177234156785e-10,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 2.7849157723569832e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.06371049854095559,
+        "analytic_stop_time_s": 0.25484199416382236,
+        "final_distance_m": 0.06321145520932257,
+        "measured_stop_time_s": 0.256,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0052876795,
+        0.005684624,
+        0.005421733000000001,
+        0.0053193675,
+        0.0056932065
+      ],
+      "median_cost": 0.005421733000000001
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.5,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.013011944,
+        "final_state": [
+          2.0,
+          0.024984500013539773,
+          0.0500000000062196,
+          -1.4501476066970965e-11,
+          -9.19764264750711e-13,
+          -1.0366336466384996e-10,
+          2.5355115123959498e-12,
+          1.0,
+          -5.879498277128192e-11,
+          1.4322432129176832e-09,
+          -2.1885312586177175e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 5.043635367354534e-12,
+        "distance_error_m": 0.0004996997825866267,
+        "stop_time_error_s": 6.320081549440748e-05,
+        "velocity_error_m_s": 1.9874053185098273e-07,
+        "settled_speed_m_s": 3.8251262034155934e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 3.415337494614317e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.0254841997961264,
+        "analytic_stop_time_s": 0.1019367991845056,
+        "final_distance_m": 0.024984500013539773,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0058257725,
+        0.0057821155,
+        0.006324049500000001,
+        0.006063784,
+        0.0059845525
+      ],
+      "median_cost": 0.0059845525
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "speed_m_s": 0.5,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012758914,
+        "final_state": [
+          2.0,
+          0.024984695387738145,
+          0.04999980378278748,
+          -2.284002485100136e-09,
+          1.4952138971402462e-09,
+          1.14291574336038e-06,
+          -9.671853361554483e-10,
+          0.9999999999993469,
+          1.1887206496918878e-08,
+          3.312627949725311e-11,
+          -1.0665527163645726e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.942869243656425e-07,
+        "distance_error_m": 0.0004995044083882551,
+        "stop_time_error_s": 6.320081549440748e-05,
+        "velocity_error_m_s": 9.800428760975421e-06,
+        "settled_speed_m_s": 3.0851377007074175e-08,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 5.468848322023952e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.0254841997961264,
+        "analytic_stop_time_s": 0.1019367991845056,
+        "final_distance_m": 0.024984695387738145,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0059066865,
+        0.0062952115,
+        0.0059351655,
+        0.0057214990000000005,
+        0.0059879795
+      ],
+      "median_cost": 0.0059351655
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012157306,
+        "final_state": [
+          2.0,
+          0.009993799734014791,
+          0.05000000069487583,
+          3.1385751466894423e-11,
+          -2.4421353828074643e-11,
+          3.104264945683342e-10,
+          3.4854078354117755e-11,
+          1.0,
+          4.080754831270461e-10,
+          6.4870435412256455e-09,
+          3.212504718049284e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 3.899997003159809e-12,
+        "distance_error_m": 0.0001998800325381054,
+        "stop_time_error_s": 6.320233447106027e-05,
+        "velocity_error_m_s": 6.820239627225444e-08,
+        "settled_speed_m_s": 3.8211277620014815e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 4.033763010582687e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.010193679766552896,
+        "analytic_stop_time_s": 0.10193679766552895,
+        "final_distance_m": 0.009993799734014791,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0054962115,
+        0.006032175,
+        0.0055124975000000005,
+        0.0056395255,
+        0.005936482
+      ],
+      "median_cost": 0.0056395255
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.010218049,
+        "final_state": [
+          2.0,
+          0.009993799969356032,
+          0.04999980379999968,
+          1.0982885445600995e-10,
+          8.540901319520344e-10,
+          4.168102389878711e-10,
+          -1.024908367873762e-09,
+          1.0,
+          -1.863448631511666e-10,
+          3.469446951953614e-15,
+          -1.5529028546739429e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.35427600175667e-07,
+        "distance_error_m": 0.0001998797971968641,
+        "stop_time_error_s": 6.320233447106027e-05,
+        "velocity_error_m_s": 3.920026804771215e-06,
+        "settled_speed_m_s": 6.010770738454228e-10,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 2.51027992828062e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.010193679766552896,
+        "analytic_stop_time_s": 0.10193679766552895,
+        "final_distance_m": 0.009993799969356032,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0048430915000000005,
+        0.0047055084999999995,
+        0.0047904905,
+        0.0050226915,
+        0.0048408415
+      ],
+      "median_cost": 0.0048408415
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012113365,
+        "final_state": [
+          2.0,
+          0.003879799784951838,
+          0.05000000050716551,
+          3.77325304853435e-11,
+          -3.401995352092513e-11,
+          4.743544871532773e-10,
+          4.6012222203895014e-11,
+          1.0,
+          -6.03411201213766e-10,
+          8.387929240072367e-09,
+          -4.742824236121642e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 4.9031294661899207e-11,
+        "distance_error_m": 0.0001976721824283865,
+        "stop_time_error_s": 0.0012252803261977585,
+        "velocity_error_m_s": 7.555282943716435e-08,
+        "settled_speed_m_s": 1.2749975351747236e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 4.7109621168403103e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.004077471967380225,
+        "analytic_stop_time_s": 0.040774719673802244,
+        "final_distance_m": 0.003879799784951838,
+        "measured_stop_time_s": 0.042,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.004822545,
+        0.005348019,
+        0.005870755,
+        0.0051828765,
+        0.005495545
+      ],
+      "median_cost": 0.005348019
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012310771,
+        "final_state": [
+          2.0,
+          0.0038800125753777276,
+          0.04999980378118273,
+          4.922438550432487e-09,
+          1.6902371724469845e-09,
+          1.2003397384396903e-06,
+          -1.1732638676031236e-09,
+          0.9999999999992797,
+          1.2608078209935814e-08,
+          3.600938991432656e-11,
+          -8.089026459470669e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.9089846264579626e-07,
+        "distance_error_m": 0.00019745939200249696,
+        "stop_time_error_s": 0.0012252803261977585,
+        "velocity_error_m_s": 9.799835229029608e-06,
+        "settled_speed_m_s": 3.241532043123186e-08,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 8.781103699067803e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.004077471967380225,
+        "analytic_stop_time_s": 0.040774719673802244,
+        "final_distance_m": 0.0038800125753777276,
+        "measured_stop_time_s": 0.042,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0066291415000000005,
+        0.005968908,
+        0.0059429135,
+        0.0056909715,
+        0.0069226575
+      ],
+      "median_cost": 0.005968908
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.5,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.01470755,
+        "final_state": [
+          2.0,
+          0.06321145494408582,
+          0.05000000005807575,
+          -1.7270850680461116e-12,
+          -1.6278645098566358e-12,
+          -6.237209768026964e-11,
+          3.4134403979309627e-12,
+          1.0,
+          4.370809270071163e-11,
+          6.848792366564993e-10,
+          1.6292577993726072e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 3.0099317127981046e-12,
+        "distance_error_m": 0.0004990435968697665,
+        "stop_time_error_s": 0.0011580058361776446,
+        "velocity_error_m_s": 6.273045838334212e-08,
+        "settled_speed_m_s": 3.895848285079419e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 1.2764661650547027e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.06371049854095559,
+        "analytic_stop_time_s": 0.25484199416382236,
+        "final_distance_m": 0.06321145494408582,
+        "measured_stop_time_s": 0.256,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0070355190000000005,
+        0.0075470155,
+        0.007422483499999999,
+        0.0074108295,
+        0.007500768
+      ],
+      "median_cost": 0.007422483499999999
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.5,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.011660088,
+        "final_state": [
+          2.0,
+          0.06321145520932255,
+          0.049999803799999534,
+          1.8751576342524175e-10,
+          1.2179901531794712e-09,
+          9.668003293879188e-10,
+          -1.4615885613011819e-09,
+          1.0,
+          -2.657388198379351e-10,
+          0.0,
+          -2.2144998646427215e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.3543231786116243e-07,
+        "distance_error_m": 0.000499043331633045,
+        "stop_time_error_s": 0.0011580058361776446,
+        "velocity_error_m_s": 3.920026262982379e-06,
+        "settled_speed_m_s": 8.571772945554596e-10,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 2.7849158488197136e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.06371049854095559,
+        "analytic_stop_time_s": 0.25484199416382236,
+        "final_distance_m": 0.06321145520932255,
+        "measured_stop_time_s": 0.256,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0052026715,
+        0.00544723,
+        0.005245315499999999,
+        0.005489292,
+        0.0053430785
+      ],
+      "median_cost": 0.0053430785
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.5,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.011607785,
+        "final_state": [
+          2.0,
+          0.024984500009906947,
+          0.05000000066499154,
+          -1.7154340289319436e-11,
+          -2.6889657167572523e-11,
+          -1.0374510173332887e-10,
+          3.902536056878344e-11,
+          1.0,
+          2.420980083073232e-11,
+          3.89011739487799e-10,
+          9.01997886669362e-12,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 5.016203913027547e-12,
+        "distance_error_m": 0.0004996997862194534,
+        "stop_time_error_s": 6.320081549440748e-05,
+        "velocity_error_m_s": 1.9789194502517482e-07,
+        "settled_speed_m_s": 1.1774480642393824e-07,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 3.418257644779281e-11,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.0254841997961264,
+        "analytic_stop_time_s": 0.1019367991845056,
+        "final_distance_m": 0.024984500009906947,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0060972555,
+        0.0060254935,
+        0.0056165325,
+        0.0060438365,
+        0.0058769005
+      ],
+      "median_cost": 0.0060254935
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "speed_m_s": 0.5,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.013852511,
+        "final_state": [
+          2.0,
+          0.024984695387738155,
+          0.0499998037827875,
+          -2.2840024447566683e-09,
+          1.4952142857183048e-09,
+          1.1429157433262323e-06,
+          -9.671853706263011e-10,
+          0.9999999999993467,
+          1.188720129274845e-08,
+          3.3133218391157016e-11,
+          -1.066556909753586e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.9428692436564807e-07,
+        "distance_error_m": 0.0004995044083882447,
+        "stop_time_error_s": 6.320081549440748e-05,
+        "velocity_error_m_s": 9.800428760975421e-06,
+        "settled_speed_m_s": 3.085137719183088e-08,
+        "settled_spin_rad_s": 0.0,
+        "lateral_drift_m": 5.468848322236714e-09,
+        "energy_excess_fraction": 0,
+        "analytic_distance_m": 0.0254841997961264,
+        "analytic_stop_time_s": 0.1019367991845056,
+        "final_distance_m": 0.024984695387738155,
+        "measured_stop_time_s": 0.10200000000000001,
+        "gates": {
+          "max_penetration_m": true,
+          "distance_error_m": true,
+          "stop_time_error_s": true,
+          "velocity_error_m_s": true,
+          "settled_speed_m_s": true,
+          "settled_spin_rad_s": true,
+          "lateral_drift_m": true,
+          "energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.006176370499999999,
+        0.006216418,
+        0.0058399815,
+        0.006850673,
+        0.0059500379999999995
+      ],
+      "median_cost": 0.006176370499999999
+    }
+  ],
+  "raw_archive": {
+    "filename": "friction-slide-h4.json.xz",
+    "bytes": 2772556,
+    "sha256": "5b9f537853a0b6823e24d41db1a9fb3d53f9c53c6cde5d6f70c21fd37ec9092d",
+    "availability": "Local delivered artifact; no permanent remote URL"
+  }
+}
