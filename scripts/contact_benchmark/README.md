@@ -189,3 +189,12 @@ stored traces. Requires MuJoCo 3.9.0 and NumPy. The existing seven-argument
 `friction_threshold` example keeps equivalent-gravity behavior; append `wrench`
 to use actual forces with per-step ECS write-back included in timing.
 See [results and limitations](../../docs/HARD_CONTACT_FORCE_FRICTION_RESULTS.md).
+
+`force_friction_matched.py BINARY NEW_DIRECTORY` screens timestep/damping
+candidates with the unchanged first-step static-speed gate, calibrates passing
+candidates over two seconds, then freezes the first passing setting before
+held-out mass/friction validation and timing. If calibration fails, validation
+and speed comparisons remain disabled. NPZ traces are saved per case.
+`verify_force_friction_matched.py DIRECTORY` checks trace hashes, recomputes
+quality, reruns first-step screening, and checks selection and validation order.
+See [calibration results](../../docs/HARD_CONTACT_FORCE_FRICTION_CALIBRATION.md).
