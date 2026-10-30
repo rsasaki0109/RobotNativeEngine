@@ -2564,6 +2564,11 @@ fn normal_constraint_velocity_accounts_for_predictive_and_penetration_bias() {
         step(&mut backend, &mut world, id);
         let samples = backend.contact_impulse_diagnostics(id).unwrap();
         assert_eq!(samples.len(), 4);
+        if height < 0.05 {
+            // Rigid redundant corners may carry zero load individually.
+            let total: f64 = samples.iter().map(|p| p.normal_impulse_n_s).sum();
+            assert!((total - 0.11962).abs() < 1e-8);
+        }
         for p in samples {
             let bias = p.gap_m / 0.002 * if p.gap_m >= 0.0 { 1.0 } else { 0.2 };
             assert!(
@@ -2576,7 +2581,7 @@ fn normal_constraint_velocity_accounts_for_predictive_and_penetration_bias() {
                 assert_eq!(p.normal_impulse_n_s, 0.0);
                 assert!((p.normal_constraint_velocity_m_s - 0.98038).abs() < 1e-8);
             } else {
-                assert!(p.normal_impulse_n_s > 0.0);
+                assert!(p.normal_impulse_n_s >= 0.0);
                 assert!(p.normal_constraint_velocity_m_s.abs() < 1e-7);
             }
         }

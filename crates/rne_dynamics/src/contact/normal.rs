@@ -1,5 +1,73 @@
-//! Bounded active-set acceleration for small, rigid, frictionless islands.
-use super::{ContactSolution, ContactState, DenseMatrix};
+//! Bounded normal active-set acceleration with full velocity validation.
+use super::{ContactSolution, ContactSolverConfig, ContactState, DenseMatrix};
+
+/// Frictional contacts can use a normal-only solution only when every loaded
+/// frictional point has zero tangential velocity within the configured tolerance.
+/// The original seed is never changed on rejection.
+pub(super) fn attempt(
+    matrix: &DenseMatrix,
+    free: &[f64],
+    friction: &[f64],
+    config: &ContactSolverConfig,
+    seed: &[[f64; 3]],
+) -> (Option<ContactSolution>, usize) {
+    let count = friction.len();
+    let tolerance = config.velocity_tolerance_m_s;
+    let frictionless = friction.iter().all(|mu| *mu == 0.0);
+    let eligible = if frictionless {
+        (2..=32).contains(&count)
+    } else {
+        (2..=64).contains(&count)
+            && free
+                .chunks_exact(3)
+                .all(|v| v[0].abs() <= tolerance && v[1].abs() <= tolerance)
+    };
+    if !eligible
+        || config.regularization != 0.0
+        || config.relaxation != 1.0
+        || !tolerance.is_finite()
+        || tolerance <= 0.0
+    {
+        return (None, 0);
+    }
+    let (candidate, passes) = solve(matrix, free, count, seed, config.max_iterations, tolerance);
+    let Some(normal) = candidate else {
+        return (None, passes);
+    };
+    if !frictionless && !tangentially_static(matrix, free, friction, &normal, tolerance) {
+        return (None, passes);
+    }
+    let mut result = solution(normal, seed, passes);
+    for (state, mu) in result.states.iter_mut().zip(friction) {
+        if *state == ContactState::Sliding && *mu > 0.0 {
+            *state = ContactState::Sticking;
+        }
+    }
+    (Some(result), passes)
+}
+
+fn tangentially_static(
+    matrix: &DenseMatrix,
+    free: &[f64],
+    friction: &[f64],
+    normal: &[f64],
+    tolerance: f64,
+) -> bool {
+    friction.iter().enumerate().all(|(i, mu)| {
+        normal[i] == 0.0
+            || *mu == 0.0
+            || (0..2).all(|axis| {
+                let row = 3 * i + axis;
+                let velocity = free[row]
+                    + normal
+                        .iter()
+                        .enumerate()
+                        .map(|(j, impulse)| matrix.get(row, 3 * j + 2) * impulse)
+                        .sum::<f64>();
+                velocity.is_finite() && velocity.abs() <= tolerance
+            })
+    })
+}
 
 /// Returns a candidate only after checking the original unilateral equations.
 /// A singular/inconsistent active set or cycling leaves the caller's GS path intact.
@@ -144,7 +212,7 @@ pub(super) fn solution(normal: Vec<f64>, seed: &[[f64; 3]], passes: usize) -> Co
     let last_change = normal
         .iter()
         .zip(seed)
-        .map(|(n, old)| (*n - old[2]).abs())
+        .map(|(n, old)| old[0].hypot(old[1]).hypot(*n - old[2]))
         .fold(0.0, f64::max);
     ContactSolution {
         states: normal

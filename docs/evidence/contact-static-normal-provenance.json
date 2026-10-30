@@ -1,0 +1,334 @@
+{
+  "base_commit": "5794735a6ec7173ab47814ca699ec5be953f0a1b",
+  "sources": [
+    {
+      "path": "crates/rne_dynamics/src/contact.rs",
+      "bytes": 129122,
+      "sha256": "668e8f5f50757fcbe19cf78a3825cc8bb7f910e4f0a431573a3df7672e317f2c"
+    },
+    {
+      "path": "crates/rne_dynamics/src/contact/normal.rs",
+      "bytes": 7865,
+      "sha256": "5008919fc3b0347588be782ab87293391ce3a441294b0e48a68d624ecc30a1e5"
+    },
+    {
+      "path": "crates/rne_physics_native/examples/contact_crowd.rs",
+      "bytes": 11427,
+      "sha256": "6c5ad5046d6bcfef9d65854af41e6d97eb6b660ae23f7cc0bb4c92d1257ecf00"
+    },
+    {
+      "path": "crates/rne_physics_native/src/tests.rs",
+      "bytes": 92221,
+      "sha256": "c93ba4656bda161628969cdd6852a47f06abd514de2c1c9a28517089fa8929f3"
+    },
+    {
+      "path": "scripts/contact_benchmark/verify_matched.py",
+      "bytes": 2688,
+      "sha256": "b5a146592814e333042c6f4ea6f53313ecbb168286bcfae4db1aed76df374e53"
+    },
+    {
+      "path": "scripts/contact_benchmark/force_friction_matched.py",
+      "bytes": 7489,
+      "sha256": "46fa228c27dfab78163fd4d8c1f4d2992eed6e03577c58fc9aa9fda7b2cf65fd"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_contact_tower.py",
+      "bytes": 4617,
+      "sha256": "a65f2f49252367e23f377b4bccc5d09d052c6d6fa5a7d0af7a469225cdaffe58"
+    },
+    {
+      "path": "scripts/contact_benchmark/stack_phase.py",
+      "bytes": 5574,
+      "sha256": "35a45e318c873623b95a060142216c2c2b159c47478b6cc25cead8d6eae9ad91"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_drop.py",
+      "bytes": 3124,
+      "sha256": "60ef874f5fc6a749f17d846b73bad71b2ea45928ff2c39b34d0fac5f2b349629"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_slide.py",
+      "bytes": 2047,
+      "sha256": "f96df9133eea1cd067f58790fbf2f1e8f6122f0f7841c5f3897a30abb26ebf87"
+    },
+    {
+      "path": "scripts/contact_benchmark/friction_contact_diagnostics.py",
+      "bytes": 12879,
+      "sha256": "b92a97a6926e25342e953f3c54d12a48e0e8d00c3946b1032225ec759d1dd327"
+    },
+    {
+      "path": "scripts/contact_benchmark/verify_force_friction_matched.py",
+      "bytes": 4798,
+      "sha256": "f9bff23d5953398a7a74720dd89e7c968f50a9e3bc9a4945410147e20419b444"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_matched.py",
+      "bytes": 3187,
+      "sha256": "7333e4925fc70b1b3df7f429baeca556c877c5d615e44efa46ebdeaf6ab851c6"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_contact_admission.py",
+      "bytes": 2891,
+      "sha256": "c2a42c5f1687fdea5bec394dc2472137010086d101d3e151daf2db71464764e9"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_box.py",
+      "bytes": 3301,
+      "sha256": "ae1b3cc7b04174d1a4db7192ee29f1b5342f683fd856d66e524925977ce53c0d"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_static_normal.py",
+      "bytes": 6687,
+      "sha256": "847af642ffb94a42dcc09112ab8e440b1d23b9871ae0a417918a43aef48dbe41"
+    },
+    {
+      "path": "scripts/contact_benchmark/plot_friction_contact_diagnostics.py",
+      "bytes": 2415,
+      "sha256": "aec813d0725577504088272eecfac41d57cd467b87995f60bf8ea64c0c3ff80d"
+    },
+    {
+      "path": "scripts/contact_benchmark/mujoco_stack.py",
+      "bytes": 5099,
+      "sha256": "6eb6611ae1f49bfa6fbbe0b3e3db7f35208ddda3b3ff17a9b01d62e93cf7cd06"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_tower.py",
+      "bytes": 6552,
+      "sha256": "8fc1c484b4258605a97149afcca54748933b18a21e75f8fc7c4ef7231a2d9b94"
+    },
+    {
+      "path": "scripts/contact_benchmark/box.py",
+      "bytes": 6066,
+      "sha256": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+    },
+    {
+      "path": "scripts/contact_benchmark/force_friction.py",
+      "bytes": 7719,
+      "sha256": "6705a92fcbe939dae9a0944e61fbaa69460f369f555d89d6a41d8be6322974fa"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_crowd.py",
+      "bytes": 4447,
+      "sha256": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87"
+    },
+    {
+      "path": "scripts/contact_benchmark/verify_box.py",
+      "bytes": 2391,
+      "sha256": "8fb527e8cf22baa710cdbd89dd80a5d91a8487ca021d98183e24912fda1d6feb"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_threshold.py",
+      "bytes": 1713,
+      "sha256": "addaf0c918f2c58d59ed8de99ee52bbb5cc2c75f384f10568e3b79a4ca617012"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_force_friction.py",
+      "bytes": 2346,
+      "sha256": "e1b9404be7e7fc226ee99b9dca109d9b1561d6029d82255652c444e3424bf6ee"
+    },
+    {
+      "path": "scripts/contact_benchmark/verify_stack_pair.py",
+      "bytes": 3110,
+      "sha256": "7660c1a1ef6dfc256b06f029d6d525c7d15d45edb42e33f30e2f2dcb5bf889ee"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_stack.py",
+      "bytes": 2647,
+      "sha256": "fdc8c3491178a5c5fc6539a98e34205f469707eebc617ad87f5fc361a6a8a31f"
+    },
+    {
+      "path": "scripts/contact_benchmark/predictive_gap.py",
+      "bytes": 6479,
+      "sha256": "b5bd7948582967dc6aa2df2acc47bb665b8c8dffa43b98df5093a8843bc2d708"
+    },
+    {
+      "path": "scripts/contact_benchmark/plot_force_friction_time_constant.py",
+      "bytes": 2431,
+      "sha256": "53fd2a0a5acb1a6f4ca7b2b4521bddbf9a19a406269f345c61c9a7ee6750599d"
+    },
+    {
+      "path": "scripts/contact_benchmark/force_friction_time_constant.py",
+      "bytes": 4409,
+      "sha256": "189813d0d15720d14210646e91081650d1a1f680dcce24c5588a571bad116032"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_contact_clusters.py",
+      "bytes": 1577,
+      "sha256": "15e54bd15f0313dbd0c9f24bb0dabcec87404b3144a28898c8d8f4e55bcb9916"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_mujoco_stack.py",
+      "bytes": 1547,
+      "sha256": "0f3bd9ef90f4752f94270adc3598805bc40bb172fad9ca6bd5a543b8de3e185f"
+    },
+    {
+      "path": "scripts/contact_benchmark/verify_mujoco_stack.py",
+      "bytes": 2211,
+      "sha256": "96b835b90ffe5ec83f2b03d74a186462509f9405265fdf7fb3f974ecaf66cc98"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_constraint_audit.py",
+      "bytes": 9146,
+      "sha256": "ddd6ad7edd5f2bfdc13a090bd4abf1559605afce2a4f764a78f8e6bf05cf9655"
+    },
+    {
+      "path": "scripts/contact_benchmark/native_contact_diagnostics.py",
+      "bytes": 7680,
+      "sha256": "597e695daeae12d2cb41ec86ef0f69d1ddb86d54241fea86ad4547519e53eb57"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_contact_bridge.py",
+      "bytes": 3464,
+      "sha256": "6eca05165bd148d8d1361e837a89d8513677f81f6b81a16b01b85248285adec1"
+    },
+    {
+      "path": "scripts/contact_benchmark/threshold.py",
+      "bytes": 6301,
+      "sha256": "8ebb4fd2d682c588129db0ff4e94c88b6b1a15e6aba528804fc46a28959d5be5"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_static_normal.py",
+      "bytes": 2064,
+      "sha256": "472715fec4d640f508938d57c2e9118c8cfc97c4e2c77680991a1765f185cbfb"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_friction_contact_diagnostics.py",
+      "bytes": 1728,
+      "sha256": "295563bec7c871d0810557b361061815922a6a8e32800ddd983e82b13d504c99"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_contact_constraint_audit.py",
+      "bytes": 2604,
+      "sha256": "2a1bbe8e929d672afee000dbb8883d2c125d08f4183826f46e5aa6948aa19114"
+    },
+    {
+      "path": "scripts/contact_benchmark/slide.py",
+      "bytes": 6378,
+      "sha256": "ecd8a06cb8c30d9bf4bded7b531f2a5f108f06b359ddc8f10b01e021dc17a8f0"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_clusters.py",
+      "bytes": 5027,
+      "sha256": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_stack_phase.py",
+      "bytes": 1489,
+      "sha256": "376702dafe38fc14bea3e64799a7926b138397a170e764eb601c94b0a611de3b"
+    },
+    {
+      "path": "scripts/contact_benchmark/stack.py",
+      "bytes": 8530,
+      "sha256": "148d8dec128bee5c54a2d56a47bbf2968163b6b04a1c41717f17b8f607dc49cc"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_contact_batch.py",
+      "bytes": 2737,
+      "sha256": "187e1e44a40f0aca0aeb76a08612424b2e310c77c035d224cbb9c809d0c1b5eb"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_force_friction_time_constant.py",
+      "bytes": 1173,
+      "sha256": "b3d5e519cc50d434b79a9011122cc0f9f7cf4db31023f0c4bd269e13a4cc8d0d"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_contact_crowd.py",
+      "bytes": 1267,
+      "sha256": "a163ad1aa05f4d62a04fa1ed7943e00fb38597a7a2286cdbb1f5ff94735ee64b"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_native_contact_diagnostics.py",
+      "bytes": 1648,
+      "sha256": "9b2047e6d3b93520738b618639eb8f263d8e2dfcc70df8eefc3a266822eb65a9"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_predictive_gap.py",
+      "bytes": 2626,
+      "sha256": "dd22f8f73969a5db2b027fa764ba78e4921ec54dec3a8a95a85f94badeb0bf30"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_stack_matched.py",
+      "bytes": 862,
+      "sha256": "8ccb41d456833ed2c32c8685ce4d54c37b7d623536eb9e28b13c1661a4f98700"
+    },
+    {
+      "path": "scripts/contact_benchmark/plot.py",
+      "bytes": 1591,
+      "sha256": "81f13e054e7eb8510788c958fb3a7e339fb8aded4b61fbb99c4238f0ec0f3fcf"
+    },
+    {
+      "path": "scripts/contact_benchmark/stack_matched.py",
+      "bytes": 3872,
+      "sha256": "c3693af09a02908c3ec58f943cdaa002e61d1487726278136e6307fdc6f96f82"
+    },
+    {
+      "path": "scripts/contact_benchmark/plot_matched.py",
+      "bytes": 2069,
+      "sha256": "7e4dba2fa33f9be0f075ebb34a658e9ca5dad99f6824d794bcd344a732936894"
+    },
+    {
+      "path": "scripts/contact_benchmark/verify_stack_matched.py",
+      "bytes": 3767,
+      "sha256": "1c99959efe985745ed9771cd81967df50a3fdcec2927c9c8c586d77f28d2b834"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_admission.py",
+      "bytes": 7268,
+      "sha256": "afb6715c2cc6d6afabab99c846157576ff2e19dbe66cb0e30df39e213108bf3c"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_bridge.py",
+      "bytes": 7465,
+      "sha256": "d9c8cec81f42b546aa0e863d7d24a929f6e38283f708fed0f702e738db0a74c1"
+    },
+    {
+      "path": "scripts/contact_benchmark/compare_stack.py",
+      "bytes": 2550,
+      "sha256": "66fa91b3b26ac2094413d576695c31172ec2fa4cb841c22246c9e10d44ff963c"
+    },
+    {
+      "path": "scripts/contact_benchmark/drop.py",
+      "bytes": 11813,
+      "sha256": "12dca06a994ed03d356eda7f83ba41331c3c2d14bf14b21c7c9c6017b16925e4"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_force_friction_matched.py",
+      "bytes": 3230,
+      "sha256": "054e755ad6603ad4764e641ad976d83979599e1b2081027b926129d65c33d2c7"
+    },
+    {
+      "path": "scripts/contact_benchmark/matched.py",
+      "bytes": 7509,
+      "sha256": "bb14f51a11a5348ce51e117babddb602fe3145ce7715f5742c6cb066ff6e5585"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_batch.py",
+      "bytes": 4632,
+      "sha256": "a72d9c86d9a0853144886711a1d0bac9ef4beabbd9117c42d85d8caf4a5cc97e"
+    }
+  ],
+  "raw_reports": [
+    {
+      "path": "/workspace/artifacts/static-normal-a.json",
+      "bytes": 12068707,
+      "sha256": "fc9275cf783d8125fc35dbcddde6ed5919fabd1724ea6d284eb22eccc0e82514"
+    },
+    {
+      "path": "/workspace/artifacts/static-normal-b.json",
+      "bytes": 12068718,
+      "sha256": "3e1734ff43601fb6d284aeee61ff8ec04597e6956e84112a04026b7fd0e008c1"
+    }
+  ],
+  "binaries": [
+    {
+      "path": "/workspace/artifacts/contact-tower-v1",
+      "bytes": 1540216,
+      "sha256": "3f226bf26e68255239c6116f915ac2edc4aaa37974874e0a3fc9d600bf0d50b3"
+    },
+    {
+      "path": "/workspace/artifacts/contact-static-normal-after",
+      "bytes": 1543904,
+      "sha256": "a3c68054dff837a3c4f6174c2917b1182b34d8c534d395f99505aa4198f61378"
+    }
+  ]
+}

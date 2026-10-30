@@ -77,7 +77,7 @@ class TowerTests(unittest.TestCase):
         row['timing'][0]['final_hash']=43
         with self.assertRaises(ValueError):t.summary(row)
 
-    def test_release_example_replays_even_when_quality_fails(self):
+    def test_release_example_converges_and_replays(self):
         binary=Path(os.environ.get('RNE_CROWD','target/release/examples/contact_crowd'))
         if not binary.is_file():self.skipTest('build release contact_crowd')
         for count in t.COUNTS:
@@ -85,7 +85,7 @@ class TowerTests(unittest.TestCase):
             b=contact_clusters.run(binary,count,'tower','audit')
             t.equal_audits(a,b)
             m=t.metrics(a,count)
-            self.assertIsInstance(m['passed'],bool,json.dumps(m))
+            self.assertTrue(m['passed'],json.dumps(m))
             timing=contact_clusters.run(binary,count,'tower','timing')
             self.assertEqual(timing['final_hash'],a['final_hash'])
             self.assertEqual(timing['contact_frames'],[])

@@ -86,7 +86,8 @@ pub struct ContactPoint {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ContactSolverConfig {
     /// Maximum number of Gauss-Seidel sweeps over all contacts. A bounded
-    /// normal-block attempt may precede these for small frictionless islands.
+    /// normal-block attempt may precede these for small frictionless or
+    /// tangentially static islands.
     pub max_iterations: usize,
     /// Convergence threshold on the largest per-contact impulse change in one
     /// sweep, in newton-seconds.
@@ -173,9 +174,11 @@ pub struct ContactSolution {
 /// * `λₙ ≥ 0`, `vₙ ≥ 0`, `λₙ vₙ = 0` with `v = free_velocity + G λ`;
 /// * `‖λₜ‖ ≤ μ λₙ`, and a sliding contact's tangential velocity opposes `λₜ`.
 ///
-/// Small rigid frictionless islands first try a bounded normal active-set
-/// solve, accepting only candidates satisfying the original complementarity
-/// equations. Other cases use sweeps in index order. Both paths are deterministic.
+/// Small rigid islands first try a bounded normal active-set solve. Frictionless
+/// candidates must satisfy the original normal complementarity equations;
+/// frictional candidates must additionally have zero tangential velocity at
+/// every loaded frictional point, within the configured velocity tolerance.
+/// Other cases use sweeps in index order. Both paths are deterministic.
 /// `warm_start_n_s` optionally seeds the impulses, which typically reduces the
 /// sweep count when consecutive steps share their contacts.
 pub fn solve_contact_impulses(
@@ -239,26 +242,15 @@ pub fn solve_contact_impulses(
             "solver regularization must be finite and non-negative",
         ));
     }
-    let mut normal_block_iterations = 0;
-    if (2..=32).contains(&count)
-        && config.regularization == 0.0
-        && config.relaxation == 1.0
-        && config.velocity_tolerance_m_s.is_finite()
-        && config.velocity_tolerance_m_s > 0.0
-        && friction_coefficients.iter().all(|mu| *mu == 0.0)
-    {
-        let (candidate, passes) = normal::solve(
-            delassus,
-            free_velocity_m_s,
-            count,
-            &impulses,
-            config.max_iterations,
-            config.velocity_tolerance_m_s,
-        );
-        normal_block_iterations = passes;
-        if let Some(normal) = candidate {
-            return Ok(normal::solution(normal, &impulses, passes));
-        }
+    let (normal_solution, normal_block_iterations) = normal::attempt(
+        delassus,
+        free_velocity_m_s,
+        friction_coefficients,
+        config,
+        &impulses,
+    );
+    if let Some(solution) = normal_solution {
+        return Ok(solution);
     }
     let blocks: Vec<[[f64; 3]; 3]> = (0..count)
         .map(|contact| {
@@ -2110,6 +2102,101 @@ mod tests {
         for (first, second) in combined.impulses_n_s.iter().zip(&replay.impulses_n_s) {
             assert_eq!(first.map(f64::to_bits), second.map(f64::to_bits));
         }
+    }
+
+    #[test]
+    fn static_frictional_normal_block_satisfies_the_full_contact_law() {
+        for count in [2, 16, 32, 64] {
+            let mut g = DenseMatrix::zeros(3 * count, 3 * count);
+            for row in 0..3 * count {
+                g.set(row, row, 1.0);
+            }
+            for i in 0..count {
+                g.set(3 * i + 2, 3 * i + 2, if i == 0 { 1.0 } else { 2.0 });
+                if i > 0 {
+                    g.set(3 * i + 2, 3 * (i - 1) + 2, -1.0);
+                    g.set(3 * (i - 1) + 2, 3 * i + 2, -1.0);
+                }
+            }
+            let mut free = vec![0.0; 3 * count];
+            free[2] = -1.0;
+            let mu = vec![0.5; count];
+            let config = ContactSolverConfig::default();
+            let result = solve_contact_impulses(&g, &free, &mu, &config, None).unwrap();
+            assert!(result.normal_block_solved && result.converged);
+            assert_eq!(result.iterations, 0);
+            assert!(result.states.iter().all(|s| *s == ContactState::Sticking));
+            assert_contact_conditions(&g, &free, &mu, &result, 1e-8);
+            for (i, impulse) in result.impulses_n_s.iter().enumerate() {
+                assert!((impulse[2] - (count - i) as f64).abs() < 1e-8);
+            }
+            assert_eq!(
+                result,
+                solve_contact_impulses(&g, &free, &mu, &config, None).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn normal_only_candidate_rejects_induced_tangential_motion() {
+        let mut g = DenseMatrix::zeros(6, 6);
+        for i in 0..6 {
+            g.set(i, i, 1.0);
+        }
+        // SPD matrix, zero free tangent velocity, but normal force induces slip.
+        g.set(0, 2, 0.25);
+        g.set(2, 0, 0.25);
+        let free = [0.0, 0.0, -1.0, 0.0, 0.0, -1.0];
+        let mu = [0.5; 2];
+        let config = ContactSolverConfig::default();
+        let (candidate, passes) = normal::attempt(&g, &free, &mu, &config, &[[0.0; 3]; 2]);
+        assert!(candidate.is_none() && passes > 0);
+        let result = solve_contact_impulses(&g, &free, &mu, &config, None).unwrap();
+        assert!(!result.normal_block_solved && result.converged);
+        assert!(result.impulses_n_s[0][0] < 0.0);
+        assert_contact_conditions(&g, &free, &mu, &result, 1e-8);
+    }
+
+    #[test]
+    fn static_normal_block_guards_and_warm_start_change() {
+        let mut g = DenseMatrix::zeros(6, 6);
+        for i in 0..6 {
+            g.set(i, i, 1.0);
+        }
+        let free = [0.0, 0.0, -1.0, 0.0, 0.0, 1.0];
+        let mu = [0.5; 2];
+        let config = ContactSolverConfig::default();
+        let seed = [[0.3, 0.4, 1.0], [0.0; 3]];
+        let (candidate, _) = normal::attempt(&g, &free, &mu, &config, &seed);
+        let result = candidate.unwrap();
+        assert_eq!(result.last_change_n_s, 0.5);
+        assert_eq!(result.states, [ContactState::Sticking, ContactState::Open]);
+        assert_contact_conditions(&g, &free, &mu, &result, 1e-8);
+        for disabled in [
+            ContactSolverConfig {
+                regularization: 1e-6,
+                ..config
+            },
+            ContactSolverConfig {
+                relaxation: 0.5,
+                ..config
+            },
+            ContactSolverConfig {
+                max_iterations: 0,
+                ..config
+            },
+            ContactSolverConfig {
+                velocity_tolerance_m_s: f64::NAN,
+                ..config
+            },
+        ] {
+            assert!(normal::attempt(&g, &free, &mu, &disabled, &seed)
+                .0
+                .is_none());
+        }
+        let mut sliding = free;
+        sliding[0] = 0.1;
+        assert_eq!(normal::attempt(&g, &sliding, &mu, &config, &seed).1, 0);
     }
 
     #[test]

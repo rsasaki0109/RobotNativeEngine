@@ -155,6 +155,32 @@ fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box
                     "pre_step_dynamic_penetration_m":penetration,"max_solver_iterations":iterations,
                     "all_solver_stopping_flags":converged,"generated":pipeline.generated_candidates,
                     "retained":pipeline.retained_candidates});
+                if layout == "tower" {
+                    // Raw world-space data for an independent contact-law audit.
+                    let samples: Vec<_> = points
+                        .iter()
+                        .map(|p| {
+                            let n = p.normal_world;
+                            let v = p.relative_velocity_world_m_s;
+                            let t = p.tangential_impulse_world_n_s;
+                            [
+                                n.x,
+                                n.y,
+                                n.z,
+                                v.x,
+                                v.y,
+                                v.z,
+                                t.x,
+                                t.y,
+                                t.z,
+                                p.normal_impulse_n_s,
+                                p.friction_coefficient,
+                                p.gap_m,
+                            ]
+                        })
+                        .collect();
+                    frame["contact_samples"] = json!(samples);
+                }
                 if ["bridge", "tower"].contains(&layout) {
                     // Post-step poses allow an independent all-pairs OBB audit.
                     let poses: Vec<_> = entities
