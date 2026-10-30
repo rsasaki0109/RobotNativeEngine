@@ -176,7 +176,7 @@ pub struct NativeContactImpulse {
     pub normal_constraint_velocity_m_s: f64,
     /// Coulomb coefficient of this solved contact.
     pub friction_coefficient: f64,
-    /// Gauss-Seidel sweeps in this contact's island (zero for a normal-block solve).
+    /// Gauss-Seidel sweeps in this contact's island (zero for a block solve).
     pub solver_iterations: usize,
     /// Island solver stopping flag, not an independent complementarity certificate.
     pub solver_converged: bool,

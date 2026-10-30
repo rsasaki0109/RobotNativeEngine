@@ -1,0 +1,63 @@
+diff --git a/crates/rne_dynamics/src/contact.rs b/crates/rne_dynamics/src/contact.rs
+index 08588b56..6caee039 100644
+--- a/crates/rne_dynamics/src/contact.rs
++++ b/crates/rne_dynamics/src/contact.rs
+@@ -30,6 +30,7 @@
+ mod coupled;
+ mod normal;
+ mod residual;
++mod sticking;
+ 
+ pub use coupled::{
+     contact_step_coupled, contact_step_coupled_with_external_forces, ContactAnchor, CoupledBody,
+@@ -156,6 +157,10 @@ pub struct ContactSolution {
+     pub normal_block_iterations: usize,
+     /// Whether an independently validated normal-block solution was used.
+     pub normal_block_solved: bool,
++    /// Active-set passes attempted by the sticking block candidate solver.
++    pub sticking_block_iterations: usize,
++    /// Whether a full sticking block candidate passed the original contact law.
++    pub sticking_block_solved: bool,
+     /// Whether a block candidate satisfied complementarity, or the sweep
+     /// impulse/velocity change dropped below the configured tolerance.
+     pub converged: bool,
+@@ -258,6 +263,17 @@ pub fn solve_contact_impulses(
+     if let Some(solution) = normal_solution {
+         return Ok(solution);
+     }
++    let (sticking_solution, sticking_block_iterations) = sticking::attempt(
++        delassus,
++        free_velocity_m_s,
++        friction_coefficients,
++        config,
++        &impulses,
++    );
++    if let Some(mut solution) = sticking_solution {
++        solution.normal_block_iterations = normal_block_iterations;
++        return Ok(solution);
++    }
+     let blocks: Vec<[[f64; 3]; 3]> = (0..count)
+         .map(|contact| {
+             let mut block = diagonal_block(delassus, contact);
+@@ -338,6 +354,8 @@ pub fn solve_contact_impulses(
+         iterations,
+         normal_block_iterations,
+         normal_block_solved: false,
++        sticking_block_iterations,
++        sticking_block_solved: false,
+         converged,
+         contact_law_satisfied,
+         last_change_n_s: last_change,
+diff --git a/crates/rne_dynamics/src/contact/normal.rs b/crates/rne_dynamics/src/contact/normal.rs
+index 78bf052f..df1cc56b 100644
+--- a/crates/rne_dynamics/src/contact/normal.rs
++++ b/crates/rne_dynamics/src/contact/normal.rs
+@@ -229,6 +229,8 @@ pub(super) fn solution(normal: Vec<f64>, seed: &[[f64; 3]], passes: usize) -> Co
+         iterations: 0,
+         normal_block_iterations: passes,
+         normal_block_solved: true,
++        sticking_block_iterations: 0,
++        sticking_block_solved: false,
+         converged: true,
+         contact_law_satisfied: true,
+         last_change_n_s: last_change,

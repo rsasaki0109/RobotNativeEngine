@@ -13,9 +13,9 @@ use std::{error::Error, time::Instant};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    if !(2..=4).contains(&args.len()) {
+    if !(2..=5).contains(&args.len()) {
         return Err(
-            "usage: contact_crowd COUNT audit|timing [separated|stacks|clusters|bridge|tower|tower-slide|tower-tilt] [REPEATS]"
+            "usage: contact_crowd COUNT audit|timing [separated|stacks|clusters|bridge|tower|tower-slide|tower-tilt] [REPEATS] [sticking-block]"
                 .into(),
         );
     }
@@ -58,13 +58,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     if !(1..=1000).contains(&repeats) || (repeats != 1 && (audit || count != 1)) {
         return Err("repeats must be 1..=1000; batching requires one box in timing mode".into());
     }
-    let mut result = run(count, audit, layout)?;
+    let sticking_block = match args.get(4).map(String::as_str) {
+        None => false,
+        Some("sticking-block") => true,
+        _ => return Err("expected sticking-block".into()),
+    };
+    let mut result = run(count, audit, layout, sticking_block)?;
     if repeats > 1 {
         let mut elapsed = vec![result["elapsed_s"].as_f64().ok_or("missing elapsed")?];
         let mut hashes = vec![result["final_hash"].as_u64().ok_or("missing hash")?];
         for _ in 1..repeats {
             // Fresh backend and ECS: repeat the same landing, not a longer settle.
-            let next = run(count, audit, layout)?;
+            let next = run(count, audit, layout, sticking_block)?;
             elapsed.push(next["elapsed_s"].as_f64().ok_or("missing elapsed")?);
             hashes.push(next["final_hash"].as_u64().ok_or("missing hash")?);
         }
@@ -73,14 +78,23 @@ fn main() -> Result<(), Box<dyn Error>> {
         result["repeat_elapsed_s"] = json!(elapsed);
         result["repeat_final_hashes"] = json!(hashes);
     }
+    if sticking_block {
+        result["experimental_sticking_block"] = json!(true);
+    }
     println!("{result}");
     Ok(())
 }
 
 #[allow(clippy::too_many_lines)]
-fn run(count: usize, audit: bool, layout: &str) -> Result<serde_json::Value, Box<dyn Error>> {
+fn run(
+    count: usize,
+    audit: bool,
+    layout: &str,
+    sticking_block: bool,
+) -> Result<serde_json::Value, Box<dyn Error>> {
     let mut config = NativeBackendConfig::default();
     config.contact.solver.regularization = 0.0;
+    config.contact.solver.experimental_sticking_block = sticking_block;
     config.contact.solver.max_iterations = 200;
     let mut backend = NativeBackend::with_config(config);
     let id = backend.create_world(PhysicsWorldDesc {

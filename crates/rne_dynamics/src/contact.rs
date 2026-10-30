@@ -30,6 +30,7 @@
 mod coupled;
 mod normal;
 mod residual;
+mod sticking;
 
 pub use coupled::{
     contact_step_coupled, contact_step_coupled_with_external_forces, ContactAnchor, CoupledBody,
@@ -90,6 +91,11 @@ pub struct ContactSolverConfig {
     /// normal-block attempt may precede these for small frictionless or
     /// tangentially static islands.
     pub max_iterations: usize,
+    /// Opt in to a bounded full sticking block attempt after the normal-only
+    /// attempt. Experimental: validated candidates may improve some small
+    /// frictional islands, but costs and transient errors can increase.
+    /// Disabled by default; failed candidates leave the GS warm start intact.
+    pub experimental_sticking_block: bool,
     /// Convergence threshold on the largest per-contact impulse change in one
     /// sweep, in newton-seconds.
     pub tolerance_n_s: f64,
@@ -121,6 +127,7 @@ impl Default for ContactSolverConfig {
     fn default() -> Self {
         Self {
             max_iterations: 200,
+            experimental_sticking_block: false,
             tolerance_n_s: 1.0e-10,
             velocity_tolerance_m_s: 1.0e-8,
             relaxation: 1.0,
@@ -150,12 +157,16 @@ pub struct ContactSolution {
     pub impulses_n_s: Vec<[f64; 3]>,
     /// Resolved state of each contact.
     pub states: Vec<ContactState>,
-    /// Number of Gauss-Seidel sweeps performed (zero for a normal-block solve).
+    /// Number of Gauss-Seidel sweeps performed (zero for a block solve).
     pub iterations: usize,
     /// Active-set passes attempted before the Gauss-Seidel fallback.
     pub normal_block_iterations: usize,
     /// Whether an independently validated normal-block solution was used.
     pub normal_block_solved: bool,
+    /// Active-set passes attempted by the sticking block candidate solver.
+    pub sticking_block_iterations: usize,
+    /// Whether a full sticking block candidate passed the original contact law.
+    pub sticking_block_solved: bool,
     /// Whether a block candidate satisfied complementarity, or the sweep
     /// impulse/velocity change dropped below the configured tolerance.
     pub converged: bool,
@@ -184,7 +195,9 @@ pub struct ContactSolution {
 /// candidates must satisfy the original normal complementarity equations;
 /// frictional candidates must additionally have zero tangential velocity at
 /// every loaded frictional point, within the configured velocity tolerance.
-/// Other cases use sweeps in index order. Both paths are deterministic.
+/// The opt-in experimental sticking block path also tries a full static-friction
+/// candidate. Failed candidates retain the warm start for sweeps in index order.
+/// All paths are deterministic.
 /// `warm_start_n_s` optionally seeds the impulses, which typically reduces the
 /// sweep count when consecutive steps share their contacts.
 pub fn solve_contact_impulses(
@@ -248,14 +261,14 @@ pub fn solve_contact_impulses(
             "solver regularization must be finite and non-negative",
         ));
     }
-    let (normal_solution, normal_block_iterations) = normal::attempt(
+    let (solution, normal_block_iterations, sticking_block_iterations) = block_candidates(
         delassus,
         free_velocity_m_s,
         friction_coefficients,
         config,
         &impulses,
     );
-    if let Some(solution) = normal_solution {
+    if let Some(solution) = solution {
         return Ok(solution);
     }
     let blocks: Vec<[[f64; 3]; 3]> = (0..count)
@@ -338,10 +351,30 @@ pub fn solve_contact_impulses(
         iterations,
         normal_block_iterations,
         normal_block_solved: false,
+        sticking_block_iterations,
+        sticking_block_solved: false,
         converged,
         contact_law_satisfied,
         last_change_n_s: last_change,
     })
+}
+
+fn block_candidates(
+    matrix: &DenseMatrix,
+    free: &[f64],
+    friction: &[f64],
+    config: &ContactSolverConfig,
+    seed: &[[f64; 3]],
+) -> (Option<ContactSolution>, usize, usize) {
+    let (normal, normal_passes) = normal::attempt(matrix, free, friction, config, seed);
+    if normal.is_some() || !config.experimental_sticking_block {
+        return (normal, normal_passes, 0);
+    }
+    let (mut sticking, sticking_passes) = sticking::attempt(matrix, free, friction, config, seed);
+    if let Some(solution) = &mut sticking {
+        solution.normal_block_iterations = normal_passes;
+    }
+    (sticking, normal_passes, sticking_passes)
 }
 
 /// Exact nonzero off-diagonal rows, preserving scalar column order.

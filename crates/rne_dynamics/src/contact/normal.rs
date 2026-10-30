@@ -229,6 +229,8 @@ pub(super) fn solution(normal: Vec<f64>, seed: &[[f64; 3]], passes: usize) -> Co
         iterations: 0,
         normal_block_iterations: passes,
         normal_block_solved: true,
+        sticking_block_iterations: 0,
+        sticking_block_solved: false,
         converged: true,
         contact_law_satisfied: true,
         last_change_n_s: last_change,

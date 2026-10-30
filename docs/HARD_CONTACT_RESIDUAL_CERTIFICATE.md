@@ -139,3 +139,5 @@ python scripts/contact_benchmark/contact_stopping_compare.py \
 
 次の課題は、検出した残差を低い費用で下げる反復改善。今回、許容値を緩めたり、
 失敗フラグを合格へ置き換えたりして物理品質が改善したようには扱わない。
+
+後続: [既定OFFの静止摩擦一括解法と比較結果](HARD_CONTACT_EXPERIMENTAL_STICKING_BLOCK.md)。
