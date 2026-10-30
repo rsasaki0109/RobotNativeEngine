@@ -1,0 +1,76 @@
+{
+  "base_commit": "b3135af78561ed767d4b93040859479edbb61856",
+  "baseline": {
+    "path": "/workspace/artifacts/sticking-opt-a.json",
+    "sha256": "95e9d6d96ccdb2bcdaef3e408c211a1d9b19951e6f58981325f202dd24d9c4f2",
+    "bytes": 24245465
+  },
+  "trials": [
+    {
+      "raw": {
+        "path": "/workspace/artifacts/contact-certified-stop-trial.json",
+        "sha256": "0e745e313424d510209123ed82f626b9920187c11a873039d908fd7379b9b84b",
+        "bytes": 5197697
+      },
+      "binary": {
+        "path": "/workspace/artifacts/contact-certified-stop-trial",
+        "sha256": "d5d914e08ad14a118ead54b0125439f832cd2b3fcd35e1de491885d546fa85f6",
+        "bytes": 1563368
+      },
+      "patch": {
+        "path": "docs/evidence/contact-certified-stop-trial.patch",
+        "sha256": "fd857a28d65d14c6302f51c8167d6f2a79f1350d7eeda9557af52988fb2f4c5c",
+        "bytes": 657
+      },
+      "summary": {
+        "path": "docs/evidence/contact-certified-stop-trial-summary.json",
+        "sha256": "b63e8ec94b47fbf3a4f3242f14e47639e08baae09de3627e9cf3002736487108",
+        "bytes": 32854
+      }
+    },
+    {
+      "raw": {
+        "path": "/workspace/artifacts/contact-seeded-sticking-trial.json",
+        "sha256": "7e32e20af9ed9bd03934805110be38cc4a35fc9a668059489426942e279d5f41",
+        "bytes": 5186918
+      },
+      "binary": {
+        "path": "/workspace/artifacts/contact-seeded-sticking-trial",
+        "sha256": "39f877d3377743623036df8af1455947618d6ffad88d150c9242acf0bd50d61f",
+        "bytes": 1564584
+      },
+      "patch": {
+        "path": "docs/evidence/contact-seeded-sticking-trial.patch",
+        "sha256": "13985e1a2168736b3fd7cae369153135b99a2fea05b0efc645bfefff98ec5862",
+        "bytes": 2361
+      },
+      "summary": {
+        "path": "docs/evidence/contact-seeded-sticking-trial-summary.json",
+        "sha256": "5ba0a7dbe3108b4e0dcbbf4759d4091c946d276c109433968a0604b174fb34f5",
+        "bytes": 33974
+      }
+    },
+    {
+      "raw": {
+        "path": "/workspace/artifacts/contact-sticking-polish-trial.json",
+        "sha256": "d891c8d44b0c6cbbda15a0b41d3e9f14d8d6cb94015ec98864cc1e47e2e9c028",
+        "bytes": 5190231
+      },
+      "binary": {
+        "path": "/workspace/artifacts/contact-sticking-polish-trial",
+        "sha256": "b200fd884144863cfa1c93a5338b180669a3daf2e2b8b541c5ec195d57fba545",
+        "bytes": 1564936
+      },
+      "patch": {
+        "path": "docs/evidence/contact-sticking-polish-trial.patch",
+        "sha256": "d1884b57f21a2fa4ed96f923a557b8df54cfa0cd9e6e8ca65ca72175f4a2cf00",
+        "bytes": 3486
+      },
+      "summary": {
+        "path": "docs/evidence/contact-sticking-polish-trial-summary.json",
+        "sha256": "705e80db44da0ba84e90e780e8fd624fcf49d57bdcfe56d269d37af5fbd6e4ba",
+        "bytes": 34002
+      }
+    }
+  ]
+}

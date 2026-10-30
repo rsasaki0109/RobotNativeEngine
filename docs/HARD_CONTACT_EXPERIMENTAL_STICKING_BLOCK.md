@@ -124,3 +124,5 @@ python scripts/contact_benchmark/contact_sticking_compare.py target/release/exam
 
 次の課題は滑りを含む候補解法と棄却時の費用削減。最大残差とコストの両方が
 安定して改善するまで、この実験機能を既定にしない。
+
+後続: [残差停止・seed開始・GS途中再試行の棄却結果](HARD_CONTACT_STICKING_FOLLOWUP.md)。
