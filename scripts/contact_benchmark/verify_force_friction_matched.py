@@ -5,10 +5,10 @@ import json
 from pathlib import Path
 import statistics
 import numpy as np
-import force_friction_matched as p
+import force_friction_matched as default_protocol
 
 
-def verify(directory):
+def verify(directory, p=default_protocol):
     directory = Path(directory)
     report = json.loads((directory/'report.json').read_text())
     if (report['protocol'] != p.PROTOCOL or report['status'] != 'complete'
