@@ -341,7 +341,8 @@ pub fn solve_contact_impulses(
 }
 
 /// Whether every contact velocity change over one sweep is within tolerance.
-/// Stops at the first failing row, preserving each dot product's summation order.
+/// Small contact blocks use a full reduction; larger blocks stop at the first
+/// failing row. Both preserve each dot product's summation order.
 ///
 /// Redundant contacts (more constraint rows than the bodies have degrees of
 /// freedom) leave `G` singular, and the sweeps keep shifting impulse along
@@ -360,18 +361,21 @@ fn sweep_velocity_converged(
     for ((now, then), change) in impulses.iter().zip(before).zip(delta.chunks_exact_mut(3)) {
         change.copy_from_slice(&[now[0] - then[0], now[1] - then[1], now[2] - then[2]]);
     }
-    delassus
-        .data()
-        .chunks_exact(delta.len())
-        .map(|row| {
-            row.iter()
-                .zip(delta.iter())
-                .map(|(coefficient, value)| coefficient * value)
-                .sum::<f64>()
-                .abs()
-        })
+    let mut changes = delassus.data().chunks_exact(delta.len()).map(|row| {
+        row.iter()
+            .zip(delta.iter())
+            .map(|(coefficient, value)| coefficient * value)
+            .sum::<f64>()
+            .abs()
+    });
+    // One box face contributes at most four contacts. For these small blocks,
+    // a full reduction avoids a branch on every row for little saved work.
+    if impulses.len() <= 4 {
+        changes.fold(0.0, f64::max) <= tolerance_m_s
+    } else {
         // Match the previous max(0, |G δλ|) reduction, which ignores NaNs.
-        .all(|change| change.is_nan() || change <= tolerance_m_s)
+        changes.all(|change| change.is_nan() || change <= tolerance_m_s)
+    }
 }
 
 fn diagonal_block(delassus: &DenseMatrix, contact: usize) -> [[f64; 3]; 3] {
@@ -1535,30 +1539,34 @@ mod tests {
     fn velocity_stopping_matches_full_maximum() {
         // Exercise a failing first/middle/last row, equality, cancellation,
         // and overflow. The reference is the former complete reduction.
-        for row_index in 0..6 {
-            for coefficient in [0.0, 1.0, -1.0, f64::MAX] {
-                let mut matrix = DenseMatrix::zeros(6, 6);
-                matrix.set(row_index, 0, coefficient);
-                matrix.set(row_index, 1, -coefficient);
-                for values in [[1.0, 0.0, 0.0], [2.0, 2.0, 0.0]] {
-                    let impulses = [values, [0.0; 3]];
-                    let flat: Vec<_> = impulses.iter().flatten().copied().collect();
-                    let maximum = matrix
-                        .data()
-                        .chunks_exact(6)
-                        .map(|row| row.iter().zip(&flat).map(|(a, b)| a * b).sum::<f64>().abs())
-                        .fold(0.0, f64::max);
-                    for tolerance in [0.0, 0.5, 1.0, 2.0, -1.0, f64::NAN, f64::INFINITY] {
-                        assert_eq!(
-                            sweep_velocity_converged(
-                                &matrix,
-                                &impulses,
-                                &[[0.0; 3]; 2],
-                                &mut [0.0; 6],
-                                tolerance
-                            ),
-                            maximum <= tolerance,
-                        );
+        for count in [2, 4, 5, 8] {
+            let dimension = 3 * count;
+            for row_index in 0..dimension {
+                for coefficient in [0.0, 1.0, -1.0, f64::MAX] {
+                    let mut matrix = DenseMatrix::zeros(dimension, dimension);
+                    matrix.set(row_index, 0, coefficient);
+                    matrix.set(row_index, 1, -coefficient);
+                    for values in [[1.0, 0.0, 0.0], [2.0, 2.0, 0.0]] {
+                        let mut impulses = vec![[0.0; 3]; count];
+                        impulses[0] = values;
+                        let flat: Vec<_> = impulses.iter().flatten().copied().collect();
+                        let maximum = matrix
+                            .data()
+                            .chunks_exact(dimension)
+                            .map(|row| row.iter().zip(&flat).map(|(a, b)| a * b).sum::<f64>().abs())
+                            .fold(0.0, f64::max);
+                        for tolerance in [0.0, 0.5, 1.0, 2.0, -1.0, f64::NAN, f64::INFINITY] {
+                            assert_eq!(
+                                sweep_velocity_converged(
+                                    &matrix,
+                                    &impulses,
+                                    &vec![[0.0; 3]; count],
+                                    &mut vec![0.0; dimension],
+                                    tolerance
+                                ),
+                                maximum <= tolerance,
+                            );
+                        }
                     }
                 }
             }
