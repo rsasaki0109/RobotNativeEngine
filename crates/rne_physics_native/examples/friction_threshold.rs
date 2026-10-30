@@ -14,9 +14,9 @@ use std::{error::Error, time::Instant};
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
-    if !(7..=9).contains(&args.len()) {
+    if !(7..=10).contains(&args.len()) {
         return Err(
-            "usage: friction_threshold DT_TICKS MASS_KG FORCE_RATIO REGULARIZATION ITERATIONS audit|timing MU [wrench [diagnostics]]"
+            "usage: friction_threshold DT_TICKS MASS_KG FORCE_RATIO REGULARIZATION ITERATIONS audit|timing MU [wrench [diagnostics [CONTACT_MARGIN_M]]]"
                 .into(),
         );
     }
@@ -54,6 +54,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("input outside H5 protocol grid".into());
     }
     let mut config = NativeBackendConfig::default();
+    if let Some(value) = args.get(9) {
+        let margin: f64 = value.parse()?;
+        if ![0.0, 0.0001, 0.02].contains(&margin) {
+            return Err("diagnostic contact margin must be 0, 0.0001, or 0.02 m".into());
+        }
+        config.contact_margin_m = margin;
+    }
     config.contact.solver.regularization = regularization;
     config.contact.solver.max_iterations = iterations;
     let mut backend = NativeBackend::with_config(config);

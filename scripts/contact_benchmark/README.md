@@ -230,3 +230,10 @@ control separates detection retention from constraint admission. `--verify`
 checks source/binary/trace provenance and recomputes the metrics. Different
 residual units/models are reported separately. See
 [findings and API details](../../docs/NATIVE_CONTACT_CONSTRAINT_DIAGNOSTICS.md).
+
+### Contact admission control
+
+`contact_admission.py BINARY NEW_DIRECTORY [--verify]` compares three Native
+candidate distances and four MuJoCo margin/gap combinations over 50 ms. Verification
+replays both engines and checks the compiled contact admission at 50 µm separation.
+See [results and correction to the prior margin/gap interpretation](../../docs/HARD_CONTACT_ADMISSION.md).
