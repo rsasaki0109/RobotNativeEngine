@@ -169,3 +169,12 @@ and repeat with `--verify` to recompute all 32 records. The fixed analytic gates
 cover speed, stopping distance/time, penetration, energy and lateral/rotational
 drift. `RNE_SLIDE` enables the native high-friction integration test. See
 [protocol and results](../../docs/HARD_CONTACT_FRICTION_SLIDE_RESULTS.md).
+
+## H5 static-friction threshold bracket
+
+Build `--example friction_threshold` and run `threshold.py BINARY OUTPUT.json.xz`,
+then add `--verify` to recompute all records. The constant COM load is represented
+by horizontal body acceleration with a fixed floor; this does not exercise the
+external-wrench API. Ratios ±0.8/±1.2 bracket μmg without claiming exact threshold
+identification. `RNE_THRESHOLD` enables native integration coverage. See
+[protocol and results](../../docs/HARD_CONTACT_FRICTION_THRESHOLD_RESULTS.md).
