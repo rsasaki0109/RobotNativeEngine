@@ -1,0 +1,71 @@
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+3.022 100.00  3.022 100.00   <Total>
+1.071  35.43  1.791  59.27   rne_dynamics::contact::solve_contact_impulses
+0.490  16.23  0.490  16.23   rne_dynamics::contact::sweep_velocity_change
+0.440  14.57  2.682  88.74   rne_dynamics::contact::coupled::step_with_external
+0.210   6.95  0.210   6.95   <static>@0x75c93 (<libm.so.6>)
+0.190   6.29  0.200   6.62   rne_dynamics::contact::Cholesky::solve
+0.090   2.98  2.842  94.04   rne_physics_native::world_step::step_world
+0.060   1.99  0.060   1.99   rne_dynamics::algorithms::point_linear_jacobian
+0.050   1.66  0.060   1.99   <static>@0x9ff23 (<libc.so.6>)
+0.040   1.32  0.060   1.99   free
+0.040   1.32  0.050   1.66   rne_physics_native::collide::box_box
+0.030   0.99  0.030   0.99   core::hash::BuildHasher::hash_one
+0.030   0.99  0.030   0.99   hypot
+0.030   0.99  0.030   0.99   rne_dynamics::contact::Cholesky::new
+0.020   0.66  0.020   0.66   <static>@0x162127 (<libc.so.6>)
+0.020   0.66  0.040   1.32   calloc
+0.020   0.66  0.020   0.66   core::hash::BuildHasher::hash_one
+0.020   0.66  0.070   2.32   rne_physics_native::world_step::push_box_box
+0.020   0.66  0.020   0.66   rne_robot::kinematics::KinematicModel::link_index
+0.010   0.33  0.020   0.66   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.010   0.33  0.010   0.33   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.010   0.33  0.260   8.61   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+0.010   0.33  0.020   0.66   <std::collections::hash::map::HashMap<K,V,S> as core::iter::traits::collect::FromIterator<(K,V)>>::from_iter
+0.010   0.33  0.010   0.33   __rustc::__rdl_alloc
+0.010   0.33  0.010   0.33   alloc::collections::btree::node::Handle<alloc::collections::btree::node::NodeRef<alloc::collections::btree::node::marker::Mut,K,V,alloc::collections::btree::node::marker::Leaf>,alloc::collections::btree::node::marker::Edge>::insert_recursing
+0.010   0.33  0.010   0.33   atan2
+0.010   0.33  0.010   0.33   brk
+0.010   0.33  0.010   0.33   core::ptr::drop_in_place<rne_physics::components::ColliderShape>
+0.010   0.33  0.040   1.32   hashbrown::raw::RawTable<T,A>::reserve_rehash
+0.010   0.33  0.010   0.33   malloc
+0.010   0.33  0.010   0.33   rne_dynamics::algorithms::mass_matrix_from_xup
+0.010   0.33  0.010   0.33   rne_math::transform::Transform3::mul_transform
+0.010   0.33  0.010   0.33   rne_physics_native::collide::corners_over_face
+0.010   0.33  0.010   0.33   rne_robot::kinematics::KinematicModel::forward_kinematics
+0.      0.    0.010   0.33   <alloc::vec::Vec<T,A> as core::ops::drop::Drop>::drop
+0.      0.    0.010   0.33   <alloc::vec::Vec<T,A> as core::ops::drop::Drop>::drop
+0.      0.    0.030   0.99   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+0.      0.    0.260   8.61   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.      0.    0.030   0.99   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::try_fold
+0.      0.    0.150   4.97   <rne_physics_native::NativeBackend as rne_physics::backend::PhysicsBackend>::step
+0.      0.    0.030   0.99   <rne_physics_native::NativeBackend as rne_physics::backend::PhysicsBackend>::sync_to_ecs
+0.      0.    0.180   5.96   <static>@0x29c21 (<libc.so.6>)
+0.      0.    0.010   0.33   __default_morecore
+0.      0.    0.010   0.33   alloc::collections::btree::map::entry::Entry<K,V,A>::or_insert
+0.      0.    0.010   0.33   alloc::raw_vec::RawVec<T,A>::grow_one
+0.      0.    0.010   0.33   alloc::raw_vec::RawVecInner<A>::finish_grow
+0.      0.    0.010   0.33   alloc::raw_vec::RawVecInner<A>::finish_grow
+0.      0.    0.010   0.33   alloc::raw_vec::RawVecInner<A>::grow_amortized
+0.      0.    0.010   0.33   alloc::raw_vec::RawVecInner<A>::reserve::do_reserve_and_handle
+0.      0.    0.180   5.96   contact_crowd::main
+0.      0.    0.030   0.99   core::iter::adapters::try_process
+0.      0.    0.040   1.32   hashbrown::map::HashMap<K,V,S,A>::insert
+0.      0.    0.010   0.33   hashbrown::raw::RawTable<T,A>::reserve_rehash
+0.      0.    0.010   0.33   hashbrown::raw::RawTable<T,A>::reserve_rehash
+0.      0.    0.180   5.96   main
+0.      0.    0.020   0.66   realloc
+0.      0.    0.010   0.33   rne_dynamics::algorithms::DenseMatrix::zeros
+0.      0.    0.020   0.66   rne_dynamics::algorithms::rnea_from_xup
+0.      0.    2.562  84.77   rne_dynamics::contact::coupled::contact_step_coupled
+0.      0.    0.010   0.33   rne_physics_native::assembly::Assembly::body_poses
+0.      0.    0.010   0.33   rne_world::components::Transform3::mul_transform
+0.      0.    0.010   0.33   sbrk
+0.      0.    0.180   5.96   std::rt::lang_start::{{closure}}
+0.      0.    0.180   5.96   std::rt::lang_start_internal
+0.      0.    0.180   5.96   std::sys::backtrace::__rust_begin_short_backtrace
+

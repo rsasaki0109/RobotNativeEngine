@@ -320,8 +320,13 @@ pub fn solve_contact_impulses(
             states[contact] = state;
         }
         converged = last_change <= config.tolerance_n_s
-            || sweep_velocity_change(delassus, &impulses, &before, &mut delta)
-                <= config.velocity_tolerance_m_s;
+            || sweep_velocity_converged(
+                delassus,
+                &impulses,
+                &before,
+                &mut delta,
+                config.velocity_tolerance_m_s,
+            );
     }
 
     Ok(ContactSolution {
@@ -335,18 +340,23 @@ pub fn solve_contact_impulses(
     })
 }
 
-/// Largest change of any contact velocity over one sweep, `max |G δλ|`.
+/// Whether every contact velocity change over one sweep is within tolerance.
+/// Stops at the first failing row, preserving each dot product's summation order.
 ///
 /// Redundant contacts (more constraint rows than the bodies have degrees of
 /// freedom) leave `G` singular, and the sweeps keep shifting impulse along
 /// its null space long after the motion has settled; that shift changes no
 /// velocity, so this measures the progress that matters.
-fn sweep_velocity_change(
+fn sweep_velocity_converged(
     delassus: &DenseMatrix,
     impulses: &[[f64; 3]],
     before: &[[f64; 3]],
     delta: &mut [f64],
-) -> f64 {
+    tolerance_m_s: f64,
+) -> bool {
+    if tolerance_m_s.is_nan() || tolerance_m_s < 0.0 {
+        return false;
+    }
     for ((now, then), change) in impulses.iter().zip(before).zip(delta.chunks_exact_mut(3)) {
         change.copy_from_slice(&[now[0] - then[0], now[1] - then[1], now[2] - then[2]]);
     }
@@ -360,7 +370,8 @@ fn sweep_velocity_change(
                 .sum::<f64>()
                 .abs()
         })
-        .fold(0.0, f64::max)
+        // Match the previous max(0, |G δλ|) reduction, which ignores NaNs.
+        .all(|change| change.is_nan() || change <= tolerance_m_s)
 }
 
 fn diagonal_block(delassus: &DenseMatrix, contact: usize) -> [[f64; 3]; 3] {
@@ -1519,6 +1530,40 @@ mod tests {
 
     const HALF_EXTENTS_M: [f64; 3] = [0.1, 0.05, 0.1];
     const BOX_MASS_KG: f64 = 2.0;
+
+    #[test]
+    fn velocity_stopping_matches_full_maximum() {
+        // Exercise a failing first/middle/last row, equality, cancellation,
+        // and overflow. The reference is the former complete reduction.
+        for row_index in 0..6 {
+            for coefficient in [0.0, 1.0, -1.0, f64::MAX] {
+                let mut matrix = DenseMatrix::zeros(6, 6);
+                matrix.set(row_index, 0, coefficient);
+                matrix.set(row_index, 1, -coefficient);
+                for values in [[1.0, 0.0, 0.0], [2.0, 2.0, 0.0]] {
+                    let impulses = [values, [0.0; 3]];
+                    let flat: Vec<_> = impulses.iter().flatten().copied().collect();
+                    let maximum = matrix
+                        .data()
+                        .chunks_exact(6)
+                        .map(|row| row.iter().zip(&flat).map(|(a, b)| a * b).sum::<f64>().abs())
+                        .fold(0.0, f64::max);
+                    for tolerance in [0.0, 0.5, 1.0, 2.0, -1.0, f64::NAN, f64::INFINITY] {
+                        assert_eq!(
+                            sweep_velocity_converged(
+                                &matrix,
+                                &impulses,
+                                &[[0.0; 3]; 2],
+                                &mut [0.0; 6],
+                                tolerance
+                            ),
+                            maximum <= tolerance,
+                        );
+                    }
+                }
+            }
+        }
+    }
 
     /// Small deterministic generator for test matrices.
     struct Lcg(u64);
