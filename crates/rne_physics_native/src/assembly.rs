@@ -490,6 +490,42 @@ impl Assembly {
         self.anchor_track = Some(track);
     }
 
+    /// Projects world-frame wrenches into model velocity coordinates.
+    pub(crate) fn external_efforts(
+        &self,
+        loads: &[rne_physics::ExternalBodyWrench],
+    ) -> Result<Vec<f64>, PhysicsError> {
+        let mut effort = vec![0.0; self.model.nv()];
+        for load in loads {
+            let Some(body) = self.bodies.iter().find(|b| b.entity == load.entity) else {
+                continue;
+            };
+            let poses = self.sim_transforms()?;
+            let pose = poses[body.link_index];
+            let rotation = crate::collide::world_to_sim();
+            let point =
+                pose.rotation.conjugate() * (rotation * load.point_world_m - pose.translation);
+            let force = rotation * load.force_world_n;
+            let torque = rotation * load.torque_world_nm;
+            let wrench = [force.x, force.y, force.z, torque.x, torque.y, torque.z];
+            let jacobian =
+                rne_dynamics::frame_jacobian(&self.model, &self.q, body.model_link, point)
+                    .map_err(|_| PhysicsError::InitializationFailed)?;
+            for (col, value) in effort.iter_mut().enumerate() {
+                for (row, force) in wrench.iter().enumerate() {
+                    *value += jacobian.get(row, col) * force;
+                }
+            }
+            if effort.iter().any(|v| !v.is_finite()) {
+                return Err(PhysicsError::InvalidExternalBodyWrench {
+                    entity_index: load.entity.index(),
+                    reason: "generalized load overflow",
+                });
+            }
+        }
+        Ok(effort)
+    }
+
     /// The assembly's model, state, and commands for a coupled step.
     pub(crate) fn coupled_body(&self) -> CoupledBody<'_> {
         CoupledBody {

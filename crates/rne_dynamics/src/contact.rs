@@ -30,7 +30,10 @@
 mod coupled;
 mod normal;
 
-pub use coupled::{contact_step_coupled, ContactAnchor, CoupledBody, CoupledContact, CoupledStep};
+pub use coupled::{
+    contact_step_coupled, contact_step_coupled_with_external_forces, ContactAnchor, CoupledBody,
+    CoupledContact, CoupledStep,
+};
 
 use crate::algorithms::{
     mass_matrix_from_xup, point_linear_jacobian, rnea_from_xup, xup_transforms, DenseMatrix,
@@ -839,6 +842,9 @@ fn step_with_actuation(
             &mut generalized_force,
         );
     }
+    if contacts.is_empty() && model.nv() == 6 {
+        add_base_transport_force(model, frame.mass, qd, &mut generalized_force);
+    }
     let factor = Cholesky::new(&effective_mass, model.dof_parents.as_deref())
         .ok_or(DynamicsError::SingularMassMatrix)?;
 
@@ -915,6 +921,10 @@ fn step_with_actuation(
     }
     let next_configuration =
         integrate_from_base_frame(model, q, &next_velocity, dt, &transforms[0]);
+
+    if contacts.is_empty() && model.nv() == 6 {
+        transport_base_velocity(model, dt, &mut next_velocity);
+    }
 
     let joint_limits = limits
         .iter()
@@ -1280,6 +1290,35 @@ pub fn integrate_configuration(
         dt,
         &kinematics.transforms()[0],
     ))
+}
+
+// Solve velocity increments in the old base frame. RNE's body-twist bias
+// includes the moving-frame derivative -omega x v; remove that term here,
+// then rotate the solved velocity exactly into the new frame after integration.
+fn add_base_transport_force(
+    model: &ArticulatedModel,
+    mass: &DenseMatrix,
+    qd: &[f64],
+    force: &mut [f64],
+) {
+    if model.base_dof() != 6 {
+        return;
+    }
+    let correction = Vec3::new(qd[3], qd[4], qd[5]).cross(Vec3::new(qd[0], qd[1], qd[2]));
+    for (row, value) in force.iter_mut().enumerate() {
+        *value += mass.get(row, 0) * correction.x
+            + mass.get(row, 1) * correction.y
+            + mass.get(row, 2) * correction.z;
+    }
+}
+
+fn transport_base_velocity(model: &ArticulatedModel, dt: f64, velocity: &mut [f64]) {
+    if model.base_dof() != 6 {
+        return;
+    }
+    let rotation = Quat::from_scaled_axis(-dt * Vec3::new(velocity[3], velocity[4], velocity[5]));
+    let linear = rotation * Vec3::new(velocity[0], velocity[1], velocity[2]);
+    velocity[..3].copy_from_slice(&[linear.x, linear.y, linear.z]);
 }
 
 /// [`integrate_configuration`] with the base link frame at `q` already known.
@@ -2468,6 +2507,48 @@ mod tests {
             max_effort,
             ..JointLimits::default()
         })
+    }
+
+    #[test]
+    fn external_generalized_force_is_not_clipped_as_motor_effort() {
+        let model = effort_limited_pendulum(5.0);
+        let q = [0.0];
+        let qd = [0.0];
+        let tau = [0.0];
+        let body = CoupledBody {
+            model: &model,
+            q: &q,
+            qd: &qd,
+            tau: &tau,
+            pd: None,
+        };
+        let config = ContactStepConfig::default();
+        let result =
+            contact_step_coupled_with_external_forces(&[body], &[], &config, None, &[vec![100.0]])
+                .unwrap();
+        let reference = contact_step_coupled(
+            &[CoupledBody {
+                model: &model,
+                q: &q,
+                qd: &qd,
+                tau: &[100.0],
+                pd: None,
+            }],
+            &[],
+            &ContactStepConfig {
+                enforce_effort_limits: false,
+                ..config
+            },
+            None,
+        )
+        .unwrap();
+        assert!((result.bodies[0].qd[0] - reference.bodies[0].qd[0]).abs() < 1e-12);
+        assert_eq!(result.bodies[0].actuator_torques, vec![0.0]);
+        assert!(result.bodies[0].saturated_joints.is_empty());
+        assert!(
+            contact_step_coupled_with_external_forces(&[], &[], &config, None, &[vec![1.0]])
+                .is_err()
+        );
     }
 
     #[test]

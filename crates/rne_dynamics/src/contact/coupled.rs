@@ -11,9 +11,10 @@
 //! models only through shared contacts.
 
 use super::{
-    active_joint_limits, actuator_torques, add_prescribed_contact_velocity, contact_frame,
-    effort_limit, fold_implicit_pd, integrate_from_base_frame, prescribed_point_velocity,
-    solve_contact_impulses, validate_pd, Cholesky, ContactOutcome, ContactStep, ContactStepConfig,
+    active_joint_limits, actuator_torques, add_base_transport_force,
+    add_prescribed_contact_velocity, contact_frame, effort_limit, fold_implicit_pd,
+    integrate_from_base_frame, prescribed_point_velocity, solve_contact_impulses,
+    transport_base_velocity, validate_pd, Cholesky, ContactOutcome, ContactStep, ContactStepConfig,
     JointLimitOutcome, JointLimitSide, JointPdControl, LimitRow, EFFORT_TOLERANCE,
     MAX_EFFORT_PASSES,
 };
@@ -108,21 +109,70 @@ pub fn contact_step_coupled(
     config: &ContactStepConfig,
     warm_start_n_s: Option<&[[f64; 3]]>,
 ) -> Result<CoupledStep, DynamicsError> {
+    step_with_external(bodies, contacts, config, warm_start_n_s, None)
+}
+
+/// Steps coupled bodies with additional generalized external forces, in each
+/// model's velocity coordinates. These forces are not actuator commands and
+/// are not clipped by actuator effort limits. Each vector must have `nv` entries.
+pub fn contact_step_coupled_with_external_forces(
+    bodies: &[CoupledBody<'_>],
+    contacts: &[CoupledContact],
+    config: &ContactStepConfig,
+    warm_start_n_s: Option<&[[f64; 3]]>,
+    external: &[Vec<f64>],
+) -> Result<CoupledStep, DynamicsError> {
+    if external.len() != bodies.len() {
+        return Err(DynamicsError::DimensionMismatch {
+            provided: external.len(),
+            expected: bodies.len(),
+        });
+    }
+    for (body, forces) in bodies.iter().zip(external) {
+        if forces.len() != body.model.nv() {
+            return Err(DynamicsError::DimensionMismatch {
+                provided: forces.len(),
+                expected: body.model.nv(),
+            });
+        }
+        if forces.iter().any(|v| !v.is_finite()) {
+            return Err(DynamicsError::NonFiniteInput);
+        }
+    }
+    step_with_external(bodies, contacts, config, warm_start_n_s, Some(external))
+}
+
+fn step_with_external(
+    bodies: &[CoupledBody<'_>],
+    contacts: &[CoupledContact],
+    config: &ContactStepConfig,
+    warm_start_n_s: Option<&[[f64; 3]]>,
+    external: Option<&[Vec<f64>]>,
+) -> Result<CoupledStep, DynamicsError> {
     validate(bodies, contacts, config, warm_start_n_s)?;
     let mut offset = 0;
     let frames = bodies
         .iter()
-        .map(|body| {
+        .enumerate()
+        .map(|(index, body)| {
             let kinematics = body.model.kinematic.forward_kinematics(body.q)?;
             let xup = xup_transforms(body.model, kinematics.transforms());
             let mass = mass_matrix_from_xup(body.model, &xup);
-            let bias = rnea_from_xup(
+            let mut bias = rnea_from_xup(
                 body.model,
                 kinematics.transforms(),
                 &xup,
                 body.qd,
                 &vec![0.0; body.model.nv()],
             );
+            if let Some(forces) = external {
+                for (bias, force) in bias.iter_mut().zip(&forces[index]) {
+                    *bias -= force;
+                }
+                if bias.iter().any(|v| !v.is_finite()) {
+                    return Err(DynamicsError::NonFiniteInput);
+                }
+            }
             let frame = BodyFrame {
                 kinematics,
                 mass,
@@ -252,7 +302,13 @@ fn solve(
     let mut free_velocity = Vec::with_capacity(total_nv);
     let mut limits: Vec<(usize, LimitRow)> = Vec::new();
     for (index, ((body, frame), held)) in bodies.iter().zip(frames).zip(held).enumerate() {
-        let (factor, free) = free_motion(body, frame, held, dt)?;
+        let (factor, free) = free_motion(
+            body,
+            frame,
+            held,
+            dt,
+            contacts.is_empty() && bodies.len() == 1 && body.model.nv() == 6,
+        )?;
         if config.enforce_joint_limits {
             limits.extend(
                 active_joint_limits(body.model, body.q, &free, dt)
@@ -327,7 +383,7 @@ fn solve(
     let mut body_steps = Vec::with_capacity(bodies.len());
     for (index, (body, frame)) in bodies.iter().zip(frames).enumerate() {
         let nv = body.model.nv();
-        let qd = next_velocity[frame.offset..frame.offset + nv].to_vec();
+        let mut qd = next_velocity[frame.offset..frame.offset + nv].to_vec();
         let q = integrate_from_base_frame(
             body.model,
             body.q,
@@ -335,6 +391,9 @@ fn solve(
             dt,
             &frame.kinematics.transforms()[0],
         );
+        if contacts.is_empty() && bodies.len() == 1 && body.model.nv() == 6 {
+            transport_base_velocity(body.model, dt, &mut qd);
+        }
         let joint_limits = limits
             .iter()
             .zip(&solution.impulses_n_s[count..])
@@ -381,6 +440,7 @@ fn free_motion(
     frame: &BodyFrame,
     held: &[Option<f64>],
     dt: f64,
+    transport: bool,
 ) -> Result<(Cholesky, Vec<f64>), DynamicsError> {
     let base = body.model.base_dof();
     let mut effective_mass = frame.mass.clone();
@@ -406,6 +466,9 @@ fn free_motion(
             &mut effective_mass,
             &mut generalized_force,
         );
+    }
+    if transport {
+        add_base_transport_force(body.model, &frame.mass, body.qd, &mut generalized_force);
     }
     let factor = Cholesky::new(&effective_mass, body.model.dof_parents.as_deref())
         .ok_or(DynamicsError::SingularMassMatrix)?;

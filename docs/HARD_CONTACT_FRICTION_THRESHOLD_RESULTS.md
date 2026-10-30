@@ -7,7 +7,8 @@
 
 ## 荷重の与え方と範囲
 
-Native backendは `apply_external_body_wrench` をまだ実装していない。
+この測定時点ではNative backendは `apply_external_body_wrench` を未実装だった。
+後続の[外力API実装と検証](NATIVE_EXTERNAL_WRENCH.md)とは測定方法を区別する。
 この試験は単一の動的箱と固定床なので、世界の加速度を
 `(r μ g, -g, 0)` とすることで、箱の重心に一定水平力 `F` を加えた運動を再現する。
 固定床は加速しない。均一な体積力は重心まわりの追加モーメントを生じない。

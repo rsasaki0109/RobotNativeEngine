@@ -51,6 +51,7 @@ pub(crate) fn step_world(
     config: &ContactStepConfig,
     margin_m: f64,
     dt_s: f64,
+    external: &[Vec<f64>],
 ) -> Result<Vec<ContactRecord>, PhysicsError> {
     let transforms = assemblies
         .iter()
@@ -127,8 +128,19 @@ pub(crate) fn step_world(
             .iter()
             .map(|&index| assemblies[index].coupled_body())
             .collect();
-        let step = contact_step_coupled(&bodies, &contacts, &config, Some(&seed))
-            .map_err(|_| PhysicsError::InitializationFailed)?;
+        let result = if external.is_empty() {
+            contact_step_coupled(&bodies, &contacts, &config, Some(&seed))
+        } else {
+            let forces: Vec<_> = members.iter().map(|i| external[*i].clone()).collect();
+            rne_dynamics::contact_step_coupled_with_external_forces(
+                &bodies,
+                &contacts,
+                &config,
+                Some(&seed),
+                &forces,
+            )
+        };
+        let step = result.map_err(|_| PhysicsError::InitializationFailed)?;
         for (candidate, outcome) in island.iter().zip(&step.contacts) {
             let [t1, t2, n] = contact_frame(candidate.contact.normal_world);
             let impulse = outcome.impulse_world_n_s;

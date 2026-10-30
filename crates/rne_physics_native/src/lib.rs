@@ -40,6 +40,11 @@
 //!   entities along one normal are reduced to four that span their support. Friction is the mean of
 //!   the two materials' coefficients; restitution is ignored (contacts are
 //!   inelastic).
+//! - **External loads.** World-frame [`ExternalBodyWrench`] commands add for
+//!   the next completed step, including force-at-point moments. Loads on
+//!   articulated links are projected through their spatial Jacobians and are
+//!   independent of actuator effort limits. Sync preserves queued loads on
+//!   surviving dynamic entities; removing a target discards its pending loads.
 //! - **Actuation.** [`rne_physics::JointActuation`] position, velocity, and
 //!   effort commands become implicit PD gains or feed-forward forces with their
 //!   effort limits, the legacy [`rne_physics::JointMotor`] is read with
@@ -79,10 +84,10 @@ use rne_dynamics::ContactStepConfig;
 use rne_ecs::{Entity, Parent, World};
 use rne_math::Vec3;
 use rne_physics::{
-    Collider, ColliderShape, CollisionGroups, ContactEvent, JointState, PhysicsBackend,
-    PhysicsBackendManifest, PhysicsBackendRepeatability, PhysicsCapability, PhysicsError,
-    PhysicsWorldDesc, PhysicsWorldId, RaycastHit, RaycastQuery, RigidBody, RigidBodyType,
-    SelfCollisionExclusion,
+    Collider, ColliderShape, CollisionGroups, ContactEvent, ExternalBodyWrench, JointState,
+    PhysicsBackend, PhysicsBackendManifest, PhysicsBackendRepeatability, PhysicsCapability,
+    PhysicsError, PhysicsWorldDesc, PhysicsWorldId, RaycastHit, RaycastQuery, RigidBody,
+    RigidBodyType, SelfCollisionExclusion,
 };
 use rne_world::{world_transform_of, Transform3};
 use std::collections::{BTreeMap, HashMap};
@@ -96,6 +101,7 @@ const CAPABILITIES: &[PhysicsCapability] = &[
     PhysicsCapability::DeterministicStep,
     PhysicsCapability::ContactForce,
     PhysicsCapability::RaycastBatch,
+    PhysicsCapability::ExternalBodyWrench,
 ];
 
 /// Largest pose or velocity change that still counts as the backend's own
@@ -156,6 +162,7 @@ struct NativeWorld {
     last_dt_s: Option<f64>,
     /// Total simulated time stepped, in seconds.
     elapsed_s: f64,
+    pending_wrenches: Vec<ExternalBodyWrench>,
 }
 
 /// Physics backend that simulates articulated assemblies with
@@ -187,7 +194,7 @@ impl NativeBackend {
             "native",
             env!("CARGO_PKG_VERSION"),
             "rne_dynamics",
-            "coupled_contact_step_per_contact_bisection_v2",
+            "coupled_contact_step_per_contact_bisection_v3",
             CAPABILITIES.iter().copied(),
             PhysicsBackendRepeatability::SameRuntimeExact,
         )
@@ -232,6 +239,8 @@ impl NativeWorld {
                 assembly.bodies.iter().map(move |body| (body.entity, index))
             })
             .collect();
+        self.pending_wrenches
+            .retain(|load| self.body_assembly.contains_key(&load.entity));
         for assembly in &mut self.assemblies {
             remember_ecs_state(assembly, world);
         }
@@ -387,6 +396,25 @@ impl PhysicsBackend for NativeBackend {
         Ok(())
     }
 
+    fn apply_external_body_wrench(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        wrench: ExternalBodyWrench,
+    ) -> Result<(), PhysicsError> {
+        let state = self.world_mut(physics_world)?;
+        if !wrench.is_finite() || !state.body_assembly.contains_key(&wrench.entity) {
+            return Err(PhysicsError::InvalidExternalBodyWrench {
+                entity_index: wrench.entity.index(),
+                reason: "expected finite wrench on a synced dynamic body",
+            });
+        }
+        let mut proposed = state.pending_wrenches.clone();
+        proposed.push(wrench);
+        state.assemblies[state.body_assembly[&wrench.entity]].external_efforts(&proposed)?;
+        state.pending_wrenches.push(wrench);
+        Ok(())
+    }
+
     fn step(&mut self, physics_world: PhysicsWorldId, dt: SimDuration) -> Result<(), PhysicsError> {
         let config = self.config;
         let dt_s = dt.as_seconds().value();
@@ -394,6 +422,23 @@ impl PhysicsBackend for NativeBackend {
             return Err(PhysicsError::InitializationFailed);
         }
         let state = self.world_mut(physics_world)?;
+        for load in &state.pending_wrenches {
+            if !state.body_assembly.contains_key(&load.entity) {
+                return Err(PhysicsError::InvalidExternalBodyWrench {
+                    entity_index: load.entity.index(),
+                    reason: "queued target is no longer dynamic",
+                });
+            }
+        }
+        let external = if state.pending_wrenches.is_empty() {
+            Vec::new()
+        } else {
+            state
+                .assemblies
+                .iter()
+                .map(|a| a.external_efforts(&state.pending_wrenches))
+                .collect::<Result<Vec<_>, _>>()?
+        };
         let records = step_world(
             &mut state.assemblies,
             &state.statics,
@@ -401,7 +446,9 @@ impl PhysicsBackend for NativeBackend {
             &config.contact,
             config.contact_margin_m,
             dt_s,
+            &external,
         )?;
+        state.pending_wrenches.clear();
         let mut events: BTreeMap<(u32, u32), ContactEvent> = BTreeMap::new();
         let to_world = world_to_sim().conjugate();
         for record in &records {
