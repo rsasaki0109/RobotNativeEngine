@@ -1,0 +1,55 @@
+{
+  "base_commit": "6c761d0338294506953c1b97e3dfb46798d1516f",
+  "binary": {
+    "path": "/workspace/artifacts/contact-tower-v1",
+    "bytes": 1540216,
+    "sha256": "3f226bf26e68255239c6116f915ac2edc4aaa37974874e0a3fc9d600bf0d50b3"
+  },
+  "raw": {
+    "path": "/workspace/artifacts/contact-tower-v1.json",
+    "bytes": 1030901,
+    "sha256": "20b764b2da8395dab6f65ac529377d0ec8d8d1f0dba6daa4b366d27139d010c3"
+  },
+  "sources": [
+    {
+      "path": "crates/rne_physics_native/examples/contact_crowd.rs",
+      "bytes": 10315,
+      "sha256": "8cc10ae7478d4f97614b2e327ef59891a2010b83c7f8d3e31303ca0481d68a64"
+    },
+    {
+      "path": "scripts/contact_benchmark/test_contact_tower.py",
+      "bytes": 4638,
+      "sha256": "aaa21794be66a4b3bf92ddd62f20347763506e6bea11d8683088567316ac408a"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_tower.py",
+      "bytes": 6552,
+      "sha256": "8fc1c484b4258605a97149afcca54748933b18a21e75f8fc7c4ef7231a2d9b94"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_bridge.py",
+      "bytes": 7465,
+      "sha256": "d9c8cec81f42b546aa0e863d7d24a929f6e38283f708fed0f702e738db0a74c1"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_clusters.py",
+      "bytes": 5027,
+      "sha256": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d"
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_crowd.py",
+      "bytes": 4447,
+      "sha256": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87"
+    },
+    {
+      "path": "scripts/contact_benchmark/stack.py",
+      "bytes": 8530,
+      "sha256": "148d8dec128bee5c54a2d56a47bbf2968163b6b04a1c41717f17b8f607dc49cc"
+    },
+    {
+      "path": "scripts/contact_benchmark/box.py",
+      "bytes": 6066,
+      "sha256": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+    }
+  ]
+}
