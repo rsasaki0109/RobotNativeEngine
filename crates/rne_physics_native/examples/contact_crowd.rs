@@ -14,8 +14,12 @@ use std::{error::Error, time::Instant};
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    if args.len() != 2 {
-        return Err("usage: contact_crowd COUNT audit|timing".into());
+    if !(2..=3).contains(&args.len()) {
+        return Err("usage: contact_crowd COUNT audit|timing [separated|stacks|clusters]".into());
+    }
+    let layout = args.get(2).map_or("separated", String::as_str);
+    if !["separated", "stacks", "clusters"].contains(&layout) {
+        return Err("unknown layout".into());
     }
     let count: usize = args[0].parse()?;
     let audit = match args[1].as_str() {
@@ -25,6 +29,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     if ![1, 16, 64, 128].contains(&count) {
         return Err("count outside benchmark grid".into());
+    }
+    if layout != "separated" && ![64, 128].contains(&count) {
+        return Err("contact layouts require 64 or 128 boxes".into());
     }
     let mut config = NativeBackendConfig::default();
     config.contact.solver.regularization = 0.0;
@@ -41,14 +48,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     let mut floor = Collider::cuboid(Vec3::new(5.0, 0.5, 5.0));
     floor.material = material;
-    world.spawn((
-        RigidBody {
-            body_type: RigidBodyType::Fixed,
-            ..Default::default()
-        },
-        floor,
-        Transform3::from_translation_rotation(Vec3::new(0.0, -0.5, 0.0), Quat::IDENTITY),
-    ));
+    let floor_entity = world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..Default::default()
+            },
+            floor,
+            Transform3::from_translation_rotation(Vec3::new(0.0, -0.5, 0.0), Quat::IDENTITY),
+        ))
+        .id();
     let mut entities = Vec::new();
     for index in 0..count {
         let mut cube = Collider::cuboid(Vec3::splat(0.05));
@@ -70,11 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     iyz_kg_m2: 0.0,
                 },
                 Transform3::from_translation_rotation(
-                    Vec3::new(
-                        (index % 16) as f64 * 0.15,
-                        0.055,
-                        (index / 16) as f64 * 0.15,
-                    ),
+                    initial_position(index, layout),
                     Quat::IDENTITY,
                 ),
             ))
@@ -82,7 +87,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         entities.push(entity);
     }
     backend.sync_from_ecs(&mut world, id)?;
+    backend.set_contact_diagnostics_enabled(id, audit && layout != "separated")?;
     let mut hashes = Vec::new();
+    let mut contact_frames = Vec::new();
     let mut max_penetration: f64 = 0.0;
     let mut max_spin: f64 = 0.0;
     let start = Instant::now();
@@ -90,6 +97,32 @@ fn main() -> Result<(), Box<dyn Error>> {
         backend.step(id, SimDuration::from_ticks(2_000_000))?;
         backend.sync_to_ecs(&mut world, id)?;
         if audit {
+            if layout != "separated" {
+                let points = backend.contact_impulse_diagnostics(id)?;
+                let mut loaded_pairs = std::collections::BTreeSet::new();
+                let mut penetration: f64 = 0.0;
+                let mut iterations = 0;
+                let mut converged = true;
+                for point in points {
+                    if point.body_entity != floor_entity && point.other_entity != floor_entity {
+                        penetration = penetration.max(-point.gap_m);
+                        if point.normal_impulse_n_s > 1e-10 {
+                            let a = point.body_entity.index();
+                            let b = point.other_entity.index();
+                            loaded_pairs.insert((a.min(b), a.max(b)));
+                        }
+                    }
+                    iterations = iterations.max(point.solver_iterations);
+                    converged &= point.solver_converged;
+                }
+                let pipeline = backend
+                    .contact_pipeline_diagnostics(id)?
+                    .ok_or("missing pipeline")?;
+                contact_frames.push(json!({"loaded_dynamic_pairs":loaded_pairs,
+                    "pre_step_dynamic_penetration_m":penetration,"max_solver_iterations":iterations,
+                    "all_solver_stopping_flags":converged,"generated":pipeline.generated_candidates,
+                    "retained":pipeline.retained_candidates}));
+            }
             hashes.push(
                 capture_physics_snapshot(
                     &world,
@@ -119,7 +152,28 @@ fn main() -> Result<(), Box<dyn Error>> {
         "elapsed_s":elapsed_s,"hashes":hashes,"final_hash":final_hash,
         "max_penetration_m":if audit {Some(max_penetration)} else {None},
         "max_spin_rad_s":if audit {Some(max_spin)} else {None},
-        "steps":100,"dt_ticks":2_000_000,"margin_m":config.contact_margin_m})
+        "steps":100,"dt_ticks":2_000_000,"margin_m":config.contact_margin_m,
+        "layout":layout,"contact_frames":contact_frames})
     );
     Ok(())
+}
+
+fn initial_position(index: usize, layout: &str) -> Vec3 {
+    match layout {
+        "stacks" => Vec3::new(
+            ((index / 2) % 8) as f64 * 0.3,
+            0.055 + (index % 2) as f64 * 0.105,
+            (index / 16) as f64 * 0.3,
+        ),
+        "clusters" => Vec3::new(
+            ((index / 4) % 8) as f64 * 0.35 + (index % 2) as f64 * 0.105,
+            0.055 + ((index / 2) % 2) as f64 * 0.105,
+            (index / 32) as f64 * 0.35,
+        ),
+        _ => Vec3::new(
+            (index % 16) as f64 * 0.15,
+            0.055,
+            (index / 16) as f64 * 0.15,
+        ),
+    }
 }

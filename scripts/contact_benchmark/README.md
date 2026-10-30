@@ -258,3 +258,11 @@ The same paired benchmark also covers the subsequent
 [conservative box-pair sweep](../../docs/HARD_CONTACT_BOX_SWEEP.md), using PR #480
 as its baseline. The sweep is enabled for worlds with at least 64 moving colliders;
 unknown shapes retain the original pair enumeration.
+
+### Loaded dynamic contact groups
+
+`contact_clusters.py EXHAUSTIVE_BINARY SWEEP_BINARY NEW_REPORT.json [--verify]`
+compares 64/128 boxes in two-box stacks and four-box groups. The optional third
+argument of `contact_crowd` selects `stacks` or `clusters`; existing calls still use
+`separated`. Audits require the expected loaded support pairs and identical
+per-step state/contact diagnostics. See [contact-group results](../../docs/HARD_CONTACT_CLUSTER_SWEEP.md).
