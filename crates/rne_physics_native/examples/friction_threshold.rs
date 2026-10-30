@@ -14,9 +14,9 @@ use std::{error::Error, time::Instant};
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
-    if !(7..=10).contains(&args.len()) {
+    if !(7..=12).contains(&args.len()) {
         return Err(
-            "usage: friction_threshold DT_TICKS MASS_KG FORCE_RATIO REGULARIZATION ITERATIONS audit|timing MU [wrench [diagnostics [CONTACT_MARGIN_M]]]"
+            "usage: friction_threshold DT_TICKS MASS_KG FORCE_RATIO REGULARIZATION ITERATIONS audit|timing MU [wrench [diagnostics [CONTACT_MARGIN_M [INITIAL_GAP_M [INITIAL_SPEED_M_S]]]]]"
                 .into(),
         );
     }
@@ -54,6 +54,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("input outside H5 protocol grid".into());
     }
     let mut config = NativeBackendConfig::default();
+    let initial_gap: f64 = args.get(10).map_or(Ok(0.0), |value| value.parse())?;
+    let initial_speed: f64 = args.get(11).map_or(Ok(0.0), |value| value.parse())?;
+    if ![0.0, 0.00005, 0.0005, 0.005].contains(&initial_gap) || ![0.0, 0.2].contains(&initial_speed)
+    {
+        return Err("initial gap/speed outside diagnostic grid".into());
+    }
     if let Some(value) = args.get(9) {
         let margin: f64 = value.parse()?;
         if ![0.0, 0.0001, 0.02].contains(&margin) {
@@ -100,7 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .spawn((
             RigidBody {
                 mass_kg: mass,
-                linear_velocity_m_s: Vec3::ZERO,
+                linear_velocity_m_s: Vec3::X * initial_speed,
                 ..Default::default()
             },
             cube,
@@ -113,7 +119,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 ixz_kg_m2: 0.0,
                 iyz_kg_m2: 0.0,
             },
-            Transform3::from_translation_rotation(Vec3::new(0.0, half, 0.0), rotation),
+            Transform3::from_translation_rotation(
+                Vec3::new(0.0, half + initial_gap, 0.0),
+                rotation,
+            ),
         ))
         .id();
     backend.set_contact_diagnostics_enabled(id, diagnostics)?;
@@ -211,6 +220,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "load_mode":if wrench { "external_body_wrench" } else { "equivalent_gravity" },
         "settings":{"equivalent_force_n":mass * ratio * f64::from(mu) * 9.81,"friction_coefficient":mu,"regularization":regularization,"max_iterations":iterations,
         "contact_margin_m":config.contact_margin_m,"penetration_recovery":config.contact.penetration_recovery,
+        "initial_gap_m":initial_gap,"initial_speed_m_s":initial_speed,
         "tolerance_n_s":config.contact.solver.tolerance_n_s,
         "velocity_tolerance_m_s":config.contact.solver.velocity_tolerance_m_s,
         "bisection_iterations":config.contact.solver.bisection_iterations}})

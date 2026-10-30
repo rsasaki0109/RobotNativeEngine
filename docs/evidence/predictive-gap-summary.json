@@ -1,0 +1,772 @@
+{
+  "protocol": "predictive_gap_v1",
+  "binary_sha256": "2b322be4ee6c0d5ff8d4a7dde71827bf05f97b8e622ab58cdd6607211b5c2d49",
+  "source_sha256": {
+    "predictive_gap.py": "b5bd7948582967dc6aa2df2acc47bb665b8c8dffa43b98df5093a8843bc2d708",
+    "box.py": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+  },
+  "results": [
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 3,
+        "first_loaded_time_s": 0.006,
+        "free_flight_crossing_step": 2,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -6.771999999999334e-05,
+        "free_flight_position_error_m": 3.3881317890172014e-21,
+        "free_flight_velocity_error_m_s": 1.4398204850607499e-15,
+        "max_penetration_m": 6.772000000000028e-05,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.049999600806131986,
+        "final_horizontal_speed_m_s": 0.04902502680135775
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 2,
+        "first_loaded_time_s": 0.004,
+        "free_flight_crossing_step": 2,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 1.0759999999998549e-05,
+        "free_flight_position_error_m": 3.3881317890172014e-21,
+        "free_flight_velocity_error_m_s": 1.4398204850607499e-15,
+        "max_penetration_m": 1.2407757238440224e-11,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000050381057,
+        "final_horizontal_speed_m_s": 0.04904998389827211
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 2,
+        "first_loaded_time_s": 0.004,
+        "free_flight_crossing_step": 2,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 1.0759999999998549e-05,
+        "free_flight_position_error_m": 3.3881317890172014e-21,
+        "free_flight_velocity_error_m_s": 1.4398204850607499e-15,
+        "max_penetration_m": 1.2407757238440224e-11,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000050381057,
+        "final_horizontal_speed_m_s": 0.04904998389827211
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 3,
+        "first_loaded_time_s": 0.006,
+        "free_flight_crossing_step": 2,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -6.771999999999334e-05,
+        "free_flight_position_error_m": 4.336808689942018e-19,
+        "free_flight_velocity_error_m_s": 1.4398204850607499e-15,
+        "max_penetration_m": 6.772000000000028e-05,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.0499996007687944,
+        "final_horizontal_speed_m_s": 0.24902504759874952
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 2,
+        "first_loaded_time_s": 0.004,
+        "free_flight_crossing_step": 2,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 1.0759999999998549e-05,
+        "free_flight_position_error_m": 2.168404344971009e-19,
+        "free_flight_velocity_error_m_s": 1.4398204850607499e-15,
+        "max_penetration_m": 3.896868540862708e-18,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000066299327,
+        "final_horizontal_speed_m_s": 0.24904998830952915
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 2,
+        "first_loaded_time_s": 0.004,
+        "free_flight_crossing_step": 2,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 1.0759999999998549e-05,
+        "free_flight_position_error_m": 2.168404344971009e-19,
+        "free_flight_velocity_error_m_s": 1.4398204850607499e-15,
+        "max_penetration_m": 3.896868540862708e-18,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000066299327,
+        "final_horizontal_speed_m_s": 0.24904998830952915
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 6,
+        "first_loaded_time_s": 0.012,
+        "free_flight_crossing_step": 5,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -8.859999999999424e-05,
+        "free_flight_position_error_m": 6.938893903907228e-18,
+        "free_flight_velocity_error_m_s": 4.649058915617843e-15,
+        "max_penetration_m": 8.860000000000119e-05,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.049998979129844454,
+        "final_horizontal_speed_m_s": 0.04898613464038998
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 6,
+        "first_loaded_time_s": 0.012,
+        "free_flight_crossing_step": 5,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -8.859999999999424e-05,
+        "free_flight_position_error_m": 6.938893903907228e-18,
+        "free_flight_velocity_error_m_s": 4.649058915617843e-15,
+        "max_penetration_m": 8.860000000000119e-05,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.049998979129844454,
+        "final_horizontal_speed_m_s": 0.04898613464038998
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 5,
+        "first_loaded_time_s": 0.01,
+        "free_flight_crossing_step": 5,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 0.00010759999999998549,
+        "free_flight_position_error_m": 6.938893903907228e-18,
+        "free_flight_velocity_error_m_s": 4.649058915617843e-15,
+        "max_penetration_m": 9.487184944276786e-13,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000000120672,
+        "final_horizontal_speed_m_s": 0.04905015415138547
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 6,
+        "first_loaded_time_s": 0.012,
+        "free_flight_crossing_step": 5,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -8.859999999999424e-05,
+        "free_flight_position_error_m": 6.938893903907228e-18,
+        "free_flight_velocity_error_m_s": 4.649058915617843e-15,
+        "max_penetration_m": 8.860000000000119e-05,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.04999897912232796,
+        "final_horizontal_speed_m_s": 0.24898613335122816
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 6,
+        "first_loaded_time_s": 0.012,
+        "free_flight_crossing_step": 5,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -8.859999999999424e-05,
+        "free_flight_position_error_m": 6.938893903907228e-18,
+        "free_flight_velocity_error_m_s": 4.649058915617843e-15,
+        "max_penetration_m": 8.860000000000119e-05,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.04999897912232796,
+        "final_horizontal_speed_m_s": 0.24898613335122816
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 5,
+        "first_loaded_time_s": 0.01,
+        "free_flight_crossing_step": 5,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 0.00010759999999998549,
+        "free_flight_position_error_m": 6.938893903907228e-18,
+        "free_flight_velocity_error_m_s": 4.649058915617843e-15,
+        "max_penetration_m": 0.0,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.0500000002112272,
+        "final_horizontal_speed_m_s": 0.24904998304571285
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 17,
+        "first_loaded_time_s": 0.034,
+        "free_flight_crossing_step": 16,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -0.00033663999999999916,
+        "free_flight_position_error_m": 2.0816681711721685e-17,
+        "free_flight_velocity_error_m_s": 4.909267437014364e-15,
+        "max_penetration_m": 0.00033664000000002003,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.04995481694349186,
+        "final_horizontal_speed_m_s": 0.04622605917506319
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 17,
+        "first_loaded_time_s": 0.034,
+        "free_flight_crossing_step": 16,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -0.00033663999999999916,
+        "free_flight_position_error_m": 2.0816681711721685e-17,
+        "free_flight_velocity_error_m_s": 4.909267437014364e-15,
+        "max_penetration_m": 0.00033664000000002003,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.04995481694349186,
+        "final_horizontal_speed_m_s": 0.04622605917506319
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 16,
+        "first_loaded_time_s": 0.032,
+        "free_flight_crossing_step": 16,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 0.000291200000000047,
+        "free_flight_position_error_m": 2.0816681711721685e-17,
+        "free_flight_velocity_error_m_s": 4.909267437014364e-15,
+        "max_penetration_m": 1.7152412821972605e-12,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.050000000209622426,
+        "final_horizontal_speed_m_s": 0.04904999045462154
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 17,
+        "first_loaded_time_s": 0.034,
+        "free_flight_crossing_step": 16,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -0.00033663999999999916,
+        "free_flight_position_error_m": 2.0816681711721685e-17,
+        "free_flight_velocity_error_m_s": 4.909267437014364e-15,
+        "max_penetration_m": 0.00033664000000002003,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.04995481725259238,
+        "final_horizontal_speed_m_s": 0.2462260361035737
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 17,
+        "first_loaded_time_s": 0.034,
+        "free_flight_crossing_step": 16,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -0.00033663999999999916,
+        "free_flight_position_error_m": 2.0816681711721685e-17,
+        "free_flight_velocity_error_m_s": 4.909267437014364e-15,
+        "max_penetration_m": 0.00033664000000002003,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.04995481725259238,
+        "final_horizontal_speed_m_s": 0.2462260361035737
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 16,
+        "first_loaded_time_s": 0.032,
+        "free_flight_crossing_step": 16,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 0.000291200000000047,
+        "free_flight_position_error_m": 2.0816681711721685e-17,
+        "free_flight_velocity_error_m_s": 4.909267437014364e-15,
+        "max_penetration_m": 4.471131924029083e-17,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000000156728,
+        "final_horizontal_speed_m_s": 0.2490501118052428
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 14,
+        "first_loaded_time_s": 0.0035,
+        "free_flight_crossing_step": 13,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -5.794374999978924e-06,
+        "free_flight_position_error_m": 1.3877787807814457e-17,
+        "free_flight_velocity_error_m_s": 3.054501096499962e-14,
+        "max_penetration_m": 5.794374999992803e-06,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000036816016,
+        "final_horizontal_speed_m_s": 0.04904974735995757
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 13,
+        "first_loaded_time_s": 0.0032500000000000003,
+        "free_flight_crossing_step": 13,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 2.176249999985558e-06,
+        "free_flight_position_error_m": 1.3877787807814457e-17,
+        "free_flight_velocity_error_m_s": 3.054501096499962e-14,
+        "max_penetration_m": 5.702386071825194e-13,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.050000000291182685,
+        "final_horizontal_speed_m_s": 0.04905004368915226
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 13,
+        "first_loaded_time_s": 0.0032500000000000003,
+        "free_flight_crossing_step": 13,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 2.176249999985558e-06,
+        "free_flight_position_error_m": 1.3877787807814457e-17,
+        "free_flight_velocity_error_m_s": 3.054501096499962e-14,
+        "max_penetration_m": 5.702386071825194e-13,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.050000000291182685,
+        "final_horizontal_speed_m_s": 0.04905004368915226
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 14,
+        "first_loaded_time_s": 0.0035,
+        "free_flight_crossing_step": 13,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -5.794374999978924e-06,
+        "free_flight_position_error_m": 1.3877787807814457e-17,
+        "free_flight_velocity_error_m_s": 3.054501096499962e-14,
+        "max_penetration_m": 5.794374999992803e-06,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.04999999563686071,
+        "final_horizontal_speed_m_s": 0.24904775519277167
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 13,
+        "first_loaded_time_s": 0.0032500000000000003,
+        "free_flight_crossing_step": 13,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 2.176249999985558e-06,
+        "free_flight_position_error_m": 1.3877787807814457e-17,
+        "free_flight_velocity_error_m_s": 3.054501096499962e-14,
+        "max_penetration_m": 0.0,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000087196089,
+        "final_horizontal_speed_m_s": 0.24904999479947315
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 5e-05,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 13,
+        "first_loaded_time_s": 0.0032500000000000003,
+        "free_flight_crossing_step": 13,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 2.176249999985558e-06,
+        "free_flight_position_error_m": 1.3877787807814457e-17,
+        "free_flight_velocity_error_m_s": 3.054501096499962e-14,
+        "max_penetration_m": 0.0,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000087196089,
+        "final_horizontal_speed_m_s": 0.24904999479947315
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 41,
+        "first_loaded_time_s": 0.01025,
+        "free_flight_crossing_step": 40,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -2.762499999919843e-06,
+        "free_flight_position_error_m": 5.551115123125783e-17,
+        "free_flight_velocity_error_m_s": 3.790023850314128e-14,
+        "max_penetration_m": 2.7624999999476036e-06,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.049999999819873096,
+        "final_horizontal_speed_m_s": 0.04904968268043368
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 40,
+        "first_loaded_time_s": 0.01,
+        "free_flight_crossing_step": 40,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 2.1762500000077623e-05,
+        "free_flight_position_error_m": 4.85722573273506e-17,
+        "free_flight_velocity_error_m_s": 3.587408148320037e-14,
+        "max_penetration_m": 7.5441921062653e-13,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.050000000788193416,
+        "final_horizontal_speed_m_s": 0.049049979985366955
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 40,
+        "first_loaded_time_s": 0.01,
+        "free_flight_crossing_step": 40,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 2.1762500000077623e-05,
+        "free_flight_position_error_m": 4.85722573273506e-17,
+        "free_flight_velocity_error_m_s": 3.587408148320037e-14,
+        "max_penetration_m": 7.5441921062653e-13,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.050000000788193416,
+        "final_horizontal_speed_m_s": 0.049049979985366955
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 41,
+        "first_loaded_time_s": 0.01025,
+        "free_flight_crossing_step": 40,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -2.762499999919843e-06,
+        "free_flight_position_error_m": 5.551115123125783e-17,
+        "free_flight_velocity_error_m_s": 3.790023850314128e-14,
+        "max_penetration_m": 2.762499999947603e-06,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.049999978630075805,
+        "final_horizontal_speed_m_s": 0.24903919719077017
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 40,
+        "first_loaded_time_s": 0.01,
+        "free_flight_crossing_step": 40,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 2.1762500000077623e-05,
+        "free_flight_position_error_m": 4.85722573273506e-17,
+        "free_flight_velocity_error_m_s": 3.587408148320037e-14,
+        "max_penetration_m": 2.1962533575516242e-13,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000078610372,
+        "final_horizontal_speed_m_s": 0.24904998348167923
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.0005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 40,
+        "first_loaded_time_s": 0.01,
+        "free_flight_crossing_step": 40,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 2.1762500000077623e-05,
+        "free_flight_position_error_m": 4.85722573273506e-17,
+        "free_flight_velocity_error_m_s": 3.587408148320037e-14,
+        "max_penetration_m": 2.1962533575516242e-13,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000078610372,
+        "final_horizontal_speed_m_s": 0.24904998348167923
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 129,
+        "first_loaded_time_s": 0.03225,
+        "free_flight_crossing_step": 128,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -6.195999999997204e-05,
+        "free_flight_position_error_m": 9.020562075079397e-17,
+        "free_flight_velocity_error_m_s": 5.612177389480166e-14,
+        "max_penetration_m": 6.19599999999999e-05,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000010717047,
+        "final_horizontal_speed_m_s": 0.04904964964509359
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 128,
+        "first_loaded_time_s": 0.032,
+        "free_flight_crossing_step": 128,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 1.651999999996434e-05,
+        "free_flight_position_error_m": 9.020562075079397e-17,
+        "free_flight_velocity_error_m_s": 5.612177389480166e-14,
+        "max_penetration_m": 1.1067134790851086e-12,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000086242581,
+        "final_horizontal_speed_m_s": 0.04904998431354453
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.0,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 128,
+        "first_loaded_time_s": 0.032,
+        "free_flight_crossing_step": 128,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 1.651999999996434e-05,
+        "free_flight_position_error_m": 9.020562075079397e-17,
+        "free_flight_velocity_error_m_s": 5.612177389480166e-14,
+        "max_penetration_m": 1.1067134790851086e-12,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.05000000086242581,
+        "final_horizontal_speed_m_s": 0.04904998431354453
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0
+      },
+      "metrics": {
+        "first_loaded_step": 129,
+        "first_loaded_time_s": 0.03225,
+        "free_flight_crossing_step": 128,
+        "landing_delay_steps": 1,
+        "first_loaded_gap_m": -6.195999999997204e-05,
+        "free_flight_position_error_m": 9.020562075079397e-17,
+        "free_flight_velocity_error_m_s": 5.612177389480166e-14,
+        "max_penetration_m": 6.19599999999999e-05,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.04999999990097038,
+        "final_horizontal_speed_m_s": 0.24904967311525916
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.0001
+      },
+      "metrics": {
+        "first_loaded_step": 128,
+        "first_loaded_time_s": 0.032,
+        "free_flight_crossing_step": 128,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 1.651999999996434e-05,
+        "free_flight_position_error_m": 9.020562075079397e-17,
+        "free_flight_velocity_error_m_s": 5.612177389480166e-14,
+        "max_penetration_m": 2.567451057406433e-14,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.0500000003153685,
+        "final_horizontal_speed_m_s": 0.24904997814656493
+      }
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "initial_gap_m": 0.005,
+        "initial_speed_m_s": 0.2,
+        "margin_m": 0.02
+      },
+      "metrics": {
+        "first_loaded_step": 128,
+        "first_loaded_time_s": 0.032,
+        "free_flight_crossing_step": 128,
+        "landing_delay_steps": 0,
+        "first_loaded_gap_m": 1.651999999996434e-05,
+        "free_flight_position_error_m": 9.020562075079397e-17,
+        "free_flight_velocity_error_m_s": 5.612177389480166e-14,
+        "max_penetration_m": 2.567451057406433e-14,
+        "max_spin_rad_s": 0.0,
+        "final_height_m": 0.0500000003153685,
+        "final_horizontal_speed_m_s": 0.24904997814656493
+      }
+    }
+  ],
+  "artifact_retention": {
+    "path": "/workspace/artifacts/predictive-gap-v2.json.xz",
+    "sha256": "08f360cce2747172867f3f9e462cddbdf0beadc29b8b667ed8e58ea77489eb3c",
+    "bytes": 1032252,
+    "durable_url": null
+  }
+}

@@ -237,3 +237,10 @@ residual units/models are reported separately. See
 candidate distances and four MuJoCo margin/gap combinations over 50 ms. Verification
 replays both engines and checks the compiled contact admission at 50 µm separation.
 See [results and correction to the prior margin/gap interpretation](../../docs/HARD_CONTACT_ADMISSION.md).
+
+### Finite-gap predictive contact
+
+`predictive_gap.py BINARY NEW_REPORT.json.xz [--verify]` runs 36 Native landing
+conditions with initial gaps, horizontal speeds, candidate distances, and two
+step sizes. The verifier checks pre-contact semi-implicit free flight and exact
+replays. See [finite-gap results](../../docs/HARD_CONTACT_PREDICTIVE_GAP.md).
