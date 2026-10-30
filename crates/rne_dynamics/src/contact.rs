@@ -28,6 +28,7 @@
 //! in input order, no hash order participates, and no wall-clock time is read.
 
 mod coupled;
+mod normal;
 
 pub use coupled::{contact_step_coupled, ContactAnchor, CoupledBody, CoupledContact, CoupledStep};
 
@@ -81,7 +82,8 @@ pub struct ContactPoint {
 /// Iteration controls for [`solve_contact_impulses`].
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ContactSolverConfig {
-    /// Maximum number of Gauss-Seidel sweeps over all contacts.
+    /// Maximum number of Gauss-Seidel sweeps over all contacts. A bounded
+    /// normal-block attempt may precede these for small frictionless islands.
     pub max_iterations: usize,
     /// Convergence threshold on the largest per-contact impulse change in one
     /// sweep, in newton-seconds.
@@ -143,11 +145,17 @@ pub struct ContactSolution {
     pub impulses_n_s: Vec<[f64; 3]>,
     /// Resolved state of each contact.
     pub states: Vec<ContactState>,
-    /// Number of sweeps performed.
+    /// Number of Gauss-Seidel sweeps performed (zero for a normal-block solve).
     pub iterations: usize,
-    /// Whether the impulse change dropped below the tolerance.
+    /// Active-set passes attempted before the Gauss-Seidel fallback.
+    pub normal_block_iterations: usize,
+    /// Whether an independently validated normal-block solution was used.
+    pub normal_block_solved: bool,
+    /// Whether a block candidate satisfied complementarity, or the sweep
+    /// impulse/velocity change dropped below the configured tolerance.
     pub converged: bool,
-    /// Largest per-contact impulse change in the last sweep, in newton-seconds.
+    /// Largest per-contact impulse change in the last sweep, or from the warm
+    /// start to the block solution, in newton-seconds.
     pub last_change_n_s: f64,
 }
 
@@ -162,7 +170,9 @@ pub struct ContactSolution {
 /// * `λₙ ≥ 0`, `vₙ ≥ 0`, `λₙ vₙ = 0` with `v = free_velocity + G λ`;
 /// * `‖λₜ‖ ≤ μ λₙ`, and a sliding contact's tangential velocity opposes `λₜ`.
 ///
-/// Contacts are swept in index order, so the result is deterministic.
+/// Small rigid frictionless islands first try a bounded normal active-set
+/// solve, accepting only candidates satisfying the original complementarity
+/// equations. Other cases use sweeps in index order. Both paths are deterministic.
 /// `warm_start_n_s` optionally seeds the impulses, which typically reduces the
 /// sweep count when consecutive steps share their contacts.
 pub fn solve_contact_impulses(
@@ -225,6 +235,27 @@ pub fn solve_contact_impulses(
         return Err(DynamicsError::InvalidContact(
             "solver regularization must be finite and non-negative",
         ));
+    }
+    let mut normal_block_iterations = 0;
+    if (2..=32).contains(&count)
+        && config.regularization == 0.0
+        && config.relaxation == 1.0
+        && config.velocity_tolerance_m_s.is_finite()
+        && config.velocity_tolerance_m_s > 0.0
+        && friction_coefficients.iter().all(|mu| *mu == 0.0)
+    {
+        let (candidate, passes) = normal::solve(
+            delassus,
+            free_velocity_m_s,
+            count,
+            &impulses,
+            config.max_iterations,
+            config.velocity_tolerance_m_s,
+        );
+        normal_block_iterations = passes;
+        if let Some(normal) = candidate {
+            return Ok(normal::solution(normal, &impulses, passes));
+        }
     }
     let blocks: Vec<[[f64; 3]; 3]> = (0..count)
         .map(|contact| {
@@ -294,6 +325,8 @@ pub fn solve_contact_impulses(
         impulses_n_s: impulses,
         states,
         iterations,
+        normal_block_iterations,
+        normal_block_solved: false,
         converged,
         last_change_n_s: last_change,
     })
@@ -1708,6 +1741,104 @@ mod tests {
         assert_eq!(combined.iterations, replay.iterations);
         for (first, second) in combined.impulses_n_s.iter().zip(&replay.impulses_n_s) {
             assert_eq!(first.map(f64::to_bits), second.map(f64::to_bits));
+        }
+    }
+
+    #[test]
+    fn rigid_normal_block_transmits_a_heavy_top_load_without_sweeps() {
+        // Three vertical contacts, body masses 1, 1, 10 kg. Only the
+        // bottom contact approaches; the coupled solution carries 12/11/10 Ns.
+        let normal = [[1.0, -1.0, 0.0], [-1.0, 2.0, -1.0], [0.0, -1.0, 1.1]];
+        let mut g = DenseMatrix::zeros(9, 9);
+        for i in 0..9 {
+            g.set(i, i, 1.0);
+        }
+        for (i, row) in normal.iter().enumerate() {
+            for (j, value) in row.iter().enumerate() {
+                g.set(3 * i + 2, 3 * j + 2, *value);
+            }
+        }
+        let free = [0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let config = ContactSolverConfig {
+            max_iterations: 20,
+            ..Default::default()
+        };
+        let solve = || solve_contact_impulses(&g, &free, &[0.0; 3], &config, None).unwrap();
+        let result = solve();
+        assert!(result.normal_block_solved);
+        assert_eq!(result.normal_block_iterations, 3);
+        assert_eq!(result.iterations, 0);
+        assert_contact_conditions(&g, &free, &[0.0; 3], &result, 1e-10);
+        for (row, expected) in result.impulses_n_s.iter().zip([12.0, 11.0, 10.0]) {
+            assert!((row[2] - expected).abs() < 1e-10);
+        }
+        assert_eq!(result, solve());
+        let warm =
+            solve_contact_impulses(&g, &free, &[0.0; 3], &config, Some(&result.impulses_n_s))
+                .unwrap();
+        assert!(warm.normal_block_solved);
+        assert_eq!(warm.normal_block_iterations, 0);
+        assert_eq!(warm.impulses_n_s, result.impulses_n_s);
+        let baseline = solve_contact_impulses(
+            &g,
+            &free,
+            &[0.0; 3],
+            &ContactSolverConfig {
+                velocity_tolerance_m_s: 0.0,
+                ..config
+            },
+            None,
+        )
+        .unwrap();
+        assert!(!baseline.converged);
+        assert!(!baseline.normal_block_solved);
+    }
+
+    #[test]
+    fn normal_block_validates_redundant_rows_and_falls_back_on_inconsistency() {
+        let mut g = DenseMatrix::zeros(6, 6);
+        for i in 0..6 {
+            g.set(i, i, 1.0);
+        }
+        for i in [2, 5] {
+            for j in [2, 5] {
+                g.set(i, j, 1.0);
+            }
+        }
+        let config = ContactSolverConfig::default();
+        for (second, block) in [(-1.0, true), (-2.0, false)] {
+            let free = [0.0, 0.0, -1.0, 0.0, 0.0, second];
+            let r = solve_contact_impulses(&g, &free, &[0.0; 2], &config, None).unwrap();
+            assert_eq!(r.normal_block_solved, block);
+            assert!(r.normal_block_iterations > 0);
+            assert!(r.converged);
+            assert_contact_conditions(&g, &free, &[0.0; 2], &r, 1e-9);
+        }
+        let stopped = solve_contact_impulses(
+            &g,
+            &[0.0; 6],
+            &[0.0; 2],
+            &ContactSolverConfig {
+                max_iterations: 0,
+                ..config
+            },
+            None,
+        )
+        .unwrap();
+        assert!(!stopped.normal_block_solved && !stopped.converged);
+    }
+
+    #[test]
+    fn normal_block_random_open_and_closed_contacts_satisfy_complementarity() {
+        let mut rng = Lcg(234);
+        for _ in 0..100 {
+            let g = random_spd(18, &mut rng);
+            let free: Vec<f64> = (0..18).map(|_| 2.0 * rng.next()).collect();
+            let r =
+                solve_contact_impulses(&g, &free, &[0.0; 6], &ContactSolverConfig::default(), None)
+                    .unwrap();
+            assert!(r.converged);
+            assert_contact_conditions(&g, &free, &[0.0; 6], &r, 1e-7);
         }
     }
 

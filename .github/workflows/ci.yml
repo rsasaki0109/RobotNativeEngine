@@ -134,7 +134,7 @@ jobs:
         run: |
           .venv-contact/bin/python scripts/contact_benchmark/box.py target/release/examples/box_drop "$RUNNER_TEMP/box-contact.json.xz"
           .venv-contact/bin/python scripts/contact_benchmark/verify_box.py "$RUNNER_TEMP/box-contact.json.xz" --require-pass
-      - name: H3 dynamic stack audit (retain low-iteration failures)
+      - name: H3 dynamic stack audit (both budgets gated by integration tests)
         if: success() || failure()
         run: |
           .venv-contact/bin/python scripts/contact_benchmark/stack.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-contact.json.xz"

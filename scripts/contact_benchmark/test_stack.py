@@ -55,10 +55,8 @@ class StackAuditTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('RNE_STACK_DROP'), 'set release RNE_STACK_DROP for integration')
 class StackNativeTests(unittest.TestCase):
-    def test_fixed_200_iteration_reference_across_grid(self):
+    def test_both_iteration_budgets_across_grid(self):
         for dt, levels, mass, iterations in stack.grid():
-            if iterations != 200:
-                continue
             c = {'dt_ticks': dt, 'levels': levels, 'top_mass_kg': mass, 'gap_m': 0.005}
             with self.subTest(case=c):
                 row = stack.run_case(Path(os.environ['RNE_STACK_DROP']).resolve(), c,

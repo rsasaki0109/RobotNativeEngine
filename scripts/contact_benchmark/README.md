@@ -123,9 +123,18 @@ native four-corner regression test. See
 ## H3 dynamic stacks
 
 Build `--example stack_drop`, then run `stack.py BINARY OUTPUT.json.xz` and
-`stack.py BINARY OUTPUT.json.xz --verify`. The 24-case grid retains failures at
-20 iterations; `RNE_STACK_DROP` enables the fixed 200-iteration reference gate
-for all 12 mass/height/timestep combinations. Verification checks stored records,
+`stack.py BINARY OUTPUT.json.xz --verify`. The original 24-case grid exposed failures at 20 iterations. After the normal-block
+solver change, `RNE_STACK_DROP` gates all 24 combinations at both budgets. Verification checks stored records,
 not universal quality success. Geometry uses all OBB separating axes and load
 impulses are resolved per interface. See
 [stack protocol and failures](../../docs/HARD_CONTACT_STACK_RESULTS.md).
+
+
+## Paired stack solver comparison
+
+`compare_stack.py BEFORE_BINARY AFTER_BINARY OUTPUT.json.xz` alternates execution
+order for the 12 fixed 200-iteration reference cases. Every side has exact replay,
+five fresh-world cost samples and the unchanged H3 quality gates; failed quality
+suppresses the aggregate speedup. `verify_stack_pair.py OUTPUT.json.xz` recomputes
+the saved full-state records and costs. See
+[normal-block implementation and measured results](../../docs/HARD_CONTACT_BLOCK_SOLVE_RESULTS.md).
