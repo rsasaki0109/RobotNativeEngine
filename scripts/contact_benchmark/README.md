@@ -138,3 +138,10 @@ five fresh-world cost samples and the unchanged H3 quality gates; failed quality
 suppresses the aggregate speedup. `verify_stack_pair.py OUTPUT.json.xz` recomputes
 the saved full-state records and costs. See
 [normal-block implementation and measured results](../../docs/HARD_CONTACT_BLOCK_SOLVE_RESULTS.md).
+
+## MuJoCo stack calibration
+
+`mujoco_stack.py OUTPUT.json.xz` scans 24 frozen H3 calibration cases with pinned
+MuJoCo 3.9.0. `verify_mujoco_stack.py OUTPUT.json.xz` recomputes quality from all
+saved poses. Calibration failures are retained and do not imply a valid speed
+comparison. See [results and settings](../../docs/HARD_CONTACT_MUJOCO_STACK_RESULTS.md).

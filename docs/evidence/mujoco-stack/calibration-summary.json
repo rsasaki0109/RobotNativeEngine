@@ -1,0 +1,2623 @@
+{
+  "protocol": "mujoco_stack_calibration_v1",
+  "mujoco": "3.9.0",
+  "gates": {
+    "max_floor_penetration_m": 1e-05,
+    "max_pair_penetration_m": 1e-05,
+    "settled_linear_speed_m_s": 0.001,
+    "settled_angular_speed_rad_s": 0.01,
+    "energy_excess_fraction": 1e-06,
+    "max_support_relative_error": 0.01,
+    "final_height_error_m": 0.0001
+  },
+  "cpu_affinity": [
+    0
+  ],
+  "source_sha256": {
+    "mujoco_stack.py": "6eb6611ae1f49bfa6fbbe0b3e3db7f35208ddda3b3ff17a9b01d62e93cf7cd06",
+    "stack.py": "148d8dec128bee5c54a2d56a47bbf2968163b6b04a1c41717f17b8f607dc49cc",
+    "box.py": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+  },
+  "status": "complete",
+  "results": [
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            2.3371609767025264e-09,
+            0.049998037999893864,
+            1.3962197816408869e-09,
+            5.17329356116716e-13,
+            1.786839326939319e-14,
+            1.24497003227415e-12,
+            1.0,
+            1.1739487765109864e-08,
+            -1.391964654272148e-12,
+            1.4878843710759507e-08,
+            2.347696431852307e-11,
+            2.245191553016793e-13,
+            3.95159242776274e-11,
+            0.0
+          ],
+          [
+            2.0,
+            -2.3371609767025264e-09,
+            0.1499960766286741,
+            -1.3962197634814553e-09,
+            -6.061327251025129e-09,
+            -1.810969769884203e-14,
+            -6.059872073492454e-09,
+            1.0,
+            -1.1739487765109864e-08,
+            -2.4285354179240727e-08,
+            -1.4878843700672554e-08,
+            4.6783568872245813e-07,
+            -2.0245913782492442e-13,
+            4.678677718144138e-07,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.08235442099976353,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000000013,
+        "model_xml": "<mujoco><option timestep=\"0.002\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.002131795258032927,
+        "max_pair_penetration_m": 0.003385548722436793,
+        "settled_linear_speed_m_s": 1.3735275408581496e-06,
+        "settled_angular_speed_rad_s": 4.1006852659368594e-05,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.8474315305615505e-07,
+        "support_relative_error_by_interface": [
+          1.4233562672938405e-07,
+          2.8474315305615505e-07
+        ],
+        "final_height_error_m": 3.923371325931235e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.003738362500371295,
+        0.00359301899879938,
+        0.003725798498635413,
+        0.004200714000035077,
+        0.0044885309998790035
+      ],
+      "median_cost": 0.003738362500371295
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            0.0,
+            0.049964174555422056,
+            4.848879399052797e-18,
+            6.349193552356076e-19,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            3.505944385076915e-05,
+            8.640728288077616e-18,
+            -1.593375704652194e-18,
+            5.732344343757607e-38,
+            -4.5142302691579097e-20,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.14991372075556414,
+            4.848759944034521e-18,
+            7.47312918500336e-19,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            8.845014746068691e-05,
+            8.640587458111567e-18,
+            -1.9964183905760375e-18,
+            -3.0229268956212014e-35,
+            7.329357881876902e-20,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.06494923599893809,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000000013,
+        "model_xml": "<mujoco><option timestep=\"0.002\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0003366400000000061,
+        "max_pair_penetration_m": 0.000499843506888531,
+        "settled_linear_speed_m_s": 0.00016496251661367634,
+        "settled_angular_speed_rad_s": 2.065485153495753e-18,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.56831414652725e-05,
+        "support_relative_error_by_interface": [
+          1.0949775139601492e-05,
+          1.56831414652725e-05
+        ],
+        "final_height_error_m": 8.627924443588286e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.004062381500261836,
+        0.0037778485002490925,
+        0.003948870000385796,
+        0.004138373000387219,
+        0.003954564499508706
+      ],
+      "median_cost": 0.003954564499508706
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -3.467771833095507e-06,
+            0.04998920899999998,
+            5.3827740036533665e-09,
+            -1.1098655996533267e-11,
+            -3.6873960342786214e-10,
+            -6.9171894618259415e-09,
+            1.0,
+            -6.597899275478963e-06,
+            -7.598269662321882e-16,
+            6.047214830495885e-09,
+            -2.573425034299421e-11,
+            -1.2729678726923327e-09,
+            -2.812850421520118e-08,
+            0.0
+          ],
+          [
+            2.0,
+            3.4677718330955e-07,
+            0.14997841799993186,
+            -5.382773912543433e-10,
+            -1.7201774609479173e-11,
+            3.712723841101171e-11,
+            -1.0721533888372724e-08,
+            0.9999999999999993,
+            6.597899275478956e-07,
+            -2.6860574347976344e-13,
+            -6.047214780842016e-10,
+            -3.992586487159351e-11,
+            1.282567334702986e-10,
+            -4.359965920705253e-08,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.06821240200224565,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000000013,
+        "model_xml": "<mujoco><option timestep=\"0.002\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.002131795258032927,
+        "max_pair_penetration_m": 0.003395538521815178,
+        "settled_linear_speed_m_s": 6.597902046724628e-06,
+        "settled_angular_speed_rad_s": 8.062014865270515e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.376034766830685e-08,
+        "support_relative_error_by_interface": [
+          5.7973812639389166e-08,
+          6.376034766830685e-08
+        ],
+        "final_height_error_m": 2.1582000068159912e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0037247509990265826,
+        0.004157958499490633,
+        0.004229328000292298,
+        0.00410924000061641,
+        0.0038801770006102743
+      ],
+      "median_cost": 0.00410924000061641
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            0.0,
+            0.04993174374071583,
+            3.1457566838519837e-18,
+            4.192582894241889e-19,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            3.1444384863516245e-05,
+            5.6502000575113475e-18,
+            -1.2091089791163456e-18,
+            -3.2621714026038845e-38,
+            3.890407756855761e-20,
+            0.0
+          ],
+          [
+            2.0,
+            2.1420974779721735e-40,
+            0.14984885912342738,
+            3.1456857441904186e-18,
+            6.985845112044963e-19,
+            0.0,
+            0.0,
+            1.0,
+            1.2107591812994742e-40,
+            8.122003062971313e-05,
+            5.6501150822795514e-18,
+            -1.7808688752943382e-18,
+            9.450694164239412e-35,
+            -4.5627852633868626e-20,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.06255336700269254,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000000013,
+        "model_xml": "<mujoco><option timestep=\"0.002\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0003366400000000061,
+        "max_pair_penetration_m": 0.0005002754226112738,
+        "settled_linear_speed_m_s": 0.000151479169807696,
+        "settled_angular_speed_rad_s": 2.019854232172156e-18,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.4401384375917203e-05,
+        "support_relative_error_by_interface": [
+          1.3599034018541012e-05,
+          1.4401384375917203e-05
+        ],
+        "final_height_error_m": 0.00015114087657264186,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": false,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.003729306999957771,
+        0.003916531000868417,
+        0.00411075699958019,
+        0.003711494000526727,
+        0.00374139700033993
+      ],
+      "median_cost": 0.00374139700033993
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -3.6304492009330864e-11,
+            0.04999705699999952,
+            -8.10893729808309e-11,
+            3.862960496985585e-14,
+            1.3069829338734314e-17,
+            -1.3140921109546483e-14,
+            1.0,
+            -3.206659474915178e-11,
+            1.6930982996400068e-14,
+            -6.663024980461871e-11,
+            -2.0313553874596155e-13,
+            1.9488898839698712e-17,
+            2.434372291702271e-13,
+            0.0
+          ],
+          [
+            2.0,
+            -3.907809228935358e-07,
+            0.14999313299999867,
+            -3.9279348521619457e-07,
+            1.5044736059464749e-10,
+            -1.3539649235352317e-14,
+            -1.4961771050522062e-10,
+            1.0,
+            -2.395433860859994e-07,
+            5.061101474000631e-14,
+            -2.407901512943671e-07,
+            1.8814739153429818e-10,
+            -1.7289147179065667e-14,
+            -1.870759544547555e-10,
+            0.0
+          ],
+          [
+            2.0,
+            3.908172273855455e-07,
+            0.2499911710002029,
+            3.9287457461593024e-07,
+            2.9875904595615957e-10,
+            2.0292767925756966e-14,
+            -2.9715072591389367e-10,
+            0.9999999999999999,
+            2.3957545268074794e-07,
+            -8.012333955495395e-12,
+            2.408567815591212e-07,
+            5.384509790498494e-10,
+            2.5064491770917717e-14,
+            -5.363886756650451e-10,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.09573244000057457,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000000013,
+        "model_xml": "<mujoco><option timestep=\"0.002\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.002131795258032927,
+        "max_pair_penetration_m": 0.004153552194084392,
+        "settled_linear_speed_m_s": 1.4411634791953923e-06,
+        "settled_angular_speed_rad_s": 3.964035734437134e-05,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 3.946423898781859e-08,
+        "support_relative_error_by_interface": [
+          1.3153445888036686e-08,
+          1.9730657330185863e-08,
+          3.946423898781859e-08
+        ],
+        "final_height_error_m": 8.828999797094728e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005410610499893664,
+        0.005369643500671373,
+        0.005476232499859179,
+        0.005614874999082531,
+        0.005818311999973957
+      ],
+      "median_cost": 0.005476232499859179
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            1.0487101269546151e-13,
+            0.049960570864214036,
+            -1.0487007512626392e-13,
+            -6.5696891484788236e-15,
+            3.2731687813473387e-24,
+            -6.569778412334121e-15,
+            1.0,
+            4.0083153758065724e-14,
+            3.4658116315356685e-05,
+            -4.008431439604251e-14,
+            3.070046651719987e-14,
+            1.0623100581045846e-23,
+            3.070076396165185e-14,
+            0.0
+          ],
+          [
+            2.0,
+            5.2399279678184105e-14,
+            0.14990290968254572,
+            -5.2401497901004657e-14,
+            -1.97409518001239e-14,
+            -2.0203834783730595e-26,
+            -1.9741165798951428e-14,
+            1.0,
+            1.9872465363083694e-14,
+            8.724616459960018e-05,
+            -1.9874718908595962e-14,
+            9.197235202654491e-14,
+            -2.2194806069731528e-26,
+            9.197283378838543e-14,
+            0.0
+          ],
+          [
+            2.0,
+            -1.572702923736454e-13,
+            0.24988600931230562,
+            1.5727772064322508e-13,
+            -1.2967675794446857e-08,
+            -5.5896814153726655e-24,
+            -1.2967675794683217e-08,
+            0.9999999999999992,
+            -5.99556191211495e-14,
+            9.859008230962694e-05,
+            5.996515783659376e-14,
+            3.249787208263638e-08,
+            -2.5050057762906528e-23,
+            3.2497872083334744e-08,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.09269302199754748,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000000013,
+        "model_xml": "<mujoco><option timestep=\"0.002\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0003366400000000061,
+        "max_pair_penetration_m": 0.000499843506888531,
+        "settled_linear_speed_m_s": 0.00018387416951110976,
+        "settled_angular_speed_rad_s": 8.571075946929202e-08,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.74811265809538e-05,
+        "support_relative_error_by_interface": [
+          1.3032032477378053e-05,
+          1.647541674698605e-05,
+          1.74811265809538e-05
+        ],
+        "final_height_error_m": 0.00011399068769438192,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": false,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005075836501418962,
+        0.0057192080003005685,
+        0.005283686499751639,
+        0.005737994499213528,
+        0.0058606319998943945
+      ],
+      "median_cost": 0.0057192080003005685
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -1.7365382544712283e-08,
+            0.04998822799999998,
+            -1.7365311161271705e-08,
+            8.214375092112403e-11,
+            2.733343378326871e-18,
+            -8.214408991072597e-11,
+            1.0,
+            -1.9073498417199462e-08,
+            1.5028231290176235e-16,
+            -1.907342015738686e-08,
+            1.6687371730564844e-10,
+            3.2160172530089614e-18,
+            -1.6687440312500062e-10,
+            0.0
+          ],
+          [
+            2.0,
+            3.5277851420695545e-05,
+            0.14996664600498363,
+            3.527770548466408e-05,
+            -7.325998423358636e-08,
+            -9.46878637839918e-15,
+            7.326028756992914e-08,
+            0.9999999999999951,
+            3.2287279312476445e-05,
+            9.199205079988454e-12,
+            3.228714652788845e-05,
+            -1.3541511066322876e-07,
+            -1.1297010138791397e-14,
+            1.3541566823080334e-07,
+            0.0
+          ],
+          [
+            2.0,
+            -3.526048603815085e-06,
+            0.24995585499038203,
+            -3.526034017340279e-06,
+            -1.1364185174167223e-07,
+            2.480325279958781e-15,
+            1.1364232229110205e-07,
+            0.999999999999988,
+            -3.2268205814059196e-06,
+            -1.7616966951293774e-11,
+            -3.2268073107676247e-06,
+            -2.100792225149043e-07,
+            2.9457408416386923e-15,
+            2.100800875501131e-07,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.10055252399979508,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000000013,
+        "model_xml": "<mujoco><option timestep=\"0.002\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.002131795258032927,
+        "max_pair_penetration_m": 0.004166305966426032,
+        "settled_linear_speed_m_s": 4.56610144030473e-05,
+        "settled_angular_speed_rad_s": 2.970974973262647e-07,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.968980534172715e-12,
+        "support_relative_error_by_interface": [
+          1.5804024755539103e-12,
+          1.723954312637943e-12,
+          1.968980534172715e-12
+        ],
+        "final_height_error_m": 4.414500961796852e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005438151500129607,
+        0.005600439499175991,
+        0.005615325999315246,
+        0.0061052155015204335,
+        0.00570121099917742
+      ],
+      "median_cost": 0.005615325999315246
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            0.0,
+            0.04992813753432558,
+            3.848457382234981e-18,
+            5.137893691133196e-19,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            3.1046214379583916e-05,
+            6.959241119106406e-18,
+            -1.2825377284182378e-18,
+            -1.0652237945064125e-37,
+            1.036634717009365e-19,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.14980560969833068,
+            -1.5501270791161438e-17,
+            6.259172454171726e-19,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            7.641045649934089e-05,
+            -2.1646288137264588e-17,
+            -1.4594474924946924e-18,
+            6.7899057634342136e-34,
+            1.0522134997876569e-20,
+            0.0
+          ],
+          [
+            2.0,
+            -2.841386026689044e-40,
+            0.2497562747015156,
+            5.785052070142141e-18,
+            4.846869931241447e-19,
+            0.0,
+            0.0,
+            1.0,
+            -2.271068861135166e-40,
+            8.414409719107386e-05,
+            9.820559515561162e-18,
+            -7.811507892736739e-19,
+            -2.5822094857767476e-35,
+            1.3922001826556818e-19,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.11241805600002408,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000000013,
+        "model_xml": "<mujoco><option timestep=\"0.002\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0003366400000000061,
+        "max_pair_penetration_m": 0.000499843506888531,
+        "settled_linear_speed_m_s": 0.0001569340846274249,
+        "settled_angular_speed_rad_s": 1.8373258284110857e-18,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.4920145942842744e-05,
+        "support_relative_error_by_interface": [
+          1.4021263460284317e-05,
+          1.4795474086448657e-05,
+          1.4920145942842744e-05
+        ],
+        "final_height_error_m": 0.00024372529848440405,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": false,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.00520133700047154,
+        0.005384897000112687,
+        0.005649816999721224,
+        0.0055599585011805175,
+        0.005315239999617916
+      ],
+      "median_cost": 0.005384897000112687
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -2.1940608698616682e-14,
+            0.04999803799996083,
+            -2.2063209543507136e-14,
+            2.610553138589349e-13,
+            -6.188361864509923e-23,
+            -2.610547104028988e-13,
+            1.0,
+            4.74108343281726e-13,
+            -1.7321232228659083e-12,
+            4.739474187301751e-13,
+            2.3084001655172755e-11,
+            3.3657285152021476e-23,
+            -2.3084044941490292e-11,
+            0.0
+          ],
+          [
+            2.0,
+            2.194060869861597e-14,
+            0.14999607636369344,
+            2.2080226563441553e-14,
+            -3.6376503158491675e-09,
+            -5.2217372316152095e-22,
+            3.637650208037835e-09,
+            0.9999999999999991,
+            -4.741083432817265e-13,
+            -1.437016572731778e-08,
+            -4.739380643705005e-13,
+            2.873827785585135e-07,
+            -1.3330649976832264e-24,
+            -2.8738276957464347e-07,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.13056704600239755,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999998905,
+        "model_xml": "<mujoco><option timestep=\"0.001\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.002228819100330001,
+        "max_pair_penetration_m": 0.003431937603690302,
+        "settled_linear_speed_m_s": 7.010064153408558e-07,
+        "settled_angular_speed_rad_s": 1.9832414731107163e-05,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.431312335320456e-08,
+        "support_relative_error_by_interface": [
+          7.1569732362775085e-09,
+          1.431312335320456e-08
+        ],
+        "final_height_error_m": 3.92363630657977e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.007194956500825356,
+        0.007891854000263265,
+        0.0073390639990975615,
+        0.007722461999946972,
+        0.007779813500746968
+      ],
+      "median_cost": 0.007722461999946972
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            0.0,
+            0.04999674989735335,
+            1.242460167011492e-17,
+            4.214773581232237e-18,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            3.228328455083354e-06,
+            3.268907190469414e-17,
+            -2.102651627123356e-17,
+            -3.175445309493754e-38,
+            3.767041394149311e-21,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.14999156387077434,
+            1.2424322554614856e-17,
+            7.003264878470938e-18,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            1.1308589475103049e-05,
+            3.268876376710699e-17,
+            -3.492904441138095e-17,
+            -4.396655711362061e-35,
+            2.050855427106996e-21,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.1325639399983629,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999998905,
+        "model_xml": "<mujoco><option timestep=\"0.001\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0001796800000000015,
+        "max_pair_penetration_m": 0.00043131205419319474,
+        "settled_linear_speed_m_s": 3.9433826415021194e-05,
+        "settled_angular_speed_rad_s": 3.492904447158884e-17,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 5.754142414438057e-06,
+        "support_relative_error_by_interface": [
+          3.6984064673006856e-06,
+          5.754142414438057e-06
+        ],
+        "final_height_error_m": 8.436129225686262e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.007376517000011518,
+        0.008062832501309458,
+        0.007692246001170133,
+        0.007688827499805484,
+        0.008070087500527734
+      ],
+      "median_cost": 0.007692246001170133
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -6.0829396020419605e-12,
+            0.049989208998056964,
+            -6.083646297302238e-12,
+            1.2965868367248888e-11,
+            3.75812628213336e-21,
+            -1.2965866868869552e-11,
+            1.0,
+            9.525872322338632e-11,
+            3.8181568016208654e-11,
+            9.52581387041447e-11,
+            -5.0927375860528e-10,
+            4.707727984229356e-21,
+            5.092737609137038e-10,
+            0.0
+          ],
+          [
+            2.0,
+            6.082939602041927e-13,
+            0.14997841828348019,
+            6.083740007561567e-13,
+            -2.851122538668111e-09,
+            -4.819522017601172e-22,
+            2.8511225409817047e-09,
+            0.9999999999999998,
+            -9.525872322338669e-12,
+            -1.1702638796511226e-08,
+            -9.525808780016424e-12,
+            2.3475005389370776e-07,
+            -7.297251380491518e-22,
+            -2.3475005388961926e-07,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.14332956099678995,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999998905,
+        "model_xml": "<mujoco><option timestep=\"0.001\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0022289650268171174,
+        "max_pair_penetration_m": 0.0034417708327000307,
+        "settled_linear_speed_m_s": 3.841130707933736e-06,
+        "settled_angular_speed_rad_s": 0.00010883319733092456,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.988504916283773e-10,
+        "support_relative_error_by_interface": [
+          1.807718419399862e-10,
+          1.988504916283773e-10
+        ],
+        "final_height_error_m": 2.1581716519836203e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.007873870999901555,
+        0.007514904998970451,
+        0.00856879800085153,
+        0.00786623000021791,
+        0.00813509450017591
+      ],
+      "median_cost": 0.007873870999901555
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            0.0,
+            0.04998797967912101,
+            6.044203333780276e-18,
+            2.0574520162551357e-18,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            3.0810680873919196e-06,
+            1.594619190611615e-17,
+            -1.0312935880429898e-17,
+            -1.3551685327093e-37,
+            3.293317467436994e-20,
+            0.0
+          ],
+          [
+            2.0,
+            -6.252179381737003e-40,
+            0.1499740234341617,
+            6.0440742419652436e-18,
+            2.417589419077366e-18,
+            0.0,
+            0.0,
+            1.0,
+            -3.839957778868148e-40,
+            1.1014069018027538e-05,
+            1.5946046749385083e-17,
+            -1.2051723779791533e-17,
+            8.225483246880153e-35,
+            4.032649717454694e-20,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.12759810900024604,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999998905,
+        "model_xml": "<mujoco><option timestep=\"0.001\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0001796800000000015,
+        "max_pair_penetration_m": 0.00043131205419319474,
+        "settled_linear_speed_m_s": 3.840735496272941e-05,
+        "settled_angular_speed_rad_s": 1.2051791248223938e-17,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 5.604392665281566e-06,
+        "support_relative_error_by_interface": [
+          5.237429297921814e-06,
+          5.604392665281566e-06
+        ],
+        "final_height_error_m": 2.5976565838331522e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.00794248899910599,
+        0.008206807999158627,
+        0.007888137999543687,
+        0.007958991000123206,
+        0.007507680000344408
+      ],
+      "median_cost": 0.00794248899910599
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            2.07753553716636e-11,
+            0.04999705699999992,
+            -1.989183877860746e-11,
+            1.8808748768738912e-14,
+            -3.4928087115250166e-19,
+            1.931624951862434e-14,
+            1.0,
+            1.4174851077957905e-11,
+            2.556786715672788e-15,
+            -1.3640600772918146e-11,
+            2.632596793349899e-14,
+            -4.211585996937044e-19,
+            2.6954011752898584e-14,
+            0.0
+          ],
+          [
+            2.0,
+            -2.5444845093317053e-07,
+            0.14999313299999967,
+            2.5444525430114705e-07,
+            -9.71705620377232e-11,
+            -1.319301670054419e-16,
+            -9.717060061538494e-11,
+            0.9999999999999997,
+            -1.6761651936220636e-07,
+            9.59964619902915e-15,
+            1.6761450192869338e-07,
+            -1.3136478585649674e-10,
+            -1.7193013652938583e-16,
+            -1.313649026350737e-10,
+            0.0
+          ],
+          [
+            2.0,
+            2.544276755777991e-07,
+            0.2499911710000002,
+            -2.544253624367381e-07,
+            -1.943773671713087e-10,
+            1.1992408784133707e-16,
+            -1.9437845930739042e-10,
+            0.9999999999999998,
+            1.676023445111282e-07,
+            -1.1800289958731818e-14,
+            -1.6760086131386035e-07,
+            -2.627809486163248e-10,
+            1.5267228669186676e-16,
+            -2.627824380792961e-10,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.19451248699988355,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999998905,
+        "model_xml": "<mujoco><option timestep=\"0.001\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.002228819100330001,
+        "max_pair_penetration_m": 0.004175739049934096,
+        "settled_linear_speed_m_s": 2.3704412842317978e-07,
+        "settled_angular_speed_rad_s": 3.71629434677365e-10,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 8.770761894538737e-15,
+        "support_relative_error_by_interface": [
+          8.770761894538737e-15,
+          6.328271240363392e-15,
+          6.8833827526759706e-15
+        ],
+        "final_height_error_m": 8.828999999793696e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.011154771000292385,
+        0.0123609430011129,
+        0.010927855999398162,
+        0.012027767499603215,
+        0.011404876000597142
+      ],
+      "median_cost": 0.011404876000597142
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            0.0,
+            0.049995775405910256,
+            5.289318530142186e-18,
+            1.790015800450058e-18,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            3.2120241417767056e-06,
+            1.3889249466669796e-17,
+            -8.967021173867388e-18,
+            -4.16540695278192e-39,
+            1.1635112247988605e-21,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.1499886403964778,
+            -1.2690932063748736e-17,
+            7.735791795513084e-18,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            1.1259676473448369e-05,
+            -3.256227401550067e-17,
+            -3.858824271133922e-17,
+            7.010108171398653e-34,
+            9.714553157158979e-21,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.24998617868323128,
+            2.3271508939683943e-17,
+            7.081559223147022e-18,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            1.2512103196980083e-05,
+            6.034162084952011e-17,
+            -3.530036118038614e-17,
+            -2.3544816577941337e-34,
+            1.6193282992934854e-20,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.18608439300078317,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999998905,
+        "model_xml": "<mujoco><option timestep=\"0.001\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0001796800000000015,
+        "max_pair_penetration_m": 0.00043131205419319474,
+        "settled_linear_speed_m_s": 4.3630720929524676e-05,
+        "settled_angular_speed_rad_s": 3.8588243934153924e-17,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.366558242709708e-06,
+        "support_relative_error_by_interface": [
+          4.57673823073268e-06,
+          6.047916644269513e-06,
+          6.366558242709708e-06
+        ],
+        "final_height_error_m": 1.382131676871956e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.011291468001218163,
+        0.01088791250003851,
+        0.011085689500760054,
+        0.010520548499698634,
+        0.011545593000846566
+      ],
+      "median_cost": 0.011085689500760054
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            7.558289724052338e-09,
+            0.04998822799999997,
+            -7.558290514016315e-09,
+            3.574818108298596e-11,
+            -1.4815223571138626e-20,
+            3.574817926816924e-11,
+            1.0,
+            8.30707181274307e-09,
+            2.3924801903124273e-15,
+            -8.307072477057047e-09,
+            7.265675412513224e-11,
+            -1.7187827569779676e-20,
+            7.265675102620312e-11,
+            0.0
+          ],
+          [
+            2.0,
+            -1.5357555495291183e-05,
+            0.14996664600094411,
+            1.5357555495119154e-05,
+            -3.187953955960551e-08,
+            3.1009981180791465e-19,
+            -3.187953956374086e-08,
+            0.999999999999999,
+            -1.4064096577528125e-05,
+            1.744027206655572e-12,
+            1.4064096577200475e-05,
+            -5.89409323184962e-08,
+            1.6493859970547306e-18,
+            -5.89409323266784e-08,
+            0.0
+          ],
+          [
+            2.0,
+            1.5349997205567136e-06,
+            0.24995585499817805,
+            -1.5349997204506306e-06,
+            -4.945129033002781e-08,
+            2.775931758356208e-22,
+            -4.945129033444233e-08,
+            0.9999999999999986,
+            1.405578950571541e-06,
+            -3.340595285894166e-12,
+            -1.4055789504669206e-06,
+            -9.143685329715992e-08,
+            2.644039786982173e-22,
+            -9.143685330588674e-08,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.2243178330027149,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999998905,
+        "model_xml": "<mujoco><option timestep=\"0.001\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.002228819100330001,
+        "max_pair_penetration_m": 0.004188268944700452,
+        "settled_linear_speed_m_s": 1.9889636122233697e-05,
+        "settled_angular_speed_rad_s": 1.293112380397334e-07,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 3.731459585765151e-13,
+        "support_relative_error_by_interface": [
+          2.9953817204386723e-13,
+          3.260725023324085e-13,
+          3.731459585765151e-13
+        ],
+        "final_height_error_m": 4.414500182195469e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0110300015003304,
+        0.010576443499303423,
+        0.011049987000660622,
+        0.010991584000294097,
+        0.011238115501328139
+      ],
+      "median_cost": 0.0110300015003304
+    },
+    {
+      "case": {
+        "dt_ticks": 1000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -4.807464130199756e-10,
+            0.049987004977014075,
+            4.807463972630141e-10,
+            -8.957376232423457e-12,
+            3.5339055126830567e-22,
+            -8.957376323712541e-12,
+            1.0,
+            -1.422273667612087e-09,
+            3.0652963971614738e-06,
+            1.4222736324381741e-09,
+            1.2771103728694238e-11,
+            9.30177075844209e-22,
+            1.2771104116768567e-11,
+            0.0
+          ],
+          [
+            2.0,
+            2.409108879945787e-06,
+            0.1499623302087642,
+            -2.4091088799616446e-06,
+            1.3346773392681104e-08,
+            5.031873145081079e-21,
+            1.334677339251655e-08,
+            0.9999999999999997,
+            4.963219302495419e-06,
+            1.0816739169863609e-05,
+            -4.963219302517841e-06,
+            -4.0968362422594647e-08,
+            2.4123099520511992e-20,
+            -4.096836242220616e-08,
+            0.0
+          ],
+          [
+            2.0,
+            -2.4086281335327673e-07,
+            0.24995109985460406,
+            2.4086281336131274e-07,
+            9.209841827488334e-09,
+            1.7723803478821784e-23,
+            9.209841827281997e-09,
+            0.9999999999999996,
+            -4.961797028827807e-07,
+            1.1917956530433963e-05,
+            4.961797028929373e-07,
+            -5.943870268555767e-09,
+            4.3560376502632234e-23,
+            -5.943870268070228e-09,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.18927538199932314,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999998905,
+        "model_xml": "<mujoco><option timestep=\"0.001\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0001796800000000015,
+        "max_pair_penetration_m": 0.00043131205419319474,
+        "settled_linear_speed_m_s": 4.156183304828171e-05,
+        "settled_angular_speed_rad_s": 2.668970102131683e-07,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.064477663714207e-06,
+        "support_relative_error_by_interface": [
+          5.642386073811956e-06,
+          6.013531930415539e-06,
+          6.064477663714207e-06
+        ],
+        "final_height_error_m": 4.89001453959359e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.011245061501540476,
+        0.01110152850014856,
+        0.011303809500532225,
+        0.011393175000193878,
+        0.011667228500300553
+      ],
+      "median_cost": 0.011303809500532225
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            3.5336101410924014e-08,
+            0.049998038000068544,
+            4.474477646600465e-08,
+            -1.678287148111009e-11,
+            -2.0390058678484823e-14,
+            1.2416345755598644e-11,
+            1.0,
+            5.880885193000547e-08,
+            3.318820137416191e-12,
+            7.237443191775992e-08,
+            -7.906831411382292e-11,
+            -1.2691082315070646e-13,
+            6.018336370434994e-12,
+            0.0
+          ],
+          [
+            2.0,
+            -3.5336101410924014e-08,
+            0.14999607701859743,
+            -4.4744776448664706e-08,
+            -1.015899979762433e-08,
+            8.861251992290285e-16,
+            -1.0100582825737781e-08,
+            1.0,
+            -5.880885193000547e-08,
+            -2.368626163616068e-08,
+            -7.237443190833836e-08,
+            4.685645770828867e-07,
+            3.816042192935503e-14,
+            4.6873386435639724e-07,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.5576498430018546,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000002514,
+        "model_xml": "<mujoco><option timestep=\"0.00025\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0023011878637213684,
+        "max_pair_penetration_m": 0.0034677534561023127,
+        "settled_linear_speed_m_s": 1.953423942700475e-07,
+        "settled_angular_speed_rad_s": 4.995079552840748e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.810380816953284e-09,
+        "support_relative_error_by_interface": [
+          1.4047398799732491e-09,
+          2.810380816953284e-09
+        ],
+        "final_height_error_m": 3.922981402587622e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.030398970000533154,
+        0.031057674999829032,
+        0.030912260501281708,
+        0.03260259399939969,
+        0.03254438200019649
+      ],
+      "median_cost": 0.031057674999829032
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "levels": 2,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            6.364473417736259e-11,
+            0.04999987737483513,
+            -2.1898425432147246e-11,
+            6.584246637468931e-16,
+            1.2845438226420643e-14,
+            1.146230563461471e-15,
+            1.0,
+            9.286242495461984e-11,
+            1.5901103902501544e-12,
+            -2.3915419580567775e-11,
+            -1.5141802803207997e-14,
+            7.061725206828271e-14,
+            1.0151463182481133e-14,
+            0.0
+          ],
+          [
+            2.0,
+            -6.36447341773626e-11,
+            0.14999976478884514,
+            2.1898456506115347e-11,
+            2.2022992701269651e-10,
+            -1.284550299064903e-14,
+            -2.202263783771291e-10,
+            1.0,
+            -9.286242495461983e-11,
+            -1.006399874779642e-07,
+            2.3915441307236103e-11,
+            -4.415626841470504e-09,
+            -7.061663832708227e-14,
+            4.415618681518015e-09,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.5800970039999811,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000002514,
+        "model_xml": "<mujoco><option timestep=\"0.00025\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.195999999999285e-05,
+        "max_pair_penetration_m": 4.456407919870009e-05,
+        "settled_linear_speed_m_s": 1.0793506622305225e-07,
+        "settled_angular_speed_rad_s": 4.968069948566968e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.5094902801376975e-09,
+        "support_relative_error_by_interface": [
+          3.2806886096636845e-09,
+          6.5094902801376975e-09
+        ],
+        "final_height_error_m": 2.3521115488644995e-07,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.03083921100005682,
+        0.031764781999299885,
+        0.030876150998665253,
+        0.03075218599951768,
+        0.032226520001131576
+      ],
+      "median_cost": 0.030876150998665253
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            1.8952246756141467e-05,
+            0.049989209000000055,
+            1.974532640440556e-05,
+            -4.014285926907709e-08,
+            -1.7977199715402955e-06,
+            3.8527033730850446e-08,
+            0.9999999999983817,
+            2.7692731359878256e-05,
+            -9.724044526412104e-15,
+            2.8808193967387642e-05,
+            -1.2228820224999016e-07,
+            -4.365174849633132e-06,
+            1.1755704104716843e-07,
+            0.0
+          ],
+          [
+            2.0,
+            -1.8952246756141416e-06,
+            0.14997841799568631,
+            -1.974532640431193e-06,
+            -6.222836332082863e-08,
+            1.5268492094262874e-06,
+            5.972294516664084e-08,
+            0.9999999999988296,
+            -2.769273135987818e-06,
+            -1.2840732906372511e-11,
+            -2.8808193967336517e-06,
+            -1.8959486889341152e-07,
+            4.364632317052278e-07,
+            1.822570466186687e-07,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.5394823080023343,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000002514,
+        "model_xml": "<mujoco><option timestep=\"0.00025\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0023014210370757987,
+        "max_pair_penetration_m": 0.0034774886866153487,
+        "settled_linear_speed_m_s": 3.995997259549879e-05,
+        "settled_angular_speed_rad_s": 4.368469472272747e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 4.751015880710696e-08,
+        "support_relative_error_by_interface": [
+          4.301619294100334e-08,
+          4.751015880710696e-08
+        ],
+        "final_height_error_m": 2.158200431370827e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.031760983998537995,
+        0.031226909999531927,
+        0.03684486049860425,
+        0.03797728050085425,
+        0.03181574099835416
+      ],
+      "median_cost": 0.03181574099835416
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "levels": 2,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -1.6268385554226152e-10,
+            0.049999325561731096,
+            3.741267720014675e-10,
+            3.9633589538195586e-12,
+            5.151396154235829e-13,
+            -4.041912036433222e-12,
+            1.0,
+            -2.4397667331953427e-09,
+            -2.4008330006364683e-09,
+            -2.8161330497993736e-09,
+            3.209183395921432e-08,
+            9.292122557261708e-13,
+            -3.209171138991871e-08,
+            0.0
+          ],
+          [
+            2.0,
+            1.626838555422624e-11,
+            0.14999865154241945,
+            -3.7412661426519897e-11,
+            -6.284861639973139e-10,
+            -5.151622636021889e-14,
+            6.284119990403008e-10,
+            1.0,
+            2.4397667331953424e-10,
+            9.585047290689808e-07,
+            2.8161331697357814e-10,
+            -1.9274791945929224e-05,
+            -9.283074476045476e-14,
+            1.927479106804716e-05,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.6285104550006508,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000002514,
+        "model_xml": "<mujoco><option timestep=\"0.00025\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.195999999999285e-05,
+        "max_pair_penetration_m": 4.464788618435689e-05,
+        "settled_linear_speed_m_s": 9.602867671850067e-07,
+        "settled_angular_speed_rad_s": 2.7258671561096455e-05,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.953221824280149e-07,
+        "support_relative_error_by_interface": [
+          1.7751640291052695e-07,
+          1.953221824280149e-07
+        ],
+        "final_height_error_m": 1.3484575805688959e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.030618186499850708,
+        0.031423150499904295,
+        0.030717603498487733,
+        0.0304752774991357,
+        0.0318097260005743
+      ],
+      "median_cost": 0.030717603498487733
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            9.968938645904906e-10,
+            0.04999705699984516,
+            -8.651696253879518e-10,
+            1.4286891725483152e-12,
+            4.936146230784946e-15,
+            -4.0242149209379395e-13,
+            1.0,
+            7.240207414195083e-10,
+            -1.4147080920182033e-13,
+            -6.816172312294716e-10,
+            7.859061306311169e-12,
+            5.750931521707456e-15,
+            -1.1347679941300508e-11,
+            0.0
+          ],
+          [
+            2.0,
+            1.0495787142535255e-07,
+            0.1499931329995358,
+            -8.218640863465057e-08,
+            3.4923177588183486e-11,
+            1.3557649340907848e-14,
+            3.809474925004548e-11,
+            1.0,
+            9.672049193565052e-08,
+            -4.268447793011923e-13,
+            -8.212513819089379e-08,
+            8.720819919992397e-11,
+            -9.108561976910605e-13,
+            4.063579417239518e-11,
+            0.0
+          ],
+          [
+            2.0,
+            -1.0595476528994341e-07,
+            0.24999117196859508,
+            8.30515782855882e-08,
+            -9.53753468019424e-09,
+            6.147899720775199e-14,
+            9.681561696287151e-09,
+            1.0,
+            -9.744451267706996e-08,
+            6.91311600467225e-08,
+            8.280675543603512e-08,
+            -1.3901359144785244e-06,
+            9.422165559338912e-14,
+            1.3904050044775913e-06,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.8027326519986673,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000002514,
+        "model_xml": "<mujoco><option timestep=\"0.00025\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0023011878637213684,
+        "max_pair_penetration_m": 0.004352659456879626,
+        "settled_linear_speed_m_s": 2.162609470915326e-07,
+        "settled_angular_speed_rad_s": 4.964992508317638e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.5087922244916285e-08,
+        "support_relative_error_by_interface": [
+          5.0263386786042474e-09,
+          7.540619906265533e-09,
+          1.5087922244916285e-08
+        ],
+        "final_height_error_m": 8.82803140492272e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.04339402749974397,
+        0.044491005999589106,
+        0.04522685699885187,
+        0.04345515499881003,
+        0.046190723000108846
+      ],
+      "median_cost": 0.044491005999589106
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            5.120818522028724e-10,
+            0.04999981606227478,
+            5.764385128429437e-10,
+            -2.3937067301346084e-13,
+            -4.927914390109229e-15,
+            -2.0377231875650882e-13,
+            1.0,
+            5.553805579735287e-10,
+            -1.732918905120409e-10,
+            6.705498694307375e-10,
+            -1.1656341444986727e-09,
+            -1.5750992827991325e-14,
+            -1.1655451537948303e-09,
+            0.0
+          ],
+          [
+            2.0,
+            1.045513307868169e-09,
+            0.1499995709860318,
+            8.797897135634553e-10,
+            1.3174340358729532e-11,
+            6.177387060762831e-15,
+            1.336227899315624e-11,
+            1.0,
+            1.0769607012203844e-09,
+            3.4940404795689085e-07,
+            9.065310853808834e-10,
+            7.029633336532442e-06,
+            1.5390762625412548e-14,
+            7.029632454913345e-06,
+            0.0
+          ],
+          [
+            2.0,
+            -1.5575951600710327e-09,
+            0.2499994486649312,
+            -1.4562281805830347e-09,
+            -4.2105838688402346e-10,
+            -1.2511192651846688e-15,
+            -4.208722492663143e-10,
+            1.0,
+            -1.6323412591938999e-09,
+            5.21824266198272e-07,
+            -1.5770809221782658e-09,
+            3.51844279366161e-06,
+            4.2198059014898333e-16,
+            3.518442945850663e-06,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.8352609909998137,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000002514,
+        "model_xml": "<mujoco><option timestep=\"0.00025\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.195999999999285e-05,
+        "max_pair_penetration_m": 8.753743750475329e-05,
+        "settled_linear_speed_m_s": 5.218292024365698e-07,
+        "settled_angular_speed_rad_s": 9.941402179635388e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.0620081347667565e-07,
+        "support_relative_error_by_interface": [
+          5.908449662861415e-08,
+          8.867051803918002e-08,
+          1.0620081347667565e-07
+        ],
+        "final_height_error_m": 5.513350687935681e-07,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.045399972499581054,
+        0.04281590350001352,
+        0.04349367750000965,
+        0.04451579750093515,
+        0.04229367749940138
+      ],
+      "median_cost": 0.04349367750000965
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -2.1299653059643564e-09,
+            0.04998822799999973,
+            -2.6424991351596304e-09,
+            1.2675646866225824e-11,
+            -8.143986753006873e-16,
+            -1.0206260069554508e-11,
+            1.0,
+            -2.463835815819211e-09,
+            7.844397693447893e-15,
+            -3.097561572891935e-09,
+            2.799169481279863e-11,
+            -1.2364633637546132e-15,
+            -2.2153697683600153e-11,
+            0.0
+          ],
+          [
+            2.0,
+            4.472165325108585e-06,
+            0.14996664600010315,
+            5.570972661101923e-06,
+            -1.1522405287098999e-08,
+            1.0008760838352843e-10,
+            9.256302499206973e-09,
+            0.9999999999999998,
+            4.391693604831027e-06,
+            1.6664506407487563e-13,
+            5.568959885320838e-06,
+            -2.3389134687954242e-08,
+            2.71592637405797e-10,
+            1.843484416203949e-08,
+            0.0
+          ],
+          [
+            2.0,
+            -4.4700353598026274e-07,
+            0.24995585499980333,
+            -5.568330161865278e-07,
+            -1.7873077335106168e-08,
+            1.1487269874465137e-12,
+            1.4358007373496845e-08,
+            0.9999999999999997,
+            -4.389229769015219e-07,
+            -3.9588480894781056e-13,
+            -5.565862323692778e-07,
+            -3.628285886238927e-08,
+            1.832647689971868e-12,
+            2.8597475656914358e-08,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.8620340999987093,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000002514,
+        "model_xml": "<mujoco><option timestep=\"0.00025\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"0.02 1\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 0.0023011878637213684,
+        "max_pair_penetration_m": 0.004365125249922636,
+        "settled_linear_speed_m_s": 7.092269518498747e-06,
+        "settled_angular_speed_rad_s": 4.619806775758556e-08,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.372680161348399e-14,
+        "support_relative_error_by_interface": [
+          4.929390229335695e-14,
+          3.7414515929867775e-14,
+          6.372680161348399e-14
+        ],
+        "final_height_error_m": 4.414500019667145e-05,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.04352957200171659,
+        0.042885441000180435,
+        0.043527304000235745,
+        0.04359346749879478,
+        0.044825041499279905
+      ],
+      "median_cost": 0.04352957200171659
+    },
+    {
+      "case": {
+        "dt_ticks": 250000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -1.663751352445209e-08,
+            0.0499992642498298,
+            -1.6240705956741632e-08,
+            2.1564583997253395e-12,
+            -3.2515604391750154e-13,
+            -2.2189833003283057e-12,
+            1.0,
+            -1.5624890733573378e-08,
+            1.7054019698027308e-12,
+            -1.5243921227114073e-08,
+            4.566690538781933e-12,
+            -6.42209621621037e-13,
+            -4.587458994640583e-12,
+            0.0
+          ],
+          [
+            2.0,
+            -1.0534460628046049e-07,
+            0.14999791537469556,
+            -9.52904723722242e-08,
+            1.5811448075548315e-11,
+            8.728335164145849e-13,
+            -1.720278403918308e-11,
+            1.0,
+            -1.246458271649984e-07,
+            3.049082677847257e-12,
+            -1.2419482025940777e-07,
+            4.0119125515425796e-11,
+            2.439654837017467e-12,
+            -4.2156754656662034e-11,
+            0.0
+          ],
+          [
+            2.0,
+            1.2198211980491297e-08,
+            0.2499972409530609,
+            1.1153117851315807e-08,
+            1.6457751929859626e-10,
+            -6.780891822772551e-14,
+            1.1828502094591206e-10,
+            1.0,
+            1.4027071789857217e-08,
+            -1.5600235285177809e-10,
+            1.3943874161707578e-08,
+            -2.7987971296977913e-09,
+            -9.922428977375955e-14,
+            -2.9175886570986767e-09,
+            0.0
+          ]
+        ],
+        "elapsed_s": 0.7677020060000359,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000002514,
+        "model_xml": "<mujoco><option timestep=\"0.00025\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.195999999999285e-05,
+        "max_pair_penetration_m": 8.755603127810763e-05,
+        "settled_linear_speed_m_s": 9.556213737243234e-07,
+        "settled_angular_speed_rad_s": 2.7122431180083665e-05,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 7.653988554068292e-11,
+        "support_relative_error_by_interface": [
+          5.1797233169281753e-11,
+          6.119549311733863e-11,
+          7.653988554068292e-11
+        ],
+        "final_height_error_m": 2.7590469391103323e-06,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0444477029996051,
+        0.04305500599912193,
+        0.043687102501280606,
+        0.04296088850060187,
+        0.04854409250037861
+      ],
+      "median_cost": 0.043687102501280606
+    }
+  ],
+  "comparison_eligible": false,
+  "raw_archive": {
+    "filename": "mujoco-stack-calibration.json.xz",
+    "bytes": 18137468,
+    "sha256": "42c89b350dd2bbb8b356d6dea49d4796c28bbccdd0d502361dcde0e183629a73",
+    "availability": "local delivered artifact; no permanent remote URL"
+  }
+}
