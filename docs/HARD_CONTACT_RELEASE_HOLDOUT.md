@@ -99,3 +99,5 @@ OPENBLAS_NUM_THREADS=1 python scripts/contact_benchmark/contact_release_holdout.
 次は候補の上限・優先順位・同一接触の再選択を制御して費用を減らす。
 今回の16件を使って調整した場合は、さらに別の問題で確認する。
 本体導入前には、固定問題の合格だけでなく、シーン全体の最大残差・めり込み・実時間を確認する。
+
+後続: [未使用Jacobianを省く同値高速化](HARD_CONTACT_RELEASE_RESIDUAL_COST.md)。
