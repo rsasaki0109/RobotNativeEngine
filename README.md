@@ -89,10 +89,14 @@ leg derived from the same human: its shoe hits the robot through physics
 contact, so the 28 N·s impulse and 1.4 kN peak (10 ms average) are measured,
 not declared. A trained-strength kick at 10.5 m/s delivers 79 N·s. It knocks
 the Go2 onto its back on a grippy floor (friction 0.9); on the default floor
-(0.5) the robot slides about a metre and recovers.
+(0.5) the robot slides about a metre and recovers. The G1 is kicked the same
+way through convex hulls of its collision meshes. Its hanging arm takes most
+of a nominal kick, and a 10 m/s kick to the hip knocks it over.
 [Go2 kicking-leg GIF](docs/media/kick-physical-go2.gif) ·
 [harder kick](docs/media/kick-physical-go2-strong.gif) ·
-[method and limits](examples/139_kick_comparison/README.md#simulated-kicking-leg-go2).
+[G1](docs/media/kick-physical-g1.gif) ·
+[G1 harder kick](docs/media/kick-physical-g1-strong.gif) ·
+[method and limits](examples/139_kick_comparison/README.md#simulated-kicking-leg).
 
 ## Highlights
 

@@ -288,6 +288,7 @@ fn physical_kick_main(arguments: &[String]) -> Result<(), Box<dyn Error>> {
         strength_scale: 1.0,
         floor_friction: None,
     };
+    let mut robot = String::from("go2");
     let mut sweep = false;
     let mut render = false;
     let mut render_only = false;
@@ -302,12 +303,13 @@ fn physical_kick_main(arguments: &[String]) -> Result<(), Box<dyn Error>> {
                 render = true;
                 render_only = true;
             }
-            option @ ("--output" | "--kick-speed" | "--follow-through" | "--strength"
-            | "--floor-friction" | "--start-frame" | "--frame-count") => {
+            option @ ("--output" | "--robot" | "--kick-speed" | "--follow-through"
+            | "--strength" | "--floor-friction" | "--start-frame" | "--frame-count") => {
                 index += 1;
                 let value = arguments.get(index).ok_or("missing option value")?;
                 match option {
                     "--output" => output = value.into(),
+                    "--robot" => robot = value.clone(),
                     "--kick-speed" => kick.speed_scale = value.parse()?,
                     "--follow-through" => kick.follow_through_m = value.parse()?,
                     "--strength" => kick.strength_scale = value.parse()?,
@@ -325,15 +327,21 @@ fn physical_kick_main(arguments: &[String]) -> Result<(), Box<dyn Error>> {
     }
     validate_human()?;
     if sweep {
-        physics::sweep_physical(&output, kick.follow_through_m)?;
+        physics::sweep_physical(&output, kick.follow_through_m, &robot)?;
         println!("physical kick sweep: {}", output.display());
         return Ok(());
     }
     if !render_only {
-        physics::capture_physical(&output, kick)?;
+        physics::capture_physical(&output, kick, &robot)?;
     }
     if render {
-        render::render_physical(&output, Path::new(HUMAN_ASSET), start_frame, frame_count)?;
+        render::render_physical(
+            &output,
+            Path::new(HUMAN_ASSET),
+            &robot,
+            start_frame,
+            frame_count,
+        )?;
     }
     println!("physical kick: {}", output.display());
     Ok(())

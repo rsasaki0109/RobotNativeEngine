@@ -30,8 +30,6 @@ use std::error::Error;
 
 type KickResult<T> = Result<T, Box<dyn Error>>;
 
-/// Animated clip that supplies the hip path and the joint-angle references.
-pub(super) const KICK_CLIP: &str = "low_kick";
 /// Assumed body mass of the 1.75 m character in kilograms.
 const BODY_MASS_KG: f64 = 70.0;
 /// Dempster segment parameters as tabulated by Winter: mass fraction, centre
@@ -220,6 +218,8 @@ struct Segment {
 /// Leg geometry, mass properties and references derived from the human asset.
 #[derive(Clone, Debug)]
 pub(super) struct KickLegModel {
+    /// Animated clip that supplies the hip path and joint-angle references.
+    clip: &'static str,
     clip_index: usize,
     pelvis: usize,
     bones: [usize; 4],
@@ -239,16 +239,17 @@ pub(super) struct KickLegModel {
 }
 
 impl KickLegModel {
-    pub(super) fn from_asset(asset: &GltfSceneAsset) -> KickResult<Self> {
+    pub(super) fn from_asset(asset: &GltfSceneAsset, clip: &'static str) -> KickResult<Self> {
         let clip_index = asset
             .animations
             .iter()
-            .position(|clip| {
-                clip.name
+            .position(|animation| {
+                animation
+                    .name
                     .as_deref()
-                    .is_some_and(|name| name.contains(KICK_CLIP))
+                    .is_some_and(|name| name.contains(clip))
             })
-            .ok_or("human asset has no low kick clip")?;
+            .ok_or_else(|| format!("human asset has no {clip} clip"))?;
         let pelvis = node_index(asset, PELVIS)?;
         let bones = [
             node_index(asset, BONES[0])?,
@@ -280,6 +281,7 @@ impl KickLegModel {
                 .length()
         });
         let mut model = Self {
+            clip,
             clip_index,
             pelvis,
             bones,
@@ -634,6 +636,14 @@ impl KickLegModel {
         corners
     }
 
+    /// Shoe-box corners of the fully extended reference pose, in the animation
+    /// frame (human origin at zero).
+    pub(super) fn full_extension_shoe_corners(&self, asset: &GltfSceneAsset) -> [Vec3; 8] {
+        let world = self.world_at(asset, 2.0);
+        let angles = self.angles_from_world(&world);
+        self.shoe_corners(world[self.bones[0]].translation, angles)
+    }
+
     /// Places the human so the fully extended reference shoe passes
     /// `follow_through_m` beyond the robot's near surface along +Z, centred on
     /// the target's X. The kick then meets the robot during its extension.
@@ -643,9 +653,7 @@ impl KickLegModel {
         target: Vec3,
         follow_through_m: f64,
     ) -> (Vec3, Value) {
-        let world = self.world_at(asset, 2.0);
-        let angles = self.angles_from_world(&world);
-        let corners = self.shoe_corners(world[self.bones[0]].translation, angles);
+        let corners = self.full_extension_shoe_corners(asset);
         let front_z = corners
             .iter()
             .map(|c| c.z)
@@ -711,7 +719,7 @@ impl KickLegModel {
             })
             .collect();
         json!({"model":"hip abduction then a planar hip-knee-ankle chain, with a commanded kinematic hip",
-            "source":"right leg of assets/fixtures/kick_human/cc0_sport_human.glb","clip":KICK_CLIP,
+            "source":"right leg of assets/fixtures/kick_human/cc0_sport_human.glb","clip":self.clip,
             "assumed_body_mass_kg":BODY_MASS_KG,"segments":segments,
             "abduction_link_mass_kg":ABDUCTION_LINK_MASS_KG,
             "standing_leg_plane_normal_world":self.standing_normal.to_array(),
@@ -731,9 +739,11 @@ impl KickLegModel {
 }
 
 /// Measured contact between the kicking leg and robot links in one step.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub(super) struct KickContact {
     pub(super) impulse_on_robot_ns: Vec3,
+    /// Normal impulse on each touched robot link, by link name.
+    pub(super) impulse_by_link_ns: std::collections::BTreeMap<String, Vec3>,
     pub(super) touching_pairs: usize,
     pub(super) shoe_touching: bool,
     pub(super) shank_or_thigh_touching: bool,
@@ -965,6 +975,11 @@ impl KickLeg {
                 .map(|segment| segment == 2)
         };
         let robot = |entity: Entity| sim.world().get::<Link>(entity).is_some();
+        let link_name = |entity: Entity| {
+            sim.world()
+                .get::<Link>(entity)
+                .map_or_else(String::new, |link| link.name.clone())
+        };
         for sample in sim.physics_contact_points()? {
             require(
                 sample.normal_force_n.is_finite() && sample.normal_a_to_b.is_finite(),
@@ -973,13 +988,17 @@ impl KickLeg {
             if sample.normal_force_n <= 0.0 {
                 continue;
             }
-            let (shoe, sign) = match (kicker(sample.entity_a), kicker(sample.entity_b)) {
-                (Some(shoe), None) if robot(sample.entity_b) => (shoe, 1.0),
-                (None, Some(shoe)) if robot(sample.entity_a) => (shoe, -1.0),
+            let (shoe, sign, link) = match (kicker(sample.entity_a), kicker(sample.entity_b)) {
+                (Some(shoe), None) if robot(sample.entity_b) => (shoe, 1.0, sample.entity_b),
+                (None, Some(shoe)) if robot(sample.entity_a) => (shoe, -1.0, sample.entity_a),
                 _ => continue,
             };
-            contact.impulse_on_robot_ns +=
-                sample.normal_a_to_b * (sign * sample.normal_force_n * dt_s);
+            let impulse_ns = sample.normal_a_to_b * (sign * sample.normal_force_n * dt_s);
+            contact.impulse_on_robot_ns += impulse_ns;
+            *contact
+                .impulse_by_link_ns
+                .entry(link_name(link))
+                .or_insert(Vec3::ZERO) += impulse_ns;
             contact.touching_pairs += 1;
             if shoe {
                 contact.shoe_touching = true;
@@ -1088,7 +1107,13 @@ mod tests {
     #[test]
     fn leg_model_matches_the_rendered_leg_and_dempster_masses() {
         let asset = asset();
-        let model = KickLegModel::from_asset(&asset).unwrap();
+        for clip in ["low_kick", "mid_kick"] {
+            check_leg_model(&asset, clip);
+        }
+    }
+
+    fn check_leg_model(asset: &GltfSceneAsset, clip: &'static str) {
+        let model = KickLegModel::from_asset(asset, clip).unwrap();
         let masses: Vec<_> = model.segments.iter().map(|s| s.mass_kg).collect();
         assert!((masses[0] - 7.0).abs() < 1e-12);
         assert!((masses[1] - 3.255).abs() < 1e-12);
@@ -1097,11 +1122,11 @@ mod tests {
             model.plane_axis_deviation_max_rad < 1.0e-3,
             "the leg plane turns about one fixed axis"
         );
-        assert!(model.toe_plane_offset_max_m < 0.08);
+        assert!(model.toe_plane_offset_max_m < 0.09, "{clip}");
         assert!(model.radii_m.iter().all(|r| (0.03..0.12).contains(r)));
         for sample in 0..=CLIP_SAMPLES {
             let asset_s = f64::from(sample) * 0.01;
-            let world = model.world_at(&asset, asset_s);
+            let world = model.world_at(asset, asset_s);
             let angles = model.angles_from_world(&world);
             let (points, rotations) = model.chain_points(world[model.bones[0]].translation, angles);
             let animated = model.joint_points(&world);
@@ -1109,10 +1134,10 @@ mod tests {
             // deviation from one abduction axis; only the toe twists further.
             assert!((points[1] - animated[1]).length() < 1e-3);
             assert!((points[2] - animated[2]).length() < 1e-3);
-            assert!((points[3] - animated[3]).length() < 0.08);
+            assert!((points[3] - animated[3]).length() < 0.09);
             // Rendering the physical chain puts every bone joint on the chain.
-            let locals = model.posed_locals(&asset, asset_s, rotations);
-            let rendered = node_world(&asset, &locals);
+            let locals = model.posed_locals(asset, asset_s, rotations);
+            let rendered = node_world(asset, &locals);
             for i in 0..4 {
                 assert!((rendered[model.bones[i]].translation - points[i]).length() < 1e-5);
             }
@@ -1122,7 +1147,7 @@ mod tests {
     #[test]
     fn placement_puts_the_reference_shoe_through_the_target_surface() {
         let asset = asset();
-        let model = KickLegModel::from_asset(&asset).unwrap();
+        let model = KickLegModel::from_asset(&asset, "low_kick").unwrap();
         let target = Vec3::new(0.01, 0.3, -0.05);
         let (origin, _) = model.placement(&asset, target, 0.1);
         let world = model.world_at(&asset, 2.0);

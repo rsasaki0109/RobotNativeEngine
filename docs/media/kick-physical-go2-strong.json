@@ -221,6 +221,18 @@
       "first_contact_time_s": 1.8800000000000001,
       "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
       "last_contact_time_s": 1.993,
+      "normal_impulse_by_robot_link_ns": {
+        "FL_thigh": [
+          5.35243055117372,
+          -4.321397692274168,
+          0.22563500700742672
+        ],
+        "base": [
+          -8.3088823343281,
+          -35.31839554439619,
+          68.22921553364691
+        ]
+      },
       "normal_impulse_magnitude_ns": 79.15883006674252,
       "normal_impulse_on_robot_world_ns": [
         -2.9564517831543826,
@@ -304,8 +316,8 @@
     "robot_state_words": true
   },
   "physical_kick_source_sha256": {
-    "examples/139_kick_comparison/kicker.rs": "1c5b5bce7152a33b53506fdcc3d47a2d9d34ce052a51dfbf4570d2d6fdacc972",
-    "examples/139_kick_comparison/physics/physical_kick.rs": "1b6d61d754965260a98d91cd7edf671b96a9800be91884354d312c92aaa8201c"
+    "examples/139_kick_comparison/kicker.rs": "ed1191eee956243d49a072aa27ee9567f27b180a3e1ea96a327bb3254b5dcd48",
+    "examples/139_kick_comparison/physics/physical_kick.rs": "bf8064701047f01812348277d125fbda299056f9ea99b94a5b915a5d1a37fc34"
   },
   "artifacts": {
     "gif_sha256": "3a5415b39903085feb8fc284bf1a79b4d374fae4ddcf54dbe1e35163628349b7",
@@ -315,7 +327,7 @@
     "height": 540,
     "gif_duration_ms": 6230
   },
-  "trace_sha256": "233eb1860f57cbc86caaac6ec5935efd25887502536553e7908b07c7f0c07704",
+  "trace_sha256": "169c8a73a793bb61ea1051a241c519bd4ce70c2e252ae7ff504a579a2c685f7a",
   "human_provenance": "assets/fixtures/kick_human/source-manifest.json",
   "robot_provenance": [
     "assets/robots/go2_description"

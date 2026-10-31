@@ -1,0 +1,335 @@
+{
+  "schema_version": 1,
+  "scope": "G1 recovery from a simulated kicking leg; contact impulse and force are measured outputs. Rigid shoe contact, kinematic kicker torso, ideal robot observations; no hardware qualification claim.",
+  "kick": {
+    "configuration": {
+      "applied_torque_limits_nm": [
+        240.0,
+        280.0,
+        400.0,
+        200.0
+      ],
+      "human_origin_world_m": [
+        0.1997104276958246,
+        0.0,
+        -0.8203878568999385
+      ],
+      "leg": {
+        "abduction_axis_world": [
+          4.801606345929378e-06,
+          -0.755683951439717,
+          -0.6549364591419536
+        ],
+        "abduction_link_mass_kg": 0.1,
+        "animated_leg_plane_deviation_from_abduction_rad": 0.0004191910481617903,
+        "animated_toe_offset_from_simulated_plane_max_m": 0.0819728748786342,
+        "assumed_body_mass_kg": 70.0,
+        "clip": "mid_kick",
+        "damping_nm_s_per_rad": [
+          80.0,
+          100.0,
+          35.0,
+          1.5
+        ],
+        "joint_limits_rad": [
+          [
+            -0.35,
+            0.8390864681346291
+          ],
+          [
+            -2.5557092163584207,
+            0.08614221661121962
+          ],
+          [
+            0.14194689243280723,
+            2.715534857693607
+          ],
+          [
+            -2.27757443179245,
+            0.21603340073406352
+          ]
+        ],
+        "joint_order": [
+          "hip_abduction",
+          "hip_flexion",
+          "knee",
+          "ankle"
+        ],
+        "limitations": [
+          "kicker torso follows the animation and is not pushed back by the reaction",
+          "animated toe rotation out of the leg plane is not simulated",
+          "rigid shoe and robot shell: the impact resolves within one solver step, so the raw per-step peak force reflects the 1 ms step; a 10 ms moving-average peak is reported alongside",
+          "contact impulse counts normal impulse only; friction impulse is excluded"
+        ],
+        "model": "hip abduction then a planar hip-knee-ankle chain, with a commanded kinematic hip",
+        "segments": [
+          {
+            "center_of_mass_local_m": [
+              0.0,
+              0.18622954219579702,
+              0.0
+            ],
+            "collider": "Capsule { half_height_m: 0.11017288714035649, radius_m: 0.1048727735938202 }",
+            "dempster_winter_fractions": {
+              "center_of_mass_from_proximal": 0.433,
+              "mass": 0.1,
+              "radius_of_gyration_about_center": 0.323
+            },
+            "inertia_kg_m2": [
+              0.13509038620482314,
+              0.038494045244412356,
+              0.13509038620482314
+            ],
+            "length_m": 0.4300913214683534,
+            "mass_kg": 7.0,
+            "name": "kick_thigh"
+          },
+          {
+            "center_of_mass_local_m": [
+              0.0,
+              0.18953314745426192,
+              0.0
+            ],
+            "collider": "Capsule { half_height_m: 0.14899795310046932, radius_m: 0.06986249430629965 }",
+            "dempster_winter_fractions": {
+              "center_of_mass_from_proximal": 0.433,
+              "mass": 0.0465,
+              "radius_of_gyration_about_center": 0.302
+            },
+            "inertia_kg_m2": [
+              0.05687998006842176,
+              0.00794345010016059,
+              0.05687998006842176
+            ],
+            "length_m": 0.43772089481353793,
+            "mass_kg": 3.255,
+            "name": "kick_shank"
+          },
+          {
+            "center_of_mass_local_m": [
+              0.0,
+              0.07155757397413268,
+              0.0
+            ],
+            "collider": "Cuboid { half_extents_m: DVec3(0.06398700806713967, 0.13361265129009353, 0.09099211465250558) }",
+            "dempster_winter_fractions": {
+              "center_of_mass_from_proximal": 0.5,
+              "mass": 0.0145,
+              "radius_of_gyration_about_center": 0.475
+            },
+            "inertia_kg_m2": [
+              0.004690557554285878,
+              0.00207787612970248,
+              0.004690557554285878
+            ],
+            "length_m": 0.14311514794826535,
+            "mass_kg": 1.0150000000000001,
+            "name": "kick_foot"
+          }
+        ],
+        "shoe_half_extents_m": [
+          0.06398700806713967,
+          0.13361265129009353,
+          0.09099211465250558
+        ],
+        "source": "right leg of assets/fixtures/kick_human/cc0_sport_human.glb",
+        "standing_leg_plane_normal_world": [
+          0.9884467121565648,
+          -0.09926433812485512,
+          0.11454120832046216
+        ],
+        "stiffness_nm_per_rad": [
+          2000.0,
+          3000.0,
+          2000.0,
+          150.0
+        ],
+        "torque_limit_basis": "constant symmetric ceilings; knee 2.9 N.m/kg adult isometric reference, hip and ankle rounded adult values; no force-velocity reduction",
+        "torque_limits_nm": [
+          120.0,
+          140.0,
+          200.0,
+          100.0
+        ],
+        "trouser_radii_m": [
+          0.1048727735938202,
+          0.06986249430629965
+        ]
+      },
+      "schedule": {
+        "authored_extension_s": 0.35,
+        "extension_s": 0.13999999999999999,
+        "knots_recording_to_animation_s": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.2,
+            1.2
+          ],
+          [
+            1.825,
+            1.65
+          ],
+          [
+            1.9649999999999999,
+            2.0
+          ],
+          [
+            2.065,
+            2.2
+          ],
+          [
+            2.2849999999999997,
+            2.5
+          ],
+          [
+            2.735,
+            2.95
+          ],
+          [
+            6.2,
+            5.9
+          ]
+        ],
+        "speed_scale": 2.5
+      }
+    },
+    "extension_end_s": 1.9649999999999999,
+    "floor_and_foot_friction": 0.5,
+    "follow_through_m": 0.3,
+    "leg_tracking": {
+      "max_reference_error_rad": {
+        "ankle": 0.721383225165102,
+        "hip_abduction": 0.020339708847775473,
+        "hip_flexion": 0.31622118168414604,
+        "knee": 0.43880694736968806
+      },
+      "saturated_steps": {
+        "ankle": 0.0,
+        "hip_abduction": 1.0,
+        "hip_flexion": 182.0,
+        "knee": 49.0
+      }
+    },
+    "measured": {
+      "contact_episodes": 7,
+      "contact_occurred": true,
+      "contact_span_s": 0.182,
+      "contact_time_s": 0.17300000000000001,
+      "first_contact_time_s": 1.897,
+      "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
+      "last_contact_time_s": 2.078,
+      "normal_impulse_by_robot_link_ns": {
+        "left_hip_pitch_link": [
+          -7.634477964278764,
+          29.51972042389161,
+          57.095348598782394
+        ],
+        "left_hip_roll_link": [
+          9.31531920999799,
+          -1.7718494948142387,
+          6.316210719436608
+        ]
+      },
+      "normal_impulse_magnitude_ns": 69.23724014977817,
+      "normal_impulse_on_robot_world_ns": [
+        1.6808412457192223,
+        27.747870929077376,
+        63.41155931821899
+      ],
+      "peak_normal_force_10ms_average_n": 1416.2740438689748,
+      "peak_normal_force_per_step_n": 6277.312005566028,
+      "shank_or_thigh_contact_steps": 0,
+      "shoe_contact_steps": 173,
+      "shoe_speed_before_first_contact_m_s": 10.001355571289107,
+      "shoe_velocity_before_first_contact_world_m_s": [
+        -1.1049784421920776,
+        4.594271659851074,
+        8.814692497253418
+      ]
+    },
+    "placement": {
+      "follow_through_m": 0.3,
+      "human_origin_world_m": [
+        0.1997104276958246,
+        0.0,
+        -0.8203878568999385
+      ],
+      "reference_full_extension_shoe_center_world_m": [
+        -0.025445986539125443,
+        0.8390890764992868,
+        -0.04194005783262411
+      ],
+      "reference_full_extension_shoe_front_z_m": 0.124294924736023,
+      "target_surface_world_m": [
+        -0.025445986539125443,
+        0.9679208397865295,
+        -0.17570507526397705
+      ]
+    },
+    "speed_scale": 2.5,
+    "strength_scale": 2.0
+  },
+  "summary": {
+    "ever_fallen": true,
+    "final_base_height_m": 0.09186382591724396,
+    "final_contact_feet": 2,
+    "final_pelvis_height_m": 0.09186382591724396,
+    "final_speed_m_s": 0.0015031901483291597,
+    "final_support_feet": 2,
+    "final_support_mean_loads_n": [
+      40.75421464839019,
+      105.60884986072779
+    ],
+    "final_support_window_s": 0.5,
+    "final_tilt_rad": 1.6270412921068462,
+    "fixed_attachments_preserved": false,
+    "impact_applied": true,
+    "lateral_displacement_m": 1.384369568200782,
+    "max_authored_speed_ratio": 0.8959042317158467,
+    "max_fixed_position_error_m": 1.3904322606971625e-05,
+    "max_fixed_rotation_error_rad": 0.0035094021915518555,
+    "min_contact_feet": 0,
+    "min_height_m": 0.08596747368574142,
+    "nonfoot_ground_contact": true,
+    "nonfoot_ground_links": [
+      "head_link",
+      "logo_link",
+      "right_elbow_link",
+      "right_hip_pitch_link",
+      "right_shoulder_pitch_link",
+      "right_shoulder_roll_link",
+      "right_shoulder_yaw_link"
+    ],
+    "peak_tilt_rad": 1.6498832252811095,
+    "recovered": false,
+    "residual_tilt_rad": 1.6270412921068462,
+    "settled_upright": true,
+    "support_mean_load_threshold_n": 0.5
+  },
+  "exact_replay": {
+    "controller_state_words": true,
+    "frames_and_contacts": true,
+    "kick_leg_state_words": true,
+    "robot_state_words": true
+  },
+  "physical_kick_source_sha256": {
+    "examples/139_kick_comparison/kicker.rs": "ed1191eee956243d49a072aa27ee9567f27b180a3e1ea96a327bb3254b5dcd48",
+    "examples/139_kick_comparison/physics/physical_kick.rs": "bf8064701047f01812348277d125fbda299056f9ea99b94a5b915a5d1a37fc34"
+  },
+  "artifacts": {
+    "gif_sha256": "bf551971baedfdb87dcf4eb742c0326119430443bc64b6d251b0292a4e246868",
+    "poster_sha256": "8cc166a74868be3dd502fdace87bce507d2d6a5e16544e24e3d84235f08fe2c8",
+    "frame_count": 187,
+    "width": 960,
+    "height": 540,
+    "gif_duration_ms": 6230
+  },
+  "trace_sha256": "04959e8aeda2972e2ffe47537e31f9a99b96b3bfad30fd80e31b3b0a36366dd9",
+  "human_provenance": "assets/fixtures/kick_human/source-manifest.json",
+  "robot_provenance": [
+    "assets/robots/g1_description"
+  ]
+}

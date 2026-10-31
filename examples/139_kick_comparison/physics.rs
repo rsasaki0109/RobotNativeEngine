@@ -125,10 +125,15 @@ impl Robot {
         }
     }
     fn load(self, dt_ticks: u64) -> CaptureResult<UrdfSceneSim> {
-        let name = format!("{}.rne.scene.toml", self.name().to_lowercase());
+        self.load_scene(
+            &format!("{}.rne.scene.toml", self.name().to_lowercase()),
+            dt_ticks,
+        )
+    }
+    fn load_scene(self, scene: &str, dt_ticks: u64) -> CaptureResult<UrdfSceneSim> {
         Ok(
             UrdfSceneSim::from_scene_path_with_solver_iterations_and_fixed_delta(
-                &Path::new(env!("CARGO_MANIFEST_DIR")).join(name),
+                &Path::new(env!("CARGO_MANIFEST_DIR")).join(scene),
                 32,
                 SimDuration::from_ticks(dt_ticks),
             )?,
