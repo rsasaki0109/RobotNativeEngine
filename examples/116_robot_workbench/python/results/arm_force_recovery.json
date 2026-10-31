@@ -1,0 +1,638 @@
+{
+  "audit": "physical_force_recovery_v1",
+  "protocol": {
+    "horizon": 2400,
+    "hold_steps": 480,
+    "pulse_steps": 24,
+    "target_joint": "wrist_flex",
+    "force_world_n": [
+      0.0,
+      0.0,
+      2.0
+    ],
+    "dt_s": 0.004166667
+  },
+  "world": {
+    "self_collisions": false,
+    "agents": [
+      {
+        "id": "alice",
+        "position_m": [
+          -0.5,
+          0.12,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      }
+    ]
+  },
+  "controller": {
+    "dt_s": 0.004166667,
+    "settle_steps": 120,
+    "reference_speed_rad_s": 0.5,
+    "integral_gain_nm_per_rad_s": [
+      0.4,
+      4.0,
+      3.0
+    ],
+    "integral_limit_nm": [
+      0.3,
+      1.0,
+      0.7
+    ]
+  },
+  "fixed_arm_hold": {
+    "shoulder_pan": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 3,
+      "damping_nm_s_per_rad": 0.06,
+      "effort_limit_nm": 1
+    },
+    "shoulder_lift": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 8,
+      "damping_nm_s_per_rad": 0.16,
+      "effort_limit_nm": 2
+    },
+    "elbow_flex": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 6,
+      "damping_nm_s_per_rad": 0.12,
+      "effort_limit_nm": 1.5
+    },
+    "wrist_flex": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 1.5,
+      "damping_nm_s_per_rad": 0.03,
+      "effort_limit_nm": 0.5
+    },
+    "wrist_roll": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 0.5,
+      "damping_nm_s_per_rad": 0.01,
+      "effort_limit_nm": 0.3
+    },
+    "gripper": {
+      "position_rad": 0.0,
+      "stiffness_nm_per_rad": 0.3,
+      "damping_nm_s_per_rad": 0.005,
+      "effort_limit_nm": 0.06
+    }
+  },
+  "policy_log_gains": [
+    1.098263426086044,
+    -2.973582621247908,
+    2.0581602880618695,
+    -2.0641858798453683,
+    2.4263785610453037,
+    -1.8940680363946756
+  ],
+  "evaluation_seeds": [
+    1001,
+    1002,
+    1003,
+    1004,
+    1005,
+    1006,
+    1007,
+    1008
+  ],
+  "evaluation": [
+    {
+      "seed": 1001,
+      "steps": 1419,
+      "pulse_start_step": 745,
+      "delivered_force_steps": 24,
+      "precondition_met": true,
+      "force_impulse_ns": [
+        0.0,
+        0.0,
+        0.200000016
+      ],
+      "peak_joint_difference_rad": [
+        0.11076061689012204,
+        0.0026848415017283744,
+        0.002007886434236189
+      ],
+      "lanes": [
+        {
+          "kind": "unforced",
+          "success": true,
+          "displaced": false,
+          "fallen": false,
+          "final_hold_steps": 650,
+          "peak_abs_error_rad": [
+            0.0020081410595967075,
+            0.017653788313223562,
+            0.015601503724245305
+          ],
+          "peak_abs_speed_rad_s": [
+            0.00139045889955014,
+            0.010431517846882343,
+            0.005802454426884651
+          ],
+          "final_error_rad": [
+            -0.0013821552765198586,
+            0.004188010181369328,
+            0.007675601423949935
+          ],
+          "return": -4.52327355491276,
+          "state_hash": "140a7b533f901424"
+        },
+        {
+          "kind": "forced",
+          "success": true,
+          "displaced": true,
+          "fallen": false,
+          "final_hold_steps": 480,
+          "peak_abs_error_rad": [
+            0.10879588909307075,
+            0.019475148900991612,
+            0.01551965376868679
+          ],
+          "peak_abs_speed_rad_s": [
+            1.1905311346054077,
+            0.06769909709692001,
+            0.07287018746137619
+          ],
+          "final_error_rad": [
+            -0.0026475771924275027,
+            0.004161718612422649,
+            0.007698943379678719
+          ],
+          "return": -4.6610836583619015,
+          "state_hash": "5a95824f771db961"
+        }
+      ]
+    },
+    {
+      "seed": 1002,
+      "steps": 1502,
+      "pulse_start_step": 895,
+      "delivered_force_steps": 24,
+      "precondition_met": true,
+      "force_impulse_ns": [
+        0.0,
+        0.0,
+        0.200000016
+      ],
+      "peak_joint_difference_rad": [
+        0.0934972721372142,
+        0.009142913642541356,
+        0.0036702785274271565
+      ],
+      "lanes": [
+        {
+          "kind": "unforced",
+          "success": true,
+          "displaced": false,
+          "fallen": false,
+          "final_hold_steps": 583,
+          "peak_abs_error_rad": [
+            0.002568219503259639,
+            0.008473882968947383,
+            0.015455300556234508
+          ],
+          "peak_abs_speed_rad_s": [
+            0.0015388361643999815,
+            0.005882733501493931,
+            0.005206311121582985
+          ],
+          "final_error_rad": [
+            -0.0018328034533370008,
+            0.0021875406561872868,
+            0.00793768371794959
+          ],
+          "return": -8.228368454277511,
+          "state_hash": "ab21383e6a515e2e"
+        },
+        {
+          "kind": "forced",
+          "success": true,
+          "displaced": true,
+          "fallen": false,
+          "final_hold_steps": 480,
+          "peak_abs_error_rad": [
+            0.0909732632393565,
+            0.01712642840342371,
+            0.01853331318369003
+          ],
+          "peak_abs_speed_rad_s": [
+            1.0343599319458008,
+            0.11374690383672714,
+            0.11018261313438416
+          ],
+          "final_error_rad": [
+            -0.0028590471981058407,
+            0.002082937712506172,
+            0.007939059797387238
+          ],
+          "return": -8.309837337399843,
+          "state_hash": "8ce1dbd809b21e36"
+        }
+      ]
+    },
+    {
+      "seed": 1003,
+      "steps": 1492,
+      "pulse_start_step": 888,
+      "delivered_force_steps": 24,
+      "precondition_met": true,
+      "force_impulse_ns": [
+        0.0,
+        0.0,
+        0.200000016
+      ],
+      "peak_joint_difference_rad": [
+        0.09646937714663274,
+        0.005539289437707873,
+        0.002528795541395512
+      ],
+      "lanes": [
+        {
+          "kind": "unforced",
+          "success": true,
+          "displaced": false,
+          "fallen": false,
+          "final_hold_steps": 580,
+          "peak_abs_error_rad": [
+            0.0018779479607307081,
+            0.007801086465838353,
+            0.01562654530735791
+          ],
+          "peak_abs_speed_rad_s": [
+            0.003835785435512662,
+            0.007452841382473707,
+            0.003947219345718622
+          ],
+          "final_error_rad": [
+            0.0013721856443136837,
+            0.0020332915772361404,
+            0.008063666092407051
+          ],
+          "return": -10.385155552075938,
+          "state_hash": "00e57aef8d896a3b"
+        },
+        {
+          "kind": "forced",
+          "success": true,
+          "displaced": true,
+          "fallen": false,
+          "final_hold_steps": 480,
+          "peak_abs_error_rad": [
+            0.09832087310069045,
+            0.010808799018398096,
+            0.017179888913090413
+          ],
+          "peak_abs_speed_rad_s": [
+            1.0756919384002686,
+            0.1307942420244217,
+            0.07481621950864792
+          ],
+          "final_error_rad": [
+            0.0003382781474592089,
+            0.0021209455595584403,
+            0.008079457198019169
+          ],
+          "return": -10.473359445400453,
+          "state_hash": "7d74d2a58c0b05fe"
+        }
+      ]
+    },
+    {
+      "seed": 1004,
+      "steps": 1477,
+      "pulse_start_step": 877,
+      "delivered_force_steps": 24,
+      "precondition_met": true,
+      "force_impulse_ns": [
+        0.0,
+        0.0,
+        0.200000016
+      ],
+      "peak_joint_difference_rad": [
+        0.09281273142336052,
+        0.00676613688065858,
+        0.0031168756840810607
+      ],
+      "lanes": [
+        {
+          "kind": "unforced",
+          "success": true,
+          "displaced": false,
+          "fallen": false,
+          "final_hold_steps": 576,
+          "peak_abs_error_rad": [
+            0.0012155667521487612,
+            0.008325855565640222,
+            0.014406839100047086
+          ],
+          "peak_abs_speed_rad_s": [
+            0.003466987982392311,
+            0.007986463606357574,
+            0.0038971726316958666
+          ],
+          "final_error_rad": [
+            -0.000850767765933097,
+            0.0019947694403584515,
+            0.007284843235255134
+          ],
+          "return": -8.350775377512486,
+          "state_hash": "27908e3dc14fd349"
+        },
+        {
+          "kind": "forced",
+          "success": true,
+          "displaced": true,
+          "fallen": false,
+          "final_hold_steps": 480,
+          "peak_abs_error_rad": [
+            0.09161710816477733,
+            0.014397977066542417,
+            0.01686162178077666
+          ],
+          "peak_abs_speed_rad_s": [
+            1.0403413772583008,
+            0.08924911916255951,
+            0.06056351587176323
+          ],
+          "final_error_rad": [
+            -0.001842308775831053,
+            0.0019315988866461242,
+            0.007282523231732452
+          ],
+          "return": -8.427848806340476,
+          "state_hash": "c1659b02015880c7"
+        }
+      ]
+    },
+    {
+      "seed": 1005,
+      "steps": 1484,
+      "pulse_start_step": 880,
+      "delivered_force_steps": 24,
+      "precondition_met": true,
+      "force_impulse_ns": [
+        0.0,
+        0.0,
+        0.200000016
+      ],
+      "peak_joint_difference_rad": [
+        0.09699601175278497,
+        0.004267114160214858,
+        0.0019486192271249148
+      ],
+      "lanes": [
+        {
+          "kind": "unforced",
+          "success": true,
+          "displaced": false,
+          "fallen": false,
+          "final_hold_steps": 580,
+          "peak_abs_error_rad": [
+            0.0014951985370491583,
+            0.007983998920307045,
+            0.015744179983149864
+          ],
+          "peak_abs_speed_rad_s": [
+            0.004307101480662823,
+            0.007412118371576071,
+            0.004283486399799585
+          ],
+          "final_error_rad": [
+            0.0010658093642492705,
+            0.00211069647996856,
+            0.008138525765860216
+          ],
+          "return": -9.75988186936789,
+          "state_hash": "426b62670765248e"
+        },
+        {
+          "kind": "forced",
+          "success": true,
+          "displaced": true,
+          "fallen": false,
+          "final_hold_steps": 480,
+          "peak_abs_error_rad": [
+            0.09846418370486201,
+            0.010147686062642408,
+            0.017033190895740513
+          ],
+          "peak_abs_speed_rad_s": [
+            1.0805070400238037,
+            0.1098499670624733,
+            0.05978038161993027
+          ],
+          "final_error_rad": [
+            7.787326477826095e-06,
+            0.002140273312839308,
+            0.008133468191619975
+          ],
+          "return": -9.848623226333517,
+          "state_hash": "0bdd31fd1c75c7e7"
+        }
+      ]
+    },
+    {
+      "seed": 1006,
+      "steps": 1575,
+      "pulse_start_step": 973,
+      "delivered_force_steps": 24,
+      "precondition_met": true,
+      "force_impulse_ns": [
+        0.0,
+        0.0,
+        0.200000016
+      ],
+      "peak_joint_difference_rad": [
+        0.0928645227186069,
+        0.008355337156121023,
+        0.0038270297312348045
+      ],
+      "lanes": [
+        {
+          "kind": "unforced",
+          "success": true,
+          "displaced": false,
+          "fallen": false,
+          "final_hold_steps": 578,
+          "peak_abs_error_rad": [
+            0.0014827870827466283,
+            0.006958355072068212,
+            0.012851260268322229
+          ],
+          "peak_abs_speed_rad_s": [
+            0.0015372774796560407,
+            0.006242138333618641,
+            0.0056247166357934475
+          ],
+          "final_error_rad": [
+            -0.0010529945287860998,
+            0.0016495334215295976,
+            0.006475166723853565
+          ],
+          "return": -9.393578757238894,
+          "state_hash": "90ae1f1ba9cde31f"
+        },
+        {
+          "kind": "forced",
+          "success": true,
+          "displaced": true,
+          "fallen": false,
+          "final_hold_steps": 480,
+          "peak_abs_error_rad": [
+            0.09140653405328858,
+            0.014703974256213725,
+            0.01607628878440484
+          ],
+          "peak_abs_speed_rad_s": [
+            1.0349891185760498,
+            0.10859093070030212,
+            0.07193993031978607
+          ],
+          "final_error_rad": [
+            -0.0020645549764570226,
+            0.0015697384252789104,
+            0.006473274100444015
+          ],
+          "return": -9.471966517051117,
+          "state_hash": "2233102578a91972"
+        }
+      ]
+    },
+    {
+      "seed": 1007,
+      "steps": 1514,
+      "pulse_start_step": 904,
+      "delivered_force_steps": 24,
+      "precondition_met": true,
+      "force_impulse_ns": [
+        0.0,
+        0.0,
+        0.200000016
+      ],
+      "peak_joint_difference_rad": [
+        0.1000361758887946,
+        0.005729227369845241,
+        0.002626319186627285
+      ],
+      "lanes": [
+        {
+          "kind": "unforced",
+          "success": true,
+          "displaced": false,
+          "fallen": false,
+          "final_hold_steps": 586,
+          "peak_abs_error_rad": [
+            0.002328186630897927,
+            0.008653682812759744,
+            0.015159620660293333
+          ],
+          "peak_abs_speed_rad_s": [
+            0.001310782041400671,
+            0.005784949287772179,
+            0.0048241810873150826
+          ],
+          "final_error_rad": [
+            0.00165511168583235,
+            0.002264943350677312,
+            0.007808229193308175
+          ],
+          "return": -7.833930257545029,
+          "state_hash": "f8dfc69821f850f1"
+        },
+        {
+          "kind": "forced",
+          "success": true,
+          "displaced": true,
+          "fallen": false,
+          "final_hold_steps": 480,
+          "peak_abs_error_rad": [
+            0.10232035677575274,
+            0.011659126677054071,
+            0.0170731406102195
+          ],
+          "peak_abs_speed_rad_s": [
+            1.1048898696899414,
+            0.1365852802991867,
+            0.09315590560436249
+          ],
+          "final_error_rad": [
+            0.0005447008269816589,
+            0.0023288942267973567,
+            0.007810019388133721
+          ],
+          "return": -7.934276384756839,
+          "state_hash": "de9622bbfd5f908e"
+        }
+      ]
+    },
+    {
+      "seed": 1008,
+      "steps": 1615,
+      "pulse_start_step": 1033,
+      "delivered_force_steps": 24,
+      "precondition_met": true,
+      "force_impulse_ns": [
+        0.0,
+        0.0,
+        0.200000016
+      ],
+      "peak_joint_difference_rad": [
+        0.08322155773345392,
+        0.007051808074354626,
+        0.003142029748887165
+      ],
+      "lanes": [
+        {
+          "kind": "unforced",
+          "success": true,
+          "displaced": false,
+          "fallen": false,
+          "final_hold_steps": 558,
+          "peak_abs_error_rad": [
+            0.0008743074184337507,
+            0.003422971100797423,
+            0.010591352414401012
+          ],
+          "peak_abs_speed_rad_s": [
+            0.004713222850114107,
+            0.00573109183460474,
+            0.0025921037886291742
+          ],
+          "final_error_rad": [
+            0.0006420196478319207,
+            0.0008406668194726463,
+            0.005496687820379986
+          ],
+          "return": -15.993370986669651,
+          "state_hash": "63649f25436ed0e4"
+        },
+        {
+          "kind": "forced",
+          "success": true,
+          "displaced": true,
+          "fallen": false,
+          "final_hold_steps": 480,
+          "peak_abs_error_rad": [
+            0.08407858975765252,
+            0.008879525018149759,
+            0.012360475269971916
+          ],
+          "peak_abs_speed_rad_s": [
+            0.9809976816177368,
+            0.11729844659566879,
+            0.051895871758461
+          ],
+          "final_error_rad": [
+            -0.00021823810071289196,
+            0.0008585212252767427,
+            0.005487150191649304
+          ],
+          "return": -16.047422219144856,
+          "state_hash": "75abc141bdeb9531"
+        }
+      ]
+    }
+  ]
+}

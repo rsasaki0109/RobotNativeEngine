@@ -1,0 +1,139 @@
+diff --git a/crates/rne_dynamics/src/contact.rs b/crates/rne_dynamics/src/contact.rs
+index 26e665f0..e48e78e0 100644
+--- a/crates/rne_dynamics/src/contact.rs
++++ b/crates/rne_dynamics/src/contact.rs
+@@ -260,13 +260,13 @@ pub fn solve_contact_impulses(
+             return Ok(normal::solution(normal, &impulses, passes));
+         }
+     }
+-    let blocks: Vec<[[f64; 3]; 3]> = (0..count)
++    let blocks: Vec<ContactBlock> = (0..count)
+         .map(|contact| {
+             let mut block = diagonal_block(delassus, contact);
+             // Normal compliance only (see `ContactSolverConfig::regularization`).
+             let softness = config.regularization * (block[0][0] + block[1][1] + block[2][2]) / 3.0;
+             block[2][2] += softness;
+-            block
++            ContactBlock::new(block)
+         })
+         .collect();
+ 
+@@ -387,11 +387,12 @@ fn project_onto_cone(impulse: [f64; 3], mu: f64) -> [f64; 3] {
+ 
+ /// Solves one contact `v = G λ + b` exactly against the Coulomb cone.
+ fn solve_single_contact(
+-    g: &[[f64; 3]; 3],
++    block: &ContactBlock,
+     b: [f64; 3],
+     mu: f64,
+     bisection_iterations: usize,
+ ) -> ([f64; 3], ContactState) {
++    let g = &block.matrix;
+     // A separating contact needs no impulse.
+     if b[2] >= 0.0 {
+         return ([0.0; 3], ContactState::Open);
+@@ -405,7 +406,7 @@ fn solve_single_contact(
+     }
+ 
+     // Sticking: the impulse that brings the contact to rest.
+-    let sticking = solve3(g, [-b[0], -b[1], -b[2]]);
++    let sticking = block.solve_sticking([-b[0], -b[1], -b[2]]);
+     if let Some(stick) = sticking {
+         let tangential = stick[0].hypot(stick[1]);
+         if stick[2] > 0.0 && tangential <= mu * stick[2] * (1.0 + CONE_TOLERANCE) {
+@@ -523,7 +524,52 @@ fn sliding_residual(g: &[[f64; 3]; 3], b: [f64; 3], mu: f64, angle: f64) -> Opti
+     })
+ }
+ 
+-fn solve3(g: &[[f64; 3]; 3], rhs: [f64; 3]) -> Option<[f64; 3]> {
++/// Fixed local matrix and the RHS-independent parts of Cramer's rule.
++/// Keep numerator arithmetic in the original order: using an inverse matrix
++/// would reassociate additions and change subsequent contact iterations.
++struct ContactBlock {
++    matrix: [[f64; 3]; 3],
++    cofactors: [f64; 3],
++    determinant: Option<f64>,
++}
++
++impl ContactBlock {
++    fn new(g: [[f64; 3]; 3]) -> Self {
++        let cofactors = [
++            g[1][1] * g[2][2] - g[1][2] * g[2][1],
++            g[1][0] * g[2][2] - g[1][2] * g[2][0],
++            g[1][0] * g[2][1] - g[1][1] * g[2][0],
++        ];
++        let det = g[0][0] * cofactors[0] - g[0][1] * cofactors[1] + g[0][2] * cofactors[2];
++        let singular =
++            det.abs() <= f64::EPSILON * (g[0][0].abs() + g[1][1].abs() + g[2][2].abs()).powi(3);
++        Self {
++            matrix: g,
++            cofactors,
++            determinant: (!singular).then_some(det),
++        }
++    }
++
++    fn solve_sticking(&self, rhs: [f64; 3]) -> Option<[f64; 3]> {
++        let det = self.determinant?;
++        let g = &self.matrix;
++        Some([
++            (rhs[0] * self.cofactors[0] - g[0][1] * (rhs[1] * g[2][2] - g[1][2] * rhs[2])
++                + g[0][2] * (rhs[1] * g[2][1] - g[1][1] * rhs[2]))
++                / det,
++            (g[0][0] * (rhs[1] * g[2][2] - g[1][2] * rhs[2]) - rhs[0] * self.cofactors[1]
++                + g[0][2] * (g[1][0] * rhs[2] - rhs[1] * g[2][0]))
++                / det,
++            (g[0][0] * (g[1][1] * rhs[2] - rhs[1] * g[2][1])
++                - g[0][1] * (g[1][0] * rhs[2] - rhs[1] * g[2][0])
++                + rhs[0] * self.cofactors[2])
++                / det,
++        ])
++    }
++}
++
++#[cfg(test)]
++fn solve3_reference(g: &[[f64; 3]; 3], rhs: [f64; 3]) -> Option<[f64; 3]> {
+     let det = g[0][0] * (g[1][1] * g[2][2] - g[1][2] * g[2][1])
+         - g[0][1] * (g[1][0] * g[2][2] - g[1][2] * g[2][0])
+         + g[0][2] * (g[1][0] * g[2][1] - g[1][1] * g[2][0]);
+@@ -1512,6 +1558,41 @@ impl Cholesky {
+ 
+ #[cfg(test)]
+ mod tests {
++    #[test]
++    fn cached_sticking_solve_matches_cramer_bits() {
++        let mut matrices = vec![
++            [[0.0; 3]; 3],
++            [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1e-20]],
++            [[2.0, -0.0, 0.1], [0.0, 3.0, -0.2], [0.1, -0.2, 4.0]],
++            [[1.0; 3]; 3],
++        ];
++        for index in 1..100 {
++            let x = index as f64 * 0.013;
++            for scale in [1e-9, 1.0, 1e9] {
++                matrices.push([
++                    [scale * (1.0 + x), scale * x, scale * -0.3],
++                    [scale * x, scale * (2.0 + x), scale * 0.2],
++                    [scale * -0.3, scale * 0.2, scale * (3.0 + x)],
++                ]);
++            }
++        }
++        for g in matrices {
++            let block = ContactBlock::new(g);
++            for rhs in [
++                [0.0; 3],
++                [-0.0, 0.0, -0.0],
++                [1.2, -3.4, 5.6],
++                [1e-12, 1e5, -1.0],
++            ] {
++                let expected = solve3_reference(&g, rhs).map(|v| v.map(f64::to_bits));
++                assert_eq!(
++                    block.solve_sticking(rhs).map(|v| v.map(f64::to_bits)),
++                    expected
++                );
++            }
++        }
++    }
++
+     use super::*;
+     use rne_ecs::{spawn_named, World};
+     use rne_physics::{RigidBody, RigidBodyInertia};

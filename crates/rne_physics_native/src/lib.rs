@@ -40,6 +40,11 @@
 //!   entities along one normal are reduced to four that span their support. Friction is the mean of
 //!   the two materials' coefficients; restitution is ignored (contacts are
 //!   inelastic).
+//! - **External loads.** World-frame [`ExternalBodyWrench`] commands add for
+//!   the next completed step, including force-at-point moments. Loads on
+//!   articulated links are projected through their spatial Jacobians and are
+//!   independent of actuator effort limits. Sync preserves queued loads on
+//!   surviving dynamic entities; removing a target discards its pending loads.
 //! - **Actuation.** [`rne_physics::JointActuation`] position, velocity, and
 //!   effort commands become implicit PD gains or feed-forward forces with their
 //!   effort limits, the legacy [`rne_physics::JointMotor`] is read with
@@ -65,6 +70,7 @@
 #![deny(missing_docs)]
 
 mod assembly;
+mod box_pairs;
 mod collide;
 mod hull;
 mod mesh;
@@ -79,10 +85,10 @@ use rne_dynamics::ContactStepConfig;
 use rne_ecs::{Entity, Parent, World};
 use rne_math::Vec3;
 use rne_physics::{
-    Collider, ColliderShape, CollisionGroups, ContactEvent, JointState, PhysicsBackend,
-    PhysicsBackendManifest, PhysicsBackendRepeatability, PhysicsCapability, PhysicsError,
-    PhysicsWorldDesc, PhysicsWorldId, RaycastHit, RaycastQuery, RigidBody, RigidBodyType,
-    SelfCollisionExclusion,
+    Collider, ColliderShape, CollisionGroups, ContactEvent, ExternalBodyWrench, JointState,
+    PhysicsBackend, PhysicsBackendManifest, PhysicsBackendRepeatability, PhysicsCapability,
+    PhysicsError, PhysicsWorldDesc, PhysicsWorldId, RaycastHit, RaycastQuery, RigidBody,
+    RigidBodyType, SelfCollisionExclusion,
 };
 use rne_world::{world_transform_of, Transform3};
 use std::collections::{BTreeMap, HashMap};
@@ -96,6 +102,7 @@ const CAPABILITIES: &[PhysicsCapability] = &[
     PhysicsCapability::DeterministicStep,
     PhysicsCapability::ContactForce,
     PhysicsCapability::RaycastBatch,
+    PhysicsCapability::ExternalBodyWrench,
 ];
 
 /// Largest pose or velocity change that still counts as the backend's own
@@ -137,6 +144,65 @@ impl Default for NativeBackendConfig {
     }
 }
 
+/// One solved contact, expressed in world coordinates at the pre-integration pose.
+/// Impulses act on `body_entity`; their opposites act on `other_entity`.
+/// Entity order follows the solver, not canonical entity-index order. Predictive
+/// contacts and zero impulses are retained after manifold reduction.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct NativeContactImpulse {
+    /// Body receiving the reported impulse.
+    pub body_entity: Entity,
+    /// Opposite body, which may be static or dynamic.
+    pub other_entity: Entity,
+    /// Solver application point on the receiving body, not the surface midpoint.
+    pub point_world_m: Vec3,
+    /// Opposite surface point used by the other body's solver Jacobian.
+    pub other_point_world_m: Vec3,
+    /// Unit normal from the opposite body into the receiving body.
+    pub normal_world: Vec3,
+    /// Signed separation at contact generation, in meters.
+    pub gap_m: f64,
+    /// Solved normal impulse magnitude in N s.
+    pub normal_impulse_n_s: f64,
+    /// Solved tangential impulse on the receiving body, in N s.
+    pub tangential_impulse_world_n_s: Vec3,
+    /// Duration of the completed step; divide impulses by this for average force.
+    pub dt_s: f64,
+    /// Relative velocity of the receiving point minus the opposite point after
+    /// the solve, evaluated at the pre-integration configuration, in world coordinates.
+    pub relative_velocity_world_m_s: Vec3,
+    /// Normal relative velocity plus the gap/recovery bias. This is the rigid
+    /// normal constraint velocity; it excludes compliance when regularization > 0.
+    pub normal_constraint_velocity_m_s: f64,
+    /// Coulomb coefficient of this solved contact.
+    pub friction_coefficient: f64,
+    /// Gauss-Seidel sweeps in this contact's island (zero for a block solve).
+    pub solver_iterations: usize,
+    /// Island solver stopping flag, not an independent complementarity certificate.
+    pub solver_converged: bool,
+    /// Island contact-law check using solver tolerances and normal compliance.
+    /// Independent of the iterate-change stopping flag; friction alignment is
+    /// velocity-scaled rather than an absolute dissipation-energy bound.
+    pub solver_contact_law_satisfied: bool,
+}
+
+/// Counts of contact candidates at successive stages, before solving islands.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct NativeContactPipeline {
+    /// Narrow-phase candidates before duplicate removal.
+    pub generated_candidates: usize,
+    /// Candidates remaining after duplicate removal.
+    pub deduplicated_candidates: usize,
+    /// Candidates retained by support-patch reduction and passed to the solver.
+    pub retained_candidates: usize,
+}
+
+#[derive(Debug, Default)]
+pub(crate) struct NativeContactDiagnostics {
+    samples: Vec<NativeContactImpulse>,
+    pipeline: NativeContactPipeline,
+}
+
 /// Topology entry of one rigid body: entity, type, and joint parent and kind.
 type TopologyEntry = (Entity, RigidBodyType, Option<(Entity, u8)>);
 
@@ -156,6 +222,10 @@ struct NativeWorld {
     last_dt_s: Option<f64>,
     /// Total simulated time stepped, in seconds.
     elapsed_s: f64,
+    pending_wrenches: Vec<ExternalBodyWrench>,
+    contact_diagnostics_enabled: bool,
+    contact_diagnostics: Vec<NativeContactImpulse>,
+    contact_pipeline: Option<NativeContactPipeline>,
 }
 
 /// Physics backend that simulates articulated assemblies with
@@ -187,7 +257,7 @@ impl NativeBackend {
             "native",
             env!("CARGO_PKG_VERSION"),
             "rne_dynamics",
-            "coupled_contact_step_per_contact_bisection_v2",
+            "coupled_contact_step_per_contact_bisection_v3",
             CAPABILITIES.iter().copied(),
             PhysicsBackendRepeatability::SameRuntimeExact,
         )
@@ -198,6 +268,39 @@ impl NativeBackend {
     /// sync.
     pub fn assembly_count(&self, physics_world: PhysicsWorldId) -> Result<usize, PhysicsError> {
         Ok(self.world(physics_world)?.assemblies.len())
+    }
+
+    /// Enables per-point impulse diagnostics for one world (disabled by default).
+    /// Clears previous samples. Recording does not change solver inputs or warm starts.
+    pub fn set_contact_diagnostics_enabled(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        enabled: bool,
+    ) -> Result<(), PhysicsError> {
+        let state = self.world_mut(physics_world)?;
+        state.contact_diagnostics_enabled = enabled;
+        state.contact_diagnostics.clear();
+        state.contact_pipeline = None;
+        Ok(())
+    }
+
+    /// Samples from the last completed step, in solver order. Empty when disabled,
+    /// before the first step, after `sync_from_ecs`, or when no contacts were generated.
+    /// A failed step does not publish partially collected samples.
+    pub fn contact_impulse_diagnostics(
+        &self,
+        physics_world: PhysicsWorldId,
+    ) -> Result<&[NativeContactImpulse], PhysicsError> {
+        Ok(&self.world(physics_world)?.contact_diagnostics)
+    }
+
+    /// Candidate counts for the last diagnosed step, with the same lifetime as
+    /// [`Self::contact_impulse_diagnostics`]. `None` means no observation is available.
+    pub fn contact_pipeline_diagnostics(
+        &self,
+        physics_world: PhysicsWorldId,
+    ) -> Result<Option<&NativeContactPipeline>, PhysicsError> {
+        Ok(self.world(physics_world)?.contact_pipeline.as_ref())
     }
 
     fn world(&self, physics_world: PhysicsWorldId) -> Result<&NativeWorld, PhysicsError> {
@@ -232,6 +335,8 @@ impl NativeWorld {
                 assembly.bodies.iter().map(move |body| (body.entity, index))
             })
             .collect();
+        self.pending_wrenches
+            .retain(|load| self.body_assembly.contains_key(&load.entity));
         for assembly in &mut self.assemblies {
             remember_ecs_state(assembly, world);
         }
@@ -298,6 +403,8 @@ impl PhysicsBackend for NativeBackend {
         physics_world: PhysicsWorldId,
     ) -> Result<(), PhysicsError> {
         let state = self.world_mut(physics_world)?;
+        state.contact_diagnostics.clear();
+        state.contact_pipeline = None;
         let mut bodies: Vec<(Entity, RigidBodyType)> = world
             .iter_entities()
             .filter_map(|entity_ref| {
@@ -387,6 +494,25 @@ impl PhysicsBackend for NativeBackend {
         Ok(())
     }
 
+    fn apply_external_body_wrench(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        wrench: ExternalBodyWrench,
+    ) -> Result<(), PhysicsError> {
+        let state = self.world_mut(physics_world)?;
+        if !wrench.is_finite() || !state.body_assembly.contains_key(&wrench.entity) {
+            return Err(PhysicsError::InvalidExternalBodyWrench {
+                entity_index: wrench.entity.index(),
+                reason: "expected finite wrench on a synced dynamic body",
+            });
+        }
+        let mut proposed = state.pending_wrenches.clone();
+        proposed.push(wrench);
+        state.assemblies[state.body_assembly[&wrench.entity]].external_efforts(&proposed)?;
+        state.pending_wrenches.push(wrench);
+        Ok(())
+    }
+
     fn step(&mut self, physics_world: PhysicsWorldId, dt: SimDuration) -> Result<(), PhysicsError> {
         let config = self.config;
         let dt_s = dt.as_seconds().value();
@@ -394,6 +520,24 @@ impl PhysicsBackend for NativeBackend {
             return Err(PhysicsError::InitializationFailed);
         }
         let state = self.world_mut(physics_world)?;
+        for load in &state.pending_wrenches {
+            if !state.body_assembly.contains_key(&load.entity) {
+                return Err(PhysicsError::InvalidExternalBodyWrench {
+                    entity_index: load.entity.index(),
+                    reason: "queued target is no longer dynamic",
+                });
+            }
+        }
+        let external = if state.pending_wrenches.is_empty() {
+            Vec::new()
+        } else {
+            state
+                .assemblies
+                .iter()
+                .map(|a| a.external_efforts(&state.pending_wrenches))
+                .collect::<Result<Vec<_>, _>>()?
+        };
+        let mut diagnostics = NativeContactDiagnostics::default();
         let records = step_world(
             &mut state.assemblies,
             &state.statics,
@@ -401,7 +545,16 @@ impl PhysicsBackend for NativeBackend {
             &config.contact,
             config.contact_margin_m,
             dt_s,
+            &external,
+            state
+                .contact_diagnostics_enabled
+                .then_some(&mut diagnostics),
         )?;
+        state.contact_diagnostics = diagnostics.samples;
+        state.contact_pipeline = state
+            .contact_diagnostics_enabled
+            .then_some(diagnostics.pipeline);
+        state.pending_wrenches.clear();
         let mut events: BTreeMap<(u32, u32), ContactEvent> = BTreeMap::new();
         let to_world = world_to_sim().conjugate();
         for record in &records {

@@ -1,0 +1,22 @@
+{
+  "baseline_backend_commit": "bd9177cd",
+  "activation_moving_collider_count": 64,
+  "source_sha256": {
+    "crates/rne_physics_native/src/box_pairs.rs": "707a51d5706275b0596f51cf76441ba86fcd372090abbb569351488ed8026d79",
+    "crates/rne_physics_native/src/world_step.rs": "5b7d36f289beac80f7e0f631c5daa7962ee8c85667efc1e66fce95c103b6cab7",
+    "crates/rne_physics_native/src/lib.rs": "61543ddb029e45b188092e9df2095c001108fed68697181e6f776dfbd967a7ae",
+    "crates/rne_physics_native/examples/contact_crowd.rs": "7f5c8f2f1ea41510396dcef93e86df844859adb65d23121104fed26d1cc21bf5",
+    "scripts/contact_benchmark/contact_crowd.py": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87"
+  },
+  "report_sha256": {
+    "a": "e60b1e7bb6520f810a0b1faa3121e4f17323f84166259c37f51f86fe6985106f",
+    "b": "23908afebfb279c113296ee55e57c7574309c58f7b123771efdfb819867dd9c7"
+  },
+  "finite_gap_comparison": {
+    "conditions": 36,
+    "all_audit_fields_exactly_equal": true,
+    "before_binary_sha256": "012b9972a9e955375740d55fe737744f04a5587c07e7e2e2c54288e4c72938ef",
+    "after_binary_sha256": "8d2fefc4fe6aa109cead06921dd9265cde0d76fbb4f6719a8678086ad6afd393"
+  },
+  "binary_durable_url": null
+}

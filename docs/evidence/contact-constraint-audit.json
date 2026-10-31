@@ -1,0 +1,5076 @@
+{
+  "protocol": "contact_constraint_audit_v1",
+  "mujoco_version": "3.9.0",
+  "observation_preserves_trace": true,
+  "case": {
+    "dt_ticks": 8000,
+    "mass_kg": 3,
+    "force_ratio": 1.2,
+    "mu": 0.5
+  },
+  "columns": [
+    "step",
+    "contact_index",
+    "fn",
+    "ft1",
+    "ft2",
+    "gn",
+    "gt1",
+    "gt2"
+  ],
+  "step_columns": [
+    "end_time_s",
+    "geometric_contacts",
+    "constraint_contacts",
+    "loaded_contacts",
+    "solver_iterations",
+    "spin_rad_s"
+  ],
+  "binary_sha256": "1c8d204ed4ff0d211caaca7b61bc5a0344a55c30c98452763360c0a61133f22c",
+  "source_sha256": {
+    "contact_constraint_audit.py": "ddd6ad7edd5f2bfdc13a090bd4abf1559605afce2a4f764a78f8e6bf05cf9655",
+    "native_contact_diagnostics.py": "597e695daeae12d2cb41ec86ef0f69d1ddb86d54241fea86ad4547519e53eb57",
+    "force_friction_matched.py": "46fa228c27dfab78163fd4d8c1f4d2992eed6e03577c58fc9aa9fda7b2cf65fd",
+    "force_friction.py": "6705a92fcbe939dae9a0944e61fbaa69460f369f555d89d6a41d8be6322974fa"
+  },
+  "native": {
+    "backend": "rne_native",
+    "contact_diagnostics": [
+      {
+        "before": [
+          0.0,
+          0.0,
+          0.05,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": 7.133723405571008e-09,
+            "normal_impulse_n_s": 0.007357508849024767,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.05000000000000002,
+              -2.7755575615628907e-18,
+              -0.05
+            ],
+            "point_world_m": [
+              -0.05000000000000002,
+              -2.7755575615628907e-18,
+              -0.05
+            ],
+            "relative_velocity_world_m_s": [
+              0.001961998963648783,
+              7.1337234055710076e-09,
+              2.8285017708858767e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 43,
+            "tangential_impulse_world_n_s": [
+              -0.0036787544243605023,
+              7.422617477098737e-24,
+              -3.3428497303975603e-08
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": -2.0718003516419228e-08,
+            "normal_impulse_n_s": 0.022072496854088335,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05000000000000002,
+              -2.7755575615628907e-18,
+              -0.05
+            ],
+            "point_world_m": [
+              0.05000000000000002,
+              -2.7755575615628907e-18,
+              -0.05
+            ],
+            "relative_velocity_world_m_s": [
+              0.001961998963648783,
+              -2.0718003516419228e-08,
+              3.21719314819454e-08
+            ],
+            "solver_converged": true,
+            "solver_iterations": 43,
+            "tangential_impulse_world_n_s": [
+              -0.011036248425111696,
+              -4.585878334360419e-23,
+              2.0652959957792014e-07
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": 2.7851726918347313e-08,
+            "normal_impulse_n_s": 0.00735750775382734,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.05000000000000002,
+              2.7755575615628907e-18,
+              0.05
+            ],
+            "point_world_m": [
+              -0.05000000000000002,
+              2.7755575615628907e-18,
+              0.05
+            ],
+            "relative_velocity_world_m_s": [
+              0.001961969620219072,
+              2.7851726918347313e-08,
+              2.8285017708858746e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 43,
+            "tangential_impulse_world_n_s": [
+              -0.003678753876797048,
+              -6.5042274832506586e-24,
+              2.9292436469900605e-08
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": -3.642923796177151e-18,
+            "normal_impulse_n_s": 0.022072497243644667,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05000000000000002,
+              2.7755575615628907e-18,
+              0.05
+            ],
+            "point_world_m": [
+              0.05000000000000002,
+              2.7755575615628907e-18,
+              0.05
+            ],
+            "relative_velocity_world_m_s": [
+              0.001961969620219072,
+              -3.642923796177151e-18,
+              3.21719314819454e-08
+            ],
+            "solver_converged": true,
+            "solver_iterations": 43,
+            "tangential_impulse_world_n_s": [
+              -0.011036248620338583,
+              4.0183388646256074e-23,
+              -1.8096989413376267e-07
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.002,
+          3.923996435594777e-06,
+          0.05000000000713373,
+          1.4282429740054979e-11,
+          -2.0718005089293e-10,
+          -2.934342971105952e-10,
+          -2.785172692199022e-10,
+          1.0,
+          0.0019619982177973886,
+          3.5668620834705678e-09,
+          7.141214870027489e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 1.4267476089457887e-11,
+            "normal_constraint_velocity_m_s": -3.7252617293374437e-09,
+            "normal_impulse_n_s": 0.007357502317342319,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049996076002072704,
+              -2.359223927454068e-17,
+              -0.04999999999434301
+            ],
+            "point_world_m": [
+              -0.049996076002072704,
+              1.4267452497218612e-11,
+              -0.04999999999434301
+            ],
+            "relative_velocity_world_m_s": [
+              0.003924016450950869,
+              -1.0858999774066385e-08,
+              -3.8339197491478837e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787511586647225,
+              1.5280858046878106e-24,
+              -6.881886660582168e-09
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.143602128081625e-11,
+            "normal_constraint_velocity_m_s": -2.300760014960041e-09,
+            "normal_impulse_n_s": 0.022072496660584244,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.0500039239979273,
+              2.4980018039778818e-17,
+              -0.04999999993565615
+            ],
+            "point_world_m": [
+              0.0500039239979273,
+              -4.1435996300798204e-11,
+              -0.04999999993565615
+            ],
+            "relative_velocity_world_m_s": [
+              0.003924016450950868,
+              1.8428421131215841e-09,
+              1.438460056332566e-08
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036248330217569,
+              -9.007460676830547e-24,
+              4.056599654772845e-08
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 5.5703441859122904e-11,
+            "normal_constraint_velocity_m_s": 1.5149879034825056e-08,
+            "normal_impulse_n_s": 0.007357470638193404,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049996076060759564,
+              2.7755575603067854e-18,
+              0.050000000005657
+            ],
+            "point_world_m": [
+              -0.049996076060759564,
+              5.570344463468046e-11,
+              0.050000000005657
+            ],
+            "relative_velocity_world_m_s": [
+              0.003924001682958324,
+              -1.2701841894736398e-08,
+              -3.833919828180578e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787353190854094,
+              -2.0239364596519147e-24,
+              9.114999485509924e-09
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": -7.5484266389858e-18,
+            "normal_impulse_n_s": 0.02207250339479529,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05000392393924045,
+              -4.163336356631542e-18,
+              0.05000000006434385
+            ],
+            "point_world_m": [
+              0.05000392393924045,
+              -4.163336356631542e-18,
+              0.05000000006434385
+            ],
+            "relative_velocity_world_m_s": [
+              0.003924001682958323,
+              -7.5484266389858e-18,
+              1.4384600555422391e-08
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036251697323493,
+              8.983187067508971e-24,
+              -4.045667792983286e-08
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.004,
+          1.1772001867662089e-05,
+          0.049999999996274726,
+          3.012648044200456e-11,
+          -1.8875145890717704e-10,
+          -4.4111422252444803e-10,
+          -1.5149885037321122e-10,
+          1.0,
+          0.003924002716033656,
+          -5.429500599118953e-09,
+          7.922025350974791e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -7.450540184805732e-12,
+            "normal_constraint_velocity_m_s": -3.846223521777785e-09,
+            "normal_impulse_n_s": 0.007357527887591743,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04998822796917081,
+              4.163336341258494e-18,
+              -0.04999999999510979
+            ],
+            "point_world_m": [
+              -0.04998822796917081,
+              -7.45053602146939e-12,
+              -0.04999999999510979
+            ],
+            "relative_velocity_world_m_s": [
+              0.00588600805301812,
+              -3.1011695032972116e-09,
+              1.1713978329220637e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.003678763943795742,
+              2.1705364236238993e-25,
+              -9.775227028626682e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -3.7750302883665654e-11,
+            "normal_constraint_velocity_m_s": -1.4189553374507126e-09,
+            "normal_impulse_n_s": 0.02207247667432029,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.0500117720308292,
+              -2.775557582238143e-18,
+              -0.049999999906886944
+            ],
+            "point_world_m": [
+              0.0500117720308292,
+              -3.775030565922324e-11,
+              -0.049999999906886944
+            ],
+            "relative_velocity_world_m_s": [
+              0.005886008053018114,
+              2.3560749509158528e-09,
+              1.0267019273976047e-08
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.011036238337150962,
+              -3.1612629867905448e-24,
+              1.4237062809330039e-08
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 3.029976269885992e-11,
+            "normal_constraint_velocity_m_s": 9.692636899860582e-09,
+            "normal_impulse_n_s": 0.007357478632760427,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049988228057393655,
+              -4.1633363434301785e-18,
+              0.050000000004890195
+            ],
+            "point_world_m": [
+              -0.049988228057393655,
+              3.0299758535523576e-11,
+              0.050000000004890195
+            ],
+            "relative_velocity_world_m_s": [
+              0.005885998957396677,
+              -5.4572444495693795e-09,
+              1.1713978257870727e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.003678739316379058,
+              -6.47662200332346e-25,
+              2.916811244078709e-09
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": 4.643685454379279e-18,
+            "normal_impulse_n_s": 0.022072528442072952,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05001177194260635,
+              -1.1102230266926815e-17,
+              0.05000000009311305
+            ],
+            "point_world_m": [
+              0.05001177194260635,
+              -1.1102230266926815e-17,
+              0.05000000009311305
+            ],
+            "relative_velocity_world_m_s": [
+              0.0058859989573966705,
+              4.643685454379279e-18,
+              1.0267019266841057e-08
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.011036264221019686,
+              4.274511708485479e-24,
+              -1.9250689337526025e-08
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.006,
+          2.3544003420832425e-05,
+          0.049999999993173554,
+          4.392097248598126e-11,
+          -1.6519074996779182e-10,
+          -5.32070436948858e-10,
+          -9.69264058378557e-11,
+          1.0,
+          0.0058860007765851674,
+          -1.550586048448821e-09,
+          6.897246021988348e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.36528566230254e-11,
+            "normal_constraint_velocity_m_s": -3.5517709469704336e-09,
+            "normal_impulse_n_s": 0.007357525704019546,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04997645595306477,
+              -1.6653345370983397e-17,
+              -0.049999999992767
+            ],
+            "point_world_m": [
+              -0.04997645595306477,
+              -1.365287327637077e-11,
+              -0.049999999992767
+            ],
+            "relative_velocity_world_m_s": [
+              0.00784800609427225,
+              -2.1864852846678936e-09,
+              5.529822736934246e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.0036787628520095366,
+              2.9310517132785266e-25,
+              -1.3200283403724826e-09
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -3.30381833002491e-11,
+            "normal_constraint_velocity_m_s": -6.313207965305436e-10,
+            "normal_impulse_n_s": 0.022072472328861812,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050023544046935244,
+              3.1918911932738524e-17,
+              -0.04999999988635291
+            ],
+            "point_world_m": [
+              0.050023544046935244,
+              -3.303815138133717e-11,
+              -0.04999999988635291
+            ],
+            "relative_velocity_world_m_s": [
+              0.007848006094272244,
+              2.672497533494367e-09,
+              6.786712198825734e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.011036236164430203,
+              -8.741675113797089e-25,
+              3.936900478509051e-09
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 1.938527116607247e-11,
+            "normal_constraint_velocity_m_s": 4.833652781846192e-09,
+            "normal_impulse_n_s": 0.007357474930989137,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049976456059478855,
+              -1.1102230247857611e-17,
+              0.05000000000723299
+            ],
+            "point_world_m": [
+              -0.049976456059478855,
+              1.9385260063842224e-11,
+              0.05000000000723299
+            ],
+            "relative_velocity_world_m_s": [
+              0.007847999860542323,
+              -4.8589828011900434e-09,
+              5.529822679428016e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.003678737465494355,
+              -2.7833385279037487e-25,
+              1.2535042357113267e-09
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": 1.6972216032863302e-17,
+            "normal_impulse_n_s": 0.022072528408155843,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050023543940521144,
+              -1.8041124175393515e-17,
+              0.05000000011364708
+            ],
+            "point_world_m": [
+              0.050023543940521144,
+              -1.8041124175393515e-17,
+              0.05000000011364708
+            ],
+            "relative_velocity_world_m_s": [
+              0.007847999860542316,
+              1.6972216032863302e-17,
+              6.786712193075109e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.011036264204073795,
+              2.1191551781914967e-24,
+              -9.543826470843482e-09
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.008,
+          3.9240004516664166e-05,
+          0.04999999999098707,
+          5.393316446530973e-11,
+          -1.3846568336361997e-10,
+          -5.944077362107978e-10,
+          -4.8336577652311005e-11,
+          1.0,
+          0.007848000547915871,
+          -1.0932435512422956e-09,
+          5.0060959896642354e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.8025858583570198e-11,
+            "normal_constraint_velocity_m_s": -1.9124223880042746e-09,
+            "normal_impulse_n_s": 0.007357527976059437,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04996075994087623,
+              2.4980018052214403e-17,
+              -0.049999999991661034
+            ],
+            "point_world_m": [
+              -0.04996075994087623,
+              -1.8025833603552146e-11,
+              -0.049999999991661034
+            ],
+            "relative_velocity_world_m_s": [
+              0.009810003132605992,
+              -1.0983652964725491e-10,
+              5.626896613822383e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.0036787639880297082,
+              6.254597887804269e-26,
+              -2.81682047168676e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.769318108164498e-11,
+            "normal_constraint_velocity_m_s": -9.167427924997298e-10,
+            "normal_impulse_n_s": 0.02207247110540037,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05003924005912378,
+              2.4980018025817398e-17,
+              -0.049999999872779505
+            ],
+            "point_world_m": [
+              0.05003924005912378,
+              -2.7693156101626954e-11,
+              -0.049999999872779505
+            ],
+            "relative_velocity_world_m_s": [
+              0.009810003132605986,
+              1.8525753156647682e-09,
+              4.8079814714083034e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.011036235552700132,
+              -2.380816367726291e-25,
+              1.0722243706529702e-09
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 9.66726698692355e-12,
+            "normal_constraint_velocity_m_s": 2.8712216488496218e-09,
+            "normal_impulse_n_s": 0.0073574742474136565,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049960760059757775,
+              1.6653345367525728e-17,
+              0.05000000000833896
+            ],
+            "point_world_m": [
+              -0.049960760059757775,
+              9.667283640268918e-12,
+              0.05000000000833896
+            ],
+            "relative_velocity_world_m_s": [
+              0.00980999888731418,
+              -1.9624118446121535e-09,
+              5.626896568484056e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.003678737123706803,
+              -9.659527381089907e-26,
+              4.350264391405161e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": 6.998692108644116e-19,
+            "normal_impulse_n_s": 0.022072529786099648,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05003923994024224,
+              -3.8857805890129105e-17,
+              0.0500000001272205
+            ],
+            "point_world_m": [
+              0.05003923994024224,
+              -3.8857805890129105e-17,
+              0.0500000001272205
+            ],
+            "relative_velocity_world_m_s": [
+              0.009809998887314176,
+              6.998692108644115e-19,
+              4.80798146687447e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.011036264893048498,
+              1.2010363962091164e-24,
+              -5.40898706642578e-09
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.01,
+          5.886000457417249e-05,
+          0.049999999990877224,
+          6.11564109066088e-11,
+          -1.1994005788551476e-10,
+          -6.368606543146713e-10,
+          -2.8712459194057142e-11,
+          1.0,
+          0.009810000028754162,
+          -5.492134524942571e-11,
+          3.6116232206495372e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.8245516208992285e-11,
+            "normal_constraint_velocity_m_s": -1.0161477188334036e-09,
+            "normal_impulse_n_s": 0.007357527908965758,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049941139934611,
+              -9.714451467571623e-18,
+              -0.04999999999053567
+            ],
+            "point_world_m": [
+              -0.049941139934611,
+              -1.8245525923443753e-11,
+              -0.04999999999053567
+            ],
+            "relative_velocity_world_m_s": [
+              0.011772001894903508,
+              8.084039020658248e-10,
+              1.5370498013364008e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.003678763954482873,
+              4.7257716984598004e-26,
+              -2.1282983660221593e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.3988033781563445e-11,
+            "normal_constraint_velocity_m_s": 1.3968126983233478e-10,
+            "normal_impulse_n_s": 0.022072471711461303,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05005886006538901,
+              2.4980018023682222e-17,
+              -0.04999999986316353
+            ],
+            "point_world_m": [
+              0.05005886006538901,
+              -2.3988008801545422e-11,
+              -0.04999999986316353
+            ],
+            "relative_velocity_world_m_s": [
+              0.011772001894903504,
+              2.5384846479886793e-09,
+              2.6150429482526507e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.011036235855730643,
+              9.423771344639894e-26,
+              -4.244089311614498e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 5.74251757257116e-12,
+            "normal_constraint_velocity_m_s": 1.1411780382320048e-09,
+            "normal_impulse_n_s": 0.0073574725494275845,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049941140061983136,
+              -5.273559367179644e-17,
+              0.05000000000946434
+            ],
+            "point_world_m": [
+              -0.049941140061983136,
+              5.742464836977488e-12,
+              0.05000000000946434
+            ],
+            "relative_velocity_world_m_s": [
+              0.01177199943356554,
+              -1.730080748053575e-09,
+              1.5370497760751264e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.003678736274713786,
+              -4.770053106998024e-26,
+              2.1482409395213777e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": -2.1307208516659553e-18,
+            "normal_impulse_n_s": 0.022072529207505995,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05005885993801687,
+              -1.8041124180542595e-17,
+              0.05000000013683648
+            ],
+            "point_world_m": [
+              0.05005885993801687,
+              -1.8041124180542595e-17,
+              0.05000000013683648
+            ],
+            "relative_velocity_world_m_s": [
+              0.011771999433565538,
+              -2.1307208516659553e-18,
+              2.615042945726523e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.011036264603752725,
+              5.443659139652792e-25,
+              -2.451606127287231e-09
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.012,
+          8.240400417256077e-05,
+          0.049999999991685626,
+          6.646364348052607e-11,
+          -9.455525251667041e-11,
+          -6.614740339986653e-10,
+          -1.1411651721614084e-11,
+          1.0,
+          0.011771999799194138,
+          4.042009782434519e-10,
+          2.6536162869586335e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.66287539293819e-11,
+            "normal_constraint_velocity_m_s": -8.764475998099578e-10,
+            "normal_impulse_n_s": 0.007357527934869527,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04991759593082119,
+              3.1918911955803486e-17,
+              -0.049999999990228236
+            ],
+            "point_world_m": [
+              -0.04991759593082119,
+              -1.6628722010469946e-11,
+              -0.049999999990228236
+            ],
+            "relative_velocity_world_m_s": [
+              0.013734001069653869,
+              7.864277931282323e-10,
+              2.1115830355312669e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.0036787639674347636,
+              9.48041918481552e-28,
+              -4.269601230805128e-12
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.8911039401103835e-11,
+            "normal_constraint_velocity_m_s": -3.304428330782823e-10,
+            "normal_impulse_n_s": 0.022072470408351655,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050082404069178806,
+              -9.714451497015234e-18,
+              -0.049999999857933436
+            ],
+            "point_world_m": [
+              0.050082404069178806,
+              -1.8911049115555332e-11,
+              -0.049999999857933436
+            ],
+            "relative_velocity_world_m_s": [
+              0.013734001069653865,
+              1.5606611070321012e-09,
+              1.966856285496973e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.0110362352041758,
+              1.735035785789567e-25,
+              -7.81390651835637e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 2.2822854717219343e-12,
+            "normal_constraint_velocity_m_s": 3.669094231254659e-10,
+            "normal_impulse_n_s": 0.00735747253397361,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04991759606311601,
+              3.053113317502204e-17,
+              0.050000000009771756
+            ],
+            "point_world_m": [
+              -0.04991759606311601,
+              2.2823160028551092e-12,
+              0.050000000009771756
+            ],
+            "relative_velocity_world_m_s": [
+              0.013733999313955888,
+              -7.742333127355012e-10,
+              2.1115830152556675e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.003678736266986805,
+              -2.9613223769408245e-27,
+              1.333661035331461e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 0.0,
+            "normal_constraint_velocity_m_s": 1.1683676732756782e-18,
+            "normal_impulse_n_s": 0.022072529089841048,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050082403936884,
+              -1.1102230277796679e-17,
+              0.05000000014206656
+            ],
+            "point_world_m": [
+              0.050082403936884,
+              -1.1102230277796679e-17,
+              0.05000000014206656
+            ],
+            "relative_velocity_world_m_s": [
+              0.013733999313955886,
+              1.1683676732756782e-18,
+              1.966856283469413e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 1,
+            "tangential_impulse_world_n_s": [
+              -0.011036264544920411,
+              3.5094409091416e-25,
+              -1.5805116770688884e-09
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.014,
+          0.00010987200378193721,
+          0.04999999999247206,
+          7.020231917242814e-11,
+          -7.894862541490966e-11,
+          -6.79031013819014e-10,
+          -3.669318573912209e-12,
+          1.0,
+          0.013733999804688223,
+          3.9321670919356677e-10,
+          1.8693378459510347e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.337066037533702e-10,
+            "normal_constraint_velocity_m_s": 9.128800148097799e-10,
+            "normal_impulse_n_s": 0.007357559165179157,
+            "normal_world": [
+              7.338637255041605e-12,
+              1.0,
+              -1.5789725128593273e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049890127928681895,
+              8.186507347018867e-10,
+              -0.04999999998980592
+            ],
+            "point_world_m": [
+              -0.049890127928681895,
+              -1.5055869051483486e-11,
+              -0.04999999998980592
+            ],
+            "relative_velocity_world_m_s": [
+              0.015695958912272188,
+              8.42834252031552e-08,
+              -2.709533512689786e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678779582589529,
+              2.6997501456761253e-14,
+              -6.044028426802081e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.337066037533702e-10,
+            "normal_constraint_velocity_m_s": 7.288312025080565e-10,
+            "normal_impulse_n_s": 0.02207256430474334,
+            "normal_world": [
+              7.338637255041605e-12,
+              1.0,
+              -1.5789725128593273e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05010987207131811,
+              8.179168703437156e-10,
+              -0.049999999853999715
+            ],
+            "point_world_m": [
+              0.05010987207131811,
+              -1.5789733409654648e-11,
+              -0.049999999853999715
+            ],
+            "relative_velocity_world_m_s": [
+              0.015695958912272184,
+              8.409937639114284e-08,
+              1.5616746300730886e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036282152371625,
+              8.099076964662686e-14,
+              -9.98474105579733e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.337066037533702e-10,
+            "normal_constraint_velocity_m_s": 1.8404881386297717e-10,
+            "normal_impulse_n_s": 0.00735750388923646,
+            "normal_world": [
+              7.338637255041605e-12,
+              1.0,
+              -1.5789725128593273e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049890128064488094,
+              8.344404639482051e-10,
+              0.05000000001019407
+            ],
+            "point_world_m": [
+              -0.049890128064488094,
+              7.338601948347878e-13,
+              0.05000000001019407
+            ],
+            "relative_velocity_world_m_s": [
+              0.015695957079644204,
+              8.355459400222184e-08,
+              -2.7095335364272047e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787519446182275,
+              2.6996634094859847e-14,
+              1.3154759887034297e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.337066037533702e-10,
+            "normal_constraint_velocity_m_s": 1.5612537753570866e-18,
+            "normal_impulse_n_s": 0.022072622941938954,
+            "normal_world": [
+              7.338637255041605e-12,
+              1.0,
+              -1.5789725128593273e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050109871935511904,
+              8.337065995900338e-10,
+              0.05000000014600028
+            ],
+            "point_world_m": [
+              0.050109871935511904,
+              -4.1633363747629124e-18,
+              0.05000000014600028
+            ],
+            "relative_velocity_world_m_s": [
+              0.0156959570796442,
+              8.337054519020948e-08,
+              1.5616746276993466e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036311470969421,
+              8.099076964664897e-14,
+              -1.0980616003177154e-09
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.016,
+          0.0001412639199579024,
+          0.050000000160126026,
+          7.222187165005526e-11,
+          -7.166028881400166e-11,
+          -6.973572936323161e-10,
+          -5.5098066905336e-12,
+          1.0,
+          0.015695958087982593,
+          8.382698354902907e-08,
+          1.0097762388135616e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -6.115727924083103e-10,
+            "normal_constraint_velocity_m_s": -7.270225638525392e-10,
+            "normal_impulse_n_s": 0.007357518974934925,
+            "normal_world": [
+              1.1019613481012849e-11,
+              1.0,
+              -1.433204670843538e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049858736010857344,
+              7.650837782757769e-10,
+              -0.04999999999034783
+            ],
+            "point_world_m": [
+              -0.049858736010857344,
+              1.535109858674666e-10,
+              -0.04999999999034783
+            ],
+            "relative_velocity_world_m_s": [
+              0.01765797003013512,
+              6.04300620930553e-08,
+              5.679031219991605e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787594874674186,
+              4.0538752909975996e-14,
+              5.675039072877523e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -6.115727924083103e-10,
+            "normal_constraint_velocity_m_s": -1.1885001033676105e-09,
+            "normal_impulse_n_s": 0.022072444970548534,
+            "normal_world": [
+              1.1019613481012849e-11,
+              1.0,
+              -1.433204670843538e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050141263989142655,
+              7.639818125348973e-10,
+              -0.04999999985087636
+            ],
+            "point_world_m": [
+              0.050141263989142655,
+              1.5240902012658704e-10,
+              -0.04999999985087636
+            ],
+            "relative_velocity_world_m_s": [
+              0.017657970030135115,
+              5.996858455372823e-08,
+              1.879733298496738e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.01103622248527426,
+              1.2161452400692198e-13,
+              -4.140374840721757e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -6.115727924083103e-10,
+            "normal_constraint_velocity_m_s": 4.6147754836218486e-10,
+            "normal_impulse_n_s": 0.0073574638886395585,
+            "normal_world": [
+              1.1019613481012849e-11,
+              1.0,
+              -1.433204670843538e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04985873615032881,
+              7.794158263241257e-10,
+              0.05000000000965216
+            ],
+            "point_world_m": [
+              -0.04985873615032881,
+              1.6784303391581544e-10,
+              0.05000000000965216
+            ],
+            "relative_velocity_world_m_s": [
+              0.017657968718304943,
+              6.161856220528447e-08,
+              5.679031199991954e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787319443197775,
+              4.053788554838862e-14,
+              -1.108192888916425e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -6.115727924083103e-10,
+            "normal_constraint_velocity_m_s": 8.847100315393557e-18,
+            "normal_impulse_n_s": 0.022072503065317228,
+            "normal_world": [
+              1.1019613481012849e-11,
+              1.0,
+              -1.433204670843538e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050141263849671186,
+              7.783138605832462e-10,
+              0.050000000149123626
+            ],
+            "point_world_m": [
+              0.050141263849671186,
+              1.667410681749359e-10,
+              0.050000000149123626
+            ],
+            "relative_velocity_world_m_s": [
+              0.01765796871830494,
+              6.11570846659574e-08,
+              1.879733296496773e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036251532658551,
+              1.216145240070909e-13,
+              -1.1748355576174038e-09
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.018000000000000002,
+          0.00017657985916781998,
+          0.050000000281713176,
+          7.348100795698011e-11,
+          -8.354522629261396e-11,
+          -7.104755953968957e-10,
+          -1.012458209303252e-11,
+          1.0,
+          0.017657969604958794,
+          6.079357503518956e-08,
+          6.295681534624228e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -6.549810693812219e-10,
+            "normal_constraint_velocity_m_s": 7.411916514570874e-11,
+            "normal_impulse_n_s": 0.007357529816478552,
+            "normal_world": [
+              2.0249164304778694e-11,
+              1.0,
+              -1.670903975645682e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04982342007079709,
+              9.293521827102857e-10,
+              -0.049999999989212035
+            ],
+            "point_world_m": [
+              -0.04982342007079709,
+              2.7437111332906384e-10,
+              -0.049999999989212035
+            ],
+            "relative_velocity_world_m_s": [
+              0.01961996756887787,
+              6.557182881531416e-08,
+              -4.0647192094937165e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787649082392735,
+              7.449162814368811e-14,
+              -1.3535677421237908e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -6.549810693812219e-10,
+            "normal_constraint_velocity_m_s": 3.508276740296793e-10,
+            "normal_impulse_n_s": 0.022072477641804866,
+            "normal_world": [
+              2.0249164304778694e-11,
+              1.0,
+              -1.670903975645682e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05017657992920292,
+              9.273272608134597e-10,
+              -0.04999999984711691
+            ],
+            "point_world_m": [
+              0.05017657992920292,
+              2.723461914322378e-10,
+              -0.04999999984711691
+            ],
+            "relative_velocity_world_m_s": [
+              0.01961996756887787,
+              6.58485373242635e-08,
+              3.5068506473598007e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.01103623882090242,
+              2.2347401706935694e-13,
+              -5.438344312223066e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -6.549810693812219e-10,
+            "normal_constraint_velocity_m_s": -2.767085100982452e-10,
+            "normal_impulse_n_s": 0.007357473370176337,
+            "normal_world": [
+              2.0249164304778694e-11,
+              1.0,
+              -1.670903975645682e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049823420212892204,
+              9.460612182543571e-10,
+              0.05000000001078798
+            ],
+            "point_world_m": [
+              -0.049823420212892204,
+              2.9108014887313515e-10,
+              0.05000000001078798
+            ],
+            "relative_velocity_world_m_s": [
+              0.019619967177545612,
+              6.522100114007812e-08,
+              -4.0647192592381354e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678736685088169,
+              7.449162814366054e-14,
+              -1.1119006914918475e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -6.549810693812219e-10,
+            "normal_constraint_velocity_m_s": -1.2142879043380438e-18,
+            "normal_impulse_n_s": 0.02207253339453187,
+            "normal_world": [
+              2.0249164304778694e-11,
+              1.0,
+              -1.670903975645682e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05017657978710781,
+              9.44036296357531e-10,
+              0.0500000001528831
+            ],
+            "point_world_m": [
+              0.05017657978710781,
+              2.8905522697630913e-10,
+              0.0500000001528831
+            ],
+            "relative_velocity_world_m_s": [
+              0.019619967177545612,
+              6.549770964902747e-08,
+              3.5068506423853604e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036266697265934,
+              2.2347401706927997e-13,
+              -1.9726098113209006e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.02,
+          0.00021581979363753502,
+          0.05000000041278272,
+          7.414187350397449e-11,
+          -8.003708806825216e-11,
+          -7.143889179654715e-10,
+          -7.357497001373492e-12,
+          1.0,
+          0.019619967234857517,
+          6.553477205351044e-08,
+          3.3043277349718956e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.611591108982793e-10,
+            "normal_constraint_velocity_m_s": 4.089057096396372e-11,
+            "normal_impulse_n_s": 0.007357520846752879,
+            "normal_world": [
+              1.471499411710212e-11,
+              1.0,
+              -1.6007401010294405e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04978418013565933,
+              8.666738687823637e-10,
+              -0.049999999989293324
+            ],
+            "point_world_m": [
+              -0.04978418013565933,
+              4.0551475788408454e-10,
+              -0.049999999989293324
+            ],
+            "relative_velocity_world_m_s": [
+              0.02158197699751162,
+              4.615648408215454e-08,
+              1.6992573156414007e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678760423376439,
+              5.413291342957925e-14,
+              6.757023500890309e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.611591108982793e-10,
+            "normal_constraint_velocity_m_s": -3.1748249914448886e-10,
+            "normal_impulse_n_s": 0.022072449630814693,
+            "normal_world": [
+              1.471499411710212e-11,
+              1.0,
+              -1.6007401010294405e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050215819864340684,
+              8.652023791855256e-10,
+              -0.04999999984641554
+            ],
+            "point_world_m": [
+              0.050215819864340684,
+              4.040432682872463e-10,
+              -0.04999999984641554
+            ],
+            "relative_velocity_world_m_s": [
+              0.02158197699751162,
+              4.5798111012123606e-08,
+              6.541548675767559e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036224815407347,
+              1.6239787292703422e-13,
+              4.739795560306079e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.611591108982793e-10,
+            "normal_constraint_velocity_m_s": 3.5837306958803024e-10,
+            "normal_impulse_n_s": 0.007357464921631829,
+            "normal_world": [
+              1.471499411710212e-11,
+              1.0,
+              -1.6007401010294405e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.0497841802785371,
+              8.826812641915538e-10,
+              0.05000000001070668
+            ],
+            "point_world_m": [
+              -0.0497841802785371,
+              4.215221532932744e-10,
+              0.05000000001070668
+            ],
+            "relative_velocity_world_m_s": [
+              0.021581976513282485,
+              4.6473966580785735e-08,
+              1.699257308214637e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787324608159146,
+              5.4132913429594797e-14,
+              -2.4359366855218023e-12
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.611591108982793e-10,
+            "normal_constraint_velocity_m_s": -5.20415719304062e-19,
+            "normal_impulse_n_s": 0.02207250640417624,
+            "normal_world": [
+              1.471499411710212e-11,
+              1.0,
+              -1.6007401010294405e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050215819721462905,
+              8.812097745947154e-10,
+              0.05000000015358447
+            ],
+            "point_world_m": [
+              0.050215819721462905,
+              4.200506636964363e-10,
+              0.05000000015358447
+            ],
+            "relative_velocity_world_m_s": [
+              0.021581976513282485,
+              4.61155935107548e-08,
+              6.541548668340796e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036253202088115,
+              1.6239787292711901e-13,
+              -3.345114738330803e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.022000000000000002,
+          0.00025898374750670216,
+          0.05000000050505479,
+          7.464847160426068e-11,
+          -8.321193734062149e-11,
+          -7.192312093252876e-10,
+          -1.0941227704338379e-11,
+          1.0,
+          0.021581976934583573,
+          4.6136035963817434e-08,
+          2.532990501430978e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.364705263881774e-10,
+            "normal_constraint_velocity_m_s": -8.357034578244476e-11,
+            "normal_impulse_n_s": 0.007357526919413987,
+            "normal_world": [
+              2.1882455528373932e-11,
+              1.0,
+              -1.664237641606152e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049741016181664315,
+              9.342982609794603e-10,
+              -0.04999999998895346
+            ],
+            "point_world_m": [
+              -0.049741016181664315,
+              4.978277345912829e-10,
+              -0.04999999998895346
+            ],
+            "relative_velocity_world_m_s": [
+              0.023543978418902264,
+              4.356296709296407e-08,
+              -6.316308802948435e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787634597069932,
+              8.050071026445193e-14,
+              -4.601053081097844e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.3647063741047987e-10,
+            "normal_constraint_velocity_m_s": 2.3071436636156765e-10,
+            "normal_impulse_n_s": 0.022072469373338777,
+            "normal_world": [
+              2.1882455528373932e-11,
+              1.0,
+              -1.664237641606152e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05025898381833569,
+              9.321101154813327e-10,
+              -0.049999999845107224
+            ],
+            "point_world_m": [
+              0.05025898381833569,
+              4.956394780708528e-10,
+              -0.049999999845107224
+            ],
+            "relative_velocity_world_m_s": [
+              0.023543978418902264,
+              4.3877262907358634e-08,
+              5.882413224329091e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036234686669383,
+              2.415012634316592e-13,
+              -3.2440163432047137e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.3647063741047987e-10,
+            "normal_constraint_velocity_m_s": -3.142958067414727e-10,
+            "normal_impulse_n_s": 0.007357470845629838,
+            "normal_world": [
+              2.1882455528373932e-11,
+              1.0,
+              -1.664237641606152e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049741016325510555,
+              9.509407455920993e-10,
+              0.050000000011046535
+            ],
+            "point_world_m": [
+              -0.049741016325510555,
+              5.144701081816195e-10,
+              0.050000000011046535
+            ],
+            "relative_velocity_world_m_s": [
+              0.023543978296915045,
+              4.333225273423796e-08,
+              -6.316308816656205e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787354228149196,
+              8.049984290270651e-14,
+              -1.2552308330101073e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.3647063741047987e-10,
+            "normal_constraint_velocity_m_s": 7.632785941275911e-18,
+            "normal_impulse_n_s": 0.02207252526713047,
+            "normal_world": [
+              2.1882455528373932e-11,
+              1.0,
+              -1.664237641606152e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05025898367448946,
+              9.487524890716692e-10,
+              0.05000000015489278
+            ],
+            "point_world_m": [
+              0.05025898367448946,
+              5.122818516611893e-10,
+              0.05000000015489278
+            ],
+            "relative_velocity_world_m_s": [
+              0.023543978296915045,
+              4.364654854863252e-08,
+              5.882413210621323e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036262633565235,
+              2.415012634315933e-13,
+              -2.7573871974390473e-11
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.024,
+          0.00030607170390822364,
+          0.0500000005922643,
+          7.487484700661409e-11,
+          -8.090483838429918e-11,
+          -7.20451081528302e-10,
+          -7.798269558834812e-12,
+          1.0,
+          0.023543978200760738,
+          4.360475522324769e-08,
+          1.1318770117670494e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.9476121543581257e-10,
+            "normal_constraint_velocity_m_s": -1.2280315375701178e-09,
+            "normal_impulse_n_s": 0.0073575221984879926,
+            "normal_world": [
+              1.5596539234245635e-11,
+              1.0,
+              -1.618095107430187e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.0496939282248265,
+              8.797148814965183e-10,
+              -0.04999999998907979
+            ],
+            "point_world_m": [
+              -0.0496939282248265,
+              5.849536660607057e-10,
+              -0.04999999998907979
+            ],
+            "relative_velocity_world_m_s": [
+              0.02550598584616646,
+              2.8247692200953872e-08,
+              3.1945167482762314e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.0036787610992439885,
+              5.737597896788017e-14,
+              2.374198719987246e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.9476121543581257e-10,
+            "normal_constraint_velocity_m_s": -8.901949455353275e-10,
+            "normal_impulse_n_s": 0.022072454950836328,
+            "normal_world": [
+              1.5596539234245635e-11,
+              1.0,
+              -1.618095107430187e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.0503060717751735,
+              8.781552193748432e-10,
+              -0.04999999984498956
+            ],
+            "point_world_m": [
+              0.0503060717751735,
+              5.833940039390306e-10,
+              -0.04999999984498956
+            ],
+            "relative_velocity_world_m_s": [
+              0.02550598584616646,
+              2.8585528793022504e-08,
+              5.286171902364188e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.01103622747541816,
+              1.7212620218038993e-13,
+              -3.028456951378196e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.9476132645811504e-10,
+            "normal_constraint_velocity_m_s": -3.3783659203479364e-10,
+            "normal_impulse_n_s": 0.0073574667323436475,
+            "normal_world": [
+              1.5596539234245635e-11,
+              1.0,
+              -1.618095107430187e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049693928368916715,
+              8.958959435423354e-10,
+              0.05000000001092021
+            ],
+            "point_world_m": [
+              -0.049693928368916715,
+              6.011346170842203e-10,
+              0.05000000001092021
+            ],
+            "relative_velocity_world_m_s": [
+              0.025505985637000943,
+              2.9137898248722705e-08,
+              3.194516743821924e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.0036787333661718225,
+              5.73751116062169e-14,
+              -9.909010812908353e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.9476132645811504e-10,
+            "normal_constraint_velocity_m_s": -3.308722450212111e-24,
+            "normal_impulse_n_s": 0.022072511888740137,
+            "normal_world": [
+              1.5596539234245635e-11,
+              1.0,
+              -1.618095107430187e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050306071631083284,
+              8.943362814206601e-10,
+              0.05000000015501043
+            ],
+            "point_world_m": [
+              0.050306071631083284,
+              5.99574954962545e-10,
+              0.05000000015501043
+            ],
+            "relative_velocity_world_m_s": [
+              0.025505985637000943,
+              2.9475734840791337e-08,
+              5.286171897909881e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.011036255944370067,
+              1.7212620218037347e-13,
+              -2.287288438308271e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.026000000000000002,
+          0.00035708367505355446,
+          0.05000000064998774,
+          7.483270982298034e-11,
+          -8.980688415149984e-11,
+          -7.225427366825939e-10,
+          -4.4199036447312184e-12,
+          1.0,
+          0.02550598557266541,
+          2.8861718570638573e-08,
+          -2.1068591816876713e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.9227742448512117e-10,
+            "normal_constraint_velocity_m_s": 1.624004578211487e-09,
+            "normal_impulse_n_s": 0.007357529360789168,
+            "normal_world": [
+              8.839807419241078e-12,
+              1.0,
+              -1.7961382432985132e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04964291625313418,
+              9.337264614273088e-10,
+              -0.04999999998844088
+            ],
+            "point_world_m": [
+              -0.04964291625313418,
+              6.414490369421876e-10,
+              -0.04999999998844088
+            ],
+            "relative_velocity_world_m_s": [
+              0.027467984636892907,
+              3.085150421496391e-08,
+              -3.636096066388494e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.0036787646803945733,
+              3.251912628072539e-14,
+              -2.889551221343529e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.922773134628187e-10,
+            "normal_constraint_velocity_m_s": 1.2285843955031588e-09,
+            "normal_impulse_n_s": 0.022072473675254164,
+            "normal_world": [
+              8.839807419241078e-12,
+              1.0,
+              -1.7961382432985132e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050357083746865844,
+              9.32842370016118e-10,
+              -0.04999999984393233
+            ],
+            "point_world_m": [
+              0.050357083746865844,
+              6.405650565532994e-10,
+              -0.04999999984393233
+            ],
+            "relative_velocity_world_m_s": [
+              0.027467984636892907,
+              3.0456072929971675e-08,
+              -6.62374055859158e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.011036236837627078,
+              9.755737884191865e-14,
+              2.9285891249396766e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.9227742448512117e-10,
+            "normal_constraint_velocity_m_s": 3.9542018288179783e-10,
+            "normal_impulse_n_s": 0.007357471889116885,
+            "normal_world": [
+              8.839807419241078e-12,
+              1.0,
+              -1.7961382432985132e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04964291639764271,
+              9.516878424209452e-10,
+              0.050000000011559124
+            ],
+            "point_world_m": [
+              -0.04964291639764271,
+              6.594104179358239e-10,
+              0.050000000011559124
+            ],
+            "relative_velocity_world_m_s": [
+              0.027467984935657358,
+              2.962291981963158e-08,
+              -3.6360960598643857e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.0036787359445584413,
+              3.2519126280637326e-14,
+              1.0764223329008122e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -2.922773134628187e-10,
+            "normal_constraint_velocity_m_s": 1.7347300934217075e-19,
+            "normal_impulse_n_s": 0.022072528607928195,
+            "normal_world": [
+              8.839807419241078e-12,
+              1.0,
+              -1.7961382432985132e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.0503570836023573,
+              9.508037510097545e-10,
+              0.050000000156067675
+            ],
+            "point_world_m": [
+              0.0503570836023573,
+              6.585264375469357e-10,
+              0.050000000156067675
+            ],
+            "relative_velocity_world_m_s": [
+              0.027467984935657358,
+              2.9227488534639346e-08,
+              -6.62374055206747e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.011036264303964094,
+              9.755737884192458e-14,
+              2.661329199203775e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.028,
+          0.0004120196450215361,
+          0.05000000071006673,
+          7.503531055703586e-11,
+          -7.752110064984663e-11,
+          -7.195550921900899e-10,
+          -8.374216485508229e-12,
+          1.0,
+          0.027467984983990813,
+          3.003949519686522e-08,
+          1.0130036702775947e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.4887957533460394e-10,
+            "normal_constraint_velocity_m_s": 2.2450828210395816e-10,
+            "normal_impulse_n_s": 0.007357522057428125,
+            "normal_world": [
+              1.674843308257779e-11,
+              1.0,
+              -1.550422018054715e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04958798028386037,
+              8.52031616094262e-10,
+              -0.04999999998916809
+            ],
+            "point_world_m": [
+              -0.04958798028386037,
+              7.031520407596579e-10,
+              -0.04999999998916809
+            ],
+            "relative_velocity_world_m_s": [
+              0.029429992471149698,
+              1.5111972909310096e-08,
+              3.3965080570472286e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678761028714063,
+              6.161390841973967e-14,
+              2.056294134592678e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.4887946431230148e-10,
+            "normal_constraint_velocity_m_s": -1.9259248570935438e-10,
+            "normal_impulse_n_s": 0.022072454715473134,
+            "normal_world": [
+              1.674843308257779e-11,
+              1.0,
+              -1.550422018054715e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050412019716139636,
+              8.503566573114794e-10,
+              -0.04999999984525707
+            ],
+            "point_world_m": [
+              0.050412019716139636,
+              7.014771929991781e-10,
+              -0.04999999984525707
+            ],
+            "relative_velocity_world_m_s": [
+              0.029429992471149698,
+              1.469486103932093e-08,
+              3.8479013575277396e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036227357736565,
+              1.8483825581224806e-13,
+              1.4714853199434724e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.4887957533460394e-10,
+            "normal_constraint_velocity_m_s": 4.1710076573164635e-10,
+            "normal_impulse_n_s": 0.007357466673451574,
+            "normal_world": [
+              1.674843308257779e-11,
+              1.0,
+              -1.550422018054715e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049587980427771405,
+              8.675358376120101e-10,
+              0.0500000000108319
+            ],
+            "point_world_m": [
+              -0.049587980427771405,
+              7.186562622774062e-10,
+              0.0500000000108319
+            ],
+            "relative_velocity_world_m_s": [
+              0.02942999212032464,
+              1.5304565392943657e-08,
+              3.396508003573633e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678733336725787,
+              6.161304105800158e-14,
+              2.1053719669632784e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.4887946431230148e-10,
+            "normal_constraint_velocity_m_s": -2.0816678402999235e-18,
+            "normal_impulse_n_s": 0.022072511433804797,
+            "normal_world": [
+              1.674843308257779e-11,
+              1.0,
+              -1.550422018054715e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.0504120195722286,
+              8.658608788292276e-10,
+              0.050000000154742937
+            ],
+            "point_world_m": [
+              0.0504120195722286,
+              7.169814145169261e-10,
+              0.050000000154742937
+            ],
+            "relative_velocity_world_m_s": [
+              0.02942999212032464,
+              1.488745352295449e-08,
+              3.8479013521803804e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036255716902397,
+              1.8483825581231276e-13,
+              -1.4429641797994857e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.030000000000000002,
+          0.0004708796300301223,
+          0.05000000074006616,
+          7.526147328979696e-11,
+          -7.944694901951266e-11,
+          -7.230633427415735e-10,
+          -1.2545335187057512e-11,
+          1.0,
+          0.029429992504293113,
+          1.4999713277008553e-08,
+          1.1308136638055117e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.7984513878133157e-10,
+            "normal_constraint_velocity_m_s": -3.087394871009763e-10,
+            "normal_impulse_n_s": 0.007357528801798188,
+            "normal_world": [
+              2.509067048900545e-11,
+              1.0,
+              -1.588939540550124e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04952912029891807,
+              9.132211278850555e-10,
+              -0.049999999989100166
+            ],
+            "point_world_m": [
+              -0.04952912029891807,
+              7.333759891037239e-10,
+              -0.049999999989100166
+            ],
+            "relative_velocity_world_m_s": [
+              0.0313919913703304,
+              1.767498674490214e-08,
+              -1.1689211592839765e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787644008990945,
+              9.230290143325157e-14,
+              -7.363908782162502e-12
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.7984513878133157e-10,
+            "normal_constraint_velocity_m_s": 2.0491868167604335e-10,
+            "normal_impulse_n_s": 0.022072475510859644,
+            "normal_world": [
+              2.509067048900545e-11,
+              1.0,
+              -1.588939540550124e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05047087970108193,
+              9.107120724216599e-10,
+              -0.04999999984448749
+            ],
+            "point_world_m": [
+              0.05047087970108193,
+              7.308669336403284e-10,
+              -0.04999999984448749
+            ],
+            "relative_velocity_world_m_s": [
+              0.0313919913703304,
+              1.8188644913686602e-08,
+              -7.006311144702764e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036237755429818,
+              2.769069695763414e-13,
+              -3.0446166532147116e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.7984513878133157e-10,
+            "normal_constraint_velocity_m_s": -5.136581635728525e-10,
+            "normal_impulse_n_s": 0.007357472854864657,
+            "normal_world": [
+              2.509067048900545e-11,
+              1.0,
+              -1.588939540550124e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04952912044353076,
+              9.291105204645155e-10,
+              0.05000000001089983
+            ],
+            "point_world_m": [
+              -0.04952912044353076,
+              7.492653816831841e-10,
+              0.05000000001089983
+            ],
+            "relative_velocity_world_m_s": [
+              0.0313919913235014,
+              1.747006806843144e-08,
+              -1.1689211596355797e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678736427432329,
+              9.230203407151544e-14,
+              -1.5752463105609342e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.7984513878133157e-10,
+            "normal_constraint_velocity_m_s": 5.204167119207971e-18,
+            "normal_impulse_n_s": 0.02207253132066893,
+            "normal_world": [
+              2.509067048900545e-11,
+              1.0,
+              -1.588939540550124e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05047087955646926,
+              9.266014650011199e-10,
+              0.05000000015551251
+            ],
+            "point_world_m": [
+              0.05047087955646926,
+              7.467563262197884e-10,
+              0.05000000015551251
+            ],
+            "relative_velocity_world_m_s": [
+              0.0313919913235014,
+              1.79837262372159e-08,
+              -7.006311148218798e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036265660334464,
+              2.7690696957626836e-13,
+              2.4631606730472397e-11
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.032,
+          0.0005336636122102959,
+          0.05000000077572487,
+          7.527943673811543e-11,
+          -7.739786589411324e-11,
+          -7.23531632786821e-10,
+          -7.408753497768368e-12,
+          1.0,
+          0.031391991090086786,
+          1.782935604710545e-08,
+          8.981724159236757e-12,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -7.233336152268066e-11,
+            "normal_constraint_velocity_m_s": -1.5848001412924192e-09,
+            "normal_impulse_n_s": 0.007357523500414194,
+            "normal_world": [
+              1.4817507107536267e-11,
+              1.0,
+              -1.5479573230105845e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04946633631617742,
+              8.410593166363611e-10,
+              -0.049999999989333944
+            ],
+            "point_world_m": [
+              -0.04946633631617742,
+              7.687259551136804e-10,
+              -0.049999999989333944
+            ],
+            "relative_velocity_world_m_s": [
+              0.03335399707669688,
+              5.648041787953079e-09,
+              4.27535858768962e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.0036787617502070905,
+              5.4510215785568956e-14,
+              2.263345744186878e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -7.233347254498312e-11,
+            "normal_constraint_velocity_m_s": -1.4655824444667628e-09,
+            "normal_impulse_n_s": 0.0220724584835151,
+            "normal_world": [
+              1.4817507107536267e-11,
+              1.0,
+              -1.5479573230105845e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050533663683822595,
+              8.395776823766354e-10,
+              -0.04999999984462761
+            ],
+            "point_world_m": [
+              0.050533663683822595,
+              7.672442098316523e-10,
+              -0.04999999984462761
+            ],
+            "relative_velocity_world_m_s": [
+              0.03335399707669688,
+              5.7672705870808614e-09,
+              8.918857644993455e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.01103622924175755,
+              1.6352891263340197e-13,
+              -9.154640845382466e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -7.233336152268066e-11,
+            "normal_constraint_velocity_m_s": -1.1922880478049125e-10,
+            "normal_impulse_n_s": 0.007357468155005499,
+            "normal_world": [
+              1.4817507107536267e-11,
+              1.0,
+              -1.5479573230105845e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04946633646088376,
+              8.565388912029626e-10,
+              0.05000000001066606
+            ],
+            "point_world_m": [
+              -0.04946633646088376,
+              7.842055296802819e-10,
+              0.05000000001066606
+            ],
+            "relative_velocity_world_m_s": [
+              0.033353996612346976,
+              7.113613124471888e-09,
+              4.275358578701539e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.003678734077502749,
+              5.4509348423898254e-14,
+              -7.673713867617464e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -7.233336152268066e-11,
+            "normal_constraint_velocity_m_s": -5.7245878015957084e-18,
+            "normal_impulse_n_s": 0.02207251569388522,
+            "normal_world": [
+              1.4817507107536267e-11,
+              1.0,
+              -1.5479573230105845e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05053366353911626,
+              8.550571459209343e-10,
+              0.0500000001553724
+            ],
+            "point_world_m": [
+              0.05053366353911626,
+              7.827237843982537e-10,
+              0.0500000001553724
+            ],
+            "relative_velocity_world_m_s": [
+              0.033353996612346976,
+              7.232841923599671e-09,
+              8.918857636005376e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.011036257846942607,
+              1.6352891263344718e-13,
+              -2.9510949975597094e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.034,
+          0.000600371605780111,
+          0.05000000078860575,
+          7.513328702380047e-11,
+          -9.205353146413131e-11,
+          -7.281751318441086e-10,
+          -6.216465517453767e-12,
+          1.0,
+          0.03335399678490756,
+          6.4404419297670046e-09,
+          -7.307485715747972e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.9408696871892062e-10,
+            "normal_constraint_velocity_m_s": -5.281564118345128e-10,
+            "normal_impulse_n_s": 0.00735753297497131,
+            "normal_world": [
+              1.2432931168969835e-11,
+              1.0,
+              -1.8410711896063817e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04939962832202404,
+              9.74109005957846e-10,
+              -0.04999999998847887
+            ],
+            "point_world_m": [
+              -0.04939962832202404,
+              7.800220372389253e-10,
+              -0.04999999998847887
+            ],
+            "relative_velocity_world_m_s": [
+              0.03531599061833721,
+              1.888010137876649e-08,
+              -5.7245627806280827e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678766487485655,
+              4.5737719167606364e-14,
+              -8.404310618553466e-12
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.9408707974122308e-10,
+            "normal_constraint_velocity_m_s": 2.334970506875922e-10,
+            "normal_impulse_n_s": 0.022072486861956158,
+            "normal_world": [
+              1.2432931168969835e-11,
+              1.0,
+              -1.8410711896063817e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050600371677975986,
+              9.72865833726022e-10,
+              -0.049999999842843854
+            ],
+            "point_world_m": [
+              0.050600371677975986,
+              7.78778753984799e-10,
+              -0.049999999842843854
+            ],
+            "relative_velocity_world_m_s": [
+              0.03531599061833721,
+              1.964176594344673e-08,
+              -4.4891737992236134e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036243430978076,
+              1.3721315750287516e-13,
+              -2.777340749813447e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.9408707974122308e-10,
+            "normal_constraint_velocity_m_s": -7.616645690891599e-10,
+            "normal_impulse_n_s": 0.007357476231526795,
+            "normal_world": [
+              1.2432931168969835e-11,
+              1.0,
+              -1.8410711896063817e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04939962846765906,
+              9.925198260485324e-10,
+              0.050000000011521134
+            ],
+            "point_world_m": [
+              -0.04939962846765906,
+              7.984327463073094e-10,
+              0.050000000011521134
+            ],
+            "relative_velocity_world_m_s": [
+              0.035315991010008964,
+              1.8646604323737218e-08,
+              -5.724562719288114e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678738115763398,
+              4.573771916761184e-14,
+              -3.3086408697336986e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.9408707974122308e-10,
+            "normal_constraint_velocity_m_s": -4.336808689942018e-18,
+            "normal_impulse_n_s": 0.022072542042409677,
+            "normal_world": [
+              1.2432931168969835e-11,
+              1.0,
+              -1.8410711896063817e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05060037153234097,
+              9.91276542794406e-10,
+              0.05000000015715616
+            ],
+            "point_world_m": [
+              0.05060037153234097,
+              7.971894630531828e-10,
+              0.05000000015715616
+            ],
+            "relative_velocity_world_m_s": [
+              0.035315991010008964,
+              1.940826888841746e-08,
+              -4.489173793089618e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036271021204837,
+              1.3721315750278234e-13,
+              1.4028698470890276e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.036000000000000004,
+          0.0006710035866467927,
+          0.050000000826894125,
+          7.486062107060037e-11,
+          -8.971851039873968e-11,
+          -7.242584143236633e-10,
+          1.4001801314095215e-12,
+          1.0,
+          0.03531599043334082,
+          1.9144186236275118e-08,
+          -1.3633297660005103e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.429434927847979e-11,
+            "normal_constraint_velocity_m_s": 5.73940486629785e-10,
+            "normal_impulse_n_s": 0.007357524696907696,
+            "normal_world": [
+              -2.8003601328601804e-12,
+              1.0,
+              -1.7943696581290852e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04932899634078735,
+              9.020766050804595e-10,
+              -0.04999999998859337
+            ],
+            "point_world_m": [
+              -0.04932899634078735,
+              8.177822558019798e-10,
+              -0.04999999998859337
+            ],
+            "relative_velocity_world_m_s": [
+              0.03727799524265698,
+              9.003479806308098e-09,
+              1.0378724463105726e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787623484538486,
+              -1.030165536208769e-14,
+              -2.6060905877187232e-12
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.429446030078225e-11,
+            "normal_constraint_velocity_m_s": -1.9922815914369396e-10,
+            "normal_impulse_n_s": 0.02207245965581513,
+            "normal_world": [
+              -2.8003601328601804e-12,
+              1.0,
+              -1.7943696581290852e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05067100365921265,
+              9.023567559829359e-10,
+              -0.04999999984374169
+            ],
+            "point_world_m": [
+              0.05067100365921265,
+              8.180622956821536e-10,
+              -0.04999999984374169
+            ],
+            "relative_velocity_world_m_s": [
+              0.037277995242656986,
+              8.23032226275845e-09,
+              6.803891686081045e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036229827907558,
+              -3.090583344808579e-14,
+              3.7378198886391866e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.429446030078225e-11,
+            "normal_constraint_velocity_m_s": 7.731464383639586e-10,
+            "normal_impulse_n_s": 0.007357468249767282,
+            "normal_world": [
+              -2.8003601328601804e-12,
+              1.0,
+              -1.7943696581290852e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049328996485639036,
+              9.200204167947313e-10,
+              0.05000000001140663
+            ],
+            "point_world_m": [
+              -0.049328996485639036,
+              8.35725956493949e-10,
+              0.05000000001140663
+            ],
+            "relative_velocity_world_m_s": [
+              0.03727799527840531,
+              9.202696860272617e-09,
+              1.0378724464709238e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.003678734124883641,
+              -1.0301655362094362e-14,
+              2.7441469625367658e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.429434927847979e-11,
+            "normal_constraint_velocity_m_s": -2.949029578288327e-18,
+            "normal_impulse_n_s": 0.022072516114565583,
+            "normal_world": [
+              -2.8003601328601804e-12,
+              1.0,
+              -1.7943696581290852e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05067100351436096,
+              9.203003456526025e-10,
+              0.0500000001562583
+            ],
+            "point_world_m": [
+              0.05067100351436096,
+              8.360059963741228e-10,
+              0.0500000001562583
+            ],
+            "relative_velocity_world_m_s": [
+              0.037277995278405314,
+              8.429539316722969e-09,
+              6.80389168768456e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036258057282792,
+              -3.090583344799832e-14,
+              -2.0143117675246395e-11
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.038,
+          0.0007455595779410126,
+          0.050000000844327146,
+          7.48332301792638e-11,
+          -9.171063908297583e-11,
+          -7.2390093104527e-10,
+          -6.33139530549763e-12,
+          1.0,
+          0.03727799564710995,
+          8.716510152551038e-09,
+          -1.3695445668288616e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.360836998642867e-10,
+            "normal_constraint_velocity_m_s": -4.1775851285230714e-10,
+            "normal_impulse_n_s": 0.0073575293382850925,
+            "normal_world": [
+              1.266279074377419e-11,
+              1.0,
+              -1.8342127868085769e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04925444035030204,
+              9.718729127028424e-10,
+              -0.0499999999883858
+            ],
+            "point_world_m": [
+              -0.04925444035030204,
+              8.357892128385557e-10,
+              -0.0499999999883858
+            ],
+            "relative_velocity_world_m_s": [
+              0.03923999346310674,
+              1.3190114585747795e-08,
+              -1.3943748517096238e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787646691425462,
+              4.658339686214325e-14,
+              -2.9614378588729684e-13
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.360836998642867e-10,
+            "normal_constraint_velocity_m_s": 1.1406334314567513e-10,
+            "normal_impulse_n_s": 0.02207247779029897,
+            "normal_world": [
+              1.266279074377419e-11,
+              1.0,
+              -1.8342127868085769e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05074555964969798,
+              9.706066339543184e-10,
+              -0.04999999984360561
+            ],
+            "point_world_m": [
+              0.05074555964969798,
+              8.345229340900317e-10,
+              -0.04999999984360561
+            ],
+            "relative_velocity_world_m_s": [
+              0.03923999346310674,
+              1.3721936441705796e-08,
+              -2.3190878074898105e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.011036238895149483,
+              1.3974932322473318e-13,
+              -1.8736365382156594e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.360836998642867e-10,
+            "normal_constraint_velocity_m_s": -5.318218549571492e-10,
+            "normal_impulse_n_s": 0.00735747352099525,
+            "normal_world": [
+              1.266279074377419e-11,
+              1.0,
+              -1.8342127868085769e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04925444049508223,
+              9.90215044682774e-10,
+              0.05000000001161419
+            ],
+            "point_world_m": [
+              -0.04925444049508223,
+              8.541313448184873e-10,
+              0.05000000001161419
+            ],
+            "relative_velocity_world_m_s": [
+              0.039239993681071776,
+              1.3076051243640195e-08,
+              -1.394374818060441e-11
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.0036787367604976255,
+              4.658339686214838e-14,
+              -2.3365917857407338e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.360836998642867e-10,
+            "normal_constraint_velocity_m_s": 1.0408330929693492e-18,
+            "normal_impulse_n_s": 0.02207253339750086,
+            "normal_world": [
+              1.266279074377419e-11,
+              1.0,
+              -1.8342127868085769e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050745559504917784,
+              9.8894876593425e-10,
+              0.05000000015639439
+            ],
+            "point_world_m": [
+              0.050745559504917784,
+              8.528650660699631e-10,
+              0.05000000015639439
+            ],
+            "relative_velocity_world_m_s": [
+              0.039239993681071776,
+              1.3607873099598196e-08,
+              -2.3190878041248925e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 3,
+            "tangential_impulse_world_n_s": [
+              -0.01103626669875043,
+              1.397493232246771e-13,
+              6.522445008596469e-11
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.04,
+          0.0008240395645533693,
+          0.050000000871125126,
+          7.470144099166907e-11,
+          -9.056999594747595e-11,
+          -7.217212807234461e-10,
+          -1.0131767448919643e-12,
+          1.0,
+          0.039239993306178354,
+          1.339899025065705e-08,
+          -6.58945937973616e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.470490644337133e-11,
+            "normal_constraint_velocity_m_s": -1.707324955545208e-09,
+            "normal_impulse_n_s": 0.007357524143920975,
+            "normal_world": [
+              2.026353620516619e-12,
+              1.0,
+              -1.8113999241437207e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049175960363375834,
+              9.068743506146503e-10,
+              -0.04999999998841368
+            ],
+            "point_world_m": [
+              -0.049175960363375834,
+              8.62169444171279e-10,
+              -0.04999999998841368
+            ],
+            "relative_velocity_world_m_s": [
+              0.04120199837470715,
+              2.7630821990775474e-09,
+              5.752549287036716e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.003678762071960483,
+              7.454106776231253e-15,
+              1.8504202221664685e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.470490644337133e-11,
+            "normal_constraint_velocity_m_s": -1.8060730069477392e-09,
+            "normal_impulse_n_s": 0.022072460196439454,
+            "normal_world": [
+              2.026353620516619e-12,
+              1.0,
+              -1.8113999241437207e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050824039636624185,
+              9.066717279737623e-10,
+              -0.04999999984406943
+            ],
+            "point_world_m": [
+              0.050824039636624185,
+              8.61966821530391e-10,
+              -0.04999999984406943
+            ],
+            "relative_velocity_world_m_s": [
+              0.041201998374707144,
+              2.664334147757156e-09,
+              1.0287175919739718e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.011036230098219727,
+              2.2364055052279646e-14,
+              6.011029706651552e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.470501746567379e-11,
+            "normal_constraint_velocity_m_s": 9.874804671877768e-11,
+            "normal_impulse_n_s": 0.0073574688346663645,
+            "normal_world": [
+              2.026353620516619e-12,
+              1.0,
+              -1.8113999241437207e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049175960507720086,
+              9.249884566631116e-10,
+              0.050000000011586325
+            ],
+            "point_world_m": [
+              -0.049175960507720086,
+              8.802834391974378e-10,
+              0.050000000011586325
+            ],
+            "relative_velocity_world_m_s": [
+              0.04120199792124449,
+              4.5691663035726984e-09,
+              5.752549277219706e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.0036787344173331822,
+              7.454106776286645e-15,
+              -6.442443143367035e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -4.470501746567379e-11,
+            "normal_constraint_velocity_m_s": -4.683753054265134e-18,
+            "normal_impulse_n_s": 0.02207251747818272,
+            "normal_world": [
+              2.026353620516619e-12,
+              1.0,
+              -1.8113999241437207e-10
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050824039492279934,
+              9.247858340222235e-10,
+              0.05000000015593056
+            ],
+            "point_world_m": [
+              0.050824039492279934,
+              8.800808165565497e-10,
+              0.05000000015593056
+            ],
+            "relative_velocity_world_m_s": [
+              0.04120199792124448,
+              4.4704182522523076e-09,
+              1.0287175909922707e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 2,
+            "tangential_impulse_world_n_s": [
+              -0.011036258739091356,
+              2.2364055052354178e-14,
+              -2.755495888341589e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.042,
+          0.000906443560948069,
+          0.05000000087835863,
+          7.449932940701332e-11,
+          -1.0863071553401937e-10,
+          -7.262559073560414e-10,
+          -2.0006572715415822e-12,
+          1.0,
+          0.04120199819734985,
+          3.6167527306396607e-09,
+          -1.0105579232787435e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 8.676955820519083e-10,
+            "normal_constraint_velocity_m_s": -8.383514671786927e-10,
+            "normal_impulse_n_s": 0.007357365162211515,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04909355636662642,
+              3.8857805859052336e-17,
+              -0.049999999987263184
+            ],
+            "point_world_m": [
+              -0.04909355636662642,
+              8.676956209097142e-10,
+              -0.049999999987263184
+            ],
+            "relative_velocity_world_m_s": [
+              0.043164217883078025,
+              -4.346861424931328e-07,
+              -1.927582064765145e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 5,
+            "tangential_impulse_world_n_s": [
+              -0.0036786825811057525,
+              -4.455502797194243e-26,
+              2.0065800737192196e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 8.672954576738334e-10,
+            "normal_constraint_velocity_m_s": -1.5798801929226392e-10,
+            "normal_impulse_n_s": 0.022071978044188922,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05090644363337359,
+              2.498001801898564e-17,
+              -0.049999999842012
+            ],
+            "point_world_m": [
+              0.05090644363337359,
+              8.672954826538514e-10,
+              -0.049999999842012
+            ],
+            "relative_velocity_world_m_s": [
+              0.04316421788307803,
+              -4.33805716856209e-07,
+              -6.651781472085062e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 5,
+            "tangential_impulse_world_n_s": [
+              -0.011035989022094364,
+              -3.2354121784575463e-25,
+              1.457100108129137e-09
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 8.894217584654029e-10,
+            "normal_constraint_velocity_m_s": -6.803634528599416e-10,
+            "normal_impulse_n_s": 0.007357301936632064,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.0490935565118776,
+              1.6653345366549207e-17,
+              0.05000000001273681
+            ],
+            "point_world_m": [
+              -0.0490935565118776,
+              8.894217751187484e-10,
+              0.05000000001273681
+            ],
+            "relative_velocity_world_m_s": [
+              0.04316422260727744,
+              -4.453912426855614e-07,
+              -1.9275820555773843e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 5,
+            "tangential_impulse_world_n_s": [
+              -0.0036786509683160297,
+              -2.960299398593345e-26,
+              1.333200326841009e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": 8.89021634087328e-10,
+            "normal_constraint_velocity_m_s": -4.973512768481235e-18,
+            "normal_impulse_n_s": 0.022072025211277522,
+            "normal_world": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050906443488122406,
+              2.7755575264825082e-18,
+              0.050000000157987994
+            ],
+            "point_world_m": [
+              0.050906443488122406,
+              8.890216368628855e-10,
+              0.050000000157987994
+            ],
+            "relative_velocity_world_m_s": [
+              0.043164222607277446,
+              -4.4451081704863753e-07,
+              -6.6517814628973e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 5,
+            "tangential_impulse_world_n_s": [
+              -0.011036012605638629,
+              -3.7762997705966693e-25,
+              1.700694223969845e-09
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.044000000000000004,
+          0.0009927720005579988,
+          0.04999999999916167,
+          7.662506607048171e-11,
+          -1.5798473640415978e-12,
+          -6.790139132840129e-10,
+          6.8035991805749576e-12,
+          1.0,
+          0.04316421980496491,
+          -4.395984791460972e-07,
+          1.062868331734195e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.468553636120646e-11,
+            "normal_constraint_velocity_m_s": 8.692873712523586e-10,
+            "normal_impulse_n_s": 0.014466206727451001,
+            "normal_world": [
+              -1.3607198359004415e-11,
+              1.0,
+              -3.159528664975162e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.049007227930860243,
+              8.300886783496608e-11,
+              -0.04999999999111835
+            ],
+            "point_world_m": [
+              -0.049007227930860243,
+              -1.6766685262403789e-12,
+              -0.04999999999111835
+            ],
+            "relative_velocity_world_m_s": [
+              0.04512599561903129,
+              9.338455045747712e-09,
+              3.705967995511557e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 12,
+            "tangential_impulse_world_n_s": [
+              -0.007233103363725499,
+              -9.842300585645149e-14,
+              -2.0095733019475357e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.468559187235769e-11,
+            "normal_constraint_velocity_m_s": 5.149868823051136e-10,
+            "normal_impulse_n_s": 0.014964460663084937,
+            "normal_world": [
+              -1.3607198359004415e-11,
+              1.0,
+              -3.159528664975162e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.050992772069139755,
+              8.43696543184613e-11,
+              -0.04999999985531556
+            ],
+            "point_world_m": [
+              0.050992772069139755,
+              -3.159375538963937e-13,
+              -0.04999999985531556
+            ],
+            "relative_velocity_world_m_s": [
+              0.04512599561903129,
+              8.984160107917124e-09,
+              8.559858760175919e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 12,
+            "tangential_impulse_world_n_s": [
+              -0.007482230331542468,
+              -1.0181265552853303e-13,
+              -9.801315928952305e-11
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.468553636120646e-11,
+            "normal_constraint_velocity_m_s": 3.543004958861389e-10,
+            "normal_impulse_n_s": 0.00024913026672984613,
+            "normal_world": [
+              -1.3607198359004415e-11,
+              1.0,
+              -3.159528664975162e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04900722806666302,
+              8.332482204220782e-11,
+              0.05000000000888164
+            ],
+            "point_world_m": [
+              -0.04900722806666302,
+              -1.360714318998648e-12,
+              0.05000000000888164
+            ],
+            "relative_velocity_world_m_s": [
+              0.045125995133642204,
+              8.823468170374886e-09,
+              3.7059679889361094e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 12,
+            "tangential_impulse_world_n_s": [
+              -0.0001245651333649231,
+              -1.6949874663551412e-15,
+              -3.2475591557593627e-13
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -8.468559187235769e-11,
+            "normal_constraint_velocity_m_s": 6.938893903907228e-18,
+            "normal_impulse_n_s": 0.029181547850016424,
+            "normal_world": [
+              -1.3607198359004415e-11,
+              1.0,
+              -3.159528664975162e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05099277193333696,
+              8.468560852570302e-11,
+              0.050000000144684434
+            ],
+            "point_world_m": [
+              0.05099277193333696,
+              1.665334533725095e-17,
+              0.050000000144684434
+            ],
+            "relative_velocity_world_m_s": [
+              0.045125995133642204,
+              8.469173232544298e-09,
+              8.559858753600472e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 12,
+            "tangential_impulse_world_n_s": [
+              -0.014590773925008209,
+              -1.9853910182548413e-13,
+              -2.767694463154537e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.046000000000000006,
+          0.0010830239916649672,
+          0.050000000016969304,
+          7.836663562124027e-11,
+          3.5700886691358846e-12,
+          -6.838678040486367e-10,
+          3.2606498057581373e-12,
+          1.0,
+          0.045125995553484184,
+          8.903815185146158e-09,
+          8.707847753792792e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -5.134559444286424e-11,
+            "normal_constraint_velocity_m_s": 1.7979307483789725e-09,
+            "normal_impulse_n_s": 0.014454750306859944,
+            "normal_world": [
+              -6.521299616399226e-12,
+              1.0,
+              7.1402878884287195e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04891697593962218,
+              6.834585397630377e-11,
+              -0.04999999999037716
+            ],
+            "point_world_m": [
+              -0.04891697593962218,
+              1.700025953343953e-11,
+              -0.04999999999037716
+            ],
+            "relative_velocity_world_m_s": [
+              0.047087996545584085,
+              6.932797267596938e-09,
+              3.1754485473887287e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 12,
+            "tangential_impulse_world_n_s": [
+              -0.00722737515342997,
+              -4.7132436842253485e-14,
+              -1.6376151773504458e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -5.13457054651667e-11,
+            "normal_constraint_velocity_m_s": -1.755594593311238e-11,
+            "normal_impulse_n_s": 0.014975244996402683,
+            "normal_world": [
+              -6.521299616399226e-12,
+              1.0,
+              7.1402878884287195e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.051083024060377805,
+              6.899808224769541e-11,
+              -0.049999999853603594
+            ],
+            "point_world_m": [
+              0.051083024060377805,
+              1.7652376782528702e-11,
+              -0.049999999853603594
+            ],
+            "relative_velocity_world_m_s": [
+              0.047087996545584085,
+              5.11732167550846e-09,
+              1.2475633391722027e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 12,
+            "tangential_impulse_world_n_s": [
+              -0.007487622498201338,
+              -4.8828996401852235e-14,
+              2.5701032454445977e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -5.13457054651667e-11,
+            "normal_constraint_velocity_m_s": 1.8154755750815483e-09,
+            "normal_impulse_n_s": 0.0002602482712958282,
+            "normal_world": [
+              -6.521299616399226e-12,
+              1.0,
+              7.1402878884287195e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.04891697607639575,
+              6.76319375503276e-11,
+              0.05000000000962283
+            ],
+            "point_world_m": [
+              -0.04891697607639575,
+              1.628623208516089e-11,
+              0.05000000000962283
+            ],
+            "relative_velocity_world_m_s": [
+              0.047087995615565606,
+              6.950353196523695e-09,
+              3.1754485346697866e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 12,
+            "tangential_impulse_world_n_s": [
+              -0.00013012413564791406,
+              -8.486050404047864e-16,
+              1.720968842131327e-12
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -5.13457054651667e-11,
+            "normal_constraint_velocity_m_s": -1.7000289568264342e-17,
+            "normal_impulse_n_s": 0.029169747815703362,
+            "normal_world": [
+              -6.521299616399226e-12,
+              1.0,
+              7.1402878884287195e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05108302392360425,
+              6.828405479941676e-11,
+              0.050000000146396405
+            ],
+            "point_world_m": [
+              0.05108302392360425,
+              1.6938349334250058e-11,
+              0.050000000146396405
+            ],
+            "relative_velocity_world_m_s": [
+              0.047087995615565606,
+              5.1348776044352176e-09,
+              1.2475633379003085e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 12,
+            "tangential_impulse_world_n_s": [
+              -0.014584873907851676,
+              -9.511141874077058e-14,
+              -3.8641597981612925e-10
+            ]
+          }
+        ]
+      },
+      {
+        "before": [
+          0.048,
+          0.0011771999856415925,
+          0.05000000002903698,
+          7.991418788742973e-11,
+          3.3943958754889536e-12,
+          -6.931679888930352e-10,
+          -1.489410611521356e-11,
+          1.0,
+          0.04708799698831267,
+          6.033836624785849e-09,
+          7.73776133094727e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "body_index": 1,
+        "pipeline": {
+          "deduplicated": 4,
+          "generated": 4,
+          "retained": 4
+        },
+        "points": [
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.538131844114332e-10,
+            "normal_constraint_velocity_m_s": 1.7560849781272898e-09,
+            "normal_impulse_n_s": 0.014715007774091963,
+            "normal_world": [
+              2.9788212225721495e-11,
+              1.0,
+              6.788846802073679e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.048822799946531034,
+              1.8467901236052243e-10,
+              -0.04999999998974205
+            ],
+            "point_world_m": [
+              -0.048822799946531034,
+              3.0865827949089206e-11,
+              -0.04999999998974205
+            ],
+            "relative_velocity_world_m_s": [
+              0.04904999130589373,
+              1.713594230771894e-08,
+              1.4462570776386772e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 16,
+            "tangential_impulse_world_n_s": [
+              -0.00735750388704598,
+              2.1916669867842044e-13,
+              -1.5605332473475192e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.538131844114332e-10,
+            "normal_constraint_velocity_m_s": -2.7191929194425656e-10,
+            "normal_impulse_n_s": 0.014715006971242409,
+            "normal_world": [
+              2.9788212225721495e-11,
+              1.0,
+              6.788846802073679e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.051177200053468985,
+              1.8170018684093843e-10,
+              -0.04999999985110846
+            ],
+            "point_world_m": [
+              0.051177200053468985,
+              2.7887002429505227e-11,
+              -0.04999999985110846
+            ],
+            "relative_velocity_world_m_s": [
+              0.04904999130589373,
+              1.510793803764138e-08,
+              1.030393411458653e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 16,
+            "tangential_impulse_world_n_s": [
+              -0.007357503485621188,
+              2.1916669867849724e-13,
+              -5.019066727734561e-10
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.538131844114332e-10,
+            "normal_constraint_velocity_m_s": 2.0280042707654384e-09,
+            "normal_impulse_n_s": 0.0,
+            "normal_world": [
+              2.9788212225721495e-11,
+              1.0,
+              6.788846802073679e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              -0.048822800085164625,
+              1.8400013040986706e-10,
+              0.05000000001025795
+            ],
+            "point_world_m": [
+              -0.048822800085164625,
+              3.018694599843385e-11,
+              0.05000000001025795
+            ],
+            "relative_velocity_world_m_s": [
+              0.04904999042012602,
+              1.7407861600383473e-08,
+              1.4462570653774232e-10
+            ],
+            "solver_converged": true,
+            "solver_iterations": 16,
+            "tangential_impulse_world_n_s": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "body_index": 1,
+            "dt_s": 0.002,
+            "friction_coefficient": 0.5,
+            "gap_m": -1.538131844114332e-10,
+            "normal_constraint_velocity_m_s": 6.938887286462328e-19,
+            "normal_impulse_n_s": 0.0294300159259761,
+            "normal_world": [
+              2.9788212225721495e-11,
+              1.0,
+              6.788846802073679e-12
+            ],
+            "other_index": 0,
+            "other_point_world_m": [
+              0.05117719991483538,
+              1.8102130489028308e-10,
+              0.050000000148891534
+            ],
+            "point_world_m": [
+              0.05117719991483538,
+              2.7208120478849874e-11,
+              0.050000000148891534
+            ],
+            "relative_velocity_world_m_s": [
+              0.04904999042012602,
+              1.537985733030591e-08,
+              1.0303934102325278e-09
+            ],
+            "solver_converged": true,
+            "solver_iterations": 16,
+            "tangential_impulse_world_n_s": [
+              -0.014715007962988049,
+              4.3833339735684023e-13,
+              -3.091182480144553e-10
+            ]
+          }
+        ]
+      }
+    ],
+    "debug_assertions": false,
+    "elapsed_s": 0.002140721,
+    "final_state": [
+      0.05,
+      0.0012752999693956164,
+      0.05000000006155278,
+      8.081728771559947e-11,
+      6.750155989720952e-13,
+      -7.020256659300115e-10,
+      -3.5174148817844105e-11,
+      1.0,
+      0.04904999187701196,
+      1.6257901275240627e-08,
+      4.5154991408487157e-10,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "load_mode": "external_body_wrench",
+    "mode": "audit",
+    "settings": {
+      "bisection_iterations": 60,
+      "contact_margin_m": 0.02,
+      "equivalent_force_n": 17.657999999999998,
+      "friction_coefficient": 0.5,
+      "max_iterations": 200,
+      "penetration_recovery": 0.2,
+      "regularization": 0.0,
+      "tolerance_n_s": 1e-10,
+      "velocity_tolerance_m_s": 1e-08
+    },
+    "trace": [
+      [
+        0.0,
+        0.0,
+        0.05,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.002,
+        3.923996435594777e-06,
+        0.05000000000713373,
+        1.4282429740054979e-11,
+        -2.0718005089293e-10,
+        -2.934342971105952e-10,
+        -2.785172692199022e-10,
+        1.0,
+        0.0019619982177973886,
+        3.5668620834705678e-09,
+        7.141214870027489e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05886001139879227
+      ],
+      [
+        0.004,
+        1.1772001867662089e-05,
+        0.049999999996274726,
+        3.012648044200456e-11,
+        -1.8875145890717704e-10,
+        -4.4111422252444803e-10,
+        -1.5149885037321122e-10,
+        1.0,
+        0.003924002716033656,
+        -5.429500599118953e-09,
+        7.922025350974791e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05885997414588928
+      ],
+      [
+        0.006,
+        2.3544003420832425e-05,
+        0.049999999993173554,
+        4.392097248598126e-11,
+        -1.6519074996779182e-10,
+        -5.32070436948858e-10,
+        -9.69264058378557e-11,
+        1.0,
+        0.0058860007765851674,
+        -1.550586048448821e-09,
+        6.897246021988348e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05886001139879227
+      ],
+      [
+        0.008,
+        3.9240004516664166e-05,
+        0.04999999999098707,
+        5.393316446530973e-11,
+        -1.3846568336361997e-10,
+        -5.944077362107978e-10,
+        -4.8336577652311005e-11,
+        1.0,
+        0.007848000547915871,
+        -1.0932435512422956e-09,
+        5.0060959896642354e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05886000022292137
+      ],
+      [
+        0.01,
+        5.886000457417249e-05,
+        0.049999999990877224,
+        6.11564109066088e-11,
+        -1.1994005788551476e-10,
+        -6.368606543146713e-10,
+        -2.8712459194057142e-11,
+        1.0,
+        0.009810000028754162,
+        -5.492134524942571e-11,
+        3.6116232206495372e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05886000394821167
+      ],
+      [
+        0.012,
+        8.240400417256077e-05,
+        0.049999999991685626,
+        6.646364348052607e-11,
+        -9.455525251667041e-11,
+        -6.614740339986653e-10,
+        -1.1411651721614084e-11,
+        1.0,
+        0.011771999799194138,
+        4.042009782434519e-10,
+        2.6536162869586335e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05886000394821167
+      ],
+      [
+        0.014,
+        0.00010987200378193721,
+        0.04999999999247206,
+        7.020231917242814e-11,
+        -7.894862541490966e-11,
+        -6.79031013819014e-10,
+        -3.669318573912209e-12,
+        1.0,
+        0.013733999804688223,
+        3.9321670919356677e-10,
+        1.8693378459510347e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05886000394821167
+      ],
+      [
+        0.016,
+        0.0001412639199579024,
+        0.050000000160126026,
+        7.222187165005526e-11,
+        -7.166028881400166e-11,
+        -6.973572936323161e-10,
+        -5.5098066905336e-12,
+        1.0,
+        0.015695958087982593,
+        8.382698354902907e-08,
+        1.0097762388135616e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05886024981737137
+      ],
+      [
+        0.018000000000000002,
+        0.00017657985916781998,
+        0.050000000281713176,
+        7.348100795698011e-11,
+        -8.354522629261396e-11,
+        -7.104755953968957e-10,
+        -1.012458209303252e-11,
+        1.0,
+        0.017657969604958794,
+        6.079357503518956e-08,
+        6.295681534624228e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.0588599294424057
+      ],
+      [
+        0.02,
+        0.00021581979363753502,
+        0.05000000041278272,
+        7.414187350397449e-11,
+        -8.003708806825216e-11,
+        -7.143889179654715e-10,
+        -7.357497001373492e-12,
+        1.0,
+        0.019619967234857517,
+        6.553477205351044e-08,
+        3.3043277349718956e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.05886001139879227
+      ],
+      [
+        0.022000000000000002,
+        0.00025898374750670216,
+        0.05000000050505479,
+        7.464847160426068e-11,
+        -8.321193734062149e-11,
+        -7.192312093252876e-10,
+        -1.0941227704338379e-11,
+        1.0,
+        0.021581976934583573,
+        4.6136035963817434e-08,
+        2.532990501430978e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.058859944343566895
+      ],
+      [
+        0.024,
+        0.00030607170390822364,
+        0.0500000005922643,
+        7.487484700661409e-11,
+        -8.090483838429918e-11,
+        -7.20451081528302e-10,
+        -7.798269558834812e-12,
+        1.0,
+        0.023543978200760738,
+        4.360475522324769e-08,
+        1.1318770117670494e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.058859989047050476
+      ],
+      [
+        0.026000000000000002,
+        0.00035708367505355446,
+        0.05000000064998774,
+        7.483270982298034e-11,
+        -8.980688415149984e-11,
+        -7.225427366825939e-10,
+        -4.4199036447312184e-12,
+        1.0,
+        0.02550598557266541,
+        2.8861718570638573e-08,
+        -2.1068591816876713e-11,
+        0.0,
+        0.0,
+        0.0,
+        0.05885995551943779
+      ],
+      [
+        0.028,
+        0.0004120196450215361,
+        0.05000000071006673,
+        7.503531055703586e-11,
+        -7.752110064984663e-11,
+        -7.195550921900899e-10,
+        -8.374216485508229e-12,
+        1.0,
+        0.027467984983990813,
+        3.003949519686522e-08,
+        1.0130036702775947e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.05886000394821167
+      ],
+      [
+        0.030000000000000002,
+        0.0004708796300301223,
+        0.05000000074006616,
+        7.526147328979696e-11,
+        -7.944694901951266e-11,
+        -7.230633427415735e-10,
+        -1.2545335187057512e-11,
+        1.0,
+        0.029429992504293113,
+        1.4999713277008553e-08,
+        1.1308136638055117e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.05885995179414749
+      ],
+      [
+        0.032,
+        0.0005336636122102959,
+        0.05000000077572487,
+        7.527943673811543e-11,
+        -7.739786589411324e-11,
+        -7.23531632786821e-10,
+        -7.408753497768368e-12,
+        1.0,
+        0.031391991090086786,
+        1.782935604710545e-08,
+        8.981724159236757e-12,
+        0.0,
+        0.0,
+        0.0,
+        0.05886000767350197
+      ],
+      [
+        0.034,
+        0.000600371605780111,
+        0.05000000078860575,
+        7.513328702380047e-11,
+        -9.205353146413131e-11,
+        -7.281751318441086e-10,
+        -6.216465517453767e-12,
+        1.0,
+        0.03335399678490756,
+        6.4404419297670046e-09,
+        -7.307485715747972e-11,
+        0.0,
+        0.0,
+        0.0,
+        0.058859966695308685
+      ],
+      [
+        0.036000000000000004,
+        0.0006710035866467927,
+        0.050000000826894125,
+        7.486062107060037e-11,
+        -8.971851039873968e-11,
+        -7.242584143236633e-10,
+        1.4001801314095215e-12,
+        1.0,
+        0.03531599043334082,
+        1.9144186236275118e-08,
+        -1.3633297660005103e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.058860037475824356
+      ],
+      [
+        0.038,
+        0.0007455595779410126,
+        0.050000000844327146,
+        7.48332301792638e-11,
+        -9.171063908297583e-11,
+        -7.2390093104527e-10,
+        -6.33139530549763e-12,
+        1.0,
+        0.03727799564710995,
+        8.716510152551038e-09,
+        -1.3695445668288616e-11,
+        0.0,
+        0.0,
+        0.0,
+        0.058859970420598984
+      ],
+      [
+        0.04,
+        0.0008240395645533693,
+        0.050000000871125126,
+        7.470144099166907e-11,
+        -9.056999594747595e-11,
+        -7.217212807234461e-10,
+        -1.0131767448919643e-12,
+        1.0,
+        0.039239993306178354,
+        1.339899025065705e-08,
+        -6.58945937973616e-11,
+        0.0,
+        0.0,
+        0.0,
+        0.05886001139879227
+      ],
+      [
+        0.042,
+        0.000906443560948069,
+        0.05000000087835863,
+        7.449932940701332e-11,
+        -1.0863071553401937e-10,
+        -7.262559073560414e-10,
+        -2.0006572715415822e-12,
+        1.0,
+        0.04120199819734985,
+        3.6167527306396607e-09,
+        -1.0105579232787435e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.05885997414588928
+      ],
+      [
+        0.044000000000000004,
+        0.0009927720005579988,
+        0.04999999999916167,
+        7.662506607048171e-11,
+        -1.5798473640415978e-12,
+        -6.790139132840129e-10,
+        6.8035991805749576e-12,
+        1.0,
+        0.04316421980496491,
+        -4.395984791460972e-07,
+        1.062868331734195e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.05885867029428482
+      ],
+      [
+        0.046000000000000006,
+        0.0010830239916649672,
+        0.050000000016969304,
+        7.836663562124027e-11,
+        3.5700886691358846e-12,
+        -6.838678040486367e-10,
+        3.2606498057581373e-12,
+        1.0,
+        0.045125995553484184,
+        8.903815185146158e-09,
+        8.707847753792792e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.058861345052719116
+      ],
+      [
+        0.048,
+        0.0011771999856415925,
+        0.05000000002903698,
+        7.991418788742973e-11,
+        3.3943958754889536e-12,
+        -6.931679888930352e-10,
+        -1.489410611521356e-11,
+        1.0,
+        0.04708799698831267,
+        6.033836624785849e-09,
+        7.73776133094727e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.058859989047050476
+      ],
+      [
+        0.05,
+        0.0012752999693956164,
+        0.05000000006155278,
+        8.081728771559947e-11,
+        6.750155989720952e-13,
+        -7.020256659300115e-10,
+        -3.5174148817844105e-11,
+        1.0,
+        0.04904999187701196,
+        1.6257901275240627e-08,
+        4.5154991408487157e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.05886002629995346
+      ]
+    ]
+  },
+  "native_summary": {
+    "candidate_counts": [
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        4,
+        4,
+        4
+      ]
+    ],
+    "max_normal_velocity_violation_m_s": 2.0718003516419228e-08,
+    "max_normal_complementarity_n_m": 4.5729806743915444e-10,
+    "max_friction_cone_excess_n_s": 1.734723475976807e-18,
+    "max_solver_iterations": 43,
+    "all_solver_stopping_flags": true
+  },
+  "mujoco": [
+    {
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ],
+        "margin_m": 0.0,
+        "gap_m": 0.0
+      },
+      "file": "constraints-0.npz",
+      "sha256": "dadc1d656431e921f390107b289301c32f282b6053297b9514f8ac309980365f",
+      "summary": {
+        "max_primal_cone_excess_n": 8.881784197001252e-16,
+        "max_dual_cone_violation_m_s2": 3.774758283725532e-15,
+        "max_soft_complementarity_n_m_s2": 5.684341886080802e-14,
+        "max_solver_iterations": 4,
+        "iteration_cap_steps": 0,
+        "geometric_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "constraint_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "loaded_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "first_spin_gate_time_s": 0.018944000000000003
+      },
+      "exact_replay": true
+    },
+    {
+      "setting": {
+        "solref": [
+          0.005,
+          1
+        ],
+        "margin_m": 0.0,
+        "gap_m": 0.0
+      },
+      "file": "constraints-1.npz",
+      "sha256": "56bc702c912238cbec9dbd9c47bdd20a64a08e45f5cabf9984c504a65c480d97",
+      "summary": {
+        "max_primal_cone_excess_n": 8.881784197001252e-16,
+        "max_dual_cone_violation_m_s2": 7.105427357601002e-15,
+        "max_soft_complementarity_n_m_s2": 1.4210854715202004e-13,
+        "max_solver_iterations": 5,
+        "iteration_cap_steps": 0,
+        "geometric_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "constraint_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "loaded_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "first_spin_gate_time_s": 0.010208000000000002
+      },
+      "exact_replay": true
+    },
+    {
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ],
+        "margin_m": 0.0,
+        "gap_m": 0.0
+      },
+      "file": "constraints-2.npz",
+      "sha256": "87c510bb71258d4287ae35b04c8a89b34b647aaf980c1095fdf5773ebc74079f",
+      "summary": {
+        "max_primal_cone_excess_n": 2.842170943040401e-14,
+        "max_dual_cone_violation_m_s2": 1.3642420526593924e-12,
+        "max_soft_complementarity_n_m_s2": 7.450580596923828e-09,
+        "max_solver_iterations": 3,
+        "iteration_cap_steps": 0,
+        "geometric_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "constraint_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "loaded_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "first_spin_gate_time_s": 0.0013760000000000003
+      },
+      "exact_replay": true
+    },
+    {
+      "setting": {
+        "solref": [
+          0.02,
+          1
+        ],
+        "margin_m": 0.0001,
+        "gap_m": 0.0001
+      },
+      "file": "constraints-3.npz",
+      "sha256": "9d99275890182d40ef00b24919bfb3ca9b9d9cb3ab877f74d47a1fcc42d39a08",
+      "summary": {
+        "max_primal_cone_excess_n": 8.881784197001252e-16,
+        "max_dual_cone_violation_m_s2": 2.6645352591003757e-15,
+        "max_soft_complementarity_n_m_s2": 2.842170943040401e-14,
+        "max_solver_iterations": 5,
+        "iteration_cap_steps": 0,
+        "geometric_contact_counts": [
+          4
+        ],
+        "constraint_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "loaded_contact_counts": [
+          0,
+          2,
+          4
+        ],
+        "first_spin_gate_time_s": 0.04164000000000001
+      },
+      "exact_replay": true
+    }
+  ],
+  "artifact_retention": {
+    "directory": "/workspace/artifacts/contact-constraint-audit-v3",
+    "status": "session artifacts; no durable hosted URL",
+    "report_sha256": "5fab0f8508a25a2fb084f667c2d73d1754ce72c02fbe46070905e4b7236ffd58",
+    "trace_bytes": 2029998
+  }
+}

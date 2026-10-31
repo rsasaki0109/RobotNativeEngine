@@ -206,11 +206,39 @@ mod tests {
     fn action(steps: u32) -> Action {
         Action {
             steps,
+            forces_n: BTreeMap::new(),
             torques_nm: BTreeMap::new(),
         }
     }
     fn json(value: impl Serialize) -> serde_json::Value {
         serde_json::to_value(value).unwrap()
+    }
+
+    #[test]
+    fn force_batches_validate_before_advancing_and_match_worker_counts() {
+        let mut serial = Batch::new(config(1), &root()).unwrap();
+        let mut parallel = Batch::new(config(2), &root()).unwrap();
+        let mut actions = vec![action(12), action(12), action(12)];
+        actions[0].forces_n.insert(
+            "alice".into(),
+            BTreeMap::from([("wrist_flex".into(), [0.0, 0.0, 1.0])]),
+        );
+        actions[2].forces_n.insert(
+            "alice".into(),
+            BTreeMap::from([("unknown".into(), [0.0, 0.0, 1.0])]),
+        );
+        let before = json(parallel.observe().unwrap());
+        assert!(parallel.step(&actions).is_err());
+        assert_eq!(before, json(parallel.observe().unwrap()));
+        actions[2].forces_n.clear();
+        assert_eq!(
+            json(serial.step(&actions).unwrap()),
+            json(parallel.step(&actions).unwrap())
+        );
+        assert_ne!(
+            json(parallel.observe().unwrap())[0],
+            json(parallel.observe().unwrap())[1]
+        );
     }
 
     #[test]

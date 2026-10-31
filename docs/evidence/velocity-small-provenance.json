@@ -1,0 +1,15 @@
+{
+  "base_commit": "3edd40ca",
+  "previous_revision": "3b801079",
+  "source_sha256": {
+    "crates/rne_dynamics/src/contact.rs": "5d110f7bbff5e18d62e7dba9da924a95cbd368fa09af6bb5cb857783368839df",
+    "crates/rne_physics_native/examples/contact_crowd.rs": "df66685c09d744821b58b71ffe7c2de83c3175cc21eb64636010fdd39a039b3e",
+    "scripts/contact_benchmark/contact_clusters.py": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d",
+    "scripts/contact_benchmark/contact_crowd.py": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87",
+    "docs/evidence/velocity-small-samples.py": "2994e5430a6b929601bef2da6a41a2eeabf9f4b19482ded6adbbddcc36a4d3a2"
+  },
+  "binary_sha256": {
+    "contact-clusters-before-sticking-cache": "324a7c401507146808c7f0f140eaa21ab16dee3d412443d0970b3c5a1c310b52",
+    "contact-clusters-velocity-small": "9deec2e9a1be69fec2cf608c00ba0f88e9fedaec748c7d8ff48c3cc3589cdc57"
+  }
+}

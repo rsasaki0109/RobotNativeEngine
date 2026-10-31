@@ -1,5 +1,8 @@
 # Robot workbench
 
+For the LeKiwi/SO-101 evaluation strategy and measured MuJoCo comparison, see
+[the development brief](LEKIWI_MUJOCO_DEVELOPMENT.md) (Japanese, with a printable PDF).
+
 The local workbench combines native joint control, saved poses, a floor/obstacle
 editor, RGB/depth/LiDAR inspection, and URDF/MJCF loading in one browser window.
 Rapier runs the physics and wgpu renders the images on the host. The browser
@@ -1067,3 +1070,190 @@ reach the ten-second limit; none trigger the fall rule. The previous learned PD
 had passed 7/8 under the ten-tick rule, showing why a brief successful observation
 was not sufficient evidence of sustained holding. Results remain confined to
 these eight target configurations in the existing uncalibrated simulation.
+
+### Physical force pulses and recovery audit
+
+Arena actions accept optional `forces_n`, with the same agent/joint key layout
+as torque commands, but a three-element **world-frame force vector in newtons**
+for each target. A joint selects its actuated child link; the force is applied
+at that link's current origin, recomputed each physics tick. Each vector must
+be finite and have magnitude at most 20 N. Unknown agents/joints and oversized
+forces are rejected before any batch world advances. Missing forces mean zero.
+
+```json
+{"op":"step","actions":[{"steps":24,"torques_nm":{},"forces_n":{"alice":{"wrist_flex":[0,0,2]}}},{"steps":24,"torques_nm":{}}]}
+```
+
+These are external body wrenches passed to the physics backend after ECS sync,
+not modified motor torques or edited poses. Each accepted force lasts one physics
+tick; the arena reapplies it for every tick in that action. The backend clears
+it after each tick, so it does not persist into subsequent actions. The API
+supplies no free moment or arbitrary application point. It is a force-pulse
+experiment, not a modeled impactor collision or calibrated hardware load.
+Gymnasium vector environments expose it as `step(actions, forces_n=[...])`;
+omitting the keyword preserves the existing wire protocol and action behavior.
+
+`audit_arm_disturbance.py` compares two independent copies of the frozen PID
+controller on each of the eight existing targets. Both copies must first meet
+the two-second hold condition, and their state hashes must match before the
+intervention. Only the second world then receives +2 N along world Z on the
+`wrist_flex` child link for 24 physics ticks (~0.1 s; 0.200000016 N·s impulse).
+After release, a fresh 480-tick (~2 s) uninterrupted hold is required. Counts
+from before/during the pulse cannot satisfy recovery. Both worlds keep running
+until both qualify, a fall occurs, or the total ten-second budget expires.
+
+```sh
+cargo build -p robot_workbench --no-default-features
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_disturbance.py \
+  target/debug/rne-workbench \
+  examples/116_robot_workbench/python/results/stable_arm_search.json \
+  /tmp/arm-force-recovery.json
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_disturbance.py \
+  target/debug/rne-workbench /tmp/arm-force-recovery.json --replay
+```
+
+The committed `python/results/arm_force_recovery.json` records that all eight
+forced cases left the holding conditions and then recovered; all eight unforced
+peers also achieved the post-release hold. Forced shoulder-pan peak errors were
+0.084–0.109 rad, and peak pan-angle differences from the unforced peers were
+0.083–0.111 rad. Release to verified recovery took 2.325–2.708 s, **including**
+the required two-second hold. This is one fixed force direction, magnitude,
+application link and duration, on existing targets with no retraining; it does
+not establish recovery from arbitrary disturbances.
+
+Reports retain applied force duration/impulse, per-joint peak errors/speeds,
+paired trajectory differences, outcomes and terminal hashes. `pulse_start_step`
+is a zero-based action index. Peak metrics start at the pulse; `return` is the
+sum of running task rewards without a success bonus, because audit phases own
+termination. Exact replay compares the whole report's episode records. Tests
+cover force scope and clearing, unchanged motor commands, batch validation before
+mutation, worker-count invariance, initial-stability gating, and a fresh hold
+following a recovery interruption.
+
+### Direction and strength sweep
+
+`audit_arm_force_sweep.py` schedules all six signed world axes at 2 N and 4 N
+before running any simulation (96 pairs: 12 conditions × 8 original targets).
+It reuses the same frozen PID, wrist link, 24-tick pulse and fresh 480-tick
+post-release hold. Each condition includes an identical unforced peer. The
+source gains and target seeds are neither trained nor selected by sweep results.
+Up to four conditions run concurrently in separate engine processes, with two
+independent worlds per process. Reports retain protocol order regardless of
+worker completion order.
+
+```sh
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_force_sweep.py \
+  target/debug/rne-workbench \
+  examples/116_robot_workbench/python/results/stable_arm_search.json \
+  /tmp/arm-force-sweep.json
+.venv-gym/bin/python examples/116_robot_workbench/python/audit_arm_force_sweep.py \
+  target/debug/rne-workbench /tmp/arm-force-sweep.json --replay
+```
+
+`--strengths-n 2 4` sets the tested positive magnitudes (maximum 20 N); all six
+signed axes are always included. Reports retain every trial and terminal state
+hash. Summaries distinguish displaced-and-recovered cases from cases that never
+left the hold tolerances, list unsuccessful seeds, and retain missing initial
+holds, incomplete pulses, falls and unforced-peer outcomes. Replay verifies both
+records and their summaries. These are sampled force conditions, not a certified
+force limit or collision-impact test; results do not imply monotonic behavior
+between tested strengths or transfer to hardware.
+
+The committed `python/results/arm_force_sweep.json` records 96/96 forced trials
+leaving the holding conditions and subsequently recovering. All 96 unforced
+peers also completed the post-release hold. There were no falls, initial-hold
+failures or incomplete pulses. The original +Z / 2 N audit matches exactly,
+including terminal hashes, despite running alongside other conditions.
+
+| World direction | Recovered at 2 N | Recovered at 4 N | Peak joint error at 2 N (rad) | Peak joint error at 4 N (rad) |
+| --- | ---: | ---: | ---: | ---: |
+| +X | 8/8 | 8/8 | 0.052 | 0.099 |
+| -X | 8/8 | 8/8 | 0.047 | 0.098 |
+| +Y | 8/8 | 8/8 | 0.054 | 0.096 |
+| -Y | 8/8 | 8/8 | 0.074 | 0.132 |
+| +Z | 8/8 | 8/8 | 0.109 | 0.218 |
+| -Z | 8/8 | 8/8 | 0.114 | 0.226 |
+
+Peaks cover the three tracked joints and eight targets, sampled every physics
+tick from pulse onset. Leaving the hold condition can be caused by velocity,
+so recovery can be required even when angle error stays below 0.05 rad. Release
+to completion of both peers took 2.238–3.133 s at 2 N and 2.354–3.525 s at 4 N,
+including the required two-second hold. These results expand the measured
+coverage; they do not locate the controller's failure boundary.
+
+### SO-101 torque response against MuJoCo
+
+The runner also accepts `--gravity GX GY GZ` in world-frame m/s²; omission
+keeps zero gravity. Replay restores the saved gravity and rejects an override.
+See [the gravity comparison](SO101_GRAVITY_COMPARISON.md) for the analytic
+pendulum test, measured 14-case result, and remaining joint-limit work.
+
+`python/benchmark_mujoco.py` provides the first shared-model dynamics baseline.
+It compares the current Workbench **RNE/Rapier** path with native MuJoCo 3.9.0;
+it does not exercise `rne_physics_native`. Both read the same normalized SO-101
+URDF, retaining link frames, masses, centres of mass and physical inertia tensors.
+Nonidentity inertial-origin rotations are folded into the full tensor in link
+coordinates, and inertial `rpy` is reset to zero in both inputs. The rotated-rotor
+fixture exposed a MuJoCo 3.9.0 direct-URDF interpretation mismatch (effective
+I=0.03 instead of 0.05 kg·m²); this common canonicalization makes both engines
+satisfy the analytic fixture without changing the physical model.
+For the default baseline the base is fixed at the URDF origin, gravity is zero, and geometry, joint stops,
+passive joint losses and actuators are absent. Initial joint positions and
+velocities are zero, subject to backend floating-point representation. This
+isolates inertial torque response before adding contact, gravity or task control.
+
+```sh
+cargo build -p robot_workbench --no-default-features
+.venv-gym/bin/pip install -r examples/116_robot_workbench/python/requirements-mujoco.txt
+.venv-gym/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py \
+  target/debug/rne-workbench assets/robots/so101/so101.urdf /tmp/so101-cross-sim.json.gz
+.venv-gym/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py \
+  target/debug/rne-workbench /tmp/so101-cross-sim.json.gz --replay
+```
+
+Each of six joints receives +0.001 N·m from 20–60 ms, −0.001 N·m from 60–100 ms,
+then zero until 200 ms. A separate zero-input case checks drift. All seven cases
+run at both 1 ms and 0.5 ms, for 14 cases total. Joint ordering is matched by name;
+inputs, complete position/velocity traces, per-joint maximum/RMS differences,
+source/normalized model hashes, executable hash and MuJoCo version are recorded.
+`.json.gz` retains full traces with deterministic gzip framing; `.json` is also
+supported. Replay compares trajectories and metrics exactly within each backend,
+excluding host timings. It does not require RNE and MuJoCo to match each other.
+
+The analytic test uses a rotor with I=0.02 kg·m² and a 0.01 N·m pulse, checking
+alpha=0.5 rad/s² and constant velocity after release. A second fixture rotates
+an anisotropic inertia tensor and offsets the centre of mass, checking the
+parallel-axis result I=0.05 kg·m² in both engines. Position is checked against
+the continuous solution with an explicit first-order integration error bound,
+not against the other engine's integration formula. MuJoCo uses Euler; Rapier
+retains its default integration settings. MuJoCo tests are optional when its
+separate dependency is not installed; RNE analytic tests still run. CI installs
+the pinned dependency, runs both analytic fixtures and a fresh 14-case sweep,
+replays it on the same runner and uploads the full trace as an artifact.
+
+The historical, **pre-fix** `python/results/so101_cross_sim.json.gz` shows:
+
+| Driven joint | Maximum angle difference, 1 ms (rad) | Maximum angle difference, 0.5 ms (rad) |
+| --- | ---: | ---: |
+| No torque | 0.000000060 | 0.000000060 |
+| elbow_flex | 0.00003055 | 0.00001532 |
+| gripper | 0.00134896 | 0.00067494 |
+| shoulder_lift | 0.00000531 | 0.00000265 |
+| shoulder_pan | 0.00010621 | 0.00010621 |
+| wrist_flex | 0.00011387 | 0.00005697 |
+| wrist_roll | 0.00046773 | 0.00024001 |
+
+Each maximum covers every observed joint and sample, not just the driven joint.
+The shoulder-pan residual was traced to legacy Rapier damping retained when
+URDF dynamics were absent. The benchmark now explicitly sets zero passive
+dynamics on every movable joint. At 0.001 N·m its maximum difference is now
+2.04 / 1.11 / 0.59 microradians at 1 / 0.5 / 0.25 ms.
+See [the diagnosis and six-condition before/after audit](SO101_ZERO_LOSS_DIAGNOSIS.md).
+The corrected 14-case report is `python/results/so101_zero_loss_cross_sim.json.gz`;
+the historical report cannot replay against the corrected binary. These are cross-engine differences, not errors against ground
+truth, and do not establish a hardware or contact-physics accuracy ranking.
+
+`runner_loop_s` excludes model construction and process startup but includes
+actuation, stepping and state collection; RNE also synchronizes ECS state. The
+Rust and Python runners have different overheads, and these single-pass timings
+are diagnostic only, **not a physics-kernel throughput or learning-speed ranking**.

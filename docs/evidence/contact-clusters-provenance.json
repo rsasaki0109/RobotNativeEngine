@@ -1,0 +1,20 @@
+{
+  "base_commit": "2c2bff6b",
+  "exhaustive_overlay": {
+    "path": "crates/rne_physics_native/src/world_step.rs",
+    "commit": "bd9177cd",
+    "sha256": "3a8082a6247208ea4d12906914e85d35bba3f37adb308e442ffd66ab0770de57"
+  },
+  "source_sha256": {
+    "crates/rne_physics_native/examples/contact_crowd.rs": "df66685c09d744821b58b71ffe7c2de83c3175cc21eb64636010fdd39a039b3e",
+    "crates/rne_physics_native/src/world_step.rs": "5b7d36f289beac80f7e0f631c5daa7962ee8c85667efc1e66fce95c103b6cab7",
+    "crates/rne_physics_native/src/box_pairs.rs": "707a51d5706275b0596f51cf76441ba86fcd372090abbb569351488ed8026d79",
+    "scripts/contact_benchmark/contact_clusters.py": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d",
+    "scripts/contact_benchmark/contact_crowd.py": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87"
+  },
+  "summary_sha256": {
+    "a": "fc04304ae03d6dcca14ef2b9d9f0ad6b4e87037fad2409d216cc294eba455076",
+    "b": "ecdd656541b0a2947fe01265d1124c18bc2b05fb821ee900e841864d69f270dc"
+  },
+  "backend_modified_in_final_tree": false
+}

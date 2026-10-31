@@ -1,0 +1,18 @@
+diff --git a/crates/rne_dynamics/src/contact.rs b/crates/rne_dynamics/src/contact.rs
+index 08588b56..4f18cf3e 100644
+--- a/crates/rne_dynamics/src/contact.rs
++++ b/crates/rne_dynamics/src/contact.rs
+@@ -280,7 +280,12 @@ pub fn solve_contact_impulses(
+         iterations += 1;
+         last_change = 0.0_f64;
+         before.copy_from_slice(&impulses);
+-        for contact in 0..count {
++        for visit in 0..count {
++            let contact = if iterations % 2 == 0 {
++                count - 1 - visit
++            } else {
++                visit
++            };
+             // Velocity of this contact with its own impulse removed.
+             let evaluate_bias = |axis| {
+                 let row = 3 * contact + axis;

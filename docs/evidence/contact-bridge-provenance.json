@@ -1,0 +1,21 @@
+{
+  "base_commit": "880b910c",
+  "source_sha256": {
+    "crates/rne_physics_native/examples/contact_crowd.rs": "0ee6274a7047d5b1340b485626e12a12ac4ab8a29413e91752b7de1e0a419d24",
+    "crates/rne_dynamics/src/contact.rs": "ac31075d1ab547b978b0ee1a6415f82da18baff8d551bbfa0db001e089f1e796",
+    "scripts/contact_benchmark/contact_bridge.py": "d9c8cec81f42b546aa0e863d7d24a929f6e38283f708fed0f702e738db0a74c1",
+    "scripts/contact_benchmark/contact_clusters.py": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d",
+    "scripts/contact_benchmark/contact_crowd.py": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87",
+    "scripts/contact_benchmark/stack.py": "148d8dec128bee5c54a2d56a47bbf2968163b6b04a1c41717f17b8f607dc49cc",
+    "scripts/contact_benchmark/box.py": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+  },
+  "baseline_overlay": {
+    "commit": "3edd40ca",
+    "path": "crates/rne_dynamics/src/contact.rs",
+    "sha256": "b18fd9a921297a1d77328ce9a9e54312e00f751c85f0bf802f1631ee1d6ae66d"
+  },
+  "binary_sha256": {
+    "before": "71c08094354440f74e851ef8b008300865ff96ad4ebea717e81a73983f5748c5",
+    "after": "460ecbce9f67a9ed8103d00df0ef5953d91b152514347cb52d7c30fb3749f2ba"
+  }
+}

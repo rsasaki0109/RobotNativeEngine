@@ -1,0 +1,65 @@
+{
+  "base_commit": "0080e467",
+  "files": [
+    {
+      "path": "scripts/contact_benchmark/contact_release_holdout.py",
+      "sha256": "09fb89dce32bb5b2beae2c902c7ac248b8655247a88914579fe671db7531aba6",
+      "bytes": 6888
+    },
+    {
+      "path": "scripts/contact_benchmark/test_release_holdout.py",
+      "sha256": "e3a49f174aa943fdbd1d4231477c70be600442b252c0bb8f6115591f2c18be3b",
+      "bytes": 4067
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_frozen_newton.py",
+      "sha256": "3620b935cdf3f109680b7e6c3c3031a8ce21fce6e4def09396cea47d401b4179",
+      "bytes": 7097
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_frozen_release.py",
+      "sha256": "9c663260014fe0b71700b6a3c431e85f180a191ada8f59eaba6cf70cf857091a",
+      "bytes": 4881
+    },
+    {
+      "path": "docs/evidence/contact-release-holdout/tower-slide-4.json",
+      "sha256": "23e5e25c1509f7fb858537538012f3bb403fb0d4716c8b379833d9de22909086",
+      "bytes": 234759
+    },
+    {
+      "path": "docs/evidence/contact-release-holdout/tower-slide-8.json",
+      "sha256": "fd26bbc5d313c5ea262813b1e5ed1458489f29f85331969dc33e7017481df20a",
+      "bytes": 722981
+    },
+    {
+      "path": "docs/evidence/contact-release-holdout/tower-tilt-4.json",
+      "sha256": "a42d338e9a6fad70490f61293760fb25956c63f66f54fb06f7874d64801791ae",
+      "bytes": 234423
+    },
+    {
+      "path": "docs/evidence/contact-release-holdout/tower-tilt-8.json",
+      "sha256": "5dac2c6afe8295cec75bf81e79c445dcf367d7c469d6760d3b8cfe50b792732b",
+      "bytes": 724297
+    },
+    {
+      "path": "docs/evidence/contact-release-holdout-a.json",
+      "sha256": "bdf1a2033e4a51a1d4ce2dcdc33a91294ad8a41a888c027e2413483b648e0bbf",
+      "bytes": 486970
+    },
+    {
+      "path": "docs/evidence/contact-release-holdout-b.json",
+      "sha256": "b38134c4ab59a211995bc1da29f4d99a9db73c762a0703809a97dad38cc74f95",
+      "bytes": 486965
+    },
+    {
+      "path": "docs/evidence/contact-release-holdout-preliminary-summary.json",
+      "sha256": "cff9082ebcf63c6a0312501ec77b609a8e0215fef686b87ed6007d5bfea24f44",
+      "bytes": 17546
+    },
+    {
+      "path": "docs/evidence/contact-release-holdout-initial.py",
+      "sha256": "19a5349fc04861625c3cdedb60338d194b40d240821db834744f756ff36c7ff3",
+      "bytes": 6591
+    }
+  ]
+}

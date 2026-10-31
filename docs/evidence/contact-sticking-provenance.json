@@ -1,0 +1,116 @@
+{
+  "base": "afe4421b",
+  "raw_reports": [
+    {
+      "path": "/workspace/artifacts/sticking-opt-a.json",
+      "sha256": "95e9d6d96ccdb2bcdaef3e408c211a1d9b19951e6f58981325f202dd24d9c4f2",
+      "bytes": 24245465
+    },
+    {
+      "path": "/workspace/artifacts/sticking-opt-b.json",
+      "sha256": "eb7110041551efdf967cb8523b132fcd3e817dee2f7d772c612f86ae956b486a",
+      "bytes": 24245395
+    },
+    {
+      "path": "/workspace/artifacts/contact-alternating-trial.json",
+      "sha256": "eba1a8da55f226264e5dc2e5c7c059e2634b8afbea54b4e46ae3c0fe391d355f",
+      "bytes": 5204817
+    },
+    {
+      "path": "/workspace/artifacts/contact-sticking-block-trial.json",
+      "sha256": "f219c13818beb52e94af44ffd43bf5937000a88933c369eb2c34df5adf0f620c",
+      "bytes": 5189003
+    },
+    {
+      "path": "/workspace/artifacts/contact-normal-refine-trial.json",
+      "sha256": "284a2567c0175646973133b3f8430211ffeecb3fa23958431de5ba8bd3fdcab3",
+      "bytes": 5189005
+    }
+  ],
+  "trial_sources": [
+    {
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-alternating-trial.patch",
+      "sha256": "1de1e5a92a023d353f02088ffef9b8d30fc857b7394a1d0546237feb6e1b815e",
+      "bytes": 729
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-sticking-block-trial.patch",
+      "sha256": "0abfb7be003c3627d0bf58453403c532e38998c330178db25cb6e14c00562337",
+      "bytes": 2566
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-sticking-block-trial.rs",
+      "sha256": "0f2655df6b58074cfb9daec2c573b3d5bcb4ad743203332087d772781245eef6",
+      "bytes": 4910
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-normal-refine-trial.patch",
+      "sha256": "c10b7fbc59756980db46b7f9d8ef34435ce2b4faccdd1d8ec18a45fbdcee993e",
+      "bytes": 7284
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/docs/evidence/contact-normal-refine-trial.rs",
+      "sha256": "4c1ca5213470ef4f0f597eb721d2f827dd47d21a062ecf71108a3914b43bc38d",
+      "bytes": 6244
+    }
+  ],
+  "binaries": [
+    {
+      "path": "/workspace/artifacts/contact-sticking-opt-final",
+      "sha256": "d977e6a5fe98a51caa2a0dc54cec4a98392d2d81c232e6ccd305d32b4532f996",
+      "bytes": 1563392
+    },
+    {
+      "path": "/workspace/artifacts/contact-residual-flag-after",
+      "sha256": "31f5f9a6d932199179096f3e17a3cfd9bb4ce7040f570f4f679b75798bd30e89",
+      "bytes": 1550304
+    },
+    {
+      "path": "/workspace/artifacts/contact-alternating-trial",
+      "sha256": "7a0caa0a68aa33b44f4b39668136a9ced59b89a98ba677aed854bfd2c285802d",
+      "bytes": 1550336
+    },
+    {
+      "path": "/workspace/artifacts/contact-sticking-block-trial",
+      "sha256": "53415b6738caa81e30d54cf5d4665910f05f493e195c83acedf2f6e6aabb743f",
+      "bytes": 1562704
+    },
+    {
+      "path": "/workspace/artifacts/contact-normal-refine-trial",
+      "sha256": "7a1b0559a73c8c516a034963aba4f9edb31d6c9eed31ae3cee0da8375e662b80",
+      "bytes": 1567592
+    }
+  ],
+  "source_sha256": {
+    "crates/rne_dynamics/src/contact.rs": "ea2205c0bbe4b0556147e4abad8561370fbfe8ee4bcf888ba2dec3c506760446",
+    "crates/rne_dynamics/src/contact/normal.rs": "27ccc29c6161d4ec443562a05c180c4a1b1daad6f610011efb375f497c4ecbb4",
+    "crates/rne_dynamics/src/contact/residual.rs": "b79c8cadd253df5ab30c867a80065434877cf5b0d2d08a757ce4fe55d71d26d7",
+    "crates/rne_dynamics/src/contact/sticking.rs": "776469733156212cf9846e9133c168305af45f272dbd0db9bcafe53329f0307e",
+    "crates/rne_physics_native/examples/contact_crowd.rs": "a5815a42b901a5873d48da464b799c3f8c46ee810f86f3635f127d8bd2238a39",
+    "crates/rne_physics_native/src/lib.rs": "29cf4fcaf6db09dcc5689b6e918bee4e1910dff85642d52d24840db4842ffe2f",
+    "scripts/contact_benchmark/contact_sticking_compare.py": "18eeb297c1ff1ab5f7728e4afe2fbc6b87e6120b08c07e2768697750ce8b365d",
+    "scripts/contact_benchmark/test_sticking_compare.py": "56b2d0865704991bec050c0806a4f4bf2309bf1c70ffeee0715b577f165af799"
+  },
+  "validation": [
+    {
+      "path": "/workspace/work/sticking-opt-tests.log",
+      "sha256": "be6e58142794a956d999847ca52e9ea8a0906ba6cfc4deb044017bcc7f7976db",
+      "bytes": 11164
+    },
+    {
+      "path": "/workspace/work/sticking-opt-clippy.log",
+      "sha256": "467c0a9371b29d0c0b2732b1d86cac4a3f179fbeaa69406465139948728afbb9",
+      "bytes": 242
+    },
+    {
+      "path": "/workspace/work/sticking-opt-python.log",
+      "sha256": "d6b4f423135cd6825d20ae90be3883f5146259e2f2c0368eee743caea9ab9694",
+      "bytes": 16121
+    },
+    {
+      "path": "/workspace/work/sticking-default-check.log",
+      "sha256": "ab32a1e7f50befc931ebaeb61fa69a184db8e373841799eee68d1b74f4b2199e",
+      "bytes": 588
+    }
+  ]
+}

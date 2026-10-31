@@ -1,0 +1,2245 @@
+{
+  "protocol": "stack_matched_v1",
+  "status": "complete",
+  "gates": {
+    "max_floor_penetration_m": 1e-05,
+    "max_pair_penetration_m": 1e-05,
+    "settled_linear_speed_m_s": 0.001,
+    "settled_angular_speed_rad_s": 0.01,
+    "energy_excess_fraction": 1e-06,
+    "max_support_relative_error": 0.01,
+    "final_height_error_m": 0.0001
+  },
+  "mujoco": "3.9.0",
+  "cpu_affinity": [
+    0
+  ],
+  "timesteps": [
+    125000,
+    62500,
+    31250,
+    15625
+  ],
+  "calibration": [
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      10
+    ]
+  ],
+  "validation": [
+    [
+      2,
+      0.3
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      0.3
+    ],
+    [
+      3,
+      3
+    ]
+  ],
+  "selection": "first timestep where both calibration cases pass; fixed solref [2e-6,10]",
+  "binary_sha256": "9bce72a929270a707ebaf63297b307c735dc9144084f2c721ded54b305b99e61",
+  "source_sha256": {
+    "stack_matched.py": "c3693af09a02908c3ec58f943cdaa002e61d1487726278136e6307fdc6f96f82",
+    "mujoco_stack.py": "6eb6611ae1f49bfa6fbbe0b3e3db7f35208ddda3b3ff17a9b01d62e93cf7cd06",
+    "stack.py": "148d8dec128bee5c54a2d56a47bbf2968163b6b04a1c41717f17b8f607dc49cc",
+    "box.py": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d",
+    "matched.py": "bb14f51a11a5348ce51e117babddb602fe3145ce7715f5742c6cb066ff6e5585"
+  },
+  "records": [
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.047196798,
+        "final_state": [
+          [
+            2.0,
+            7.050852081661475e-11,
+            0.05000000006403278,
+            -7.082001081350274e-11,
+            -3.2112090764258028e-12,
+            -5.351632381019344e-26,
+            -3.1921494845827896e-12,
+            1.0,
+            9.340002825126288e-11,
+            -4.6965903388596075e-11,
+            -9.385308718411052e-11,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            4.992891195043426e-09,
+            0.15000000007485298,
+            -5.0284862297907475e-09,
+            5.077005482689856e-11,
+            1.1898832997196812e-17,
+            5.102858043342235e-11,
+            1.0,
+            6.313941378937302e-09,
+            -9.070064144189871e-09,
+            -6.350060074667466e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -4.851879965538587e-09,
+            0.2500000001896098,
+            4.88685120591721e-09,
+            6.234339711141956e-10,
+            1.0582193954694481e-19,
+            6.278873096306074e-10,
+            1.0,
+            -6.127144304502672e-09,
+            -9.04562535986031e-09,
+            6.162357100166653e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-000.npy.gz",
+        "trace_shape": [
+          1001,
+          3,
+          15
+        ],
+        "trace_sha256": "3d1c641aeb614b670f8550f8a52bc7348768842265e30117dbcf505a0739f08c"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 2.3443221618346834e-11,
+        "max_pair_penetration_m": 8.801245843237382e-11,
+        "settled_linear_speed_m_s": 1.4260577249942355e-08,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.4187242158847369e-08,
+        "support_relative_error_by_interface": [
+          3.5544054366454247e-09,
+          2.1417569939785608e-09,
+          1.4187242158847369e-08
+        ],
+        "final_height_error_m": 1.8960977232751475e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.021282713999999998,
+        0.031183576,
+        0.024683558999999997,
+        0.025641999,
+        0.0313566695
+      ],
+      "median_cost": 0.025641999,
+      "backend": "native",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.062835739,
+        "final_state": [
+          [
+            2.0,
+            -2.764921196804023e-13,
+            0.05000000000080244,
+            -4.279112979916666e-12,
+            -7.421840919619171e-14,
+            5.556341785924197e-27,
+            6.4081766288185685e-15,
+            1.0,
+            -2.763795787131833e-13,
+            1.1032841307212493e-12,
+            -4.429893653584134e-12,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            9.114897612378316e-09,
+            0.15000000000712357,
+            -1.2433207440389268e-08,
+            -8.923378702618834e-11,
+            9.414244824852426e-16,
+            -7.008969064993538e-11,
+            1.0,
+            5.4306279827446365e-08,
+            7.309153282619718e-10,
+            -7.227392107004569e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -9.117973320502546e-10,
+            0.25000000002064054,
+            1.2386160958958326e-09,
+            -7.580158722930719e-11,
+            -1.252988790067256e-18,
+            -3.812496534387825e-11,
+            1.0,
+            -5.43093376386551e-09,
+            6.306843935988127e-09,
+            7.222520394063631e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-001.npy.gz",
+        "trace_shape": [
+          1001,
+          3,
+          15
+        ],
+        "trace_sha256": "15b7553c5f973493a8f43d19e32facfefd6f2f8ea8ab2fc2b8bfcba82aedc3ee"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.5832686169057385e-12,
+        "max_pair_penetration_m": 6.266787089259651e-11,
+        "settled_linear_speed_m_s": 9.088221176585171e-08,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.0693595897670605e-08,
+        "support_relative_error_by_interface": [
+          3.787315128178648e-09,
+          5.192137830789534e-10,
+          1.0693595897670605e-08
+        ],
+        "final_height_error_m": 2.0640544828864904e-11,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.022927168,
+        0.0242064465,
+        0.0260306105,
+        0.0332302875,
+        0.0218582805
+      ],
+      "median_cost": 0.0242064465,
+      "backend": "native",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 125000,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            1.0947933823339957e-10,
+            0.04999995401563261,
+            1.0028179382035278e-11,
+            1.952539502196579e-16,
+            1.1603804908989952e-13,
+            6.864057775892616e-16,
+            1.0,
+            9.411562020584221e-11,
+            8.776006614229549e-11,
+            2.3266417373133194e-11,
+            1.1762572301613562e-09,
+            4.830678105353009e-13,
+            -1.1762492020156474e-09,
+            0.0
+          ],
+          [
+            2.0,
+            2.8061371708990034e-10,
+            0.14999989709797426,
+            -2.2530963950532756e-10,
+            1.1014475938858109e-10,
+            -9.531209620986087e-14,
+            -1.101395623620087e-10,
+            1.0,
+            2.243235823567311e-10,
+            -8.802957255593463e-08,
+            -1.5506650367269134e-10,
+            -4.41968917661924e-09,
+            -4.3951321242054785e-13,
+            4.419704936371346e-09,
+            0.0
+          ],
+          [
+            2.0,
+            -3.900930553232996e-10,
+            0.24999986942326935,
+            2.1528148539688116e-10,
+            1.6195358526192078e-10,
+            -2.0717887731485948e-14,
+            -1.6194542133371336e-10,
+            1.0,
+            -3.184392025625726e-10,
+            -1.4772185027718112e-07,
+            1.3180010246892486e-10,
+            -5.319679995161136e-09,
+            -4.3539135215287696e-14,
+            5.319713264733575e-09,
+            0.0
+          ]
+        ],
+        "elapsed_s": 1.720806146004179,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999995715,
+        "model_xml": "<mujoco><option timestep=\"0.000125\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-002.npy.gz",
+        "trace_shape": [
+          16001,
+          3,
+          15
+        ],
+        "trace_sha256": "e47984e8a9f86180d752f889c64b7e501ab839296c5f1b7c8ecae17706bd71cb"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 3.1000000000336314e-06,
+        "max_pair_penetration_m": 6.193309473925823e-05,
+        "settled_linear_speed_m_s": 1.6131686002082942e-07,
+        "settled_angular_speed_rad_s": 7.444720606019148e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 5.427340643571199e-08,
+        "support_relative_error_by_interface": [
+          3.020514116602868e-08,
+          4.5325605158019755e-08,
+          5.427340643571199e-08
+        ],
+        "final_height_error_m": 1.305767306503114e-07,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0947654160008824,
+        0.10801970350075862,
+        0.10502962700047647,
+        0.1823331590021553,
+        0.11053485500087845
+      ],
+      "median_cost": 0.10801970350075862,
+      "backend": "mujoco",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 125000,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -3.2905156443365576e-09,
+            0.04999981606254539,
+            2.2864351510257754e-09,
+            -9.459604046670799e-14,
+            8.917422053116075e-15,
+            -1.2507417252319254e-13,
+            1.0,
+            1.5008421496807484e-09,
+            -1.3287829868454199e-12,
+            -1.0746735208939991e-08,
+            1.289537568607098e-12,
+            -1.0691137972271794e-12,
+            -7.326813660571983e-13,
+            0.0
+          ],
+          [
+            2.0,
+            -1.2547816855988344e-08,
+            0.14999947995884214,
+            1.1731338780157054e-08,
+            3.7864583273411696e-10,
+            -2.1835410851665332e-13,
+            -3.798679220043817e-10,
+            1.0,
+            -2.4430670115040454e-08,
+            -2.2358948575637227e-08,
+            1.4576283916430625e-08,
+            -1.5203949375320208e-08,
+            -1.1364036737362136e-12,
+            1.5203021926216053e-08,
+            0.0
+          ],
+          [
+            2.0,
+            1.5838332500325085e-09,
+            0.24999931528261593,
+            -1.4017773829737776e-09,
+            7.016136565843785e-10,
+            2.139722283720508e-14,
+            -7.032354968354514e-10,
+            1.0,
+            2.2929827965359824e-09,
+            -1.0121934453831411e-07,
+            -3.8295486421095036e-10,
+            -2.8162853059011507e-08,
+            2.3025445489066407e-13,
+            2.815956932809588e-08,
+            0.0
+          ]
+        ],
+        "elapsed_s": 1.7089345960048377,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999995715,
+        "model_xml": "<mujoco><option timestep=\"0.000125\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-003.npy.gz",
+        "trace_shape": [
+          16001,
+          3,
+          15
+        ],
+        "trace_sha256": "526f4f40e7cb8ea91d322430df4519d577383dd34320c0dfc65aadf0b4ccf889"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 3.1000000000336314e-06,
+        "max_pair_penetration_m": 6.193309473925823e-05,
+        "settled_linear_speed_m_s": 1.370759915250424e-06,
+        "settled_angular_speed_rad_s": 4.079577091826152e-05,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.050446668011574e-08,
+        "support_relative_error_by_interface": [
+          1.7466952884070963e-08,
+          1.905483337782954e-08,
+          2.050446668011574e-08
+        ],
+        "final_height_error_m": 6.847173840696108e-07,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.08582205900165718,
+        0.08784348699919065,
+        0.0876155315017968,
+        0.09451589099990088,
+        0.08725780799795757
+      ],
+      "median_cost": 0.0876155315017968,
+      "backend": "mujoco",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 62500,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            1.6351881458088184e-11,
+            0.04999998850390832,
+            -4.6208853928629305e-12,
+            4.52970196722116e-15,
+            -4.777412829312418e-14,
+            4.556113120496011e-15,
+            1.0,
+            1.0030953652362274e-11,
+            4.3872839324727815e-11,
+            -2.872032142489737e-12,
+            -2.952572139752567e-10,
+            -2.6039321433035016e-14,
+            -2.9525784221898403e-10,
+            0.0
+          ],
+          [
+            2.0,
+            4.3804495336014656e-11,
+            0.14999997481596258,
+            3.169019404459043e-11,
+            -2.7312731166329158e-11,
+            4.375982935377548e-14,
+            -2.7312551137498737e-11,
+            1.0,
+            3.2823273534929655e-11,
+            -6.572777449453442e-08,
+            1.7342881299728026e-11,
+            3.0717895891661774e-09,
+            1.4111977870823369e-14,
+            3.071785977446162e-09,
+            0.0
+          ],
+          [
+            2.0,
+            -6.015637751179046e-11,
+            0.24999996786743825,
+            -2.7069291120030037e-11,
+            -4.09790301041463e-11,
+            4.0351781202856195e-15,
+            -4.097873335786273e-11,
+            1.0,
+            -4.2854227640849517e-11,
+            -5.047898114123104e-08,
+            -1.447083904967556e-11,
+            -8.755571158495882e-07,
+            1.1927001195021462e-14,
+            -8.755571211879148e-07,
+            0.0
+          ]
+        ],
+        "elapsed_s": 3.1978684729983797,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000010076,
+        "model_xml": "<mujoco><option timestep=\"6.25e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-004.npy.gz",
+        "trace_shape": [
+          32001,
+          3,
+          15
+        ],
+        "trace_sha256": "720a61939efef91609e941064db3de063b4fd2e08931c364534b5dc00f1e2881"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 1.2909999999997923e-05,
+        "max_pair_penetration_m": 2.183534926100683e-05,
+        "settled_linear_speed_m_s": 9.918751235073223e-08,
+        "settled_angular_speed_rad_s": 3.7222391283387723e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.9371134413480604e-09,
+        "support_relative_error_by_interface": [
+          5.309730433111781e-11,
+          7.965683668231804e-11,
+          2.9371134413480604e-09
+        ],
+        "final_height_error_m": 3.213256175027546e-08,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.1943081129975326,
+        0.19757163949907408,
+        0.18497369550095755,
+        0.1883365860012418,
+        0.18221741449815454
+      ],
+      "median_cost": 0.1883365860012418,
+      "backend": "mujoco",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 62500,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            6.40670615952936e-10,
+            0.049999954015647496,
+            1.383073116353946e-10,
+            -2.487896845131588e-13,
+            7.790124998179307e-12,
+            2.5340249905773873e-13,
+            1.0,
+            3.8228533064046006e-10,
+            1.3104844612471152e-09,
+            3.449730327369535e-10,
+            -3.356991695642956e-08,
+            2.5128656451201648e-11,
+            3.356993857837251e-08,
+            0.0
+          ],
+          [
+            2.0,
+            2.71085931572112e-09,
+            0.1499998748142027,
+            -1.7598209555009849e-09,
+            -1.5161053405631626e-10,
+            -9.240447545336629e-12,
+            1.5165918503394895e-10,
+            1.0,
+            1.7149310411677738e-09,
+            -2.011926952841057e-07,
+            -1.1813898384732017e-09,
+            -7.890213636489763e-08,
+            -3.024698179479657e-11,
+            7.890206697525778e-08,
+            0.0
+          ],
+          [
+            2.0,
+            -3.351529932982761e-10,
+            0.24999983682237234,
+            1.6215137008167458e-10,
+            -7.981826832082602e-11,
+            1.4504220605205477e-13,
+            7.988550444867536e-11,
+            1.0,
+            -2.0972163726242619e-10,
+            -1.2493012131366875e-07,
+            8.364168376639791e-11,
+            4.725625400439252e-06,
+            5.11835130562599e-13,
+            -4.725625622293535e-06,
+            0.0
+          ]
+        ],
+        "elapsed_s": 3.2985849780015997,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000010076,
+        "model_xml": "<mujoco><option timestep=\"6.25e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-005.npy.gz",
+        "trace_shape": [
+          32001,
+          3,
+          15
+        ],
+        "trace_sha256": "b48a01f9f78b47fbb5f58331ab67f49fa5497f3805fde2c69037c7f942054bcd"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 1.2909999999997923e-05,
+        "max_pair_penetration_m": 2.183534926100683e-05,
+        "settled_linear_speed_m_s": 4.2525741007833087e-07,
+        "settled_angular_speed_rad_s": 2.0394756406012426e-05,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 3.0465208133989563e-09,
+        "support_relative_error_by_interface": [
+          2.6738384839575247e-09,
+          2.9171447479825474e-09,
+          3.0465208133989563e-09
+        ],
+        "final_height_error_m": 1.631776276600494e-07,
+        "gates": {
+          "max_floor_penetration_m": false,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.1839311359981366,
+        0.18411637350072851,
+        0.18731329399815877,
+        0.18107062950002728,
+        0.18452494550001575
+      ],
+      "median_cost": 0.18411637350072851,
+      "backend": "mujoco",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 31250,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -2.915742129044883e-12,
+            0.04999999712597602,
+            2.1864933099175145e-12,
+            -5.728326350060104e-15,
+            -2.0329450627016654e-14,
+            5.7254323364430814e-15,
+            1.0,
+            -2.7061582891412193e-12,
+            5.1300137360785333e-14,
+            1.7020653126862527e-12,
+            -7.329897047909541e-10,
+            -6.302292568134394e-14,
+            7.329896984693561e-10,
+            0.0
+          ],
+          [
+            2.0,
+            -4.684158468612168e-12,
+            0.1499999937657204,
+            1.0809742769517342e-11,
+            6.729785656924362e-12,
+            1.5983208125533337e-14,
+            -6.7297976218011505e-12,
+            1.0,
+            -2.382466830649333e-12,
+            6.088751577212376e-09,
+            6.819883465294552e-12,
+            8.769878423919871e-07,
+            5.163967991834989e-14,
+            -8.769878424695329e-07,
+            0.0
+          ],
+          [
+            2.0,
+            7.599903673024904e-12,
+            0.2499999920835996,
+            -1.2996221027827117e-11,
+            1.0140735529738747e-11,
+            4.345764960414382e-15,
+            -1.0140752582755105e-11,
+            1.0,
+            5.0886269011889406e-12,
+            9.295021766592124e-09,
+            -8.52194012779423e-12,
+            1.3157360434084145e-06,
+            1.1383243417604118e-14,
+            -1.3157360435498357e-06,
+            0.0
+          ]
+        ],
+        "elapsed_s": 6.706375212997955,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999981732,
+        "model_xml": "<mujoco><option timestep=\"3.125e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-006.npy.gz",
+        "trace_shape": [
+          64001,
+          3,
+          15
+        ],
+        "trace_sha256": "a34cee2773acd6120f4055d67edc06d38397d478f0880f2687db4a2502212464"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 8.014580078104239e-06,
+        "max_pair_penetration_m": 1.1359781074915531e-05,
+        "settled_linear_speed_m_s": 5.690066629935837e-08,
+        "settled_angular_speed_rad_s": 1.8610933307793023e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.9198742595705198e-10,
+        "support_relative_error_by_interface": [
+          1.2799705739752198e-10,
+          1.9198742595705198e-10,
+          1.855474662804113e-10
+        ],
+        "final_height_error_m": 7.916400396323908e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.4051837440019881,
+        0.4050498174983659,
+        0.48286125600134255,
+        0.415221555998869,
+        0.39870207799685886
+      ],
+      "median_cost": 0.4051837440019881,
+      "backend": "mujoco",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 31250,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -6.694507973909019e-11,
+            0.04999998850389566,
+            -1.042038189493707e-11,
+            -1.3773571624966596e-13,
+            1.386277527772323e-12,
+            1.376067083821531e-13,
+            1.0,
+            -5.349075850066273e-11,
+            -3.5674744767405724e-10,
+            -1.0865876175268144e-11,
+            -1.283570299918919e-08,
+            5.499214158215581e-12,
+            1.2835704100967775e-08,
+            0.0
+          ],
+          [
+            2.0,
+            -3.9688492330251557e-10,
+            0.14999996830325385,
+            2.1217393181538936e-10,
+            3.150551070146054e-11,
+            -1.194533770173317e-12,
+            -3.1507101723928603e-11,
+            1.0,
+            -2.5694499698822824e-10,
+            1.708957733675823e-07,
+            1.0737270302037199e-10,
+            4.800077355252562e-06,
+            -4.944505527352861e-12,
+            -4.800077381932202e-06,
+            0.0
+          ],
+          [
+            2.0,
+            4.638300814458685e-11,
+            0.2499999585208597,
+            -2.0175352011741005e-11,
+            1.2824545096488727e-11,
+            -1.9174173017342932e-14,
+            -1.2826798895651828e-11,
+            1.0,
+            3.104358034660934e-11,
+            1.0984059881204377e-07,
+            -9.650681093160285e-12,
+            4.792234822185375e-06,
+            -5.547003152593835e-14,
+            -4.792234860951671e-06,
+            0.0
+          ]
+        ],
+        "elapsed_s": 7.781218714000715,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999981732,
+        "model_xml": "<mujoco><option timestep=\"3.125e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-007.npy.gz",
+        "trace_shape": [
+          64001,
+          3,
+          15
+        ],
+        "trace_sha256": "32cb1e130a3e5af17fb50f3372d0f8697dc1096614aa87c90c4ab83ecab91c83"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 8.014580078104239e-06,
+        "max_pair_penetration_m": 1.136074972943324e-05,
+        "settled_linear_speed_m_s": 2.482607439106585e-07,
+        "settled_angular_speed_rad_s": 1.0197616488685941e-05,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 3.927956626625928e-08,
+        "support_relative_error_by_interface": [
+          3.6000125547275275e-08,
+          3.927956626625928e-08,
+          3.76105506738611e-08
+        ],
+        "final_height_error_m": 4.1479140289180094e-08,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": false,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.36737305100177764,
+        0.37363702450238634,
+        0.3723406015014916,
+        0.36832876750122523,
+        0.37756615949911065
+      ],
+      "median_cost": 0.3723406015014916,
+      "backend": "mujoco",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 15625,
+        "levels": 3,
+        "top_mass_kg": 1,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -2.524763768640457e-13,
+            0.04999999928149343,
+            1.9221048068370303e-14,
+            -2.6484602484518193e-17,
+            1.3525600090285906e-18,
+            -2.6517527775778733e-17,
+            1.0,
+            -1.3339830866335918e-12,
+            1.0637697189217695e-13,
+            3.7576943315753463e-13,
+            1.3380427257049936e-14,
+            -8.592704486508613e-18,
+            1.3380410673450407e-14,
+            0.0
+          ],
+          [
+            2.0,
+            -3.5336899217952027e-13,
+            0.14999999832199448,
+            -1.761183780256208e-13,
+            -1.7561124056655918e-11,
+            -2.9934631478616764e-17,
+            -1.756177483859807e-11,
+            1.0,
+            -2.237553362054451e-12,
+            2.392818531560413e-10,
+            -6.420027496076607e-13,
+            5.633644257211523e-09,
+            -5.008021290367515e-17,
+            5.633852987992901e-09,
+            0.0
+          ],
+          [
+            2.0,
+            6.058424962636272e-13,
+            0.2499999978762705,
+            1.5721218830335458e-13,
+            -1.839973717052854e-11,
+            2.7074042092800664e-17,
+            -1.8400388338007967e-11,
+            1.0,
+            3.5715265308502876e-12,
+            -5.098843340689419e-09,
+            2.6653254028032047e-13,
+            5.90267735113018e-09,
+            5.867247663027715e-17,
+            5.902886185907036e-09,
+            0.0
+          ]
+        ],
+        "elapsed_s": 13.315238720999332,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-008.npy.gz",
+        "trace_shape": [
+          128001,
+          3,
+          15
+        ],
+        "trace_sha256": "1551ab5b3a2a5d59b6ceb7b6029529fd3ae5e9253565f92376945c1f81af423c"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.714501952984064e-07,
+        "max_pair_penetration_m": 5.101920298747342e-06,
+        "settled_linear_speed_m_s": 1.5290484200235924e-07,
+        "settled_angular_speed_rad_s": 4.634178752948815e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.0396198346640517e-09,
+        "support_relative_error_by_interface": [
+          3.3020075562717466e-10,
+          4.954776589016774e-10,
+          1.0396198346640517e-09
+        ],
+        "final_height_error_m": 2.1237294978160293e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.7159013939999568,
+        0.7127261575005832,
+        0.7151348380029958,
+        0.8215564115016605,
+        0.7145460585015826
+      ],
+      "median_cost": 0.7151348380029958,
+      "backend": "mujoco",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 15625,
+        "levels": 3,
+        "top_mass_kg": 10,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -7.748986250703643e-12,
+            0.04999999712597866,
+            5.80426066841002e-13,
+            1.5486363496919275e-14,
+            3.6556131226144186e-13,
+            1.5482247490310746e-14,
+            1.0,
+            -5.128098848500419e-12,
+            8.63260019551298e-13,
+            3.075331951330503e-12,
+            3.972716651330864e-09,
+            -5.501071510877024e-13,
+            3.9727163477653335e-09,
+            0.0
+          ],
+          [
+            2.0,
+            -5.0082612095894905e-11,
+            0.14999999227592753,
+            -2.324873783261958e-11,
+            -8.935363713873408e-12,
+            -5.151001950120696e-14,
+            -8.935410189375573e-12,
+            1.0,
+            -3.2739720612551214e-11,
+            -6.720323158511112e-08,
+            -1.2208337273823825e-11,
+            1.4800570839738036e-08,
+            1.178263959399705e-12,
+            1.4800568610826353e-08,
+            0.0
+          ],
+          [
+            2.0,
+            5.783159433517697e-12,
+            0.24999998992443898,
+            2.266864292221032e-12,
+            -1.3669229103669301e-11,
+            -3.140513229825997e-14,
+            -1.3669291154695356e-11,
+            1.0,
+            3.786781717373467e-12,
+            -5.217005928185404e-08,
+            9.133195201754028e-13,
+            -1.1903386610760907e-06,
+            -6.28156930232021e-14,
+            -1.1903386648669252e-06,
+            0.0
+          ]
+        ],
+        "elapsed_s": 16.081364125995606,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"10\" diaginertia=\"0.01666666666666667 0.01666666666666667 0.01666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-009.npy.gz",
+        "trace_shape": [
+          128001,
+          3,
+          15
+        ],
+        "trace_sha256": "376d75a245da1aa29a051eea233423355ad6effeb33e6c1c81cde29138dd7d8c"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.714501952984064e-07,
+        "max_pair_penetration_m": 5.101920298747342e-06,
+        "settled_linear_speed_m_s": 1.3146156316323214e-07,
+        "settled_angular_speed_rad_s": 5.098660689277064e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.142269850402556e-08,
+        "support_relative_error_by_interface": [
+          1.96319139833534e-08,
+          2.142269850402556e-08,
+          2.1369822134076344e-08
+        ],
+        "final_height_error_m": 1.0075561024391888e-08,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.7869106244979776,
+        1.3029672539996682,
+        1.4551882975029002,
+        0.8120114425000793,
+        1.242183873499016
+      ],
+      "median_cost": 1.242183873499016,
+      "backend": "mujoco",
+      "phase": "calibration"
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 0.3,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.022828806,
+        "final_state": [
+          [
+            2.0,
+            -6.669665625636584e-14,
+            0.050000000035752036,
+            -1.622082924741762e-10,
+            -7.712053218256187e-12,
+            2.8932065344659524e-26,
+            3.3678036977562825e-15,
+            1.0,
+            -9.100040245724416e-14,
+            5.1751276874956176e-09,
+            -2.1973422653697057e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -6.935145584395437e-14,
+            0.15000000004865108,
+            -1.6220509007451302e-10,
+            2.0384072207946247e-10,
+            6.146355848052469e-22,
+            -5.8818381568835156e-12,
+            1.0,
+            -9.235794752963096e-14,
+            6.28072593933382e-09,
+            -2.1973216396823948e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-010.npy.gz",
+        "trace_shape": [
+          1001,
+          2,
+          15
+        ],
+        "trace_sha256": "ba01ea54fe01b2980c2398473fcd69a4b27ade2c29b4cb21cc3b8b2bbf4161e2"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 2.308639431436314e-11,
+        "max_pair_penetration_m": 2.1261353788659676e-11,
+        "settled_linear_speed_m_s": 6.28457174233636e-09,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.8587600569830443e-08,
+        "support_relative_error_by_interface": [
+          1.8587600569830443e-08,
+          6.002489394418831e-09
+        ],
+        "final_height_error_m": 4.865105540652337e-11,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0105725545,
+        0.011299066,
+        0.0109752025,
+        0.0100313225,
+        0.010601312
+      ],
+      "median_cost": 0.010601312,
+      "backend": "native",
+      "phase": "validation"
+    },
+    {
+      "case": {
+        "dt_ticks": 15625,
+        "levels": 2,
+        "top_mass_kg": 0.3,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            5.1255216527752013e-26,
+            0.04999999968864605,
+            1.089871936744892e-16,
+            3.1175124720134193e-18,
+            1.0001277863459396e-45,
+            -4.780686207833887e-28,
+            1.0,
+            3.2945360346937e-26,
+            2.1568870301695902e-13,
+            1.1560369297965065e-16,
+            -1.0001061100305158e-15,
+            1.8353773112024614e-40,
+            -2.928320160095603e-23,
+            0.0
+          ],
+          [
+            2.0,
+            5.125521638918674e-26,
+            0.14999999937728933,
+            1.0898719296763407e-16,
+            3.119724441877428e-18,
+            -4.535488298359089e-36,
+            -4.231524797075965e-26,
+            1.0,
+            3.294536027291802e-26,
+            8.843484000739665e-13,
+            1.1560369261024967e-16,
+            -1.0008151974697295e-15,
+            -9.679206694099339e-36,
+            3.9974397671067444e-23,
+            0.0
+          ]
+        ],
+        "elapsed_s": 9.943670975000714,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"0.3\" diaginertia=\"0.0005000000000000001 0.0005000000000000001 0.0005000000000000001\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-011.npy.gz",
+        "trace_shape": [
+          128001,
+          2,
+          15
+        ],
+        "trace_sha256": "05b81d9b9f52df0e33c7c1d077417958fa8a63a28d0684ff0cec968ca72a968f"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.714501952984064e-07,
+        "max_pair_penetration_m": 5.101920298747342e-06,
+        "settled_linear_speed_m_s": 8.84348407660669e-13,
+        "settled_angular_speed_rad_s": 1.00250040083343e-15,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.166178678768119e-13,
+        "support_relative_error_by_interface": [
+          6.166178678768119e-13,
+          3.4217073618947325e-13
+        ],
+        "final_height_error_m": 6.22710688569228e-10,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.5023658524987695,
+        0.5048058704996947,
+        0.49754853950071265,
+        0.5354268984992814,
+        0.6005429645010736
+      ],
+      "median_cost": 0.5048058704996947,
+      "backend": "mujoco",
+      "phase": "validation"
+    },
+    {
+      "case": {
+        "dt_ticks": 15625,
+        "levels": 2,
+        "top_mass_kg": 3,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            -2.2374826603446228e-26,
+            0.04999999904199076,
+            1.0842552876175046e-16,
+            3.125533839580643e-18,
+            5.346203892900357e-44,
+            -1.6059970236361874e-26,
+            1.0,
+            2.230417463150343e-26,
+            2.1751869536974472e-13,
+            1.1530541348962618e-16,
+            -9.976730058052001e-16,
+            -5.512769228518757e-40,
+            9.331559828637901e-23,
+            0.0
+          ],
+          [
+            2.0,
+            -2.237482664569518e-26,
+            0.14999999808397876,
+            1.084255284162144e-16,
+            3.1223347273321943e-18,
+            1.7957137505149493e-35,
+            3.463615811606754e-25,
+            1.0,
+            2.2304174608908345e-26,
+            8.880083848115541e-13,
+            1.1530541330884052e-16,
+            -1.0016510494962019e-15,
+            3.8310602328665503e-35,
+            1.9159052986175793e-22,
+            0.0
+          ]
+        ],
+        "elapsed_s": 9.219332369000767,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"3\" diaginertia=\"0.005000000000000001 0.005000000000000001 0.005000000000000001\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-012.npy.gz",
+        "trace_shape": [
+          128001,
+          2,
+          15
+        ],
+        "trace_sha256": "e28310e2662ca53b58ba6fd441f23b78419e70ebb2e04fb8a1dff03bbfd9d4f0"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.714501952984064e-07,
+        "max_pair_penetration_m": 5.101920298747342e-06,
+        "settled_linear_speed_m_s": 8.880083923648377e-13,
+        "settled_angular_speed_rad_s": 1.0025013616225752e-15,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.190603585309873e-13,
+        "support_relative_error_by_interface": [
+          1.6420198534206065e-13,
+          6.190603585309873e-13
+        ],
+        "final_height_error_m": 1.916021258319134e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.5030269660019258,
+        0.5144142379976984,
+        0.5063341515015054,
+        0.5052906504970451,
+        0.49886825650173705
+      ],
+      "median_cost": 0.5052906504970451,
+      "backend": "mujoco",
+      "phase": "validation"
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 2,
+        "top_mass_kg": 3,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.039274349,
+        "final_state": [
+          [
+            2.0,
+            1.3036517618217925e-12,
+            0.05000000000915661,
+            1.0269415856393755e-10,
+            4.131195385781439e-12,
+            1.301304949252581e-26,
+            -6.301404615882546e-14,
+            1.0,
+            1.7707461974502498e-12,
+            4.098121147988465e-09,
+            1.2850422367492343e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            1.3010046602944882e-12,
+            0.15000000001331618,
+            1.0269617763275171e-10,
+            -5.6523008495901195e-11,
+            1.6502253220432902e-22,
+            4.177772630420285e-12,
+            1.0,
+            1.769392592068165e-12,
+            4.389363872370211e-09,
+            1.2850522945618624e-10,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-013.npy.gz",
+        "trace_shape": [
+          1001,
+          2,
+          15
+        ],
+        "trace_sha256": "b7970d0860ed6d169066204e42b52497215c0d35110f0d41ec4bbb9e6814c34b"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 5.6771795643111824e-11,
+        "max_pair_penetration_m": 7.00073332637885e-12,
+        "settled_linear_speed_m_s": 5.497463695375589e-09,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 2.454666314655185e-08,
+        "support_relative_error_by_interface": [
+          2.454666314655185e-08,
+          1.275940353373528e-09
+        ],
+        "final_height_error_m": 1.3316153735232206e-11,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.015278722,
+        0.0121908315,
+        0.013529175499999999,
+        0.014070382,
+        0.0150791095
+      ],
+      "median_cost": 0.014070382,
+      "backend": "native",
+      "phase": "validation"
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 0.3,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.041488879,
+        "final_state": [
+          [
+            2.0,
+            -9.6665438811332e-13,
+            0.04999999999632451,
+            6.74932178414736e-14,
+            1.7763568394002505e-15,
+            -4.1020767071492614e-29,
+            4.829670987293005e-14,
+            1.0,
+            -1.3489324371002845e-12,
+            -1.8983425942309395e-10,
+            6.855457979095646e-14,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -3.615860574049589e-10,
+            0.15000000000340316,
+            -2.5007703788403957e-11,
+            -6.9595995633164875e-12,
+            3.233012224332266e-19,
+            6.665196065585974e-11,
+            1.0,
+            -4.955826270018644e-10,
+            -1.9990953337156725e-10,
+            -2.8698163407971095e-11,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            1.2010860292618767e-09,
+            0.25000000001403794,
+            8.366104482038131e-11,
+            3.254158054133427e-11,
+            1.9343913307645774e-19,
+            1.4687010559662106e-10,
+            1.0,
+            1.6460905735153835e-09,
+            -2.705891066767663e-10,
+            9.596240811857788e-11,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-014.npy.gz",
+        "trace_shape": [
+          1001,
+          3,
+          15
+        ],
+        "trace_sha256": "d811965ac53e983e98896718082e6ca610348cca8c7107d092c51eaa33b7ec6e"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 7.148659853790012e-11,
+        "max_pair_penetration_m": 9.208431239748904e-11,
+        "settled_linear_speed_m_s": 2.7347050900790372e-08,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 1.1085998119497731e-08,
+        "support_relative_error_by_interface": [
+          6.889549819533158e-09,
+          7.994491291185568e-09,
+          1.1085998119497731e-08
+        ],
+        "final_height_error_m": 1.4037937479116636e-11,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0240361505,
+        0.0195368135,
+        0.022803160500000003,
+        0.0223864805,
+        0.020205485500000002
+      ],
+      "median_cost": 0.0223864805,
+      "backend": "native",
+      "phase": "validation"
+    },
+    {
+      "case": {
+        "dt_ticks": 15625,
+        "levels": 3,
+        "top_mass_kg": 0.3,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            7.621125191992803e-26,
+            0.04999999944914408,
+            1.0909604846585126e-16,
+            3.1184700490170225e-18,
+            -2.5721837249250945e-44,
+            7.739082173986852e-27,
+            1.0,
+            7.208526799530486e-27,
+            2.189981177178646e-13,
+            1.1566151638032543e-16,
+            -1.0004128753299315e-15,
+            -1.393415801970707e-39,
+            2.2093065275789023e-22,
+            0.0
+          ],
+          [
+            2.0,
+            -1.5083633488124258e-24,
+            0.14999999882643483,
+            1.0830005055007697e-16,
+            3.120447131198296e-18,
+            -1.9028297382130935e-35,
+            -2.028846984509387e-25,
+            1.0,
+            -2.0614882445398598e-24,
+            8.857428049616537e-13,
+            1.1524208127186096e-16,
+            -1.0010460123305924e-15,
+            -3.748754362977478e-35,
+            3.212216825010841e-22,
+            0.0
+          ],
+          [
+            2.0,
+            5.358126587480179e-24,
+            0.2499999985150823,
+            1.1174955699960188e-16,
+            3.1204716937923455e-18,
+            5.192549150966593e-36,
+            -1.000171870868144e-25,
+            1.0,
+            6.90286443114966e-24,
+            8.838277951605896e-13,
+            1.1705972704742086e-16,
+            -1.0010533084746035e-15,
+            1.0864110283669965e-35,
+            3.4222826544990593e-22,
+            0.0
+          ]
+        ],
+        "elapsed_s": 13.45257700199727,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"0.3\" diaginertia=\"0.0005000000000000001 0.0005000000000000001 0.0005000000000000001\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-015.npy.gz",
+        "trace_shape": [
+          128001,
+          3,
+          15
+        ],
+        "trace_sha256": "7e3e427301e0e78930a0bf378fb0ee0b800d40f76cb750d31cddfa040ae25be5"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.714501952984064e-07,
+        "max_pair_penetration_m": 5.101920298747342e-06,
+        "settled_linear_speed_m_s": 8.857428125151855e-13,
+        "settled_angular_speed_rad_s": 1.0025017983909923e-15,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 6.166178678768119e-13,
+        "support_relative_error_by_interface": [
+          3.0941915696303113e-13,
+          6.166178678768119e-13,
+          3.4217073618947325e-13
+        ],
+        "final_height_error_m": 1.4849176888098725e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.716620844497811,
+        0.7214351014990825,
+        0.748493626499112,
+        0.7308752675016876,
+        0.7255407119992014
+      ],
+      "median_cost": 0.7255407119992014,
+      "backend": "mujoco",
+      "phase": "validation"
+    },
+    {
+      "case": {
+        "dt_ticks": 15625,
+        "levels": 3,
+        "top_mass_kg": 3,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "final_state": [
+          [
+            2.0,
+            5.343294597306325e-12,
+            0.04999999880248988,
+            9.635879021832713e-12,
+            2.856913481141911e-15,
+            3.3292024358320526e-14,
+            -6.2870475462667386e-15,
+            1.0,
+            4.6804477610751675e-12,
+            -6.027974046116374e-11,
+            8.25697995162817e-12,
+            3.648791681946443e-10,
+            1.0832323983797507e-13,
+            -8.030926710856371e-10,
+            0.0
+          ],
+          [
+            2.0,
+            1.4364764750297291e-11,
+            0.14999999701274438,
+            3.2380310633751327e-12,
+            -3.4338202414330517e-12,
+            -5.410953703132358e-16,
+            3.423532483142578e-12,
+            1.0,
+            1.2043886336037622e-11,
+            2.354752979409341e-08,
+            3.3968465901074107e-12,
+            -8.774472618561958e-07,
+            -3.857899025913031e-14,
+            8.761326224018107e-07,
+            0.0
+          ],
+          [
+            2.0,
+            -6.569351131785069e-12,
+            0.24999999616078072,
+            -4.291204255441343e-12,
+            -1.6767223911520748e-12,
+            -1.0916916169532979e-14,
+            5.171484767586418e-12,
+            1.0,
+            -5.574776479934543e-12,
+            2.8459923166858314e-08,
+            -3.884546004645669e-12,
+            -4.379634291718045e-07,
+            -2.3248080489101022e-14,
+            1.3144484834457918e-06,
+            0.0
+          ]
+        ],
+        "elapsed_s": 13.743344850998255,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\"\n        integrator=\"Euler\" solver=\"Newton\" iterations=\"200\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n        <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n            solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n        <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.055 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.16 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"1\" diaginertia=\"0.001666666666666667 0.001666666666666667 0.001666666666666667\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body><body pos=\"0 0.265 0\"><freejoint/>\n            <inertial pos=\"0 0 0\" mass=\"3\" diaginertia=\"0.005000000000000001 0.005000000000000001 0.005000000000000001\"/>\n            <geom type=\"box\" size=\"0.05 0.05 0.05\"/></body></worldbody></mujoco>",
+        "disableflags": 0,
+        "trace_file": "trace-016.npy.gz",
+        "trace_shape": [
+          128001,
+          3,
+          15
+        ],
+        "trace_sha256": "4458d9977c7354e38077dc7c1dea4a1591cc99dfd9ad8f76a090c12d07b1666b"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 6.714501952984064e-07,
+        "max_pair_penetration_m": 5.101920298747342e-06,
+        "settled_linear_speed_m_s": 3.8894973151862955e-08,
+        "settled_angular_speed_rad_s": 1.3856756717515504e-06,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 8.369865467372506e-09,
+        "support_relative_error_by_interface": [
+          6.693431142679174e-09,
+          8.369865467372506e-09,
+          8.341322077498603e-09
+        ],
+        "final_height_error_m": 3.839219275825201e-09,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.7564658900009817,
+        0.7594695349980611,
+        0.761844992000988,
+        0.7572660529986024,
+        0.7560075014989707
+      ],
+      "median_cost": 0.7572660529986024,
+      "backend": "mujoco",
+      "phase": "validation"
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "levels": 3,
+        "top_mass_kg": 3,
+        "gap_m": 0.005
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.03987055,
+        "final_state": [
+          [
+            2.0,
+            -5.421815899382794e-12,
+            0.050000000002607375,
+            6.860716496851673e-13,
+            3.175237850427948e-14,
+            3.0544694250157577e-27,
+            2.289494000161915e-13,
+            1.0,
+            -6.953437095941305e-12,
+            1.6653345369377348e-13,
+            9.195126837765013e-13,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            1.0003649646527917e-09,
+            0.15000000002077463,
+            -9.994349059198605e-09,
+            -8.732947698320004e-11,
+            6.745071770859081e-15,
+            5.87731699484118e-11,
+            1.0,
+            5.443175736846092e-09,
+            1.8436502324803428e-09,
+            -1.7139564866149594e-08,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            -3.406881239618553e-10,
+            0.25000000005498046,
+            3.332367447824014e-09,
+            -1.3174256130454864e-10,
+            -1.6804564728360247e-18,
+            2.0170076357394402e-10,
+            1.0,
+            -1.823665241552755e-09,
+            9.506034848172362e-09,
+            5.7144157143590656e-09,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-017.npy.gz",
+        "trace_shape": [
+          1001,
+          3,
+          15
+        ],
+        "trace_sha256": "a827df44244297ebc7ce8adb31e17762c5800004b9d2edc30d962521f18836e6"
+      },
+      "metrics": {
+        "max_floor_penetration_m": 1.8528550813896033e-11,
+        "max_pair_penetration_m": 8.18120154955082e-11,
+        "settled_linear_speed_m_s": 2.0719725663514787e-08,
+        "settled_angular_speed_rad_s": 0.0,
+        "energy_excess_fraction": 0,
+        "max_support_relative_error": 7.3315939985718614e-09,
+        "support_relative_error_by_interface": [
+          2.4911218643453026e-09,
+          6.212614644951486e-09,
+          7.3315939985718614e-09
+        ],
+        "final_height_error_m": 5.4980464625487e-11,
+        "gates": {
+          "max_floor_penetration_m": true,
+          "max_pair_penetration_m": true,
+          "settled_linear_speed_m_s": true,
+          "settled_angular_speed_rad_s": true,
+          "energy_excess_fraction": true,
+          "max_support_relative_error": true,
+          "final_height_error_m": true,
+          "nonnegative_normal_impulse": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.018790486500000002,
+        0.0187844005,
+        0.018984868,
+        0.0186783645,
+        0.019162683
+      ],
+      "median_cost": 0.018790486500000002,
+      "backend": "native",
+      "phase": "validation"
+    }
+  ],
+  "selected_dt_ticks": 15625,
+  "comparison": {
+    "eligible": true,
+    "ratio_mujoco_over_native": 37.858071039508964
+  }
+}

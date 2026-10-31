@@ -1,0 +1,18 @@
+{
+  "baseline_backend_commit": "f316bc0f",
+  "baseline_note": "same contact_crowd example added before backend edit",
+  "source_sha256": {
+    "crates/rne_physics_native/examples/contact_crowd.rs": "7f5c8f2f1ea41510396dcef93e86df844859adb65d23121104fed26d1cc21bf5",
+    "crates/rne_physics_native/src/collide.rs": "b7cfeca65ef65ce735fe37f76fdeedcc1db26cff2b994c235257a34fb7a7bfa1",
+    "scripts/contact_benchmark/contact_crowd.py": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87"
+  },
+  "baseline_collide_sha256": "d6fb692a38fc8ac0a59c3bb3ce1596f3bbd896366b5f5cf3a579325d757d9dc7",
+  "report_sha256": "fc137225a50b39f0c9deb5d4ee418674e20f8341dea288dcffcb7d95a7dcb830",
+  "finite_gap_comparison": {
+    "conditions": 36,
+    "all_audit_fields_exactly_equal": true,
+    "before_binary_sha256": "2b322be4ee6c0d5ff8d4a7dde71827bf05f97b8e622ab58cdd6607211b5c2d49",
+    "after_binary_sha256": "012b9972a9e955375740d55fe737744f04a5587c07e7e2e2c54288e4c72938ef"
+  },
+  "binary_durable_url": null
+}

@@ -148,16 +148,21 @@ class ShoulderVectorEnv(VectorEnv):
             self._needs_reset[i] = False
         return self._observations(), self._info()
 
-    def step(self, actions):
+    def step(self, actions, *, forces_n=None):
         if self._needs_reset.any():
             raise RuntimeError("reset uninitialized or finished lanes before stepping")
         actions = np.asarray(actions, dtype=np.float64)
         if (actions.shape != self.action_space.shape or not np.isfinite(actions).all()
                 or (np.abs(actions) > 1).any()):
             raise ValueError("actions must be finite normalized torques in [-1, 1]")
+        if forces_n is not None and (not isinstance(forces_n, list) or len(forces_n) != self.num_envs):
+            raise ValueError("forces_n needs one map per environment")
         commands = [{"steps": self.physics_steps, "torques_nm": {
             agent: dict(zip(self.joint_names, (actions[i] * self._caps[i]).tolist()))
         }} for i, agent in enumerate(self.agent_ids)]
+        if forces_n is not None:
+            for command, forces in zip(commands, forces_n):
+                command["forces_n"] = forces
         try:
             results = self._request({"op": "step", "actions": commands}, "step")["results"]
             if any(r["status"] != "stepped" for r in results):

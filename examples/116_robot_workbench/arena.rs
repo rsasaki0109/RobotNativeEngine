@@ -4,10 +4,11 @@ use rne_core::SimDuration;
 use rne_ecs::{spawn_named, Entity, World};
 use rne_math::{Quat, Vec3};
 use rne_physics::{
-    hash_physics_state_v2, Collider, JointActuation, JointEffortMeasurement, JointMotor,
-    PhysicsBackend, PhysicsOwnedPose, PhysicsWorldDesc, PhysicsWorldId, RigidBody, RigidBodyType,
+    hash_physics_state_v2, Collider, ExternalBodyWrench, JointActuation, JointEffortMeasurement,
+    JointMotor, PhysicsBackend, PhysicsOwnedPose, PhysicsWorldDesc, PhysicsWorldId, RigidBody,
+    RigidBodyType,
 };
-use rne_physics_rapier::{step_physics, RapierBackend};
+use rne_physics_rapier::RapierBackend;
 use rne_urdf_import::{
     attach_urdf_document_articulation, spawn_urdf_document_with_owned_collisions,
     UrdfArticulationConfig, UrdfJointType, UrdfSpawnConfig,
@@ -41,6 +42,9 @@ pub(crate) struct Spawn {
 pub(crate) struct Action {
     pub steps: u32,
     pub torques_nm: BTreeMap<String, BTreeMap<String, f64>>,
+    /// World-frame forces at actuated child-link origins, repeated each physics tick.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub forces_n: BTreeMap<String, BTreeMap<String, [f64; 3]>>,
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -285,6 +289,20 @@ impl Arena {
                 ensure!(effort.is_finite(), "non-finite joint torque");
             }
         }
+        for (id, forces) in &action.forces_n {
+            let agent = self.agents.get(id).context("unknown force agent")?;
+            for (joint, force) in forces {
+                ensure!(
+                    agent.joints.contains_key(joint),
+                    "unknown force target {id}/{joint}"
+                );
+                let force = Vec3::from_array(*force);
+                ensure!(
+                    force.is_finite() && force.length() <= 20.0,
+                    "force must be finite and at most 20 N"
+                );
+            }
+        }
         Ok(())
     }
 
@@ -310,12 +328,26 @@ impl Arena {
         }
         let mut impulses = BTreeMap::<(String, String), f64>::new();
         for _ in 0..action.steps {
-            step_physics(
-                &mut self.backend,
-                &mut self.world,
-                self.physics_world,
-                SimDuration::from_ticks(STEP_TICKS),
-            )?;
+            self.backend
+                .sync_from_ecs(&mut self.world, self.physics_world)?;
+            for (id, forces) in &action.forces_n {
+                for (joint, force) in forces {
+                    let entity = self.agents[id].joints[joint].0;
+                    self.backend.apply_external_body_wrench(
+                        self.physics_world,
+                        ExternalBodyWrench {
+                            entity,
+                            point_world_m: world_transform_of(&self.world, entity).translation,
+                            force_world_n: Vec3::from_array(*force),
+                            torque_world_nm: Vec3::ZERO,
+                        },
+                    )?;
+                }
+            }
+            self.backend
+                .step(self.physics_world, SimDuration::from_ticks(STEP_TICKS))?;
+            self.backend
+                .sync_to_ecs(&mut self.world, self.physics_world)?;
             self.ticks += STEP_TICKS;
             for contact in self.backend.contacts(self.physics_world)? {
                 if contact.impulse > 0.0 {
@@ -451,6 +483,56 @@ mod tests {
         serde_json::from_str(include_str!("scenarios/contact_arena.json")).unwrap()
     }
     #[test]
+    fn external_force_is_scoped_repeated_and_does_not_replace_motor_torque() {
+        let mut pushed = Arena::new(&episode().config, &root()).unwrap();
+        let mut repeated = Arena::new(&episode().config, &root()).unwrap();
+        let mut passive = Arena::new(&episode().config, &root()).unwrap();
+        let mut action = Action {
+            steps: 12,
+            torques_nm: BTreeMap::new(),
+            forces_n: BTreeMap::from([(
+                "alice".into(),
+                BTreeMap::from([("wrist_flex".into(), [0.0, 0.0, 1.0])]),
+            )]),
+        };
+        let forced = pushed.step(&action).unwrap();
+        let mut one = action.clone();
+        one.steps = 1;
+        for _ in 0..12 {
+            repeated.step(&one).unwrap();
+        }
+        assert_eq!(forced.state_hash, repeated.observe().unwrap().state_hash);
+        action.forces_n.clear();
+        let zero = passive.step(&action).unwrap();
+        assert_ne!(forced.state_hash, zero.state_hash);
+        assert_eq!(
+            serde_json::to_value(&forced.agents["bob"]).unwrap(),
+            serde_json::to_value(&zero.agents["bob"]).unwrap()
+        );
+        assert!(forced.agents["alice"]
+            .joints
+            .values()
+            .all(|j| j.commanded_effort_nm == 0.0));
+        // Removing the force matches an explicit zero force: no stale wrench.
+        let cleared = pushed.step(&action).unwrap();
+        one.steps = 12;
+        one.forces_n
+            .get_mut("alice")
+            .unwrap()
+            .insert("wrist_flex".into(), [0.0; 3]);
+        assert_eq!(cleared.state_hash, repeated.step(&one).unwrap().state_hash);
+        let before = pushed.observe().unwrap().state_hash;
+        for force in [[f64::NAN, 0.0, 0.0], [21.0, 0.0, 0.0]] {
+            one.forces_n
+                .get_mut("alice")
+                .unwrap()
+                .insert("wrist_flex".into(), force);
+            assert!(pushed.step(&one).is_err());
+            assert_eq!(before, pushed.observe().unwrap().state_hash);
+        }
+    }
+
+    #[test]
     fn shared_world_is_dynamic_and_replays_in_agent_id_order() {
         let mut input = episode();
         let first = run(&input, &root()).unwrap();
@@ -482,11 +564,13 @@ mod tests {
         let zero = passive
             .step(&Action {
                 steps: 1,
+                forces_n: BTreeMap::new(),
                 torques_nm: BTreeMap::new(),
             })
             .unwrap();
         let mut action = Action {
             steps: 1,
+            forces_n: BTreeMap::new(),
             torques_nm: BTreeMap::from([(
                 "alice".into(),
                 BTreeMap::from([("shoulder_pan".into(), 0.02), ("gripper".into(), 2.0)]),
@@ -623,6 +707,7 @@ mod tests {
         let obs = sim
             .step(&Action {
                 steps: 240,
+                forces_n: BTreeMap::new(),
                 torques_nm: BTreeMap::new(),
             })
             .unwrap();

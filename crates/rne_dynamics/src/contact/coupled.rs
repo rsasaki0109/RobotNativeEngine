@@ -11,9 +11,10 @@
 //! models only through shared contacts.
 
 use super::{
-    active_joint_limits, actuator_torques, add_prescribed_contact_velocity, contact_frame,
-    effort_limit, fold_implicit_pd, integrate_from_base_frame, prescribed_point_velocity,
-    solve_contact_impulses, validate_pd, Cholesky, ContactOutcome, ContactStep, ContactStepConfig,
+    active_joint_limits, actuator_torques, add_base_transport_force,
+    add_prescribed_contact_velocity, contact_frame, effort_limit, fold_implicit_pd,
+    integrate_from_base_frame, prescribed_point_velocity, solve_contact_impulses,
+    transport_base_velocity, validate_pd, Cholesky, ContactOutcome, ContactStep, ContactStepConfig,
     JointLimitOutcome, JointLimitSide, JointPdControl, LimitRow, EFFORT_TOLERANCE,
     MAX_EFFORT_PASSES,
 };
@@ -84,6 +85,8 @@ pub struct CoupledStep {
     pub solver_iterations: usize,
     /// Whether the contact solver converged within its sweep budget.
     pub solver_converged: bool,
+    /// Coupled contact-law validation; see [`super::ContactSolution::contact_law_satisfied`].
+    pub solver_contact_law_satisfied: bool,
 }
 
 /// Quantities of one model that do not depend on actuator saturation.
@@ -108,21 +111,70 @@ pub fn contact_step_coupled(
     config: &ContactStepConfig,
     warm_start_n_s: Option<&[[f64; 3]]>,
 ) -> Result<CoupledStep, DynamicsError> {
+    step_with_external(bodies, contacts, config, warm_start_n_s, None)
+}
+
+/// Steps coupled bodies with additional generalized external forces, in each
+/// model's velocity coordinates. These forces are not actuator commands and
+/// are not clipped by actuator effort limits. Each vector must have `nv` entries.
+pub fn contact_step_coupled_with_external_forces(
+    bodies: &[CoupledBody<'_>],
+    contacts: &[CoupledContact],
+    config: &ContactStepConfig,
+    warm_start_n_s: Option<&[[f64; 3]]>,
+    external: &[Vec<f64>],
+) -> Result<CoupledStep, DynamicsError> {
+    if external.len() != bodies.len() {
+        return Err(DynamicsError::DimensionMismatch {
+            provided: external.len(),
+            expected: bodies.len(),
+        });
+    }
+    for (body, forces) in bodies.iter().zip(external) {
+        if forces.len() != body.model.nv() {
+            return Err(DynamicsError::DimensionMismatch {
+                provided: forces.len(),
+                expected: body.model.nv(),
+            });
+        }
+        if forces.iter().any(|v| !v.is_finite()) {
+            return Err(DynamicsError::NonFiniteInput);
+        }
+    }
+    step_with_external(bodies, contacts, config, warm_start_n_s, Some(external))
+}
+
+fn step_with_external(
+    bodies: &[CoupledBody<'_>],
+    contacts: &[CoupledContact],
+    config: &ContactStepConfig,
+    warm_start_n_s: Option<&[[f64; 3]]>,
+    external: Option<&[Vec<f64>]>,
+) -> Result<CoupledStep, DynamicsError> {
     validate(bodies, contacts, config, warm_start_n_s)?;
     let mut offset = 0;
     let frames = bodies
         .iter()
-        .map(|body| {
+        .enumerate()
+        .map(|(index, body)| {
             let kinematics = body.model.kinematic.forward_kinematics(body.q)?;
             let xup = xup_transforms(body.model, kinematics.transforms());
             let mass = mass_matrix_from_xup(body.model, &xup);
-            let bias = rnea_from_xup(
+            let mut bias = rnea_from_xup(
                 body.model,
                 kinematics.transforms(),
                 &xup,
                 body.qd,
                 &vec![0.0; body.model.nv()],
             );
+            if let Some(forces) = external {
+                for (bias, force) in bias.iter_mut().zip(&forces[index]) {
+                    *bias -= force;
+                }
+                if bias.iter().any(|v| !v.is_finite()) {
+                    return Err(DynamicsError::NonFiniteInput);
+                }
+            }
             let frame = BodyFrame {
                 kinematics,
                 mass,
@@ -252,7 +304,13 @@ fn solve(
     let mut free_velocity = Vec::with_capacity(total_nv);
     let mut limits: Vec<(usize, LimitRow)> = Vec::new();
     for (index, ((body, frame), held)) in bodies.iter().zip(frames).zip(held).enumerate() {
-        let (factor, free) = free_motion(body, frame, held, dt)?;
+        let (factor, free) = free_motion(
+            body,
+            frame,
+            held,
+            dt,
+            contacts.is_empty() && bodies.len() == 1 && body.model.nv() == 6,
+        )?;
         if config.enforce_joint_limits {
             limits.extend(
                 active_joint_limits(body.model, body.q, &free, dt)
@@ -327,7 +385,7 @@ fn solve(
     let mut body_steps = Vec::with_capacity(bodies.len());
     for (index, (body, frame)) in bodies.iter().zip(frames).enumerate() {
         let nv = body.model.nv();
-        let qd = next_velocity[frame.offset..frame.offset + nv].to_vec();
+        let mut qd = next_velocity[frame.offset..frame.offset + nv].to_vec();
         let q = integrate_from_base_frame(
             body.model,
             body.q,
@@ -335,6 +393,9 @@ fn solve(
             dt,
             &frame.kinematics.transforms()[0],
         );
+        if contacts.is_empty() && bodies.len() == 1 && body.model.nv() == 6 {
+            transport_base_velocity(body.model, dt, &mut qd);
+        }
         let joint_limits = limits
             .iter()
             .zip(&solution.impulses_n_s[count..])
@@ -354,6 +415,7 @@ fn solve(
             saturated_joints: Vec::new(),
             solver_iterations: solution.iterations,
             solver_converged: solution.converged,
+            solver_contact_law_satisfied: solution.contact_law_satisfied,
         });
     }
     let outcomes = solution.impulses_n_s[..count]
@@ -372,6 +434,7 @@ fn solve(
         contacts: outcomes,
         solver_iterations: solution.iterations,
         solver_converged: solution.converged,
+        solver_contact_law_satisfied: solution.contact_law_satisfied,
     })
 }
 
@@ -381,6 +444,7 @@ fn free_motion(
     frame: &BodyFrame,
     held: &[Option<f64>],
     dt: f64,
+    transport: bool,
 ) -> Result<(Cholesky, Vec<f64>), DynamicsError> {
     let base = body.model.base_dof();
     let mut effective_mass = frame.mass.clone();
@@ -406,6 +470,9 @@ fn free_motion(
             &mut effective_mass,
             &mut generalized_force,
         );
+    }
+    if transport {
+        add_base_transport_force(body.model, &frame.mass, body.qd, &mut generalized_force);
     }
     let factor = Cholesky::new(&effective_mass, body.model.dof_parents.as_deref())
         .ok_or(DynamicsError::SingularMassMatrix)?;
@@ -511,6 +578,23 @@ fn block_delassus(
             column
         })
         .collect();
+    let sparse_rows = (total_nv >= 48).then(|| {
+        (0..rows)
+            .map(|row| {
+                if nonzero[row] {
+                    SparseDotRow::new(row_of(row))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>()
+    });
+    let finite_response = sparse_rows.as_ref().map(|_| {
+        response
+            .iter()
+            .map(|column| column.iter().all(|v| v.is_finite()))
+            .collect::<Vec<_>>()
+    });
     let mut delassus = DenseMatrix::zeros(rows, rows);
     for row in 0..rows {
         if !nonzero[row] {
@@ -521,14 +605,132 @@ fn block_delassus(
             if !nonzero[col] {
                 continue;
             }
-            let value: f64 = jacobian_row
-                .iter()
-                .zip(&response[col])
-                .map(|(a, b)| a * b)
-                .sum();
+            let value = sparse_rows
+                .as_ref()
+                .and_then(|sparse| {
+                    sparse[row].as_ref().and_then(|row| {
+                        row.evaluate(
+                            &response[col],
+                            finite_response.as_ref().is_some_and(|finite| finite[col]),
+                        )
+                    })
+                })
+                .unwrap_or_else(|| {
+                    jacobian_row
+                        .iter()
+                        .zip(&response[col])
+                        .map(|(a, b)| a * b)
+                        .sum()
+                });
             delassus.set(row, col, value);
             delassus.set(col, row, value);
         }
     }
     (response, delassus)
+}
+
+/// Ordered exact-nonzero Jacobian coefficients for one Delassus dot product.
+struct SparseDotRow {
+    entries: Vec<(usize, f64)>,
+    zero: Option<(usize, bool)>,
+}
+
+impl SparseDotRow {
+    fn new(row: &[f64]) -> Option<Self> {
+        let mut entries = Vec::new();
+        let mut zero = None;
+        for (column, &value) in row.iter().enumerate() {
+            if value == 0.0 {
+                // Prefer +0: untouched response components are initialized +0.
+                if zero.is_none()
+                    || (!value.is_sign_negative() && zero.is_some_and(|(_, negative)| negative))
+                {
+                    zero = Some((column, value.is_sign_negative()));
+                }
+            } else {
+                if entries.len() == row.len() / 4 {
+                    return None;
+                }
+                entries.push((column, value));
+            }
+        }
+        Some(Self { entries, zero })
+    }
+
+    fn evaluate(&self, response: &[f64], finite_response: bool) -> Option<f64> {
+        // A skipped zero times infinity/NaN must still reach the dense path.
+        if !finite_response {
+            return None;
+        }
+        let mut sum = 0.0;
+        for &(column, coefficient) in &self.entries {
+            sum += coefficient * response[column];
+        }
+        if !sum.is_finite() {
+            return None;
+        }
+        if sum != 0.0 {
+            return Some(sum);
+        }
+        // Iterator::sum may preserve -0 when every product is -0. A known
+        // +0 product proves a zero result must instead be +0 under default
+        // round-to-nearest arithmetic. Otherwise repeat the original dot.
+        self.zero.and_then(|(column, negative)| {
+            (response[column].is_sign_negative() == negative).then_some(0.0)
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn dense(a: &[f64], b: &[f64]) -> f64 {
+        a.iter().zip(b).map(|(a, b)| a * b).sum()
+    }
+
+    #[test]
+    fn sparse_dot_preserves_dense_bits_across_scales_and_signed_zeros() {
+        for size in [48, 96, 186] {
+            for scale in [1e-300, 1.0, 1e300] {
+                let mut a = vec![0.0; size];
+                a[0] = -0.0;
+                a[3] = scale;
+                a[17] = -scale;
+                let row = SparseDotRow::new(&a).unwrap();
+                assert_eq!(row.entries.len(), 2);
+                for magnitude in [0.0, -0.0, 1e-300, 1.0, 1e300, f64::INFINITY, f64::NAN] {
+                    for sign in [-1.0, 1.0] {
+                        let mut b = vec![sign * magnitude; size];
+                        b[17] = magnitude;
+                        let expected = dense(&a, &b);
+                        let actual = row
+                            .evaluate(&b, b.iter().all(|v| v.is_finite()))
+                            .unwrap_or_else(|| dense(&a, &b));
+                        assert_eq!(actual.to_bits(), expected.to_bits());
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn sparse_dot_requires_a_positive_zero_product_for_zero_fast_path() {
+        let a = vec![-0.0; 48];
+        let row = SparseDotRow::new(&a).unwrap();
+        let positive = vec![1.0; 48];
+        assert!(row.evaluate(&positive, true).is_none());
+        assert_eq!(dense(&a, &positive).to_bits(), (-0.0_f64).to_bits());
+        let negative = vec![-1.0; 48];
+        assert_eq!(
+            row.evaluate(&negative, true).unwrap().to_bits(),
+            0.0_f64.to_bits()
+        );
+        assert_eq!(dense(&a, &negative).to_bits(), 0.0_f64.to_bits());
+        assert!(row.evaluate(&[f64::INFINITY; 48], false).is_none());
+        assert!(SparseDotRow::new(&[1.0; 48]).is_none());
+        let mut tiny = vec![0.0; 48];
+        tiny[5] = 1e-300;
+        assert_eq!(SparseDotRow::new(&tiny).unwrap().entries[0], (5, 1e-300));
+    }
 }

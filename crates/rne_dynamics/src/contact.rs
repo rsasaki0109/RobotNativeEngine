@@ -28,8 +28,14 @@
 //! in input order, no hash order participates, and no wall-clock time is read.
 
 mod coupled;
+mod normal;
+mod residual;
+mod sticking;
 
-pub use coupled::{contact_step_coupled, ContactAnchor, CoupledBody, CoupledContact, CoupledStep};
+pub use coupled::{
+    contact_step_coupled, contact_step_coupled_with_external_forces, ContactAnchor, CoupledBody,
+    CoupledContact, CoupledStep,
+};
 
 use crate::algorithms::{
     mass_matrix_from_xup, point_linear_jacobian, rnea_from_xup, xup_transforms, DenseMatrix,
@@ -81,8 +87,15 @@ pub struct ContactPoint {
 /// Iteration controls for [`solve_contact_impulses`].
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ContactSolverConfig {
-    /// Maximum number of Gauss-Seidel sweeps over all contacts.
+    /// Maximum number of Gauss-Seidel sweeps over all contacts. A bounded
+    /// normal-block attempt may precede these for small frictionless or
+    /// tangentially static islands.
     pub max_iterations: usize,
+    /// Opt in to a bounded full sticking block attempt after the normal-only
+    /// attempt. Experimental: validated candidates may improve some small
+    /// frictional islands, but costs and transient errors can increase.
+    /// Disabled by default; failed candidates leave the GS warm start intact.
+    pub experimental_sticking_block: bool,
     /// Convergence threshold on the largest per-contact impulse change in one
     /// sweep, in newton-seconds.
     pub tolerance_n_s: f64,
@@ -114,6 +127,7 @@ impl Default for ContactSolverConfig {
     fn default() -> Self {
         Self {
             max_iterations: 200,
+            experimental_sticking_block: false,
             tolerance_n_s: 1.0e-10,
             velocity_tolerance_m_s: 1.0e-8,
             relaxation: 1.0,
@@ -143,11 +157,26 @@ pub struct ContactSolution {
     pub impulses_n_s: Vec<[f64; 3]>,
     /// Resolved state of each contact.
     pub states: Vec<ContactState>,
-    /// Number of sweeps performed.
+    /// Number of Gauss-Seidel sweeps performed (zero for a block solve).
     pub iterations: usize,
-    /// Whether the impulse change dropped below the tolerance.
+    /// Active-set passes attempted before the Gauss-Seidel fallback.
+    pub normal_block_iterations: usize,
+    /// Whether an independently validated normal-block solution was used.
+    pub normal_block_solved: bool,
+    /// Active-set passes attempted by the sticking block candidate solver.
+    pub sticking_block_iterations: usize,
+    /// Whether a full sticking block candidate passed the original contact law.
+    pub sticking_block_solved: bool,
+    /// Whether a block candidate satisfied complementarity, or the sweep
+    /// impulse/velocity change dropped below the configured tolerance.
     pub converged: bool,
-    /// Largest per-contact impulse change in the last sweep, in newton-seconds.
+    /// Whether the current coupled contact law passes the configured impulse
+    /// and velocity tolerances, including normal compliance. Independent of
+    /// the iterate-change stopping flag. Friction alignment is velocity-scaled,
+    /// not an absolute dissipation-energy bound.
+    pub contact_law_satisfied: bool,
+    /// Largest per-contact impulse change in the last sweep, or from the warm
+    /// start to the block solution, in newton-seconds.
     pub last_change_n_s: f64,
 }
 
@@ -162,7 +191,13 @@ pub struct ContactSolution {
 /// * `λₙ ≥ 0`, `vₙ ≥ 0`, `λₙ vₙ = 0` with `v = free_velocity + G λ`;
 /// * `‖λₜ‖ ≤ μ λₙ`, and a sliding contact's tangential velocity opposes `λₜ`.
 ///
-/// Contacts are swept in index order, so the result is deterministic.
+/// Small rigid islands first try a bounded normal active-set solve. Frictionless
+/// candidates must satisfy the original normal complementarity equations;
+/// frictional candidates must additionally have zero tangential velocity at
+/// every loaded frictional point, within the configured velocity tolerance.
+/// The opt-in experimental sticking block path also tries a full static-friction
+/// candidate. Failed candidates retain the warm start for sweeps in index order.
+/// All paths are deterministic.
 /// `warm_start_n_s` optionally seeds the impulses, which typically reduces the
 /// sweep count when consecutive steps share their contacts.
 pub fn solve_contact_impulses(
@@ -226,6 +261,16 @@ pub fn solve_contact_impulses(
             "solver regularization must be finite and non-negative",
         ));
     }
+    let (solution, normal_block_iterations, sticking_block_iterations) = block_candidates(
+        delassus,
+        free_velocity_m_s,
+        friction_coefficients,
+        config,
+        &impulses,
+    );
+    if let Some(solution) = solution {
+        return Ok(solution);
+    }
     let blocks: Vec<[[f64; 3]; 3]> = (0..count)
         .map(|contact| {
             let mut block = diagonal_block(delassus, contact);
@@ -236,6 +281,9 @@ pub fn solve_contact_impulses(
         })
         .collect();
 
+    let sparse_bias = SparseBiasRows::new(delassus);
+    let mut finite_impulses =
+        sparse_bias.is_some() && impulses.iter().flatten().all(|v| v.is_finite());
     let mut iterations = 0;
     let mut last_change = 0.0;
     let mut converged = count == 0;
@@ -247,30 +295,21 @@ pub fn solve_contact_impulses(
         before.copy_from_slice(&impulses);
         for contact in 0..count {
             // Velocity of this contact with its own impulse removed.
-            let mut bias = [0.0; 3];
-            for (axis, value) in bias.iter_mut().enumerate() {
+            let evaluate_bias = |axis| {
                 let row = 3 * contact + axis;
-                let mut sum = free_velocity_m_s[row];
-                let coefficients = &delassus.data()[row * size..(row + 1) * size];
-                for (other, (coefficients, impulse)) in
-                    coefficients.chunks_exact(3).zip(&impulses).enumerate()
-                {
-                    if other == contact {
-                        continue;
-                    }
-                    // Keep the original scalar addition order, including zero terms.
-                    sum += coefficients[0] * impulse[0];
-                    sum += coefficients[1] * impulse[1];
-                    sum += coefficients[2] * impulse[2];
-                }
-                *value = sum;
-            }
-            let (local, state) = solve_single_contact(
-                &blocks[contact],
-                bias,
-                friction_coefficients[contact],
-                config.bisection_iterations,
-            );
+                sparse_bias
+                    .as_ref()
+                    .and_then(|sparse| {
+                        sparse.evaluate(row, free_velocity_m_s[row], &impulses, finite_impulses)
+                    })
+                    .unwrap_or_else(|| {
+                        dense_contact_bias(delassus, row, free_velocity_m_s[row], &impulses)
+                    })
+            };
+            let mu = friction_coefficients[contact];
+            let bias = contact_bias(&blocks[contact], mu, evaluate_bias);
+            let (local, state) =
+                solve_single_contact(&blocks[contact], bias, mu, config.bisection_iterations);
             let previous = impulses[contact];
             let blended = [
                 previous[0] + config.relaxation * (local[0] - previous[0]),
@@ -282,38 +321,198 @@ pub fn solve_contact_impulses(
                 + (blended[2] - previous[2]).powi(2))
             .sqrt();
             last_change = last_change.max(change);
+            if sparse_bias.is_some() {
+                finite_impulses &= blended.iter().all(|v| v.is_finite());
+            }
             impulses[contact] = blended;
             states[contact] = state;
         }
         converged = last_change <= config.tolerance_n_s
-            || sweep_velocity_change(delassus, &impulses, &before, &mut delta)
-                <= config.velocity_tolerance_m_s;
+            || sweep_velocity_converged(
+                delassus,
+                &impulses,
+                &before,
+                &mut delta,
+                config.velocity_tolerance_m_s,
+                sparse_bias.as_ref(),
+            );
     }
 
+    let contact_law_satisfied = residual::satisfied(
+        delassus,
+        free_velocity_m_s,
+        friction_coefficients,
+        &impulses,
+        config,
+    );
     Ok(ContactSolution {
         impulses_n_s: impulses,
         states,
         iterations,
+        normal_block_iterations,
+        normal_block_solved: false,
+        sticking_block_iterations,
+        sticking_block_solved: false,
         converged,
+        contact_law_satisfied,
         last_change_n_s: last_change,
     })
 }
 
-/// Largest change of any contact velocity over one sweep, `max |G δλ|`.
+fn block_candidates(
+    matrix: &DenseMatrix,
+    free: &[f64],
+    friction: &[f64],
+    config: &ContactSolverConfig,
+    seed: &[[f64; 3]],
+) -> (Option<ContactSolution>, usize, usize) {
+    let (normal, normal_passes) = normal::attempt(matrix, free, friction, config, seed);
+    if normal.is_some() || !config.experimental_sticking_block {
+        return (normal, normal_passes, 0);
+    }
+    let (mut sticking, sticking_passes) = sticking::attempt(matrix, free, friction, config, seed);
+    if let Some(solution) = &mut sticking {
+        solution.normal_block_iterations = normal_passes;
+    }
+    (sticking, normal_passes, sticking_passes)
+}
+
+/// Exact nonzero off-diagonal rows, preserving scalar column order.
+/// Small or dense systems retain the original scan; no magnitude threshold is used.
+struct SparseBiasRows {
+    offsets: Vec<usize>,
+    entries: Vec<(usize, f64)>,
+}
+
+impl SparseBiasRows {
+    fn new(matrix: &DenseMatrix) -> Option<Self> {
+        let size = matrix.rows();
+        if size < 96 {
+            return None;
+        }
+        let budget = matrix.data().len() / 4;
+        let mut offsets = Vec::with_capacity(size + 1);
+        let mut entries = Vec::new();
+        offsets.push(0);
+        for (row, coefficients) in matrix.data().chunks_exact(size).enumerate() {
+            for (column, &coefficient) in coefficients.iter().enumerate() {
+                if column / 3 != row / 3 && coefficient != 0.0 {
+                    if entries.len() == budget {
+                        return None;
+                    }
+                    entries.push((column, coefficient));
+                }
+            }
+            offsets.push(entries.len());
+        }
+        Some(Self { offsets, entries })
+    }
+
+    /// Absolute velocity change, inserting the original self block in column order.
+    /// Caller verifies that every delta is finite, including skipped columns.
+    fn velocity_change(&self, row: usize, diagonal: &[f64], delta: &[f64]) -> Option<f64> {
+        let start = 3 * (row / 3);
+        let entries = &self.entries[self.offsets[row]..self.offsets[row + 1]];
+        let middle = entries.partition_point(|(column, _)| *column < start);
+        let mut sum = 0.0;
+        for &(column, coefficient) in &entries[..middle] {
+            sum += coefficient * delta[column];
+        }
+        for (coefficient, value) in diagonal.iter().zip(&delta[start..start + 3]) {
+            sum += coefficient * value;
+        }
+        for &(column, coefficient) in &entries[middle..] {
+            sum += coefficient * delta[column];
+        }
+        // abs erases the sign of zero. Nonfinite sums use the original row.
+        sum.is_finite().then_some(sum.abs())
+    }
+
+    /// Caller must ensure every impulse is finite, including skipped columns.
+    fn evaluate(
+        &self,
+        row: usize,
+        free: f64,
+        impulses: &[[f64; 3]],
+        finite_impulses: bool,
+    ) -> Option<f64> {
+        // Adding signed zero can change -0 to +0. Retain the dense evaluation
+        // in that case. From any other finite seed, omitting zero products
+        // cannot change the sum's bits under round-to-nearest arithmetic.
+        if !finite_impulses || free.to_bits() == (-0.0_f64).to_bits() {
+            return None;
+        }
+        let mut sum = free;
+        for &(column, coefficient) in &self.entries[self.offsets[row]..self.offsets[row + 1]] {
+            sum += coefficient * impulses[column / 3][column % 3];
+        }
+        // Overflow/NaN must use the original operations, including zero terms.
+        sum.is_finite().then_some(sum)
+    }
+}
+
+fn dense_contact_bias(matrix: &DenseMatrix, row: usize, free: f64, impulses: &[[f64; 3]]) -> f64 {
+    let size = matrix.cols();
+    let coefficients = &matrix.data()[row * size..(row + 1) * size];
+    let mut sum = free;
+    for (other, (coefficients, impulse)) in coefficients.chunks_exact(3).zip(impulses).enumerate() {
+        if other == row / 3 {
+            continue;
+        }
+        sum += coefficients[0] * impulse[0];
+        sum += coefficients[1] * impulse[1];
+        sum += coefficients[2] * impulse[2];
+    }
+    sum
+}
+
+/// Whether every contact velocity change over one sweep is within tolerance.
+/// Stops at the first failing row, preserving each dot product's summation order.
 ///
 /// Redundant contacts (more constraint rows than the bodies have degrees of
 /// freedom) leave `G` singular, and the sweeps keep shifting impulse along
 /// its null space long after the motion has settled; that shift changes no
 /// velocity, so this measures the progress that matters.
-fn sweep_velocity_change(
+fn sweep_velocity_converged(
     delassus: &DenseMatrix,
     impulses: &[[f64; 3]],
     before: &[[f64; 3]],
     delta: &mut [f64],
-) -> f64 {
+    tolerance_m_s: f64,
+    sparse: Option<&SparseBiasRows>,
+) -> bool {
+    if tolerance_m_s.is_nan() || tolerance_m_s < 0.0 {
+        return false;
+    }
     for ((now, then), change) in impulses.iter().zip(before).zip(delta.chunks_exact_mut(3)) {
         change.copy_from_slice(&[now[0] - then[0], now[1] - then[1], now[2] - then[2]]);
     }
+    // On short rows, scanning contiguous coefficients is cheaper than the
+    // sparse indirection and its finite-delta check. Keep their original loop.
+    let Some(sparse) = sparse.filter(|_| delta.len() >= 192 && delta.iter().all(|v| v.is_finite()))
+    else {
+        return dense_velocity_converged(delassus, delta, tolerance_m_s);
+    };
+    delassus
+        .data()
+        .chunks_exact(delta.len())
+        .enumerate()
+        .all(|(index, row)| {
+            let start = 3 * (index / 3);
+            let change = sparse
+                .velocity_change(index, &row[start..start + 3], delta)
+                .unwrap_or_else(|| {
+                    row.iter()
+                        .zip(delta.iter())
+                        .map(|(a, b)| a * b)
+                        .sum::<f64>()
+                        .abs()
+                });
+            change.is_nan() || change <= tolerance_m_s
+        })
+}
+
+fn dense_velocity_converged(delassus: &DenseMatrix, delta: &[f64], tolerance_m_s: f64) -> bool {
     delassus
         .data()
         .chunks_exact(delta.len())
@@ -324,7 +523,8 @@ fn sweep_velocity_change(
                 .sum::<f64>()
                 .abs()
         })
-        .fold(0.0, f64::max)
+        // Match the previous max(0, |G δλ|) reduction, which ignores NaNs.
+        .all(|change| change.is_nan() || change <= tolerance_m_s)
 }
 
 fn diagonal_block(delassus: &DenseMatrix, contact: usize) -> [[f64; 3]; 3] {
@@ -347,6 +547,17 @@ fn project_onto_cone(impulse: [f64; 3], mu: f64) -> [f64; 3] {
         let scale = limit / tangential;
         [impulse[0] * scale, impulse[1] * scale, normal]
     }
+}
+
+fn contact_bias(g: &[[f64; 3]; 3], mu: f64, mut evaluate: impl FnMut(usize) -> f64) -> [f64; 3] {
+    let mut bias = [0.0, 0.0, evaluate(2)];
+    // Match the local solver's early returns exactly, including NaN
+    // comparisons. These branches never inspect tangential bias.
+    if !(bias[2] >= 0.0 || mu == 0.0 || g[2][2] <= 0.0) {
+        bias[0] = evaluate(0);
+        bias[1] = evaluate(1);
+    }
+    bias
 }
 
 /// Solves one contact `v = G λ + b` exactly against the Coulomb cone.
@@ -615,6 +826,8 @@ pub struct ContactStep {
     pub solver_iterations: usize,
     /// Whether the contact solver converged within its sweep budget.
     pub solver_converged: bool,
+    /// Coupled contact-law validation; see [`ContactSolution::contact_law_satisfied`].
+    pub solver_contact_law_satisfied: bool,
 }
 
 /// Advances an articulated model one step with hard contacts and implicit PD.
@@ -806,6 +1019,9 @@ fn step_with_actuation(
             &mut generalized_force,
         );
     }
+    if contacts.is_empty() && model.nv() == 6 {
+        add_base_transport_force(model, frame.mass, qd, &mut generalized_force);
+    }
     let factor = Cholesky::new(&effective_mass, model.dof_parents.as_deref())
         .ok_or(DynamicsError::SingularMassMatrix)?;
 
@@ -883,6 +1099,10 @@ fn step_with_actuation(
     let next_configuration =
         integrate_from_base_frame(model, q, &next_velocity, dt, &transforms[0]);
 
+    if contacts.is_empty() && model.nv() == 6 {
+        transport_base_velocity(model, dt, &mut next_velocity);
+    }
+
     let joint_limits = limits
         .iter()
         .zip(&solution.impulses_n_s[count..])
@@ -914,6 +1134,7 @@ fn step_with_actuation(
         saturated_joints: Vec::new(),
         solver_iterations: solution.iterations,
         solver_converged: solution.converged,
+        solver_contact_law_satisfied: solution.contact_law_satisfied,
     })
 }
 
@@ -1249,6 +1470,35 @@ pub fn integrate_configuration(
     ))
 }
 
+// Solve velocity increments in the old base frame. RNE's body-twist bias
+// includes the moving-frame derivative -omega x v; remove that term here,
+// then rotate the solved velocity exactly into the new frame after integration.
+fn add_base_transport_force(
+    model: &ArticulatedModel,
+    mass: &DenseMatrix,
+    qd: &[f64],
+    force: &mut [f64],
+) {
+    if model.base_dof() != 6 {
+        return;
+    }
+    let correction = Vec3::new(qd[3], qd[4], qd[5]).cross(Vec3::new(qd[0], qd[1], qd[2]));
+    for (row, value) in force.iter_mut().enumerate() {
+        *value += mass.get(row, 0) * correction.x
+            + mass.get(row, 1) * correction.y
+            + mass.get(row, 2) * correction.z;
+    }
+}
+
+fn transport_base_velocity(model: &ArticulatedModel, dt: f64, velocity: &mut [f64]) {
+    if model.base_dof() != 6 {
+        return;
+    }
+    let rotation = Quat::from_scaled_axis(-dt * Vec3::new(velocity[3], velocity[4], velocity[5]));
+    let linear = rotation * Vec3::new(velocity[0], velocity[1], velocity[2]);
+    velocity[..3].copy_from_slice(&[linear.x, linear.y, linear.z]);
+}
+
 /// [`integrate_configuration`] with the base link frame at `q` already known.
 fn integrate_from_base_frame(
     model: &ArticulatedModel,
@@ -1447,6 +1697,199 @@ mod tests {
 
     const HALF_EXTENTS_M: [f64; 3] = [0.1, 0.05, 0.1];
     const BOX_MASS_KG: f64 = 2.0;
+
+    #[test]
+    fn unused_tangential_bias_preserves_local_solution() {
+        for (normal, mu, response) in [
+            (1.0, 0.5, 1.0),
+            (0.0, 0.5, 1.0),
+            (-0.0, 0.5, 1.0),
+            (-1.0, 0.0, 2.0),
+            (-1.0, 0.5, 0.0),
+            (-1.0, 0.5, -1.0),
+        ] {
+            let g = [[1.0, 0.2, 0.1], [0.2, 1.0, 0.1], [0.1, 0.1, response]];
+            let bias = contact_bias(&g, mu, |axis| {
+                assert_eq!(axis, 2, "unused tangent evaluated");
+                normal
+            });
+            let expected = solve_single_contact(&g, bias, mu, 40);
+            for tangent in [1.0, -1e300, f64::INFINITY, f64::NAN] {
+                let actual = solve_single_contact(&g, [tangent, -tangent, normal], mu, 40);
+                assert_eq!(actual.0.map(f64::to_bits), expected.0.map(f64::to_bits));
+                assert_eq!(actual.1, expected.1);
+            }
+        }
+        for (normal, response) in [(-1.0, 1.0), (f64::NAN, 1.0), (-1.0, f64::NAN)] {
+            let mut g = [[0.0; 3]; 3];
+            g[2][2] = response;
+            let mut order = Vec::new();
+            let bias = contact_bias(&g, 0.5, |axis| {
+                order.push(axis);
+                [0.2, -0.3, normal][axis]
+            });
+            assert_eq!(order, [2, 0, 1]);
+            assert_eq!(
+                bias.map(f64::to_bits),
+                [0.2, -0.3, normal].map(f64::to_bits)
+            );
+        }
+    }
+
+    #[test]
+    fn velocity_stopping_matches_full_maximum() {
+        // Exercise a failing first/middle/last row, equality, cancellation,
+        // and overflow. The reference is the former complete reduction.
+        for count in [2, 4, 5, 8] {
+            let dimension = 3 * count;
+            for row_index in 0..dimension {
+                for coefficient in [0.0, 1.0, -1.0, f64::MAX] {
+                    let mut matrix = DenseMatrix::zeros(dimension, dimension);
+                    matrix.set(row_index, 0, coefficient);
+                    matrix.set(row_index, 1, -coefficient);
+                    for values in [[1.0, 0.0, 0.0], [2.0, 2.0, 0.0]] {
+                        let mut impulses = vec![[0.0; 3]; count];
+                        impulses[0] = values;
+                        let flat: Vec<_> = impulses.iter().flatten().copied().collect();
+                        let maximum = matrix
+                            .data()
+                            .chunks_exact(dimension)
+                            .map(|row| row.iter().zip(&flat).map(|(a, b)| a * b).sum::<f64>().abs())
+                            .fold(0.0, f64::max);
+                        for tolerance in [0.0, 0.5, 1.0, 2.0, -1.0, f64::NAN, f64::INFINITY] {
+                            assert_eq!(
+                                sweep_velocity_converged(
+                                    &matrix,
+                                    &impulses,
+                                    &vec![[0.0; 3]; count],
+                                    &mut vec![0.0; dimension],
+                                    tolerance,
+                                    None,
+                                ),
+                                maximum <= tolerance,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn sparse_bias_matches_dense_bits_and_keeps_tiny_entries() {
+        let mut rng = Lcg(2941);
+        for count in [32, 33, 64] {
+            let size = 3 * count;
+            let mut matrix = DenseMatrix::zeros(size, size);
+            for row in 0..size {
+                for (offset, scale) in [(3, 1.0), (17, 1e-300), (41, 1e300)] {
+                    matrix.set(row, (row + offset) % size, rng.next() * scale);
+                }
+                matrix.set(row, (row + 1) % size, -0.0);
+            }
+            let sparse = SparseBiasRows::new(&matrix).unwrap();
+            assert!(sparse
+                .entries
+                .iter()
+                .any(|(_, v)| v.abs() < 1e-299 && *v != 0.0));
+            for scale in [0.0, 1.0, 1e-300, 1e300] {
+                let impulses: Vec<_> = (0..count)
+                    .map(|_| [rng.next() * scale, -0.0, rng.next() * scale])
+                    .collect();
+                for row in 0..size {
+                    for free in [0.0, -0.0, -1.0, 1e300] {
+                        let expected = dense_contact_bias(&matrix, row, free, &impulses);
+                        let actual = sparse
+                            .evaluate(row, free, &impulses, true)
+                            .unwrap_or_else(|| dense_contact_bias(&matrix, row, free, &impulses));
+                        assert_eq!(
+                            actual.to_bits(),
+                            expected.to_bits(),
+                            "count {count} row {row}"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn sparse_bias_falls_back_for_small_dense_and_nonfinite_cases() {
+        assert!(SparseBiasRows::new(&DenseMatrix::zeros(93, 93)).is_none());
+        let mut matrix = DenseMatrix::zeros(96, 96);
+        let sparse = SparseBiasRows::new(&matrix).unwrap();
+        let mut impulses = vec![[0.0; 3]; 32];
+        impulses[31][2] = f64::INFINITY;
+        assert!(sparse.evaluate(0, 0.0, &impulses, false).is_none());
+        assert!(dense_contact_bias(&matrix, 0, 0.0, &impulses).is_nan());
+        assert!(sparse.evaluate(0, -0.0, &[[0.0; 3]; 32], true).is_none());
+        matrix.set(0, 3, f64::MAX);
+        let sparse = SparseBiasRows::new(&matrix).unwrap();
+        impulses[31][2] = 0.0;
+        impulses[1][0] = 2.0;
+        assert!(sparse.evaluate(0, 0.0, &impulses, true).is_none());
+        for row in 0..96 {
+            for col in 0..96 {
+                matrix.set(row, col, 1.0);
+            }
+        }
+        assert!(SparseBiasRows::new(&matrix).is_none());
+    }
+
+    #[test]
+    fn sparse_velocity_stopping_matches_dense_with_self_blocks_and_overflow() {
+        for count in [32, 33, 63, 64, 65] {
+            let size = 3 * count;
+            let mut matrix = DenseMatrix::zeros(size, size);
+            for row in 0..size {
+                matrix.set(row, row, 1.5);
+                matrix.set(row, 3 * (row / 3) + (row + 1) % 3, -0.25);
+                matrix.set(row, (row + 7) % size, 0.125);
+                matrix.set(row, (row + 17) % size, 1e-300);
+            }
+            let sparse = SparseBiasRows::new(&matrix).unwrap();
+            for scale in [0.0, -0.0, 1.0, 1e-300, 1e300, f64::MAX, f64::INFINITY] {
+                let before = vec![[scale, -scale, scale]; count];
+                let impulses = vec![[-scale, scale, scale]; count];
+                for tolerance in [0.0, 1e-8, 1.0, 1e300, f64::INFINITY, f64::NAN, -1.0] {
+                    let dense = sweep_velocity_converged(
+                        &matrix,
+                        &impulses,
+                        &before,
+                        &mut vec![0.0; size],
+                        tolerance,
+                        None,
+                    );
+                    let compressed = sweep_velocity_converged(
+                        &matrix,
+                        &impulses,
+                        &before,
+                        &mut vec![0.0; size],
+                        tolerance,
+                        Some(&sparse),
+                    );
+                    assert_eq!(
+                        dense, compressed,
+                        "count {count}, scale {scale}, tolerance {tolerance}"
+                    );
+                }
+            }
+            let delta: Vec<_> = (0..size).map(|i| (i as f64 - 11.0) * 0.25).collect();
+            for (index, row) in matrix.data().chunks_exact(size).enumerate() {
+                let start = 3 * (index / 3);
+                let expected = row
+                    .iter()
+                    .zip(&delta)
+                    .map(|(a, b)| a * b)
+                    .sum::<f64>()
+                    .abs();
+                let actual = sparse
+                    .velocity_change(index, &row[start..start + 3], &delta)
+                    .unwrap();
+                assert_eq!(actual.to_bits(), expected.to_bits());
+            }
+        }
+    }
 
     /// Small deterministic generator for test matrices.
     struct Lcg(u64);
@@ -1708,6 +2151,199 @@ mod tests {
         assert_eq!(combined.iterations, replay.iterations);
         for (first, second) in combined.impulses_n_s.iter().zip(&replay.impulses_n_s) {
             assert_eq!(first.map(f64::to_bits), second.map(f64::to_bits));
+        }
+    }
+
+    #[test]
+    fn static_frictional_normal_block_satisfies_the_full_contact_law() {
+        for count in [2, 16, 32, 64] {
+            let mut g = DenseMatrix::zeros(3 * count, 3 * count);
+            for row in 0..3 * count {
+                g.set(row, row, 1.0);
+            }
+            for i in 0..count {
+                g.set(3 * i + 2, 3 * i + 2, if i == 0 { 1.0 } else { 2.0 });
+                if i > 0 {
+                    g.set(3 * i + 2, 3 * (i - 1) + 2, -1.0);
+                    g.set(3 * (i - 1) + 2, 3 * i + 2, -1.0);
+                }
+            }
+            let mut free = vec![0.0; 3 * count];
+            free[2] = -1.0;
+            let mu = vec![0.5; count];
+            let config = ContactSolverConfig::default();
+            let result = solve_contact_impulses(&g, &free, &mu, &config, None).unwrap();
+            assert!(result.normal_block_solved && result.converged);
+            assert_eq!(result.iterations, 0);
+            assert!(result.states.iter().all(|s| *s == ContactState::Sticking));
+            assert_contact_conditions(&g, &free, &mu, &result, 1e-8);
+            for (i, impulse) in result.impulses_n_s.iter().enumerate() {
+                assert!((impulse[2] - (count - i) as f64).abs() < 1e-8);
+            }
+            assert_eq!(
+                result,
+                solve_contact_impulses(&g, &free, &mu, &config, None).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn normal_only_candidate_rejects_induced_tangential_motion() {
+        let mut g = DenseMatrix::zeros(6, 6);
+        for i in 0..6 {
+            g.set(i, i, 1.0);
+        }
+        // SPD matrix, zero free tangent velocity, but normal force induces slip.
+        g.set(0, 2, 0.25);
+        g.set(2, 0, 0.25);
+        let free = [0.0, 0.0, -1.0, 0.0, 0.0, -1.0];
+        let mu = [0.5; 2];
+        let config = ContactSolverConfig::default();
+        let (candidate, passes) = normal::attempt(&g, &free, &mu, &config, &[[0.0; 3]; 2]);
+        assert!(candidate.is_none() && passes > 0);
+        let result = solve_contact_impulses(&g, &free, &mu, &config, None).unwrap();
+        assert!(!result.normal_block_solved && result.converged);
+        assert!(result.impulses_n_s[0][0] < 0.0);
+        assert_contact_conditions(&g, &free, &mu, &result, 1e-8);
+    }
+
+    #[test]
+    fn static_normal_block_guards_and_warm_start_change() {
+        let mut g = DenseMatrix::zeros(6, 6);
+        for i in 0..6 {
+            g.set(i, i, 1.0);
+        }
+        let free = [0.0, 0.0, -1.0, 0.0, 0.0, 1.0];
+        let mu = [0.5; 2];
+        let config = ContactSolverConfig::default();
+        let seed = [[0.3, 0.4, 1.0], [0.0; 3]];
+        let (candidate, _) = normal::attempt(&g, &free, &mu, &config, &seed);
+        let result = candidate.unwrap();
+        assert_eq!(result.last_change_n_s, 0.5);
+        assert_eq!(result.states, [ContactState::Sticking, ContactState::Open]);
+        assert_contact_conditions(&g, &free, &mu, &result, 1e-8);
+        for disabled in [
+            ContactSolverConfig {
+                regularization: 1e-6,
+                ..config
+            },
+            ContactSolverConfig {
+                relaxation: 0.5,
+                ..config
+            },
+            ContactSolverConfig {
+                max_iterations: 0,
+                ..config
+            },
+            ContactSolverConfig {
+                velocity_tolerance_m_s: f64::NAN,
+                ..config
+            },
+        ] {
+            assert!(normal::attempt(&g, &free, &mu, &disabled, &seed)
+                .0
+                .is_none());
+        }
+        let mut sliding = free;
+        sliding[0] = 0.1;
+        assert_eq!(normal::attempt(&g, &sliding, &mu, &config, &seed).1, 0);
+    }
+
+    #[test]
+    fn rigid_normal_block_transmits_a_heavy_top_load_without_sweeps() {
+        // Three vertical contacts, body masses 1, 1, 10 kg. Only the
+        // bottom contact approaches; the coupled solution carries 12/11/10 Ns.
+        let normal = [[1.0, -1.0, 0.0], [-1.0, 2.0, -1.0], [0.0, -1.0, 1.1]];
+        let mut g = DenseMatrix::zeros(9, 9);
+        for i in 0..9 {
+            g.set(i, i, 1.0);
+        }
+        for (i, row) in normal.iter().enumerate() {
+            for (j, value) in row.iter().enumerate() {
+                g.set(3 * i + 2, 3 * j + 2, *value);
+            }
+        }
+        let free = [0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let config = ContactSolverConfig {
+            max_iterations: 20,
+            ..Default::default()
+        };
+        let solve = || solve_contact_impulses(&g, &free, &[0.0; 3], &config, None).unwrap();
+        let result = solve();
+        assert!(result.normal_block_solved);
+        assert_eq!(result.normal_block_iterations, 3);
+        assert_eq!(result.iterations, 0);
+        assert_contact_conditions(&g, &free, &[0.0; 3], &result, 1e-10);
+        for (row, expected) in result.impulses_n_s.iter().zip([12.0, 11.0, 10.0]) {
+            assert!((row[2] - expected).abs() < 1e-10);
+        }
+        assert_eq!(result, solve());
+        let warm =
+            solve_contact_impulses(&g, &free, &[0.0; 3], &config, Some(&result.impulses_n_s))
+                .unwrap();
+        assert!(warm.normal_block_solved);
+        assert_eq!(warm.normal_block_iterations, 0);
+        assert_eq!(warm.impulses_n_s, result.impulses_n_s);
+        let baseline = solve_contact_impulses(
+            &g,
+            &free,
+            &[0.0; 3],
+            &ContactSolverConfig {
+                velocity_tolerance_m_s: 0.0,
+                ..config
+            },
+            None,
+        )
+        .unwrap();
+        assert!(!baseline.converged);
+        assert!(!baseline.normal_block_solved);
+    }
+
+    #[test]
+    fn normal_block_validates_redundant_rows_and_falls_back_on_inconsistency() {
+        let mut g = DenseMatrix::zeros(6, 6);
+        for i in 0..6 {
+            g.set(i, i, 1.0);
+        }
+        for i in [2, 5] {
+            for j in [2, 5] {
+                g.set(i, j, 1.0);
+            }
+        }
+        let config = ContactSolverConfig::default();
+        for (second, block) in [(-1.0, true), (-2.0, false)] {
+            let free = [0.0, 0.0, -1.0, 0.0, 0.0, second];
+            let r = solve_contact_impulses(&g, &free, &[0.0; 2], &config, None).unwrap();
+            assert_eq!(r.normal_block_solved, block);
+            assert!(r.normal_block_iterations > 0);
+            assert!(r.converged);
+            assert_contact_conditions(&g, &free, &[0.0; 2], &r, 1e-9);
+        }
+        let stopped = solve_contact_impulses(
+            &g,
+            &[0.0; 6],
+            &[0.0; 2],
+            &ContactSolverConfig {
+                max_iterations: 0,
+                ..config
+            },
+            None,
+        )
+        .unwrap();
+        assert!(!stopped.normal_block_solved && !stopped.converged);
+    }
+
+    #[test]
+    fn normal_block_random_open_and_closed_contacts_satisfy_complementarity() {
+        let mut rng = Lcg(234);
+        for _ in 0..100 {
+            let g = random_spd(18, &mut rng);
+            let free: Vec<f64> = (0..18).map(|_| 2.0 * rng.next()).collect();
+            let r =
+                solve_contact_impulses(&g, &free, &[0.0; 6], &ContactSolverConfig::default(), None)
+                    .unwrap();
+            assert!(r.converged);
+            assert_contact_conditions(&g, &free, &[0.0; 6], &r, 1e-7);
         }
     }
 
@@ -2337,6 +2973,48 @@ mod tests {
             max_effort,
             ..JointLimits::default()
         })
+    }
+
+    #[test]
+    fn external_generalized_force_is_not_clipped_as_motor_effort() {
+        let model = effort_limited_pendulum(5.0);
+        let q = [0.0];
+        let qd = [0.0];
+        let tau = [0.0];
+        let body = CoupledBody {
+            model: &model,
+            q: &q,
+            qd: &qd,
+            tau: &tau,
+            pd: None,
+        };
+        let config = ContactStepConfig::default();
+        let result =
+            contact_step_coupled_with_external_forces(&[body], &[], &config, None, &[vec![100.0]])
+                .unwrap();
+        let reference = contact_step_coupled(
+            &[CoupledBody {
+                model: &model,
+                q: &q,
+                qd: &qd,
+                tau: &[100.0],
+                pd: None,
+            }],
+            &[],
+            &ContactStepConfig {
+                enforce_effort_limits: false,
+                ..config
+            },
+            None,
+        )
+        .unwrap();
+        assert!((result.bodies[0].qd[0] - reference.bodies[0].qd[0]).abs() < 1e-12);
+        assert_eq!(result.bodies[0].actuator_torques, vec![0.0]);
+        assert!(result.bodies[0].saturated_joints.is_empty());
+        assert!(
+            contact_step_coupled_with_external_forces(&[], &[], &config, None, &[vec![1.0]])
+                .is_err()
+        );
     }
 
     #[test]

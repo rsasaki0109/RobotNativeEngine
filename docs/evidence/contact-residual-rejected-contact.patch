@@ -1,0 +1,80 @@
+diff --git a/crates/rne_dynamics/src/contact.rs b/crates/rne_dynamics/src/contact.rs
+index 2b26ef44..ea1cc4f7 100644
+--- a/crates/rne_dynamics/src/contact.rs
++++ b/crates/rne_dynamics/src/contact.rs
+@@ -29,6 +29,7 @@
+ 
+ mod coupled;
+ mod normal;
++mod residual;
+ 
+ pub use coupled::{
+     contact_step_coupled, contact_step_coupled_with_external_forces, ContactAnchor, CoupledBody,
+@@ -90,13 +91,19 @@ pub struct ContactSolverConfig {
+     /// tangentially static islands.
+     pub max_iterations: usize,
+     /// Convergence threshold on the largest per-contact impulse change in one
+-    /// sweep, in newton-seconds.
++    /// sweep, in newton-seconds. Also bounds impulse feasibility and identifies
++    /// loaded contacts in the final contact-law check. Must be finite and
++    /// nonnegative for sweep convergence to be certified.
+     pub tolerance_n_s: f64,
+     /// Convergence threshold on the largest contact-velocity change in one
+     /// sweep, `max |G δλ|`, in meters per second. The sweeps also stop when
+     /// the impulses still move but only along `G`'s null space, which
+     /// redundant contacts (a face resting on four corners, an object squeezed
+-    /// between two pads) leave wide and which changes no motion.
++    /// between two pads) leave wide and which changes no motion. A small update
++    /// is only a candidate for stopping: the current coupled contact law must
++    /// also pass this velocity tolerance (including normal compliance).
++    /// Zero requests exact residuals; negative or nonfinite values cannot
++    /// certify sweep convergence.
+     pub velocity_tolerance_m_s: f64,
+     /// Relaxation factor in `(0, 1]` blending each new contact impulse with
+     /// the previous one. `1.0` is plain Gauss-Seidel.
+@@ -155,8 +162,9 @@ pub struct ContactSolution {
+     pub normal_block_iterations: usize,
+     /// Whether an independently validated normal-block solution was used.
+     pub normal_block_solved: bool,
+-    /// Whether a block candidate satisfied complementarity, or the sweep
+-    /// impulse/velocity change dropped below the configured tolerance.
++    /// Whether a block candidate passed its contact-law checks, or a small
++    /// sweep impulse/velocity change also passed the current coupled contact
++    /// law. The check uses the configured tolerances and normal compliance.
+     pub converged: bool,
+     /// Largest per-contact impulse change in the last sweep, or from the warm
+     /// start to the block solution, in newton-seconds.
+@@ -317,6 +325,15 @@ pub fn solve_contact_impulses(
+                 config.velocity_tolerance_m_s,
+                 sparse_bias.as_ref(),
+             );
++        if converged {
++            converged = residual::satisfied(
++                delassus,
++                free_velocity_m_s,
++                friction_coefficients,
++                &impulses,
++                config,
++            );
++        }
+     }
+ 
+     Ok(ContactSolution {
+@@ -2033,13 +2050,12 @@ mod tests {
+     }
+ 
+     #[test]
+-    fn sweeps_stop_once_the_motion_settles_though_impulses_still_shift() {
+-        // With the velocity test, the sweeps stop once `G δλ` is tiny; the
+-        // impulse-only test keeps sweeping the null-space drift for longer
+-        // without changing the motion.
++    fn residual_stopping_distinguishes_tolerance_from_exact_zero() {
++        // A finite tolerance certifies the compliant contact law. Exact zero
++        // cannot certify this rounded solution even after the update vanishes.
+         let early = coincident_pair(1.0e-3, 1.0e-8);
+         let late = coincident_pair(1.0e-3, 0.0);
+-        assert!(early.converged && late.converged);
++        assert!(early.converged && !late.converged);
+         assert!(
+             early.iterations * 2 < late.iterations,
+             "{} vs {}",

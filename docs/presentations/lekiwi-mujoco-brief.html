@@ -1,0 +1,69 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><title>LeKiwiとSO-101 開発方針とMuJoCo比較</title>
+<style>
+@page { size:A4 landscape; margin:0; }
+* { box-sizing:border-box; } body { margin:0; color:#172a3a; background:#e7edf0; font:18px/1.65 'Noto Sans CJK JP',sans-serif; }
+.slide { width:297mm; height:210mm; padding:13mm 17mm 16mm; margin:0 auto 6mm; background:#fafbf8; position:relative; break-after:page; }
+.slide:last-child { break-after:auto; } h1,h2,h3,p { margin:0; } h1 { font-size:41px; line-height:1.4; letter-spacing:.02em; } h2 { font-size:30px; line-height:1.4; margin:6px 0 18px; } h3 { font-size:20px; margin-bottom:8px; } p { margin-bottom:14px; }
+.kicker { color:#176b87; letter-spacing:.12em; font-size:13px; font-weight:700; } .lead { font-size:23px; line-height:1.6; margin-top:22px; max-width:950px; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:20px; } .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:32px; }
+.card { background:#edf2f0; border-top:4px solid #176b87; padding:20px; } .card strong.big { font-size:42px; display:block; color:#176b87; line-height:1.25; } .card p { margin:10px 0 0; }
+.note { background:#fff0df; border-left:5px solid #db7138; padding:12px 18px; margin-top:16px; } .small { font-size:14px; line-height:1.6; } .muted { color:#536776; } footer { position:absolute; bottom:8mm; left:17mm; right:17mm; display:flex; justify-content:space-between; border-top:1px solid #ccd7db; padding-top:7px; font-size:12px; color:#536776; }
+.chart { width:100%; height:112mm; object-fit:contain; display:block; } .chart.residual { height:117mm; } table { width:100%; border-collapse:collapse; font-size:17px; margin-top:15px; } th,td { padding:11px 13px; text-align:left; vertical-align:top; border-bottom:1px solid #ccd7db; } th { color:#176b87; background:#edf2f0; } ul,ol { margin:10px 0 16px; padding-left:25px; } li { margin-bottom:7px; } a { color:#176b87; text-decoration:none; } code { font-size:14px; overflow-wrap:anywhere; } .pill { display:inline-block; padding:3px 10px; background:#176b87; color:white; font-size:13px; margin-bottom:10px; }
+@media print { body { background:white; } .slide { margin:0; } }
+</style>
+<section class="slide">
+<div class="kicker">ROBOT NATIVE ENGINE · DEVELOPMENT BRIEF · 2026 10 29</div>
+<h1 style="margin-top:22px">LeKiwiとSO-101で<br>MuJoCoを超えるための開発方針</h1>
+<p class="lead">接触を伴うトルク制御学習で、必要な物理品質を満たしたまま<br>目標成功率に早く到達する。</p>
+<div class="cards">
+<div class="card"><strong class="big">96 / 96</strong><h3>外力から回復</h3><p class="small">6方向 × 2強度 × 8目標。<br>既存制御器を再学習せず検証。</p></div>
+<div class="card"><strong class="big">14 条件</strong><h3>MuJoCoと共通比較</h3><p class="small">同じURDF・トルク配列。<br>固定台座、無重力、接触なし。</p></div>
+<div class="card"><strong class="big">次の焦点</strong><h3>小トルク応答の残差</h3><p class="small">刻みを半分にしても残る差を<br>切り分け、原因を測定で確かめる。</p></div>
+</div>
+<p class="small muted" style="margin-top:23px">実機を使わない開発。今回の比較はRNE/Rapier経路であり、RNE独自バックエンドの優位性を示す測定ではない。</p>
+<footer><span>測定基準 dbc85644 · 詳細は開発計画と保存済みデータを参照</span><span>01 / 06</span></footer>
+</section>
+<section class="slide">
+<div class="kicker">EVIDENCE AND SCOPE</div><h2>二つの検証を区別する</h2>
+<div class="grid">
+<div class="card"><span class="pill">制御の検証</span><h3>外力回復 96試行</h3><ul><li>接触世界のLeKiwi＋SO-101</li><li>手首リンクに2 N／4 Nを約0.1秒</li><li>押す前に2秒保持、解除後に新たな2秒保持</li><li>96試行すべてで保持を崩した後に回復</li></ul><p class="small">既存8目標に12条件を適用。未知姿勢への汎化や、衝突物体による打撃への耐性はこの結果の対象外。</p></div>
+<div class="card"><span class="pill">力学の基礎比較</span><h3>SO-101の14条件</h3><ul><li>固定台座、無重力、接触・関節制限なし</li><li>6関節への個別入力＋無入力</li><li>±0.001 N·m、200 msの応答</li><li>1 ms／0.5 msの刻みで全関節を観測</li></ul><p class="small">RNE/RapierとMuJoCo 3.9.0。実行時間は状態取得などを含み、ソルバ単体の速度順位には使わない。</p></div>
+</div>
+<div class="note small"><strong>解析解で入力モデルを確認：</strong>単軸ローターと、重心ずれ・慣性座標回転を含むローターを検証。慣性テンソルをリンク座標へ統一することで、両エンジンが同じ解析解の試験を満たした。</div>
+<footer><span>外力の回復成功と、物理計算の正確さ・速さは別の評価軸</span><span>02 / 06</span></footer>
+</section>
+<section class="slide">
+<div class="kicker">CROSS SIMULATOR RESPONSE</div><h2>多くの差は時間刻みを半分にすると縮まる</h2>
+<img class="chart" src="../media/so101-mujoco-response.svg" alt="入力関節ごとの最大角度差。1 msと0.5 msを比較">
+<div class="note"><strong>全条件の最大角度差：0.001349 → 0.000675 rad</strong><br><span class="small">棒の単位はmrad、縦軸は対数。最大値は入力した関節だけでなく、全観測関節・全時刻から求めた。</span></div>
+<footer><span>保存済み14条件から生成 · エンジン間の差であり、正解からの誤差とは限らない</span><span>03 / 06</span></footer>
+</section>
+<section class="slide">
+<div class="kicker">NEXT INVESTIGATION</div><h2>肩旋回入力で、手首回転の差が残る</h2>
+<img class="chart residual" src="../media/so101-mujoco-pan-residual.svg" alt="肩旋回入力に対する手首回転の応答と両エンジンの差">
+<p style="margin-top:9px"><strong>最大残差は約0.000106 rad。1 msと0.5 msでほぼ同じ。</strong></p>
+<p class="small muted">原因は未特定。入力振幅・時間刻み・初期加速度を変えて切り分ける。モデル変換、実効慣性、数値精度、微小入力処理を仮説として調べる。</p>
+<footer><span>最初の改善対象を、比較結果から決める</span><span>04 / 06</span></footer>
+</section>
+<section class="slide">
+<div class="kicker">DEVELOPMENT GATES</div><h2>物理品質を合格条件にして、性能を比較する</h2>
+<table><thead><tr><th style="width:24%">順序</th><th>次へ進むための確認</th></tr></thead><tbody>
+<tr><td><strong>A　残差の診断</strong></td><td>共通モデルと初期加速度を照合。原因または未解消範囲を説明する。</td></tr>
+<tr><td><strong>B　重力・関節制限</strong></td><td>保持・振動・制限到達を比較し、解析可能な問題の回帰試験を通す。</td></tr>
+<tr><td><strong>C　接触品質</strong></td><td>落下・斜面・箱押しで侵入量、力積、滑り、エネルギーを測る。</td></tr>
+<tr><td><strong>D　独立並列環境</strong></td><td>同一CPU条件で1／4／8／16環境。反復測定で速度・メモリ・リセット時間を比較。</td></tr>
+<tr><td><strong>E　学習効率</strong></td><td>同じ学習器・報酬・予算で、目標成功率に達する時間を複数seedで評価。</td></tr>
+<tr><td><strong>F　独自物理経路</strong></td><td>同じ評価器にrne_physics_nativeを接続し、Rapier経路とは別系列で報告する。</td></tr>
+</tbody></table>
+<div class="note small">この表は今後の計画。接触を省く、品質を下げる、成功したseedだけを選ぶことで得た速度向上は、優位性の根拠にしない。</div>
+<footer><span>測定 → 原因特定 → 改善 → 同じ条件で再評価</span><span>05 / 06</span></footer>
+</section>
+<section class="slide">
+<div class="kicker">NEXT CHANGE AND REPRODUCTION</div><h2>次の1 PRは、小トルク応答の診断</h2>
+<div class="grid">
+<div><h3>実装する内容</h3><ol><li>振幅0.001／0.01 N·m、刻み1／0.5／0.25 msを比較</li><li>初期加速度と全関節の結合応答を出力</li><li>残差の原因を絞り、解析解・外力回復試験で回帰確認</li></ol><div class="note small">原因が残る場合も測定範囲を記録する。許容値を緩めて解決扱いにしない。</div></div>
+<div><h3>再現できる成果物</h3><ul><li>共通URDFと全トルク配列</li><li>14条件の位置・速度の全軌跡</li><li>モデル・実行ファイルのハッシュ</li><li>CIで比較を生成し、同じ環境で完全再生</li></ul><p class="small">ローカル検証：Rust 53件、Python 26件、ワークスペースClippy、14条件の完全再生が成功。全体CIの最新状態はPRを参照。</p></div>
+</div>
+<p class="small" style="margin-top:20px"><strong>資料と手順：</strong><a href="../LEKIWI_MUJOCO_DEVELOPMENT.md">docs/LEKIWI_MUJOCO_DEVELOPMENT.md</a><br><strong>測定値：</strong><code>examples/116_robot_workbench/python/results/so101_cross_sim.json.gz</code><br><strong>実装：</strong><a href="https://github.com/rsasaki0109/RobotNativeEngine/pull/456">PR #456 外力回復</a> ／ <a href="https://github.com/rsasaki0109/RobotNativeEngine/pull/457">PR #457 MuJoCo比較</a></p>
+<footer><span>RobotNativeEngine · LeKiwi＋SO-101 · 実機なしの開発計画</span><span>06 / 06</span></footer>
+</section></html>

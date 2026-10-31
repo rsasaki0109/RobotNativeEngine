@@ -1,0 +1,199 @@
+diff --git a/crates/rne_dynamics/src/contact.rs b/crates/rne_dynamics/src/contact.rs
+index 08588b56..b5b2fd71 100644
+--- a/crates/rne_dynamics/src/contact.rs
++++ b/crates/rne_dynamics/src/contact.rs
+@@ -30,6 +30,7 @@
+ mod coupled;
+ mod normal;
+ mod residual;
++mod sticking;
+ 
+ pub use coupled::{
+     contact_step_coupled, contact_step_coupled_with_external_forces, ContactAnchor, CoupledBody,
+@@ -156,6 +157,10 @@ pub struct ContactSolution {
+     pub normal_block_iterations: usize,
+     /// Whether an independently validated normal-block solution was used.
+     pub normal_block_solved: bool,
++    /// Active-set passes attempted by the sticking block candidate solver.
++    pub sticking_block_iterations: usize,
++    /// Whether a full sticking block candidate passed the original contact law.
++    pub sticking_block_solved: bool,
+     /// Whether a block candidate satisfied complementarity, or the sweep
+     /// impulse/velocity change dropped below the configured tolerance.
+     pub converged: bool,
+@@ -258,6 +263,17 @@ pub fn solve_contact_impulses(
+     if let Some(solution) = normal_solution {
+         return Ok(solution);
+     }
++    let (sticking_solution, sticking_block_iterations) = sticking::attempt(
++        delassus,
++        free_velocity_m_s,
++        friction_coefficients,
++        config,
++        &impulses,
++    );
++    if let Some(mut solution) = sticking_solution {
++        solution.normal_block_iterations = normal_block_iterations;
++        return Ok(solution);
++    }
+     let blocks: Vec<[[f64; 3]; 3]> = (0..count)
+         .map(|contact| {
+             let mut block = diagonal_block(delassus, contact);
+@@ -314,6 +330,30 @@ pub fn solve_contact_impulses(
+             impulses[contact] = blended;
+             states[contact] = state;
+         }
++        if iterations % 8 == 0
++            && sticking::refine(
++                delassus,
++                free_velocity_m_s,
++                friction_coefficients,
++                config,
++                &mut impulses,
++            )
++        {
++            last_change = impulses
++                .iter()
++                .zip(&before)
++                .map(|(p, b)| (p[0] - b[0]).hypot(p[1] - b[1]).hypot(p[2] - b[2]))
++                .fold(0.0, f64::max);
++            for ((state, p), mu) in states.iter_mut().zip(&impulses).zip(friction_coefficients) {
++                *state = if p[2] == 0.0 {
++                    ContactState::Open
++                } else if p[0].hypot(p[1]) < mu * p[2] {
++                    ContactState::Sticking
++                } else {
++                    ContactState::Sliding
++                };
++            }
++        }
+         converged = last_change <= config.tolerance_n_s
+             || sweep_velocity_converged(
+                 delassus,
+@@ -338,6 +378,8 @@ pub fn solve_contact_impulses(
+         iterations,
+         normal_block_iterations,
+         normal_block_solved: false,
++        sticking_block_iterations,
++        sticking_block_solved: false,
+         converged,
+         contact_law_satisfied,
+         last_change_n_s: last_change,
+diff --git a/crates/rne_dynamics/src/contact/normal.rs b/crates/rne_dynamics/src/contact/normal.rs
+index 78bf052f..df1cc56b 100644
+--- a/crates/rne_dynamics/src/contact/normal.rs
++++ b/crates/rne_dynamics/src/contact/normal.rs
+@@ -229,6 +229,8 @@ pub(super) fn solution(normal: Vec<f64>, seed: &[[f64; 3]], passes: usize) -> Co
+         iterations: 0,
+         normal_block_iterations: passes,
+         normal_block_solved: true,
++        sticking_block_iterations: 0,
++        sticking_block_solved: false,
+         converged: true,
+         contact_law_satisfied: true,
+         last_change_n_s: last_change,
+diff --git a/crates/rne_dynamics/src/contact/residual.rs b/crates/rne_dynamics/src/contact/residual.rs
+index 58411e88..d46cdd32 100644
+--- a/crates/rne_dynamics/src/contact/residual.rs
++++ b/crates/rne_dynamics/src/contact/residual.rs
+@@ -17,31 +17,79 @@ pub(super) fn satisfied(
+         if !impulse.iter().all(|x| x.is_finite()) {
+             return false;
+         }
+-        let mut velocity = [0.0; 3];
+-        for (axis, value) in velocity.iter_mut().enumerate() {
+-            let row = 3 * i + axis;
+-            *value = free[row]
+-                + impulses
+-                    .iter()
+-                    .enumerate()
+-                    .map(|(j, p)| {
+-                        (0..3)
+-                            .map(|k| matrix.get(row, 3 * j + k) * p[k])
+-                            .sum::<f64>()
+-                    })
+-                    .sum::<f64>();
+-        }
+-        let start = 3 * i;
+-        let softness = config.regularization
+-            * (0..3)
+-                .map(|k| matrix.get(start + k, start + k))
+-                .sum::<f64>()
+-            / 3.0;
+-        velocity[2] += softness * impulse[2];
++        let velocity = velocity(matrix, free, impulses, config, i);
+         point_satisfied(*impulse, velocity, friction[i], it, vt)
+     })
+ }
+ 
++fn velocity(
++    matrix: &DenseMatrix,
++    free: &[f64],
++    impulses: &[[f64; 3]],
++    config: &ContactSolverConfig,
++    i: usize,
++) -> [f64; 3] {
++    let impulse = &impulses[i];
++    let mut velocity = [0.0; 3];
++    for (axis, value) in velocity.iter_mut().enumerate() {
++        let row = 3 * i + axis;
++        *value = free[row]
++            + impulses
++                .iter()
++                .enumerate()
++                .map(|(j, p)| {
++                    (0..3)
++                        .map(|k| matrix.get(row, 3 * j + k) * p[k])
++                        .sum::<f64>()
++                })
++                .sum::<f64>();
++    }
++    let start = 3 * i;
++    let softness = config.regularization
++        * (0..3)
++            .map(|k| matrix.get(start + k, start + k))
++            .sum::<f64>()
++        / 3.0;
++    velocity[2] += softness * impulse[2];
++    velocity
++}
++
++pub(super) fn error(
++    matrix: &DenseMatrix,
++    free: &[f64],
++    friction: &[f64],
++    impulses: &[[f64; 3]],
++    config: &ContactSolverConfig,
++) -> f64 {
++    let it = config.tolerance_n_s;
++    let mut error = 0.0_f64;
++    for (i, p) in impulses.iter().enumerate() {
++        let v = velocity(matrix, free, impulses, config, i);
++        let mu = friction[i];
++        if !p.iter().all(|x| x.is_finite()) || !point_satisfied(*p, v, mu, it, f64::MAX) {
++            return f64::INFINITY;
++        }
++        error = error.max((-v[2]).max(0.0));
++        if p[2] > it {
++            error = error.max(v[2].abs());
++        }
++        let limit = mu * p[2].max(0.0);
++        if mu == 0.0 || limit <= it {
++            continue;
++        }
++        let slip = v[0].hypot(v[1]);
++        let tangent = p[0].hypot(p[1]);
++        let slack = it.max(CONE_TOLERANCE * limit);
++        let mut friction_error = slip;
++        if tangent > 0.0 && tangent >= limit - slack {
++            friction_error = friction_error
++                .min((v[0] + slip * p[0] / tangent).hypot(v[1] + slip * p[1] / tangent));
++        }
++        error = error.max(friction_error / std::f64::consts::SQRT_2);
++    }
++    error
++}
++
+ fn point_satisfied(p: [f64; 3], v: [f64; 3], mu: f64, it: f64, vt: f64) -> bool {
+     if !v.iter().all(|x| x.is_finite()) || p[2] < -it || v[2] < -vt {
+         return false;

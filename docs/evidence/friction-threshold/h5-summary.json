@@ -1,0 +1,2590 @@
+{
+  "protocol": "friction_threshold_h5_v1",
+  "status": "complete",
+  "gates": {
+    "max_penetration_m": 1e-05,
+    "position_error_m": 0.003,
+    "velocity_error_m_s": 0.002,
+    "static_drift_m": 1e-05,
+    "static_speed_m_s": 0.0001,
+    "spin_rad_s": 0.01,
+    "lateral_drift_m": 1e-05,
+    "work_energy_excess_fraction": 1e-06
+  },
+  "cpu_affinity": [
+    0
+  ],
+  "binary_sha256": "546410692e71f1fc797e11869e4bba922edd238be8cfd591029503a619b07cc1",
+  "source_sha256": {
+    "threshold.py": "8ebb4fd2d682c588129db0ff4e94c88b6b1a15e6aba528804fc46a28959d5be5",
+    "box.py": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d"
+  },
+  "results": [
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -1.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.12975935,
+        "final_state": [
+          2.0,
+          -0.7855848125192736,
+          0.05000000018224391,
+          -1.6683348573637095e-09,
+          -5.7152282906258733e-11,
+          1.8100683296061745e-08,
+          1.1735005562339903e-10,
+          0.9999999999999998,
+          -0.7847999948201734,
+          8.941443072063571e-08,
+          -1.0810617057809714e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -0.7063200105249883,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.3657426918173575e-11,
+        "position_error_m": 0.0007848008248423355,
+        "velocity_error_m_s": 5.654033385926738e-08,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 1.6683348573637095e-09,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.3924000058472156,
+        "equivalent_force_n": -0.7063200105249882,
+        "final_displacement_m": -0.7855848125192736,
+        "final_velocity_m_s": -0.7847999948201734,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.08738924249999999,
+        0.062440709,
+        0.0626067985,
+        0.0625412455,
+        0.0636507755
+      ],
+      "median_cost": 0.0626067985
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -1.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.019074285,
+        "final_state": [
+          2.0,
+          -0.7855848509470225,
+          0.04999980379998461,
+          -8.050123087104315e-11,
+          -1.021405182655144e-14,
+          1.8490610822402438e-10,
+          3.924016501963401e-07,
+          0.9999999999999231,
+          -0.7848000116948972,
+          3.469446951953614e-15,
+          3.696776667149234e-13,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -0.7063200105249883,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.3544019781737628e-07,
+        "position_error_m": 0.0007848392525912073,
+        "velocity_error_m_s": 3.919309010720455e-06,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 7.84709979982285e-05,
+        "lateral_drift_m": 8.189788477999757e-11,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.3924000058472156,
+        "equivalent_force_n": -0.7063200105249882,
+        "final_displacement_m": -0.7855848509470225,
+        "final_velocity_m_s": -0.7848000116948972,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.009710427499999999,
+        0.009274932,
+        0.009099754,
+        0.009401805000000001,
+        0.009750100499999999
+      ],
+      "median_cost": 0.009401805000000001
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -1.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.052087194,
+        "final_state": [
+          2.0,
+          -1.9639620003715537,
+          0.05000000029796907,
+          -2.5710582286554704e-10,
+          -3.438382911724602e-11,
+          7.371736396408672e-09,
+          1.2442065541196406e-10,
+          1.0,
+          -1.9619999697215729,
+          6.276106717661989e-08,
+          -7.080643331134751e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -1.7658,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 6.667815032757412e-11,
+        "position_error_m": 0.001962000371553918,
+        "velocity_error_m_s": 1.8729050718646612e-07,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 2.5710582286554704e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.9809999999999999,
+        "equivalent_force_n": -1.7658,
+        "final_displacement_m": -1.9639620003715537,
+        "final_velocity_m_s": -1.9619999697215729,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.028028616,
+        0.0245912085,
+        0.0251650625,
+        0.024201617,
+        0.025119109
+      ],
+      "median_cost": 0.025119109
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -1.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.01969399,
+        "final_state": [
+          2.0,
+          -1.9639620981019639,
+          0.04999980379990372,
+          -6.013298393003303e-10,
+          6.789013795582832e-13,
+          -6.117825140359821e-09,
+          9.809967387461317e-07,
+          0.9999999999995187,
+          -1.9620000000009075,
+          0.0,
+          -7.824665032551706e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -1.7658,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.9429974241014087e-07,
+        "position_error_m": 0.001962098101964127,
+        "velocity_error_m_s": 9.805976456556988e-06,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0001959298671932878,
+        "lateral_drift_m": 6.013298393003303e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.9809999999999999,
+        "equivalent_force_n": -1.7658,
+        "final_displacement_m": -1.9639620981019639,
+        "final_velocity_m_s": -1.9620000000009075,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.00972013,
+        0.0095279485,
+        0.009742258,
+        0.009766892000000001,
+        0.0091082245
+      ],
+      "median_cost": 0.00972013
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -0.8,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.030091985,
+        "final_state": [
+          2.0,
+          -1.133361109389068e-09,
+          0.050000000102695695,
+          -1.0593158908222964e-09,
+          -1.9047646793168838e-10,
+          7.812595932893152e-09,
+          1.992277943410875e-10,
+          1.0,
+          -9.435871484317425e-09,
+          3.2561533330754955e-08,
+          -9.078203889972732e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -0.47088000701665883,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 5.847370962696986e-11,
+        "position_error_m": 1.1354764291043647e-09,
+        "velocity_error_m_s": 1.6990288259707334e-08,
+        "static_drift_m": 1.1354764291043647e-09,
+        "static_speed_m_s": 4.4380091604694143e-07,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 1.0593158908222964e-09,
+        "work_energy_excess_fraction": 1.7692896616604614e-08,
+        "analytic_acceleration_m_s2": -0.0,
+        "equivalent_force_n": -0.4708800070166588,
+        "final_displacement_m": -1.133361109389068e-09,
+        "final_velocity_m_s": -9.435871484317425e-09,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0168131075,
+        0.015186316,
+        0.015263226999999999,
+        0.014928868000000001,
+        0.015040364499999999
+      ],
+      "median_cost": 0.015186316
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -0.8,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.01169075,
+        "final_state": [
+          2.0,
+          -3.2044400192652576e-08,
+          0.04999980379908324,
+          6.608431301481548e-10,
+          4.5294878958657137e-11,
+          6.563161862155773e-09,
+          3.138809278151689e-07,
+          0.9999999999999507,
+          -5.137296381989562e-11,
+          1.4918621893400541e-12,
+          3.72778839841706e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -0.47088000701665883,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.2762218472082764e-07,
+        "position_error_m": 3.2044400192652576e-08,
+        "velocity_error_m_s": 3.1235277582019453e-06,
+        "static_drift_m": 3.2044400192652576e-08,
+        "static_speed_m_s": 1.985025413468587e-05,
+        "spin_rad_s": 6.244644792229567e-05,
+        "lateral_drift_m": 6.608431301481548e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.0,
+        "equivalent_force_n": -0.4708800070166588,
+        "final_displacement_m": -3.2044400192652576e-08,
+        "final_velocity_m_s": -5.137296381989562e-11,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005517486,
+        0.0060132815,
+        0.0067406745,
+        0.00551468,
+        0.005658382
+      ],
+      "median_cost": 0.005658382
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -0.8,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.01978015,
+        "final_state": [
+          2.0,
+          -5.270317672728198e-10,
+          0.05000000038964474,
+          -5.349946357998855e-10,
+          -1.5121737195755713e-11,
+          5.1521455132049124e-09,
+          1.2092246756438703e-11,
+          1.0,
+          4.696233256258987e-10,
+          7.343920610525245e-09,
+          3.696908723607877e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -1.1772,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 4.983920763434692e-11,
+        "position_error_m": 5.536519723586296e-10,
+        "velocity_error_m_s": 1.6319895311464066e-08,
+        "static_drift_m": 5.536519723586296e-10,
+        "static_speed_m_s": 3.8920651932720015e-07,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 5.413925818828409e-10,
+        "work_energy_excess_fraction": 1.7513805519637942e-08,
+        "analytic_acceleration_m_s2": -0.0,
+        "equivalent_force_n": -1.1772,
+        "final_displacement_m": -5.270317672728198e-10,
+        "final_velocity_m_s": 4.696233256258987e-10,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.009845698,
+        0.009596094,
+        0.010011006499999999,
+        0.009588656,
+        0.009424793
+      ],
+      "median_cost": 0.009596094
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": -0.8,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.011528143,
+        "final_state": [
+          2.0,
+          -9.140709345483124e-08,
+          0.04999980379335707,
+          1.2992866958244242e-08,
+          3.1616836926318115e-10,
+          1.2961241756889685e-07,
+          7.844590830522111e-07,
+          0.9999999999996839,
+          -8.794655509789016e-10,
+          1.087671619437458e-11,
+          7.701232254612471e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -1.1772,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.7476234529553243e-07,
+        "position_error_m": 9.140709345483124e-08,
+        "velocity_error_m_s": 7.756214101936902e-06,
+        "static_drift_m": 9.140709345483124e-08,
+        "static_speed_m_s": 2.1097705703828228e-05,
+        "spin_rad_s": 0.00015464400778707102,
+        "lateral_drift_m": 1.2992866958244242e-08,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.0,
+        "equivalent_force_n": -1.1772,
+        "final_displacement_m": -9.140709345483124e-08,
+        "final_velocity_m_s": -8.794655509789016e-10,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0056134015,
+        0.0052506585,
+        0.0057375360000000005,
+        0.0055128205,
+        0.0054066755
+      ],
+      "median_cost": 0.0055128205
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 0.8,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.05163226,
+        "final_state": [
+          2.0,
+          3.3793268772819117e-09,
+          0.050000000395663685,
+          -3.264046836705436e-09,
+          -2.351735473027361e-11,
+          -3.3004748602613956e-08,
+          -3.770291382483137e-11,
+          0.9999999999999993,
+          5.145238175199058e-10,
+          2.5620595922593026e-08,
+          4.1086110740511265e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 0.47088000701665883,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 1.9247751898769297e-11,
+        "position_error_m": 3.4083390270525142e-09,
+        "velocity_error_m_s": 2.7841789402997945e-08,
+        "static_drift_m": 3.4083390270525142e-09,
+        "static_speed_m_s": 3.585650611226936e-07,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 3.2681476942425022e-09,
+        "work_energy_excess_fraction": 1.3805878865076063e-08,
+        "analytic_acceleration_m_s2": 0.0,
+        "equivalent_force_n": 0.4708800070166588,
+        "final_displacement_m": 3.3793268772819117e-09,
+        "final_velocity_m_s": 5.145238175199058e-10,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0259981675,
+        0.025820378999999997,
+        0.025792264500000002,
+        0.0242815765,
+        0.025690048
+      ],
+      "median_cost": 0.025792264500000002
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 0.8,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012658017,
+        "final_state": [
+          2.0,
+          3.1760701090906034e-08,
+          0.04999980380019116,
+          -3.424368459426397e-10,
+          -1.6949219805439952e-12,
+          -3.5287492418499764e-09,
+          -3.1391899278646167e-07,
+          0.9999999999999507,
+          3.534165384408751e-11,
+          -2.42861286636753e-13,
+          -3.486500839160128e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 0.47088000701665883,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.2759186787110262e-07,
+        "position_error_m": 3.1760701090906034e-08,
+        "velocity_error_m_s": 3.1466006669881408e-06,
+        "static_drift_m": 3.1760701090906034e-08,
+        "static_speed_m_s": 1.9846769502710462e-05,
+        "spin_rad_s": 6.274774135028742e-05,
+        "lateral_drift_m": 3.424368459426397e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.0,
+        "equivalent_force_n": 0.4708800070166588,
+        "final_displacement_m": 3.1760701090906034e-08,
+        "final_velocity_m_s": 3.534165384408751e-11,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005527132,
+        0.006149485,
+        0.005741499999999999,
+        0.005620925,
+        0.0055619580000000005
+      ],
+      "median_cost": 0.005620925
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 0.8,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.173621119,
+        "final_state": [
+          2.0,
+          5.224568221064858e-09,
+          0.05000000008484898,
+          -4.109538170906222e-09,
+          -4.270983566811992e-11,
+          -4.487618145512951e-08,
+          -3.00631148134474e-10,
+          0.9999999999999991,
+          1.6426447404567613e-08,
+          4.161615149711473e-08,
+          -4.338697396413874e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 1.1772,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 8.016447287050728e-12,
+        "position_error_m": 5.224568221064858e-09,
+        "velocity_error_m_s": 2.3435767132557596e-08,
+        "static_drift_m": 5.224568221064858e-09,
+        "static_speed_m_s": 1.2943169027591064e-07,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 4.109538170906222e-09,
+        "work_energy_excess_fraction": 3.833665349346527e-09,
+        "analytic_acceleration_m_s2": 0.0,
+        "equivalent_force_n": 1.1772,
+        "final_displacement_m": 5.224568221064858e-09,
+        "final_velocity_m_s": 1.6426447404567613e-08,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0885657535,
+        0.089004855,
+        0.089209358,
+        0.0884763145,
+        0.08410156399999999
+      ],
+      "median_cost": 0.0885657535
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 0.8,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.013122193,
+        "final_state": [
+          2.0,
+          8.057500380681638e-08,
+          0.04999980380056428,
+          -5.492961387158043e-10,
+          -2.019595601865376e-11,
+          -1.2945608774889003e-08,
+          -7.847856427578625e-07,
+          0.999999999999692,
+          4.4470491056876947e-10,
+          -5.828670879282072e-13,
+          6.088514568461145e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 1.1772,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.746799590242369e-07,
+        "position_error_m": 8.057500380681638e-08,
+        "velocity_error_m_s": 7.85797828066221e-06,
+        "static_drift_m": 8.057500380681638e-08,
+        "static_speed_m_s": 2.110907109275994e-05,
+        "spin_rad_s": 0.00015684184973014748,
+        "lateral_drift_m": 7.286370247909128e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.0,
+        "equivalent_force_n": 1.1772,
+        "final_displacement_m": 8.057500380681638e-08,
+        "final_velocity_m_s": 4.4470491056876947e-10,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.006711219,
+        0.0065410475,
+        0.006965186,
+        0.0064522295,
+        0.006349308499999999
+      ],
+      "median_cost": 0.0065410475
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 1.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.072058564,
+        "final_state": [
+          2.0,
+          0.785584812922386,
+          0.05000000000014259,
+          -6.841732803373761e-10,
+          -1.1225909091194808e-11,
+          -4.881620709376005e-09,
+          -1.2651578396274595e-11,
+          1.0,
+          0.7848000352778661,
+          -1.1165167401738785e-07,
+          -9.0278776235075e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 0.7063200105249883,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.6745513448943814e-11,
+        "position_error_m": 0.0007848012279547678,
+        "velocity_error_m_s": 7.56938012824726e-08,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 6.841732803373761e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.3924000058472156,
+        "equivalent_force_n": 0.7063200105249882,
+        "final_displacement_m": 0.785584812922386,
+        "final_velocity_m_s": 0.7848000352778661,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.034984857,
+        0.0343064755,
+        0.037513092,
+        0.0382554705,
+        0.060167490000000004
+      ],
+      "median_cost": 0.037513092
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 1.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.057236589,
+        "final_state": [
+          2.0,
+          0.7855848509478033,
+          0.0499998037999846,
+          3.117428639713723e-10,
+          -5.653588708298685e-12,
+          3.594775388169158e-09,
+          -3.923885574370282e-07,
+          0.9999999999999231,
+          0.7848000116952858,
+          6.938893903907228e-15,
+          7.727277440637646e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 0.7063200105249883,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.3543942096563332e-07,
+        "position_error_m": 0.0007848392533720272,
+        "velocity_error_m_s": 3.918961700075476e-06,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 7.825726470387237e-05,
+        "lateral_drift_m": 3.117428639713723e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.3924000058472156,
+        "equivalent_force_n": 0.7063200105249882,
+        "final_displacement_m": 0.7855848509478033,
+        "final_velocity_m_s": 0.7848000116952858,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.010468955,
+        0.0091508295,
+        0.010025742499999999,
+        0.009622236499999999,
+        0.009313711
+      ],
+      "median_cost": 0.009622236499999999
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 1.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.054368537,
+        "final_state": [
+          2.0,
+          1.963962000575231,
+          0.050000000743676075,
+          -3.048413987939604e-11,
+          -6.469030866540493e-11,
+          -3.000911201341669e-10,
+          -7.544268918527492e-11,
+          1.0,
+          1.9619999879297856,
+          2.6087947774255937e-08,
+          7.611298764369221e-12,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 1.7658,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 4.143600782883471e-11,
+        "position_error_m": 0.0019620005752312153,
+        "velocity_error_m_s": 2.19804964965431e-07,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 8.39438300812889e-11,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.9809999999999999,
+        "equivalent_force_n": 1.7658,
+        "final_displacement_m": 1.963962000575231,
+        "final_velocity_m_s": 1.9619999879297856,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0269669535,
+        0.0279867835,
+        0.027219900499999998,
+        0.030652143,
+        0.026989955000000003
+      ],
+      "median_cost": 0.027219900499999998
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "force_ratio": 1.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.019483597,
+        "final_state": [
+          2.0,
+          1.9639620981025236,
+          0.049999803799903646,
+          8.992722152921582e-10,
+          -3.2760738566395275e-11,
+          7.767481457891443e-09,
+          -9.809486432614136e-07,
+          0.9999999999995188,
+          1.9620000000011295,
+          -2.7755575615628914e-14,
+          2.174720837299243e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 1.7658,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.9429813976907077e-07,
+        "position_error_m": 0.0019620981025239015,
+        "velocity_error_m_s": 9.798440676126764e-06,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.000196133140216902,
+        "lateral_drift_m": 8.992722152921582e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.9809999999999999,
+        "equivalent_force_n": 1.7658,
+        "final_displacement_m": 1.9639620981025236,
+        "final_velocity_m_s": 1.9620000000011295,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.009729080000000001,
+        0.0095318455,
+        0.009088462,
+        0.009713504,
+        0.010126714
+      ],
+      "median_cost": 0.009713504
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -1.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.133914183,
+        "final_state": [
+          2.0,
+          -0.7855848125192717,
+          0.05000000018224239,
+          -1.6683411992555844e-09,
+          -5.715217188395627e-11,
+          1.8100689208267847e-08,
+          1.1734948707240538e-10,
+          0.9999999999999998,
+          -0.7847999948202844,
+          8.941368478954104e-08,
+          -1.081062507309886e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -7.063200105249882,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.3657426914010236e-11,
+        "position_error_m": 0.0007848008248404481,
+        "velocity_error_m_s": 5.653776646852293e-08,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 1.6683411992555844e-09,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.3924000058472156,
+        "equivalent_force_n": -7.063200105249882,
+        "final_displacement_m": -0.7855848125192717,
+        "final_velocity_m_s": -0.7847999948202844,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.06364631050000001,
+        0.0629343175,
+        0.063017506,
+        0.0623275035,
+        0.06267067150000001
+      ],
+      "median_cost": 0.0629343175
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -1.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.019262485,
+        "final_state": [
+          2.0,
+          -0.7855848509470232,
+          0.04999980379998461,
+          -8.050132584011024e-11,
+          -1.021405182655144e-14,
+          1.8490624152218163e-10,
+          3.924016502211512e-07,
+          0.9999999999999231,
+          -0.7848000116948972,
+          0.0,
+          3.6971936350019727e-13,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -7.063200105249882,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.354401978173957e-07,
+        "position_error_m": 0.0007848392525919845,
+        "velocity_error_m_s": 3.919309010720672e-06,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 7.847099799820075e-05,
+        "lateral_drift_m": 8.18978843617359e-11,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.3924000058472156,
+        "equivalent_force_n": -7.063200105249882,
+        "final_displacement_m": -0.7855848509470232,
+        "final_velocity_m_s": -0.7848000116948972,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0093807445,
+        0.0092331865,
+        0.009531274000000001,
+        0.011287109,
+        0.0098152215
+      ],
+      "median_cost": 0.009531274000000001
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -1.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.054927004,
+        "final_state": [
+          2.0,
+          -1.963962000715815,
+          0.05000000017228964,
+          -3.5365134651925974e-10,
+          -2.617023264761542e-11,
+          8.068113230128866e-09,
+          8.663462976918754e-11,
+          1.0,
+          -1.9619999759330486,
+          5.078263157209939e-08,
+          -7.161896184383948e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -17.657999999999998,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 6.667815033173748e-11,
+        "position_error_m": 0.001962000715815204,
+        "velocity_error_m_s": 1.9028321224245914e-07,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 3.5365134651925974e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.9809999999999999,
+        "equivalent_force_n": -17.658,
+        "final_displacement_m": -1.963962000715815,
+        "final_velocity_m_s": -1.9619999759330486,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.028886184999999998,
+        0.026561730000000002,
+        0.02817425,
+        0.027100955,
+        0.027925903499999998
+      ],
+      "median_cost": 0.027925903499999998
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -1.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.032341259,
+        "final_state": [
+          2.0,
+          -1.9639620981019648,
+          0.04999980379990371,
+          -6.013298516784393e-10,
+          6.789013795582832e-13,
+          -6.11782371597037e-09,
+          9.809967385839774e-07,
+          0.9999999999995187,
+          -1.9620000000009075,
+          0.0,
+          -7.824728036557009e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -17.657999999999998,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.942997424078031e-07,
+        "position_error_m": 0.0019620981019650152,
+        "velocity_error_m_s": 9.805976456558289e-06,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.00019592986719328784,
+        "lateral_drift_m": 6.013298516784393e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.9809999999999999,
+        "equivalent_force_n": -17.658,
+        "final_displacement_m": -1.9639620981019648,
+        "final_velocity_m_s": -1.9620000000009075,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.009036867,
+        0.013576235,
+        0.009905301,
+        0.0105816795,
+        0.008929110499999999
+      ],
+      "median_cost": 0.009905301
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -0.8,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.029988814,
+        "final_state": [
+          2.0,
+          -1.1306145911611424e-09,
+          0.05000000007911371,
+          -1.0479840622221548e-09,
+          -1.8789358957604918e-11,
+          7.595784357618582e-09,
+          1.7168108729759025e-11,
+          1.0,
+          4.738322744490031e-10,
+          4.160413333287316e-08,
+          4.3498303587560465e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -4.708800070166588,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 3.648241662851752e-11,
+        "position_error_m": 1.1627039005636069e-09,
+        "velocity_error_m_s": 1.8533703692904705e-08,
+        "static_drift_m": 1.1627039005636069e-09,
+        "static_speed_m_s": 4.6770769485991806e-07,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 1.0605320557875736e-09,
+        "work_energy_excess_fraction": 1.8910742520668294e-08,
+        "analytic_acceleration_m_s2": -0.0,
+        "equivalent_force_n": -4.708800070166588,
+        "final_displacement_m": -1.1306145911611424e-09,
+        "final_velocity_m_s": 4.738322744490031e-10,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0161906575,
+        0.0145941445,
+        0.014547669999999999,
+        0.0153901235,
+        0.014395057
+      ],
+      "median_cost": 0.0145941445
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -0.8,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.011589111,
+        "final_state": [
+          2.0,
+          -3.204440019023414e-08,
+          0.04999980379908324,
+          6.60843329462747e-10,
+          4.5294878958657137e-11,
+          6.563161868692141e-09,
+          3.1388092777799397e-07,
+          0.9999999999999507,
+          -5.137296912046898e-11,
+          1.4918621893400541e-12,
+          3.727787412376411e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -4.708800070166588,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.2762218472079992e-07,
+        "position_error_m": 3.204440019023414e-08,
+        "velocity_error_m_s": 3.12352775820498e-06,
+        "static_drift_m": 3.204440019023414e-08,
+        "static_speed_m_s": 1.985025413468635e-05,
+        "spin_rad_s": 6.244644792243443e-05,
+        "lateral_drift_m": 6.60843329462747e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.0,
+        "equivalent_force_n": -4.708800070166588,
+        "final_displacement_m": -3.204440019023414e-08,
+        "final_velocity_m_s": -5.137296912046898e-11,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005682623,
+        0.0056173415,
+        0.005944672,
+        0.006258817,
+        0.00556081
+      ],
+      "median_cost": 0.005682623
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -0.8,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.021508956,
+        "final_state": [
+          2.0,
+          -6.078718776613483e-10,
+          0.05000000036515656,
+          -6.079696745568465e-10,
+          -2.190964076831392e-11,
+          5.913151917128613e-09,
+          2.0756414246188336e-11,
+          1.0,
+          -4.7658532901591686e-11,
+          5.697404353854907e-09,
+          -2.81754591559497e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -11.772000000000002,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 5.150372930047654e-11,
+        "position_error_m": 6.336274006020555e-10,
+        "velocity_error_m_s": 1.66531490562331e-08,
+        "static_drift_m": 6.336274006020555e-10,
+        "static_speed_m_s": 4.0664522957528224e-07,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 6.13689375174957e-10,
+        "work_energy_excess_fraction": 1.6118564259267978e-08,
+        "analytic_acceleration_m_s2": -0.0,
+        "equivalent_force_n": -11.772000000000002,
+        "final_displacement_m": -6.078718776613483e-10,
+        "final_velocity_m_s": -4.7658532901591686e-11,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0104183695,
+        0.0109563135,
+        0.010869153000000001,
+        0.011372126,
+        0.011425039500000001
+      ],
+      "median_cost": 0.0109563135
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": -0.8,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012471741,
+        "final_state": [
+          2.0,
+          -9.140709345410306e-08,
+          0.04999980379335707,
+          1.2992866962798834e-08,
+          3.1616836926318115e-10,
+          1.2961241755338048e-07,
+          7.844590830608301e-07,
+          0.9999999999996839,
+          -8.794655486958831e-10,
+          1.087671619437458e-11,
+          7.701232397615455e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": -11.772000000000002,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.747623452954144e-07,
+        "position_error_m": 9.140709345410306e-08,
+        "velocity_error_m_s": 7.756214101938583e-06,
+        "static_drift_m": 9.140709345410306e-08,
+        "static_speed_m_s": 2.1097705703828848e-05,
+        "spin_rad_s": 0.00015464400778704312,
+        "lateral_drift_m": 1.2992866962798834e-08,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": -0.0,
+        "equivalent_force_n": -11.772000000000002,
+        "final_displacement_m": -9.140709345410306e-08,
+        "final_velocity_m_s": -8.794655486958831e-10,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005666144499999999,
+        0.006713358,
+        0.0055799414999999995,
+        0.0062026635,
+        0.005758594
+      ],
+      "median_cost": 0.005758594
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 0.8,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.064024039,
+        "final_state": [
+          2.0,
+          3.379327303900928e-09,
+          0.05000000039566482,
+          -3.2640477898496864e-09,
+          -2.3518853531356854e-11,
+          -3.3004754787592295e-08,
+          -3.770100948714361e-11,
+          0.9999999999999993,
+          5.144571885291579e-10,
+          2.562014142504232e-08,
+          4.108123002522728e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 4.708800070166588,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 1.9247752040322718e-11,
+        "position_error_m": 3.408339636456912e-09,
+        "velocity_error_m_s": 2.7841789393890465e-08,
+        "static_drift_m": 3.408339636456912e-09,
+        "static_speed_m_s": 3.585651172457639e-07,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 3.268148424543782e-09,
+        "work_energy_excess_fraction": 1.38058804401246e-08,
+        "analytic_acceleration_m_s2": 0.0,
+        "equivalent_force_n": 4.708800070166588,
+        "final_displacement_m": 3.379327303900928e-09,
+        "final_velocity_m_s": 5.144571885291579e-10,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.027224164000000002,
+        0.026923377,
+        0.0269976985,
+        0.046966548999999996,
+        0.030959274999999998
+      ],
+      "median_cost": 0.027224164000000002
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 0.8,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.012854601,
+        "final_state": [
+          2.0,
+          3.176070110617734e-08,
+          0.04999980380019116,
+          -3.424365582674823e-10,
+          -1.6949219805439952e-12,
+          -3.5287493549094725e-09,
+          -3.139189928273978e-07,
+          0.9999999999999507,
+          3.534274871358117e-11,
+          -2.42861286636753e-13,
+          -3.4862678743621184e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 4.708800070166588,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.2759186787519622e-07,
+        "position_error_m": 3.176070110617734e-08,
+        "velocity_error_m_s": 3.1466006669868397e-06,
+        "static_drift_m": 3.176070110617734e-08,
+        "static_speed_m_s": 1.9846769502710256e-05,
+        "spin_rad_s": 6.274774135023195e-05,
+        "lateral_drift_m": 3.424365582674823e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.0,
+        "equivalent_force_n": 4.708800070166588,
+        "final_displacement_m": 3.176070110617734e-08,
+        "final_velocity_m_s": 3.534274871358117e-11,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.005668324,
+        0.0072657955,
+        0.0057717325000000005,
+        0.0057302435,
+        0.0060454015
+      ],
+      "median_cost": 0.0057717325000000005
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 0.8,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.17371665,
+        "final_state": [
+          2.0,
+          5.224568412125206e-09,
+          0.050000000084849096,
+          -4.109538087244818e-09,
+          -4.270983566811992e-11,
+          -4.487618212022367e-08,
+          -3.006312020913529e-10,
+          0.9999999999999991,
+          1.6426447408094298e-08,
+          4.161621047771291e-08,
+          -4.338697397281173e-09,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 11.772000000000002,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 8.016399303211583e-12,
+        "position_error_m": 5.224568412125206e-09,
+        "velocity_error_m_s": 2.3435767128220784e-08,
+        "static_drift_m": 5.224568412125206e-09,
+        "static_speed_m_s": 1.2942899707680326e-07,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 4.109538087244818e-09,
+        "work_energy_excess_fraction": 3.833558147226057e-09,
+        "analytic_acceleration_m_s2": 0.0,
+        "equivalent_force_n": 11.772000000000002,
+        "final_displacement_m": 5.224568412125206e-09,
+        "final_velocity_m_s": 1.6426447408094298e-08,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.08653588549999999,
+        0.084828082,
+        0.08553266999999999,
+        0.0850604425,
+        0.0856802215
+      ],
+      "median_cost": 0.08553266999999999
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 0.8,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.014162633,
+        "final_state": [
+          2.0,
+          8.05750038654821e-08,
+          0.04999980380056428,
+          -5.492959213087975e-10,
+          -2.019595601865376e-11,
+          -1.2945609009796174e-08,
+          -7.847856427800357e-07,
+          0.999999999999692,
+          4.4470500046675844e-10,
+          -5.828670879282072e-13,
+          6.088512777863273e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 11.772000000000002,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.746799590264542e-07,
+        "position_error_m": 8.05750038654821e-08,
+        "velocity_error_m_s": 7.857978280663511e-06,
+        "static_drift_m": 8.05750038654821e-08,
+        "static_speed_m_s": 2.1109071092760426e-05,
+        "spin_rad_s": 0.0001568418497301752,
+        "lateral_drift_m": 7.286369885642162e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.0,
+        "equivalent_force_n": 11.772000000000002,
+        "final_displacement_m": 8.05750038654821e-08,
+        "final_velocity_m_s": 4.4470500046675844e-10,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0064646575,
+        0.006528331500000001,
+        0.006018497,
+        0.006021999,
+        0.0062653915
+      ],
+      "median_cost": 0.0062653915
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 1.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.072364498,
+        "final_state": [
+          2.0,
+          0.7855848129223667,
+          0.05000000000014259,
+          -6.841947483198642e-10,
+          -1.1225409490833727e-11,
+          -4.881695685500157e-09,
+          -1.2651501291286855e-11,
+          1.0,
+          0.7848000352779771,
+          -1.1165247545963375e-07,
+          -9.027879688434652e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 7.063200105249882,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.6745513440617136e-11,
+        "position_error_m": 0.0007848012279354499,
+        "velocity_error_m_s": 7.569403893958881e-08,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 6.841947483198642e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.3924000058472156,
+        "equivalent_force_n": 7.063200105249882,
+        "final_displacement_m": 0.7855848129223667,
+        "final_velocity_m_s": 0.7848000352779771,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.033027241,
+        0.0336102725,
+        0.0342214185,
+        0.0341684165,
+        0.0334657425
+      ],
+      "median_cost": 0.0336102725
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 1.2,
+        "mu": 0.2
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.020594604,
+        "final_state": [
+          2.0,
+          0.7855848509478038,
+          0.0499998037999846,
+          3.1174281726753303e-10,
+          -5.653588708298685e-12,
+          3.5947756276197605e-09,
+          -3.923885574827148e-07,
+          0.9999999999999231,
+          0.7848000116953413,
+          6.938893903907228e-15,
+          7.727287896443573e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 7.063200105249882,
+          "friction_coefficient": 0.20000000298023224,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.3543942097020195e-07,
+        "position_error_m": 0.0007848392533725823,
+        "velocity_error_m_s": 3.918961700076452e-06,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 7.825726470384461e-05,
+        "lateral_drift_m": 3.1174281726753303e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.3924000058472156,
+        "equivalent_force_n": 7.063200105249882,
+        "final_displacement_m": 0.7855848509478038,
+        "final_velocity_m_s": 0.7848000116953413,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0098333025,
+        0.009953192000000001,
+        0.0092939705,
+        0.010054094500000001,
+        0.009520604
+      ],
+      "median_cost": 0.0098333025
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 1.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.054567535,
+        "final_state": [
+          2.0,
+          1.9639620005998297,
+          0.05000000060022698,
+          -5.623340989546595e-11,
+          -5.7024829303031765e-11,
+          1.0727953851702707e-10,
+          -6.37693542113239e-11,
+          1.0,
+          1.9619999824436185,
+          3.691737887612234e-08,
+          3.5021112326705886e-11,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 17.657999999999998,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 4.143600783161027e-11,
+        "position_error_m": 0.0019620005998299828,
+        "velocity_error_m_s": 2.1980496490991985e-07,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.0,
+        "lateral_drift_m": 1.0766909023791646e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.9809999999999999,
+        "equivalent_force_n": 17.658,
+        "final_displacement_m": 1.9639620005998297,
+        "final_velocity_m_s": 1.9619999824436185,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.026864056,
+        0.0275378615,
+        0.0269725255,
+        0.025846951,
+        0.0280992085
+      ],
+      "median_cost": 0.0269725255
+    },
+    {
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3,
+        "force_ratio": 1.2,
+        "mu": 0.5
+      },
+      "setting": {
+        "regularization": 0.001,
+        "iterations": 200
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.020030633,
+        "final_state": [
+          2.0,
+          1.9639620981025199,
+          0.049999803799903646,
+          8.992724638629482e-10,
+          -3.27609606110002e-11,
+          7.76748174125234e-09,
+          -9.8094864342599e-07,
+          0.9999999999995187,
+          1.9620000000011295,
+          -2.42861286636753e-14,
+          2.1747236361548015e-10,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "equivalent_force_n": 17.657999999999998,
+          "friction_coefficient": 0.5,
+          "max_iterations": 200,
+          "penetration_recovery": 0.2,
+          "regularization": 0.001,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        }
+      },
+      "metrics": {
+        "max_penetration_m": 2.942981398077328e-07,
+        "position_error_m": 0.0019620981025201267,
+        "velocity_error_m_s": 9.798440676126764e-06,
+        "static_drift_m": 0,
+        "static_speed_m_s": 0,
+        "spin_rad_s": 0.00019613314021695757,
+        "lateral_drift_m": 8.992724638629482e-10,
+        "work_energy_excess_fraction": 0,
+        "analytic_acceleration_m_s2": 0.9809999999999999,
+        "equivalent_force_n": 17.658,
+        "final_displacement_m": 1.9639620981025199,
+        "final_velocity_m_s": 1.9620000000011295,
+        "gates": {
+          "max_penetration_m": true,
+          "position_error_m": true,
+          "velocity_error_m_s": true,
+          "static_drift_m": true,
+          "static_speed_m_s": true,
+          "spin_rad_s": true,
+          "lateral_drift_m": true,
+          "work_energy_excess_fraction": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0098700755,
+        0.009121538,
+        0.0095262225,
+        0.010005577,
+        0.009868819000000001
+      ],
+      "median_cost": 0.009868819000000001
+    }
+  ],
+  "raw_archive": {
+    "filename": "friction-threshold-h5.json.xz",
+    "bytes": 1846436,
+    "sha256": "00dedc70109a754b86dfbad79218129d5c688b8b3bd123ef24691c1d5fdaf11d",
+    "availability": "Local delivered artifact; no permanent remote URL"
+  }
+}

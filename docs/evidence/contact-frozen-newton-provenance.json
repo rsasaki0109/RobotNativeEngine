@@ -1,0 +1,71 @@
+{
+  "base_commit": "67a35679",
+  "files": [
+    {
+      "path": "docs/evidence/contact-frozen-capture.patch",
+      "sha256": "603fae3ff41aa7da9f2bf511a4fd5550749d56b562aee3b19804ece8704e4945",
+      "bytes": 1081
+    },
+    {
+      "path": "docs/evidence/contact-frozen-newton-min-results.json",
+      "sha256": "4510de914d077b23d6f5d801a1eb8de1845f8cbf8a366c9ef908f292ce67d9eb",
+      "bytes": 75371
+    },
+    {
+      "path": "docs/evidence/contact-frozen-newton-min.py",
+      "sha256": "444fadc4b71c961e03bfdf75bf8774770e019861ba761c75fb30e7860a7859b4",
+      "bytes": 5975
+    },
+    {
+      "path": "docs/evidence/contact-frozen-newton-results.json",
+      "sha256": "4557ed3f7c9919abad9e4f802ece739dc0f44e3548b05bd4e99dcfa686a7e8cf",
+      "bytes": 78925
+    },
+    {
+      "path": "docs/evidence/contact-frozen-newton-unbounded-results.json",
+      "sha256": "3df65ff60ef590011dc4509e42be3125f262f7927206efdb720ea7c0a62e3cc0",
+      "bytes": 77015
+    },
+    {
+      "path": "docs/evidence/contact-frozen-newton-unbounded.py",
+      "sha256": "9e56d647f514f66cb6a16398be73a21371ace759875d17ed79bd2dff9b77b440",
+      "bytes": 6134
+    },
+    {
+      "path": "docs/evidence/contact-frozen-systems.json",
+      "sha256": "30904a885cd285b828d5041551923b6957da67b7694a3ac084f3ee1410f094f3",
+      "bytes": 947824
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_freeze.py",
+      "sha256": "af6a0145e084208b41de3faafb6997ba59d278142442bd93b6d4c75bc783c7c2",
+      "bytes": 3032
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_frozen_newton.py",
+      "sha256": "3620b935cdf3f109680b7e6c3c3031a8ce21fce6e4def09396cea47d401b4179",
+      "bytes": 7097
+    },
+    {
+      "path": "scripts/contact_benchmark/test_frozen_newton.py",
+      "sha256": "b2452efe47913f0586dd59d9f7867429efd1500b4ea68cb57a97033f1a3b481e",
+      "bytes": 3555
+    }
+  ],
+  "binaries": [
+    {
+      "path": "/workspace/artifacts/contact-frozen-capture",
+      "sha256": "cce5c4985af81bcd071e7dca75be6889d58a08d0bf15b00639ebbc1c9a78570f",
+      "bytes": 1566056
+    },
+    {
+      "path": "/workspace/artifacts/contact-sticking-opt-final",
+      "sha256": "d977e6a5fe98a51caa2a0dc54cec4a98392d2d81c232e6ccd305d32b4532f996",
+      "bytes": 1563392
+    }
+  ],
+  "notes": [
+    "Production Rust source unchanged; capture patch is offline-only.",
+    "Intermediate reports were replayed on the committed fixtures; input arrays match original selection."
+  ]
+}

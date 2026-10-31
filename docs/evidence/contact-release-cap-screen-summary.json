@@ -1,0 +1,4090 @@
+{
+  "protocol": "contact_release_cap_screen_summary_v1",
+  "raw_artifact": {
+    "path": "/workspace/artifacts/contact-release-cap-screen.json",
+    "sha256": "c70e51bbac33ce9e22c00edbb614aac8acdb776e8661a2407df5f6e32ffdd368",
+    "bytes": 1167996
+  },
+  "results": [
+    {
+      "label": "tower-slide-4-failed-solve-1",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 4.842615089958497e-17,
+            "closing_velocity_m_s": 3.846756246872474e-12,
+            "loaded_normal_velocity_m_s": 3.846756246872474e-12,
+            "cone_violation_n_s": 1.3222123549941382e-21,
+            "interior_slip_m_s": 7.549649099594817e-17,
+            "dissipation_error_j": 1.2805959057167857e-19,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 4.842615089958497e-17,
+            "closing_velocity_m_s": 3.846756246872474e-12,
+            "loaded_normal_velocity_m_s": 3.846756246872474e-12,
+            "cone_violation_n_s": 1.3222123549941382e-21,
+            "interior_slip_m_s": 7.549649099594817e-17,
+            "dissipation_error_j": 1.2805959057167857e-19,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 4.842615089958497e-17,
+            "closing_velocity_m_s": 3.846756246872474e-12,
+            "loaded_normal_velocity_m_s": 3.846756246872474e-12,
+            "cone_violation_n_s": 1.3222123549941382e-21,
+            "interior_slip_m_s": 7.549649099594817e-17,
+            "dissipation_error_j": 1.2805959057167857e-19,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-1",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.617444900424221e-23,
+            "closing_velocity_m_s": 1.1032841307212493e-15,
+            "loaded_normal_velocity_m_s": 1.1032841307212493e-15,
+            "cone_violation_n_s": 5.497313316754112e-23,
+            "interior_slip_m_s": 1.6958210667349256e-16,
+            "dissipation_error_j": 3.248429922081244e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.617444900424221e-23,
+            "closing_velocity_m_s": 1.1032841307212493e-15,
+            "loaded_normal_velocity_m_s": 1.1032841307212493e-15,
+            "cone_violation_n_s": 5.497313316754112e-23,
+            "interior_slip_m_s": 1.6958210667349256e-16,
+            "dissipation_error_j": 3.248429922081244e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.617444900424221e-23,
+            "closing_velocity_m_s": 1.1032841307212493e-15,
+            "loaded_normal_velocity_m_s": 1.1032841307212493e-15,
+            "cone_violation_n_s": 5.497313316754112e-23,
+            "interior_slip_m_s": 1.6958210667349256e-16,
+            "dissipation_error_j": 3.248429922081244e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-10",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 4.607159954382154e-19,
+            "closing_velocity_m_s": 2.827853375726372e-16,
+            "loaded_normal_velocity_m_s": 3.4332617044469105e-16,
+            "cone_violation_n_s": 5.842924232418344e-25,
+            "interior_slip_m_s": 1.16056889222958e-09,
+            "dissipation_error_j": 1.0903051036184427e-10,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 10,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.0315613991422931e-18,
+            "closing_velocity_m_s": 4.1698505551043146e-16,
+            "loaded_normal_velocity_m_s": 4.1698505551043146e-16,
+            "cone_violation_n_s": 5.806449941142435e-20,
+            "interior_slip_m_s": 1.1605688372709641e-09,
+            "dissipation_error_j": 1.9053200131588763e-10,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 15,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 4.607159954382154e-19,
+            "closing_velocity_m_s": 2.827853375726372e-16,
+            "loaded_normal_velocity_m_s": 3.4332617044469105e-16,
+            "cone_violation_n_s": 5.842924232418344e-25,
+            "interior_slip_m_s": 1.16056889222958e-09,
+            "dissipation_error_j": 1.0903051036184427e-10,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 10,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-10",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.1904839801764153e-09,
+            "closing_velocity_m_s": 1.5027380923827993e-16,
+            "loaded_normal_velocity_m_s": 2.7755575615628914e-16,
+            "cone_violation_n_s": 4.489636509785733e-09,
+            "interior_slip_m_s": 1.566493888448758e-12,
+            "dissipation_error_j": 6.334589125925891e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 13,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.869331164140195e-17,
+            "closing_velocity_m_s": 2.827853375726372e-16,
+            "loaded_normal_velocity_m_s": 3.3544876403522605e-16,
+            "cone_violation_n_s": 3.4346656669113144e-17,
+            "interior_slip_m_s": 1.1605687901250617e-09,
+            "dissipation_error_j": 1.2925215795436425e-10,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 14,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.1904839801764153e-09,
+            "closing_velocity_m_s": 1.5027380923827993e-16,
+            "loaded_normal_velocity_m_s": 2.7755575615628914e-16,
+            "cone_violation_n_s": 4.489636509785733e-09,
+            "interior_slip_m_s": 1.566493888448758e-12,
+            "dissipation_error_j": 6.334589125925891e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 13,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-1",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.5244321872372727e-17,
+            "closing_velocity_m_s": 3.846867269174936e-12,
+            "loaded_normal_velocity_m_s": 3.846867269174936e-12,
+            "cone_violation_n_s": 3.0236343539016807e-18,
+            "interior_slip_m_s": 1.6999381734090804e-16,
+            "dissipation_error_j": 9.041834053099382e-20,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.5244321872372727e-17,
+            "closing_velocity_m_s": 3.846867269174936e-12,
+            "loaded_normal_velocity_m_s": 3.846867269174936e-12,
+            "cone_violation_n_s": 3.0236343539016807e-18,
+            "interior_slip_m_s": 1.6999381734090804e-16,
+            "dissipation_error_j": 9.041834053099382e-20,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.5244321872372727e-17,
+            "closing_velocity_m_s": 3.846867269174936e-12,
+            "loaded_normal_velocity_m_s": 3.846867269174936e-12,
+            "cone_violation_n_s": 3.0236343539016807e-18,
+            "interior_slip_m_s": 1.6999381734090804e-16,
+            "dissipation_error_j": 9.041834053099382e-20,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-1",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7817902262382976e-23,
+            "closing_velocity_m_s": 1.1032841307212493e-15,
+            "loaded_normal_velocity_m_s": 1.1032841307212493e-15,
+            "cone_violation_n_s": 1.0183383362830914e-21,
+            "interior_slip_m_s": 1.6958210667349256e-16,
+            "dissipation_error_j": 3.248429922081244e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7817902262382976e-23,
+            "closing_velocity_m_s": 1.1032841307212493e-15,
+            "loaded_normal_velocity_m_s": 1.1032841307212493e-15,
+            "cone_violation_n_s": 1.0183383362830914e-21,
+            "interior_slip_m_s": 1.6958210667349256e-16,
+            "dissipation_error_j": 3.248429922081244e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7817902262382976e-23,
+            "closing_velocity_m_s": 1.1032841307212493e-15,
+            "loaded_normal_velocity_m_s": 1.1032841307212493e-15,
+            "cone_violation_n_s": 1.0183383362830914e-21,
+            "interior_slip_m_s": 1.6958210667349256e-16,
+            "dissipation_error_j": 3.248429922081244e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-24",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.910117832304091e-11,
+            "closing_velocity_m_s": 7.705641680288977e-15,
+            "loaded_normal_velocity_m_s": 7.705641680288977e-15,
+            "cone_violation_n_s": 1.7089454851237917e-13,
+            "interior_slip_m_s": 6.704439633944973e-10,
+            "dissipation_error_j": 1.2257300048634042e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 14,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.910117832304091e-11,
+            "closing_velocity_m_s": 7.705641680288977e-15,
+            "loaded_normal_velocity_m_s": 7.705641680288977e-15,
+            "cone_violation_n_s": 1.7089454851237917e-13,
+            "interior_slip_m_s": 6.704439633944973e-10,
+            "dissipation_error_j": 1.2257300048634042e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 14,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.910117832304091e-11,
+            "closing_velocity_m_s": 7.705641680288977e-15,
+            "loaded_normal_velocity_m_s": 7.705641680288977e-15,
+            "cone_violation_n_s": 1.7089454851237917e-13,
+            "interior_slip_m_s": 6.704439633944973e-10,
+            "dissipation_error_j": 1.2257300048634042e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 14,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-24",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.0008361245181814393,
+            "loaded_normal_velocity_m_s": 0.0009478313386453098,
+            "cone_violation_n_s": 3.944304526105059e-31,
+            "interior_slip_m_s": 0.0009416161195248185,
+            "dissipation_error_j": 0.0003269299361896505,
+            "sliding_direction_error_m_s": 0.0014566233693789432
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 19,
+        "reason": "release_limit",
+        "release_candidates": 100,
+        "releases": 8
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.0010782618684946378,
+            "loaded_normal_velocity_m_s": 0.0012162384094739527,
+            "cone_violation_n_s": 3.469446951953614e-18,
+            "interior_slip_m_s": 0.00103347023324346,
+            "dissipation_error_j": 0.00045589131073055597,
+            "sliding_direction_error_m_s": 0.0017629832111296098
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 10,
+        "reason": "release_limit",
+        "release_candidates": 8,
+        "releases": 8
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.923148284639272e-12,
+            "closing_velocity_m_s": 8.080341951099967e-15,
+            "loaded_normal_velocity_m_s": 8.080341951099967e-15,
+            "cone_violation_n_s": 3.0945825206638035e-12,
+            "interior_slip_m_s": 6.7044444911709e-10,
+            "dissipation_error_j": 5.317048994456943e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 27,
+        "reason": "certified",
+        "release_candidates": 14,
+        "releases": 4
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-1",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7922252302263195e-17,
+            "closing_velocity_m_s": 1.3719927971500567e-13,
+            "loaded_normal_velocity_m_s": 1.3719927971500567e-13,
+            "cone_violation_n_s": 8.47860367822317e-23,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 1.4851193731665582e-25,
+            "sliding_direction_error_m_s": 1.281966001872109e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7922252302263195e-17,
+            "closing_velocity_m_s": 1.3719927971500567e-13,
+            "loaded_normal_velocity_m_s": 1.3719927971500567e-13,
+            "cone_violation_n_s": 8.47860367822317e-23,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 1.4851193731665582e-25,
+            "sliding_direction_error_m_s": 1.281966001872109e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7922252302263195e-17,
+            "closing_velocity_m_s": 1.3719927971500567e-13,
+            "loaded_normal_velocity_m_s": 1.3719927971500567e-13,
+            "cone_violation_n_s": 8.47860367822317e-23,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 1.4851193731665582e-25,
+            "sliding_direction_error_m_s": 1.281966001872109e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-1",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4268865566539727e-23,
+            "closing_velocity_m_s": 4.874572967494828e-15,
+            "loaded_normal_velocity_m_s": 4.874572967494828e-15,
+            "cone_violation_n_s": 2.8610447344590284e-13,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 3.775522549364836e-25,
+            "sliding_direction_error_m_s": 5.652668981507251e-14
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4268865566539727e-23,
+            "closing_velocity_m_s": 4.874572967494828e-15,
+            "loaded_normal_velocity_m_s": 4.874572967494828e-15,
+            "cone_violation_n_s": 2.8610447344590284e-13,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 3.775522549364836e-25,
+            "sliding_direction_error_m_s": 5.652668981507251e-14
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4268865566539727e-23,
+            "closing_velocity_m_s": 4.874572967494828e-15,
+            "loaded_normal_velocity_m_s": 4.874572967494828e-15,
+            "cone_violation_n_s": 2.8610447344590284e-13,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 3.775522549364836e-25,
+            "sliding_direction_error_m_s": 5.652668981507251e-14
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-15",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.119165260392495e-13,
+            "closing_velocity_m_s": 1.3183898417423734e-16,
+            "loaded_normal_velocity_m_s": 5.551115123125783e-16,
+            "cone_violation_n_s": 8.673617379884035e-19,
+            "interior_slip_m_s": 1.4129177484512785e-12,
+            "dissipation_error_j": 4.185541736161427e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 30,
+        "reason": "certified",
+        "release_candidates": 6,
+        "releases": 2
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.119165246600292e-13,
+            "closing_velocity_m_s": 4.54116385879659e-16,
+            "loaded_normal_velocity_m_s": 4.54116385879659e-16,
+            "cone_violation_n_s": 4.795374410214352e-25,
+            "interior_slip_m_s": 1.4126965988517231e-12,
+            "dissipation_error_j": 2.0921915924333434e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 35,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 2
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.119165260392495e-13,
+            "closing_velocity_m_s": 1.3183898417423734e-16,
+            "loaded_normal_velocity_m_s": 5.551115123125783e-16,
+            "cone_violation_n_s": 8.673617379884035e-19,
+            "interior_slip_m_s": 1.4129177484512785e-12,
+            "dissipation_error_j": 4.185541736161427e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 30,
+        "reason": "certified",
+        "release_candidates": 6,
+        "releases": 2
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-15",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.7733631706712389e-15,
+            "closing_velocity_m_s": 3.8819780779403e-13,
+            "loaded_normal_velocity_m_s": 3.8819780779403e-13,
+            "cone_violation_n_s": 1.0299995231721759e-11,
+            "interior_slip_m_s": 1.4129876686437183e-12,
+            "dissipation_error_j": 1.3336963589619247e-13,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 23,
+        "reason": "certified",
+        "release_candidates": 20,
+        "releases": 4
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.11916524759084e-13,
+            "closing_velocity_m_s": 1.3183898417423734e-16,
+            "loaded_normal_velocity_m_s": 6.36053133719252e-16,
+            "cone_violation_n_s": 9.680741312945403e-23,
+            "interior_slip_m_s": 1.412585256851417e-12,
+            "dissipation_error_j": 1.2503781308429964e-13,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 28,
+        "reason": "certified",
+        "release_candidates": 4,
+        "releases": 4
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.060102459209228e-19,
+            "closing_velocity_m_s": 1.2379625108421248e-12,
+            "loaded_normal_velocity_m_s": 1.2379625108421248e-12,
+            "cone_violation_n_s": 1.1532441668293814e-14,
+            "interior_slip_m_s": 3.165472992011593e-13,
+            "dissipation_error_j": 9.165503477635887e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 25,
+        "reason": "certified",
+        "release_candidates": 14,
+        "releases": 4
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-1",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7352194165677376e-17,
+            "closing_velocity_m_s": 1.3720621860890958e-13,
+            "loaded_normal_velocity_m_s": 1.3720621860890958e-13,
+            "cone_violation_n_s": 8.96653833663028e-22,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 1.8656872238411422e-25,
+            "sliding_direction_error_m_s": 3.461486004447455e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7352194165677376e-17,
+            "closing_velocity_m_s": 1.3720621860890958e-13,
+            "loaded_normal_velocity_m_s": 1.3720621860890958e-13,
+            "cone_violation_n_s": 8.96653833663028e-22,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 1.8656872238411422e-25,
+            "sliding_direction_error_m_s": 3.461486004447455e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7352194165677376e-17,
+            "closing_velocity_m_s": 1.3720621860890958e-13,
+            "loaded_normal_velocity_m_s": 1.3720621860890958e-13,
+            "cone_violation_n_s": 8.96653833663028e-22,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 1.8656872238411422e-25,
+            "sliding_direction_error_m_s": 3.461486004447455e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 5,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-1",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4268865566539727e-23,
+            "closing_velocity_m_s": 4.874572967494828e-15,
+            "loaded_normal_velocity_m_s": 4.874572967494828e-15,
+            "cone_violation_n_s": 2.8610447344590284e-13,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 3.775522549364836e-25,
+            "sliding_direction_error_m_s": 5.652668981507251e-14
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4268865566539727e-23,
+            "closing_velocity_m_s": 4.874572967494828e-15,
+            "loaded_normal_velocity_m_s": 4.874572967494828e-15,
+            "cone_violation_n_s": 2.8610447344590284e-13,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 3.775522549364836e-25,
+            "sliding_direction_error_m_s": 5.652668981507251e-14
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4268865566539727e-23,
+            "closing_velocity_m_s": 4.874572967494828e-15,
+            "loaded_normal_velocity_m_s": 4.874572967494828e-15,
+            "cone_violation_n_s": 2.8610447344590284e-13,
+            "interior_slip_m_s": 0.0,
+            "dissipation_error_j": 3.775522549364836e-25,
+            "sliding_direction_error_m_s": 5.652668981507251e-14
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 1,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-19",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.9005786857467263e-09,
+            "closing_velocity_m_s": 7.575330842879481e-07,
+            "loaded_normal_velocity_m_s": 7.575375902985369e-07,
+            "cone_violation_n_s": 7.690116321512619e-10,
+            "interior_slip_m_s": 4.938528026514771e-12,
+            "dissipation_error_j": 1.0875538789993703e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 6,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.1108817139969867e-05,
+            "closing_velocity_m_s": 4.1894405714350295e-05,
+            "loaded_normal_velocity_m_s": 4.1894405714350295e-05,
+            "cone_violation_n_s": 1.2024630825141491e-05,
+            "interior_slip_m_s": 3.299390637620919e-12,
+            "dissipation_error_j": 3.779957756247991e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 3,
+        "releases": 3
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.9005786857467263e-09,
+            "closing_velocity_m_s": 7.575330842879481e-07,
+            "loaded_normal_velocity_m_s": 7.575375902985369e-07,
+            "cone_violation_n_s": 7.690116321512619e-10,
+            "interior_slip_m_s": 4.938528026514771e-12,
+            "dissipation_error_j": 1.0875538789993703e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 4,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-19",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.943226734574056e-11,
+            "closing_velocity_m_s": 7.323779582790735e-09,
+            "loaded_normal_velocity_m_s": 7.323779582790735e-09,
+            "cone_violation_n_s": 2.602712489974124e-11,
+            "interior_slip_m_s": 1.1611237083038144e-11,
+            "dissipation_error_j": 4.1720163990073685e-13,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 27,
+        "reason": "certified",
+        "release_candidates": 20,
+        "releases": 4
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.080974262110458e-11,
+            "closing_velocity_m_s": 5.3468312812216326e-12,
+            "loaded_normal_velocity_m_s": 5.3468312812216326e-12,
+            "cone_violation_n_s": 3.6219105041535027e-09,
+            "interior_slip_m_s": 3.7897178304787824e-13,
+            "dissipation_error_j": 9.081863629116599e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 3,
+        "releases": 3
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.0704265690497477e-13,
+            "closing_velocity_m_s": 3.6264324876356113e-12,
+            "loaded_normal_velocity_m_s": 3.6264324876356113e-12,
+            "cone_violation_n_s": 2.38634306759522e-10,
+            "interior_slip_m_s": 1.1611237013439017e-11,
+            "dissipation_error_j": 4.162962148879425e-13,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 34,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 14,
+        "releases": 4
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-12",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.4661407126139984e-19,
+            "closing_velocity_m_s": 7.163052703068606e-16,
+            "loaded_normal_velocity_m_s": 7.163052703068606e-16,
+            "cone_violation_n_s": 4.66439734059243e-12,
+            "interior_slip_m_s": 5.04678424279081e-17,
+            "dissipation_error_j": 1.4168970748458727e-13,
+            "sliding_direction_error_m_s": 4.9836932471767575e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 14,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.4661407126139984e-19,
+            "closing_velocity_m_s": 7.163052703068606e-16,
+            "loaded_normal_velocity_m_s": 7.163052703068606e-16,
+            "cone_violation_n_s": 4.66439734059243e-12,
+            "interior_slip_m_s": 5.04678424279081e-17,
+            "dissipation_error_j": 1.4168970748458727e-13,
+            "sliding_direction_error_m_s": 4.9836932471767575e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 14,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.4661407126139984e-19,
+            "closing_velocity_m_s": 7.163052703068606e-16,
+            "loaded_normal_velocity_m_s": 7.163052703068606e-16,
+            "cone_violation_n_s": 4.66439734059243e-12,
+            "interior_slip_m_s": 5.04678424279081e-17,
+            "dissipation_error_j": 1.4168970748458727e-13,
+            "sliding_direction_error_m_s": 4.9836932471767575e-18
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 14,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-12",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.0740320690227646e-13,
+            "closing_velocity_m_s": 2.563851908554682e-13,
+            "loaded_normal_velocity_m_s": 2.563921297493721e-13,
+            "cone_violation_n_s": 5.9526475587056336e-24,
+            "interior_slip_m_s": 9.657673358249177e-09,
+            "dissipation_error_j": 1.4134840995211612e-10,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 49,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.540550761554866e-19,
+            "closing_velocity_m_s": 7.036540978236578e-08,
+            "loaded_normal_velocity_m_s": 7.036540978236578e-08,
+            "cone_violation_n_s": 1.119433920993701e-07,
+            "interior_slip_m_s": 9.657673347840735e-09,
+            "dissipation_error_j": 1.4134841452792154e-10,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.0740320690227646e-13,
+            "closing_velocity_m_s": 2.563851908554682e-13,
+            "loaded_normal_velocity_m_s": 2.563921297493721e-13,
+            "cone_violation_n_s": 5.9526475587056336e-24,
+            "interior_slip_m_s": 9.657673358249177e-09,
+            "dissipation_error_j": 1.4134840995211612e-10,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 49,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-31",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.735835093861396e-24,
+            "closing_velocity_m_s": 3.4356385847760245e-15,
+            "loaded_normal_velocity_m_s": 5.401910269466938e-17,
+            "cone_violation_n_s": 1.5053215342290142e-22,
+            "interior_slip_m_s": 1.6877029127556254e-13,
+            "dissipation_error_j": 2.55774100164751e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 8,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.735835093861396e-24,
+            "closing_velocity_m_s": 3.4356385847760245e-15,
+            "loaded_normal_velocity_m_s": 5.401910269466938e-17,
+            "cone_violation_n_s": 1.5053215342290142e-22,
+            "interior_slip_m_s": 1.6877029127556254e-13,
+            "dissipation_error_j": 2.55774100164751e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 8,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.735835093861396e-24,
+            "closing_velocity_m_s": 3.4356385847760245e-15,
+            "loaded_normal_velocity_m_s": 5.401910269466938e-17,
+            "cone_violation_n_s": 1.5053215342290142e-22,
+            "interior_slip_m_s": 1.6877029127556254e-13,
+            "dissipation_error_j": 2.55774100164751e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 8,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-31",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 3.477271948199468e-15,
+            "loaded_normal_velocity_m_s": 3.122502256758253e-17,
+            "cone_violation_n_s": 2.168404344971009e-19,
+            "interior_slip_m_s": 1.6877091467312779e-13,
+            "dissipation_error_j": 2.555647837905351e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 8,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 3.477271948199468e-15,
+            "loaded_normal_velocity_m_s": 3.122502256758253e-17,
+            "cone_violation_n_s": 2.168404344971009e-19,
+            "interior_slip_m_s": 1.6877091467312779e-13,
+            "dissipation_error_j": 2.555647837905351e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 8,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 3.477271948199468e-15,
+            "loaded_normal_velocity_m_s": 3.122502256758253e-17,
+            "cone_violation_n_s": 2.168404344971009e-19,
+            "interior_slip_m_s": 1.6877091467312779e-13,
+            "dissipation_error_j": 2.555647837905351e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 8,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-50",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 1.384309333829492e-15,
+            "loaded_normal_velocity_m_s": 1.394717674685353e-15,
+            "cone_violation_n_s": 5.941427905220564e-17,
+            "interior_slip_m_s": 7.123047683817545e-16,
+            "dissipation_error_j": 7.407064921485964e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 9,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 1.384309333829492e-15,
+            "loaded_normal_velocity_m_s": 1.394717674685353e-15,
+            "cone_violation_n_s": 5.941427905220564e-17,
+            "interior_slip_m_s": 7.123047683817545e-16,
+            "dissipation_error_j": 7.407064921485964e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 9,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 1.384309333829492e-15,
+            "loaded_normal_velocity_m_s": 1.394717674685353e-15,
+            "cone_violation_n_s": 5.941427905220564e-17,
+            "interior_slip_m_s": 7.123047683817545e-16,
+            "dissipation_error_j": 7.407064921485964e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 9,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-50",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.0198432137457932e-24,
+            "closing_velocity_m_s": 1.394717674685353e-15,
+            "loaded_normal_velocity_m_s": 1.394717674685353e-15,
+            "cone_violation_n_s": 2.8897386780531376e-11,
+            "interior_slip_m_s": 7.157208194905661e-16,
+            "dissipation_error_j": 7.456374197381863e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 9,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.0198432137457932e-24,
+            "closing_velocity_m_s": 1.394717674685353e-15,
+            "loaded_normal_velocity_m_s": 1.394717674685353e-15,
+            "cone_violation_n_s": 2.8897386780531376e-11,
+            "interior_slip_m_s": 7.157208194905661e-16,
+            "dissipation_error_j": 7.456374197381863e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 9,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.0198432137457932e-24,
+            "closing_velocity_m_s": 1.394717674685353e-15,
+            "loaded_normal_velocity_m_s": 1.394717674685353e-15,
+            "cone_violation_n_s": 2.8897386780531376e-11,
+            "interior_slip_m_s": 7.157208194905661e-16,
+            "dissipation_error_j": 7.456374197381863e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 9,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-69",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.955492790493046e-14,
+            "closing_velocity_m_s": 6.4564537223532614e-09,
+            "loaded_normal_velocity_m_s": 6.4564537223532614e-09,
+            "cone_violation_n_s": 2.497674917951319e-11,
+            "interior_slip_m_s": 2.090357059473301e-14,
+            "dissipation_error_j": 2.0305166499372379e-16,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 18,
+        "reason": "certified",
+        "release_candidates": 6,
+        "releases": 2
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.475939813795694e-21,
+            "closing_velocity_m_s": 9.884454366115847e-15,
+            "loaded_normal_velocity_m_s": 9.884454366115847e-15,
+            "cone_violation_n_s": 6.387816809095465e-22,
+            "interior_slip_m_s": 2.1186970788394687e-14,
+            "dissipation_error_j": 2.0588610305078664e-16,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 21,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 2
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.955492790493046e-14,
+            "closing_velocity_m_s": 6.4564537223532614e-09,
+            "loaded_normal_velocity_m_s": 6.4564537223532614e-09,
+            "cone_violation_n_s": 2.497674917951319e-11,
+            "interior_slip_m_s": 2.090357059473301e-14,
+            "dissipation_error_j": 2.0305166499372379e-16,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 18,
+        "reason": "certified",
+        "release_candidates": 6,
+        "releases": 2
+      }
+    },
+    {
+      "label": "tower-slide-4-failed-solve-69",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.969373579399979e-21,
+            "closing_velocity_m_s": 1.9290125052862095e-14,
+            "loaded_normal_velocity_m_s": 1.9290125052862095e-14,
+            "cone_violation_n_s": 2.5848247153792414e-14,
+            "interior_slip_m_s": 8.388916100658906e-15,
+            "dissipation_error_j": 1.2127463335055954e-16,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 21,
+        "reason": "certified",
+        "release_candidates": 6,
+        "releases": 2
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.2301769977243718e-13,
+            "closing_velocity_m_s": 9.757857109132795e-09,
+            "loaded_normal_velocity_m_s": 9.757857109132795e-09,
+            "cone_violation_n_s": 2.3656338238951536e-19,
+            "interior_slip_m_s": 2.0753296940960375e-14,
+            "dissipation_error_j": 2.0193005886805473e-16,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 20,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 2
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.969373579399979e-21,
+            "closing_velocity_m_s": 1.9290125052862095e-14,
+            "loaded_normal_velocity_m_s": 1.9290125052862095e-14,
+            "cone_violation_n_s": 2.5848247153792414e-14,
+            "interior_slip_m_s": 8.388916100658906e-15,
+            "dissipation_error_j": 1.2127463335055954e-16,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 21,
+        "reason": "certified",
+        "release_candidates": 6,
+        "releases": 2
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-11",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.69779858775317e-17,
+            "closing_velocity_m_s": 6.062316447452698e-16,
+            "loaded_normal_velocity_m_s": 7.696751222474596e-16,
+            "cone_violation_n_s": 1.66597208355046e-08,
+            "interior_slip_m_s": 4.004411333002003e-11,
+            "dissipation_error_j": 1.5387666251081377e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.69779858775317e-17,
+            "closing_velocity_m_s": 6.062316447452698e-16,
+            "loaded_normal_velocity_m_s": 7.696751222474596e-16,
+            "cone_violation_n_s": 1.66597208355046e-08,
+            "interior_slip_m_s": 4.004411333002003e-11,
+            "dissipation_error_j": 1.5387666251081377e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.69779858775317e-17,
+            "closing_velocity_m_s": 6.062316447452698e-16,
+            "loaded_normal_velocity_m_s": 7.696751222474596e-16,
+            "cone_violation_n_s": 1.66597208355046e-08,
+            "interior_slip_m_s": 4.004411333002003e-11,
+            "dissipation_error_j": 1.5387666251081377e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-11",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.492435191351649e-17,
+            "closing_velocity_m_s": 6.234704592877893e-16,
+            "loaded_normal_velocity_m_s": 7.623025474745582e-16,
+            "cone_violation_n_s": 3.059865881505086e-09,
+            "interior_slip_m_s": 4.0043996914505396e-11,
+            "dissipation_error_j": 2.320234744066591e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.531875363875712e-17,
+            "closing_velocity_m_s": 2.1191026711164795e-10,
+            "loaded_normal_velocity_m_s": 2.1191026711164795e-10,
+            "cone_violation_n_s": 2.1776375854423743e-19,
+            "interior_slip_m_s": 6.155585557002168e-10,
+            "dissipation_error_j": 4.154598437427468e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 16,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.492435191351649e-17,
+            "closing_velocity_m_s": 6.234704592877893e-16,
+            "loaded_normal_velocity_m_s": 7.623025474745582e-16,
+            "cone_violation_n_s": 3.059865881505086e-09,
+            "interior_slip_m_s": 4.0043996914505396e-11,
+            "dissipation_error_j": 2.320234744066591e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-31",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.00020881942546016954,
+            "loaded_normal_velocity_m_s": 0.00036791558106713876,
+            "cone_violation_n_s": 0.0,
+            "interior_slip_m_s": 0.00017989592148770047,
+            "dissipation_error_j": 1.6247691887533047e-05,
+            "sliding_direction_error_m_s": 0.0003376954636683139
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 1,
+        "reason": "release_limit",
+        "release_candidates": 70,
+        "releases": 8
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.8699311101822748e-18,
+            "closing_velocity_m_s": 1.3693473438491921e-15,
+            "loaded_normal_velocity_m_s": 1.3693473438491921e-15,
+            "cone_violation_n_s": 5.866327302400665e-11,
+            "interior_slip_m_s": 4.871583322450456e-17,
+            "dissipation_error_j": 3.497184835674308e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 11,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.5847540460654854e-18,
+            "closing_velocity_m_s": 1.3684799821112037e-15,
+            "loaded_normal_velocity_m_s": 1.3838756529604979e-15,
+            "cone_violation_n_s": 6.278632128098316e-13,
+            "interior_slip_m_s": 5.915221056873788e-17,
+            "dissipation_error_j": 1.1827183350101522e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 11,
+        "reason": "certified",
+        "release_candidates": 4,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-31",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.1468024674493628e-11,
+            "closing_velocity_m_s": 5.43987598022877e-15,
+            "loaded_normal_velocity_m_s": 8.326672684688674e-17,
+            "cone_violation_n_s": 3.547466140285671e-12,
+            "interior_slip_m_s": 7.037843924156182e-17,
+            "dissipation_error_j": 1.4405638322904152e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 28,
+        "reason": "certified",
+        "release_candidates": 40,
+        "releases": 5
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.531479838362141e-24,
+            "closing_velocity_m_s": 1.3664233861152703e-15,
+            "loaded_normal_velocity_m_s": 1.3665284182007298e-15,
+            "cone_violation_n_s": 7.068998164605489e-17,
+            "interior_slip_m_s": 6.315304465015998e-17,
+            "dissipation_error_j": 4.952989449065898e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 13,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.1950960887280127e-19,
+            "closing_velocity_m_s": 1.3607821466865566e-15,
+            "loaded_normal_velocity_m_s": 1.3780209612290761e-15,
+            "cone_violation_n_s": 9.553046288052203e-14,
+            "interior_slip_m_s": 8.950423841658715e-17,
+            "dissipation_error_j": 1.426752333572752e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 13,
+        "reason": "certified",
+        "release_candidates": 4,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-50",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.00026596343884081284,
+            "loaded_normal_velocity_m_s": 0.0033968855735225234,
+            "cone_violation_n_s": 0.0,
+            "interior_slip_m_s": 0.000655841116080062,
+            "dissipation_error_j": 2.588310378649326e-05,
+            "sliding_direction_error_m_s": 0.000514770913996223
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 18,
+        "reason": "release_limit",
+        "release_candidates": 71,
+        "releases": 8
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.075481656882609e-18,
+            "closing_velocity_m_s": 1.5975176910487665e-15,
+            "loaded_normal_velocity_m_s": 1.6267369395972509e-15,
+            "cone_violation_n_s": 6.397558221030164e-10,
+            "interior_slip_m_s": 1.0140871678269239e-16,
+            "dissipation_error_j": 6.563358716911085e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.339243068907582e-19,
+            "closing_velocity_m_s": 1.5864588288894144e-15,
+            "loaded_normal_velocity_m_s": 1.5864588288894144e-15,
+            "cone_violation_n_s": 9.860515182147367e-13,
+            "interior_slip_m_s": 7.158713734061072e-17,
+            "dissipation_error_j": 1.3069417546900544e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 28,
+        "reason": "certified",
+        "release_candidates": 4,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-50",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 8.618493316235692e-14,
+            "closing_velocity_m_s": 1.5604379767497623e-15,
+            "loaded_normal_velocity_m_s": 1.6470928353856662e-15,
+            "cone_violation_n_s": 7.721257509392551e-12,
+            "interior_slip_m_s": 1.7192459464973484e-12,
+            "dissipation_error_j": 8.582078316729242e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 21,
+        "reason": "certified",
+        "release_candidates": 18,
+        "releases": 2
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.548179477686067e-20,
+            "closing_velocity_m_s": 1.6053239466906621e-15,
+            "loaded_normal_velocity_m_s": 1.6053239466906621e-15,
+            "cone_violation_n_s": 2.0500892650154867e-12,
+            "interior_slip_m_s": 1.7192510660335877e-12,
+            "dissipation_error_j": 1.180833455033912e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 14,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.699115897926253e-17,
+            "closing_velocity_m_s": 2.986453266086951e-08,
+            "loaded_normal_velocity_m_s": 2.986453266086951e-08,
+            "cone_violation_n_s": 3.469446951953614e-18,
+            "interior_slip_m_s": 1.0100684942337036e-16,
+            "dissipation_error_j": 4.773623192781464e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 13,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 4,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-69",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.00611090591115e-15,
+            "closing_velocity_m_s": 2.09408770705799e-14,
+            "loaded_normal_velocity_m_s": 7.573152174811248e-17,
+            "cone_violation_n_s": 7.62162902234742e-13,
+            "interior_slip_m_s": 6.47395129477024e-17,
+            "dissipation_error_j": 2.8522559588396103e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 12,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.881324143048798e-20,
+            "closing_velocity_m_s": 6.381713533814247e-09,
+            "loaded_normal_velocity_m_s": 6.381713533814247e-09,
+            "cone_violation_n_s": 7.743652941094581e-11,
+            "interior_slip_m_s": 6.450411826804942e-17,
+            "dissipation_error_j": 3.616004103352763e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 15,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.00611090591115e-15,
+            "closing_velocity_m_s": 2.09408770705799e-14,
+            "loaded_normal_velocity_m_s": 7.573152174811248e-17,
+            "cone_violation_n_s": 7.62162902234742e-13,
+            "interior_slip_m_s": 6.47395129477024e-17,
+            "dissipation_error_j": 2.8522559588396103e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 12,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-slide-8-failed-solve-69",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.1100846851048304e-10,
+            "closing_velocity_m_s": 6.973696793644013e-15,
+            "loaded_normal_velocity_m_s": 6.973696793644013e-15,
+            "cone_violation_n_s": 2.1454920619800534e-08,
+            "interior_slip_m_s": 1.2782608097325581e-12,
+            "dissipation_error_j": 4.457350191026454e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 20,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 15,
+        "releases": 2
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.6192568731669693e-13,
+            "closing_velocity_m_s": 3.11714646247796e-08,
+            "loaded_normal_velocity_m_s": 3.11714646247796e-08,
+            "cone_violation_n_s": 0.00011543395013553781,
+            "interior_slip_m_s": 1.2703911556527038e-12,
+            "dissipation_error_j": 2.618849105225417e-06,
+            "sliding_direction_error_m_s": 4.630170758808557e-05
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.172758082887945e-12,
+            "closing_velocity_m_s": 5.2603321004651704e-15,
+            "loaded_normal_velocity_m_s": 5.2808235215251464e-15,
+            "cone_violation_n_s": 8.173796740449976e-11,
+            "interior_slip_m_s": 2.4284538906811662e-12,
+            "dissipation_error_j": 1.4255972395752817e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 33,
+        "reason": "certified",
+        "release_candidates": 6,
+        "releases": 2
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-12",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.8754039563805522e-17,
+            "closing_velocity_m_s": 4.620734133861659e-17,
+            "loaded_normal_velocity_m_s": 4.620734133861659e-17,
+            "cone_violation_n_s": 5.3273334121905006e-11,
+            "interior_slip_m_s": 1.5156289696695678e-12,
+            "dissipation_error_j": 1.5393422042456846e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 22,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.8754039563805522e-17,
+            "closing_velocity_m_s": 4.620734133861659e-17,
+            "loaded_normal_velocity_m_s": 4.620734133861659e-17,
+            "cone_violation_n_s": 5.3273334121905006e-11,
+            "interior_slip_m_s": 1.5156289696695678e-12,
+            "dissipation_error_j": 1.5393422042456846e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 22,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.8754039563805522e-17,
+            "closing_velocity_m_s": 4.620734133861659e-17,
+            "loaded_normal_velocity_m_s": 4.620734133861659e-17,
+            "cone_violation_n_s": 5.3273334121905006e-11,
+            "interior_slip_m_s": 1.5156289696695678e-12,
+            "dissipation_error_j": 1.5393422042456846e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 22,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-12",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.497143588268949e-17,
+            "closing_velocity_m_s": 4.620734133861659e-17,
+            "loaded_normal_velocity_m_s": 4.620734133861659e-17,
+            "cone_violation_n_s": 8.52574190391385e-10,
+            "interior_slip_m_s": 5.9590870378621885e-12,
+            "dissipation_error_j": 8.895151316515962e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 10,
+        "releases": 2
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.7019591142291914e-17,
+            "closing_velocity_m_s": 1.9313689887502455e-09,
+            "loaded_normal_velocity_m_s": 1.9313689887502455e-09,
+            "cone_violation_n_s": 2.8959381550772156e-13,
+            "interior_slip_m_s": 5.95909996306527e-12,
+            "dissipation_error_j": 1.8326840967939137e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 20,
+        "reason": "certified",
+        "release_candidates": 3,
+        "releases": 3
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.709951784718388e-19,
+            "closing_velocity_m_s": 1.4146697702166477e-11,
+            "loaded_normal_velocity_m_s": 1.4146697702166477e-11,
+            "cone_violation_n_s": 8.054907381285087e-13,
+            "interior_slip_m_s": 1.4936615001916655e-11,
+            "dissipation_error_j": 2.815114987051506e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 20,
+        "reason": "certified",
+        "release_candidates": 10,
+        "releases": 3
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-33",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.1724050533252996e-13,
+            "closing_velocity_m_s": 3.8296477127735054e-17,
+            "loaded_normal_velocity_m_s": 4.649109737594678e-17,
+            "cone_violation_n_s": 6.726199293195715e-16,
+            "interior_slip_m_s": 2.406887368765734e-13,
+            "dissipation_error_j": 5.219454086374811e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 28,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.3160708525341257e-14,
+            "closing_velocity_m_s": 5.551115123125783e-17,
+            "loaded_normal_velocity_m_s": 4.6490673859473156e-17,
+            "cone_violation_n_s": 7.284563577347747e-13,
+            "interior_slip_m_s": 2.406941219802417e-13,
+            "dissipation_error_j": 5.220522230920292e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 29,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.1724050533252996e-13,
+            "closing_velocity_m_s": 3.8296477127735054e-17,
+            "loaded_normal_velocity_m_s": 4.649109737594678e-17,
+            "cone_violation_n_s": 6.726199293195715e-16,
+            "interior_slip_m_s": 2.406887368765734e-13,
+            "dissipation_error_j": 5.219454086374811e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 28,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-33",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.1271934040872403e-12,
+            "closing_velocity_m_s": 4.85722573273506e-17,
+            "loaded_normal_velocity_m_s": 4.85722573273506e-17,
+            "cone_violation_n_s": 2.8189256484623115e-17,
+            "interior_slip_m_s": 3.3502156008921665e-13,
+            "dissipation_error_j": 1.562828028043241e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 21,
+        "reason": "certified",
+        "release_candidates": 4,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 4.0694443350488164e-18,
+            "closing_velocity_m_s": 7.774177621108912e-11,
+            "loaded_normal_velocity_m_s": 7.774177621108912e-11,
+            "cone_violation_n_s": 3.8415638262015036e-22,
+            "interior_slip_m_s": 3.350381430242197e-13,
+            "dissipation_error_j": 1.5672810884630452e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 14,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.1271934040872403e-12,
+            "closing_velocity_m_s": 4.85722573273506e-17,
+            "loaded_normal_velocity_m_s": 4.85722573273506e-17,
+            "cone_violation_n_s": 2.8189256484623115e-17,
+            "interior_slip_m_s": 3.3502156008921665e-13,
+            "dissipation_error_j": 1.562828028043241e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 21,
+        "reason": "certified",
+        "release_candidates": 4,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-54",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.902364437370606e-14,
+            "closing_velocity_m_s": 4.34464374470412e-17,
+            "loaded_normal_velocity_m_s": 5.4624625372837795e-17,
+            "cone_violation_n_s": 2.711214648391067e-25,
+            "interior_slip_m_s": 2.9768044149934207e-15,
+            "dissipation_error_j": 8.344288212834853e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 25,
+        "reason": "certified",
+        "release_candidates": 17,
+        "releases": 4
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.7518401175972138e-18,
+            "closing_velocity_m_s": 6.996361406902694e-11,
+            "loaded_normal_velocity_m_s": 6.996361406902694e-11,
+            "cone_violation_n_s": 2.2974677715836833e-14,
+            "interior_slip_m_s": 2.760707478798283e-15,
+            "dissipation_error_j": 9.103956914408355e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 16,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 5.161774118382588e-14,
+            "closing_velocity_m_s": 4.5102810375396984e-17,
+            "loaded_normal_velocity_m_s": 4.5102810375396984e-17,
+            "cone_violation_n_s": 2.2924188253251613e-25,
+            "interior_slip_m_s": 3.0015973197704468e-15,
+            "dissipation_error_j": 8.371853006051846e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 25,
+        "reason": "certified",
+        "release_candidates": 10,
+        "releases": 3
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-54",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.734341198432125e-14,
+            "closing_velocity_m_s": 4.5102810375396984e-17,
+            "loaded_normal_velocity_m_s": 6.757586501547445e-17,
+            "cone_violation_n_s": 5.195544686795606e-25,
+            "interior_slip_m_s": 2.992434313818046e-15,
+            "dissipation_error_j": 8.333915175001779e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 23,
+        "reason": "certified",
+        "release_candidates": 15,
+        "releases": 4
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.748139931922111e-18,
+            "closing_velocity_m_s": 7.011916325367083e-11,
+            "loaded_normal_velocity_m_s": 7.011916325367083e-11,
+            "cone_violation_n_s": 2.303018886706809e-14,
+            "interior_slip_m_s": 2.760707478798283e-15,
+            "dissipation_error_j": 9.082986171550454e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 19,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.734338452316568e-14,
+            "closing_velocity_m_s": 2.062440523269496e-17,
+            "loaded_normal_velocity_m_s": 3.8163916471489756e-17,
+            "cone_violation_n_s": 3.2317949042781e-25,
+            "interior_slip_m_s": 2.9878321379359587e-15,
+            "dissipation_error_j": 8.413675762423372e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 24,
+        "reason": "certified",
+        "release_candidates": 10,
+        "releases": 3
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-74",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.0683528729924157e-13,
+            "closing_velocity_m_s": 1.4016565685892601e-15,
+            "loaded_normal_velocity_m_s": 1.4016565685892601e-15,
+            "cone_violation_n_s": 2.31013709748565e-15,
+            "interior_slip_m_s": 2.823839641055183e-15,
+            "dissipation_error_j": 8.511432152021668e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 28,
+        "reason": "certified",
+        "release_candidates": 18,
+        "releases": 4
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.106349949515686e-11,
+            "closing_velocity_m_s": 2.268929414493256e-12,
+            "loaded_normal_velocity_m_s": 2.268929414493256e-12,
+            "cone_violation_n_s": 1.2336214468984313e-23,
+            "interior_slip_m_s": 4.131726438077369e-14,
+            "dissipation_error_j": 2.4835187876631108e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 20,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 2
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.0683528729924157e-13,
+            "closing_velocity_m_s": 1.4016565685892601e-15,
+            "loaded_normal_velocity_m_s": 1.4016565685892601e-15,
+            "cone_violation_n_s": 2.31013709748565e-15,
+            "interior_slip_m_s": 2.823839641055183e-15,
+            "dissipation_error_j": 8.511432152021668e-18,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 28,
+        "reason": "certified",
+        "release_candidates": 16,
+        "releases": 4
+      }
+    },
+    {
+      "label": "tower-tilt-4-failed-solve-74",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.5883338814447255e-12,
+            "closing_velocity_m_s": 6.15517996939467e-11,
+            "loaded_normal_velocity_m_s": 6.15517996939467e-11,
+            "cone_violation_n_s": 2.152863419209709e-22,
+            "interior_slip_m_s": 4.131946562339896e-14,
+            "dissipation_error_j": 2.4620598202186823e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 25,
+        "reason": "certified",
+        "release_candidates": 18,
+        "releases": 4
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.106349958186503e-11,
+            "closing_velocity_m_s": 2.2689571700688715e-12,
+            "loaded_normal_velocity_m_s": 2.2689571700688715e-12,
+            "cone_violation_n_s": 9.70546559786456e-13,
+            "interior_slip_m_s": 4.131709716083565e-14,
+            "dissipation_error_j": 2.4842975798105496e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 18,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 2
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.5883338814447255e-12,
+            "closing_velocity_m_s": 6.15517996939467e-11,
+            "loaded_normal_velocity_m_s": 6.15517996939467e-11,
+            "cone_violation_n_s": 2.152863419209709e-22,
+            "interior_slip_m_s": 4.131946562339896e-14,
+            "dissipation_error_j": 2.4620598202186823e-17,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 25,
+        "reason": "certified",
+        "release_candidates": 16,
+        "releases": 4
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-12",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.816543444454154e-18,
+            "closing_velocity_m_s": 1.871604000253102e-17,
+            "loaded_normal_velocity_m_s": 2.6068285984698347e-17,
+            "cone_violation_n_s": 5.3259279907298673e-11,
+            "interior_slip_m_s": 1.5156264449690068e-12,
+            "dissipation_error_j": 1.539417967077554e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 22,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.816543444454154e-18,
+            "closing_velocity_m_s": 1.871604000253102e-17,
+            "loaded_normal_velocity_m_s": 2.6068285984698347e-17,
+            "cone_violation_n_s": 5.3259279907298673e-11,
+            "interior_slip_m_s": 1.5156264449690068e-12,
+            "dissipation_error_j": 1.539417967077554e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 22,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 9.816543444454154e-18,
+            "closing_velocity_m_s": 1.871604000253102e-17,
+            "loaded_normal_velocity_m_s": 2.6068285984698347e-17,
+            "cone_violation_n_s": 5.3259279907298673e-11,
+            "interior_slip_m_s": 1.5156264449690068e-12,
+            "dissipation_error_j": 1.539417967077554e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 22,
+        "reason": "certified",
+        "release_candidates": 0,
+        "releases": 0
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-12",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 6.497149953391857e-17,
+            "closing_velocity_m_s": 4.620734133861659e-17,
+            "loaded_normal_velocity_m_s": 4.620734133861659e-17,
+            "cone_violation_n_s": 8.525739835256105e-10,
+            "interior_slip_m_s": 5.9590772248314015e-12,
+            "dissipation_error_j": 8.895139002266978e-15,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 10,
+        "releases": 2
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 3.770126458549936e-17,
+            "closing_velocity_m_s": 1.931368987015522e-09,
+            "loaded_normal_velocity_m_s": 1.931368987015522e-09,
+            "cone_violation_n_s": 2.89587689765447e-13,
+            "interior_slip_m_s": 5.959080336909537e-12,
+            "dissipation_error_j": 1.8326896393675525e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 20,
+        "reason": "certified",
+        "release_candidates": 3,
+        "releases": 3
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.9947263297719214e-17,
+            "closing_velocity_m_s": 1.4146697702166477e-11,
+            "loaded_normal_velocity_m_s": 1.4146697702166477e-11,
+            "cone_violation_n_s": 8.054907110234544e-13,
+            "interior_slip_m_s": 1.493661545684924e-11,
+            "dissipation_error_j": 2.8151157412678214e-14,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 20,
+        "reason": "certified",
+        "release_candidates": 10,
+        "releases": 3
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-33",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4551358655713532e-17,
+            "closing_velocity_m_s": 1.2761475361687535e-12,
+            "loaded_normal_velocity_m_s": 1.2761475361687535e-12,
+            "cone_violation_n_s": 1.4126716392945525e-15,
+            "interior_slip_m_s": 1.5945195945280833e-09,
+            "dissipation_error_j": 1.672020349136037e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 40,
+        "reason": "certified",
+        "release_candidates": 27,
+        "releases": 5
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 4.9603410512565334e-09,
+            "closing_velocity_m_s": 3.0881285047880517e-06,
+            "loaded_normal_velocity_m_s": 3.0881285047880517e-06,
+            "cone_violation_n_s": 2.3391622110211646e-08,
+            "interior_slip_m_s": 3.0195649533466844e-10,
+            "dissipation_error_j": 1.994202542578482e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4552594309494604e-17,
+            "closing_velocity_m_s": 1.2761405972748496e-12,
+            "loaded_normal_velocity_m_s": 1.2761405972748496e-12,
+            "cone_violation_n_s": 1.412950275913924e-15,
+            "interior_slip_m_s": 1.5945196734545395e-09,
+            "dissipation_error_j": 1.6720205144709203e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 40,
+        "reason": "certified",
+        "release_candidates": 14,
+        "releases": 4
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-33",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 3.9338864851518344e-05,
+            "loaded_normal_velocity_m_s": 3.9338864851518344e-05,
+            "cone_violation_n_s": 0.0,
+            "interior_slip_m_s": 2.477990102517526e-05,
+            "dissipation_error_j": 6.064073533028311e-07,
+            "sliding_direction_error_m_s": 4.458012673360029e-05
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 26,
+        "reason": "release_limit",
+        "release_candidates": 86,
+        "releases": 8
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.9331022927805156e-11,
+            "closing_velocity_m_s": 4.2395931280553626e-07,
+            "loaded_normal_velocity_m_s": 4.239721165551333e-07,
+            "cone_violation_n_s": 2.5639868400087126e-09,
+            "interior_slip_m_s": 3.02147754496527e-10,
+            "dissipation_error_j": 2.039607779448614e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 3,
+        "releases": 3
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.4885711974433893e-16,
+            "closing_velocity_m_s": 4.239595696764497e-07,
+            "loaded_normal_velocity_m_s": 4.239725125543118e-07,
+            "cone_violation_n_s": 2.9293981059245675e-09,
+            "interior_slip_m_s": 3.0213813055162436e-10,
+            "dissipation_error_j": 3.890969827737101e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 20,
+        "releases": 5
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-54",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.0003593408231470982,
+            "loaded_normal_velocity_m_s": 0.0005341784740576314,
+            "cone_violation_n_s": 3.0814879110195774e-33,
+            "interior_slip_m_s": 0.0004485769010347642,
+            "dissipation_error_j": 1.2420876731591397e-05,
+            "sliding_direction_error_m_s": 0.0007003670026204588
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 10,
+        "reason": "release_limit",
+        "release_candidates": 103,
+        "releases": 8
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 4.663141024825142e-10,
+            "closing_velocity_m_s": 8.443332954498404e-07,
+            "loaded_normal_velocity_m_s": 8.44343304130682e-07,
+            "cone_violation_n_s": 4.068391767572677e-09,
+            "interior_slip_m_s": 5.722249451973272e-10,
+            "dissipation_error_j": 2.995009940644721e-11,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 4,
+        "releases": 4
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.000153155794252772,
+            "closing_velocity_m_s": 0.0002897682839164609,
+            "loaded_normal_velocity_m_s": 0.0002897682839164609,
+            "cone_violation_n_s": 0.0004274263766613442,
+            "interior_slip_m_s": 6.500405603702669e-10,
+            "dissipation_error_j": 4.491948904152231e-07,
+            "sliding_direction_error_m_s": 6.526950670239603e-05
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 22,
+        "releases": 6
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-54",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.00020250095060013131,
+            "loaded_normal_velocity_m_s": 0.0003855880381410542,
+            "cone_violation_n_s": 0.0,
+            "interior_slip_m_s": 0.00012018667112650926,
+            "dissipation_error_j": 4.606716675010226e-06,
+            "sliding_direction_error_m_s": 0.00021472158598429008
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 11,
+        "reason": "release_limit",
+        "release_candidates": 113,
+        "releases": 8
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.00032240684177592074,
+            "loaded_normal_velocity_m_s": 0.00032240684177592074,
+            "cone_violation_n_s": 0.0,
+            "interior_slip_m_s": 0.00016423388647672095,
+            "dissipation_error_j": 4.986028726230017e-06,
+            "sliding_direction_error_m_s": 0.00032135747116061853
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 0,
+        "reason": "release_limit",
+        "release_candidates": 8,
+        "releases": 8
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 2.487831810707026e-07,
+            "closing_velocity_m_s": 5.5225177423060836e-05,
+            "loaded_normal_velocity_m_s": 5.5225177423060836e-05,
+            "cone_violation_n_s": 3.322587316442055e-07,
+            "interior_slip_m_s": 1.209327151814293e-10,
+            "dissipation_error_j": 4.714500529555379e-10,
+            "sliding_direction_error_m_s": 4.646804346560844e-08
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": false,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 50,
+        "reason": "iteration_limit",
+        "release_candidates": 20,
+        "releases": 5
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-74",
+      "start": "seed",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.256312260045344e-13,
+            "closing_velocity_m_s": 2.4598378889351125e-15,
+            "loaded_normal_velocity_m_s": 2.4771851236948805e-15,
+            "cone_violation_n_s": 6.938893903907228e-18,
+            "interior_slip_m_s": 3.155751784061038e-10,
+            "dissipation_error_j": 1.6292896994654172e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 33,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.663349221992158e-12,
+            "closing_velocity_m_s": 2.4043267377038546e-15,
+            "loaded_normal_velocity_m_s": 2.4771851236948805e-15,
+            "cone_violation_n_s": 4.1042743239838364e-24,
+            "interior_slip_m_s": 3.1557517840624366e-10,
+            "dissipation_error_j": 1.6292904508540358e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 36,
+        "reason": "certified",
+        "release_candidates": 1,
+        "releases": 1
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 7.256312260045344e-13,
+            "closing_velocity_m_s": 2.4598378889351125e-15,
+            "loaded_normal_velocity_m_s": 2.4771851236948805e-15,
+            "cone_violation_n_s": 6.938893903907228e-18,
+            "interior_slip_m_s": 3.155751784061038e-10,
+            "dissipation_error_j": 1.6292896994654172e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": true
+        },
+        "iterations": 33,
+        "reason": "certified",
+        "release_candidates": 2,
+        "releases": 1
+      }
+    },
+    {
+      "label": "tower-tilt-8-failed-solve-74",
+      "start": "gs",
+      "reference": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.00020297191868225498,
+            "loaded_normal_velocity_m_s": 0.0006912888085860158,
+            "cone_violation_n_s": 3.009265538105056e-36,
+            "interior_slip_m_s": 0.0003106942886377325,
+            "dissipation_error_j": 2.476805427354014e-05,
+            "sliding_direction_error_m_s": 0.00057853440576037
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 12,
+        "reason": "release_limit",
+        "release_candidates": 91,
+        "releases": 8
+      },
+      "cap1": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 1.2811149869902525e-08,
+            "closing_velocity_m_s": 2.626371342628886e-15,
+            "loaded_normal_velocity_m_s": 2.626371342628886e-15,
+            "cone_violation_n_s": 9.417033125513896e-14,
+            "interior_slip_m_s": 3.1557526167290024e-10,
+            "dissipation_error_j": 3.2201429303047453e-12,
+            "sliding_direction_error_m_s": 0.0
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": false,
+            "closing_velocity_m_s": true,
+            "loaded_normal_velocity_m_s": true,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": true,
+            "dissipation_error_j": true,
+            "sliding_direction_error_m_s": true
+          },
+          "passed": false
+        },
+        "iterations": 27,
+        "reason": "no_separating_loaded_contact",
+        "release_candidates": 2,
+        "releases": 2
+      },
+      "cap4": {
+        "audit": {
+          "maxima": {
+            "negative_normal_impulse_n_s": 0.0,
+            "closing_velocity_m_s": 0.00020366221350827732,
+            "loaded_normal_velocity_m_s": 0.000692034135679559,
+            "cone_violation_n_s": 0.0,
+            "interior_slip_m_s": 0.00033835831878705695,
+            "dissipation_error_j": 2.3423197238369906e-05,
+            "sliding_direction_error_m_s": 0.0006354890645886224
+          },
+          "gates": {
+            "negative_normal_impulse_n_s": true,
+            "closing_velocity_m_s": false,
+            "loaded_normal_velocity_m_s": false,
+            "cone_violation_n_s": true,
+            "interior_slip_m_s": false,
+            "dissipation_error_j": false,
+            "sliding_direction_error_m_s": false
+          },
+          "passed": false
+        },
+        "iterations": 12,
+        "reason": "release_limit",
+        "release_candidates": 32,
+        "releases": 8
+      }
+    }
+  ]
+}

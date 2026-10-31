@@ -1,0 +1,2425 @@
+{
+  "protocol": "hard_contact_drop_h1_v3",
+  "status": "complete",
+  "gates": {
+    "max_penetration_m": 1e-05,
+    "settled_speed_m_s": 0.001,
+    "impact_impulse_relative_error": 0.01,
+    "rebound_m": 1e-05,
+    "energy_excess_fraction": 1e-08
+  },
+  "duration_s": 2.0,
+  "radius_m": 0.05,
+  "gravity_m_s2": [
+    0,
+    -9.81,
+    0
+  ],
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "mujoco": "3.9.0",
+  "cpu_affinity": [
+    0
+  ],
+  "binary_sha256": "a04ac8f65ce960289a145803d0818ee7cb5c0361d414be49a9e225f5b3659197",
+  "source_sha256": {
+    "matched.py": "bb14f51a11a5348ce51e117babddb602fe3145ce7715f5742c6cb066ff6e5585",
+    "drop.py": "12dca06a994ed03d356eda7f83ba41331c3c2d14bf14b21c7c9c6017b16925e4"
+  },
+  "planned_timesteps_ticks": [
+    31250,
+    15625,
+    10000,
+    5000,
+    2500
+  ],
+  "planned_solrefs": [
+    [
+      2e-06,
+      10
+    ],
+    [
+      2e-06,
+      20
+    ]
+  ],
+  "calibration_cases": [
+    [
+      1.0,
+      0.1
+    ],
+    [
+      1.0,
+      0.5
+    ]
+  ],
+  "validation_cases": [
+    [
+      0.3,
+      0.03
+    ],
+    [
+      0.3,
+      0.3
+    ],
+    [
+      3.0,
+      0.03
+    ],
+    [
+      3.0,
+      0.3
+    ]
+  ],
+  "selection": "all planned settings per stage; first stage with both calibration cases passing; lowest mean median cost within that stage",
+  "timing_scope": "H1 v1 release backend batch loop; one warm-up, five fresh-world samples; no ECS or per-step IPC; one logical CPU",
+  "records": [
+    {
+      "backend": "native",
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0.0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.003928603,
+        "final_gap_m": -4.85722573273506e-17,
+        "final_velocity_m_s": -2.0816681711721685e-14,
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-000.npy.gz",
+        "trace_shape": [
+          1001,
+          4
+        ],
+        "trace_sha256": "eb085ce9567c1f3ae080c8e22d389434c4ad709c59517fa5bb121c8feafa869a"
+      },
+      "metrics": {
+        "max_penetration_m": 4.85722573273506e-17,
+        "settled_speed_m_s": 2.0816681711721685e-14,
+        "first_support_time_s": 0.14200000000000002,
+        "impact_time_error_s": 0.0007843122927064239,
+        "impact_end_time_s": 0.14400000000000002,
+        "impact_impulse_relative_error": 3.8733480344843234e-08,
+        "rebound_m": 6.938893903907228e-18,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": -0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.002598928,
+        0.0016789945,
+        0.0019199985000000002,
+        0.0021612525,
+        0.002626647
+      ],
+      "median_cost": 0.0021612525,
+      "min_cost": 0.0016789945,
+      "max_cost": 0.002626647,
+      "phase": "calibration"
+    },
+    {
+      "backend": "native",
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0.0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.00437724,
+        "final_gap_m": -6.938893903907228e-18,
+        "final_velocity_m_s": 6.938893903907228e-15,
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-001.npy.gz",
+        "trace_shape": [
+          1001,
+          4
+        ],
+        "trace_sha256": "f48e2be60f6879fa0565ee76460fe2313d014316f89775abc5ff7e6c684c77d2"
+      },
+      "metrics": {
+        "max_penetration_m": 4.85722573273506e-17,
+        "settled_speed_m_s": 2.0816681711721685e-14,
+        "first_support_time_s": 0.32,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.322,
+        "impact_impulse_relative_error": 1.0559532041687667e-08,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": -0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.001677327,
+        0.0017269059999999998,
+        0.001833374,
+        0.0019190695,
+        0.001966471
+      ],
+      "median_cost": 0.001833374,
+      "min_cost": 0.001677327,
+      "max_cost": 0.001966471,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 31250,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 0.4803225460018439,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999981732,
+        "final_gap_m": -3.832032587081091e-09,
+        "final_velocity_m_s": 1.030806899746087e-13,
+        "model_xml": "<mujoco><option timestep=\"3.125e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.15000000000000002 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-002.npy.gz",
+        "trace_shape": [
+          64001,
+          4
+        ],
+        "trace_sha256": "b0bcb9a5f72fd91c49f5a5041b3b6fec2bf957163b5981c71f2dbf803a14d0ad"
+      },
+      "metrics": {
+        "max_penetration_m": 1.7596337896857994e-05,
+        "settled_speed_m_s": 1.030807376447018e-13,
+        "first_support_time_s": 0.1428125,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.14709375,
+        "impact_impulse_relative_error": 0.0007130764392781942,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": false,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.10886318449956889,
+        0.1113689535013691,
+        0.11322415550057485,
+        0.11537075449996337,
+        0.11100539899962314
+      ],
+      "median_cost": 0.1113689535013691,
+      "min_cost": 0.10886318449956889,
+      "max_cost": 0.11537075449996337,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 31250,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 0.4965386700023373,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999981732,
+        "final_gap_m": -3.832032587081091e-09,
+        "final_velocity_m_s": 1.0308072864945187e-13,
+        "model_xml": "<mujoco><option timestep=\"3.125e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.55 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-003.npy.gz",
+        "trace_shape": [
+          64001,
+          4
+        ],
+        "trace_sha256": "9fd39ff227c9894728b74de8280a67ef9a3669f99c12baf4a60f7f8cea2cd80e"
+      },
+      "metrics": {
+        "max_penetration_m": 6.717375982356194e-05,
+        "settled_speed_m_s": 1.0308073763999249e-13,
+        "first_support_time_s": 0.3193125,
+        "impact_time_error_s": 5.821592949539767e-06,
+        "impact_end_time_s": 0.3403125,
+        "impact_impulse_relative_error": 0.00031908184459963353,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": false,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.10593063150008675,
+        0.1039892789995065,
+        0.10608712700013712,
+        0.11222100249869982,
+        0.10738326550017518
+      ],
+      "median_cost": 0.10608712700013712,
+      "min_cost": 0.1039892789995065,
+      "max_cost": 0.11222100249869982,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 31250,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          20
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 0.4350323839971679,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999981732,
+        "final_gap_m": -1.5328130556491182e-08,
+        "final_velocity_m_s": 1.1001956920008569e-13,
+        "model_xml": "<mujoco><option timestep=\"3.125e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 20\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.15000000000000002 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            20
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-004.npy.gz",
+        "trace_shape": [
+          64001,
+          4
+        ],
+        "trace_sha256": "28a0072baf1b360fd35dee5100567da83a75ffa403993424bc24beba532c6e3f"
+      },
+      "metrics": {
+        "max_penetration_m": 1.7596337896857994e-05,
+        "settled_speed_m_s": 1.1001959249644826e-13,
+        "first_support_time_s": 0.1428125,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.1428125,
+        "impact_impulse_relative_error": 0.0002510292390726424,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": false,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.11018409300049825,
+        0.10967399850051152,
+        0.11391216349875322,
+        0.11345570549929107,
+        0.11129417550000653
+      ],
+      "median_cost": 0.11129417550000653,
+      "min_cost": 0.10967399850051152,
+      "max_cost": 0.11391216349875322,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 31250,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          20
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 0.4307172190019628,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 1.9999999999981732,
+        "final_gap_m": -1.5328130556491182e-08,
+        "final_velocity_m_s": 1.1001958866850231e-13,
+        "model_xml": "<mujoco><option timestep=\"3.125e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 20\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.55 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            20
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-005.npy.gz",
+        "trace_shape": [
+          64001,
+          4
+        ],
+        "trace_sha256": "97777bd449e19507dc234cac4506f87a4cd39b39f91f7f71a3bf2a1f4dc9b515"
+      },
+      "metrics": {
+        "max_penetration_m": 6.717375982356194e-05,
+        "settled_speed_m_s": 1.1001963148699243e-13,
+        "first_support_time_s": 0.3193125,
+        "impact_time_error_s": 5.821592949539767e-06,
+        "impact_end_time_s": 0.3340625,
+        "impact_impulse_relative_error": 0.0003192560327897953,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": false,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.10857566099912219,
+        0.10689170449950325,
+        0.109101414500401,
+        0.10826604750036495,
+        0.10634234450117219
+      ],
+      "median_cost": 0.10826604750036495,
+      "min_cost": 0.10634234450117219,
+      "max_cost": 0.109101414500401,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 15625,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 0.8817427219983074,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "final_gap_m": -9.580092413807861e-10,
+        "final_velocity_m_s": 2.197391473687394e-13,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.15000000000000002 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-006.npy.gz",
+        "trace_shape": [
+          128001,
+          4
+        ],
+        "trace_sha256": "c625b02833a9311fe2ce79b5725e004e7e6dfb57c71b823cb99fc36460028c71"
+      },
+      "metrics": {
+        "max_penetration_m": 6.653493663383303e-06,
+        "settled_speed_m_s": 2.197391473687394e-13,
+        "first_support_time_s": 0.142796875,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.1431875,
+        "impact_impulse_relative_error": 0.0007138061757631961,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.21387073450023308,
+        0.21833651850101887,
+        0.21595766150130657,
+        0.2144112434998533,
+        0.2166265134983405
+      ],
+      "median_cost": 0.21595766150130657,
+      "min_cost": 0.21387073450023308,
+      "max_cost": 0.21833651850101887,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 15625,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 0.8650177489980706,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "final_gap_m": -9.580092413807861e-10,
+        "final_velocity_m_s": 2.197391363323388e-13,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.55 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-007.npy.gz",
+        "trace_shape": [
+          128001,
+          4
+        ],
+        "trace_sha256": "45087d760a7fc55887e0c2dae9c97c13ca455ce0a7425d323017b70b04611f92"
+      },
+      "metrics": {
+        "max_penetration_m": 4.270384519065862e-05,
+        "settled_speed_m_s": 2.197391410280428e-13,
+        "first_support_time_s": 0.319296875,
+        "impact_time_error_s": 5.8215929494842555e-06,
+        "impact_end_time_s": 0.331296875,
+        "impact_impulse_relative_error": 0.00031904597136249793,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": false,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.20897827699991467,
+        0.21262655800092034,
+        0.2109674144994642,
+        0.207177470500028,
+        0.21091738250106573
+      ],
+      "median_cost": 0.21091738250106573,
+      "min_cost": 0.207177470500028,
+      "max_cost": 0.21262655800092034,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 15625,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          20
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 0.8977982100004738,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "final_gap_m": -3.832036805928585e-09,
+        "final_velocity_m_s": 2.2029424803713773e-13,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 20\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.15000000000000002 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            20
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-008.npy.gz",
+        "trace_shape": [
+          128001,
+          4
+        ],
+        "trace_sha256": "c142a6c3210f636dff5ee776287153a8a6fe37f5fb33a1d899217c90de2dc0a2"
+      },
+      "metrics": {
+        "max_penetration_m": 6.653493663383303e-06,
+        "settled_speed_m_s": 2.2029425211891863e-13,
+        "first_support_time_s": 0.142796875,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.142796875,
+        "impact_impulse_relative_error": 0.00018989347276201102,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.22048962299959385,
+        0.2298844385004486,
+        0.21806644950083864,
+        0.22447529949931777,
+        0.22189145099946472
+      ],
+      "median_cost": 0.22189145099946472,
+      "min_cost": 0.21806644950083864,
+      "max_cost": 0.2298844385004486,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 15625,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          20
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 0.8675511370020104,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000038614,
+        "final_gap_m": -3.832036805928585e-09,
+        "final_velocity_m_s": 2.2029426244016766e-13,
+        "model_xml": "<mujoco><option timestep=\"1.5625e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 20\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.55 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            20
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-009.npy.gz",
+        "trace_shape": [
+          128001,
+          4
+        ],
+        "trace_sha256": "fbcdad70bb084f5ca8ecfdfb3d4e85bbb7a20bf41b0dabc845d3905f9c4d8485"
+      },
+      "metrics": {
+        "max_penetration_m": 4.270384519065862e-05,
+        "settled_speed_m_s": 2.2029426856176095e-13,
+        "first_support_time_s": 0.319296875,
+        "impact_time_error_s": 5.8215929494842555e-06,
+        "impact_end_time_s": 0.3326875,
+        "impact_impulse_relative_error": 0.0003191257073205004,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": false,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.21862053100085177,
+        0.20801560300060373,
+        0.21504744450066937,
+        0.21256481099953817,
+        0.20972235099907266
+      ],
+      "median_cost": 0.21256481099953817,
+      "min_cost": 0.20801560300060373,
+      "max_cost": 0.21862053100085177,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 10000,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 1.4351041840018297,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.000000000004635,
+        "final_gap_m": -3.9240134058760034e-10,
+        "final_velocity_m_s": 3.230038449809149e-13,
+        "model_xml": "<mujoco><option timestep=\"1e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.15000000000000002 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-010.npy.gz",
+        "trace_shape": [
+          200001,
+          4
+        ],
+        "trace_sha256": "6254daabe04478d41cfa1709a241115e4046ca3d43ae47469ef5ea77b34e06dc"
+      },
+      "metrics": {
+        "max_penetration_m": 9.63160991705736e-07,
+        "settled_speed_m_s": 3.230038449809149e-13,
+        "first_support_time_s": 0.14279,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.14279,
+        "impact_impulse_relative_error": 0.0001718353139850938,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.33849027150063193,
+        0.3473686479992466,
+        0.33978616949934803,
+        0.33987985699968704,
+        0.3442599230002088
+      ],
+      "median_cost": 0.33987985699968704,
+      "min_cost": 0.33849027150063193,
+      "max_cost": 0.3473686479992466,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 10000,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 1.4067818040020938,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.000000000004635,
+        "final_gap_m": -3.9240134058760034e-10,
+        "final_velocity_m_s": 3.2300384559971563e-13,
+        "model_xml": "<mujoco><option timestep=\"1e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.55 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-011.npy.gz",
+        "trace_shape": [
+          200001,
+          4
+        ],
+        "trace_sha256": "b1728407e8026da60e6aa214e53e4582c6191810f9b5cc149cc693fde790d5f5"
+      },
+      "metrics": {
+        "max_penetration_m": 2.9979436100814605e-05,
+        "settled_speed_m_s": 3.2300384560926214e-13,
+        "first_support_time_s": 0.31929,
+        "impact_time_error_s": 4.571592949531578e-06,
+        "impact_end_time_s": 0.32734,
+        "impact_impulse_relative_error": 0.00031901513665628966,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": false,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.33177288249862613,
+        0.33226223299971025,
+        0.3337524905000464,
+        0.3359709300002578,
+        0.3334276924997539
+      ],
+      "median_cost": 0.3334276924997539,
+      "min_cost": 0.33177288249862613,
+      "max_cost": 0.3359709300002578,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 10000,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          20
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 1.5218789579994336,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.000000000004635,
+        "final_gap_m": -1.5696055705172185e-09,
+        "final_velocity_m_s": 3.4468788024172667e-13,
+        "model_xml": "<mujoco><option timestep=\"1e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 20\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.15000000000000002 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            20
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-012.npy.gz",
+        "trace_shape": [
+          200001,
+          4
+        ],
+        "trace_sha256": "f6e7d4145603df7ef2cb1c1d9a7f2e51c32635ad6ff704976638ec5bfb3d397d"
+      },
+      "metrics": {
+        "max_penetration_m": 9.63160991705736e-07,
+        "settled_speed_m_s": 3.446878890977153e-13,
+        "first_support_time_s": 0.14279,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.14279,
+        "impact_impulse_relative_error": 4.2906301647414396e-05,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.34786111550056376,
+        0.34429341699978977,
+        0.37339647299995704,
+        0.4678756680004881,
+        0.43165946249973786
+      ],
+      "median_cost": 0.37339647299995704,
+      "min_cost": 0.34429341699978977,
+      "max_cost": 0.4678756680004881,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 10000,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          20
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 2.9972814050015586,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.000000000004635,
+        "final_gap_m": -1.5696055705172185e-09,
+        "final_velocity_m_s": 3.44687872473185e-13,
+        "model_xml": "<mujoco><option timestep=\"1e-05\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 20\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.55 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            20
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-013.npy.gz",
+        "trace_shape": [
+          200001,
+          4
+        ],
+        "trace_sha256": "19042756c7c2033071fa1782709dc3637f96f3e7cdac1990fe24d30cceaf7a2a"
+      },
+      "metrics": {
+        "max_penetration_m": 2.9979436100814605e-05,
+        "settled_speed_m_s": 3.446878761688406e-13,
+        "first_support_time_s": 0.31929,
+        "impact_time_error_s": 4.571592949531578e-06,
+        "impact_end_time_s": 0.32934,
+        "impact_impulse_relative_error": 0.00031913154271038846,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": false,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": false
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.5454378454996913,
+        0.6466011155007436,
+        0.6559359855000366,
+        0.6070869899995159,
+        0.624069038000016
+      ],
+      "median_cost": 0.624069038000016,
+      "min_cost": 0.5454378454996913,
+      "max_cost": 0.6559359855000366,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 5000,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 3.0652321850029693,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000088685,
+        "final_gap_m": -9.810142281851952e-11,
+        "final_velocity_m_s": 6.871231360165004e-13,
+        "model_xml": "<mujoco><option timestep=\"5e-06\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.15000000000000002 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-014.npy.gz",
+        "trace_shape": [
+          400001,
+          4
+        ],
+        "trace_sha256": "6d4c002954685af0a4efc6ac6171f6f6cfb7a3a28ceb6918fad0b037abfdfac6"
+      },
+      "metrics": {
+        "max_penetration_m": 4.465085759221277e-06,
+        "settled_speed_m_s": 6.871231360198645e-13,
+        "first_support_time_s": 0.14279,
+        "impact_time_error_s": 6.877072935562722e-07,
+        "impact_end_time_s": 0.14439500000000002,
+        "impact_impulse_relative_error": 0.000713646376778579,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.7109555005008588,
+        0.7113869530003285,
+        0.7108336995006539,
+        0.7189212225002848,
+        0.7144041895007831
+      ],
+      "median_cost": 0.7113869530003285,
+      "min_cost": 0.7108336995006539,
+      "max_cost": 0.7189212225002848,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 5000,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 2.949796241999138,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000088685,
+        "final_gap_m": -9.810142281851952e-11,
+        "final_velocity_m_s": 6.871231310451031e-13,
+        "model_xml": "<mujoco><option timestep=\"5e-06\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.55 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-015.npy.gz",
+        "trace_shape": [
+          400001,
+          4
+        ],
+        "trace_sha256": "7e453096f58d3a91e0019ac89d0c17f127b72ff2d6440708d4c6c7650aefc963"
+      },
+      "metrics": {
+        "max_penetration_m": 6.488410177245274e-06,
+        "settled_speed_m_s": 6.871231360427843e-13,
+        "first_support_time_s": 0.31928,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.321635,
+        "impact_impulse_relative_error": 0.00031859956898052153,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.6609435645004851,
+        0.6780177820000972,
+        0.6592417795000074,
+        0.6676608809993922,
+        0.6740773004985385
+      ],
+      "median_cost": 0.6676608809993922,
+      "min_cost": 0.6592417795000074,
+      "max_cost": 0.6780177820000972,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 5000,
+        "mass_kg": 1.0,
+        "gap_m": 0.1
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          20
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 3.009333953999885,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000088685,
+        "final_gap_m": -3.924055594350939e-10,
+        "final_velocity_m_s": 6.888578594876115e-13,
+        "model_xml": "<mujoco><option timestep=\"5e-06\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 20\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.15000000000000002 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            20
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-016.npy.gz",
+        "trace_shape": [
+          400001,
+          4
+        ],
+        "trace_sha256": "61794dde659219fa2d1daf2b12c439b01dc32866baae9e13daba4c5747af93b6"
+      },
+      "metrics": {
+        "max_penetration_m": 4.465085759221277e-06,
+        "settled_speed_m_s": 6.888578594940854e-13,
+        "first_support_time_s": 0.14279,
+        "impact_time_error_s": 6.877072935562722e-07,
+        "impact_end_time_s": 0.14279,
+        "impact_impulse_relative_error": 0.0003984301073560997,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.7242349714997545,
+        0.7286584805005987,
+        0.7219670539998333,
+        0.7189499234991672,
+        0.7415798100009852
+      ],
+      "median_cost": 0.7242349714997545,
+      "min_cost": 0.7189499234991672,
+      "max_cost": 0.7415798100009852,
+      "phase": "calibration"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 5000,
+        "mass_kg": 1.0,
+        "gap_m": 0.5
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          20
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 2.959583355997893,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000088685,
+        "final_gap_m": -3.924055594350939e-10,
+        "final_velocity_m_s": 6.888578554186597e-13,
+        "model_xml": "<mujoco><option timestep=\"5e-06\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 20\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.55 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"1.0\" diaginertia=\"0.0010000000000000002 0.0010000000000000002 0.0010000000000000002\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            20
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-017.npy.gz",
+        "trace_shape": [
+          400001,
+          4
+        ],
+        "trace_sha256": "e06c093571d8f0271e3d178daedc6742fe773be1ba7fb5f379ce4738f4af5dd2"
+      },
+      "metrics": {
+        "max_penetration_m": 6.488410177245274e-06,
+        "settled_speed_m_s": 6.888578554186597e-13,
+        "first_support_time_s": 0.31928,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.31928,
+        "impact_impulse_relative_error": 0.0002589330817198219,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.6877592460004962,
+        0.6859954440005822,
+        0.6813165189996653,
+        0.6777908679996472,
+        0.669485282000096
+      ],
+      "median_cost": 0.6813165189996653,
+      "min_cost": 0.669485282000096,
+      "max_cost": 0.6877592460004962,
+      "phase": "calibration"
+    },
+    {
+      "backend": "native",
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "gap_m": 0.03
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0.0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.004366759,
+        "final_gap_m": -2.0816681711721685e-17,
+        "final_velocity_m_s": 1.0408340855860843e-14,
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-018.npy.gz",
+        "trace_shape": [
+          1001,
+          4
+        ],
+        "trace_sha256": "3c372ea709b3a1b9a2cae718c2e6a8fd64e289b288fe48b2badf210c102a28c0"
+      },
+      "metrics": {
+        "max_penetration_m": 4.85722573273506e-17,
+        "settled_speed_m_s": 2.0816681711721685e-14,
+        "first_support_time_s": 0.078,
+        "impact_time_error_s": 0.00020618870057749483,
+        "impact_end_time_s": 0.08,
+        "impact_impulse_relative_error": 3.624537958202143e-08,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": -0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0018909745,
+        0.002100476,
+        0.0030780580000000003,
+        0.0025103309999999998,
+        0.0045311935
+      ],
+      "median_cost": 0.0025103309999999998,
+      "min_cost": 0.0018909745,
+      "max_cost": 0.0045311935,
+      "phase": "validation"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 5000,
+        "mass_kg": 0.3,
+        "gap_m": 0.03
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 3.879465127000003,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000088685,
+        "final_gap_m": -9.810142281851952e-11,
+        "final_velocity_m_s": 6.871231360025614e-13,
+        "model_xml": "<mujoco><option timestep=\"5e-06\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.08 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"0.3\" diaginertia=\"0.00030000000000000003 0.00030000000000000003 0.00030000000000000003\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-019.npy.gz",
+        "trace_shape": [
+          400001,
+          4
+        ],
+        "trace_sha256": "4383a27194431648bd32fffd14344cf24efac4c3c72e386cb8cc26272136ab14"
+      },
+      "metrics": {
+        "max_penetration_m": 1.006010247432687e-06,
+        "settled_speed_m_s": 6.871231360416732e-13,
+        "first_support_time_s": 0.07821,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.07821,
+        "impact_impulse_relative_error": 0.0006555712933692549,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.7090952819999075,
+        0.6970967074994405,
+        0.8552388690004591,
+        0.7581350210002711,
+        0.758748411999477
+      ],
+      "median_cost": 0.7581350210002711,
+      "min_cost": 0.6970967074994405,
+      "max_cost": 0.8552388690004591,
+      "phase": "validation"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 5000,
+        "mass_kg": 0.3,
+        "gap_m": 0.3
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 2.8689292529998056,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000088685,
+        "final_gap_m": -9.810142281851952e-11,
+        "final_velocity_m_s": 6.871231310550975e-13,
+        "model_xml": "<mujoco><option timestep=\"5e-06\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.35 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"0.3\" diaginertia=\"0.00030000000000000003 0.00030000000000000003 0.00030000000000000003\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-020.npy.gz",
+        "trace_shape": [
+          400001,
+          4
+        ],
+        "trace_sha256": "381e3bd7c593feb26504cff7c350d3dcaf8eb68938e0a3110e47f448fc07519a"
+      },
+      "metrics": {
+        "max_penetration_m": 6.833348413559648e-06,
+        "settled_speed_m_s": 6.871231360400801e-13,
+        "first_support_time_s": 0.247315,
+        "impact_time_error_s": 3.165852510422784e-07,
+        "impact_end_time_s": 0.24977000000000002,
+        "impact_impulse_relative_error": 0.00041202469449991844,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.6928370510013337,
+        0.6726787300012802,
+        0.6666436165014602,
+        0.6705008830012957,
+        0.6662184835004155
+      ],
+      "median_cost": 0.6705008830012957,
+      "min_cost": 0.6662184835004155,
+      "max_cost": 0.6928370510013337,
+      "phase": "validation"
+    },
+    {
+      "backend": "native",
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 0.3,
+        "gap_m": 0.3
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0.0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.004622881,
+        "final_gap_m": -5.551115123125783e-17,
+        "final_velocity_m_s": -1.734723475976807e-14,
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-021.npy.gz",
+        "trace_shape": [
+          1001,
+          4
+        ],
+        "trace_sha256": "aae02942bc543f71129c47480ceac963c434dbc56c36d9a7cb8b0c74696e8ece"
+      },
+      "metrics": {
+        "max_penetration_m": 5.551115123125783e-17,
+        "settled_speed_m_s": 1.734723475976807e-14,
+        "first_support_time_s": 0.24800000000000003,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.25,
+        "impact_impulse_relative_error": 2.686102393514224e-08,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": -0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0019257235,
+        0.001863995,
+        0.001754627,
+        0.0021147609999999997,
+        0.0019446385
+      ],
+      "median_cost": 0.0019257235,
+      "min_cost": 0.001754627,
+      "max_cost": 0.0021147609999999997,
+      "phase": "validation"
+    },
+    {
+      "backend": "native",
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3.0,
+        "gap_m": 0.03
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0.0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.004727691,
+        "final_gap_m": -2.0816681711721685e-17,
+        "final_velocity_m_s": 1.0408340855860843e-14,
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-022.npy.gz",
+        "trace_shape": [
+          1001,
+          4
+        ],
+        "trace_sha256": "460ba198507080a88c10113ff147475f3742bfabbd1f7f0d4d00064be0040917"
+      },
+      "metrics": {
+        "max_penetration_m": 4.85722573273506e-17,
+        "settled_speed_m_s": 2.0816681711721685e-14,
+        "first_support_time_s": 0.078,
+        "impact_time_error_s": 0.00020618870057749483,
+        "impact_end_time_s": 0.08,
+        "impact_impulse_relative_error": 1.682266246405505e-08,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": -0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0019085105,
+        0.003940155,
+        0.0018316425,
+        0.0020346535,
+        0.0020028044999999997
+      ],
+      "median_cost": 0.0020028044999999997,
+      "min_cost": 0.0018316425,
+      "max_cost": 0.003940155,
+      "phase": "validation"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 5000,
+        "mass_kg": 3.0,
+        "gap_m": 0.03
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 2.9961241589990095,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000088685,
+        "final_gap_m": -9.810142281851952e-11,
+        "final_velocity_m_s": 6.87123131041785e-13,
+        "model_xml": "<mujoco><option timestep=\"5e-06\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.08 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"3.0\" diaginertia=\"0.003000000000000001 0.003000000000000001 0.003000000000000001\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-023.npy.gz",
+        "trace_shape": [
+          400001,
+          4
+        ],
+        "trace_sha256": "03b8a9a1a28fdebd78a847466a8b39d9abcecf6ed793a758dd90b21524ec990a"
+      },
+      "metrics": {
+        "max_penetration_m": 1.006010247432687e-06,
+        "settled_speed_m_s": 6.871231357578817e-13,
+        "first_support_time_s": 0.07821,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.07821,
+        "impact_impulse_relative_error": 0.0006555712933693031,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.7421662355009175,
+        0.7247559459992772,
+        0.7523349575003522,
+        0.745113142500486,
+        0.7310786785001255
+      ],
+      "median_cost": 0.7421662355009175,
+      "min_cost": 0.7247559459992772,
+      "max_cost": 0.7523349575003522,
+      "phase": "validation"
+    },
+    {
+      "backend": "mujoco",
+      "case": {
+        "dt_ticks": 5000,
+        "mass_kg": 3.0,
+        "gap_m": 0.3
+      },
+      "setting": {
+        "iterations": 20,
+        "solref": [
+          2e-06,
+          10
+        ]
+      },
+      "audit": {
+        "backend": "mujoco",
+        "mode": "audit",
+        "elapsed_s": 2.860546489999251,
+        "warnings": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "simulation_time_s": 2.0000000000088685,
+        "final_gap_m": -9.810142281851952e-11,
+        "final_velocity_m_s": 6.871231263643653e-13,
+        "model_xml": "<mujoco><option timestep=\"5e-06\" gravity=\"0 -9.81 0\" integrator=\"Euler\"\n        solver=\"Newton\" iterations=\"20\" tolerance=\"1e-10\" cone=\"elliptic\"/>\n      <default><geom friction=\"0 0 0\" condim=\"1\" margin=\"0\" gap=\"0\"\n        solref=\"2e-06 10\" solimp=\"0.999 0.999 0.001 0.5 2\"/></default>\n      <worldbody><geom type=\"box\" size=\"5 0.5 5\" pos=\"0 -0.5 0\"/>\n        <body pos=\"0 0.35 0\"><freejoint/>\n          <inertial pos=\"0 0 0\" mass=\"3.0\" diaginertia=\"0.003000000000000001 0.003000000000000001 0.003000000000000001\"/>\n          <geom type=\"sphere\" size=\"0.05\"/></body></worldbody></mujoco>",
+        "settings": {
+          "iterations": 20,
+          "solref": [
+            2e-06,
+            10
+          ],
+          "solver": "Newton",
+          "integrator": "Euler",
+          "tolerance": 1e-10,
+          "solimp": [
+            0.999,
+            0.999,
+            0.001,
+            0.5,
+            2.0
+          ],
+          "condim": 1,
+          "margin_m": 0,
+          "gap_m": 0,
+          "disableflags": 0
+        },
+        "trace_file": "trace-024.npy.gz",
+        "trace_shape": [
+          400001,
+          4
+        ],
+        "trace_sha256": "c1e99c067f0187c8c3298c7c8b22ff56f25ba77705581f8b68c52580e240aa6b"
+      },
+      "metrics": {
+        "max_penetration_m": 6.833348413559648e-06,
+        "settled_speed_m_s": 6.871231357578837e-13,
+        "first_support_time_s": 0.247315,
+        "impact_time_error_s": 3.165852510422784e-07,
+        "impact_end_time_s": 0.24977000000000002,
+        "impact_impulse_relative_error": 0.00041202469449897275,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": 0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.6998314844986453,
+        0.700562304999039,
+        0.7007278429991857,
+        0.7118194375016174,
+        0.7004307639999752
+      ],
+      "median_cost": 0.700562304999039,
+      "min_cost": 0.6998314844986453,
+      "max_cost": 0.7118194375016174,
+      "phase": "validation"
+    },
+    {
+      "backend": "native",
+      "case": {
+        "dt_ticks": 2000000,
+        "mass_kg": 3.0,
+        "gap_m": 0.3
+      },
+      "setting": {
+        "iterations": 20,
+        "regularization": 0.0
+      },
+      "audit": {
+        "backend": "rne_native",
+        "debug_assertions": false,
+        "elapsed_s": 0.004380026,
+        "final_gap_m": -5.551115123125783e-17,
+        "final_velocity_m_s": -1.734723475976807e-14,
+        "mode": "audit",
+        "settings": {
+          "bisection_iterations": 60,
+          "contact_margin_m": 0.02,
+          "max_iterations": 20,
+          "penetration_recovery": 0.2,
+          "regularization": 0.0,
+          "tolerance_n_s": 1e-10,
+          "velocity_tolerance_m_s": 1e-08
+        },
+        "trace_file": "trace-025.npy.gz",
+        "trace_shape": [
+          1001,
+          4
+        ],
+        "trace_sha256": "e0d183e9b77fd7dde538867fbf0f618dd50727b23d2061b3ddbb4f8794fcb925"
+      },
+      "metrics": {
+        "max_penetration_m": 5.551115123125783e-17,
+        "settled_speed_m_s": 1.734723475976807e-14,
+        "first_support_time_s": 0.24800000000000003,
+        "impact_time_error_s": 0.0,
+        "impact_end_time_s": 0.25,
+        "impact_impulse_relative_error": 5.896322322017721e-09,
+        "rebound_m": 0.0,
+        "energy_excess_fraction": 0.0,
+        "min_normal_impulse_n_s": -0.0,
+        "gates": {
+          "max_penetration_m": true,
+          "settled_speed_m_s": true,
+          "impact_impulse_relative_error": true,
+          "rebound_m": true,
+          "energy_excess_fraction": true,
+          "impact_time": true,
+          "nonnegative_normal_impulse": true,
+          "backend_health": true
+        },
+        "passed": true
+      },
+      "exact_replay": true,
+      "seconds_per_simulated_second": [
+        0.0018141585000000001,
+        0.0020038829999999997,
+        0.001960525,
+        0.002605822,
+        0.001914244
+      ],
+      "median_cost": 0.001960525,
+      "min_cost": 0.0018141585000000001,
+      "max_cost": 0.002605822,
+      "phase": "validation"
+    }
+  ],
+  "selected_mujoco": {
+    "dt_ticks": 5000,
+    "setting": {
+      "iterations": 20,
+      "solref": [
+        2e-06,
+        10
+      ]
+    }
+  },
+  "comparison": {
+    "eligible": true,
+    "ratio_definition": "MuJoCo cost / native cost; >1 favors native, batch loop only",
+    "equal_weight_mean_median_cost_ratio": 341.85416984168404,
+    "cases": [
+      {
+        "mass_kg": 0.3,
+        "gap_m": 0.03,
+        "median_cost_ratio": 302.00599881062345,
+        "observed_range_ratio": [
+          153.84395027478755,
+          452.27414171923476
+        ]
+      },
+      {
+        "mass_kg": 0.3,
+        "gap_m": 0.3,
+        "median_cost_ratio": 348.1812851124763,
+        "observed_range_ratio": [
+          315.0325183320553,
+          394.8628688612074
+        ]
+      },
+      {
+        "mass_kg": 3.0,
+        "gap_m": 0.03,
+        "median_cost_ratio": 370.5634950894696,
+        "observed_range_ratio": [
+          183.9409733879193,
+          410.74333965299024
+        ]
+      },
+      {
+        "mass_kg": 3.0,
+        "gap_m": 0.3,
+        "median_cost_ratio": 357.3340329753709,
+        "observed_range_ratio": [
+          268.56457751091415,
+          392.3689344131824
+        ]
+      }
+    ]
+  }
+}

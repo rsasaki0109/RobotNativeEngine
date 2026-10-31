@@ -1,0 +1,1062 @@
+{
+  "base_commit": "33686953e9cbde24eef33658b7da0c2798808de3",
+  "sources": [
+    {
+      "path": "/workspace/RobotNativeEngine/crates/rne_dynamics/src/contact.rs",
+      "sha256": "c624494bd289f004e99dcb55c2edb848873da18fa6410751c5a4b20b1d794ff1",
+      "bytes": 125662
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/crates/rne_physics_native/examples/contact_crowd.rs",
+      "sha256": "0ee6274a7047d5b1340b485626e12a12ac4ab8a29413e91752b7de1e0a419d24",
+      "bytes": 10064
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/verify_matched.py",
+      "sha256": "b5a146592814e333042c6f4ea6f53313ecbb168286bcfae4db1aed76df374e53",
+      "bytes": 2688
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/force_friction_matched.py",
+      "sha256": "46fa228c27dfab78163fd4d8c1f4d2992eed6e03577c58fc9aa9fda7b2cf65fd",
+      "bytes": 7489
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/stack_phase.py",
+      "sha256": "35a45e318c873623b95a060142216c2c2b159c47478b6cc25cead8d6eae9ad91",
+      "bytes": 5574
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_drop.py",
+      "sha256": "60ef874f5fc6a749f17d846b73bad71b2ea45928ff2c39b34d0fac5f2b349629",
+      "bytes": 3124
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_slide.py",
+      "sha256": "f96df9133eea1cd067f58790fbf2f1e8f6122f0f7841c5f3897a30abb26ebf87",
+      "bytes": 2047
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/friction_contact_diagnostics.py",
+      "sha256": "b92a97a6926e25342e953f3c54d12a48e0e8d00c3946b1032225ec759d1dd327",
+      "bytes": 12879
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/verify_force_friction_matched.py",
+      "sha256": "f9bff23d5953398a7a74720dd89e7c968f50a9e3bc9a4945410147e20419b444",
+      "bytes": 4798
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_matched.py",
+      "sha256": "7333e4925fc70b1b3df7f429baeca556c877c5d615e44efa46ebdeaf6ab851c6",
+      "bytes": 3187
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_contact_admission.py",
+      "sha256": "c2a42c5f1687fdea5bec394dc2472137010086d101d3e151daf2db71464764e9",
+      "bytes": 2891
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_box.py",
+      "sha256": "ae1b3cc7b04174d1a4db7192ee29f1b5342f683fd856d66e524925977ce53c0d",
+      "bytes": 3301
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/plot_friction_contact_diagnostics.py",
+      "sha256": "aec813d0725577504088272eecfac41d57cd467b87995f60bf8ea64c0c3ff80d",
+      "bytes": 2415
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/mujoco_stack.py",
+      "sha256": "6eb6611ae1f49bfa6fbbe0b3e3db7f35208ddda3b3ff17a9b01d62e93cf7cd06",
+      "bytes": 5099
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/box.py",
+      "sha256": "c2003f558438c02032cd7aaf062043f28a72723db72a46b279cc337b3b87ff4d",
+      "bytes": 6066
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/force_friction.py",
+      "sha256": "6705a92fcbe939dae9a0944e61fbaa69460f369f555d89d6a41d8be6322974fa",
+      "bytes": 7719
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/contact_crowd.py",
+      "sha256": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87",
+      "bytes": 4447
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/verify_box.py",
+      "sha256": "8fb527e8cf22baa710cdbd89dd80a5d91a8487ca021d98183e24912fda1d6feb",
+      "bytes": 2391
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_threshold.py",
+      "sha256": "addaf0c918f2c58d59ed8de99ee52bbb5cc2c75f384f10568e3b79a4ca617012",
+      "bytes": 1713
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_force_friction.py",
+      "sha256": "e1b9404be7e7fc226ee99b9dca109d9b1561d6029d82255652c444e3424bf6ee",
+      "bytes": 2346
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/verify_stack_pair.py",
+      "sha256": "7660c1a1ef6dfc256b06f029d6d525c7d15d45edb42e33f30e2f2dcb5bf889ee",
+      "bytes": 3110
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_stack.py",
+      "sha256": "fdc8c3491178a5c5fc6539a98e34205f469707eebc617ad87f5fc361a6a8a31f",
+      "bytes": 2647
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/predictive_gap.py",
+      "sha256": "b5bd7948582967dc6aa2df2acc47bb665b8c8dffa43b98df5093a8843bc2d708",
+      "bytes": 6479
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/plot_force_friction_time_constant.py",
+      "sha256": "53fd2a0a5acb1a6f4ca7b2b4521bddbf9a19a406269f345c61c9a7ee6750599d",
+      "bytes": 2431
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/force_friction_time_constant.py",
+      "sha256": "189813d0d15720d14210646e91081650d1a1f680dcce24c5588a571bad116032",
+      "bytes": 4409
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_contact_clusters.py",
+      "sha256": "15e54bd15f0313dbd0c9f24bb0dabcec87404b3144a28898c8d8f4e55bcb9916",
+      "bytes": 1577
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_mujoco_stack.py",
+      "sha256": "0f3bd9ef90f4752f94270adc3598805bc40bb172fad9ca6bd5a543b8de3e185f",
+      "bytes": 1547
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/verify_mujoco_stack.py",
+      "sha256": "96b835b90ffe5ec83f2b03d74a186462509f9405265fdf7fb3f974ecaf66cc98",
+      "bytes": 2211
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/contact_constraint_audit.py",
+      "sha256": "ddd6ad7edd5f2bfdc13a090bd4abf1559605afce2a4f764a78f8e6bf05cf9655",
+      "bytes": 9146
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/native_contact_diagnostics.py",
+      "sha256": "597e695daeae12d2cb41ec86ef0f69d1ddb86d54241fea86ad4547519e53eb57",
+      "bytes": 7680
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_contact_bridge.py",
+      "sha256": "6eca05165bd148d8d1361e837a89d8513677f81f6b81a16b01b85248285adec1",
+      "bytes": 3464
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/threshold.py",
+      "sha256": "8ebb4fd2d682c588129db0ff4e94c88b6b1a15e6aba528804fc46a28959d5be5",
+      "bytes": 6301
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_friction_contact_diagnostics.py",
+      "sha256": "295563bec7c871d0810557b361061815922a6a8e32800ddd983e82b13d504c99",
+      "bytes": 1728
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_contact_constraint_audit.py",
+      "sha256": "2a1bbe8e929d672afee000dbb8883d2c125d08f4183826f46e5aa6948aa19114",
+      "bytes": 2604
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/slide.py",
+      "sha256": "ecd8a06cb8c30d9bf4bded7b531f2a5f108f06b359ddc8f10b01e021dc17a8f0",
+      "bytes": 6378
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/contact_clusters.py",
+      "sha256": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d",
+      "bytes": 5027
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_stack_phase.py",
+      "sha256": "376702dafe38fc14bea3e64799a7926b138397a170e764eb601c94b0a611de3b",
+      "bytes": 1489
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/stack.py",
+      "sha256": "148d8dec128bee5c54a2d56a47bbf2968163b6b04a1c41717f17b8f607dc49cc",
+      "bytes": 8530
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_contact_batch.py",
+      "sha256": "187e1e44a40f0aca0aeb76a08612424b2e310c77c035d224cbb9c809d0c1b5eb",
+      "bytes": 2737
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_force_friction_time_constant.py",
+      "sha256": "b3d5e519cc50d434b79a9011122cc0f9f7cf4db31023f0c4bd269e13a4cc8d0d",
+      "bytes": 1173
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_contact_crowd.py",
+      "sha256": "a163ad1aa05f4d62a04fa1ed7943e00fb38597a7a2286cdbb1f5ff94735ee64b",
+      "bytes": 1267
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_native_contact_diagnostics.py",
+      "sha256": "9b2047e6d3b93520738b618639eb8f263d8e2dfcc70df8eefc3a266822eb65a9",
+      "bytes": 1648
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_predictive_gap.py",
+      "sha256": "dd22f8f73969a5db2b027fa764ba78e4921ec54dec3a8a95a85f94badeb0bf30",
+      "bytes": 2626
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_stack_matched.py",
+      "sha256": "8ccb41d456833ed2c32c8685ce4d54c37b7d623536eb9e28b13c1661a4f98700",
+      "bytes": 862
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/plot.py",
+      "sha256": "81f13e054e7eb8510788c958fb3a7e339fb8aded4b61fbb99c4238f0ec0f3fcf",
+      "bytes": 1591
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/stack_matched.py",
+      "sha256": "c3693af09a02908c3ec58f943cdaa002e61d1487726278136e6307fdc6f96f82",
+      "bytes": 3872
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/plot_matched.py",
+      "sha256": "7e4dba2fa33f9be0f075ebb34a658e9ca5dad99f6824d794bcd344a732936894",
+      "bytes": 2069
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/verify_stack_matched.py",
+      "sha256": "1c99959efe985745ed9771cd81967df50a3fdcec2927c9c8c586d77f28d2b834",
+      "bytes": 3767
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/contact_admission.py",
+      "sha256": "afb6715c2cc6d6afabab99c846157576ff2e19dbe66cb0e30df39e213108bf3c",
+      "bytes": 7268
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/contact_bridge.py",
+      "sha256": "d9c8cec81f42b546aa0e863d7d24a929f6e38283f708fed0f702e738db0a74c1",
+      "bytes": 7465
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/compare_stack.py",
+      "sha256": "66fa91b3b26ac2094413d576695c31172ec2fa4cb841c22246c9e10d44ff963c",
+      "bytes": 2550
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/drop.py",
+      "sha256": "12dca06a994ed03d356eda7f83ba41331c3c2d14bf14b21c7c9c6017b16925e4",
+      "bytes": 11813
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/test_force_friction_matched.py",
+      "sha256": "054e755ad6603ad4764e641ad976d83979599e1b2081027b926129d65c33d2c7",
+      "bytes": 3230
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/matched.py",
+      "sha256": "bb14f51a11a5348ce51e117babddb602fe3145ce7715f5742c6cb066ff6e5585",
+      "bytes": 7509
+    },
+    {
+      "path": "/workspace/RobotNativeEngine/scripts/contact_benchmark/contact_batch.py",
+      "sha256": "a72d9c86d9a0853144886711a1d0bac9ef4beabbd9117c42d85d8caf4a5cc97e",
+      "bytes": 4632
+    }
+  ],
+  "binaries": [
+    {
+      "path": "/workspace/artifacts/contact-sparse-convergence-v3",
+      "sha256": "98782a753e6ff93ea6f49f50c561d11797561da5124be01590ebf2475a6e890a",
+      "bytes": 1539520
+    },
+    {
+      "path": "/workspace/artifacts/contact-normal-first-after",
+      "sha256": "e68feb5b0f4aee2665d32581c224c570300190d0033ac7696eae7ca8f72bbe12",
+      "bytes": 1539784
+    }
+  ],
+  "reports": [
+    {
+      "path": "/workspace/artifacts/normal-first-batch-a.json",
+      "sha256": "48100df9efc894577f3b41bebb4f07d22f8078569bf9d5411afae863d8e11c23",
+      "bytes": 214578
+    },
+    {
+      "path": "/workspace/artifacts/normal-first-batch-b.json",
+      "sha256": "644ae06ed8b7234cd20a689993e73c9910aac433883d08c56f290412860cc789",
+      "bytes": 214567
+    },
+    {
+      "path": "/workspace/artifacts/normal-first-bridge-a.json",
+      "sha256": "57acfa45ea04fc8e58f45f6fa7f9cccb3d5eae713ee6eb723f430ca823e722c3",
+      "bytes": 3371337
+    },
+    {
+      "path": "/workspace/artifacts/normal-first-bridge-b.json",
+      "sha256": "c5e7883882578303434ce5987b58d577e1f737197dbf63f613617d9a74d4849d",
+      "bytes": 3371325
+    },
+    {
+      "path": "/workspace/artifacts/normal-first-clusters-a.json",
+      "sha256": "7a697b92e21c29509715b1ce3a97bb1fdfdfcd970cc69eacf4c33d6fa01238b5",
+      "bytes": 2438212
+    },
+    {
+      "path": "/workspace/artifacts/normal-first-clusters-b.json",
+      "sha256": "532fc3ff2689444bcd5eabfdb8abeae977e904f38762e1522c22d9a10d36e333",
+      "bytes": 2438201
+    }
+  ],
+  "profile_files": [
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1.er/log.xml",
+      "sha256": "2ec52e3453b52f5d6b211b9e2f19c1a79c293e8c785f565e5230b776a67afadb",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1.er/map.xml",
+      "sha256": "95c8e42834a57d49546b96829f06d7aef52430f158d27da85029ab3f81ce6122",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1.er/overview",
+      "sha256": "93f78a5fdbd6f9ec6d507a41bb7af9c5c67c3ffe11672e1f454407ede9e67617",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10.er/log.xml",
+      "sha256": "e19a0b55d147b404d6ac005a2c660cc82530800eb37ac4e2ab1d0f80c36b8c9d",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10.er/map.xml",
+      "sha256": "648d0cce23d280d544c919a68559f924ed1872ba3224052c016a7ee41a104ef8",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10.er/overview",
+      "sha256": "6bc181c98b500d16310165559f717cce8b9e9fb388a69ec9e0c8ab9655a8a12d",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10_x1.er/data.frameinfo",
+      "sha256": "db582de3c8d0cc44575d9d0e7555feb04cd221cb75e35f3e78fb56b1d02ded95",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10_x1.er/dyntext",
+      "sha256": "47abe89ad69cc099838a44b66be98fb98a64524318d8dc544af9180a196fb897",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10_x1.er/log.xml",
+      "sha256": "92fefc2ae3eba9de39abd30708769bc627d804a7c642791a855677ebf0f8afcb",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10_x1.er/map.xml",
+      "sha256": "219527931272a5b692c24679f33d1eb6b28cd4eda2a0fb9823e790c12b8fdff2",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10_x1.er/overview",
+      "sha256": "067b3449e79abdde44988af5a931036cdda22f634d2ca28f1f8053831c9da397",
+      "bytes": 2016
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f10_x1.er/profile",
+      "sha256": "52813ccf78d8a89596c80baf9d29db61d40c3a93d7da941ff4dfaa9db5c70ed9",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1_x1.er/data.frameinfo",
+      "sha256": "f383cd51cc81ca4ea32e15c39763b90d69218373726829526b87ff726bce380b",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1_x1.er/dyntext",
+      "sha256": "aa50ffbf69edb7b7f7c2005f2dc959b7b86d6390c6538415dd3f708eaf7f377d",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1_x1.er/log.xml",
+      "sha256": "7e57688773cbf9110303ac18287103fcd9dbbcefcf4ba4e8aeca300359ce3609",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1_x1.er/map.xml",
+      "sha256": "ad24b3a26aa1c83efcfd6924f9dee0c80a7bd91409b191db709ef68b45a6c522",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1_x1.er/overview",
+      "sha256": "d4c35ce866ddfd6b1676b42bf25b56b7bcae14742be96e7b5c3429625aa09f1c",
+      "bytes": 2016
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f1_x1.er/profile",
+      "sha256": "92e4c57beea449967aaaebd7148a148bc5dd043bc0afaf6f8bc8e44b39cb2e49",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2.er/log.xml",
+      "sha256": "b0a8604784b8ddb6a8ddb1b4227c1bc230ce13f463a43db46fce7fd3549cbb06",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2.er/map.xml",
+      "sha256": "e7d1baa39a32c5a146ea62b4b294ea84d8ef1681d5390884feb84a89fc619a57",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2.er/overview",
+      "sha256": "c9acd5b6ec56a8d6a8ea19483a4b1478ba201a876294d497ef9dcc436494ad05",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2_x1.er/data.frameinfo",
+      "sha256": "326702da8a4065ec35bb4188bcde7031541d8b20696dd521ec5fb2c9dc1c931a",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2_x1.er/dyntext",
+      "sha256": "3344b6eb056d65705a0f61cc44ea7376f102249dd9d98ff8efb036399d587885",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2_x1.er/log.xml",
+      "sha256": "698e1c9f35d13d868c32f6a81d44fda74c4416ebb3eb66ad18c59d72030d08e0",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2_x1.er/map.xml",
+      "sha256": "dd2b28d24b90c1b551a9436bb531b17be49c89fe3abcef3de2c366fda90521f7",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2_x1.er/overview",
+      "sha256": "0a113112b7eea2d5f0366fe11e0b3ca5a3df27359f4be790e86731dbbe47ce73",
+      "bytes": 2016
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f2_x1.er/profile",
+      "sha256": "96ebb7cc7703d34ecf3175eecaa4bef5eff67cee3886b608d9fc95498a8ce16b",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3.er/log.xml",
+      "sha256": "8a949a66f7e8847ffe7dc01d1a49161d833bfb642b4379d767015fefae4c8456",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3.er/map.xml",
+      "sha256": "2be7be96e9469e38759d1cffb90d664c1eda5c155a208d544aafa5a172e42166",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3.er/overview",
+      "sha256": "a788e36d0acd10f19c3636481320aa17b74bdde98bc20e2978174450d5ce13fa",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3_x1.er/data.frameinfo",
+      "sha256": "f1799ae1b1a0ab56f5ae15619ed925874c35d62372a4ec21967364549b72f086",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3_x1.er/dyntext",
+      "sha256": "ee2990ace1c9f20e9ba1e8ec5d169fd5ec54fad953f7e044759632db0479433e",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3_x1.er/log.xml",
+      "sha256": "37b7cce235b3ad5729c5a17d80bb87a8f50af50ad3d7136118c630cf39c8888a",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3_x1.er/map.xml",
+      "sha256": "571b35f79ac6a2297b038df5cdfc15e8e99538b5d7fbe30e16e8b7223aa1d8ec",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3_x1.er/overview",
+      "sha256": "5963fbd8ffedbe4581ac27239acd2525531cee605a2769615afaedd2ab9b04aa",
+      "bytes": 1512
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f3_x1.er/profile",
+      "sha256": "0e39ac023b32bf06c84796c526c25a004b2180df1013097bc6f735dc7aa57b5e",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4.er/log.xml",
+      "sha256": "0b1cbfdadd6428e54a8a669a4f014988603a3a30283309c603525cd897eb9174",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4.er/map.xml",
+      "sha256": "b8f52ec18778ddd41b3597a8392712813cbb6e1d98cc761bad2a4f00a7f3cbb9",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4.er/overview",
+      "sha256": "930f25a559b9807164389e567467a0471d8ae5e907cbd146ade373b3050db151",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4_x1.er/data.frameinfo",
+      "sha256": "e8e0465f8c3d9ae89dd392defc9bd0a653aebd0fdbcd6fb19c66c0633e5bb927",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4_x1.er/dyntext",
+      "sha256": "414df50631e49d29fe81a74d5d643cf2bcdb9388ae506cba1caa678e99614ac7",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4_x1.er/log.xml",
+      "sha256": "7eabe24b7a24a0aab61085c1f5300c9db915c48891731d9cd8d5bb3959668f87",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4_x1.er/map.xml",
+      "sha256": "b2760141a182082ae1a1e55a89effbbb7549993398e39a56332a4e423f6ec0a7",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4_x1.er/overview",
+      "sha256": "51eafe7df9c92ed8edf7995d615e94aa175b6992e18832d1442172f3933ae064",
+      "bytes": 1512
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f4_x1.er/profile",
+      "sha256": "03c5ade654f8540a143eeb467be822543814dbca369d0db942e95d389d3c11c1",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5.er/log.xml",
+      "sha256": "5f54e44d970d70cab97a29a90610b379cc9eebdd28922ac2bdc030d403d2ab21",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5.er/map.xml",
+      "sha256": "88553027b082265c7e7695be22bb8eaac0b700d85b08ca28c41e75d1b4f21677",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5.er/overview",
+      "sha256": "d1103e8fccced1cddd9bff4f39d3a24419197fce50f2c7c93caea2a10de3fbac",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5_x1.er/data.frameinfo",
+      "sha256": "03044c13d6d3463befbd95ccf46e88b38870dde85cdbfc8efdd399b0547e1fc7",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5_x1.er/dyntext",
+      "sha256": "ec1305314dfafc0340acf12b031a78be046ac12b964a01fe688ffed68b4baf1d",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5_x1.er/log.xml",
+      "sha256": "8fe51a1fdd98f0f76cdde2e0fd17e1a4d218ed0b621a5346ee2d91991762e32d",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5_x1.er/map.xml",
+      "sha256": "5505bdfe18f36fa5bf7b9eb4f1d86638d4b29af717018049320407f269e271eb",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5_x1.er/overview",
+      "sha256": "39762e660aeab3abd3b8a6bbc9e64807d60dea7a38d97a435fca0521f7924959",
+      "bytes": 2016
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f5_x1.er/profile",
+      "sha256": "28efffc0550693334c28353d326acf97d99a1d15bb0d4f22ffa248e95087c24a",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6.er/log.xml",
+      "sha256": "7f2ba335dc5315077276e6e145fb9b732a5cec33a5e74bab189b1471f9331f34",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6.er/map.xml",
+      "sha256": "fad248ea00545064171eba5acdc0532f96150562c18234ef396d8c07672772e6",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6.er/overview",
+      "sha256": "3938bd286135f3ecd2e883c9dbcdfc3f9f3cbd2093ab4c1699f0230fab6ab0c8",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6_x1.er/data.frameinfo",
+      "sha256": "d2f7ade286da89538d8abdb433d5be5aea2716d4afe564b5b145a02734f1570e",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6_x1.er/dyntext",
+      "sha256": "fbb394967e7af5aa18ab97acc3b40d50cc75277fc1acddb65c56773be945d8c5",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6_x1.er/log.xml",
+      "sha256": "ca384b137a7a7d5540a8ea92fe40be772f2e8762db232fe00d80882d872fe49f",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6_x1.er/map.xml",
+      "sha256": "2c0af0f38f1164d0db47d01584288b831793c9bc1cdf1fc10878c6d3154228a3",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6_x1.er/overview",
+      "sha256": "6e3c29d68562a4f3adb87eaddb9268a166a6ebe0b4c42ba06bd3707a35178b58",
+      "bytes": 2016
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f6_x1.er/profile",
+      "sha256": "a21fdeddb1cfee50b1cab008bd69ce8400b6d014163429199e6808a87405c9aa",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7.er/log.xml",
+      "sha256": "16ebef3abfc733646ffbbd0ab354604d5d8145f8eaeefaa0e1dc64c13af9ec2e",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7.er/map.xml",
+      "sha256": "dbdfadb5161bb3ca55e2db93f1552a9a8861f47a86ace8d79828bf19b6b9e663",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7.er/overview",
+      "sha256": "9e6bc33ab540618b69342628be4a1fcec0578ec29fb52f4ddf7e1b59e5ccb53f",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7_x1.er/data.frameinfo",
+      "sha256": "bd25555908168f61f4ae1a08ba464997e18ed1a73a937f7790b43cad8711d4d3",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7_x1.er/dyntext",
+      "sha256": "0d0a0b91327dd6a5ebf8c25a6daf8df8f94b69568bcc6ad16469727675148cd1",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7_x1.er/log.xml",
+      "sha256": "bb8ac043bc7a16501652fec0267d2b11ae7487c29c5f16584847c395767c75d6",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7_x1.er/map.xml",
+      "sha256": "082a5b1317a061766f2f8a26e80b414c00ee39155346af86f55e1002c41c3620",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7_x1.er/overview",
+      "sha256": "df8644cee810dc3b1ffbb47048408fde63dda731c7aed1a2bad4d8c02ef05420",
+      "bytes": 2016
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f7_x1.er/profile",
+      "sha256": "2695bd50914ddc48f058acae7e321e9d4fe480c29fb9c7c9c73d0742f29fcd62",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8.er/log.xml",
+      "sha256": "ab6dd897daab49a8c2b2ff903a79c37fcc82184ba78cdbace9940df0a06b0bc6",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8.er/map.xml",
+      "sha256": "40c60156e39c653170adf95d9fdd8d455fac1b34e7edadba385fa05bb60b9e30",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8.er/overview",
+      "sha256": "31dcae09aaec9a6be943ffdc77c7708a8695eade124545f691dcf0bfc1563bcd",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8_x1.er/data.frameinfo",
+      "sha256": "1943ca6efb414dcf49f681fe2223ace82a904d9b7d767334049b228f66151b2f",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8_x1.er/dyntext",
+      "sha256": "6a5ab2adf33b7ff0449625cc255d8bd416504e7eac44a45cd95d8d2b2db097b2",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8_x1.er/log.xml",
+      "sha256": "9ad8bb19d812a90fd8cdebf509210ea82305b3fa04a969f99a57ddbd90250aab",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8_x1.er/map.xml",
+      "sha256": "b42a84cf6efffb85c6d2a16099b49edd43c2aa3809a41591817e3a0f416561bf",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8_x1.er/overview",
+      "sha256": "6186f67fc317156dc34f3f343349a52e548f035aa76476a60f583158bb08876f",
+      "bytes": 3528
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f8_x1.er/profile",
+      "sha256": "6dd894c06ae28a6f01a82e7ac8986bce7377b7b0c4eeeff9f673e046cc7e7670",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9.er/dyntext",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9.er/log.xml",
+      "sha256": "829529dc2bcf0b84d26528e8ebb65223952ea488916168c6a761a7252e6f83e7",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9.er/map.xml",
+      "sha256": "546392d348ca699c02071e648ddf83fe7e6b61ba64f1376f4dd47ae282c7b857",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9.er/overview",
+      "sha256": "ce4adf5087303c79afb1d69edb02ad98a4f1a0d76ed9dfccbbadedd2cf4fc4b2",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9_x1.er/data.frameinfo",
+      "sha256": "d908ffe278bacaadaae03a859f9398472b4dfc512f54f92d1a90111982ed7a79",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9_x1.er/dyntext",
+      "sha256": "2344b5c2284a5377fa171fa9e9f815708e5e5e48cde2d2687a7f1c084a7b7139",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9_x1.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9_x1.er/log.xml",
+      "sha256": "76327df5b27b2154d08ea158710b8131f5062e8501d618b791fd96db864066d0",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9_x1.er/map.xml",
+      "sha256": "b944ef8ff834c85356183aec55aa86f20a49cbb9c78feb32e27d3bf133b74a94",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9_x1.er/overview",
+      "sha256": "b472336b9b645ab5877b59f6eedcef31bc12db73d10109c65ee16510a5f218e0",
+      "bytes": 2520
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/_f9_x1.er/profile",
+      "sha256": "f2fbbe8aa086558e37403dc1a346124b93f574ca72ade940a652515f457a34ca",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/data.frameinfo",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/dyntext",
+      "sha256": "45b85ce2534d255bc59cc3b786a55bfb630286435c8a18c97944bd1a22fb3865",
+      "bytes": 2560
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/jclasses",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/log.xml",
+      "sha256": "5d3de9ea4061f6b371f8e4aec500ad1087898343e41319e132d25f1996ee5bb3",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/map.xml",
+      "sha256": "bbf094f4ca2461c1a7935dd27786c4a5d1274c700f551c7d10dded25407a174d",
+      "bytes": 65536
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/overview",
+      "sha256": "8193e15cf0efda429c5294523383c9d4b8853cc22afa65963972cdb87aad740b",
+      "bytes": 1008
+    },
+    {
+      "path": "/workspace/artifacts/bridge31-post-convergence-10.er/profile",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "profile_command": "gprofng collect app -a off -F on; baseline 31 timing bridge repeated 10 times"
+}

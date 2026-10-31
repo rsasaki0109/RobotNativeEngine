@@ -1,0 +1,45 @@
+{
+  "base_commit": "a2e121f9",
+  "files": [
+    {
+      "path": "scripts/contact_benchmark/contact_frozen_release.py",
+      "sha256": "9c663260014fe0b71700b6a3c431e85f180a191ada8f59eaba6cf70cf857091a",
+      "bytes": 4881
+    },
+    {
+      "path": "scripts/contact_benchmark/contact_frozen_newton.py",
+      "sha256": "3620b935cdf3f109680b7e6c3c3031a8ce21fce6e4def09396cea47d401b4179",
+      "bytes": 7097
+    },
+    {
+      "path": "scripts/contact_benchmark/test_frozen_release.py",
+      "sha256": "897de511cc9c2237ecdf70ac1fb378c7d490e3b85b77a80e6c56fc915c1815dc",
+      "bytes": 4029
+    },
+    {
+      "path": "docs/evidence/contact-frozen-systems.json",
+      "sha256": "30904a885cd285b828d5041551923b6957da67b7694a3ac084f3ee1410f094f3",
+      "bytes": 947824
+    },
+    {
+      "path": "docs/evidence/contact-frozen-release-results.json",
+      "sha256": "a7178c3c0cfdd3cdfa64e8abfc31ce24a67960078d6bc34fc211f4c23ef255a7",
+      "bytes": 119654
+    },
+    {
+      "path": "docs/evidence/contact-frozen-adaptive-damping.py",
+      "sha256": "0df6b745625b09a723484edb733f3c61640b074e92234e6a7987df593a176c68",
+      "bytes": 3042
+    },
+    {
+      "path": "docs/evidence/contact-frozen-adaptive-damping-results.json",
+      "sha256": "f2efbfe37b178cf3048048e710cfb4e69cc7f331b06afcc4a658f4372d34b230",
+      "bytes": 101902
+    },
+    {
+      "path": "docs/evidence/contact-frozen-stationarity.json",
+      "sha256": "005416afcd1b3cb68fb4d9bfd4545ce730527ba79529ffa69bc3c30588c40ea8",
+      "bytes": 683
+    }
+  ]
+}

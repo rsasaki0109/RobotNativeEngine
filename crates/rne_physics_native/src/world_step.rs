@@ -44,6 +44,7 @@ fn same_self_collision_owner(a: Option<Entity>, b: Option<Entity>) -> bool {
 
 /// Advances every assembly by `dt_s`. Assemblies that touch through a
 /// contact are solved together; the others are solved one island each.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn step_world(
     assemblies: &mut [Assembly],
     statics: &[StaticCollider],
@@ -51,19 +52,26 @@ pub(crate) fn step_world(
     config: &ContactStepConfig,
     margin_m: f64,
     dt_s: f64,
+    external: &[Vec<f64>],
+    mut diagnostics: Option<&mut crate::NativeContactDiagnostics>,
 ) -> Result<Vec<ContactRecord>, PhysicsError> {
     let transforms = assemblies
         .iter()
         .map(Assembly::sim_transforms)
         .collect::<Result<Vec<_>, _>>()?;
     let moving = moving_colliders(assemblies, &transforms);
-    let candidates = reduce(deduplicate(contact_candidates(
-        assemblies,
-        &transforms,
-        statics,
-        &moving,
-        margin_m,
-    )));
+    let candidates = contact_candidates(assemblies, &transforms, statics, &moving, margin_m);
+    let generated_candidates = candidates.len();
+    let candidates = deduplicate(candidates);
+    let deduplicated_candidates = candidates.len();
+    let candidates = reduce(candidates);
+    if let Some(observation) = diagnostics.as_deref_mut() {
+        observation.pipeline = crate::NativeContactPipeline {
+            generated_candidates,
+            deduplicated_candidates,
+            retained_candidates: candidates.len(),
+        };
+    }
 
     // Islands: assemblies joined by a contact between them.
     let mut parent: Vec<usize> = (0..assemblies.len()).collect();
@@ -127,15 +135,66 @@ pub(crate) fn step_world(
             .iter()
             .map(|&index| assemblies[index].coupled_body())
             .collect();
-        let step = contact_step_coupled(&bodies, &contacts, &config, Some(&seed))
-            .map_err(|_| PhysicsError::InitializationFailed)?;
-        for (candidate, outcome) in island.iter().zip(&step.contacts) {
+        let result = if external.is_empty() {
+            contact_step_coupled(&bodies, &contacts, &config, Some(&seed))
+        } else {
+            let forces: Vec<_> = members.iter().map(|i| external[*i].clone()).collect();
+            rne_dynamics::contact_step_coupled_with_external_forces(
+                &bodies,
+                &contacts,
+                &config,
+                Some(&seed),
+                &forces,
+            )
+        };
+        let step = result.map_err(|_| PhysicsError::InitializationFailed)?;
+        for (index, (candidate, outcome)) in island.iter().zip(&step.contacts).enumerate() {
             let [t1, t2, n] = contact_frame(candidate.contact.normal_world);
             let impulse = outcome.impulse_world_n_s;
             next_warm.insert(
                 candidate.key,
                 [impulse.dot(t1), impulse.dot(t2), impulse.dot(n)],
             );
+            if let Some(observation) = diagnostics.as_deref_mut() {
+                let to_world = crate::collide::world_to_sim().conjugate();
+                let normal = candidate.contact.normal_world;
+                let half_gap = normal * (0.5 * candidate.record.gap_m);
+                let contact = contacts[index];
+                let velocity = |anchor: ContactAnchor| {
+                    diagnostic_point_velocity(
+                        &bodies[anchor.body],
+                        &step.bodies[anchor.body].qd,
+                        anchor,
+                        &transforms[members[anchor.body]],
+                    )
+                };
+                let relative = velocity(contact.a)?
+                    - contact.b.map(velocity).transpose()?.unwrap_or(Vec3::ZERO);
+                let bias = candidate.record.gap_m / dt_s
+                    * if candidate.record.gap_m >= 0.0 {
+                        1.0
+                    } else {
+                        config.penetration_recovery
+                    };
+                observation.samples.push(crate::NativeContactImpulse {
+                    body_entity: candidate.record.body_entity,
+                    other_entity: candidate.record.other_entity,
+                    point_world_m: to_world * (candidate.place_m + half_gap),
+                    other_point_world_m: to_world * (candidate.place_m - half_gap),
+                    normal_world: to_world * normal,
+                    gap_m: candidate.record.gap_m,
+                    normal_impulse_n_s: impulse.dot(normal),
+                    tangential_impulse_world_n_s: to_world
+                        * (impulse - normal * impulse.dot(normal)),
+                    dt_s,
+                    relative_velocity_world_m_s: to_world * relative,
+                    normal_constraint_velocity_m_s: relative.dot(normal) + bias,
+                    friction_coefficient: contact.friction_coefficient,
+                    solver_iterations: step.solver_iterations,
+                    solver_converged: step.solver_converged,
+                    solver_contact_law_satisfied: step.solver_contact_law_satisfied,
+                });
+            }
             records.push(ContactRecord {
                 normal_impulse_n_s: impulse.dot(n),
                 ..candidate.record
@@ -148,6 +207,41 @@ pub(crate) fn step_world(
     }
     *warm = next_warm;
     Ok(records)
+}
+
+/// Evaluate post-solve point velocity using the pre-integration Jacobian and
+/// prescribed fixed-base motion. Only called when diagnostics are enabled.
+fn diagnostic_point_velocity(
+    body: &rne_dynamics::CoupledBody<'_>,
+    qd: &[f64],
+    anchor: ContactAnchor,
+    poses: &[Transform3],
+) -> Result<Vec3, PhysicsError> {
+    let jacobian =
+        rne_dynamics::frame_jacobian(body.model, body.q, anchor.link, anchor.point_local_m)
+            .map_err(|_| PhysicsError::InitializationFailed)?;
+    let mut linear = Vec3::ZERO;
+    for (column, speed) in qd.iter().enumerate() {
+        linear += Vec3::new(
+            jacobian.get(0, column),
+            jacobian.get(1, column),
+            jacobian.get(2, column),
+        ) * *speed;
+    }
+    let motion = body.model.fixed_base_motion();
+    if body.model.base_dof() == 0 {
+        let link = body
+            .model
+            .kinematic()
+            .link_index(anchor.link)
+            .ok_or(PhysicsError::InitializationFailed)?;
+        let point = poses[link].translation + poses[link].rotation * anchor.point_local_m;
+        linear += motion.linear_velocity_m_s
+            + motion
+                .angular_velocity_rad_s
+                .cross(point - poses[0].translation);
+    }
+    Ok(linear)
 }
 
 fn moving_colliders(
@@ -318,6 +412,18 @@ fn contact_candidates(
     margin_m: f64,
 ) -> Vec<Candidate> {
     let mut candidates = Vec::new();
+    // Small worlds avoid the sweep setup. Unknown/non-box shapes retain all
+    // pairs; box neighbors are sorted back into the original moving order.
+    let neighbors = (moving.len() >= 64).then(|| {
+        let bounds: Vec<_> = moving
+            .iter()
+            .map(|entry| {
+                cuboid_half(&entry.collider.shape)
+                    .map(|half| (entry.collider.pose.translation, half.length()))
+            })
+            .collect();
+        crate::box_pairs::candidates(&bounds, margin_m)
+    });
     let side_of = |assembly: usize, body: usize| {
         let entry = &assemblies[assembly].bodies[body];
         Side {
@@ -374,7 +480,17 @@ fn contact_candidates(
                     }
                 }
             }
-            for other in moving {
+            let indices = neighbors.as_ref().and_then(|lists| {
+                let index = moving
+                    .binary_search_by_key(&(assembly_index, body_index), |entry| {
+                        (entry.assembly, entry.body)
+                    })
+                    .ok()?;
+                lists[index].as_deref()
+            });
+            for position in 0..indices.map_or(moving.len(), <[usize]>::len) {
+                let other_index = indices.map_or(position, |list| list[position]);
+                let other = &moving[other_index];
                 let (groups, other_groups) = if body.self_collision_owner.is_some()
                     || other.collider.self_collision_owner.is_some()
                 {

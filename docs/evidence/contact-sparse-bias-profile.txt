@@ -1,0 +1,26 @@
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+1.341 100.00  1.341 100.00   <Total>
+0.700  52.24  1.321  98.51   rne_dynamics::contact::coupled::step_with_external
+0.520  38.81  0.610  45.52   rne_dynamics::contact::solve_contact_impulses
+0.090   6.72  0.090   6.72   rne_dynamics::contact::sweep_velocity_converged
+0.010   0.75  0.010   0.75   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+0.010   0.75  0.010   0.75   <std::hash::random::DefaultHasher as core::hash::Hasher>::write
+0.010   0.75  0.010   0.75   free
+0.      0.    0.010   0.75   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.      0.    0.020   1.49   <rne_physics_native::NativeBackend as rne_physics::backend::PhysicsBackend>::step
+0.      0.    0.020   1.49   <static>@0x29c21 (<libc.so.6>)
+0.      0.    0.020   1.49   contact_crowd::main
+0.      0.    0.020   1.49   contact_crowd::run
+0.      0.    0.010   0.75   core::hash::BuildHasher::hash_one
+0.      0.    0.010   0.75   hashbrown::map::HashMap<K,V,S,A>::insert
+0.      0.    0.020   1.49   main
+0.      0.    1.061  79.10   rne_dynamics::contact::coupled::contact_step_coupled
+0.      0.    1.081  80.60   rne_physics_native::world_step::step_world
+0.      0.    0.020   1.49   std::rt::lang_start::{{closure}}
+0.      0.    0.020   1.49   std::rt::lang_start_internal
+0.      0.    0.020   1.49   std::sys::backtrace::__rust_begin_short_backtrace
+

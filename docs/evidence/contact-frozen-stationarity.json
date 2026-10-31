@@ -1,0 +1,30 @@
+[
+  {
+    "label": "tower-slide-4-failed-solve-10",
+    "rank": 24,
+    "rows": 48,
+    "gradient_l2": 6.786356511865246e-16,
+    "residual_l2": 2.5812930622816433e-06
+  },
+  {
+    "label": "tower-slide-8-failed-solve-24",
+    "rank": 48,
+    "rows": 96,
+    "gradient_l2": 5.507600952109135e-07,
+    "residual_l2": 0.0014967315496972348
+  },
+  {
+    "label": "tower-tilt-4-failed-solve-15",
+    "rank": 24,
+    "rows": 48,
+    "gradient_l2": 8.215815887953909e-16,
+    "residual_l2": 3.745971698970193e-06
+  },
+  {
+    "label": "tower-tilt-8-failed-solve-19",
+    "rank": 48,
+    "rows": 96,
+    "gradient_l2": 1.4517325936841863e-15,
+    "residual_l2": 5.345081309229259e-06
+  }
+]

@@ -475,7 +475,7 @@ fn the_backend_passes_external_conformance_for_its_capabilities() {
             } else {
                 ExternalPhysicsBackendCheckStatus::NotAdvertised
             };
-            assert_eq!(check.status, expected, "{}: {}", check.id, check.detail);
+            assert_eq!(check.status, expected, "{}: {:?}", check.id, check);
         }
     }
     assert!(
@@ -2031,5 +2031,559 @@ fn self_collision_exclusion_supports_40_and_48_owners_with_exact_fresh_replay() 
         let first = many_owner_collision_replay(owner_count);
         let fresh = many_owner_collision_replay(owner_count);
         assert_eq!(first, fresh, "{owner_count} owners");
+    }
+}
+
+#[test]
+fn external_wrenches_add_preserve_point_moments_and_expire() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            ..Default::default()
+        })
+        .unwrap();
+    let mut world = World::new();
+    let position = Vec3::new(1.0, 2.0, 3.0);
+    let entity = world
+        .spawn((
+            RigidBody {
+                mass_kg: 2.0,
+                ..Default::default()
+            },
+            rne_physics::RigidBodyInertia {
+                center_of_mass_local_m: Vec3::ZERO,
+                ixx_kg_m2: 0.5,
+                iyy_kg_m2: 0.5,
+                izz_kg_m2: 0.5,
+                ixy_kg_m2: 0.0,
+                ixz_kg_m2: 0.0,
+                iyz_kg_m2: 0.0,
+            },
+            Transform3::from_translation_rotation(position, Quat::from_rotation_y(0.7)),
+        ))
+        .id();
+    let fixed = ground(&mut world);
+    backend.sync_from_ecs(&mut world, id).unwrap();
+    let load = ExternalBodyWrench {
+        entity,
+        point_world_m: position + Vec3::Y * 0.5,
+        force_world_n: Vec3::X,
+        torque_world_nm: Vec3::Z * 0.125,
+    };
+    backend.apply_external_body_wrench(id, load).unwrap();
+    assert!(backend
+        .apply_external_body_wrench(
+            id,
+            ExternalBodyWrench {
+                entity: fixed,
+                ..load
+            }
+        )
+        .is_err());
+    assert!(backend
+        .apply_external_body_wrench(
+            id,
+            ExternalBodyWrench {
+                force_world_n: Vec3::splat(f64::NAN),
+                ..load
+            }
+        )
+        .is_err());
+    backend.apply_external_body_wrench(id, load).unwrap();
+    assert!(backend.step(id, SimDuration::from_ticks(0)).is_err());
+    assert_eq!(backend.world(id).unwrap().pending_wrenches.len(), 2);
+    step(&mut backend, &mut world, id);
+    let rb = *world.get::<RigidBody>(entity).unwrap();
+    assert!((rb.linear_velocity_m_s - Vec3::X * 0.002).length() < 1e-9);
+    assert!(
+        (rb.angular_velocity_rad_s - Vec3::Z * -0.003).length() < 1e-7,
+        "{:?}",
+        rb.angular_velocity_rad_s
+    );
+    assert!(backend.world(id).unwrap().pending_wrenches.is_empty());
+    step(&mut backend, &mut world, id);
+    let next = world.get::<RigidBody>(entity).unwrap();
+    assert!((next.linear_velocity_m_s - rb.linear_velocity_m_s).length() < 1e-8);
+    assert!((next.angular_velocity_rad_s - rb.angular_velocity_rad_s).length() < 1e-7);
+}
+
+#[test]
+fn removed_wrench_target_does_not_load_a_replacement() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            ..Default::default()
+        })
+        .unwrap();
+    let mut world = World::new();
+    let entity = world
+        .spawn((RigidBody::default(), Transform3::IDENTITY))
+        .id();
+    backend.sync_from_ecs(&mut world, id).unwrap();
+    backend
+        .apply_external_body_wrench(
+            id,
+            ExternalBodyWrench {
+                entity,
+                point_world_m: Vec3::ZERO,
+                force_world_n: Vec3::X,
+                torque_world_nm: Vec3::ZERO,
+            },
+        )
+        .unwrap();
+    world.despawn(entity);
+    let replacement = world
+        .spawn((RigidBody::default(), Transform3::IDENTITY))
+        .id();
+    step(&mut backend, &mut world, id);
+    assert_eq!(
+        world
+            .get::<RigidBody>(replacement)
+            .unwrap()
+            .linear_velocity_m_s,
+        Vec3::ZERO
+    );
+    assert!(backend.world(id).unwrap().pending_wrenches.is_empty());
+}
+
+#[test]
+fn external_force_on_joint_link_is_not_a_motor_command() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            ..Default::default()
+        })
+        .unwrap();
+    let mut world = World::new();
+    let anchor = world
+        .spawn((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..Default::default()
+            },
+            Transform3::IDENTITY,
+        ))
+        .id();
+    let link = world
+        .spawn((
+            RigidBody {
+                mass_kg: 2.0,
+                ..Default::default()
+            },
+            Transform3::IDENTITY,
+            PrismaticJointDesc {
+                parent: anchor,
+                axis: Vec3::X,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::ZERO,
+                relative_rotation: Quat::IDENTITY,
+                lower_m: None,
+                upper_m: None,
+            },
+            JointActuation::PrismaticEffort {
+                force_n: 0.0,
+                max_force_n: 0.0,
+            },
+        ))
+        .id();
+    backend.sync_from_ecs(&mut world, id).unwrap();
+    backend
+        .apply_external_body_wrench(
+            id,
+            ExternalBodyWrench {
+                entity: link,
+                point_world_m: Vec3::Y,
+                force_world_n: Vec3::X * 2.0,
+                torque_world_nm: Vec3::ZERO,
+            },
+        )
+        .unwrap();
+    step(&mut backend, &mut world, id);
+    let (_, speed) = backend.multibody_joint_state(id, link).unwrap();
+    assert!((speed - 0.002).abs() < 1e-10, "{speed}");
+}
+
+#[test]
+fn a_free_spinning_body_preserves_world_linear_velocity() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            ..Default::default()
+        })
+        .unwrap();
+    let mut world = World::new();
+    let body = world
+        .spawn((
+            RigidBody {
+                linear_velocity_m_s: Vec3::X,
+                angular_velocity_rad_s: Vec3::Z,
+                ..Default::default()
+            },
+            Collider::sphere(0.1),
+            Transform3::from_translation_rotation(Vec3::ZERO, Quat::from_rotation_y(0.7)),
+        ))
+        .id();
+    for _ in 0..100 {
+        step(&mut backend, &mut world, id);
+    }
+    assert!((world.get::<RigidBody>(body).unwrap().linear_velocity_m_s - Vec3::X).length() < 1e-9);
+    assert!((world.get::<Transform3>(body).unwrap().translation - Vec3::X * 0.2).length() < 1e-9);
+}
+
+#[test]
+fn actual_external_force_brackets_static_friction() {
+    for ratio in [-1.2_f64, -0.8, 0.8, 1.2] {
+        let run = || {
+            let mut backend = NativeBackend::new();
+            let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+            let mut world = World::new();
+            ground(&mut world);
+            let body = world
+                .spawn((
+                    RigidBody {
+                        mass_kg: 3.0,
+                        ..Default::default()
+                    },
+                    Collider::cuboid(Vec3::splat(0.05)),
+                    Transform3::from_translation_rotation(Vec3::Y * 0.05, Quat::IDENTITY),
+                ))
+                .id();
+            backend.sync_from_ecs(&mut world, id).unwrap();
+            for _ in 0..1000 {
+                let position = world.get::<Transform3>(body).unwrap().translation;
+                backend
+                    .apply_external_body_wrench(
+                        id,
+                        ExternalBodyWrench {
+                            entity: body,
+                            point_world_m: position,
+                            force_world_n: Vec3::X * (ratio * 0.5 * 3.0 * 9.81),
+                            torque_world_nm: Vec3::ZERO,
+                        },
+                    )
+                    .unwrap();
+                step(&mut backend, &mut world, id);
+            }
+            let position = world.get::<Transform3>(body).unwrap().translation.x;
+            let velocity = world.get::<RigidBody>(body).unwrap().linear_velocity_m_s.x;
+            let a = ratio.signum() * (ratio.abs() - 1.0).max(0.0) * 0.5 * 9.81;
+            assert!(
+                (position - 2.0 * a).abs() < if a == 0.0 { 1e-5 } else { 0.003 },
+                "ratio {ratio}: {position}"
+            );
+            assert!((velocity - 2.0 * a).abs() < 0.002);
+            rne_physics::capture_physics_snapshot(
+                &world,
+                backend.contacts(id).unwrap(),
+                1000,
+                2_000_000_000,
+            )
+            .unwrap()
+            .stable_hash()
+        };
+        assert_eq!(run(), run(), "force replay differs at ratio {ratio}");
+    }
+}
+
+#[test]
+fn force_through_offset_center_of_mass_does_not_spin_the_body() {
+    let mut backend = NativeBackend::new();
+    let id = backend
+        .create_world(PhysicsWorldDesc {
+            gravity_m_s2: Vec3::ZERO,
+            ..Default::default()
+        })
+        .unwrap();
+    let mut world = World::new();
+    let rotation = Quat::from_rotation_z(0.3);
+    let com = Vec3::X * 0.2;
+    let body = world
+        .spawn((
+            RigidBody {
+                mass_kg: 2.0,
+                ..Default::default()
+            },
+            rne_physics::RigidBodyInertia {
+                center_of_mass_local_m: com,
+                ixx_kg_m2: 0.5,
+                iyy_kg_m2: 0.5,
+                izz_kg_m2: 0.5,
+                ixy_kg_m2: 0.0,
+                ixz_kg_m2: 0.0,
+                iyz_kg_m2: 0.0,
+            },
+            Transform3::from_translation_rotation(Vec3::ZERO, rotation),
+        ))
+        .id();
+    backend.sync_from_ecs(&mut world, id).unwrap();
+    let load = ExternalBodyWrench {
+        entity: body,
+        point_world_m: rotation * com,
+        force_world_n: Vec3::X * 2.0,
+        torque_world_nm: Vec3::ZERO,
+    };
+    backend.apply_external_body_wrench(id, load).unwrap();
+    assert!(backend
+        .apply_external_body_wrench(
+            id,
+            ExternalBodyWrench {
+                point_world_m: Vec3::Y * 1e200,
+                force_world_n: Vec3::X * 1e200,
+                ..load
+            }
+        )
+        .is_err());
+    assert_eq!(backend.world(id).unwrap().pending_wrenches.len(), 1);
+    step(&mut backend, &mut world, id);
+    let result = world.get::<RigidBody>(body).unwrap();
+    assert!((result.linear_velocity_m_s - Vec3::X * 0.002).length() < 1e-9);
+    assert!(result.angular_velocity_rad_s.length() < 1e-9);
+}
+
+#[test]
+fn contact_diagnostics_preserve_state_and_balance_impulses() {
+    let run = |enabled| {
+        let mut config = NativeBackendConfig::default();
+        config.contact.solver.regularization = 0.0;
+        let mut backend = NativeBackend::with_config(config);
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        let mut world = World::new();
+        ground(&mut world);
+        let body = world
+            .spawn((
+                RigidBody {
+                    mass_kg: 3.0,
+                    ..Default::default()
+                },
+                Collider::cuboid(Vec3::splat(0.05)),
+                Transform3::from_translation_rotation(Vec3::Y * 0.05, Quat::IDENTITY),
+            ))
+            .id();
+        assert!(backend.contact_impulse_diagnostics(id).unwrap().is_empty());
+        backend
+            .set_contact_diagnostics_enabled(id, enabled)
+            .unwrap();
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        let mut hashes = Vec::new();
+        for tick in 0..25 {
+            let position = world.get::<Transform3>(body).unwrap().translation;
+            let velocity = world.get::<RigidBody>(body).unwrap().linear_velocity_m_s;
+            backend
+                .apply_external_body_wrench(
+                    id,
+                    ExternalBodyWrench {
+                        entity: body,
+                        point_world_m: position,
+                        force_world_n: Vec3::X * 17.658,
+                        torque_world_nm: Vec3::ZERO,
+                    },
+                )
+                .unwrap();
+            backend.step(id, dt()).unwrap();
+            backend.sync_to_ecs(&mut world, id).unwrap();
+            let samples = backend.contact_impulse_diagnostics(id).unwrap();
+            if enabled {
+                assert!(!samples.is_empty());
+                let pipeline = backend.contact_pipeline_diagnostics(id).unwrap().unwrap();
+                assert_eq!(pipeline.generated_candidates, 4);
+                assert_eq!(pipeline.deduplicated_candidates, 4);
+                assert_eq!(pipeline.retained_candidates, samples.len());
+                for p in samples {
+                    assert!(p.relative_velocity_world_m_s.is_finite());
+                    assert!(p.normal_constraint_velocity_m_s >= -1e-7);
+                    assert!((p.normal_impulse_n_s * p.normal_constraint_velocity_m_s).abs() < 1e-8);
+                    assert!(p.solver_converged);
+                    assert!(p.solver_iterations < 200);
+                }
+                let mut impulse = Vec3::ZERO;
+                let mut angular_impulse = Vec3::ZERO;
+                for p in samples {
+                    let j = p.normal_world * p.normal_impulse_n_s + p.tangential_impulse_world_n_s;
+                    let (point, signed) = if p.body_entity == body {
+                        (p.point_world_m, j)
+                    } else {
+                        assert_eq!(p.other_entity, body);
+                        (p.other_point_world_m, -j)
+                    };
+                    assert!((p.normal_world.length() - 1.0).abs() < 1e-12);
+                    assert!(p.tangential_impulse_world_n_s.dot(p.normal_world).abs() < 1e-12);
+                    assert!(
+                        (p.point_world_m - p.other_point_world_m - p.normal_world * p.gap_m)
+                            .length()
+                            < 1e-12
+                    );
+                    assert_eq!(p.dt_s, 0.002);
+                    impulse += signed;
+                    angular_impulse += (point - position).cross(signed);
+                }
+                let next = world.get::<RigidBody>(body).unwrap().linear_velocity_m_s;
+                let expected = (next - velocity) * 3.0 - Vec3::new(17.658, -29.43, 0.0) * 0.002;
+                assert!((impulse - expected).length() < 1e-8);
+                assert!(angular_impulse.length() < 1e-8);
+            } else {
+                assert!(backend.contact_pipeline_diagnostics(id).unwrap().is_none());
+                assert!(samples.is_empty());
+            }
+            hashes.push(
+                rne_physics::capture_physics_snapshot(
+                    &world,
+                    backend.contacts(id).unwrap(),
+                    tick + 1,
+                    (tick + 1) * 2_000_000,
+                )
+                .unwrap()
+                .stable_hash(),
+            );
+        }
+        let prior = backend.contact_impulse_diagnostics(id).unwrap().to_vec();
+        assert!(backend.step(id, SimDuration::from_ticks(0)).is_err());
+        assert_eq!(backend.contact_impulse_diagnostics(id).unwrap(), prior);
+        backend.sync_from_ecs(&mut world, id).unwrap();
+        assert!(backend.contact_impulse_diagnostics(id).unwrap().is_empty());
+        backend.set_contact_diagnostics_enabled(id, false).unwrap();
+        backend.step(id, dt()).unwrap();
+        assert!(backend.contact_impulse_diagnostics(id).unwrap().is_empty());
+        hashes
+    };
+    assert_eq!(run(false), run(true));
+    assert_eq!(run(true), run(true));
+}
+
+#[test]
+fn contact_diagnostics_dynamic_pair_has_opposite_impulses_and_world_isolation() {
+    let mut backend = NativeBackend::new();
+    let desc = PhysicsWorldDesc {
+        gravity_m_s2: Vec3::ZERO,
+        ..Default::default()
+    };
+    let id = backend.create_world(desc).unwrap();
+    let other_id = backend.create_world(desc).unwrap();
+    backend.set_contact_diagnostics_enabled(id, true).unwrap();
+    let mut world = World::new();
+    let mut entities = Vec::new();
+    for sign in [-1.0, 1.0] {
+        entities.push(
+            world
+                .spawn((
+                    RigidBody {
+                        mass_kg: 2.0,
+                        linear_velocity_m_s: -sign * Vec3::X,
+                        ..Default::default()
+                    },
+                    Collider::sphere(0.1),
+                    Transform3::from_translation_rotation(sign * 0.09 * Vec3::X, Quat::IDENTITY),
+                ))
+                .id(),
+        );
+    }
+    step(&mut backend, &mut world, id);
+    let samples = backend.contact_impulse_diagnostics(id).unwrap();
+    assert!(!samples.is_empty());
+    for (&entity, sign) in entities.iter().zip([-1.0, 1.0]) {
+        let impulse: Vec3 = samples
+            .iter()
+            .map(|p| {
+                let j = p.normal_world * p.normal_impulse_n_s + p.tangential_impulse_world_n_s;
+                if p.body_entity == entity {
+                    j
+                } else {
+                    assert_eq!(p.other_entity, entity);
+                    -j
+                }
+            })
+            .fold(Vec3::ZERO, |a, b| a + b);
+        let after = world.get::<RigidBody>(entity).unwrap().linear_velocity_m_s;
+        assert!((impulse - (after + sign * Vec3::X) * 2.0).length() < 1e-8);
+    }
+    assert!(backend
+        .contact_impulse_diagnostics(other_id)
+        .unwrap()
+        .is_empty());
+    backend.worlds.remove(&id);
+    assert!(backend.contact_impulse_diagnostics(id).is_err());
+    assert!(backend.set_contact_diagnostics_enabled(id, true).is_err());
+}
+
+#[test]
+fn contact_pipeline_exposes_patch_reduction() {
+    let mut backend = NativeBackend::new();
+    let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+    backend.set_contact_diagnostics_enabled(id, true).unwrap();
+    let mut world = World::new();
+    ground(&mut world);
+    let parts = [(-0.4, -0.4), (-0.4, 0.4), (0.4, -0.4), (0.4, 0.4)]
+        .into_iter()
+        .map(|(x, z)| CompoundPart {
+            shape: ColliderShape::Cuboid {
+                half_extents_m: Vec3::splat(0.05),
+            },
+            local_offset: Transform3::from_translation_rotation(
+                Vec3::new(x, 0.05, z),
+                Quat::IDENTITY,
+            ),
+        })
+        .collect::<Vec<_>>();
+    world.spawn((
+        RigidBody::default(),
+        Collider {
+            shape: ColliderShape::Compound {
+                parts: parts.into(),
+            },
+            ..Collider::cuboid(Vec3::ONE)
+        },
+        Transform3::default(),
+    ));
+    step(&mut backend, &mut world, id);
+    let p = backend.contact_pipeline_diagnostics(id).unwrap().unwrap();
+    assert_eq!(p.generated_candidates, 16);
+    assert_eq!(p.deduplicated_candidates, 16);
+    assert_eq!(p.retained_candidates, 4);
+    backend.sync_from_ecs(&mut world, id).unwrap();
+    assert!(backend.contact_pipeline_diagnostics(id).unwrap().is_none());
+}
+
+#[test]
+fn normal_constraint_velocity_accounts_for_predictive_and_penetration_bias() {
+    for height in [0.052, 0.049] {
+        let mut config = NativeBackendConfig::default();
+        config.contact.solver.regularization = 0.0;
+        let mut backend = NativeBackend::with_config(config);
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        backend.set_contact_diagnostics_enabled(id, true).unwrap();
+        let mut world = World::new();
+        ground(&mut world);
+        world.spawn((
+            RigidBody::default(),
+            Collider::cuboid(Vec3::splat(0.05)),
+            Transform3::from_translation_rotation(Vec3::Y * height, Quat::IDENTITY),
+        ));
+        step(&mut backend, &mut world, id);
+        let samples = backend.contact_impulse_diagnostics(id).unwrap();
+        assert_eq!(samples.len(), 4);
+        if height < 0.05 {
+            // Rigid redundant corners may carry zero load individually.
+            let total: f64 = samples.iter().map(|p| p.normal_impulse_n_s).sum();
+            assert!((total - 0.11962).abs() < 1e-8);
+        }
+        for p in samples {
+            let bias = p.gap_m / 0.002 * if p.gap_m >= 0.0 { 1.0 } else { 0.2 };
+            assert!(
+                (p.normal_constraint_velocity_m_s
+                    - (p.normal_world.dot(p.relative_velocity_world_m_s) + bias))
+                    .abs()
+                    < 1e-12
+            );
+            if height > 0.05 {
+                assert_eq!(p.normal_impulse_n_s, 0.0);
+                assert!((p.normal_constraint_velocity_m_s - 0.98038).abs() < 1e-8);
+            } else {
+                assert!(p.normal_impulse_n_s >= 0.0);
+                assert!(p.normal_constraint_velocity_m_s.abs() < 1e-7);
+            }
+        }
     }
 }

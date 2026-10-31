@@ -1,0 +1,43 @@
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+2.742 100.00  2.742 100.00   <Total>
+1.621  59.12  1.831  66.79   rne_dynamics::contact::solve_contact_impulses
+0.660  24.09  2.672  97.45   rne_dynamics::contact::coupled::step_with_external
+0.100   3.65  0.120   4.38   rne_dynamics::contact::SparseBiasRows::new
+0.080   2.92  0.080   2.92   <static>@0x75c93 (<libm.so.6>)
+0.060   2.19  0.060   2.19   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.040   1.46  0.040   1.46   rne_dynamics::contact::coupled::SparseDotRow::new
+0.030   1.09  0.030   1.09   <static>@0x162127 (<libc.so.6>)
+0.030   1.09  0.030   1.09   <static>@0x9ff23 (<libc.so.6>)
+0.030   1.09  0.030   1.09   rne_physics_native::collide::box_box
+0.020   0.73  0.020   0.73   hypot
+0.020   0.73  0.020   0.73   rne_dynamics::contact::Cholesky::solve
+0.010   0.36  0.010   0.36   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.010   0.36  0.010   0.36   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::try_fold
+0.010   0.36  0.010   0.36   <rne_physics_native::NativeBackend as rne_physics::backend::PhysicsBackend>::step
+0.010   0.36  0.010   0.36   <rne_physics_native::NativeBackend as rne_physics::backend::PhysicsBackend>::sync_to_ecs
+0.010   0.36  0.010   0.36   malloc
+0.      0.    0.010   0.36   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+0.      0.    0.040   1.46   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.      0.    0.030   1.09   <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+0.      0.    0.040   1.46   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+0.      0.    0.030   1.09   <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+0.      0.    0.020   0.73   <static>@0x29c21 (<libc.so.6>)
+0.      0.    0.020   0.73   alloc::raw_vec::RawVec<T,A>::grow_one
+0.      0.    0.020   0.73   alloc::raw_vec::RawVecInner<A>::finish_grow
+0.      0.    0.010   0.36   calloc
+0.      0.    0.020   0.73   contact_crowd::main
+0.      0.    0.020   0.73   contact_crowd::run
+0.      0.    0.010   0.36   core::iter::adapters::try_process
+0.      0.    0.020   0.73   main
+0.      0.    0.020   0.73   realloc
+0.      0.    1.941  70.80   rne_dynamics::contact::coupled::contact_step_coupled
+0.      0.    0.030   1.09   rne_physics_native::world_step::push_box_box
+0.      0.    1.981  72.26   rne_physics_native::world_step::step_world
+0.      0.    0.020   0.73   std::rt::lang_start::{{closure}}
+0.      0.    0.020   0.73   std::rt::lang_start_internal
+0.      0.    0.020   0.73   std::sys::backtrace::__rust_begin_short_backtrace
+

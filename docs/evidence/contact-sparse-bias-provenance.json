@@ -1,0 +1,40 @@
+{
+  "base_commit": "96e974e4",
+  "source_sha256": {
+    "crates/rne_dynamics/src/contact.rs": "d727952b1528eec8f4f56be6c28a8783eae8a68513caaaf98cc14bdd36d4f577",
+    "crates/rne_physics_native/examples/contact_crowd.rs": "0ee6274a7047d5b1340b485626e12a12ac4ab8a29413e91752b7de1e0a419d24",
+    "scripts/contact_benchmark/contact_bridge.py": "d9c8cec81f42b546aa0e863d7d24a929f6e38283f708fed0f702e738db0a74c1",
+    "scripts/contact_benchmark/contact_clusters.py": "d24e81693fa80eddbcf37f1c0c52c54c7e6ec48c0a3244fdbf4353553f50f54d",
+    "scripts/contact_benchmark/contact_crowd.py": "c7721e777fa45f58fd25e45d21090323d35598135ff9f8a27c76c380f5e2ee87",
+    "scripts/contact_benchmark/contact_batch.py": "a72d9c86d9a0853144886711a1d0bac9ef4beabbd9117c42d85d8caf4a5cc97e"
+  },
+  "binary_sha256": {
+    "before": "460ecbce9f67a9ed8103d00df0ef5953d91b152514347cb52d7c30fb3749f2ba",
+    "after": "11ae4bf55bd04ac0ba11007a15831d6842e437af9774ecfee3de368599684edc"
+  },
+  "profile": {
+    "path": "/workspace/artifacts/bridge31-before-sparse.er",
+    "files": {
+      "data.frameinfo": "357de1874928a9d54786860add6578e6d0d812e07678b67d69e5f966dd0cfa57",
+      "dyntext": "d86bafb8008f2d59b8cdcd71ac41f5bc665cc45cab53b9d3262a20a56002f14b",
+      "jclasses": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log.xml": "bd9dee6d9432605ff320532b6689fa8761cbeb7ccbea6a7a0cc6f49b53e3cdac",
+      "map.xml": "100919b172314a0eb893402f7e72d3672876dd08c1a5e364b7eaf88b3b631cdd",
+      "overview": "41865160f8ec821ec907cdf5fd6c80bb3bf9349da7401b4bce25701a8c7a717b",
+      "profile": "2cd75f543eda856c7901b8cea910daaf71255ec18abd319ff992b6248d204b30"
+    }
+  },
+  "after_profile": {
+    "path": "/workspace/artifacts/bridge31-after-sparse.er",
+    "files": {
+      "data.frameinfo": "6509f48933ba97b5a6af13cf9899b005db8e292887bbdf2dff90c7b24ffd20ea",
+      "dyntext": "3549a5cf9f245acbccfa1a22a3452ab2a57ce473a5ebb26585f6d04551fae6a1",
+      "jclasses": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log.xml": "1be50e6a16e2a48f7f92d44764be0f781e11776ed662ad22c001e94cf3ed5fb7",
+      "map.xml": "2bf8d1a922b52daf76d45fb070d54b6e939224d3e815666e54fc43142521f854",
+      "overview": "fe1c9bd711b1144a95beb0c9e4aa3be6edb43476dbb34569a992944deb7a28a7",
+      "profile": "3182a16f362b206b7e932c86fd09271dae1769f03d180e20bdd1a437988c7f5d"
+    }
+  },
+  "profile_final_hash": 14070286668555702773
+}

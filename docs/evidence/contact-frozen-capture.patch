@@ -1,0 +1,24 @@
+diff --git a/crates/rne_dynamics/src/contact.rs b/crates/rne_dynamics/src/contact.rs
+index 8d35f762..1969139a 100644
+--- a/crates/rne_dynamics/src/contact.rs
++++ b/crates/rne_dynamics/src/contact.rs
+@@ -261,6 +261,7 @@ pub fn solve_contact_impulses(
+             "solver regularization must be finite and non-negative",
+         ));
+     }
++    let capture_seed = impulses.clone();
+     let (solution, normal_block_iterations, sticking_block_iterations) = block_candidates(
+         delassus,
+         free_velocity_m_s,
+@@ -345,6 +346,11 @@ pub fn solve_contact_impulses(
+         &impulses,
+         config,
+     );
++    if !contact_law_satisfied {
++        eprintln!("{{\"g\":{:?},\"free\":{:?},\"mu\":{:?},\"seed\":{:?},\"gs\":{:?},\"iterations\":{},\"regularization\":{},\"vt\":{},\"it\":{}}}",
++            delassus.data(), free_velocity_m_s, friction_coefficients, capture_seed, impulses,
++            iterations, config.regularization, config.velocity_tolerance_m_s, config.tolerance_n_s);
++    }
+     Ok(ContactSolution {
+         impulses_n_s: impulses,
+         states,

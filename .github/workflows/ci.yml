@@ -87,14 +87,98 @@ jobs:
           cache-dependency-path: |
             examples/27_mobile_manipulator_rl/requirements-ci.txt
             examples/116_robot_workbench/python/requirements.txt
+            examples/116_robot_workbench/python/requirements-mujoco.txt
       - name: Python RL smokes
         run: cargo run --locked -p xtask -- ci-rl
       - name: Independent contact-world Gymnasium tests
         run: |
           cargo build --locked -p robot_workbench --no-default-features
           python -m venv .venv-workbench
-          .venv-workbench/bin/pip install -r examples/116_robot_workbench/python/requirements.txt
+          .venv-workbench/bin/pip install -r examples/116_robot_workbench/python/requirements.txt -r examples/116_robot_workbench/python/requirements-mujoco.txt
           .venv-workbench/bin/python -m unittest discover -s examples/116_robot_workbench/python -v
+      - name: SO-101 cross-simulator torque response and replay
+        run: |
+          .venv-workbench/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py target/debug/rne-workbench assets/robots/so101/so101.urdf "$RUNNER_TEMP/so101-cross-sim.json.gz"
+          .venv-workbench/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py target/debug/rne-workbench "$RUNNER_TEMP/so101-cross-sim.json.gz" --replay
+          .venv-workbench/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py target/debug/rne-workbench assets/robots/so101/so101.urdf "$RUNNER_TEMP/so101-gravity-cross-sim.json.gz" --gravity 0 0 -9.81
+          .venv-workbench/bin/python examples/116_robot_workbench/python/benchmark_mujoco.py target/debug/rne-workbench "$RUNNER_TEMP/so101-gravity-cross-sim.json.gz" --replay
+      - uses: actions/upload-artifact@v4
+        with:
+          name: so101-cross-sim
+          path: |
+            ${{ runner.temp }}/so101-cross-sim.json.gz
+            ${{ runner.temp }}/so101-gravity-cross-sim.json.gz
+
+  hard-contact-drop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci-contact-drop
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: H1 analytic audit tests and native/MuJoCo batch comparison
+        run: |
+          cargo build --locked --release -p rne_physics_native --example contact_drop --example box_drop --example stack_drop --example friction_slide --example friction_threshold
+          python -m venv .venv-contact
+          .venv-contact/bin/pip install -r examples/116_robot_workbench/python/requirements-mujoco.txt
+          RNE_THRESHOLD=target/release/examples/friction_threshold RNE_SLIDE=target/release/examples/friction_slide RNE_STACK_DROP=target/release/examples/stack_drop RNE_BOX_DROP=target/release/examples/box_drop RNE_CONTACT_DROP=target/release/examples/contact_drop .venv-contact/bin/python -m unittest discover -s scripts/contact_benchmark -v
+          .venv-contact/bin/python scripts/contact_benchmark/drop.py target/release/examples/contact_drop "$RUNNER_TEMP/contact-drop.json.gz"
+          .venv-contact/bin/python scripts/contact_benchmark/matched.py target/release/examples/contact_drop "$RUNNER_TEMP/contact-matched" --overdamped
+          .venv-contact/bin/python scripts/contact_benchmark/verify_matched.py "$RUNNER_TEMP/contact-matched/report.json" --require-comparison
+      - name: H2 box geometry, settling and batch cost
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/box.py target/release/examples/box_drop "$RUNNER_TEMP/box-contact.json.xz"
+          .venv-contact/bin/python scripts/contact_benchmark/verify_box.py "$RUNNER_TEMP/box-contact.json.xz" --require-pass
+      - name: H3 dynamic stack audit (both budgets gated by integration tests)
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/stack.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-contact.json.xz"
+          .venv-contact/bin/python scripts/contact_benchmark/stack.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-contact.json.xz" --verify
+      - name: MuJoCo stack calibration (retain quality failures)
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/mujoco_stack.py "$RUNNER_TEMP/mujoco-stack.json.xz"
+          .venv-contact/bin/python scripts/contact_benchmark/verify_mujoco_stack.py "$RUNNER_TEMP/mujoco-stack.json.xz"
+      - name: Fine stack calibration and independent validation
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/stack_matched.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-matched"
+          .venv-contact/bin/python scripts/contact_benchmark/verify_stack_matched.py "$RUNNER_TEMP/stack-matched"
+      - name: Frozen contact-phase robustness study
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/stack_phase.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-phase"
+          .venv-contact/bin/python scripts/contact_benchmark/stack_phase.py target/release/examples/stack_drop "$RUNNER_TEMP/stack-phase" --verify
+      - name: Analytic Coulomb sliding audit
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/slide.py target/release/examples/friction_slide "$RUNNER_TEMP/friction-slide.json.xz"
+          .venv-contact/bin/python scripts/contact_benchmark/slide.py target/release/examples/friction_slide "$RUNNER_TEMP/friction-slide.json.xz" --verify
+      - name: Constant body-load friction threshold audit
+        if: success() || failure()
+        run: |
+          .venv-contact/bin/python scripts/contact_benchmark/threshold.py target/release/examples/friction_threshold "$RUNNER_TEMP/friction-threshold.json.xz"
+          .venv-contact/bin/python scripts/contact_benchmark/threshold.py target/release/examples/friction_threshold "$RUNNER_TEMP/friction-threshold.json.xz" --verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hard-contact-drop
+          path: |
+            ${{ runner.temp }}/contact-drop.json.gz
+            ${{ runner.temp }}/contact-matched/
+            ${{ runner.temp }}/box-contact.json.xz
+            ${{ runner.temp }}/stack-contact.json.xz
+            ${{ runner.temp }}/mujoco-stack.json.xz
+            ${{ runner.temp }}/stack-matched/
+            ${{ runner.temp }}/stack-phase/
+            ${{ runner.temp }}/friction-slide.json.xz
+            ${{ runner.temp }}/friction-threshold.json.xz
+          if-no-files-found: warn
 
   headless:
     runs-on: ubuntu-latest

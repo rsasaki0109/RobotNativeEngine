@@ -1,0 +1,19 @@
+diff --git a/crates/rne_dynamics/src/contact.rs b/crates/rne_dynamics/src/contact.rs
+index 8d35f762..a6687dff 100644
+--- a/crates/rne_dynamics/src/contact.rs
++++ b/crates/rne_dynamics/src/contact.rs
+@@ -336,6 +336,14 @@ pub fn solve_contact_impulses(
+                 config.velocity_tolerance_m_s,
+                 sparse_bias.as_ref(),
+             );
++        converged = converged
++            && residual::satisfied(
++                delassus,
++                free_velocity_m_s,
++                friction_coefficients,
++                &impulses,
++                config,
++            );
+     }
+ 
+     let contact_law_satisfied = residual::satisfied(

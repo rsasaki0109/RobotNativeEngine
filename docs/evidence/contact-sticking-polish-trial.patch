@@ -1,0 +1,82 @@
+diff --git a/crates/rne_dynamics/src/contact.rs b/crates/rne_dynamics/src/contact.rs
+index 8d35f762..5d18228c 100644
+--- a/crates/rne_dynamics/src/contact.rs
++++ b/crates/rne_dynamics/src/contact.rs
+@@ -327,6 +327,21 @@ pub fn solve_contact_impulses(
+             impulses[contact] = blended;
+             states[contact] = state;
+         }
++        if config.experimental_sticking_block && [8, 32, 128].contains(&iterations) {
++            let (candidate, passes) = sticking::attempt(
++                delassus,
++                free_velocity_m_s,
++                friction_coefficients,
++                config,
++                &impulses,
++            );
++            if let Some(mut candidate) = candidate {
++                candidate.iterations = iterations;
++                candidate.normal_block_iterations = normal_block_iterations;
++                candidate.sticking_block_iterations = sticking_block_iterations + passes;
++                return Ok(candidate);
++            }
++        }
+         converged = last_change <= config.tolerance_n_s
+             || sweep_velocity_converged(
+                 delassus,
+diff --git a/crates/rne_dynamics/src/contact/sticking.rs b/crates/rne_dynamics/src/contact/sticking.rs
+index 483f2a8a..b361a92c 100644
+--- a/crates/rne_dynamics/src/contact/sticking.rs
++++ b/crates/rne_dynamics/src/contact/sticking.rs
+@@ -30,7 +30,7 @@ pub(super) fn attempt(
+     let budget = config.max_iterations.min(8);
+     for pass in 1..=budget {
+         let rows: Vec<usize> = (0..3 * n).filter(|r| active[r / 3]).collect();
+-        let Some(x) = cg(g, free, &rows, tol * 0.25) else {
++        let Some(x) = cg(g, free, &rows, seed, tol * 0.25) else {
+             return (None, pass);
+         };
+         let mut impulse = vec![[0.0; 3]; n];
+@@ -107,10 +107,26 @@ pub(super) fn attempt(
+ 
+ /// Zero-start CG gives a range-space candidate for consistent singular PSD
+ /// blocks. Breakdown or insufficient accuracy falls back; no diagonal shift.
+-fn cg(g: &DenseMatrix, free: &[f64], rows: &[usize], tolerance: f64) -> Option<Vec<f64>> {
++fn cg(
++    g: &DenseMatrix,
++    free: &[f64],
++    rows: &[usize],
++    seed: &[[f64; 3]],
++    tolerance: f64,
++) -> Option<Vec<f64>> {
+     let n = rows.len();
+-    let mut x = vec![0.0; n];
+-    let mut r: Vec<f64> = rows.iter().map(|i| -free[*i]).collect();
++    let mut x: Vec<f64> = rows.iter().map(|i| seed[i / 3][i % 3]).collect();
++    let mut r: Vec<f64> = rows
++        .iter()
++        .map(|i| {
++            -free[*i]
++                - rows
++                    .iter()
++                    .zip(&x)
++                    .map(|(j, v)| g.get(*i, *j) * v)
++                    .sum::<f64>()
++        })
++        .collect();
+     let mut direction = r.clone();
+     let mut rr = r.iter().map(|v| v * v).sum::<f64>();
+     for _ in 0..=2 * n {
+diff --git a/crates/rne_physics_native/examples/contact_crowd.rs b/crates/rne_physics_native/examples/contact_crowd.rs
+index 2961ab11..f40bbd38 100644
+--- a/crates/rne_physics_native/examples/contact_crowd.rs
++++ b/crates/rne_physics_native/examples/contact_crowd.rs
+@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
+         return Err("repeats must be 1..=1000; batching requires one box in timing mode".into());
+     }
+     let sticking_block = match args.get(4).map(String::as_str) {
+-        None => false,
++        None => true,
+         Some("sticking-block") => true,
+         _ => return Err("expected sticking-block".into()),
+     };
