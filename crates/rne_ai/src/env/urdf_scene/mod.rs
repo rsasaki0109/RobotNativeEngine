@@ -1131,6 +1131,19 @@ impl UrdfSceneSim {
         self.backend.contacts(self.physics_world)
     }
 
+    /// Returns every load-bearing contact point solved in the latest physics step.
+    ///
+    /// Samples follow [`rne_physics::ContactPointSample`]: canonically ordered
+    /// entities, world-frame points, unit normals pointing from A to B and the
+    /// step-averaged normal force. Use these, rather than
+    /// [`Self::physics_contact_events`], when the force direction matters. No
+    /// simulation step is taken.
+    pub fn physics_contact_points(
+        &self,
+    ) -> Result<&[rne_physics::ContactPointSample], rne_physics::PhysicsError> {
+        self.backend.contact_points(self.physics_world)
+    }
+
     /// Returns signed solver-manifold separation evidence, including zero-impulse pairs.
     ///
     /// These are the latest contact-generation distances, not post-integration
@@ -2881,6 +2894,30 @@ mod tests {
             "settled wheel should report ground-contact impulse, got {left_impulse_ns} N·s"
         );
         assert_eq!(sim.link_contact_impulse_ns("missing_foot"), 0.0);
+    }
+
+    #[test]
+    fn contact_points_push_dynamic_bodies_up_off_the_ground_in_world_frame() {
+        let mut sim =
+            UrdfSceneSim::from_scene_path(&quadruped_scene_path()).expect("spawn quadruped");
+        sim.configure_position_motors(1200.0, 70.0, 40.0);
+        for _ in 0..90 {
+            sim.step_joint_position_targets(&[]);
+        }
+        let ground = find_entity_by_name(&sim.world, "ground").expect("ground");
+        let mut support_n = rne_math::Vec3::ZERO;
+        for sample in sim.physics_contact_points().expect("contact points") {
+            assert!((sample.normal_a_to_b.length() - 1.0).abs() < 1.0e-6);
+            if sample.entity_a == ground {
+                support_n += sample.normal_a_to_b * sample.normal_force_n;
+            } else if sample.entity_b == ground {
+                support_n -= sample.normal_a_to_b * sample.normal_force_n;
+            }
+        }
+        let (_, mass_kg) = sim.dynamic_center_of_mass_m().expect("dynamic mass");
+        // The standing robot is held up by world +Y forces close to its weight.
+        assert!(support_n.y > 0.5 * mass_kg * 9.81, "support {support_n:?}");
+        assert!(support_n.x.abs() + support_n.z.abs() < 0.2 * support_n.y);
     }
 
     #[test]

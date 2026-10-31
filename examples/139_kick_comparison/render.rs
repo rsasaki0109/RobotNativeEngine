@@ -1,4 +1,5 @@
 //! Renders recorded robot poses without changing the physics trace.
+use super::kicker::KickLegModel;
 use rne_math::{Quat, Transform3, Vec3};
 use rne_render::{
     load_gltf_scene, Camera, EnvironmentLighting, EnvironmentMap, GltfAnimationPlayer,
@@ -259,6 +260,141 @@ pub(super) fn render(
             println!("rendered frame {i}/{}", left.frames.len());
         }
     }
+    Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+struct SegmentPose {
+    translation: [f64; 3],
+    rotation: [f64; 4],
+}
+#[derive(Debug, Deserialize)]
+struct KickLegFrame {
+    animation_time_s: f64,
+    human_origin_world_m: [f64; 3],
+    segments: Vec<SegmentPose>,
+}
+#[derive(Debug, Deserialize)]
+struct PhysicalFrame {
+    #[serde(flatten)]
+    frame: Frame,
+    kick_leg: KickLegFrame,
+}
+#[derive(Debug, Deserialize)]
+struct PhysicalTrace {
+    frames: Vec<PhysicalFrame>,
+    mesh_package_roots: Vec<PathBuf>,
+}
+
+/// Draws the human with its right leg posed from the simulated segments.
+///
+/// Returns the largest distance between a rendered leg joint and the
+/// simulated segment origin, which must stay at numerical precision.
+fn simulated_human(
+    scene: &mut RenderScene,
+    asset: &GltfSceneAsset,
+    model: &KickLegModel,
+    leg: &KickLegFrame,
+) -> Result<f64, Box<dyn std::error::Error>> {
+    if leg.segments.len() != 3 {
+        return Err("a physical frame needs thigh, shank and foot poses".into());
+    }
+    let origin = Vec3::from_array(leg.human_origin_world_m);
+    let rotations = [0, 1, 2].map(|i| Quat::from_array(leg.segments[i].rotation).normalize());
+    let locals = model.posed_locals(asset, leg.animation_time_s, rotations);
+    let rendered = model.rendered_joints(asset, &locals);
+    let mismatch_m = (0..3)
+        .map(|i| (rendered[i] + origin - Vec3::from_array(leg.segments[i].translation)).length())
+        .fold(0.0, f64::max);
+    for (i, part) in asset.parts.iter().enumerate() {
+        let mesh = asset.sample_part_for_gpu_with_node_transforms(i, &locals)?;
+        let mut item = RenderScene::item_from_dynamic_mesh(mesh, [1.0; 4]);
+        item.transform.translation = origin;
+        item.material = part.render_part.material.clone();
+        item.base_color_texture = part.render_part.base_color_texture.clone().map(Arc::new);
+        if let Some(color) = part.render_part.base_color_rgba {
+            item.material.base_color_rgba = color;
+        }
+        scene.items.push(item);
+    }
+    Ok(mismatch_m)
+}
+
+/// Renders the Go2 physical-kick capture as one 960 x 420 panel per frame.
+pub(super) fn render_physical(
+    output: &Path,
+    human_path: &Path,
+    start_frame: usize,
+    frame_count: usize,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let trace: PhysicalTrace =
+        serde_json::from_slice(&fs::read(output.join("go2-physical-trace.json"))?)?;
+    let person = load_gltf_scene(human_path)?;
+    let model = KickLegModel::from_asset(&person)?;
+    let output_dir = output.join("frames-physical");
+    fs::create_dir_all(&output_dir)?;
+    let mut backend = WgpuRenderBackend::new()?;
+    let map = EnvironmentMap::solid([0.22, 0.25, 0.30, 1.0]).expect("studio environment");
+    let mut lighting = EnvironmentLighting::from_map(Arc::new(map));
+    lighting.diffuse_strength = 0.75;
+    lighting.specular_strength = 0.25;
+    backend.set_environment(lighting);
+    let mut cache = MeshRenderCache::new();
+    let camera = Camera::new(960, 420, std::f64::consts::FRAC_PI_4);
+    let roots: Vec<_> = trace
+        .mesh_package_roots
+        .iter()
+        .map(PathBuf::as_path)
+        .collect();
+    let mut worst_mismatch_m: f64 = 0.0;
+    for (i, physical) in trace
+        .frames
+        .iter()
+        .enumerate()
+        .skip(start_frame)
+        .take(frame_count)
+    {
+        let mut scene = scene_from_frame(&physical.frame);
+        cache
+            .resolve_scene(&mut scene, &roots)
+            .expect("official robot meshes");
+        floor(&mut scene);
+        worst_mismatch_m = worst_mismatch_m.max(simulated_human(
+            &mut scene,
+            &person,
+            &model,
+            &physical.kick_leg,
+        )?);
+        let orbit = CameraOrbit {
+            focus: Vec3::new(0.05, 0.45, -0.45),
+            yaw_rad: -1.25,
+            pitch_rad: 1.25,
+            distance_m: 2.6,
+        };
+        let rgba = backend
+            .render_scene_camera(
+                &camera,
+                &orbit.camera_transform(),
+                &scene,
+                [0.075, 0.09, 0.115, 1.0],
+            )
+            .expect("render physical panel")
+            .color
+            .rgba8;
+        write_png(
+            &output_dir.join(format!("frame-{i:03}.png")),
+            &rgba,
+            960,
+            420,
+        );
+        if i % 30 == 0 {
+            println!("rendered physical frame {i}/{}", trace.frames.len());
+        }
+    }
+    if worst_mismatch_m > 1.0e-4 {
+        return Err(format!("rendered leg left the simulated leg by {worst_mismatch_m} m").into());
+    }
+    println!("rendered leg joints match the simulated leg within {worst_mismatch_m:.2e} m");
     Ok(())
 }
 

@@ -11,6 +11,7 @@ mod disturbance;
 mod feedback;
 mod g1_controller;
 mod go2_controller;
+mod kicker;
 mod model;
 mod motor_diagnostics;
 mod observation;
@@ -278,8 +279,67 @@ fn render_if_requested(
     Ok(())
 }
 
+/// Separate entry point for the simulated kicking leg (`--physical-kick`).
+fn physical_kick_main(arguments: &[String]) -> Result<(), Box<dyn Error>> {
+    let mut output = PathBuf::from("target/rne-kick-physical");
+    let mut kick = physics::PhysicalKick {
+        speed_scale: physics::DEFAULT_SPEED_SCALE,
+        follow_through_m: physics::DEFAULT_FOLLOW_THROUGH_M,
+    };
+    let mut sweep = false;
+    let mut render = false;
+    let mut render_only = false;
+    let mut start_frame = 0;
+    let mut frame_count = usize::MAX;
+    let mut index = 0;
+    while index < arguments.len() {
+        match arguments[index].as_str() {
+            "--sweep" => sweep = true,
+            "--render" => render = true,
+            "--render-only" => {
+                render = true;
+                render_only = true;
+            }
+            option @ ("--output" | "--kick-speed" | "--follow-through" | "--start-frame"
+            | "--frame-count") => {
+                index += 1;
+                let value = arguments.get(index).ok_or("missing option value")?;
+                match option {
+                    "--output" => output = value.into(),
+                    "--kick-speed" => kick.speed_scale = value.parse()?,
+                    "--follow-through" => kick.follow_through_m = value.parse()?,
+                    "--start-frame" => start_frame = value.parse()?,
+                    _ => frame_count = value.parse()?,
+                }
+            }
+            unknown => return Err(format!("unknown physical-kick option: {unknown}").into()),
+        }
+        index += 1;
+    }
+    if sweep && render {
+        return Err("--sweep records no frames; render the nominal capture instead".into());
+    }
+    validate_human()?;
+    if sweep {
+        physics::sweep_physical(&output, kick.follow_through_m)?;
+        println!("physical kick sweep: {}", output.display());
+        return Ok(());
+    }
+    if !render_only {
+        physics::capture_physical(&output, kick)?;
+    }
+    if render {
+        render::render_physical(&output, Path::new(HUMAN_ASSET), start_frame, frame_count)?;
+    }
+    println!("physical kick: {}", output.display());
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments: Vec<_> = std::env::args().skip(1).collect();
+    if arguments.first().map(String::as_str) == Some("--physical-kick") {
+        return physical_kick_main(&arguments[1..]);
+    }
     let mut output = PathBuf::from("target/rne-kick-comparison");
     let mut render = false;
     let mut validate_recovery = false;

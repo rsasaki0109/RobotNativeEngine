@@ -364,11 +364,17 @@ impl GltfSceneAsset {
         animation_index: Option<usize>,
         time_s: f32,
     ) -> Result<TriangleMesh, AnimationSampleError> {
-        let part = self
-            .parts
-            .get(part_index)
-            .ok_or(AnimationSampleError::PartIndexOutOfBounds { index: part_index })?;
-        let local_transforms = animation_index
+        let local_transforms = self.local_node_transforms(animation_index, time_s)?;
+        self.sample_part_with_node_transforms(part_index, &local_transforms)
+    }
+
+    /// Node-local transforms of a clip at a time, or the bind pose for `None`.
+    fn local_node_transforms(
+        &self,
+        animation_index: Option<usize>,
+        time_s: f32,
+    ) -> Result<Vec<Transform3>, AnimationSampleError> {
+        Ok(animation_index
             .map(|index| {
                 let animation = self
                     .animations
@@ -377,7 +383,39 @@ impl GltfSceneAsset {
                 Ok(animation.sample_node_transforms(&self.nodes, time_s))
             })
             .transpose()?
-            .unwrap_or_else(|| self.nodes.iter().map(|node| node.bind_transform).collect());
+            .unwrap_or_else(|| self.nodes.iter().map(|node| node.bind_transform).collect()))
+    }
+
+    /// Bind transforms for nodes beyond a caller-supplied local pose.
+    fn complete_node_transforms(&self, local_transforms: &[Transform3]) -> Vec<Transform3> {
+        self.nodes
+            .iter()
+            .enumerate()
+            .map(|(index, node)| {
+                local_transforms
+                    .get(index)
+                    .copied()
+                    .unwrap_or(node.bind_transform)
+            })
+            .collect()
+    }
+
+    /// Samples a mesh part with CPU deformation from caller-supplied
+    /// node-local transforms, for example a clip pose with some joints driven
+    /// by a simulation.
+    ///
+    /// `local_transforms` is indexed like [`Self::nodes`]; missing trailing
+    /// entries use each node's bind transform and extra entries are ignored.
+    pub fn sample_part_with_node_transforms(
+        &self,
+        part_index: usize,
+        local_transforms: &[Transform3],
+    ) -> Result<TriangleMesh, AnimationSampleError> {
+        let part = self
+            .parts
+            .get(part_index)
+            .ok_or(AnimationSampleError::PartIndexOutOfBounds { index: part_index })?;
+        let local_transforms = self.complete_node_transforms(local_transforms);
         let global_transforms = global_node_matrices(&self.nodes, &local_transforms);
         let node_transform = global_transforms.get(part.node_index).copied().ok_or(
             AnimationSampleError::PartNodeOutOfBounds {
@@ -512,23 +550,29 @@ impl GltfSceneAsset {
         animation_index: Option<usize>,
         time_s: f32,
     ) -> Result<TriangleMesh, AnimationSampleError> {
+        let local_transforms = self.local_node_transforms(animation_index, time_s)?;
+        self.sample_part_for_gpu_with_node_transforms(part_index, &local_transforms)
+    }
+
+    /// Samples a part into bind-pose vertices plus GPU skinning data from
+    /// caller-supplied node-local transforms.
+    ///
+    /// This is the GPU counterpart of [`Self::sample_part_with_node_transforms`]
+    /// and follows the same indexing rules. Unskinned parts fall back to CPU
+    /// deformation with the same transforms.
+    pub fn sample_part_for_gpu_with_node_transforms(
+        &self,
+        part_index: usize,
+        local_transforms: &[Transform3],
+    ) -> Result<TriangleMesh, AnimationSampleError> {
         let part = self
             .parts
             .get(part_index)
             .ok_or(AnimationSampleError::PartIndexOutOfBounds { index: part_index })?;
         if part.skin_index.is_none() {
-            return self.sample_part(part_index, animation_index, time_s);
+            return self.sample_part_with_node_transforms(part_index, local_transforms);
         }
-        let local_transforms = animation_index
-            .map(|index| {
-                let animation = self
-                    .animations
-                    .get(index)
-                    .ok_or(AnimationSampleError::AnimationIndexOutOfBounds { index })?;
-                Ok(animation.sample_node_transforms(&self.nodes, time_s))
-            })
-            .transpose()?
-            .unwrap_or_else(|| self.nodes.iter().map(|node| node.bind_transform).collect());
+        let local_transforms = self.complete_node_transforms(local_transforms);
         let global_transforms = global_node_matrices(&self.nodes, &local_transforms);
         let node_transform = global_transforms.get(part.node_index).copied().ok_or(
             AnimationSampleError::PartNodeOutOfBounds {
@@ -816,6 +860,35 @@ mod tests {
         let skinning = mesh.skinning.as_ref().expect("skinning payload");
         assert_eq!(skinning.joints, vec![[0, 0, 0, 0]]);
         assert!((skinning.joint_matrices[0].w_axis.y - 0.5).abs() < 1.0e-6);
+    }
+
+    #[test]
+    fn caller_node_transforms_match_clip_sampling_and_override_joints() {
+        let asset = two_node_asset();
+        let clip = asset.animations[0].sample_node_transforms(&asset.nodes, 0.5);
+        assert_eq!(
+            asset.sample_part_with_node_transforms(0, &clip),
+            asset.sample_part(0, Some(0), 0.5)
+        );
+        assert_eq!(
+            asset.sample_part_for_gpu_with_node_transforms(0, &clip),
+            asset.sample_part_for_gpu(0, Some(0), 0.5)
+        );
+        // A driven joint replaces the clip pose; missing entries keep the bind pose.
+        let mut driven = clip.clone();
+        driven[1].translation.y = 3.0;
+        let mesh = asset
+            .sample_part_with_node_transforms(0, &driven)
+            .expect("driven pose");
+        assert!((mesh.positions[0][1] - 3.0).abs() < 1.0e-6);
+        let bind = asset
+            .sample_part_with_node_transforms(0, &[])
+            .expect("bind fallback");
+        assert_eq!(Ok(bind), asset.sample_bind_pose(0));
+        assert_eq!(
+            asset.sample_part_with_node_transforms(9, &clip),
+            Err(AnimationSampleError::PartIndexOutOfBounds { index: 9 })
+        );
     }
 
     #[test]
