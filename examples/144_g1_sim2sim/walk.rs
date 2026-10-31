@@ -318,16 +318,70 @@ pub(crate) fn summarize(records: &[StepRecord], command: [f64; 3]) -> Value {
 mod tests {
     use super::*;
 
+    fn walker() -> G1Walker {
+        let policy = LstmPolicy::load(&crate::policy::default_manifest()).expect("policy");
+        G1Walker::new(policy, PlantConfig::default()).expect("walker")
+    }
+
+    fn walk(seconds: f64, command: [f64; 3]) -> Vec<StepRecord> {
+        let mut walker = walker();
+        (0..(seconds / 0.02).round() as usize)
+            .map(|_| walker.step(command).expect("step"))
+            .collect()
+    }
+
     #[test]
     fn plant_mass_and_effort_limits_match_the_mjcf() {
-        let policy = LstmPolicy::load(&crate::policy::default_manifest()).expect("policy");
-        let walker = G1Walker::new(policy, PlantConfig::default()).expect("walker");
-        let (com, mass_kg) = walker.sim.dynamic_center_of_mass_m().expect("mass");
-        eprintln!("mass {mass_kg} com {com:?}");
-        assert!((mass_kg - 32.107).abs() < 0.01, "mass {mass_kg}");
+        let walker = walker();
+        // The MJCF's 12-DoF G1 weighs 32.107 kg. The sensor frames must not
+        // pick up the importer's 1 kg default for links without <inertial>.
+        let (_, mass_kg) = walker.sim.dynamic_center_of_mass_m().expect("mass");
+        assert!((mass_kg - 32.107).abs() < 1.0e-3, "mass {mass_kg}");
         assert_eq!(
             walker.effort_limits_nm,
             [88.0, 139.0, 88.0, 139.0, 50.0, 50.0, 88.0, 139.0, 88.0, 139.0, 50.0, 50.0]
         );
+    }
+
+    #[test]
+    fn replay_is_bit_exact() {
+        let first = walk(1.0, [0.5, 0.0, 0.0]);
+        let second = walk(1.0, [0.5, 0.0, 0.0]);
+        assert_eq!(first.len(), 50);
+        for (a, b) in first.iter().zip(&second) {
+            assert_eq!(a.time_s.to_bits(), b.time_s.to_bits());
+            assert_eq!(a.action.map(f32::to_bits), b.action.map(f32::to_bits));
+            assert_eq!(
+                a.base_position_m.map(f64::to_bits),
+                b.base_position_m.map(f64::to_bits)
+            );
+            assert_eq!(
+                a.base_quaternion_wxyz.map(f64::to_bits),
+                b.base_quaternion_wxyz.map(f64::to_bits)
+            );
+        }
+    }
+
+    #[test]
+    fn walks_like_the_mujoco_reference() {
+        let reference: Value =
+            serde_json::from_str(include_str!("fixtures/mujoco_reference.json")).expect("fixture");
+        let mujoco = &reference["runs"][0];
+        let command: [f64; 3] = serde_json::from_value(mujoco["command"].clone()).unwrap();
+        assert_eq!(command, [0.5, 0.0, 0.0]);
+        let summary = summarize(&walk(10.0, command), command);
+        let field = |value: &Value, key: &str| value[key].as_f64().expect(key);
+        assert_eq!(summary["fell"], false);
+        for (key, tolerance) in [
+            ("second_half_forward_speed_m_s", 0.04),
+            ("second_half_yaw_rate_rad_s", 0.03),
+            ("mean_base_height_m", 0.005),
+        ] {
+            let (rne, reference) = (field(&summary, key), field(&mujoco["summary"], key));
+            assert!(
+                (rne - reference).abs() < tolerance,
+                "{key}: RNE {rne}, MuJoCo {reference}"
+            );
+        }
     }
 }
