@@ -14,3 +14,21 @@ RNE applies the Z-up to Y-up conversion in its G1 robot asset descriptors. The
 29-DoF + Dex3 task keeps the upstream model unchanged, disables mesh-derived
 collision approximations, and adds backend-neutral fingertip sensor bodies in
 the Episode for deterministic two-sided contact gating.
+
+## 12-DoF walking model (unitree_rl_gym)
+
+- Source: `unitreerobotics/unitree_rl_gym`
+- Commit: `276801e46c5d433564f24658bac64f254b7d2d4b`
+- Upstream path: `resources/robots/g1_description/g1_12dof.urdf`
+  (SHA-256 `52a0f729252cba764f610136f0772573e55694024b888da93abd5ad23aba0152`)
+- License: BSD-3-Clause; see `LICENSE.unitree_rl_gym`
+
+`g1_12dof.rne.urdf` is that file with LF line endings and one change: the
+torso visual and collision mesh `torso_link_23dof_rev_1_0.STL` (7.8 MB, not
+vendored) is replaced by the vendored 23-DoF `torso_link.STL`, offset 10 mm
+up so it sits where the 23-DoF waist joint places it. Every inertial, joint,
+limit and the four 5 mm foot spheres per ankle are unchanged. The walking
+descriptor `../unitree_g1_12dof_walk.rne.robot.toml` imports only primitive
+collision geometry, so the feet are the only colliders, matching the
+upstream MuJoCo scene during walking. The pretrained policy that drives it is
+under `assets/policies/unitree_g1_walk`.

@@ -15,3 +15,4 @@ docs/evidence/motor-visit-placement-v1/f/** -diff -whitespace
 
 # Keep complete physical motor evidence literal.
 docs/evidence/motor-physical20-v1/f/** -diff -whitespace
+assets/policies/**/*.f32 binary

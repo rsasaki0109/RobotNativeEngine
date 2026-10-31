@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "unitreerobotics/unitree_rl_gym",
+    "commit": "276801e46c5d433564f24658bac64f254b7d2d4b",
+    "path": "deploy/pre_train/g1/motion.pt",
+    "sha256": "cf668f75b90d1abf73d2b87612a6e76bccc61ff7e083b63582d3f6aaa3c1759d",
+    "license": "BSD-3-Clause"
+  },
+  "architecture": "LSTM(47->64, 1 layer, gate order i,f,g,o; zero initial state) -> Linear(64,32) -> ELU(alpha 1) -> Linear(32,12)",
+  "weights": {
+    "file": "g1_walk_lstm.f32",
+    "encoding": "float32 little-endian",
+    "count": 31404,
+    "sha256": "77056bd2f7f819cba00d5b6b76eb2ec66d42d8b4a4f5b258aeac8ea655c2875a",
+    "tensors": [
+      {
+        "name": "memory.weight_ih_l0",
+        "shape": [
+          256,
+          47
+        ],
+        "offset_f32": 0
+      },
+      {
+        "name": "memory.weight_hh_l0",
+        "shape": [
+          256,
+          64
+        ],
+        "offset_f32": 12032
+      },
+      {
+        "name": "memory.bias_ih_l0",
+        "shape": [
+          256
+        ],
+        "offset_f32": 28416
+      },
+      {
+        "name": "memory.bias_hh_l0",
+        "shape": [
+          256
+        ],
+        "offset_f32": 28672
+      },
+      {
+        "name": "actor.0.weight",
+        "shape": [
+          32,
+          64
+        ],
+        "offset_f32": 28928
+      },
+      {
+        "name": "actor.0.bias",
+        "shape": [
+          32
+        ],
+        "offset_f32": 30976
+      },
+      {
+        "name": "actor.2.weight",
+        "shape": [
+          12,
+          32
+        ],
+        "offset_f32": 31008
+      },
+      {
+        "name": "actor.2.bias",
+        "shape": [
+          12
+        ],
+        "offset_f32": 31392
+      }
+    ]
+  },
+  "deployment": {
+    "source": "deploy/deploy_mujoco/configs/g1.yaml",
+    "physics_dt_s": 0.002,
+    "control_decimation": 10,
+    "gait_period_s": 0.8,
+    "joint_order": [
+      "left_hip_pitch_joint",
+      "left_hip_roll_joint",
+      "left_hip_yaw_joint",
+      "left_knee_joint",
+      "left_ankle_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_hip_pitch_joint",
+      "right_hip_roll_joint",
+      "right_hip_yaw_joint",
+      "right_knee_joint",
+      "right_ankle_pitch_joint",
+      "right_ankle_roll_joint"
+    ],
+    "kp_nm_per_rad": [
+      100,
+      100,
+      100,
+      150,
+      40,
+      40,
+      100,
+      100,
+      100,
+      150,
+      40,
+      40
+    ],
+    "kd_nm_s_per_rad": [
+      2,
+      2,
+      2,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      4,
+      2,
+      2
+    ],
+    "default_joint_rad": [
+      -0.1,
+      0.0,
+      0.0,
+      0.3,
+      -0.2,
+      0.0,
+      -0.1,
+      0.0,
+      0.0,
+      0.3,
+      -0.2,
+      0.0
+    ],
+    "action_scale": 0.25,
+    "angular_velocity_scale": 0.25,
+    "joint_velocity_scale": 0.05,
+    "command_scale": [
+      2.0,
+      2.0,
+      0.25
+    ],
+    "observation": [
+      "base angular velocity (pelvis frame) x3",
+      "projected gravity x3",
+      "scaled command x3",
+      "joint position - default x12",
+      "scaled joint velocity x12",
+      "previous action x12",
+      "sin(2 pi phase)",
+      "cos(2 pi phase)"
+    ]
+  }
+}

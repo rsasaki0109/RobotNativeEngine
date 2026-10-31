@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "engine": "mujoco 3.9.0",
+  "scene": "unitree_rl_gym resources/robots/g1_description/scene.xml",
+  "seconds": 10.0,
+  "runs": [
+    {
+      "command": [
+        0.5,
+        0.0,
+        0.0
+      ],
+      "summary": {
+        "fell": false,
+        "fall_time_s": null,
+        "final_base_position_m": [
+          4.586,
+          -0.3896,
+          0.7677
+        ],
+        "min_base_height_m": 0.7626,
+        "mean_base_height_m": 0.7702,
+        "second_half_forward_speed_m_s": 0.4763,
+        "second_half_lateral_speed_m_s": -0.0014,
+        "second_half_yaw_rate_rad_s": -0.0174,
+        "forward_speed_error_m_s": -0.0237,
+        "yaw_rate_error_rad_s": -0.0174
+      }
+    },
+    {
+      "command": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "summary": {
+        "fell": false,
+        "fall_time_s": null,
+        "final_base_position_m": [
+          0.1327,
+          -0.1826,
+          0.7757
+        ],
+        "min_base_height_m": 0.7727,
+        "mean_base_height_m": 0.7784,
+        "second_half_forward_speed_m_s": 0.0135,
+        "second_half_lateral_speed_m_s": -0.0232,
+        "second_half_yaw_rate_rad_s": -0.0095,
+        "forward_speed_error_m_s": 0.0135,
+        "yaw_rate_error_rad_s": -0.0095
+      }
+    },
+    {
+      "command": [
+        0.3,
+        0.0,
+        0.5
+      ],
+      "summary": {
+        "fell": false,
+        "fall_time_s": null,
+        "final_base_position_m": [
+          -0.5733,
+          0.8229,
+          0.7695
+        ],
+        "min_base_height_m": 0.765,
+        "mean_base_height_m": 0.7721,
+        "second_half_forward_speed_m_s": 0.28,
+        "second_half_lateral_speed_m_s": -0.0314,
+        "second_half_yaw_rate_rad_s": 0.4521,
+        "forward_speed_error_m_s": -0.02,
+        "yaw_rate_error_rad_s": -0.0479
+      }
+    },
+    {
+      "command": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "summary": {
+        "fell": false,
+        "fall_time_s": null,
+        "final_base_position_m": [
+          7.2106,
+          -0.7347,
+          0.7644
+        ],
+        "min_base_height_m": 0.7572,
+        "mean_base_height_m": 0.7645,
+        "second_half_forward_speed_m_s": 0.758,
+        "second_half_lateral_speed_m_s": 0.0199,
+        "second_half_yaw_rate_rad_s": -0.0198,
+        "forward_speed_error_m_s": -0.042,
+        "yaw_rate_error_rad_s": -0.0198
+      }
+    }
+  ]
+}
