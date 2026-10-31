@@ -84,6 +84,12 @@ or recovery from every direction.
 [Source and regeneration](examples/139_kick_comparison/README.md) ·
 [metadata](docs/media/kick-comparison.json).
 
+A second Go2 capture replaces the prescribed wrench with a simulated kicking
+leg derived from the same human: its shoe hits the robot through physics
+contact, so the 28 N·s impulse and 1.4 kN peak (10 ms average) are measured,
+not declared. [Go2 kicking-leg GIF](docs/media/kick-physical-go2.gif) ·
+[method and limits](examples/139_kick_comparison/README.md#simulated-kicking-leg-go2).
+
 ## Highlights
 
 | Area | Included | Docs |

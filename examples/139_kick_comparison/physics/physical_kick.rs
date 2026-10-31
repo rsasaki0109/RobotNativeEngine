@@ -157,6 +157,29 @@ fn target_surface(robot: Robot, sim: &UrdfSceneSim) -> CaptureResult<Vec3> {
     Ok(Vec3::new(center.x, center.y, center.z - half_z))
 }
 
+/// Places the human beside the robot, keeps the leg off the floor and spawns it.
+fn spawn_leg(
+    robot: Robot,
+    sim: &mut UrdfSceneSim,
+    asset: &GltfSceneAsset,
+    model: &KickLegModel,
+    kick: PhysicalKick,
+) -> CaptureResult<(KickLeg, Value)> {
+    let schedule = kick.validate()?;
+    let target = target_surface(robot, sim)?;
+    let (origin, placement) = model.placement(asset, target, kick.follow_through_m);
+    let ground_index = ground_body_index(sim)?;
+    let ground = sim
+        .world()
+        .iter_entities()
+        .find(|entity| entity.id().index() == ground_index)
+        .map(|entity| entity.id())
+        .ok_or_else(|| io::Error::other("missing ground"))?;
+    ignore_kicker_contacts(sim, ground);
+    let leg = KickLeg::spawn(sim, asset, model.clone(), schedule, origin)?;
+    Ok((leg, placement))
+}
+
 fn record_physical(
     robot: Robot,
     kick: PhysicalKick,
@@ -164,7 +187,7 @@ fn record_physical(
     asset: &GltfSceneAsset,
     model: &KickLegModel,
 ) -> CaptureResult<PhysicalRecording> {
-    let schedule = kick.validate()?;
+    kick.validate()?;
     require(
         matches!(robot, Robot::Go2),
         "the physical kick currently supports the Go2 box body only",
@@ -207,16 +230,7 @@ fn record_physical(
     let initial_root = sim
         .named_link_position_m(robot.base_link())
         .expect("validated root");
-    let target = target_surface(robot, &sim)?;
-    let (origin, placement) = model.placement(asset, target, kick.follow_through_m);
-    let ground = sim
-        .world()
-        .iter_entities()
-        .find(|entity| entity.id().index() == ground_index)
-        .map(|entity| entity.id())
-        .ok_or_else(|| io::Error::other("missing ground"))?;
-    ignore_kicker_contacts(&mut sim, ground);
-    let mut leg = KickLeg::spawn(&mut sim, asset, model.clone(), schedule, origin)?;
+    let (mut leg, placement) = spawn_leg(robot, &mut sim, asset, model, kick)?;
     let mut metrics = Metrics::new(
         robot,
         &sim,
@@ -420,6 +434,7 @@ pub(crate) fn sweep_physical(output: &Path, follow_through_m: f64) -> CaptureRes
         output.join("physical-kick-sweep.json"),
         serde_json::to_vec_pretty(&json!({"schema_version":1,"robot":"Go2",
             "note":"Measured kicks from one simulated leg; impulse and force are outputs, recovery is reported, not assumed",
+            "physical_kick_source_sha256":physical_kick_source_hashes(),
             "leg":model.configuration(),"cases":cases}))?,
     )?;
     Ok(())
@@ -435,10 +450,11 @@ mod tests {
     fn standing_words() -> (Vec<Vec<u64>>, Value) {
         let (asset, model) = load_model().unwrap();
         let mut sim = Robot::Go2.load(NOMINAL.dt_ticks).unwrap();
-        let target = target_surface(Robot::Go2, &sim).unwrap();
-        let (origin, _) = model.placement(&asset, target, DEFAULT_FOLLOW_THROUGH_M);
-        let schedule = KickSchedule::new(DEFAULT_SPEED_SCALE).unwrap();
-        let mut leg = KickLeg::spawn(&mut sim, &asset, model, schedule, origin).unwrap();
+        let kick = PhysicalKick {
+            speed_scale: DEFAULT_SPEED_SCALE,
+            follow_through_m: DEFAULT_FOLLOW_THROUGH_M,
+        };
+        let (mut leg, _) = spawn_leg(Robot::Go2, &mut sim, &asset, &model, kick).unwrap();
         let dt_s = sim.fixed_delta().as_seconds().value();
         let mut words = Vec::new();
         for step in 0..100 {

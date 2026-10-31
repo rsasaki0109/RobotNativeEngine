@@ -617,6 +617,97 @@ and metadata are `kick-comparison.gif`, `.png` and `.json`. Metadata includes
 source, asset and trace SHA-256 hashes plus measured physics results.
 Copy those three files to `docs/media/` when updating the README capture.
 
+## Simulated kicking leg (Go2)
+
+`--physical-kick` replaces the prescribed wrench with a leg that actually
+hits the robot. The disturbance is whatever the shoe delivers through
+contact; impulse, peak force and contact time are measured outputs rather
+than declared inputs. The plant, controller, settlement and recovery
+predicate are the ones used above. Only the Go2 is supported so far: its body
+is a box, so the aim point is well defined. The G1 body uses mesh colliders.
+
+![Go2 kicked by a simulated leg](../../docs/media/kick-physical-go2.gif)
+
+The leg is derived from the right leg of the rendered human, so the drawn
+leg and the simulated leg coincide:
+
+- **Geometry.** Thigh 0.430 m, shank 0.438 m and foot 0.143 m come from the
+  rig's bone offsets. The trouser capsules (radii 0.105 m and 0.070 m) and the
+  shoe box come from the skinned vertices of those bones.
+- **Joints.** Throughout the clip the animated hip-knee-ankle plane turns
+  about one fixed hip axis (largest deviation 1.4e-4 rad). The simulated leg is
+  therefore a hip-abduction joint followed by a planar hip-flexion, knee and
+  ankle chain. The knee and ankle stay within 1 mm of the animation; only the
+  toe's out-of-plane twist (up to 6.3 cm) is not simulated.
+- **Mass properties.** Dempster segment fractions as tabulated by Winter for
+  an assumed 70 kg adult: thigh 7.0 kg, shank 3.255 kg and foot 1.015 kg, with
+  the tabulated centre-of-mass positions and radii of gyration.
+- **Drive.** The hip follows the animated pelvis as a commanded kinematic
+  body. Joint-space PD torques track the animated angles and are capped at
+  120 (abduction), 140 (hip flexion), 200 (knee) and 100 N·m (ankle). The knee
+  cap is 2.9 N·m/kg, at the low end of adult male isometric references. The
+  caps are constant: muscle force-velocity loss is ignored, which is generous
+  at speed.
+- **Timing and aim.** The authored 350 ms extension is shortened by a speed
+  scale (default 2.0, the 175 ms of the earlier visual kick). The human is
+  placed so that the fully extended reference shoe would pass 0.10 m beyond the
+  robot's near body face. The shoe therefore meets the robot during the
+  extension and keeps pushing until the leg retracts. The leg ignores the floor,
+  because its torso is kinematic and floor support would only fight the
+  tracking.
+
+Measured nominal kick (speed scale 2.0, 1 kHz, two identical runs):
+
+| Shoe speed before contact | Normal impulse on robot | Peak force, 10 ms average | Contact time | Peak tilt | Lateral displacement | Recovered |
+| --- | --- | --- | --- | --- | --- | --- |
+| 5.18 m/s | 28.0 N·s | 1,370 N | 94 ms | 0.026 rad | 0.175 m | yes |
+
+For comparison, the prescribed wrench delivers 40 N·s over 80 ms with an
+785 N peak, and it is identical for both robots. The simulated kick delivers a
+sharp impact followed by a torque-limited push of roughly 500 N.
+
+`--sweep` repeats the kick at extension speed scales 1.0 to 3.0, each with
+exact replay. The torque caps limit the shoe to about 7 m/s; trained front
+kicks are reported near 10 m/s. Faster kicks raise the peak force, while the
+impulse falls slightly because the push after impact is shorter:
+
+| Speed scale | Shoe speed | Impulse | Peak force, 10 ms average | Contact time | Peak tilt | Recovered |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1.0 | 2.02 m/s | 30.0 N·s | 652 N | 139 ms | 0.008 rad | yes |
+| 1.5 | 3.39 m/s | 29.7 N·s | 1,043 N | 116 ms | 0.013 rad | yes |
+| 2.0 | 5.18 m/s | 28.0 N·s | 1,370 N | 94 ms | 0.026 rad | yes |
+| 2.5 | 7.01 m/s | 25.2 N·s | 1,516 N | 75 ms | 0.053 rad | yes |
+| 3.0 | 6.95 m/s | 23.9 N·s | 1,628 N | 76 ms | 0.009 rad | yes |
+
+The full sweep, including the leg configuration and tracking statistics, is in
+[kick-physical-go2-sweep.json](../../docs/media/kick-physical-go2-sweep.json).
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --physical-kick --render --output target/rne-kick-physical
+python3 examples/139_kick_comparison/encode_physical.py target/rne-kick-physical
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --physical-kick --sweep --output target/rne-kick-physical-sweep
+```
+
+`--kick-speed S` and `--follow-through M` select another kick. The capture
+fails if the shoe never reaches the robot, and the renderer fails if any
+rendered leg joint leaves its simulated segment by more than 0.1 mm.
+
+Limitations, also recorded in every trace:
+
+- The kicker's torso follows the animation and is not pushed back by the
+  reaction; only the leg joints yield.
+- The shoe and the robot shell are rigid, so the impact resolves within one
+  1 ms solver step. The raw per-step peak (8.5 kN nominally) reflects the step
+  size, not a resolved impact. The 10 ms average is comparable to force-plate
+  bandwidths. Impulse, which drives the recovery, is unaffected.
+- The impulse counts solver normal impulses between the leg and the robot
+  links; friction impulse is excluded. Contact directions come from
+  world-frame contact points (`UrdfSceneSim::physics_contact_points`).
+- Robot observations are the ideal simulator state, as in the prescribed
+  capture. This is a Rapier simulation, not a hardware kick-resistance rating.
+
 ## Human motion and provenance
 
 [The human asset](../../assets/fixtures/kick_human/README.md) uses pinned

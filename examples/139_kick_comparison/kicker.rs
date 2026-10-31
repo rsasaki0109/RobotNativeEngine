@@ -263,8 +263,8 @@ impl KickLegModel {
             asset.nodes[bones[0]].parent_index == Some(pelvis),
             "the thigh must hang from the pelvis",
         )?;
-        for child in 1..4 {
-            let local = asset.nodes[bones[child]].bind_transform.translation;
+        for &bone in &bones[1..] {
+            let local = asset.nodes[bone].bind_transform.translation;
             require(
                 (local.y - local.length()).abs() < 1.0e-6,
                 "each child bone must sit on its parent's +Y bone axis",
@@ -541,8 +541,9 @@ impl KickLegModel {
         let shoe_center = (shoe_low + shoe_high) * 0.5;
         self.shoe_half_extents_m = (shoe_high - shoe_low) * 0.5;
         let foot_rotation = self.calibration[2];
-        for i in 0..3 {
-            let (mass_fraction, center_fraction, gyration_fraction) = SEGMENT_FRACTIONS[i];
+        for (i, (mass_fraction, center_fraction, gyration_fraction)) in
+            SEGMENT_FRACTIONS.into_iter().enumerate()
+        {
             let segment = &mut self.segments[i];
             segment.mass_kg = BODY_MASS_KG * mass_fraction;
             let transverse = segment.mass_kg * (gyration_fraction * segment.length_m).powi(2);
@@ -742,7 +743,7 @@ pub(super) struct KickContact {
 pub(super) fn ignore_kicker_contacts(sim: &mut UrdfSceneSim, entity: Entity) {
     sim.world_mut().entity_mut(entity).insert(CollisionGroups {
         memberships: u32::MAX,
-        filter: u32::MAX & !KICKER_COLLISION_GROUP,
+        filter: !KICKER_COLLISION_GROUP,
     });
 }
 
@@ -770,9 +771,9 @@ impl KickLeg {
         origin: Vec3,
     ) -> KickResult<Self> {
         let (hip, angles, _) = model.reference(asset, schedule, 0.0);
-        for joint in 0..4 {
+        for (angle, zero) in angles.into_iter().zip(model.zero_rad) {
             require(
-                (angles[joint] - model.zero_rad[joint]).abs() < 1.0e-9,
+                (angle - zero).abs() < 1.0e-9,
                 "the leg must spawn at the animation's first pose",
             )?;
         }
@@ -926,12 +927,17 @@ impl KickLeg {
                 hip + self.origin,
                 self.model.anchor_rotation,
             ));
-        for joint in 0..4 {
+        for ((link, effort_nm), max_effort_nm) in self
+            .links
+            .into_iter()
+            .zip(self.efforts_nm)
+            .zip(TORQUE_LIMITS_NM)
+        {
             world
-                .entity_mut(self.links[joint])
+                .entity_mut(link)
                 .insert(JointActuation::RevoluteEffort {
-                    effort_nm: self.efforts_nm[joint],
-                    max_effort_nm: TORQUE_LIMITS_NM[joint],
+                    effort_nm,
+                    max_effort_nm,
                 });
         }
         Ok(())

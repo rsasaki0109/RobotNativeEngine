@@ -338,8 +338,14 @@ fn physical_kick_main(arguments: &[String]) -> Result<(), Box<dyn Error>> {
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments: Vec<_> = std::env::args().skip(1).collect();
     if arguments.first().map(String::as_str) == Some("--physical-kick") {
-        return physical_kick_main(&arguments[1..]);
+        physical_kick_main(&arguments[1..])
+    } else {
+        prescribed_main(&arguments)
     }
+}
+
+/// Prescribed-wrench capture, validation and diagnostics.
+fn prescribed_main(arguments: &[String]) -> Result<(), Box<dyn Error>> {
     let mut output = PathBuf::from("target/rne-kick-comparison");
     let mut render = false;
     let mut validate_recovery = false;

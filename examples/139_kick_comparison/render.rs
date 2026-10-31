@@ -365,11 +365,12 @@ pub(super) fn render_physical(
             &model,
             &physical.kick_leg,
         )?);
+        // A side view across the kick, so the shoe meets the body in profile.
         let orbit = CameraOrbit {
-            focus: Vec3::new(0.05, 0.45, -0.45),
-            yaw_rad: -1.25,
-            pitch_rad: 1.25,
-            distance_m: 2.6,
+            focus: Vec3::new(0.12, 0.65, -0.42),
+            yaw_rad: -1.8,
+            pitch_rad: 1.3,
+            distance_m: 2.8,
         };
         let rgba = backend
             .render_scene_camera(

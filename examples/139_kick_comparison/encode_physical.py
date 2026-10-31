@@ -78,17 +78,17 @@ def main():
         phase = ("CONTACT" if touching else
                  "RECOVERY" if time_s > last_contact_s else
                  "KICK" if time_s > first_contact_s - 0.6 else "READY")
-        draw.rounded_rectangle((395, 64, 565, 96), 6,
+        draw.rounded_rectangle((770, 64, 944, 96), 6,
                                fill=(196, 79, 37) if touching else (25, 45, 62))
-        draw.text((408, 69), f"{phase}  {time_s:.2f}s", font=small, fill="white")
+        draw.text((783, 69), f"{phase}  {time_s:.2f}s", font=small, fill="white")
         draw.text((16, 487), "RNE / Rapier | The leg's shoe hits the robot through physics contact; "
                   "impulse and force are measured",
                   font=small, fill=(159, 180, 202))
         draw.text((16, 510), "Leg: Dempster/Winter segments, torque-limited hip/knee/ankle | "
                   "kicker torso follows the animation", font=small, fill=(159, 180, 202))
         frames.append(picture)
-    poster_index = min(range(len(frames)),
-                       key=lambda i: abs(trace["frames"][i]["time_s"] - first_contact_s))
+    poster_index = next(i for i, record in enumerate(trace["frames"])
+                        if any(abs(c) > 0 for c in record["force_world_n"]))
     frames[poster_index].save(root / "kick-physical-go2.png")
     palette_sheet = Image.new("RGB", (SIZE[0], SIZE[1] * 5))
     for row, index in enumerate([0, 48, poster_index, 90, len(frames) - 1]):
