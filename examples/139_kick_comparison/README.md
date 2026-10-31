@@ -674,7 +674,7 @@ impulse falls slightly because the push after impact is shorter:
 | Speed scale | Shoe speed | Impulse | Peak force, 10 ms average | Contact time | Peak tilt | Recovered |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1.0 | 2.02 m/s | 30.0 N·s | 652 N | 139 ms | 0.008 rad | yes |
-| 1.5 | 3.39 m/s | 29.7 N·s | 1,043 N | 116 ms | 0.013 rad | yes |
+| 1.5 | 3.39 m/s | 29.7 N·s | 1,043 N | 116 ms | 0.012 rad | yes |
 | 2.0 | 5.18 m/s | 28.0 N·s | 1,370 N | 94 ms | 0.026 rad | yes |
 | 2.5 | 7.01 m/s | 25.2 N·s | 1,516 N | 75 ms | 0.053 rad | yes |
 | 3.0 | 6.95 m/s | 23.9 N·s | 1,628 N | 76 ms | 0.009 rad | yes |
