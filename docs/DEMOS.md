@@ -594,6 +594,31 @@ allows only those two source hashes to differ and requires every other report
 byte to match; CI verifies this new report through the unchanged verifier.
 See the [source-transition and strict validation receipts](evidence/rapier-strict-validation/README.md).
 
+## G1 sim2sim: pretrained walking policy
+
+![A Unitree G1 walks a 0.6 m circle in RNE; its pelvis path in blue lies on MuJoCo's in orange](media/g1-sim2sim.png)
+
+unitree_rl_gym's pretrained G1 walking policy (an LSTM actor trained in Isaac
+Gym) runs on RNE's Rapier backend with Unitree's MuJoCo deployment loop: PD
+torque every 2 ms clamped to the URDF effort limits, policy at 50 Hz. The
+weights are a float32 blob copied out of the TorchScript archive without
+executing it, and the Rust policy reproduces MuJoCo's actions within 1e-4.
+Across 0.5, 0, 0.3 + 0.5 rad/s and 0.8 m/s commands, RNE's forward speed is
+within 0.02 m/s of MuJoCo's, its turn rate within 0.007 rad/s and its mean
+pelvis height within 2 mm. Armature, joint friction and floor friction change
+forward speed by under 0.01 m/s. Four inertia-less sensor frames that RNE's
+importer weighted at 1 kg each made the first port crouch 19 mm low; the
+12-DoF model now declares marker inertials and is pinned at 32.107 kg.
+One G1 runs at 2.6× real time with four solver iterations and 6.7× with one;
+MuJoCo steps the same model at 20×.
+
+```bash
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --timing
+```
+
+See [the method, results and limits](../examples/144_g1_sim2sim/README.md).
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

@@ -8,9 +8,11 @@
 //! cargo run --release --example 144_g1_sim2sim                 # 4 commands vs MuJoCo
 //! cargo run --release --example 144_g1_sim2sim -- --timing     # solver iteration sweep
 //! cargo run --release --example 144_g1_sim2sim -- --command 0.5,0,0 --seconds 20
+//! cargo run --release --example 144_g1_sim2sim -- --render target/g1-sim2sim-render
 //! ```
 
 mod policy;
+mod render;
 mod walk;
 
 use std::path::PathBuf;
@@ -29,6 +31,7 @@ struct Options {
     command: Option<[f64; 3]>,
     timing: bool,
     ablation: bool,
+    render: Option<PathBuf>,
     plant: PlantConfig,
 }
 
@@ -56,6 +59,7 @@ fn parse() -> Result<Options> {
         command: None,
         timing: false,
         ablation: false,
+        render: None,
         plant: PlantConfig::default(),
     };
     let mut args = std::env::args().skip(1);
@@ -70,6 +74,7 @@ fn parse() -> Result<Options> {
             "--floor-friction" => options.plant.floor_friction = value()?.parse()?,
             "--timing" => options.timing = true,
             "--ablation" => options.ablation = true,
+            "--render" => options.render = Some(PathBuf::from(value()?)),
             other => return Err(format!("unknown option {other}").into()),
         }
     }
@@ -105,7 +110,62 @@ fn run(plant: PlantConfig, command: [f64; 3], seconds: f64) -> Result<Run> {
     })
 }
 
+/// Turning walk shown in the GIF: both paths trace a circle of about 0.6 m.
+const RENDER_COMMAND: [f64; 3] = [0.3, 0.0, 0.5];
+
+fn render_walk(options: &Options, output: &std::path::Path) -> Result<()> {
+    let command = options.command.unwrap_or(RENDER_COMMAND);
+    let mujoco =
+        reference_run(command).ok_or("--render needs a command with a MuJoCo reference")?;
+    let mujoco_path: Vec<[f64; 2]> = serde_json::from_value(mujoco["base_path_xy_m_10hz"].clone())?;
+    let policy = LstmPolicy::load(&default_manifest())?;
+    let weights_sha256 = policy.weights_sha256.clone();
+    let steps = (options.seconds / policy.deployment.control_dt_s()).round() as usize;
+    let mut walker = G1Walker::new(policy, options.plant)?;
+    let orbit = rne_render_wgpu::CameraOrbit {
+        focus: rne_math::Vec3::new(0.0, 0.35, -0.55),
+        yaw_rad: 0.35,
+        pitch_rad: 0.95,
+        distance_m: 3.1,
+    };
+    let mut renderer = render::WalkRenderer::new(&walker, output, orbit)?;
+    let (mut records, mut rne_path, mut frame_times_s) = (Vec::new(), Vec::new(), Vec::new());
+    for step in 0..steps {
+        let record = walker.step(command)?;
+        if step % 5 == 4 {
+            rne_path.push([record.base_position_m[0], record.base_position_m[1]]);
+        }
+        if step % 2 == 1 {
+            let shown = mujoco_path.len().min(rne_path.len());
+            renderer.frame(&walker, &rne_path, &mujoco_path[..shown])?;
+            frame_times_s.push(record.time_s);
+        }
+        records.push(record);
+    }
+    let summary = summarize(&records, command);
+    std::fs::write(
+        output.join("render-trace.json"),
+        serde_json::to_string_pretty(&json!({
+            "schema_version": 1, "command": command, "seconds": options.seconds,
+            "policy_weights_sha256": weights_sha256,
+            "frame_count": renderer.frame_count(), "frame_times_s": frame_times_s,
+            "panel": [render::WIDTH, render::HEIGHT],
+            "rne": summary, "mujoco": mujoco["summary"], "mujoco_engine": serde_json::from_str::<Value>(REFERENCE)?["engine"],
+        }))? + "\n",
+    )?;
+    println!(
+        "rendered {} frames to {}",
+        renderer.frame_count(),
+        output.display()
+    );
+    Ok(())
+}
+
 fn reference_summary(command: [f64; 3]) -> Option<Value> {
+    reference_run(command).map(|run| run["summary"].clone())
+}
+
+fn reference_run(command: [f64; 3]) -> Option<Value> {
     let reference: Value = serde_json::from_str(REFERENCE).ok()?;
     reference["runs"]
         .as_array()?
@@ -118,7 +178,7 @@ fn reference_summary(command: [f64; 3]) -> Option<Value> {
                     .all(|(v, c)| v.as_f64() == Some(c))
             })
         })
-        .map(|run| run["summary"].clone())
+        .cloned()
 }
 
 fn report(
@@ -177,6 +237,9 @@ fn report(
 
 fn main() -> Result<()> {
     let options = parse()?;
+    if let Some(output) = &options.render {
+        return render_walk(&options, output);
+    }
     std::fs::create_dir_all(&options.output)?;
     let reference: Value = serde_json::from_str(REFERENCE)?;
     let commands: Vec<[f64; 3]> = match options.command {

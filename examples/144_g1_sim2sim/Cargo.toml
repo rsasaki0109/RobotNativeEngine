@@ -17,7 +17,10 @@ rne_math = { workspace = true }
 rne_physics = { workspace = true }
 # Joint armature (MJCF `armature`) needs the repository-only Rapier extension.
 rne_physics_rapier = { workspace = true, features = ["experimental-armature"] }
+rne_render = { workspace = true }
+rne_render_wgpu = { workspace = true }
 rne_robot = { workspace = true }
+png = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
 

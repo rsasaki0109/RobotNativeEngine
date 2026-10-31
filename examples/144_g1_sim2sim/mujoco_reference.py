@@ -112,8 +112,10 @@ def main():
     runs = []
     for command in COMMANDS:
         records = run(arguments.upstream, command, arguments.seconds)
-        runs.append({"command": command, "summary": summarize(records, command)})
-        print(json.dumps(runs[-1]))
+        runs.append({"command": command, "summary": summarize(records, command),
+                     "base_path_xy_m_10hz": [[round(v, 4) for v in r["base_position_m"][:2]]
+                                             for r in records[4::5]]})
+        print(json.dumps(runs[-1]["summary"]))
         if arguments.fixture and command == COMMANDS[0]:
             arguments.fixture.write_text(json.dumps(
                 {"engine": f"mujoco {mujoco.__version__}", "command": command,

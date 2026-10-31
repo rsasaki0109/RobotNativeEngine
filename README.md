@@ -98,6 +98,24 @@ of a nominal kick, and a 10 m/s kick to the hip knocks it over.
 [G1 harder kick](docs/media/kick-physical-g1-strong.gif) ·
 [method and limits](examples/139_kick_comparison/README.md#simulated-kicking-leg).
 
+## G1 sim2sim: a pretrained policy walks in RNE
+
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="docs/media/g1-sim2sim.png">
+  <img src="docs/media/g1-sim2sim.gif" alt="A Unitree G1 walks a 0.6 m circle on a checkered floor in RNE; its pelvis path in blue lies on the orange path the same policy walks in MuJoCo" width="900">
+</picture>
+
+Unitree's unitree_rl_gym G1 walking policy, trained in Isaac Gym and deployed in
+MuJoCo, runs unchanged on RNE with the same 500 Hz PD loop. Over four commands
+its forward speed is within 0.02 m/s of MuJoCo's, its turn rate within
+0.007 rad/s and its pelvis height within 2 mm, and neither engine falls. The one
+large gap was a model bug the comparison exposed: four sensor frames picked up
+1 kg each in import, and the policy crouched under the extra 4 kg. One G1 runs
+at 2.6× real time with four solver iterations, against MuJoCo's 20× on the same
+machine.
+[Method, results and limits](examples/144_g1_sim2sim/README.md) ·
+[metadata](docs/media/g1-sim2sim.json).
+
 ## Highlights
 
 | Area | Included | Docs |
@@ -105,7 +123,7 @@ of a nominal kick, and a 10 m/s kick to the hip knocks it over.
 | City simulation | PLATEAU import, traffic, LiDAR, RGB-D, OSM HUD | [docs](docs/PLATEAU_IMPORT.md), ex. 46–47 |
 | Vehicle dynamics | Bicycle/Ackermann, tire saturation, suspension, road excitation | [docs](docs/VEHICLE_DYNAMICS.md), ex. 49–51 |
 | Quadruped locomotion | Official Go2, model-based trot and heading control, torque control, disturbances | [docs](docs/GO2_LOCOMOTION.md), ex. 52–65, 126 |
-| Humanoid locomotion | Official G1 23-DoF, balance, learned stride, CEM eval | [docs](docs/G1_LOCOMOTION.md), ex. 39, 63, 67, 68 |
+| Humanoid locomotion | Official G1 23-DoF, balance, learned stride, CEM eval, pretrained-policy sim2sim from MuJoCo | [docs](docs/G1_LOCOMOTION.md), ex. 39, 63, 67, 68, 144 |
 | Manipulation | PBR/3DGS mobile manipulator, friction grasp, Dex3 hands | [docs](docs/README_SHOWCASE.md), ex. 32, 40–42, 89 |
 | Deformables | XPBD cable and cloth, deterministic headless replay | ex. 43–45 |
 | More demos | Localization, native planning/dynamics/legged/WBC/OC, Go2 jump | [docs](docs/DEMOS.md) |
