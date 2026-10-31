@@ -92,7 +92,7 @@ the Go2 onto its back on a grippy floor (friction 0.9); on the default floor
 (0.5) the robot slides about a metre and recovers.
 [Go2 kicking-leg GIF](docs/media/kick-physical-go2.gif) ·
 [harder kick](docs/media/kick-physical-go2-strong.gif) ·
-[method and limits](examples/139_kick_comparison/README.md#simulated-kicking-leg-go2).
+[method and limits](examples/139_kick_comparison/README.md#simulated-kicking-leg).
 
 ## Highlights
 

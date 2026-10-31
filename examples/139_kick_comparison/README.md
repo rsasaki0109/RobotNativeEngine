@@ -617,14 +617,14 @@ and metadata are `kick-comparison.gif`, `.png` and `.json`. Metadata includes
 source, asset and trace SHA-256 hashes plus measured physics results.
 Copy those three files to `docs/media/` when updating the README capture.
 
-## Simulated kicking leg (Go2)
+## Simulated kicking leg
 
 `--physical-kick` replaces the prescribed wrench with a leg that actually
 hits the robot. The disturbance is whatever the shoe delivers through
 contact; impulse, peak force and contact time are measured outputs rather
 than declared inputs. The plant, controller, settlement and recovery
-predicate are the ones used above. Only the Go2 is supported so far: its body
-is a box, so the aim point is well defined. The G1 body uses mesh colliders.
+predicate are the ones used above. `--robot go2` (default) uses the human's
+low kick, and `--robot g1` uses the mid kick ([G1 results](#g1)).
 
 ![Go2 kicked by a simulated leg](../../docs/media/kick-physical-go2.gif)
 

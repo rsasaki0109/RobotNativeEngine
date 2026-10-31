@@ -340,7 +340,7 @@ in every case with exact replay. `--strength 2 --kick-speed 3.5
 the default floor it slides the Go2 about a metre. With `--floor-friction 0.9`
 it flips the robot onto its back. The kicker's torso is kinematic and the
 contact is rigid; see
-[the method and limits](../examples/139_kick_comparison/README.md#simulated-kicking-leg-go2).
+[the method and limits](../examples/139_kick_comparison/README.md#simulated-kicking-leg).
 
 ```bash
 cargo run --release -p kick_comparison --example 139_kick_comparison -- \
