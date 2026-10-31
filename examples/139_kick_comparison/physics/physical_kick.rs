@@ -26,13 +26,21 @@ const FORCE_WINDOW_S: f64 = 0.01;
 pub(crate) struct PhysicalKick {
     pub(crate) speed_scale: f64,
     pub(crate) follow_through_m: f64,
+    /// Multiplier of the adult torque ceilings; 1.0 is the documented kicker.
+    pub(crate) strength_scale: f64,
+    /// Coulomb friction for the floor and the robot's feet; `None` keeps the
+    /// scene default (0.5 for both).
+    pub(crate) floor_friction: Option<f64>,
 }
 
 impl PhysicalKick {
     fn name(self) -> String {
+        let friction = self
+            .floor_friction
+            .map_or_else(String::new, |mu| format!("_friction_{mu:.2}"));
         format!(
-            "speed_{:.2}_follow_{:.3}m",
-            self.speed_scale, self.follow_through_m
+            "speed_{:.2}_follow_{:.3}m_strength_{:.2}{friction}",
+            self.speed_scale, self.follow_through_m, self.strength_scale
         )
     }
 
@@ -176,7 +184,14 @@ fn spawn_leg(
         .map(|entity| entity.id())
         .ok_or_else(|| io::Error::other("missing ground"))?;
     ignore_kicker_contacts(sim, ground);
-    let leg = KickLeg::spawn(sim, asset, model.clone(), schedule, origin)?;
+    let leg = KickLeg::spawn(
+        sim,
+        asset,
+        model.clone(),
+        schedule,
+        origin,
+        kick.strength_scale,
+    )?;
     Ok((leg, placement))
 }
 
@@ -198,6 +213,14 @@ fn record_physical(
         ..NOMINAL
     };
     let mut sim = robot.load(case.dt_ticks)?;
+    if let Some(friction) = kick.floor_friction {
+        for name in std::iter::once("ground").chain(robot.feet().iter().copied()) {
+            require(
+                friction <= 2.0 && sim.set_named_collider_friction(name, friction),
+                "floor friction must be within 0..=2 and reach the floor and feet",
+            )?;
+        }
+    }
     let initial_plant_contract = robot.validate(&sim)?;
     let mut controller = Controller::new(robot, &mut sim, true, Profile::ideal(case.dt_ticks))?;
     let mut motor = None;
@@ -307,6 +330,7 @@ fn record_physical(
             "solver_iterations":32,"mechanism":"Simulated kicking leg; contact impulse is measured; robot poses are not edited",
             "kick":{"configuration":leg.configuration(),"placement":placement,
                 "speed_scale":kick.speed_scale,"follow_through_m":kick.follow_through_m,
+                "strength_scale":kick.strength_scale,"floor_and_foot_friction":kick.floor_friction.unwrap_or(0.5),
                 "extension_end_s":leg.schedule().extension_end_s(),
                 "measured":contact_summary,"leg_tracking":leg.telemetry()},
             "contact_history":contacts.history,
@@ -403,7 +427,8 @@ pub(crate) fn capture_physical(output: &Path, kick: PhysicalKick) -> CaptureResu
         output.join("physical-kick-summary.json"),
         serde_json::to_vec_pretty(&json!({"schema_version":1,"robot":"Go2",
             "kick":trace["kick"]["measured"],"speed_scale":kick.speed_scale,
-            "follow_through_m":kick.follow_through_m,"summary":trace["summary"],
+            "follow_through_m":kick.follow_through_m,"strength_scale":kick.strength_scale,
+            "floor_and_foot_friction":kick.floor_friction.unwrap_or(0.5),"summary":trace["summary"],
             "leg_tracking":trace["kick"]["leg_tracking"],"exact_replay":trace["exact_replay"],
             "trace":"go2-physical-trace.json"}))?,
     )?;
@@ -422,6 +447,8 @@ pub(crate) fn sweep_physical(output: &Path, follow_through_m: f64) -> CaptureRes
         let kick = PhysicalKick {
             speed_scale,
             follow_through_m,
+            strength_scale: 1.0,
+            floor_friction: None,
         };
         let trace = replay_physical(Robot::Go2, kick, false, &asset, &model)?;
         cases.push(json!({"case":kick.name(),"speed_scale":speed_scale,
@@ -453,6 +480,8 @@ mod tests {
         let kick = PhysicalKick {
             speed_scale: DEFAULT_SPEED_SCALE,
             follow_through_m: DEFAULT_FOLLOW_THROUGH_M,
+            strength_scale: 1.0,
+            floor_friction: None,
         };
         let (mut leg, _) = spawn_leg(Robot::Go2, &mut sim, &asset, &model, kick).unwrap();
         let dt_s = sim.fixed_delta().as_seconds().value();

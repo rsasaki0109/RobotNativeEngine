@@ -56,6 +56,9 @@ const ABDUCTION_LINK_INERTIA_KG_M2: f64 = 1.0e-4;
 /// 2.9-3.5 N·m/kg); hip and ankle are rounded adult values. Constant ceilings
 /// ignore the force-velocity reduction of muscle, so they are generous at speed.
 pub(super) const TORQUE_LIMITS_NM: [f64; 4] = [120.0, 140.0, 200.0, 100.0];
+/// Accepted multipliers of [`TORQUE_LIMITS_NM`]. Values above one model a
+/// stronger, trained kicker; they are assumptions, not measured athletes.
+const STRENGTH_SCALE_RANGE: std::ops::RangeInclusive<f64> = 0.5..=2.0;
 /// Joint-space tracking gains. These are controller choices, not physiology.
 const STIFFNESS_NM_PER_RAD: [f64; 4] = [2000.0, 3000.0, 2000.0, 150.0];
 const DAMPING_NM_S_PER_RAD: [f64; 4] = [80.0, 100.0, 35.0, 1.5];
@@ -756,6 +759,7 @@ pub(super) struct KickLeg {
     anchor: Entity,
     /// Abduction link, thigh, shank and foot; each carries its parent joint.
     links: [Entity; 4],
+    torque_limits_nm: [f64; 4],
     efforts_nm: [f64; 4],
     saturated_steps: [usize; 4],
     reference_error_max_rad: [f64; 4],
@@ -769,7 +773,13 @@ impl KickLeg {
         model: KickLegModel,
         schedule: KickSchedule,
         origin: Vec3,
+        strength_scale: f64,
     ) -> KickResult<Self> {
+        require(
+            strength_scale.is_finite() && STRENGTH_SCALE_RANGE.contains(&strength_scale),
+            "kicker strength scale must be within 0.5..=2",
+        )?;
+        let torque_limits_nm = TORQUE_LIMITS_NM.map(|limit| limit * strength_scale);
         let (hip, angles, _) = model.reference(asset, schedule, 0.0);
         for (angle, zero) in angles.into_iter().zip(model.zero_rad) {
             require(
@@ -820,7 +830,7 @@ impl KickLeg {
             },
             JointActuation::RevoluteEffort {
                 effort_nm: 0.0,
-                max_effort_nm: TORQUE_LIMITS_NM[0],
+                max_effort_nm: torque_limits_nm[0],
             },
         ));
         let mut links = [abduction; 4];
@@ -856,7 +866,7 @@ impl KickLeg {
                 },
                 JointActuation::RevoluteEffort {
                     effort_nm: 0.0,
-                    max_effort_nm: TORQUE_LIMITS_NM[joint],
+                    max_effort_nm: torque_limits_nm[joint],
                 },
             ));
             world.entity_mut(entity).insert((
@@ -872,6 +882,7 @@ impl KickLeg {
             origin,
             anchor,
             links,
+            torque_limits_nm,
             efforts_nm: [0.0; 4],
             saturated_steps: [0; 4],
             reference_error_max_rad: [0.0; 4],
@@ -914,7 +925,7 @@ impl KickLeg {
             let demand = STIFFNESS_NM_PER_RAD[joint] * error
                 + DAMPING_NM_S_PER_RAD[joint] * (rates[joint] - state[joint].1);
             require(demand.is_finite(), "kick joint torque is not finite")?;
-            let limit = TORQUE_LIMITS_NM[joint];
+            let limit = self.torque_limits_nm[joint];
             if demand.abs() > limit {
                 self.saturated_steps[joint] += 1;
             }
@@ -931,7 +942,7 @@ impl KickLeg {
             .links
             .into_iter()
             .zip(self.efforts_nm)
-            .zip(TORQUE_LIMITS_NM)
+            .zip(self.torque_limits_nm)
         {
             world
                 .entity_mut(link)
@@ -1028,7 +1039,8 @@ impl KickLeg {
 
     pub(super) fn configuration(&self) -> Value {
         json!({"leg":self.model.configuration(),"schedule":self.schedule.configuration(),
-            "human_origin_world_m":self.origin.to_array()})
+            "human_origin_world_m":self.origin.to_array(),
+            "applied_torque_limits_nm":self.torque_limits_nm})
     }
 
     pub(super) fn telemetry(&self) -> Value {

@@ -47,14 +47,21 @@ def measured(trace):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
-    root = parser.parse_args().directory
+    parser.add_argument("--stem", default="kick-physical-go2",
+                        help="Output file stem for the GIF, poster and metadata")
+    arguments = parser.parse_args()
+    root, stem = arguments.directory, arguments.stem
     repo = Path(__file__).resolve().parents[2]
     trace = json.loads((root / "go2-physical-trace.json").read_text())
     validate_sources(trace, repo)
     kick = measured(trace)
     recovered = trace["summary"]["recovered"]
     small, bold = font(13), font(19, True)
-    title = "Unitree Go2 | simulated kicking leg"
+    settings = trace["kick"]
+    strength = settings["strength_scale"]
+    friction = settings["floor_and_foot_friction"]
+    title = "Unitree Go2 | simulated kicking leg" + (
+        f" | {strength:g}x adult strength" if strength != 1.0 else "")
     label = (f"shoe {kick['shoe_speed_before_first_contact_m_s']:.1f} m/s | "
              f"impulse {kick['normal_impulse_magnitude_ns']:.1f} N.s | "
              f"peak {kick['peak_normal_force_10ms_average_n']:.0f} N (10 ms avg) | "
@@ -85,18 +92,19 @@ def main():
                   "impulse and force are measured",
                   font=small, fill=(159, 180, 202))
         draw.text((16, 510), "Leg: Dempster/Winter segments, torque-limited hip/knee/ankle | "
-                  "kicker torso follows the animation", font=small, fill=(159, 180, 202))
+                  f"floor and foot friction {friction:g} | kicker torso follows the animation",
+                  font=small, fill=(159, 180, 202))
         frames.append(picture)
     poster_index = next(i for i, record in enumerate(trace["frames"])
                         if any(abs(c) > 0 for c in record["force_world_n"]))
-    frames[poster_index].save(root / "kick-physical-go2.png")
+    frames[poster_index].save(root / f"{stem}.png")
     palette_sheet = Image.new("RGB", (SIZE[0], SIZE[1] * 5))
     for row, index in enumerate([0, 48, poster_index, 90, len(frames) - 1]):
         palette_sheet.paste(frames[index], (0, row * SIZE[1]))
     palette = palette_sheet.quantize(colors=256)
     encoded = [frame.quantize(palette=palette, dither=Image.Dither.NONE) for frame in frames]
     durations_ms = [40 if index % 3 == 2 else 30 for index in range(len(frames))]
-    gif = root / "kick-physical-go2.gif"
+    gif = root / f"{stem}.gif"
     encoded[0].save(gif, save_all=True, append_images=encoded[1:],
                     duration=durations_ms, loop=0, optimize=True)
     metadata = {
@@ -109,14 +117,14 @@ def main():
         "exact_replay": trace["exact_replay"],
         "physical_kick_source_sha256": trace["physical_kick_source_sha256"],
         "artifacts": {"gif_sha256": digest(gif),
-                      "poster_sha256": digest(root / "kick-physical-go2.png"),
+                      "poster_sha256": digest(root / f"{stem}.png"),
                       "frame_count": len(frames), "width": SIZE[0], "height": SIZE[1],
                       "gif_duration_ms": sum(durations_ms)},
         "trace_sha256": digest(root / "go2-physical-trace.json"),
         "human_provenance": "assets/fixtures/kick_human/source-manifest.json",
         "robot_provenance": ["assets/robots/go2_description"],
     }
-    (root / "kick-physical-go2.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    (root / f"{stem}.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print(json.dumps(metadata["artifacts"], indent=2))
 
 

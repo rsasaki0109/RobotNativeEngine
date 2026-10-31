@@ -285,6 +285,8 @@ fn physical_kick_main(arguments: &[String]) -> Result<(), Box<dyn Error>> {
     let mut kick = physics::PhysicalKick {
         speed_scale: physics::DEFAULT_SPEED_SCALE,
         follow_through_m: physics::DEFAULT_FOLLOW_THROUGH_M,
+        strength_scale: 1.0,
+        floor_friction: None,
     };
     let mut sweep = false;
     let mut render = false;
@@ -300,14 +302,16 @@ fn physical_kick_main(arguments: &[String]) -> Result<(), Box<dyn Error>> {
                 render = true;
                 render_only = true;
             }
-            option @ ("--output" | "--kick-speed" | "--follow-through" | "--start-frame"
-            | "--frame-count") => {
+            option @ ("--output" | "--kick-speed" | "--follow-through" | "--strength"
+            | "--floor-friction" | "--start-frame" | "--frame-count") => {
                 index += 1;
                 let value = arguments.get(index).ok_or("missing option value")?;
                 match option {
                     "--output" => output = value.into(),
                     "--kick-speed" => kick.speed_scale = value.parse()?,
                     "--follow-through" => kick.follow_through_m = value.parse()?,
+                    "--strength" => kick.strength_scale = value.parse()?,
+                    "--floor-friction" => kick.floor_friction = Some(value.parse()?),
                     "--start-frame" => start_frame = value.parse()?,
                     _ => frame_count = value.parse()?,
                 }

@@ -682,6 +682,46 @@ impulse falls slightly because the push after impact is shorter:
 The full sweep, including the leg configuration and tracking statistics, is in
 [kick-physical-go2-sweep.json](../../docs/media/kick-physical-go2-sweep.json).
 
+### Kicking harder
+
+![Go2 knocked over by a trained-strength kick](../../docs/media/kick-physical-go2-strong.gif)
+
+Three settings make the kick stronger:
+
+- `--strength S` multiplies all four torque caps.
+- `--kick-speed` shortens the extension.
+- `--follow-through` aims deeper behind the body face (up to 0.3 m).
+
+Caps above 1.0 exceed the cited adult references. The 2.0 setting was chosen
+because it reproduces the roughly 10 m/s foot speed reported for trained front
+kicks, not from measured joint torques.
+
+The scene's floor and foot friction default to 0.5. `--floor-friction`
+sets both; a grippier rubber-on-floor contact is an assumption, not a
+measurement. Each case below replayed exactly:
+
+| Strength | Speed scale | Follow-through | Floor/foot friction | Shoe speed | Impulse | Peak force, 10 ms average | Contact time | Outcome |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1.5 | 3.0 | 0.3 m | 0.5 | 8.97 m/s | 61.3 N·s | 2,166 N | 112 ms | slides 0.85 m, recovers |
+| 2.0 | 3.5 | 0.3 m | 0.5 | 10.52 m/s | 66.8 N·s | 2,575 N | 93 ms | slides 1.07 m, recovers |
+| 2.0 | 3.5 | 0.3 m | 0.9 | 10.52 m/s | 79.2 N·s | 2,577 N | 114 ms | flips over 1.31 m away |
+
+On the default floor the Go2's feet slide before the body can tip, so even the
+strongest kick carries it about a metre and it recovers. On the grippier floor
+the feet hold, the same kick rolls the robot onto its back, and the recovery
+gate fails on non-foot ground contact. The standing controller has no stepping
+strategy, so neither outcome predicts how real Go2 firmware would respond.
+The summaries are in
+[kick-physical-go2-strong-study.json](../../docs/media/kick-physical-go2-strong-study.json).
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --physical-kick --strength 2 --kick-speed 3.5 --follow-through 0.3 \
+  --floor-friction 0.9 --render --output target/rne-kick-physical-strong
+python3 examples/139_kick_comparison/encode_physical.py target/rne-kick-physical-strong \
+  --stem kick-physical-go2-strong
+```
+
 ```bash
 cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
   --physical-kick --render --output target/rne-kick-physical
@@ -690,9 +730,11 @@ cargo run --locked --release -p kick_comparison --example 139_kick_comparison --
   --physical-kick --sweep --output target/rne-kick-physical-sweep
 ```
 
-`--kick-speed S` and `--follow-through M` select another kick. The capture
-fails if the shoe never reaches the robot, and the renderer fails if any
-rendered leg joint leaves its simulated segment by more than 0.1 mm.
+`--kick-speed S`, `--follow-through M`, `--strength S` and `--floor-friction μ`
+select another kick. The capture fails if the shoe never reaches the robot.
+The renderer fails if any rendered leg joint leaves its simulated segment by
+more than 0.1 mm. A kick that knocks the robot over is still recorded and
+rendered, with its failed recovery.
 
 Limitations, also recorded in every trace:
 

@@ -335,7 +335,10 @@ shoe box and trouser radii), Dempster/Winter segment masses for an assumed
 through physics contact. The nominal kick arrives at 5.2 m/s and delivers a
 measured 28 N·s normal impulse with a 1.4 kN peak averaged over 10 ms, and the
 Go2 recovers. An extension-speed sweep from 2.0 to 7.0 m/s shoe speed recovers
-in every case with exact replay. The kicker's torso is kinematic and the
+in every case with exact replay. `--strength 2 --kick-speed 3.5
+--follow-through 0.3` reaches the roughly 10 m/s of trained front kicks. On
+the default floor it slides the Go2 about a metre. With `--floor-friction 0.9`
+it flips the robot onto its back. The kicker's torso is kinematic and the
 contact is rigid; see
 [the method and limits](../examples/139_kick_comparison/README.md#simulated-kicking-leg-go2).
 
