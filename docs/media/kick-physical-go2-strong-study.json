@@ -1,0 +1,287 @@
+{
+  "schema_version": 1,
+  "robot": "Go2",
+  "note": "Stronger simulated kicks. Strength above 1.0 exceeds the cited adult torque references; 2.0 reproduces the ~10 m/s foot speed reported for trained front kicks. Floor/foot friction 0.5 is the scene default; 0.9 is an assumed grippier contact. Recovery is reported, not assumed.",
+  "physical_kick_source_sha256": {
+    "examples/139_kick_comparison/kicker.rs": "1c5b5bce7152a33b53506fdcc3d47a2d9d34ce052a51dfbf4570d2d6fdacc972",
+    "examples/139_kick_comparison/physics/physical_kick.rs": "1b6d61d754965260a98d91cd7edf671b96a9800be91884354d312c92aaa8201c"
+  },
+  "cases": [
+    {
+      "strength_scale": 1.5,
+      "speed_scale": 3.0,
+      "follow_through_m": 0.3,
+      "floor_and_foot_friction": 0.5,
+      "kick": {
+        "contact_episodes": 3,
+        "contact_occurred": true,
+        "contact_span_s": 0.114,
+        "contact_time_s": 0.112,
+        "first_contact_time_s": 1.8880000000000001,
+        "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
+        "last_contact_time_s": 2.001,
+        "normal_impulse_magnitude_ns": 61.28305569576836,
+        "normal_impulse_on_robot_world_ns": [
+          -1.4728090432467116,
+          -28.45901552427159,
+          54.25429185163185
+        ],
+        "peak_normal_force_10ms_average_n": 2166.423227335996,
+        "peak_normal_force_per_step_n": 13808.378055291383,
+        "shank_or_thigh_contact_steps": 0,
+        "shoe_contact_steps": 112,
+        "shoe_speed_before_first_contact_m_s": 8.972710963819367,
+        "shoe_velocity_before_first_contact_world_m_s": [
+          -1.4860104322433472,
+          -2.302968978881836,
+          8.543866157531738
+        ]
+      },
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.2621226906776428,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.2621226906776428,
+        "final_speed_m_s": 0.01056092511251181,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          45.12722328986274,
+          41.158968542091316,
+          33.925193626084365,
+          37.93674701864802
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.0080490269622588,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 0.849165216262918,
+        "max_authored_speed_ratio": 0.5986412022993017,
+        "max_fixed_position_error_m": 1.6011147684995515e-06,
+        "max_fixed_rotation_error_rad": 1.5485740967710712e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.2508740723133087,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.08915452289587321,
+        "recovered": true,
+        "residual_tilt_rad": 0.0080490269622588,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "leg_tracking": {
+        "max_reference_error_rad": {
+          "ankle": 0.36016677988975143,
+          "hip_abduction": 0.05763937377651862,
+          "hip_flexion": 0.20321217114855417,
+          "knee": 0.3833038445742405
+        },
+        "saturated_steps": {
+          "ankle": 0.0,
+          "hip_abduction": 15.0,
+          "hip_flexion": 145.0,
+          "knee": 47.0
+        }
+      },
+      "exact_replay": {
+        "controller_state_words": true,
+        "frames_and_contacts": true,
+        "kick_leg_state_words": true,
+        "robot_state_words": true
+      },
+      "applied_torque_limits_nm": [
+        180.0,
+        210.0,
+        300.0,
+        150.0
+      ],
+      "observed_state_hash": "9e58a3a2f5024b5e",
+      "kick_leg_state_hash": "6226d815004c5fdd"
+    },
+    {
+      "strength_scale": 2.0,
+      "speed_scale": 3.5,
+      "follow_through_m": 0.3,
+      "floor_and_foot_friction": 0.5,
+      "kick": {
+        "contact_episodes": 1,
+        "contact_occurred": true,
+        "contact_span_s": 0.093,
+        "contact_time_s": 0.093,
+        "first_contact_time_s": 1.8800000000000001,
+        "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
+        "last_contact_time_s": 1.972,
+        "normal_impulse_magnitude_ns": 66.7633887508533,
+        "normal_impulse_on_robot_world_ns": [
+          0.6328619171113745,
+          -35.406353601749665,
+          56.59805374674382
+        ],
+        "peak_normal_force_10ms_average_n": 2575.1204931363113,
+        "peak_normal_force_per_step_n": 15929.612674440335,
+        "shank_or_thigh_contact_steps": 0,
+        "shoe_contact_steps": 93,
+        "shoe_speed_before_first_contact_m_s": 10.518445528314981,
+        "shoe_velocity_before_first_contact_world_m_s": [
+          -1.887611746788025,
+          -2.7531933784484863,
+          9.974695205688477
+        ]
+      },
+      "summary": {
+        "ever_fallen": false,
+        "final_base_height_m": 0.2619965076446533,
+        "final_contact_feet": 2,
+        "final_pelvis_height_m": 0.2619965076446533,
+        "final_speed_m_s": 0.011910152160126277,
+        "final_support_feet": 4,
+        "final_support_mean_loads_n": [
+          41.759906123392284,
+          44.51559911671211,
+          36.769417390090894,
+          34.754042881335636
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 0.0069297666910511715,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 1.070369854744058,
+        "max_authored_speed_ratio": 0.7110225005799353,
+        "max_fixed_position_error_m": 1.7084910187259132e-06,
+        "max_fixed_rotation_error_rad": 1.5769906706002898e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.2382214367389679,
+        "nonfoot_ground_contact": false,
+        "nonfoot_ground_links": [],
+        "peak_tilt_rad": 0.14306559552638706,
+        "recovered": true,
+        "residual_tilt_rad": 0.0069297666910511715,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "leg_tracking": {
+        "max_reference_error_rad": {
+          "ankle": 0.3151974221023637,
+          "hip_abduction": 0.06365912104574756,
+          "hip_flexion": 0.187067941441021,
+          "knee": 0.380271538910244
+        },
+        "saturated_steps": {
+          "ankle": 0.0,
+          "hip_abduction": 3.0,
+          "hip_flexion": 93.0,
+          "knee": 36.0
+        }
+      },
+      "exact_replay": {
+        "controller_state_words": true,
+        "frames_and_contacts": true,
+        "kick_leg_state_words": true,
+        "robot_state_words": true
+      },
+      "applied_torque_limits_nm": [
+        240.0,
+        280.0,
+        400.0,
+        200.0
+      ],
+      "observed_state_hash": "7c4e9f893c15a917",
+      "kick_leg_state_hash": "85a3b36c05d248fd"
+    },
+    {
+      "strength_scale": 2.0,
+      "speed_scale": 3.5,
+      "follow_through_m": 0.3,
+      "floor_and_foot_friction": 0.9,
+      "kick": {
+        "contact_episodes": 1,
+        "contact_occurred": true,
+        "contact_span_s": 0.114,
+        "contact_time_s": 0.114,
+        "first_contact_time_s": 1.8800000000000001,
+        "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
+        "last_contact_time_s": 1.993,
+        "normal_impulse_magnitude_ns": 79.15883006674252,
+        "normal_impulse_on_robot_world_ns": [
+          -2.9564517831543826,
+          -39.63979323667035,
+          68.45485054065436
+        ],
+        "peak_normal_force_10ms_average_n": 2577.250393784208,
+        "peak_normal_force_per_step_n": 15860.231866607746,
+        "shank_or_thigh_contact_steps": 0,
+        "shoe_contact_steps": 114,
+        "shoe_speed_before_first_contact_m_s": 10.518447165919635,
+        "shoe_velocity_before_first_contact_world_m_s": [
+          -1.8876107931137085,
+          -2.7531933784484863,
+          9.97469711303711
+        ]
+      },
+      "summary": {
+        "ever_fallen": true,
+        "final_base_height_m": 0.08280503749847412,
+        "final_contact_feet": 0,
+        "final_pelvis_height_m": 0.08280503749847412,
+        "final_speed_m_s": 0.0009908370742753515,
+        "final_support_feet": 0,
+        "final_support_mean_loads_n": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "final_support_window_s": 0.5,
+        "final_tilt_rad": 3.141556571397949,
+        "fixed_attachments_preserved": true,
+        "impact_applied": true,
+        "lateral_displacement_m": 1.3091168247628957,
+        "max_authored_speed_ratio": 0.9089041667379392,
+        "max_fixed_position_error_m": 1.4703944360121774e-06,
+        "max_fixed_rotation_error_rad": 1.6049041769309358e-07,
+        "min_contact_feet": 0,
+        "min_height_m": 0.08274133503437042,
+        "nonfoot_ground_contact": true,
+        "nonfoot_ground_links": [
+          "FL_hip",
+          "FR_hip",
+          "RL_hip",
+          "RR_hip",
+          "RR_thigh"
+        ],
+        "peak_tilt_rad": 3.1415913326709823,
+        "recovered": false,
+        "residual_tilt_rad": 3.141556571397949,
+        "settled_upright": true,
+        "support_mean_load_threshold_n": 0.5
+      },
+      "leg_tracking": {
+        "max_reference_error_rad": {
+          "ankle": 0.34275901174291157,
+          "hip_abduction": 0.06344630791530692,
+          "hip_flexion": 0.18081570266328129,
+          "knee": 0.38749814144867045
+        },
+        "saturated_steps": {
+          "ankle": 0.0,
+          "hip_abduction": 3.0,
+          "hip_flexion": 99.0,
+          "knee": 37.0
+        }
+      },
+      "exact_replay": {
+        "controller_state_words": true,
+        "frames_and_contacts": true,
+        "kick_leg_state_words": true,
+        "robot_state_words": true
+      },
+      "applied_torque_limits_nm": [
+        240.0,
+        280.0,
+        400.0,
+        200.0
+      ],
+      "observed_state_hash": "4d37d29691fef18d",
+      "kick_leg_state_hash": "3358a6718c90cc7f"
+    }
+  ]
+}

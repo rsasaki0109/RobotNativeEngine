@@ -76,6 +76,11 @@ impl ExperimentMode {
     }
 }
 
+mod physical_kick;
+pub(super) use physical_kick::{
+    capture_physical, sweep_physical, PhysicalKick, DEFAULT_FOLLOW_THROUGH_M, DEFAULT_SPEED_SCALE,
+};
+
 #[derive(Clone, Copy, Debug)]
 struct ExperimentFeedback {
     policy: Policy,

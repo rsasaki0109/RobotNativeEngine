@@ -84,6 +84,16 @@ or recovery from every direction.
 [Source and regeneration](examples/139_kick_comparison/README.md) ·
 [metadata](docs/media/kick-comparison.json).
 
+A second Go2 capture replaces the prescribed wrench with a simulated kicking
+leg derived from the same human: its shoe hits the robot through physics
+contact, so the 28 N·s impulse and 1.4 kN peak (10 ms average) are measured,
+not declared. A trained-strength kick at 10.5 m/s delivers 79 N·s. It knocks
+the Go2 onto its back on a grippy floor (friction 0.9); on the default floor
+(0.5) the robot slides about a metre and recovers.
+[Go2 kicking-leg GIF](docs/media/kick-physical-go2.gif) ·
+[harder kick](docs/media/kick-physical-go2-strong.gif) ·
+[method and limits](examples/139_kick_comparison/README.md#simulated-kicking-leg-go2).
+
 ## Highlights
 
 | Area | Included | Docs |
