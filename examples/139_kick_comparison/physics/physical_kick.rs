@@ -8,7 +8,7 @@
 
 use super::*;
 use crate::kicker::{ignore_kicker_contacts, KickContact, KickLeg, KickLegModel, KickSchedule};
-use rne_physics::{Collider, ColliderShape};
+use rne_physics::{Collider, ColliderShape, RaycastQuery};
 use rne_render::GltfSceneAsset;
 
 /// Recording-time speed-up of the authored 350 ms extension; 2.0 keeps the
@@ -74,6 +74,7 @@ struct ContactLog {
     shank_or_thigh_steps: usize,
     shoe_speed_before_contact_m_s: Option<Vec3>,
     window: std::collections::VecDeque<Vec3>,
+    impulse_by_link_ns: std::collections::BTreeMap<String, Vec3>,
     peak_window_force_n: f64,
     history: Vec<Value>,
 }
@@ -83,7 +84,7 @@ impl ContactLog {
         &mut self,
         step: usize,
         dt_s: f64,
-        contact: KickContact,
+        contact: &KickContact,
         shoe_velocity_before_m_s: Vec3,
     ) {
         self.window.push_back(contact.impulse_on_robot_ns);
@@ -108,12 +109,19 @@ impl ContactLog {
         self.shoe_steps += usize::from(contact.shoe_touching);
         self.shank_or_thigh_steps += usize::from(contact.shank_or_thigh_touching);
         self.impulse_on_robot_ns += contact.impulse_on_robot_ns;
+        for (link, impulse) in &contact.impulse_by_link_ns {
+            *self
+                .impulse_by_link_ns
+                .entry(link.clone())
+                .or_insert(Vec3::ZERO) += *impulse;
+        }
         let force = contact.impulse_on_robot_ns / dt_s;
         self.peak_force_n = self.peak_force_n.max(force.length());
         self.history
             .push(json!({"step":step,"time_s":step as f64*dt_s,
             "force_on_robot_world_n":force.to_array(),"touching_pairs":contact.touching_pairs,
-            "shoe":contact.shoe_touching,"shank_or_thigh":contact.shank_or_thigh_touching}));
+            "shoe":contact.shoe_touching,"shank_or_thigh":contact.shank_or_thigh_touching,
+            "robot_links":contact.impulse_by_link_ns.keys().collect::<Vec<_>>()}));
     }
 
     fn summary(&self, dt_s: f64) -> Value {
@@ -131,14 +139,105 @@ impl ContactLog {
             "contact_span_s":span_s,"contact_time_s":self.contact_steps as f64 * dt_s,
             "contact_episodes":self.episodes,"shoe_contact_steps":self.shoe_steps,
             "shank_or_thigh_contact_steps":self.shank_or_thigh_steps,
+            "normal_impulse_by_robot_link_ns":self.impulse_by_link_ns.iter()
+                .map(|(link, impulse)| (link.clone(), json!(impulse.to_array())))
+                .collect::<serde_json::Map<_, _>>(),
             "shoe_velocity_before_first_contact_world_m_s":self.shoe_speed_before_contact_m_s.map(|v| v.to_array()),
             "shoe_speed_before_first_contact_m_s":self.shoe_speed_before_contact_m_s.map(|v| v.length()),
             "impulse_scope":"sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded"})
     }
 }
 
-/// Near body surface the kick aims at: the root's X, the face nearest the human.
-fn target_surface(robot: Robot, sim: &UrdfSceneSim) -> CaptureResult<Vec3> {
+/// Animation, scene and aim for each robot. The G1 scene adds convex hulls of
+/// the URDF collision meshes, which the prescribed-wrench scene omits, so the
+/// shoe has a pelvis, torso and legs to strike.
+fn physical_clip(robot: Robot) -> &'static str {
+    match robot {
+        Robot::Go2 => "low_kick",
+        Robot::G1 => "mid_kick",
+    }
+}
+
+fn physical_scene(robot: Robot) -> &'static str {
+    match robot {
+        Robot::Go2 => "go2.rne.scene.toml",
+        Robot::G1 => "g1_physical.rne.scene.toml",
+    }
+}
+
+fn physical_robot(name: &str) -> CaptureResult<Robot> {
+    match name {
+        "go2" => Ok(Robot::Go2),
+        "g1" => Ok(Robot::G1),
+        _ => Err(io::Error::other("the physical kick robot must be go2 or g1").into()),
+    }
+}
+
+/// Near body surface the kick aims at, centred on the root's X.
+///
+/// The Go2 body is a box, so its near face is exact. Other bodies are probed
+/// with horizontal rays across the fully extended reference shoe's height and
+/// width; the nearest robot hit is the surface the shoe would meet first.
+fn target_surface(
+    robot: Robot,
+    sim: &UrdfSceneSim,
+    asset: &GltfSceneAsset,
+    model: &KickLegModel,
+) -> CaptureResult<Vec3> {
+    match robot {
+        Robot::Go2 => box_surface(robot, sim),
+        Robot::G1 => raycast_surface(robot, sim, asset, model),
+    }
+}
+
+fn raycast_surface(
+    robot: Robot,
+    sim: &UrdfSceneSim,
+    asset: &GltfSceneAsset,
+    model: &KickLegModel,
+) -> CaptureResult<Vec3> {
+    const ROWS: u32 = 8;
+    let root = sim
+        .named_link_position_m(robot.base_link())
+        .ok_or_else(|| io::Error::other("missing robot root"))?;
+    let corners = model.full_extension_shoe_corners(asset);
+    let bounds = |axis: fn(&Vec3) -> f64| {
+        corners
+            .iter()
+            .map(axis)
+            .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), v| {
+                (lo.min(v), hi.max(v))
+            })
+    };
+    let (low_y, high_y) = bounds(|c| c.y);
+    let (low_x, high_x) = bounds(|c| c.x);
+    let half_width_m = 0.5 * (high_x - low_x);
+    let mut nearest: Option<Vec3> = None;
+    for row in 0..=ROWS {
+        let y = low_y + (high_y - low_y) * f64::from(row) / f64::from(ROWS);
+        for column in [-1.0, 0.0, 1.0] {
+            let query = RaycastQuery {
+                origin_m: Vec3::new(root.x + column * half_width_m, y, root.z - 2.0),
+                direction: Vec3::Z,
+                max_distance_m: 4.0,
+            };
+            let hit = sim
+                .physics_raycast(query)?
+                .into_iter()
+                .find(|hit| sim.world().get::<Link>(hit.entity).is_some());
+            if let Some(hit) = hit {
+                if nearest.is_none_or(|point| hit.point_m.z < point.z) {
+                    nearest = Some(hit.point_m);
+                }
+            }
+        }
+    }
+    let near = nearest.ok_or_else(|| io::Error::other("the kick height misses the robot"))?;
+    Ok(Vec3::new(root.x, near.y, near.z))
+}
+
+/// Near face of a box-shaped base: the root's X, the face nearest the human.
+fn box_surface(robot: Robot, sim: &UrdfSceneSim) -> CaptureResult<Vec3> {
     let base = sim
         .world()
         .iter_entities()
@@ -174,7 +273,7 @@ fn spawn_leg(
     kick: PhysicalKick,
 ) -> CaptureResult<(KickLeg, Value)> {
     let schedule = kick.validate()?;
-    let target = target_surface(robot, sim)?;
+    let target = target_surface(robot, sim, asset, model)?;
     let (origin, placement) = model.placement(asset, target, kick.follow_through_m);
     let ground_index = ground_body_index(sim)?;
     let ground = sim
@@ -203,16 +302,12 @@ fn record_physical(
     model: &KickLegModel,
 ) -> CaptureResult<PhysicalRecording> {
     kick.validate()?;
-    require(
-        matches!(robot, Robot::Go2),
-        "the physical kick currently supports the Go2 box body only",
-    )?;
     let case = Case {
         name: "physical_kick",
         impulse_ns: 0.0,
         ..NOMINAL
     };
-    let mut sim = robot.load(case.dt_ticks)?;
+    let mut sim = robot.load_scene(physical_scene(robot), case.dt_ticks)?;
     if let Some(friction) = kick.floor_friction {
         for name in std::iter::once("ground").chain(robot.feet().iter().copied()) {
             require(
@@ -283,7 +378,7 @@ fn record_physical(
         leg.command(&mut sim, asset, start_s, dt_s)?;
         controller.step(&mut sim)?;
         let contact = leg.contact(&sim, dt_s)?;
-        contacts.record(step, dt_s, contact, shoe_before);
+        contacts.record(step, dt_s, &contact, shoe_before);
         let (tilt, height) = metrics.measure(robot, &sim, step, steps, ground_index)?;
         states.push(state_bits(robot, &sim));
         kick_words.push(leg.state_words(&sim));
@@ -402,35 +497,38 @@ fn replay_physical(
     Ok(first.trace)
 }
 
-fn load_model() -> CaptureResult<(GltfSceneAsset, KickLegModel)> {
+fn load_model(robot: Robot) -> CaptureResult<(GltfSceneAsset, KickLegModel)> {
     let asset = rne_render::load_gltf_scene(Path::new(crate::HUMAN_ASSET))?;
-    let model = KickLegModel::from_asset(&asset)?;
+    let model = KickLegModel::from_asset(&asset, physical_clip(robot))?;
     Ok((asset, model))
 }
 
 /// Records the nominal physical kick with frames for rendering.
-pub(crate) fn capture_physical(output: &Path, kick: PhysicalKick) -> CaptureResult<()> {
+pub(crate) fn capture_physical(
+    output: &Path,
+    kick: PhysicalKick,
+    robot_name: &str,
+) -> CaptureResult<()> {
+    let robot = physical_robot(robot_name)?;
     fs::create_dir_all(output)?;
-    let (asset, model) = load_model()?;
-    let trace = replay_physical(Robot::Go2, kick, true, &asset, &model)?;
+    let (asset, model) = load_model(robot)?;
+    let trace = replay_physical(robot, kick, true, &asset, &model)?;
+    let trace_name = format!("{robot_name}-physical-trace.json");
     require(
         trace["frames"]
             .as_array()
             .is_some_and(|f| f.len() == FRAME_COUNT),
         "incorrect frame count",
     )?;
-    fs::write(
-        output.join("go2-physical-trace.json"),
-        serde_json::to_vec(&trace)?,
-    )?;
+    fs::write(output.join(&trace_name), serde_json::to_vec(&trace)?)?;
     fs::write(
         output.join("physical-kick-summary.json"),
-        serde_json::to_vec_pretty(&json!({"schema_version":1,"robot":"Go2",
+        serde_json::to_vec_pretty(&json!({"schema_version":1,"robot":robot.name(),
             "kick":trace["kick"]["measured"],"speed_scale":kick.speed_scale,
             "follow_through_m":kick.follow_through_m,"strength_scale":kick.strength_scale,
             "floor_and_foot_friction":kick.floor_friction.unwrap_or(0.5),"summary":trace["summary"],
             "leg_tracking":trace["kick"]["leg_tracking"],"exact_replay":trace["exact_replay"],
-            "trace":"go2-physical-trace.json"}))?,
+            "trace":trace_name}))?,
     )?;
     require(
         trace["kick"]["measured"]["contact_occurred"] == true,
@@ -439,9 +537,14 @@ pub(crate) fn capture_physical(output: &Path, kick: PhysicalKick) -> CaptureResu
 }
 
 /// Sweeps extension speed at the default aim; failed recoveries are retained.
-pub(crate) fn sweep_physical(output: &Path, follow_through_m: f64) -> CaptureResult<()> {
+pub(crate) fn sweep_physical(
+    output: &Path,
+    follow_through_m: f64,
+    robot_name: &str,
+) -> CaptureResult<()> {
+    let robot = physical_robot(robot_name)?;
     fs::create_dir_all(output)?;
-    let (asset, model) = load_model()?;
+    let (asset, model) = load_model(robot)?;
     let mut cases = Vec::new();
     for speed_scale in SWEEP_SPEED_SCALES {
         let kick = PhysicalKick {
@@ -450,7 +553,7 @@ pub(crate) fn sweep_physical(output: &Path, follow_through_m: f64) -> CaptureRes
             strength_scale: 1.0,
             floor_friction: None,
         };
-        let trace = replay_physical(Robot::Go2, kick, false, &asset, &model)?;
+        let trace = replay_physical(robot, kick, false, &asset, &model)?;
         cases.push(json!({"case":kick.name(),"speed_scale":speed_scale,
             "follow_through_m":follow_through_m,"kick":trace["kick"]["measured"],
             "leg_tracking":trace["kick"]["leg_tracking"],"summary":trace["summary"],
@@ -459,7 +562,7 @@ pub(crate) fn sweep_physical(output: &Path, follow_through_m: f64) -> CaptureRes
     }
     fs::write(
         output.join("physical-kick-sweep.json"),
-        serde_json::to_vec_pretty(&json!({"schema_version":1,"robot":"Go2",
+        serde_json::to_vec_pretty(&json!({"schema_version":1,"robot":robot.name(),
             "note":"Measured kicks from one simulated leg; impulse and force are outputs, recovery is reported, not assumed",
             "physical_kick_source_sha256":physical_kick_source_hashes(),
             "leg":model.configuration(),"cases":cases}))?,
@@ -474,16 +577,18 @@ mod tests {
     /// Short check that fits a debug test run: the spawned leg holds the
     /// animation's standing pose beside the robot, touches nothing on the
     /// robot, and replays exactly. The full kick is the release capture.
-    fn standing_words() -> (Vec<Vec<u64>>, Value) {
-        let (asset, model) = load_model().unwrap();
-        let mut sim = Robot::Go2.load(NOMINAL.dt_ticks).unwrap();
+    fn standing_words(robot: Robot) -> (Vec<Vec<u64>>, Value) {
+        let (asset, model) = load_model(robot).unwrap();
+        let mut sim = robot
+            .load_scene(physical_scene(robot), NOMINAL.dt_ticks)
+            .unwrap();
         let kick = PhysicalKick {
             speed_scale: DEFAULT_SPEED_SCALE,
             follow_through_m: DEFAULT_FOLLOW_THROUGH_M,
             strength_scale: 1.0,
             floor_friction: None,
         };
-        let (mut leg, _) = spawn_leg(Robot::Go2, &mut sim, &asset, &model, kick).unwrap();
+        let (mut leg, _) = spawn_leg(robot, &mut sim, &asset, &model, kick).unwrap();
         let dt_s = sim.fixed_delta().as_seconds().value();
         let mut words = Vec::new();
         for step in 0..100 {
@@ -498,14 +603,38 @@ mod tests {
 
     #[test]
     fn standing_kick_leg_tracks_its_pose_and_replays_exactly() {
-        let (first, telemetry) = standing_words();
-        let (repeat, _) = standing_words();
-        assert_eq!(first, repeat);
-        for joint in ["hip_abduction", "hip_flexion", "knee", "ankle"] {
-            let error = telemetry["max_reference_error_rad"][joint]
-                .as_f64()
-                .unwrap();
-            assert!(error < 0.05, "{joint} tracking error {error} rad");
+        for robot in [Robot::Go2, Robot::G1] {
+            let (first, telemetry) = standing_words(robot);
+            let (repeat, _) = standing_words(robot);
+            assert_eq!(first, repeat);
+            for joint in ["hip_abduction", "hip_flexion", "knee", "ankle"] {
+                let error = telemetry["max_reference_error_rad"][joint]
+                    .as_f64()
+                    .unwrap();
+                assert!(error < 0.05, "{joint} tracking error {error} rad");
+            }
         }
+    }
+
+    #[test]
+    fn g1_scene_gives_the_kicked_body_convex_colliders() {
+        let (asset, model) = load_model(Robot::G1).unwrap();
+        let sim = Robot::G1
+            .load_scene(physical_scene(Robot::G1), NOMINAL.dt_ticks)
+            .unwrap();
+        let convex: Vec<_> = sim
+            .world()
+            .iter_entities()
+            .filter(|e| e.get::<rne_physics::ConvexCollider>().is_some())
+            .filter_map(|e| e.get::<Link>().map(|l| l.name.clone()))
+            .collect();
+        for link in ["pelvis_contour_link", "torso_link"] {
+            assert!(convex.iter().any(|name| name == link), "{link}: {convex:?}");
+        }
+        // The aim rays find the body between the hip and the shoulders.
+        let target = target_surface(Robot::G1, &sim, &asset, &model).unwrap();
+        let root = sim.named_link_position_m("pelvis").unwrap();
+        assert!(target.z < root.z && target.z > root.z - 0.3, "{target:?}");
+        assert!((0.6..1.1).contains(&target.y), "{target:?}");
     }
 }

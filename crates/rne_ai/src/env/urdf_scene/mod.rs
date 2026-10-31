@@ -1131,6 +1131,17 @@ impl UrdfSceneSim {
         self.backend.contacts(self.physics_world)
     }
 
+    /// Casts one ray against every non-sensor collider at its current pose.
+    ///
+    /// Hits are ordered by distance, following
+    /// [`rne_physics::PhysicsBackend::raycast`]. No simulation step is taken.
+    pub fn physics_raycast(
+        &self,
+        query: rne_physics::RaycastQuery,
+    ) -> Result<Vec<rne_physics::RaycastHit>, rne_physics::PhysicsError> {
+        self.backend.raycast(self.physics_world, query)
+    }
+
     /// Returns every load-bearing contact point solved in the latest physics step.
     ///
     /// Samples follow [`rne_physics::ContactPointSample`]: canonically ordered
@@ -2914,6 +2925,17 @@ mod tests {
                 support_n -= sample.normal_a_to_b * sample.normal_force_n;
             }
         }
+        // A ray dropped from above the standing robot stops on it or the floor.
+        let hits = sim
+            .physics_raycast(rne_physics::RaycastQuery::downward(
+                rne_math::Vec3::new(0.0, 3.0, 0.0),
+                10.0,
+            ))
+            .expect("raycast");
+        assert!(!hits.is_empty());
+        assert!(hits
+            .windows(2)
+            .all(|pair| pair[0].distance_m <= pair[1].distance_m));
         let (_, mass_kg) = sim.dynamic_center_of_mass_m().expect("dynamic mass");
         // The standing robot is held up by world +Y forces close to its weight.
         assert!(support_n.y > 0.5 * mass_kg * 9.81, "support {support_n:?}");

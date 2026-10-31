@@ -47,12 +47,16 @@ def measured(trace):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
-    parser.add_argument("--stem", default="kick-physical-go2",
-                        help="Output file stem for the GIF, poster and metadata")
+    parser.add_argument("--robot", choices=("go2", "g1"), default="go2")
+    parser.add_argument("--stem", help="Output file stem (default kick-physical-<robot>)")
     arguments = parser.parse_args()
-    root, stem = arguments.directory, arguments.stem
+    root, robot = arguments.directory, arguments.robot
+    stem = arguments.stem or f"kick-physical-{robot}"
+    trace_name = f"{robot}-physical-trace.json"
     repo = Path(__file__).resolve().parents[2]
-    trace = json.loads((root / "go2-physical-trace.json").read_text())
+    trace = json.loads((root / trace_name).read_text())
+    if trace.get("robot", "").lower() != robot:
+        raise ValueError(f"{trace_name} records robot {trace.get('robot')!r}")
     validate_sources(trace, repo)
     kick = measured(trace)
     recovered = trace["summary"]["recovered"]
@@ -60,7 +64,7 @@ def main():
     settings = trace["kick"]
     strength = settings["strength_scale"]
     friction = settings["floor_and_foot_friction"]
-    title = "Unitree Go2 | simulated kicking leg" + (
+    title = f"Unitree {trace['robot']} | simulated kicking leg" + (
         f" | {strength:g}x adult strength" if strength != 1.0 else "")
     label = (f"shoe {kick['shoe_speed_before_first_contact_m_s']:.1f} m/s | "
              f"impulse {kick['normal_impulse_magnitude_ns']:.1f} N.s | "
@@ -109,7 +113,7 @@ def main():
                     duration=durations_ms, loop=0, optimize=True)
     metadata = {
         "schema_version": 1,
-        "scope": "Go2 recovery from a simulated kicking leg; contact impulse and force are "
+        "scope": f"{trace['robot']} recovery from a simulated kicking leg; contact impulse and force are "
                  "measured outputs. Rigid shoe contact, kinematic kicker torso, ideal robot "
                  "observations; no hardware qualification claim.",
         "kick": trace["kick"],
@@ -120,9 +124,10 @@ def main():
                       "poster_sha256": digest(root / f"{stem}.png"),
                       "frame_count": len(frames), "width": SIZE[0], "height": SIZE[1],
                       "gif_duration_ms": sum(durations_ms)},
-        "trace_sha256": digest(root / "go2-physical-trace.json"),
+        "trace_sha256": digest(root / trace_name),
         "human_provenance": "assets/fixtures/kick_human/source-manifest.json",
-        "robot_provenance": ["assets/robots/go2_description"],
+        "robot_provenance": [{"go2": "assets/robots/go2_description",
+                              "g1": "assets/robots/g1_description"}[robot]],
     }
     (root / f"{stem}.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print(json.dumps(metadata["artifacts"], indent=2))

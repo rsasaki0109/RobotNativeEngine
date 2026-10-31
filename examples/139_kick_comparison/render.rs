@@ -320,17 +320,42 @@ fn simulated_human(
     Ok(mismatch_m)
 }
 
-/// Renders the Go2 physical-kick capture as one 960 x 420 panel per frame.
+/// Renders a physical-kick capture as one 960 x 420 panel per frame.
 pub(super) fn render_physical(
     output: &Path,
     human_path: &Path,
+    robot: &str,
     start_frame: usize,
     frame_count: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let trace: PhysicalTrace =
-        serde_json::from_slice(&fs::read(output.join("go2-physical-trace.json"))?)?;
+    let bytes = fs::read(output.join(format!("{robot}-physical-trace.json")))?;
+    let trace: PhysicalTrace = serde_json::from_slice(&bytes)?;
+    let clip = match serde_json::from_slice::<serde_json::Value>(&bytes)?["kick"]["configuration"]
+        ["leg"]["clip"]
+        .as_str()
+    {
+        Some("low_kick") => "low_kick",
+        Some("mid_kick") => "mid_kick",
+        _ => return Err("the physical trace names no known kick clip".into()),
+    };
+    // A side view across the kick, so the shoe meets the body in profile; the
+    // taller G1 needs a higher, wider frame.
+    let orbit = match robot {
+        "go2" => CameraOrbit {
+            focus: Vec3::new(0.12, 0.65, -0.42),
+            yaw_rad: -1.8,
+            pitch_rad: 1.3,
+            distance_m: 2.8,
+        },
+        _ => CameraOrbit {
+            focus: Vec3::new(0.12, 0.85, -0.45),
+            yaw_rad: -1.8,
+            pitch_rad: 1.3,
+            distance_m: 3.4,
+        },
+    };
     let person = load_gltf_scene(human_path)?;
-    let model = KickLegModel::from_asset(&person)?;
+    let model = KickLegModel::from_asset(&person, clip)?;
     let output_dir = output.join("frames-physical");
     fs::create_dir_all(&output_dir)?;
     let mut backend = WgpuRenderBackend::new()?;
@@ -365,13 +390,6 @@ pub(super) fn render_physical(
             &model,
             &physical.kick_leg,
         )?);
-        // A side view across the kick, so the shoe meets the body in profile.
-        let orbit = CameraOrbit {
-            focus: Vec3::new(0.12, 0.65, -0.42),
-            yaw_rad: -1.8,
-            pitch_rad: 1.3,
-            distance_m: 2.8,
-        };
         let rgba = backend
             .render_scene_camera(
                 &camera,
