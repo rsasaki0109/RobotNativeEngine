@@ -57,7 +57,7 @@
     "truth_boundary": "motor-only numerical calibration; no G1 contact, controller, kick, hardware or reliability inference"
   },
   "selected_source_sha256": {
-    "Cargo.lock": "bd1a2fd03beb12f3c24731a7ee8dd70d44bb65123f70a4e16adaa5a320b434ed",
+    "Cargo.lock": "b9f621932eb5b40deb7e39dc05b0319b3d3622903b9eb3ab1b0684af532a134c",
     "Cargo.toml": "d5aa604f219d313d42a39b68779a13bde80dd73d4750b7f5ab7310e663c9ed25",
     "examples/141_position_motor_calibration/Cargo.toml": "da10d51813c520fbbfd65bacc33a4054f79b67cf56aab39964355091a046c6c3",
     "examples/141_position_motor_calibration/lib.rs": "15993f5ee96380c06cf20f97eee90efd325ec8267e699cef110766fc69d70a9c",
