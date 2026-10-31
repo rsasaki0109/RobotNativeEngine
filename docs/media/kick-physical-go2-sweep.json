@@ -17,6 +17,13 @@
         "first_contact_time_s": 2.068,
         "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
         "last_contact_time_s": 2.218,
+        "normal_impulse_by_robot_link_ns": {
+          "base": [
+            -0.15330454094585966,
+            -7.312780882364613,
+            29.10036841284326
+          ]
+        },
         "normal_impulse_magnitude_ns": 30.005527962009893,
         "normal_impulse_on_robot_world_ns": [
           -0.15330454094585966,
@@ -100,6 +107,13 @@
         "first_contact_time_s": 1.986,
         "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
         "last_contact_time_s": 2.101,
+        "normal_impulse_by_robot_link_ns": {
+          "base": [
+            -0.13402287762149748,
+            -7.396430551124809,
+            28.79031099126669
+          ]
+        },
         "normal_impulse_magnitude_ns": 29.725530340150197,
         "normal_impulse_on_robot_world_ns": [
           -0.13402287762149748,
@@ -183,6 +197,13 @@
         "first_contact_time_s": 1.947,
         "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
         "last_contact_time_s": 2.043,
+        "normal_impulse_by_robot_link_ns": {
+          "base": [
+            -0.17188599992748343,
+            -7.497037098363027,
+            26.981278942125268
+          ]
+        },
         "normal_impulse_magnitude_ns": 28.00400905948959,
         "normal_impulse_on_robot_world_ns": [
           -0.17188599992748343,
@@ -266,6 +287,13 @@
         "first_contact_time_s": 1.927,
         "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
         "last_contact_time_s": 2.001,
+        "normal_impulse_by_robot_link_ns": {
+          "base": [
+            -0.2370743560252938,
+            -9.07014112953287,
+            23.528900590720387
+          ]
+        },
         "normal_impulse_magnitude_ns": 25.217708606610767,
         "normal_impulse_on_robot_world_ns": [
           -0.2370743560252938,
@@ -349,6 +377,18 @@
         "first_contact_time_s": 1.917,
         "impulse_scope": "sum of solver normal impulses between kicker colliders and robot links; friction impulse excluded",
         "last_contact_time_s": 1.993,
+        "normal_impulse_by_robot_link_ns": {
+          "FL_thigh": [
+            0.7050268789810592,
+            -0.14563497768965308,
+            0.21491859869054797
+          ],
+          "base": [
+            -0.25192522635235104,
+            -0.12085081313111475,
+            23.67955318645957
+          ]
+        },
         "normal_impulse_magnitude_ns": 23.900253088108908,
         "normal_impulse_on_robot_world_ns": [
           0.45310165262870833,
@@ -560,8 +600,8 @@
   },
   "note": "Measured kicks from one simulated leg; impulse and force are outputs, recovery is reported, not assumed",
   "physical_kick_source_sha256": {
-    "examples/139_kick_comparison/kicker.rs": "1c5b5bce7152a33b53506fdcc3d47a2d9d34ce052a51dfbf4570d2d6fdacc972",
-    "examples/139_kick_comparison/physics/physical_kick.rs": "1b6d61d754965260a98d91cd7edf671b96a9800be91884354d312c92aaa8201c"
+    "examples/139_kick_comparison/kicker.rs": "ed1191eee956243d49a072aa27ee9567f27b180a3e1ea96a327bb3254b5dcd48",
+    "examples/139_kick_comparison/physics/physical_kick.rs": "bf8064701047f01812348277d125fbda299056f9ea99b94a5b915a5d1a37fc34"
   },
   "robot": "Go2",
   "schema_version": 1

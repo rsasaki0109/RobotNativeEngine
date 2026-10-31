@@ -338,8 +338,11 @@ Go2 recovers. An extension-speed sweep from 2.0 to 7.0 m/s shoe speed recovers
 in every case with exact replay. `--strength 2 --kick-speed 3.5
 --follow-through 0.3` reaches the roughly 10 m/s of trained front kicks. On
 the default floor it slides the Go2 about a metre. With `--floor-friction 0.9`
-it flips the robot onto its back. The kicker's torso is kinematic and the
-contact is rigid; see
+it flips the robot onto its back. `--robot g1` kicks the G1 with the mid kick,
+through convex hulls of its collision meshes. Its hanging left arm takes most
+of a nominal kick, which it recovers from. A 10 m/s trained-strength kick to
+the hip knocks it over. The kicker's torso is kinematic and the contact is
+rigid; see
 [the method and limits](../examples/139_kick_comparison/README.md#simulated-kicking-leg).
 
 ```bash

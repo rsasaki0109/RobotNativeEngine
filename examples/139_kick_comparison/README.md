@@ -730,6 +730,67 @@ cargo run --locked --release -p kick_comparison --example 139_kick_comparison --
   --physical-kick --sweep --output target/rne-kick-physical-sweep
 ```
 
+### G1
+
+![G1 kicked by a simulated leg](../../docs/media/kick-physical-g1.gif)
+
+The prescribed G1 scene loads the URDF with mesh collisions off. Its pelvis,
+torso, hips, knees and arms therefore have no collider, and a shoe would pass
+straight through them. `g1_physical.rne.scene.toml` keeps everything else and
+turns each collision mesh into its convex hull (`convex_mesh_collisions`), so
+concave detail is filled in. The prescribed capture is unchanged.
+
+The human uses the mid kick. Its leg plane also turns about one fixed hip axis
+(largest deviation 4.2e-4 rad); the toe twists up to 8.2 cm out of that plane.
+The G1 body is not a box, so the aim uses horizontal rays across the fully
+extended shoe's height and width. The nearest robot hit is the surface from
+which the follow-through is measured.
+
+Measured speed sweep at the default strength (each case replayed exactly). The
+G1's left arm hangs beside its hip, in the kick's path, so most of the impulse
+lands on the left elbow before the shoe reaches the left hip:
+
+| Speed scale | Shoe speed | Impulse | Peak force, 10 ms average | Contact time | Peak tilt | Outcome |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1.0 | 2.41 m/s | 24.8 N·s | 424 N | 239 ms | 0.029 rad | recovers |
+| 1.5 | 4.73 m/s | 26.3 N·s | 676 N | 151 ms | 0.079 rad | recovers |
+| 2.0 | 7.40 m/s | 21.6 N·s | 507 N | 169 ms | 0.050 rad | recovers |
+| 2.5 | 8.71 m/s | 24.2 N·s | 722 N | 149 ms | 0.080 rad | upright, but fails the attachment gate (0.59 mrad) |
+| 3.0 | 11.49 m/s | 16.4 N·s | 507 N | 116 ms | 0.117 rad | upright, but fails the attachment gate (4.9 mrad) |
+
+In the two fastest kicks the G1 stays upright on both loaded feet. The elbow
+impact, however, twists a welded fixed link beyond the existing 0.5 mrad
+attachment gate, and the recovery predicate counts that as a failure. This is
+a solver constraint error under impact. It is reported as measured rather
+than hidden by relaxing the gate. The mid kick travels further than the Go2's
+low kick, so the default strength already reaches 7.4 m/s at speed scale 2.0.
+
+![G1 knocked over by a trained-strength kick](../../docs/media/kick-physical-g1-strong.gif)
+
+`--strength 2 --kick-speed 2.5 --follow-through 0.3` brings the shoe to
+10.0 m/s, matching the Go2's trained-strength kick. This time the shoe passes
+below the arm and strikes the left hip links:
+
+| Shoe speed | Impulse | Peak force, 10 ms average | Contact time | Outcome |
+| --- | --- | --- | --- | --- |
+| 10.0 m/s | 69.2 N·s | 1,416 N | 173 ms | knocked over (peak tilt 1.65 rad), 1.38 m away |
+
+The G1 ends on the floor with its head, shoulders, right arm and right hip
+touching the ground. The full sweep is in
+[kick-physical-g1-sweep.json](../../docs/media/kick-physical-g1-sweep.json),
+and both captures have metadata beside their GIFs.
+
+```bash
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --physical-kick --robot g1 --render --output target/rne-kick-physical-g1
+python3 examples/139_kick_comparison/encode_physical.py target/rne-kick-physical-g1 --robot g1
+cargo run --locked --release -p kick_comparison --example 139_kick_comparison -- \
+  --physical-kick --robot g1 --strength 2 --kick-speed 2.5 --follow-through 0.3 \
+  --render --output target/rne-kick-physical-g1-strong
+python3 examples/139_kick_comparison/encode_physical.py target/rne-kick-physical-g1-strong \
+  --robot g1 --stem kick-physical-g1-strong
+```
+
 `--kick-speed S`, `--follow-through M`, `--strength S` and `--floor-friction μ`
 select another kick. The capture fails if the shoe never reaches the robot.
 The renderer fails if any rendered leg joint leaves its simulated segment by
@@ -749,6 +810,8 @@ Limitations, also recorded in every trace:
   world-frame contact points (`UrdfSceneSim::physics_contact_points`).
 - Robot observations are the ideal simulator state, as in the prescribed
   capture. This is a Rapier simulation, not a hardware kick-resistance rating.
+- The G1's struck body is the convex hulls of its collision meshes, not the
+  meshes themselves.
 
 ## Human motion and provenance
 
