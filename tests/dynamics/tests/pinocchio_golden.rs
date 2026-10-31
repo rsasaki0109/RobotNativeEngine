@@ -63,7 +63,7 @@ fn assert_tip_near(reference: [f64; 3], simulated: Vec3, label: &str, eps_m: f64
     let ref_vec = Vec3::new(reference[0], reference[1], reference[2]);
     let err = (simulated - ref_vec).length();
     assert!(
-        err < eps_m,
+        err <= eps_m,
         "{label}: tip error {err:.4} m exceeds {eps_m} m (sim={simulated:?} ref={ref_vec:?})"
     );
     let ref_len = ref_vec.length();
@@ -81,7 +81,7 @@ fn assert_angles_near(reference: &[f64], simulated: &[f64], label: &str, eps_rad
     for (i, (r, s)) in reference.iter().zip(simulated.iter()).enumerate() {
         let err = (s - r).abs();
         assert!(
-            err < eps_rad,
+            err <= eps_rad,
             "{label} joint[{i}]: angle error {err:.4} rad exceeds {eps_rad} rad (sim={s:.4} ref={r:.4})"
         );
     }
