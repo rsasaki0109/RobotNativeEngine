@@ -1,7 +1,7 @@
 {
   "cases": [
     {
-      "case": "speed_1.00_follow_0.100m",
+      "case": "speed_1.00_follow_0.100m_strength_1.00",
       "exact_replay": {
         "controller_state_words": true,
         "frames_and_contacts": true,
@@ -84,7 +84,7 @@
       }
     },
     {
-      "case": "speed_1.50_follow_0.100m",
+      "case": "speed_1.50_follow_0.100m_strength_1.00",
       "exact_replay": {
         "controller_state_words": true,
         "frames_and_contacts": true,
@@ -167,7 +167,7 @@
       }
     },
     {
-      "case": "speed_2.00_follow_0.100m",
+      "case": "speed_2.00_follow_0.100m_strength_1.00",
       "exact_replay": {
         "controller_state_words": true,
         "frames_and_contacts": true,
@@ -250,7 +250,7 @@
       }
     },
     {
-      "case": "speed_2.50_follow_0.100m",
+      "case": "speed_2.50_follow_0.100m_strength_1.00",
       "exact_replay": {
         "controller_state_words": true,
         "frames_and_contacts": true,
@@ -333,7 +333,7 @@
       }
     },
     {
-      "case": "speed_3.00_follow_0.100m",
+      "case": "speed_3.00_follow_0.100m_strength_1.00",
       "exact_replay": {
         "controller_state_words": true,
         "frames_and_contacts": true,
@@ -560,8 +560,8 @@
   },
   "note": "Measured kicks from one simulated leg; impulse and force are outputs, recovery is reported, not assumed",
   "physical_kick_source_sha256": {
-    "examples/139_kick_comparison/kicker.rs": "dbdb9308c8190440fa7b791295e01e8ddb3c5c4b0df41b0546855ba161c7f72e",
-    "examples/139_kick_comparison/physics/physical_kick.rs": "46558d877fd9cea21af4a68edc758653abced24ab0a36ac101b63e8d12c280a3"
+    "examples/139_kick_comparison/kicker.rs": "1c5b5bce7152a33b53506fdcc3d47a2d9d34ce052a51dfbf4570d2d6fdacc972",
+    "examples/139_kick_comparison/physics/physical_kick.rs": "1b6d61d754965260a98d91cd7edf671b96a9800be91884354d312c92aaa8201c"
   },
   "robot": "Go2",
   "schema_version": 1

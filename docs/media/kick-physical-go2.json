@@ -3,6 +3,12 @@
   "scope": "Go2 recovery from a simulated kicking leg; contact impulse and force are measured outputs. Rigid shoe contact, kinematic kicker torso, ideal robot observations; no hardware qualification claim.",
   "kick": {
     "configuration": {
+      "applied_torque_limits_nm": [
+        120.0,
+        140.0,
+        200.0,
+        100.0
+      ],
       "human_origin_world_m": [
         0.24739109182773913,
         0.0,
@@ -191,6 +197,7 @@
       }
     },
     "extension_end_s": 2.0,
+    "floor_and_foot_friction": 0.5,
     "follow_through_m": 0.1,
     "leg_tracking": {
       "max_reference_error_rad": {
@@ -250,7 +257,8 @@
         -0.0473451615241931
       ]
     },
-    "speed_scale": 2.0
+    "speed_scale": 2.0,
+    "strength_scale": 1.0
   },
   "summary": {
     "ever_fallen": false,
@@ -290,18 +298,18 @@
     "robot_state_words": true
   },
   "physical_kick_source_sha256": {
-    "examples/139_kick_comparison/kicker.rs": "dbdb9308c8190440fa7b791295e01e8ddb3c5c4b0df41b0546855ba161c7f72e",
-    "examples/139_kick_comparison/physics/physical_kick.rs": "46558d877fd9cea21af4a68edc758653abced24ab0a36ac101b63e8d12c280a3"
+    "examples/139_kick_comparison/kicker.rs": "1c5b5bce7152a33b53506fdcc3d47a2d9d34ce052a51dfbf4570d2d6fdacc972",
+    "examples/139_kick_comparison/physics/physical_kick.rs": "1b6d61d754965260a98d91cd7edf671b96a9800be91884354d312c92aaa8201c"
   },
   "artifacts": {
-    "gif_sha256": "ab5796905754eadda7ff14bfcb48fc6acb7d148c5bfe44a3bc527befe10f5f9d",
-    "poster_sha256": "9516c318d666881e74b9590fb683e76c7a6aabf63b0fb145e2cc70c405d45e28",
+    "gif_sha256": "717115f0eafd72452b4c4bdd8670de640408932d7d7abf472fa0096dddb5fb02",
+    "poster_sha256": "b318c00ced4df237e03e78f1df5abe2591e6912e7dc79613dfe56cbe3bda9a9f",
     "frame_count": 187,
     "width": 960,
     "height": 540,
     "gif_duration_ms": 6230
   },
-  "trace_sha256": "ec32fb30b64c5fbd5479d3864a2a8aa3cd1fd59fd3f116bfedc859b8be2bc894",
+  "trace_sha256": "d1bd1c7e4dac822fb703388600f98164b3a0f4f79950be69223afe567de85c58",
   "human_provenance": "assets/fixtures/kick_human/source-manifest.json",
   "robot_provenance": [
     "assets/robots/go2_description"
