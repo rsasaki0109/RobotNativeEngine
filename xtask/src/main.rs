@@ -2930,6 +2930,9 @@ fn run_locomotion_smokes() -> anyhow::Result<()> {
         "cargo run --locked -p position_motor_calibration --example 141_position_motor_calibration -- --verify-report docs/media/position-motor-calibration-motor-construction-source.json",
     )?;
     run_step("cargo test --locked -p kick_comparison --example 139_kick_comparison")?;
+    // Pretrained G1 policy: Rust actions match MuJoCo, walking matches the
+    // MuJoCo reference, replay is bit-exact.
+    run_step("cargo test --locked -p g1_sim2sim --example 144_g1_sim2sim")?;
     run_step("cargo test --locked -p rne_physics_rapier --features position-motor-diagnostics")?;
     run_step(
         "cargo test --locked -p kick_comparison --example 139_kick_comparison --features position-motor-diagnostics",
