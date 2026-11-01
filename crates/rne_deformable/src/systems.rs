@@ -665,6 +665,12 @@ pub fn step_deformable_world(
     dt_s: f64,
     config: DeformableSolverConfig,
 ) -> Result<(), DeformableStepError> {
+    // Without a deformable body or an attachment the step changes nothing and
+    // has nothing to validate, so skip snapshotting every collider.
+    if !any_entity_with::<DeformableBody>(world) && !any_entity_with::<DeformableAttachment>(world)
+    {
+        return Ok(());
+    }
     let mut sampled = world
         .query::<(rne_ecs::Entity, &RigidBody, &Collider)>()
         .iter(world)
@@ -744,6 +750,16 @@ pub fn step_deformable_world(
         result?;
     }
     Ok(())
+}
+
+/// Whether any entity holds a `T`, without building a query.
+fn any_entity_with<T: bevy_ecs::component::Component>(world: &rne_ecs::World) -> bool {
+    world.components().component_id::<T>().is_some_and(|id| {
+        world
+            .archetypes()
+            .iter()
+            .any(|archetype| archetype.contains(id) && !archetype.is_empty())
+    })
 }
 
 fn collider_may_overlap_body(body: &DeformableBody, collider: &DeformableCollider) -> bool {

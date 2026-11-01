@@ -144,6 +144,14 @@ engine ("before"), this one and MuJoCo in turn:
   and motor constraints now share one `M⁻¹e` solve. The backend sorts the ECS
   entities once per synchronization instead of six times, and reads a joint's
   position and velocity with one decode.
+- **The wrapper around Rapier.** At one iteration RNE's own synchronization was
+  about 30% of a step. Each synchronization now composes every world transform
+  once instead of re-walking the parent chain for each body and joint torque.
+  The deformable step returns at once in a scene without deformables, instead
+  of snapshotting every collider, and the walker reads the joint states the
+  backend already decoded after the step. Instructions for 2 s of walking fall
+  another 8% at one iteration (826 M to 760 M) and 3.4% at four (1.92 G to
+  1.86 G), with byte-identical walk records.
 
 ```bash
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --throughput --output target/g1-sim2sim
