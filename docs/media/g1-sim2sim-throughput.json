@@ -1,9 +1,10 @@
 {
-  "schema_version": 1,
-  "description": "G1 walking throughput, unitree_rl_gym policy at 0.5 m/s, 10 s per walker, 4-core container, medians of five alternating runs",
+  "schema_version": 2,
+  "description": "G1 walking throughput, unitree_rl_gym policy at 0.5 m/s, 10 s per walker, 4-core container, medians of five rounds alternating previous RNE, this RNE and MuJoCo",
+  "metric": "walkers x simulated seconds / mean loop time per walker (MuJoCo: mean time inside mj_step per process); the slowest-walker variant divides by the slowest walker's time instead",
   "machine": {
     "cores": 4,
-    "note": "shared cloud container; runs vary by up to 40% between repeats"
+    "note": "shared cloud container; absolute speed varies between sessions, so compare rows from the same file"
   },
   "rne": {
     "loop": "physics, PD and policy in Rust, one walker per thread",
@@ -12,97 +13,105 @@
       {
         "solver_iterations": 1,
         "walkers": 1,
-        "median_simulated_s_per_wall_s": 16.4,
+        "median_simulated_s_per_wall_s": 22.41,
+        "median_slowest_walker_simulated_s_per_wall_s": 22.41,
         "runs": [
-          16.4,
-          12.16,
-          16.46,
-          9.51,
-          17.42
+          19.69,
+          22.72,
+          22.41,
+          23.34,
+          20.74
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 2,
-        "median_simulated_s_per_wall_s": 27.93,
+        "median_simulated_s_per_wall_s": 41.14,
+        "median_slowest_walker_simulated_s_per_wall_s": 40.57,
         "runs": [
-          23.63,
-          31.04,
-          27.93,
-          20.5,
-          33.96
+          44.43,
+          41.14,
+          39.96,
+          44.92,
+          39.74
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 4,
-        "median_simulated_s_per_wall_s": 45.81,
+        "median_simulated_s_per_wall_s": 82.8,
+        "median_slowest_walker_simulated_s_per_wall_s": 79.89,
         "runs": [
-          45.63,
-          65.7,
-          45.81,
-          53.72,
-          45.55
+          75.18,
+          82.93,
+          80.57,
+          82.8,
+          90.07
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 8,
-        "median_simulated_s_per_wall_s": 54.91,
+        "median_simulated_s_per_wall_s": 87.65,
+        "median_slowest_walker_simulated_s_per_wall_s": 82.44,
         "runs": [
-          54.29,
-          56.25,
-          53.45,
-          54.91,
-          60.6
+          88.2,
+          86.74,
+          89.32,
+          87.65,
+          85.91
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 1,
-        "median_simulated_s_per_wall_s": 7.08,
+        "median_simulated_s_per_wall_s": 10.18,
+        "median_slowest_walker_simulated_s_per_wall_s": 10.18,
         "runs": [
-          6.97,
-          7.08,
-          7.11,
-          6.44,
-          7.15
+          10.37,
+          9.83,
+          10.05,
+          10.18,
+          10.41
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 2,
-        "median_simulated_s_per_wall_s": 13.38,
+        "median_simulated_s_per_wall_s": 20.43,
+        "median_slowest_walker_simulated_s_per_wall_s": 20.26,
         "runs": [
-          13.38,
-          13.53,
-          12.48,
-          11.03,
-          13.41
+          21.04,
+          20.43,
+          18.34,
+          20.44,
+          20.38
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 4,
-        "median_simulated_s_per_wall_s": 25.74,
+        "median_simulated_s_per_wall_s": 40.36,
+        "median_slowest_walker_simulated_s_per_wall_s": 38.73,
         "runs": [
-          26.9,
-          22.27,
-          25.74,
-          22.24,
-          26.37
+          41.23,
+          35.33,
+          35.25,
+          41.22,
+          40.36
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 8,
-        "median_simulated_s_per_wall_s": 25.3,
+        "median_simulated_s_per_wall_s": 38.13,
+        "median_slowest_walker_simulated_s_per_wall_s": 36.9,
         "runs": [
-          26.1,
-          23.91,
-          25.3,
-          24.34,
-          26.4
+          38.13,
+          37.91,
+          35.78,
+          40.08,
+          39.33
         ]
       }
     ],
@@ -110,97 +119,105 @@
       {
         "solver_iterations": 1,
         "walkers": 1,
-        "median_simulated_s_per_wall_s": 11.6,
+        "median_simulated_s_per_wall_s": 16.73,
+        "median_slowest_walker_simulated_s_per_wall_s": 16.73,
         "runs": [
-          11.35,
-          10.94,
           12.91,
-          11.6,
-          11.93
+          15.6,
+          17.8,
+          16.89,
+          16.73
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 2,
-        "median_simulated_s_per_wall_s": 21.33,
+        "median_simulated_s_per_wall_s": 33.52,
+        "median_slowest_walker_simulated_s_per_wall_s": 31.59,
         "runs": [
-          17.94,
-          21.33,
-          22.58,
-          23.52,
-          21.01
+          31.98,
+          29.31,
+          33.52,
+          34.8,
+          33.61
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 4,
-        "median_simulated_s_per_wall_s": 39.96,
+        "median_simulated_s_per_wall_s": 65.41,
+        "median_slowest_walker_simulated_s_per_wall_s": 59.58,
         "runs": [
-          40.19,
-          39.96,
-          37.41,
-          30.7,
-          40.91
+          67.18,
+          65.41,
+          69.8,
+          56.46,
+          63.26
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 8,
-        "median_simulated_s_per_wall_s": 38.75,
+        "median_simulated_s_per_wall_s": 65.61,
+        "median_slowest_walker_simulated_s_per_wall_s": 62.96,
         "runs": [
-          33.2,
-          40.99,
-          41.95,
-          30.77,
-          38.75
+          65.41,
+          66.23,
+          65.61,
+          65.08,
+          67.19
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 1,
-        "median_simulated_s_per_wall_s": 4.53,
+        "median_simulated_s_per_wall_s": 6.92,
+        "median_slowest_walker_simulated_s_per_wall_s": 6.92,
         "runs": [
-          4.53,
-          4.14,
-          4.74,
-          4.96,
-          4.08
+          6.92,
+          7.12,
+          6.82,
+          6.69,
+          6.94
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 2,
-        "median_simulated_s_per_wall_s": 8.71,
+        "median_simulated_s_per_wall_s": 13.22,
+        "median_slowest_walker_simulated_s_per_wall_s": 12.71,
         "runs": [
-          8.73,
-          7.66,
-          8.9,
-          7.34,
-          8.71
+          13.22,
+          13.21,
+          12.03,
+          13.27,
+          13.89
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 4,
-        "median_simulated_s_per_wall_s": 14.56,
+        "median_simulated_s_per_wall_s": 25.71,
+        "median_slowest_walker_simulated_s_per_wall_s": 24.91,
         "runs": [
-          14.78,
-          12.59,
-          17.89,
-          14.56,
-          13.49
+          25.71,
+          27.11,
+          28.53,
+          23.84,
+          24.32
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 8,
-        "median_simulated_s_per_wall_s": 15.46,
+        "median_simulated_s_per_wall_s": 26.35,
+        "median_slowest_walker_simulated_s_per_wall_s": 24.89,
         "runs": [
-          15.33,
-          15.46,
-          16.04,
-          14.89,
-          17.79
+          27.22,
+          26.35,
+          26.45,
+          26.12,
+          25.5
         ]
       }
     ]
@@ -212,50 +229,54 @@
     "rows": [
       {
         "processes": 1,
-        "median_mj_step_simulated_s_per_wall_s": 19.07,
-        "median_loop_simulated_s_per_wall_s": 15.1,
+        "median_mj_step_simulated_s_per_wall_s": 24.18,
+        "median_loop_simulated_s_per_wall_s": 19.14,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 24.18,
         "mj_step_runs": [
-          19.24,
-          20.73,
-          19.07,
-          13.78,
-          13.5
+          24.18,
+          26.7,
+          24.31,
+          21.58,
+          23.3
         ]
       },
       {
         "processes": 2,
-        "median_mj_step_simulated_s_per_wall_s": 36.28,
-        "median_loop_simulated_s_per_wall_s": 28.46,
+        "median_mj_step_simulated_s_per_wall_s": 47.42,
+        "median_loop_simulated_s_per_wall_s": 37.59,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 45.51,
         "mj_step_runs": [
-          36.57,
-          38.49,
-          34.38,
-          34.19,
-          36.28
+          51.05,
+          47.42,
+          46.63,
+          45.42,
+          48.11
         ]
       },
       {
         "processes": 4,
-        "median_mj_step_simulated_s_per_wall_s": 72.36,
-        "median_loop_simulated_s_per_wall_s": 56.54,
+        "median_mj_step_simulated_s_per_wall_s": 95.41,
+        "median_loop_simulated_s_per_wall_s": 75.7,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 89.78,
         "mj_step_runs": [
-          71.27,
-          77.2,
-          73.34,
-          56.71,
-          72.36
+          95.28,
+          95.69,
+          95.41,
+          99.14,
+          83.7
         ]
       },
       {
         "processes": 8,
-        "median_mj_step_simulated_s_per_wall_s": 69.91,
-        "median_loop_simulated_s_per_wall_s": 54.22,
+        "median_mj_step_simulated_s_per_wall_s": 96.74,
+        "median_loop_simulated_s_per_wall_s": 76.2,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 90.49,
         "mj_step_runs": [
-          64.48,
-          70.87,
-          65.72,
-          71.87,
-          69.91
+          96.45,
+          97.61,
+          102.84,
+          95.64,
+          96.74
         ]
       }
     ]

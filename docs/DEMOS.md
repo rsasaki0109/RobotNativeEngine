@@ -609,13 +609,13 @@ pelvis height within 2 mm. Armature, joint friction and floor friction change
 forward speed by under 0.01 m/s. Four inertia-less sensor frames that RNE's
 importer weighted at 1 kg each made the first port crouch 19 mm low; the
 12-DoF model now merges its fixed upper body into the pelvis, as the MJCF
-does, and is pinned at 32.107 kg. One G1 runs at 7.1× real time with four
-solver iterations and 16.4× with one; MuJoCo steps the same model at 19.1×.
-Skipping the zero columns of each leg's Jacobian in Rapier's mass-matrix
-rebuild, in nalgebra's exact arithmetic order, made the default step 1.6×
-faster with byte-identical walk records. `--throughput` runs one to eight
-walkers on threads; on four cores they reach 26–46 simulated seconds per wall
-second, against MuJoCo's 72.
+does, and is pinned at 32.107 kg. One G1 runs at 10.2× real time with four
+solver iterations and 22.4× with one; MuJoCo steps the same model at 24.2× in
+the same session. Skipping the zero columns of each leg's Jacobian in Rapier's
+mass-matrix rebuild, in nalgebra's exact arithmetic order, made the default
+step 1.5× faster with byte-identical walk records. `--throughput` runs one to
+eight walkers on threads; four walkers reach 40–83 simulated seconds per wall
+second on four cores, against MuJoCo's 95.
 `--robot h1` runs unitree_rl_gym's H1 policy on the H1, whose feet are convex
 hulls of its ankle meshes: no fall, pelvis height within 2 mm, and forward
 speed 0.02–0.03 m/s above MuJoCo's at every command.

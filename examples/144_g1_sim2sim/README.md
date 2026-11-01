@@ -106,29 +106,33 @@ Simulated seconds per wall second for G1 walkers at 0.5 m/s, 10 s each, in
 the 4-core development container. RNE times its whole loop (physics, PD and
 policy, all in Rust), one walker per thread. MuJoCo 3.9.0 runs the same loop
 with PD and policy in numpy, one process per walker; its first row counts only
-the time inside `mj_step`. Medians of five runs, alternating with a build of
-the previous engine ("before"):
+the time inside `mj_step`. Both count walkers times simulated seconds over the
+mean loop time per walker. Medians of five rounds, each running the previous
+engine ("before"), this one and MuJoCo in turn:
 
 | Engine and setting | 1 walker | 2 | 4 | 8 |
 | --- | --- | --- | --- | --- |
-| MuJoCo, `mj_step` only | 19.1 | 36.3 | 72.4 | 69.9 |
-| MuJoCo, loop with numpy PD and policy | 15.1 | 28.4 | 56.4 | 54.4 |
-| RNE, 1 solver iteration | 16.4 | 27.9 | 45.8 | 54.9 |
-| RNE, 1 solver iteration, before | 11.6 | 21.3 | 40.0 | 38.7 |
-| RNE, 4 solver iterations (default) | 7.1 | 13.4 | 25.7 | 25.3 |
-| RNE, 4 solver iterations, before | 4.5 | 8.7 | 14.6 | 15.5 |
+| MuJoCo, `mj_step` only | 24.2 | 47.4 | 95.4 | 96.7 |
+| MuJoCo, loop with numpy PD and policy | 19.1 | 37.6 | 75.7 | 76.2 |
+| RNE, 1 solver iteration | 22.4 | 41.1 | 82.8 | 87.7 |
+| RNE, 1 solver iteration, before | 16.7 | 33.5 | 65.4 | 65.6 |
+| RNE, 4 solver iterations (default) | 10.2 | 20.4 | 40.4 | 38.1 |
+| RNE, 4 solver iterations, before | 6.9 | 13.2 | 25.7 | 26.4 |
 
 - **The walk is unchanged.** The speedups reproduce every floating-point
   result, so the walk records are byte-identical before and after. Every
   setting walks: 0.457 m/s at one iteration, 0.464 m/s at four, against
   MuJoCo's 0.476 m/s.
-- **One walker.** At one solver iteration RNE runs at 86% of MuJoCo's physics
-  alone, and slightly faster than MuJoCo's loop once numpy computes PD and
-  policy. At four iterations it reaches 37% of MuJoCo's physics.
-- **Several walkers.** MuJoCo processes scale almost linearly to the four
-  cores; RNE threads scale less well, so four walkers reach 63% of MuJoCo's
-  physics throughput at one iteration and 35% at four. Runs vary by up to 40%
-  between repeats on this shared container.
+- **One walker.** At one solver iteration RNE runs at 93% of MuJoCo's physics
+  alone, and faster than MuJoCo's loop once numpy computes PD and policy. At
+  four iterations it reaches 42% of MuJoCo's physics. The default step is 1.5×
+  faster than before.
+- **Several walkers.** Both engines scale almost linearly to the four cores:
+  four walkers deliver 3.7× (one iteration) and 4.0× (four) a single walker's
+  throughput, MuJoCo 3.9×. Counting the slowest walker instead of the mean
+  lowers this engine's rows by at most 6% and MuJoCo's by at most 7%. The
+  container is shared, and absolute speed varies by up to 40% between
+  sessions, so only rows measured together compare.
 - **Where the time went.** Callgrind counts the instructions for 2 s of
   walking. At four iterations they fall from 2.88 G to 1.92 G (−33%); at one
   iteration from 1.09 G to 0.83 G (−25%). Rapier rebuilds and refactorizes
