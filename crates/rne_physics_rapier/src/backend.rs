@@ -351,6 +351,18 @@ impl RapierBackend {
         let state = self.worlds.get(&physics_world)?;
         multibody_joint_coordinate(state, entity).map(|(_, velocity)| velocity)
     }
+
+    /// Reads the generalized position and velocity of an entity's single-DoF
+    /// multibody joint together, as [`Self::multibody_joint_position`] and
+    /// [`Self::multibody_joint_velocity`] would, decoding the joint once.
+    pub fn multibody_joint_state(
+        &self,
+        physics_world: PhysicsWorldId,
+        entity: Entity,
+    ) -> Option<(f64, f64)> {
+        let state = self.worlds.get(&physics_world)?;
+        multibody_joint_coordinate(state, entity)
+    }
 }
 
 fn multibody_joint_coordinate(state: &RapierWorldState, entity: Entity) -> Option<(f64, f64)> {
@@ -662,8 +674,10 @@ impl PhysicsBackend for RapierBackend {
 
         // Iterate in a stable entity order so Rapier handle assignment and the
         // resulting solver order are deterministic regardless of ECS archetype
-        // layout (see AGENTS.md determinism requirements).
-        for entity in sorted_entities(world) {
+        // layout (see AGENTS.md determinism requirements). Synchronization
+        // spawns and despawns nothing, so one sorted list serves every pass.
+        let entities = sorted_entities(world);
+        for &entity in &entities {
             let transform = world_transform_of(world, entity);
             let Some(rigid_body) = world.get::<RigidBody>(entity) else {
                 continue;
@@ -787,8 +801,8 @@ impl PhysicsBackend for RapierBackend {
             sync_collider_owner(world, state, entity);
         }
 
-        sync_joints_from_ecs(world, state)?;
-        apply_joint_motors(world, state)?;
+        sync_joints_from_ecs(world, state, &entities)?;
+        apply_joint_motors(world, state, &entities)?;
         #[cfg(feature = "position-motor-diagnostics")]
         sync_position_motor_diagnostic_targets(world, state);
         state.query_pipeline.update(&state.colliders);
@@ -1424,7 +1438,11 @@ fn sorted_entities(world: &World) -> Vec<Entity> {
     entities
 }
 
-fn sync_joints_from_ecs(world: &World, state: &mut RapierWorldState) -> Result<(), PhysicsError> {
+fn sync_joints_from_ecs(
+    world: &World,
+    state: &mut RapierWorldState,
+    entities: &[Entity],
+) -> Result<(), PhysicsError> {
     // Release wired joints whose description component was removed (e.g. a grasp
     // weld dropped when the gripper opens). Drop in a stable order for determinism.
     let mut detached: Vec<Entity> = state
@@ -1452,7 +1470,7 @@ fn sync_joints_from_ecs(world: &World, state: &mut RapierWorldState) -> Result<(
         }
     }
 
-    for entity in sorted_entities(world) {
+    for &entity in entities {
         if state.entity_to_joint.contains_key(&entity)
             || state.entity_to_multibody_joint.contains_key(&entity)
         {
@@ -1538,12 +1556,12 @@ fn sync_joints_from_ecs(world: &World, state: &mut RapierWorldState) -> Result<(
         state.entity_to_joint.insert(entity, handle);
     }
 
-    sync_attachments_from_ecs(world, state);
+    sync_attachments_from_ecs(world, state, entities);
     Ok(())
 }
 
 /// Creates and releases welds on articulated revolute and prismatic links.
-fn sync_attachments_from_ecs(world: &World, state: &mut RapierWorldState) {
+fn sync_attachments_from_ecs(world: &World, state: &mut RapierWorldState, entities: &[Entity]) {
     let mut released: Vec<Entity> = state
         .entity_to_attachment
         .keys()
@@ -1556,7 +1574,7 @@ fn sync_attachments_from_ecs(world: &World, state: &mut RapierWorldState) {
             state.impulse_joints.remove(handle, true);
         }
     }
-    for entity in sorted_entities(world) {
+    for &entity in entities {
         if state.entity_to_attachment.contains_key(&entity)
             || !state.entity_to_multibody_joint.contains_key(&entity)
             || !has_articulated_coordinate(world, entity)
@@ -1580,8 +1598,12 @@ fn sync_attachments_from_ecs(world: &World, state: &mut RapierWorldState) {
     }
 }
 
-fn apply_joint_motors(world: &World, state: &mut RapierWorldState) -> Result<(), PhysicsError> {
-    for id in sorted_entities(world) {
+fn apply_joint_motors(
+    world: &World,
+    state: &mut RapierWorldState,
+    entities: &[Entity],
+) -> Result<(), PhysicsError> {
+    for &id in entities {
         let entity = world.entity(id);
         if let Some(armature) = entity.get::<RevoluteJointArmature>() {
             if !cfg!(feature = "experimental-armature") && armature.inertia_kg_m2 != 0.0 {
@@ -1653,8 +1675,8 @@ fn apply_joint_motors(world: &World, state: &mut RapierWorldState) -> Result<(),
         };
         apply_motor_command(world, *entity, axis, &mut link.joint.data)?;
     }
-    apply_direct_joint_efforts(world, state)?;
-    apply_passive_coulomb_friction(world, state)?;
+    apply_direct_joint_efforts(world, state, entities)?;
+    apply_passive_coulomb_friction(world, state, entities)?;
     Ok(())
 }
 
@@ -1778,8 +1800,9 @@ fn apply_motor_command(
 fn apply_direct_joint_efforts(
     world: &World,
     state: &mut RapierWorldState,
+    entities: &[Entity],
 ) -> Result<(), PhysicsError> {
-    for entity in sorted_entities(world) {
+    for &entity in entities {
         let Some(command) = world.get::<JointActuation>(entity).copied() else {
             continue;
         };
@@ -1847,8 +1870,9 @@ fn apply_direct_joint_efforts(
 fn apply_passive_coulomb_friction(
     world: &World,
     state: &mut RapierWorldState,
+    entities: &[Entity],
 ) -> Result<(), PhysicsError> {
-    for entity in sorted_entities(world) {
+    for &entity in entities {
         let Some(dynamics) = world.get::<JointPassiveDynamics>(entity).copied() else {
             continue;
         };

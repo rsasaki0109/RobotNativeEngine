@@ -24,6 +24,63 @@ pub fn unit_joint_limit_constraint(
     constraints: &mut [JointGenericOneBodyConstraint],
     insert_at: &mut usize,
 ) {
+    unit_joint_limit_constraint_reusing(
+        params,
+        multibody,
+        link,
+        limits,
+        curr_pos,
+        dof_id,
+        j_id,
+        jacobians,
+        constraints,
+        insert_at,
+        None,
+    );
+}
+
+// RNE modification: unit Jacobian reuse, see RNE_PATCH.md.
+//
+// A joint's limit and motor on the same coordinate both store `[e_k, M⁻¹e_k]`
+// for the same factorized mass matrix. When `reuse` names the block the first
+// of them wrote, the second copies it instead of solving again; the values are
+// identical.
+fn rne_unit_jacobian(
+    multibody: &Multibody,
+    dof_j_id: usize,
+    j_id: usize,
+    jacobians: &mut DVector<Real>,
+    reuse: Option<usize>,
+) {
+    let ndofs = multibody.ndofs();
+    if let Some(block) = reuse {
+        jacobians
+            .as_mut_slice()
+            .copy_within(block..block + 2 * ndofs, j_id);
+        return;
+    }
+    jacobians.rows_mut(j_id, ndofs * 2).fill(0.0);
+    jacobians[dof_j_id] = 1.0;
+    jacobians[dof_j_id + ndofs] = 1.0;
+    multibody
+        .inv_augmented_mass()
+        .solve_mut(&mut jacobians.rows_mut(j_id + ndofs, ndofs));
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn unit_joint_limit_constraint_reusing(
+    params: &IntegrationParameters,
+    multibody: &Multibody,
+    link: &MultibodyLink,
+    limits: [Real; 2],
+    curr_pos: Real,
+    dof_id: usize,
+    j_id: &mut usize,
+    jacobians: &mut DVector<Real>,
+    constraints: &mut [JointGenericOneBodyConstraint],
+    insert_at: &mut usize,
+    reuse: Option<usize>,
+) {
     let ndofs = multibody.ndofs();
     let min_enabled = curr_pos < limits[0];
     let max_enabled = limits[1] < curr_pos;
@@ -33,12 +90,7 @@ pub fn unit_joint_limit_constraint(
     let rhs_wo_bias = 0.0;
 
     let dof_j_id = *j_id + dof_id + link.assembly_id;
-    jacobians.rows_mut(*j_id, ndofs * 2).fill(0.0);
-    jacobians[dof_j_id] = 1.0;
-    jacobians[dof_j_id + ndofs] = 1.0;
-    multibody
-        .inv_augmented_mass()
-        .solve_mut(&mut jacobians.rows_mut(*j_id + ndofs, ndofs));
+    rne_unit_jacobian(multibody, dof_j_id, *j_id, jacobians, reuse);
 
     let lhs = jacobians[dof_j_id + ndofs]; // = J^t * M^-1 J
     let impulse_bounds = [
@@ -95,6 +147,7 @@ pub fn unit_joint_motor_constraint(
         constraints,
         insert_at,
         None,
+        None,
     );
 }
 
@@ -111,18 +164,14 @@ pub(crate) fn unit_joint_motor_constraint_with_construction_inputs(
     constraints: &mut [JointGenericOneBodyConstraint],
     insert_at: &mut usize,
     recorder: Option<InternalMotorConstructionRowRecorder<'_>>,
+    reuse: Option<usize>,
 ) {
     let inv_dt = params.inv_dt();
     let ndofs = multibody.ndofs();
     let motor_params = motor.motor_params(params.dt);
 
     let dof_j_id = *j_id + dof_id + link.assembly_id;
-    jacobians.rows_mut(*j_id, ndofs * 2).fill(0.0);
-    jacobians[dof_j_id] = 1.0;
-    jacobians[dof_j_id + ndofs] = 1.0;
-    multibody
-        .inv_augmented_mass()
-        .solve_mut(&mut jacobians.rows_mut(*j_id + ndofs, ndofs));
+    rne_unit_jacobian(multibody, dof_j_id, *j_id, jacobians, reuse);
 
     let lhs = jacobians[dof_j_id + ndofs]; // = J^t * M^-1 J
     let impulse_bounds = [-motor_params.max_impulse, motor_params.max_impulse];

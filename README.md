@@ -111,8 +111,9 @@ its forward speed is within 0.02 m/s of MuJoCo's, its turn rate within
 0.007 rad/s and its pelvis height within 2 mm, and neither engine falls. The one
 large gap was a model bug the comparison exposed: four sensor frames picked up
 1 kg each in import, and the policy crouched under the extra 4 kg. One G1 runs
-at 5.1× real time with four solver iterations, against MuJoCo's 20× on the same
-machine. unitree_rl_gym's H1 policy walks the H1 the same way, within
+at 22× real time with one solver iteration and 10× with four, against MuJoCo's
+24× on the same machine; bit-identical Rapier speedups made the four-iteration
+step 1.5× faster without changing a result. unitree_rl_gym's H1 policy walks the H1 the same way, within
 0.03 m/s of MuJoCo. The browser playground's **Physics walking** mode runs the G1 policy
 and physics as WebAssembly at real-time pace, steered from the keyboard.
 [Method, results and limits](examples/144_g1_sim2sim/README.md) ·

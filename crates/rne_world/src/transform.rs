@@ -7,8 +7,12 @@ use crate::Transform3;
 
 /// Returns the composed world transform for an entity in a parent/child hierarchy.
 pub fn world_transform_of(world: &World, entity: Entity) -> Transform3 {
-    let local = world.get::<Transform3>(entity).copied().unwrap_or_default();
-    let Some(parent) = world.get::<Parent>(entity) else {
+    // One entity lookup serves both components, as `World::get` would for each.
+    let Ok(entity_ref) = world.get_entity(entity) else {
+        return Transform3::default();
+    };
+    let local = entity_ref.get::<Transform3>().copied().unwrap_or_default();
+    let Some(parent) = entity_ref.get::<Parent>() else {
         return local;
     };
     world_transform_of(world, parent.0).mul_transform(&local)

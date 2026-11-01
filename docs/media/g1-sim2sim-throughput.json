@@ -1,0 +1,295 @@
+{
+  "schema_version": 2,
+  "description": "G1 walking throughput, unitree_rl_gym policy at 0.5 m/s, 10 s per walker, 4-core container, medians of five rounds alternating previous RNE, this RNE and MuJoCo",
+  "metric": "walkers x simulated seconds / mean loop time per walker (MuJoCo: mean time inside mj_step per process); the slowest-walker variant divides by the slowest walker's time instead",
+  "machine": {
+    "cores": 4,
+    "note": "shared cloud container; absolute speed varies between sessions, so compare rows from the same file"
+  },
+  "rne": {
+    "loop": "physics, PD and policy in Rust, one walker per thread",
+    "command": "cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --throughput",
+    "after": [
+      {
+        "solver_iterations": 1,
+        "walkers": 1,
+        "median_simulated_s_per_wall_s": 22.41,
+        "median_slowest_walker_simulated_s_per_wall_s": 22.41,
+        "runs": [
+          19.69,
+          22.72,
+          22.41,
+          23.34,
+          20.74
+        ]
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 2,
+        "median_simulated_s_per_wall_s": 41.14,
+        "median_slowest_walker_simulated_s_per_wall_s": 40.57,
+        "runs": [
+          44.43,
+          41.14,
+          39.96,
+          44.92,
+          39.74
+        ]
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 4,
+        "median_simulated_s_per_wall_s": 82.8,
+        "median_slowest_walker_simulated_s_per_wall_s": 79.89,
+        "runs": [
+          75.18,
+          82.93,
+          80.57,
+          82.8,
+          90.07
+        ]
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 8,
+        "median_simulated_s_per_wall_s": 87.65,
+        "median_slowest_walker_simulated_s_per_wall_s": 82.44,
+        "runs": [
+          88.2,
+          86.74,
+          89.32,
+          87.65,
+          85.91
+        ]
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 1,
+        "median_simulated_s_per_wall_s": 10.18,
+        "median_slowest_walker_simulated_s_per_wall_s": 10.18,
+        "runs": [
+          10.37,
+          9.83,
+          10.05,
+          10.18,
+          10.41
+        ]
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 2,
+        "median_simulated_s_per_wall_s": 20.43,
+        "median_slowest_walker_simulated_s_per_wall_s": 20.26,
+        "runs": [
+          21.04,
+          20.43,
+          18.34,
+          20.44,
+          20.38
+        ]
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 4,
+        "median_simulated_s_per_wall_s": 40.36,
+        "median_slowest_walker_simulated_s_per_wall_s": 38.73,
+        "runs": [
+          41.23,
+          35.33,
+          35.25,
+          41.22,
+          40.36
+        ]
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 8,
+        "median_simulated_s_per_wall_s": 38.13,
+        "median_slowest_walker_simulated_s_per_wall_s": 36.9,
+        "runs": [
+          38.13,
+          37.91,
+          35.78,
+          40.08,
+          39.33
+        ]
+      }
+    ],
+    "before": [
+      {
+        "solver_iterations": 1,
+        "walkers": 1,
+        "median_simulated_s_per_wall_s": 16.73,
+        "median_slowest_walker_simulated_s_per_wall_s": 16.73,
+        "runs": [
+          12.91,
+          15.6,
+          17.8,
+          16.89,
+          16.73
+        ]
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 2,
+        "median_simulated_s_per_wall_s": 33.52,
+        "median_slowest_walker_simulated_s_per_wall_s": 31.59,
+        "runs": [
+          31.98,
+          29.31,
+          33.52,
+          34.8,
+          33.61
+        ]
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 4,
+        "median_simulated_s_per_wall_s": 65.41,
+        "median_slowest_walker_simulated_s_per_wall_s": 59.58,
+        "runs": [
+          67.18,
+          65.41,
+          69.8,
+          56.46,
+          63.26
+        ]
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 8,
+        "median_simulated_s_per_wall_s": 65.61,
+        "median_slowest_walker_simulated_s_per_wall_s": 62.96,
+        "runs": [
+          65.41,
+          66.23,
+          65.61,
+          65.08,
+          67.19
+        ]
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 1,
+        "median_simulated_s_per_wall_s": 6.92,
+        "median_slowest_walker_simulated_s_per_wall_s": 6.92,
+        "runs": [
+          6.92,
+          7.12,
+          6.82,
+          6.69,
+          6.94
+        ]
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 2,
+        "median_simulated_s_per_wall_s": 13.22,
+        "median_slowest_walker_simulated_s_per_wall_s": 12.71,
+        "runs": [
+          13.22,
+          13.21,
+          12.03,
+          13.27,
+          13.89
+        ]
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 4,
+        "median_simulated_s_per_wall_s": 25.71,
+        "median_slowest_walker_simulated_s_per_wall_s": 24.91,
+        "runs": [
+          25.71,
+          27.11,
+          28.53,
+          23.84,
+          24.32
+        ]
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 8,
+        "median_simulated_s_per_wall_s": 26.35,
+        "median_slowest_walker_simulated_s_per_wall_s": 24.89,
+        "runs": [
+          27.22,
+          26.35,
+          26.45,
+          26.12,
+          25.5
+        ]
+      }
+    ]
+  },
+  "mujoco": {
+    "engine": "mujoco 3.9.0",
+    "loop": "PD and policy in numpy, one process per walker",
+    "command": "python3 examples/144_g1_sim2sim/mujoco_throughput.py UNITREE_RL_GYM OUT.json",
+    "rows": [
+      {
+        "processes": 1,
+        "median_mj_step_simulated_s_per_wall_s": 24.18,
+        "median_loop_simulated_s_per_wall_s": 19.14,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 24.18,
+        "mj_step_runs": [
+          24.18,
+          26.7,
+          24.31,
+          21.58,
+          23.3
+        ]
+      },
+      {
+        "processes": 2,
+        "median_mj_step_simulated_s_per_wall_s": 47.42,
+        "median_loop_simulated_s_per_wall_s": 37.59,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 45.51,
+        "mj_step_runs": [
+          51.05,
+          47.42,
+          46.63,
+          45.42,
+          48.11
+        ]
+      },
+      {
+        "processes": 4,
+        "median_mj_step_simulated_s_per_wall_s": 95.41,
+        "median_loop_simulated_s_per_wall_s": 75.7,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 89.78,
+        "mj_step_runs": [
+          95.28,
+          95.69,
+          95.41,
+          99.14,
+          83.7
+        ]
+      },
+      {
+        "processes": 8,
+        "median_mj_step_simulated_s_per_wall_s": 96.74,
+        "median_loop_simulated_s_per_wall_s": 76.2,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 90.49,
+        "mj_step_runs": [
+          96.45,
+          97.61,
+          102.84,
+          95.64,
+          96.74
+        ]
+      }
+    ]
+  },
+  "callgrind_instructions_2s_walk": {
+    "solver_iterations_1": {
+      "before": 1094430592,
+      "after": 825869487
+    },
+    "solver_iterations_4": {
+      "before": 2878665264,
+      "after": 1922932082
+    }
+  },
+  "walk_records_byte_identical": true
+}

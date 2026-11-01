@@ -96,26 +96,64 @@ No run falls on either engine and the pelvis height matches within 2 mm. RNE
 walks 0.02–0.03 m/s faster than MuJoCo at every command, about twice the G1's
 gap. Armature, joint friction and floor friction each move it by under
 0.01 m/s, which leaves the contact model as the likely cause: the same hull
-feet are rigid in Rapier and soft in MuJoCo. One H1 runs at 4.5–4.8× real time
-with four solver iterations.
+feet are rigid in Rapier and soft in MuJoCo. One H1 runs at 5.1–5.4× real time
+with four solver iterations (3.7–4.6× before the speedups below, measured in
+the same session); every H1 link collides, so contacts take a larger share.
 
 ## Real time
 
-One G1 in the 4-core development container, 10 s at 0.5 m/s, wall time of the
-whole loop (physics, PD and policy):
+Simulated seconds per wall second for G1 walkers at 0.5 m/s, 10 s each, in
+the 4-core development container. RNE times its whole loop (physics, PD and
+policy, all in Rust), one walker per thread. MuJoCo 3.9.0 runs the same loop
+with PD and policy in numpy, one process per walker; its first row counts only
+the time inside `mj_step`. Both count walkers times simulated seconds over the
+mean loop time per walker. Medians of five rounds, each running the previous
+engine ("before"), this one and MuJoCo in turn:
 
-| Solver iterations | 1 | 2 | 4 (default) | 8 | 16 | 32 |
-| --- | --- | --- | --- | --- | --- | --- |
-| Real-time factor | 12.9× | 7.9× | 5.1× | 2.9× | 1.5× | 0.8× |
-| First port (31-link model, name lookups) | 6.7× | 4.1× | 2.6× | 1.3× | 0.7× | 0.4× |
+| Engine and setting | 1 walker | 2 | 4 | 8 |
+| --- | --- | --- | --- | --- |
+| MuJoCo, `mj_step` only | 24.2 | 47.4 | 95.4 | 96.7 |
+| MuJoCo, loop with numpy PD and policy | 19.1 | 37.6 | 75.7 | 76.2 |
+| RNE, 1 solver iteration | 22.4 | 41.1 | 82.8 | 87.7 |
+| RNE, 1 solver iteration, before | 16.7 | 33.5 | 65.4 | 65.6 |
+| RNE, 4 solver iterations (default) | 10.2 | 20.4 | 40.4 | 38.1 |
+| RNE, 4 solver iterations, before | 6.9 | 13.2 | 25.7 | 26.4 |
 
-Every setting walks (forward speed 0.457–0.464 m/s). Two changes doubled the
-speed without changing the walk: merging the fixed upper body takes the
-articulation from 31 links to 13, and the walker drives cached joint handles
-instead of looking joints up by name every 2 ms step. MuJoCo 3.9.0 steps the
-same model in 98 µs (20× real time) on the same machine, about four times
-RNE's 0.39 ms at four iterations. That is enough for an interactive
-single-robot playground, not yet for MuJoCo-class batch throughput.
+- **The walk is unchanged.** The speedups reproduce every floating-point
+  result, so the walk records are byte-identical before and after. Every
+  setting walks: 0.457 m/s at one iteration, 0.464 m/s at four, against
+  MuJoCo's 0.476 m/s.
+- **One walker.** At one solver iteration RNE runs at 93% of MuJoCo's physics
+  alone, and faster than MuJoCo's loop once numpy computes PD and policy. At
+  four iterations it reaches 42% of MuJoCo's physics. The default step is 1.5×
+  faster than before.
+- **Several walkers.** Both engines scale almost linearly to the four cores:
+  four walkers deliver 3.7× (one iteration) and 4.0× (four) a single walker's
+  throughput, MuJoCo 3.9×. Counting the slowest walker instead of the mean
+  lowers this engine's rows by at most 6% and MuJoCo's by at most 7%. The
+  container is shared, and absolute speed varies by up to 40% between
+  sessions, so only rows measured together compare.
+- **Where the time went.** Callgrind counts the instructions for 2 s of
+  walking. At four iterations they fall from 2.88 G to 1.92 G (−33%); at one
+  iteration from 1.09 G to 0.83 G (−25%). Rapier rebuilds and refactorizes
+  the multibody mass matrices in every solver substep. That took 61% of the
+  step and now takes 50%: each leg link's Jacobian is zero outside its
+  ancestors' 7–12 coordinates, and the vendored Rapier skips those columns
+  while computing the rest in nalgebra's exact order
+  ([`RNE_PATCH.md`](../../third_party/rapier3d/RNE_PATCH.md)). A joint's limit
+  and motor constraints now share one `M⁻¹e` solve. The backend sorts the ECS
+  entities once per synchronization instead of six times, and reads a joint's
+  position and velocity with one decode.
+
+```bash
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --throughput --output target/g1-sim2sim
+python3 examples/144_g1_sim2sim/mujoco_throughput.py UNITREE_RL_GYM target/g1-sim2sim/mujoco-throughput.json
+```
+
+[Medians and individual runs](../../docs/media/g1-sim2sim-throughput.json).
+`--timing` still sweeps 1–32 solver iterations for one walker. Before #502
+merged the fixed upper body (31 links to 13) and cached joint handles, the
+first port ran at 2.6× real time with four iterations.
 
 In the browser the same code compiled to WebAssembly keeps real time: headless
 Chromium in this container (WebGPU on SwiftShader, no GPU) held a real-time

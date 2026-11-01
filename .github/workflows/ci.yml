@@ -46,6 +46,14 @@ jobs:
         with:
           # Readiness/history tests need baseline and historical commits.
           fetch-depth: 0
+      # A change low in the dependency graph (for example the vendored Rapier)
+      # rebuilds every workspace test binary beside the restored cache, which
+      # can exhaust the runner's disk. Drop preinstalled SDKs the tests never use.
+      - name: Free runner disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
       - uses: dtolnay/rust-toolchain@1.95.0
       - uses: taiki-e/install-action@nextest
       - uses: Swatinem/rust-cache@v2

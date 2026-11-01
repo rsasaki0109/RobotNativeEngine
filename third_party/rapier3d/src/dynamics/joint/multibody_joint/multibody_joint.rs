@@ -319,6 +319,8 @@ impl MultibodyJoint {
                     None
                 };
 
+                // RNE: the motor's unit Jacobian block, reused by the limit.
+                let mut unit_block = None;
                 if (motor_bits & (1 << i)) != 0 {
                     let row_recorder =
                         recorder
@@ -329,6 +331,7 @@ impl MultibodyJoint {
                                 link_id: recorder.link_id,
                                 axis: axes[i],
                             });
+                    unit_block = Some(*j_id);
                     super::unit_multibody_joint::unit_joint_motor_constraint_with_construction_inputs(
                         params,
                         multibody,
@@ -342,11 +345,12 @@ impl MultibodyJoint {
                         constraints,
                         &mut num_constraints,
                         row_recorder,
+                        None,
                     );
                 }
 
                 if (limit_bits & (1 << i)) != 0 {
-                    joint::unit_joint_limit_constraint(
+                    super::unit_multibody_joint::unit_joint_limit_constraint_reusing(
                         params,
                         multibody,
                         link,
@@ -357,6 +361,7 @@ impl MultibodyJoint {
                         jacobians,
                         constraints,
                         &mut num_constraints,
+                        unit_block,
                     );
                 }
                 curr_free_dof += 1;
@@ -379,8 +384,11 @@ impl MultibodyJoint {
         // TODO: we should make special cases for multi-angular-dofs limits/motors
         for i in DIM..SPATIAL_DIM {
             if (locked_bits & (1 << i)) == 0 {
+                // RNE: the limit's unit Jacobian block, reused by the motor.
+                let mut unit_block = None;
                 let limits = if (limit_bits & (1 << i)) != 0 {
                     let limits = [self.data.limits[i].min, self.data.limits[i].max];
+                    unit_block = Some(*j_id);
                     joint::unit_joint_limit_constraint(
                         params,
                         multibody,
@@ -421,6 +429,7 @@ impl MultibodyJoint {
                         constraints,
                         &mut num_constraints,
                         row_recorder,
+                        unit_block,
                     );
                 }
                 curr_free_dof += 1;
