@@ -1,4 +1,4 @@
-# 144 · G1 sim2sim: a pretrained walking policy on RNE
+# 144 · G1 and H1 sim2sim: pretrained walking policies on RNE
 
 ![The G1 walks a 0.6 m circle in RNE; its pelvis path (blue) lies on MuJoCo's (orange)](../../docs/media/g1-sim2sim.png)
 
@@ -16,6 +16,7 @@ cargo run --release -p g1_sim2sim --example 144_g1_sim2sim                  # 4 
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --timing      # solver-iteration sweep
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --ablation    # plant details
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --command 0.5,0,0 --seconds 20
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robot h1     # the H1 policy
 ```
 
 Reports go to `target/g1-sim2sim/g1-sim2sim-report.json`; a single
@@ -74,6 +75,30 @@ into the pelvis with no mass, and a test pins the plant at 32.107 kg.
 `unitree_g1_29dof_dex3_fixed`, which also import declared masses, still carry
 the 1 kg frames.
 
+## H1
+
+`--robot h1` runs unitree_rl_gym's H1 policy, which has the same network with
+ten leg actions, on the H1 the same way. Its model merges the 11 fixed-joint
+links into the pelvis (51.650 kg, matching the MJCF's pelvis inertial to
+5.8e-7 kg·m²). Every link collides through the convex hull of its mesh, as the
+MJCF's mesh geoms do, so the feet are hulls of the ankle meshes rather than
+spheres. Same metrics and engines as above (MuJoCo reference in
+`fixtures/h1_mujoco_reference.json`):
+
+| Command (vx, yaw) | Forward speed RNE / MuJoCo (m/s) | Yaw rate RNE / MuJoCo (rad/s) | Mean pelvis height RNE / MuJoCo (m) |
+| --- | --- | --- | --- |
+| 0.5, 0 | 0.458 / 0.431 | −0.015 / −0.010 | 1.030 / 1.030 |
+| 0, 0 | −0.054 / −0.078 | −0.023 / −0.018 | 1.033 / 1.032 |
+| 0.3, 0.5 | 0.236 / 0.213 | 0.433 / 0.433 | 1.024 / 1.026 |
+| 0.8, 0 | 0.751 / 0.731 | 0.020 / 0.015 | 1.024 / 1.024 |
+
+No run falls on either engine and the pelvis height matches within 2 mm. RNE
+walks 0.02–0.03 m/s faster than MuJoCo at every command, about twice the G1's
+gap. Armature, joint friction and floor friction each move it by under
+0.01 m/s, which leaves the contact model as the likely cause: the same hull
+feet are rigid in Rapier and soft in MuJoCo. One H1 runs at 4.5–4.8× real time
+with four solver iterations.
+
 ## Real time
 
 One G1 in the 4-core development container, 10 s at 0.5 m/s, wall time of the
@@ -108,6 +133,9 @@ python3 examples/144_g1_sim2sim/prepare_model.py UNITREE_RL_GYM
 python3 examples/144_g1_sim2sim/mujoco_reference.py UNITREE_RL_GYM \
   examples/144_g1_sim2sim/fixtures/mujoco_reference.json \
   --fixture examples/144_g1_sim2sim/fixtures/mujoco_policy_io.json
+# The H1: the same three scripts with --robot h1, writing
+# assets/policies/unitree_h1_walk, assets/robots/h1_description/h1.rne.urdf and
+# fixtures/h1_mujoco_reference.json / h1_mujoco_policy_io.json.
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --render target/g1-sim2sim-render
 python3 examples/144_g1_sim2sim/encode.py target/g1-sim2sim-render docs/media/g1-sim2sim
 ```

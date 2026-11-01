@@ -6,20 +6,72 @@ use rne_ai::LstmPolicy;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-/// Number of actuated leg joints.
-pub(crate) const ACTION_LEN: usize = 12;
-
 pub(crate) type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-/// Manifest of the vendored unitree_rl_gym G1 policy.
-pub(crate) fn default_manifest() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../assets/policies/unitree_g1_walk/g1_walk_lstm.policy.json")
+/// A unitree_rl_gym robot with a vendored model, policy and MuJoCo reference.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Robot {
+    G1,
+    H1,
+}
+
+impl Robot {
+    pub(crate) fn parse(name: &str) -> Result<Self> {
+        match name {
+            "g1" => Ok(Self::G1),
+            "h1" => Ok(Self::H1),
+            other => Err(format!("unknown robot {other}; expected g1 or h1").into()),
+        }
+    }
+
+    pub(crate) fn name(self) -> &'static str {
+        match self {
+            Self::G1 => "g1",
+            Self::H1 => "h1",
+        }
+    }
+
+    fn assets() -> &'static Path {
+        Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../assets"))
+    }
+
+    /// Manifest of the vendored policy.
+    pub(crate) fn manifest(self) -> PathBuf {
+        Self::assets().join(match self {
+            Self::G1 => "policies/unitree_g1_walk/g1_walk_lstm.policy.json",
+            Self::H1 => "policies/unitree_h1_walk/h1_walk_lstm.policy.json",
+        })
+    }
+
+    /// RNE scene the policy walks in.
+    pub(crate) fn scene(self) -> PathBuf {
+        Self::assets().join(match self {
+            Self::G1 => "scenes/unitree_g1_12dof_walk.rne.scene.toml",
+            Self::H1 => "scenes/unitree_h1_walk.rne.scene.toml",
+        })
+    }
+
+    /// MuJoCo walking reference recorded by `mujoco_reference.py`.
+    pub(crate) fn reference(self) -> &'static str {
+        match self {
+            Self::G1 => include_str!("fixtures/mujoco_reference.json"),
+            Self::H1 => include_str!("fixtures/h1_mujoco_reference.json"),
+        }
+    }
+
+    /// MuJoCo's first 50 policy observations and actions.
+    #[cfg(test)]
+    pub(crate) fn policy_io(self) -> &'static str {
+        match self {
+            Self::G1 => include_str!("fixtures/mujoco_policy_io.json"),
+            Self::H1 => include_str!("fixtures/h1_mujoco_policy_io.json"),
+        }
+    }
 }
 
 /// SHA-256 of the weight blob, after checking it against the manifest.
-pub(crate) fn weights_sha256() -> Result<String> {
-    let manifest_path = default_manifest();
+pub(crate) fn weights_sha256(robot: Robot) -> Result<String> {
+    let manifest_path = robot.manifest();
     let manifest: Value = serde_json::from_str(&std::fs::read_to_string(&manifest_path)?)?;
     let file = manifest["weights"]["file"]
         .as_str()
@@ -35,9 +87,9 @@ pub(crate) fn weights_sha256() -> Result<String> {
 }
 
 /// Loads the vendored policy after verifying the blob digest.
-pub(crate) fn load() -> Result<LstmPolicy> {
-    weights_sha256()?;
-    Ok(LstmPolicy::load(&default_manifest())?)
+pub(crate) fn load(robot: Robot) -> Result<LstmPolicy> {
+    weights_sha256(robot)?;
+    Ok(LstmPolicy::load(&robot.manifest())?)
 }
 
 #[cfg(test)]
@@ -45,32 +97,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn rust_policy_matches_the_mujoco_reference_outputs() {
-        let fixture: Value =
-            serde_json::from_str(include_str!("fixtures/mujoco_policy_io.json")).expect("fixture");
-        let mut policy = load().expect("policy");
-        let steps = fixture["steps"].as_array().expect("steps");
-        assert_eq!(steps.len(), 50);
-        let mut worst = 0.0_f32;
-        let mut action = [0.0_f32; ACTION_LEN];
-        for step in steps {
-            let obs: Vec<f32> = step["obs"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|v| v.as_f64().unwrap() as f32)
-                .collect();
-            policy.step(&obs, &mut action).unwrap();
-            for (value, expected) in action.iter().zip(step["action"].as_array().unwrap()) {
-                worst = worst.max((value - expected.as_f64().unwrap() as f32).abs());
+    fn rust_policies_match_the_mujoco_reference_outputs() {
+        for robot in [Robot::G1, Robot::H1] {
+            let fixture: Value = serde_json::from_str(robot.policy_io()).expect("fixture");
+            let mut policy = load(robot).expect("policy");
+            let steps = fixture["steps"].as_array().expect("steps");
+            assert_eq!(steps.len(), 50);
+            let mut worst = 0.0_f32;
+            let mut action = vec![0.0_f32; policy.action_len()];
+            for step in steps {
+                let obs: Vec<f32> = step["obs"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| v.as_f64().unwrap() as f32)
+                    .collect();
+                policy.step(&obs, &mut action).unwrap();
+                for (value, expected) in action.iter().zip(step["action"].as_array().unwrap()) {
+                    worst = worst.max((value - expected.as_f64().unwrap() as f32).abs());
+                }
             }
+            assert!(
+                worst < 1.0e-4,
+                "{robot:?}: largest action difference {worst}"
+            );
         }
-        assert!(worst < 1.0e-4, "largest action difference {worst}");
     }
 
     #[test]
     fn deployment_contract_matches_unitree_rl_gym() {
-        let policy = load().expect("policy");
+        let policy = load(Robot::G1).expect("policy");
         let deployment = policy.deployment();
         assert_eq!(deployment.control_decimation, 10);
         assert!((deployment.control_dt_s() - 0.02).abs() < 1e-12);

@@ -20,12 +20,11 @@ use std::time::Instant;
 
 use serde_json::{json, Value};
 
-use policy::Result;
+use policy::{Result, Robot};
 use walk::{summarize, PlantConfig, StepRecord};
 
-const REFERENCE: &str = include_str!("fixtures/mujoco_reference.json");
-
 struct Options {
+    robot: Robot,
     output: PathBuf,
     seconds: f64,
     command: Option<[f64; 3]>,
@@ -54,6 +53,7 @@ fn parse_command(text: &str) -> Result<[f64; 3]> {
 
 fn parse() -> Result<Options> {
     let mut options = Options {
+        robot: Robot::G1,
         output: PathBuf::from("target/g1-sim2sim"),
         seconds: 10.0,
         command: None,
@@ -75,6 +75,7 @@ fn parse() -> Result<Options> {
             "--timing" => options.timing = true,
             "--ablation" => options.ablation = true,
             "--render" => options.render = Some(PathBuf::from(value()?)),
+            "--robot" => options.robot = Robot::parse(&value()?)?,
             other => return Err(format!("unknown option {other}").into()),
         }
     }
@@ -95,10 +96,10 @@ struct Run {
     wall_s: f64,
 }
 
-fn run(plant: PlantConfig, command: [f64; 3], seconds: f64) -> Result<Run> {
-    let policy = policy::load()?;
+fn run(robot: Robot, plant: PlantConfig, command: [f64; 3], seconds: f64) -> Result<Run> {
+    let policy = policy::load(robot)?;
     let steps = (seconds / policy.deployment().control_dt_s()).round() as usize;
-    let mut walker = walk::walker(policy, plant)?;
+    let mut walker = walk::walker(robot, policy, plant)?;
     let mut records = Vec::with_capacity(steps);
     let start = Instant::now();
     for _ in 0..steps {
@@ -115,13 +116,13 @@ const RENDER_COMMAND: [f64; 3] = [0.3, 0.0, 0.5];
 
 fn render_walk(options: &Options, output: &std::path::Path) -> Result<()> {
     let command = options.command.unwrap_or(RENDER_COMMAND);
-    let mujoco =
-        reference_run(command).ok_or("--render needs a command with a MuJoCo reference")?;
+    let mujoco = reference_run(options.robot, command)
+        .ok_or("--render needs a command with a MuJoCo reference")?;
     let mujoco_path: Vec<[f64; 2]> = serde_json::from_value(mujoco["base_path_xy_m_10hz"].clone())?;
-    let weights_sha256 = policy::weights_sha256()?;
-    let policy = policy::load()?;
+    let weights_sha256 = policy::weights_sha256(options.robot)?;
+    let policy = policy::load(options.robot)?;
     let steps = (options.seconds / policy.deployment().control_dt_s()).round() as usize;
-    let mut walker = walk::walker(policy, options.plant)?;
+    let mut walker = walk::walker(options.robot, policy, options.plant)?;
     let orbit = rne_render_wgpu::CameraOrbit {
         focus: rne_math::Vec3::new(0.0, 0.35, -0.55),
         yaw_rad: 0.35,
@@ -150,7 +151,7 @@ fn render_walk(options: &Options, output: &std::path::Path) -> Result<()> {
             "policy_weights_sha256": weights_sha256,
             "frame_count": renderer.frame_count(), "frame_times_s": frame_times_s,
             "panel": [render::WIDTH, render::HEIGHT],
-            "rne": summary, "mujoco": mujoco["summary"], "mujoco_engine": serde_json::from_str::<Value>(REFERENCE)?["engine"],
+            "rne": summary, "mujoco": mujoco["summary"], "mujoco_engine": serde_json::from_str::<Value>(options.robot.reference())?["engine"],
         }))? + "\n",
     )?;
     println!(
@@ -161,12 +162,12 @@ fn render_walk(options: &Options, output: &std::path::Path) -> Result<()> {
     Ok(())
 }
 
-fn reference_summary(command: [f64; 3]) -> Option<Value> {
-    reference_run(command).map(|run| run["summary"].clone())
+fn reference_summary(robot: Robot, command: [f64; 3]) -> Option<Value> {
+    reference_run(robot, command).map(|run| run["summary"].clone())
 }
 
-fn reference_run(command: [f64; 3]) -> Option<Value> {
-    let reference: Value = serde_json::from_str(REFERENCE).ok()?;
+fn reference_run(robot: Robot, command: [f64; 3]) -> Option<Value> {
+    let reference: Value = serde_json::from_str(robot.reference()).ok()?;
     reference["runs"]
         .as_array()?
         .iter()
@@ -182,13 +183,14 @@ fn reference_run(command: [f64; 3]) -> Option<Value> {
 }
 
 fn report(
+    robot: Robot,
     label: &str,
     plant: PlantConfig,
     command: [f64; 3],
     seconds: f64,
     records_path: Option<&std::path::Path>,
 ) -> Result<Value> {
-    let run = run(plant, command, seconds)?;
+    let run = run(robot, plant, command, seconds)?;
     if let Some(path) = records_path {
         let records: Vec<Value> = run
             .records
@@ -212,8 +214,13 @@ fn report(
         .iter()
         .map(|r| r.saturated_joints)
         .sum::<usize>() as f64
-        / (run.records.len().max(1) * policy::ACTION_LEN) as f64;
-    let mujoco = reference_summary(command);
+        / run
+            .records
+            .iter()
+            .map(|r| r.action.len())
+            .sum::<usize>()
+            .max(1) as f64;
+    let mujoco = reference_summary(robot, command);
     println!(
         "{label:<28} cmd {command:?}: {} | final {:?} | v_fwd {:+.3} (MuJoCo {}) | yaw {:+.3} (MuJoCo {}) | {:.1}x real time",
         if summary["fell"] == true { "FELL" } else { "walks" },
@@ -241,7 +248,7 @@ fn main() -> Result<()> {
         return render_walk(&options, output);
     }
     std::fs::create_dir_all(&options.output)?;
-    let reference: Value = serde_json::from_str(REFERENCE)?;
+    let reference: Value = serde_json::from_str(options.robot.reference())?;
     let commands: Vec<[f64; 3]> = match options.command {
         Some(command) => vec![command],
         None => reference["runs"]
@@ -259,6 +266,7 @@ fn main() -> Result<()> {
                 ..options.plant
             };
             results.push(report(
+                options.robot,
                 &format!("{iterations} solver iterations"),
                 plant,
                 commands[0],
@@ -295,14 +303,24 @@ fn main() -> Result<()> {
         ];
         for (label, plant) in variants {
             for command in &commands {
-                results.push(report(label, plant, *command, options.seconds, None)?);
+                results.push(report(
+                    options.robot,
+                    label,
+                    plant,
+                    *command,
+                    options.seconds,
+                    None,
+                )?);
             }
         }
     } else {
-        let records_path = options.output.join("g1-sim2sim-records.json");
+        let records_path = options
+            .output
+            .join(format!("{}-sim2sim-records.json", options.robot.name()));
         let single = options.command.is_some();
         for command in commands {
             results.push(report(
+                options.robot,
                 "matched plant",
                 options.plant,
                 command,
@@ -311,14 +329,17 @@ fn main() -> Result<()> {
             )?);
         }
     }
-    let path = options.output.join("g1-sim2sim-report.json");
+    let path = options
+        .output
+        .join(format!("{}-sim2sim-report.json", options.robot.name()));
     std::fs::write(
         &path,
         serde_json::to_string_pretty(&json!({
             "schema_version": 1,
             "backend": "RNE Rapier (UrdfSceneSim), Y-up, 2 ms PD substeps, 50 Hz policy",
-            "policy": "unitreerobotics/unitree_rl_gym deploy/pre_train/g1/motion.pt",
-            "policy_weights_sha256": policy::weights_sha256()?,
+            "robot": options.robot.name(),
+            "policy": format!("unitreerobotics/unitree_rl_gym deploy/pre_train/{}/motion.pt", options.robot.name()),
+            "policy_weights_sha256": policy::weights_sha256(options.robot)?,
             "mujoco_engine": reference["engine"],
             "runs": results,
         }))? + "\n",
