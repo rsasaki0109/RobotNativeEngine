@@ -5,7 +5,9 @@ Runs mujoco_reference.py's loop (500 Hz PD, 50 Hz policy in numpy) in 1, 2, 4
 and 8 processes at once. Each process reports the time spent inside
 `mj_step` and its whole loop; the Python PD law and policy are not MuJoCo's
 cost, so the physics-only figures are the fair comparison with RNE's loop,
-which runs PD and policy in Rust.
+which runs PD and policy in Rust. Throughput is processes times simulated
+seconds over the mean time per process, as `--throughput` computes it for
+RNE's walkers; the slowest process gives a lower bound.
 
 Usage: mujoco_throughput.py UNITREE_RL_GYM_ROOT OUTPUT.json [--robot g1|h1]
        [--seconds 10]
@@ -86,6 +88,9 @@ def main():
                "per_process_mj_step_realtime_factor": arguments.seconds / step_s,
                "per_process_loop_realtime_factor": arguments.seconds / loop_s,
                "mj_step_simulated_s_per_wall_s": envs * arguments.seconds / step_s,
+               "loop_simulated_s_per_wall_s": envs * arguments.seconds / loop_s,
+               "slowest_mj_step_simulated_s_per_wall_s":
+                   envs * arguments.seconds / max(r["mj_step_s"] for r in results),
                "min_base_height_m": min(r["base_height_m"] for r in results)}
         rows.append(row)
         print(json.dumps(row))

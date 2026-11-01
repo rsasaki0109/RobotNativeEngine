@@ -247,17 +247,16 @@ fn report(
 }
 
 /// Runs `envs` independent walkers on their own threads, all released at
-/// once after construction, and returns (aggregate simulated seconds per wall
-/// second, mean per-walker real-time factor).
+/// once after construction, and returns each walker's loop time in seconds.
 fn parallel_walk(
     robot: Robot,
     plant: PlantConfig,
     command: [f64; 3],
     seconds: f64,
     envs: usize,
-) -> Result<(f64, f64)> {
+) -> Result<Vec<f64>> {
     let start = std::sync::Barrier::new(envs + 1);
-    let per_walker = std::thread::scope(|scope| -> Result<Vec<f64>> {
+    std::thread::scope(|scope| -> Result<Vec<f64>> {
         let workers: Vec<_> = (0..envs)
             .map(|_| {
                 let start = &start;
@@ -275,24 +274,16 @@ fn parallel_walk(
                     for _ in 0..steps {
                         walker.step(command).map_err(|e| e.to_string())?;
                     }
-                    Ok(seconds / begin.elapsed().as_secs_f64())
+                    Ok(begin.elapsed().as_secs_f64())
                 })
             })
             .collect();
         start.wait();
-        let begin = Instant::now();
-        let factors = workers
+        Ok(workers
             .into_iter()
             .map(|worker| worker.join().expect("walker thread"))
-            .collect::<std::result::Result<Vec<f64>, String>>()?;
-        let wall_s = begin.elapsed().as_secs_f64();
-        Ok(std::iter::once(envs as f64 * seconds / wall_s)
-            .chain(factors)
-            .collect())
-    })?;
-    let aggregate = per_walker[0];
-    let mean = per_walker[1..].iter().sum::<f64>() / envs as f64;
-    Ok((aggregate, mean))
+            .collect::<std::result::Result<Vec<f64>, String>>()?)
+    })
 }
 
 fn throughput(options: &Options, command: [f64; 3]) -> Result<Value> {
@@ -304,15 +295,25 @@ fn throughput(options: &Options, command: [f64; 3]) -> Result<Value> {
             ..options.plant
         };
         for envs in [1, 2, 4, 8] {
-            let (aggregate, per_walker) =
-                parallel_walk(options.robot, plant, command, options.seconds, envs)?;
+            let loop_s = parallel_walk(options.robot, plant, command, options.seconds, envs)?;
+            // As in mujoco_throughput.py: walkers times seconds over the mean
+            // loop time, and over the slowest walker's.
+            let mean_s = loop_s.iter().sum::<f64>() / envs as f64;
+            let slowest_s = loop_s.iter().copied().fold(0.0, f64::max);
+            let aggregate = envs as f64 * options.seconds / mean_s;
+            let slowest = envs as f64 * options.seconds / slowest_s;
             println!(
                 "{iterations} solver iterations, {envs} walkers on {cores} cores: \
-                 {aggregate:.1} simulated s per wall s ({per_walker:.1}x real time each)"
+                 {aggregate:.1} simulated s per wall s ({:.1}x real time each, \
+                 {slowest:.1} limited by the slowest walker)",
+                options.seconds / mean_s
             );
             rows.push(json!({
                 "solver_iterations": iterations, "walkers": envs,
-                "simulated_s_per_wall_s": aggregate, "per_walker_realtime_factor": per_walker,
+                "simulated_s_per_wall_s": aggregate,
+                "slowest_walker_simulated_s_per_wall_s": slowest,
+                "per_walker_realtime_factor": options.seconds / mean_s,
+                "walker_loop_s": loop_s,
             }));
         }
     }
