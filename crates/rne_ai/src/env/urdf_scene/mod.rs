@@ -3,6 +3,7 @@
 mod humanoid_episode;
 mod lekiwi_drive;
 mod lidar;
+mod policy_walk;
 mod quadruped;
 mod quadruped_episode;
 mod unitree_g1_commanded_gait;
@@ -33,6 +34,10 @@ pub use lekiwi_drive::{
 pub use lidar::{
     unitree_go2_mid360_mount, UNITREE_GO2_MID360_FORWARD_OF_BASE_M,
     UNITREE_GO2_MID360_HEIGHT_ABOVE_BASE_M,
+};
+pub use policy_walk::{
+    unitree_g1_12dof_walk_scene_path, PolicyWalkError, PolicyWalkPlant, PolicyWalkStep,
+    UnitreeRlGymWalker,
 };
 pub use quadruped::{quadruped_trot_targets, QUADRUPED_FOOT_LINKS};
 pub use quadruped_episode::{
@@ -112,8 +117,8 @@ pub use vectorized::{
 };
 
 use rne_assets::{
-    load_and_spawn_scene, load_scene_bundle, mesh_package_roots, spawn_scene_bundle, AssetError,
-    SpawnSceneOptions,
+    load_scene_bundle, mesh_package_roots, spawn_scene_bundle, AssetError, SceneAssetBundle,
+    SpawnSceneOptions, UrdfSourceMap,
 };
 use rne_core::{SimDuration, SimTime};
 use rne_data::{DataBus, StreamId};
@@ -433,20 +438,71 @@ impl UrdfSceneSim {
         )
     }
 
+    /// Builds a scene from a parsed bundle and in-memory URDF documents.
+    ///
+    /// This is the file-free counterpart of [`Self::from_scene_path`] for
+    /// hosts without a filesystem, such as a browser. `scene_path` labels the
+    /// bundle in errors and anchors relative mesh paths; nothing is read from
+    /// it. `urdf_sources` maps each robot's resolved URDF path to its XML text.
+    /// `solver_iterations == 0` selects the backend default, and the fixed
+    /// step must be at least one tick.
+    pub fn from_scene_bundle(
+        scene_path: &Path,
+        bundle: &SceneAssetBundle,
+        urdf_sources: &UrdfSourceMap<'_>,
+        solver_iterations: usize,
+        fixed_delta: SimDuration,
+    ) -> Result<Self, AssetError> {
+        if fixed_delta.ticks() == 0 {
+            return Err(AssetError::Invalid {
+                path: scene_path.display().to_string(),
+                message: "fixed simulation delta must be greater than zero ticks".into(),
+            });
+        }
+        let mut sim = Self::from_bundle(
+            scene_path,
+            bundle,
+            Some(urdf_sources),
+            solver_iterations,
+            &[],
+        )?;
+        sim.dt = fixed_delta;
+        Ok(sim)
+    }
+
     fn from_scene_path_with_options_and_seed(
         scene_path: &Path,
         solver_iterations: usize,
         fixed_link_names: &[&str],
         seed: Option<u64>,
     ) -> Result<Self, AssetError> {
-        let mut world = World::new();
-        let spawned = if let Some(seed) = seed {
-            let mut bundle = load_scene_bundle(scene_path)?;
+        let mut bundle = load_scene_bundle(scene_path)?;
+        if let Some(seed) = seed {
             bundle.scene.world.seed = seed;
-            spawn_scene_bundle(&mut world, &bundle, None, SpawnSceneOptions::default())?
-        } else {
-            load_and_spawn_scene(&mut world, scene_path)?
-        };
+        }
+        Self::from_bundle(
+            scene_path,
+            &bundle,
+            None,
+            solver_iterations,
+            fixed_link_names,
+        )
+    }
+
+    fn from_bundle(
+        scene_path: &Path,
+        bundle: &SceneAssetBundle,
+        urdf_sources: Option<&UrdfSourceMap<'_>>,
+        solver_iterations: usize,
+        fixed_link_names: &[&str],
+    ) -> Result<Self, AssetError> {
+        let mut world = World::new();
+        let spawned = spawn_scene_bundle(
+            &mut world,
+            bundle,
+            urdf_sources,
+            SpawnSceneOptions::default(),
+        )?;
         let world_seed = world
             .get::<rne_world::WorldEntity>(spawned.world)
             .map(|world_entity| world_entity.seed)
@@ -496,8 +552,7 @@ impl UrdfSceneSim {
             .filter(|entity_ref| world.get::<JointMotor>(entity_ref.id()).is_some())
             .count();
 
-        let bundle = load_scene_bundle(scene_path)?;
-        let mesh_roots = mesh_package_roots(&bundle);
+        let mesh_roots = mesh_package_roots(bundle);
         let render_joint_projections = render_joint_projections(&world);
 
         let mut backend = RapierBackend::new();

@@ -19,6 +19,7 @@ pub mod goal;
 pub mod grasp;
 pub mod joint_trajectory;
 pub mod lidar;
+pub mod lstm_policy;
 pub mod mm_lift_kinematics;
 pub mod mm_minimal_kinematics;
 pub mod so101_kinematics;
@@ -191,6 +192,10 @@ pub use env::{
     TSUKUBA_CONFIRMATION_TASK_ID, TSUKUBA_FULL_RUN_TASK_ID, TSUKUBA_GREEN_CONE_NAME,
     TSUKUBA_ROAD_EDGE_BEFORE_M, TSUKUBA_STOP_LINE_AFTER_M, TSUKUBA_STOP_LINE_BEFORE_M,
 };
+pub use env::{
+    unitree_g1_12dof_walk_scene_path, PolicyWalkError, PolicyWalkPlant, PolicyWalkStep,
+    UnitreeRlGymWalker,
+};
 pub use episode::{Episode, EpisodeRandomSnapshot, EpisodeStep, TerminationReason};
 pub use flagship::{
     flagship_mobile_lift_task_spec, flagship_mobile_lift_task_spec_v2,
@@ -215,6 +220,9 @@ pub use joint_trajectory::{
     hold_lift_joint_action, joint_tracking_action, JointTrackingLimits, JointTrajectory,
 };
 pub use lidar::{lidar_mounts_from_spawned, lidar_stream_for_index, sync_lidar_mounts, LidarMount};
+pub use lstm_policy::{
+    unitree_g1_walk_policy_manifest, LstmPolicy, LstmPolicyError, PolicyDeployment,
+};
 pub use mm_lift_kinematics::{
     MmLiftGripperTarget, MmLiftIkError, MmLiftJointTarget, MmLiftKinematics,
 };
