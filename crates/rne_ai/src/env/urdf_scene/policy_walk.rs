@@ -21,8 +21,8 @@ use rne_core::SimDuration;
 use rne_ecs::Entity;
 use rne_math::{Quat, Vec3};
 use rne_physics::{
-    Collider, JointActuation, JointPassiveDynamics, PhysicsBackend, RevoluteJointArmature,
-    RigidBody,
+    Collider, JointActuation, JointPassiveDynamics, JointState, PhysicsBackend,
+    RevoluteJointArmature, RigidBody,
 };
 use rne_robot::{Joint, Link};
 
@@ -111,6 +111,9 @@ pub struct UnitreeRlGymWalker {
     observation: Vec<f32>,
     action: Vec<f32>,
     base_push_n: Option<Vec3>,
+    /// Whether this walker has stepped the physics, so that the backend has
+    /// written every joint's `JointState` from the current Rapier state.
+    stepped: bool,
 }
 
 impl std::fmt::Debug for UnitreeRlGymWalker {
@@ -232,6 +235,7 @@ impl UnitreeRlGymWalker {
             joints,
             substeps,
             base_push_n: None,
+            stepped: false,
         })
     }
 
@@ -267,6 +271,21 @@ impl UnitreeRlGymWalker {
     }
 
     fn joint_state(&self, link: Entity) -> Result<(f64, f64), PolicyWalkError> {
+        // After a step the backend has decoded each joint into `JointState`
+        // from the same Rapier state, with the same function; reuse it.
+        if self.stepped {
+            match self.sim.world.get::<JointState>(link) {
+                Some(JointState::Revolute {
+                    position_rad,
+                    velocity_rad_s,
+                }) => return Ok((*position_rad, *velocity_rad_s)),
+                Some(JointState::Prismatic {
+                    position_m,
+                    velocity_m_s,
+                }) => return Ok((*position_m, *velocity_m_s)),
+                _ => {}
+            }
+        }
         self.sim
             .backend
             .multibody_joint_state(self.sim.physics_world, link)
@@ -357,6 +376,7 @@ impl UnitreeRlGymWalker {
                     });
             }
             self.sim.step_physics_with_delta(delta);
+            self.stepped = true;
         }
         self.observe(command)?;
         self.policy.step(&self.observation, &mut self.action)?;

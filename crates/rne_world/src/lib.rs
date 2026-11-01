@@ -14,4 +14,4 @@ pub use resources::{
     RandomStreamId, WorldRandom, WorldRandomSnapshot, WORLD_RANDOM_STREAM_VERSION,
 };
 pub use systems::propagate_transforms;
-pub use transform::world_transform_of;
+pub use transform::{world_transform_of, WorldTransformCache};

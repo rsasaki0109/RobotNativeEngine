@@ -35,7 +35,7 @@ use rne_physics::{
 };
 #[cfg(feature = "position-motor-diagnostics")]
 use rne_physics::{JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval};
-use rne_world::{world_transform_of, Transform3};
+use rne_world::{world_transform_of, Transform3, WorldTransformCache};
 use std::collections::HashMap;
 
 const CAPABILITIES: &[PhysicsCapability] = &[
@@ -677,8 +677,11 @@ impl PhysicsBackend for RapierBackend {
         // layout (see AGENTS.md determinism requirements). Synchronization
         // spawns and despawns nothing, so one sorted list serves every pass.
         let entities = sorted_entities(world);
+        // Nothing below writes a transform or parent, so each world transform
+        // is composed once for the whole pass.
+        let mut transforms = WorldTransformCache::new();
         for &entity in &entities {
-            let transform = world_transform_of(world, entity);
+            let transform = transforms.get(world, entity);
             let Some(rigid_body) = world.get::<RigidBody>(entity) else {
                 continue;
             };
@@ -802,7 +805,7 @@ impl PhysicsBackend for RapierBackend {
         }
 
         sync_joints_from_ecs(world, state, &entities)?;
-        apply_joint_motors(world, state, &entities)?;
+        apply_joint_motors(world, state, &entities, &mut transforms)?;
         #[cfg(feature = "position-motor-diagnostics")]
         sync_position_motor_diagnostic_targets(world, state);
         state.query_pipeline.update(&state.colliders);
@@ -1602,6 +1605,7 @@ fn apply_joint_motors(
     world: &World,
     state: &mut RapierWorldState,
     entities: &[Entity],
+    transforms: &mut WorldTransformCache,
 ) -> Result<(), PhysicsError> {
     for &id in entities {
         let entity = world.entity(id);
@@ -1675,8 +1679,8 @@ fn apply_joint_motors(
         };
         apply_motor_command(world, *entity, axis, &mut link.joint.data)?;
     }
-    apply_direct_joint_efforts(world, state, entities)?;
-    apply_passive_coulomb_friction(world, state, entities)?;
+    apply_direct_joint_efforts(world, state, entities, transforms)?;
+    apply_passive_coulomb_friction(world, state, entities, transforms)?;
     Ok(())
 }
 
@@ -1801,6 +1805,7 @@ fn apply_direct_joint_efforts(
     world: &World,
     state: &mut RapierWorldState,
     entities: &[Entity],
+    transforms: &mut WorldTransformCache,
 ) -> Result<(), PhysicsError> {
     for &entity in entities {
         let Some(command) = world.get::<JointActuation>(entity).copied() else {
@@ -1849,8 +1854,9 @@ fn apply_direct_joint_efforts(
                 "non-finite effort or negative limit",
             ));
         }
-        let measured =
-            apply_generalized_effort(world, state, entity, parent, axis_local, effort, revolute)?;
+        let measured = apply_generalized_effort(
+            world, state, transforms, entity, parent, axis_local, effort, revolute,
+        )?;
         state.pending_joint_efforts.insert(
             entity,
             if revolute {
@@ -1871,6 +1877,7 @@ fn apply_passive_coulomb_friction(
     world: &World,
     state: &mut RapierWorldState,
     entities: &[Entity],
+    transforms: &mut WorldTransformCache,
 ) -> Result<(), PhysicsError> {
     for &entity in entities {
         let Some(dynamics) = world.get::<JointPassiveDynamics>(entity).copied() else {
@@ -1923,15 +1930,18 @@ fn apply_passive_coulomb_friction(
             ));
         }
         let effort = dynamics.regularized_coulomb_effort(velocity);
-        let _ =
-            apply_generalized_effort(world, state, entity, parent, axis_local, effort, revolute)?;
+        let _ = apply_generalized_effort(
+            world, state, transforms, entity, parent, axis_local, effort, revolute,
+        )?;
     }
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn apply_generalized_effort(
     world: &World,
     state: &mut RapierWorldState,
+    transforms: &mut WorldTransformCache,
     entity: Entity,
     parent: Entity,
     axis_local: Vec3,
@@ -1952,7 +1962,7 @@ fn apply_generalized_effort(
     }
     .ok_or_else(|| invalid_actuation(entity, "joint effort has no joint descriptor"))?;
     let axis_world =
-        world_transform_of(world, parent).rotation * origin_rotation * axis_local.normalize();
+        transforms.get(world, parent).rotation * origin_rotation * axis_local.normalize();
     if !axis_world.is_finite() || axis_world.length_squared() <= f64::EPSILON {
         return Err(invalid_actuation(
             entity,
@@ -1972,7 +1982,7 @@ fn apply_generalized_effort(
             } else {
                 desc.anchor_parent_m
             };
-            let transform = world_transform_of(world, target);
+            let transform = transforms.get(world, target);
             Some(transform.translation + transform.rotation * (transform.scale * anchor_local_m))
         };
         let Some(handle) = state.entity_to_body.get(&target).copied() else {
@@ -5801,7 +5811,17 @@ mod tests {
         backend.sync_to_ecs(&mut world, physics_world).unwrap();
 
         let state = backend.world_mut(physics_world).unwrap();
-        apply_generalized_effort(&world, state, child, parent, Vec3::Y, 10.0, false).unwrap();
+        apply_generalized_effort(
+            &world,
+            state,
+            &mut WorldTransformCache::new(),
+            child,
+            parent,
+            Vec3::Y,
+            10.0,
+            false,
+        )
+        .unwrap();
         let parent_handle = state.entity_to_body[&parent];
         let child_handle = state.entity_to_body[&child];
         let parent_body = &state.bodies[parent_handle];
