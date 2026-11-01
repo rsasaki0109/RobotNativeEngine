@@ -1,0 +1,25 @@
+# Standalone (non-workspace) crate: tract's dependency graph would add twelve
+# duplicated crate names to the root workspace's supply-chain policy.
+# This evaluation tool is not shipped; see README.md.
+[workspace]
+
+[package]
+name = "rne_onnx_eval"
+description = "CPU evaluation of pretrained ONNX models on Robot Native Engine scenes"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+png = "0.18"
+rne_math = { path = "../../crates/rne_math" }
+rne_render = { path = "../../crates/rne_render" }
+rne_render_wgpu = { path = "../../crates/rne_render_wgpu" }
+rne_world = { path = "../../crates/rne_world" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+toml = "0.8"
+tract-onnx = "=0.23.9"
+# Optional multi-threaded matrix products (`--threads`).
+tract-linalg = { version = "=0.23.9", features = ["multithread-mm"] }
