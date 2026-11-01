@@ -12,6 +12,7 @@
 //! cargo run --release --manifest-path tools/onnx_eval/Cargo.toml -- --output target/onnx-eval
 //! ```
 
+mod policy;
 mod scene;
 
 use std::collections::HashMap;
@@ -26,7 +27,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use tract_onnx::prelude::*;
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub(crate) type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug, Deserialize)]
 struct Manifest {
@@ -58,6 +59,8 @@ struct Options {
     size_px: u32,
     views: usize,
     threads: usize,
+    policy: Option<PathBuf>,
+    fixture: PathBuf,
 }
 
 fn parse() -> Result<Options> {
@@ -68,6 +71,8 @@ fn parse() -> Result<Options> {
         size_px: 518,
         views: 8,
         threads: 1,
+        policy: None,
+        fixture: repo.join("examples/144_g1_sim2sim/fixtures/mujoco_policy_io.json"),
     };
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -78,6 +83,8 @@ fn parse() -> Result<Options> {
             "--size" => options.size_px = value()?.parse()?,
             "--views" => options.views = value()?.parse()?,
             "--threads" => options.threads = value()?.parse()?,
+            "--policy" => options.policy = Some(PathBuf::from(value()?)),
+            "--fixture" => options.fixture = PathBuf::from(value()?),
             other => return Err(format!("unknown option {other}").into()),
         }
     }
@@ -303,6 +310,15 @@ fn main() -> Result<()> {
 }
 
 fn evaluate(options: &Options) -> Result<()> {
+    if let Some(model) = &options.policy {
+        let mut report = policy::evaluate(model, &options.fixture)?;
+        report["runtime"] = json!(format!(
+            "tract-onnx 0.23.9, {} CPU thread(s)",
+            options.threads
+        ));
+        println!("{}", serde_json::to_string_pretty(&report)?);
+        return Ok(());
+    }
     fs::create_dir_all(&options.output)?;
     let manifest: Manifest = toml::from_str(&fs::read_to_string(
         Path::new(env!("CARGO_MANIFEST_DIR")).join("models.toml"),

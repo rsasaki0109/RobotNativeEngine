@@ -59,6 +59,27 @@ eight views after one warm-up run.
   The roller shutter on the back wall is drawn flat, but every variant
   predicts it standing out from the wall (top row of the image).
 
+## ONNX policies
+
+Policies trained in Isaac Gym or Isaac Lab are often exported as ONNX. The
+same runtime runs them step by step, with the recurrent state as an explicit
+input and output. `g1_policy_to_onnx.py` writes the vendored unitree_rl_gym
+G1 walking policy as a standard ONNX graph (an LSTM, with gates reordered from
+PyTorch's i, f, g, o to ONNX's i, o, f, c, then Gemm, Elu and Gemm). It reads
+only the weight blob and needs the `onnx` Python package.
+
+```bash
+python3 tools/onnx_eval/g1_policy_to_onnx.py target/models/g1-walk-lstm.onnx
+cargo run --release --manifest-path tools/onnx_eval/Cargo.toml -- --policy target/models/g1-walk-lstm.onnx
+```
+
+Over the 50 policy steps MuJoCo recorded (`examples/144_g1_sim2sim/fixtures`),
+tract's actions match MuJoCo's within 8.3e-7. The 126 KB graph loads in 5 ms
+and one step takes a median of 14–23 µs on one thread, close to the
+hand-written Rust actor in `rne_ai::LstmPolicy`. A policy this small needs no
+quantization; the observation and action layout still has to be declared per
+robot, as `rne_ai::UnitreeRlGymWalker` does for unitree_rl_gym.
+
 ## Why a standalone crate
 
 tract adds about 47 packages and twelve duplicated crate names (two `syn`, two

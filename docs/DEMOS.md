@@ -636,7 +636,9 @@ alignment. The publisher's int8 quantizations are 3.6× smaller (27 MB against
 99 MB) and stay within about 1% of float32, but on x86 tract runs them slower:
 5.4 s against 4.8 s on one thread, and 4.3 s against 2.3 s on four. RNE's
 ground truth also shows where the model is wrong: every variant pulls a flat
-roller shutter out of its wall. The tool keeps its own lockfile outside the
+roller shutter out of its wall. The same runtime runs the G1 walking policy
+rebuilt as a standard ONNX graph: its actions match MuJoCo's recording within
+8.3e-7 at 14–23 µs per step. The tool keeps its own lockfile outside the
 workspace because tract would add twelve duplicated crate names.
 
 ```bash
