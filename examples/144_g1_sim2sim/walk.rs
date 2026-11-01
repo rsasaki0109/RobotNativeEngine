@@ -6,13 +6,10 @@
 //! plant options onto it and computes the walking metrics shared with
 //! `metrics.py`. Poses are in the policy's Z-up frame.
 
-use rne_ai::{
-    unitree_g1_12dof_walk_scene_path, LstmPolicy, PolicyWalkPlant, PolicyWalkStep,
-    UnitreeRlGymWalker, UrdfSceneSim,
-};
+use rne_ai::{LstmPolicy, PolicyWalkPlant, PolicyWalkStep, UnitreeRlGymWalker, UrdfSceneSim};
 use serde_json::{json, Value};
 
-use crate::policy::Result;
+use crate::policy::{Result, Robot};
 
 /// Pelvis height below which a run counts as a fall, in metres.
 pub(crate) const FALL_HEIGHT_M: f64 = 0.55;
@@ -48,10 +45,14 @@ impl Default for PlantConfig {
     }
 }
 
-/// Loads the 12-DoF scene and configures the walker for `plant`.
-pub(crate) fn walker(policy: LstmPolicy, plant: PlantConfig) -> Result<UnitreeRlGymWalker> {
+/// Loads the robot's walking scene and configures the walker for `plant`.
+pub(crate) fn walker(
+    robot: Robot,
+    policy: LstmPolicy,
+    plant: PlantConfig,
+) -> Result<UnitreeRlGymWalker> {
     let sim = UrdfSceneSim::from_scene_path_with_solver_iterations(
-        &unitree_g1_12dof_walk_scene_path(),
+        &robot.scene(),
         plant.solver_iterations,
     )?;
     Ok(UnitreeRlGymWalker::new(
@@ -121,8 +122,13 @@ mod tests {
     use super::*;
 
     fn walker() -> UnitreeRlGymWalker {
+        robot_walker(Robot::G1)
+    }
+
+    fn robot_walker(robot: Robot) -> UnitreeRlGymWalker {
         super::walker(
-            crate::policy::load().expect("policy"),
+            robot,
+            crate::policy::load(robot).expect("policy"),
             PlantConfig::default(),
         )
         .expect("walker")
@@ -133,6 +139,17 @@ mod tests {
         (0..(seconds / 0.02).round() as usize)
             .map(|_| walker.step(command).expect("step"))
             .collect()
+    }
+
+    #[test]
+    fn h1_plant_mass_and_effort_limits_match_the_mjcf() {
+        let walker = robot_walker(Robot::H1);
+        let (_, mass_kg) = walker.sim().dynamic_center_of_mass_m().expect("mass");
+        assert!((mass_kg - 51.650).abs() < 1.0e-3, "mass {mass_kg}");
+        assert_eq!(
+            walker.effort_limits_nm(),
+            [200.0, 200.0, 200.0, 300.0, 40.0, 200.0, 200.0, 200.0, 300.0, 40.0]
+        );
     }
 
     #[test]
@@ -169,26 +186,40 @@ mod tests {
         }
     }
 
-    #[test]
-    fn walks_like_the_mujoco_reference() {
-        let reference: Value =
-            serde_json::from_str(include_str!("fixtures/mujoco_reference.json")).expect("fixture");
+    fn assert_walks_like_mujoco(robot: Robot, forward_tolerance_m_s: f64) {
+        let reference: Value = serde_json::from_str(robot.reference()).expect("fixture");
         let mujoco = &reference["runs"][0];
         let command: [f64; 3] = serde_json::from_value(mujoco["command"].clone()).unwrap();
         assert_eq!(command, [0.5, 0.0, 0.0]);
-        let summary = summarize(&walk(10.0, command), command);
+        let mut walker = robot_walker(robot);
+        let records: Vec<_> = (0..500)
+            .map(|_| walker.step(command).expect("step"))
+            .collect();
+        let summary = summarize(&records, command);
         let field = |value: &Value, key: &str| value[key].as_f64().expect(key);
         assert_eq!(summary["fell"], false);
         for (key, tolerance) in [
-            ("second_half_forward_speed_m_s", 0.04),
+            ("second_half_forward_speed_m_s", forward_tolerance_m_s),
             ("second_half_yaw_rate_rad_s", 0.03),
             ("mean_base_height_m", 0.005),
         ] {
             let (rne, reference) = (field(&summary, key), field(&mujoco["summary"], key));
             assert!(
                 (rne - reference).abs() < tolerance,
-                "{key}: RNE {rne}, MuJoCo {reference}"
+                "{robot:?} {key}: RNE {rne}, MuJoCo {reference}"
             );
         }
+    }
+
+    #[test]
+    fn walks_like_the_mujoco_reference() {
+        assert_walks_like_mujoco(Robot::G1, 0.04);
+    }
+
+    #[test]
+    fn h1_walks_like_the_mujoco_reference() {
+        // The H1's convex-hull feet leave a larger contact-model gap: RNE
+        // walks about 0.03 m/s faster than MuJoCo at every command.
+        assert_walks_like_mujoco(Robot::H1, 0.04);
     }
 }

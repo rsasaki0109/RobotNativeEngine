@@ -7,8 +7,8 @@ policy from RNE's weight blob in numpy, so both engines use identical weights
 and nothing from the TorchScript archive is executed. Requires mujoco and numpy
 plus a checkout of unitree_rl_gym for its MuJoCo scene.
 
-Usage: mujoco_reference.py UNITREE_RL_GYM_ROOT OUTPUT.json [--seconds 10]
-       [--fixture POLICY_IO.json]
+Usage: mujoco_reference.py UNITREE_RL_GYM_ROOT OUTPUT.json [--robot g1|h1]
+       [--seconds 10] [--fixture POLICY_IO.json]
 """
 import argparse
 import hashlib
@@ -21,7 +21,12 @@ import numpy as np
 from metrics import COMMANDS, summarize
 
 REPO = Path(__file__).resolve().parents[2]
-POLICY = REPO / "assets/policies/unitree_g1_walk/g1_walk_lstm.policy.json"
+ROBOTS = {
+    "g1": {"policy": REPO / "assets/policies/unitree_g1_walk/g1_walk_lstm.policy.json",
+           "scene": "resources/robots/g1_description/scene.xml"},
+    "h1": {"policy": REPO / "assets/policies/unitree_h1_walk/h1_walk_lstm.policy.json",
+           "scene": "resources/robots/h1/scene.xml"},
+}
 
 
 class Policy:
@@ -66,10 +71,10 @@ def projected_gravity(q):
     return np.array([2 * (-z * x + w * y), -2 * (z * y + w * x), 1 - 2 * (w * w + z * z)])
 
 
-def run(upstream, command, seconds):
-    model = mujoco.MjModel.from_xml_path(str(upstream / "resources/robots/g1_description/scene.xml"))
+def run(upstream, robot, command, seconds):
+    model = mujoco.MjModel.from_xml_path(str(upstream / ROBOTS[robot]["scene"]))
     data = mujoco.MjData(model)
-    policy = Policy(POLICY)
+    policy = Policy(ROBOTS[robot]["policy"])
     spec = policy.deployment
     dt, decimation, period = spec["physics_dt_s"], spec["control_decimation"], spec["gait_period_s"]
     model.opt.timestep = dt
@@ -77,9 +82,10 @@ def run(upstream, command, seconds):
     kd = np.array(spec["kd_nm_s_per_rad"], np.float32)
     default = np.array(spec["default_joint_rad"], np.float32)
     cmd = np.array(command, np.float32)
-    action = np.zeros(12, np.float32)
+    joints = len(spec["default_joint_rad"])
+    action = np.zeros(joints, np.float32)
     target = default.copy()
-    obs = np.zeros(47, np.float32)
+    obs = np.zeros(9 + 3 * joints + 2, np.float32)
     records = []
     for counter in range(1, int(round(seconds / dt)) + 1):
         data.ctrl[:] = (target - data.qpos[7:]) * kp - data.qvel[6:] * kd
@@ -90,10 +96,11 @@ def run(upstream, command, seconds):
         obs[:3] = data.qvel[3:6] * spec["angular_velocity_scale"]
         obs[3:6] = projected_gravity(data.qpos[3:7])
         obs[6:9] = cmd * np.array(spec["command_scale"], np.float32)
-        obs[9:21] = data.qpos[7:] - default
-        obs[21:33] = data.qvel[6:] * spec["joint_velocity_scale"]
-        obs[33:45] = action
-        obs[45:47] = [np.sin(2 * np.pi * phase), np.cos(2 * np.pi * phase)]
+        n = joints
+        obs[9:9 + n] = data.qpos[7:] - default
+        obs[9 + n:9 + 2 * n] = data.qvel[6:] * spec["joint_velocity_scale"]
+        obs[9 + 2 * n:9 + 3 * n] = action
+        obs[9 + 3 * n:] = [np.sin(2 * np.pi * phase), np.cos(2 * np.pi * phase)]
         action = policy(obs.copy())
         target = action * spec["action_scale"] + default
         records.append({"time_s": counter * dt, "obs": obs.tolist(), "action": action.tolist(),
@@ -106,12 +113,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("upstream", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--robot", choices=sorted(ROBOTS), default="g1")
     parser.add_argument("--seconds", type=float, default=10.0)
     parser.add_argument("--fixture", type=Path, help="Write the first policy steps' inputs/outputs")
     arguments = parser.parse_args()
     runs = []
     for command in COMMANDS:
-        records = run(arguments.upstream, command, arguments.seconds)
+        records = run(arguments.upstream, arguments.robot, command, arguments.seconds)
         runs.append({"command": command, "summary": summarize(records, command),
                      "base_path_xy_m_10hz": [[round(v, 4) for v in r["base_position_m"][:2]]
                                              for r in records[4::5]]})
@@ -122,7 +130,7 @@ def main():
                  "steps": [{"obs": r["obs"], "action": r["action"]} for r in records[:50]]}) + "\n")
     arguments.output.write_text(json.dumps(
         {"schema_version": 1, "engine": f"mujoco {mujoco.__version__}",
-         "scene": "unitree_rl_gym resources/robots/g1_description/scene.xml",
+         "scene": f"unitree_rl_gym {ROBOTS[arguments.robot]['scene']}",
          "seconds": arguments.seconds, "runs": runs}, indent=2) + "\n")
 
 
