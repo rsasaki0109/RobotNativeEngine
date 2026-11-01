@@ -7,6 +7,7 @@
 //! ```text
 //! cargo run --release --example 144_g1_sim2sim                 # 4 commands vs MuJoCo
 //! cargo run --release --example 144_g1_sim2sim -- --timing     # solver iteration sweep
+//! cargo run --release --example 144_g1_sim2sim -- --throughput # 1–8 walkers on threads
 //! cargo run --release --example 144_g1_sim2sim -- --command 0.5,0,0 --seconds 20
 //! cargo run --release --example 144_g1_sim2sim -- --render target/g1-sim2sim-render
 //! ```
@@ -29,6 +30,7 @@ struct Options {
     seconds: f64,
     command: Option<[f64; 3]>,
     timing: bool,
+    throughput: bool,
     ablation: bool,
     render: Option<PathBuf>,
     plant: PlantConfig,
@@ -58,6 +60,7 @@ fn parse() -> Result<Options> {
         seconds: 10.0,
         command: None,
         timing: false,
+        throughput: false,
         ablation: false,
         render: None,
         plant: PlantConfig::default(),
@@ -73,6 +76,7 @@ fn parse() -> Result<Options> {
             "--armature" => options.plant.armature_kg_m2 = value()?.parse()?,
             "--floor-friction" => options.plant.floor_friction = value()?.parse()?,
             "--timing" => options.timing = true,
+            "--throughput" => options.throughput = true,
             "--ablation" => options.ablation = true,
             "--render" => options.render = Some(PathBuf::from(value()?)),
             "--robot" => options.robot = Robot::parse(&value()?)?,
@@ -242,12 +246,97 @@ fn report(
     }))
 }
 
+/// Runs `envs` independent walkers on their own threads, all released at
+/// once after construction, and returns (aggregate simulated seconds per wall
+/// second, mean per-walker real-time factor).
+fn parallel_walk(
+    robot: Robot,
+    plant: PlantConfig,
+    command: [f64; 3],
+    seconds: f64,
+    envs: usize,
+) -> Result<(f64, f64)> {
+    let start = std::sync::Barrier::new(envs + 1);
+    let per_walker = std::thread::scope(|scope| -> Result<Vec<f64>> {
+        let workers: Vec<_> = (0..envs)
+            .map(|_| {
+                let start = &start;
+                scope.spawn(move || -> std::result::Result<f64, String> {
+                    let policy = policy::load(robot).map_err(|e| e.to_string());
+                    let walker = policy.and_then(|policy| {
+                        let steps = (seconds / policy.deployment().control_dt_s()).round();
+                        walk::walker(robot, policy, plant)
+                            .map(|walker| (walker, steps as usize))
+                            .map_err(|e| e.to_string())
+                    });
+                    start.wait();
+                    let (mut walker, steps) = walker?;
+                    let begin = Instant::now();
+                    for _ in 0..steps {
+                        walker.step(command).map_err(|e| e.to_string())?;
+                    }
+                    Ok(seconds / begin.elapsed().as_secs_f64())
+                })
+            })
+            .collect();
+        start.wait();
+        let begin = Instant::now();
+        let factors = workers
+            .into_iter()
+            .map(|worker| worker.join().expect("walker thread"))
+            .collect::<std::result::Result<Vec<f64>, String>>()?;
+        let wall_s = begin.elapsed().as_secs_f64();
+        Ok(std::iter::once(envs as f64 * seconds / wall_s)
+            .chain(factors)
+            .collect())
+    })?;
+    let aggregate = per_walker[0];
+    let mean = per_walker[1..].iter().sum::<f64>() / envs as f64;
+    Ok((aggregate, mean))
+}
+
+fn throughput(options: &Options, command: [f64; 3]) -> Result<Value> {
+    let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
+    let mut rows = Vec::new();
+    for iterations in [1, 4] {
+        let plant = PlantConfig {
+            solver_iterations: iterations,
+            ..options.plant
+        };
+        for envs in [1, 2, 4, 8] {
+            let (aggregate, per_walker) =
+                parallel_walk(options.robot, plant, command, options.seconds, envs)?;
+            println!(
+                "{iterations} solver iterations, {envs} walkers on {cores} cores: \
+                 {aggregate:.1} simulated s per wall s ({per_walker:.1}x real time each)"
+            );
+            rows.push(json!({
+                "solver_iterations": iterations, "walkers": envs,
+                "simulated_s_per_wall_s": aggregate, "per_walker_realtime_factor": per_walker,
+            }));
+        }
+    }
+    Ok(
+        json!({"cores": cores, "command": command, "seconds_per_walker": options.seconds,
+              "rows": rows}),
+    )
+}
+
 fn main() -> Result<()> {
     let options = parse()?;
     if let Some(output) = &options.render {
         return render_walk(&options, output);
     }
     std::fs::create_dir_all(&options.output)?;
+    if options.throughput {
+        let report = throughput(&options, options.command.unwrap_or([0.5, 0.0, 0.0]))?;
+        let path = options
+            .output
+            .join(format!("{}-throughput.json", options.robot.name()));
+        std::fs::write(&path, serde_json::to_string_pretty(&report)? + "\n")?;
+        println!("wrote {}", path.display());
+        return Ok(());
+    }
     let reference: Value = serde_json::from_str(options.robot.reference())?;
     let commands: Vec<[f64; 3]> = match options.command {
         Some(command) => vec![command],

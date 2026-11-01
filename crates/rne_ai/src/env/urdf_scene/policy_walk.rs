@@ -267,17 +267,12 @@ impl UnitreeRlGymWalker {
     }
 
     fn joint_state(&self, link: Entity) -> Result<(f64, f64), PolicyWalkError> {
-        let position = self
-            .sim
+        self.sim
             .backend
-            .multibody_joint_position(self.sim.physics_world, link);
-        let velocity = self
-            .sim
-            .backend
-            .multibody_joint_velocity(self.sim.physics_world, link);
-        position.zip(velocity).ok_or_else(|| {
-            PolicyWalkError::Model("an actuated joint has no multibody state".into())
-        })
+            .multibody_joint_state(self.sim.physics_world, link)
+            .ok_or_else(|| {
+                PolicyWalkError::Model("an actuated joint has no multibody state".into())
+            })
     }
 
     fn observe(&mut self, command: [f64; 3]) -> Result<(), PolicyWalkError> {

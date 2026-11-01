@@ -61,6 +61,136 @@ fn concat_rb_mass_matrix(
     result
 }
 
+// RNE modification: column-sparse mass matrix accumulation, see RNE_PATCH.md.
+//
+// A link's body Jacobian and Coriolis terms are nonzero only in the columns of
+// its ancestors' coordinates. With finite operands, nalgebra's dense
+// `quadform`, `gemm` and `gemm_tr` add an exact zero to every other entry, and
+// those entries stay `+0.0`, so skipping them is bit-identical. The kept
+// entries repeat nalgebra's arithmetic order: `gemv` scales each matrix
+// column as `(alpha·a)·x + 1·y`, starting from `(alpha·a)·x` when `beta` is
+// zero, and a six-row dot product sums the products in row order from `+0.0`.
+
+#[inline(always)]
+fn rne_all_finite(values: &[Real]) -> bool {
+    values.iter().all(|value| value.is_finite())
+}
+
+#[inline(always)]
+fn rne_column(matrix: &Jacobian<Real>, index: usize) -> [Real; SPATIAL_DIM] {
+    let mut column = [0.0; SPATIAL_DIM];
+    column.copy_from_slice(&matrix.as_slice()[index * SPATIAL_DIM..(index + 1) * SPATIAL_DIM]);
+    column
+}
+
+/// Copies the kept columns of `matrix`, in `columns` order.
+fn rne_gather(matrix: &Jacobian<Real>, columns: &[usize], kept: &mut Vec<[Real; SPATIAL_DIM]>) {
+    kept.clear();
+    kept.extend(columns.iter().map(|&column| rne_column(matrix, column)));
+}
+
+/// nalgebra's `dotx` for a six-row column: its four zero accumulator pairs
+/// fold into `+0.0`, then the products add in row order.
+#[inline(always)]
+fn rne_dot(a: &[Real; SPATIAL_DIM], b: &[Real; SPATIAL_DIM]) -> Real {
+    let mut sum: Real = 0.0;
+    for row in 0..SPATIAL_DIM {
+        sum += a[row] * b[row];
+    }
+    sum
+}
+
+/// `target[(i, j)] = dot(a_i, b_j) + target[(i, j)]` for every kept pair, as
+/// `gemv_tr(1.0, a, b_j, 1.0)` on column `j`.
+#[inline(always)]
+fn rne_accumulate_dots(
+    target: &mut DMatrix<Real>,
+    a: &[[Real; SPATIAL_DIM]],
+    b_j: &[Real; SPATIAL_DIM],
+    j: usize,
+    columns: &[usize],
+) {
+    let nrows = target.nrows();
+    let column = &mut target.as_mut_slice()[j * nrows..(j + 1) * nrows];
+    for (a_i, &i) in a.iter().zip(columns) {
+        let entry = &mut column[i];
+        *entry = 1.0 * rne_dot(a_i, b_j) + 1.0 * *entry;
+    }
+}
+
+/// `target += rhs^T * mid * rhs` over the kept columns `kept` of `rhs`, as
+/// nalgebra's `quadform(1.0, mid, rhs, 1.0)`. Returns `false` if a product
+/// `mid * rhs_j` is not finite, since the dense form would then add NaN to
+/// skipped entries.
+fn rne_quadform_columns(
+    target: &mut DMatrix<Real>,
+    mid: &SMatrix<Real, SPATIAL_DIM, SPATIAL_DIM>,
+    kept: &[[Real; SPATIAL_DIM]],
+    columns: &[usize],
+) -> bool {
+    for (x, &j) in kept.iter().zip(columns) {
+        // `work.gemv(1.0, mid, x, 0.0)`.
+        let mut work = [0.0; SPATIAL_DIM];
+        for (row, value) in work.iter_mut().enumerate() {
+            *value = 1.0 * mid[(row, 0)] * x[0];
+        }
+        for k in 1..SPATIAL_DIM {
+            for (row, value) in work.iter_mut().enumerate() {
+                *value = 1.0 * mid[(row, k)] * x[k] + 1.0 * *value;
+            }
+        }
+        if !rne_all_finite(&work) {
+            return false;
+        }
+        // `target.column_mut(j).gemv_tr(1.0, rhs, work, 1.0)`.
+        rne_accumulate_dots(target, kept, &work, j, columns);
+    }
+    true
+}
+
+/// `target += a^T * b` over the kept columns `a_kept` of `a`, as
+/// `gemm_tr(1.0, a, b, 1.0)`.
+fn rne_gemm_tr_columns(
+    target: &mut DMatrix<Real>,
+    a_kept: &[[Real; SPATIAL_DIM]],
+    b: &Jacobian<Real>,
+    columns: &[usize],
+) {
+    for &j in columns {
+        rne_accumulate_dots(target, a_kept, &rne_column(b, j), j, columns);
+    }
+}
+
+/// The leading `dim × dim` block of `matrix`, as `view((0, 0), (dim, dim)).into_owned()`.
+fn rne_leading_block(matrix: &DMatrix<Real>, dim: usize) -> DMatrix<Real> {
+    let nrows = matrix.nrows();
+    let mut data = Vec::with_capacity(dim * dim);
+    for column in matrix.as_slice().chunks_exact(nrows.max(1)).take(dim) {
+        data.extend_from_slice(&column[..dim]);
+    }
+    DMatrix::from_vec(dim, dim, data)
+}
+
+/// `y += alpha * a * b` over `columns`, as `gemm(alpha, a, b, 1.0)` with a
+/// 3×3 `a` (too small for nalgebra's matrixmultiply path).
+#[cfg(feature = "dim3")]
+fn rne_gemm3_columns<S: na::RawStorage<Real, na::U3, Dyn>>(
+    y: &mut OMatrix<Real, na::U3, Dyn>,
+    alpha: Real,
+    a: &Matrix<Real>,
+    b: &na::Matrix<Real, na::U3, Dyn, S>,
+    columns: &[usize],
+) {
+    for &j in columns {
+        let x = [b[(0, j)], b[(1, j)], b[(2, j)]];
+        for (k, x_k) in x.iter().enumerate() {
+            for row in 0..3 {
+                y[(row, j)] = alpha * a[(row, k)] * *x_k + 1.0 * y[(row, j)];
+            }
+        }
+    }
+}
+
 #[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
 struct KinematicRootMotion {
@@ -757,6 +887,53 @@ impl Multibody {
             return; // Nothing to do.
         }
 
+        // RNE: the column-sparse accumulation reproduces the dense loop bit
+        // for bit when its operands are finite. Otherwise it returns `false`
+        // and the unchanged upstream loop recomputes everything.
+        if !self.rne_accumulate_inertias_sparse(dt, bodies) {
+            self.accumulate_inertias_dense(dt, bodies);
+        }
+
+        /*
+         * Damping.
+         */
+        for i in 0..self.ndofs {
+            // Apply before factorization/permutation for forces and constraints.
+            // Preserve legacy arithmetic exactly when no armature is configured.
+            if self.armature[i] != 0.0 {
+                self.acc_augmented_mass[(i, i)] += self.armature[i];
+                self.augmented_mass[(i, i)] += self.armature[i];
+            }
+            self.acc_augmented_mass[(i, i)] += self.damping[i] * dt;
+            self.augmented_mass[(i, i)] += self.damping[i] * dt;
+        }
+
+        let effective_dim = self
+            .augmented_mass_indices
+            .dim_after_removal(self.acc_augmented_mass.nrows());
+
+        // PERF: since we clone the matrix anyway for LU, should be directly output
+        //       a new matrix instead of applying permutations?
+        self.augmented_mass_indices
+            .rearrange_columns(&mut self.acc_augmented_mass, true);
+        self.augmented_mass_indices
+            .rearrange_columns(&mut self.augmented_mass, true);
+
+        self.augmented_mass_indices
+            .rearrange_rows(&mut self.acc_augmented_mass, true);
+        self.augmented_mass_indices
+            .rearrange_rows(&mut self.augmented_mass, true);
+
+        // TODO: avoid allocation inside LU at each timestep.
+        // RNE: copy the leading block column by column instead of through
+        // the generic view iterator; the factorized values are identical.
+        self.acc_inv_augmented_mass =
+            LU::new(rne_leading_block(&self.acc_augmented_mass, effective_dim));
+        self.inv_augmented_mass = LU::new(rne_leading_block(&self.augmented_mass, effective_dim));
+    }
+
+    /// Clears the mass matrices and sizes the Coriolis workspaces.
+    fn reset_inertias(&mut self) {
         if self.augmented_mass.ncols() != self.ndofs {
             // TODO: do a resize instead of a full reallocation.
             self.augmented_mass = DMatrix::zeros(self.ndofs, self.ndofs);
@@ -779,6 +956,11 @@ impl Multibody {
             );
             self.i_coriolis_dt = Jacobian::zeros(self.ndofs);
         }
+    }
+
+    /// Upstream's dense accumulation of both mass matrices.
+    fn accumulate_inertias_dense(&mut self, dt: Real, bodies: &RigidBodySet) {
+        self.reset_inertias();
 
         let mut curr_assembly_id = 0;
 
@@ -955,48 +1137,224 @@ impl Multibody {
             self.acc_augmented_mass
                 .gemm_tr(1.0, rb_j, &self.i_coriolis_dt, 1.0);
         }
+    }
 
-        /*
-         * Damping.
-         */
-        for i in 0..self.ndofs {
-            // Apply before factorization/permutation for forces and constraints.
-            // Preserve legacy arithmetic exactly when no armature is configured.
-            if self.armature[i] != 0.0 {
-                self.acc_augmented_mass[(i, i)] += self.armature[i];
-                self.augmented_mass[(i, i)] += self.armature[i];
+    /// RNE: the dense loop restricted to each link's ancestor coordinates.
+    ///
+    /// Every quantity the dense loop accumulates for link `i` is zero outside
+    /// the columns of `i`'s ancestors' coordinates, and stays exactly `+0.0`
+    /// there when the operands are finite (see `rne_quadform_columns`). This
+    /// computes the other columns in the dense loop's order and leaves those
+    /// zeros untouched. It returns `false` as soon as an operand is not finite,
+    /// so that the caller can rerun the dense loop.
+    #[cfg(feature = "dim3")]
+    fn rne_accumulate_inertias_sparse(&mut self, dt: Real, bodies: &RigidBodySet) -> bool {
+        self.reset_inertias();
+
+        let mut columns = Vec::with_capacity(self.ndofs);
+        let mut kept = Vec::with_capacity(self.ndofs);
+        let mut curr_assembly_id = 0;
+
+        for i in 0..self.links.len() {
+            let link = &self.links[i];
+            let rb = &bodies[link.rigid_body];
+            let rb_mass = rb.mprops.effective_mass();
+            let rb_inertia = rb.mprops.effective_angular_inertia().into_matrix();
+            let body_jacobian = &self.body_jacobians[i];
+
+            assert_eq!(
+                curr_assembly_id, link.assembly_id,
+                "Internal error: contiguity assumption on assembly_id does not hold."
+            );
+            curr_assembly_id += link.joint.ndofs();
+
+            if link.joint.kinematic {
+                for k in link.assembly_id..link.assembly_id + link.joint.ndofs() {
+                    self.augmented_mass_indices.remove(k);
+                }
+            } else {
+                for k in link.assembly_id..link.assembly_id + link.joint.ndofs() {
+                    self.augmented_mass_indices.keep(k);
+                }
             }
-            self.acc_augmented_mass[(i, i)] += self.damping[i] * dt;
-            self.augmented_mass[(i, i)] += self.damping[i] * dt;
+
+            let gyroscopic_matrix = rb.vels.angvel.gcross_matrix() * rb_inertia
+                - (rb_inertia * rb.vels.angvel).gcross_matrix();
+            let augmented_inertia = rb_inertia + gyroscopic_matrix * dt;
+
+            let rb_mass_matrix_wo_gyro = concat_rb_mass_matrix(rb_mass, rb_inertia);
+            let rb_mass_matrix = concat_rb_mass_matrix(rb_mass, augmented_inertia);
+            if !rne_all_finite(body_jacobian.as_slice())
+                || !rne_all_finite(rb_mass_matrix_wo_gyro.as_slice())
+                || !rne_all_finite(rb_mass_matrix.as_slice())
+            {
+                return false;
+            }
+
+            // Coordinates of this link and its ancestors.
+            columns.clear();
+            let mut ancestor = i;
+            loop {
+                let ancestor_link = &self.links[ancestor];
+                columns.extend(
+                    ancestor_link.assembly_id
+                        ..ancestor_link.assembly_id + ancestor_link.joint.ndofs(),
+                );
+                if ancestor == 0 {
+                    break;
+                }
+                ancestor = ancestor_link.parent_internal_id;
+            }
+
+            rne_gather(body_jacobian, &columns, &mut kept);
+            if !rne_quadform_columns(
+                &mut self.augmented_mass,
+                &rb_mass_matrix_wo_gyro,
+                &kept,
+                &columns,
+            ) || !rne_quadform_columns(
+                &mut self.acc_augmented_mass,
+                &rb_mass_matrix,
+                &kept,
+                &columns,
+            ) {
+                return false;
+            }
+
+            /*
+             * Coriolis matrix, as in the dense loop.
+             */
+            let rb_j = &self.body_jacobians[i];
+            let rb_j_w = rb_j.fixed_rows::<ANG_DIM>(DIM);
+
+            let ndofs = link.joint.ndofs();
+
+            if i != 0 {
+                let parent_id = link.parent_internal_id;
+                let parent_link = &self.links[parent_id];
+                let parent_rb = &bodies[parent_link.rigid_body];
+                let parent_j = &self.body_jacobians[parent_id];
+                let parent_j_w = parent_j.fixed_rows::<ANG_DIM>(DIM);
+                let parent_w = parent_rb.vels.angvel.gcross_matrix();
+
+                let shift_cross_tr = link.shift02.gcross_matrix_tr();
+                let dvel_cross = (rb.vels.angvel.gcross(link.shift02)
+                    + 2.0 * link.joint_velocity.linvel)
+                    .gcross_matrix_tr();
+                let joint_linvel_cross_tr = link.joint_velocity.linvel.gcross_matrix_tr();
+                let parent_w_shift = parent_w * shift_cross_tr;
+                let vel_wrt_joint_w = link.joint_velocity.angvel.gcross_matrix();
+                if ![
+                    &shift_cross_tr,
+                    &dvel_cross,
+                    &joint_linvel_cross_tr,
+                    &parent_w_shift,
+                    &vel_wrt_joint_w,
+                ]
+                .iter()
+                .all(|matrix| rne_all_finite(matrix.as_slice()))
+                {
+                    return false;
+                }
+
+                let (coriolis_v, parent_coriolis_v) = self.coriolis_v.index_mut2(i, parent_id);
+                let (coriolis_w, parent_coriolis_w) = self.coriolis_w.index_mut2(i, parent_id);
+
+                coriolis_v.copy_from(parent_coriolis_v);
+                coriolis_w.copy_from(parent_coriolis_w);
+
+                rne_gemm3_columns(
+                    coriolis_v,
+                    1.0,
+                    &shift_cross_tr,
+                    parent_coriolis_w,
+                    &columns,
+                );
+                rne_gemm3_columns(coriolis_v, 1.0, &dvel_cross, &parent_j_w, &columns);
+                rne_gemm3_columns(
+                    coriolis_v,
+                    1.0,
+                    &joint_linvel_cross_tr,
+                    &parent_j_w,
+                    &columns,
+                );
+                rne_gemm3_columns(coriolis_v, 1.0, &parent_w_shift, &parent_j_w, &columns);
+                rne_gemm3_columns(coriolis_w, -1.0, &vel_wrt_joint_w, &parent_j_w, &columns);
+
+                // The joint's own columns, unchanged from the dense loop.
+                if !link.joint.kinematic {
+                    let mut coriolis_v_part = coriolis_v.columns_mut(link.assembly_id, ndofs);
+
+                    let mut tmp1 = SMatrix::<Real, SPATIAL_DIM, SPATIAL_DIM>::zeros();
+                    let mut rb_joint_j = tmp1.columns_mut(0, ndofs);
+                    link.joint.jacobian(
+                        &(parent_link.local_to_world.rotation
+                            * link.joint.data.local_frame1.rotation),
+                        &mut rb_joint_j,
+                    );
+
+                    let rb_joint_j_v = rb_joint_j.fixed_rows::<DIM>(0);
+                    coriolis_v_part.gemm(2.0, &parent_w, &rb_joint_j_v, 1.0);
+
+                    let rb_joint_j_w = rb_joint_j.fixed_rows::<ANG_DIM>(DIM);
+                    let mut coriolis_w_part = coriolis_w.columns_mut(link.assembly_id, ndofs);
+                    coriolis_w_part.gemm(1.0, &parent_w, &rb_joint_j_w, 1.0);
+                }
+            } else {
+                self.coriolis_v[i].fill(0.0);
+                self.coriolis_w[i].fill(0.0);
+            }
+
+            let coriolis_v = &mut self.coriolis_v[i];
+            let coriolis_w = &mut self.coriolis_w[i];
+
+            {
+                let shift_cross_tr = link.shift23.gcross_matrix_tr();
+                let dvel_cross = rb.vels.angvel.gcross(link.shift23).gcross_matrix_tr();
+                let w_shift = rb.vels.angvel.gcross_matrix() * shift_cross_tr;
+                if ![&shift_cross_tr, &dvel_cross, &w_shift]
+                    .iter()
+                    .all(|matrix| rne_all_finite(matrix.as_slice()))
+                {
+                    return false;
+                }
+                rne_gemm3_columns(coriolis_v, 1.0, &shift_cross_tr, coriolis_w, &columns);
+                rne_gemm3_columns(coriolis_v, 1.0, &dvel_cross, &rb_j_w, &columns);
+                rne_gemm3_columns(coriolis_v, 1.0, &w_shift, &rb_j_w, &columns);
+            }
+
+            /*
+             * Meld with the mass matrix, as in the dense loop.
+             */
+            {
+                let mut i_coriolis_dt_v = self.i_coriolis_dt.fixed_rows_mut::<DIM>(0);
+                i_coriolis_dt_v.copy_from(coriolis_v);
+                i_coriolis_dt_v
+                    .column_iter_mut()
+                    .for_each(|mut c| c.component_mul_assign(&(rb_mass * dt)));
+            }
+            {
+                let mut i_coriolis_dt_w = self.i_coriolis_dt.fixed_rows_mut::<ANG_DIM>(DIM);
+                i_coriolis_dt_w.gemm(dt, &rb_inertia, coriolis_w, 0.0);
+            }
+            if !rne_all_finite(self.i_coriolis_dt.as_slice()) {
+                return false;
+            }
+
+            // `kept` holds this link's Jacobian (`rb_j`) columns.
+            rne_gemm_tr_columns(
+                &mut self.acc_augmented_mass,
+                &kept,
+                &self.i_coriolis_dt,
+                &columns,
+            );
         }
+        true
+    }
 
-        let effective_dim = self
-            .augmented_mass_indices
-            .dim_after_removal(self.acc_augmented_mass.nrows());
-
-        // PERF: since we clone the matrix anyway for LU, should be directly output
-        //       a new matrix instead of applying permutations?
-        self.augmented_mass_indices
-            .rearrange_columns(&mut self.acc_augmented_mass, true);
-        self.augmented_mass_indices
-            .rearrange_columns(&mut self.augmented_mass, true);
-
-        self.augmented_mass_indices
-            .rearrange_rows(&mut self.acc_augmented_mass, true);
-        self.augmented_mass_indices
-            .rearrange_rows(&mut self.augmented_mass, true);
-
-        // TODO: avoid allocation inside LU at each timestep.
-        self.acc_inv_augmented_mass = LU::new(
-            self.acc_augmented_mass
-                .view((0, 0), (effective_dim, effective_dim))
-                .into_owned(),
-        );
-        self.inv_augmented_mass = LU::new(
-            self.augmented_mass
-                .view((0, 0), (effective_dim, effective_dim))
-                .into_owned(),
-        );
+    #[cfg(feature = "dim2")]
+    fn rne_accumulate_inertias_sparse(&mut self, _dt: Real, _bodies: &RigidBodySet) -> bool {
+        false
     }
 
     /// The generalized velocity at the multibody_joint of the given link.
@@ -2082,5 +2440,293 @@ mod rne_kinematic_root_tests {
             bincode::serialize(&original).unwrap(),
             bincode::serialize(&restored).unwrap()
         );
+    }
+}
+
+#[cfg(test)]
+mod rne_sparse_mass_tests {
+    use super::*;
+    use crate::dynamics::{
+        CCDSolver, GenericJoint, ImpulseJointSet, IntegrationParameters, IslandManager,
+        MassProperties, MultibodyJointSet, PrismaticJointBuilder, RevoluteJointBuilder,
+        RigidBodyBuilder,
+    };
+    use crate::geometry::{BroadPhaseMultiSap, ColliderSet, NarrowPhase};
+    use crate::pipeline::PhysicsPipeline;
+    use na::{point, vector, Matrix3};
+
+    struct Lcg(u64);
+
+    impl Lcg {
+        fn next(&mut self) -> Real {
+            self.0 = self
+                .0
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
+            let unit = (self.0 >> 40) as Real / (1u64 << 24) as Real;
+            let magnitude = (10.0 as Real).powf(6.0 * unit - 3.0);
+            if self.0 & 1 == 0 {
+                magnitude
+            } else {
+                -magnitude
+            }
+        }
+    }
+
+    /// Ten coordinates; columns 2 and 9 are zero, column 5 holds `-0.0`,
+    /// and a kept column holds an exact zero entry.
+    fn jacobian(rng: &mut Lcg) -> Jacobian<Real> {
+        let mut jacobian = Jacobian::zeros(10);
+        for column in [0, 1, 3, 4, 6, 7, 8] {
+            for row in 0..SPATIAL_DIM {
+                jacobian[(row, column)] = rng.next();
+            }
+        }
+        jacobian[(3, 4)] = 0.0;
+        jacobian.column_mut(5).fill(-0.0);
+        jacobian
+    }
+
+    const KEPT: [usize; 8] = [0, 1, 3, 4, 5, 6, 7, 8];
+
+    fn assert_bits_equal(a: &[Real], b: &[Real]) {
+        assert_eq!(a.len(), b.len());
+        for (x, y) in a.iter().zip(b) {
+            assert_eq!(x.to_bits(), y.to_bits(), "{x} != {y}");
+        }
+    }
+
+    fn start(rng: &mut Lcg) -> DMatrix<Real> {
+        DMatrix::from_fn(
+            10,
+            10,
+            |i, j| {
+                if (i + j) % 3 == 0 {
+                    0.0
+                } else {
+                    rng.next()
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn sparse_quadform_is_bit_identical_to_dense() {
+        let mut rng = Lcg(7);
+        for _ in 0..50 {
+            let rhs = jacobian(&mut rng);
+            let mid = SMatrix::<Real, SPATIAL_DIM, SPATIAL_DIM>::from_fn(|_, _| rng.next());
+            let start = start(&mut rng);
+            let mut dense = start.clone();
+            dense.quadform(1.0, &mid, &rhs, 1.0);
+            let mut sparse = start;
+            let mut kept = Vec::new();
+            rne_gather(&rhs, &KEPT, &mut kept);
+            assert!(rne_quadform_columns(&mut sparse, &mid, &kept, &KEPT));
+            assert_bits_equal(dense.as_slice(), sparse.as_slice());
+        }
+    }
+
+    #[test]
+    fn sparse_gemm_tr_is_bit_identical_to_dense() {
+        let mut rng = Lcg(11);
+        for _ in 0..50 {
+            let a = jacobian(&mut rng);
+            let mut b = jacobian(&mut rng);
+            b.column_mut(0).fill(0.0);
+            let start = start(&mut rng);
+            let mut dense = start.clone();
+            dense.gemm_tr(1.0, &a, &b, 1.0);
+            let mut sparse = start;
+            let mut a_kept = Vec::new();
+            rne_gather(&a, &KEPT, &mut a_kept);
+            rne_gemm_tr_columns(&mut sparse, &a_kept, &b, &KEPT);
+            assert_bits_equal(dense.as_slice(), sparse.as_slice());
+        }
+    }
+
+    #[test]
+    fn sparse_three_row_gemm_is_bit_identical_to_dense() {
+        let mut rng = Lcg(13);
+        for alpha in [1.0, -1.0, 2.0, 0.37] {
+            let a = Matrix3::from_fn(|_, _| rng.next());
+            let jacobian = jacobian(&mut rng);
+            let b = jacobian.fixed_rows::<3>(3);
+            let start = OMatrix::<Real, na::U3, Dyn>::from_fn(10, |i, j| {
+                if KEPT.contains(&j) && i != 1 {
+                    rng.next()
+                } else {
+                    0.0
+                }
+            });
+            let mut dense = start.clone();
+            dense.gemm(alpha, &a, &b, 1.0);
+            let mut sparse = start;
+            rne_gemm3_columns(&mut sparse, alpha, &a, &b, &KEPT);
+            assert_bits_equal(dense.as_slice(), sparse.as_slice());
+        }
+    }
+
+    /// A free root with two branches (hinges about different axes with offset
+    /// anchors and centers of mass, and a prismatic link), stepped under
+    /// gravity so that every pose, Jacobian and mass property is initialized.
+    fn prepared(rng: &mut Lcg) -> (RigidBodySet, Multibody) {
+        let mut bodies = RigidBodySet::new();
+        let mut body = |com: Point<Real>, mass: Real, inertia: Vector<Real>| {
+            bodies.insert(
+                RigidBodyBuilder::dynamic()
+                    .additional_mass_properties(MassProperties::new(com, mass, inertia))
+                    .can_sleep(false),
+            )
+        };
+        let root = body(point![0.02, -0.01, 0.03], 3.2, vector![0.11, 0.07, 0.09]);
+        let a1 = body(point![0.0, -0.1, 0.01], 1.1, vector![0.02, 0.01, 0.03]);
+        let a2 = body(point![0.01, -0.12, 0.0], 0.9, vector![0.015, 0.006, 0.012]);
+        let a3 = body(point![0.03, -0.02, 0.0], 0.4, vector![0.004, 0.003, 0.002]);
+        let b1 = body(point![0.0, -0.1, -0.01], 1.0, vector![0.02, 0.011, 0.028]);
+        let b2 = body(point![0.0, -0.05, 0.0], 0.7, vector![0.01, 0.01, 0.01]);
+        let hinge = |axis, anchor1: Point<Real>, anchor2: Point<Real>| -> GenericJoint {
+            RevoluteJointBuilder::new(axis)
+                .local_anchor1(anchor1)
+                .local_anchor2(anchor2)
+                .build()
+                .into()
+        };
+        let mut joints = MultibodyJointSet::new();
+        let first = joints
+            .insert(
+                root,
+                a1,
+                hinge(
+                    Vector::x_axis(),
+                    point![0.1, -0.05, 0.0],
+                    point![0.0, 0.08, 0.0],
+                ),
+                true,
+            )
+            .unwrap();
+        joints.insert(
+            a1,
+            a2,
+            hinge(
+                Vector::y_axis(),
+                point![0.0, -0.2, 0.02],
+                point![0.0, 0.1, 0.0],
+            ),
+            true,
+        );
+        joints.insert(
+            a2,
+            a3,
+            hinge(Vector::z_axis(), point![0.0, -0.22, 0.0], Point::origin()),
+            true,
+        );
+        joints.insert(
+            root,
+            b1,
+            hinge(
+                Vector::x_axis(),
+                point![-0.1, -0.05, 0.0],
+                point![0.0, 0.08, 0.0],
+            ),
+            true,
+        );
+        let slider: GenericJoint = PrismaticJointBuilder::new(Vector::y_axis())
+            .local_anchor1(point![0.0, -0.2, 0.0])
+            .build()
+            .into();
+        joints.insert(b1, b2, slider, true);
+
+        let parameters = IntegrationParameters {
+            dt: 0.002,
+            ..IntegrationParameters::default()
+        };
+        let mut pipeline = PhysicsPipeline::new();
+        let mut islands = IslandManager::new();
+        let mut broad = BroadPhaseMultiSap::new();
+        let mut narrow = NarrowPhase::new();
+        let mut colliders = ColliderSet::new();
+        let mut impulse_joints = ImpulseJointSet::new();
+        let mut ccd = CCDSolver::new();
+        for _ in 0..20 {
+            pipeline.step(
+                &vector![0.0, -9.81, 0.0],
+                &parameters,
+                &mut islands,
+                &mut broad,
+                &mut narrow,
+                &mut bodies,
+                &mut colliders,
+                &mut impulse_joints,
+                &mut joints,
+                &mut ccd,
+                None,
+                &(),
+                &(),
+            );
+        }
+        let mut multibody = joints.get_mut(first).unwrap().0.clone();
+        for value in multibody.velocities.iter_mut() {
+            *value = rng.next().clamp(-5.0, 5.0);
+        }
+        multibody.update_body_velocities(&mut bodies);
+        (bodies, multibody)
+    }
+
+    #[test]
+    fn sparse_inertias_match_the_dense_loop_on_a_branched_multibody() {
+        let mut rng = Lcg(17);
+        for dt in [0.0005, 0.002, 0.016] {
+            let (bodies, mut multibody) = prepared(&mut rng);
+            assert_eq!(multibody.ndofs, 6 + 5);
+            multibody.accumulate_inertias_dense(dt, &bodies);
+            let dense = multibody.clone();
+            assert!(multibody.rne_accumulate_inertias_sparse(dt, &bodies));
+            assert_bits_equal(
+                dense.augmented_mass.as_slice(),
+                multibody.augmented_mass.as_slice(),
+            );
+            assert_bits_equal(
+                dense.acc_augmented_mass.as_slice(),
+                multibody.acc_augmented_mass.as_slice(),
+            );
+            assert_bits_equal(
+                dense.i_coriolis_dt.as_slice(),
+                multibody.i_coriolis_dt.as_slice(),
+            );
+            for (a, b) in dense.coriolis_v.iter().zip(&multibody.coriolis_v) {
+                assert_bits_equal(a.as_slice(), b.as_slice());
+            }
+            for (a, b) in dense.coriolis_w.iter().zip(&multibody.coriolis_w) {
+                assert_bits_equal(a.as_slice(), b.as_slice());
+            }
+            // The off-branch blocks really are skipped zeros.
+            // Coordinates 6..9 are the first branch, 9..11 the second.
+            let mass = &multibody.augmented_mass;
+            assert!((6..9).all(|i| (9..11).all(|j| mass[(i, j)] == 0.0)));
+            assert!((6..9).any(|i| (0..6).any(|j| mass[(i, j)] != 0.0)));
+        }
+    }
+
+    #[test]
+    fn leading_block_copies_like_a_view() {
+        let mut rng = Lcg(23);
+        let matrix = DMatrix::from_fn(7, 7, |_, _| rng.next());
+        for dim in [0, 3, 7] {
+            let expected = matrix.view((0, 0), (dim, dim)).into_owned();
+            assert_eq!(rne_leading_block(&matrix, dim), expected);
+        }
+    }
+
+    #[test]
+    fn non_finite_operands_fall_back_to_the_dense_loop() {
+        let mut rng = Lcg(19);
+        let (mut bodies, mut multibody) = prepared(&mut rng);
+        let handle = multibody.links[2].rigid_body;
+        bodies.index_mut_internal(handle).vels.angvel.x = Real::NAN;
+        assert!(!multibody.rne_accumulate_inertias_sparse(0.002, &bodies));
+        let (bodies, mut multibody) = prepared(&mut rng);
+        multibody.body_jacobians[3][(0, 0)] = Real::INFINITY;
+        assert!(!multibody.rne_accumulate_inertias_sparse(0.002, &bodies));
     }
 }

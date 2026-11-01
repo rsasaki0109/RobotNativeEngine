@@ -168,3 +168,38 @@ The backend regression `kinematic_root_branches_share_a_solver_island` sets the
 minimum island size to one so merging heuristics cannot hide the split. The
 workbench contact-grasp test covers a three-wheel kinematic root, arm motors,
 a separate dynamic object, sustained holding, release and exact input replay.
+
+## Bit-identical multibody performance
+
+Three changes make reduced-coordinate multibodies cheaper without changing a
+single result bit. Rapier rebuilds both mass matrices and refactorizes them in
+every solver substep, which made this the largest cost of a walking humanoid.
+
+- **Column-sparse mass matrices.** `Multibody::update_inertias` now tries
+  `rne_accumulate_inertias_sparse` before upstream's loop, which is kept
+  unchanged as `accumulate_inertias_dense`. A link's body Jacobian and Coriolis
+  terms are nonzero only in the columns of its ancestors' coordinates; on the
+  12-DoF G1 legs that is 7–12 of 18 columns. With finite operands the dense
+  `quadform`, `gemm` (3×3, below nalgebra's matrixmultiply threshold) and
+  `gemm_tr` add exactly `+0.0` to every other entry, and those entries never
+  hold `-0.0`, so the sparse loop skips them. It computes the kept entries in
+  nalgebra's own operation order: `gemv` as `(α·a)·x + 1·y`, and each six-row
+  dot product summed in row order from `+0.0`. If a Jacobian, mass matrix,
+  Coriolis operand or `M·J` product is not finite, it returns `false` and the
+  dense loop recomputes everything.
+- **Leading-block copy.** The matrices passed to `LU::new` are copied column by
+  column instead of through nalgebra's generic view iterator.
+- **Unit Jacobian reuse.** A joint's limit and motor constraints on the same
+  coordinate both store `[e_k, M⁻¹e_k]` for the same factorization. The second
+  now copies the first's block instead of solving again. The public
+  `unit_joint_limit_constraint` and `unit_joint_motor_constraint` keep their
+  signatures.
+
+`rne_sparse_mass_tests` compare the sparse helpers with nalgebra's dense
+routines bit for bit on random operands containing zero, `-0.0` and kept zero
+columns. They also compare the complete sparse and dense accumulation on a
+stepped free-root multibody with two branches (hinges about three axes, offset
+anchors and centers of mass, and a prismatic link), including the Coriolis
+workspaces, and check the dense fallback for NaN and infinite operands.
+Reordering one dot product or one `gemv` product makes them fail. Example 144's
+G1 walk records and example 141's 72 worlds are byte-identical before and after.
