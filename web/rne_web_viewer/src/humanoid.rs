@@ -123,6 +123,17 @@ impl G1Scene {
         })
     }
 
+    /// Already loaded mesh for a URDF mesh path, so another view of the same
+    /// robot shares GPU buffers (the renderer caches meshes per allocation).
+    pub(crate) fn shared_mesh(&self, path: &str) -> Option<Arc<TriangleMesh>> {
+        self.parts.iter().find_map(|part| match &part.shape {
+            VisualShape::Mesh {
+                path: part_path, ..
+            } if part_path == path => Some(Arc::clone(&part.mesh)),
+            _ => None,
+        })
+    }
+
     /// Number of revolute coordinates expected in a command.
     pub fn joint_count(&self) -> usize {
         self.joints.len()
@@ -380,7 +391,7 @@ impl G1Scene {
 
 // Render-only coating response: keep authored color on each mesh and distinguish
 // matte dark polymer from satin painted shells. No change to source geometry.
-fn shell_material(color: [f32; 4]) -> PbrMaterial {
+pub(crate) fn shell_material(color: [f32; 4]) -> PbrMaterial {
     if color[..3].iter().all(|v| *v < 0.3) {
         PbrMaterial::new([0.25, 0.25, 0.25, 1.0], 0.4, 0.0, [0.0; 3])
     } else {
@@ -395,7 +406,7 @@ fn home() -> Transform3 {
     )
 }
 
-fn mesh_bytes(path: &str) -> Result<&'static [u8], String> {
+pub(crate) fn mesh_bytes(path: &str) -> Result<&'static [u8], String> {
     let bytes: &'static [u8] = match path {
         "meshes/pelvis.STL" => {
             include_bytes!("../../../assets/robots/g1_description/meshes/pelvis.STL")

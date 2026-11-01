@@ -56,6 +56,9 @@ for(const text of [
  '失敗理由の集計（横スクロール）',
  '順位', '総時間 s', '失敗した段階・理由', '実際の終了理由', '件数', '該当試行のリプレイ',
  '試行 21 · 終了地点へ',
- 'クリア！ 4/4 · 15.00 秒（プレビュー時間）'
+ 'クリア！ 4/4 · 15.00 秒（プレビュー時間）',
+ '物理歩行 12.3 s · 前進 0.80 m/s · 旋回 -0.40 rad/s · 実時間比 1.00 · 計算負荷 23%',
+ '物理歩行 0.0 s · 前進 0.00 m/s · 旋回 0.00 rad/s · 計測中',
+ '転倒しました · 初期位置に戻すで再開'
 ]) assert.ok(!/[\u3040-\u30ff\u3400-\u9fff]/.test(translate(text,'en')), 'Missing dynamic English: '+text);
 console.log('PASS: language precedence, whitespace, static UI/attributes and dynamic result/error translations');

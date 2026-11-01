@@ -2,8 +2,8 @@
 
 use crate::error::AssetError;
 use crate::robot::{
-    load_robot_asset_collision_parts, load_robot_asset_convex_collisions,
-    load_robot_asset_passive_dynamics, LidarRobotAsset, RobotAsset, RobotKind,
+    parse_robot_asset_collision_parts, parse_robot_asset_convex_collisions,
+    parse_robot_asset_passive_dynamics, LidarRobotAsset, RobotAsset, RobotKind,
 };
 use crate::scene::{
     ObstacleBodyType, SceneAsset, SceneCollisionAsset, SceneDeformableAsset,
@@ -30,8 +30,33 @@ use rne_world::{
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-/// Optional embedded URDF XML keyed by resolved robot-relative path.
+/// Optional embedded sources keyed by resolved path.
+///
+/// Entries under a URDF path hold that URDF's XML. An entry under a robot
+/// asset (`.rne.robot.toml`) path holds that asset's TOML text; spawning reads
+/// its extension sections (compound collision parts, convex mesh collisions,
+/// joint passive-dynamics overrides) from it when no file exists at the path,
+/// so a scene built entirely from memory keeps them.
 pub type UrdfSourceMap<'a> = HashMap<PathBuf, &'a str>;
+
+/// Robot asset TOML for extension sections: the file when one exists at the
+/// path, otherwise an embedded source registered under it.
+fn robot_extension_text(
+    asset_path: &Path,
+    sources: Option<&UrdfSourceMap<'_>>,
+) -> Result<Option<String>, AssetError> {
+    if asset_path.is_file() {
+        return std::fs::read_to_string(asset_path)
+            .map(Some)
+            .map_err(|error| AssetError::Io {
+                path: asset_path.display().to_string(),
+                message: error.to_string(),
+            });
+    }
+    Ok(sources
+        .and_then(|sources| sources.get(asset_path))
+        .map(|text| (*text).to_owned()))
+}
 
 /// Controls how [`spawn_scene`] wires physics articulation for URDF robots.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -164,13 +189,15 @@ pub fn spawn_robot_asset_with_sources(
                 .as_ref()
                 .ok_or_else(|| AssetError::invalid("robot", "missing urdf section"))?;
             let base_dir = asset_path.parent().unwrap_or_else(|| Path::new("."));
-            let passive_dynamics_overrides = if asset_path.is_file() {
-                load_robot_asset_passive_dynamics(asset_path)?
-            } else {
-                Vec::new()
+            let extension_text = robot_extension_text(asset_path, urdf_sources)?;
+            let passive_dynamics_overrides = match &extension_text {
+                Some(text) => parse_robot_asset_passive_dynamics(text, asset_path)?,
+                None => Vec::new(),
             };
-            let preserve_parts =
-                asset_path.is_file() && load_robot_asset_collision_parts(asset_path)?;
+            let preserve_parts = match &extension_text {
+                Some(text) => parse_robot_asset_collision_parts(text, asset_path)?,
+                None => false,
+            };
             let urdf_path = section.resolve_path(base_dir);
             let document = load_urdf_document(&urdf_path, urdf_sources).map_err(|error| {
                 AssetError::invalid(
@@ -195,7 +222,11 @@ pub fn spawn_robot_asset_with_sources(
             if preserve_parts {
                 attach_urdf_collision_parts(world, &document.robot, &spawned, &spawn_config);
             }
-            if asset_path.is_file() && load_robot_asset_convex_collisions(asset_path)? {
+            let convex_collisions = match &extension_text {
+                Some(text) => parse_robot_asset_convex_collisions(text, asset_path)?,
+                None => false,
+            };
+            if convex_collisions {
                 attach_urdf_convex_colliders(world, &document.robot, &spawned, &spawn_config)
                     .map_err(|error| {
                         AssetError::invalid(asset_path.display().to_string(), error.to_string())

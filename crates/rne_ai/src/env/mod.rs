@@ -131,3 +131,7 @@ pub use urdf_scene::{
     UNITREE_GO2_MID360_HEIGHT_ABOVE_BASE_M, UNITREE_GO2_MODEL_TROT_CONTROL_HZ,
     UNITREE_GO2_POLICY_FEATURES, UNITREE_GO2_PURE_TORQUE_PHASE_BINS,
 };
+pub use urdf_scene::{
+    unitree_g1_12dof_walk_scene_path, PolicyWalkError, PolicyWalkPlant, PolicyWalkStep,
+    UnitreeRlGymWalker,
+};

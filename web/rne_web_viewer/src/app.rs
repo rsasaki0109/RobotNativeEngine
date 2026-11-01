@@ -4,6 +4,7 @@ use crate::experiment::{Config, Experiment};
 use crate::humanoid::{G1Input, G1Scene};
 use crate::manipulation::{ArmConfig, Manipulation};
 use crate::mobile::{MobileConfig, MobileTask};
+use crate::physics_walk::PhysicsWalk;
 use crate::scene_config::{pick_floor, SceneSpec};
 use rne_render_wgpu::{CameraOrbit, InteractiveViewer, ViewerError};
 use std::sync::Arc;
@@ -89,6 +90,10 @@ struct App {
     scene_error: Option<String>,
     dragging: bool,
     last_cursor: Option<PhysicalPosition<f64>>,
+    /// Physics walking with the pretrained policy, built when first enabled.
+    walk: Option<Box<PhysicsWalk>>,
+    walk_push_counter: u32,
+    last_frame_ms: Option<f64>,
 }
 
 impl ApplicationHandler<ViewerInitEvent> for App {
@@ -537,7 +542,41 @@ impl App {
         if let Some(targets) = self.mobile.targets() {
             input.targets_rad = targets;
         }
-        let mut render_scene = if let Some(pose) = self.mobile.pose() {
+        let physics_enabled = value("control-physics-enabled")? == 1.0;
+        let push_counter = value("control-push-counter")? as u32;
+        let now_ms = browser.performance().map(|performance| performance.now());
+        if !physics_enabled {
+            self.walk = None;
+            self.last_frame_ms = None;
+        } else if self.walk.is_none() || reset {
+            self.experiment.stop();
+            self.manipulation.stop();
+            self.mobile.stop();
+            self.walk = Some(Box::new(PhysicsWalk::new(&|path| scene.shared_mesh(path))?));
+            self.last_frame_ms = now_ms;
+        }
+        if let Some(walk) = self.walk.as_mut() {
+            if push_counter != self.walk_push_counter {
+                // Alternate the side so repeated pushes do not walk it away.
+                walk.push(if push_counter % 2 == 1 { 1.0 } else { -1.0 });
+            }
+            let wall_dt_s = match (now_ms, self.last_frame_ms) {
+                (Some(now), Some(last)) => (now - last) / 1000.0,
+                _ => 0.0,
+            };
+            self.last_frame_ms = now_ms;
+            let performance = browser.performance();
+            let mut elapsed_s = || {
+                performance
+                    .as_ref()
+                    .map_or(0.0, |performance| performance.now() / 1000.0)
+            };
+            walk.advance(wall_dt_s, input.forward, input.turn, &mut elapsed_s)?;
+        }
+        self.walk_push_counter = push_counter;
+        let mut render_scene = if let Some(walk) = self.walk.as_ref() {
+            walk.render()
+        } else if let Some(pose) = self.mobile.pose() {
             scene.recorded_frame(input, pose)?
         } else if self.manipulation.active() {
             scene.recorded_frame(input, (0.0, 0.0, 0.0))?
@@ -694,13 +733,37 @@ impl App {
             mission.set_text_content(Some(&scene.mission_status()));
         }
         if let Some(motion) = document.get_element_by_id("engine-motion") {
-            motion.set_text_content(Some(&format!(
-                "{} · 向き {:.0}°",
-                scene.motion_status(),
-                scene.heading_rad().to_degrees()
-            )));
+            let text = if let Some(walk) = self.walk.as_ref() {
+                let [forward, _, turn] = walk.command();
+                let pace = walk.pace();
+                if walk.fallen() {
+                    "転倒しました · 初期位置に戻すで再開".to_owned()
+                } else if pace.realtime_factor > 0.0 {
+                    format!(
+                        "物理歩行 {:.1} s · 前進 {forward:.2} m/s · 旋回 {turn:.2} rad/s · 実時間比 {:.2} · 計算負荷 {:.0}%",
+                        walk.time_s(),
+                        pace.realtime_factor,
+                        100.0 * pace.compute_per_sim_s
+                    )
+                } else {
+                    format!(
+                        "物理歩行 {:.1} s · 前進 {forward:.2} m/s · 旋回 {turn:.2} rad/s · 計測中",
+                        walk.time_s()
+                    )
+                }
+            } else {
+                format!(
+                    "{} · 向き {:.0}°",
+                    scene.motion_status(),
+                    scene.heading_rad().to_degrees()
+                )
+            };
+            motion.set_text_content(Some(&text));
         }
-        self.orbit.focus = scene.focus();
+        self.orbit.focus = self
+            .walk
+            .as_ref()
+            .map_or_else(|| scene.focus(), |walk| walk.focus());
         if let Some(position) = document.get_element_by_id("engine-position") {
             position.set_text_content(Some(&format!(
                 "X {:.2} m · Z {:.2} m",

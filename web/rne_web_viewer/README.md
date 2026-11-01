@@ -14,6 +14,9 @@ The base is confined to an 8 × 8 m area. Reset restores its initial pose and
 zero joint targets; blur, backgrounding and pointer cancellation stop drive
 input. Drag to orbit the camera and scroll to zoom.
 
+**Physics walking (pretrained policy)** switches to a simulated robot instead;
+see [Physics walking](#physics-walking).
+
 ## Laboratory environment
 
 The metre-scaled, roofless laboratory has concrete floor panels, painted boundary
@@ -170,6 +173,39 @@ inspector reads a versioned `.rne-replay` artifact in the browser and exposes
 a timeline, selected observations, and per-step hashes without rerunning policy
 code or physics. Its loaded records do not drive the live G1.
 
+## Physics walking
+
+**Physics walking (pretrained policy) ON** replaces the kinematic G1 with the
+12-DoF walking G1 simulated by RNE's Rapier backend, compiled to WebAssembly.
+unitree_rl_gym's pretrained LSTM walking policy, trained in Isaac Gym, drives
+the legs through the loop Unitree deploys in MuJoCo: PD torque recomputed every
+2 ms physics step and clamped to the URDF effort limits, policy every 20 ms.
+`rne_ai::UnitreeRlGymWalker` runs it, as in
+[example 144](../../examples/144_g1_sim2sim/README.md), where the same policy
+walks within 0.02 m/s of MuJoCo. Scene, URDF and weights are embedded; nothing
+is downloaded and no training-framework code runs.
+
+- **W/S, arrows**: forward up to 0.8 m/s, backward up to 0.4 m/s.
+- **A/D, arrows**: turn up to 0.8 rad/s. Commands ramp at 1.5 m/s² and 3 rad/s².
+- **Push from the side**: 120 N on the pelvis for 0.1 s, alternating sides.
+- **Reset**: rebuild the scene with the robot standing at the origin.
+
+The simulation advances in whole 20 ms policy periods against elapsed browser
+time, at most six per frame, so a slow device drops time instead of falling
+ever further behind. A background tab credits at most 0.25 s. The status line
+shows simulated time, the command, the measured real-time factor and the
+compute load (physics and policy time per simulated second). A pelvis below
+0.45 m counts as a fall and stops the simulation until Reset. In headless
+Chromium without a GPU (WebGPU on SwiftShader) the real-time factor held
+0.99–1.01 with a compute load of 27–32%.
+
+Only the feet collide, as in the MuJoCo scene the policy was deployed in, and
+the laboratory furniture is scenery. The model and policy come from
+unitree_rl_gym under BSD-3-Clause; see
+[model provenance](../../assets/robots/g1_description/UPSTREAM.md),
+[policy provenance](../../assets/policies/unitree_g1_walk/README.md) and the
+bundled `LICENSE.unitree_rl_gym`.
+
 ## Publish on GitHub Pages
 
 In repository **Settings → Pages → Build and deployment**, select **GitHub
@@ -222,7 +258,8 @@ Output lands in `dist/` (WASM + `index.html`).
 
 - **Left drag**: orbit camera
 - **Mouse wheel**: zoom
-- **WASD / arrow keys**: move and turn the G1 base
+- **WASD / arrow keys**: move and turn the G1 base (velocity command in physics walking)
+- **Physics walking**: toggle the simulated G1 and its pretrained policy; **Push from the side** pushes it
 - **On-screen arrows**: hold to move/turn; release to stop
 - **Joint sliders**: set all 23 joint coordinates in radians
 - **Reset**: restore the initial base pose and joint targets

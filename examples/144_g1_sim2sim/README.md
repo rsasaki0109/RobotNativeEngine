@@ -7,7 +7,9 @@
 Unitree's [unitree_rl_gym](https://github.com/unitreerobotics/unitree_rl_gym)
 ships a G1 walking policy trained in Isaac Gym and a script that deploys it in
 MuJoCo. This example runs the same policy, unchanged, on RNE's Rapier backend
-and measures how far RNE's walking lands from MuJoCo's.
+and measures how far RNE's walking lands from MuJoCo's. The same policy and
+loop also run in the [browser playground](../../web/rne_web_viewer/README.md#physics-walking),
+driven from the keyboard in real time.
 
 ```bash
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim                  # 4 commands vs MuJoCo
@@ -22,7 +24,7 @@ Reports go to `target/g1-sim2sim/g1-sim2sim-report.json`; a single
 ## What runs
 
 - **Policy.** `motion.pt`'s actor (LSTM 47→64, Linear 64→32, ELU,
-  Linear 32→12) evaluated in Rust from
+  Linear 32→12) evaluated by `rne_ai::LstmPolicy` from
   [`assets/policies/unitree_g1_walk`](../../assets/policies/unitree_g1_walk).
   The weights were copied byte for byte out of the TorchScript archive; nothing
   in it was unpickled or executed. On MuJoCo's recorded observations the Rust
@@ -30,17 +32,19 @@ Reports go to `target/g1-sim2sim/g1-sim2sim-report.json`; a single
 - **Loop.** The deployment in `deploy/deploy_mujoco/configs/g1.yaml`: PD torque
   `kp (target − q) − kd q̇` recomputed every 2 ms physics step and clamped to the
   URDF effort limits, policy at 50 Hz, target = 0.25 · action + default pose,
-  gait phase period 0.8 s. RNE's portable PD
-  (`UrdfSceneSim::step_joint_pd_effort_targets_substeps`) evaluates the same law.
+  gait phase period 0.8 s. `rne_ai::UnitreeRlGymWalker` evaluates the same law
+  on cached joint handles.
 - **Observation.** Pelvis angular velocity in the pelvis frame, gravity
   projected into the pelvis frame, scaled command, joint positions and
   velocities, previous action, gait phase. RNE is Y-up; the example converts
   to the policy's Z-up frame.
-- **Plant.** The 12-DoF model the policy was trained on: legs actuated, upper
-  body welded, 32.107 kg, four 5 mm foot spheres per ankle as the only
-  colliders (as in the MuJoCo scene while walking). MJCF joint `armature`
-  (0.01 kg·m²), `damping` and `frictionloss`, and MuJoCo's default friction of 1
-  are reproduced; see `PlantConfig`.
+- **Plant.** The 12-DoF model the policy was trained on: legs actuated,
+  32.107 kg, four 5 mm foot spheres per ankle as the only colliders (as in the
+  MuJoCo scene while walking). The 18 fixed-joint links of the upper body are
+  merged into the pelvis, as the MJCF does; `prepare_model.py` checks the merged
+  mass, centre of mass and inertia against the MJCF's pelvis. MJCF joint
+  `armature` (0.01 kg·m²), `damping` and `frictionloss`, and MuJoCo's default
+  friction of 1 are reproduced; see `PlantConfig`.
 
 ## Results
 
@@ -52,7 +56,7 @@ engines (MuJoCo 3.9.0, `fixtures/mujoco_reference.json`):
 | 0.5, 0 | 0.463 / 0.476 | −0.011 / −0.017 | 0.770 / 0.770 |
 | 0, 0 | 0.010 / 0.014 | −0.010 / −0.010 | 0.777 / 0.778 |
 | 0.3, 0.5 | 0.278 / 0.280 | 0.455 / 0.452 | 0.771 / 0.772 |
-| 0.8, 0 | 0.740 / 0.758 | −0.024 / −0.020 | 0.764 / 0.765 |
+| 0.8, 0 | 0.741 / 0.758 | −0.024 / −0.020 | 0.764 / 0.765 |
 
 No run falls on either engine. The mean leg posture at 0.5 m/s matches within
 0.004 rad (knee 0.342 / 0.338 rad from the default pose). Removing armature or
@@ -64,9 +68,9 @@ joint friction, or halving floor friction, changes forward speed by under
 mass, but RNE's importer gives such links 1 kg each, so the first port weighed
 36.1 kg with the extra mass high on the torso. The policy compensated by
 crouching: at 0.5 m/s the knee bent 0.510 rad instead of 0.338 and the pelvis
-rode 19 mm low (0.751 m vs 0.770 m). `prepare_model.py` gives those frames the
-1e-9 kg marker inertials that example 139 already uses, and a test pins the
-plant at 32.107 kg. `unitree_g1_backflip_probe` and
+rode 19 mm low (0.751 m vs 0.770 m). The derived model now merges those frames
+into the pelvis with no mass, and a test pins the plant at 32.107 kg.
+`unitree_g1_backflip_probe` and
 `unitree_g1_29dof_dex3_fixed`, which also import declared masses, still carry
 the 1 kg frames.
 
@@ -77,12 +81,21 @@ whole loop (physics, PD and policy):
 
 | Solver iterations | 1 | 2 | 4 (default) | 8 | 16 | 32 |
 | --- | --- | --- | --- | --- | --- | --- |
-| Real-time factor | 6.7× | 4.1× | 2.6× | 1.3× | 0.7× | 0.4× |
+| Real-time factor | 12.9× | 7.9× | 5.1× | 2.9× | 1.5× | 0.8× |
+| First port (31-link model, name lookups) | 6.7× | 4.1× | 2.6× | 1.3× | 0.7× | 0.4× |
 
-Every setting walks (forward speed 0.456–0.463 m/s). MuJoCo 3.9.0 steps the
-same model in 98 µs (20× real time) on the same machine, about eight times
-RNE's 0.77 ms at four iterations. RNE is fast enough for an interactive
+Every setting walks (forward speed 0.457–0.464 m/s). Two changes doubled the
+speed without changing the walk: merging the fixed upper body takes the
+articulation from 31 links to 13, and the walker drives cached joint handles
+instead of looking joints up by name every 2 ms step. MuJoCo 3.9.0 steps the
+same model in 98 µs (20× real time) on the same machine, about four times
+RNE's 0.39 ms at four iterations. That is enough for an interactive
 single-robot playground, not yet for MuJoCo-class batch throughput.
+
+In the browser the same code compiled to WebAssembly keeps real time: headless
+Chromium in this container (WebGPU on SwiftShader, no GPU) held a real-time
+factor of 0.99–1.01 over a 21 s session of standing, walking, turning and a
+side push, with physics and policy using 27–32% of each simulated second.
 
 ## Reproducing the reference
 

@@ -15,6 +15,7 @@
     <link data-trunk rel="copy-file" href="scene_editor.js" />
     <link data-trunk rel="copy-file" href="replay.js" />
     <link data-trunk rel="copy-file" href="../../assets/robots/g1_description/LICENSE.unitree_ros" />
+    <link data-trunk rel="copy-file" href="../../assets/robots/g1_description/LICENSE.unitree_rl_gym" />
     <style>
       html,
       body {
@@ -478,7 +479,10 @@
       <div class="pose-buttons">
         <button id="control-wave" type="button">手を振る 👋</button>
         <button id="control-motion" type="button" aria-pressed="true">歩行モーション ON</button>
+        <button id="control-physics" type="button" aria-pressed="false">物理歩行（学習済み方策） OFF</button>
+        <button id="control-push" type="button" hidden>横から押す</button>
       </div>
+      <p id="physics-note" hidden>物理歩行：Isaac Gymで学習されたG1の歩行方策を、ブラウザ内のRNE物理（500 Hz）で実行します。WASD・矢印キーが速度指令です。</p>
       <p>WASD・矢印キー／下のボタンで移動と旋回。<br>ドラッグで視点回転、スクロールで拡大。</p>
       <input id="control-forward" type="hidden" value="0">
       <input id="control-turn" type="hidden" value="0">
@@ -486,6 +490,8 @@
       <input id="control-wave-counter" type="hidden" value="0">
       <input id="control-mission-counter" type="hidden" value="0">
       <input id="control-motion-enabled" type="hidden" value="1">
+      <input id="control-physics-enabled" type="hidden" value="0">
+      <input id="control-push-counter" type="hidden" value="0">
       <div class="drive-pad">
         <span></span><button type="button" data-drive="KeyW" aria-label="前進">↑ 前進</button><span></span>
         <button type="button" data-drive="KeyA" aria-label="左旋回">↶ 左</button>

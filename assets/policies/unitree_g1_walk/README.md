@@ -16,6 +16,7 @@ or executes it; the storage-to-tensor map was read from a `pickletools`
 disassembly and is checked by byte size.
 
 The network is a one-layer LSTM (47 inputs, 64 units, gate order i, f, g, o,
-zero initial state) followed by Linear(64, 32), ELU and Linear(32, 12). It
-drives `assets/robots/unitree_g1_12dof_walk.rne.robot.toml`; see
-`examples/144_g1_sim2sim`.
+zero initial state) followed by Linear(64, 32), ELU and Linear(32, 12).
+`rne_ai::LstmPolicy` evaluates it and `rne_ai::UnitreeRlGymWalker` runs it on
+`assets/robots/unitree_g1_12dof_walk.rne.robot.toml`; see
+`examples/144_g1_sim2sim` and the browser playground's physics walking mode.

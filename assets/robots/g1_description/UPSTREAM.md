@@ -23,12 +23,17 @@ the Episode for deterministic two-sided contact gating.
   (SHA-256 `52a0f729252cba764f610136f0772573e55694024b888da93abd5ad23aba0152`)
 - License: BSD-3-Clause; see `LICENSE.unitree_rl_gym`
 
-`g1_12dof.rne.urdf` is that file with LF line endings and one change: the
-torso visual and collision mesh `torso_link_23dof_rev_1_0.STL` (7.8 MB, not
-vendored) is replaced by the vendored 23-DoF `torso_link.STL`, offset 10 mm
-up so it sits where the 23-DoF waist joint places it. Every inertial, joint,
-limit and the four 5 mm foot spheres per ankle are unchanged. The walking
-descriptor `../unitree_g1_12dof_walk.rne.robot.toml` imports only primitive
-collision geometry, so the feet are the only colliders, matching the
-upstream MuJoCo scene during walking. The pretrained policy that drives it is
-under `assets/policies/unitree_g1_walk`.
+`g1_12dof.rne.urdf` is generated from that file by
+`examples/144_g1_sim2sim/prepare_model.py`. The 18 links fixed to the pelvis
+(torso, head, logo, arms, hands, pelvis contour and four inertia-less sensor
+frames) are merged into the pelvis, as the upstream MJCF does: masses add, the
+inertia uses the parallel-axis theorem, and the script stops unless the result
+matches the MJCF's pelvis inertial. Their visuals and collisions move onto the
+pelvis with composed transforms. The torso mesh `torso_link_23dof_rev_1_0.STL`
+(7.8 MB, not vendored) is replaced by the vendored 23-DoF `torso_link.STL`,
+placed where the 23-DoF waist joint puts it. Leg links, joints, limits and the
+four 5 mm foot spheres per ankle are unchanged. The walking descriptor
+`../unitree_g1_12dof_walk.rne.robot.toml` imports only primitive collision
+geometry, so the feet are the only colliders, matching the upstream MuJoCo
+scene during walking. The pretrained policy that drives it is under
+`assets/policies/unitree_g1_walk`.

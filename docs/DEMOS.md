@@ -608,16 +608,21 @@ within 0.02 m/s of MuJoCo's, its turn rate within 0.007 rad/s and its mean
 pelvis height within 2 mm. Armature, joint friction and floor friction change
 forward speed by under 0.01 m/s. Four inertia-less sensor frames that RNE's
 importer weighted at 1 kg each made the first port crouch 19 mm low; the
-12-DoF model now declares marker inertials and is pinned at 32.107 kg.
-One G1 runs at 2.6× real time with four solver iterations and 6.7× with one;
-MuJoCo steps the same model at 20×.
+12-DoF model now merges its fixed upper body into the pelvis, as the MJCF
+does, and is pinned at 32.107 kg. One G1 runs at 5.1× real time with four
+solver iterations and 12.9× with one; MuJoCo steps the same model at 20×.
+The browser playground's Physics walking mode runs the same policy and
+physics as WebAssembly in real time: in headless Chromium without a GPU the
+real-time factor held 0.99–1.01 with physics and policy using under a third of
+each simulated second.
 
 ```bash
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --timing
 ```
 
-See [the method, results and limits](../examples/144_g1_sim2sim/README.md).
+See [the method, results and limits](../examples/144_g1_sim2sim/README.md) and
+[the browser mode](../web/rne_web_viewer/README.md#physics-walking).
 
 ## Native legged walking templates
 

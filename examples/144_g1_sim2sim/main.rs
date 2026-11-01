@@ -20,8 +20,8 @@ use std::time::Instant;
 
 use serde_json::{json, Value};
 
-use policy::{default_manifest, LstmPolicy, Result};
-use walk::{summarize, G1Walker, PlantConfig, StepRecord};
+use policy::Result;
+use walk::{summarize, PlantConfig, StepRecord};
 
 const REFERENCE: &str = include_str!("fixtures/mujoco_reference.json");
 
@@ -96,9 +96,9 @@ struct Run {
 }
 
 fn run(plant: PlantConfig, command: [f64; 3], seconds: f64) -> Result<Run> {
-    let policy = LstmPolicy::load(&default_manifest())?;
-    let steps = (seconds / policy.deployment.control_dt_s()).round() as usize;
-    let mut walker = G1Walker::new(policy, plant)?;
+    let policy = policy::load()?;
+    let steps = (seconds / policy.deployment().control_dt_s()).round() as usize;
+    let mut walker = walk::walker(policy, plant)?;
     let mut records = Vec::with_capacity(steps);
     let start = Instant::now();
     for _ in 0..steps {
@@ -118,10 +118,10 @@ fn render_walk(options: &Options, output: &std::path::Path) -> Result<()> {
     let mujoco =
         reference_run(command).ok_or("--render needs a command with a MuJoCo reference")?;
     let mujoco_path: Vec<[f64; 2]> = serde_json::from_value(mujoco["base_path_xy_m_10hz"].clone())?;
-    let policy = LstmPolicy::load(&default_manifest())?;
-    let weights_sha256 = policy.weights_sha256.clone();
-    let steps = (options.seconds / policy.deployment.control_dt_s()).round() as usize;
-    let mut walker = G1Walker::new(policy, options.plant)?;
+    let weights_sha256 = policy::weights_sha256()?;
+    let policy = policy::load()?;
+    let steps = (options.seconds / policy.deployment().control_dt_s()).round() as usize;
+    let mut walker = walk::walker(policy, options.plant)?;
     let orbit = rne_render_wgpu::CameraOrbit {
         focus: rne_math::Vec3::new(0.0, 0.35, -0.55),
         yaw_rad: 0.35,
@@ -318,7 +318,7 @@ fn main() -> Result<()> {
             "schema_version": 1,
             "backend": "RNE Rapier (UrdfSceneSim), Y-up, 2 ms PD substeps, 50 Hz policy",
             "policy": "unitreerobotics/unitree_rl_gym deploy/pre_train/g1/motion.pt",
-            "policy_weights_sha256": LstmPolicy::load(&default_manifest())?.weights_sha256,
+            "policy_weights_sha256": policy::weights_sha256()?,
             "mujoco_engine": reference["engine"],
             "runs": results,
         }))? + "\n",
