@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "scope": "unitree_rl_gym's pretrained G1 walking policy run on RNE's Rapier backend with the upstream MuJoCo deployment loop; paths and speeds are measured outputs.",
+  "command": [
+    0.3,
+    0.0,
+    0.5
+  ],
+  "rne": {
+    "fall_time_s": null,
+    "fell": false,
+    "final_base_position_m": [
+      -0.6052,
+      0.7519,
+      0.767
+    ],
+    "forward_speed_error_m_s": -0.0219,
+    "mean_base_height_m": 0.7708,
+    "min_base_height_m": 0.7642,
+    "second_half_forward_speed_m_s": 0.2781,
+    "second_half_lateral_speed_m_s": -0.0217,
+    "second_half_yaw_rate_rad_s": 0.4553,
+    "yaw_rate_error_rad_s": -0.0447
+  },
+  "mujoco": {
+    "fall_time_s": null,
+    "fell": false,
+    "final_base_position_m": [
+      -0.5733,
+      0.8229,
+      0.7695
+    ],
+    "forward_speed_error_m_s": -0.02,
+    "mean_base_height_m": 0.7721,
+    "min_base_height_m": 0.765,
+    "second_half_forward_speed_m_s": 0.28,
+    "second_half_lateral_speed_m_s": -0.0314,
+    "second_half_yaw_rate_rad_s": 0.4521,
+    "yaw_rate_error_rad_s": -0.0479
+  },
+  "policy_weights_sha256": "77056bd2f7f819cba00d5b6b76eb2ec66d42d8b4a4f5b258aeac8ea655c2875a",
+  "artifacts": {
+    "gif_sha256": "3c21c54987cf2588c1e96813c2281a1371a60261888c7c6f71b6f753a8383b77",
+    "poster_sha256": "b401341d170d8117c7770321f304fc2aaeaccbebb70aff1a16f7a25540cd36f3",
+    "frame_count": 125,
+    "width": 960,
+    "height": 540,
+    "gif_duration_ms": 10000
+  },
+  "trace_sha256": "a9be8c98f6cbac3fd917dcbe7b068e3693601b473655f0c5e95180089805665e",
+  "provenance": [
+    "assets/policies/unitree_g1_walk",
+    "assets/robots/g1_description/UPSTREAM.md"
+  ]
+}
