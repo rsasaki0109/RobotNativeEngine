@@ -624,6 +624,28 @@ cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --timing
 See [the method, results and limits](../examples/144_g1_sim2sim/README.md) and
 [the browser mode](../web/rne_web_viewer/README.md#physics-walking).
 
+## Pretrained models on the CPU: depth from RNE renders
+
+![Depth Anything V2 Small on RNE renders: RNE's exact depth beside the float32 and int8 models' aligned depth](media/onnx-depth-eval.png)
+
+`tools/onnx_eval` fetches pretrained ONNX models pinned by revision and
+SHA-256, runs them on the CPU with tract, and scores them against what RNE
+knows exactly. Depth Anything V2 Small, on eight renders of a warehouse corner
+at 518 px, reaches AbsRel 0.018 and δ1 0.997 after the usual scale-and-shift
+alignment. The publisher's int8 quantizations are 3.6× smaller (27 MB against
+99 MB) and stay within about 1% of float32, but on x86 tract runs them slower:
+5.4 s against 4.8 s on one thread, and 4.3 s against 2.3 s on four. RNE's
+ground truth also shows where the model is wrong: every variant pulls a flat
+roller shutter out of its wall. The tool keeps its own lockfile outside the
+workspace because tract would add twelve duplicated crate names.
+
+```bash
+python3 tools/onnx_eval/fetch_models.py
+cargo run --release --manifest-path tools/onnx_eval/Cargo.toml -- --threads 4
+```
+
+See [the method, results and limits](../tools/onnx_eval/README.md).
+
 ## Native legged walking templates
 
 `rne_legged` is the deterministic, backend-free template layer for legged

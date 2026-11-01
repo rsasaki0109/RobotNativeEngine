@@ -57,3 +57,4 @@ adapters/ros2/rne_ros2_node/target/
 # Large optional Kenkyugakuen splat scans (preferred_ply_path in manifest).
 /assets/environments/tsukuba_kenkyugakuen.ply
 /assets/environments/*.kenkyugakuen.ply
+/tools/onnx_eval/target/

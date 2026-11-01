@@ -1,0 +1,34 @@
+# Pretrained models fetched for CPU evaluation. Only data formats (ONNX) are
+# downloaded; nothing from the source repositories is executed. Files are
+# pinned to a revision and checked by SHA-256 before use.
+
+[[model]]
+id = "depth-anything-v2-small"
+task = "monocular relative depth"
+repository = "https://huggingface.co/onnx-community/depth-anything-v2-small"
+revision = "4472b7362082ad9968fee890ca0f1e5aca36b93d"
+license = "Apache-2.0"
+upstream = "depth-anything/Depth-Anything-V2-Small (Apache-2.0); ONNX export by onnx-community"
+# preprocessor_config.json: resize so both sides are multiples of 14,
+# ImageNet mean/std normalisation, output is relative inverse depth.
+input_size_px = 518
+mean = [0.485, 0.456, 0.406]
+std = [0.229, 0.224, 0.225]
+
+[[model.file]]
+variant = "f32"
+path = "onnx/model.onnx"
+bytes = 99060839
+sha256 = "afb6a5c28f3b6bf1618c6e43f02073ef9dfdc70e937502d51603e57b0a1df10c"
+
+[[model.file]]
+variant = "int8"
+path = "onnx/model_int8.onnx"
+bytes = 27258801
+sha256 = "01aa7a23de3f4a0ee1a2bb9997e6918104c85a9f95dea46d27b9b3fb0c6b9001"
+
+[[model.file]]
+variant = "uint8"
+path = "onnx/model_uint8.onnx"
+bytes = 27258801
+sha256 = "fcf51f1b230362b28690bb9d1809bf0431f29cad20534e3f589bd7285547f20d"
