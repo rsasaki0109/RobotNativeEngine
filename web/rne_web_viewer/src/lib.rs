@@ -13,6 +13,7 @@ mod lab;
 mod manipulation;
 #[cfg(any(target_arch = "wasm32", test))]
 mod mobile;
+mod physics_walk;
 mod playground;
 mod scene;
 #[cfg(any(target_arch = "wasm32", test))]
@@ -26,6 +27,10 @@ use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(start)]
 pub fn start() {
+    // Report panics in the console instead of a bare `unreachable` trap.
+    std::panic::set_hook(Box::new(|info| {
+        web_sys::console::error_1(&format!("RNE panic: {info}").into());
+    }));
     app::run();
 }
 

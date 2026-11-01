@@ -246,6 +246,19 @@
     motionButton.setAttribute("aria-pressed", String(enabled.value === "1"));
     motionButton.textContent = "歩行モーション " + (enabled.value === "1" ? "ON" : "OFF");
   });
+  const physicsButton = document.getElementById("control-physics");
+  const pushButton = document.getElementById("control-push");
+  physicsButton.addEventListener("click", () => {
+    const enabled = document.getElementById("control-physics-enabled");
+    enabled.value = enabled.value === "1" ? "0" : "1";
+    const on = enabled.value === "1";
+    releaseAll(); takeManualControl();
+    physicsButton.setAttribute("aria-pressed", String(on));
+    physicsButton.textContent = "物理歩行（学習済み方策） " + (on ? "ON" : "OFF");
+    pushButton.hidden = !on;
+    document.getElementById("physics-note").hidden = !on;
+  });
+  pushButton.addEventListener("click", () => signal("control-push-counter"));
   document.getElementById("mission-start").addEventListener("click", () => {
     sceneEditor.close(); releaseAll(); homeTargets(); signal("control-mission-counter");
   });

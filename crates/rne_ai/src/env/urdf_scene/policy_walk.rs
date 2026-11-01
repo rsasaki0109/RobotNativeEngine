@@ -159,7 +159,8 @@ impl UnitreeRlGymWalker {
         if plant_values
             .iter()
             .any(|value| !value.is_finite() || *value < 0.0)
-            || !(plant.joint_friction_transition_rad_s > 0.0)
+            || plant.joint_friction_transition_rad_s.is_nan()
+            || plant.joint_friction_transition_rad_s <= 0.0
         {
             return Err(model("plant values must be finite and non-negative".into()));
         }
@@ -310,9 +311,9 @@ impl UnitreeRlGymWalker {
         for (slot, value) in self.observation.iter_mut().zip(head) {
             *slot = value as f32;
         }
-        for index in 0..joints {
+        for (index, default_rad) in default.iter().enumerate() {
             let (position, velocity) = self.joint_state(self.joints[index].link)?;
-            self.observation[9 + index] = (position - default[index]) as f32;
+            self.observation[9 + index] = (position - default_rad) as f32;
             self.observation[9 + joints + index] = (velocity * velocity_scale) as f32;
         }
         self.observation[9 + 2 * joints..9 + 3 * joints].copy_from_slice(&self.action);

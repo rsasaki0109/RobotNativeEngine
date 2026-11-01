@@ -16,7 +16,7 @@ use rne_render::{
 use rne_render_wgpu::{CameraOrbit, WgpuRenderBackend};
 
 use crate::policy::Result;
-use crate::walk::G1Walker;
+use rne_ai::UnitreeRlGymWalker;
 
 /// Rendered panel size in pixels.
 pub(crate) const WIDTH: u32 = 960;
@@ -98,7 +98,11 @@ fn write_png(path: &Path, bytes: &[u8]) -> Result<()> {
 }
 
 impl WalkRenderer {
-    pub(crate) fn new(walker: &G1Walker, output: &Path, orbit: CameraOrbit) -> Result<Self> {
+    pub(crate) fn new(
+        walker: &UnitreeRlGymWalker,
+        output: &Path,
+        orbit: CameraOrbit,
+    ) -> Result<Self> {
         let output = output.join("frames");
         fs::create_dir_all(&output)?;
         let mut backend = WgpuRenderBackend::new()?;
@@ -112,7 +116,7 @@ impl WalkRenderer {
             cache: MeshRenderCache::new(),
             camera: Camera::new(WIDTH, HEIGHT, std::f64::consts::FRAC_PI_4),
             orbit,
-            roots: walker.sim.mesh_package_roots().to_vec(),
+            roots: walker.sim().mesh_package_roots().to_vec(),
             output,
             frames: 0,
         })
@@ -121,11 +125,11 @@ impl WalkRenderer {
     /// Renders the current pose with both pelvis paths so far.
     pub(crate) fn frame(
         &mut self,
-        walker: &G1Walker,
+        walker: &UnitreeRlGymWalker,
         rne_path: &[[f64; 2]],
         mujoco_path: &[[f64; 2]],
     ) -> Result<()> {
-        let mut scene = build_visual_render_scene(walker.sim.world());
+        let mut scene = build_visual_render_scene(walker.sim().world());
         let roots: Vec<_> = self.roots.iter().map(PathBuf::as_path).collect();
         self.cache.resolve_scene(&mut scene, &roots)?;
         checker_floor(&mut scene);

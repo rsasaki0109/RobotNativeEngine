@@ -210,7 +210,7 @@ impl LstmPolicy {
         let tensors = manifest["weights"]["tensors"]
             .as_array()
             .ok_or_else(|| manifest_error("weights.tensors is missing"))?;
-        if weights.len() % 4 != 0 {
+        if !weights.len().is_multiple_of(4) {
             return Err(LstmPolicyError::Weights(
                 "blob length is not a multiple of 4 bytes".into(),
             ));
