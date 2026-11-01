@@ -611,7 +611,10 @@ importer weighted at 1 kg each made the first port crouch 19 mm low; the
 12-DoF model now merges its fixed upper body into the pelvis, as the MJCF
 does, and is pinned at 32.107 kg. One G1 runs at 5.1× real time with four
 solver iterations and 12.9× with one; MuJoCo steps the same model at 20×.
-The browser playground's Physics walking mode runs the same policy and
+`--robot h1` runs unitree_rl_gym's H1 policy on the H1, whose feet are convex
+hulls of its ankle meshes: no fall, pelvis height within 2 mm, and forward
+speed 0.02–0.03 m/s above MuJoCo's at every command.
+The browser playground's Physics walking mode runs the same G1 policy and
 physics as WebAssembly in real time: in headless Chromium without a GPU the
 real-time factor held 0.99–1.01 with physics and policy using under a third of
 each simulated second.
