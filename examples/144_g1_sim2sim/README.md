@@ -96,8 +96,9 @@ No run falls on either engine and the pelvis height matches within 2 mm. RNE
 walks 0.02–0.03 m/s faster than MuJoCo at every command, about twice the G1's
 gap. Armature, joint friction and floor friction each move it by under
 0.01 m/s, which leaves the contact model as the likely cause: the same hull
-feet are rigid in Rapier and soft in MuJoCo. One H1 runs at 4.5–4.8× real time
-with four solver iterations.
+feet are rigid in Rapier and soft in MuJoCo. One H1 runs at 5.1–5.4× real time
+with four solver iterations (3.7–4.6× before the speedups below, measured in
+the same session); every H1 link collides, so contacts take a larger share.
 
 ## Real time
 
