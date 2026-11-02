@@ -11,6 +11,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
+use rne_ai::{LstmPolicy, UnitreeRlGymWalker};
 use rne_math::Vec3;
 use serde_json::{json, Value};
 
@@ -61,21 +62,21 @@ struct PushCase {
     phase: usize,
 }
 
-/// Runs one push trial and returns when the pelvis first fell, if it did.
+/// Runs one push trial on a reset `walker` and returns when the pelvis first
+/// fell, if it did.
 fn push_trial(
-    robot: Robot,
-    plant: PlantConfig,
+    walker: &mut UnitreeRlGymWalker,
     residual: Option<&Residual>,
     case: PushCase,
 ) -> Result<Option<f64>> {
-    let mut walker = walk::walker(robot, policy::load(robot)?, plant)?;
+    walker.reset()?;
     let [x, y] = DIRECTIONS[case.direction].1;
     // Z-up (x, y, z) is RNE's Y-up (x, z, -y).
     let force = Vec3::new(x * case.force_n, 0.0, -y * case.force_n);
     let start = WALK_STEPS + case.phase * PHASE_STEPS;
     for step in 0..start + PUSH_STEPS + RECOVERY_STEPS {
         walker.set_base_push_n((start..start + PUSH_STEPS).contains(&step).then_some(force));
-        let record = residual::step(&mut walker, residual, COMMAND)?;
+        let record = residual::step(walker, residual, COMMAND)?;
         if record.base_position_m[2] < FALL_HEIGHT_M {
             return Ok(Some(record.time_s));
         }
@@ -86,6 +87,7 @@ fn push_trial(
 fn friction_trial(
     robot: Robot,
     plant: PlantConfig,
+    policy: &LstmPolicy,
     residual: Option<&Residual>,
     friction: f64,
 ) -> Result<Value> {
@@ -93,7 +95,7 @@ fn friction_trial(
         floor_friction: friction,
         ..plant
     };
-    let mut walker = walk::walker(robot, policy::load(robot)?, plant)?;
+    let mut walker = walk::walker(robot, policy.clone(), plant)?;
     let mut records = Vec::with_capacity(FRICTION_STEPS);
     for _ in 0..FRICTION_STEPS {
         records.push(residual::step(&mut walker, residual, COMMAND)?);
@@ -107,18 +109,36 @@ pub(crate) fn run_parallel<T: Send>(
     threads: usize,
     job: impl Fn(usize) -> Result<T> + Sync,
 ) -> Result<Vec<T>> {
+    run_parallel_with(jobs, threads, || Ok(()), |(), index| job(index))
+}
+
+/// Like [`run_parallel`], with per-worker state that `init` builds on the
+/// worker's first job and later jobs reuse, such as a walker to reset.
+pub(crate) fn run_parallel_with<S, T: Send>(
+    jobs: usize,
+    threads: usize,
+    init: impl Fn() -> Result<S> + Sync,
+    job: impl Fn(&mut S, usize) -> Result<T> + Sync,
+) -> Result<Vec<T>> {
     let next = AtomicUsize::new(0);
     let results: Mutex<Vec<Option<std::result::Result<T, String>>>> =
         Mutex::new((0..jobs).map(|_| None).collect());
     std::thread::scope(|scope| {
         for _ in 0..threads.max(1) {
-            scope.spawn(|| loop {
-                let index = next.fetch_add(1, Ordering::Relaxed);
-                if index >= jobs {
-                    break;
+            scope.spawn(|| {
+                let mut state = None;
+                loop {
+                    let index = next.fetch_add(1, Ordering::Relaxed);
+                    if index >= jobs {
+                        break;
+                    }
+                    let result = match &mut state {
+                        Some(state) => job(state, index),
+                        None => init().and_then(|built| job(state.insert(built), index)),
+                    }
+                    .map_err(|error| error.to_string());
+                    results.lock().expect("results lock")[index] = Some(result);
                 }
-                let result = job(index).map_err(|error| error.to_string());
-                results.lock().expect("results lock")[index] = Some(result);
             });
         }
     });
@@ -140,6 +160,7 @@ pub(crate) fn sweep(
     residual: Option<&Residual>,
     threads: usize,
 ) -> Result<Value> {
+    let policy = policy::load(robot)?;
     let forces = push_forces_n(robot);
     let cases: Vec<PushCase> = (0..DIRECTIONS.len())
         .flat_map(|direction| {
@@ -152,9 +173,12 @@ pub(crate) fn sweep(
             })
         })
         .collect();
-    let falls = run_parallel(cases.len(), threads, |index| {
-        push_trial(robot, plant, residual, cases[index])
-    })?;
+    let falls = run_parallel_with(
+        cases.len(),
+        threads,
+        || walk::walker(robot, policy.clone(), plant),
+        |walker, index| push_trial(walker, residual, cases[index]),
+    )?;
     let push: Vec<Value> = cases
         .iter()
         .zip(&falls)
@@ -169,7 +193,7 @@ pub(crate) fn sweep(
         })
         .collect();
     let friction = run_parallel(FRICTIONS.len(), threads, |index| {
-        friction_trial(robot, plant, residual, FRICTIONS[index])
+        friction_trial(robot, plant, &policy, residual, FRICTIONS[index])
             .map(|summary| json!({"friction": FRICTIONS[index], "summary": summary}))
     })?;
     Ok(json!({
@@ -207,20 +231,28 @@ pub(crate) fn protocol(robot: Robot) -> Value {
 mod tests {
     use super::*;
 
+    fn walker(plant: PlantConfig) -> UnitreeRlGymWalker {
+        walk::walker(Robot::G1, policy::load(Robot::G1).unwrap(), plant).unwrap()
+    }
+
     #[test]
     fn a_strong_side_push_topples_the_g1_and_none_does_not() {
-        let plant = PlantConfig::default();
+        // One walker, reset between trials.
+        let mut walker = walker(PlantConfig::default());
         let calm = PushCase {
             direction: 2,
             force_n: 0.0,
             phase: 0,
         };
-        assert_eq!(push_trial(Robot::G1, plant, None, calm).unwrap(), None);
+        assert_eq!(push_trial(&mut walker, None, calm).unwrap(), None);
         let hard = PushCase {
             force_n: 1500.0,
             ..calm
         };
-        assert!(push_trial(Robot::G1, plant, None, hard).unwrap().is_some());
+        let fell = push_trial(&mut walker, None, hard).unwrap();
+        assert!(fell.is_some());
+        // A reset walker repeats the trial exactly.
+        assert_eq!(push_trial(&mut walker, None, hard).unwrap(), fell);
     }
 
     #[test]
@@ -233,19 +265,35 @@ mod tests {
             phase: 3,
         };
         let plant = PlantConfig::default();
-        assert_eq!(push_trial(Robot::G1, plant, None, case).unwrap(), None);
+        assert_eq!(push_trial(&mut walker(plant), None, case).unwrap(), None);
         let colliding = PlantConfig {
             self_collision: true,
             ..plant
         };
-        assert!(push_trial(Robot::G1, colliding, None, case)
+        assert!(push_trial(&mut walker(colliding), None, case)
             .unwrap()
             .is_some());
     }
 
     #[test]
-    fn parallel_results_keep_job_order() {
+    fn parallel_results_keep_job_order_and_reuse_worker_state() {
         let values = run_parallel(17, 4, |index| Ok(index * 3)).unwrap();
         assert_eq!(values, (0..17).map(|i| i * 3).collect::<Vec<_>>());
+        let inits = AtomicUsize::new(0);
+        let runs = run_parallel_with(
+            40,
+            3,
+            || {
+                inits.fetch_add(1, Ordering::Relaxed);
+                Ok(0usize)
+            },
+            |count, _| {
+                *count += 1;
+                Ok(*count)
+            },
+        )
+        .unwrap();
+        assert!(inits.load(Ordering::Relaxed) <= 3);
+        assert_eq!(runs.len(), 40);
     }
 }

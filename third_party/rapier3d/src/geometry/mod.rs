@@ -207,5 +207,6 @@ mod narrow_phase;
 mod broad_phase;
 mod broad_phase_qbvh;
 mod collider;
+mod convex_aabb;
 mod collider_set;
 mod mesh_converter;

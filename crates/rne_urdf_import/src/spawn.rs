@@ -229,7 +229,15 @@ pub fn attach_urdf_convex_colliders(
         if vertices_m.iter().any(|p| !p.is_finite()) {
             return Err(error(format!("nonfinite convex vertices on {}", link.name)));
         }
-        vertices_m.sort_by(|a, b| {
+        // STL repeats every shared vertex; drop bitwise copies first so the
+        // sort sees each point once. Sorting and deduplicating the remainder
+        // yields exactly what sorting and deduplicating all of them would.
+        let mut seen = std::collections::HashSet::with_capacity_and_hasher(
+            vertices_m.len() / 4,
+            rne_core::FxBuildHasher::default(),
+        );
+        vertices_m.retain(|v| seen.insert(v.to_array().map(f64::to_bits)));
+        vertices_m.sort_unstable_by(|a, b| {
             a.x.total_cmp(&b.x)
                 .then(a.y.total_cmp(&b.y))
                 .then(a.z.total_cmp(&b.z))

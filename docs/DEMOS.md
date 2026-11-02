@@ -630,6 +630,12 @@ do not: with that switched off in MuJoCo, agreement rises to 95.0% and 94.4%.
 as in MJCF: the G1's right push then topples it at 275 N against MuJoCo's
 283 N (500 N without), and agreement with MuJoCo as shipped rises to 95.8%
 and 93.4%.
+`--train-residual` trains a push-recovery correction for the policy with
+evolution strategies; a residual trained in RNE also reduces falls in MuJoCo,
+and one trained in MuJoCo in RNE. Training simulates 67 s per wall second on
+four cores, level with MuJoCo's 69, after hull bounding boxes by hill
+climbing, hulls built once and walker resets that replay a new walker bit for
+bit.
 The browser playground's Physics walking mode runs the same G1 policy and
 physics as WebAssembly in real time: in headless Chromium without a GPU the
 real-time factor held 0.99–1.01 with physics and policy using under a third of

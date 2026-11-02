@@ -42,6 +42,38 @@ class Residual:
         return np.clip(self.weights @ obs[:5].astype(np.float64), -self.limit, self.limit)
 
 
+# Per-process caches: compiling the scene (meshes and their hulls) and reading
+# the policy cost more than many of the short trials they serve. A cached model
+# is reset with mj_resetData, which restores a freshly made MjData's state.
+_SIMULATIONS = {}
+_POLICIES = {}
+
+
+def simulation(upstream, robot, friction, self_collision):
+    key = (upstream, robot, friction, self_collision)
+    if key not in _SIMULATIONS:
+        model = mujoco.MjModel.from_xml_path(str(Path(upstream) / ROBOTS[robot]["scene"]))
+        if friction is not None:
+            model.geom_friction[:, 0] = friction
+        if not self_collision:
+            # Robot geoms keep colliding with the world, not with each other.
+            robot_geoms = (model.geom_bodyid != 0) & (model.geom_contype != 0)
+            model.geom_conaffinity[robot_geoms] = 0
+        _SIMULATIONS[key] = (model, mujoco.MjData(model))
+    model, data = _SIMULATIONS[key]
+    mujoco.mj_resetData(model, data)
+    return model, data
+
+
+def fresh_policy(robot):
+    if robot not in _POLICIES:
+        _POLICIES[robot] = Policy(ROBOTS[robot]["policy"])
+    policy = _POLICIES[robot]
+    policy.h = np.zeros_like(policy.h)
+    policy.c = np.zeros_like(policy.c)
+    return policy
+
+
 def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall_m=None,
          self_collision=True, self_contacts=None, residual=None, offset_squares=None,
          tilts=None):
@@ -53,15 +85,8 @@ def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall
     and `tilts` each policy step's pelvis tilt in radians.
     """
     residual = Residual(residual) if residual else None
-    model = mujoco.MjModel.from_xml_path(str(Path(upstream) / ROBOTS[robot]["scene"]))
-    if friction is not None:
-        model.geom_friction[:, 0] = friction
-    if not self_collision:
-        # Robot geoms keep colliding with the world, not with each other.
-        robot_geoms = (model.geom_bodyid != 0) & (model.geom_contype != 0)
-        model.geom_conaffinity[robot_geoms] = 0
-    data = mujoco.MjData(model)
-    policy = Policy(ROBOTS[robot]["policy"])
+    model, data = simulation(upstream, robot, friction, self_collision)
+    policy = fresh_policy(robot)
     spec = policy.deployment
     dt, decimation, period = spec["physics_dt_s"], spec["control_decimation"], spec["gait_period_s"]
     model.opt.timestep = dt

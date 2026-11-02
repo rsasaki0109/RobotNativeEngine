@@ -203,3 +203,33 @@ anchors and centers of mass, and a prismatic link), including the Coriolis
 workspaces, and check the dense fallback for NaN and infinite operands.
 Reordering one dot product or one `gemv` product makes them fail. Example 144's
 G1 walk records and example 141's 72 worlds are byte-identical before and after.
+
+## Hill-climbed AABBs for large convex hulls
+
+Parry computes a `ConvexPolyhedron`'s world AABB by transforming every vertex,
+and the broad phase asks for two per collider and step (current and predicted
+pose). A convex hull of a scanned link mesh has hundreds to thousands of
+vertices; on the G1 with leg self-collision these scans took 22% of a step at
+four solver iterations and 40% at one.
+
+`src/geometry/convex_aabb.rs` builds, for a collider whose shape is a convex
+polyhedron with at least 64 vertices, the hull's vertex adjacency from Parry's
+edges. Each of the six bounds is found by walking that graph from the vertex
+that attained it last time: a linear function on a convex polytope has no
+local maximum on its edge graph that is not global. Candidates are
+transformed with the same `Isometry * Point` product as Parry's
+`point_cloud_aabb`, so the bounds are the same floats whenever the walk ends at
+the vertex the scan picks; it could stop one rounding error short only where
+adjacent vertices tie to within it. `Collider::compute_aabb`,
+`compute_collision_aabb` and the broad phase's predicted-pose AABB use it;
+`set_shape` rebuilds the graph, `shape_mut` drops it (the caller may change the
+geometry), and serde skips it, so a restored collider scans until its shape is
+set again. Smaller hulls and other shapes keep Parry's computation. The hint
+also keeps the last pose it was asked for and that pose's AABB, and returns
+the AABB again for a bitwise-equal pose: the broad phase often asks twice per
+step for an unchanged pose.
+
+`convex_aabb::tests` compare it with `point_cloud_aabb` over 2,000 tumbling
+poses of a 3,000-point hull, with periodic restarts from arbitrary vertices,
+and find no difference. Example 144's G1 and H1 walk records, with and without
+self-collision, and its G1 push sweep are byte-identical before and after.

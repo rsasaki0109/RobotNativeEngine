@@ -19,11 +19,12 @@
 
 use std::time::Instant;
 
+use rne_ai::{LstmPolicy, UnitreeRlGymWalker};
 use rne_math::Vec3;
 use serde_json::{json, Value};
 
 use crate::policy::{self, Result, Robot};
-use crate::robustness::{run_parallel, COMMAND, DIRECTIONS, PHASE_STEPS, PUSH_STEPS};
+use crate::robustness::{run_parallel_with, COMMAND, DIRECTIONS, PHASE_STEPS, PUSH_STEPS};
 use crate::walk::{self, PlantConfig, StepRecord, FALL_HEIGHT_M};
 
 /// Observation entries the residual reads: angular velocity (3) and the
@@ -98,7 +99,7 @@ impl Residual {
 
 /// Steps the walker, then offsets its next targets by the residual, if any.
 pub(crate) fn step(
-    walker: &mut rne_ai::UnitreeRlGymWalker,
+    walker: &mut UnitreeRlGymWalker,
     residual: Option<&Residual>,
     command: [f64; 3],
 ) -> Result<StepRecord> {
@@ -155,12 +156,11 @@ fn scenarios(robot: Robot) -> Vec<Scenario> {
 
 /// Scenario score and simulated policy steps.
 fn run_scenario(
-    robot: Robot,
-    plant: PlantConfig,
+    walker: &mut UnitreeRlGymWalker,
     residual: &Residual,
     scenario: Scenario,
 ) -> Result<(f64, f64, usize)> {
-    let mut walker = walk::walker(robot, policy::load(robot)?, plant)?;
+    walker.reset()?;
     let [x, y] = DIRECTIONS[scenario.direction].1;
     let force = Vec3::new(x * scenario.force_n, 0.0, -y * scenario.force_n);
     let start = TRAIN_WALK_STEPS + scenario.phase * PHASE_STEPS;
@@ -236,16 +236,22 @@ impl Normal {
 fn evaluate(
     robot: Robot,
     plant: PlantConfig,
+    policy: &LstmPolicy,
     candidates: &[Residual],
     scenarios: &[Scenario],
     penalty: f64,
     threads: usize,
 ) -> Result<(Vec<f64>, Vec<f64>, usize)> {
     let jobs = candidates.len() * scenarios.len();
-    let results = run_parallel(jobs, threads, |index| {
-        let (candidate, scenario) = (index / scenarios.len(), index % scenarios.len());
-        run_scenario(robot, plant, &candidates[candidate], scenarios[scenario])
-    })?;
+    let results = run_parallel_with(
+        jobs,
+        threads,
+        || walk::walker(robot, policy.clone(), plant),
+        |walker, index| {
+            let (candidate, scenario) = (index / scenarios.len(), index % scenarios.len());
+            run_scenario(walker, &candidates[candidate], scenarios[scenario])
+        },
+    )?;
     let mut fitness = vec![0.0; candidates.len()];
     let mut survival = vec![0.0; candidates.len()];
     let mut steps = 0;
@@ -278,7 +284,8 @@ pub(crate) fn train(
     threads: usize,
     config: TrainConfig,
 ) -> Result<(Residual, Value)> {
-    let joints = walk::walker(robot, policy::load(robot)?, plant)?
+    let policy = policy::load(robot)?;
+    let joints = walk::walker(robot, policy.clone(), plant)?
         .effort_limits_nm()
         .len();
     let scenarios = scenarios(robot);
@@ -313,6 +320,7 @@ pub(crate) fn train(
         let (fitness, survival, steps) = evaluate(
             robot,
             plant,
+            &policy,
             &candidates,
             &scenarios,
             config.offset_penalty,
