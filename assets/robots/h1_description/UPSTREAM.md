@@ -17,5 +17,10 @@ transforms. Only the pelvis's own collision mesh is kept on the merged pelvis,
 because RNE builds one convex hull per link. Mesh paths point at `meshes/`
 beside the URDF. The ten leg links, their joints, limits and collision meshes
 are unchanged. `../unitree_h1_walk.rne.robot.toml` gives every link the convex
-hull of its collision mesh, as MuJoCo does for mesh geoms. The pretrained
+hull of its collision mesh, as MuJoCo does for mesh geoms. The links collide
+with the floor only. In the upstream MuJoCo scene they also collide with each
+other (except parent and child); RNE's `self_collisions` switch would also
+collide each link with its parent, so it stays off. An undisturbed walk touches
+the floor only with the feet on both engines; after a hard push MuJoCo's legs
+can strike each other (example 144's robustness sweep). The pretrained
 policy that drives it is under `assets/policies/unitree_h1_walk`.

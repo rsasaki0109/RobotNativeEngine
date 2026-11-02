@@ -199,8 +199,9 @@ compute load (physics and policy time per simulated second). A pelvis below
 Chromium without a GPU (WebGPU on SwiftShader) the real-time factor held
 0.99–1.01 with a compute load of 27–32%.
 
-Only the feet collide, as in the MuJoCo scene the policy was deployed in, and
-the laboratory furniture is scenery. The model and policy come from
+Only the feet collide. The MuJoCo scene the policy was deployed in also
+collides the leg meshes, but an undisturbed walk touches the floor only with
+the feet there too. The laboratory furniture is scenery. The model and policy come from
 unitree_rl_gym under BSD-3-Clause; see
 [model provenance](../../assets/robots/g1_description/UPSTREAM.md),
 [policy provenance](../../assets/policies/unitree_g1_walk/README.md) and the

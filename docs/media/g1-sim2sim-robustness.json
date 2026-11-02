@@ -1,0 +1,679 @@
+{
+  "schema_version": 1,
+  "robot": "g1",
+  "rne_engine": "RNE Rapier (UrdfSceneSim)",
+  "protocol": {
+    "command": [
+      0.5,
+      0.0,
+      0.0
+    ],
+    "directions": [
+      {
+        "name": "forward",
+        "z_up_xy": [
+          1.0,
+          0.0
+        ]
+      },
+      {
+        "name": "backward",
+        "z_up_xy": [
+          -1.0,
+          0.0
+        ]
+      },
+      {
+        "name": "left",
+        "z_up_xy": [
+          0.0,
+          1.0
+        ]
+      },
+      {
+        "name": "right",
+        "z_up_xy": [
+          0.0,
+          -1.0
+        ]
+      }
+    ],
+    "fall_height_m": 0.55,
+    "forces_n": [
+      50.0,
+      100.0,
+      150.0,
+      200.0,
+      250.0,
+      300.0,
+      350.0,
+      400.0,
+      450.0,
+      500.0,
+      550.0,
+      600.0,
+      650.0,
+      700.0,
+      750.0,
+      800.0,
+      850.0,
+      900.0,
+      950.0,
+      1000.0
+    ],
+    "friction_walk_s": 10.0,
+    "frictions": [
+      1.0,
+      0.8,
+      0.6,
+      0.5,
+      0.4,
+      0.3,
+      0.25,
+      0.2,
+      0.15,
+      0.1
+    ],
+    "phase_spacing_s": 0.1,
+    "phases_per_cycle": 8,
+    "push_duration_s": 0.1,
+    "push_point": "pelvis origin",
+    "recovery_s": 4.0,
+    "walk_before_push_s": 4.0
+  },
+  "comparisons": {
+    "MuJoCo": {
+      "other_engine": "mujoco 3.9.0",
+      "other_self_collision": true,
+      "push": [
+        {
+          "direction": "forward",
+          "rne_half_fall_force_n": 512.5,
+          "other_half_fall_force_n": 516.6666666666666,
+          "rne_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.375,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "other_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.375,
+            0.75,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "direction": "backward",
+          "rne_half_fall_force_n": 650.0,
+          "other_half_fall_force_n": 650.0,
+          "rne_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.25,
+            0.375,
+            0.5,
+            0.5,
+            0.625,
+            0.875,
+            0.875,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "other_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.25,
+            0.375,
+            0.5,
+            0.75,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "direction": "left",
+          "rne_half_fall_force_n": 450.0,
+          "other_half_fall_force_n": 450.0,
+          "rne_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.25,
+            0.375,
+            0.5,
+            0.625,
+            0.625,
+            0.875,
+            0.875,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "other_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.375,
+            0.375,
+            0.5,
+            0.625,
+            0.875,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "direction": "right",
+          "rne_half_fall_force_n": 500.0,
+          "other_half_fall_force_n": 283.3333333333333,
+          "rne_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.375,
+            0.375,
+            0.375,
+            0.375,
+            0.5,
+            0.5,
+            0.75,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "other_fall_share": [
+            0.0,
+            0.0,
+            0.125,
+            0.25,
+            0.25,
+            0.625,
+            0.5,
+            0.625,
+            0.625,
+            0.625,
+            0.75,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "push_agreement": 0.946875,
+      "push_disagreements": {
+        "only_rne_fell": 3,
+        "only_other_fell": 31,
+        "only_other_fell_with_self_contact": 31,
+        "self_contact_pairs": {
+          "left_knee_link / right_knee_link": 27,
+          "left_ankle_roll_link / right_knee_link": 15,
+          "left_ankle_roll_link / right_ankle_pitch_link": 9,
+          "left_hip_yaw_link / right_knee_link": 9,
+          "left_hip_yaw_link / right_hip_yaw_link": 8,
+          "left_ankle_roll_link / right_ankle_roll_link": 6,
+          "left_ankle_pitch_link / right_knee_link": 5,
+          "left_knee_link / right_ankle_roll_link": 4,
+          "left_knee_link / right_ankle_pitch_link": 3,
+          "left_knee_link / right_hip_yaw_link": 2,
+          "left_ankle_pitch_link / right_ankle_roll_link": 1
+        }
+      },
+      "friction": [
+        {
+          "friction": 1.0,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4637,
+          "other_forward_speed_m_s": 0.4763
+        },
+        {
+          "friction": 0.8,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4637,
+          "other_forward_speed_m_s": 0.4755
+        },
+        {
+          "friction": 0.6,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4634,
+          "other_forward_speed_m_s": 0.4728
+        },
+        {
+          "friction": 0.5,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4631,
+          "other_forward_speed_m_s": 0.4697
+        },
+        {
+          "friction": 0.4,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4628,
+          "other_forward_speed_m_s": 0.469
+        },
+        {
+          "friction": 0.3,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4624,
+          "other_forward_speed_m_s": 0.4695
+        },
+        {
+          "friction": 0.25,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4623,
+          "other_forward_speed_m_s": 0.4701
+        },
+        {
+          "friction": 0.2,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4586,
+          "other_forward_speed_m_s": 0.4653
+        },
+        {
+          "friction": 0.15,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4184,
+          "other_forward_speed_m_s": 0.3474
+        },
+        {
+          "friction": 0.1,
+          "rne_fell": true,
+          "other_fell": true,
+          "rne_forward_speed_m_s": -0.066,
+          "other_forward_speed_m_s": 0.232
+        }
+      ]
+    },
+    "MuJoCo, no self-collision": {
+      "other_engine": "mujoco 3.9.0",
+      "other_self_collision": false,
+      "push": [
+        {
+          "direction": "forward",
+          "rne_half_fall_force_n": 512.5,
+          "other_half_fall_force_n": 570.0,
+          "rne_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.375,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "other_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.25,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "direction": "backward",
+          "rne_half_fall_force_n": 650.0,
+          "other_half_fall_force_n": 650.0,
+          "rne_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.25,
+            0.375,
+            0.5,
+            0.5,
+            0.625,
+            0.875,
+            0.875,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "other_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.25,
+            0.375,
+            0.5,
+            0.75,
+            0.75,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "direction": "left",
+          "rne_half_fall_force_n": 450.0,
+          "other_half_fall_force_n": 450.0,
+          "rne_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.25,
+            0.375,
+            0.5,
+            0.625,
+            0.625,
+            0.875,
+            0.875,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "other_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.375,
+            0.5,
+            0.5,
+            0.75,
+            0.75,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "direction": "right",
+          "rne_half_fall_force_n": 500.0,
+          "other_half_fall_force_n": 400.0,
+          "rne_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.375,
+            0.375,
+            0.375,
+            0.375,
+            0.5,
+            0.5,
+            0.75,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "other_fall_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.125,
+            0.25,
+            0.25,
+            0.5,
+            0.375,
+            0.5,
+            0.75,
+            0.875,
+            0.875,
+            0.875,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "push_agreement": 0.95,
+      "push_disagreements": {
+        "only_rne_fell": 18,
+        "only_other_fell": 14,
+        "only_other_fell_with_self_contact": 0,
+        "self_contact_pairs": {}
+      },
+      "friction": [
+        {
+          "friction": 1.0,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4637,
+          "other_forward_speed_m_s": 0.4763
+        },
+        {
+          "friction": 0.8,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4637,
+          "other_forward_speed_m_s": 0.4755
+        },
+        {
+          "friction": 0.6,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4634,
+          "other_forward_speed_m_s": 0.4728
+        },
+        {
+          "friction": 0.5,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4631,
+          "other_forward_speed_m_s": 0.4697
+        },
+        {
+          "friction": 0.4,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4628,
+          "other_forward_speed_m_s": 0.469
+        },
+        {
+          "friction": 0.3,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4624,
+          "other_forward_speed_m_s": 0.4695
+        },
+        {
+          "friction": 0.25,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4623,
+          "other_forward_speed_m_s": 0.4701
+        },
+        {
+          "friction": 0.2,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4586,
+          "other_forward_speed_m_s": 0.4653
+        },
+        {
+          "friction": 0.15,
+          "rne_fell": false,
+          "other_fell": false,
+          "rne_forward_speed_m_s": 0.4184,
+          "other_forward_speed_m_s": 0.3474
+        },
+        {
+          "friction": 0.1,
+          "rne_fell": true,
+          "other_fell": true,
+          "rne_forward_speed_m_s": -0.066,
+          "other_forward_speed_m_s": 0.2334
+        }
+      ]
+    }
+  },
+  "variant_effect": {
+    "variant": "MuJoCo, no self-collision",
+    "only_variant_fell": 0,
+    "only_mujoco_fell": 32,
+    "only_mujoco_fell_with_self_contact": 32,
+    "self_contact_pairs": {
+      "left_knee_link / right_knee_link": 28,
+      "left_ankle_roll_link / right_knee_link": 16,
+      "left_hip_yaw_link / right_hip_yaw_link": 15,
+      "left_ankle_roll_link / right_ankle_pitch_link": 12,
+      "left_hip_yaw_link / right_knee_link": 10,
+      "left_knee_link / right_ankle_roll_link": 8,
+      "left_ankle_pitch_link / right_knee_link": 6,
+      "left_ankle_roll_link / right_ankle_roll_link": 6,
+      "left_knee_link / right_hip_yaw_link": 4,
+      "left_knee_link / right_ankle_pitch_link": 3,
+      "left_ankle_pitch_link / right_ankle_roll_link": 2
+    }
+  }
+}

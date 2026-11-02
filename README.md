@@ -114,7 +114,9 @@ large gap was a model bug the comparison exposed: four sensor frames picked up
 at 22× real time with one solver iteration and 10× with four, against MuJoCo's
 24× on the same machine; bit-identical Rapier speedups made the four-iteration
 step 1.5× faster without changing a result. unitree_rl_gym's H1 policy walks the H1 the same way, within
-0.03 m/s of MuJoCo. The browser playground's **Physics walking** mode runs the G1 policy
+0.03 m/s of MuJoCo. Pushed at 20 forces from four directions, 91–95% of the
+640 trials per robot fall or recover as they do in MuJoCo; most of the rest
+are MuJoCo's legs colliding with each other, which RNE's walking models omit. The browser playground's **Physics walking** mode runs the G1 policy
 and physics as WebAssembly at real-time pace, steered from the keyboard.
 [Method, results and limits](examples/144_g1_sim2sim/README.md) ·
 [browser mode](web/rne_web_viewer/README.md#physics-walking) ·

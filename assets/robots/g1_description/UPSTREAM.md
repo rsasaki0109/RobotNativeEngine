@@ -34,6 +34,9 @@ pelvis with composed transforms. The torso mesh `torso_link_23dof_rev_1_0.STL`
 placed where the 23-DoF waist joint puts it. Leg links, joints, limits and the
 four 5 mm foot spheres per ankle are unchanged. The walking descriptor
 `../unitree_g1_12dof_walk.rne.robot.toml` imports only primitive collision
-geometry, so the feet are the only colliders, matching the upstream MuJoCo
-scene during walking. The pretrained policy that drives it is under
+geometry, so the feet are the only colliders. The upstream MuJoCo scene also
+collides the leg and pelvis meshes, with the floor and with each other (except
+parent and child). In an undisturbed walk only its feet touch anything, but
+after a hard push its legs can strike each other where RNE's pass through; see
+example 144's robustness sweep. The pretrained policy that drives it is under
 `assets/policies/unitree_g1_walk`.
