@@ -190,7 +190,8 @@ impl LazyQueryPipeline {
 }
 
 /// A world as [`PhysicsBackend::create_world`] makes it.
-fn new_world_state(desc: PhysicsWorldDesc) -> RapierWorldState {
+#[cfg_attr(not(feature = "position-motor-diagnostics"), allow(unused_variables))]
+fn new_world_state(id: PhysicsWorldId, desc: PhysicsWorldDesc) -> RapierWorldState {
     RapierWorldState {
         desc,
         gravity: vec3_to_rapier(desc.gravity_m_s2),
@@ -330,7 +331,7 @@ impl RapierBackend {
     /// an episode without rebuilding the backend.
     pub fn reset_world(&mut self, id: PhysicsWorldId) -> Result<(), PhysicsError> {
         let desc = self.world(id)?.desc;
-        self.worlds.insert(id, new_world_state(desc));
+        self.worlds.insert(id, new_world_state(id, desc));
         Ok(())
     }
 
@@ -736,7 +737,7 @@ impl PhysicsBackend for RapierBackend {
         let id = PhysicsWorldId(self.next_world_id);
         self.next_world_id += 1;
 
-        self.worlds.insert(id, new_world_state(desc));
+        self.worlds.insert(id, new_world_state(id, desc));
 
         Ok(id)
     }
