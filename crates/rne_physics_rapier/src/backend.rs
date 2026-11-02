@@ -28,15 +28,16 @@ use rne_physics::{
     Collider, CommandedKinematicPose, CompoundCollider, ContactEvent, ContactPointSample,
     ConvexCollider, ExternalBodyWrench, FixedJointDesc, GravityScale, JointActuation,
     JointEffortMeasurement, JointMotor, JointMotorGainModel, JointPassiveDynamics, JointState,
-    MultibodyLink, PhysicsBackend, PhysicsBackendManifest, PhysicsBackendRepeatability,
-    PhysicsCapability, PhysicsError, PhysicsOwnedPose, PhysicsWorldDesc, PhysicsWorldId,
-    PrismaticJointDesc, RaycastHit, RaycastQuery, RevoluteJointDesc, RigidBody, RigidBodyInertia,
-    RigidBodyType, SelfCollisionExclusion,
+    MultibodyLink, ParentCollisionExclusion, PhysicsBackend, PhysicsBackendManifest,
+    PhysicsBackendRepeatability, PhysicsCapability, PhysicsError, PhysicsOwnedPose,
+    PhysicsWorldDesc, PhysicsWorldId, PrismaticJointDesc, RaycastHit, RaycastQuery,
+    RevoluteJointDesc, RigidBody, RigidBodyInertia, RigidBodyType, SelfCollisionExclusion,
 };
 #[cfg(feature = "position-motor-diagnostics")]
 use rne_physics::{JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval};
 use rne_world::{world_transform_of, Transform3, WorldTransformCache};
 use std::collections::HashMap;
+use std::sync::{Mutex, PoisonError};
 
 const CAPABILITIES: &[PhysicsCapability] = &[
     PhysicsCapability::RigidBody,
@@ -79,7 +80,7 @@ struct RapierWorldState {
     impulse_joints: ImpulseJointSet,
     multibody_joints: MultibodyJointSet,
     ccd_solver: CCDSolver,
-    query_pipeline: QueryPipeline,
+    query_pipeline: Mutex<LazyQueryPipeline>,
     entity_to_body: HashMap<Entity, RigidBodyHandle>,
     body_to_entity: HashMap<RigidBodyHandle, Entity>,
     entity_to_collider: HashMap<Entity, ColliderHandle>,
@@ -121,6 +122,25 @@ struct PositionMotorDiagnosticTarget {
     axis: JointAxis,
     revolute: bool,
     effort_ceiling: Option<f64>,
+}
+
+/// Raycast acceleration structure, rebuilt only when a query needs it.
+///
+/// Rapier's dynamics never read it (CCD keeps its own), but rebuilding it
+/// computes every collider's bounding box, which for a convex hull scans all of
+/// its vertices. Stepping and synchronization only mark it stale; the next
+/// raycast rebuilds it from the current colliders, exactly as an eager rebuild
+/// after the last change would have.
+#[derive(Default)]
+struct LazyQueryPipeline {
+    pipeline: QueryPipeline,
+    stale: bool,
+}
+
+impl LazyQueryPipeline {
+    fn mark_stale(cell: &mut Mutex<Self>) {
+        cell.get_mut().unwrap_or_else(PoisonError::into_inner).stale = true;
+    }
 }
 
 struct OwnerCollisionHooks<'a> {
@@ -188,7 +208,7 @@ fn advance_rapier_pipeline(state: &mut RapierWorldState) {
         &mut state.impulse_joints,
         &mut state.multibody_joints,
         &mut state.ccd_solver,
-        Some(&mut state.query_pipeline),
+        None,
         hooks,
         &(),
     );
@@ -628,7 +648,7 @@ impl PhysicsBackend for RapierBackend {
                 impulse_joints: ImpulseJointSet::new(),
                 multibody_joints: MultibodyJointSet::new(),
                 ccd_solver: CCDSolver::new(),
-                query_pipeline: QueryPipeline::new(),
+                query_pipeline: Mutex::new(LazyQueryPipeline::default()),
                 entity_to_body: HashMap::new(),
                 body_to_entity: HashMap::new(),
                 entity_to_collider: HashMap::new(),
@@ -808,7 +828,7 @@ impl PhysicsBackend for RapierBackend {
         apply_joint_motors(world, state, &entities, &mut transforms)?;
         #[cfg(feature = "position-motor-diagnostics")]
         sync_position_motor_diagnostic_targets(world, state);
-        state.query_pipeline.update(&state.colliders);
+        LazyQueryPipeline::mark_stale(&mut state.query_pipeline);
 
         Ok(())
     }
@@ -837,7 +857,7 @@ impl PhysicsBackend for RapierBackend {
             }
         }
 
-        state.query_pipeline.update(&state.colliders);
+        LazyQueryPipeline::mark_stale(&mut state.query_pipeline);
 
         for contact_pair in state.narrow_phase.contact_pairs() {
             if !contact_pair.has_any_active_contact {
@@ -1111,7 +1131,15 @@ impl PhysicsBackend for RapierBackend {
         let ray = Ray::new(origin, direction.normalize());
         let filter = QueryFilter::default();
         let mut intersections = Vec::new();
-        state.query_pipeline.intersections_with_ray(
+        let mut queries = state
+            .query_pipeline
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        if queries.stale {
+            queries.pipeline.update(&state.colliders);
+            queries.stale = false;
+        }
+        queries.pipeline.intersections_with_ray(
             &state.bodies,
             &state.colliders,
             &ray,
@@ -1480,45 +1508,48 @@ fn sync_joints_from_ecs(
             continue;
         }
 
-        let (parent, joint, motor_axis) = if let Some(desc) = world.get::<RevoluteJointDesc>(entity)
-        {
-            let mut builder = RevoluteJointBuilder::new(normalized_axis(desc.axis))
-                .local_anchor1(vec3_to_point(desc.anchor_parent_m))
-                .local_anchor2(vec3_to_point(desc.anchor_child_m));
-            if let (Some(lower_rad), Some(upper_rad)) = (desc.lower_rad, desc.upper_rad) {
-                builder = builder.limits([lower_rad as f32, upper_rad as f32]);
-            }
-            let mut joint = builder.build();
-            // Compose the authored joint-origin rotation into the parent frame
-            // so joint angle zero matches the URDF pose (identity for legacy
-            // descs, which keeps existing assets bit-identical).
-            joint.data.local_frame1.rotation =
-                quat_to_rapier(desc.relative_rotation) * joint.data.local_frame1.rotation;
-            (
-                desc.parent,
-                GenericJoint::from(joint),
-                Some(JointAxis::AngX),
-            )
-        } else if let Some(desc) = world.get::<PrismaticJointDesc>(entity) {
-            let mut builder = PrismaticJointBuilder::new(normalized_axis(desc.axis))
-                .local_anchor1(vec3_to_point(desc.anchor_parent_m))
-                .local_anchor2(vec3_to_point(desc.anchor_child_m));
-            if let (Some(lower_m), Some(upper_m)) = (desc.lower_m, desc.upper_m) {
-                builder = builder.limits([lower_m as f32, upper_m as f32]);
-            }
-            let mut joint = builder.build();
-            joint.data.local_frame1.rotation =
-                quat_to_rapier(desc.relative_rotation) * joint.data.local_frame1.rotation;
-            (
-                desc.parent,
-                GenericJoint::from(joint),
-                Some(JointAxis::LinX),
-            )
-        } else if let Some(desc) = world.get::<FixedJointDesc>(entity) {
-            (desc.parent, fixed_joint_from_desc(desc), None)
-        } else {
-            continue;
-        };
+        let (parent, mut joint, motor_axis) =
+            if let Some(desc) = world.get::<RevoluteJointDesc>(entity) {
+                let mut builder = RevoluteJointBuilder::new(normalized_axis(desc.axis))
+                    .local_anchor1(vec3_to_point(desc.anchor_parent_m))
+                    .local_anchor2(vec3_to_point(desc.anchor_child_m));
+                if let (Some(lower_rad), Some(upper_rad)) = (desc.lower_rad, desc.upper_rad) {
+                    builder = builder.limits([lower_rad as f32, upper_rad as f32]);
+                }
+                let mut joint = builder.build();
+                // Compose the authored joint-origin rotation into the parent frame
+                // so joint angle zero matches the URDF pose (identity for legacy
+                // descs, which keeps existing assets bit-identical).
+                joint.data.local_frame1.rotation =
+                    quat_to_rapier(desc.relative_rotation) * joint.data.local_frame1.rotation;
+                (
+                    desc.parent,
+                    GenericJoint::from(joint),
+                    Some(JointAxis::AngX),
+                )
+            } else if let Some(desc) = world.get::<PrismaticJointDesc>(entity) {
+                let mut builder = PrismaticJointBuilder::new(normalized_axis(desc.axis))
+                    .local_anchor1(vec3_to_point(desc.anchor_parent_m))
+                    .local_anchor2(vec3_to_point(desc.anchor_child_m));
+                if let (Some(lower_m), Some(upper_m)) = (desc.lower_m, desc.upper_m) {
+                    builder = builder.limits([lower_m as f32, upper_m as f32]);
+                }
+                let mut joint = builder.build();
+                joint.data.local_frame1.rotation =
+                    quat_to_rapier(desc.relative_rotation) * joint.data.local_frame1.rotation;
+                (
+                    desc.parent,
+                    GenericJoint::from(joint),
+                    Some(JointAxis::LinX),
+                )
+            } else if let Some(desc) = world.get::<FixedJointDesc>(entity) {
+                (desc.parent, fixed_joint_from_desc(desc), None)
+            } else {
+                continue;
+            };
+        if world.get::<ParentCollisionExclusion>(entity).is_some() {
+            joint.set_contacts_enabled(false);
+        }
 
         let Some(parent_body) = state.entity_to_body.get(&parent).copied() else {
             continue;
@@ -2164,6 +2195,57 @@ mod tests {
             (contact.entity_a == a && contact.entity_b == b)
                 || (contact.entity_a == b && contact.entity_b == a)
         })
+    }
+
+    #[test]
+    fn parent_collision_exclusion_skips_only_the_joint_parent() {
+        for multibody in [false, true] {
+            for marked in [false, true] {
+                let (mut backend, id, mut world) = owner_filter_fixture();
+                let parent =
+                    owner_filter_body(&mut world, Vec3::ZERO, RigidBodyType::Fixed, false, None);
+                let child = owner_filter_body(
+                    &mut world,
+                    Vec3::X * 0.4,
+                    RigidBodyType::Dynamic,
+                    false,
+                    None,
+                );
+                // Overlaps the child as much as the parent does, without a joint.
+                let neighbour =
+                    owner_filter_body(&mut world, Vec3::X * 0.8, RigidBodyType::Fixed, false, None);
+                world.entity_mut(child).insert(RevoluteJointDesc {
+                    parent,
+                    axis: Vec3::Z,
+                    anchor_parent_m: Vec3::X * 0.2,
+                    anchor_child_m: -Vec3::X * 0.2,
+                    relative_rotation: Quat::IDENTITY,
+                    lower_rad: None,
+                    upper_rad: None,
+                });
+                if multibody {
+                    world.entity_mut(parent).insert(MultibodyLink);
+                    world
+                        .entity_mut(child)
+                        .insert((MultibodyLink, PhysicsOwnedPose));
+                }
+                if marked {
+                    world.entity_mut(child).insert(ParentCollisionExclusion);
+                }
+                step_physics(&mut backend, &mut world, id, fixed_step()).unwrap();
+                let state = backend.world(id).unwrap();
+                assert_eq!(
+                    state.entity_to_multibody_joint.contains_key(&child),
+                    multibody
+                );
+                assert_eq!(
+                    owner_filter_pair_contact(&backend, id, parent, child).is_some(),
+                    !marked,
+                    "multibody {multibody}, marked {marked}"
+                );
+                assert!(owner_filter_pair_contact(&backend, id, neighbour, child).is_some());
+            }
+        }
     }
 
     #[test]

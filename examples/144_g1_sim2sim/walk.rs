@@ -30,6 +30,9 @@ pub(crate) struct PlantConfig {
     pub(crate) joint_friction_nm: f64,
     /// Floor and foot friction coefficient (MuJoCo default 1).
     pub(crate) floor_friction: f64,
+    /// Links collide with each other except a link and its parent, as in the
+    /// MJCF; the G1's legs then collide through convex hulls of their meshes.
+    pub(crate) self_collision: bool,
 }
 
 impl Default for PlantConfig {
@@ -41,6 +44,7 @@ impl Default for PlantConfig {
             joint_damping_nm_s_per_rad: matched.joint_damping_nm_s_per_rad,
             joint_friction_nm: matched.joint_friction_nm,
             floor_friction: matched.floor_friction,
+            self_collision: false,
         }
     }
 }
@@ -52,7 +56,7 @@ pub(crate) fn walker(
     plant: PlantConfig,
 ) -> Result<UnitreeRlGymWalker> {
     let sim = UrdfSceneSim::from_scene_path_with_solver_iterations(
-        &robot.scene(),
+        &robot.scene(plant.self_collision),
         plant.solver_iterations,
     )?;
     Ok(UnitreeRlGymWalker::new(
@@ -164,6 +168,28 @@ mod tests {
             walker.effort_limits_nm(),
             [88.0, 139.0, 88.0, 139.0, 50.0, 50.0, 88.0, 139.0, 88.0, 139.0, 50.0, 50.0]
         );
+    }
+
+    #[test]
+    fn self_collision_keeps_the_plant() {
+        for (robot, mass) in [(Robot::G1, 32.107), (Robot::H1, 51.650)] {
+            let walker = super::walker(
+                robot,
+                crate::policy::load(robot).expect("policy"),
+                PlantConfig {
+                    self_collision: true,
+                    ..PlantConfig::default()
+                },
+            )
+            .expect("walker");
+            // Leg hulls add colliders, not mass.
+            let (_, mass_kg) = walker.sim().dynamic_center_of_mass_m().expect("mass");
+            assert!((mass_kg - mass).abs() < 1.0e-3, "{robot:?} mass {mass_kg}");
+            assert_eq!(
+                walker.effort_limits_nm(),
+                robot_walker(robot).effort_limits_nm()
+            );
+        }
     }
 
     #[test]

@@ -43,11 +43,14 @@ impl Robot {
         })
     }
 
-    /// RNE scene the policy walks in.
-    pub(crate) fn scene(self) -> PathBuf {
-        Self::assets().join(match self {
-            Self::G1 => "scenes/unitree_g1_12dof_walk.rne.scene.toml",
-            Self::H1 => "scenes/unitree_h1_walk.rne.scene.toml",
+    /// RNE scene the policy walks in. With `self_collision`, the links also
+    /// collide with each other except a link and its parent, as in the MJCF.
+    pub(crate) fn scene(self, self_collision: bool) -> PathBuf {
+        Self::assets().join(match (self, self_collision) {
+            (Self::G1, false) => "scenes/unitree_g1_12dof_walk.rne.scene.toml",
+            (Self::G1, true) => "scenes/unitree_g1_12dof_walk_self_collision.rne.scene.toml",
+            (Self::H1, false) => "scenes/unitree_h1_walk.rne.scene.toml",
+            (Self::H1, true) => "scenes/unitree_h1_walk_self_collision.rne.scene.toml",
         })
     }
 

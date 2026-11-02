@@ -161,6 +161,7 @@ pub(crate) fn sweep(robot: Robot, plant: PlantConfig, threads: usize) -> Result<
         "engine": "RNE Rapier (UrdfSceneSim)",
         "robot": robot.name(),
         "solver_iterations": plant.solver_iterations,
+        "self_collision": plant.self_collision,
         "protocol": protocol(robot),
         "push": push,
         "friction": friction,
@@ -203,6 +204,24 @@ mod tests {
             ..calm
         };
         assert!(push_trial(Robot::G1, plant, hard).unwrap().is_some());
+    }
+
+    #[test]
+    fn a_right_push_topples_the_g1_only_when_its_legs_collide() {
+        // At 200 N the left leg swings into the right one. MuJoCo's MJCF lets
+        // them collide and the G1 falls; so does RNE with self-collision.
+        let case = PushCase {
+            direction: 3,
+            force_n: 200.0,
+            phase: 3,
+        };
+        let plant = PlantConfig::default();
+        assert_eq!(push_trial(Robot::G1, plant, case).unwrap(), None);
+        let colliding = PlantConfig {
+            self_collision: true,
+            ..plant
+        };
+        assert!(push_trial(Robot::G1, colliding, case).unwrap().is_some());
     }
 
     #[test]

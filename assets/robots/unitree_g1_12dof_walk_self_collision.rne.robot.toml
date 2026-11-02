@@ -1,0 +1,24 @@
+# unitree_g1_12dof_walk with the upstream MJCF's leg collisions: every leg
+# link collides through the convex hull of its mesh, and the links collide with
+# each other except a link and its parent, as MuJoCo filters them. Unlike the
+# MJCF, the merged pelvis (torso, head, arms, pelvis contour) does not collide.
+# See g1_description/UPSTREAM.md.
+kind = "urdf"
+model_name = "unitree_g1_12dof_walk"
+
+[urdf]
+path = "g1_description/g1_12dof_hulls.rne.urdf"
+base_body_type = "dynamic"
+initial_translation_m = [0.0, 0.793, 0.0]
+initial_rotation_rpy = [-1.5707963267948966, 0.0, 0.0]
+articulation = true
+collisions = true
+mesh_collisions = true
+self_collisions = true
+parent_child_collisions = false
+multibody = true
+weld_fixed_children = true
+use_declared_inertial_masses = true
+use_joint_origin_rpy = true
+preserve_collision_parts = true
+convex_mesh_collisions = true

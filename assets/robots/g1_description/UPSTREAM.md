@@ -38,5 +38,12 @@ geometry, so the feet are the only colliders. The upstream MuJoCo scene also
 collides the leg and pelvis meshes, with the floor and with each other (except
 parent and child). In an undisturbed walk only its feet touch anything, but
 after a hard push its legs can strike each other where RNE's pass through; see
-example 144's robustness sweep. The pretrained policy that drives it is under
+example 144's robustness sweep.
+
+`g1_12dof_hulls.rne.urdf`, written by `prepare_model.py --robot g1_hulls`, is
+the same model with no collision geometry on the merged pelvis, so each leg
+link keeps its one collision mesh. `../unitree_g1_12dof_walk_self_collision.rne.robot.toml`
+gives every leg link the convex hull of that mesh and lets the links collide
+with each other except a link and its parent, as the MJCF does; unlike the
+MJCF, its pelvis (torso, head, arms, contour) does not collide. The pretrained policy that drives it is under
 `assets/policies/unitree_g1_walk`.
