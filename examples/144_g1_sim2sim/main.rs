@@ -10,12 +10,15 @@
 //! cargo run --release --example 144_g1_sim2sim -- --throughput # 1–8 walkers on threads
 //! cargo run --release --example 144_g1_sim2sim -- --robustness # push and friction sweeps
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --self-collision # MJCF collisions
+//! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision # push recovery
+//! cargo run --release --example 144_g1_sim2sim -- --robustness --residual target/g1-sim2sim/g1-residual.json
 //! cargo run --release --example 144_g1_sim2sim -- --command 0.5,0,0 --seconds 20
 //! cargo run --release --example 144_g1_sim2sim -- --render target/g1-sim2sim-render
 //! ```
 
 mod policy;
 mod render;
+mod residual;
 mod robustness;
 mod walk;
 
@@ -35,6 +38,9 @@ struct Options {
     timing: bool,
     throughput: bool,
     robustness: bool,
+    train_residual: bool,
+    generations: usize,
+    residual: Option<PathBuf>,
     threads: usize,
     ablation: bool,
     render: Option<PathBuf>,
@@ -67,6 +73,9 @@ fn parse() -> Result<Options> {
         timing: false,
         throughput: false,
         robustness: false,
+        train_residual: false,
+        generations: residual::TrainConfig::default().generations,
+        residual: None,
         threads: std::thread::available_parallelism().map_or(1, |n| n.get()),
         ablation: false,
         render: None,
@@ -86,6 +95,9 @@ fn parse() -> Result<Options> {
             "--timing" => options.timing = true,
             "--throughput" => options.throughput = true,
             "--robustness" => options.robustness = true,
+            "--train-residual" => options.train_residual = true,
+            "--generations" => options.generations = value()?.parse()?,
+            "--residual" => options.residual = Some(PathBuf::from(value()?)),
             "--threads" => options.threads = value()?.parse()?,
             "--ablation" => options.ablation = true,
             "--render" => options.render = Some(PathBuf::from(value()?)),
@@ -334,20 +346,48 @@ fn throughput(options: &Options, command: [f64; 3]) -> Result<Value> {
     )
 }
 
-fn main() -> Result<()> {
-    let options = parse()?;
-    if let Some(output) = &options.render {
-        return render_walk(&options, output);
+/// `--train-residual`, or `--robustness` with an optional `--residual`.
+fn train_or_sweep(options: &Options) -> Result<()> {
+    if options.train_residual {
+        let config = residual::TrainConfig {
+            generations: options.generations,
+            ..residual::TrainConfig::default()
+        };
+        let (_, report) = residual::train(options.robot, options.plant, options.threads, config)?;
+        let path = options
+            .output
+            .join(format!("{}-residual.json", options.robot.name()));
+        std::fs::write(&path, serde_json::to_string_pretty(&report)? + "\n")?;
+        println!("wrote {}", path.display());
+        return Ok(());
     }
-    std::fs::create_dir_all(&options.output)?;
+    let residual = match &options.residual {
+        Some(path) => {
+            let report: Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+            if report["robot"] != options.robot.name() {
+                return Err(format!("{} was trained for another robot", path.display()).into());
+            }
+            Some(residual::Residual::from_json(&report["residual"])?)
+        }
+        None => None,
+    };
     if options.robustness {
         let start = Instant::now();
-        let report = robustness::sweep(options.robot, options.plant, options.threads)?;
-        let suffix = if options.plant.self_collision {
-            "-self-collision"
-        } else {
-            ""
-        };
+        let report = robustness::sweep(
+            options.robot,
+            options.plant,
+            residual.as_ref(),
+            options.threads,
+        )?;
+        let suffix = format!(
+            "{}{}",
+            if options.plant.self_collision {
+                "-self-collision"
+            } else {
+                ""
+            },
+            if residual.is_some() { "-residual" } else { "" }
+        );
         let path = options
             .output
             .join(format!("{}-robustness{suffix}.json", options.robot.name()));
@@ -357,7 +397,18 @@ fn main() -> Result<()> {
             path.display(),
             start.elapsed().as_secs_f64()
         );
-        return Ok(());
+    }
+    Ok(())
+}
+
+fn main() -> Result<()> {
+    let options = parse()?;
+    if let Some(output) = &options.render {
+        return render_walk(&options, output);
+    }
+    std::fs::create_dir_all(&options.output)?;
+    if options.train_residual || options.robustness {
+        return train_or_sweep(&options);
     }
     if options.throughput {
         let report = throughput(&options, options.command.unwrap_or([0.5, 0.0, 0.0]))?;

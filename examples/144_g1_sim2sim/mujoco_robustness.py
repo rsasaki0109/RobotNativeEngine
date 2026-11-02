@@ -9,13 +9,16 @@ the physics steps of the pushed policy periods. Friction trials set every
 geom's sliding friction, since MuJoCo combines a contact's friction as the
 larger of its two geoms'. Each push trial lists the pairs of robot bodies
 that touched before the fall (MuJoCo skips parent-child pairs);
-`--no-self-collision` turns those contacts off.
+`--no-self-collision` turns those contacts off. `--residual` adds the linear
+residual that example 144's `--train-residual` writes to every joint target,
+computed from the same observation as the policy's action, as RNE does.
 
 Usage: mujoco_robustness.py UNITREE_RL_GYM RNE_REPORT.json OUTPUT.json
-       [--processes 4] [--no-self-collision]
+       [--processes 4] [--no-self-collision] [--residual RESIDUAL.json]
 """
 import argparse
 import json
+import math
 import multiprocessing
 from pathlib import Path
 
@@ -26,12 +29,30 @@ from metrics import summarize
 from mujoco_reference import ROBOTS, Policy, projected_gravity
 
 
+class Residual:
+    """Example 144's linear residual: clip(W · obs[:5], ±limit) added to targets."""
+
+    def __init__(self, spec):
+        self.weights = np.array(spec["weights_rad"], np.float64)
+        self.limit = float(spec["limit_rad"])
+        if self.weights.shape[1] != len(spec["features"]) or len(spec["features"]) != 5:
+            raise ValueError("the residual must read the first five observation entries")
+
+    def __call__(self, obs):
+        return np.clip(self.weights @ obs[:5].astype(np.float64), -self.limit, self.limit)
+
+
 def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall_m=None,
-         self_collision=True, self_contacts=None):
+         self_collision=True, self_contacts=None, residual=None, offset_squares=None,
+         tilts=None):
     """Walks `policy_steps` policy periods; returns (fall time or None, records).
 
     Adds the name pairs of robot bodies in contact to `self_contacts`, if given.
+    `residual` is the JSON `residual` object of example 144's training report;
+    `offset_squares`, if given, receives each policy step's mean squared offset,
+    and `tilts` each policy step's pelvis tilt in radians.
     """
+    residual = Residual(residual) if residual else None
     model = mujoco.MjModel.from_xml_path(str(Path(upstream) / ROBOTS[robot]["scene"]))
     if friction is not None:
         model.geom_friction[:, 0] = friction
@@ -71,6 +92,8 @@ def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall
         phase = (counter * dt) % period / period
         obs[:3] = data.qvel[3:6] * spec["angular_velocity_scale"]
         obs[3:6] = projected_gravity(data.qpos[3:7])
+        if tilts is not None:
+            tilts.append(math.acos(min(max(-float(obs[5]), -1.0), 1.0)))
         obs[6:9] = cmd
         obs[9:9 + joints] = data.qpos[7:] - default
         obs[9 + joints:9 + 2 * joints] = data.qvel[6:] * spec["joint_velocity_scale"]
@@ -78,6 +101,11 @@ def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall
         obs[9 + 3 * joints:] = [np.sin(2 * np.pi * phase), np.cos(2 * np.pi * phase)]
         action = policy(obs.copy())
         target = action * spec["action_scale"] + default
+        if residual is not None:
+            offsets = residual(obs)
+            target = target + offsets
+            if offset_squares is not None:
+                offset_squares.append(float(np.mean(offsets * offsets)))
         time_s = counter * dt
         records.append({"time_s": time_s, "base_position_m": data.qpos[:3].tolist(),
                         "base_quaternion_wxyz": data.qpos[3:7].tolist()})
@@ -87,7 +115,7 @@ def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall
 
 
 def push_trial(job):
-    upstream, robot, protocol, case, self_collision = job
+    upstream, robot, protocol, case, self_collision, residual = job
     directions = {d["name"]: d["z_up_xy"] for d in protocol["directions"]}
     steps = lambda seconds: int(round(seconds / 0.02))
     start = steps(protocol["walk_before_push_s"]) + case["phase"] * steps(protocol["phase_spacing_s"])
@@ -97,15 +125,15 @@ def push_trial(job):
     contacts = set()
     fall, _ = walk(upstream, robot, protocol, end + steps(protocol["recovery_s"]),
                    push=(start, end, force), fall_m=protocol["fall_height_m"],
-                   self_collision=self_collision, self_contacts=contacts)
+                   self_collision=self_collision, self_contacts=contacts, residual=residual)
     return {**case, "fell": fall is not None, "fall_time_s": fall,
             "self_contacts": [list(pair) for pair in sorted(contacts)]}
 
 
 def friction_trial(job):
-    upstream, robot, protocol, friction, self_collision = job
+    upstream, robot, protocol, friction, self_collision, residual = job
     _, records = walk(upstream, robot, protocol, int(round(protocol["friction_walk_s"] / 0.02)),
-                      friction=friction, self_collision=self_collision)
+                      friction=friction, self_collision=self_collision, residual=residual)
     return {"friction": friction, "summary": summarize(records, protocol["command"])}
 
 
@@ -117,21 +145,29 @@ def main():
     parser.add_argument("--processes", type=int, default=multiprocessing.cpu_count())
     parser.add_argument("--no-self-collision", action="store_true",
                         help="let robot geoms collide only with the floor, as in RNE's model")
+    parser.add_argument("--residual", type=Path,
+                        help="training report from example 144's --train-residual")
     arguments = parser.parse_args()
     rne = json.loads(arguments.rne_report.read_text())
     robot, protocol = rne["robot"], rne["protocol"]
     cases = [{"direction": r["direction"], "force_n": r["force_n"], "phase": r["phase"]}
              for r in rne["push"]]
     upstream = str(arguments.upstream)
+    residual = None
+    if arguments.residual:
+        trained = json.loads(arguments.residual.read_text())
+        if trained["robot"] != robot:
+            raise SystemExit(f"{arguments.residual} was trained for {trained['robot']}")
+        residual = trained["residual"]
     with multiprocessing.get_context("fork").Pool(arguments.processes) as pool:
         self_collision = not arguments.no_self_collision
-        push = pool.map(push_trial, [(upstream, robot, protocol, c, self_collision)
+        push = pool.map(push_trial, [(upstream, robot, protocol, c, self_collision, residual)
                                      for c in cases])
-        friction = pool.map(friction_trial, [(upstream, robot, protocol, f, self_collision)
-                                             for f in protocol["frictions"]])
+        friction = pool.map(friction_trial, [(upstream, robot, protocol, f, self_collision,
+                                              residual) for f in protocol["frictions"]])
     arguments.output.write_text(json.dumps(
         {"schema_version": 1, "engine": f"mujoco {mujoco.__version__}", "robot": robot,
-         "self_collision": not arguments.no_self_collision,
+         "self_collision": not arguments.no_self_collision, "residual": residual,
          "protocol": protocol, "push": push, "friction": friction}, indent=2) + "\n")
     print(f"wrote {arguments.output}")
 

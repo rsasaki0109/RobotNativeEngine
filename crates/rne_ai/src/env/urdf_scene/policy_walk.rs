@@ -263,6 +263,33 @@ impl UnitreeRlGymWalker {
         self.base_push_n = force_world_n.filter(|force| force.is_finite());
     }
 
+    /// Adds `offsets_rad` to the joint targets the last [`Self::step`] set,
+    /// in deployment joint order, for the next policy period only.
+    ///
+    /// The next step replaces every target with the policy's again, so a
+    /// residual policy calls this after each step with offsets computed from
+    /// the observation that step returned: the targets then become
+    /// `action · action_scale + default + offset` from one observation, as a
+    /// residual added to the policy's own output.
+    pub fn offset_targets_rad(&mut self, offsets_rad: &[f64]) -> Result<(), PolicyWalkError> {
+        if offsets_rad.len() != self.targets_rad.len() {
+            return Err(PolicyWalkError::Model(format!(
+                "{} target offsets for {} joints",
+                offsets_rad.len(),
+                self.targets_rad.len()
+            )));
+        }
+        if offsets_rad.iter().any(|offset| !offset.is_finite()) {
+            return Err(PolicyWalkError::Model(
+                "target offsets must be finite".into(),
+            ));
+        }
+        for (target, offset) in self.targets_rad.iter_mut().zip(offsets_rad) {
+            *target += offset;
+        }
+        Ok(())
+    }
+
     /// Base position and orientation in the policy's Z-up world.
     pub fn base_pose_z_up(&self) -> (Vec3, Quat) {
         let base = world_transform_of(&self.sim.world, self.sim.base_link);
@@ -518,6 +545,38 @@ mod tests {
         assert_eq!(
             first.last().unwrap().base_position_m.map(f64::to_bits),
             again.last().unwrap().base_position_m.map(f64::to_bits)
+        );
+    }
+
+    #[test]
+    fn target_offsets_last_one_period() {
+        let mut plain = walker(2);
+        let mut offset = walker(2);
+        assert!(offset.offset_targets_rad(&[0.1; 3]).is_err());
+        assert!(offset.offset_targets_rad(&[f64::NAN; 12]).is_err());
+        let first = plain.step([0.0; 3]).unwrap();
+        assert_eq!(offset.step([0.0; 3]).unwrap(), first);
+        // Bend both knees (deployment indices 3 and 9) for one period.
+        let mut knees = [0.0; 12];
+        knees[3] = 0.3;
+        knees[9] = 0.3;
+        offset.offset_targets_rad(&knees).unwrap();
+        let (bent, plain_next) = (
+            offset.step([0.0; 3]).unwrap(),
+            plain.step([0.0; 3]).unwrap(),
+        );
+        assert!(bent.observation[12] > plain_next.observation[12] + 0.01);
+        // Zero offsets change nothing.
+        let mut zero = walker(2);
+        let mut reference = walker(2);
+        for _ in 0..5 {
+            zero.step([0.0; 3]).unwrap();
+            zero.offset_targets_rad(&[0.0; 12]).unwrap();
+            reference.step([0.0; 3]).unwrap();
+        }
+        assert_eq!(
+            zero.step([0.0; 3]).unwrap(),
+            reference.step([0.0; 3]).unwrap()
         );
     }
 

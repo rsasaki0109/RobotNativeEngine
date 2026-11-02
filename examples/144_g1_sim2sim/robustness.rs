@@ -15,6 +15,7 @@ use rne_math::Vec3;
 use serde_json::{json, Value};
 
 use crate::policy::{self, Result, Robot};
+use crate::residual::{self, Residual};
 use crate::walk::{self, summarize, PlantConfig, FALL_HEIGHT_M};
 
 /// Walking command during every trial.
@@ -61,7 +62,12 @@ struct PushCase {
 }
 
 /// Runs one push trial and returns when the pelvis first fell, if it did.
-fn push_trial(robot: Robot, plant: PlantConfig, case: PushCase) -> Result<Option<f64>> {
+fn push_trial(
+    robot: Robot,
+    plant: PlantConfig,
+    residual: Option<&Residual>,
+    case: PushCase,
+) -> Result<Option<f64>> {
     let mut walker = walk::walker(robot, policy::load(robot)?, plant)?;
     let [x, y] = DIRECTIONS[case.direction].1;
     // Z-up (x, y, z) is RNE's Y-up (x, z, -y).
@@ -69,7 +75,7 @@ fn push_trial(robot: Robot, plant: PlantConfig, case: PushCase) -> Result<Option
     let start = WALK_STEPS + case.phase * PHASE_STEPS;
     for step in 0..start + PUSH_STEPS + RECOVERY_STEPS {
         walker.set_base_push_n((start..start + PUSH_STEPS).contains(&step).then_some(force));
-        let record = walker.step(COMMAND)?;
+        let record = residual::step(&mut walker, residual, COMMAND)?;
         if record.base_position_m[2] < FALL_HEIGHT_M {
             return Ok(Some(record.time_s));
         }
@@ -77,7 +83,12 @@ fn push_trial(robot: Robot, plant: PlantConfig, case: PushCase) -> Result<Option
     Ok(None)
 }
 
-fn friction_trial(robot: Robot, plant: PlantConfig, friction: f64) -> Result<Value> {
+fn friction_trial(
+    robot: Robot,
+    plant: PlantConfig,
+    residual: Option<&Residual>,
+    friction: f64,
+) -> Result<Value> {
     let plant = PlantConfig {
         floor_friction: friction,
         ..plant
@@ -85,13 +96,13 @@ fn friction_trial(robot: Robot, plant: PlantConfig, friction: f64) -> Result<Val
     let mut walker = walk::walker(robot, policy::load(robot)?, plant)?;
     let mut records = Vec::with_capacity(FRICTION_STEPS);
     for _ in 0..FRICTION_STEPS {
-        records.push(walker.step(COMMAND)?);
+        records.push(residual::step(&mut walker, residual, COMMAND)?);
     }
     Ok(summarize(&records, COMMAND))
 }
 
 /// Runs `jobs` on `threads` workers, keeping results in job order.
-fn run_parallel<T: Send>(
+pub(crate) fn run_parallel<T: Send>(
     jobs: usize,
     threads: usize,
     job: impl Fn(usize) -> Result<T> + Sync,
@@ -123,7 +134,12 @@ fn run_parallel<T: Send>(
 }
 
 /// The full sweep as JSON, matching `mujoco_robustness.py`'s report.
-pub(crate) fn sweep(robot: Robot, plant: PlantConfig, threads: usize) -> Result<Value> {
+pub(crate) fn sweep(
+    robot: Robot,
+    plant: PlantConfig,
+    residual: Option<&Residual>,
+    threads: usize,
+) -> Result<Value> {
     let forces = push_forces_n(robot);
     let cases: Vec<PushCase> = (0..DIRECTIONS.len())
         .flat_map(|direction| {
@@ -137,7 +153,7 @@ pub(crate) fn sweep(robot: Robot, plant: PlantConfig, threads: usize) -> Result<
         })
         .collect();
     let falls = run_parallel(cases.len(), threads, |index| {
-        push_trial(robot, plant, cases[index])
+        push_trial(robot, plant, residual, cases[index])
     })?;
     let push: Vec<Value> = cases
         .iter()
@@ -153,7 +169,7 @@ pub(crate) fn sweep(robot: Robot, plant: PlantConfig, threads: usize) -> Result<
         })
         .collect();
     let friction = run_parallel(FRICTIONS.len(), threads, |index| {
-        friction_trial(robot, plant, FRICTIONS[index])
+        friction_trial(robot, plant, residual, FRICTIONS[index])
             .map(|summary| json!({"friction": FRICTIONS[index], "summary": summary}))
     })?;
     Ok(json!({
@@ -162,6 +178,7 @@ pub(crate) fn sweep(robot: Robot, plant: PlantConfig, threads: usize) -> Result<
         "robot": robot.name(),
         "solver_iterations": plant.solver_iterations,
         "self_collision": plant.self_collision,
+        "residual": residual.map(Residual::to_json),
         "protocol": protocol(robot),
         "push": push,
         "friction": friction,
@@ -198,12 +215,12 @@ mod tests {
             force_n: 0.0,
             phase: 0,
         };
-        assert_eq!(push_trial(Robot::G1, plant, calm).unwrap(), None);
+        assert_eq!(push_trial(Robot::G1, plant, None, calm).unwrap(), None);
         let hard = PushCase {
             force_n: 1500.0,
             ..calm
         };
-        assert!(push_trial(Robot::G1, plant, hard).unwrap().is_some());
+        assert!(push_trial(Robot::G1, plant, None, hard).unwrap().is_some());
     }
 
     #[test]
@@ -216,12 +233,14 @@ mod tests {
             phase: 3,
         };
         let plant = PlantConfig::default();
-        assert_eq!(push_trial(Robot::G1, plant, case).unwrap(), None);
+        assert_eq!(push_trial(Robot::G1, plant, None, case).unwrap(), None);
         let colliding = PlantConfig {
             self_collision: true,
             ..plant
         };
-        assert!(push_trial(Robot::G1, colliding, case).unwrap().is_some());
+        assert!(push_trial(Robot::G1, colliding, None, case)
+            .unwrap()
+            .is_some());
     }
 
     #[test]
