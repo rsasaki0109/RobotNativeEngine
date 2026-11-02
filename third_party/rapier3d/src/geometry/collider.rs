@@ -1,3 +1,4 @@
+// RNE modification: hill-climbed AABBs for large convex hulls, see RNE_PATCH.md.
 use crate::geometry::convex_aabb::ConvexAabbHint;
 use crate::dynamics::{CoefficientCombineRule, MassProperties, RigidBodyHandle};
 use crate::geometry::{

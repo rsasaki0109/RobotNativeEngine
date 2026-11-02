@@ -367,6 +367,7 @@ impl BroadPhaseMultiSap {
         let mut aabb = collider.compute_collision_aabb(prediction_distance / 2.0);
 
         if let Some(next_position) = next_position {
+            // RNE modification: hill-climbed convex AABBs, see RNE_PATCH.md.
             let next_aabb = collider
                 .compute_aabb_at(next_position)
                 .loosened(collider.contact_skin() + prediction_distance / 2.0);
