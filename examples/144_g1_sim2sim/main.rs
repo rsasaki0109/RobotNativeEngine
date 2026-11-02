@@ -11,7 +11,7 @@
 //! cargo run --release --example 144_g1_sim2sim -- --robustness # push and friction sweeps
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --self-collision # MJCF collisions
 //! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision # push recovery
-//! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision --residual-model mlp
+//! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision --residual-model mlp --seed 11 --checkpoint-every 10
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --residual target/g1-sim2sim/g1-residual.json
 //! cargo run --release --example 144_g1_sim2sim -- --command 0.5,0,0 --seconds 20
 //! cargo run --release --example 144_g1_sim2sim -- --render target/g1-sim2sim-render

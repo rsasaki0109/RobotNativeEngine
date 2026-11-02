@@ -639,6 +639,12 @@ and one trained in MuJoCo in RNE. Training simulates 73 s per wall second on
 four cores against MuJoCo's 63 in alternating rounds, after hull bounding
 boxes by hill climbing, hulls built once, walker resets that replay a new
 walker bit for bit and the leaner synchronization above.
+`--residual-model mlp` trains a 1,408-parameter MLP on tilt, spin, joint
+state and gait phase instead, with penalties that keep the undisturbed walk
+and its speed. Over three seeds and 20 generations, MLPs trained in RNE cut
+the 640-push sweep's falls from 366 to 294 on average in RNE and from 345 to
+291 in MuJoCo. MLPs trained in MuJoCo reached 321 and 315, and RNE's runs
+took 10% less time.
 The browser playground's Physics walking mode runs the same G1 policy and
 physics as WebAssembly in real time: in headless Chromium without a GPU the
 real-time factor held 0.99–1.01 with physics and policy using under a third of

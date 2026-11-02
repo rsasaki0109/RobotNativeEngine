@@ -521,10 +521,15 @@ enum Job {
     Speed(f64, usize),
 }
 
-fn evaluate(
+/// What every candidate walks on.
+struct Setup<'a> {
     robot: Robot,
     plant: PlantConfig,
-    policy: &LstmPolicy,
+    policy: &'a LstmPolicy,
+}
+
+fn evaluate(
+    setup: &Setup,
     candidates: &[Residual],
     scenarios: &[Scenario],
     config: &TrainConfig,
@@ -536,7 +541,7 @@ fn evaluate(
     let results = run_parallel_with(
         candidates.len() * per_candidate,
         threads,
-        || walk::walker(robot, policy.clone(), plant),
+        || walk::walker(setup.robot, setup.policy.clone(), setup.plant),
         |walker, index| {
             let (candidate, job) = (index / per_candidate, index % per_candidate);
             Ok(match scenarios.get(job) {
@@ -651,9 +656,11 @@ pub(crate) fn train(
             speed,
             steps,
         } = evaluate(
-            robot,
-            plant,
-            &policy,
+            &Setup {
+                robot,
+                plant,
+                policy: &policy,
+            },
             &candidates,
             &scenarios,
             &config,
