@@ -137,6 +137,11 @@ struct RapierWorldState {
     entity_to_multibody_joint: FastMap<Entity, MultibodyJointHandle>,
     /// Bodies in entity order, rebuilt after a body is added.
     sorted_bodies: Option<Vec<(Entity, RigidBodyHandle)>>,
+    /// The bodies and colliders the last full synchronization fetched
+    /// mutably, in order. Rapier marks what it hands out mutably as modified,
+    /// which steers its next step, so an actuation-only synchronization
+    /// fetches the same ones in the same order.
+    sync_touches: Vec<(RigidBodyHandle, Option<ColliderHandle>)>,
     /// Entities with an impulse or multibody joint, sorted, rebuilt after a
     /// joint is added or removed.
     sorted_joint_entities: Option<Vec<Entity>>,
@@ -228,6 +233,7 @@ fn new_world_state(id: PhysicsWorldId, desc: PhysicsWorldDesc) -> RapierWorldSta
         entity_to_joint: FastMap::default(),
         entity_to_multibody_joint: FastMap::default(),
         sorted_bodies: None,
+        sync_touches: Vec::new(),
         sorted_joint_entities: None,
         entity_to_attachment: FastMap::default(),
         contacts: Vec::new(),
@@ -327,6 +333,42 @@ impl RapierBackend {
             next_world_id: 0,
             convex_hulls: ConvexHullCache::default(),
         }
+    }
+
+    /// Pushes only joint actuation, motor targets and passive joint dynamics
+    /// from the ECS: the part of [`PhysicsBackend::sync_from_ecs`] that changes
+    /// from step to step while a controller drives an articulated robot.
+    ///
+    /// It gives the same result as the full synchronization when, since the
+    /// last full one, nothing in the ECS changed but joint actuation and motor
+    /// targets and what [`PhysicsBackend::sync_to_ecs`] wrote back, and every
+    /// dynamic body carries [`PhysicsOwnedPose`]: the full synchronization
+    /// would then create, remove and move nothing. It fetches the same bodies
+    /// and colliders mutably, in the same order, because Rapier treats what it
+    /// hands out mutably as modified. It creates and validates nothing.
+    pub fn sync_joint_actuation_from_ecs(
+        &mut self,
+        world: &mut World,
+        physics_world: PhysicsWorldId,
+    ) -> Result<(), PhysicsError> {
+        let state = self
+            .worlds
+            .get_mut(&physics_world)
+            .ok_or(PhysicsError::WorldNotFound)?;
+        for index in 0..state.sync_touches.len() {
+            let (body, collider) = state.sync_touches[index];
+            state.bodies.get_mut(body);
+            if let Some(collider) = collider {
+                state.colliders.get_mut(collider);
+            }
+        }
+        let entities = sorted_entities(world);
+        let mut transforms = WorldTransformCache::new();
+        apply_joint_motors(world, state, &entities, &mut transforms)?;
+        #[cfg(feature = "position-motor-diagnostics")]
+        sync_position_motor_diagnostic_targets(world, state);
+        LazyQueryPipeline::mark_stale(&mut state.query_pipeline);
+        Ok(())
     }
 
     /// Empties a world back to the state [`PhysicsBackend::create_world`]
@@ -775,6 +817,7 @@ impl PhysicsBackend for RapierBackend {
         // Nothing below writes a transform or parent, so each world transform
         // is composed once for the whole pass.
         let mut transforms = WorldTransformCache::new();
+        state.sync_touches.clear();
         for &entity in &entities {
             let Some(rigid_body) = world.get::<RigidBody>(entity) else {
                 continue;
@@ -846,6 +889,8 @@ impl PhysicsBackend for RapierBackend {
                     }
                 }
                 sync_entity_collider(world, state, entity, body_handle, collider, hull)?;
+                let touched = collider.and_then(|_| state.entity_to_collider.get(&entity).copied());
+                state.sync_touches.push((body_handle, touched));
                 sync_collider_owner(world, state, entity);
                 continue;
             }
@@ -903,6 +948,9 @@ impl PhysicsBackend for RapierBackend {
                 state.entity_to_collider.insert(entity, collider_handle);
                 state.collider_to_entity.insert(collider_handle, entity);
             }
+            // The next full synchronization fetches this body and collider.
+            let touched = collider.and_then(|_| state.entity_to_collider.get(&entity).copied());
+            state.sync_touches.push((body_handle, touched));
             sync_collider_owner(world, state, entity);
         }
 

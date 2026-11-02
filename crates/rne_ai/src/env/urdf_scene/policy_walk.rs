@@ -21,8 +21,8 @@ use rne_core::SimDuration;
 use rne_ecs::Entity;
 use rne_math::{Quat, Vec3};
 use rne_physics::{
-    Collider, JointActuation, JointPassiveDynamics, JointState, PhysicsBackend,
-    RevoluteJointArmature, RigidBody,
+    Collider, JointActuation, JointPassiveDynamics, JointState, MultibodyLink, PhysicsBackend,
+    PhysicsOwnedPose, RevoluteJointArmature, RigidBody,
 };
 use rne_robot::{Joint, Link};
 
@@ -265,6 +265,19 @@ impl UnitreeRlGymWalker {
                 effort_limit_nm,
             });
         }
+        // The walker never moves a link through the ECS, so Rapier owns every
+        // articulated pose. Without the marker each step pushed the ECS copy
+        // back, which differs from Rapier's by the f32/f64 and world/local
+        // round trip, injecting that rounding error into every step.
+        let articulated: Vec<Entity> = sim
+            .world
+            .iter_entities()
+            .filter(|entity| entity.get::<MultibodyLink>().is_some())
+            .map(|entity| entity.id())
+            .collect();
+        for entity in articulated {
+            sim.world.entity_mut(entity).insert(PhysicsOwnedPose);
+        }
         // Surface unsupported plant settings (a nonzero armature needs
         // rne_physics_rapier's `experimental-armature`) now, not mid-step.
         sim.backend
@@ -436,7 +449,15 @@ impl UnitreeRlGymWalker {
                         torque_world_nm: Vec3::ZERO,
                     });
             }
-            self.sim.step_physics_with_delta(delta);
+            // After a full step, only joint actuation changes in the ECS
+            // between steps (pushes go straight to the backend) and Rapier
+            // owns every articulated pose, so the lighter synchronization
+            // gives the same result.
+            if self.stepped {
+                self.sim.step_physics_actuated(delta);
+            } else {
+                self.sim.step_physics_with_delta(delta);
+            }
             self.stepped = true;
         }
         self.observe(command)?;
