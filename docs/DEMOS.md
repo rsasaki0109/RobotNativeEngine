@@ -604,38 +604,41 @@ torque every 2 ms clamped to the URDF effort limits, policy at 50 Hz. The
 weights are a float32 blob copied out of the TorchScript archive without
 executing it, and the Rust policy reproduces MuJoCo's actions within 1e-4.
 Across 0.5, 0, 0.3 + 0.5 rad/s and 0.8 m/s commands, RNE's forward speed is
-within 0.02 m/s of MuJoCo's, its turn rate within 0.007 rad/s and its mean
+within 0.02 m/s of MuJoCo's, its turn rate within 0.011 rad/s and its mean
 pelvis height within 2 mm. Armature, joint friction and floor friction change
-forward speed by under 0.01 m/s. Four inertia-less sensor frames that RNE's
+forward speed by at most 0.011 m/s. Four inertia-less sensor frames that RNE's
 importer weighted at 1 kg each made the first port crouch 19 mm low; the
 12-DoF model now merges its fixed upper body into the pelvis, as the MJCF
-does, and is pinned at 32.107 kg. One G1 runs at 10.2× real time with four
-solver iterations and 22.4× with one; MuJoCo steps the same model at 24.2× in
-the same session. Skipping the zero columns of each leg's Jacobian in Rapier's
+does, and is pinned at 32.107 kg. One G1 runs at 11.7× real time with four
+solver iterations and 25.6× with one; MuJoCo steps the same model at 23.6× in
+`mj_step` alone in the same session. Skipping the zero columns of each leg's Jacobian in Rapier's
 mass-matrix rebuild, in nalgebra's exact arithmetic order, made the default
 step 1.5× faster with byte-identical walk records. `--throughput` runs one to
-eight walkers on threads; four walkers reach 40–83 simulated seconds per wall
-second on four cores, against MuJoCo's 95.
+eight walkers on threads; four walkers reach 45–107 simulated seconds per wall
+second on four cores, against MuJoCo's 95. The walker lets Rapier own its link
+poses and synchronizes only the joint motors between policy steps, which
+removed the rounding of the ECS round trip and moved walking metrics by at
+most 0.025 m/s.
 `--robot h1` runs unitree_rl_gym's H1 policy on the H1, whose feet are convex
 hulls of its ankle meshes: no fall, pelvis height within 2 mm, and forward
-speed 0.02–0.03 m/s above MuJoCo's at every command.
+speed 0.02–0.05 m/s above MuJoCo's at every command.
 `--robustness` pushes the walking robot at 20 forces, four directions and
 eight gait phases and lowers the floor friction, and `mujoco_robustness.py`
-repeats every trial in MuJoCo. 94.7% of the G1's 640 push trials and 91.1% of
+repeats every trial in MuJoCo. 94.5% of the G1's 640 push trials and 92.8% of
 the H1's end the same way on both engines, and the G1's fall forces agree
-within 1% in three directions. Most disagreements are MuJoCo's legs colliding
+within 1% forward and left. Most disagreements are MuJoCo's legs colliding
 with each other after a push, which its MJCF allows and RNE's walking models
-do not: with that switched off in MuJoCo, agreement rises to 95.0% and 94.4%.
+do not: with that switched off in MuJoCo, agreement rises to 94.8% and 95.2%.
 `--self-collision` lets RNE's links collide too, except a link and its parent
-as in MJCF: the G1's right push then topples it at 275 N against MuJoCo's
-283 N (500 N without), and agreement with MuJoCo as shipped rises to 95.8%
-and 93.4%.
+as in MJCF: the G1's right push then topples it at 300 N against MuJoCo's
+283 N (500 N without), and agreement with MuJoCo as shipped rises to 95.6%
+and 94.4%.
 `--train-residual` trains a push-recovery correction for the policy with
 evolution strategies; a residual trained in RNE also reduces falls in MuJoCo,
-and one trained in MuJoCo in RNE. Training simulates 67 s per wall second on
-four cores, level with MuJoCo's 69, after hull bounding boxes by hill
-climbing, hulls built once and walker resets that replay a new walker bit for
-bit.
+and one trained in MuJoCo in RNE. Training simulates 73 s per wall second on
+four cores against MuJoCo's 63 in alternating rounds, after hull bounding
+boxes by hill climbing, hulls built once, walker resets that replay a new
+walker bit for bit and the leaner synchronization above.
 The browser playground's Physics walking mode runs the same G1 policy and
 physics as WebAssembly in real time: in headless Chromium without a GPU the
 real-time factor held 0.99–1.01 with physics and policy using under a third of

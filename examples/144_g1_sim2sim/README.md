@@ -56,15 +56,15 @@ engines (MuJoCo 3.9.0, `fixtures/mujoco_reference.json`):
 
 | Command (vx, yaw) | Forward speed RNE / MuJoCo (m/s) | Yaw rate RNE / MuJoCo (rad/s) | Mean pelvis height RNE / MuJoCo (m) |
 | --- | --- | --- | --- |
-| 0.5, 0 | 0.463 / 0.476 | −0.011 / −0.017 | 0.770 / 0.770 |
-| 0, 0 | 0.010 / 0.014 | −0.010 / −0.010 | 0.777 / 0.778 |
-| 0.3, 0.5 | 0.278 / 0.280 | 0.455 / 0.452 | 0.771 / 0.772 |
-| 0.8, 0 | 0.741 / 0.758 | −0.024 / −0.020 | 0.764 / 0.765 |
+| 0.5, 0 | 0.464 / 0.476 | −0.010 / −0.017 | 0.770 / 0.770 |
+| 0, 0 | 0.009 / 0.014 | −0.009 / −0.010 | 0.777 / 0.778 |
+| 0.3, 0.5 | 0.268 / 0.280 | 0.463 / 0.452 | 0.770 / 0.772 |
+| 0.8, 0 | 0.738 / 0.758 | −0.024 / −0.020 | 0.764 / 0.765 |
 
 No run falls on either engine. The mean leg posture at 0.5 m/s matches within
 0.004 rad (knee 0.342 / 0.338 rad from the default pose). Removing armature or
-joint friction, or halving floor friction, changes forward speed by under
-0.01 m/s; the policy is robust to those details.
+joint friction, or halving floor friction, changes forward speed by at most
+0.011 m/s; the policy is robust to those details.
 
 **The gap that mattered was mass.** The upstream URDF has four sensor frames
 (two IMUs, the D435 and the MID-360) without `<inertial>`. URDF gives them no
@@ -90,18 +90,20 @@ other. Same metrics and engines as above (MuJoCo reference in
 
 | Command (vx, yaw) | Forward speed RNE / MuJoCo (m/s) | Yaw rate RNE / MuJoCo (rad/s) | Mean pelvis height RNE / MuJoCo (m) |
 | --- | --- | --- | --- |
-| 0.5, 0 | 0.458 / 0.431 | −0.015 / −0.010 | 1.030 / 1.030 |
-| 0, 0 | −0.054 / −0.078 | −0.023 / −0.018 | 1.033 / 1.032 |
-| 0.3, 0.5 | 0.236 / 0.213 | 0.433 / 0.433 | 1.024 / 1.026 |
-| 0.8, 0 | 0.751 / 0.731 | 0.020 / 0.015 | 1.024 / 1.024 |
+| 0.5, 0 | 0.457 / 0.431 | −0.016 / −0.010 | 1.030 / 1.030 |
+| 0, 0 | −0.049 / −0.078 | −0.025 / −0.018 | 1.033 / 1.032 |
+| 0.3, 0.5 | 0.261 / 0.213 | 0.431 / 0.433 | 1.024 / 1.026 |
+| 0.8, 0 | 0.750 / 0.731 | 0.018 / 0.015 | 1.024 / 1.024 |
 
 No run falls on either engine and the pelvis height matches within 2 mm. RNE
-walks 0.02–0.03 m/s faster than MuJoCo at every command, about twice the G1's
-gap. Armature, joint friction and floor friction each move it by under
-0.01 m/s, which leaves the contact model as the likely cause: the same hull
-feet are rigid in Rapier and soft in MuJoCo. One H1 runs at 5.1–5.4× real time
-with four solver iterations (3.7–4.6× before the speedups below, measured in
-the same session); every H1 link collides, so contacts take a larger share.
+walks 0.02–0.05 m/s faster than MuJoCo at every command, the most while
+turning, about twice the G1's gap. Joint friction and floor friction each move
+it by under 0.01 m/s and armature by at most 0.016 m/s, which leaves the
+contact model as the likely cause: the same hull feet are rigid in Rapier and
+soft in MuJoCo. One H1 runs at 13–15× real time with four solver iterations
+(5.1–5.4× before the speedups in [Real time](#real-time)); every H1 link
+collides through a hull of hundreds of vertices, so it gained most from the
+hill-climbed bounding boxes.
 
 ## Robustness
 
@@ -132,33 +134,36 @@ in MuJoCo with self-collision:
 | Robot and engine | Forward (N) | Backward (N) | Left (N) | Right (N) | Same outcome as MuJoCo, self-collision |
 | --- | --- | --- | --- | --- | --- |
 | G1, MuJoCo, self-collision (MJCF as shipped) | 517 | 650 | 450 | 283 | — |
-| G1, RNE, self-collision | 450 | 625 | 400 | 275 | 95.8% |
-| G1, RNE, no self-collision | 513 | 650 | 450 | 500 | 94.7% |
+| G1, RNE, self-collision | 450 | 650 | 350 | 300 | 95.6% |
+| G1, RNE, no self-collision | 513 | 700 | 450 | 500 | 94.5% |
 | G1, MuJoCo, no self-collision | 570 | 650 | 450 | 400 | 95.0% |
 | H1, MuJoCo, self-collision (MJCF as shipped) | 987 | 800 | 587 | 680 | — |
-| H1, RNE, self-collision | 1000 | 920 | 560 | 720 | 93.4% |
-| H1, RNE, no self-collision | 1040 | 933 | 720 | 800 | 91.1% |
+| H1, RNE, self-collision | 987 | 933 | 520 | 640 | 94.4% |
+| H1, RNE, no self-collision | 1000 | 933 | 667 | 800 | 92.8% |
 | H1, MuJoCo, no self-collision | 1013 | 840 | 680 | 800 | 94.4% |
 
-- **Without self-collision, the G1 agrees in three directions.** Forward,
-  backward and left, the fall forces differ by at most 1%; the right push does
-  not (500 vs 283 N).
+- **Without self-collision, the G1 agrees forward and left.** The fall forces
+  there differ by at most 1%; backward RNE holds 8% more (700 vs 650 N) and
+  on the right far more (500 vs 283 N).
 - **That gap is the legs colliding with each other.** In an undisturbed walk
   no robot body touches another on either engine, but a hard push can swing
-  one leg into the other. In all 31 G1 trials where only MuJoCo fell, its legs
-  touched before the fall, mostly knee against knee; so did 46 of the H1's
-  52, mostly ankle against ankle. With MuJoCo's self-collision off
+  one leg into the other. In 30 of the 31 G1 trials where only MuJoCo fell, its
+  legs touched before the fall, mostly knee against knee; so did 36 of the
+  H1's 43, mostly ankle against ankle. With MuJoCo's self-collision off
   (`--no-self-collision`; the robot still collides with the floor), 32 of its
   G1 falls and 44 of its H1 falls do not happen and 3 H1 falls appear.
 - **With self-collision in RNE, the right push matches.** The G1 falls at
-  275 N against MuJoCo's 283 N, the H1's left and right pushes move from 720
-  and 800 N to 560 and 720 N against 587 and 680 N, and agreement rises to
-  95.8% and 93.4%. Self-collision makes 49 G1 and 39 H1 trials fall in RNE
-  (and saves 2 H1 trials); MuJoCo also falls in 28 of each.
-- **Now RNE falls a little earlier.** With self-collision on both engines, 24
-  G1 trials fall only in RNE and 3 only in MuJoCo (H1: 16 and 26); the G1's
-  forward and left pushes fall at 450 and 400 N against 517 and 450 N. In 19
-  of those 24 G1 trials MuJoCo's legs touched too and it recovered, so the two
+  300 N against MuJoCo's 283 N and backward at 650 N like MuJoCo, the H1's
+  left and right pushes move from 667 and 800 N to 520 and 640 N against 587
+  and 680 N, and agreement rises to 95.6% and 94.4%. Self-collision makes 48
+  G1 and 38 H1 trials fall in RNE (and saves 1 and 2); MuJoCo also falls in
+  27 and 24 of them.
+- **Now the G1 in RNE falls a little earlier.** With self-collision on both
+  engines, 24 G1 trials fall only in RNE and 4 only in MuJoCo; its forward and
+  left pushes fall at 450 and 350 N against 517 and 450 N. The H1's split
+  evenly (16 and 20): RNE holds the backward push longer (933 vs 800 N) and
+  gives way sideways a little earlier. In 19 of those 24 G1 trials (and 15 of
+  the 16 H1 trials) MuJoCo's legs touched too and it recovered, so the two
   engines differ in what a contact between the legs does, not in whether it
   happens. Contact (rigid in Rapier, soft in MuJoCo) and RNE's smoothed joint
   friction are the known modelling differences left; neither has been
@@ -176,9 +181,9 @@ its merged pelvis keeps no collision geometry, whereas the MJCF's pelvis
 collides through its torso, head, arm and contour meshes; none of the contacts
 in the 31 G1 trials where only MuJoCo fell involved the pelvis. An undisturbed
 walk is unchanged: the H1's records are byte-identical with and without
-self-collision, and the G1's agree to the third decimal of every walking
+self-collision, and the G1's agree within 0.001 in every walking
 metric (its extra leg colliders change the order in which Rapier solves the
-foot contacts). It costs the G1 30% more instructions per step and the H1
+foot contacts). It costs the G1 3% more instructions per step and the H1
 none.
 
 Second-half forward speed (m/s, command 0.5) on lowered friction; the rows are
@@ -186,9 +191,9 @@ the same, to 0.001 m/s, with either engine's self-collision switched:
 
 | Friction | 1.0 | 0.5 | 0.3 | 0.25 | 0.2 | 0.15 | 0.1 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| G1, RNE | 0.464 | 0.463 | 0.462 | 0.462 | 0.459 | 0.418 | fell |
+| G1, RNE | 0.464 | 0.462 | 0.462 | 0.461 | 0.458 | 0.418 | fell |
 | G1, MuJoCo | 0.476 | 0.470 | 0.469 | 0.470 | 0.465 | 0.347 | fell |
-| H1, RNE | 0.458 | 0.456 | 0.451 | 0.445 | fell | fell | fell |
+| H1, RNE | 0.457 | 0.454 | 0.450 | 0.445 | fell | fell | fell |
 | H1, MuJoCo | 0.431 | 0.464 | 0.459 | fell | fell | fell | fell |
 
 Both G1s walk down to 0.15 and fall at 0.1; at 0.15 RNE's keeps more speed.
@@ -237,21 +242,21 @@ from pushes, and `--residual FILE` sweeps with it; `mujoco_robustness.py
   reads the scenarios and settings from RNE's report and draws its noise
   from the same generator and seed.
 - **Plant.** The G1 with self-collision and one solver iteration. One
-  iteration agrees with MuJoCo on 95.9% of the push sweep's 640 trials (four
-  iterations: 95.8%), and it walks at μ = 0.1 where MuJoCo and four
-  iterations fall.
+  iteration agrees with MuJoCo on 95.5% of the push sweep's 640 trials (four
+  iterations: 95.6%), and like MuJoCo and four iterations it walks down to
+  μ = 0.15 and falls at 0.1.
 
 Falls in the 640-trial push sweep, which uses 4 s of walking and 4 s of
 watching rather than training's 1 s and 1.5 s:
 
 | Residual | In RNE | In MuJoCo |
 | --- | --- | --- |
-| None | 365 | 345 |
-| Trained in RNE | 355 | 336 |
-| Trained in MuJoCo | 348 | 328 |
+| None | 366 | 345 |
+| Trained in RNE | 350 | 335 |
+| Trained in MuJoCo | 349 | 328 |
 
 A residual trained in either engine helps in the other, and both engines
-rank the two the same way. The gain is small: a linear map from tilt and
+rank the two the same way (RNE by a single fall). The gain is small: a linear map from tilt and
 spin is too weak a controller to move the fall boundary far.
 
 **Training cost.** One generation simulates about 2,500 s (33 candidates × 32
@@ -262,14 +267,17 @@ one thread per core, MuJoCo 3.9.0 with one process per core:
 | --- | --- |
 | RNE, four solver iterations, before this work | 24.6 |
 | RNE, one solver iteration, faster convex hulls | 58.0 |
-| RNE, as above, walkers reset instead of rebuilt, faster hashing | 67.1 |
+| RNE, as above, walkers reset instead of rebuilt, faster hashing | 67.1 (MuJoCo 68.9) |
+| RNE, as above, leaner synchronization, Rapier owns the link poses | 72.7 (MuJoCo 62.6) |
 | MuJoCo, scene compiled for every trial | 32.1 |
-| MuJoCo, scene compiled once per process | 68.9 |
 
-The last two rows of each engine are medians of three rounds that alternate
-the engines, three generations each; the engines are level within the
-container's noise. What changed in RNE, each step leaving walk records,
-sweep outcomes and training scores byte-identical:
+The rows with MuJoCo in brackets are medians of three rounds that alternate
+the engines, MuJoCo compiling its scene once per process. The container's
+speed drifts between sets of rounds, so only the numbers within a row
+compare: in the first set the engines were level, in the latest RNE trains
+16% faster. The full 30-generation run takes 984 s, 79 simulated seconds per
+wall second. What changed in RNE; every step but the last leaves walk
+records, sweep outcomes and training scores byte-identical:
 
 - **Convex hulls.** The backend built every new hull twice (once to validate
   it); it now builds it once. Rapier found a hull's bounding box by
@@ -287,6 +295,12 @@ sweep outcomes and training scores byte-identical:
   training thread now keeps one walker.
 - **Hashing.** Per-step lookups in the backend and the importer's vertex
   deduplication use `rne_core::FxHasher` instead of SipHash.
+- **Synchronization.** The backend composes world transforms only for
+  entities with a body, keeps the sorted body and joint lists between steps,
+  and updates joint states in place instead of reinserting them. The walker
+  then lets Rapier own its link poses and synchronizes only the joint motors
+  between policy steps; see [Real time](#real-time) for this last change,
+  which moves walking results slightly.
 
 ```bash
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- \
@@ -306,32 +320,36 @@ the 4-core development container. RNE times its whole loop (physics, PD and
 policy, all in Rust), one walker per thread. MuJoCo 3.9.0 runs the same loop
 with PD and policy in numpy, one process per walker; its first row counts only
 the time inside `mj_step`. Both count walkers times simulated seconds over the
-mean loop time per walker. Medians of five rounds, each running the previous
-engine ("before"), this one and MuJoCo in turn:
+mean loop time per walker. Medians of five rounds, each running RNE and then
+MuJoCo:
 
 | Engine and setting | 1 walker | 2 | 4 | 8 |
 | --- | --- | --- | --- | --- |
-| MuJoCo, `mj_step` only | 24.2 | 47.4 | 95.4 | 96.7 |
-| MuJoCo, loop with numpy PD and policy | 19.1 | 37.6 | 75.7 | 76.2 |
-| RNE, 1 solver iteration | 22.4 | 41.1 | 82.8 | 87.7 |
-| RNE, 1 solver iteration, before | 16.7 | 33.5 | 65.4 | 65.6 |
-| RNE, 4 solver iterations (default) | 10.2 | 20.4 | 40.4 | 38.1 |
-| RNE, 4 solver iterations, before | 6.9 | 13.2 | 25.7 | 26.4 |
+| MuJoCo, `mj_step` only | 23.6 | 46.0 | 94.5 | 97.3 |
+| MuJoCo, loop with numpy PD and policy | 18.5 | 36.3 | 75.1 | 78.8 |
+| RNE, 1 solver iteration | 25.6 | 51.7 | 107.0 | 114.4 |
+| RNE, 4 solver iterations (default) | 11.7 | 23.5 | 44.9 | 42.6 |
 
-- **The walk is unchanged.** The speedups reproduce every floating-point
-  result, so the walk records are byte-identical before and after. Every
+- **One walker.** At one solver iteration RNE's whole loop now runs 9% faster
+  than MuJoCo's physics alone and 38% faster than MuJoCo's loop with numpy PD
+  and policy. At four iterations it reaches half of MuJoCo's physics. Every
   setting walks: 0.457 m/s at one iteration, 0.464 m/s at four, against
   MuJoCo's 0.476 m/s.
-- **One walker.** At one solver iteration RNE runs at 93% of MuJoCo's physics
-  alone, and faster than MuJoCo's loop once numpy computes PD and policy. At
-  four iterations it reaches 42% of MuJoCo's physics. The default step is 1.5×
-  faster than before.
 - **Several walkers.** Both engines scale almost linearly to the four cores:
-  four walkers deliver 3.7× (one iteration) and 4.0× (four) a single walker's
-  throughput, MuJoCo 3.9×. Counting the slowest walker instead of the mean
-  lowers this engine's rows by at most 6% and MuJoCo's by at most 7%. The
-  container is shared, and absolute speed varies by up to 40% between
-  sessions, so only rows measured together compare.
+  four walkers deliver 4.2× (one iteration) and 3.8× (four) a single walker's
+  throughput, MuJoCo 4.0×. Counting the slowest walker instead of the mean
+  lowers RNE's rows by at most 10% up to four walkers (21% for eight at one
+  iteration, where walkers share cores) and MuJoCo's by at most 7%; RNE at one
+  iteration still leads up to four walkers. The container is shared, and
+  absolute speed varies by up to 40% between sessions, so only rows measured
+  together compare.
+- **Before.** When the work below began, one walker ran at 16.7× real time
+  with one iteration and 6.9× with four, beside MuJoCo's 24.2× in `mj_step`.
+  The changes under *Where the time went* brought that to 22.4× and 10.2× in
+  the same session; the later ones below and under
+  [Push recovery](#push-recovery-training-in-rne-testing-in-mujoco) brought it
+  to the table's 25.6× and 11.7× (MuJoCo 23.6× in this session). Every change but the last reproduces every
+  floating-point result, so walk records stayed byte-identical until then.
 - **Where the time went.** Callgrind counts the instructions for 2 s of
   walking. At four iterations they fall from 2.88 G to 1.92 G (−33%); at one
   iteration from 1.09 G to 0.83 G (−25%). Rapier rebuilds and refactorizes
@@ -357,6 +375,21 @@ engine ("before"), this one and MuJoCo in turn:
   it, so walk records stay byte-identical; the H1, whose links are hulls, needs
   22% fewer instructions for 2 s of walking (2.27 G to 1.78 G), and the G1,
   whose feet are spheres, 0.4% fewer.
+- **Rapier owns the walker's link poses.** Every step the backend pushed each
+  link's pose from the ECS into Rapier and read it back after the step, in
+  f32 world frames on one side and f64 joint frames on the other. The round
+  trip rounded every pose a little and marked every body as changed. The
+  walker now marks its links `rne_physics::PhysicsOwnedPose`, so the backend
+  stops pushing their poses, and between policy steps it calls
+  `RapierBackend::sync_joint_actuation_from_ecs`, which applies only the PD
+  torques and the bookkeeping a full synchronization does for Rapier. This
+  is the one change that moves results, by removing the rounding: walk
+  metrics change by at most 0.010 m/s for the G1 and 0.025 m/s for the H1
+  (its turning command), within the engines' gap, and every number in this
+  README is measured with it. The leaner synchronization saves 9% of the
+  instructions for 2 s of a self-colliding G1 walk at one iteration; the G1
+  now needs 1.73 G instructions at four iterations (1.79 G with
+  self-collision, 0.70 G with it at one) and the H1 1.44 G.
 
 ```bash
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --throughput --output target/g1-sim2sim

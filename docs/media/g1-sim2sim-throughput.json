@@ -1,6 +1,6 @@
 {
-  "schema_version": 2,
-  "description": "G1 walking throughput, unitree_rl_gym policy at 0.5 m/s, 10 s per walker, 4-core container, medians of five rounds alternating previous RNE, this RNE and MuJoCo",
+  "schema_version": 3,
+  "description": "G1 walking throughput, unitree_rl_gym policy at 0.5 m/s, 10 s per walker, 4-core container, medians of five rounds alternating RNE and MuJoCo",
   "metric": "walkers x simulated seconds / mean loop time per walker (MuJoCo: mean time inside mj_step per process); the slowest-walker variant divides by the slowest walker's time instead",
   "machine": {
     "cores": 4,
@@ -9,215 +9,109 @@
   "rne": {
     "loop": "physics, PD and policy in Rust, one walker per thread",
     "command": "cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --throughput",
-    "after": [
+    "rows": [
       {
         "solver_iterations": 1,
         "walkers": 1,
-        "median_simulated_s_per_wall_s": 22.41,
-        "median_slowest_walker_simulated_s_per_wall_s": 22.41,
+        "median_simulated_s_per_wall_s": 25.64,
+        "median_slowest_walker_simulated_s_per_wall_s": 25.64,
         "runs": [
-          19.69,
-          22.72,
-          22.41,
-          23.34,
-          20.74
+          25.89,
+          25.64,
+          19.71,
+          23.13,
+          30.52
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 2,
-        "median_simulated_s_per_wall_s": 41.14,
-        "median_slowest_walker_simulated_s_per_wall_s": 40.57,
+        "median_simulated_s_per_wall_s": 51.68,
+        "median_slowest_walker_simulated_s_per_wall_s": 46.67,
         "runs": [
-          44.43,
-          41.14,
-          39.96,
-          44.92,
-          39.74
+          59.84,
+          40.47,
+          45.25,
+          51.68,
+          53.99
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 4,
-        "median_simulated_s_per_wall_s": 82.8,
-        "median_slowest_walker_simulated_s_per_wall_s": 79.89,
+        "median_simulated_s_per_wall_s": 106.99,
+        "median_slowest_walker_simulated_s_per_wall_s": 98.32,
         "runs": [
-          75.18,
-          82.93,
-          80.57,
-          82.8,
-          90.07
+          109.51,
+          117.02,
+          102.93,
+          106.8,
+          106.99
         ]
       },
       {
         "solver_iterations": 1,
         "walkers": 8,
-        "median_simulated_s_per_wall_s": 87.65,
-        "median_slowest_walker_simulated_s_per_wall_s": 82.44,
+        "median_simulated_s_per_wall_s": 114.42,
+        "median_slowest_walker_simulated_s_per_wall_s": 90.4,
         "runs": [
-          88.2,
-          86.74,
-          89.32,
-          87.65,
-          85.91
+          120.4,
+          116.24,
+          100.21,
+          103.37,
+          114.42
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 1,
-        "median_simulated_s_per_wall_s": 10.18,
-        "median_slowest_walker_simulated_s_per_wall_s": 10.18,
+        "median_simulated_s_per_wall_s": 11.67,
+        "median_slowest_walker_simulated_s_per_wall_s": 11.67,
         "runs": [
-          10.37,
-          9.83,
-          10.05,
-          10.18,
-          10.41
+          11.99,
+          10.07,
+          11.08,
+          12.81,
+          11.67
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 2,
-        "median_simulated_s_per_wall_s": 20.43,
-        "median_slowest_walker_simulated_s_per_wall_s": 20.26,
+        "median_simulated_s_per_wall_s": 23.5,
+        "median_slowest_walker_simulated_s_per_wall_s": 22.95,
         "runs": [
-          21.04,
-          20.43,
-          18.34,
-          20.44,
-          20.38
+          23.82,
+          23.65,
+          19.85,
+          23.5,
+          23.06
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 4,
-        "median_simulated_s_per_wall_s": 40.36,
-        "median_slowest_walker_simulated_s_per_wall_s": 38.73,
+        "median_simulated_s_per_wall_s": 44.91,
+        "median_slowest_walker_simulated_s_per_wall_s": 43.58,
         "runs": [
-          41.23,
-          35.33,
-          35.25,
-          41.22,
-          40.36
+          47.64,
+          45.57,
+          39.02,
+          41.09,
+          44.91
         ]
       },
       {
         "solver_iterations": 4,
         "walkers": 8,
-        "median_simulated_s_per_wall_s": 38.13,
-        "median_slowest_walker_simulated_s_per_wall_s": 36.9,
+        "median_simulated_s_per_wall_s": 42.62,
+        "median_slowest_walker_simulated_s_per_wall_s": 40.34,
         "runs": [
-          38.13,
-          37.91,
-          35.78,
-          40.08,
-          39.33
-        ]
-      }
-    ],
-    "before": [
-      {
-        "solver_iterations": 1,
-        "walkers": 1,
-        "median_simulated_s_per_wall_s": 16.73,
-        "median_slowest_walker_simulated_s_per_wall_s": 16.73,
-        "runs": [
-          12.91,
-          15.6,
-          17.8,
-          16.89,
-          16.73
-        ]
-      },
-      {
-        "solver_iterations": 1,
-        "walkers": 2,
-        "median_simulated_s_per_wall_s": 33.52,
-        "median_slowest_walker_simulated_s_per_wall_s": 31.59,
-        "runs": [
-          31.98,
-          29.31,
-          33.52,
-          34.8,
-          33.61
-        ]
-      },
-      {
-        "solver_iterations": 1,
-        "walkers": 4,
-        "median_simulated_s_per_wall_s": 65.41,
-        "median_slowest_walker_simulated_s_per_wall_s": 59.58,
-        "runs": [
-          67.18,
-          65.41,
-          69.8,
-          56.46,
-          63.26
-        ]
-      },
-      {
-        "solver_iterations": 1,
-        "walkers": 8,
-        "median_simulated_s_per_wall_s": 65.61,
-        "median_slowest_walker_simulated_s_per_wall_s": 62.96,
-        "runs": [
-          65.41,
-          66.23,
-          65.61,
-          65.08,
-          67.19
-        ]
-      },
-      {
-        "solver_iterations": 4,
-        "walkers": 1,
-        "median_simulated_s_per_wall_s": 6.92,
-        "median_slowest_walker_simulated_s_per_wall_s": 6.92,
-        "runs": [
-          6.92,
-          7.12,
-          6.82,
-          6.69,
-          6.94
-        ]
-      },
-      {
-        "solver_iterations": 4,
-        "walkers": 2,
-        "median_simulated_s_per_wall_s": 13.22,
-        "median_slowest_walker_simulated_s_per_wall_s": 12.71,
-        "runs": [
-          13.22,
-          13.21,
-          12.03,
-          13.27,
-          13.89
-        ]
-      },
-      {
-        "solver_iterations": 4,
-        "walkers": 4,
-        "median_simulated_s_per_wall_s": 25.71,
-        "median_slowest_walker_simulated_s_per_wall_s": 24.91,
-        "runs": [
-          25.71,
-          27.11,
-          28.53,
-          23.84,
-          24.32
-        ]
-      },
-      {
-        "solver_iterations": 4,
-        "walkers": 8,
-        "median_simulated_s_per_wall_s": 26.35,
-        "median_slowest_walker_simulated_s_per_wall_s": 24.89,
-        "runs": [
-          27.22,
-          26.35,
-          26.45,
-          26.12,
-          25.5
+          45.33,
+          46.98,
+          40.44,
+          40.78,
+          42.62
         ]
       }
     ]
@@ -229,67 +123,144 @@
     "rows": [
       {
         "processes": 1,
-        "median_mj_step_simulated_s_per_wall_s": 24.18,
-        "median_loop_simulated_s_per_wall_s": 19.14,
-        "median_slowest_mj_step_simulated_s_per_wall_s": 24.18,
+        "median_mj_step_simulated_s_per_wall_s": 23.56,
+        "median_loop_simulated_s_per_wall_s": 18.51,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 23.56,
         "mj_step_runs": [
-          24.18,
-          26.7,
-          24.31,
-          21.58,
-          23.3
+          23.34,
+          23.97,
+          22.48,
+          23.56,
+          25.35
         ]
       },
       {
         "processes": 2,
-        "median_mj_step_simulated_s_per_wall_s": 47.42,
-        "median_loop_simulated_s_per_wall_s": 37.59,
-        "median_slowest_mj_step_simulated_s_per_wall_s": 45.51,
+        "median_mj_step_simulated_s_per_wall_s": 45.99,
+        "median_loop_simulated_s_per_wall_s": 36.32,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 42.86,
         "mj_step_runs": [
-          51.05,
-          47.42,
-          46.63,
-          45.42,
-          48.11
+          45.99,
+          44.2,
+          41.53,
+          46.72,
+          46.56
         ]
       },
       {
         "processes": 4,
-        "median_mj_step_simulated_s_per_wall_s": 95.41,
-        "median_loop_simulated_s_per_wall_s": 75.7,
-        "median_slowest_mj_step_simulated_s_per_wall_s": 89.78,
+        "median_mj_step_simulated_s_per_wall_s": 94.52,
+        "median_loop_simulated_s_per_wall_s": 75.06,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 90.37,
         "mj_step_runs": [
-          95.28,
-          95.69,
-          95.41,
-          99.14,
-          83.7
+          97.09,
+          97.46,
+          82.96,
+          94.52,
+          91.88
         ]
       },
       {
         "processes": 8,
-        "median_mj_step_simulated_s_per_wall_s": 96.74,
-        "median_loop_simulated_s_per_wall_s": 76.2,
-        "median_slowest_mj_step_simulated_s_per_wall_s": 90.49,
+        "median_mj_step_simulated_s_per_wall_s": 97.32,
+        "median_loop_simulated_s_per_wall_s": 78.78,
+        "median_slowest_mj_step_simulated_s_per_wall_s": 92.44,
         "mj_step_runs": [
-          96.45,
-          97.61,
-          102.84,
-          95.64,
-          96.74
+          111.19,
+          90.7,
+          100.93,
+          96.61,
+          97.32
         ]
       }
     ]
   },
-  "callgrind_instructions_2s_walk": {
-    "solver_iterations_1": {
-      "before": 1094430592,
-      "after": 825869487
-    },
-    "solver_iterations_4": {
-      "before": 2878665264,
-      "after": 1922932082
-    }
+  "previous_session": {
+    "note": "medians from an earlier session (the previous version of this file), before Rapier owned the walker's link poses; absolute speed varies between sessions, so compare only within a session",
+    "rne": [
+      {
+        "solver_iterations": 1,
+        "walkers": 1,
+        "median_simulated_s_per_wall_s": 22.41
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 2,
+        "median_simulated_s_per_wall_s": 41.14
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 4,
+        "median_simulated_s_per_wall_s": 82.8
+      },
+      {
+        "solver_iterations": 1,
+        "walkers": 8,
+        "median_simulated_s_per_wall_s": 87.65
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 1,
+        "median_simulated_s_per_wall_s": 10.18
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 2,
+        "median_simulated_s_per_wall_s": 20.43
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 4,
+        "median_simulated_s_per_wall_s": 40.36
+      },
+      {
+        "solver_iterations": 4,
+        "walkers": 8,
+        "median_simulated_s_per_wall_s": 38.13
+      }
+    ],
+    "mujoco": [
+      {
+        "processes": 1,
+        "median_mj_step_simulated_s_per_wall_s": 24.18,
+        "median_loop_simulated_s_per_wall_s": 19.14
+      },
+      {
+        "processes": 2,
+        "median_mj_step_simulated_s_per_wall_s": 47.42,
+        "median_loop_simulated_s_per_wall_s": 37.59
+      },
+      {
+        "processes": 4,
+        "median_mj_step_simulated_s_per_wall_s": 95.41,
+        "median_loop_simulated_s_per_wall_s": 75.7
+      },
+      {
+        "processes": 8,
+        "median_mj_step_simulated_s_per_wall_s": 96.74,
+        "median_loop_simulated_s_per_wall_s": 76.2
+      }
+    ]
   },
-  "walk_records_byte_identical": true
+  "callgrind_instructions_2s_walk": {
+    "history_g1": {
+      "solver_iterations_1": {
+        "before": 1094430592,
+        "after": 825869487
+      },
+      "solver_iterations_4": {
+        "before": 2878665264,
+        "after": 1922932082
+      }
+    },
+    "now": {
+      "g1_solver_iterations_1_self_collision": 703000000,
+      "g1_solver_iterations_4": 1734000000,
+      "g1_solver_iterations_4_self_collision": 1791000000,
+      "h1_solver_iterations_4": 1442000000
+    },
+    "note": "construction excluded; history_g1 is the G1 before and after the solver and wrapper work of an earlier change"
+  },
+  "walk_records_byte_identical": false,
+  "walk_records_note": "the walker now lets Rapier own its link poses (rne_physics::PhysicsOwnedPose) and synchronizes only joint actuation, which removes the rounding of the ECS pose round trip; walking metrics moved by at most 0.01 m/s (G1) and 0.025 m/s (H1) and were re-measured"
 }

@@ -2469,13 +2469,31 @@ impl UrdfSceneSim {
     }
 
     fn step_physics_with_delta(&mut self, delta: SimDuration) {
+        self.step_physics_synced(delta, false);
+    }
+
+    /// Steps physics after synchronizing joint actuation only (see
+    /// `RapierBackend::sync_joint_actuation_from_ecs`). Callers must have
+    /// changed nothing else in the ECS since the last full step, and every
+    /// dynamic body must be physics-owned or fixed.
+    pub(crate) fn step_physics_actuated(&mut self, delta: SimDuration) {
+        self.step_physics_synced(delta, true);
+    }
+
+    fn step_physics_synced(&mut self, delta: SimDuration, actuation_only: bool) {
         // Expanded from `rne_physics_rapier::step_physics` so queued wrenches
         // land between the synchronization that creates the bodies and the
         // step that consumes the forces. Rapier clears them afterwards, so a
         // wrench affects exactly one step.
-        self.backend
-            .sync_from_ecs(&mut self.world, self.physics_world)
-            .expect("urdf scene physics sync");
+        if actuation_only {
+            self.backend
+                .sync_joint_actuation_from_ecs(&mut self.world, self.physics_world)
+                .expect("urdf scene actuation sync");
+        } else {
+            self.backend
+                .sync_from_ecs(&mut self.world, self.physics_world)
+                .expect("urdf scene physics sync");
+        }
         for wrench in self.pending_link_wrenches.drain(..) {
             self.backend
                 .apply_external_body_wrench(self.physics_world, wrench)
