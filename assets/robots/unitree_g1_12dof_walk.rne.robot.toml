@@ -1,6 +1,7 @@
 # unitree_rl_gym's 12-DoF walking G1: legs actuated, upper body welded.
-# Only the four 5 mm foot spheres per ankle collide, as in its MuJoCo scene
-# while walking; see g1_description/UPSTREAM.md.
+# Only the four 5 mm foot spheres per ankle collide. Its MuJoCo scene also
+# collides the leg and pelvis meshes, but only the feet touch anything in an
+# undisturbed walk; see g1_description/UPSTREAM.md.
 kind = "urdf"
 model_name = "unitree_g1_12dof_walk"
 

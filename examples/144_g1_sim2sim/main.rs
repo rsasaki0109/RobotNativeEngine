@@ -8,12 +8,14 @@
 //! cargo run --release --example 144_g1_sim2sim                 # 4 commands vs MuJoCo
 //! cargo run --release --example 144_g1_sim2sim -- --timing     # solver iteration sweep
 //! cargo run --release --example 144_g1_sim2sim -- --throughput # 1–8 walkers on threads
+//! cargo run --release --example 144_g1_sim2sim -- --robustness # push and friction sweeps
 //! cargo run --release --example 144_g1_sim2sim -- --command 0.5,0,0 --seconds 20
 //! cargo run --release --example 144_g1_sim2sim -- --render target/g1-sim2sim-render
 //! ```
 
 mod policy;
 mod render;
+mod robustness;
 mod walk;
 
 use std::path::PathBuf;
@@ -31,6 +33,8 @@ struct Options {
     command: Option<[f64; 3]>,
     timing: bool,
     throughput: bool,
+    robustness: bool,
+    threads: usize,
     ablation: bool,
     render: Option<PathBuf>,
     plant: PlantConfig,
@@ -61,6 +65,8 @@ fn parse() -> Result<Options> {
         command: None,
         timing: false,
         throughput: false,
+        robustness: false,
+        threads: std::thread::available_parallelism().map_or(1, |n| n.get()),
         ablation: false,
         render: None,
         plant: PlantConfig::default(),
@@ -77,6 +83,8 @@ fn parse() -> Result<Options> {
             "--floor-friction" => options.plant.floor_friction = value()?.parse()?,
             "--timing" => options.timing = true,
             "--throughput" => options.throughput = true,
+            "--robustness" => options.robustness = true,
+            "--threads" => options.threads = value()?.parse()?,
             "--ablation" => options.ablation = true,
             "--render" => options.render = Some(PathBuf::from(value()?)),
             "--robot" => options.robot = Robot::parse(&value()?)?,
@@ -329,6 +337,20 @@ fn main() -> Result<()> {
         return render_walk(&options, output);
     }
     std::fs::create_dir_all(&options.output)?;
+    if options.robustness {
+        let start = Instant::now();
+        let report = robustness::sweep(options.robot, options.plant, options.threads)?;
+        let path = options
+            .output
+            .join(format!("{}-robustness.json", options.robot.name()));
+        std::fs::write(&path, serde_json::to_string_pretty(&report)? + "\n")?;
+        println!(
+            "wrote {} in {:.0} s",
+            path.display(),
+            start.elapsed().as_secs_f64()
+        );
+        return Ok(());
+    }
     if options.throughput {
         let report = throughput(&options, options.command.unwrap_or([0.5, 0.0, 0.0]))?;
         let path = options

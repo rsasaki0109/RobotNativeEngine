@@ -619,6 +619,13 @@ second on four cores, against MuJoCo's 95.
 `--robot h1` runs unitree_rl_gym's H1 policy on the H1, whose feet are convex
 hulls of its ankle meshes: no fall, pelvis height within 2 mm, and forward
 speed 0.02–0.03 m/s above MuJoCo's at every command.
+`--robustness` pushes the walking robot at 20 forces, four directions and
+eight gait phases and lowers the floor friction, and `mujoco_robustness.py`
+repeats every trial in MuJoCo. 94.7% of the G1's 640 push trials and 91.1% of
+the H1's end the same way on both engines, and the G1's fall forces agree
+within 1% in three directions. Most disagreements are MuJoCo's legs colliding
+with each other after a push, which its MJCF allows and RNE's walking models
+do not: with that switched off in MuJoCo, agreement rises to 95.0% and 94.4%.
 The browser playground's Physics walking mode runs the same G1 policy and
 physics as WebAssembly in real time: in headless Chromium without a GPU the
 real-time factor held 0.99–1.01 with physics and policy using under a third of
@@ -628,6 +635,7 @@ each simulated second.
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --timing
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --throughput
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness
 ```
 
 See [the method, results and limits](../examples/144_g1_sim2sim/README.md) and

@@ -1,6 +1,7 @@
 # unitree_rl_gym's walking H1: ten leg joints actuated, upper body merged into
-# the pelvis. Every link collides through the convex hull of its mesh, as the
-# upstream MuJoCo scene's mesh geoms do; see h1_description/UPSTREAM.md.
+# the pelvis. Every link collides with the floor through the convex hull of
+# its mesh, as the upstream MuJoCo scene's mesh geoms do; unlike there, links do
+# not collide with each other. See h1_description/UPSTREAM.md.
 kind = "urdf"
 model_name = "unitree_h1_walk"
 
