@@ -37,6 +37,9 @@ use rne_physics::{
 use rne_physics::{JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval};
 use rne_world::{world_transform_of, Transform3, WorldTransformCache};
 use std::collections::HashMap;
+
+/// Per-step lookup maps keyed by entities and Rapier handles.
+type FastMap<K, V> = HashMap<K, V, rne_core::FxBuildHasher>;
 use std::sync::{Mutex, PoisonError};
 
 const CAPABILITIES: &[PhysicsCapability] = &[
@@ -55,6 +58,48 @@ const CAPABILITIES: &[PhysicsCapability] = &[
 pub struct RapierBackend {
     worlds: HashMap<PhysicsWorldId, RapierWorldState>,
     next_world_id: u32,
+    /// Convex hulls this backend built, reused for identical vertex lists.
+    convex_hulls: ConvexHullCache,
+}
+
+/// Convex hulls keyed by their exact input vertices.
+///
+/// Building a hull from a scanned mesh's vertices costs as much as many
+/// physics steps, and a world rebuilt from the same scene (an episode reset)
+/// asks for the same hulls again. Hull construction is deterministic, so a hit
+/// returns the shape a rebuild would produce; a hit requires bitwise-equal
+/// vertices, not just an equal hash.
+#[derive(Default)]
+struct ConvexHullCache {
+    by_hash: HashMap<u64, Vec<(Vec<Vec3>, SharedShape)>>,
+}
+
+impl ConvexHullCache {
+    fn hull(&mut self, convex: &ConvexCollider) -> Option<SharedShape> {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        convex.vertices_m.len().hash(&mut hasher);
+        for vertex in &convex.vertices_m {
+            vertex.to_array().map(f64::to_bits).hash(&mut hasher);
+        }
+        let bits = |vertices: &[Vec3]| {
+            vertices
+                .iter()
+                .map(|v| v.to_array().map(f64::to_bits))
+                .collect::<Vec<_>>()
+        };
+        let entries = self.by_hash.entry(hasher.finish()).or_default();
+        let wanted = bits(&convex.vertices_m);
+        if let Some((_, shape)) = entries
+            .iter()
+            .find(|(vertices, _)| bits(vertices) == wanted)
+        {
+            return Some(shape.clone());
+        }
+        let shape = convex_shape(convex)?;
+        entries.push((convex.vertices_m.clone(), shape.clone()));
+        Some(shape)
+    }
 }
 
 impl std::fmt::Debug for RapierBackend {
@@ -69,6 +114,7 @@ impl std::fmt::Debug for RapierBackend {
 }
 
 struct RapierWorldState {
+    desc: PhysicsWorldDesc,
     gravity: Vector3<f32>,
     integration_parameters: IntegrationParameters,
     physics_pipeline: PhysicsPipeline,
@@ -81,26 +127,26 @@ struct RapierWorldState {
     multibody_joints: MultibodyJointSet,
     ccd_solver: CCDSolver,
     query_pipeline: Mutex<LazyQueryPipeline>,
-    entity_to_body: HashMap<Entity, RigidBodyHandle>,
-    body_to_entity: HashMap<RigidBodyHandle, Entity>,
-    entity_to_collider: HashMap<Entity, ColliderHandle>,
-    collider_to_entity: HashMap<ColliderHandle, Entity>,
+    entity_to_body: FastMap<Entity, RigidBodyHandle>,
+    body_to_entity: FastMap<RigidBodyHandle, Entity>,
+    entity_to_collider: FastMap<Entity, ColliderHandle>,
+    collider_to_entity: FastMap<ColliderHandle, Entity>,
     /// Exact generational owner tokens; only keyed lookups affect pair filtering.
-    collider_owners: HashMap<ColliderHandle, Entity>,
-    entity_to_joint: HashMap<Entity, ImpulseJointHandle>,
-    entity_to_multibody_joint: HashMap<Entity, MultibodyJointHandle>,
+    collider_owners: FastMap<ColliderHandle, Entity>,
+    entity_to_joint: FastMap<Entity, ImpulseJointHandle>,
+    entity_to_multibody_joint: FastMap<Entity, MultibodyJointHandle>,
     /// Welds on articulated links: a [`FixedJointDesc`] on an entity whose own
     /// articulation joint is revolute or prismatic becomes an extra impulse joint,
     /// closing a loop, while the articulation joint keeps its coordinate.
-    entity_to_attachment: HashMap<Entity, ImpulseJointHandle>,
+    entity_to_attachment: FastMap<Entity, ImpulseJointHandle>,
     contacts: Vec<ContactEvent>,
     contact_points: Vec<ContactPointSample>,
     /// Bodies carrying a one-step disturbance force, cleared after the next step.
     impulse_forced: Vec<RigidBodyHandle>,
     /// Native force/torque increments accepted for the upcoming step.
-    pending_joint_efforts: HashMap<Entity, JointEffortMeasurement>,
+    pending_joint_efforts: FastMap<Entity, JointEffortMeasurement>,
     /// Native force/torque increments retained from the completed step.
-    completed_joint_efforts: HashMap<Entity, JointEffortMeasurement>,
+    completed_joint_efforts: FastMap<Entity, JointEffortMeasurement>,
     #[cfg(feature = "position-motor-diagnostics")]
     position_motor_diagnostics_enabled: bool,
     #[cfg(feature = "position-motor-diagnostics")]
@@ -110,7 +156,7 @@ struct RapierWorldState {
     #[cfg(feature = "position-motor-diagnostics")]
     pending_position_motor_diagnostics: Vec<PositionMotorDiagnosticTarget>,
     #[cfg(feature = "position-motor-diagnostics")]
-    completed_position_motor_diagnostics: HashMap<Entity, JointPositionMotorDiagnostics>,
+    completed_position_motor_diagnostics: FastMap<Entity, JointPositionMotorDiagnostics>,
 }
 
 #[cfg(feature = "position-motor-diagnostics")]
@@ -143,8 +189,60 @@ impl LazyQueryPipeline {
     }
 }
 
+/// A world as [`PhysicsBackend::create_world`] makes it.
+#[cfg_attr(not(feature = "position-motor-diagnostics"), allow(unused_variables))]
+fn new_world_state(id: PhysicsWorldId, desc: PhysicsWorldDesc) -> RapierWorldState {
+    RapierWorldState {
+        desc,
+        gravity: vec3_to_rapier(desc.gravity_m_s2),
+        // A higher solver-iteration count (set per world) keeps stiff articulated
+        // chains — e.g. the lift robot's multi-link arm — stable instead of swinging
+        // chaotically; `0` keeps Rapier's default so existing robots are unchanged.
+        integration_parameters: match std::num::NonZeroUsize::new(desc.solver_iterations) {
+            Some(iterations) => IntegrationParameters {
+                num_solver_iterations: iterations,
+                ..IntegrationParameters::default()
+            },
+            None => IntegrationParameters::default(),
+        },
+        physics_pipeline: PhysicsPipeline::new(),
+        island_manager: IslandManager::new(),
+        broad_phase: BroadPhaseMultiSap::new(),
+        narrow_phase: NarrowPhase::new(),
+        bodies: RigidBodySet::new(),
+        colliders: ColliderSet::new(),
+        impulse_joints: ImpulseJointSet::new(),
+        multibody_joints: MultibodyJointSet::new(),
+        ccd_solver: CCDSolver::new(),
+        query_pipeline: Mutex::new(LazyQueryPipeline::default()),
+        entity_to_body: FastMap::default(),
+        body_to_entity: FastMap::default(),
+        entity_to_collider: FastMap::default(),
+        collider_to_entity: FastMap::default(),
+        collider_owners: FastMap::default(),
+        entity_to_joint: FastMap::default(),
+        entity_to_multibody_joint: FastMap::default(),
+        entity_to_attachment: FastMap::default(),
+        contacts: Vec::new(),
+        contact_points: Vec::new(),
+        impulse_forced: Vec::new(),
+        pending_joint_efforts: FastMap::default(),
+        completed_joint_efforts: FastMap::default(),
+        #[cfg(feature = "position-motor-diagnostics")]
+        position_motor_diagnostics_enabled: false,
+        #[cfg(feature = "position-motor-diagnostics")]
+        position_motor_diagnostics_world_id: id,
+        #[cfg(feature = "position-motor-diagnostics")]
+        published_position_motor_diagnostics: Vec::new(),
+        #[cfg(feature = "position-motor-diagnostics")]
+        pending_position_motor_diagnostics: Vec::new(),
+        #[cfg(feature = "position-motor-diagnostics")]
+        completed_position_motor_diagnostics: FastMap::default(),
+    }
+}
+
 struct OwnerCollisionHooks<'a> {
-    owners: &'a HashMap<ColliderHandle, Entity>,
+    owners: &'a FastMap<ColliderHandle, Entity>,
 }
 
 impl OwnerCollisionHooks<'_> {
@@ -220,7 +318,21 @@ impl RapierBackend {
         Self {
             worlds: HashMap::new(),
             next_world_id: 0,
+            convex_hulls: ConvexHullCache::default(),
         }
+    }
+
+    /// Empties a world back to the state [`PhysicsBackend::create_world`]
+    /// gave it, keeping its id and description.
+    ///
+    /// The next [`PhysicsBackend::sync_from_ecs`] then builds every body,
+    /// collider and joint afresh, exactly as in a new world; convex hulls this
+    /// backend already built for the same vertices are reused. Use it to reset
+    /// an episode without rebuilding the backend.
+    pub fn reset_world(&mut self, id: PhysicsWorldId) -> Result<(), PhysicsError> {
+        let desc = self.world(id)?.desc;
+        self.worlds.insert(id, new_world_state(id, desc));
+        Ok(())
     }
 
     /// Returns the versioned conformance manifest for this backend.
@@ -625,55 +737,7 @@ impl PhysicsBackend for RapierBackend {
         let id = PhysicsWorldId(self.next_world_id);
         self.next_world_id += 1;
 
-        self.worlds.insert(
-            id,
-            RapierWorldState {
-                gravity: vec3_to_rapier(desc.gravity_m_s2),
-                // A higher solver-iteration count (set per world) keeps stiff articulated
-                // chains — e.g. the lift robot's multi-link arm — stable instead of swinging
-                // chaotically; `0` keeps Rapier's default so existing robots are unchanged.
-                integration_parameters: match std::num::NonZeroUsize::new(desc.solver_iterations) {
-                    Some(iterations) => IntegrationParameters {
-                        num_solver_iterations: iterations,
-                        ..IntegrationParameters::default()
-                    },
-                    None => IntegrationParameters::default(),
-                },
-                physics_pipeline: PhysicsPipeline::new(),
-                island_manager: IslandManager::new(),
-                broad_phase: BroadPhaseMultiSap::new(),
-                narrow_phase: NarrowPhase::new(),
-                bodies: RigidBodySet::new(),
-                colliders: ColliderSet::new(),
-                impulse_joints: ImpulseJointSet::new(),
-                multibody_joints: MultibodyJointSet::new(),
-                ccd_solver: CCDSolver::new(),
-                query_pipeline: Mutex::new(LazyQueryPipeline::default()),
-                entity_to_body: HashMap::new(),
-                body_to_entity: HashMap::new(),
-                entity_to_collider: HashMap::new(),
-                collider_to_entity: HashMap::new(),
-                collider_owners: HashMap::new(),
-                entity_to_joint: HashMap::new(),
-                entity_to_multibody_joint: HashMap::new(),
-                entity_to_attachment: HashMap::new(),
-                contacts: Vec::new(),
-                contact_points: Vec::new(),
-                impulse_forced: Vec::new(),
-                pending_joint_efforts: HashMap::new(),
-                completed_joint_efforts: HashMap::new(),
-                #[cfg(feature = "position-motor-diagnostics")]
-                position_motor_diagnostics_enabled: false,
-                #[cfg(feature = "position-motor-diagnostics")]
-                position_motor_diagnostics_world_id: id,
-                #[cfg(feature = "position-motor-diagnostics")]
-                published_position_motor_diagnostics: Vec::new(),
-                #[cfg(feature = "position-motor-diagnostics")]
-                pending_position_motor_diagnostics: Vec::new(),
-                #[cfg(feature = "position-motor-diagnostics")]
-                completed_position_motor_diagnostics: HashMap::new(),
-            },
-        );
+        self.worlds.insert(id, new_world_state(id, desc));
 
         Ok(id)
     }
@@ -683,7 +747,11 @@ impl PhysicsBackend for RapierBackend {
         world: &mut World,
         physics_world: PhysicsWorldId,
     ) -> Result<(), PhysicsError> {
-        let state = self.world_mut(physics_world)?;
+        let hulls = &mut self.convex_hulls;
+        let state = self
+            .worlds
+            .get_mut(&physics_world)
+            .ok_or(PhysicsError::WorldNotFound)?;
         remove_stale_owned_colliders(world, state);
         #[cfg(feature = "position-motor-diagnostics")]
         if state.position_motor_diagnostics_enabled {
@@ -719,13 +787,19 @@ impl PhysicsBackend for RapierBackend {
             }) {
                 return Err(PhysicsError::InitializationFailed);
             }
+            // A new convex collider's hull is built once: validated here and
+            // handed to the collider below, or to `sync_entity_collider`.
+            let mut hull = None;
             if let Some(convex) = world.get::<ConvexCollider>(entity) {
-                if collider.is_none()
-                    || world.get::<CompoundCollider>(entity).is_some()
-                    || (!state.entity_to_collider.contains_key(&entity)
-                        && convex_shape(convex).is_none())
-                {
+                if collider.is_none() || world.get::<CompoundCollider>(entity).is_some() {
                     return Err(PhysicsError::InitializationFailed);
+                }
+                if !state.entity_to_collider.contains_key(&entity) {
+                    hull = Some(
+                        hulls
+                            .hull(convex)
+                            .ok_or(PhysicsError::InitializationFailed)?,
+                    );
                 }
             }
             if collider.is_none() && world.get::<MultibodyLink>(entity).is_none() {
@@ -764,7 +838,7 @@ impl PhysicsBackend for RapierBackend {
                         }
                     }
                 }
-                sync_entity_collider(world, state, entity, body_handle, collider)?;
+                sync_entity_collider(world, state, entity, body_handle, collider, hull)?;
                 sync_collider_owner(world, state, entity);
                 continue;
             }
@@ -814,7 +888,7 @@ impl PhysicsBackend for RapierBackend {
             state.body_to_entity.insert(body_handle, entity);
             if let Some(collider) = collider {
                 let collider_handle = state.colliders.insert_with_parent(
-                    collider_builder(world, entity, collider)?.build(),
+                    collider_builder(world, entity, collider, hull)?.build(),
                     body_handle,
                     &mut state.bodies,
                 );
@@ -1240,12 +1314,13 @@ fn sync_entity_collider(
     entity: Entity,
     body_handle: RigidBodyHandle,
     collider: Option<&Collider>,
+    hull: Option<SharedShape>,
 ) -> Result<(), PhysicsError> {
     let existing = state.entity_to_collider.get(&entity).copied();
     match (existing, collider) {
         (None, Some(collider)) => {
             let handle = state.colliders.insert_with_parent(
-                collider_builder(world, entity, collider)?.build(),
+                collider_builder(world, entity, collider, hull)?.build(),
                 body_handle,
                 &mut state.bodies,
             );
@@ -1343,10 +1418,12 @@ fn convex_shape(convex: &ConvexCollider) -> Option<SharedShape> {
     (mass.is_finite() && mass > 0.0).then_some(shape)
 }
 
+/// `hull` is the entity's already-built convex hull, if the caller has one.
 fn collider_builder(
     world: &World,
     entity: Entity,
     collider: &Collider,
+    hull: Option<SharedShape>,
 ) -> Result<ColliderBuilder, PhysicsError> {
     let (shape, offset) = if let Some(compound) = world.get::<CompoundCollider>(entity) {
         (
@@ -1366,7 +1443,8 @@ fn collider_builder(
         )
     } else if let Some(convex) = world.get::<ConvexCollider>(entity) {
         (
-            convex_shape(convex).expect("convex collider validated before creation"),
+            hull.or_else(|| convex_shape(convex))
+                .expect("convex collider validated before creation"),
             Transform3::IDENTITY,
         )
     } else {

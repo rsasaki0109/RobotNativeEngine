@@ -332,6 +332,31 @@ pub struct UrdfSceneSim {
     /// World-frame wrenches queued for exactly the next physics step, in the
     /// order they were requested so a replay applies them identically.
     pending_link_wrenches: Vec<ExternalBodyWrench>,
+    /// What [`Self::reset`] rebuilds the scene from.
+    reset_source: ResetSource,
+}
+
+/// The parsed scene, its in-memory sources and the fixed links, kept so a
+/// reset spawns exactly what construction spawned.
+#[derive(Clone, Debug)]
+struct ResetSource {
+    bundle: SceneAssetBundle,
+    urdf_sources: Option<Vec<(PathBuf, String)>>,
+    fixed_link_names: Vec<String>,
+}
+
+/// The ECS world and the handles construction derives from it.
+struct SpawnedScene {
+    world: World,
+    world_seed: u64,
+    base_link: Entity,
+    base_reference_rotation: Quat,
+    left_wheel: Option<Entity>,
+    right_wheel: Option<Entity>,
+    kiwi_wheels: [Option<Entity>; 3],
+    shoulder_pan_link: Option<Entity>,
+    actuated_joint_count: usize,
+    render_joint_projections: Vec<RenderJointProjection>,
 }
 
 /// Authored link state used as the origin for render-only remote projection.
@@ -489,18 +514,18 @@ impl UrdfSceneSim {
         )
     }
 
-    fn from_bundle(
-        scene_path: &Path,
-        bundle: &SceneAssetBundle,
-        urdf_sources: Option<&UrdfSourceMap<'_>>,
-        solver_iterations: usize,
-        fixed_link_names: &[&str],
-    ) -> Result<Self, AssetError> {
+    fn spawn_scene(scene_path: &Path, source: &ResetSource) -> Result<SpawnedScene, AssetError> {
+        let sources: Option<UrdfSourceMap<'_>> = source.urdf_sources.as_ref().map(|sources| {
+            sources
+                .iter()
+                .map(|(path, text)| (path.clone(), text.as_str()))
+                .collect()
+        });
         let mut world = World::new();
         let spawned = spawn_scene_bundle(
             &mut world,
-            bundle,
-            urdf_sources,
+            &source.bundle,
+            sources.as_ref(),
             SpawnSceneOptions::default(),
         )?;
         let world_seed = world
@@ -523,7 +548,7 @@ impl UrdfSceneSim {
             find_link_by_name(&world, LEKIWI_DRIVE_WHEEL_LINKS[2]),
         ];
         let shoulder_pan_link = find_link_by_name(&world, "shoulder_link");
-        for link_name in fixed_link_names {
+        for link_name in &source.fixed_link_names {
             let entity =
                 find_link_by_name(&world, link_name).ok_or_else(|| AssetError::Invalid {
                     path: scene_path.display().to_string(),
@@ -551,9 +576,43 @@ impl UrdfSceneSim {
             .iter_entities()
             .filter(|entity_ref| world.get::<JointMotor>(entity_ref.id()).is_some())
             .count();
-
-        let mesh_roots = mesh_package_roots(bundle);
         let render_joint_projections = render_joint_projections(&world);
+        Ok(SpawnedScene {
+            world,
+            world_seed,
+            base_link,
+            base_reference_rotation,
+            left_wheel,
+            right_wheel,
+            kiwi_wheels,
+            shoulder_pan_link,
+            actuated_joint_count,
+            render_joint_projections,
+        })
+    }
+
+    fn from_bundle(
+        scene_path: &Path,
+        bundle: &SceneAssetBundle,
+        urdf_sources: Option<&UrdfSourceMap<'_>>,
+        solver_iterations: usize,
+        fixed_link_names: &[&str],
+    ) -> Result<Self, AssetError> {
+        let reset_source = ResetSource {
+            bundle: bundle.clone(),
+            urdf_sources: urdf_sources.map(|sources| {
+                sources
+                    .iter()
+                    .map(|(path, text)| (path.clone(), (*text).to_owned()))
+                    .collect()
+            }),
+            fixed_link_names: fixed_link_names
+                .iter()
+                .map(|name| (*name).to_owned())
+                .collect(),
+        };
+        let scene = Self::spawn_scene(scene_path, &reset_source)?;
+        let mesh_roots = mesh_package_roots(bundle);
 
         let mut backend = RapierBackend::new();
         let physics_world = backend
@@ -564,29 +623,61 @@ impl UrdfSceneSim {
             .map_err(|error| asset_physics_error(scene_path, error))?;
 
         let mut sim = Self {
-            world,
+            world: scene.world,
             backend,
             physics_world,
             scene_path: scene_path.to_path_buf(),
             mesh_package_roots: mesh_roots,
-            world_seed,
-            base_link,
-            base_reference_rotation,
-            left_wheel,
-            right_wheel,
-            kiwi_wheels,
-            shoulder_pan_link,
-            actuated_joint_count,
+            world_seed: scene.world_seed,
+            base_link: scene.base_link,
+            base_reference_rotation: scene.base_reference_rotation,
+            left_wheel: scene.left_wheel,
+            right_wheel: scene.right_wheel,
+            kiwi_wheels: scene.kiwi_wheels,
+            shoulder_pan_link: scene.shoulder_pan_link,
+            actuated_joint_count: scene.actuated_joint_count,
             sim_time: SimTime::default(),
             dt: SimDuration::from_hertz(Hertz::new(60.0)),
             deformable_solver_config: DeformableSolverConfig::default(),
-            render_joint_projections,
+            render_joint_projections: scene.render_joint_projections,
             pending_link_wrenches: Vec::new(),
+            reset_source,
         };
         sim.backend
             .sync_from_ecs(&mut sim.world, sim.physics_world)
             .map_err(|error| asset_physics_error(scene_path, error))?;
         Ok(sim)
+    }
+
+    /// Returns the scene to the state construction left it in, at time zero.
+    ///
+    /// The scene is spawned again from the bundle parsed at construction (its
+    /// URDFs and meshes are read again, unless they came from memory) into a
+    /// fresh ECS world, and the physics world is emptied and rebuilt; convex
+    /// hulls the backend already built are reused. Stepping afterwards gives
+    /// bit-identical results to a newly constructed scene. The fixed step and
+    /// deformable solver settings are kept; every other change since
+    /// construction, including through [`Self::world_mut`], is undone.
+    pub fn reset(&mut self) -> Result<(), AssetError> {
+        let scene = Self::spawn_scene(&self.scene_path, &self.reset_source)?;
+        self.world = scene.world;
+        self.world_seed = scene.world_seed;
+        self.base_link = scene.base_link;
+        self.base_reference_rotation = scene.base_reference_rotation;
+        self.left_wheel = scene.left_wheel;
+        self.right_wheel = scene.right_wheel;
+        self.kiwi_wheels = scene.kiwi_wheels;
+        self.shoulder_pan_link = scene.shoulder_pan_link;
+        self.actuated_joint_count = scene.actuated_joint_count;
+        self.render_joint_projections = scene.render_joint_projections;
+        self.sim_time = SimTime::default();
+        self.pending_link_wrenches.clear();
+        self.backend
+            .reset_world(self.physics_world)
+            .map_err(|error| asset_physics_error(&self.scene_path, error))?;
+        self.backend
+            .sync_from_ecs(&mut self.world, self.physics_world)
+            .map_err(|error| asset_physics_error(&self.scene_path, error))
     }
 
     /// Built-in SO-101 scene path.

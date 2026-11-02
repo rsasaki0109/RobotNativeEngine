@@ -216,6 +216,89 @@ MuJoCo's self-contact pairs, and what self-collision changes within each
 engine. Both engines are deterministic: rerunning a sweep reproduces every
 outcome.
 
+## Push recovery: training in RNE, testing in MuJoCo
+
+`--train-residual` trains a correction for the pretrained policy to recover
+from pushes, and `--residual FILE` sweeps with it; `mujoco_robustness.py
+--residual` and `mujoco_residual.py` do the same in MuJoCo.
+
+- **Residual.** A linear map from five entries of the policy's observation
+  (scaled pelvis angular velocity and the horizontal components of projected
+  gravity, all zero when upright and still) to the 12 joint targets, clamped
+  to ±0.4 rad and added to the policy's targets for the next period
+  (`UnitreeRlGymWalker::offset_targets_rad`). 60 parameters.
+- **Training.** Evolution strategies: 16 antithetic pairs per generation,
+  centred ranks, Adam, σ = 0.05, learning rate 0.02, 30 generations. Each
+  candidate walks 32 pushes (four directions, two forces near where the plain
+  policy falls, four gait phases) after 1 s of walking and is watched for
+  1.5 s. A survived push scores 1 plus up to 0.5 for keeping the pelvis
+  within 0.6 rad of upright; a fall scores half the share of the window it
+  stood through; the mean squared offset is subtracted. MuJoCo's trainer
+  reads the scenarios and settings from RNE's report and draws its noise
+  from the same generator and seed.
+- **Plant.** The G1 with self-collision and one solver iteration. One
+  iteration agrees with MuJoCo on 95.9% of the push sweep's 640 trials (four
+  iterations: 95.8%), and it walks at μ = 0.1 where MuJoCo and four
+  iterations fall.
+
+Falls in the 640-trial push sweep, which uses 4 s of walking and 4 s of
+watching rather than training's 1 s and 1.5 s:
+
+| Residual | In RNE | In MuJoCo |
+| --- | --- | --- |
+| None | 365 | 345 |
+| Trained in RNE | 355 | 336 |
+| Trained in MuJoCo | 348 | 328 |
+
+A residual trained in either engine helps in the other, and both engines
+rank the two the same way. The gain is small: a linear map from tilt and
+spin is too weak a controller to move the fall boundary far.
+
+**Training cost.** One generation simulates about 2,500 s (33 candidates × 32
+pushes). Simulated seconds per wall second on the 4-core container, RNE with
+one thread per core, MuJoCo 3.9.0 with one process per core:
+
+| Engine and setting | Simulated s / wall s |
+| --- | --- |
+| RNE, four solver iterations, before this work | 24.6 |
+| RNE, one solver iteration, faster convex hulls | 58.0 |
+| RNE, as above, walkers reset instead of rebuilt, faster hashing | 67.1 |
+| MuJoCo, scene compiled for every trial | 32.1 |
+| MuJoCo, scene compiled once per process | 68.9 |
+
+The last two rows of each engine are medians of three rounds that alternate
+the engines, three generations each; the engines are level within the
+container's noise. What changed in RNE, each step leaving walk records,
+sweep outcomes and training scores byte-identical:
+
+- **Convex hulls.** The backend built every new hull twice (once to validate
+  it); it now builds it once. Rapier found a hull's bounding box by
+  transforming all its vertices, twice per step; the vendored copy now walks
+  the hull's edge graph from last step's extreme vertices and reuses the box
+  when the pose has not changed ([`RNE_PATCH.md`](../../third_party/rapier3d/RNE_PATCH.md)).
+  For 2 s of walking with self-collision this cut instructions by 20% at
+  four iterations and 36% at one; the H1 (hull feet, no self-collision) needs
+  14% fewer.
+- **Resets.** `UrdfSceneSim::reset` respawns the scene from the bundle parsed
+  at construction into a fresh ECS world and empties the physics world with
+  `RapierBackend::reset_world`; the backend reuses hulls it built for the same
+  vertices. `UnitreeRlGymWalker::reset` reconfigures the plant and clears the
+  policy. A reset walker replays a new one bit for bit, and each sweep or
+  training thread now keeps one walker.
+- **Hashing.** Per-step lookups in the backend and the importer's vertex
+  deduplication use `rne_core::FxHasher` instead of SipHash.
+
+```bash
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- \
+  --train-residual --self-collision --solver-iterations 1        # target/g1-sim2sim/g1-residual.json
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- \
+  --robustness --self-collision --solver-iterations 1 --residual target/g1-sim2sim/g1-residual.json
+python3 examples/144_g1_sim2sim/mujoco_residual.py UNITREE_RL_GYM \
+  target/g1-sim2sim/g1-residual.json target/g1-sim2sim/g1-residual-mujoco.json
+python3 examples/144_g1_sim2sim/mujoco_robustness.py UNITREE_RL_GYM \
+  target/g1-sim2sim/g1-robustness-self-collision.json OUTPUT.json --residual RESIDUAL.json
+```
+
 ## Real time
 
 Simulated seconds per wall second for G1 walkers at 0.5 m/s, 10 s each, in

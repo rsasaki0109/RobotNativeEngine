@@ -105,6 +105,7 @@ struct WalkJoint {
 pub struct UnitreeRlGymWalker {
     sim: UrdfSceneSim,
     policy: LstmPolicy,
+    plant: PolicyWalkPlant,
     joints: Vec<WalkJoint>,
     substeps: Vec<SimDuration>,
     targets_rad: Vec<f64>,
@@ -143,6 +144,49 @@ impl UnitreeRlGymWalker {
         policy: LstmPolicy,
         plant: PolicyWalkPlant,
     ) -> Result<Self, PolicyWalkError> {
+        let (joints, substeps) = Self::configure(&mut sim, &policy, plant)?;
+        Ok(Self {
+            targets_rad: policy.deployment().default_joint_rad.clone(),
+            observation: vec![0.0; policy.observation_len()],
+            action: vec![0.0; policy.action_len()],
+            sim,
+            policy,
+            plant,
+            joints,
+            substeps,
+            base_push_n: None,
+            stepped: false,
+        })
+    }
+
+    /// Returns the walker to the state [`Self::new`] left it in: the scene
+    /// reset ([`UrdfSceneSim::reset`]), the plant configured again, the
+    /// policy's recurrent state cleared and no push applied. Stepping
+    /// afterwards gives bit-identical results to a new walker, without
+    /// reloading the scene from disk or rebuilding convex hulls.
+    pub fn reset(&mut self) -> Result<(), PolicyWalkError> {
+        self.sim
+            .reset()
+            .map_err(|error| PolicyWalkError::Model(error.to_string()))?;
+        let (joints, substeps) = Self::configure(&mut self.sim, &self.policy, self.plant)?;
+        self.joints = joints;
+        self.substeps = substeps;
+        self.policy.reset();
+        self.targets_rad
+            .clone_from(&self.policy.deployment().default_joint_rad);
+        self.observation.fill(0.0);
+        self.action.fill(0.0);
+        self.base_push_n = None;
+        self.stepped = false;
+        Ok(())
+    }
+
+    /// Configures `sim`'s actuators and plant for `policy`'s deployment.
+    fn configure(
+        sim: &mut UrdfSceneSim,
+        policy: &LstmPolicy,
+        plant: PolicyWalkPlant,
+    ) -> Result<(Vec<WalkJoint>, Vec<SimDuration>), PolicyWalkError> {
         let model = |message: String| PolicyWalkError::Model(message);
         let deployment = policy.deployment().clone();
         let joint_count = deployment.joint_names.len();
@@ -226,17 +270,7 @@ impl UnitreeRlGymWalker {
         sim.backend
             .sync_from_ecs(&mut sim.world, sim.physics_world)
             .map_err(|error| model(error.to_string()))?;
-        Ok(Self {
-            targets_rad: deployment.default_joint_rad.clone(),
-            observation: vec![0.0; policy.observation_len()],
-            action: vec![0.0; policy.action_len()],
-            sim,
-            policy,
-            joints,
-            substeps,
-            base_push_n: None,
-            stepped: false,
-        })
+        Ok((joints, substeps))
     }
 
     /// Scene being driven.
@@ -261,6 +295,33 @@ impl UnitreeRlGymWalker {
     /// step until cleared with `None`, for push disturbances.
     pub fn set_base_push_n(&mut self, force_world_n: Option<Vec3>) {
         self.base_push_n = force_world_n.filter(|force| force.is_finite());
+    }
+
+    /// Adds `offsets_rad` to the joint targets the last [`Self::step`] set,
+    /// in deployment joint order, for the next policy period only.
+    ///
+    /// The next step replaces every target with the policy's again, so a
+    /// residual policy calls this after each step with offsets computed from
+    /// the observation that step returned: the targets then become
+    /// `action · action_scale + default + offset` from one observation, as a
+    /// residual added to the policy's own output.
+    pub fn offset_targets_rad(&mut self, offsets_rad: &[f64]) -> Result<(), PolicyWalkError> {
+        if offsets_rad.len() != self.targets_rad.len() {
+            return Err(PolicyWalkError::Model(format!(
+                "{} target offsets for {} joints",
+                offsets_rad.len(),
+                self.targets_rad.len()
+            )));
+        }
+        if offsets_rad.iter().any(|offset| !offset.is_finite()) {
+            return Err(PolicyWalkError::Model(
+                "target offsets must be finite".into(),
+            ));
+        }
+        for (target, offset) in self.targets_rad.iter_mut().zip(offsets_rad) {
+            *target += offset;
+        }
+        Ok(())
     }
 
     /// Base position and orientation in the policy's Z-up world.
@@ -518,6 +579,56 @@ mod tests {
         assert_eq!(
             first.last().unwrap().base_position_m.map(f64::to_bits),
             again.last().unwrap().base_position_m.map(f64::to_bits)
+        );
+    }
+
+    #[test]
+    fn a_reset_walker_replays_a_new_one_bit_for_bit() {
+        let mut fresh = walker(2);
+        let expected: Vec<_> = (0..40)
+            .map(|_| fresh.step([0.5, 0.0, 0.0]).unwrap())
+            .collect();
+        let mut reused = walker(2);
+        reused.set_base_push_n(Some(Vec3::new(0.0, 0.0, -80.0)));
+        for _ in 0..30 {
+            reused.step([0.3, 0.0, 0.4]).unwrap();
+            reused.offset_targets_rad(&[0.05; 12]).unwrap();
+        }
+        reused.reset().unwrap();
+        for record in &expected {
+            assert_eq!(&reused.step([0.5, 0.0, 0.0]).unwrap(), record);
+        }
+    }
+
+    #[test]
+    fn target_offsets_last_one_period() {
+        let mut plain = walker(2);
+        let mut offset = walker(2);
+        assert!(offset.offset_targets_rad(&[0.1; 3]).is_err());
+        assert!(offset.offset_targets_rad(&[f64::NAN; 12]).is_err());
+        let first = plain.step([0.0; 3]).unwrap();
+        assert_eq!(offset.step([0.0; 3]).unwrap(), first);
+        // Bend both knees (deployment indices 3 and 9) for one period.
+        let mut knees = [0.0; 12];
+        knees[3] = 0.3;
+        knees[9] = 0.3;
+        offset.offset_targets_rad(&knees).unwrap();
+        let (bent, plain_next) = (
+            offset.step([0.0; 3]).unwrap(),
+            plain.step([0.0; 3]).unwrap(),
+        );
+        assert!(bent.observation[12] > plain_next.observation[12] + 0.01);
+        // Zero offsets change nothing.
+        let mut zero = walker(2);
+        let mut reference = walker(2);
+        for _ in 0..5 {
+            zero.step([0.0; 3]).unwrap();
+            zero.offset_targets_rad(&[0.0; 12]).unwrap();
+            reference.step([0.0; 3]).unwrap();
+        }
+        assert_eq!(
+            zero.step([0.0; 3]).unwrap(),
+            reference.step([0.0; 3]).unwrap()
         );
     }
 

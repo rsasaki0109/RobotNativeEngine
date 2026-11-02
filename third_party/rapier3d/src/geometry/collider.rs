@@ -1,3 +1,5 @@
+// RNE modification: hill-climbed AABBs for large convex hulls, see RNE_PATCH.md.
+use crate::geometry::convex_aabb::ConvexAabbHint;
 use crate::dynamics::{CoefficientCombineRule, MassProperties, RigidBodyHandle};
 use crate::geometry::{
     ActiveCollisionTypes, BroadPhaseProxyIndex, ColliderBroadPhaseData, ColliderChanges,
@@ -34,6 +36,9 @@ pub struct Collider {
     contact_force_event_threshold: Real,
     /// User-defined data associated to this collider.
     pub user_data: u128,
+    /// RNE patch: hill-climbing AABB state for large convex polyhedra.
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    pub(crate) aabb_hint: Option<ConvexAabbHint>,
 }
 
 impl Collider {
@@ -111,6 +116,7 @@ impl Collider {
             contact_force_event_threshold,
             user_data,
             contact_skin,
+            aabb_hint,
         } = other;
 
         if self.parent.is_none() {
@@ -119,6 +125,7 @@ impl Collider {
 
         self.coll_type = *coll_type;
         self.shape = shape.clone();
+        self.aabb_hint = aabb_hint.clone();
         self.mprops = mprops.clone();
         self.material = *material;
         self.contact_force_event_threshold = *contact_force_event_threshold;
@@ -439,12 +446,15 @@ impl Collider {
     /// shape that you can modify.
     pub fn shape_mut(&mut self) -> &mut dyn Shape {
         self.changes.insert(ColliderChanges::SHAPE);
+        // The caller may change the geometry the hint was built for.
+        self.aabb_hint = None;
         self.shape.make_mut()
     }
 
     /// Sets the shape of this collider.
     pub fn set_shape(&mut self, shape: SharedShape) {
         self.changes.insert(ColliderChanges::SHAPE);
+        self.aabb_hint = ConvexAabbHint::for_shape(&*shape);
         self.shape = shape;
     }
 
@@ -458,14 +468,21 @@ impl Collider {
     /// This AABB doesn’t take into account the collider’s contact skin.
     /// [`Collider::contact_skin`].
     pub fn compute_aabb(&self) -> Aabb {
-        self.shape.compute_aabb(&self.pos)
+        self.compute_aabb_at(&self.pos)
+    }
+
+    /// RNE patch: the AABB this collider's shape would have at `position`.
+    pub(crate) fn compute_aabb_at(&self, position: &Isometry<Real>) -> Aabb {
+        match &self.aabb_hint {
+            Some(hint) => hint.aabb(&*self.shape, position),
+            None => self.shape.compute_aabb(position),
+        }
     }
 
     /// Compute the axis-aligned bounding box of this collider, taking into account the
     /// [`Collider::contact_skin`] and prediction distance.
     pub fn compute_collision_aabb(&self, prediction: Real) -> Aabb {
-        self.shape
-            .compute_aabb(&self.pos)
+        self.compute_aabb_at(&self.pos)
             .loosened(self.contact_skin + prediction)
     }
 
@@ -1050,6 +1067,7 @@ impl ColliderBuilder {
         };
 
         Collider {
+            aabb_hint: ConvexAabbHint::for_shape(&*shape),
             shape,
             mprops: self.mass_properties.clone(),
             material,

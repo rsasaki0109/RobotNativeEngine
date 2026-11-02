@@ -10,9 +10,10 @@ and a MuJoCo report it gives the trial-by-trial agreement on falling, the
 trials where only one engine fell (with the robot-body pairs that touched in
 MuJoCo, which its reports list) and the friction sweep side by side. For two
 reports of one engine that differ in self-collision, it counts the trials the
-switch changes. The figure draws RNE blue and MuJoCo orange, solid when the
-robot's links collide with each other and dashed when they do not. Uses no
-third-party packages.
+switch changes, and likewise for two reports that differ only in the trained
+residual (`--residual`). The figure draws RNE blue and MuJoCo orange, solid
+when the robot's links collide with each other, dashed when they do not and
+dotted with the residual. Uses no third-party packages.
 
 Usage: robustness_compare.py SUMMARY.json FIGURE.svg REPORT.json [REPORT.json ...]
 """
@@ -35,9 +36,14 @@ def self_collision(report):
     return report.get("self_collision", not is_rne(report))
 
 
+def has_residual(report):
+    return bool(report.get("residual"))
+
+
 def label(report):
     engine = "RNE" if is_rne(report) else "MuJoCo"
-    return f"{engine}, {'self-collision' if self_collision(report) else 'no self-collision'}"
+    text = f"{engine}, {'self-collision' if self_collision(report) else 'no self-collision'}"
+    return text + (", residual" if has_residual(report) else "")
 
 
 def fall_rates(report):
@@ -101,8 +107,13 @@ def svg(reports, directions, forces, robot):
              '<rect width="100%" height="100%" fill="white"/>',
              f'<text x="{margin}" y="18" font-size="14">{robot.upper()}: share of 8 gait '
              f'phases that fell after a 0.1 s pelvis push, by force</text>']
-    curves = [(label(r), COLORS["RNE" if is_rne(r) else "MuJoCo"], not self_collision(r),
-               fall_rates(r)) for r in reports]
+    def dash(report):
+        if has_residual(report):
+            return ' stroke-dasharray="1 4" stroke-linecap="round"'
+        return "" if self_collision(report) else ' stroke-dasharray="5 4"'
+
+    curves = [(label(r), COLORS["RNE" if is_rne(r) else "MuJoCo"], dash(r), fall_rates(r))
+              for r in reports]
     for index, direction in enumerate(directions):
         x0 = margin + index * panel + 10
         w, top, bottom = panel - 30, 40, height
@@ -117,17 +128,16 @@ def svg(reports, directions, forces, robot):
         for force in (0, fmax / 2, fmax):
             x = x0 + force / fmax * w
             parts.append(f'<text x="{x}" y="{bottom + 16}" text-anchor="middle">{force:.0f}</text>')
-        for _, color, dashed, rates in curves:
+        for _, color, dash_attributes, rates in curves:
             points = " ".join(f"{x0 + f / fmax * w:.1f},{bottom - r * (bottom - top):.1f}"
                               for f, r in [(0.0, 0.0)] + list(rates[direction].items()))
-            dash = ' stroke-dasharray="5 4"' if dashed else ""
+            dash = dash_attributes
             parts.append(f'<polyline points="{points}" fill="none" stroke="{color}" '
                          f'stroke-width="2"{dash}/>')
     parts.append(f'<text x="{width / 2}" y="{height + 36}" text-anchor="middle">push force (N), '
                  f'held 0.1 s on the pelvis origin while walking at 0.5 m/s</text>')
     x = margin + 10
-    for name, color, dashed, _ in curves:
-        dash = ' stroke-dasharray="5 4"' if dashed else ""
+    for name, color, dash, _ in curves:
         parts.append(f'<line x1="{x}" x2="{x + 24}" y1="{height + 56}" y2="{height + 56}" '
                      f'stroke="{color}" stroke-width="3"{dash}/>')
         parts.append(f'<text x="{x + 30}" y="{height + 60}">{name}</text>')
@@ -165,7 +175,8 @@ def main():
     effects = []
     for index, a in enumerate(reports):
         for b in reports[index + 1:]:
-            if is_rne(a) == is_rne(b) and self_collision(a) != self_collision(b):
+            if (is_rne(a) == is_rne(b) and has_residual(a) == has_residual(b)
+                    and self_collision(a) != self_collision(b)):
                 without, with_ = (a, b) if self_collision(b) else (b, a)
                 split = disagreements(without, with_)
                 effects.append({"without": label(without), "with": label(with_),
@@ -175,10 +186,26 @@ def main():
                 print(f"self-collision in {label(with_).split(',')[0]}: "
                       f"{effects[-1]['only_with_fell']} trials fall only with it, "
                       f"{effects[-1]['only_without_fell']} only without")
-    summary_path.write_text(json.dumps(
-        {"schema_version": 2, "robot": first["robot"], "protocol": first["protocol"],
-         "reports": rows, "comparisons": comparisons, "self_collision_effects": effects},
-        indent=2) + "\n")
+    residual_effects = []
+    for index, a in enumerate(reports):
+        for b in reports[index + 1:]:
+            if (is_rne(a) == is_rne(b) and self_collision(a) == self_collision(b)
+                    and has_residual(a) != has_residual(b)):
+                plain, trained = (a, b) if has_residual(b) else (b, a)
+                split = disagreements(plain, trained)
+                residual_effects.append({
+                    "without": label(plain), "with": label(trained),
+                    "falls_without": sum(t["fell"] for t in plain["push"]),
+                    "falls_with": sum(t["fell"] for t in trained["push"]),
+                    "only_without_fell": split["only_first_fell"],
+                    "only_with_fell": split["only_second_fell"]})
+                print(f"residual in {label(plain)}: falls {residual_effects[-1]['falls_without']} "
+                      f"-> {residual_effects[-1]['falls_with']}")
+    summary = {"schema_version": 2, "robot": first["robot"], "protocol": first["protocol"],
+               "reports": rows, "comparisons": comparisons, "self_collision_effects": effects}
+    if residual_effects:
+        summary["residual_effects"] = residual_effects
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n")
     figure_path.write_text(svg(reports, directions, first["protocol"]["forces_n"], first["robot"]))
 
 

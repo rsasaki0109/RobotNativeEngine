@@ -12,6 +12,7 @@ workspace = true
 
 [dependencies]
 rne_collision_bake = { workspace = true }
+rne_core = { workspace = true }
 rne_ecs = { workspace = true }
 rne_math = { workspace = true }
 rne_physics = { workspace = true }
@@ -23,5 +24,4 @@ thiserror = { workspace = true }
 
 [dev-dependencies]
 approx = "0.5"
-rne_core = { workspace = true }
 rne_physics_rapier = { workspace = true }
