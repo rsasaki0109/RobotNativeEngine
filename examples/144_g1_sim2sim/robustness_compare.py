@@ -40,10 +40,14 @@ def has_residual(report):
     return bool(report.get("residual"))
 
 
+def residual_model(report):
+    return report["residual"].get("model", "linear") if has_residual(report) else None
+
+
 def label(report):
     engine = "RNE" if is_rne(report) else "MuJoCo"
     text = f"{engine}, {'self-collision' if self_collision(report) else 'no self-collision'}"
-    return text + (", residual" if has_residual(report) else "")
+    return text + (f", {residual_model(report)} residual" if has_residual(report) else "")
 
 
 def fall_rates(report):
@@ -191,6 +195,7 @@ def main():
         for b in reports[index + 1:]:
             if (is_rne(a) == is_rne(b) and self_collision(a) == self_collision(b)
                     and has_residual(a) != has_residual(b)):
+                # Each residual against the same engine's plain policy.
                 plain, trained = (a, b) if has_residual(b) else (b, a)
                 split = disagreements(plain, trained)
                 residual_effects.append({

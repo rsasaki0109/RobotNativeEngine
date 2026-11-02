@@ -9,12 +9,14 @@ the physics steps of the pushed policy periods. Friction trials set every
 geom's sliding friction, since MuJoCo combines a contact's friction as the
 larger of its two geoms'. Each push trial lists the pairs of robot bodies
 that touched before the fall (MuJoCo skips parent-child pairs);
-`--no-self-collision` turns those contacts off. `--residual` adds the linear
-residual that example 144's `--train-residual` writes to every joint target,
-computed from the same observation as the policy's action, as RNE does.
+`--no-self-collision` turns those contacts off. `--residual` adds the
+residual (linear or MLP) that example 144's `--train-residual` writes to every
+joint target, computed from the same observation as the policy's action, as
+RNE does.
 
 Usage: mujoco_robustness.py UNITREE_RL_GYM RNE_REPORT.json OUTPUT.json
        [--processes 4] [--no-self-collision] [--residual RESIDUAL.json]
+       [--residual-generation G]
 """
 import argparse
 import json
@@ -30,16 +32,34 @@ from mujoco_reference import ROBOTS, Policy, projected_gravity
 
 
 class Residual:
-    """Example 144's linear residual: clip(W · obs[:5], ±limit) added to targets."""
+    """Example 144's residual, added to the joint targets.
+
+    Linear: clip(W · obs[:5], ±limit). MLP (`"model": "mlp"`):
+    limit · tanh(W2 · tanh(W1 · obs[indices] + b1)).
+    """
 
     def __init__(self, spec):
-        self.weights = np.array(spec["weights_rad"], np.float64)
         self.limit = float(spec["limit_rad"])
-        if self.weights.shape[1] != len(spec["features"]) or len(spec["features"]) != 5:
-            raise ValueError("the residual must read the first five observation entries")
+        self.mlp = spec.get("model") == "mlp"
+        if self.mlp:
+            self.indices = np.array(spec["observation_indices"], np.int64)
+            self.w1 = np.array(spec["w1"], np.float64)
+            self.b1 = np.array(spec["b1"], np.float64)
+            self.w2 = np.array(spec["w2"], np.float64)
+            if self.w1.shape != (len(self.b1), len(self.indices)) or \
+                    self.w2.shape[1] != len(self.b1):
+                raise ValueError("inconsistent MLP residual shapes")
+        else:
+            self.weights = np.array(spec["weights_rad"], np.float64)
+            if self.weights.shape[1] != len(spec["features"]) or len(spec["features"]) != 5:
+                raise ValueError("the residual must read the first five observation entries")
 
     def __call__(self, obs):
-        return np.clip(self.weights @ obs[:5].astype(np.float64), -self.limit, self.limit)
+        x = obs.astype(np.float64)
+        if self.mlp:
+            hidden = np.tanh(self.w1 @ x[self.indices] + self.b1)
+            return self.limit * np.tanh(self.w2 @ hidden)
+        return np.clip(self.weights @ x[:5], -self.limit, self.limit)
 
 
 # Per-process caches: compiling the scene (meshes and their hulls) and reading
@@ -172,6 +192,8 @@ def main():
                         help="let robot geoms collide only with the floor, as in RNE's model")
     parser.add_argument("--residual", type=Path,
                         help="training report from example 144's --train-residual")
+    parser.add_argument("--residual-generation", type=int,
+                        help="use the residual checkpoint stored at this generation")
     arguments = parser.parse_args()
     rne = json.loads(arguments.rne_report.read_text())
     robot, protocol = rne["robot"], rne["protocol"]
@@ -184,6 +206,12 @@ def main():
         if trained["robot"] != robot:
             raise SystemExit(f"{arguments.residual} was trained for {trained['robot']}")
         residual = trained["residual"]
+        if arguments.residual_generation is not None:
+            stored = {c["generation"]: c["residual"]
+                      for c in trained["training"].get("checkpoints", [])}
+            if arguments.residual_generation not in stored:
+                raise SystemExit(f"no checkpoint at generation {arguments.residual_generation}")
+            residual = stored[arguments.residual_generation]
     with multiprocessing.get_context("fork").Pool(arguments.processes) as pool:
         self_collision = not arguments.no_self_collision
         push = pool.map(push_trial, [(upstream, robot, protocol, c, self_collision, residual)
