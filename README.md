@@ -108,13 +108,13 @@ of a nominal kick, and a 10 m/s kick to the hip knocks it over.
 Unitree's unitree_rl_gym G1 walking policy, trained in Isaac Gym and deployed in
 MuJoCo, runs unchanged on RNE with the same 500 Hz PD loop. Over four commands
 its forward speed is within 0.02 m/s of MuJoCo's, its turn rate within
-0.007 rad/s and its pelvis height within 2 mm, and neither engine falls. The one
+0.011 rad/s and its pelvis height within 2 mm, and neither engine falls. The one
 large gap was a model bug the comparison exposed: four sensor frames picked up
 1 kg each in import, and the policy crouched under the extra 4 kg. One G1 runs
-at 22× real time with one solver iteration and 10× with four, against MuJoCo's
-24× on the same machine; bit-identical Rapier speedups made the four-iteration
-step 1.5× faster without changing a result. unitree_rl_gym's H1 policy walks the H1 the same way, within
-0.03 m/s of MuJoCo. Pushed at 20 forces from four directions, 91–95% of the
+at 26× real time with one solver iteration, faster than MuJoCo's `mj_step`
+alone (24×) on the same machine, and at 12× with four; push-recovery training
+simulates 16% more seconds per wall second than in MuJoCo. unitree_rl_gym's H1 policy walks the H1 the same way, within
+0.05 m/s of MuJoCo. Pushed at 20 forces from four directions, 93–95% of the
 640 trials per robot fall or recover as they do in MuJoCo; most of the rest
 are MuJoCo's legs colliding with each other, which RNE's walking models omit. The browser playground's **Physics walking** mode runs the G1 policy
 and physics as WebAssembly at real-time pace, steered from the keyboard.

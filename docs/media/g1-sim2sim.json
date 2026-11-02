@@ -10,17 +10,17 @@
     "fall_time_s": null,
     "fell": false,
     "final_base_position_m": [
-      -0.6041,
-      0.7549,
-      0.767
+      -0.5552,
+      0.7901,
+      0.7663
     ],
-    "forward_speed_error_m_s": -0.0216,
-    "mean_base_height_m": 0.7708,
-    "min_base_height_m": 0.7642,
-    "second_half_forward_speed_m_s": 0.2784,
-    "second_half_lateral_speed_m_s": -0.0222,
-    "second_half_yaw_rate_rad_s": 0.4554,
-    "yaw_rate_error_rad_s": -0.0446
+    "forward_speed_error_m_s": -0.0317,
+    "mean_base_height_m": 0.7705,
+    "min_base_height_m": 0.7637,
+    "second_half_forward_speed_m_s": 0.2683,
+    "second_half_lateral_speed_m_s": -0.0297,
+    "second_half_yaw_rate_rad_s": 0.4628,
+    "yaw_rate_error_rad_s": -0.0372
   },
   "mujoco": {
     "fall_time_s": null,
@@ -40,14 +40,14 @@
   },
   "policy_weights_sha256": "77056bd2f7f819cba00d5b6b76eb2ec66d42d8b4a4f5b258aeac8ea655c2875a",
   "artifacts": {
-    "gif_sha256": "e79a9372eba7345b29ac2544981483e1e7e574630bc28865c73877745560cf2d",
-    "poster_sha256": "c5812520c3f052e5f72cab1e93d8acea94e4e32655354f20c9b04cae27e43098",
+    "gif_sha256": "60e59c64bfe7f09e1096bc687bbbd475b083aa212183e5854c6769315e034d4d",
+    "poster_sha256": "f4961a0e9bf3cc09efaab6be44f6706ba2600a4e5c48d3f91e90c410e6354a56",
     "frame_count": 125,
     "width": 960,
     "height": 540,
     "gif_duration_ms": 10000
   },
-  "trace_sha256": "427172dadfd8dc21707d46f5bf7eb1fff8d1983edc97239fc85b680f1b5f55f8",
+  "trace_sha256": "8870d321453ab7f1f4ed915019d9a3a66b78605f7dd59c06d39ce0144227df8e",
   "provenance": [
     "assets/policies/unitree_g1_walk",
     "assets/robots/g1_description/UPSTREAM.md"
