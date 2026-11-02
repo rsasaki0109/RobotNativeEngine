@@ -19,8 +19,10 @@ beside the URDF. The ten leg links, their joints, limits and collision meshes
 are unchanged. `../unitree_h1_walk.rne.robot.toml` gives every link the convex
 hull of its collision mesh, as MuJoCo does for mesh geoms. The links collide
 with the floor only. In the upstream MuJoCo scene they also collide with each
-other (except parent and child); RNE's `self_collisions` switch would also
-collide each link with its parent, so it stays off. An undisturbed walk touches
-the floor only with the feet on both engines; after a hard push MuJoCo's legs
-can strike each other (example 144's robustness sweep). The pretrained
+other (except parent and child). An undisturbed walk touches the floor only
+with the feet on both engines; after a hard push MuJoCo's legs can strike each
+other (example 144's robustness sweep).
+`../unitree_h1_walk_self_collision.rne.robot.toml` collides them as MuJoCo
+does: `self_collisions = true` with `parent_child_collisions = false`. The
+pretrained
 policy that drives it is under `assets/policies/unitree_h1_walk`.

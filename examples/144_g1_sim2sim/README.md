@@ -118,45 +118,71 @@ from the protocol recorded in RNE's report.
 - **Friction.** Ten-second walks with the floor's and the robot's friction
   set to each coefficient from 1.0 down to 0.1.
 
-![G1: share of the eight gait phases that fell, by push force, for RNE, MuJoCo and MuJoCo without self-collision](../../docs/media/g1-sim2sim-robustness.svg)
+![G1: share of the eight gait phases that fell, by push force, for RNE and MuJoCo with and without self-collision](../../docs/media/g1-sim2sim-robustness.svg)
 
 ![H1: the same for the H1](../../docs/media/h1-sim2sim-robustness.svg)
 
-The force at which half the gait phases fall, interpolated between the grid
-forces, and the share of the 640 trials that end as they do in RNE:
+Each engine runs with and without self-collision: the robot's links colliding
+with each other, except a link and its parent. MuJoCo's MJCF ships with it;
+RNE's walking models (above) run without it, and `--self-collision` turns it
+on (below). The force at which half the gait phases fall, interpolated
+between the grid forces, and the share of the 640 trials that end as they do
+in MuJoCo with self-collision:
 
-| Robot and engine | Forward (N) | Backward (N) | Left (N) | Right (N) | Same outcome as RNE |
+| Robot and engine | Forward (N) | Backward (N) | Left (N) | Right (N) | Same outcome as MuJoCo, self-collision |
 | --- | --- | --- | --- | --- | --- |
-| G1, RNE | 513 | 650 | 450 | 500 | — |
-| G1, MuJoCo, MJCF as shipped | 517 | 650 | 450 | 283 | 94.7% |
+| G1, MuJoCo, self-collision (MJCF as shipped) | 517 | 650 | 450 | 283 | — |
+| G1, RNE, self-collision | 450 | 625 | 400 | 275 | 95.8% |
+| G1, RNE, no self-collision | 513 | 650 | 450 | 500 | 94.7% |
 | G1, MuJoCo, no self-collision | 570 | 650 | 450 | 400 | 95.0% |
-| H1, RNE | 1040 | 933 | 720 | 800 | — |
-| H1, MuJoCo, MJCF as shipped | 987 | 800 | 587 | 680 | 91.1% |
+| H1, MuJoCo, self-collision (MJCF as shipped) | 987 | 800 | 587 | 680 | — |
+| H1, RNE, self-collision | 1000 | 920 | 560 | 720 | 93.4% |
+| H1, RNE, no self-collision | 1040 | 933 | 720 | 800 | 91.1% |
 | H1, MuJoCo, no self-collision | 1013 | 840 | 680 | 800 | 94.4% |
 
-- **The G1 agrees in three directions.** Forward, backward and left, the
-  fall forces differ by at most 1%.
-- **Most disagreements are MuJoCo's legs colliding with each other.** The
-  MJCF lets every leg mesh collide with the other leg's and with the pelvis
-  (MuJoCo skips only parent and child); RNE's G1 collides only its feet, and
-  the H1's links collide only with the floor. In an undisturbed walk no robot
-  body touches another on either engine, but a hard push can swing one leg
-  into the other. In all 31 G1 trials where only MuJoCo fell, its legs touched
-  before the fall, mostly knee against knee; so did 46 of the H1's 52, mostly
-  ankle against ankle. With MuJoCo's self-collision off (`--no-self-collision`;
-  the robot still collides with the floor), 32 of its G1 falls and 44 of its H1
-  falls do not happen and 3 H1 falls appear. The G1's right push moves from
-  283 to 400 N, and the H1's left and right pushes from 587 and 680 N to 680 and
-  800 N.
-- **What is left goes both ways.** Without self-collision, 18 G1 trials fall
-  only in RNE and 14 only in MuJoCo (H1: 15 and 21). The G1's forward and
-  right pushes (513 vs 570 N, 500 vs 400 N) and the H1's backward push (933 vs
-  840 N) still differ by 11–25%. Contact (rigid in Rapier, soft in MuJoCo) and RNE's
-  smoothed joint friction are the known modelling differences left; neither
-  has been isolated as the cause.
+- **Without self-collision, the G1 agrees in three directions.** Forward,
+  backward and left, the fall forces differ by at most 1%; the right push does
+  not (500 vs 283 N).
+- **That gap is the legs colliding with each other.** In an undisturbed walk
+  no robot body touches another on either engine, but a hard push can swing
+  one leg into the other. In all 31 G1 trials where only MuJoCo fell, its legs
+  touched before the fall, mostly knee against knee; so did 46 of the H1's
+  52, mostly ankle against ankle. With MuJoCo's self-collision off
+  (`--no-self-collision`; the robot still collides with the floor), 32 of its
+  G1 falls and 44 of its H1 falls do not happen and 3 H1 falls appear.
+- **With self-collision in RNE, the right push matches.** The G1 falls at
+  275 N against MuJoCo's 283 N, the H1's left and right pushes move from 720
+  and 800 N to 560 and 720 N against 587 and 680 N, and agreement rises to
+  95.8% and 93.4%. Self-collision makes 49 G1 and 39 H1 trials fall in RNE
+  (and saves 2 H1 trials); MuJoCo also falls in 28 of each.
+- **Now RNE falls a little earlier.** With self-collision on both engines, 24
+  G1 trials fall only in RNE and 3 only in MuJoCo (H1: 16 and 26); the G1's
+  forward and left pushes fall at 450 and 400 N against 517 and 450 N. In 19
+  of those 24 G1 trials MuJoCo's legs touched too and it recovered, so the two
+  engines differ in what a contact between the legs does, not in whether it
+  happens. Contact (rigid in Rapier, soft in MuJoCo) and RNE's smoothed joint
+  friction are the known modelling differences left; neither has been
+  isolated as the cause.
+
+**Self-collision in RNE.** `parent_child_collisions = false` in a robot
+asset's `[urdf]` table marks every URDF joint's child link with
+`rne_physics::ParentCollisionExclusion`, and Rapier then creates that joint
+with contacts between its two bodies disabled, as MuJoCo filters parent and
+child; `self_collisions = true` keeps every other pair. The H1 variant
+(`unitree_h1_walk_self_collision.rne.robot.toml`) only changes those two
+settings. The G1 variant also gives each leg link the convex hull of its mesh
+(`g1_12dof_hulls.rne.urdf`, written by `prepare_model.py --robot g1_hulls`);
+its merged pelvis keeps no collision geometry, whereas the MJCF's pelvis
+collides through its torso, head, arm and contour meshes; none of the contacts
+in the 31 G1 trials where only MuJoCo fell involved the pelvis. An undisturbed
+walk is unchanged: the H1's records are byte-identical with and without
+self-collision, and the G1's agree to the third decimal of every walking
+metric (its extra leg colliders change the order in which Rapier solves the
+foot contacts). It costs the G1 30% more instructions per step and the H1
+none.
 
 Second-half forward speed (m/s, command 0.5) on lowered friction; the rows are
-the same with MuJoCo's self-collision off:
+the same, to 0.001 m/s, with either engine's self-collision switched:
 
 | Friction | 1.0 | 0.5 | 0.3 | 0.25 | 0.2 | 0.15 | 0.1 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -170,22 +196,25 @@ The H1 still walks at 0.25 in RNE but falls in MuJoCo.
 
 ```bash
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness   # target/g1-sim2sim/g1-robustness.json
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness --self-collision
 python3 examples/144_g1_sim2sim/mujoco_robustness.py UNITREE_RL_GYM \
   target/g1-sim2sim/g1-robustness.json target/g1-sim2sim/g1-robustness-mujoco.json
 python3 examples/144_g1_sim2sim/mujoco_robustness.py UNITREE_RL_GYM \
   target/g1-sim2sim/g1-robustness.json target/g1-sim2sim/g1-robustness-mujoco-noself.json \
   --no-self-collision
-python3 examples/144_g1_sim2sim/robustness_compare.py target/g1-sim2sim/g1-robustness.json \
-  target/g1-sim2sim/g1-robustness-mujoco.json docs/media/g1-sim2sim-robustness.json \
-  docs/media/g1-sim2sim-robustness.svg \
-  --variant target/g1-sim2sim/g1-robustness-mujoco-noself.json "MuJoCo, no self-collision"
+python3 examples/144_g1_sim2sim/robustness_compare.py docs/media/g1-sim2sim-robustness.json \
+  docs/media/g1-sim2sim-robustness.svg target/g1-sim2sim/g1-robustness-self-collision.json \
+  target/g1-sim2sim/g1-robustness.json target/g1-sim2sim/g1-robustness-mujoco.json \
+  target/g1-sim2sim/g1-robustness-mujoco-noself.json
 # The H1: --robot h1, and h1- in every file name.
 ```
 
 The summaries ([G1](../../docs/media/g1-sim2sim-robustness.json),
-[H1](../../docs/media/h1-sim2sim-robustness.json)) hold the protocol, the fall
-shares per force, the full friction sweep and the self-contact pairs. Both
-engines are deterministic: rerunning a sweep reproduces every outcome.
+[H1](../../docs/media/h1-sim2sim-robustness.json)) hold the protocol, each
+report's fall shares and friction sweep, every RNE–MuJoCo comparison with
+MuJoCo's self-contact pairs, and what self-collision changes within each
+engine. Both engines are deterministic: rerunning a sweep reproduces every
+outcome.
 
 ## Real time
 
@@ -239,6 +268,12 @@ engine ("before"), this one and MuJoCo in turn:
   backend already decoded after the step. Instructions for 2 s of walking fall
   another 8% at one iteration (826 M to 760 M) and 3.4% at four (1.92 G to
   1.86 G), with byte-identical walk records.
+- **The raycast index.** RNE rebuilt Rapier's raycast index twice every step,
+  and each rebuild scans every vertex of every convex hull for its bounding
+  box. The index now waits for the next raycast. Rapier's dynamics never read
+  it, so walk records stay byte-identical; the H1, whose links are hulls, needs
+  22% fewer instructions for 2 s of walking (2.27 G to 1.78 G), and the G1,
+  whose feet are spheres, 0.4% fewer.
 
 ```bash
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --throughput --output target/g1-sim2sim
@@ -282,8 +317,9 @@ shares its walking metrics with Rust through `metrics.py`.
   the comparison is sensitive to contact modelling, and these four commands,
   the pushes and the friction sweep on flat ground are the whole test.
 - RNE's walking models do not collide the robot's links with each other, so a
-  push that swings one leg into the other passes through in RNE, where
-  MuJoCo's legs collide ([Robustness](#robustness)).
+  push that swings one leg into the other passes through, where MuJoCo's legs
+  collide. `--self-collision` collides them; the G1's merged pelvis still
+  does not collide ([Robustness](#robustness)).
 - RNE regularizes `frictionloss` as `0.1 · tanh(q̇ / 0.05)`; MuJoCo treats it
   as a constraint.
 - Observations are ideal simulator state. There is no sensor noise, latency or

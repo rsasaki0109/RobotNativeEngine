@@ -193,6 +193,19 @@ topology; native MuJoCo runtime qualification is a separate check. These gates
 do not establish hardware behavior or qualify the existing warehouse GIF as a
 contact-physics experiment.
 
+### Parent-child exclusion
+
+`ParentCollisionExclusion` on an entity with a revolute, prismatic or fixed
+joint description excludes contacts between that joint's two bodies and no
+other pair, so a robot can collide its links with each other the way MJCF
+does: every pair except a body and its parent. Rapier creates the joint with
+contacts disabled, for impulse and multibody joints alike, and reads the
+marker only then. The native backend already skips both sides of every joint.
+A robot asset sets `parent_child_collisions = false` in its `[urdf]` table to
+mark every URDF joint's child link; with `self_collisions = true` the other
+pairs keep colliding. Unmarked joints keep Rapier's default, which lets the
+two bodies collide, so existing scenes are unchanged.
+
 ### Prescribed moving bases in contact
 
 `BaseMotion` supplies the inertial effects of a moving fixed base to RNEA/ABA,

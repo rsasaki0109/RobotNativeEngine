@@ -3,7 +3,8 @@
 use crate::error::AssetError;
 use crate::robot::{
     parse_robot_asset_collision_parts, parse_robot_asset_convex_collisions,
-    parse_robot_asset_passive_dynamics, LidarRobotAsset, RobotAsset, RobotKind,
+    parse_robot_asset_parent_child_collisions, parse_robot_asset_passive_dynamics, LidarRobotAsset,
+    RobotAsset, RobotKind,
 };
 use crate::scene::{
     ObstacleBodyType, SceneAsset, SceneCollisionAsset, SceneDeformableAsset,
@@ -14,7 +15,8 @@ use rne_data::StreamId;
 use rne_ecs::{spawn_named, Entity, World};
 use rne_math::{Quat, Vec3};
 use rne_physics::{
-    Collider, ColliderShape, JointPassiveDynamics, PhysicsMaterial, RigidBody, RigidBodyType,
+    Collider, ColliderShape, JointPassiveDynamics, ParentCollisionExclusion, PhysicsMaterial,
+    RigidBody, RigidBodyType,
 };
 use rne_render::{Visual, VisualShape};
 use rne_robot::{spawn_diff_drive_robot, DiffDriveSpawned, Link};
@@ -35,7 +37,7 @@ use std::path::{Path, PathBuf};
 /// Entries under a URDF path hold that URDF's XML. An entry under a robot
 /// asset (`.rne.robot.toml`) path holds that asset's TOML text; spawning reads
 /// its extension sections (compound collision parts, convex mesh collisions,
-/// joint passive-dynamics overrides) from it when no file exists at the path,
+/// parent-child collisions, joint passive-dynamics overrides) from it when no file exists at the path,
 /// so a scene built entirely from memory keeps them.
 pub type UrdfSourceMap<'a> = HashMap<PathBuf, &'a str>;
 
@@ -231,6 +233,17 @@ pub fn spawn_robot_asset_with_sources(
                     .map_err(|error| {
                         AssetError::invalid(asset_path.display().to_string(), error.to_string())
                     })?;
+            }
+            let parent_child_collisions = match &extension_text {
+                Some(text) => parse_robot_asset_parent_child_collisions(text, asset_path)?,
+                None => true,
+            };
+            if !parent_child_collisions {
+                for joint in &document.robot.joints {
+                    if let Some(&child) = spawned.links.get(&joint.child) {
+                        world.entity_mut(child).insert(ParentCollisionExclusion);
+                    }
+                }
             }
             if wire_articulation && section.articulation {
                 attach_urdf_document_articulation(
@@ -1040,6 +1053,60 @@ coulomb_transition_velocity_rad_s = 0.04
             })
         );
 
+        let _ = std::fs::remove_dir_all(&directory);
+    }
+
+    #[test]
+    fn urdf_robot_marks_joint_children_when_parent_child_collisions_are_off() {
+        let urdf_text = r#"
+<robot name="leg">
+  <link name="hip"/>
+  <link name="thigh"/>
+  <link name="shin"/>
+  <joint name="hip_pitch" type="revolute">
+    <parent link="hip"/>
+    <child link="thigh"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1" upper="1" effort="2" velocity="2"/>
+  </joint>
+  <joint name="knee" type="revolute">
+    <parent link="thigh"/>
+    <child link="shin"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1" upper="1" effort="2" velocity="2"/>
+  </joint>
+</robot>
+"#;
+        let directory = std::env::temp_dir().join(format!(
+            "rne_assets_parent_child_collisions_{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&directory).unwrap();
+        std::fs::write(directory.join("leg.urdf"), urdf_text).unwrap();
+        for (setting, marked) in [("", false), ("parent_child_collisions = false\n", true)] {
+            let robot_path = directory.join("leg.rne.robot.toml");
+            std::fs::write(
+                &robot_path,
+                format!(
+                    "kind = \"urdf\"\nmodel_name = \"leg\"\n\n[urdf]\npath = \"leg.urdf\"\n\
+                     articulation = true\nmultibody = true\n{setting}"
+                ),
+            )
+            .unwrap();
+            let asset = crate::load_robot_asset(&robot_path).unwrap();
+            let mut world = World::new();
+            let (spawned, _) = spawn_robot_asset(&mut world, &robot_path, &asset, None).unwrap();
+            let links = collect_robot_links(&mut world, spawned.robot);
+            for (name, child) in [("hip", false), ("thigh", true), ("shin", true)] {
+                assert_eq!(
+                    world
+                        .get::<rne_physics::ParentCollisionExclusion>(links[name])
+                        .is_some(),
+                    marked && child,
+                    "{name} with `{setting}`"
+                );
+            }
+        }
         let _ = std::fs::remove_dir_all(&directory);
     }
 

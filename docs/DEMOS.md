@@ -626,6 +626,10 @@ the H1's end the same way on both engines, and the G1's fall forces agree
 within 1% in three directions. Most disagreements are MuJoCo's legs colliding
 with each other after a push, which its MJCF allows and RNE's walking models
 do not: with that switched off in MuJoCo, agreement rises to 95.0% and 94.4%.
+`--self-collision` lets RNE's links collide too, except a link and its parent
+as in MJCF: the G1's right push then topples it at 275 N against MuJoCo's
+283 N (500 N without), and agreement with MuJoCo as shipped rises to 95.8%
+and 93.4%.
 The browser playground's Physics walking mode runs the same G1 policy and
 physics as WebAssembly in real time: in headless Chromium without a GPU the
 real-time factor held 0.99–1.01 with physics and policy using under a third of
@@ -636,6 +640,7 @@ cargo run --release -p g1_sim2sim --example 144_g1_sim2sim
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --timing
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --throughput
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness --self-collision
 ```
 
 See [the method, results and limits](../examples/144_g1_sim2sim/README.md) and

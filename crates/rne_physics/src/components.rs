@@ -424,6 +424,21 @@ pub struct SelfCollisionExclusion {
     pub owner: Entity,
 }
 
+/// Excludes contacts between this entity's rigid body and its joint parent.
+///
+/// Put it on an entity carrying a [`RevoluteJointDesc`], [`PrismaticJointDesc`]
+/// or [`FixedJointDesc`]: the two bodies that joint connects never collide,
+/// as an MJCF body never collides with its parent. Every other pair of the
+/// robot keeps its [`CollisionGroups`] and [`SelfCollisionExclusion`] policy,
+/// so a robot whose links collide with each other can skip only the pairs that
+/// overlap at their joints.
+///
+/// The native backend already skips the two sides of every joint. Rapier
+/// collides them unless this marker is present when it creates the joint;
+/// adding or removing it afterwards does not change an existing joint.
+#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ParentCollisionExclusion;
+
 /// Physical surface material.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsMaterial {

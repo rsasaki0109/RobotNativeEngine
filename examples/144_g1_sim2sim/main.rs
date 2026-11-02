@@ -9,6 +9,7 @@
 //! cargo run --release --example 144_g1_sim2sim -- --timing     # solver iteration sweep
 //! cargo run --release --example 144_g1_sim2sim -- --throughput # 1–8 walkers on threads
 //! cargo run --release --example 144_g1_sim2sim -- --robustness # push and friction sweeps
+//! cargo run --release --example 144_g1_sim2sim -- --robustness --self-collision # MJCF collisions
 //! cargo run --release --example 144_g1_sim2sim -- --command 0.5,0,0 --seconds 20
 //! cargo run --release --example 144_g1_sim2sim -- --render target/g1-sim2sim-render
 //! ```
@@ -81,6 +82,7 @@ fn parse() -> Result<Options> {
             "--solver-iterations" => options.plant.solver_iterations = value()?.parse()?,
             "--armature" => options.plant.armature_kg_m2 = value()?.parse()?,
             "--floor-friction" => options.plant.floor_friction = value()?.parse()?,
+            "--self-collision" => options.plant.self_collision = true,
             "--timing" => options.timing = true,
             "--throughput" => options.throughput = true,
             "--robustness" => options.robustness = true,
@@ -247,7 +249,8 @@ fn report(
         "label": label, "command": command, "seconds": seconds,
         "plant": {"solver_iterations": plant.solver_iterations, "armature_kg_m2": plant.armature_kg_m2,
                   "joint_damping_nm_s_per_rad": plant.joint_damping_nm_s_per_rad,
-                  "joint_friction_nm": plant.joint_friction_nm, "floor_friction": plant.floor_friction},
+                  "joint_friction_nm": plant.joint_friction_nm, "floor_friction": plant.floor_friction,
+                  "self_collision": plant.self_collision},
         "rne": summary, "mujoco": mujoco,
         "wall_s": run.wall_s, "realtime_factor": realtime_factor,
         "torque_saturated_fraction": saturation,
@@ -340,9 +343,14 @@ fn main() -> Result<()> {
     if options.robustness {
         let start = Instant::now();
         let report = robustness::sweep(options.robot, options.plant, options.threads)?;
+        let suffix = if options.plant.self_collision {
+            "-self-collision"
+        } else {
+            ""
+        };
         let path = options
             .output
-            .join(format!("{}-robustness.json", options.robot.name()));
+            .join(format!("{}-robustness{suffix}.json", options.robot.name()));
         std::fs::write(&path, serde_json::to_string_pretty(&report)? + "\n")?;
         println!(
             "wrote {} in {:.0} s",

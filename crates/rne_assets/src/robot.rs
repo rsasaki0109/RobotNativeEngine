@@ -234,12 +234,14 @@ pub struct UrdfJointPassiveDynamicsAsset {
     pub coulomb_transition_velocity_m_s: Option<f64>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 struct UrdfRobotAssetExtensions {
     #[serde(default)]
     preserve_collision_parts: bool,
     #[serde(default)]
     convex_mesh_collisions: bool,
+    #[serde(default = "default_true")]
+    parent_child_collisions: bool,
     #[serde(default)]
     joint_passive_dynamics: Vec<UrdfJointPassiveDynamicsAsset>,
 }
@@ -379,6 +381,23 @@ pub fn parse_robot_asset_convex_collisions(text: &str, path: &Path) -> Result<bo
     Ok(extensions
         .urdf
         .is_some_and(|urdf| urdf.convex_mesh_collisions))
+}
+
+/// Parses `urdf.parent_child_collisions` (default true) without changing public asset structs.
+///
+/// False marks the child link of every URDF joint with
+/// [`rne_physics::ParentCollisionExclusion`], so a link never collides with its
+/// parent, as in MJCF, while `self_collisions` keeps the other pairs of links
+/// colliding.
+pub fn parse_robot_asset_parent_child_collisions(
+    text: &str,
+    path: &Path,
+) -> Result<bool, AssetError> {
+    let extensions: RobotAssetExtensions = toml::from_str(text)
+        .map_err(|error| AssetError::invalid(path.display().to_string(), error.to_string()))?;
+    Ok(extensions
+        .urdf
+        .is_none_or(|urdf| urdf.parent_child_collisions))
 }
 
 /// Loads validated passive-dynamics extensions retained in a robot asset TOML.
@@ -647,6 +666,20 @@ coulomb_transition_velocity_rad_s = 0.04
             Path::new("test.toml")
         )
         .is_err());
+    }
+
+    #[test]
+    fn parent_child_collision_extension_defaults_on_and_rejects_wrong_type() {
+        let path = Path::new("test.toml");
+        assert!(parse_robot_asset_parent_child_collisions(URDF, path).unwrap());
+        assert!(parse_robot_asset_parent_child_collisions("kind = \"urdf\"\n", path).unwrap());
+        let text = format!("{URDF}\nparent_child_collisions = false\n");
+        parse_robot_asset(&text, path).unwrap();
+        assert!(!parse_robot_asset_parent_child_collisions(&text, path).unwrap());
+        assert!(
+            parse_robot_asset_parent_child_collisions(&text.replace("= false", "= 42"), path)
+                .is_err()
+        );
     }
 
     #[test]
