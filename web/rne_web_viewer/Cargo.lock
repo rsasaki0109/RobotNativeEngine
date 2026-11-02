@@ -2426,6 +2426,7 @@ name = "rne_urdf_import"
 version = "0.4.0"
 dependencies = [
  "rne_collision_bake",
+ "rne_core",
  "rne_ecs",
  "rne_math",
  "rne_physics",
