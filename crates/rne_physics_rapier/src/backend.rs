@@ -56,7 +56,7 @@ const CAPABILITIES: &[PhysicsCapability] = &[
 
 /// Rapier-backed physics simulation.
 pub struct RapierBackend {
-    worlds: HashMap<PhysicsWorldId, RapierWorldState>,
+    worlds: FastMap<PhysicsWorldId, RapierWorldState>,
     next_world_id: u32,
     /// Convex hulls this backend built, reused for identical vertex lists.
     convex_hulls: ConvexHullCache,
@@ -135,6 +135,11 @@ struct RapierWorldState {
     collider_owners: FastMap<ColliderHandle, Entity>,
     entity_to_joint: FastMap<Entity, ImpulseJointHandle>,
     entity_to_multibody_joint: FastMap<Entity, MultibodyJointHandle>,
+    /// Bodies in entity order, rebuilt after a body is added.
+    sorted_bodies: Option<Vec<(Entity, RigidBodyHandle)>>,
+    /// Entities with an impulse or multibody joint, sorted, rebuilt after a
+    /// joint is added or removed.
+    sorted_joint_entities: Option<Vec<Entity>>,
     /// Welds on articulated links: a [`FixedJointDesc`] on an entity whose own
     /// articulation joint is revolute or prismatic becomes an extra impulse joint,
     /// closing a loop, while the articulation joint keeps its coordinate.
@@ -222,6 +227,8 @@ fn new_world_state(id: PhysicsWorldId, desc: PhysicsWorldDesc) -> RapierWorldSta
         collider_owners: FastMap::default(),
         entity_to_joint: FastMap::default(),
         entity_to_multibody_joint: FastMap::default(),
+        sorted_bodies: None,
+        sorted_joint_entities: None,
         entity_to_attachment: FastMap::default(),
         contacts: Vec::new(),
         contact_points: Vec::new(),
@@ -316,7 +323,7 @@ impl RapierBackend {
     /// Creates a new Rapier backend with default capabilities.
     pub fn new() -> Self {
         Self {
-            worlds: HashMap::new(),
+            worlds: FastMap::default(),
             next_world_id: 0,
             convex_hulls: ConvexHullCache::default(),
         }
@@ -769,10 +776,10 @@ impl PhysicsBackend for RapierBackend {
         // is composed once for the whole pass.
         let mut transforms = WorldTransformCache::new();
         for &entity in &entities {
-            let transform = transforms.get(world, entity);
             let Some(rigid_body) = world.get::<RigidBody>(entity) else {
                 continue;
             };
+            let transform = transforms.get(world, entity);
             let collider = world.get::<Collider>(entity);
             if world.get::<CompoundCollider>(entity).is_some_and(|parts| {
                 collider.is_none()
@@ -885,6 +892,7 @@ impl PhysicsBackend for RapierBackend {
 
             let body_handle = state.bodies.insert(builder.build());
             state.entity_to_body.insert(entity, body_handle);
+            state.sorted_bodies = None;
             state.body_to_entity.insert(body_handle, entity);
             if let Some(collider) = collider {
                 let collider_handle = state.colliders.insert_with_parent(
@@ -1064,106 +1072,35 @@ impl PhysicsBackend for RapierBackend {
         world: &mut World,
         physics_world: PhysicsWorldId,
     ) -> Result<(), PhysicsError> {
-        #[cfg(feature = "position-motor-diagnostics")]
         let state = self.world_mut(physics_world)?;
-        #[cfg(not(feature = "position-motor-diagnostics"))]
-        let state = self.world(physics_world)?;
 
         // Write back in a stable parent-before-child order (entities are created
         // root-first, so ascending id keeps a parent's transform fresh before a
         // child reads it for its local-frame conversion). This avoids the
         // order-dependent drift that HashMap iteration would introduce.
-        let mut bodies: Vec<(Entity, RigidBodyHandle)> = state
-            .entity_to_body
-            .iter()
-            .map(|(entity, handle)| (*entity, *handle))
-            .collect();
-        bodies.sort_unstable_by_key(|(entity, _)| *entity);
-
-        for (entity, body_handle) in bodies {
-            let Some(body) = state.bodies.get(body_handle) else {
-                continue;
-            };
-            if body.body_type() != rapier3d::prelude::RigidBodyType::Dynamic {
-                continue;
-            }
-
-            let world_tf = isometry_to_transform(body.position());
-            let parent_entity = world.get::<Parent>(entity).map(|parent| parent.0);
-            let local_tf = if let Some(parent_entity) = parent_entity {
-                let parent_world = world_transform_of(world, parent_entity);
-                world_to_local_transform(&parent_world, &world_tf)
-            } else {
-                world_tf
-            };
-            if let Some(mut transform) = world.get_mut::<Transform3>(entity) {
-                *transform = local_tf;
-            }
-            if let Some(mut rigid_body) = world.get_mut::<RigidBody>(entity) {
-                rigid_body.linear_velocity_m_s = vec3_from_rapier(*body.linvel());
-                rigid_body.angular_velocity_rad_s = vec3_from_rapier(*body.angvel());
-            }
-        }
-
-        let mut joint_entities = state
-            .entity_to_multibody_joint
-            .keys()
-            .chain(state.entity_to_joint.keys())
-            .copied()
-            .collect::<Vec<_>>();
-        joint_entities.sort_unstable();
-        joint_entities.dedup();
-        let joint_states = joint_entities
-            .into_iter()
-            .filter_map(|entity| {
-                // A weld on an articulated revolute or prismatic link leaves its
-                // coordinate measurable; only a joint that is fixed itself reports
-                // `Fixed`.
-                if world.get::<FixedJointDesc>(entity).is_some()
-                    && !has_articulated_coordinate(world, entity)
-                {
-                    return Some((entity, JointState::Fixed));
-                }
-                let (position, velocity) = multibody_joint_coordinate(state, entity)?;
-                if world.get::<RevoluteJointDesc>(entity).is_some() {
-                    Some((
-                        entity,
-                        JointState::Revolute {
-                            position_rad: position,
-                            velocity_rad_s: velocity,
-                        },
-                    ))
-                } else if world.get::<PrismaticJointDesc>(entity).is_some() {
-                    Some((
-                        entity,
-                        JointState::Prismatic {
-                            position_m: position,
-                            velocity_m_s: velocity,
-                        },
-                    ))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-        for (entity, joint_state) in joint_states {
-            world.entity_mut(entity).insert(joint_state);
-        }
-        let mut measured_entities = state
-            .entity_to_multibody_joint
-            .keys()
-            .chain(state.entity_to_joint.keys())
-            .copied()
-            .collect::<Vec<_>>();
-        measured_entities.sort_unstable();
-        measured_entities.dedup();
-        for entity in measured_entities {
-            if let Some(measurement) = state.completed_joint_efforts.get(&entity).copied() {
-                world.entity_mut(entity).insert(measurement);
-            } else {
-                world.entity_mut(entity).remove::<JointEffortMeasurement>();
-            }
-        }
+        let bodies = state.sorted_bodies.take().unwrap_or_else(|| {
+            let mut bodies: Vec<(Entity, RigidBodyHandle)> = state
+                .entity_to_body
+                .iter()
+                .map(|(entity, handle)| (*entity, *handle))
+                .collect();
+            bodies.sort_unstable_by_key(|(entity, _)| *entity);
+            bodies
+        });
+        let joint_entities = state.sorted_joint_entities.take().unwrap_or_else(|| {
+            let mut entities = state
+                .entity_to_multibody_joint
+                .keys()
+                .chain(state.entity_to_joint.keys())
+                .copied()
+                .collect::<Vec<_>>();
+            entities.sort_unstable();
+            entities.dedup();
+            entities
+        });
+        write_back_bodies_and_joints(world, state, &bodies, &joint_entities);
+        state.sorted_bodies = Some(bodies);
+        state.sorted_joint_entities = Some(joint_entities);
         #[cfg(feature = "position-motor-diagnostics")]
         sync_position_motor_diagnostics_to_ecs(world, state);
 
@@ -1541,6 +1478,101 @@ fn normalized_axis(axis: Vec3) -> Unit<Vector3<f32>> {
 }
 
 /// Returns all live entities sorted by id for deterministic backend iteration.
+/// Writes dynamic bodies' poses and velocities and joint states and efforts
+/// back to the ECS, in entity order.
+fn write_back_bodies_and_joints(
+    world: &mut World,
+    state: &RapierWorldState,
+    bodies: &[(Entity, RigidBodyHandle)],
+    joint_entities: &[Entity],
+) {
+    for &(entity, body_handle) in bodies {
+        let Some(body) = state.bodies.get(body_handle) else {
+            continue;
+        };
+        if body.body_type() != rapier3d::prelude::RigidBodyType::Dynamic {
+            continue;
+        }
+
+        let world_tf = isometry_to_transform(body.position());
+        let parent_entity = world.get::<Parent>(entity).map(|parent| parent.0);
+        let local_tf = if let Some(parent_entity) = parent_entity {
+            let parent_world = world_transform_of(world, parent_entity);
+            world_to_local_transform(&parent_world, &world_tf)
+        } else {
+            world_tf
+        };
+        if let Some(mut transform) = world.get_mut::<Transform3>(entity) {
+            *transform = local_tf;
+        }
+        if let Some(mut rigid_body) = world.get_mut::<RigidBody>(entity) {
+            rigid_body.linear_velocity_m_s = vec3_from_rapier(*body.linvel());
+            rigid_body.angular_velocity_rad_s = vec3_from_rapier(*body.angvel());
+        }
+    }
+
+    let joint_states = joint_entities
+        .iter()
+        .copied()
+        .filter_map(|entity| {
+            // A weld on an articulated revolute or prismatic link leaves its
+            // coordinate measurable; only a joint that is fixed itself reports
+            // `Fixed`.
+            if world.get::<FixedJointDesc>(entity).is_some()
+                && !has_articulated_coordinate(world, entity)
+            {
+                return Some((entity, JointState::Fixed));
+            }
+            let (position, velocity) = multibody_joint_coordinate(state, entity)?;
+            if world.get::<RevoluteJointDesc>(entity).is_some() {
+                Some((
+                    entity,
+                    JointState::Revolute {
+                        position_rad: position,
+                        velocity_rad_s: velocity,
+                    },
+                ))
+            } else if world.get::<PrismaticJointDesc>(entity).is_some() {
+                Some((
+                    entity,
+                    JointState::Prismatic {
+                        position_m: position,
+                        velocity_m_s: velocity,
+                    },
+                ))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    // Overwrite components in place where they exist: inserting over an
+    // existing component takes bevy's slower archetype path for the same
+    // result (no component hooks are registered for these).
+    for (entity, joint_state) in joint_states {
+        match world.get_mut::<JointState>(entity) {
+            Some(mut existing) => *existing = joint_state,
+            None => {
+                world.entity_mut(entity).insert(joint_state);
+            }
+        }
+    }
+    for &entity in joint_entities {
+        match state.completed_joint_efforts.get(&entity).copied() {
+            Some(measurement) => match world.get_mut::<JointEffortMeasurement>(entity) {
+                Some(mut existing) => *existing = measurement,
+                None => {
+                    world.entity_mut(entity).insert(measurement);
+                }
+            },
+            None => {
+                if world.get::<JointEffortMeasurement>(entity).is_some() {
+                    world.entity_mut(entity).remove::<JointEffortMeasurement>();
+                }
+            }
+        }
+    }
+}
+
 fn sorted_entities(world: &World) -> Vec<Entity> {
     let mut entities: Vec<Entity> = world.iter_entities().map(|entity| entity.id()).collect();
     entities.sort_unstable();
@@ -1563,6 +1595,7 @@ fn sync_joints_from_ecs(
     detached.sort_unstable();
     for entity in detached {
         if let Some(handle) = state.entity_to_joint.remove(&entity) {
+            state.sorted_joint_entities = None;
             state.impulse_joints.remove(handle, true);
         }
     }
@@ -1575,6 +1608,7 @@ fn sync_joints_from_ecs(
     detached_multibody.sort_unstable();
     for entity in detached_multibody {
         if let Some(handle) = state.entity_to_multibody_joint.remove(&entity) {
+            state.sorted_joint_entities = None;
             state.multibody_joints.remove(handle, true);
         }
     }
@@ -1653,6 +1687,7 @@ fn sync_joints_from_ecs(
                 }
             }
             state.entity_to_multibody_joint.insert(entity, handle);
+            state.sorted_joint_entities = None;
             continue;
         }
 
@@ -1666,6 +1701,7 @@ fn sync_joints_from_ecs(
                 .set_motor_max_force(motor_axis, motor_max_force(motor_axis));
         }
         state.entity_to_joint.insert(entity, handle);
+        state.sorted_joint_entities = None;
     }
 
     sync_attachments_from_ecs(world, state, entities);
