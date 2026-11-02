@@ -46,6 +46,7 @@ struct Options {
     speed_penalty: Option<f64>,
     checkpoint_every: usize,
     residual_generation: Option<usize>,
+    seed: u64,
     residual_model: residual::Model,
     residual: Option<PathBuf>,
     threads: usize,
@@ -87,6 +88,7 @@ fn parse() -> Result<Options> {
         speed_penalty: None,
         checkpoint_every: 0,
         residual_generation: None,
+        seed: residual::TrainConfig::default().seed,
         residual_model: residual::Model::Linear,
         residual: None,
         threads: std::thread::available_parallelism().map_or(1, |n| n.get()),
@@ -115,6 +117,7 @@ fn parse() -> Result<Options> {
             "--walk-offset-penalty" => options.walk_offset_penalty = Some(value()?.parse()?),
             "--speed-penalty" => options.speed_penalty = Some(value()?.parse()?),
             "--checkpoint-every" => options.checkpoint_every = value()?.parse()?,
+            "--seed" => options.seed = value()?.parse()?,
             "--residual-generation" => options.residual_generation = Some(value()?.parse()?),
             "--residual-model" => model_name = value()?,
             "--hidden" => hidden = value()?.parse()?,
@@ -379,6 +382,7 @@ fn train_or_sweep(options: &Options) -> Result<()> {
             pairs: options.pairs,
             model: options.residual_model,
             checkpoint_every: options.checkpoint_every,
+            seed: options.seed,
             // The MLP sees joint states, so without this it reshapes the walk.
             walk_offset_penalty: options.walk_offset_penalty.unwrap_or(
                 match options.residual_model {
