@@ -230,8 +230,8 @@ mod tests {
         // without a warm start and so never counted one twice (unlike rigid
         // bodies before the repository's Rapier patch). Sampling once per
         // policy step, at its last physics step, while the robot steps in
-        // place reads about 3% above the weight; the patch's 25% at four
-        // iterations would be far outside this bound.
+        // place reads about 3% above the weight; the 25% over-count at four
+        // iterations that the patch removes would be far outside this bound.
         let mut walker = walker();
         let ground = ground(&walker).unwrap();
         let (mut total_n, steps) = (0.0, 150);
