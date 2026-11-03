@@ -16,7 +16,10 @@ the MJCF's pelvis inertial. Their visuals move onto the pelvis with composed
 transforms. Only the pelvis's own collision mesh is kept on the merged pelvis,
 because RNE builds one convex hull per link. Mesh paths point at `meshes/`
 beside the URDF. The ten leg links, their joints, limits and collision meshes
-are unchanged. `../unitree_h1_walk.rne.robot.toml` gives every link the convex
+are unchanged. The leg links keep the URDF's inertials, which the policy was
+trained with in Isaac Gym; the ankle (foot) links' are 0.01 kg·m² placeholders
+about every axis, where the MJCF has the measured values (largest principal
+moment 0.0036 kg·m²). See example 144's README for what the difference does. `../unitree_h1_walk.rne.robot.toml` gives every link the convex
 hull of its collision mesh, as MuJoCo does for mesh geoms. The links collide
 with the floor only. In the upstream MuJoCo scene they also collide with each
 other (except parent and child). An undisturbed walk touches the floor only

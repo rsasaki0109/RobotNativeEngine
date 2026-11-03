@@ -165,9 +165,9 @@ in MuJoCo with self-collision:
   gives way sideways a little earlier. In 19 of those 24 G1 trials (and 15 of
   the 16 H1 trials) MuJoCo's legs touched too and it recovered, so the two
   engines differ in what a contact between the legs does, not in whether it
-  happens. Contact (rigid in Rapier, soft in MuJoCo) and RNE's smoothed joint
-  friction are the known modelling differences left; neither has been
-  isolated as the cause.
+  happens. Contact softness, joint friction, friction cones, joint limits,
+  ankle inertia and solver convergence have since been ruled out as the
+  cause; see [Where the engines disagree](#where-the-engines-disagree).
 
 **Self-collision in RNE.** `parent_child_collisions = false` in a robot
 asset's `[urdf]` table marks every URDF joint's child link with
@@ -416,6 +416,97 @@ cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --contact-softness
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness --contact-softness 60,5
 cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robot h1 --contact-softness 18,5
 python3 examples/144_g1_sim2sim/mujoco_penetration.py UNITREE_RL_GYM --robot g1
+```
+
+## Where the engines disagree
+
+About 5% of the 640 push trials end differently in the two engines. They
+sit next to the fall boundary, and not at random: on forward pushes RNE
+falls earlier than MuJoCo, the G1 one force level (50 N) earlier at nearly
+every gait phase and the H1 0.5–1 level (of 80 N) on average, while the H1
+holds backward pushes longer. Force levels later than MuJoCo at which RNE
+first falls, averaged over the eight gait phases (`robustness_compare.py`
+reports them as `fall_force_shift_levels`):
+
+| Robot, self-collision in both | Forward | Backward | Left | Right |
+| --- | --- | --- | --- | --- |
+| G1, on | −1.12 | −0.12 | −0.75 | +0.25 |
+| G1, off | −1.25 | +0.50 | −0.25 | +0.12 |
+| H1, on | −0.50 | +0.88 | −0.50 | +0.25 |
+| H1, off | −1.00 | +1.12 | −0.12 | −0.62 |
+
+To read 5% against something, `mujoco_ablation.py` repeats MuJoCo's sweep
+with one of its own modelling choices changed. The G1 without self-collision,
+share of trials ending as in MuJoCo's default, and how many force levels later
+the forward pushes first fall:
+
+| Sweep | Same outcome as MuJoCo | Forward shift |
+| --- | --- | --- |
+| MuJoCo, first joint started 1e-6 rad off | 100% | 0 |
+| MuJoCo, 0.5 ms physics steps (policy still at 50 Hz) | 99.1% | +0.12 |
+| MuJoCo, no joint friction (`frictionloss` 0) | 99.2% | −0.12 |
+| MuJoCo, elliptic friction cone | 97.8% | 0 |
+| MuJoCo, elliptic cone and `impratio` 10 | 97.8% | −0.12 |
+| MuJoCo, 10 no-slip iterations | 98.0% | +0.12 |
+| MuJoCo, no joint limits | 98.0% | 0 |
+| RNE, 4 solver iterations (default) | 94.8% | −1.25 |
+| RNE, 16 solver iterations | 95.8% | −0.88 |
+| RNE, 64 solver iterations | 95.9% | −0.88 |
+
+- **Both engines are converged.** Outcomes are not chaotic: a 1e-6 rad
+  start offset changes none. MuJoCo at a quarter of the time step changes
+  0.9% of trials, and RNE at 16 and 64 solver iterations agree on 98.9%.
+  More iterations bring the G1 one point closer to MuJoCo (the H1 without
+  self-collision 95.2% → 95.5%; with it both robots move by 0.3 points or
+  less), at three times the cost, so the default stays at 4.
+- **No MuJoCo modelling choice reproduces the gap.** Each changes at most
+  2.2% of trials and moves the forward boundary by at most 0.12 levels; RNE
+  sits 0.9–1.25 levels earlier.
+- **Matching a detail in both engines does not close it either.** Without
+  joint friction in both (`--joint-friction 0`) they agree on 95.3% and RNE's
+  forward pushes still fall 1.0 level early; with MuJoCo-matched contact
+  softness ([Contact softness](#contact-softness)) on 94.8% and 1.0 level;
+  with the MJCF's ankle inertias (below) on 95.6% and 1.1 levels.
+- **Friction changes its sign.** With floor and foot friction 2 in both
+  engines (`--floor-friction 2`), a push must exceed twice the robot's
+  weight (630 N for the G1) to slide its feet. Both engines then fall more
+  often (MuJoCo 360 times, RNE 335), agreement drops to 93.9%, and RNE holds
+  forward pushes 0.5 levels and right pushes 2.1 levels longer than MuJoCo.
+
+`--trace-push DIRECTION,FORCE_N,PHASE` writes one trial's policy steps
+(pose, observation, action) and `mujoco_robustness.py --trace` the same
+trial in MuJoCo. In the G1's 550 N forward push at phase 4, which only RNE
+falls from, the two trajectories agree to within 2% of the pelvis velocity
+through the push. Afterwards RNE's pelvis rides 3–7 mm lower. When the swing
+foot lands 0.18 s after the push, MuJoCo's landing ankle turns 0.26 rad in
+one policy step and RNE's 0.02 rad, the knee and ankle angles part by up to
+0.3 rad, and RNE's pelvis pitches forward faster (0.345 against 0.265 rad
+another 0.16 s later). MuJoCo recovers; RNE falls 0.9 s after the push. The
+difference lies in how the feet slide and land under a large horizontal
+load: where Rapier's contact solver and MuJoCo's soft-constraint contacts
+differ beyond the stiffness, friction and inertia settings above. That is
+the next thing to model.
+
+**Ankle inertia.** Unitree's URDFs give the G1's two ankle links and the
+H1's foot 0.01 kg·m² about every axis, where the MJCF's largest principal
+moments are 0.0017 (G1 foot), 0.00002 (G1 ankle-pitch link) and 0.0036 kg·m²
+(H1 foot). RNE's walking models keep the URDF's, which Isaac Gym trained the
+policies with; MuJoCo's scene uses the MJCF's. Replacing them with the
+MJCF's changes 2–4% of RNE's push outcomes, moves the G1's forward speed at
+0.5 m/s from 0.464 to 0.471 m/s (MuJoCo 0.476) and the H1's from 0.457 to
+0.453 m/s (MuJoCo 0.431), and leaves agreement where it was (G1 95.2% and
+95.6%, H1 94.2% and 95.0%, with and without self-collision).
+
+```bash
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness --solver-iterations 16
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness --joint-friction 0
+python3 examples/144_g1_sim2sim/mujoco_ablation.py UNITREE_RL_GYM \
+  target/g1-sim2sim/g1-robustness.json OUTPUT.json --no-self-collision --cone elliptic
+python3 examples/144_g1_sim2sim/push_agreement.py \
+  mujoco=MUJOCO_SWEEP.json rne=target/g1-sim2sim/g1-robustness.json elliptic=OUTPUT.json
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --trace-push forward,550,4
+python3 examples/144_g1_sim2sim/mujoco_robustness.py UNITREE_RL_GYM \
+  target/g1-sim2sim/g1-push-trace.json OUTPUT.json --no-self-collision --trace forward,550,4
 ```
 
 ## Real time

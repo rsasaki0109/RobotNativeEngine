@@ -11,6 +11,7 @@
 //! cargo run --release --example 144_g1_sim2sim -- --robustness # push and friction sweeps
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --self-collision # MJCF collisions
 //! cargo run --release --example 144_g1_sim2sim -- --contact-softness 60,5 --penetration # foot sink
+//! cargo run --release --example 144_g1_sim2sim -- --trace-push forward,550,4 # one push, step by step
 //! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision # push recovery
 //! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision --residual-model mlp --seed 11 --checkpoint-every 10
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --residual target/g1-sim2sim/g1-residual.json
@@ -53,6 +54,7 @@ struct Options {
     threads: usize,
     ablation: bool,
     penetration: bool,
+    trace_push: Option<String>,
     render: Option<PathBuf>,
     plant: PlantConfig,
 }
@@ -96,6 +98,7 @@ fn parse() -> Result<Options> {
         threads: std::thread::available_parallelism().map_or(1, |n| n.get()),
         ablation: false,
         penetration: false,
+        trace_push: None,
         render: None,
         plant: PlantConfig::default(),
     };
@@ -109,6 +112,8 @@ fn parse() -> Result<Options> {
             "--command" => options.command = Some(parse_command(&value()?)?),
             "--solver-iterations" => options.plant.solver_iterations = value()?.parse()?,
             "--armature" => options.plant.armature_kg_m2 = value()?.parse()?,
+            "--joint-damping" => options.plant.joint_damping_nm_s_per_rad = value()?.parse()?,
+            "--joint-friction" => options.plant.joint_friction_nm = value()?.parse()?,
             "--floor-friction" => options.plant.floor_friction = value()?.parse()?,
             "--self-collision" => options.plant.self_collision = true,
             "--contact-softness" => {
@@ -135,6 +140,7 @@ fn parse() -> Result<Options> {
             "--threads" => options.threads = value()?.parse()?,
             "--ablation" => options.ablation = true,
             "--penetration" => options.penetration = true,
+            "--trace-push" => options.trace_push = Some(value()?),
             "--render" => options.render = Some(PathBuf::from(value()?)),
             "--robot" => options.robot = Robot::parse(&value()?)?,
             other => return Err(format!("unknown option {other}").into()),
@@ -429,6 +435,19 @@ fn train_or_sweep(options: &Options) -> Result<()> {
         }
         None => None,
     };
+    if let Some(spec) = &options.trace_push {
+        let report = robustness::trace(options.robot, options.plant, residual.as_ref(), spec)?;
+        let path = options
+            .output
+            .join(format!("{}-push-trace.json", options.robot.name()));
+        std::fs::write(&path, serde_json::to_string(&report)? + "\n")?;
+        println!(
+            "wrote {}; fell at {}",
+            path.display(),
+            report["fall_time_s"]
+        );
+        return Ok(());
+    }
     if options.robustness {
         let start = Instant::now();
         let report = robustness::sweep(
@@ -474,7 +493,7 @@ fn main() -> Result<()> {
         );
         return Ok(());
     }
-    if options.train_residual || options.robustness {
+    if options.train_residual || options.robustness || options.trace_push.is_some() {
         return train_or_sweep(&options);
     }
     if options.throughput {

@@ -8,7 +8,9 @@ fell at each force and the 50% fall force (linearly interpolated between the
 grid forces where the share first reaches one half). For every pair of an RNE
 and a MuJoCo report it gives the trial-by-trial agreement on falling, the
 trials where only one engine fell (with the robot-body pairs that touched in
-MuJoCo, which its reports list) and the friction sweep side by side. For two
+MuJoCo, which its reports list), how many force levels later RNE first falls
+in each direction (averaged over the gait phases; negative means earlier)
+and the friction sweep side by side. For two
 reports of one engine that differ in self-collision, it counts the trials the
 switch changes, and likewise for two reports that differ only in the trained
 residual (`--residual`). The figure draws RNE blue and MuJoCo orange, solid
@@ -87,6 +89,25 @@ def disagreements(first, second):
     return result
 
 
+def first_falls(report):
+    """Per direction and gait phase, the index in the force grid of the
+    weakest push that toppled the robot (the grid's length if none did)."""
+    forces = report["protocol"]["forces_n"]
+    fell = {key(t): t["fell"] for t in report["push"]}
+    return {(d, phase): next((i for i, f in enumerate(forces) if fell[(d, f, phase)]), len(forces))
+            for d, _, phase in fell}
+
+
+def fall_force_shift(first, second):
+    """Per direction, how many force levels earlier (negative) or later the
+    first report falls than the second, averaged over the gait phases."""
+    a, b = first_falls(first), first_falls(second)
+    by_direction = defaultdict(list)
+    for (direction, phase), level in a.items():
+        by_direction[direction].append(level - b[(direction, phase)])
+    return {d: sum(v) / len(v) for d, v in by_direction.items()}
+
+
 def compare(rne, mujoco):
     other = {key(t): t["fell"] for t in mujoco["push"]}
     agreement = sum(other[key(t)] == t["fell"] for t in rne["push"]) / len(rne["push"])
@@ -96,7 +117,8 @@ def compare(rne, mujoco):
                  "mujoco_forward_speed_m_s": b["summary"]["second_half_forward_speed_m_s"]}
                 for a, b in zip(rne["friction"], mujoco["friction"])]
     return {"rne": label(rne), "mujoco": label(mujoco), "push_agreement": agreement,
-            "push_disagreements": disagreements(rne, mujoco), "friction": friction}
+            "push_disagreements": disagreements(rne, mujoco),
+            "fall_force_shift_levels": fall_force_shift(rne, mujoco), "friction": friction}
 
 
 COLORS = {"RNE": "#2563eb", "MuJoCo": "#ea580c"}
@@ -175,7 +197,9 @@ def main():
     for c in comparisons:
         split = c["push_disagreements"]
         print(f"{c['rne']} vs {c['mujoco']}: agreement {c['push_agreement']:.1%}, only RNE fell "
-              f"{split['only_first_fell']}, only MuJoCo {split['only_second_fell']}")
+              f"{split['only_first_fell']}, only MuJoCo {split['only_second_fell']}; RNE falls "
+              + ", ".join(f"{d} {v:+.2f}" for d, v in c["fall_force_shift_levels"].items())
+              + " force levels later")
     effects = []
     for index, a in enumerate(reports):
         for b in reports[index + 1:]:

@@ -11,7 +11,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
-use rne_ai::{LstmPolicy, UnitreeRlGymWalker};
+use rne_ai::{LstmPolicy, PolicyWalkStep, UnitreeRlGymWalker};
 use rne_math::Vec3;
 use serde_json::{json, Value};
 
@@ -69,6 +69,16 @@ fn push_trial(
     residual: Option<&Residual>,
     case: PushCase,
 ) -> Result<Option<f64>> {
+    push_trial_recorded(walker, residual, case, |_| ())
+}
+
+/// [`push_trial`], handing every policy step's record to `record`.
+fn push_trial_recorded(
+    walker: &mut UnitreeRlGymWalker,
+    residual: Option<&Residual>,
+    case: PushCase,
+    mut record: impl FnMut(&PolicyWalkStep),
+) -> Result<Option<f64>> {
     walker.reset()?;
     let [x, y] = DIRECTIONS[case.direction].1;
     // Z-up (x, y, z) is RNE's Y-up (x, z, -y).
@@ -76,12 +86,56 @@ fn push_trial(
     let start = WALK_STEPS + case.phase * PHASE_STEPS;
     for step in 0..start + PUSH_STEPS + RECOVERY_STEPS {
         walker.set_base_push_n((start..start + PUSH_STEPS).contains(&step).then_some(force));
-        let record = residual::step(walker, residual, COMMAND)?;
-        if record.base_position_m[2] < FALL_HEIGHT_M {
-            return Ok(Some(record.time_s));
+        let step = residual::step(walker, residual, COMMAND)?;
+        record(&step);
+        if step.base_position_m[2] < FALL_HEIGHT_M {
+            return Ok(Some(step.time_s));
         }
     }
     Ok(None)
+}
+
+/// One push trial's policy steps as JSON, for comparing an engine's
+/// trajectory with `mujoco_robustness.py --trace`'s step by step. `spec` is
+/// `DIRECTION,FORCE_N,PHASE`, as in the sweep's report.
+pub(crate) fn trace(
+    robot: Robot,
+    plant: PlantConfig,
+    residual: Option<&Residual>,
+    spec: &str,
+) -> Result<Value> {
+    let [direction, force_n, phase] = spec.split(',').collect::<Vec<_>>()[..] else {
+        return Err("--trace-push takes DIRECTION,FORCE_N,PHASE".into());
+    };
+    let case = PushCase {
+        direction: DIRECTIONS
+            .iter()
+            .position(|(name, _)| *name == direction)
+            .ok_or_else(|| format!("unknown push direction {direction}"))?,
+        force_n: force_n.parse()?,
+        phase: phase.parse()?,
+    };
+    let mut walker = walk::walker(robot, policy::load(robot)?, plant)?;
+    let mut records = Vec::new();
+    let fell = push_trial_recorded(&mut walker, residual, case, |step| {
+        records.push(json!({
+            "time_s": step.time_s,
+            "base_position_m": step.base_position_m,
+            "base_quaternion_wxyz": step.base_quaternion_wxyz,
+            "observation": step.observation,
+            "action": step.action,
+        }));
+    })?;
+    Ok(json!({
+        "schema_version": 1,
+        "engine": "RNE Rapier (UrdfSceneSim)",
+        "robot": robot.name(),
+        "plant": walk::plant_json(&plant),
+        "case": {"direction": direction, "force_n": case.force_n, "phase": case.phase},
+        "protocol": protocol(robot),
+        "fall_time_s": fell,
+        "records": records,
+    }))
 }
 
 fn friction_trial(
@@ -254,6 +308,26 @@ mod tests {
         assert!(fell.is_some());
         // A reset walker repeats the trial exactly.
         assert_eq!(push_trial(&mut walker, None, hard).unwrap(), fell);
+    }
+
+    #[test]
+    fn a_trace_repeats_its_sweep_trial_step_by_step() {
+        let plant = PlantConfig::default();
+        let case = PushCase {
+            direction: 2,
+            force_n: 1500.0,
+            phase: 0,
+        };
+        let fell = push_trial(&mut walker(plant), None, case).unwrap();
+        let report = trace(Robot::G1, plant, None, "left,1500,0").unwrap();
+        assert_eq!(report["fall_time_s"].as_f64(), fell);
+        let records = report["records"].as_array().unwrap();
+        let last = records.last().unwrap();
+        assert_eq!(last["time_s"].as_f64(), fell);
+        assert_eq!(last["observation"].as_array().unwrap().len(), 47);
+        assert_eq!(report["case"]["direction"], "left");
+        assert!(trace(Robot::G1, plant, None, "sideways,1,0").is_err());
+        assert!(trace(Robot::G1, plant, None, "left,1500").is_err());
     }
 
     #[test]

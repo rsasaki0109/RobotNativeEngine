@@ -1274,6 +1274,12 @@
           "left_hip_pitch_link / right_knee_link": 1
         }
       },
+      "fall_force_shift_levels": {
+        "forward": -0.5,
+        "backward": 0.875,
+        "left": -0.5,
+        "right": 0.25
+      },
       "friction": [
         {
           "friction": 1.0,
@@ -1356,6 +1362,12 @@
         "only_second_fell": 13,
         "only_second_fell_with_self_contact": 0,
         "self_contact_pairs": {}
+      },
+      "fall_force_shift_levels": {
+        "forward": -1.375,
+        "backward": 0.875,
+        "left": -1.5,
+        "right": -2.875
       },
       "friction": [
         {
@@ -1449,6 +1461,12 @@
           "left_hip_pitch_link / right_knee_link": 2
         }
       },
+      "fall_force_shift_levels": {
+        "forward": -0.125,
+        "backward": 1.125,
+        "left": 0.875,
+        "right": 2.5
+      },
       "friction": [
         {
           "friction": 1.0,
@@ -1531,6 +1549,12 @@
         "only_second_fell": 15,
         "only_second_fell_with_self_contact": 0,
         "self_contact_pairs": {}
+      },
+      "fall_force_shift_levels": {
+        "forward": -1.0,
+        "backward": 1.125,
+        "left": -0.125,
+        "right": -0.625
       },
       "friction": [
         {
