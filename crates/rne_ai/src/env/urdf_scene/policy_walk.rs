@@ -304,6 +304,14 @@ impl UnitreeRlGymWalker {
             .collect()
     }
 
+    /// Sets how soft the scene's contacts are, as
+    /// [`UrdfSceneSim::set_contact_softness`]; kept across [`Self::reset`].
+    /// Returns false, changing nothing, when a value is not finite and positive.
+    pub fn set_contact_softness(&mut self, natural_frequency_hz: f64, damping_ratio: f64) -> bool {
+        self.sim
+            .set_contact_softness(natural_frequency_hz, damping_ratio)
+    }
+
     /// Applies a world-frame (Y-up) force at the base origin on every physics
     /// step until cleared with `None`, for push disturbances.
     pub fn set_base_push_n(&mut self, force_world_n: Option<Vec3>) {
@@ -619,6 +627,27 @@ mod tests {
         for record in &expected {
             assert_eq!(&reused.step([0.5, 0.0, 0.0]).unwrap(), record);
         }
+    }
+
+    #[test]
+    fn softer_contacts_sink_the_robot_and_survive_a_reset() {
+        let mut stiff = walker(2);
+        let mut soft = walker(2);
+        assert!(!soft.set_contact_softness(0.0, 1.0));
+        assert!(!soft.set_contact_softness(10.0, f64::NAN));
+        assert_eq!(soft.sim().contact_softness(), (30.0, 5.0));
+        assert!(soft.set_contact_softness(5.0, 1.0));
+        let (mut stiff_height, mut soft_height) = (0.0, 0.0);
+        for _ in 0..25 {
+            stiff_height = stiff.step([0.0; 3]).unwrap().base_position_m[2];
+            soft_height = soft.step([0.0; 3]).unwrap().base_position_m[2];
+        }
+        assert!(
+            soft_height < stiff_height - 0.002,
+            "soft {soft_height} m, stiff {stiff_height} m"
+        );
+        soft.reset().unwrap();
+        assert_eq!(soft.sim().contact_softness(), (5.0, 1.0));
     }
 
     #[test]

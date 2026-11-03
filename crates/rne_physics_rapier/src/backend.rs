@@ -379,9 +379,54 @@ impl RapierBackend {
     /// backend already built for the same vertices are reused. Use it to reset
     /// an episode without rebuilding the backend.
     pub fn reset_world(&mut self, id: PhysicsWorldId) -> Result<(), PhysicsError> {
+        let old = &self.world(id)?.integration_parameters;
+        let softness = (old.contact_natural_frequency, old.contact_damping_ratio);
         let desc = self.world(id)?.desc;
-        self.worlds.insert(id, new_world_state(id, desc));
+        let mut state = new_world_state(id, desc);
+        // Contact softness is a world setting, like the solver iterations.
+        (
+            state.integration_parameters.contact_natural_frequency,
+            state.integration_parameters.contact_damping_ratio,
+        ) = softness;
+        self.worlds.insert(id, state);
         Ok(())
+    }
+
+    /// Sets how soft one world's contacts are: the natural frequency (Hz) and
+    /// damping ratio of the springs that Rapier's solver uses to regularize
+    /// contact constraints (Rapier's defaults are 30 Hz and 5).
+    ///
+    /// A lower frequency lets bodies sink further into each other and push
+    /// back more gently, closer to MuJoCo's soft contacts. The setting
+    /// survives [`Self::reset_world`]. Returns false when the world does not
+    /// exist or a value is not finite and positive, leaving the world unchanged.
+    pub fn set_contact_softness(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        natural_frequency_hz: f64,
+        damping_ratio: f64,
+    ) -> bool {
+        // The solver stores single precision; reject what it cannot hold.
+        let valid = |value: f64| (value as f32).is_finite() && value as f32 > 0.0;
+        if !valid(natural_frequency_hz) || !valid(damping_ratio) {
+            return false;
+        }
+        let Ok(state) = self.world_mut(physics_world) else {
+            return false;
+        };
+        state.integration_parameters.contact_natural_frequency = natural_frequency_hz as f32;
+        state.integration_parameters.contact_damping_ratio = damping_ratio as f32;
+        true
+    }
+
+    /// The contact natural frequency (Hz) and damping ratio of a world, as
+    /// [`Self::set_contact_softness`] set them, rounded to single precision.
+    pub fn contact_softness(&self, physics_world: PhysicsWorldId) -> Option<(f64, f64)> {
+        let parameters = &self.worlds.get(&physics_world)?.integration_parameters;
+        Some((
+            f64::from(parameters.contact_natural_frequency),
+            f64::from(parameters.contact_damping_ratio),
+        ))
     }
 
     /// Returns the versioned conformance manifest for this backend.
@@ -2357,6 +2402,22 @@ mod tests {
             (contact.entity_a == a && contact.entity_b == b)
                 || (contact.entity_a == b && contact.entity_b == a)
         })
+    }
+
+    #[test]
+    fn contact_softness_is_validated_and_survives_a_world_reset() {
+        let mut backend = RapierBackend::new();
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        assert_eq!(backend.contact_softness(id), Some((30.0, 5.0)));
+        assert!(!backend.set_contact_softness(id, -1.0, 1.0));
+        assert!(!backend.set_contact_softness(id, 8.0, f64::INFINITY));
+        assert!(!backend.set_contact_softness(id, 1.0e300, 1.0));
+        assert!(!backend.set_contact_softness(id, 8.0, 1.0e-300));
+        assert!(!backend.set_contact_softness(PhysicsWorldId(99), 8.0, 1.0));
+        assert_eq!(backend.contact_softness(id), Some((30.0, 5.0)));
+        assert!(backend.set_contact_softness(id, 8.0, 1.0));
+        backend.reset_world(id).unwrap();
+        assert_eq!(backend.contact_softness(id), Some((8.0, 1.0)));
     }
 
     #[test]

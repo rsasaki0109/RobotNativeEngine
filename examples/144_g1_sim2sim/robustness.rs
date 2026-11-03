@@ -202,6 +202,7 @@ pub(crate) fn sweep(
         "robot": robot.name(),
         "solver_iterations": plant.solver_iterations,
         "self_collision": plant.self_collision,
+        "contact_softness": walk::plant_json(&plant)["contact_softness"],
         "residual": residual.map(Residual::to_json),
         "protocol": protocol(robot),
         "push": push,

@@ -714,6 +714,7 @@ pub(crate) fn train(
         "schema_version": 1,
         "robot": robot.name(),
         "self_collision": plant.self_collision,
+        "contact_softness": walk::plant_json(&plant)["contact_softness"],
         "solver_iterations": plant.solver_iterations,
         "residual": residual.to_json(),
         "training": {

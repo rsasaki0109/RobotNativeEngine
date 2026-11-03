@@ -10,6 +10,7 @@
 //! cargo run --release --example 144_g1_sim2sim -- --throughput # 1–8 walkers on threads
 //! cargo run --release --example 144_g1_sim2sim -- --robustness # push and friction sweeps
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --self-collision # MJCF collisions
+//! cargo run --release --example 144_g1_sim2sim -- --contact-softness 60,5 --penetration # foot sink
 //! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision # push recovery
 //! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision --residual-model mlp --seed 11 --checkpoint-every 10
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --residual target/g1-sim2sim/g1-residual.json
@@ -51,6 +52,7 @@ struct Options {
     residual: Option<PathBuf>,
     threads: usize,
     ablation: bool,
+    penetration: bool,
     render: Option<PathBuf>,
     plant: PlantConfig,
 }
@@ -93,6 +95,7 @@ fn parse() -> Result<Options> {
         residual: None,
         threads: std::thread::available_parallelism().map_or(1, |n| n.get()),
         ablation: false,
+        penetration: false,
         render: None,
         plant: PlantConfig::default(),
     };
@@ -108,6 +111,13 @@ fn parse() -> Result<Options> {
             "--armature" => options.plant.armature_kg_m2 = value()?.parse()?,
             "--floor-friction" => options.plant.floor_friction = value()?.parse()?,
             "--self-collision" => options.plant.self_collision = true,
+            "--contact-softness" => {
+                let text = value()?;
+                let (hz, ratio) = text
+                    .split_once(',')
+                    .ok_or("--contact-softness takes HZ,DAMPING_RATIO")?;
+                options.plant.contact_softness = Some((hz.parse()?, ratio.parse()?));
+            }
             "--timing" => options.timing = true,
             "--throughput" => options.throughput = true,
             "--robustness" => options.robustness = true,
@@ -124,6 +134,7 @@ fn parse() -> Result<Options> {
             "--residual" => options.residual = Some(PathBuf::from(value()?)),
             "--threads" => options.threads = value()?.parse()?,
             "--ablation" => options.ablation = true,
+            "--penetration" => options.penetration = true,
             "--render" => options.render = Some(PathBuf::from(value()?)),
             "--robot" => options.robot = Robot::parse(&value()?)?,
             other => return Err(format!("unknown option {other}").into()),
@@ -287,10 +298,7 @@ fn report(
     );
     Ok(json!({
         "label": label, "command": command, "seconds": seconds,
-        "plant": {"solver_iterations": plant.solver_iterations, "armature_kg_m2": plant.armature_kg_m2,
-                  "joint_damping_nm_s_per_rad": plant.joint_damping_nm_s_per_rad,
-                  "joint_friction_nm": plant.joint_friction_nm, "floor_friction": plant.floor_friction,
-                  "self_collision": plant.self_collision},
+        "plant": walk::plant_json(&plant),
         "rne": summary, "mujoco": mujoco,
         "wall_s": run.wall_s, "realtime_factor": realtime_factor,
         "torque_saturated_fraction": saturation,
@@ -457,6 +465,15 @@ fn main() -> Result<()> {
         return render_walk(&options, output);
     }
     std::fs::create_dir_all(&options.output)?;
+    if options.penetration {
+        let (median, p95) =
+            walk::foot_penetration_mm(options.robot, policy::load(options.robot)?, options.plant)?;
+        println!(
+            "{} foot penetration while walking: median {median:.2} mm, 95th percentile {p95:.2} mm",
+            options.robot.name()
+        );
+        return Ok(());
+    }
     if options.train_residual || options.robustness {
         return train_or_sweep(&options);
     }

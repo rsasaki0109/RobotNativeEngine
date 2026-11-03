@@ -1568,6 +1568,23 @@ impl UrdfSceneSim {
             .set_collider_friction(self.physics_world, entity, friction as f32)
     }
 
+    /// Sets how soft the scene's contacts are: the natural frequency (Hz) and
+    /// damping ratio of the backend's contact regularization springs (the
+    /// Rapier backend defaults to 30 Hz and 5; lower frequencies give softer,
+    /// more MuJoCo-like contacts). Kept across [`Self::reset`]. Returns false,
+    /// changing nothing, when a value is not finite and positive.
+    pub fn set_contact_softness(&mut self, natural_frequency_hz: f64, damping_ratio: f64) -> bool {
+        self.backend
+            .set_contact_softness(self.physics_world, natural_frequency_hz, damping_ratio)
+    }
+
+    /// The contact natural frequency (Hz) and damping ratio in effect.
+    pub fn contact_softness(&self) -> (f64, f64) {
+        self.backend
+            .contact_softness(self.physics_world)
+            .expect("the scene's physics world exists")
+    }
+
     /// Queues a world-frame external wrench on a named link for the next step.
     ///
     /// This is the physical disturbance primitive: unlike
