@@ -181,7 +181,7 @@ id = "physics_conformance_v2"
 contract = "physics_conformance"
 schema_version = 2
 path = "tests/golden/physics/conformance-report-v2.json"
-canonical_json_sha256 = "sha256:2dc6a9c945c63edeba4cc9a9a43584c85aec148b4a95e0c1b8f96d96dd62c6be"
+canonical_json_sha256 = "sha256:ac9954b5f3d7f7d195ee44a80a6f87ee7cf0b7a2647ac4fdf8bae230b1eb9f2b"
 
 [[fixture]]
 id = "physics_external_conformance_v1"

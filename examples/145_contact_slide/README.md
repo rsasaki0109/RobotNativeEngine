@@ -42,8 +42,7 @@ Every scenario reports, averaged over every physics step:
 
 RNE at its default 4 solver iterations and MuJoCo 3.9 at its defaults
 (pyramidal cone, `solref` 0.02 1); MuJoCo at a 0.2 ms step in the last
-column. RNE's loads are the reported ones times 4/5, removing Rapier's
-over-count (below); as reported they are 1.25 times larger:
+column:
 
 | Scenario, quantity | Closed form | RNE | MuJoCo | MuJoCo, 0.2 ms |
 | --- | --- | --- | --- | --- |
@@ -64,7 +63,7 @@ over-count (below); as reported they are 1.25 times larger:
 
 - **RNE follows Coulomb's law.** The pushed block's speed and slide match the
   closed form to 0.1%, its stop to one 2 ms step, and the loads on the front
-  and back spheres to 1% once Rapier's over-count is divided out. It does not leave the floor. At 1, 4 and 16 solver
+  and back spheres to 1%. It does not leave the floor. At 1, 4 and 16 solver
   iterations the slide results agree to 0.2%, and at 16 iterations the rock
   reaches 0.1272 rad against 0.1274.
 - **MuJoCo's sliding block skips.** While it slides, no sphere touches the
@@ -85,21 +84,19 @@ over-count (below); as reported they are 1.25 times larger:
 
 ## Contact forces reported by Rapier
 
-This example found that Rapier 0.22 reports warm-started contact impulses,
-and so RNE's `ContactEvent::impulse` and `ContactPointSample::normal_force_n`,
-as (n + 1) / n of the impulse the solver applied over a step with n solver
-iterations. Each contact accumulates its impulse at the start of every
-substep, the first included, when the impulse is still the warm start
-carried in from the previous step. The block at rest reports 1.25 times its
-weight at 4 iterations (122.6 N for 98.1 N), twice it at 1 and 1.0625 times
-at 16. The motion is unaffected: only the reported forces are too large.
-This applies to contacts between rigid bodies and fixed geometry or each
-other, and between a multibody link and a dynamic body. A multibody link
-against fixed geometry, like example 144's feet on the ground, starts each
-step without a warm start and is reported correctly. A fix to the vendored
-Rapier is a separate change: code that feeds reported contact loads back
-into the simulation, such as the mobility benchmark's tire models, moves
-with it.
+This example found that Rapier 0.22 reported warm-started contact
+impulses, and so RNE's `ContactEvent::impulse` and
+`ContactPointSample::normal_force_n`, as (n + 1) / n of the impulse the solver
+applied over a step with n solver iterations. The total also counted the
+warm start carried in from the previous step. A block at rest reported 1.25
+times its weight at 4 iterations and twice it at 1. This affected contacts
+between rigid bodies and fixed geometry or each other, and between a
+multibody link and a dynamic body. A multibody link against fixed geometry,
+like example 144's feet on the ground, starts each step without a warm
+start and was reported correctly. The repository's Rapier patch fixes the
+rest; see `third_party/rapier3d/RNE_PATCH.md`. Trajectories are unchanged;
+only the reported forces drop to the forces actually applied: 98.1 N for
+this block at rest at any iteration count.
 
 ## Limits
 
