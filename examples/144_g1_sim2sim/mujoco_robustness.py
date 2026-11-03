@@ -14,9 +14,13 @@ residual (linear or MLP) that example 144's `--train-residual` writes to every
 joint target, computed from the same observation as the policy's action, as
 RNE does.
 
+`--trace DIRECTION,FORCE_N,PHASE` instead writes that one push trial's
+policy steps, observations and actions included, to compare with example
+144's `--trace-push`; RNE_REPORT.json may then be a sweep or that trace.
+
 Usage: mujoco_robustness.py UNITREE_RL_GYM RNE_REPORT.json OUTPUT.json
        [--processes 4] [--no-self-collision] [--residual RESIDUAL.json]
-       [--residual-generation G]
+       [--residual-generation G] [--trace DIRECTION,FORCE_N,PHASE]
 """
 import argparse
 import json
@@ -96,7 +100,7 @@ def fresh_policy(robot):
 
 def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall_m=None,
          self_collision=True, self_contacts=None, residual=None, offset_squares=None,
-         tilts=None, penetrations=None):
+         tilts=None, penetrations=None, trace=False):
     """Walks `policy_steps` policy periods; returns (fall time or None, records).
 
     Adds the name pairs of robot bodies in contact to `self_contacts`, if given.
@@ -104,6 +108,7 @@ def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall
     `offset_squares`, if given, receives each policy step's mean squared offset,
     `tilts` each policy step's pelvis tilt in radians and `penetrations` each
     policy step's deepest floor contact in metres (zero if nothing touches).
+    With `trace`, each record also holds the policy's observation and action.
     """
     residual = Residual(residual) if residual else None
     model, data = simulation(upstream, robot, friction, self_collision)
@@ -159,12 +164,14 @@ def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall
         time_s = counter * dt
         records.append({"time_s": time_s, "base_position_m": data.qpos[:3].tolist(),
                         "base_quaternion_wxyz": data.qpos[3:7].tolist()})
+        if trace:
+            records[-1].update(observation=obs.tolist(), action=action.tolist())
         if fall_m is not None and data.qpos[2] < fall_m:
             return time_s, records
     return None, records
 
 
-def push_trial(job):
+def push_trial(job, trace=False):
     upstream, robot, protocol, case, self_collision, residual = job
     directions = {d["name"]: d["z_up_xy"] for d in protocol["directions"]}
     steps = lambda seconds: int(round(seconds / 0.02))
@@ -173,11 +180,13 @@ def push_trial(job):
     x, y = directions[case["direction"]]
     force = np.array([x * case["force_n"], y * case["force_n"], 0.0])
     contacts = set()
-    fall, _ = walk(upstream, robot, protocol, end + steps(protocol["recovery_s"]),
-                   push=(start, end, force), fall_m=protocol["fall_height_m"],
-                   self_collision=self_collision, self_contacts=contacts, residual=residual)
-    return {**case, "fell": fall is not None, "fall_time_s": fall,
-            "self_contacts": [list(pair) for pair in sorted(contacts)]}
+    fall, records = walk(upstream, robot, protocol, end + steps(protocol["recovery_s"]),
+                         push=(start, end, force), fall_m=protocol["fall_height_m"],
+                         self_collision=self_collision, self_contacts=contacts,
+                         residual=residual, trace=trace)
+    result = {**case, "fell": fall is not None, "fall_time_s": fall,
+              "self_contacts": [list(pair) for pair in sorted(contacts)]}
+    return {**result, "records": records} if trace else result
 
 
 def friction_trial(job):
@@ -199,11 +208,10 @@ def main():
                         help="training report from example 144's --train-residual")
     parser.add_argument("--residual-generation", type=int,
                         help="use the residual checkpoint stored at this generation")
+    parser.add_argument("--trace", help="write one push trial's steps: DIRECTION,FORCE_N,PHASE")
     arguments = parser.parse_args()
     rne = json.loads(arguments.rne_report.read_text())
     robot, protocol = rne["robot"], rne["protocol"]
-    cases = [{"direction": r["direction"], "force_n": r["force_n"], "phase": r["phase"]}
-             for r in rne["push"]]
     upstream = str(arguments.upstream)
     residual = None
     if arguments.residual:
@@ -217,8 +225,21 @@ def main():
             if arguments.residual_generation not in stored:
                 raise SystemExit(f"no checkpoint at generation {arguments.residual_generation}")
             residual = stored[arguments.residual_generation]
+    self_collision = not arguments.no_self_collision
+    if arguments.trace:
+        direction, force_n, phase = arguments.trace.split(",")
+        case = {"direction": direction, "force_n": float(force_n), "phase": int(phase)}
+        trial = push_trial((upstream, robot, protocol, case, self_collision, residual), trace=True)
+        arguments.output.write_text(json.dumps(
+            {"schema_version": 1, "engine": f"mujoco {mujoco.__version__}", "robot": robot,
+             "self_collision": self_collision, "residual": residual, "case": case,
+             "protocol": protocol, "fall_time_s": trial["fall_time_s"],
+             "self_contacts": trial["self_contacts"], "records": trial["records"]}) + "\n")
+        print(f"wrote {arguments.output}; fell at {trial['fall_time_s']}")
+        return
+    cases = [{"direction": r["direction"], "force_n": r["force_n"], "phase": r["phase"]}
+             for r in rne["push"]]
     with multiprocessing.get_context("fork").Pool(arguments.processes) as pool:
-        self_collision = not arguments.no_self_collision
         push = pool.map(push_trial, [(upstream, robot, protocol, c, self_collision, residual)
                                      for c in cases])
         friction = pool.map(friction_trial, [(upstream, robot, protocol, f, self_collision,

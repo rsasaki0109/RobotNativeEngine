@@ -32,7 +32,11 @@ matches the MJCF's pelvis inertial. Their visuals and collisions move onto the
 pelvis with composed transforms. The torso mesh `torso_link_23dof_rev_1_0.STL`
 (7.8 MB, not vendored) is replaced by the vendored 23-DoF `torso_link.STL`,
 placed where the 23-DoF waist joint puts it. Leg links, joints, limits and the
-four 5 mm foot spheres per ankle are unchanged. The walking descriptor
+four 5 mm foot spheres per ankle are unchanged. The leg links keep the URDF's
+inertials, which the policy was trained with in Isaac Gym; for the two ankle
+links these are 0.01 kg·m² placeholders about every axis, where the MJCF has
+the measured values (largest principal moment 0.0017 kg·m² for the foot). See
+example 144's README for what the difference does to walking and pushes. The walking descriptor
 `../unitree_g1_12dof_walk.rne.robot.toml` imports only primitive collision
 geometry, so the feet are the only colliders. The upstream MuJoCo scene also
 collides the leg and pelvis meshes, with the floor and with each other (except

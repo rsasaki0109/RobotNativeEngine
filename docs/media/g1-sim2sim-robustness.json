@@ -1271,6 +1271,12 @@
           "left_knee_link / right_ankle_roll_link": 1
         }
       },
+      "fall_force_shift_levels": {
+        "forward": -1.125,
+        "backward": -0.125,
+        "left": -0.75,
+        "right": 0.25
+      },
       "friction": [
         {
           "friction": 1.0,
@@ -1353,6 +1359,12 @@
         "only_second_fell": 1,
         "only_second_fell_with_self_contact": 0,
         "self_contact_pairs": {}
+      },
+      "fall_force_shift_levels": {
+        "forward": -2.125,
+        "backward": -0.375,
+        "left": -1.25,
+        "right": -2.0
       },
       "friction": [
         {
@@ -1449,6 +1461,12 @@
           "left_ankle_pitch_link / right_ankle_roll_link": 1
         }
       },
+      "fall_force_shift_levels": {
+        "forward": -0.25,
+        "backward": 0.75,
+        "left": 0.25,
+        "right": 2.375
+      },
       "friction": [
         {
           "friction": 1.0,
@@ -1531,6 +1549,12 @@
         "only_second_fell": 14,
         "only_second_fell_with_self_contact": 0,
         "self_contact_pairs": {}
+      },
+      "fall_force_shift_levels": {
+        "forward": -1.25,
+        "backward": 0.5,
+        "left": -0.25,
+        "right": 0.125
       },
       "friction": [
         {
