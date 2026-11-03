@@ -805,6 +805,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "contact_slide"
+version = "0.4.0"
+dependencies = [
+ "rne_core",
+ "rne_ecs",
+ "rne_math",
+ "rne_physics",
+ "rne_physics_rapier",
+ "rne_world",
+ "serde_json",
+]
+
+[[package]]
 name = "control_eval_demo"
 version = "0.4.0"
 dependencies = [

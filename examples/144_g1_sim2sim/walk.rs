@@ -99,16 +99,7 @@ pub(crate) fn foot_penetration_mm(
     plant: PlantConfig,
 ) -> Result<(f64, f64)> {
     let mut walker = walker(robot, policy, plant)?;
-    let world = walker.sim().world();
-    let ground = world
-        .iter_entities()
-        .find(|entity| {
-            world
-                .get::<Name>(entity.id())
-                .is_some_and(|name| name.0 == "ground")
-        })
-        .map(|entity| entity.id())
-        .ok_or("the scene has no ground")?;
+    let ground = ground(&walker)?;
     let (steps, skipped) = PENETRATION_STEPS;
     let mut depths = Vec::with_capacity(steps - skipped);
     for step in 0..steps {
@@ -128,6 +119,20 @@ pub(crate) fn foot_penetration_mm(
     depths.sort_by(f64::total_cmp);
     let at = |q: f64| 1000.0 * depths[((depths.len() - 1) as f64 * q).round() as usize];
     Ok((at(0.5), at(0.95)))
+}
+
+/// The walking scene's ground entity.
+pub(crate) fn ground(walker: &UnitreeRlGymWalker) -> Result<rne_ecs::Entity> {
+    let world = walker.sim().world();
+    world
+        .iter_entities()
+        .find(|entity| {
+            world
+                .get::<Name>(entity.id())
+                .is_some_and(|name| name.0 == "ground")
+        })
+        .map(|entity| entity.id())
+        .ok_or_else(|| "the scene has no ground".into())
 }
 
 /// The plant's settings for reports.
@@ -216,6 +221,39 @@ mod tests {
         (0..(seconds / 0.02).round() as usize)
             .map(|_| walker.step(command).expect("step"))
             .collect()
+    }
+
+    #[test]
+    fn standing_feet_carry_the_robots_weight() {
+        // The feet hang from a multibody, so their contacts with the fixed
+        // ground take Rapier's generic one-body path, which starts each step
+        // without a warm start and so does not report (n + 1) / n of the
+        // applied force as rigid-body contacts do (example 145). Sampling once
+        // per policy step, at its last physics step, while the robot steps in
+        // place reads about 3% above the weight; that over-count, 25% at four
+        // iterations, would be far outside this bound.
+        let mut walker = walker();
+        let ground = ground(&walker).unwrap();
+        let (mut total_n, steps) = (0.0, 150);
+        for step in 0..100 + steps {
+            walker.step([0.0; 3]).unwrap();
+            if step >= 100 {
+                total_n += walker
+                    .sim()
+                    .physics_contact_points()
+                    .unwrap()
+                    .iter()
+                    .filter(|p| p.entity_a == ground || p.entity_b == ground)
+                    .map(|p| p.normal_force_n)
+                    .sum::<f64>();
+            }
+        }
+        let mean_n = total_n / f64::from(steps);
+        let weight_n = 32.107 * 9.81;
+        assert!(
+            (mean_n - weight_n).abs() < 0.06 * weight_n,
+            "mean foot force {mean_n} N, weight {weight_n} N"
+        );
     }
 
     #[test]
