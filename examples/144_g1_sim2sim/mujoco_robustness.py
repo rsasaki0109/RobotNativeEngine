@@ -96,13 +96,14 @@ def fresh_policy(robot):
 
 def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall_m=None,
          self_collision=True, self_contacts=None, residual=None, offset_squares=None,
-         tilts=None):
+         tilts=None, penetrations=None):
     """Walks `policy_steps` policy periods; returns (fall time or None, records).
 
     Adds the name pairs of robot bodies in contact to `self_contacts`, if given.
     `residual` is the JSON `residual` object of example 144's training report;
     `offset_squares`, if given, receives each policy step's mean squared offset,
-    and `tilts` each policy step's pelvis tilt in radians.
+    `tilts` each policy step's pelvis tilt in radians and `penetrations` each
+    policy step's deepest floor contact in metres (zero if nothing touches).
     """
     residual = Residual(residual) if residual else None
     model, data = simulation(upstream, robot, friction, self_collision)
@@ -134,6 +135,10 @@ def walk(upstream, robot, protocol, policy_steps, push=None, friction=None, fall
                 self_contacts.add(tuple(sorted(model.body(int(b)).name for b in pair)))
         if counter % decimation:
             continue
+        if penetrations is not None:
+            bodies = model.geom_bodyid[data.contact.geom].reshape(-1, 2)
+            floor = data.contact.dist[(bodies == 0).any(axis=1)]
+            penetrations.append(float(max(-floor.min(), 0.0)) if len(floor) else 0.0)
         phase = (counter * dt) % period / period
         obs[:3] = data.qvel[3:6] * spec["angular_velocity_scale"]
         obs[3:6] = projected_gravity(data.qpos[3:7])

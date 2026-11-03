@@ -379,6 +379,45 @@ python3 examples/144_g1_sim2sim/push_recovery_compare.py SUMMARY.json FIGURE.svg
   --sweep rne:11/mujoco/20=SWEEP.json   # one --sweep per run, engine and checkpoint
 ```
 
+## Contact softness
+
+Rapier's contacts are soft too: a contact constraint is a spring and damper
+with a natural frequency (30 Hz by default) and a damping ratio (5).
+MuJoCo's default `solref`/`solimp` sets its own softness, so the feet sink
+into the floor by different amounts. `--contact-softness HZ,RATIO` sets
+Rapier's two values (`UnitreeRlGymWalker::set_contact_softness`, which keeps
+them across resets), and `--penetration` measures how deep the deepest
+ground contact penetrates in each policy step of a 6 s walk at 0.5 m/s,
+after the first 2 s; `mujoco_penetration.py` measures MuJoCo's walk the same
+way.
+
+| Robot | MuJoCo median / 95th percentile (mm) | RNE default, 30 Hz / 5 | RNE matched | Mean speed gap to MuJoCo, default → matched (m/s) |
+| --- | --- | --- | --- | --- |
+| G1 | 1.44 / 5.29 | 2.09 / 3.69 | 60 Hz / 5: 1.36 / 1.83 | 0.012 → 0.012 |
+| H1 | 4.95 / 5.90 | 2.33 / 5.98 | 18 Hz / 5: 4.67 / 9.53 | 0.031 → 0.018 |
+
+Speed gaps are averaged over the four commands of [Results](#results).
+Matching the median penetration leaves the G1's walk as it was. It brings
+the H1's speeds closer to MuJoCo's but lowers its pelvis 2–4 mm below
+MuJoCo's, where the default stays within 1.5 mm. In the 640-trial push
+sweep, matched softness agrees with MuJoCo no better than the default:
+
+| Trials agreeing with MuJoCo, default → matched | Self-collision | Without |
+| --- | --- | --- |
+| G1 (60 Hz / 5) | 95.6% → 95.0% | 94.8% → 94.8% |
+| H1 (18 Hz / 5) | 94.4% → 94.2% | 95.2% → 94.1% |
+
+Contact softness is therefore not what separates the two engines' push
+outcomes, and the default stays.
+
+```bash
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --penetration
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --contact-softness 60,5 --penetration
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness --contact-softness 60,5
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robot h1 --contact-softness 18,5
+python3 examples/144_g1_sim2sim/mujoco_penetration.py UNITREE_RL_GYM --robot g1
+```
+
 ## Real time
 
 Simulated seconds per wall second for G1 walkers at 0.5 m/s, 10 s each, in
@@ -495,9 +534,11 @@ shares its walking metrics with Rust through `metrics.py`.
 
 ## Limits
 
-- Rapier contact is rigid; MuJoCo's is soft. The foot spheres are 5 mm, so
-  the comparison is sensitive to contact modelling, and these four commands,
-  the pushes and the friction sweep on flat ground are the whole test.
+- Rapier's and MuJoCo's contacts are soft in different ways; matching how
+  deep the feet sink does not make the push sweeps agree better
+  ([Contact softness](#contact-softness)). The foot spheres are 5 mm, so the
+  comparison is sensitive to contact modelling, and these four commands, the
+  pushes and the friction sweep on flat ground are the whole test.
 - RNE's walking models do not collide the robot's links with each other, so a
   push that swings one leg into the other passes through, where MuJoCo's legs
   collide. `--self-collision` collides them; the G1's merged pelvis still

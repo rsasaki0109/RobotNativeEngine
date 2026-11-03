@@ -7,6 +7,7 @@
 //! `metrics.py`. Poses are in the policy's Z-up frame.
 
 use rne_ai::{LstmPolicy, PolicyWalkPlant, PolicyWalkStep, UnitreeRlGymWalker, UrdfSceneSim};
+use rne_ecs::Name;
 use serde_json::{json, Value};
 
 use crate::policy::{Result, Robot};
@@ -33,6 +34,10 @@ pub(crate) struct PlantConfig {
     /// Links collide with each other except a link and its parent, as in the
     /// MJCF; the G1's legs then collide through convex hulls of their meshes.
     pub(crate) self_collision: bool,
+    /// Contact natural frequency (Hz) and damping ratio, or Rapier's default
+    /// (30 Hz, 5) when unset; lower frequencies give softer, MuJoCo-like
+    /// contacts.
+    pub(crate) contact_softness: Option<(f64, f64)>,
 }
 
 impl Default for PlantConfig {
@@ -45,6 +50,7 @@ impl Default for PlantConfig {
             joint_friction_nm: matched.joint_friction_nm,
             floor_friction: matched.floor_friction,
             self_collision: false,
+            contact_softness: None,
         }
     }
 }
@@ -59,7 +65,7 @@ pub(crate) fn walker(
         &robot.scene(plant.self_collision),
         plant.solver_iterations,
     )?;
-    Ok(UnitreeRlGymWalker::new(
+    let mut walker = UnitreeRlGymWalker::new(
         sim,
         policy,
         PolicyWalkPlant {
@@ -69,7 +75,74 @@ pub(crate) fn walker(
             floor_friction: plant.floor_friction,
             ..PolicyWalkPlant::default()
         },
-    )?)
+    )?;
+    if let Some((frequency_hz, damping_ratio)) = plant.contact_softness {
+        if !walker.set_contact_softness(frequency_hz, damping_ratio) {
+            return Err("contact softness needs a positive frequency and damping ratio".into());
+        }
+    }
+    Ok(walker)
+}
+
+/// Policy steps walked by [`foot_penetration_mm`] (6 s), and those skipped at
+/// the start (2 s).
+pub(crate) const PENETRATION_STEPS: (usize, usize) = (300, 100);
+
+/// How far the feet sink into the floor while walking at 0.5 m/s: per policy
+/// step after the first 2 s of a 6 s walk, the deepest penetration of any
+/// ground contact (zero if none penetrates), as the median and 95th
+/// percentile in millimetres. `mujoco_penetration.py` measures MuJoCo's walk
+/// the same way from `mjContact.dist`.
+pub(crate) fn foot_penetration_mm(
+    robot: Robot,
+    policy: LstmPolicy,
+    plant: PlantConfig,
+) -> Result<(f64, f64)> {
+    let mut walker = walker(robot, policy, plant)?;
+    let world = walker.sim().world();
+    let ground = world
+        .iter_entities()
+        .find(|entity| {
+            world
+                .get::<Name>(entity.id())
+                .is_some_and(|name| name.0 == "ground")
+        })
+        .map(|entity| entity.id())
+        .ok_or("the scene has no ground")?;
+    let (steps, skipped) = PENETRATION_STEPS;
+    let mut depths = Vec::with_capacity(steps - skipped);
+    for step in 0..steps {
+        walker.step([0.5, 0.0, 0.0])?;
+        if step < skipped {
+            continue;
+        }
+        let deepest = walker
+            .sim()
+            .physics_contact_separations()?
+            .into_iter()
+            .filter(|sample| sample.entity_a == ground || sample.entity_b == ground)
+            .map(|sample| -sample.min_separation_m)
+            .fold(0.0, f64::max);
+        depths.push(deepest);
+    }
+    depths.sort_by(f64::total_cmp);
+    let at = |q: f64| 1000.0 * depths[((depths.len() - 1) as f64 * q).round() as usize];
+    Ok((at(0.5), at(0.95)))
+}
+
+/// The plant's settings for reports.
+pub(crate) fn plant_json(plant: &PlantConfig) -> Value {
+    json!({
+        "solver_iterations": plant.solver_iterations,
+        "armature_kg_m2": plant.armature_kg_m2,
+        "joint_damping_nm_s_per_rad": plant.joint_damping_nm_s_per_rad,
+        "joint_friction_nm": plant.joint_friction_nm,
+        "floor_friction": plant.floor_friction,
+        "self_collision": plant.self_collision,
+        "contact_softness": plant.contact_softness.map(|(hz, ratio)| json!({
+            "natural_frequency_hz": hz, "damping_ratio": ratio,
+        })),
+    })
 }
 
 fn yaw(q: [f64; 4]) -> f64 {
@@ -143,6 +216,34 @@ mod tests {
         (0..(seconds / 0.02).round() as usize)
             .map(|_| walker.step(command).expect("step"))
             .collect()
+    }
+
+    #[test]
+    fn softer_contacts_let_the_feet_sink_deeper() {
+        let policy = crate::policy::load(Robot::G1).expect("policy");
+        let stiff = PlantConfig::default();
+        let soft = PlantConfig {
+            contact_softness: Some((8.4, 1.0)),
+            ..stiff
+        };
+        let (stiff_median, stiff_p95) =
+            foot_penetration_mm(Robot::G1, policy.clone(), stiff).expect("stiff");
+        let (soft_median, soft_p95) =
+            foot_penetration_mm(Robot::G1, policy.clone(), soft).expect("soft");
+        // Measured: 2.09 mm at Rapier's default 30 Hz / 5, 6.43 mm at 8.4 Hz / 1.
+        assert!((1.5..3.0).contains(&stiff_median), "{stiff_median}");
+        assert!(soft_median > stiff_median + 2.0, "{soft_median}");
+        assert!(stiff_p95 >= stiff_median && soft_p95 >= soft_median);
+        assert_eq!(
+            plant_json(&soft)["contact_softness"],
+            json!({"natural_frequency_hz": 8.4, "damping_ratio": 1.0})
+        );
+        assert!(plant_json(&stiff)["contact_softness"].is_null());
+        let invalid = PlantConfig {
+            contact_softness: Some((0.0, 1.0)),
+            ..stiff
+        };
+        assert!(super::walker(Robot::G1, policy, invalid).is_err());
     }
 
     #[test]

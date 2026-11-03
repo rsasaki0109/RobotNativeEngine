@@ -29,6 +29,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Let a Rapier world set its contact softness:
+  `RapierBackend::set_contact_softness` / `contact_softness` set and read the
+  natural frequency and damping ratio of the contact springs (default 30 Hz
+  and 5), and `reset_world` keeps them. `UrdfSceneSim` and
+  `UnitreeRlGymWalker` expose the same setter. Example 144's
+  `--contact-softness` and `--penetration`, with `mujoco_penetration.py`,
+  match how deep the G1's and H1's feet sink to MuJoCo's; doing so does not
+  make the push sweeps agree better, so the default is unchanged.
+
 - Add opt-in per-robot self-collision exclusion without allocating a collision
   mask bit for every robot. Ownership-aware URDF spawn functions attach a full
   generational entity token; native and Rapier suppress same-owner pairs while
