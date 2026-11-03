@@ -254,14 +254,14 @@
       "backend": "rapier",
       "capability": "contact_force",
       "passed": true,
-      "snapshot_hash": 7056287231214271674,
+      "snapshot_hash": 12128982270408026417,
       "metrics": [
         {
           "id": "mean_normal_impulse_n_s",
           "unit": "N*s",
-          "measured": 0.4342968761920929,
+          "measured": 0.3474375307559967,
           "expected": 0.3474374861025,
-          "absolute_error": 0.08685939008959287,
+          "absolute_error": 4.465349667803764e-8,
           "tolerance": {
             "id": "resting_impulse_n_s_v1",
             "absolute": 0.015,
@@ -284,9 +284,9 @@
         {
           "id": "mean_total_normal_force_n",
           "unit": "N",
-          "measured": 26.057813677657503,
+          "measured": 20.84625308789329,
           "expected": 20.84625,
-          "absolute_error": 5.211563677657502,
+          "absolute_error": 3.0878932903988243e-6,
           "tolerance": {
             "id": "rapier_contact_point_normal_load_n_v1",
             "absolute": 0.9,
@@ -319,7 +319,7 @@
       "backend": "rapier",
       "capability": "rigid_body",
       "passed": true,
-      "snapshot_hash": 10289609359101989785,
+      "snapshot_hash": 1062713427091191430,
       "metrics": [
         {
           "id": "resting_height_m",
