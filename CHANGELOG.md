@@ -19,7 +19,11 @@ All notable changes to Robot Native Engine are documented in this file.
   Trajectories with zero restitution are bitwise unchanged; the physics
   conformance golden and the compatibility evidence that hashes it are
   regenerated with the corrected impulses. Example 145, a pushed block on
-  four spheres checked against Coulomb friction and MuJoCo, found it.
+  four spheres checked against Coulomb friction and MuJoCo, found it. The
+  mobility benchmark's tire models read these loads, now 1 / (n + 1) lower
+  (4% in the per-wheel skid scenario at 24 iterations); its mobility checks
+  pass unchanged, and the per-wheel yaw rate moves from 0.2964 to
+  0.2966 rad/s.
 
 - Accept `.` and `..` as installed bundle roots in the source-free flagship
   verification workflow. Resolve the actual directory name after rejecting
