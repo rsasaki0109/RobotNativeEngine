@@ -19,6 +19,7 @@ on:
       - "docs/ROADMAP.md"
       - "release/contracts.toml"
       - "tests/physics_conformance/**"
+      - "tests/mobility_benchmark/**"
       - "xtask/src/failure_capsule.rs"
       - "xtask/src/main.rs"
       - ".github/workflows/mujoco.yml"
@@ -39,6 +40,7 @@ on:
       - "docs/ROADMAP.md"
       - "release/contracts.toml"
       - "tests/physics_conformance/**"
+      - "tests/mobility_benchmark/**"
       - "xtask/src/failure_capsule.rs"
       - "xtask/src/main.rs"
       - ".github/workflows/mujoco.yml"
@@ -168,6 +170,38 @@ jobs:
         with:
           name: heavy-grasp-comparison-linux
           path: artifacts/heavy-grasp-comparison.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Per-wheel skid sensor comparison
+        run: cargo test --locked -p rne_mobility_benchmark --features mujoco --lib rapier_and_mujoco_per_wheel_observed_traces_pass
+
+      - name: Per-wheel skid sensor evidence (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run --locked -p rne_mobility_benchmark --features mujoco -- \
+            --backend skid-sensor-compare \
+            --output artifacts/per-wheel-sensor-comparison-v2.json
+          python3 - artifacts/per-wheel-sensor-comparison-v2.json <<'EOF'
+          import json, sys
+          comparison = json.load(open(sys.argv[1]))
+          for trace in (comparison["first"], comparison["second"]):
+              print(trace["backend"]["backend_id"], "passed" if trace["passed"] else "FAILED")
+              for metric in trace["metrics"]:
+                  print(f"  {metric['id']}: {metric['value']:.4f} in [{metric['minimum']}, {metric['maximum']}]")
+          print("comparison", "passed" if comparison["passed"] else "FAILED")
+          for metric in comparison["metrics"]:
+              print(f"  {metric['id']}: {metric['value']:.4f} in [{metric['minimum']}, {metric['maximum']}]")
+          EOF
+
+      - name: Upload per-wheel skid sensor evidence
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: per-wheel-sensor-comparison-linux
+          path: artifacts/per-wheel-sensor-comparison-v2.json
           if-no-files-found: error
           retention-days: 14
 

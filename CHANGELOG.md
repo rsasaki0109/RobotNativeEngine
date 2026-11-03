@@ -53,10 +53,12 @@ All notable changes to Robot Native Engine are documented in this file.
   (21 V/(rad/s), 18 V/rad) hunted across the scrub breakaway voltage, and its
   verdict read the last decision alone, so it passed or failed on where that
   decision fell in the oscillation. v2's PI (4 V/(rad/s), 40 V/rad) converges
-  to a steady 0.296 rad/s on Rapier, varying by 0.009 rad/s over the last
-  second. The verdict averages that second against 0.25 to 0.35 rad/s and
-  rejects a range above 0.05 rad/s (`final_second_truth_yaw_rate_range_rad_s`);
-  the `final_*` yaw-rate metrics are renamed `final_second_mean_*`. See
+  to a steady 0.297 rad/s on Rapier and MuJoCo alike, varying by 0.008 rad/s
+  over the last second. The verdict averages that second against 0.25 to
+  0.35 rad/s and rejects a range above 0.05 rad/s
+  (`final_second_truth_yaw_rate_range_rad_s`); the `final_*` yaw-rate metrics
+  are renamed `final_second_mean_*`. The MuJoCo workflow now runs the
+  comparison, requiring each engine to pass on its own. See
   [the benchmark](docs/MOBILITY_PER_WHEEL_SENSOR_CLOSED_LOOP_V1.md#v2-controller-and-verdict).
 
 - Let a Rapier world set its contact softness:

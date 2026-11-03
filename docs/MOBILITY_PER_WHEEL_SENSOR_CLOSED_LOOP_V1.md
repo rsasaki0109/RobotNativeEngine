@@ -60,21 +60,29 @@ scoring fields.
 
 ## Reference evidence
 
-Rapier, v2 (`--backend skid-sensor-rapier`):
+v2, from the MuJoCo workflow's `per-wheel-sensor-comparison-linux` artifact
+(`--backend skid-sensor-compare`, MuJoCo 3.9.0, Rapier with reported contact
+loads as applied):
 
-| metric | Rapier | trace gate |
-| --- | ---: | ---: |
-| final-second mean estimated yaw rate | 0.2966 rad/s | 0.25 to 0.35 rad/s |
-| final-second mean privileged yaw rate | 0.2964 rad/s | 0.25 to 0.35 rad/s |
-| final-second privileged yaw-rate range | 0.0086 rad/s | 0 to 0.05 rad/s |
-| RMS yaw-rate estimation error | 0.0054 rad/s | 0 to 0.25 rad/s |
-| RMS truth tracking error | 0.1438 rad/s | 0 to 0.25 rad/s |
-| absolute integrated yaw | 0.6153 rad | 0.3 to 3.0 rad |
-| maximum measured motor current | 15.55 A | 0.5 to 25 A |
+| metric | Rapier | MuJoCo | trace gate |
+| --- | ---: | ---: | ---: |
+| final-second mean estimated yaw rate | 0.2968 rad/s | 0.2968 rad/s | 0.25 to 0.35 rad/s |
+| final-second mean privileged yaw rate | 0.2966 rad/s | 0.2966 rad/s | 0.25 to 0.35 rad/s |
+| final-second privileged yaw-rate range | 0.0082 rad/s | 0.0082 rad/s | 0 to 0.05 rad/s |
+| RMS yaw-rate estimation error | 0.0056 rad/s | 0.0058 rad/s | 0 to 0.25 rad/s |
+| RMS truth tracking error | 0.1418 rad/s | 0.1414 rad/s | 0 to 0.25 rad/s |
+| absolute integrated yaw | 0.6213 rad | 0.6223 rad | 0.3 to 3.0 rad |
+| maximum measured motor current | 15.02 A | 15.02 A | 0.5 to 25 A |
 
-The privileged yaw rate enters the 0.25 to 0.35 rad/s band 1.3 s after control
-starts and stays there; over the last second it varies by 0.009 rad/s. The tracking error is the slow rise from rest, not a residual
-oscillation. MuJoCo has not been re-run for v2; its v1 values are below.
+On Rapier the privileged yaw rate enters the 0.25 to 0.35 rad/s band 1.3 s
+after control starts and stays there. The tracking error is the slow rise from
+rest, not a residual oscillation. The two engines agree to 0.001 rad of
+integrated yaw and 0.0001 rad/s of final-second mean yaw rate, against v1's
+0.02 rad/s between two last samples: with the controller converged, the
+verdict no longer depends on where a sample falls in an oscillation. The MuJoCo workflow
+runs `rapier_and_mujoco_per_wheel_observed_traces_pass` on Linux and Windows,
+which requires each engine to pass the task and the two to agree, and prints
+these metrics on Linux.
 
 v1, generated outside the repository at
 `E:\RNE-build\m3c-sensor\per-wheel-sensor-comparison-v1.json`, with the
