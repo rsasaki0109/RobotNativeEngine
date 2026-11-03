@@ -274,8 +274,6 @@ impl TwoBodyConstraintBuilderSimd {
             constraint.dir1.cross(&constraint.tangent1),
         ];
 
-        // RNE modification, see below.
-        let accumulate = solved_dt > 0.0;
         let solved_dt = SimdReal::splat(solved_dt);
 
         for (info, element) in all_infos.iter().zip(all_elements.iter_mut()) {
@@ -294,20 +292,13 @@ impl TwoBodyConstraintBuilderSimd {
 
                 element.normal_part.rhs_wo_bias = rhs_wo_bias;
                 element.normal_part.rhs = new_rhs;
-                // RNE modification: the first substep's impulse is the warm start
-                // carried in from the previous step, so it is not part of this
-                // step's total. See RNE_PATCH.md.
-                if accumulate {
-                    element.normal_part.impulse_accumulator += element.normal_part.impulse;
-                }
+                element.normal_part.impulse_accumulator += element.normal_part.impulse;
                 element.normal_part.impulse *= warmstart_coeff;
             }
 
             // tangent parts.
             {
-                if accumulate {
-                    element.tangent_part.impulse_accumulator += element.tangent_part.impulse;
-                }
+                element.tangent_part.impulse_accumulator += element.tangent_part.impulse;
                 element.tangent_part.impulse *= warmstart_coeff;
 
                 for j in 0..DIM - 1 {

@@ -233,33 +233,3 @@ step for an unchanged pose.
 poses of a 3,000-point hull, with periodic restarts from arbitrary vertices,
 and find no difference. Example 144's G1 and H1 walk records, with and without
 self-collision, and its G1 push sweep are byte-identical before and after.
-
-## Contact impulse totals
-
-A contact point's reported impulse (`ContactData::impulse` and
-`tangent_impulse`, read by `ContactPair::total_impulse` and by RNE's
-`ContactEvent::impulse` and `ContactPointSample::normal_force_n`) is the
-solver element's `impulse_accumulator + impulse`. Upstream adds the element's
-impulse to the accumulator when each substep starts, the first included. At
-the first substep that impulse is still the warm start carried in from the
-previous step's last substep, so a step with n solver iterations reported n + 1
-substeps' impulse: (n + 1) / n of what the solver applied, twice it at one
-iteration. A block resting on the floor reported 1.25 times its weight at
-four iterations.
-
-Only warm-started constraints are affected. The generic two-body
-(multibody against dynamic body) builder warm starts like the rigid ones;
-the generic one-body builder (multibody against fixed geometry, such as a
-walking robot's feet on the ground) starts every step from a zero impulse
-and was already reported correctly. `OneBodyConstraintBuilder`,
-`TwoBodyConstraintBuilder` and their SIMD variants, whose
-`update_with_positions` the generic builders reuse, now accumulate only from
-the second substep on (`solved_dt > 0`). Warm starting and the solve are untouched: with zero
-restitution every trajectory is bitwise the same. The narrow phase treats a
-contact whose last reported impulse is zero as new, which makes a contact
-with restitution in (0, 1) bounce again if it carried no impulse over a whole
-step and then collides; before, the carried warm start counted as an impulse
-and kept it resting. RNE's
-`resting_contact_forces_equal_the_supported_weight_at_any_solver_iteration_count`
-checks that resting contacts report the supported weight within 1% at 1, 4
-and 16 iterations, through ground and between two stacked bodies.

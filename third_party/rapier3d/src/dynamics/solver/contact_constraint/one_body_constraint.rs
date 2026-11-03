@@ -307,20 +307,13 @@ impl OneBodyConstraintBuilder {
 
                 element.normal_part.rhs_wo_bias = rhs_wo_bias;
                 element.normal_part.rhs = new_rhs;
-                // RNE modification: the first substep's impulse is the warm start
-                // carried in from the previous step, so it is not part of this
-                // step's total. See RNE_PATCH.md.
-                if solved_dt > 0.0 {
-                    element.normal_part.impulse_accumulator += element.normal_part.impulse;
-                }
+                element.normal_part.impulse_accumulator += element.normal_part.impulse;
                 element.normal_part.impulse *= params.warmstart_coefficient;
             }
 
             // Tangent part.
             {
-                if solved_dt > 0.0 {
-                    element.tangent_part.impulse_accumulator += element.tangent_part.impulse;
-                }
+                element.tangent_part.impulse_accumulator += element.tangent_part.impulse;
                 element.tangent_part.impulse *= params.warmstart_coefficient;
 
                 for j in 0..DIM - 1 {
