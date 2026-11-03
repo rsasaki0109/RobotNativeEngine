@@ -48,9 +48,9 @@ use crate::MobilityBenchmarkMetric;
 /// Trace discriminator for the four-wheel sensor-only skid controller.
 pub const PER_WHEEL_OBSERVED_TRACE_KIND: &str = "rne_mobility_per_wheel_observed_trace";
 /// Schema version for the four-wheel sensor-only trace.
-pub const PER_WHEEL_OBSERVED_SCHEMA_VERSION: u32 = 1;
+pub const PER_WHEEL_OBSERVED_SCHEMA_VERSION: u32 = 2;
 /// Stable task identity shared by both rigid-body backends.
-pub const PER_WHEEL_OBSERVED_TASK_ID: &str = "mobility_per_wheel_sensor_yaw_rate_v1";
+pub const PER_WHEEL_OBSERVED_TASK_ID: &str = "mobility_per_wheel_sensor_yaw_rate_v2";
 /// One-millisecond physics step in simulation ticks.
 pub const PER_WHEEL_OBSERVED_FIXED_DELTA_TICKS: u64 = 1_000_000;
 
@@ -59,6 +59,8 @@ const SENSOR_LATENCY_TICKS: u64 = 2_000_000;
 const SETTLE_STEPS: u64 = 500;
 const DRIVE_STEPS: u64 = 3_000;
 const TOTAL_STEPS: u64 = SETTLE_STEPS + DRIVE_STEPS;
+/// Physics steps at the end of control whose decisions the yaw-rate verdict averages (1 s).
+const FINAL_WINDOW_STEPS: u64 = 1_000;
 const TARGET_YAW_RATE_RAD_S: f64 = 0.30;
 const MAXIMUM_VOLTAGE_V: f64 = 24.0;
 const ENCODER_COUNTS_PER_REVOLUTION: u32 = 2_048;
@@ -161,8 +163,11 @@ impl PerWheelObservedContract {
             sensor_period_ticks: SENSOR_PERIOD_TICKS,
             sensor_latency_ticks: SENSOR_LATENCY_TICKS,
             calibrated_gyro_z_bias_rad_s: 0.001,
-            controller_kp_v_s_rad: 21.0,
-            controller_ki_v_rad: 18.0,
+            // v1's 21 V/(rad/s) and 18 V/rad hunted across the scrub
+            // breakaway voltage (about 7.5 V): the yaw rate swung from -0.15
+            // to +0.44 rad/s around the 0.30 target.
+            controller_kp_v_s_rad: 4.0,
+            controller_ki_v_rad: 40.0,
             fault: PerWheelObservedFault::None,
         }
     }
@@ -928,20 +933,48 @@ fn run_per_wheel_observed_outcome<B: PhysicsBackend>(
     }
     ensure!(scoring_samples > 0, "no scoring samples");
     let final_sample = samples.last().context("no actor samples")?;
+    // The decisions in the last second of control, so that the verdict does
+    // not depend on where one sample falls in a residual oscillation.
+    let final_second: Vec<&PerWheelObservedSample> = samples
+        .iter()
+        .filter(|sample| sample.step > TOTAL_STEPS - FINAL_WINDOW_STEPS)
+        .collect();
+    ensure!(!final_second.is_empty(), "no final-second decisions");
+    let final_second_mean = |value: fn(&PerWheelObservedSample) -> f64| {
+        final_second.iter().map(|sample| value(sample)).sum::<f64>() / final_second.len() as f64
+    };
+    let (final_second_lowest, final_second_highest) = final_second.iter().fold(
+        (f64::INFINITY, f64::NEG_INFINITY),
+        |(lowest, highest), sample| {
+            (
+                lowest.min(sample.privileged_yaw_rate_rad_s),
+                highest.max(sample.privileged_yaw_rate_rad_s),
+            )
+        },
+    );
     let mut metrics = vec![
+        // A controller that still hunts can average near the target; its
+        // spread over the last second cannot be small.
         metric(
-            "final_estimated_yaw_rate_rad_s",
+            "final_second_truth_yaw_rate_range_rad_s",
             "rad/s",
-            final_sample.estimated_yaw_rate_rad_s,
-            0.15,
-            0.50,
+            final_second_highest - final_second_lowest,
+            0.0,
+            0.05,
         ),
         metric(
-            "final_truth_yaw_rate_rad_s",
+            "final_second_mean_estimated_yaw_rate_rad_s",
             "rad/s",
-            final_sample.privileged_yaw_rate_rad_s,
-            0.15,
-            0.50,
+            final_second_mean(|sample| sample.estimated_yaw_rate_rad_s),
+            0.25,
+            0.35,
+        ),
+        metric(
+            "final_second_mean_truth_yaw_rate_rad_s",
+            "rad/s",
+            final_second_mean(|sample| sample.privileged_yaw_rate_rad_s),
+            0.25,
+            0.35,
         ),
         metric(
             "rms_yaw_rate_estimation_error_rad_s",
@@ -1471,11 +1504,11 @@ fn comparison_metrics(
 ) -> Result<Vec<MobilityBenchmarkMetric>> {
     let mut metrics = vec![
         comparison_metric(
-            "final_truth_yaw_rate_gap_rad_s",
+            "final_second_mean_truth_yaw_rate_gap_rad_s",
             "rad/s",
             first,
             second,
-            "final_truth_yaw_rate_rad_s",
+            "final_second_mean_truth_yaw_rate_rad_s",
             0.20,
         )?,
         comparison_metric(
