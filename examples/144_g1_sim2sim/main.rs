@@ -11,6 +11,7 @@
 //! cargo run --release --example 144_g1_sim2sim -- --robustness # push and friction sweeps
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --self-collision # MJCF collisions
 //! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision # push recovery
+//! cargo run --release --example 144_g1_sim2sim -- --train-residual --self-collision --residual-model mlp --seed 11 --checkpoint-every 10
 //! cargo run --release --example 144_g1_sim2sim -- --robustness --residual target/g1-sim2sim/g1-residual.json
 //! cargo run --release --example 144_g1_sim2sim -- --command 0.5,0,0 --seconds 20
 //! cargo run --release --example 144_g1_sim2sim -- --render target/g1-sim2sim-render
@@ -40,6 +41,13 @@ struct Options {
     robustness: bool,
     train_residual: bool,
     generations: usize,
+    pairs: usize,
+    walk_offset_penalty: Option<f64>,
+    speed_penalty: Option<f64>,
+    checkpoint_every: usize,
+    residual_generation: Option<usize>,
+    seed: u64,
+    residual_model: residual::Model,
     residual: Option<PathBuf>,
     threads: usize,
     ablation: bool,
@@ -75,12 +83,20 @@ fn parse() -> Result<Options> {
         robustness: false,
         train_residual: false,
         generations: residual::TrainConfig::default().generations,
+        pairs: residual::TrainConfig::default().pairs,
+        walk_offset_penalty: None,
+        speed_penalty: None,
+        checkpoint_every: 0,
+        residual_generation: None,
+        seed: residual::TrainConfig::default().seed,
+        residual_model: residual::Model::Linear,
         residual: None,
         threads: std::thread::available_parallelism().map_or(1, |n| n.get()),
         ablation: false,
         render: None,
         plant: PlantConfig::default(),
     };
+    let (mut model_name, mut hidden) = ("linear".to_string(), 32);
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
@@ -97,6 +113,14 @@ fn parse() -> Result<Options> {
             "--robustness" => options.robustness = true,
             "--train-residual" => options.train_residual = true,
             "--generations" => options.generations = value()?.parse()?,
+            "--pairs" => options.pairs = value()?.parse()?,
+            "--walk-offset-penalty" => options.walk_offset_penalty = Some(value()?.parse()?),
+            "--speed-penalty" => options.speed_penalty = Some(value()?.parse()?),
+            "--checkpoint-every" => options.checkpoint_every = value()?.parse()?,
+            "--seed" => options.seed = value()?.parse()?,
+            "--residual-generation" => options.residual_generation = Some(value()?.parse()?),
+            "--residual-model" => model_name = value()?,
+            "--hidden" => hidden = value()?.parse()?,
             "--residual" => options.residual = Some(PathBuf::from(value()?)),
             "--threads" => options.threads = value()?.parse()?,
             "--ablation" => options.ablation = true,
@@ -104,6 +128,10 @@ fn parse() -> Result<Options> {
             "--robot" => options.robot = Robot::parse(&value()?)?,
             other => return Err(format!("unknown option {other}").into()),
         }
+    }
+    options.residual_model = residual::Model::parse(&model_name, hidden)?;
+    if options.pairs == 0 {
+        return Err("--pairs must be at least 1".into());
     }
     if !(options.seconds.is_finite() && options.seconds > 0.0 && options.seconds <= 600.0) {
         return Err("--seconds must be in (0, 600]".into());
@@ -351,12 +379,34 @@ fn train_or_sweep(options: &Options) -> Result<()> {
     if options.train_residual {
         let config = residual::TrainConfig {
             generations: options.generations,
+            pairs: options.pairs,
+            model: options.residual_model,
+            checkpoint_every: options.checkpoint_every,
+            seed: options.seed,
+            // The MLP sees joint states, so without this it reshapes the walk.
+            walk_offset_penalty: options.walk_offset_penalty.unwrap_or(
+                match options.residual_model {
+                    residual::Model::Linear => 0.0,
+                    residual::Model::Mlp { .. } => residual::MLP_WALK_OFFSET_PENALTY,
+                },
+            ),
+            speed_penalty: options
+                .speed_penalty
+                .unwrap_or(match options.residual_model {
+                    residual::Model::Linear => 0.0,
+                    residual::Model::Mlp { .. } => residual::MLP_SPEED_PENALTY,
+                }),
             ..residual::TrainConfig::default()
         };
         let (_, report) = residual::train(options.robot, options.plant, options.threads, config)?;
-        let path = options
-            .output
-            .join(format!("{}-residual.json", options.robot.name()));
+        let path = options.output.join(format!(
+            "{}-residual{}.json",
+            options.robot.name(),
+            match options.residual_model {
+                residual::Model::Linear => "",
+                residual::Model::Mlp { .. } => "-mlp",
+            }
+        ));
         std::fs::write(&path, serde_json::to_string_pretty(&report)? + "\n")?;
         println!("wrote {}", path.display());
         return Ok(());
@@ -367,7 +417,7 @@ fn train_or_sweep(options: &Options) -> Result<()> {
             if report["robot"] != options.robot.name() {
                 return Err(format!("{} was trained for another robot", path.display()).into());
             }
-            Some(residual::Residual::from_json(&report["residual"])?)
+            Some(residual::from_report(&report, options.residual_generation)?)
         }
         None => None,
     };

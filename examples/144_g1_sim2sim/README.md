@@ -227,7 +227,7 @@ outcome.
 from pushes, and `--residual FILE` sweeps with it; `mujoco_robustness.py
 --residual` and `mujoco_residual.py` do the same in MuJoCo.
 
-- **Residual.** A linear map from five entries of the policy's observation
+- **Residual.** By default a linear map from five entries of the policy's observation
   (scaled pelvis angular velocity and the horizontal components of projected
   gravity, all zero when upright and still) to the 12 joint targets, clamped
   to ±0.4 rad and added to the policy's targets for the next period
@@ -257,7 +257,59 @@ watching rather than training's 1 s and 1.5 s:
 
 A residual trained in either engine helps in the other, and both engines
 rank the two the same way (RNE by a single fall). The gain is small: a linear map from tilt and
-spin is too weak a controller to move the fall boundary far.
+spin is too weak a controller to move the fall boundary far. An MLP does better.
+
+### An MLP residual
+
+`--residual-model mlp` (32 hidden units; `--hidden` changes it) reads 31
+observation entries: tilt and spin as above, the 12 joint position offsets,
+the 12 scaled joint velocities and the gait phase's sine and cosine. Its
+target offsets are `0.4 · tanh(W₂ · tanh(W₁ · x + b₁))`, 1,408 parameters. W₂
+starts at zero, so training starts from the plain policy. W₁ starts from the
+seed's first normal deviates, and `mujoco_residual.py` draws the same ones; a
+fixture pins `residual.rs`'s MLP to `mujoco_robustness.py`'s to 1e-12.
+
+The first MLP learned to walk slower, which is easier to keep upright. Its
+falls in the sweep dropped to 304, but it walked at 0.34 m/s instead of 0.46
+and fell at μ = 0.15. Two penalties now keep the walk:
+
+- 25 per rad² on the mean squared offset while walking before the push.
+- 50 per (m/s)² on the change in walking speed from the plain policy's in
+  the same engine. Each candidate walks 4 s undisturbed, and the speed is
+  taken over the second half.
+
+Linear training uses neither and is bit-identical to before.
+
+Three seeds per engine (`--seed`), 20 generations each, with every
+checkpoint (`--checkpoint-every`) swept in both engines:
+
+| Residual | Training time | Falls in RNE | Falls in MuJoCo |
+| --- | --- | --- | --- |
+| None | — | 366 | 345 |
+| Linear, trained in RNE, 30 generations | 16.4 min | 350 | 335 |
+| MLP trained in RNE, seeds 2026 / 11 / 12 | 12.1 / 11.7 / 11.2 min | 308 / 286 / 289 (mean 294) | 310 / 285 / 277 (mean 291) |
+| MLP trained in MuJoCo, same seeds | 13.5 / 12.9 / 12.8 min | 306 / 321 / 337 (mean 321) | 295 / 304 / 347 (mean 315) |
+
+![Falls in 640 pushes against minutes of training, one line per run, for MLP residuals trained in RNE and in MuJoCo, evaluated in each engine](../../docs/media/g1-push-recovery-mlp.svg)
+
+- **An MLP trained in either engine works in the other.** At 20
+  generations, each run's falls in the other engine are within 17 of its
+  falls in its own.
+- **RNE's runs train faster.** RNE takes 33–35 s per generation against
+  MuJoCo's 38–39 s, or 80–82 against 73–74 simulated seconds per wall
+  second. The runs went one after the other, not interleaved.
+- **RNE's runs also fall less on average,** by 27 in RNE and 25 in MuJoCo.
+- **The seeds spread as widely as the engines differ.** Trained on to 40
+  generations, seed 2026's MuJoCo run reaches 267 and 270 falls while its
+  RNE run drifts back to 333 and 313. Three seeds do not rank the engines as
+  places to train. They do show that a residual trained in RNE holds up in
+  MuJoCo as well as one trained there, and costs less time.
+- **The walk is kept.** Every MLP still walks at μ = 0.15 or 0.2, against
+  0.15 for the plain policy. At μ = 1 it walks at 0.44–0.54 m/s, against
+  0.457 m/s (RNE) and 0.476 m/s (MuJoCo) for the plain policy.
+
+The [summary](../../docs/media/g1-push-recovery-mlp.json) holds every run's
+timing and every sweep's falls, lowest friction walked and speed.
 
 **Training cost.** One generation simulates about 2,500 s (33 candidates × 32
 pushes). Simulated seconds per wall second on the 4-core container, RNE with
@@ -311,6 +363,20 @@ python3 examples/144_g1_sim2sim/mujoco_residual.py UNITREE_RL_GYM \
   target/g1-sim2sim/g1-residual.json target/g1-sim2sim/g1-residual-mujoco.json
 python3 examples/144_g1_sim2sim/mujoco_robustness.py UNITREE_RL_GYM \
   target/g1-sim2sim/g1-robustness-self-collision.json OUTPUT.json --residual RESIDUAL.json
+# The MLP: train with checkpoints, repeat in MuJoCo, sweep a checkpoint in both engines.
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --train-residual --self-collision \
+  --solver-iterations 1 --residual-model mlp --generations 20 --checkpoint-every 10 --seed 11
+python3 examples/144_g1_sim2sim/mujoco_residual.py UNITREE_RL_GYM \
+  target/g1-sim2sim/g1-residual-mlp.json target/g1-sim2sim/g1-residual-mlp-mujoco.json
+cargo run --release -p g1_sim2sim --example 144_g1_sim2sim -- --robustness --self-collision \
+  --solver-iterations 1 --residual RESIDUAL.json --residual-generation 20
+python3 examples/144_g1_sim2sim/mujoco_robustness.py UNITREE_RL_GYM \
+  target/g1-sim2sim/g1-robustness-self-collision.json OUTPUT.json \
+  --residual RESIDUAL.json --residual-generation 20
+python3 examples/144_g1_sim2sim/push_recovery_compare.py SUMMARY.json FIGURE.svg \
+  --training rne:11=RNE_REPORT.json --training mujoco:11=MUJOCO_REPORT.json \
+  --plain rne=RNE_PLAIN_SWEEP.json --plain mujoco=MUJOCO_PLAIN_SWEEP.json \
+  --sweep rne:11/mujoco/20=SWEEP.json   # one --sweep per run, engine and checkpoint
 ```
 
 ## Real time

@@ -1,0 +1,470 @@
+{
+  "schema_version": 1,
+  "robot": "g1",
+  "settings": {
+    "method": "evolution strategies, antithetic pairs, centred ranks, Adam",
+    "pairs": 16,
+    "sigma": 0.05,
+    "learning_rate": 0.02,
+    "offset_penalty_per_rad2": 1.0,
+    "walk_offset_penalty_per_rad2": 25.0,
+    "speed_penalty_per_m2_s2": 50.0
+  },
+  "residual_model": {
+    "activation": "tanh",
+    "features": [
+      "angular_velocity_x_scaled",
+      "angular_velocity_y_scaled",
+      "angular_velocity_z_scaled",
+      "projected_gravity_x",
+      "projected_gravity_y",
+      "joint_position_offset_0",
+      "joint_position_offset_1",
+      "joint_position_offset_2",
+      "joint_position_offset_3",
+      "joint_position_offset_4",
+      "joint_position_offset_5",
+      "joint_position_offset_6",
+      "joint_position_offset_7",
+      "joint_position_offset_8",
+      "joint_position_offset_9",
+      "joint_position_offset_10",
+      "joint_position_offset_11",
+      "joint_velocity_scaled_0",
+      "joint_velocity_scaled_1",
+      "joint_velocity_scaled_2",
+      "joint_velocity_scaled_3",
+      "joint_velocity_scaled_4",
+      "joint_velocity_scaled_5",
+      "joint_velocity_scaled_6",
+      "joint_velocity_scaled_7",
+      "joint_velocity_scaled_8",
+      "joint_velocity_scaled_9",
+      "joint_velocity_scaled_10",
+      "joint_velocity_scaled_11",
+      "phase_sin",
+      "phase_cos"
+    ],
+    "hidden": 32,
+    "limit_rad": 0.4,
+    "model": "mlp",
+    "observation_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      45,
+      46
+    ],
+    "output": "limit_rad * tanh(w2 . tanh(w1 . x + b1))"
+  },
+  "plain_policy": {
+    "RNE": {
+      "falls": 366,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.457
+    },
+    "MuJoCo": {
+      "falls": 345,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.476
+    }
+  },
+  "training": [
+    {
+      "trained_in": "MuJoCo",
+      "seed": 11,
+      "generations": 20,
+      "median_wall_s_per_generation": 38.41,
+      "simulated_s_per_wall_s": 73.2,
+      "total_wall_s": 772.2
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 12,
+      "generations": 20,
+      "median_wall_s_per_generation": 38.15,
+      "simulated_s_per_wall_s": 74.3,
+      "total_wall_s": 765.7
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "generations": 40,
+      "median_wall_s_per_generation": 38.92,
+      "simulated_s_per_wall_s": 74.0,
+      "total_wall_s": 1561.8
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 11,
+      "generations": 20,
+      "median_wall_s_per_generation": 34.95,
+      "simulated_s_per_wall_s": 80.7,
+      "total_wall_s": 703.2
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 12,
+      "generations": 20,
+      "median_wall_s_per_generation": 33.37,
+      "simulated_s_per_wall_s": 82.2,
+      "total_wall_s": 673.0
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "generations": 40,
+      "median_wall_s_per_generation": 34.31,
+      "simulated_s_per_wall_s": 80.5,
+      "total_wall_s": 1380.9
+    }
+  ],
+  "mean_at_common_generations": [
+    {
+      "generation": 20,
+      "trained_in": "RNE",
+      "evaluated_in": "RNE",
+      "runs": 3,
+      "mean_falls": 294.3,
+      "falls": [
+        308,
+        286,
+        289
+      ],
+      "mean_training_wall_s": 700.3
+    },
+    {
+      "generation": 20,
+      "trained_in": "RNE",
+      "evaluated_in": "MuJoCo",
+      "runs": 3,
+      "mean_falls": 290.7,
+      "falls": [
+        310,
+        285,
+        277
+      ],
+      "mean_training_wall_s": 700.3
+    },
+    {
+      "generation": 20,
+      "trained_in": "MuJoCo",
+      "evaluated_in": "RNE",
+      "runs": 3,
+      "mean_falls": 321.3,
+      "falls": [
+        306,
+        321,
+        337
+      ],
+      "mean_training_wall_s": 783.1
+    },
+    {
+      "generation": 20,
+      "trained_in": "MuJoCo",
+      "evaluated_in": "MuJoCo",
+      "runs": 3,
+      "mean_falls": 315.3,
+      "falls": [
+        295,
+        304,
+        347
+      ],
+      "mean_training_wall_s": 783.1
+    }
+  ],
+  "sweeps": [
+    {
+      "trained_in": "MuJoCo",
+      "seed": 11,
+      "evaluated_in": "RNE",
+      "generation": 20,
+      "training_wall_s": 772.2,
+      "falls": 321,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.491
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 12,
+      "evaluated_in": "RNE",
+      "generation": 20,
+      "training_wall_s": 765.7,
+      "falls": 337,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.543
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "evaluated_in": "RNE",
+      "generation": 10,
+      "training_wall_s": 419.5,
+      "falls": 293,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.465
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "evaluated_in": "RNE",
+      "generation": 20,
+      "training_wall_s": 811.4,
+      "falls": 306,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.439
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "evaluated_in": "RNE",
+      "generation": 30,
+      "training_wall_s": 1200.7,
+      "falls": 286,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.465
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "evaluated_in": "RNE",
+      "generation": 40,
+      "training_wall_s": 1561.8,
+      "falls": 267,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.465
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 11,
+      "evaluated_in": "RNE",
+      "generation": 20,
+      "training_wall_s": 703.2,
+      "falls": 286,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.458
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 12,
+      "evaluated_in": "RNE",
+      "generation": 20,
+      "training_wall_s": 673.0,
+      "falls": 289,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.493
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "evaluated_in": "RNE",
+      "generation": 10,
+      "training_wall_s": 366.7,
+      "falls": 318,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.499
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "evaluated_in": "RNE",
+      "generation": 20,
+      "training_wall_s": 724.6,
+      "falls": 308,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.496
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "evaluated_in": "RNE",
+      "generation": 30,
+      "training_wall_s": 1072.0,
+      "falls": 337,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.472
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "evaluated_in": "RNE",
+      "generation": 40,
+      "training_wall_s": 1380.9,
+      "falls": 333,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.501
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 11,
+      "evaluated_in": "MuJoCo",
+      "generation": 20,
+      "training_wall_s": 772.2,
+      "falls": 304,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.505
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 12,
+      "evaluated_in": "MuJoCo",
+      "generation": 20,
+      "training_wall_s": 765.7,
+      "falls": 347,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.523
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "evaluated_in": "MuJoCo",
+      "generation": 10,
+      "training_wall_s": 419.5,
+      "falls": 288,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.484
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "evaluated_in": "MuJoCo",
+      "generation": 20,
+      "training_wall_s": 811.4,
+      "falls": 295,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.445
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "evaluated_in": "MuJoCo",
+      "generation": 30,
+      "training_wall_s": 1200.7,
+      "falls": 295,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.473
+    },
+    {
+      "trained_in": "MuJoCo",
+      "seed": 2026,
+      "evaluated_in": "MuJoCo",
+      "generation": 40,
+      "training_wall_s": 1561.8,
+      "falls": 270,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.457
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 11,
+      "evaluated_in": "MuJoCo",
+      "generation": 20,
+      "training_wall_s": 703.2,
+      "falls": 285,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.457
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 12,
+      "evaluated_in": "MuJoCo",
+      "generation": 20,
+      "training_wall_s": 673.0,
+      "falls": 277,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.501
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "evaluated_in": "MuJoCo",
+      "generation": 10,
+      "training_wall_s": 366.7,
+      "falls": 319,
+      "trials": 640,
+      "lowest_friction_walked": 0.15,
+      "forward_speed_friction_1_m_s": 0.528
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "evaluated_in": "MuJoCo",
+      "generation": 20,
+      "training_wall_s": 724.6,
+      "falls": 310,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.525
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "evaluated_in": "MuJoCo",
+      "generation": 30,
+      "training_wall_s": 1072.0,
+      "falls": 318,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.483
+    },
+    {
+      "trained_in": "RNE",
+      "seed": 2026,
+      "evaluated_in": "MuJoCo",
+      "generation": 40,
+      "training_wall_s": 1380.9,
+      "falls": 313,
+      "trials": 640,
+      "lowest_friction_walked": 0.2,
+      "forward_speed_friction_1_m_s": 0.512
+    }
+  ]
+}
