@@ -227,11 +227,11 @@ mod tests {
     fn standing_feet_carry_the_robots_weight() {
         // The feet hang from a multibody, so their contacts with the fixed
         // ground take Rapier's generic one-body path, which starts each step
-        // without a warm start and so does not report (n + 1) / n of the
-        // applied force as rigid-body contacts do (example 145). Sampling once
-        // per policy step, at its last physics step, while the robot steps in
-        // place reads about 3% above the weight; that over-count, 25% at four
-        // iterations, would be far outside this bound.
+        // without a warm start and so never counted one twice (unlike rigid
+        // bodies before the repository's Rapier patch). Sampling once per
+        // policy step, at its last physics step, while the robot steps in
+        // place reads about 3% above the weight; the patch's 25% at four
+        // iterations would be far outside this bound.
         let mut walker = walker();
         let ground = ground(&walker).unwrap();
         let (mut total_n, steps) = (0.0, 150);
