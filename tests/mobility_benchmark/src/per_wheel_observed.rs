@@ -1728,6 +1728,11 @@ mod tests {
             MuJoCoBackend::manifest(),
         )
         .unwrap();
+        // Each engine must pass the task on its own, including the
+        // final-second range that rejects a hunting controller, and the two
+        // must agree.
+        assert!(rapier.passed, "Rapier: {:#?}", rapier.metrics);
+        assert!(mujoco.passed, "MuJoCo: {:#?}", mujoco.metrics);
         let comparison = compare_per_wheel_observed_traces(rapier, mujoco).unwrap();
         assert!(comparison.passed, "{:#?}", comparison.metrics);
         comparison.validate().unwrap();
