@@ -484,8 +484,10 @@ one policy step and RNE's 0.02 rad, the knee and ankle angles part by up to
 another 0.16 s later). MuJoCo recovers; RNE falls 0.9 s after the push. The
 difference lies in how the feet slide and land under a large horizontal
 load: where Rapier's contact solver and MuJoCo's soft-constraint contacts
-differ beyond the stiffness, friction and inertia settings above. That is
-the next thing to model.
+differ beyond the stiffness, friction and inertia settings above.
+[Example 145](../145_contact_slide/README.md) takes the foot alone: a block on
+four 5 mm spheres follows Coulomb friction's closed form in RNE, while in
+MuJoCo it skips while sliding and rebounds on landing.
 
 **Ankle inertia.** Unitree's URDFs give the G1's two ankle links and the
 H1's foot 0.01 kg·m² about every axis, where the MJCF's largest principal
