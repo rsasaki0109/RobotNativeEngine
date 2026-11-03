@@ -7,12 +7,14 @@ All notable changes to Robot Native Engine are documented in this file.
 ### Fixed
 
 - Report Rapier contact forces as the forces applied. Rapier 0.22 counted
-  each contact's warm-start impulse, carried in from the previous step, as
-  part of the step's total, so `ContactEvent::impulse`,
-  `ContactPointSample::normal_force_n` and Rapier's own contact impulses were
-  (n + 1) / n of the applied impulse at n solver iterations: 1.25 times a
-  resting body's weight at four iterations, twice it at one. The repository's
-  Rapier patch counts
+  a warm-started contact's carried-in impulse as part of the step's total, so
+  `ContactEvent::impulse`, `ContactPointSample::normal_force_n` and Rapier's
+  own contact impulses were (n + 1) / n of the applied impulse at n solver
+  iterations: 1.25 times a resting body's weight at four iterations, twice it
+  at one. This affected rigid-body contacts and a multibody link's contacts
+  with dynamic bodies; multibody links against fixed geometry, such as
+  walking robots' feet on the ground, are not warm-started and were
+  reported correctly. The repository's Rapier patch counts
   only the step's own substeps (`third_party/rapier3d/RNE_PATCH.md`).
   Trajectories with zero restitution are bitwise unchanged; the physics
   conformance golden and the compatibility evidence that hashes it are

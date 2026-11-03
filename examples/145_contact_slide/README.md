@@ -84,22 +84,26 @@ column:
 
 ## Contact forces reported by Rapier
 
-This example found that Rapier 0.22 reported every contact impulse, and so
-RNE's `ContactEvent::impulse` and `ContactPointSample::normal_force_n`, as
-(n + 1) / n of the impulse the solver applied over a step with n solver
-iterations. A block at rest reported 1.25 times its weight at 4 iterations
-and twice it at 1. The total also counted the warm start carried in from the
-previous step. The repository's Rapier patch fixes this; see
-`third_party/rapier3d/RNE_PATCH.md`. Trajectories are unchanged; only the
-reported forces drop to the forces actually applied: 98.1 N for this block at
-rest at any iteration count.
+This example found that Rapier 0.22 reported warm-started contact
+impulses, and so RNE's `ContactEvent::impulse` and
+`ContactPointSample::normal_force_n`, as (n + 1) / n of the impulse the solver
+applied over a step with n solver iterations. The total also counted the
+warm start carried in from the previous step. A block at rest reported 1.25
+times its weight at 4 iterations and twice it at 1. This affected contacts
+between rigid bodies and fixed geometry or each other, and between a
+multibody link and a dynamic body. A multibody link against fixed geometry,
+like example 144's feet on the ground, starts each step without a warm
+start and was reported correctly. The repository's Rapier patch fixes the
+rest; see `third_party/rapier3d/RNE_PATCH.md`. Trajectories are unchanged;
+only the reported forces drop to the forces actually applied: 98.1 N for
+this block at rest at any iteration count.
 
 ## Limits
 
-- One rigid body: example 144's feet hang from a multibody, whose contacts go
-  through Rapier's generic constraints. Those reuse the patched update, and
-  example 144's `standing_feet_carry_the_robots_weight` checks the G1's
-  standing foot forces against its weight.
+- One rigid body: example 144's feet hang from a multibody, whose contacts
+  with the ground go through Rapier's generic one-body constraints. Those
+  were never over-counted; example 144's `standing_feet_carry_the_robots_weight`
+  checks the G1's standing foot forces against its weight.
 - The landing scenario has no closed form. "No rebound" follows from treating
   the contact as inelastic, which Rapier's zero restitution does and
   MuJoCo's soft contacts do not.

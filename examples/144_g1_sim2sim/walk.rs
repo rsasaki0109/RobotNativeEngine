@@ -225,9 +225,13 @@ mod tests {
 
     #[test]
     fn standing_feet_carry_the_robots_weight() {
-        // The feet hang from a multibody, so their contacts take Rapier's
-        // generic constraint path. Before the repository's Rapier patch the
-        // reported forces were 5/4 of the weight at four solver iterations.
+        // The feet hang from a multibody, so their contacts with the fixed
+        // ground take Rapier's generic one-body path, which starts each step
+        // without a warm start and so never counted one twice (unlike rigid
+        // bodies before the repository's Rapier patch). Sampling once per
+        // policy step, at its last physics step, while the robot steps in
+        // place reads about 3% above the weight; the patch's 25% at four
+        // iterations would be far outside this bound.
         let mut walker = walker();
         let ground = ground(&walker).unwrap();
         let (mut total_n, steps) = (0.0, 150);
@@ -247,7 +251,7 @@ mod tests {
         let mean_n = total_n / f64::from(steps);
         let weight_n = 32.107 * 9.81;
         assert!(
-            (mean_n - weight_n).abs() < 0.03 * weight_n,
+            (mean_n - weight_n).abs() < 0.06 * weight_n,
             "mean foot force {mean_n} N, weight {weight_n} N"
         );
     }

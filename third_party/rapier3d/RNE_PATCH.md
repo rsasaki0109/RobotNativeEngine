@@ -247,10 +247,14 @@ substeps' impulse: (n + 1) / n of what the solver applied, twice it at one
 iteration. A block resting on the floor reported 1.25 times its weight at
 four iterations.
 
-`OneBodyConstraintBuilder`, `TwoBodyConstraintBuilder` and their SIMD
-variants, whose `update_with_positions` the generic (multibody) contact
-builders reuse, now accumulate only from the second substep on
-(`solved_dt > 0`). Warm starting and the solve are untouched: with zero
+Only warm-started constraints are affected. The generic two-body
+(multibody against dynamic body) builder warm starts like the rigid ones;
+the generic one-body builder (multibody against fixed geometry, such as a
+walking robot's feet on the ground) starts every step from a zero impulse
+and was already reported correctly. `OneBodyConstraintBuilder`,
+`TwoBodyConstraintBuilder` and their SIMD variants, whose
+`update_with_positions` the generic builders reuse, now accumulate only from
+the second substep on (`solved_dt > 0`). Warm starting and the solve are untouched: with zero
 restitution every trajectory is bitwise the same. The narrow phase treats a
 contact whose last reported impulse is zero as new, which makes a contact
 with restitution in (0, 1) bounce again if it carried no impulse over a whole
