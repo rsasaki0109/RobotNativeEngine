@@ -59,6 +59,15 @@ All notable changes to Robot Native Engine are documented in this file.
   now share that code, and the G1's walks are bit-identical. Example 147
   trains a Go2 to walk with it.
 
+- Let Rapier's constraint solver re-solve contacts without rebuilding
+  articulations. `RapierBackend::set_inner_solver_passes` (and
+  `UrdfSceneSim::set_inner_solver_passes`,
+  `PdJointWalker::set_inner_solver_passes`) sets the projected Gauss-Seidel
+  passes per solver iteration, and `reset_world` keeps them. Rapier rebuilds
+  and factors every multibody's mass matrix once per solver iteration, so one
+  iteration with four inner passes steps a Go2 about twice as fast as four
+  iterations and still learns to walk in example 147.
+
 - The per-wheel skid sensor-only benchmark is now
   `mobility_per_wheel_sensor_yaw_rate_v2` (trace schema 2). v1's yaw-rate PI
   (21 V/(rad/s), 18 V/rad) hunted across the scrub breakaway voltage, and its

@@ -77,6 +77,8 @@ pub(crate) struct Plant {
     pub(crate) backend: Backend,
     /// Rapier's solver iterations; the native backend has none to set.
     pub(crate) solver_iterations: usize,
+    /// Rapier's inner constraint passes per solver iteration.
+    pub(crate) inner_passes: usize,
     pub(crate) floor_friction: f64,
 }
 
@@ -85,6 +87,7 @@ impl Default for Plant {
         Self {
             backend: Backend::Rapier,
             solver_iterations: 4,
+            inner_passes: 1,
             floor_friction: 1.0,
         }
     }
@@ -171,7 +174,11 @@ fn walker(plant: Plant) -> Result<PdJointWalker> {
             floor_friction: plant.floor_friction,
         },
     };
-    Ok(PdJointWalker::new(sim, config)?)
+    let mut walker = PdJointWalker::new(sim, config)?;
+    if !walker.set_inner_solver_passes(plant.inner_passes) {
+        return Err("inner solver passes must be positive".into());
+    }
+    Ok(walker)
 }
 
 /// Restarts the robot and stands it on its default pose for

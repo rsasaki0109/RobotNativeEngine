@@ -214,6 +214,7 @@ pub(crate) fn train(plant: Plant, threads: usize, config: Config) -> Result<Valu
         "engine": plant.backend.name(),
         "plant": {"backend": plant.backend.name(),
                   "solver_iterations": plant.solver_iterations,
+                  "inner_passes": plant.inner_passes,
                   "floor_friction": plant.floor_friction},
         "threads": threads,
         "training": {

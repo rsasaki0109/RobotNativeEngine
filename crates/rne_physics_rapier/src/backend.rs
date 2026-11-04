@@ -381,13 +381,16 @@ impl RapierBackend {
     pub fn reset_world(&mut self, id: PhysicsWorldId) -> Result<(), PhysicsError> {
         let old = &self.world(id)?.integration_parameters;
         let softness = (old.contact_natural_frequency, old.contact_damping_ratio);
+        let pgs_iterations = old.num_internal_pgs_iterations;
         let desc = self.world(id)?.desc;
         let mut state = new_world_state(id, desc);
-        // Contact softness is a world setting, like the solver iterations.
+        // Contact softness and the inner iterations are world settings, like
+        // the solver iterations.
         (
             state.integration_parameters.contact_natural_frequency,
             state.integration_parameters.contact_damping_ratio,
         ) = softness;
+        state.integration_parameters.num_internal_pgs_iterations = pgs_iterations;
         self.worlds.insert(id, state);
         Ok(())
     }
@@ -417,6 +420,42 @@ impl RapierBackend {
         state.integration_parameters.contact_natural_frequency = natural_frequency_hz as f32;
         state.integration_parameters.contact_damping_ratio = damping_ratio as f32;
         true
+    }
+
+    /// Sets how many projected Gauss-Seidel passes Rapier's constraint solver
+    /// makes within each of its solver iterations (Rapier's default is 1).
+    ///
+    /// Rapier splits each step into one substep per solver iteration and
+    /// rebuilds every multibody's mass matrix in each, so solver iterations
+    /// cost a full multibody update apiece. Inner passes only re-solve the
+    /// constraints: one solver iteration with four inner passes updates the
+    /// multibodies once per step. The setting survives [`Self::reset_world`].
+    /// Returns false, changing nothing, when the world does not exist or
+    /// `passes` is zero.
+    pub fn set_inner_solver_passes(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        passes: usize,
+    ) -> bool {
+        if passes == 0 {
+            return false;
+        }
+        let Ok(state) = self.world_mut(physics_world) else {
+            return false;
+        };
+        state.integration_parameters.num_internal_pgs_iterations = passes;
+        true
+    }
+
+    /// The inner constraint-solver passes per solver iteration of a world, as
+    /// [`Self::set_inner_solver_passes`] set them.
+    pub fn inner_solver_passes(&self, physics_world: PhysicsWorldId) -> Option<usize> {
+        Some(
+            self.worlds
+                .get(&physics_world)?
+                .integration_parameters
+                .num_internal_pgs_iterations,
+        )
     }
 
     /// The contact natural frequency (Hz) and damping ratio of a world, as
@@ -2474,6 +2513,20 @@ mod tests {
         assert!(backend.set_contact_softness(id, 8.0, 1.0));
         backend.reset_world(id).unwrap();
         assert_eq!(backend.contact_softness(id), Some((8.0, 1.0)));
+    }
+
+    #[test]
+    fn inner_solver_passes_are_validated_and_survive_a_world_reset() {
+        let mut backend = RapierBackend::new();
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        assert_eq!(backend.inner_solver_passes(id), Some(1));
+        assert!(!backend.set_inner_solver_passes(id, 0));
+        assert!(!backend.set_inner_solver_passes(PhysicsWorldId(99), 4));
+        assert_eq!(backend.inner_solver_passes(PhysicsWorldId(99)), None);
+        assert_eq!(backend.inner_solver_passes(id), Some(1));
+        assert!(backend.set_inner_solver_passes(id, 4));
+        backend.reset_world(id).unwrap();
+        assert_eq!(backend.inner_solver_passes(id), Some(4));
     }
 
     #[test]

@@ -370,6 +370,12 @@ impl PdJointWalker {
             .set_contact_softness(natural_frequency_hz, damping_ratio)
     }
 
+    /// Sets the constraint solver's inner passes per solver iteration, as
+    /// [`UrdfSceneSim::set_inner_solver_passes`]; kept across [`Self::reset`].
+    pub fn set_inner_solver_passes(&mut self, passes: usize) -> bool {
+        self.sim.set_inner_solver_passes(passes)
+    }
+
     /// Applies a world-frame (Y-up) force at the base origin on every physics
     /// step until cleared with `None`.
     pub fn set_base_push_n(&mut self, force_world_n: Option<Vec3>) {
@@ -506,8 +512,15 @@ mod tests {
     ];
 
     fn go2() -> PdJointWalker {
-        let sim = UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_dynamic_scene_path())
-            .expect("Go2 scene");
+        go2_with_solver_iterations(4)
+    }
+
+    fn go2_with_solver_iterations(solver_iterations: usize) -> PdJointWalker {
+        let sim = UrdfSceneSim::from_scene_path_with_solver_iterations(
+            &UrdfSceneSim::unitree_go2_dynamic_scene_path(),
+            solver_iterations,
+        )
+        .expect("Go2 scene");
         let config = PdJointConfig {
             link_names: LINKS.iter().map(|name| name.to_string()).collect(),
             kp_nm_per_rad: vec![20.0; 12],
@@ -562,6 +575,29 @@ mod tests {
         assert!(joints.iter().all(|(_, velocity)| velocity.abs() < 0.5));
         walker.reset().unwrap();
         assert_eq!(run(&mut walker), ((position, rotation), joints));
+    }
+
+    #[test]
+    fn inner_solver_passes_stand_the_go2_on_one_solver_iteration_and_survive_a_reset() {
+        let run = |walker: &mut PdJointWalker| {
+            walker.set_joint_positions_rad(&STAND_RAD).unwrap();
+            for _ in 0..50 {
+                walker.step().unwrap();
+            }
+            walker.base_pose_z_up()
+        };
+        let mut walker = go2_with_solver_iterations(1);
+        let single = run(&mut walker);
+        assert!(!walker.set_inner_solver_passes(0));
+        assert!(walker.set_inner_solver_passes(4));
+        walker.reset().unwrap();
+        let (position, rotation) = run(&mut walker);
+        assert!(position.z > 0.15 && position.z < 0.33, "{position}");
+        assert!((rotation * Vec3::Z).z > 0.99);
+        // The extra passes change the solve, and a second reset keeps them.
+        assert_ne!((position, rotation), single);
+        walker.reset().unwrap();
+        assert_eq!(run(&mut walker), (position, rotation));
     }
 
     #[test]

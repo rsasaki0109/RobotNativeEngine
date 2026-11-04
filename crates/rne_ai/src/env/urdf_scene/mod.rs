@@ -1605,6 +1605,15 @@ impl UrdfSceneSim {
             .is_ok()
     }
 
+    /// Sets the constraint solver's inner passes per solver iteration, as
+    /// [`rne_physics_rapier::RapierBackend::set_inner_solver_passes`]: more
+    /// constraint passes without more multibody updates. Kept across
+    /// [`Self::reset`]. Returns false, changing nothing, for zero.
+    pub fn set_inner_solver_passes(&mut self, passes: usize) -> bool {
+        self.backend
+            .set_inner_solver_passes(self.physics_world, passes)
+    }
+
     /// The contact natural frequency (Hz) and damping ratio in effect.
     pub fn contact_softness(&self) -> (f64, f64) {
         self.backend

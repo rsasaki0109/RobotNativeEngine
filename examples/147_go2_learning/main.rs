@@ -65,6 +65,7 @@ fn main() -> Result<()> {
             "--threads" => threads = value()?.parse()?,
             "--solver-iterations" => plant.solver_iterations = value()?.parse()?,
             "--backend" => plant.backend = go2::Backend::parse(&value()?)?,
+            "--inner-passes" => plant.inner_passes = value()?.parse()?,
             "--friction" => plant.floor_friction = value()?.parse()?,
             "--generations" => config.generations = value()?.parse()?,
             "--pairs" => config.pairs = value()?.parse()?,
@@ -92,6 +93,7 @@ fn main() -> Result<()> {
         println!(
             "{}",
             json!({"engine": plant.backend.name(), "solver_iterations": plant.solver_iterations,
+                   "inner_passes": plant.inner_passes,
                    "episodes": episodes, "simulated_s": simulated_s, "wall_s": wall_s,
                    "simulated_s_per_wall_s": simulated_s / wall_s})
         );
