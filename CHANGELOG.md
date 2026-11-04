@@ -75,6 +75,12 @@ All notable changes to Robot Native Engine are documented in this file.
   through the new `WorldTransformCache::forget`. A walking Go2 steps 2% fewer
   instructions; its walks and example 144's G1 walks are bit-identical.
 
+- Joints driven by direct effort (`JointActuation::RevoluteEffort` and
+  `PrismaticEffort`) no longer keep a zero-gain Rapier motor. Its constraint
+  row could never act, but Rapier still built and solved it at every step. A
+  walking Go2 steps 2.4% fewer instructions, and its walks and example 144's
+  G1 walks are bit-identical.
+
 - The per-wheel skid sensor-only benchmark is now
   `mobility_per_wheel_sensor_yaw_rate_v2` (trace schema 2). v1's yaw-rate PI
   (21 V/(rad/s), 18 V/rad) hunted across the scrub breakaway voltage, and its

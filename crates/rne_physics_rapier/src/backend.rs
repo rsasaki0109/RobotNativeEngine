@@ -2119,8 +2119,13 @@ fn apply_motor_command(
             );
             joint.set_motor_max_force(axis, max_force as f32);
         } else {
+            // Effort modes apply their torque directly. A zero motor would
+            // add a constraint row that never acts and, by sharing the limit
+            // row's unit Jacobian, keep Rapier from skipping the limit row
+            // while the joint is within its limits; drop the axis instead.
             joint.set_motor(axis, 0.0, 0.0, 0.0, 0.0);
             joint.set_motor_max_force(axis, 0.0);
+            joint.motor_axes.remove(axis.into());
         }
         return Ok(());
     }
@@ -5636,6 +5641,70 @@ mod tests {
             step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
         }
         *world.get::<JointState>(child).expect("joint state")
+    }
+
+    #[test]
+    fn direct_effort_leaves_no_motor_row_and_a_motor_mode_restores_it() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 4,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "effort_parent");
+        world.entity_mut(parent).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let child = spawn_named(&mut world, "effort_child");
+        let effort = JointActuation::RevoluteEffort {
+            effort_nm: 0.5,
+            max_effort_nm: 1.0,
+        };
+        world.entity_mut(child).insert((
+            RigidBody::default(),
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::from_translation_rotation(-Vec3::Y, Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: Some(-1.0),
+                upper_rad: Some(1.0),
+            },
+            effort,
+        ));
+        let motor_axes = |backend: &RapierBackend| {
+            let state = backend.world(physics_world).unwrap();
+            let (multibody, link) = state
+                .multibody_joints
+                .get(state.entity_to_multibody_joint[&child])
+                .unwrap();
+            multibody.link(link).unwrap().joint.data.motor_axes
+        };
+        step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        assert!(motor_axes(&backend).is_empty());
+        *world.get_mut::<JointActuation>(child).unwrap() = JointActuation::RevolutePosition {
+            target_position_rad: 0.3,
+            stiffness_nm_per_rad: 10.0,
+            damping_nm_s_per_rad: 1.0,
+            max_effort_nm: 5.0,
+        };
+        step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        assert!(!motor_axes(&backend).is_empty());
+        *world.get_mut::<JointActuation>(child).unwrap() = effort;
+        step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        assert!(motor_axes(&backend).is_empty());
     }
 
     #[test]
