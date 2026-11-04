@@ -80,10 +80,10 @@ Three seeds per engine and setting:
 | Seed | Trained in | Fitness 0.5 reached (generation / s) | Fitness 1 reached (generation / s) | Fitness after 200 | Forward in 5 s | In the other engine |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | 2026 | RNE | 43 / 84 | 81 / 160 | 3.77 | 3.97 m | falls after 0.4 s |
-| 2026 | RNE 1×4 | 82 / 82 | 97 / 97 | 2.76 | 3.39 m | falls after 0.8 s |
+| 2026 | RNE 1×4 | 82 / 71 | 97 / 84 | 2.76 | 3.39 m | falls after 0.8 s |
 | 2026 | MuJoCo | 51 / 20 | 112 / 47 | 3.30 | 3.82 m | falls after 0.6 s |
 | 11 | RNE | 172 / 331 | — | 0.48 | 0.52 m | falls after 1.7 s |
-| 11 | RNE 1×4 | 99 / 96 | 104 / 101 | 2.31 | 2.88 m | falls after 0.7 s |
+| 11 | RNE 1×4 | 99 / 85 | 104 / 89 | 2.31 | 2.88 m | falls after 0.7 s |
 | 11 | MuJoCo | 57 / 21 | 153 / 63 | 1.50 | 1.71 m | falls after 0.5 s |
 | 12 | RNE | 59 / 112 | 76 / 143 | 3.44 | 3.86 m | falls after 1.4 s |
 | 12 | RNE 1×4 | — | — | 0.42 | 0.45 m | falls after 0.9 s |
@@ -102,13 +102,13 @@ fall after 0.6, 0.5 and 0.2 s.
     and stalled near 0.4 on seed 12.
   - Three seeds do not rank the engines or the settings.
 - **Per minute, MuJoCo learns about four times faster than RNE at four
-  iterations, and about twice as fast as RNE 1×4.**
+  iterations, and about 1.8 times as fast as RNE 1×4.**
   - A generation took 0.41–0.48 s in MuJoCo, 1.83–1.93 s in RNE and
-    0.90–0.97 s in RNE 1×4.
+    0.80–0.85 s in RNE 1×4.
   - That is 421–449 simulated seconds per wall second, against 102–105 and
-    202–209.
+    233–237.
   - Reaching fitness 1 took MuJoCo 32–63 s, RNE 143–160 s and RNE 1×4
-    97–101 s.
+    84–89 s.
 - **No walk transfers.** Every final policy falls within 0.2–1.7 s in the
   other engine.
   - Learned from nothing, each walk fits its own engine's contact.
@@ -129,17 +129,18 @@ episodes:
 
 | Engine and setting | Simulated s / wall s |
 | --- | ---: |
-| RNE, Rapier, 4 solver iterations | 29 |
-| RNE, Rapier, 2 solver iterations | 47 |
-| RNE, Rapier, 1 solver iteration | 62 |
-| RNE, Rapier, 1 solver iteration, 4 inner passes (`--inner-passes 4`) | 59 |
-| RNE, native backend (`--backend native`) | 15 |
-| MuJoCo, elliptic cone, `impratio` 100 | 266 |
-| MuJoCo, its defaults | 273 |
+| RNE, Rapier, 4 solver iterations | 34 |
+| RNE, Rapier, 2 solver iterations | 50 |
+| RNE, Rapier, 1 solver iteration | 67 |
+| RNE, Rapier, 1 solver iteration, 4 inner passes (`--inner-passes 4`) | 67 |
+| RNE, native backend (`--backend native`) | 14 |
+| MuJoCo, elliptic cone, `impratio` 100 | 225 |
+| MuJoCo, its defaults | 261 |
 
-On one thread MuJoCo is 4.5 times as fast as RNE 1×4. Training on four
-cores narrows that to about 2: four RNE threads ran 3.5 times as fast as one,
-four MuJoCo processes 1.6 times.
+These are medians of three runs; MuJoCo's elliptic-cone speed ranged from 195
+to 258 across them. On one thread MuJoCo is about 3.4 times as fast as RNE
+1×4. Training on four cores narrows that to about 1.8: four RNE threads ran
+3.5 times as fast as one, four MuJoCo processes about 2 times.
 
 - **Where RNE's time goes.** At four iterations, 92% of the time is Rapier's
   step. Rapier runs one substep per solver iteration, and in each it rebuilds
@@ -149,15 +150,19 @@ four MuJoCo processes 1.6 times.
 - **Inner passes buy the iterations back cheaply.** At one iteration, seed
   2026's best fitness in 200 generations was 0.35, against 4.0 at four.
   `RapierBackend::set_inner_solver_passes` re-solves the constraints within
-  an iteration without rebuilding the mass matrix: four passes cost 5% of one
-  iteration's speed, and RNE 1×4 learns (above).
-- **Where RNE 1×4's time goes.** For a trained walk, Rapier's step is 81%:
-  - rebuilding and factoring the two mass matrices, once per step: 22%;
-  - building and solving contact and joint constraints, with dense LU
-    solves: about a third;
-  - broad phase 9%, narrow phase 8%, forward kinematics 6%.
+  an iteration without rebuilding the mass matrix. Four passes cost little
+  next to one iteration (67 against 67 here, 59 against 62 before this PR's
+  other speedups), and RNE 1×4 learns (above).
+- **Where RNE 1×4's time goes.** For a trained walk, Rapier's step is 83%:
+  - rebuilding and factoring the two mass matrices, once per step: 24%;
+  - solving the constraints: 14%, after building them with dense LU solves;
+  - broad phase 10%, narrow phase 9%;
+  - forward kinematics, run twice per step: 7%.
 
-  Synchronizing the ECS takes 11%.
+  Synchronizing the ECS takes 12%.
+- **What did not help.** Factoring the mass matrices along the kinematic tree
+  without fill has a third of dense LU's flops at 18 DoF, but each solve took
+  about 2,950 instructions against 2,160 for nalgebra's vectorized dense LU.
 - **The native backend is slower still.** It spends 85% of its time in
   `rne_dynamics`' coupled contact solve, about 365 µs per step for this robot.
 
@@ -170,5 +175,6 @@ four MuJoCo processes 1.6 times.
 - Both engines ran on the same container, one after the other. The
   container's speed drifts between runs, so timings within a row compare
   better than timings across rows.
-- The RNE 1×4 runs used a later build whose ECS synchronization takes 2% fewer
-  instructions; RNE's walks are bit-identical across the two builds.
+- The RNE 1×4 runs and the speed table used this PR's final build. It steps a
+  walking Go2 in 9% fewer instructions than the build of the four-iteration
+  runs, with bit-identical walks (see the CHANGELOG).

@@ -49,11 +49,11 @@
       "reached": {
         "0.5": {
           "generation": 82,
-          "wall_s": 82.3
+          "wall_s": 70.6
         },
         "1.0": {
           "generation": 97,
-          "wall_s": 97.4
+          "wall_s": 83.5
         }
       },
       "final": {
@@ -62,9 +62,9 @@
         "fell": false
       },
       "best_fitness": 2.9666553496369192,
-      "median_wall_s_per_generation": 0.969,
-      "simulated_s_per_wall_s": 201.9,
-      "total_wall_s": 194.1
+      "median_wall_s_per_generation": 0.847,
+      "simulated_s_per_wall_s": 232.9,
+      "total_wall_s": 168.2
     },
     {
       "trained_in": "mujoco",
@@ -137,11 +137,11 @@
       "reached": {
         "0.5": {
           "generation": 99,
-          "wall_s": 96.1
+          "wall_s": 85.2
         },
         "1.0": {
           "generation": 104,
-          "wall_s": 100.7
+          "wall_s": 89.3
         }
       },
       "final": {
@@ -150,9 +150,9 @@
         "fell": false
       },
       "best_fitness": 3.096547894822401,
-      "median_wall_s_per_generation": 0.941,
-      "simulated_s_per_wall_s": 208.6,
-      "total_wall_s": 187.6
+      "median_wall_s_per_generation": 0.823,
+      "simulated_s_per_wall_s": 237.2,
+      "total_wall_s": 165.0
     },
     {
       "trained_in": "mujoco",
@@ -235,9 +235,9 @@
         "fell": false
       },
       "best_fitness": 0.427567086869995,
-      "median_wall_s_per_generation": 0.901,
-      "simulated_s_per_wall_s": 209.3,
-      "total_wall_s": 180.5
+      "median_wall_s_per_generation": 0.804,
+      "simulated_s_per_wall_s": 234.0,
+      "total_wall_s": 161.4
     },
     {
       "trained_in": "mujoco",
