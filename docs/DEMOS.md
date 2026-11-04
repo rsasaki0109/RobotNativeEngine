@@ -526,11 +526,11 @@ overwritten. Checking the retained report executes no new worlds:
 ```bash
 cargo run --locked -p position_motor_calibration \
   --example 141_position_motor_calibration -- \
-  --verify-report docs/media/position-motor-calibration-motor-construction-source.json
+  --verify-report docs/media/position-motor-calibration-inactive-limit-source.json
 ```
 
 See [the fixed protocol and output contract](../examples/141_position_motor_calibration/README.md)
-and [all current-source conditions](media/position-motor-calibration-motor-construction-source.json). The retained
+and [all current-source conditions](media/position-motor-calibration-inactive-limit-source.json). The retained
 run completes 72/72 worlds with exact ON/fresh/OFF state replay and 8/8 motionless
 zero targets. Its four primary N32/PGS1 nonzero conditions all fail the predeclared
 accuracy requirement; `--require-calibration` therefore exits 2. Loaded-report

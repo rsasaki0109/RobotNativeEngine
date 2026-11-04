@@ -81,6 +81,17 @@ All notable changes to Robot Native Engine are documented in this file.
   walking Go2 steps 2.4% fewer instructions, and its walks and example 144's
   G1 walks are bit-identical.
 
+- The vendored Rapier skips the `M⁻¹e_k` solve of a multibody limit row while
+  its coordinate is within the limits (where the row's impulse is clamped to
+  zero) and no motor on that coordinate reuses the row's Jacobian block. With
+  the zero motors gone, a walking Go2 steps another 5% fewer instructions; its
+  walks and example 144's G1 walks are bit-identical. Example 141's report
+  binds three of the changed sources, so CI now verifies
+  `docs/media/position-motor-calibration-inactive-limit-source.json`, a rerun
+  of the unchanged 72-world collector whose bytes match the previous report's
+  outside the three source hashes
+  ([comparison](docs/evidence/inactive-limit-rows/README.md)).
+
 - The per-wheel skid sensor-only benchmark is now
   `mobility_per_wheel_sensor_yaw_rate_v2` (trace schema 2). v1's yaw-rate PI
   (21 V/(rad/s), 18 V/rad) hunted across the scrub breakaway voltage, and its
