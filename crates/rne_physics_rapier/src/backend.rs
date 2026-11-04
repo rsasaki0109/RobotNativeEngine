@@ -589,6 +589,62 @@ impl RapierBackend {
         let state = self.worlds.get(&physics_world)?;
         multibody_joint_coordinate(state, entity)
     }
+
+    /// Sets single-DoF multibody joints to generalized positions (radians for
+    /// a revolute joint, metres for a prismatic one), for example to start a
+    /// robot in a pose rather than settle it into one. Every multibody that
+    /// owns one of the joints comes to rest: all its generalized velocities
+    /// become zero, its root keeps its pose and its links follow by forward
+    /// kinematics. Joints not listed keep their positions.
+    ///
+    /// Returns false, changing nothing, when the world does not exist, an
+    /// entity has no single-DoF multibody joint or a position is not finite.
+    pub fn set_multibody_joint_positions(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        positions: &[(Entity, f64)],
+    ) -> bool {
+        let Some(state) = self.worlds.get_mut(&physics_world) else {
+            return false;
+        };
+        let mut moves = Vec::with_capacity(positions.len());
+        for &(entity, target) in positions {
+            let Some(&handle) = state.entity_to_multibody_joint.get(&entity) else {
+                return false;
+            };
+            let Some((current, _)) = multibody_joint_coordinate(state, entity) else {
+                return false;
+            };
+            if !target.is_finite() {
+                return false;
+            }
+            moves.push((handle, (target - current) as Real));
+        }
+        for (handle, displacement) in moves {
+            let Some((multibody, link_id)) = state.multibody_joints.get_mut(handle) else {
+                continue;
+            };
+            if let Some(link) = multibody.link_mut(link_id) {
+                link.joint.apply_displacement(&[displacement]);
+            }
+            // The root keeps its body's pose: before the first step the
+            // multibody has not yet taken the pose its root body spawned in.
+            multibody.forward_kinematics(&state.bodies, true);
+            multibody.generalized_velocity_mut().fill(0.0);
+            multibody.update_rigid_bodies(&mut state.bodies, true);
+            let links: Vec<RigidBodyHandle> = multibody
+                .links()
+                .map(|link| link.rigid_body_handle())
+                .collect();
+            for body in links {
+                if let Some(body) = state.bodies.get_mut(body) {
+                    body.set_linvel(Vector::zeros(), true);
+                    body.set_angvel(Vector::zeros(), true);
+                }
+            }
+        }
+        true
+    }
 }
 
 fn multibody_joint_coordinate(state: &RapierWorldState, entity: Entity) -> Option<(f64, f64)> {

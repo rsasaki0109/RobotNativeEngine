@@ -48,6 +48,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Let articulated robots start in a pose and be driven by outside policies.
+  `RapierBackend::set_multibody_joint_positions` and
+  `UrdfSceneSim::set_joint_positions` set single-DoF joints to positions and
+  bring the articulation to rest with its base where it is, instead of
+  settling a robot from the URDF's zero pose. `PdJointWalker` (with
+  `PdJointConfig`) tracks joint targets set once per control period through
+  `kp (target − q) − kd q̇`, clamped to the URDF effort limits, at every
+  physics step, as `UnitreeRlGymWalker` does for its policy. The two walkers
+  now share that code, and the G1's walks are bit-identical. Example 147
+  trains a Go2 to walk with it.
+
 - The per-wheel skid sensor-only benchmark is now
   `mobility_per_wheel_sensor_yaw_rate_v2` (trace schema 2). v1's yaw-rate PI
   (21 V/(rad/s), 18 V/rad) hunted across the scrub breakaway voltage, and its

@@ -3,6 +3,7 @@
 mod humanoid_episode;
 mod lekiwi_drive;
 mod lidar;
+mod pd_walk;
 mod policy_walk;
 mod quadruped;
 mod quadruped_episode;
@@ -35,6 +36,7 @@ pub use lidar::{
     unitree_go2_mid360_mount, UNITREE_GO2_MID360_FORWARD_OF_BASE_M,
     UNITREE_GO2_MID360_HEIGHT_ABOVE_BASE_M,
 };
+pub use pd_walk::{PdJointConfig, PdJointWalker};
 pub use policy_walk::{
     unitree_g1_12dof_walk_scene_path, PolicyWalkError, PolicyWalkPlant, PolicyWalkStep,
     UnitreeRlGymWalker,
@@ -1576,6 +1578,31 @@ impl UrdfSceneSim {
     pub fn set_contact_softness(&mut self, natural_frequency_hz: f64, damping_ratio: f64) -> bool {
         self.backend
             .set_contact_softness(self.physics_world, natural_frequency_hz, damping_ratio)
+    }
+
+    /// Sets the joints of the named child links to positions (radians for a
+    /// revolute joint, metres for a prismatic one) and brings the articulation
+    /// to rest, its base keeping its pose, as
+    /// [`rne_physics_rapier::RapierBackend::set_multibody_joint_positions`].
+    /// The ECS follows at once. Returns false, changing nothing, when a name
+    /// has no single-DoF articulated joint or a position is not finite.
+    pub fn set_joint_positions(&mut self, positions: &[(&str, f64)]) -> bool {
+        let mut entities = Vec::with_capacity(positions.len());
+        for &(name, position) in positions {
+            let Some(entity) = find_link_by_name(&self.world, name) else {
+                return false;
+            };
+            entities.push((entity, position));
+        }
+        if !self
+            .backend
+            .set_multibody_joint_positions(self.physics_world, &entities)
+        {
+            return false;
+        }
+        self.backend
+            .sync_to_ecs(&mut self.world, self.physics_world)
+            .is_ok()
     }
 
     /// The contact natural frequency (Hz) and damping ratio in effect.

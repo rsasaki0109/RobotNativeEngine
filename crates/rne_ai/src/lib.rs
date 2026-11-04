@@ -193,8 +193,8 @@ pub use env::{
     TSUKUBA_ROAD_EDGE_BEFORE_M, TSUKUBA_STOP_LINE_AFTER_M, TSUKUBA_STOP_LINE_BEFORE_M,
 };
 pub use env::{
-    unitree_g1_12dof_walk_scene_path, PolicyWalkError, PolicyWalkPlant, PolicyWalkStep,
-    UnitreeRlGymWalker,
+    unitree_g1_12dof_walk_scene_path, PdJointConfig, PdJointWalker, PolicyWalkError,
+    PolicyWalkPlant, PolicyWalkStep, UnitreeRlGymWalker,
 };
 pub use episode::{Episode, EpisodeRandomSnapshot, EpisodeStep, TerminationReason};
 pub use flagship::{

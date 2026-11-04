@@ -132,6 +132,6 @@ pub use urdf_scene::{
     UNITREE_GO2_POLICY_FEATURES, UNITREE_GO2_PURE_TORQUE_PHASE_BINS,
 };
 pub use urdf_scene::{
-    unitree_g1_12dof_walk_scene_path, PolicyWalkError, PolicyWalkPlant, PolicyWalkStep,
-    UnitreeRlGymWalker,
+    unitree_g1_12dof_walk_scene_path, PdJointConfig, PdJointWalker, PolicyWalkError,
+    PolicyWalkPlant, PolicyWalkStep, UnitreeRlGymWalker,
 };

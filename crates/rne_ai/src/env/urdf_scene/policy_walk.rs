@@ -14,19 +14,15 @@
 //! 12-DoF G1 scene does.
 
 use std::f64::consts::{FRAC_PI_2, TAU};
-use std::num::NonZeroUsize;
 use std::path::PathBuf;
 
 use rne_core::SimDuration;
 use rne_ecs::Entity;
 use rne_math::{Quat, Vec3};
-use rne_physics::{
-    Collider, JointActuation, JointPassiveDynamics, JointState, MultibodyLink, PhysicsBackend,
-    PhysicsOwnedPose, RevoluteJointArmature, RigidBody,
-};
-use rne_robot::{Joint, Link};
+use rne_physics::RigidBody;
 
-use super::{assets_scene_path, find_link_by_name, world_transform_of, UrdfSceneSim};
+use super::pd_walk::{configure_pd_joints, joint_state, step_pd, PdJoint, PdPeriod};
+use super::{assets_scene_path, world_transform_of, UrdfSceneSim};
 use crate::lstm_policy::{LstmPolicy, LstmPolicyError};
 
 /// Vendored 12-DoF walking G1 scene for the unitree_rl_gym policy.
@@ -95,18 +91,12 @@ pub struct PolicyWalkStep {
     pub saturated_joints: usize,
 }
 
-#[derive(Clone, Copy, Debug)]
-struct WalkJoint {
-    link: Entity,
-    effort_limit_nm: f64,
-}
-
 /// A pretrained unitree_rl_gym walking policy driving a URDF scene.
 pub struct UnitreeRlGymWalker {
     sim: UrdfSceneSim,
     policy: LstmPolicy,
     plant: PolicyWalkPlant,
-    joints: Vec<WalkJoint>,
+    joints: Vec<PdJoint>,
     substeps: Vec<SimDuration>,
     targets_rad: Vec<f64>,
     observation: Vec<f32>,
@@ -186,7 +176,7 @@ impl UnitreeRlGymWalker {
         sim: &mut UrdfSceneSim,
         policy: &LstmPolicy,
         plant: PolicyWalkPlant,
-    ) -> Result<(Vec<WalkJoint>, Vec<SimDuration>), PolicyWalkError> {
+    ) -> Result<(Vec<PdJoint>, Vec<SimDuration>), PolicyWalkError> {
         let model = |message: String| PolicyWalkError::Model(message);
         let deployment = policy.deployment().clone();
         let joint_count = deployment.joint_names.len();
@@ -197,93 +187,24 @@ impl UnitreeRlGymWalker {
                 9 + 3 * joint_count + 2
             )));
         }
-        let plant_values = [
-            plant.armature_kg_m2,
-            plant.joint_damping_nm_s_per_rad,
-            plant.joint_friction_nm,
-            plant.floor_friction,
-        ];
-        if plant_values
+        let link_names = deployment
+            .joint_names
             .iter()
-            .any(|value| !value.is_finite() || *value < 0.0)
-            || plant.joint_friction_transition_rad_s.is_nan()
-            || plant.joint_friction_transition_rad_s <= 0.0
-        {
-            return Err(model("plant values must be finite and non-negative".into()));
-        }
+            .map(|joint_name| {
+                joint_name
+                    .strip_suffix("_joint")
+                    .map(|stem| format!("{stem}_link"))
+                    .ok_or_else(|| model(format!("{joint_name} does not end in _joint")))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         let control_ticks = (deployment.control_dt_s() * 1.0e9).round() as u64;
-        let control = SimDuration::from_ticks(control_ticks);
-        let substeps = NonZeroUsize::new(deployment.control_decimation)
-            .and_then(|count| control.split_evenly(count))
-            .ok_or_else(|| model("the control period does not split into physics steps".into()))?;
-        sim.set_fixed_delta(control);
-
-        let collider_links: Vec<String> = sim
-            .world
-            .iter_entities()
-            .filter(|entity| entity.get::<Collider>().is_some())
-            .filter_map(|entity| entity.get::<Link>().map(|link| link.name.clone()))
-            .collect();
-        for name in std::iter::once("ground").chain(collider_links.iter().map(String::as_str)) {
-            if !sim.set_named_collider_friction(name, plant.floor_friction) {
-                return Err(model(format!("{name} has no collider to receive friction")));
-            }
-        }
-
-        let mut joints = Vec::with_capacity(joint_count);
-        for joint_name in &deployment.joint_names {
-            let link_name = joint_name
-                .strip_suffix("_joint")
-                .map(|stem| format!("{stem}_link"))
-                .ok_or_else(|| model(format!("{joint_name} does not end in _joint")))?;
-            let link = find_link_by_name(&sim.world, &link_name)
-                .ok_or_else(|| model(format!("missing link {link_name}")))?;
-            let effort_limit_nm = sim
-                .world
-                .iter_entities()
-                .filter_map(|entity| entity.get::<Joint>())
-                .find(|joint| joint.child_link == link)
-                .map(|joint| joint.limits.max_effort)
-                .filter(|limit| limit.is_finite() && *limit > 0.0)
-                .ok_or_else(|| model(format!("{link_name} has no positive effort limit")))?;
-            if !sim.configure_named_revolute_effort_actuation(&link_name, effort_limit_nm) {
-                return Err(model(format!("{link_name} is not a revolute joint")));
-            }
-            let mut entity = sim.world.entity_mut(link);
-            entity.insert(JointPassiveDynamics::Revolute {
-                viscous_damping_nm_s_per_rad: plant.joint_damping_nm_s_per_rad,
-                coulomb_friction_nm: plant.joint_friction_nm,
-                coulomb_transition_velocity_rad_s: plant.joint_friction_transition_rad_s,
-            });
-            if plant.armature_kg_m2 > 0.0 {
-                entity.insert(RevoluteJointArmature {
-                    inertia_kg_m2: plant.armature_kg_m2,
-                });
-            }
-            joints.push(WalkJoint {
-                link,
-                effort_limit_nm,
-            });
-        }
-        // The walker never moves a link through the ECS, so Rapier owns every
-        // articulated pose. Without the marker each step pushed the ECS copy
-        // back, which differs from Rapier's by the f32/f64 and world/local
-        // round trip, injecting that rounding error into every step.
-        let articulated: Vec<Entity> = sim
-            .world
-            .iter_entities()
-            .filter(|entity| entity.get::<MultibodyLink>().is_some())
-            .map(|entity| entity.id())
-            .collect();
-        for entity in articulated {
-            sim.world.entity_mut(entity).insert(PhysicsOwnedPose);
-        }
-        // Surface unsupported plant settings (a nonzero armature needs
-        // rne_physics_rapier's `experimental-armature`) now, not mid-step.
-        sim.backend
-            .sync_from_ecs(&mut sim.world, sim.physics_world)
-            .map_err(|error| model(error.to_string()))?;
-        Ok((joints, substeps))
+        configure_pd_joints(
+            sim,
+            &link_names,
+            plant,
+            SimDuration::from_ticks(control_ticks),
+            deployment.control_decimation,
+        )
     }
 
     /// Scene being driven.
@@ -353,27 +274,7 @@ impl UnitreeRlGymWalker {
     }
 
     fn joint_state(&self, link: Entity) -> Result<(f64, f64), PolicyWalkError> {
-        // After a step the backend has decoded each joint into `JointState`
-        // from the same Rapier state, with the same function; reuse it.
-        if self.stepped {
-            match self.sim.world.get::<JointState>(link) {
-                Some(JointState::Revolute {
-                    position_rad,
-                    velocity_rad_s,
-                }) => return Ok((*position_rad, *velocity_rad_s)),
-                Some(JointState::Prismatic {
-                    position_m,
-                    velocity_m_s,
-                }) => return Ok((*position_m, *velocity_m_s)),
-                _ => {}
-            }
-        }
-        self.sim
-            .backend
-            .multibody_joint_state(self.sim.physics_world, link)
-            .ok_or_else(|| {
-                PolicyWalkError::Model("an actuated joint has no multibody state".into())
-            })
+        joint_state(&self.sim, self.stepped, link)
     }
 
     fn observe(&mut self, command: [f64; 3]) -> Result<(), PolicyWalkError> {
@@ -427,47 +328,18 @@ impl UnitreeRlGymWalker {
             return Err(PolicyWalkError::Model("command must be finite".into()));
         }
         let deployment = self.policy.deployment().clone();
-        let mut saturated_joints = 0;
-        for delta in self.substeps.clone() {
-            saturated_joints = 0;
-            for (index, joint) in self.joints.clone().iter().enumerate() {
-                let (position, velocity) = self.joint_state(joint.link)?;
-                let raw_nm = deployment.kp_nm_per_rad[index] * (self.targets_rad[index] - position)
-                    - deployment.kd_nm_s_per_rad[index] * velocity;
-                let effort_nm = raw_nm.clamp(-joint.effort_limit_nm, joint.effort_limit_nm);
-                if effort_nm != raw_nm {
-                    saturated_joints += 1;
-                }
-                if let Some(mut actuation) = self.sim.world.get_mut::<JointActuation>(joint.link) {
-                    *actuation = JointActuation::RevoluteEffort {
-                        effort_nm,
-                        max_effort_nm: joint.effort_limit_nm,
-                    };
-                }
-            }
-            if let Some(force) = self.base_push_n {
-                let base = self.sim.base_link;
-                let point = world_transform_of(&self.sim.world, base).translation;
-                self.sim
-                    .pending_link_wrenches
-                    .push(rne_physics::ExternalBodyWrench {
-                        entity: base,
-                        point_world_m: point,
-                        force_world_n: force,
-                        torque_world_nm: Vec3::ZERO,
-                    });
-            }
-            // After a full step, only joint actuation changes in the ECS
-            // between steps (pushes go straight to the backend) and Rapier
-            // owns every articulated pose, so the lighter synchronization
-            // gives the same result.
-            if self.stepped {
-                self.sim.step_physics_actuated(delta);
-            } else {
-                self.sim.step_physics_with_delta(delta);
-            }
-            self.stepped = true;
-        }
+        let saturated_joints = step_pd(
+            &mut self.sim,
+            &self.joints,
+            &self.substeps,
+            &PdPeriod {
+                targets_rad: &self.targets_rad,
+                kp_nm_per_rad: &deployment.kp_nm_per_rad,
+                kd_nm_s_per_rad: &deployment.kd_nm_s_per_rad,
+                base_push_n: self.base_push_n,
+            },
+            &mut self.stepped,
+        )?;
         self.observe(command)?;
         self.policy.step(&self.observation, &mut self.action)?;
         for (index, target) in self.targets_rad.iter_mut().enumerate() {
