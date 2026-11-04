@@ -530,8 +530,7 @@ mod tests {
         let mut walker = go2();
         let before = walker.base_pose_z_up();
         walker.set_joint_positions_rad(&STAND_RAD).unwrap();
-        for ((position, velocity), target) in walker.joint_states().unwrap().iter().zip(STAND_RAD)
-        {
+        for ((position, velocity), target) in walker.joint_states().unwrap().iter().zip(STAND_RAD) {
             assert!((position - target).abs() < 1e-5, "{position} {target}");
             assert_eq!(*velocity, 0.0);
         }
@@ -567,8 +566,8 @@ mod tests {
 
     #[test]
     fn mismatched_configuration_is_rejected() {
-        let sim = UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_dynamic_scene_path())
-            .unwrap();
+        let sim =
+            UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_dynamic_scene_path()).unwrap();
         let mut config = go2().config().clone();
         config.kp_nm_per_rad.pop();
         assert!(PdJointWalker::new(sim, config).is_err());

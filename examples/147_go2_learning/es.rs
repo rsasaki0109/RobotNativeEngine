@@ -238,8 +238,7 @@ mod tests {
 
     #[test]
     fn normal_deviates_match_mujoco_go2_learning_py() {
-        let fixture: serde_json::Value =
-            serde_json::from_str(include_str!("fixtures/mlp_check.json")).unwrap();
+        let fixture: Value = serde_json::from_str(include_str!("fixtures/mlp_check.json")).unwrap();
         let mut normal = Normal(7);
         for expected in fixture["normal_seed_7"].as_array().unwrap() {
             assert_eq!(normal.sample(), expected.as_f64().unwrap());

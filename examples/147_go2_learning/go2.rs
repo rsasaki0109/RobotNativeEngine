@@ -282,3 +282,31 @@ pub(crate) fn episode(
         control_steps: SETTLE_STEPS + steps,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn heading_is_the_rotation_about_z() {
+        assert!((yaw(Quat::from_rotation_z(0.3)) - 0.3).abs() < 1e-12);
+        assert!(yaw(Quat::from_rotation_x(0.4)).abs() < 1e-12);
+    }
+
+    #[test]
+    fn a_still_policy_stands_through_an_episode_on_either_backend() {
+        for backend in [Backend::Rapier, Backend::Native] {
+            let mut robot = robot(Plant {
+                backend,
+                ..Plant::default()
+            })
+            .unwrap();
+            let outcome = episode(robot.as_mut(), |_| [0.0; 12]).unwrap();
+            assert!(!outcome.fell, "{backend:?}: {outcome:?}");
+            assert!(outcome.forward_m.abs() < 0.05, "{backend:?}: {outcome:?}");
+            assert_eq!(outcome.control_steps, SETTLE_STEPS + EPISODE_STEPS);
+            // A second episode on the same robot replays the first.
+            assert_eq!(episode(robot.as_mut(), |_| [0.0; 12]).unwrap(), outcome);
+        }
+    }
+}

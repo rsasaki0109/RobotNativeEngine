@@ -24,3 +24,5 @@ serde_json = { workspace = true }
 [[example]]
 name = "147_go2_learning"
 path = "main.rs"
+# Run the policy, ES and episode checks with the workspace tests.
+test = true

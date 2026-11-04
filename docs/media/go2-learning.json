@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "thresholds": [
+    0.5,
+    1.0
+  ],
+  "runs": [
+    {
+      "trained_in": "rne",
+      "seed": 2026,
+      "engine": "RNE Rapier",
+      "plant": {
+        "backend": "RNE Rapier",
+        "floor_friction": 1.0,
+        "solver_iterations": 4
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 43,
+          "wall_s": 84.0
+        },
+        "1.0": {
+          "generation": 81,
+          "wall_s": 160.4
+        }
+      },
+      "final": {
+        "fitness": 3.774392180071406,
+        "forward_m": 3.9682110026478767,
+        "fell": false
+      },
+      "best_fitness": 4.010225650385264,
+      "median_wall_s_per_generation": 1.931,
+      "simulated_s_per_wall_s": 101.7,
+      "total_wall_s": 384.7
+    },
+    {
+      "trained_in": "mujoco",
+      "seed": 2026,
+      "engine": "mujoco 3.9.0",
+      "plant": {
+        "floor_friction": 1.0,
+        "cone": "elliptic",
+        "impratio": 100.0
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 51,
+          "wall_s": 19.5
+        },
+        "1.0": {
+          "generation": 112,
+          "wall_s": 46.5
+        }
+      },
+      "final": {
+        "fitness": 3.2970322530240495,
+        "forward_m": 3.8179683027618543,
+        "fell": false
+      },
+      "best_fitness": 3.6406606885426416,
+      "median_wall_s_per_generation": 0.459,
+      "simulated_s_per_wall_s": 424.3,
+      "total_wall_s": 91.3
+    },
+    {
+      "trained_in": "rne",
+      "seed": 11,
+      "engine": "RNE Rapier",
+      "plant": {
+        "backend": "RNE Rapier",
+        "floor_friction": 1.0,
+        "solver_iterations": 4
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 172,
+          "wall_s": 331.3
+        },
+        "1.0": null
+      },
+      "final": {
+        "fitness": 0.47780365986608053,
+        "forward_m": 0.5165354087948799,
+        "fell": false
+      },
+      "best_fitness": 0.5160427172885319,
+      "median_wall_s_per_generation": 1.928,
+      "simulated_s_per_wall_s": 102.6,
+      "total_wall_s": 382.1
+    },
+    {
+      "trained_in": "mujoco",
+      "seed": 11,
+      "engine": "mujoco 3.9.0",
+      "plant": {
+        "floor_friction": 1.0,
+        "cone": "elliptic",
+        "impratio": 100.0
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 57,
+          "wall_s": 20.6
+        },
+        "1.0": {
+          "generation": 153,
+          "wall_s": 63.0
+        }
+      },
+      "final": {
+        "fitness": 1.4952620570620097,
+        "forward_m": 1.7075108915917196,
+        "fell": false
+      },
+      "best_fitness": 1.6294040519089232,
+      "median_wall_s_per_generation": 0.414,
+      "simulated_s_per_wall_s": 449.4,
+      "total_wall_s": 85.8
+    },
+    {
+      "trained_in": "rne",
+      "seed": 12,
+      "engine": "RNE Rapier",
+      "plant": {
+        "backend": "RNE Rapier",
+        "floor_friction": 1.0,
+        "solver_iterations": 4
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 59,
+          "wall_s": 112.4
+        },
+        "1.0": {
+          "generation": 76,
+          "wall_s": 143.0
+        }
+      },
+      "final": {
+        "fitness": 3.4381860079177495,
+        "forward_m": 3.858172006905079,
+        "fell": false
+      },
+      "best_fitness": 3.8574786140608492,
+      "median_wall_s_per_generation": 1.831,
+      "simulated_s_per_wall_s": 105.2,
+      "total_wall_s": 366.0
+    },
+    {
+      "trained_in": "mujoco",
+      "seed": 12,
+      "engine": "mujoco 3.9.0",
+      "plant": {
+        "floor_friction": 1.0,
+        "cone": "elliptic",
+        "impratio": 100.0
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 43,
+          "wall_s": 14.2
+        },
+        "1.0": {
+          "generation": 81,
+          "wall_s": 31.5
+        }
+      },
+      "final": {
+        "fitness": 3.568724560185351,
+        "forward_m": 3.9621104021402336,
+        "fell": false
+      },
+      "best_fitness": 3.7760467603821546,
+      "median_wall_s_per_generation": 0.48,
+      "simulated_s_per_wall_s": 420.7,
+      "total_wall_s": 91.4
+    }
+  ],
+  "evaluations": [
+    {
+      "evaluated_in": "rne",
+      "trained_in": "rne",
+      "seed": 2026,
+      "outcome": {
+        "fell": false,
+        "fitness": 3.774392180071406,
+        "forward_m": 3.9682110026478767,
+        "heading_rad": 0.14144169381553537,
+        "lateral_m": -0.1841024378372822,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "mujoco",
+      "seed": 2026,
+      "outcome": {
+        "fell": true,
+        "fitness": -0.915798197848436,
+        "forward_m": 0.17470894008874893,
+        "heading_rad": -0.021410830565818956,
+        "lateral_m": 0.05058353077038191,
+        "survived_s": 0.56
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "rne",
+      "seed": 2026,
+      "outcome": {
+        "fitness": -1.1256271867505243,
+        "forward_m": -0.010860346332047688,
+        "lateral_m": 0.10577822709801891,
+        "heading_rad": 0.06521747454991046,
+        "survived_s": 0.4,
+        "fell": true
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "mujoco",
+      "seed": 2026,
+      "outcome": {
+        "fitness": 3.2970322530240495,
+        "forward_m": 3.8179683027618543,
+        "lateral_m": 0.6733661985847644,
+        "heading_rad": 0.31892031890407285,
+        "survived_s": 5.0,
+        "fell": false
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "rne",
+      "seed": 11,
+      "outcome": {
+        "fell": false,
+        "fitness": 0.47780365986608053,
+        "forward_m": 0.5165354087948799,
+        "heading_rad": -0.046462501699070624,
+        "lateral_m": -0.00604882268817164,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "mujoco",
+      "seed": 11,
+      "outcome": {
+        "fell": true,
+        "fitness": -0.8333796516460483,
+        "forward_m": 0.2128482088446617,
+        "heading_rad": 0.04621685612157548,
+        "lateral_m": -0.00845167544321157,
+        "survived_s": 0.46
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "rne",
+      "seed": 11,
+      "outcome": {
+        "fitness": -1.3204384718759894,
+        "forward_m": -0.13590140635192188,
+        "lateral_m": -0.23705083697972829,
+        "heading_rad": 0.06090691331585938,
+        "survived_s": 1.7,
+        "fell": true
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "mujoco",
+      "seed": 11,
+      "outcome": {
+        "fitness": 1.4952620570620097,
+        "forward_m": 1.7075108915917196,
+        "lateral_m": 0.04490571315839403,
+        "heading_rad": -0.35445945583890565,
+        "survived_s": 5.0,
+        "fell": false
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "rne",
+      "seed": 12,
+      "outcome": {
+        "fell": false,
+        "fitness": 3.4381860079177495,
+        "forward_m": 3.858172006905079,
+        "heading_rad": 0.1422107228515745,
+        "lateral_m": 0.6367063006327953,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "mujoco",
+      "seed": 12,
+      "outcome": {
+        "fell": true,
+        "fitness": -0.9632206426223673,
+        "forward_m": 0.0891251340508461,
+        "heading_rad": 0.045125254878765876,
+        "lateral_m": 0.0014946857409086078,
+        "survived_s": 0.2
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "rne",
+      "seed": 12,
+      "outcome": {
+        "fitness": -1.0990056411173752,
+        "forward_m": 0.3465926025274497,
+        "lateral_m": -0.28759916884523307,
+        "heading_rad": -0.5648390448495962,
+        "survived_s": 1.4000000000000001,
+        "fell": true
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "mujoco",
+      "seed": 12,
+      "outcome": {
+        "fitness": 3.568724560185351,
+        "forward_m": 3.9621104021402336,
+        "lateral_m": 0.41368949299960606,
+        "heading_rad": -0.3421956208688002,
+        "survived_s": 5.0,
+        "fell": false
+      }
+    }
+  ]
+}
