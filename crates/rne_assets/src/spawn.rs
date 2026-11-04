@@ -3,8 +3,8 @@
 use crate::error::AssetError;
 use crate::robot::{
     parse_robot_asset_collision_parts, parse_robot_asset_convex_collisions,
-    parse_robot_asset_parent_child_collisions, parse_robot_asset_passive_dynamics, LidarRobotAsset,
-    RobotAsset, RobotKind,
+    parse_robot_asset_fuse_fixed_children, parse_robot_asset_parent_child_collisions,
+    parse_robot_asset_passive_dynamics, LidarRobotAsset, RobotAsset, RobotKind,
 };
 use crate::scene::{
     ObstacleBodyType, SceneAsset, SceneCollisionAsset, SceneDeformableAsset,
@@ -23,8 +23,8 @@ use rne_robot::{spawn_diff_drive_robot, DiffDriveSpawned, Link};
 use rne_sensor::{Sensor, SensorKind, SensorState};
 use rne_urdf_import::{
     attach_urdf_collision_parts, attach_urdf_convex_colliders, attach_urdf_document_articulation,
-    attach_urdf_visuals, parse_urdf_document, parse_urdf_document_file, parse_urdf_file,
-    spawn_urdf_document_with_config, SpawnedUrdfRobot, UrdfDocument,
+    attach_urdf_visuals, fuse_urdf_fixed_children, parse_urdf_document, parse_urdf_document_file,
+    parse_urdf_file, spawn_urdf_document_with_config, SpawnedUrdfRobot, UrdfDocument,
 };
 use rne_world::{
     spawn_world, world_transform_of, Gravity, TaskMarker, Transform3, WorldEntity, WorldRandom,
@@ -233,6 +233,13 @@ pub fn spawn_robot_asset_with_sources(
                     .map_err(|error| {
                         AssetError::invalid(asset_path.display().to_string(), error.to_string())
                     })?;
+            }
+            let fuse_fixed_children = match &extension_text {
+                Some(text) => parse_robot_asset_fuse_fixed_children(text, asset_path)?,
+                None => false,
+            };
+            if fuse_fixed_children {
+                fuse_urdf_fixed_children(world, &document.robot, &spawned);
             }
             let parent_child_collisions = match &extension_text {
                 Some(text) => parse_robot_asset_parent_child_collisions(text, asset_path)?,

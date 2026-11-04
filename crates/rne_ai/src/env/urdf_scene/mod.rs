@@ -723,11 +723,12 @@ impl UrdfSceneSim {
     }
 
     /// Vendored Unitree Go2 multibody scene whose fixed URDF children (feet,
-    /// lower-calf bumpers, head) are welded into the articulation and whose
-    /// links carry the URDF's declared masses. The dynamic scene leaves those
-    /// children as separate free bodies, so a Go2 there stands on its calves.
-    pub fn unitree_go2_jump_scene_path() -> PathBuf {
-        unitree_go2_jump_scene_path()
+    /// lower-calf bumpers, head) are fused into the links they are fixed to,
+    /// as MuJoCo's URDF importer does, and whose links carry the URDF's
+    /// declared masses. The dynamic scene leaves those children as separate
+    /// free bodies, so a Go2 there stands on its calves.
+    pub fn unitree_go2_fused_scene_path() -> PathBuf {
+        unitree_go2_fused_scene_path()
     }
 
     /// Built-in official Unitree Go2 scene with a fixed sloped terrain patch.
@@ -2690,10 +2691,10 @@ pub fn unitree_go2_dynamic_scene_path() -> PathBuf {
     assets_scene_path("unitree_go2_dynamic.rne.scene.toml")
 }
 
-/// Vendored Unitree Go2 scene with welded fixed children and declared masses;
-/// see [`UrdfSceneSim::unitree_go2_jump_scene_path`].
-pub fn unitree_go2_jump_scene_path() -> PathBuf {
-    assets_scene_path("unitree_go2_jump.rne.scene.toml")
+/// Vendored Unitree Go2 scene with fused fixed children and declared masses;
+/// see [`UrdfSceneSim::unitree_go2_fused_scene_path`].
+pub fn unitree_go2_fused_scene_path() -> PathBuf {
+    assets_scene_path("unitree_go2_fused.rne.scene.toml")
 }
 
 /// Built-in official Unitree Go2 scene with a fixed sloped terrain patch.

@@ -154,11 +154,11 @@ pub(crate) fn robot(plant: Plant) -> Result<Box<dyn Robot>> {
 }
 
 /// A Go2 walker on the scene whose fixed URDF children (feet, lower-calf
-/// bumpers, head) are welded into the articulation and whose links carry the
-/// URDF's declared masses, as on the native backend and in MuJoCo.
+/// bumpers, head) are fused into their links and whose links carry the URDF's
+/// declared masses, as in MuJoCo.
 fn walker(plant: Plant) -> Result<PdJointWalker> {
     let sim = UrdfSceneSim::from_scene_path_with_solver_iterations(
-        &UrdfSceneSim::unitree_go2_jump_scene_path(),
+        &UrdfSceneSim::unitree_go2_fused_scene_path(),
         plant.solver_iterations,
     )?;
     let config = PdJointConfig {
@@ -181,6 +181,20 @@ fn walker(plant: Plant) -> Result<PdJointWalker> {
         return Err("inner solver passes must be positive".into());
     }
     Ok(walker)
+}
+
+/// The Rapier Go2's total mass: every dynamic body in its scene.
+pub(crate) fn rapier_mass_kg(plant: Plant) -> Result<f64> {
+    use rne_physics::{RigidBody, RigidBodyType};
+    let walker = walker(plant)?;
+    Ok(walker
+        .sim()
+        .world()
+        .iter_entities()
+        .filter_map(|entity| entity.get::<RigidBody>())
+        .filter(|body| body.body_type == RigidBodyType::Dynamic)
+        .map(|body| body.mass_kg)
+        .sum())
 }
 
 /// Restarts the robot and stands it on its default pose for

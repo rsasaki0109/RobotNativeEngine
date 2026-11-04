@@ -517,7 +517,7 @@ mod tests {
 
     fn go2_with_solver_iterations(solver_iterations: usize) -> PdJointWalker {
         let sim = UrdfSceneSim::from_scene_path_with_solver_iterations(
-            &UrdfSceneSim::unitree_go2_jump_scene_path(),
+            &UrdfSceneSim::unitree_go2_fused_scene_path(),
             solver_iterations,
         )
         .expect("Go2 scene");
@@ -604,7 +604,7 @@ mod tests {
     #[test]
     fn mismatched_configuration_is_rejected() {
         let sim =
-            UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_jump_scene_path()).unwrap();
+            UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_fused_scene_path()).unwrap();
         let mut config = go2().config().clone();
         config.kp_nm_per_rad.pop();
         assert!(PdJointWalker::new(sim, config).is_err());

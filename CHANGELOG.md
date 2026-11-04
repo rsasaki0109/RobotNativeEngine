@@ -59,14 +59,29 @@ All notable changes to Robot Native Engine are documented in this file.
   now share that code, and the G1's walks are bit-identical. Example 147
   trains a Go2 to walk with it.
 
+- Fuse URDF links that hang from the articulated tree only by fixed joints,
+  as MuJoCo's URDF importer does. `rne_urdf_import::fuse_urdf_fixed_children`
+  moves such a link's collision parts into its parent's `CompoundCollider`,
+  posed through the fixed joints, and adds its declared mass and inertia to
+  the parent's by the parallel-axis theorem. A link without an `<inertial>` is
+  massless, as in the URDF specification, rather than carrying the spawner's
+  1 kg default. Robot assets opt in with `urdf.fuse_fixed_children = true`.
+  Unlike `weld_fixed_children`, which adds a zero-DoF multibody link per such
+  link, fusing keeps one body per moving part; a welded Go2 steps about 1.7
+  times slower than a fused one.
+
 - Example 147's RNE Go2 now stands on its feet. It used
   `unitree_go2_dynamic.rne.scene.toml`, whose robot description leaves the
   URDF's fixed children (feet, lower-calf bumpers, head) as separate free
-  bodies and derives link masses from collider volumes: the robot stood on its
-  calves among its own loose parts, 11 cm lower than MuJoCo's model in the same
-  joint pose. It now uses the welded, declared-mass Go2 scene, reachable
-  through the new `UrdfSceneSim::unitree_go2_jump_scene_path`, as the native
-  backend and MuJoCo already did. `PdJointWalker`'s tests use it too. Example
+  bodies and gives undeclared links 1 kg each. The Go2 stood on its calves
+  among its own loose parts, 11 cm lower than MuJoCo's model in the same joint
+  pose. It now uses `unitree_go2_fused.rne.scene.toml` (new
+  `UrdfSceneSim::unitree_go2_fused_scene_path`): fused fixed children and the
+  URDF's declared masses, 16.087 kg in all. The MuJoCo script likewise keeps
+  links without an `<inertial>` massless instead of deriving their mass from
+  geoms, so both engines carry the same 16.087 kg. Settled on the default
+  targets, the two stances now agree to 7 mm in base height (0.254 and 0.261 m)
+  and 0.007 rad per joint. `PdJointWalker`'s tests use the fused scene. Example
   147 gains `--stand SECONDS` (and the MuJoCo script `stand`) to report the
   settled stance, and the MuJoCo script's `--friction 0` no longer falls back
   to 1.

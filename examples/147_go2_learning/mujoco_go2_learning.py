@@ -66,6 +66,9 @@ def urdf_without_visuals():
 
 def build_model(floor_friction, cone, impratio):
     spec = mujoco.MjSpec.from_string(urdf_without_visuals())
+    # Links without an <inertial> are massless, as in the URDF specification
+    # and in RNE, instead of taking mass from their geoms at 1000 kg/m^3.
+    spec.compiler.inertiafromgeom = mujoco.mjtInertiaFromGeom.mjINERTIAFROMGEOM_FALSE
     spec.option.timestep = DT_S
     spec.option.cone = {"pyramidal": mujoco.mjtCone.mjCONE_PYRAMIDAL,
                         "elliptic": mujoco.mjtCone.mjCONE_ELLIPTIC}[cone]

@@ -101,6 +101,10 @@ fn main() -> Result<()> {
                    "base_quat_wxyz": [rotation.w, rotation.x, rotation.y, rotation.z],
                    "pitch_rad": forward.z.asin(), "roll_rad": (rotation * rne_math::Vec3::Y).z.asin(),
                    "tilt_rad": up.z.clamp(-1.0, 1.0).acos(),
+                   "mass_kg": match plant.backend {
+                       go2::Backend::Rapier => Some(go2::rapier_mass_kg(plant)?),
+                       go2::Backend::Native => None,
+                   },
                    "joint_rad": joints.iter().map(|(q, _)| *q).collect::<Vec<_>>()})
         );
         return Ok(());

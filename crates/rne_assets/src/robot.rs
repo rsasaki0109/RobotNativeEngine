@@ -243,6 +243,8 @@ struct UrdfRobotAssetExtensions {
     #[serde(default = "default_true")]
     parent_child_collisions: bool,
     #[serde(default)]
+    fuse_fixed_children: bool,
+    #[serde(default)]
     joint_passive_dynamics: Vec<UrdfJointPassiveDynamicsAsset>,
 }
 
@@ -381,6 +383,19 @@ pub fn parse_robot_asset_convex_collisions(text: &str, path: &Path) -> Result<bo
     Ok(extensions
         .urdf
         .is_some_and(|urdf| urdf.convex_mesh_collisions))
+}
+
+/// Parses `urdf.fuse_fixed_children` (default false) without changing public asset structs.
+///
+/// True moves every link that hangs from the articulated tree only by fixed
+/// joints (a foot, a bumper) into its parent body with
+/// [`rne_urdf_import::fuse_urdf_fixed_children`], as MuJoCo fuses static
+/// bodies, instead of leaving it a free body or, with `weld_fixed_children`, a
+/// zero-degree-of-freedom multibody link.
+pub fn parse_robot_asset_fuse_fixed_children(text: &str, path: &Path) -> Result<bool, AssetError> {
+    let extensions: RobotAssetExtensions = toml::from_str(text)
+        .map_err(|error| AssetError::invalid(path.display().to_string(), error.to_string()))?;
+    Ok(extensions.urdf.is_some_and(|urdf| urdf.fuse_fixed_children))
 }
 
 /// Parses `urdf.parent_child_collisions` (default true) without changing public asset structs.
@@ -666,6 +681,19 @@ coulomb_transition_velocity_rad_s = 0.04
             Path::new("test.toml")
         )
         .is_err());
+    }
+
+    #[test]
+    fn fuse_fixed_children_extension_defaults_off_and_rejects_wrong_type() {
+        let path = Path::new("test.toml");
+        assert!(!parse_robot_asset_fuse_fixed_children(URDF, path).unwrap());
+        assert!(!parse_robot_asset_fuse_fixed_children("kind = \"urdf\"\n", path).unwrap());
+        let text = format!("{URDF}\nfuse_fixed_children = true\n");
+        parse_robot_asset(&text, path).unwrap();
+        assert!(parse_robot_asset_fuse_fixed_children(&text, path).unwrap());
+        assert!(
+            parse_robot_asset_fuse_fixed_children(&text.replace("= true", "= 42"), path).is_err()
+        );
     }
 
     #[test]
