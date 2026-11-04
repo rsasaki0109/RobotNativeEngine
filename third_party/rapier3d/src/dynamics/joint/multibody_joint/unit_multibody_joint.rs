@@ -36,7 +36,6 @@ pub fn unit_joint_limit_constraint(
         constraints,
         insert_at,
         None,
-        false,
     );
 }
 
@@ -81,41 +80,12 @@ pub(crate) fn unit_joint_limit_constraint_reusing(
     constraints: &mut [JointGenericOneBodyConstraint],
     insert_at: &mut usize,
     reuse: Option<usize>,
-    skip_inactive: bool,
-) -> bool {
+) {
     let ndofs = multibody.ndofs();
     let min_enabled = curr_pos < limits[0];
     let max_enabled = limits[1] < curr_pos;
     let erp_inv_dt = params.joint_erp_inv_dt();
     let cfm_coeff = params.joint_cfm_coeff();
-
-    // RNE modification: inactive limit rows, see RNE_PATCH.md.
-    //
-    // Within its limits the row's impulse is clamped to `[0, 0]`, so solving
-    // it never changes a velocity. Keep its slot and Jacobian space, but skip
-    // the `M⁻¹e_k` solve and give it no degrees of freedom, so the solver's
-    // dot product and update run over nothing. Callers pass `skip_inactive`
-    // only when no later row reuses this row's unit Jacobian block. Returns
-    // whether the block was written.
-    if skip_inactive && !min_enabled && !max_enabled {
-        constraints[*insert_at] = JointGenericOneBodyConstraint {
-            solver_vel2: multibody.solver_id,
-            ndofs2: 0,
-            j_id2: *j_id,
-            joint_id: usize::MAX,
-            impulse: 0.0,
-            impulse_bounds: [0.0, 0.0],
-            inv_lhs: 0.0,
-            rhs: 0.0,
-            rhs_wo_bias: 0.0,
-            cfm_coeff,
-            cfm_gain: 0.0,
-            writeback_id: WritebackId::Limit(dof_id),
-        };
-        *insert_at += 1;
-        *j_id += 2 * ndofs;
-        return false;
-    }
     let rhs_bias = ((curr_pos - limits[1]).max(0.0) - (limits[0] - curr_pos).max(0.0)) * erp_inv_dt;
     let rhs_wo_bias = 0.0;
 
@@ -147,7 +117,6 @@ pub(crate) fn unit_joint_limit_constraint_reusing(
     *insert_at += 1;
 
     *j_id += 2 * ndofs;
-    true
 }
 
 /// Initializes and generate the velocity constraints applicable to the multibody links attached

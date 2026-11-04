@@ -514,12 +514,6 @@ impl JointGenericOneBodyConstraint {
         solver_vels: &mut [SolverVel<Real>],
         generic_solver_vels: &mut DVector<Real>,
     ) {
-        // RNE modification: inactive limit rows, see RNE_PATCH.md. A row
-        // without degrees of freedom changes no velocity, and its impulse
-        // stays zero.
-        if self.ndofs2 == 0 {
-            return;
-        }
         let jacobians = jacobians.as_slice();
 
         let solver_vel2 = self.solver_vel2(solver_vels, generic_solver_vels);
