@@ -292,7 +292,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("train", "evaluate", "bench"):
+    for name in ("train", "evaluate", "bench", "stand"):
         command = sub.add_parser(name)
         command.add_argument("--cone", choices=["pyramidal", "elliptic"], default="elliptic")
         command.add_argument("--impratio", type=float, default=100.0)
@@ -303,13 +303,15 @@ def main():
     sub.choices["train"].add_argument("--processes", type=int, default=4)
     sub.choices["evaluate"].add_argument("policy", type=Path)
     sub.choices["evaluate"].add_argument("--generation", type=int)
+    sub.choices["stand"].add_argument("seconds", type=float)
     sub.choices["bench"].add_argument("episodes", type=int)
     sub.choices["bench"].add_argument("--seed", type=int, default=2026)
     sub.choices["bench"].add_argument("--hidden", type=int, default=32)
     arguments = parser.parse_args()
     if arguments.command == "train":
         rne_report = json.loads(arguments.rne_report.read_text())
-        friction = arguments.friction or rne_report["plant"]["floor_friction"]
+        friction = (rne_report["plant"]["floor_friction"] if arguments.friction is None
+                    else arguments.friction)
         plant = {"floor_friction": friction, "cone": arguments.cone,
                  "impratio": arguments.impratio}
         report = train(rne_report, plant, arguments.processes)
@@ -317,8 +319,8 @@ def main():
         print(f"wrote {arguments.output}")
     elif arguments.command == "bench":
         # One process, one model: the initial policy's episodes, as --bench.
-        plant = {"floor_friction": arguments.friction or 1.0, "cone": arguments.cone,
-                 "impratio": arguments.impratio}
+        plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
+                 "cone": arguments.cone, "impratio": arguments.impratio}
         normal = Normal(arguments.seed)
         params = np.zeros(Mlp.parameter_count(arguments.hidden))
         for index in range(arguments.hidden * OBSERVATIONS):
@@ -331,9 +333,28 @@ def main():
                           "episodes": arguments.episodes,
                           "simulated_s": steps * CONTROL_DT_S, "wall_s": wall,
                           "simulated_s_per_wall_s": steps * CONTROL_DT_S / wall}))
+    elif arguments.command == "stand":
+        # Settle as an episode does, then hold the default targets, as --stand.
+        plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
+                 "cone": arguments.cone, "impratio": arguments.impratio}
+        robot = Go2(plant)
+        robot.settle()
+        for _ in range(round(arguments.seconds / CONTROL_DT_S)):
+            robot.step(DEFAULT_RAD)
+        rotation = robot.body_rotation()
+        print(json.dumps({
+            "engine": f"mujoco {mujoco.__version__}", "plant": plant,
+            "seconds_after_settling": arguments.seconds,
+            "base_m": robot.data.qpos[:3].tolist(),
+            "base_speed_m_s": float(np.linalg.norm(robot.data.qvel[:3])),
+            "pitch_rad": float(math.asin(rotation[2, 0])),
+            "roll_rad": float(math.asin(rotation[2, 1])),
+            "tilt_rad": float(math.acos(max(-1.0, min(1.0, rotation[2, 2])))),
+            "joint_rad": robot.data.qpos[robot.qpos].tolist(),
+            "mass_kg": float(robot.model.body_mass.sum())}))
     else:
-        plant = {"floor_friction": arguments.friction or 1.0, "cone": arguments.cone,
-                 "impratio": arguments.impratio}
+        plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
+                 "cone": arguments.cone, "impratio": arguments.impratio}
         outcome = Go2(plant).episode(load_policy(arguments.policy, arguments.generation))
         print(json.dumps({"engine": f"mujoco {mujoco.__version__}", "plant": plant,
                           "policy": str(arguments.policy), "generation": arguments.generation,

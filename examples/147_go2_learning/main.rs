@@ -52,7 +52,7 @@ fn main() -> Result<()> {
     let mut threads = std::thread::available_parallelism().map_or(1, |n| n.get());
     let mut output = PathBuf::from("target/go2-learning");
     let (mut train, mut evaluate, mut generation) = (false, None, None);
-    let mut bench = None;
+    let (mut bench, mut stand) = (None, None);
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
@@ -60,6 +60,7 @@ fn main() -> Result<()> {
             "--train" => train = true,
             "--evaluate" => evaluate = Some(PathBuf::from(value()?)),
             "--bench" => bench = Some(value()?.parse::<usize>()?),
+            "--stand" => stand = Some(value()?.parse::<f64>()?),
             "--generation" => generation = Some(value()?.parse()?),
             "--output" => output = PathBuf::from(value()?),
             "--threads" => threads = value()?.parse()?,
@@ -76,6 +77,33 @@ fn main() -> Result<()> {
             "--checkpoint-every" => config.checkpoint_every = value()?.parse()?,
             other => return Err(format!("unknown option {other}").into()),
         }
+    }
+    if let Some(seconds) = stand {
+        // Settle as an episode does, then hold the default targets.
+        let mut robot = go2::robot(plant)?;
+        go2::settle(robot.as_mut())?;
+        for _ in 0..(seconds / go2::CONTROL_DT_S).round() as usize {
+            robot.step()?;
+        }
+        let ((position, rotation), (velocity, _)) =
+            (robot.base_pose_z_up(), robot.base_velocity_z_up());
+        let up = rotation * rne_math::Vec3::Z;
+        let forward = rotation * rne_math::Vec3::X;
+        let joints = robot.joint_states()?;
+        println!(
+            "{}",
+            json!({"engine": plant.backend.name(), "plant": {
+                       "solver_iterations": plant.solver_iterations,
+                       "inner_passes": plant.inner_passes,
+                       "floor_friction": plant.floor_friction},
+                   "seconds_after_settling": seconds,
+                   "base_m": position.to_array(), "base_speed_m_s": velocity.length(),
+                   "base_quat_wxyz": [rotation.w, rotation.x, rotation.y, rotation.z],
+                   "pitch_rad": forward.z.asin(), "roll_rad": (rotation * rne_math::Vec3::Y).z.asin(),
+                   "tilt_rad": up.z.clamp(-1.0, 1.0).acos(),
+                   "joint_rad": joints.iter().map(|(q, _)| *q).collect::<Vec<_>>()})
+        );
+        return Ok(());
     }
     if let Some(episodes) = bench {
         // One thread, one robot: the initial policy's episodes.

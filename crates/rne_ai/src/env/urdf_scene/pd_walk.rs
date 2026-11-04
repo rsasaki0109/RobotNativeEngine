@@ -517,7 +517,7 @@ mod tests {
 
     fn go2_with_solver_iterations(solver_iterations: usize) -> PdJointWalker {
         let sim = UrdfSceneSim::from_scene_path_with_solver_iterations(
-            &UrdfSceneSim::unitree_go2_dynamic_scene_path(),
+            &UrdfSceneSim::unitree_go2_jump_scene_path(),
             solver_iterations,
         )
         .expect("Go2 scene");
@@ -569,10 +569,11 @@ mod tests {
         };
         let mut walker = go2();
         let ((position, rotation), joints) = run(&mut walker);
-        // Upright, on its feet, sagging under unitree_rl_gym's soft gains.
+        // Upright, on its feet, sagging under unitree_rl_gym's soft gains. It
+        // is still settling: the foot spheres roll as the knees fold.
         assert!(position.z > 0.15 && position.z < 0.33, "{position}");
-        assert!((rotation * Vec3::Z).z > 0.99);
-        assert!(joints.iter().all(|(_, velocity)| velocity.abs() < 0.5));
+        assert!((rotation * Vec3::Z).z > 0.98);
+        assert!(joints.iter().all(|(_, velocity)| velocity.abs() < 3.0));
         walker.reset().unwrap();
         assert_eq!(run(&mut walker), ((position, rotation), joints));
     }
@@ -603,7 +604,7 @@ mod tests {
     #[test]
     fn mismatched_configuration_is_rejected() {
         let sim =
-            UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_dynamic_scene_path()).unwrap();
+            UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_jump_scene_path()).unwrap();
         let mut config = go2().config().clone();
         config.kp_nm_per_rad.pop();
         assert!(PdJointWalker::new(sim, config).is_err());

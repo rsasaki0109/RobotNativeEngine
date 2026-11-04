@@ -153,10 +153,12 @@ pub(crate) fn robot(plant: Plant) -> Result<Box<dyn Robot>> {
     })
 }
 
-/// A Go2 walker on the vendored dynamic scene.
+/// A Go2 walker on the scene whose fixed URDF children (feet, lower-calf
+/// bumpers, head) are welded into the articulation and whose links carry the
+/// URDF's declared masses, as on the native backend and in MuJoCo.
 fn walker(plant: Plant) -> Result<PdJointWalker> {
     let sim = UrdfSceneSim::from_scene_path_with_solver_iterations(
-        &UrdfSceneSim::unitree_go2_dynamic_scene_path(),
+        &UrdfSceneSim::unitree_go2_jump_scene_path(),
         plant.solver_iterations,
     )?;
     let config = PdJointConfig {

@@ -59,6 +59,18 @@ All notable changes to Robot Native Engine are documented in this file.
   now share that code, and the G1's walks are bit-identical. Example 147
   trains a Go2 to walk with it.
 
+- Example 147's RNE Go2 now stands on its feet. It used
+  `unitree_go2_dynamic.rne.scene.toml`, whose robot description leaves the
+  URDF's fixed children (feet, lower-calf bumpers, head) as separate free
+  bodies and derives link masses from collider volumes: the robot stood on its
+  calves among its own loose parts, 11 cm lower than MuJoCo's model in the same
+  joint pose. It now uses the welded, declared-mass Go2 scene, reachable
+  through the new `UrdfSceneSim::unitree_go2_jump_scene_path`, as the native
+  backend and MuJoCo already did. `PdJointWalker`'s tests use it too. Example
+  147 gains `--stand SECONDS` (and the MuJoCo script `stand`) to report the
+  settled stance, and the MuJoCo script's `--friction 0` no longer falls back
+  to 1.
+
 - Let Rapier's constraint solver re-solve contacts without rebuilding
   articulations. `RapierBackend::set_inner_solver_passes` (and
   `UrdfSceneSim::set_inner_solver_passes`,
