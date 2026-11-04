@@ -2,7 +2,8 @@
 """Compare example 147's Go2 training runs across engines.
 
 Inputs are training reports (`147_go2_learning --train`, with `--backend
-native` for RNE's native backend, and `mujoco_go2_learning.py train`) and,
+native` for RNE's native backend or `--solver-iterations 1 --inner-passes 4`
+for Rapier's cheaper solve, and `mujoco_go2_learning.py train`) and,
 optionally, evaluations of each run's final policy in each engine
 (`--evaluate`, `mujoco_go2_learning.py evaluate`). For every run the summary
 holds:
@@ -16,15 +17,17 @@ generations, one line per run. Uses no third-party packages.
 
 Usage: learning_compare.py SUMMARY.json FIGURE.svg --training ENGINE:SEED=REPORT.json ...
        [--evaluation EVALUATING/ENGINE:SEED=EVALUATION.json ...]
-where ENGINE and EVALUATING are rne, native or mujoco.
+where ENGINE and EVALUATING are rne, rne1x4, native or mujoco.
 """
 import argparse
 import json
 import statistics
 from pathlib import Path
 
-ENGINES = {"rne": "RNE (Rapier)", "native": "RNE (native)", "mujoco": "MuJoCo"}
-COLORS = {"rne": "#2563eb", "native": "#16a34a", "mujoco": "#ea580c"}
+ENGINES = {"rne": "RNE (Rapier, 4 iterations)",
+           "rne1x4": "RNE (Rapier, 1 iteration × 4 passes)",
+           "native": "RNE (native)", "mujoco": "MuJoCo"}
+COLORS = {"rne": "#2563eb", "rne1x4": "#7c3aed", "native": "#16a34a", "mujoco": "#ea580c"}
 INK, MUTED, GRID = "#1f2937", "#6b7280", "#e5e7eb"
 THRESHOLDS = (0.5, 1.0)
 
@@ -92,7 +95,7 @@ def svg(runs):
           generations, "generation", ymin, ymax)
     engines = sorted({engine for engine, _, _ in runs}, key=list(ENGINES).index)
     for index, engine in enumerate(engines):
-        x = 60 + 160 * index
+        x = 60 + 240 * index
         parts.append(f'<line x1="{x}" y1="{height - 14}" x2="{x + 18}" y2="{height - 14}" '
                      f'stroke="{COLORS[engine]}" stroke-width="2.5"/>')
         parts.append(f'<text x="{x + 24}" y="{height - 10}" font-size="11" fill="{INK}">'

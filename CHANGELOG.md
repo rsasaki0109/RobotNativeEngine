@@ -68,6 +68,16 @@ All notable changes to Robot Native Engine are documented in this file.
   iteration with four inner passes steps a Go2 about twice as fast as four
   iterations and still learns to walk in example 147.
 
+- Step articulated robots with fewer instructions and unchanged results. The
+  vendored Rapier no longer solves `M⁻¹e_k` for a multibody limit row while its
+  coordinate is within the limits (the row's impulse is clamped to zero there)
+  unless a motor on the same coordinate reuses that block.
+  `RapierBackend::sync_joint_actuation_from_ecs` walks only entities with joint
+  actuation, armature or passive dynamics, and `sync_to_ecs` composes each
+  parent's world transform once per write-back through the new
+  `WorldTransformCache::forget`. A walking Go2 steps 7% fewer instructions;
+  its walks and example 144's G1 walks are bit-identical.
+
 - The per-wheel skid sensor-only benchmark is now
   `mobility_per_wheel_sensor_yaw_rate_v2` (trace schema 2). v1's yaw-rate PI
   (21 V/(rad/s), 18 V/rad) hunted across the scrub breakaway voltage, and its

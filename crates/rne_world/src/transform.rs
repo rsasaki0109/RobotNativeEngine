@@ -54,6 +54,20 @@ impl WorldTransformCache {
         self.transforms[index] = Some((entity, transform));
         transform
     }
+
+    /// Call before changing `entity`'s [`Transform3`] or [`Parent`]: if its
+    /// world transform is cached, drops every cached transform, since its
+    /// descendants' were composed from it. Entities not yet cached need
+    /// nothing, so a parent-before-child pass that writes each entity before
+    /// reading any of its descendants keeps the cache.
+    pub fn forget(&mut self, entity: Entity) {
+        let index = entity.index() as usize;
+        if let Some(Some((cached, _))) = self.transforms.get(index) {
+            if *cached == entity {
+                self.transforms.clear();
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -122,5 +136,27 @@ mod tests {
                 expected.scale.to_array().map(f64::to_bits)
             );
         }
+    }
+
+    #[test]
+    fn forgetting_a_cached_entity_recomposes_its_descendants() {
+        let mut world = EcsWorld::new();
+        let root = spawn_named(&mut world, "root");
+        let middle = spawn_named(&mut world, "middle");
+        let leaf = spawn_named(&mut world, "leaf");
+        let shift = |x: f64| Transform3::from_translation_rotation(Vec3::X * x, Quat::IDENTITY);
+        world.entity_mut(root).insert(shift(1.0));
+        world.entity_mut(middle).insert((Parent(root), shift(2.0)));
+        world.entity_mut(leaf).insert((Parent(middle), shift(4.0)));
+        let mut cache = WorldTransformCache::new();
+        assert_eq!(cache.get(&world, leaf).translation.x, 7.0);
+        // Forgetting an uncached entity keeps the cache.
+        let stranger = spawn_named(&mut world, "stranger");
+        cache.forget(stranger);
+        world.entity_mut(root).insert(shift(8.0));
+        assert_eq!(cache.get(&world, leaf).translation.x, 7.0);
+        cache.forget(root);
+        assert_eq!(cache.get(&world, leaf).translation.x, 14.0);
+        assert_eq!(cache.get(&world, middle).translation.x, 10.0);
     }
 }

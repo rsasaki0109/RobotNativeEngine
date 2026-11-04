@@ -194,6 +194,18 @@ every solver substep, which made this the largest cost of a walking humanoid.
   now copies the first's block instead of solving again. The public
   `unit_joint_limit_constraint` and `unit_joint_motor_constraint` keep their
   signatures.
+- **Inactive limit rows.** Rapier builds a limit row for every limited
+  coordinate at every step. Within the limits its impulse bounds are
+  `[-0.0, +0.0]`, so every solve adds a signed zero times `M⁻¹e_k` to the
+  velocities and changes none of them. Unless a motor on the same coordinate
+  reuses its unit Jacobian block (an angular limit is built before its motor),
+  such a row now keeps its slot and Jacobian space but gets no degrees of
+  freedom: it skips the `M⁻¹e_k` solve, and
+  `JointGenericOneBodyConstraint::solve` returns at once for it. Its impulse
+  stays zero, as before. The one value it could change is an exactly zero
+  solver velocity stored as `-0.0`, which the skipped `+0.0` addition would
+  have made `+0.0`. Example 147's Go2 walks and example 144's G1 walks are
+  bit-identical before and after; the Go2 steps 7% fewer instructions.
 
 `rne_sparse_mass_tests` compare the sparse helpers with nalgebra's dense
 routines bit for bit on random operands containing zero, `-0.0` and kept zero

@@ -35,7 +35,7 @@ use rne_physics::{
 };
 #[cfg(feature = "position-motor-diagnostics")]
 use rne_physics::{JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval};
-use rne_world::{world_transform_of, Transform3, WorldTransformCache};
+use rne_world::{Transform3, WorldTransformCache};
 use std::collections::HashMap;
 
 /// Per-step lookup maps keyed by entities and Rapier handles.
@@ -362,7 +362,9 @@ impl RapierBackend {
                 state.colliders.get_mut(collider);
             }
         }
-        let entities = sorted_entities(world);
+        // `apply_joint_motors` walks its entity list for armature, direct
+        // efforts and Coulomb friction only; every other entity is skipped.
+        let entities = sorted_entities_with_joint_dynamics(world);
         let mut transforms = WorldTransformCache::new();
         apply_joint_motors(world, state, &entities, &mut transforms)?;
         #[cfg(feature = "position-motor-diagnostics")]
@@ -1674,6 +1676,9 @@ fn write_back_bodies_and_joints(
     bodies: &[(Entity, RigidBodyHandle)],
     joint_entities: &[Entity],
 ) {
+    // Bodies come parent before child, so a parent's world transform is
+    // composed after its own write; `forget` keeps that exact otherwise.
+    let mut transforms = WorldTransformCache::new();
     for &(entity, body_handle) in bodies {
         let Some(body) = state.bodies.get(body_handle) else {
             continue;
@@ -1685,11 +1690,12 @@ fn write_back_bodies_and_joints(
         let world_tf = isometry_to_transform(body.position());
         let parent_entity = world.get::<Parent>(entity).map(|parent| parent.0);
         let local_tf = if let Some(parent_entity) = parent_entity {
-            let parent_world = world_transform_of(world, parent_entity);
+            let parent_world = transforms.get(world, parent_entity);
             world_to_local_transform(&parent_world, &world_tf)
         } else {
             world_tf
         };
+        transforms.forget(entity);
         if let Some(mut transform) = world.get_mut::<Transform3>(entity) {
             *transform = local_tf;
         }
@@ -1763,6 +1769,23 @@ fn write_back_bodies_and_joints(
 
 fn sorted_entities(world: &World) -> Vec<Entity> {
     let mut entities: Vec<Entity> = world.iter_entities().map(|entity| entity.id()).collect();
+    entities.sort_unstable();
+    entities
+}
+
+/// The entities, in [`sorted_entities`] order, that `apply_joint_motors`'
+/// entity walks act on: those with a joint actuation, armature or passive
+/// dynamics component.
+fn sorted_entities_with_joint_dynamics(world: &World) -> Vec<Entity> {
+    let mut entities: Vec<Entity> = world
+        .iter_entities()
+        .filter(|entity| {
+            entity.contains::<JointActuation>()
+                || entity.contains::<RevoluteJointArmature>()
+                || entity.contains::<JointPassiveDynamics>()
+        })
+        .map(|entity| entity.id())
+        .collect();
     entities.sort_unstable();
     entities
 }
@@ -2443,6 +2466,7 @@ mod tests {
     use rne_ecs::spawn_named;
     use rne_math::Quat;
     use rne_physics::{hash_physics_state, ColliderShape, CollisionGroups};
+    use rne_world::world_transform_of;
 
     fn owner_filter_fixture() -> (RapierBackend, PhysicsWorldId, World) {
         let mut backend = RapierBackend::new();

@@ -1,7 +1,7 @@
 use crate::dynamics::solver::JointGenericOneBodyConstraint;
 use crate::dynamics::JointAxis;
 use crate::dynamics::{
-    joint, FixedJointBuilder, GenericJoint, IntegrationParameters, Multibody, MultibodyLink,
+    FixedJointBuilder, GenericJoint, IntegrationParameters, Multibody, MultibodyLink,
     RigidBodyVelocity,
 };
 use crate::math::{
@@ -362,6 +362,7 @@ impl MultibodyJoint {
                         constraints,
                         &mut num_constraints,
                         unit_block,
+                        true,
                     );
                 }
                 curr_free_dof += 1;
@@ -388,8 +389,10 @@ impl MultibodyJoint {
                 let mut unit_block = None;
                 let limits = if (limit_bits & (1 << i)) != 0 {
                     let limits = [self.data.limits[i].min, self.data.limits[i].max];
-                    unit_block = Some(*j_id);
-                    joint::unit_joint_limit_constraint(
+                    let block = *j_id;
+                    // RNE: an inactive limit row may skip its block only when
+                    // no motor on this axis reuses it.
+                    let wrote = super::unit_multibody_joint::unit_joint_limit_constraint_reusing(
                         params,
                         multibody,
                         link,
@@ -400,7 +403,10 @@ impl MultibodyJoint {
                         jacobians,
                         constraints,
                         &mut num_constraints,
+                        None,
+                        (motor_bits & (1 << i)) == 0,
                     );
+                    unit_block = wrote.then_some(block);
                     Some(limits)
                 } else {
                     None
