@@ -67,7 +67,7 @@ All notable changes to Robot Native Engine are documented in this file.
   massless, as in the URDF specification, rather than carrying the spawner's
   1 kg default. Robot assets opt in with `urdf.fuse_fixed_children = true`.
   Unlike `weld_fixed_children`, which adds a zero-DoF multibody link per such
-  link, fusing keeps one body per moving part; a welded Go2 steps about 1.7
+  link, fusing keeps one body per moving part; a welded Go2 trains 1.6–1.9
   times slower than a fused one.
 
 - Example 147's RNE Go2 now stands on its feet. It used
@@ -93,7 +93,8 @@ All notable changes to Robot Native Engine are documented in this file.
   passes per solver iteration, and `reset_world` keeps them. Rapier rebuilds
   and factors every multibody's mass matrix once per solver iteration, so one
   iteration with four inner passes steps a Go2 about twice as fast as four
-  iterations and still learns to walk in example 147.
+  iterations. On example 147's Go2 it learns only a slow shuffle (fitness
+  0.72–0.88), where four iterations learn to walk.
 
 - Synchronize articulated robots with the ECS in fewer instructions and
   unchanged results. `RapierBackend::sync_joint_actuation_from_ecs` walks only
