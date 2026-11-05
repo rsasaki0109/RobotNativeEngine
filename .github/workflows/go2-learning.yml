@@ -1,0 +1,118 @@
+name: Go2 learning comparison
+
+# Example 147 trained in RNE's locomotion step and in MuJoCo on the same
+# runner, one engine after the other for each seed, then each engine
+# evaluates every final policy. Heavy (about 20 minutes), so it runs on
+# demand and when this workflow changes.
+on:
+  workflow_dispatch:
+    inputs:
+      seeds:
+        description: "ES seeds, space-separated"
+        required: false
+        default: "2026 11 12"
+  push:
+    paths:
+      - ".github/workflows/go2-learning.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Go2 learning, RNE locomotion vs MuJoCo
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SEEDS: ${{ inputs.seeds || '2026 11 12' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-learning
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build example 147
+        run: cargo build --locked --release -p go2_learning --example 147_go2_learning
+
+      - name: Install MuJoCo
+        run: |
+          python -m venv .venv-mujoco
+          .venv-mujoco/bin/pip install --disable-pip-version-check \
+            -r examples/116_robot_workbench/python/requirements-mujoco.txt numpy
+          .venv-mujoco/bin/python -c "import mujoco; print('mujoco', mujoco.__version__)"
+
+      - name: Train in both engines
+        run: |
+          set -euo pipefail
+          out=artifacts/go2-learning
+          mkdir -p "$out"
+          bin=target/release/examples/147_go2_learning
+          cores=$(nproc)
+          echo "cores: $cores"
+          for seed in $SEEDS; do
+            "$bin" --train --backend locomotion --seed "$seed" --threads "$cores" --output "$out"
+            .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py train \
+              "$out/go2-learning-locomotion-$seed.json" "$out/go2-learning-mujoco-$seed.json" \
+              --processes "$cores"
+          done
+
+      - name: Single-thread speed
+        run: |
+          set -euo pipefail
+          for run in 1 2 3; do
+            target/release/examples/147_go2_learning --bench 8 --backend locomotion
+            .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py bench 8
+          done
+
+      - name: Evaluate every policy in every engine
+        run: |
+          set -euo pipefail
+          out=artifacts/go2-learning
+          bin=target/release/examples/147_go2_learning
+          for seed in $SEEDS; do
+            for trained in locomotion mujoco; do
+              policy="$out/go2-learning-$trained-$seed.json"
+              "$bin" --evaluate "$policy" --backend locomotion > "$out/eval-locomotion-$trained-$seed.json"
+              "$bin" --evaluate "$policy" --backend rapier > "$out/eval-rne-$trained-$seed.json"
+              .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py evaluate \
+                "$policy" > "$out/eval-mujoco-$trained-$seed.json"
+            done
+          done
+
+      - name: Summary
+        run: |
+          set -euo pipefail
+          out=artifacts/go2-learning
+          args=()
+          for seed in $SEEDS; do
+            for trained in locomotion mujoco; do
+              args+=(--training "$trained:$seed=$out/go2-learning-$trained-$seed.json")
+              for evaluating in locomotion rne mujoco; do
+                args+=(--evaluation "$evaluating/$trained:$seed=$out/eval-$evaluating-$trained-$seed.json")
+              done
+            done
+          done
+          python3 examples/147_go2_learning/learning_compare.py \
+            "$out/go2-learning-compare.json" "$out/go2-learning-compare.svg" "${args[@]}"
+          echo "--- summary JSON ---"
+          cat "$out/go2-learning-compare.json"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-learning-compare
+          path: artifacts/go2-learning
+          if-no-files-found: warn
+          retention-days: 30
