@@ -48,6 +48,21 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- The native-dynamics Go2 models carry the URDF's declared 16.087 kg:
+  `rne_locomotion::Quadruped` and examples 103, 105, 108, 133 and 134 fuse the
+  fixed links (`rne_urdf_import::fuse_urdf_fixed_children`), where the spawner
+  had given the eleven links that declare no mass (the eight lower-calf
+  bumpers, the front camera, the IMU and the radar) 1 kg each, 27.1 kg in all.
+  `TrotParams::default().stance_feedback_gain` drops from 1.0 to 0.5: on the
+  light robot 1.0 toppled it in a 0.6 rad/s turn, and 0.3 to 0.7 all pass.
+  Example 135's push is 150 N (the 0.9 m/s sideways kick 250 N gave the 27 kg
+  model). Re-measured: example 108's plan reaches its 0.40 m target apex
+  (0.408 m) where the heavy model overshot to 0.622 m; example 134 trots
+  3.45–3.52 m over five seeds without saturating (2.66–2.80 m before);
+  example 135's feedback trot recovers from the push while the open-loop gait
+  falls; example 136's zero residual earns 1.452 per step (1.309 before) and no
+  episode falls.
+
 - `unitree_go2_jump` (and the Mid-360 room and two-rooms scenes built on it)
   fuses the Go2's fixed links instead of welding them, so it carries the URDF's
   declared 16.087 kg: the welded robot gave the eleven links that declare no

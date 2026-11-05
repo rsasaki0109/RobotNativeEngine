@@ -71,9 +71,9 @@ invalid inputs, and determinism.
 Unitree Go2 with four foot contacts and reports:
 
 ```text
-standing: mass=27.09kg vertical_force=265.72N (weight=265.72N)
-standing: base_residual=8.950e-9 contact_residual=6.558e-8 max_torque=4.41Nm saturated=false
-com task: requested_x=1.000 achieved=(0.769, -0.011, 0.000) m/s²
+standing: mass=16.09kg vertical_force=157.81N (weight=157.81N)
+standing: base_residual=4.059e-9 contact_residual=1.782e-8 max_torque=2.85Nm saturated=false
+com task: requested_x=1.000 achieved=(0.850, 0.001, 0.000) m/s²
 ```
 
 The base equations of motion are satisfied to `1e-8` and the realized contact

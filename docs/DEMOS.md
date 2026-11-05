@@ -238,7 +238,7 @@ cargo run -p go2_contact_terrain --example 133_go2_contact_terrain
 
 Example 134 trots the Go2 across generated terrain on the same step: an
 open-loop diagonal trot on implicit PD inside the Go2's declared actuator effort
-limits, covering about 2.8 m in 8 s with roll and pitch under 0.15 rad.
+limits, covering about 3.5 m in 8 s with roll and pitch under 0.12 rad.
 
 ```bash
 cargo run -p go2_terrain_trot --example 134_go2_terrain_trot
@@ -246,8 +246,8 @@ cargo run -p go2_terrain_trot --example 134_go2_terrain_trot
 
 Example 135 drives the Go2 with the feedback trot of `rne_locomotion` over
 rougher terrain: it tracks 0.4 m/s, turns 2 rad on command, and is level again
-a second after a 250 N lateral push, with example 134's open-loop gait run on
-the same course for comparison.
+a second after a 150 N lateral push, with example 134's open-loop gait run on
+the same course for comparison (it cannot turn and falls after the push).
 
 ```bash
 cargo run --release -p go2_feedback_trot --example 135_go2_feedback_trot

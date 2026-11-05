@@ -78,6 +78,11 @@ fn main() {
     };
     let spawned = rne_urdf_import::spawn_urdf_document_with_config(&mut world, &document, config)
         .expect("spawn Go2");
+    // Fuse the fixed links as MuJoCo's importer does, so the model carries the
+    // URDF's 16.087 kg: a link that declares no mass (the lower-calf bumpers,
+    // the front camera, the IMU, the radar) is massless rather than the
+    // spawner's 1 kg default. The fused links stay in the kinematic tree.
+    rne_urdf_import::fuse_urdf_fixed_children(&mut world, &document.robot, &spawned);
     world.entity_mut(spawned.base_link).insert((
         Transform3::from_translation_rotation(
             Vec3::ZERO,

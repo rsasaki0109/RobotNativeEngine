@@ -31,8 +31,9 @@ const TURN_FORWARD_M_S: f64 = 0.3;
 const TURN_RATE_RAD_S: f64 = 0.5;
 const PUSH_AT_S: f64 = 8.0;
 const PUSH_S: f64 = 0.1;
-/// Lateral push to the robot's left, in newtons (close to its 266 N weight).
-const PUSH_N: f64 = 250.0;
+/// Lateral push to the robot's left, in newtons (close to its 158 N weight):
+/// a 0.9 m/s sideways kick, as 250 N gave the old 27 kg model.
+const PUSH_N: f64 = 150.0;
 /// Open-loop gait of example 134: thigh sweep and calf lift, in radians.
 const OPEN_LOOP_THIGH_RAD: f64 = 0.15;
 const OPEN_LOOP_CALF_RAD: f64 = 0.7;

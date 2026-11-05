@@ -5,7 +5,9 @@ use rne_ecs::{Entity, World};
 use rne_math::{Quat, Vec3};
 use rne_physics::{height_field_surface, ColliderShape, PhysicsError};
 use rne_robot::{FloatingBase, KinematicsError, Robot};
-use rne_urdf_import::{parse_urdf_document, spawn_urdf_document_with_config, UrdfSpawnConfig};
+use rne_urdf_import::{
+    fuse_urdf_fixed_children, parse_urdf_document, spawn_urdf_document_with_config, UrdfSpawnConfig,
+};
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -142,7 +144,9 @@ impl Quadruped {
     /// Builds a quadruped from `spec`.
     ///
     /// The URDF is spawned into a private ECS world with its base floating and
-    /// declared inertial masses, and modeled with gravity along −Z.
+    /// declared inertial masses, its fixed-only links fused into the links they
+    /// hang from (a link that declares no mass weighs nothing, as the URDF
+    /// specification has it), and modeled with gravity along −Z.
     pub fn new(spec: &QuadrupedSpec) -> Result<Self, LocomotionError> {
         if !(spec.foot_radius_m.is_finite()
             && spec.foot_radius_m > 0.0
@@ -163,6 +167,11 @@ impl Quadruped {
         };
         let spawned = spawn_urdf_document_with_config(&mut world, &document, config)
             .map_err(|error| LocomotionError::Urdf(error.to_string()))?;
+        // Fuse the fixed links as MuJoCo's importer does, so the model carries the
+        // URDF's declared masses: a link that declares none is massless rather
+        // than the spawner's 1 kg default. The fused links stay in the
+        // kinematic tree, so the feet keep their frames.
+        fuse_urdf_fixed_children(&mut world, &document.robot, &spawned);
         let base_link = world
             .get::<Robot>(spawned.robot)
             .ok_or(LocomotionError::Urdf(
