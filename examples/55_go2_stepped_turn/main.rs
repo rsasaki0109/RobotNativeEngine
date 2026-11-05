@@ -25,7 +25,7 @@ use std::path::{Path, PathBuf};
 
 use png::{BitDepth, ColorType, Encoder};
 use rne_ai::{
-    build_visual_render_scene, unitree_go2_dynamic_scene_path, unitree_go2_scheduled_targets,
+    build_visual_render_scene, unitree_go2_legacy_scene_path, unitree_go2_scheduled_targets,
     DeterministicRng, UnitreeGo2GaitCommand, UnitreeGo2GaitSchedule, UnitreeGo2LegSchedule,
     UrdfSceneSim,
 };
@@ -78,7 +78,7 @@ struct RolloutOutcome {
 
 fn rollout(schedule: &UnitreeGo2GaitSchedule, steps: u64) -> RolloutOutcome {
     let mut sim =
-        UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path()).expect("load dynamic Go2");
+        UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path()).expect("load dynamic Go2");
     sim.configure_position_motors(180.0, 18.0, 23.7);
     let stand = unitree_go2_scheduled_targets(
         0,
@@ -399,7 +399,7 @@ fn main() {
     fs::create_dir_all(&frames_dir).expect("create stepped-turn frame directory");
 
     let mut sim =
-        UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path()).expect("load dynamic Go2");
+        UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path()).expect("load dynamic Go2");
     sim.configure_position_motors(180.0, 18.0, 23.7);
     let stand = unitree_go2_scheduled_targets(
         0,

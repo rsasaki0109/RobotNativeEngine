@@ -1,0 +1,16 @@
+# The Go2 as the dynamic scene first loaded it, kept so controllers tuned on it
+# replay unchanged. Its URDF fixed links (feet, lower-calf bumpers, head) are
+# free bodies, and links without an <inertial> weigh 1 kg: the robot stands on
+# its calves. New work should use unitree_go2_dynamic or unitree_go2_fused.
+# The model name stays the dynamic asset's so recorded outputs are unchanged.
+kind = "urdf"
+model_name = "unitree_go2_dynamic"
+
+[urdf]
+path = "go2_description/go2_description.rne.urdf"
+base_body_type = "dynamic"
+initial_translation_m = [0.0, 0.36, 0.0]
+initial_rotation_rpy = [-1.5707963267948966, 0.0, 0.0]
+articulation = true
+self_collisions = false
+multibody = true

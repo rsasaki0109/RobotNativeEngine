@@ -11,7 +11,7 @@
 //! Run with `cargo run -p go2_jump --example 106_go2_jump [--scan] [--trace]`.
 
 use rne_ai::{
-    unitree_go2_dynamic_scene_path, UrdfJointPositionTarget, UrdfJointTorqueTarget, UrdfSceneSim,
+    unitree_go2_legacy_scene_path, UrdfJointPositionTarget, UrdfJointTorqueTarget, UrdfSceneSim,
 };
 use rne_math::Vec3;
 
@@ -109,7 +109,7 @@ fn run_jump(
     pitch_gain: f64,
 ) -> JumpOutcome {
     let mut sim =
-        UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path()).expect("load dynamic Go2");
+        UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path()).expect("load dynamic Go2");
     sim.configure_position_motors(POSITION_STIFFNESS, POSITION_DAMPING, TORQUE_LIMIT_NM);
 
     let stand = targets(STAND_THIGH_RAD, STAND_CALF_RAD);
@@ -206,7 +206,7 @@ fn run_jump(
 
 fn trace_jump(calf_torque_nm: f64, thigh_torque_nm: f64) {
     let mut sim =
-        UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path()).expect("load dynamic Go2");
+        UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path()).expect("load dynamic Go2");
     sim.configure_position_motors(POSITION_STIFFNESS, POSITION_DAMPING, TORQUE_LIMIT_NM);
     let stand = targets(STAND_THIGH_RAD, STAND_CALF_RAD);
     for _ in 0..SETTLE_STEPS {

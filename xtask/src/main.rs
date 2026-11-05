@@ -3955,7 +3955,10 @@ fn validate_repo_assets() -> anyhow::Result<()> {
         root.join("assets/scenes/deformable_cloth.rne.scene.toml"),
         root.join("assets/scenes/unitree_g1_cloth_handling.rne.scene.toml"),
         root.join("assets/scenes/unitree_go2_dynamic.rne.scene.toml"),
+        root.join("assets/scenes/unitree_go2_fused.rne.scene.toml"),
+        root.join("assets/scenes/unitree_go2_legacy.rne.scene.toml"),
         root.join("assets/scenes/unitree_go2_terrain.rne.scene.toml"),
+        root.join("assets/scenes/unitree_go2_terrain_legacy.rne.scene.toml"),
     ];
     let robots = [
         root.join("assets/robots/diff_drive.rne.robot.toml"),

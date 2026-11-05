@@ -8,7 +8,7 @@
 //! regression rather than a renderer-only demonstration.
 
 use rne_ai::{
-    unitree_go2_dynamic_scene_path, unitree_go2_terrain_scene_path, unitree_go2_trot_targets,
+    unitree_go2_legacy_scene_path, unitree_go2_terrain_legacy_scene_path, unitree_go2_trot_targets,
     UnitreeGo2GaitCommand, UnitreeGo2PureTorquePolicy, UnitreeGo2TerrainObservation,
     UnitreeGo2VelocityCommand, UnitreeGo2VelocityPolicyConfig, UnitreeGo2VelocityPolicyInput,
     UrdfJointTorqueTarget, UrdfSceneSim,
@@ -245,8 +245,8 @@ fn rollout(scene_path: &Path, steps: u64) -> RolloutOutcome {
 fn main() {
     let smoke = std::env::args().any(|argument| argument == "--smoke");
     let steps = if smoke { 720 } else { ROLLOUT_STEPS };
-    let flat = rollout(&unitree_go2_dynamic_scene_path(), steps);
-    let terrain = rollout(&unitree_go2_terrain_scene_path(), steps);
+    let flat = rollout(&unitree_go2_legacy_scene_path(), steps);
+    let terrain = rollout(&unitree_go2_terrain_legacy_scene_path(), steps);
 
     for (label, outcome) in [("flat", flat), ("terrain", terrain)] {
         assert!(

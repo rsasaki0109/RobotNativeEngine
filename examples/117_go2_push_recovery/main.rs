@@ -114,7 +114,7 @@ fn tilt_rad(observation: &rne_ai::env::urdf_scene::UrdfSceneObservation) -> f64 
 }
 
 fn measure_push(force_n: f64) -> PushResult {
-    let mut sim = UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_dynamic_scene_path())
+    let mut sim = UrdfSceneSim::from_scene_path(&UrdfSceneSim::unitree_go2_legacy_scene_path())
         .expect("spawn dynamic Go2");
     sim.configure_position_motors(MOTOR_STIFFNESS, MOTOR_DAMPING, MOTOR_MAX_EFFORT_NM);
     let targets = standing_targets();

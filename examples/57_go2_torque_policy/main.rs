@@ -22,7 +22,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use rne_ai::{
-    unitree_go2_dynamic_scene_path, unitree_go2_trot_targets, UnitreeGo2GaitCommand,
+    unitree_go2_legacy_scene_path, unitree_go2_trot_targets, UnitreeGo2GaitCommand,
     UnitreeGo2TorquePolicy, UrdfJointTorqueTarget, UrdfSceneSim, UNITREE_GO2_POLICY_FEATURES,
 };
 use rne_math::Vec3;
@@ -85,7 +85,7 @@ fn features(sim: &UrdfSceneSim, step: u64, cycle: u64) -> [f64; UNITREE_GO2_POLI
 
 fn rollout(policy: &UnitreeGo2TorquePolicy, steps: u64) -> RolloutOutcome {
     let mut sim =
-        UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path()).expect("load dynamic Go2");
+        UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path()).expect("load dynamic Go2");
     sim.configure_position_motors(180.0, 18.0, TORQUE_LIMIT_NM);
     let stand = unitree_go2_trot_targets(
         0,

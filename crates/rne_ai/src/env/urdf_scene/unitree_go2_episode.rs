@@ -1,5 +1,5 @@
 use super::{
-    unitree_go2_dynamic_scene_path, unitree_go2_trot_targets, UnitreeGo2GaitCommand, UrdfSceneSim,
+    unitree_go2_legacy_scene_path, unitree_go2_trot_targets, UnitreeGo2GaitCommand, UrdfSceneSim,
 };
 use crate::{
     ActionSpec, Episode, EpisodeStep, ObservationSpec, ResetSpec, RewardSpec, RewardTermSpec,
@@ -66,7 +66,7 @@ pub struct UnitreeGo2EpisodeConfig {
 impl Default for UnitreeGo2EpisodeConfig {
     fn default() -> Self {
         Self {
-            scene_path: unitree_go2_dynamic_scene_path(),
+            scene_path: unitree_go2_legacy_scene_path(),
             max_steps: 600,
             cycle_steps: 90,
             max_tilt_rad: 1.2,
@@ -533,7 +533,7 @@ mod tests {
         // conventions: which observation axis each body-axis rotation lands on,
         // and which way a constant hip correction leans the standing body.
         let rotated_by = |body_axis: rne_math::Vec3| {
-            let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path())
+            let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path())
                 .expect("load Go2 scene");
             settle(&mut sim, &UnitreeGo2EpisodeConfig::default());
             let pose = sim.named_transform("base").expect("base pose");
@@ -568,7 +568,7 @@ mod tests {
         // Which actuation pattern moves which observation axis? Measure uniform
         // hip, uniform thigh, and front/back differential thigh on a standing robot.
         let lean_of = |targets: [crate::env::urdf_scene::UrdfJointPositionTarget<'static>; 12]| {
-            let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path())
+            let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path())
                 .expect("load Go2 scene");
             settle(&mut sim, &UnitreeGo2EpisodeConfig::default());
             for _ in 0..240 {
@@ -844,7 +844,7 @@ mod tests {
         max_force: f64,
         targets_of: impl Fn(u64) -> [crate::env::urdf_scene::UrdfJointPositionTarget<'static>; 12],
     ) -> (f64, f64, f64, f64) {
-        let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path())
+        let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path())
             .expect("load Go2 scene");
         settle(
             &mut sim,
@@ -994,7 +994,7 @@ mod tests {
         use super::super::unitree_go2_trot_targets_with_overlay;
         use super::super::UnitreeGo2GaitOverlay;
 
-        let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path())
+        let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path())
             .expect("load Go2 scene");
         for name in names {
             assert!(
@@ -1266,7 +1266,7 @@ mod tests {
         // min height) over a 1440-step walk — the same protocol the search
         // scored, so the pinned coefficients are verified on their own terms.
         let run = |overlay: &UnitreeGo2GaitOverlay| {
-            let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path())
+            let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path())
                 .expect("load Go2 scene");
             settle(&mut sim, &UnitreeGo2EpisodeConfig::default());
             let command = UnitreeGo2GaitCommand {
@@ -1464,7 +1464,7 @@ mod tests {
 
     /// A Go2 settled into a static stand on the default stiff position motors.
     fn settled_stand() -> UrdfSceneSim {
-        let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path())
+        let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path())
             .expect("load Go2 scene");
         settle(&mut sim, &UnitreeGo2EpisodeConfig::default());
         let stand = stand_targets();

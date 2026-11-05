@@ -6,7 +6,7 @@
 //! position-PD torque assembled in this example.
 
 use rne_ai::{
-    unitree_go2_dynamic_scene_path, unitree_go2_trot_targets, UnitreeGo2GaitCommand,
+    unitree_go2_legacy_scene_path, unitree_go2_trot_targets, UnitreeGo2GaitCommand,
     UnitreeGo2PureTorquePolicy, UrdfJointTorqueTarget, UrdfSceneSim,
 };
 use rne_math::Vec3;
@@ -58,7 +58,7 @@ fn joint_state(sim: &UrdfSceneSim) -> ([f64; 12], [f64; 12]) {
 
 fn rollout(policy: &UnitreeGo2PureTorquePolicy, steps: u64) -> RolloutOutcome {
     let mut sim =
-        UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path()).expect("load dynamic Go2");
+        UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path()).expect("load dynamic Go2");
     startup_stand(&mut sim);
 
     let up_body_reference = {
