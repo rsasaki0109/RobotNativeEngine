@@ -48,6 +48,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `rne_dynamics`' sliding-friction solve bisects the friction direction by
+  normalizing the sum of the bracket's edge directions instead of taking
+  `sin_cos` at each midpoint, and the tree Cholesky solve skips coordinates
+  whose entry is zero (a contact row loads only its leg and the base). A
+  walking Go2 episode on `rne_locomotion`'s step takes 10% fewer instructions
+  (the contact solve 18% fewer, the Cholesky solves 26% fewer); examples
+  133–136 print the same numbers, and example 147's walks evaluate to within
+  1e-11. A test pins that a sliding solution sits on the cone at rest along
+  the normal and opposes the slip.
+
 - The native-dynamics Go2 models carry the URDF's declared 16.087 kg:
   `rne_locomotion::Quadruped` and examples 103, 105, 108, 133 and 134 fuse the
   fixed links (`rne_urdf_import::fuse_urdf_fixed_children`), where the spawner

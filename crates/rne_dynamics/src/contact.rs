@@ -595,13 +595,17 @@ fn solve_single_contact(
         Some(stick) if stick[0].hypot(stick[1]) > 0.0 => stick[1].atan2(stick[0]),
         _ => (-b[1]).atan2(-b[0]),
     };
-    let evaluate = |angle: f64| sliding_residual(g, b, mu, angle);
+    let evaluate = |direction: [f64; 2]| sliding_residual(g, b, mu, direction);
+    let unit = |angle: f64| {
+        let (sin, cos) = angle.sin_cos();
+        [cos, sin]
+    };
 
     let step = std::f64::consts::TAU / SLIDING_BRACKET_SAMPLES as f64;
     // Cache both valid and invalid samples, evaluating only visited brackets.
     let mut samples = [None; SLIDING_BRACKET_SAMPLES + 1];
     let mut sample = |index: usize| {
-        *samples[index].get_or_insert_with(|| evaluate(seed_angle + step * index as f64))
+        *samples[index].get_or_insert_with(|| evaluate(unit(seed_angle + step * index as f64)))
     };
     // Prefer the bracket nearest the sticking direction, searching outward in
     // both directions in a fixed order.
@@ -619,8 +623,11 @@ fn solve_single_contact(
         if low.cross.signum() == high.cross.signum() && low.cross != 0.0 && high.cross != 0.0 {
             continue;
         }
-        let mut low_angle = seed_angle + step * index as f64;
-        let mut high_angle = low_angle + step;
+        // Bisect the bracket's angle through its edge directions: the
+        // normalized sum of two unit vectors less than half a turn apart
+        // halves the angle between them, with no trigonometry per step.
+        let mut low_direction = unit(seed_angle + step * index as f64);
+        let mut high_direction = unit(seed_angle + step * (index + 1) as f64);
         let mut low_cross = low.cross;
         let mut best = if low.cross.abs() <= high.cross.abs() {
             low
@@ -628,8 +635,13 @@ fn solve_single_contact(
             high
         };
         for _ in 0..bisection_iterations {
-            let mid_angle = 0.5 * (low_angle + high_angle);
-            let Some(mid) = evaluate(mid_angle) else {
+            let sum = [
+                low_direction[0] + high_direction[0],
+                low_direction[1] + high_direction[1],
+            ];
+            let length = sum[0].hypot(sum[1]);
+            let mid_direction = [sum[0] / length, sum[1] / length];
+            let Some(mid) = evaluate(mid_direction) else {
                 break;
             };
             best = mid;
@@ -637,10 +649,10 @@ fn solve_single_contact(
                 break;
             }
             if mid.cross.signum() == low_cross.signum() {
-                low_angle = mid_angle;
+                low_direction = mid_direction;
                 low_cross = mid.cross;
             } else {
-                high_angle = mid_angle;
+                high_direction = mid_direction;
             }
         }
         // A sign change can also mark the anti-dissipative direction, where the
@@ -676,8 +688,14 @@ struct SlidingSample {
     alignment: f64,
 }
 
-fn sliding_residual(g: &[[f64; 3]; 3], b: [f64; 3], mu: f64, angle: f64) -> Option<SlidingSample> {
-    let (sin, cos) = angle.sin_cos();
+/// The sliding impulse along the unit tangential `direction` `[cos θ, sin θ]`.
+fn sliding_residual(
+    g: &[[f64; 3]; 3],
+    b: [f64; 3],
+    mu: f64,
+    direction: [f64; 2],
+) -> Option<SlidingSample> {
+    let [cos, sin] = direction;
     let direction = [mu * cos, mu * sin, 1.0];
     let denominator = g[2][0] * direction[0] + g[2][1] * direction[1] + g[2][2];
     if denominator <= 0.0 {
@@ -1768,21 +1786,27 @@ impl Cholesky {
         let n = self.size;
         let l = &self.lower;
         if let Some(tree) = &self.tree {
-            // Lᵀ y = b, leaves to root.
+            // Lᵀ y = b, leaves to root. A zero entry adds nothing to its
+            // ancestors: a contact row loads one leg's chain and the base.
             for i in (0..n).rev() {
-                x[i] /= l[i * n + i];
+                let row = &l[i * n..(i + 1) * n];
+                x[i] /= row[i];
                 let xi = x[i];
+                if xi == 0.0 {
+                    continue;
+                }
                 for &col in tree.of(i) {
-                    x[col] -= l[i * n + col] * xi;
+                    x[col] -= row[col] * xi;
                 }
             }
             // L x = y, root to leaves.
             for i in 0..n {
+                let row = &l[i * n..(i + 1) * n];
                 let mut value = x[i];
                 for &col in tree.of(i) {
-                    value -= l[i * n + col] * x[col];
+                    value -= row[col] * x[col];
                 }
-                x[i] = value / l[i * n + i];
+                x[i] = value / row[i];
             }
             return;
         }
@@ -1810,6 +1834,56 @@ mod tests {
 
     const HALF_EXTENTS_M: [f64; 3] = [0.1, 0.05, 0.1];
     const BOX_MASS_KG: f64 = 2.0;
+
+    #[test]
+    fn sliding_solution_lies_on_the_cone_against_the_slip() {
+        // Contact responses and approach velocities whose sticking impulse
+        // lies outside the cone, so the contact slides.
+        let cases = [
+            (
+                [[1.0, 0.2, 0.1], [0.2, 0.8, -0.05], [0.1, -0.05, 1.5]],
+                [2.0, -1.0, -0.4],
+                0.5,
+            ),
+            (
+                [[2.0, -0.3, 0.4], [-0.3, 1.0, 0.2], [0.4, 0.2, 0.9]],
+                [-0.7, 0.3, -1.0],
+                0.3,
+            ),
+            (
+                [[0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]],
+                [0.0, 3.0, -0.1],
+                1.0,
+            ),
+        ];
+        for (g, b, mu) in cases {
+            let (impulse, state) = solve_single_contact(&g, b, mu, 60);
+            assert_eq!(state, ContactState::Sliding, "{g:?} {b:?}");
+            let velocity: Vec<f64> = (0..3)
+                .map(|row| (0..3).map(|col| g[row][col] * impulse[col]).sum::<f64>() + b[row])
+                .collect();
+            // At rest along the normal, on the cone, and slipping against
+            // the friction impulse.
+            assert!(
+                velocity[2].abs() < 1.0e-12,
+                "normal velocity {}",
+                velocity[2]
+            );
+            let tangential = impulse[0].hypot(impulse[1]);
+            assert!(
+                (tangential - mu * impulse[2]).abs() < 1.0e-12 * impulse[2].max(1.0),
+                "off the cone: {impulse:?}"
+            );
+            let slip = velocity[0].hypot(velocity[1]);
+            let cross = impulse[0] * velocity[1] - impulse[1] * velocity[0];
+            let dot = impulse[0] * velocity[0] + impulse[1] * velocity[1];
+            assert!(
+                cross.abs() < 1.0e-9 * tangential * slip,
+                "not opposed: {cross}"
+            );
+            assert!(dot < 0.0, "friction must oppose the slip");
+        }
+    }
 
     #[test]
     fn unused_tangential_bias_preserves_local_solution() {
