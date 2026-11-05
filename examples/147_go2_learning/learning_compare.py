@@ -17,17 +17,18 @@ generations, one line per run. Uses no third-party packages.
 
 Usage: learning_compare.py SUMMARY.json FIGURE.svg --training ENGINE:SEED=REPORT.json ...
        [--evaluation EVALUATING/ENGINE:SEED=EVALUATION.json ...]
-where ENGINE and EVALUATING are rne, rne1x4, native or mujoco.
+where ENGINE and EVALUATING are rne, rne2x1, rne1x4, native or mujoco.
 """
 import argparse
 import json
 import statistics
 from pathlib import Path
 
-ENGINES = {"rne": "RNE (Rapier, 4 iterations)",
-           "rne1x4": "RNE (Rapier, 1 iteration × 4 passes)",
+ENGINES = {"rne": "RNE (4 iterations)", "rne2x1": "RNE (2 iterations)",
+           "rne1x4": "RNE (1 iteration × 4 passes)",
            "native": "RNE (native)", "mujoco": "MuJoCo"}
-COLORS = {"rne": "#2563eb", "rne1x4": "#7c3aed", "native": "#16a34a", "mujoco": "#ea580c"}
+COLORS = {"rne": "#2563eb", "rne2x1": "#0891b2", "rne1x4": "#7c3aed", "native": "#16a34a",
+          "mujoco": "#ea580c"}
 INK, MUTED, GRID = "#1f2937", "#6b7280", "#e5e7eb"
 THRESHOLDS = (0.5, 1.0)
 
@@ -95,7 +96,7 @@ def svg(runs):
           generations, "generation", ymin, ymax)
     engines = sorted({engine for engine, _, _ in runs}, key=list(ENGINES).index)
     for index, engine in enumerate(engines):
-        x = 60 + 240 * index
+        x = 60 + 200 * index
         parts.append(f'<line x1="{x}" y1="{height - 14}" x2="{x + 18}" y2="{height - 14}" '
                      f'stroke="{COLORS[engine]}" stroke-width="2.5"/>')
         parts.append(f'<text x="{x + 24}" y="{height - 10}" font-size="11" fill="{INK}">'

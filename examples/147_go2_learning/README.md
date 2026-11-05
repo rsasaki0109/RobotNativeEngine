@@ -21,7 +21,7 @@ python3 examples/147_go2_learning/mujoco_go2_learning.py bench 8 [--cone pyramid
 python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
   --training rne:2026=RNE_REPORT.json --training mujoco:2026=MUJOCO_REPORT.json \
   --evaluation mujoco/rne:2026=EVALUATION.json   # one --evaluation per engine and run
-# Engines are rne (4 iterations), rne1x4 (1 iteration, 4 inner passes), native and mujoco.
+# Engines are rne (4 iterations), rne2x1 (2 iterations), rne1x4 (1 iteration, 4 inner passes), native and mujoco.
 ```
 
 ## What runs
@@ -35,8 +35,9 @@ python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
   - The robot totals 16.087 kg, the URDF's declared masses.
 - **RNE.** `unitree_go2_fused.rne.scene.toml` runs on Rapier through
   `UrdfSceneSim` and `PdJointWalker`. Its robot asset sets
-  `fuse_fixed_children` and `use_declared_inertial_masses`. Two settings:
+  `fuse_fixed_children` and `use_declared_inertial_masses`. Three settings:
   - four solver iterations;
+  - two solver iterations (`--solver-iterations 2`, "RNE 2×1" below);
   - one solver iteration with four inner constraint passes
     (`--solver-iterations 1 --inner-passes 4`, "RNE 1×4" below; see
     [Speed](#speed)).
@@ -117,18 +118,21 @@ Three seeds per engine and setting:
 | Seed | Trained in | Fitness 0.5 reached (generation / s) | Fitness 1 reached (generation / s) | Fitness after 200 | Forward in 5 s | In the other engine |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | 2026 | RNE | 63 / 163 | 106 / 239 | 5.12 | 5.46 m | falls after 3.8 s, 2.4 m |
+| 2026 | RNE 2×1 | 73 / 62 | 150 / 126 | 1.32 | 1.56 m | walks, 1.70 m |
 | 2026 | RNE 1×4 | 22 / 17 | — | 0.79 | 0.87 m | walks, 0.60 m |
 | 2026 | MuJoCo | 74 / 38 | 99 / 54 | 2.29 | 2.90 m | walks, 2.57 m |
 | 11 | RNE | 42 / 69 | 88 / 142 | 3.62 | 4.28 m | walks, 3.87 m |
+| 11 | RNE 2×1 | 42 / 35 | 90 / 75 | 2.98 | 3.20 m | walks, 2.81 m |
 | 11 | RNE 1×4 | 38 / 28 | — | 0.88 | 0.96 m | walks, 0.66 m |
 | 11 | MuJoCo | 67 / 34 | 94 / 50 | 2.14 | 2.49 m | walks, 1.69 m |
 | 12 | RNE | 45 / 70 | 96 / 148 | 2.80 | 3.29 m | walks, 2.80 m |
+| 12 | RNE 2×1 | 81 / 68 | 156 / 130 | 1.36 | 1.50 m | falls after 3.7 s, 1.4 m |
 | 12 | RNE 1×4 | 39 / 28 | — | 0.72 | 0.80 m | walks, 0.62 m |
 | 12 | MuJoCo | 42 / 16 | 106 / 49 | 2.05 | 2.56 m | walks, 2.84 m |
 
 "In the other engine" is MuJoCo for RNE's policies and RNE at four
-iterations for MuJoCo's. At 1×4, MuJoCo's three walks also hold for 5 s
-(2.57, 1.74 and 2.81 m).
+iterations for MuJoCo's. MuJoCo's three walks also hold for 5 s at 2×1
+(2.72, 1.51 and 2.76 m) and at 1×4 (2.57, 1.74 and 2.81 m).
 
 ![Fitness of the mean policy against wall-clock minutes and against generations, one line per run, for runs trained in RNE and in MuJoCo](../../docs/media/go2-learning.svg)
 
@@ -137,18 +141,24 @@ iterations for MuJoCo's. At 1×4, MuJoCo's three walks also hold for 5 s
   - It reached fitness 1 in 88–106 generations, MuJoCo in 94–106.
   - After 200 generations its walks scored 2.80–5.12, MuJoCo's 2.05–2.29.
   - Three seeds do not rank the engines.
+- **RNE 2×1 learns it in half the wall time.** It reached fitness 1 on all
+  three seeds, in 90–156 generations, and ended at 1.32–2.98.
 - **RNE 1×4 does not learn this walk.** All three seeds plateau at
   0.72–0.88, a slow shuffle.
-- **Per minute, MuJoCo learns about three to four times faster.**
-  - A generation took 0.58–0.60 s in MuJoCo and 1.49–1.57 s in RNE: 330–339
-    against 102–130 simulated seconds per wall second.
-  - Reaching fitness 1 took MuJoCo 49–54 s and RNE 142–239 s.
+- **Per minute, MuJoCo learns about three to four times faster than RNE at
+  four iterations, and 1.4–2.6 times faster than RNE 2×1.**
+  - A generation took 0.58–0.60 s in MuJoCo, 1.49–1.57 s in RNE and 0.81–0.82
+    s in RNE 2×1.
+  - That is 330–339 simulated seconds per wall second, against 102–130 and
+    237–240.
+  - Reaching fitness 1 took MuJoCo 49–54 s, RNE 142–239 s and RNE 2×1 75–130 s.
 - **Walks transfer.**
   - All three MuJoCo walks hold in RNE, at either setting. At four iterations
     they score 60–112% of their MuJoCo fitness.
   - Two of RNE's three walks hold in MuJoCo, at 79% and 96% of their RNE
     fitness. The third falls after 3.8 s and 2.4 m.
-  - RNE 1×4's short walks all hold in MuJoCo.
+  - Two of RNE 2×1's three walks hold in MuJoCo; the third falls after
+    3.7 s. RNE 1×4's short walks all hold.
 
 The [summary](../../docs/media/go2-learning.json) holds each run's timing,
 thresholds and final outcome, and every evaluation in both engines.
@@ -169,7 +179,8 @@ episodes (medians of three runs):
 | MuJoCo, its defaults | 236 |
 
 - **The gap.**
-  - On one thread MuJoCo is 6.4 times as fast as RNE at four iterations.
+  - On one thread MuJoCo is 6.4 times as fast as RNE at four iterations and
+    4 times as fast at two.
   - On four cores the gap narrows to 2.5–3.3 times: four RNE threads ran
     2.8–3.6 times as fast as one, four MuJoCo processes 1.4 times.
 - **Where RNE's time goes.** For a trained walk at four iterations, Rapier's
@@ -206,4 +217,5 @@ episodes (medians of three runs):
   period; RNE's run in Rust.
 - Both engines ran on the same container, one after the other. The
   container's speed drifts between runs, so timings within a row compare
-  better than timings across rows.
+  better than timings across rows. Low-priority builds ran alongside parts of
+  the RNE four-iteration and two-iteration runs.
