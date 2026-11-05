@@ -24,7 +24,8 @@ use crate::go2::{
 };
 use crate::Result;
 
-const GO2_URDF: &str = include_str!("../../assets/robots/go2_description/go2_description.rne.urdf");
+pub(crate) const GO2_URDF: &str =
+    include_str!("../../assets/robots/go2_description/go2_description.rne.urdf");
 
 /// One actuated joint: its child link, URDF effort limit and joint axis.
 #[derive(Clone, Copy, Debug)]

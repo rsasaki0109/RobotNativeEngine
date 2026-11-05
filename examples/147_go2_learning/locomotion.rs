@@ -3,12 +3,13 @@
 //! the Rapier walker.
 //!
 //! The model is the URDF's articulated Go2 with its fixed links fused and the
-//! declared masses (16.087 kg), as on the Rapier and MuJoCo plants. The feet
-//! are spheres, and spheres along each leg stand in for the knee, the calf
-//! cylinder and the two lower-calf bumpers, so a stride that kneels lands on
-//! them. The thighs, hips, head and body box have no contact: a robot that
-//! falls onto them sinks through the floor, which the episode's fall test ends
-//! as a fall.
+//! declared masses (16.087 kg), as on the Rapier and MuJoCo plants. Every URDF
+//! collision shape touches the ground, as in MuJoCo and on Rapier: the feet
+//! are `rne_locomotion`'s foot spheres, and [`collision_spheres`] turns the
+//! head, body, hips, thighs, calves and lower-calf bumpers into spheres and
+//! points. MuJoCo's walks lean on the head's lower sphere at every stride;
+//! with contacts at the feet and lower legs only, they fell through the floor
+//! within a second.
 //!
 //! The joints track their targets through an explicit PD torque computed at
 //! the start of every physics step and clamped to the effort limits, as
@@ -21,6 +22,7 @@ use std::sync::Arc;
 use rne_locomotion::{BodySphere, JointCommand, Quadruped, QuadrupedTerrainSim, TerrainSimConfig};
 use rne_math::{Quat, Vec3};
 use rne_physics::FractalTerrain;
+use rne_urdf_import::{parse_urdf, rpy_to_quat, UrdfGeometry};
 
 use crate::go2::{
     Robot, DECIMATION, DEFAULT_RAD, DT_S, KD_NM_S_PER_RAD, KP_NM_PER_RAD, SPAWN_HEIGHT_M,
@@ -86,7 +88,7 @@ impl LocomotionGo2 {
         config.contact.solver.tolerance_n_s = SOLVER_TOLERANCE_N_S;
         config.contact.solver.velocity_tolerance_m_s = SOLVER_VELOCITY_TOLERANCE_M_S;
         config.contact.solver.max_iterations = SOLVER_MAX_SWEEPS;
-        let spheres = leg_spheres(&quadruped)?;
+        let spheres = collision_spheres(&quadruped)?;
         let mut sim = QuadrupedTerrainSim::new(quadruped, floor, config)?;
         sim.set_body_spheres(spheres)?;
         let mut robot = Self {
@@ -168,47 +170,114 @@ impl Robot for LocomotionGo2 {
     }
 }
 
-/// Spheres standing in for each leg's collision shapes besides the foot, from
-/// the URDF: the knee, the calf cylinder and the two lower-calf bumpers.
-fn leg_spheres(quadruped: &Quadruped) -> Result<Vec<BodySphere>> {
+/// Contacts for every collision shape in the URDF MuJoCo and Rapier load,
+/// besides the feet, which are the quadruped's foot spheres already:
+/// - a sphere as itself (the head's lower half);
+/// - a cylinder as spheres of its radius along its axis, one radius apart and
+///   one radius in from its ends, or one sphere at its centre when it is
+///   shorter than its diameter (the hips and the head's upper half);
+/// - a box as points at its eight corners (the body and the thighs): on a
+///   plane, a box's lowest point is a corner.
+fn collision_spheres(quadruped: &Quadruped) -> Result<Vec<BodySphere>> {
+    let urdf = parse_urdf(crate::native::GO2_URDF)?;
     let links = quadruped.model().kinematic();
+    let feet: Vec<_> = quadruped.legs().iter().map(|leg| leg.foot_link).collect();
     let mut spheres = Vec::new();
-    for leg in ["FL", "FR", "RL", "RR"] {
-        let link = |name: &str| {
-            links
-                .link_entity_by_name(&format!("{leg}_{name}"))
-                .ok_or_else(|| format!("missing link {leg}_{name}"))
-        };
-        let calf = link("calf")?;
-        // The knee: where the 34 mm thigh box ends and the calf begins.
-        spheres.push(BodySphere {
-            link: calf,
-            center_local_m: Vec3::ZERO,
-            radius_m: 0.017,
-        });
-        // The calf cylinder: radius 12 mm, 0.12 m long, centred 6 cm down
-        // and tilted 0.21 rad about y.
-        let axis = Quat::from_rotation_y(-0.21) * Vec3::Z;
-        for offset in [-0.06, 0.0, 0.06] {
-            spheres.push(BodySphere {
-                link: calf,
-                center_local_m: Vec3::new(0.008, 0.0, -0.06) + axis * offset,
-                radius_m: 0.012,
-            });
+    for link in urdf.links.iter().filter(|link| !link.collisions.is_empty()) {
+        let entity = links
+            .link_entity_by_name(&link.name)
+            .ok_or_else(|| format!("missing link {}", link.name))?;
+        if feet.contains(&entity) {
+            continue;
         }
-        // The lower-calf bumpers: cylinders along their own z.
-        for (name, radius_m, half_length_m) in
-            [("calflower", 0.011, 0.0325), ("calflower1", 0.0155, 0.015)]
-        {
-            let bumper = link(name)?;
-            for offset in [-half_length_m, 0.0, half_length_m] {
+        for collision in &link.collisions {
+            let rotation = rpy_to_quat(collision.origin_rpy);
+            let mut add = |center: Vec3, radius_m: f64| {
                 spheres.push(BodySphere {
-                    link: bumper,
-                    center_local_m: Vec3::new(0.0, 0.0, offset),
+                    link: entity,
+                    center_local_m: collision.origin_xyz + rotation * center,
                     radius_m,
-                });
+                })
+            };
+            match collision.geometry {
+                UrdfGeometry::Sphere { radius_m } => add(Vec3::ZERO, radius_m),
+                UrdfGeometry::Cylinder { radius_m, length_m } => {
+                    let reach = (0.5 * length_m - radius_m).max(0.0);
+                    let gaps = (2.0 * reach / radius_m).ceil() as usize;
+                    for index in 0..=gaps {
+                        let along = if gaps == 0 {
+                            0.0
+                        } else {
+                            -reach + 2.0 * reach * index as f64 / gaps as f64
+                        };
+                        add(Vec3::new(0.0, 0.0, along), radius_m);
+                    }
+                }
+                UrdfGeometry::Box { size_m } => {
+                    let half = size_m * 0.5;
+                    for corner in 0..8 {
+                        let sign = |bit: usize| if corner & bit == 0 { -1.0 } else { 1.0 };
+                        add(
+                            Vec3::new(sign(1) * half.x, sign(2) * half.y, sign(4) * half.z),
+                            0.0,
+                        );
+                    }
+                }
+                UrdfGeometry::Mesh { .. } => {
+                    return Err(format!("{} collides with a mesh", link.name).into())
+                }
             }
         }
     }
     Ok(spheres)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_urdf_collision_shape_but_the_feet_touches_the_ground() {
+        let quadruped = Quadruped::go2().unwrap();
+        let spheres = collision_spheres(&quadruped).unwrap();
+        let links = quadruped.model().kinematic();
+        let count = |name: &str| {
+            let link = links.link_entity_by_name(name).unwrap();
+            spheres.iter().filter(|sphere| sphere.link == link).count()
+        };
+        // Head: the lower sphere and one sphere for the upper cylinder; the
+        // body and each thigh box: eight corners; each hip cylinder: one.
+        assert_eq!(count("Head_lower"), 1);
+        assert_eq!(count("Head_upper"), 1);
+        assert_eq!(count("base"), 8);
+        for leg in ["FL", "FR", "RL", "RR"] {
+            assert_eq!(count(&format!("{leg}_hip")), 1, "{leg}");
+            assert_eq!(count(&format!("{leg}_thigh")), 8, "{leg}");
+            // The calf cylinder (12-13 mm radius, 0.12 m long) as spheres
+            // a radius apart, and the two bumpers.
+            assert!(count(&format!("{leg}_calf")) >= 8, "{leg}");
+            assert_eq!(count(&format!("{leg}_calflower")), 5, "{leg}");
+            assert_eq!(count(&format!("{leg}_calflower1")), 1, "{leg}");
+            assert_eq!(count(&format!("{leg}_foot")), 0, "{leg}");
+        }
+        // The head's lower sphere is the URDF's: 47 mm, at its link's origin.
+        let head = links.link_entity_by_name("Head_lower").unwrap();
+        let sphere = spheres.iter().find(|sphere| sphere.link == head).unwrap();
+        assert_eq!(sphere.radius_m, 0.047);
+        assert_eq!(sphere.center_local_m, Vec3::ZERO);
+        // A thigh's corners span the 0.213 m box below the hip pitch joint.
+        let thigh = links.link_entity_by_name("FL_thigh").unwrap();
+        let heights: Vec<f64> = spheres
+            .iter()
+            .filter(|sphere| sphere.link == thigh)
+            .map(|sphere| sphere.center_local_m.z)
+            .collect();
+        let (low, high) = heights.iter().fold((f64::MAX, f64::MIN), |(low, high), z| {
+            (low.min(*z), high.max(*z))
+        });
+        assert!(
+            (low + 0.213).abs() < 1e-12 && high.abs() < 1e-12,
+            "{low} {high}"
+        );
+    }
 }

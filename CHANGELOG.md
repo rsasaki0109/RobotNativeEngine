@@ -48,6 +48,30 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `examples/147_go2_learning --backend locomotion` collides every collision
+  shape of the URDF MuJoCo and Rapier load: the head's lower sphere as
+  itself, cylinders (hips, the head's upper half, calves, lower-calf bumpers)
+  as spheres of their radius along their axes, and boxes (body, thighs) as
+  their eight corners, 106 contacts besides the feet where it had 40 on the
+  calves and knees. MuJoCo's three flat-floor walks lean on the head at every
+  stride (on Rapier the head comes within about 5 mm of the floor in 78–174 of 250
+  control steps); on the old plant it sank through the floor and they fell
+  within a second, and they now walk the 5 s, 2.23–2.88 m (2.49–2.90 m in
+  MuJoCo). In the development container the new plant's runs reached fitness
+  1 in 74–119 generations (18–29 s) where the old plant's took 98–168
+  (26–68 s), and their walks score 80–100% of their fitness on Rapier, where
+  the old plant's scored 46–60%; the old plant's seed-12 walk, which fell in
+  MuJoCo, falls after 2.9 s on the new one.
+
+- `rne_locomotion::QuadrupedTerrainSim` skips the terrain query for a body
+  sphere that cannot come within the contact margin this step, bounding the
+  height field's highest point and steepest slope once, and looks up each
+  body sphere's link when the spheres are set rather than every step. Steps
+  are bitwise unchanged (a test checks a collapse onto rough terrain both
+  ways); example 147's untrained-policy episodes take 7% fewer instructions
+  with its 106 body contacts than they took with 40. A zero radius makes a
+  body sphere a point.
+
 - `rne_dynamics`' sliding-friction solve bisects the friction direction by
   normalizing the sum of the bracket's edge directions instead of taking
   `sin_cos` at each midpoint, and the tree Cholesky solve skips coordinates
