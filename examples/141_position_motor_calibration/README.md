@@ -204,7 +204,7 @@ The current-source verification command is shown below.
 ```bash
 cargo run --locked -p position_motor_calibration \
   --example 141_position_motor_calibration -- \
-  --verify-report docs/media/position-motor-calibration-motor-construction-source.json
+  --verify-report docs/media/position-motor-calibration-inactive-limit-source.json
 ```
 
 See the [source transition and strict validation receipts](../../docs/evidence/rapier-strict-validation/README.md).
@@ -238,3 +238,14 @@ earlier report now correctly fails its stale-source check, without rewriting
 its bytes. Example 143's six constructor/coordinate diagnostic processes form
 a separate cohort, not extra calibration cases. See the
 [retained protocols, failures and results](../../docs/evidence/motor-construction-v1/README.md).
+
+## Current-source qualification after skipping inactive limit rows
+
+The [current complete report](../../docs/media/position-motor-calibration-inactive-limit-source.json)
+reruns the unchanged 24-condition/72-world collector after the vendored Rapier
+stopped solving inactive multibody limit rows. Exactly three source hashes
+change, and every other byte matches the
+[construction-instrumentation report](../../docs/media/position-motor-calibration-motor-construction-source.json),
+whose bytes are kept and whose stale-source check now fails. Collection and
+replay pass, and primary calibration still fails 0/4. See the
+[comparison](../../docs/evidence/inactive-limit-rows/README.md).

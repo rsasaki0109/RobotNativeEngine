@@ -99,10 +99,11 @@ pub use env::{
     unitree_g1_gait_targets_with_arm_pose, unitree_g1_gait_task_spec,
     unitree_g1_inspection_targets, unitree_g1_joint_locomotion_task_spec,
     unitree_g1_parts_pick_place_scene_path, unitree_g1_scene_path, unitree_g1_workbench_task_spec,
-    unitree_go2_dynamic_scene_path, unitree_go2_mid360_mount, unitree_go2_scene_path,
-    unitree_go2_scheduled_targets, unitree_go2_task_spec, unitree_go2_terrain_scene_path,
-    unitree_go2_trot_targets, unitree_go2_trot_targets_with_overlay, wheel_command_to_motor_rad_s,
-    ClutterPickConfig, DiffDriveEpisode, DiffDriveEpisodeConfig, DiffDriveEpisodeSnapshot,
+    unitree_go2_dynamic_scene_path, unitree_go2_fused_scene_path, unitree_go2_mid360_mount,
+    unitree_go2_scene_path, unitree_go2_scheduled_targets, unitree_go2_task_spec,
+    unitree_go2_terrain_scene_path, unitree_go2_trot_targets,
+    unitree_go2_trot_targets_with_overlay, wheel_command_to_motor_rad_s, ClutterPickConfig,
+    DiffDriveEpisode, DiffDriveEpisodeConfig, DiffDriveEpisodeSnapshot,
     DiffDriveEpisodeSnapshotError, DiffDriveSim, GraspMode, HumanoidAction, HumanoidEpisode,
     HumanoidEpisodeConfig, HumanoidObservation, MobileManipulatorEpisode,
     MobileManipulatorEpisodeConfig, MobileManipulatorEpisodeProgressSnapshot,
@@ -193,8 +194,8 @@ pub use env::{
     TSUKUBA_ROAD_EDGE_BEFORE_M, TSUKUBA_STOP_LINE_AFTER_M, TSUKUBA_STOP_LINE_BEFORE_M,
 };
 pub use env::{
-    unitree_g1_12dof_walk_scene_path, PolicyWalkError, PolicyWalkPlant, PolicyWalkStep,
-    UnitreeRlGymWalker,
+    unitree_g1_12dof_walk_scene_path, PdJointConfig, PdJointWalker, PolicyWalkError,
+    PolicyWalkPlant, PolicyWalkStep, UnitreeRlGymWalker,
 };
 pub use episode::{Episode, EpisodeRandomSnapshot, EpisodeStep, TerminationReason};
 pub use flagship::{

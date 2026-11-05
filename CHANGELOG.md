@@ -48,6 +48,78 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Let articulated robots start in a pose and be driven by outside policies.
+  `RapierBackend::set_multibody_joint_positions` and
+  `UrdfSceneSim::set_joint_positions` set single-DoF joints to positions and
+  bring the articulation to rest with its base where it is, instead of
+  settling a robot from the URDF's zero pose. `PdJointWalker` (with
+  `PdJointConfig`) tracks joint targets set once per control period through
+  `kp (target − q) − kd q̇`, clamped to the URDF effort limits, at every
+  physics step, as `UnitreeRlGymWalker` does for its policy. The two walkers
+  now share that code, and the G1's walks are bit-identical. Example 147
+  trains a Go2 to walk with it.
+
+- Fuse URDF links that hang from the articulated tree only by fixed joints,
+  as MuJoCo's URDF importer does. `rne_urdf_import::fuse_urdf_fixed_children`
+  moves such a link's collision parts into its parent's `CompoundCollider`,
+  posed through the fixed joints, and adds its declared mass and inertia to
+  the parent's by the parallel-axis theorem. A link without an `<inertial>` is
+  massless, as in the URDF specification, rather than carrying the spawner's
+  1 kg default. Robot assets opt in with `urdf.fuse_fixed_children = true`.
+  Unlike `weld_fixed_children`, which adds a zero-DoF multibody link per such
+  link, fusing keeps one body per moving part; a welded Go2 trains 1.6–1.9
+  times slower than a fused one.
+
+- Example 147's RNE Go2 now stands on its feet. It used
+  `unitree_go2_dynamic.rne.scene.toml`, whose robot description leaves the
+  URDF's fixed children (feet, lower-calf bumpers, head) as separate free
+  bodies and gives undeclared links 1 kg each. The Go2 stood on its calves
+  among its own loose parts, 11 cm lower than MuJoCo's model in the same joint
+  pose. It now uses `unitree_go2_fused.rne.scene.toml` (new
+  `UrdfSceneSim::unitree_go2_fused_scene_path`): fused fixed children and the
+  URDF's declared masses, 16.087 kg in all. The MuJoCo script likewise keeps
+  links without an `<inertial>` massless instead of deriving their mass from
+  geoms, so both engines carry the same 16.087 kg. Settled on the default
+  targets, the two stances now agree to 7 mm in base height (0.254 and 0.261 m)
+  and 0.007 rad per joint. `PdJointWalker`'s tests use the fused scene. Example
+  147 gains `--stand SECONDS` (and the MuJoCo script `stand`) to report the
+  settled stance, and the MuJoCo script's `--friction 0` no longer falls back
+  to 1.
+
+- Let Rapier's constraint solver re-solve contacts without rebuilding
+  articulations. `RapierBackend::set_inner_solver_passes` (and
+  `UrdfSceneSim::set_inner_solver_passes`,
+  `PdJointWalker::set_inner_solver_passes`) sets the projected Gauss-Seidel
+  passes per solver iteration, and `reset_world` keeps them. Rapier rebuilds
+  and factors every multibody's mass matrix once per solver iteration, so one
+  iteration with four inner passes steps a Go2 about twice as fast as four
+  iterations. On example 147's Go2 it learns only a slow shuffle (fitness
+  0.72–0.88), where four iterations learn to walk.
+
+- Synchronize articulated robots with the ECS in fewer instructions and
+  unchanged results. `RapierBackend::sync_joint_actuation_from_ecs` walks only
+  entities with joint actuation, armature or passive dynamics, and
+  `sync_to_ecs` composes each parent's world transform once per write-back
+  through the new `WorldTransformCache::forget`. A walking Go2 steps 2% fewer
+  instructions; its walks and example 144's G1 walks are bit-identical.
+
+- Joints driven by direct effort (`JointActuation::RevoluteEffort` and
+  `PrismaticEffort`) no longer keep a zero-gain Rapier motor. Its constraint
+  row could never act, but Rapier still built and solved it at every step. A
+  walking Go2 steps 2.4% fewer instructions, and its walks and example 144's
+  G1 walks are bit-identical.
+
+- The vendored Rapier skips the `M⁻¹e_k` solve of a multibody limit row while
+  its coordinate is within the limits (where the row's impulse is clamped to
+  zero) and no motor on that coordinate reuses the row's Jacobian block. With
+  the zero motors gone, a walking Go2 steps another 5% fewer instructions; its
+  walks and example 144's G1 walks are bit-identical. Example 141's report
+  binds three of the changed sources, so CI now verifies
+  `docs/media/position-motor-calibration-inactive-limit-source.json`, a rerun
+  of the unchanged 72-world collector whose bytes match the previous report's
+  outside the three source hashes
+  ([comparison](docs/evidence/inactive-limit-rows/README.md)).
+
 - The per-wheel skid sensor-only benchmark is now
   `mobility_per_wheel_sensor_yaw_rate_v2` (trace schema 2). v1's yaw-rate PI
   (21 V/(rad/s), 18 V/rad) hunted across the scrub breakaway voltage, and its

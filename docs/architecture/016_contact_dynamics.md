@@ -1098,8 +1098,12 @@ and [complete retained evidence](../evidence/motor-construction-v1/README.md).
 A separate, unchanged 24-condition/72-world source-transition run retains
 calibration FAIL 0/4 and motionless zero targets 8/8. Its source map adds the
 companion module (21→22 entries) and changes exactly eleven existing hashes.
-Every other byte matches the earlier scalar report. CI uses the same verifier
-with the [new complete report](../media/position-motor-calibration-motor-construction-source.json);
+Every other byte matches the earlier scalar report. CI used the same verifier
+with the [new complete report](../media/position-motor-calibration-motor-construction-source.json),
+and now uses it with the
+[inactive-limit-row report](../media/position-motor-calibration-inactive-limit-source.json)
+(three Rapier source hashes changed, every other byte identical;
+[comparison](../evidence/inactive-limit-rows/README.md));
 old report bytes, numerical criteria and the rejected inverse-diagonal candidate
 remain unchanged. Pre-data storage-fault reviews and corrected once-only drivers
 are retained separately from the actual successful collections.

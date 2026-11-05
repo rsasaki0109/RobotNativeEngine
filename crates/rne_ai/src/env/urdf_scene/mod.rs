@@ -3,6 +3,7 @@
 mod humanoid_episode;
 mod lekiwi_drive;
 mod lidar;
+mod pd_walk;
 mod policy_walk;
 mod quadruped;
 mod quadruped_episode;
@@ -35,6 +36,7 @@ pub use lidar::{
     unitree_go2_mid360_mount, UNITREE_GO2_MID360_FORWARD_OF_BASE_M,
     UNITREE_GO2_MID360_HEIGHT_ABOVE_BASE_M,
 };
+pub use pd_walk::{PdJointConfig, PdJointWalker};
 pub use policy_walk::{
     unitree_g1_12dof_walk_scene_path, PolicyWalkError, PolicyWalkPlant, PolicyWalkStep,
     UnitreeRlGymWalker,
@@ -718,6 +720,15 @@ impl UrdfSceneSim {
     /// Vendored official Unitree Go2 dynamic multibody scene path.
     pub fn unitree_go2_dynamic_scene_path() -> PathBuf {
         unitree_go2_dynamic_scene_path()
+    }
+
+    /// Vendored Unitree Go2 multibody scene whose fixed URDF children (feet,
+    /// lower-calf bumpers, head) are fused into the links they are fixed to,
+    /// as MuJoCo's URDF importer does, and whose links carry the URDF's
+    /// declared masses. The dynamic scene leaves those children as separate
+    /// free bodies, so a Go2 there stands on its calves.
+    pub fn unitree_go2_fused_scene_path() -> PathBuf {
+        unitree_go2_fused_scene_path()
     }
 
     /// Built-in official Unitree Go2 scene with a fixed sloped terrain patch.
@@ -1576,6 +1587,40 @@ impl UrdfSceneSim {
     pub fn set_contact_softness(&mut self, natural_frequency_hz: f64, damping_ratio: f64) -> bool {
         self.backend
             .set_contact_softness(self.physics_world, natural_frequency_hz, damping_ratio)
+    }
+
+    /// Sets the joints of the named child links to positions (radians for a
+    /// revolute joint, metres for a prismatic one) and brings the articulation
+    /// to rest, its base keeping its pose, as
+    /// [`rne_physics_rapier::RapierBackend::set_multibody_joint_positions`].
+    /// The ECS follows at once. Returns false, changing nothing, when a name
+    /// has no single-DoF articulated joint or a position is not finite.
+    pub fn set_joint_positions(&mut self, positions: &[(&str, f64)]) -> bool {
+        let mut entities = Vec::with_capacity(positions.len());
+        for &(name, position) in positions {
+            let Some(entity) = find_link_by_name(&self.world, name) else {
+                return false;
+            };
+            entities.push((entity, position));
+        }
+        if !self
+            .backend
+            .set_multibody_joint_positions(self.physics_world, &entities)
+        {
+            return false;
+        }
+        self.backend
+            .sync_to_ecs(&mut self.world, self.physics_world)
+            .is_ok()
+    }
+
+    /// Sets the constraint solver's inner passes per solver iteration, as
+    /// [`rne_physics_rapier::RapierBackend::set_inner_solver_passes`]: more
+    /// constraint passes without more multibody updates. Kept across
+    /// [`Self::reset`]. Returns false, changing nothing, for zero.
+    pub fn set_inner_solver_passes(&mut self, passes: usize) -> bool {
+        self.backend
+            .set_inner_solver_passes(self.physics_world, passes)
     }
 
     /// The contact natural frequency (Hz) and damping ratio in effect.
@@ -2644,6 +2689,12 @@ pub fn unitree_go2_scene_path() -> PathBuf {
 /// Vendored official Unitree Go2 dynamic multibody scene path.
 pub fn unitree_go2_dynamic_scene_path() -> PathBuf {
     assets_scene_path("unitree_go2_dynamic.rne.scene.toml")
+}
+
+/// Vendored Unitree Go2 scene with fused fixed children and declared masses;
+/// see [`UrdfSceneSim::unitree_go2_fused_scene_path`].
+pub fn unitree_go2_fused_scene_path() -> PathBuf {
+    assets_scene_path("unitree_go2_fused.rne.scene.toml")
 }
 
 /// Built-in official Unitree Go2 scene with a fixed sloped terrain patch.

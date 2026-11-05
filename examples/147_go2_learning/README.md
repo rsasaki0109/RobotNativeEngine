@@ -1,0 +1,221 @@
+# 147 · A Go2 learns to walk from scratch in RNE and in MuJoCo
+
+Example 144's push-recovery residuals corrected a pretrained walking policy.
+This example learns a walk from nothing. Both engines train with the same
+algorithm, policy, episode, fitness and seed, so only the simulator differs.
+It then checks two things: how fast each engine gets a Go2 walking, and
+whether a walk learned in one works in the other.
+
+```bash
+cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026   # target/go2-learning/go2-learning-rne-2026.json
+cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
+  --solver-iterations 1 --inner-passes 4   # the cheaper solve; same output path
+python3 examples/147_go2_learning/mujoco_go2_learning.py train \
+  target/go2-learning/go2-learning-rne-2026.json target/go2-learning/go2-learning-mujoco-2026.json
+cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate target/go2-learning/go2-learning-mujoco-2026.json
+python3 examples/147_go2_learning/mujoco_go2_learning.py evaluate target/go2-learning/go2-learning-rne-2026.json
+cargo run --release -p go2_learning --example 147_go2_learning -- --stand 5   # settled stance, as JSON
+python3 examples/147_go2_learning/mujoco_go2_learning.py stand 5
+cargo run --release -p go2_learning --example 147_go2_learning -- --bench 8 [--solver-iterations 1] [--inner-passes 4] [--backend native]
+python3 examples/147_go2_learning/mujoco_go2_learning.py bench 8 [--cone pyramidal --impratio 1]
+python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
+  --training rne:2026=RNE_REPORT.json --training mujoco:2026=MUJOCO_REPORT.json \
+  --evaluation mujoco/rne:2026=EVALUATION.json   # one --evaluation per engine and run
+# Engines are rne (4 iterations), rne2x1 (2 iterations), rne1x4 (1 iteration, 4 inner passes), native and mujoco.
+```
+
+## What runs
+
+- **Robot.** The vendored Go2 URDF
+  (`assets/robots/go2_description/go2_description.rne.urdf`). Its collision
+  geometry is boxes, cylinders (capsules in RNE) and 22 mm foot spheres.
+  - Both engines fuse the links fixed to another link into it: feet,
+    lower-calf bumpers and head.
+  - Links without an `<inertial>` are massless.
+  - The robot totals 16.087 kg, the URDF's declared masses.
+- **RNE.** `unitree_go2_fused.rne.scene.toml` runs on Rapier through
+  `UrdfSceneSim` and `PdJointWalker`. Its robot asset sets
+  `fuse_fixed_children` and `use_declared_inertial_masses`. Three settings:
+  - four solver iterations;
+  - two solver iterations (`--solver-iterations 2`, "RNE 2×1" below);
+  - one solver iteration with four inner constraint passes
+    (`--solver-iterations 1 --inner-passes 4`, "RNE 1×4" below; see
+    [Speed](#speed)).
+- **MuJoCo.** `mujoco_go2_learning.py` builds the robot from the same URDF
+  with MuJoCo's importer (visuals and materials removed, `inertiafromgeom`
+  off) and adds:
+  - a free base;
+  - a floor;
+  - collisions between the robot and the floor only, as in RNE's scene;
+  - no joint damping, friction or armature, as in RNE;
+  - the elliptic cone and `impratio` 100, which MuJoCo Menagerie's Go2 sets.
+- **Control.** unitree_rl_gym's Go2 settings:
+  - PD gains of 20 N·m/rad and 0.5 N·m·s/rad;
+  - its default joint angles;
+  - a 5 ms physics step, four of them per 50 Hz control period.
+  
+  Both engines recompute `kp (target − q) − kd q̇` at every physics step and
+  clamp it to the URDF effort limit. MuJoCo does this with position actuators.
+- **Episode.** The robot starts at rest in its default pose, its base 0.36 m
+  up (`RapierBackend::set_multibody_joint_positions` in RNE, `qpos` in
+  MuJoCo). It stands for 1 s, then walks for 5 s. It has fallen if its base
+  drops below 0.10 m or tilts more than 60°.
+- **Policy.** A 32-unit tanh MLP maps 44 observations to 12 actions in
+  [−1, 1]. The joint targets are the default angles plus 0.5 rad times the
+  action. The observations are:
+  - the base's angular velocity and the gravity direction in the base frame;
+  - joint positions relative to the default pose, and joint velocities;
+  - the previous action;
+  - the sine and cosine of a 0.5 s gait clock.
+  
+  Its output layer starts at zero, so training starts from a robot that stands
+  still.
+- **Fitness.** The base's forward travel in metres, minus:
+  - 0.5 per metre sideways;
+  - 0.5 per radian of heading;
+  - 0.02 times the mean squared change of the action per step;
+  - 1 for a fall.
+- **Training.** Evolution strategies with 16 antithetic pairs, so each
+  generation runs 33 episodes. σ is 0.05; updates use centred ranks and Adam
+  with learning rate 0.02. Training runs 200 generations. MuJoCo's trainer
+  reads the settings and seed from RNE's report and draws the same SplitMix64
+  deviates. RNE ran on 4 threads, MuJoCo on 4 processes, one engine after the
+  other on the 4-core container.
+
+## The first RNE plant stood on its calves
+
+Earlier versions of this example used `unitree_go2_dynamic.rne.scene.toml`.
+Its robot asset left the URDF's fixed links as separate free bodies and gave
+the eight lower-calf links, which declare no inertial, 1 kg each.
+
+- **Symptom.** The RNE Go2 stood on its calves among its own feet, bumpers
+  and head, which lay loose on the floor. Its base settled 7 cm lower than
+  MuJoCo's (0.187 m against 0.256 m).
+- **How it was found.** The settled RNE pose, placed in MuJoCo's model, put
+  the feet 11 cm below the floor: a geometric mismatch, not a contact one.
+- **The fix.** `rne_urdf_import::fuse_urdf_fixed_children` and the fused
+  scene above. MuJoCo also stopped deriving mass from geoms, which had added
+  0.19 kg.
+- **The stances now agree.** Settled on the default targets for 5 s, the
+  two engines stand within 7 mm and 0.007 rad of each other:
+
+  | Engine | Base height | Base x | Pitch | Front thigh / calf | Rear thigh / calf |
+  | --- | ---: | ---: | ---: | --- | --- |
+  | RNE | 0.254 m | −8.5 cm | 0.011 rad | 0.705 / −1.826 | 0.969 / −1.886 |
+  | MuJoCo | 0.261 m | −7.9 cm | 0.011 rad | 0.711 / −1.827 | 0.973 / −1.879 |
+
+  The robot lands from its 0.36 m start (feet 4–5 cm up) and slides back
+  about 8 cm before it settles. MuJoCo's stance depends on its contact
+  settings: its pyramidal cone settles at 0.220 m.
+
+The earlier versions' learning results, speed figures and transfer failures
+were all measured on the broken plant. Everything below is remeasured.
+
+## Results
+
+Three seeds per engine and setting:
+
+| Seed | Trained in | Fitness 0.5 reached (generation / s) | Fitness 1 reached (generation / s) | Fitness after 200 | Forward in 5 s | In the other engine |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| 2026 | RNE | 63 / 163 | 106 / 239 | 5.12 | 5.46 m | falls after 3.8 s, 2.4 m |
+| 2026 | RNE 2×1 | 73 / 62 | 150 / 126 | 1.32 | 1.56 m | walks, 1.70 m |
+| 2026 | RNE 1×4 | 22 / 17 | — | 0.79 | 0.87 m | walks, 0.60 m |
+| 2026 | MuJoCo | 74 / 38 | 99 / 54 | 2.29 | 2.90 m | walks, 2.57 m |
+| 11 | RNE | 42 / 69 | 88 / 142 | 3.62 | 4.28 m | walks, 3.87 m |
+| 11 | RNE 2×1 | 42 / 35 | 90 / 75 | 2.98 | 3.20 m | walks, 2.81 m |
+| 11 | RNE 1×4 | 38 / 28 | — | 0.88 | 0.96 m | walks, 0.66 m |
+| 11 | MuJoCo | 67 / 34 | 94 / 50 | 2.14 | 2.49 m | walks, 1.69 m |
+| 12 | RNE | 45 / 70 | 96 / 148 | 2.80 | 3.29 m | walks, 2.80 m |
+| 12 | RNE 2×1 | 81 / 68 | 156 / 130 | 1.36 | 1.50 m | falls after 3.7 s, 1.4 m |
+| 12 | RNE 1×4 | 39 / 28 | — | 0.72 | 0.80 m | walks, 0.62 m |
+| 12 | MuJoCo | 42 / 16 | 106 / 49 | 2.05 | 2.56 m | walks, 2.84 m |
+
+"In the other engine" is MuJoCo for RNE's policies and RNE at four
+iterations for MuJoCo's. MuJoCo's three walks also hold for 5 s at 2×1
+(2.72, 1.51 and 2.76 m) and at 1×4 (2.57, 1.74 and 2.81 m).
+
+![Fitness of the mean policy against wall-clock minutes and against generations, one line per run, for runs trained in RNE and in MuJoCo](../../docs/media/go2-learning.svg)
+
+- **Per generation, RNE at four iterations learns as fast as MuJoCo, and
+  further.**
+  - It reached fitness 1 in 88–106 generations, MuJoCo in 94–106.
+  - After 200 generations its walks scored 2.80–5.12, MuJoCo's 2.05–2.29.
+  - Three seeds do not rank the engines.
+- **RNE 2×1 learns it in half the wall time.** It reached fitness 1 on all
+  three seeds, in 90–156 generations, and ended at 1.32–2.98.
+- **RNE 1×4 does not learn this walk.** All three seeds plateau at
+  0.72–0.88, a slow shuffle.
+- **Per minute, MuJoCo learns about three to four times faster than RNE at
+  four iterations, and 1.4–2.6 times faster than RNE 2×1.**
+  - A generation took 0.58–0.60 s in MuJoCo, 1.49–1.57 s in RNE and 0.81–0.82
+    s in RNE 2×1.
+  - That is 330–339 simulated seconds per wall second, against 102–130 and
+    237–240.
+  - Reaching fitness 1 took MuJoCo 49–54 s, RNE 142–239 s and RNE 2×1 75–130 s.
+- **Walks transfer.**
+  - All three MuJoCo walks hold in RNE, at either setting. At four iterations
+    they score 60–112% of their MuJoCo fitness.
+  - Two of RNE's three walks hold in MuJoCo, at 79% and 96% of their RNE
+    fitness. The third falls after 3.8 s and 2.4 m.
+  - Two of RNE 2×1's three walks hold in MuJoCo; the third falls after
+    3.7 s. RNE 1×4's short walks all hold.
+
+The [summary](../../docs/media/go2-learning.json) holds each run's timing,
+thresholds and final outcome, and every evaluation in both engines.
+
+## Speed
+
+Simulated seconds per wall second on one thread, for the untrained policy's
+episodes (medians of three runs):
+
+| Engine and setting | Simulated s / wall s |
+| --- | ---: |
+| RNE, Rapier, 4 solver iterations | 36 |
+| RNE, Rapier, 2 solver iterations | 58 |
+| RNE, Rapier, 1 solver iteration | 76 |
+| RNE, Rapier, 1 solver iteration, 4 inner passes (`--inner-passes 4`) | 74 |
+| RNE, native backend (`--backend native`) | 13 |
+| MuJoCo, elliptic cone, `impratio` 100 | 231 (185–243) |
+| MuJoCo, its defaults | 236 |
+
+- **The gap.**
+  - On one thread MuJoCo is 6.4 times as fast as RNE at four iterations and
+    4 times as fast at two.
+  - On four cores the gap narrows to 2.5–3.3 times: four RNE threads ran
+    2.8–3.6 times as fast as one, four MuJoCo processes 1.4 times.
+- **Where RNE's time goes.** For a trained walk at four iterations, Rapier's
+  step is over 90%.
+  - Rapier runs one substep per solver iteration, and in each it rebuilds and
+    factors the multibody's two mass matrices: 57%, with 7% in the LU
+    factorizations.
+  - Forward kinematics takes 11%, contact handling about 10% and ECS
+    synchronization 6%.
+- **Inner passes.**
+  - `RapierBackend::set_inner_solver_passes` re-solves the constraints within
+    an iteration without rebuilding the mass matrix.
+  - One iteration with four passes runs at one iteration's speed, twice as
+    fast as four iterations. It still does not learn this walk.
+  - At one iteration without inner passes, an earlier run on the broken plant
+    reached only 0.35.
+- **Fusing, not welding.** `weld_fixed_children` makes each fixed link a
+  zero-DoF multibody link with its own share of every mass-matrix rebuild. A
+  welded Go2 trained 1.6–1.9 times slower than the fused one.
+- **What did not help.** Factoring the mass matrices along the kinematic tree
+  without fill cuts the flops to a third at 18 DoF. Each solve still took
+  about 2,950 instructions, against 2,160 for nalgebra's vectorized dense LU.
+- **The native backend is slower still.**
+  - It spends 85% of its time in `rne_dynamics`' coupled contact solve.
+  - It has no compound colliders, so its Go2 still welds the fixed links and
+    gives the eight lower-calf links 1 kg each. Its stance differs (0.19 m),
+    and its speed is indicative only.
+
+## Limits
+
+- One robot on a flat floor, one task, three seeds, no domain randomization.
+  The policies make no claim about transfer to hardware.
+- MuJoCo's episode loop and policy run in Python, one call per 20 ms control
+  period; RNE's run in Rust.
+- Both engines ran on the same container, one after the other. The
+  container's speed drifts between runs, so timings within a row compare
+  better than timings across rows. Low-priority builds ran alongside parts of
+  the RNE four-iteration and two-iteration runs.

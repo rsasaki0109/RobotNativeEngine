@@ -3,6 +3,7 @@
 #![deny(missing_docs)]
 
 pub mod articulation;
+pub mod fuse;
 pub mod geometry;
 pub mod parse;
 pub mod schema;
@@ -12,6 +13,7 @@ pub use articulation::{
     attach_urdf_articulation, attach_urdf_document_articulation, UrdfArticulationAttached,
     UrdfArticulationConfig,
 };
+pub use fuse::fuse_urdf_fixed_children;
 pub use parse::{
     parse_urdf, parse_urdf_document, parse_urdf_document_file, parse_urdf_file, rpy_to_quat,
     UrdfParseError, URDF_MAX_INPUT_BYTES,

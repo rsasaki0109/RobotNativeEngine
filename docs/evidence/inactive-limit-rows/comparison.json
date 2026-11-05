@@ -1,0 +1,30 @@
+{
+  "old": {
+    "path": "docs/media/position-motor-calibration-motor-construction-source.json",
+    "bytes": 8193579,
+    "sha256": "887d0721b1e93028b15a803d45a8b82ead02665a6f6952fa04ec65ccaffc3276"
+  },
+  "new": {
+    "path": "docs/media/position-motor-calibration-inactive-limit-source.json",
+    "bytes": 8193579,
+    "sha256": "fc6115fee1ed877e9f829675650284caeed35a05882ce5bf1fc6611734a8385a"
+  },
+  "bytes_outside_source_object_identical": true,
+  "same_source_keys": true,
+  "changed_sources": {
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/multibody_joint.rs": {
+      "old": "7d712b6f61bf4fc61bc4ef137ccfcf8508bcc97489f42dcc3e9de638197b3596",
+      "new": "38c41db7ab1cd6362385845e46cd55ac70ac0b1fe6d6412c7c77c124e835b3de"
+    },
+    "third_party/rapier3d/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs": {
+      "old": "2a906ea14253c26bcb65732815df84b01a7eea6aa81d7baaabef98862412512d",
+      "new": "fea65d12e0afbcadb3f13fba1c65a98b81ed2caa1e919d6df3097775a0b4f815"
+    },
+    "third_party/rapier3d/src/dynamics/solver/joint_constraint/joint_generic_constraint.rs": {
+      "old": "1cb1d7a50ddb67b0120e8181f652b593cc1afde68ebe8c366695a84bbed9cecb",
+      "new": "483a9574e4afa1e0faac44e1bd78816f6745ec4de047cfed9a3544fe40df46fe"
+    }
+  },
+  "changed_sources_are_expected": true,
+  "changed_hashes_match_checkout": true
+}

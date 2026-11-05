@@ -35,7 +35,7 @@ use rne_physics::{
 };
 #[cfg(feature = "position-motor-diagnostics")]
 use rne_physics::{JointPositionMotorDiagnostics, PositionMotorDiagnosticInterval};
-use rne_world::{world_transform_of, Transform3, WorldTransformCache};
+use rne_world::{Transform3, WorldTransformCache};
 use std::collections::HashMap;
 
 /// Per-step lookup maps keyed by entities and Rapier handles.
@@ -362,7 +362,9 @@ impl RapierBackend {
                 state.colliders.get_mut(collider);
             }
         }
-        let entities = sorted_entities(world);
+        // `apply_joint_motors` walks its entity list for armature, direct
+        // efforts and Coulomb friction only; every other entity is skipped.
+        let entities = sorted_entities_with_joint_dynamics(world);
         let mut transforms = WorldTransformCache::new();
         apply_joint_motors(world, state, &entities, &mut transforms)?;
         #[cfg(feature = "position-motor-diagnostics")]
@@ -381,13 +383,16 @@ impl RapierBackend {
     pub fn reset_world(&mut self, id: PhysicsWorldId) -> Result<(), PhysicsError> {
         let old = &self.world(id)?.integration_parameters;
         let softness = (old.contact_natural_frequency, old.contact_damping_ratio);
+        let pgs_iterations = old.num_internal_pgs_iterations;
         let desc = self.world(id)?.desc;
         let mut state = new_world_state(id, desc);
-        // Contact softness is a world setting, like the solver iterations.
+        // Contact softness and the inner iterations are world settings, like
+        // the solver iterations.
         (
             state.integration_parameters.contact_natural_frequency,
             state.integration_parameters.contact_damping_ratio,
         ) = softness;
+        state.integration_parameters.num_internal_pgs_iterations = pgs_iterations;
         self.worlds.insert(id, state);
         Ok(())
     }
@@ -417,6 +422,42 @@ impl RapierBackend {
         state.integration_parameters.contact_natural_frequency = natural_frequency_hz as f32;
         state.integration_parameters.contact_damping_ratio = damping_ratio as f32;
         true
+    }
+
+    /// Sets how many projected Gauss-Seidel passes Rapier's constraint solver
+    /// makes within each of its solver iterations (Rapier's default is 1).
+    ///
+    /// Rapier splits each step into one substep per solver iteration and
+    /// rebuilds every multibody's mass matrix in each, so solver iterations
+    /// cost a full multibody update apiece. Inner passes only re-solve the
+    /// constraints: one solver iteration with four inner passes updates the
+    /// multibodies once per step. The setting survives [`Self::reset_world`].
+    /// Returns false, changing nothing, when the world does not exist or
+    /// `passes` is zero.
+    pub fn set_inner_solver_passes(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        passes: usize,
+    ) -> bool {
+        if passes == 0 {
+            return false;
+        }
+        let Ok(state) = self.world_mut(physics_world) else {
+            return false;
+        };
+        state.integration_parameters.num_internal_pgs_iterations = passes;
+        true
+    }
+
+    /// The inner constraint-solver passes per solver iteration of a world, as
+    /// [`Self::set_inner_solver_passes`] set them.
+    pub fn inner_solver_passes(&self, physics_world: PhysicsWorldId) -> Option<usize> {
+        Some(
+            self.worlds
+                .get(&physics_world)?
+                .integration_parameters
+                .num_internal_pgs_iterations,
+        )
     }
 
     /// The contact natural frequency (Hz) and damping ratio of a world, as
@@ -588,6 +629,62 @@ impl RapierBackend {
     ) -> Option<(f64, f64)> {
         let state = self.worlds.get(&physics_world)?;
         multibody_joint_coordinate(state, entity)
+    }
+
+    /// Sets single-DoF multibody joints to generalized positions (radians for
+    /// a revolute joint, metres for a prismatic one), for example to start a
+    /// robot in a pose rather than settle it into one. Every multibody that
+    /// owns one of the joints comes to rest: all its generalized velocities
+    /// become zero, its root keeps its pose and its links follow by forward
+    /// kinematics. Joints not listed keep their positions.
+    ///
+    /// Returns false, changing nothing, when the world does not exist, an
+    /// entity has no single-DoF multibody joint or a position is not finite.
+    pub fn set_multibody_joint_positions(
+        &mut self,
+        physics_world: PhysicsWorldId,
+        positions: &[(Entity, f64)],
+    ) -> bool {
+        let Some(state) = self.worlds.get_mut(&physics_world) else {
+            return false;
+        };
+        let mut moves = Vec::with_capacity(positions.len());
+        for &(entity, target) in positions {
+            let Some(&handle) = state.entity_to_multibody_joint.get(&entity) else {
+                return false;
+            };
+            let Some((current, _)) = multibody_joint_coordinate(state, entity) else {
+                return false;
+            };
+            if !target.is_finite() {
+                return false;
+            }
+            moves.push((handle, (target - current) as Real));
+        }
+        for (handle, displacement) in moves {
+            let Some((multibody, link_id)) = state.multibody_joints.get_mut(handle) else {
+                continue;
+            };
+            if let Some(link) = multibody.link_mut(link_id) {
+                link.joint.apply_displacement(&[displacement]);
+            }
+            // The root keeps its body's pose: before the first step the
+            // multibody has not yet taken the pose its root body spawned in.
+            multibody.forward_kinematics(&state.bodies, true);
+            multibody.generalized_velocity_mut().fill(0.0);
+            multibody.update_rigid_bodies(&mut state.bodies, true);
+            let links: Vec<RigidBodyHandle> = multibody
+                .links()
+                .map(|link| link.rigid_body_handle())
+                .collect();
+            for body in links {
+                if let Some(body) = state.bodies.get_mut(body) {
+                    body.set_linvel(Vector::zeros(), true);
+                    body.set_angvel(Vector::zeros(), true);
+                }
+            }
+        }
+        true
     }
 }
 
@@ -1579,6 +1676,9 @@ fn write_back_bodies_and_joints(
     bodies: &[(Entity, RigidBodyHandle)],
     joint_entities: &[Entity],
 ) {
+    // Bodies come parent before child, so a parent's world transform is
+    // composed after its own write; `forget` keeps that exact otherwise.
+    let mut transforms = WorldTransformCache::new();
     for &(entity, body_handle) in bodies {
         let Some(body) = state.bodies.get(body_handle) else {
             continue;
@@ -1590,11 +1690,12 @@ fn write_back_bodies_and_joints(
         let world_tf = isometry_to_transform(body.position());
         let parent_entity = world.get::<Parent>(entity).map(|parent| parent.0);
         let local_tf = if let Some(parent_entity) = parent_entity {
-            let parent_world = world_transform_of(world, parent_entity);
+            let parent_world = transforms.get(world, parent_entity);
             world_to_local_transform(&parent_world, &world_tf)
         } else {
             world_tf
         };
+        transforms.forget(entity);
         if let Some(mut transform) = world.get_mut::<Transform3>(entity) {
             *transform = local_tf;
         }
@@ -1668,6 +1769,23 @@ fn write_back_bodies_and_joints(
 
 fn sorted_entities(world: &World) -> Vec<Entity> {
     let mut entities: Vec<Entity> = world.iter_entities().map(|entity| entity.id()).collect();
+    entities.sort_unstable();
+    entities
+}
+
+/// The entities, in [`sorted_entities`] order, that `apply_joint_motors`'
+/// entity walks act on: those with a joint actuation, armature or passive
+/// dynamics component.
+fn sorted_entities_with_joint_dynamics(world: &World) -> Vec<Entity> {
+    let mut entities: Vec<Entity> = world
+        .iter_entities()
+        .filter(|entity| {
+            entity.contains::<JointActuation>()
+                || entity.contains::<RevoluteJointArmature>()
+                || entity.contains::<JointPassiveDynamics>()
+        })
+        .map(|entity| entity.id())
+        .collect();
     entities.sort_unstable();
     entities
 }
@@ -2001,8 +2119,13 @@ fn apply_motor_command(
             );
             joint.set_motor_max_force(axis, max_force as f32);
         } else {
+            // Effort modes apply their torque directly. A zero motor would
+            // add a constraint row that never acts and, by sharing the limit
+            // row's unit Jacobian, keep Rapier from skipping the limit row
+            // while the joint is within its limits; drop the axis instead.
             joint.set_motor(axis, 0.0, 0.0, 0.0, 0.0);
             joint.set_motor_max_force(axis, 0.0);
+            joint.motor_axes.remove(axis.into());
         }
         return Ok(());
     }
@@ -2348,6 +2471,7 @@ mod tests {
     use rne_ecs::spawn_named;
     use rne_math::Quat;
     use rne_physics::{hash_physics_state, ColliderShape, CollisionGroups};
+    use rne_world::world_transform_of;
 
     fn owner_filter_fixture() -> (RapierBackend, PhysicsWorldId, World) {
         let mut backend = RapierBackend::new();
@@ -2418,6 +2542,20 @@ mod tests {
         assert!(backend.set_contact_softness(id, 8.0, 1.0));
         backend.reset_world(id).unwrap();
         assert_eq!(backend.contact_softness(id), Some((8.0, 1.0)));
+    }
+
+    #[test]
+    fn inner_solver_passes_are_validated_and_survive_a_world_reset() {
+        let mut backend = RapierBackend::new();
+        let id = backend.create_world(PhysicsWorldDesc::default()).unwrap();
+        assert_eq!(backend.inner_solver_passes(id), Some(1));
+        assert!(!backend.set_inner_solver_passes(id, 0));
+        assert!(!backend.set_inner_solver_passes(PhysicsWorldId(99), 4));
+        assert_eq!(backend.inner_solver_passes(PhysicsWorldId(99)), None);
+        assert_eq!(backend.inner_solver_passes(id), Some(1));
+        assert!(backend.set_inner_solver_passes(id, 4));
+        backend.reset_world(id).unwrap();
+        assert_eq!(backend.inner_solver_passes(id), Some(4));
     }
 
     #[test]
@@ -5503,6 +5641,70 @@ mod tests {
             step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
         }
         *world.get::<JointState>(child).expect("joint state")
+    }
+
+    #[test]
+    fn direct_effort_leaves_no_motor_row_and_a_motor_mode_restores_it() {
+        let mut backend = RapierBackend::new();
+        let physics_world = backend
+            .create_world(PhysicsWorldDesc {
+                gravity_m_s2: Vec3::ZERO,
+                solver_iterations: 4,
+            })
+            .unwrap();
+        let mut world = World::new();
+        let parent = spawn_named(&mut world, "effort_parent");
+        world.entity_mut(parent).insert((
+            RigidBody {
+                body_type: RigidBodyType::Fixed,
+                ..RigidBody::default()
+            },
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::default(),
+        ));
+        let child = spawn_named(&mut world, "effort_child");
+        let effort = JointActuation::RevoluteEffort {
+            effort_nm: 0.5,
+            max_effort_nm: 1.0,
+        };
+        world.entity_mut(child).insert((
+            RigidBody::default(),
+            Collider::sphere(0.05),
+            MultibodyLink,
+            Transform3::from_translation_rotation(-Vec3::Y, Quat::IDENTITY),
+            RevoluteJointDesc {
+                parent,
+                axis: Vec3::Z,
+                anchor_parent_m: Vec3::ZERO,
+                anchor_child_m: Vec3::Y,
+                relative_rotation: Quat::IDENTITY,
+                lower_rad: Some(-1.0),
+                upper_rad: Some(1.0),
+            },
+            effort,
+        ));
+        let motor_axes = |backend: &RapierBackend| {
+            let state = backend.world(physics_world).unwrap();
+            let (multibody, link) = state
+                .multibody_joints
+                .get(state.entity_to_multibody_joint[&child])
+                .unwrap();
+            multibody.link(link).unwrap().joint.data.motor_axes
+        };
+        step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        assert!(motor_axes(&backend).is_empty());
+        *world.get_mut::<JointActuation>(child).unwrap() = JointActuation::RevolutePosition {
+            target_position_rad: 0.3,
+            stiffness_nm_per_rad: 10.0,
+            damping_nm_s_per_rad: 1.0,
+            max_effort_nm: 5.0,
+        };
+        step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        assert!(!motor_axes(&backend).is_empty());
+        *world.get_mut::<JointActuation>(child).unwrap() = effort;
+        step_physics(&mut backend, &mut world, physics_world, fixed_step()).unwrap();
+        assert!(motor_axes(&backend).is_empty());
     }
 
     #[test]
