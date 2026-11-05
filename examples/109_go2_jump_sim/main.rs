@@ -15,7 +15,17 @@
 //! the planner's. `--debug-fk` shows the error — the base and the chain through
 //! the calf match the URDF forward kinematics, but the foot sits 0.138 m from
 //! the calf instead of 0.213 m. Attaching it with the jump robot's
-//! `weld_fixed_children = true` option makes the optimized jump lift off:
+//! `weld_fixed_children = true` option makes the optimized jump lift off.
+//!
+//! The welded jump robot still gave the eight lower-calf bumpers, which declare
+//! no inertial, 1 kg each: the plant weighed about 24 kg against the planner's
+//! 16. The jump robot now fuses its fixed links (`fuse_fixed_children`) with
+//! the declared masses, so plan and plant finally carry the same 16.087 kg. On
+//! it the default run still lifts off (feet up to 0.096 m) but tumbles on
+//! landing (`max_tilt=1.793`, `landed=false`), where the 24 kg plant landed
+//! (`max_tilt=0.407`, settled tilt 0.011 rad). The landing catch, tuned on the
+//! heavier plant, needs re-tuning. The numbers below were measured on the
+//! welded, 24 kg plant:
 //!
 //! - torque + PD: apex 0.324 m, tilt 0.45 rad, feet skim but do not lift off
 //! - `--position-stance` (`--lookahead`): apex 0.402 m, jump 0.070 m, tilt 0.67

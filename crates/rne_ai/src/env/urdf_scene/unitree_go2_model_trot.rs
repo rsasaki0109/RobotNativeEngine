@@ -1,4 +1,4 @@
-//! Model-based trot for the welded Unitree Go2 (`unitree_go2_jump`), on joint torques.
+//! Model-based trot for the Unitree Go2 with feet (`unitree_go2_jump`), on joint torques.
 //!
 //! This is the controller of example 126, as Pinocchio-based quadruped stacks run it:
 //!
@@ -25,7 +25,7 @@ use rne_math::{Hertz, Vec3};
 pub const UNITREE_GO2_MODEL_TROT_CONTROL_HZ: f64 = 500.0;
 
 const GRAVITY_M_S2: f64 = 9.81;
-/// Declared total mass of the welded Go2.
+/// Declared total mass of the Go2 (`unitree_go2_jump`, 16.087 kg).
 const MASS_KG: f64 = 16.1;
 /// URDF effort limits: hip, thigh, calf.
 const EFFORT_NM: [f64; 3] = [23.7, 23.7, 45.43];
@@ -54,6 +54,9 @@ const RAIBERT_GAIN_S: f64 = 0.1;
 /// Standing: horizontal spring holding the base where standing began, and the
 /// heading loop's gain.
 const STAND_POSITION_GAIN_N_PER_M: f64 = 1000.0;
+/// Seconds over which a walk eases its command in from standing. A full-speed
+/// first step tips the Go2 into a stumble that drops its body below 0.11 m.
+const COMMAND_EASE_IN_S: f64 = 1.0;
 const STAND_HEADING_GAIN_PER_S: f64 = 2.0;
 /// A foot this far above its resting height is still swinging.
 const FOOT_DOWN_TOLERANCE_M: f64 = 0.015;
@@ -78,6 +81,8 @@ pub struct UnitreeGo2ModelTrot {
     heading_rad: f64,
     /// Base position and heading held while standing.
     stand_anchor: Option<(Vec3, f64)>,
+    /// The step the current walk started on, for its command ease-in.
+    walk_start_step: Option<u64>,
 }
 
 /// One leg's kinematic state, read from the simulated link frames.
@@ -161,6 +166,7 @@ impl UnitreeGo2ModelTrot {
             previous_yaw_rad,
             heading_rad: 0.0,
             stand_anchor: None,
+            walk_start_step: None,
         }
     }
 
@@ -199,6 +205,7 @@ impl UnitreeGo2ModelTrot {
     /// standing begins is lowered under its hip first. The next [`Self::step`]
     /// resumes the trot.
     pub fn stand(&mut self, sim: &mut UrdfSceneSim) {
+        self.walk_start_step = None;
         let observed = sim.observe();
         let base = sim.named_transform("base").expect("base pose");
         let facing = base.rotation * Vec3::X;
@@ -281,6 +288,12 @@ impl UnitreeGo2ModelTrot {
     pub fn step(&mut self, sim: &mut UrdfSceneSim, command: UnitreeGo2TrotCommand) {
         self.stand_anchor = None;
         let t_s = self.time_s();
+        // From standing, the walk eases its command in over
+        // COMMAND_EASE_IN_S, so the first steps are short.
+        let walk_start = *self.walk_start_step.get_or_insert(self.step);
+        let ease = ((self.step - walk_start) as f64
+            / (COMMAND_EASE_IN_S * UNITREE_GO2_MODEL_TROT_CONTROL_HZ))
+            .min(1.0);
         let observed = sim.observe();
         let base = sim.named_transform("base").expect("base pose");
         let facing = base.rotation * Vec3::X;
@@ -293,8 +306,8 @@ impl UnitreeGo2ModelTrot {
         let flat_velocity = Vec3::new(body_velocity.x, 0.0, body_velocity.z);
         let body_center = Vec3::new(observed.base_x_m, 0.0, observed.base_z_m);
         let yaw_rate = observed.base_angular_velocity_y_rad_s;
-        let yaw_rate_cmd = command.yaw_rate_rad_s;
-        let velocity_cmd = flat_facing * command.forward_speed_m_s;
+        let yaw_rate_cmd = command.yaw_rate_rad_s * ease;
+        let velocity_cmd = flat_facing * (command.forward_speed_m_s * ease);
 
         let phases: [f64; 4] =
             std::array::from_fn(|i| (t_s / GAIT_PERIOD_S + PHASE_OFFSETS[i]) % 1.0);

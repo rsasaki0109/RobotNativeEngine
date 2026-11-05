@@ -48,6 +48,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `unitree_go2_jump` (and the Mid-360 room and two-rooms scenes built on it)
+  fuses the Go2's fixed links instead of welding them, so it carries the URDF's
+  declared 16.087 kg: the welded robot gave the eight lower-calf bumpers 1 kg
+  each, 24 kg in all, against the 16.1 kg `UnitreeGo2ModelTrot` assumes.
+  `UnitreeGo2ModelTrot` now eases a walk's command in over its first second
+  from standing: on the lighter robot a full-speed first step tipped it into a
+  stumble (example 130's loop dropped its body to 0.104 m). Re-measured,
+  example 126 holds headings to 0.010 rad RMS over 10.8 m (0.037 rad over
+  8.5 m before) and examples 130 and 131 pass. Example 109's jump now lifts off
+  but tumbles on landing; its header records both plants.
+
 - `unitree_go2_dynamic` (robot asset and scene, and the terrain scene built on
   it) now stands the Go2 on its feet: it fuses the URDF's fixed children into
   the links they are fixed to and uses the declared masses, 16.087 kg in all,

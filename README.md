@@ -279,7 +279,7 @@ The pieces underneath, each with its own GIF in the docs:
 
 - **Model-based trot** on `unitree_go2_jump`, the Go2 with its feet attached:
   500 Hz joint torques, stance `tau = -J^T f`, Raibert swing; held headings
-  stay within 0.04 rad RMS over 8.5 m.
+  stay within 0.01 rad RMS over 10.8 m.
   [docs/GO2_LOCOMOTION.md](docs/GO2_LOCOMOTION.md#walking-with-feet-a-model-based-trot)
 - **Livox Mid-360** fitted to real Go2 recordings: non-repetitive pattern to
   0.13° on a held-out recording, measured rig occlusion and near-range
