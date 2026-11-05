@@ -23,8 +23,8 @@ measured on the plant; the numbers that matter are pinned by tests in
 >   friction of the loose feet, which cannot affect the robot.
 >
 > On this asset the scripted trot also walks tail first (it faces +x and
-> travels -x). The same model with its fixed children welded
-> (`unitree_go2_jump`) does not walk or steer with the current stack. Treat
+> travels -x). The same model with its feet attached (`unitree_go2_jump`)
+> does not walk or steer with the scripted-trot stack below. Treat
 > the results here as results for this footless robot.
 >
 > `unitree_go2_dynamic` itself now fuses the fixed children into the links they
@@ -40,7 +40,11 @@ measured on the plant; the numbers that matter are pinned by tests in
 </p>
 
 `examples/126_go2_heading_steer` runs `unitree_go2_jump` -- the same URDF with
-its fixed children welded and its declared masses (16.1 kg) -- and walks it
+its fixed children fused into the links they are fixed to and its declared
+masses (16.087 kg; it used to weld them and give the eleven links that declare
+no mass -- the eight lower-calf bumpers and the front camera, which declare no
+inertial, and the IMU and radar, which declare 0 kg -- 1 kg each, 27.1 kg in
+all) -- and walks it
 head first through an S (straight, left 90°, straight, right 90°, straight)
 over 46 s. Nothing below this section carries over to that model:
 
@@ -69,11 +73,17 @@ rate; example 130 steers it to waypoints):
   lifted arc tracked by Cartesian PD, `τ = Jᵀ(Kp·e − Kd·v)`;
 * a heading loop turns heading error into the yaw-rate command.
 
-Measured: held headings 0.037 rad RMS, worst 0.149 rad; every segment ends
-within 0.01 rad of its command; 8.5 m walked along the facing; the body never
-below 0.263 m. It holds within 0.050 rad RMS with the assumed mass ±10 %, the
-speed command ±20 %, the heading gain −20 % or the gait period −10 %.
-`-- --smoke` gates all of it and runs in CI.
+Measured: held headings 0.010 rad RMS, worst 0.047 rad; every segment ends
+within 0.01 rad of its command; 10.8 m walked along the facing; the body never
+below 0.306 m. A walk eases its command in over its first second
+(`UnitreeGo2ModelTrot::with_command_ease_in_s(1.0)`, off by default): on the
+16 kg robot a full-speed first step tipped it into a stumble that dropped the
+body to 0.104 m in example 130's room loop. It holds within 0.017 rad RMS
+(worst 0.071 rad, the heading gain −20 %) with the assumed mass ±10 %, the
+speed command ±20 %, the heading gain −20 % or the gait period −10 %, each
+run passing the smoke gate; the earlier 27 kg plant (8.5 m, 0.037 rad RMS)
+held within 0.050 rad RMS on the same sweep. `-- --smoke` gates the run and
+runs in CI.
 
 ## Speed
 

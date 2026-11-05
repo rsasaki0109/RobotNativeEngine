@@ -1,9 +1,10 @@
 //! Walks the official Go2 head first along a commanded heading schedule with a
 //! model-based trot, on the model that actually has feet.
 //!
-//! The walking asset the older Go2 examples use leaves the feet and head as
-//! loose bodies on the floor (issue #346). This runs `unitree_go2_jump`, the
-//! same URDF with its fixed children welded and its declared masses (16.1 kg).
+//! The walking asset the older Go2 examples use (`unitree_go2_legacy`) leaves
+//! the feet and head as loose bodies on the floor (issue #346). This runs
+//! `unitree_go2_jump`, the same URDF with its fixed children fused into the
+//! links they are fixed to and its declared masses (16.087 kg).
 //! On it, neither the library's scripted trot nor contact-gated thigh torque
 //! does the job: the scripted trot walks tail first (its stance sweep lowers
 //! the thigh angle, and on the Go2 a higher thigh angle puts the foot further
@@ -101,8 +102,10 @@ struct Walker {
 
 impl Walker {
     fn new() -> Self {
-        let mut sim = UrdfSceneSim::from_scene_path(&scene_path()).expect("load welded Go2");
-        let trot = UnitreeGo2ModelTrot::stand_up(&mut sim);
+        let mut sim = UrdfSceneSim::from_scene_path(&scene_path()).expect("load the jump Go2");
+        // Ease each walk in over a second: a full-speed first step can tip
+        // the 16 kg Go2 into a stumble.
+        let trot = UnitreeGo2ModelTrot::stand_up(&mut sim).with_command_ease_in_s(1.0);
         Self {
             sim,
             trot,
@@ -223,7 +226,7 @@ fn main() {
     if std::env::args().any(|arg| arg == "--smoke") {
         let walker = run(|_| {});
         report_and_gate(&walker);
-        println!("smoke ok: the welded Go2 follows the heading schedule head first");
+        println!("smoke ok: the fused Go2 follows the heading schedule head first");
         return;
     }
 

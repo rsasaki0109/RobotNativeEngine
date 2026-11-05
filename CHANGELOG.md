@@ -48,6 +48,32 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `unitree_go2_jump` (and the Mid-360 room and two-rooms scenes built on it)
+  fuses the Go2's fixed links instead of welding them, so it carries the URDF's
+  declared 16.087 kg: the welded robot gave the eleven links that declare no
+  mass (the eight lower-calf bumpers, the front camera, the IMU and the radar)
+  1 kg each, 27.1 kg in all, against the 16.1 kg `UnitreeGo2ModelTrot` assumes.
+  `UnitreeGo2ModelTrot::with_command_ease_in_s` (off by default) eases a
+  walk's command in from standing, and examples 126, 130 and 131 use one
+  second: on the lighter robot a full-speed first step tipped it into a
+  stumble (example 130's loop dropped its body to 0.104 m). Example 132's arm
+  Go2 keeps the full command; its door sequence fails with the ease-in.
+  Re-measured, example 126 holds headings to 0.010 rad RMS over 10.8 m
+  (0.037 rad over 8.5 m before) and within 0.017 rad RMS across its
+  robustness sweep (assumed mass ±10 %, speed ±20 %, heading gain −20 %, gait
+  period −10 %), its GIF is re-rendered, and examples 130, 131 and 132 pass.
+- `examples/109_go2_jump_sim` plans on the same 16.087 kg Go2 it now jumps:
+  its planner model fuses the fixed links too. It had given the same eleven
+  links 1 kg each, which matched the welded plant at 27.1 kg; against the
+  16.087 kg plant the 27 kg plan flipped the robot mid-jump. `--com-ff` now
+  defaults to 1 (the plan's own center-of-mass acceleration): on the 16 kg
+  pair the old 2 leans 0.66 rad. `--wbc-stance` rises 0.140 m, the feet clear
+  77 mm at a peak lean of 0.246 rad, and it lands (settled tilt 0.008 rad),
+  against the documented 0.107 m, 44 mm and 0.325 rad on the 27 kg pair; it
+  leaves the ground ten nodes before the planned takeoff. The other modes
+  tumble or land tilted; the header lists each. `docs/media/go2-jump.gif` and
+  its still are re-rendered from the new run.
+
 - `unitree_go2_dynamic` (robot asset and scene, and the terrain scene built on
   it) now stands the Go2 on its feet: it fuses the URDF's fixed children into
   the links they are fixed to and uses the declared masses, 16.087 kg in all,
