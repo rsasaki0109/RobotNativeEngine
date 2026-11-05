@@ -96,7 +96,8 @@ def sign_test(wins, losses):
     if trials == 0:
         return None
     tail = sum(math.comb(trials, k) for k in range(min(wins, losses) + 1)) / 2 ** trials
-    return round(min(1.0, 2.0 * tail), 4)
+    # Three significant digits: a lopsided 16-seed tally is far below 1e-4.
+    return float(f"{min(1.0, 2.0 * tail):.3g}")
 
 
 def reach_cost(run, threshold, key):

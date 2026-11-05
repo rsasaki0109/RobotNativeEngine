@@ -48,6 +48,24 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `.github/workflows/go2-learning.yml` trains sixteen seeds by default, and
+  `examples/147_go2_learning/learning_compare.py`'s summaries gain an
+  `aggregate` section:
+  - per engine, the quartiles of the generations and seconds each threshold
+    took, of the final fitness and of the training speed;
+  - per pair of engines, per-seed tallies with the two-sided sign test's
+    p-value;
+  - transfer counts.
+
+  Its figure draws a bold median per engine with five runs or more. Over
+  sixteen seeds, RNE's locomotion step reached fitness 0.5 sooner than
+  MuJoCo on 31 of 32 seeds. It reached fitness 1 sooner on 11 of 16 flat
+  seeds (p 0.12) and 12 of 16 terrain seeds (p 0.013), but not in fewer
+  generations (8 against 7 flat, 8 against 6 on terrain). Its lead is a
+  generation's cost: 0.31 s against 0.51 s flat, 0.33 s against 0.86 s on
+  terrain. 61 of 64 cross-engine evaluations hold the 5 s. The first three
+  seeds repeat the three-seed run bit for bit on another runner.
+
 - `examples/147_go2_learning --backend locomotion` collides every collision
   shape of the URDF MuJoCo and Rapier load: the head's lower sphere as
   itself, cylinders (hips, the head's upper half, calves, lower-calf bumpers)
