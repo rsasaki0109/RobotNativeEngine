@@ -52,11 +52,15 @@ python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
 - **RNE locomotion step** (`--backend locomotion`, "RNE locomotion" below).
   `rne_locomotion::QuadrupedTerrainSim` steps the same fused 16.087 kg model
   with `rne_dynamics`' hard-contact step on a flat height field, without
-  Rapier. Its contacts are the 22 mm foot spheres and spheres for each leg's
-  knee, calf cylinder and two lower-calf bumpers
-  (`QuadrupedTerrainSim::set_body_spheres`); the thighs, hips, head and body
-  box have none. The joints get the same explicit PD torque as the other
-  engines. Its contact solver stops at 1e-5 N·s and 0.1 mm/s or 30 sweeps
+  Rapier. Its contacts are the 22 mm foot spheres and every other collision
+  shape in the URDF (`QuadrupedTerrainSim::set_body_spheres`), 106 in all:
+  - the head's lower sphere as itself;
+  - each cylinder (hips, the head's upper half, calves, lower-calf bumpers)
+    as spheres of its radius along its axis, one radius apart;
+  - each box (body, thighs) as its eight corners, where a box first meets a
+    floor.
+
+  The joints get the same explicit PD torque as the other engines. Its contact solver stops at 1e-5 N·s and 0.1 mm/s or 30 sweeps
   (see [Learning on RNE's locomotion step](#learning-on-rnes-locomotion-step)).
 - **MuJoCo.** `mujoco_go2_learning.py` builds the robot from the same URDF
   with MuJoCo's importer (visuals and materials removed, `inertiafromgeom`
@@ -335,7 +339,8 @@ episodes (medians of three runs):
 
 ## Limits
 
-- One robot on a flat floor, one task, three seeds, no domain randomization.
+- One robot, one task on a flat floor and on one rough terrain, three seeds,
+  no domain randomization.
   The policies make no claim about transfer to hardware.
 - MuJoCo's episode loop and policy run in Python, one call per 20 ms control
   period; RNE's run in Rust.
