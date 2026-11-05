@@ -489,6 +489,19 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `.github/workflows/go2-learning.yml` trains example 147 in RNE's locomotion
+  step and in MuJoCo 3.9.0 on one runner, on the flat floor and on rough
+  terrain, and evaluates every final policy in both engines. Example 147
+  gains `--terrain SEED` (a fractal height field, 5 cm of relief, on the
+  locomotion backend; the fall test measures height above the ground) and
+  `--write-terrain`, and `mujoco_go2_learning.py` gains `--terrain` and
+  `check-terrain`. Side by side, RNE trained 1.2–2.7 times as fast (flat
+  309–528 against 252–265 simulated seconds per wall second, terrain 693–818
+  against 307–385, one thread 232–236 against 180–188); which engine reached
+  fitness 1 first depended on the seed; RNE's walks held in MuJoCo on two
+  seeds of three on each floor, while MuJoCo's all fell on the locomotion step
+  (its flat walks hold on Rapier). `docs/media/go2-learning-compare-flat` and
+  `-terrain` (`.json`, `.svg`) hold the runs.
 - `examples/147_go2_learning --backend locomotion` trains the Go2 walk on
   `rne_locomotion`'s hard-contact step instead of Rapier: the fused
   16.087 kg model, foot spheres plus knee, calf and lower-calf bumper

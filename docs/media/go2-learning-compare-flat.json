@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "thresholds": [
+    0.5,
+    1.0
+  ],
+  "runs": [
+    {
+      "trained_in": "locomotion",
+      "seed": 2026,
+      "engine": "RNE locomotion",
+      "plant": {
+        "backend": "RNE locomotion",
+        "floor_friction": 1.0,
+        "inner_passes": 1,
+        "solver_iterations": 4,
+        "terrain_seed": null
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 160,
+          "wall_s": 58.6
+        },
+        "1.0": {
+          "generation": 171,
+          "wall_s": 64.4
+        }
+      },
+      "final": {
+        "fitness": 2.6505528283338475,
+        "forward_m": 3.1076541311063455,
+        "fell": false
+      },
+      "best_fitness": 2.6505528283338475,
+      "median_wall_s_per_generation": 0.339,
+      "simulated_s_per_wall_s": 470.5,
+      "total_wall_s": 78.0
+    },
+    {
+      "trained_in": "mujoco",
+      "seed": 2026,
+      "engine": "mujoco 3.9.0",
+      "plant": {
+        "floor_friction": 1.0,
+        "cone": "elliptic",
+        "impratio": 100.0,
+        "terrain": null
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 74,
+          "wall_s": 47.7
+        },
+        "1.0": {
+          "generation": 99,
+          "wall_s": 67.5
+        }
+      },
+      "final": {
+        "fitness": 2.289139803178617,
+        "forward_m": 2.897913746272803,
+        "fell": false
+      },
+      "best_fitness": 3.5609181347505405,
+      "median_wall_s_per_generation": 0.743,
+      "simulated_s_per_wall_s": 265.4,
+      "total_wall_s": 145.3
+    },
+    {
+      "trained_in": "locomotion",
+      "seed": 11,
+      "engine": "RNE locomotion",
+      "plant": {
+        "backend": "RNE locomotion",
+        "floor_friction": 1.0,
+        "inner_passes": 1,
+        "solver_iterations": 4,
+        "terrain_seed": null
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 174,
+          "wall_s": 100.9
+        },
+        "1.0": null
+      },
+      "final": {
+        "fitness": 0.5371407640885417,
+        "forward_m": 0.5500613583098815,
+        "fell": false
+      },
+      "best_fitness": 0.5371407640885417,
+      "median_wall_s_per_generation": 0.631,
+      "simulated_s_per_wall_s": 308.9,
+      "total_wall_s": 117.9
+    },
+    {
+      "trained_in": "mujoco",
+      "seed": 11,
+      "engine": "mujoco 3.9.0",
+      "plant": {
+        "floor_friction": 1.0,
+        "cone": "elliptic",
+        "impratio": 100.0,
+        "terrain": null
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 67,
+          "wall_s": 43.6
+        },
+        "1.0": {
+          "generation": 94,
+          "wall_s": 66.0
+        }
+      },
+      "final": {
+        "fitness": 2.1440918433883898,
+        "forward_m": 2.485436524652259,
+        "fell": false
+      },
+      "best_fitness": 2.1440918433883898,
+      "median_wall_s_per_generation": 0.79,
+      "simulated_s_per_wall_s": 251.5,
+      "total_wall_s": 151.5
+    },
+    {
+      "trained_in": "locomotion",
+      "seed": 12,
+      "engine": "RNE locomotion",
+      "plant": {
+        "backend": "RNE locomotion",
+        "floor_friction": 1.0,
+        "inner_passes": 1,
+        "solver_iterations": 4,
+        "terrain_seed": null
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 93,
+          "wall_s": 30.5
+        },
+        "1.0": {
+          "generation": 97,
+          "wall_s": 32.3
+        }
+      },
+      "final": {
+        "fitness": 7.0043377637162365,
+        "forward_m": 8.069347750748008,
+        "fell": false
+      },
+      "best_fitness": 7.844043069362416,
+      "median_wall_s_per_generation": 0.34,
+      "simulated_s_per_wall_s": 527.6,
+      "total_wall_s": 68.7
+    },
+    {
+      "trained_in": "mujoco",
+      "seed": 12,
+      "engine": "mujoco 3.9.0",
+      "plant": {
+        "floor_friction": 1.0,
+        "cone": "elliptic",
+        "impratio": 100.0,
+        "terrain": null
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 42,
+          "wall_s": 25.0
+        },
+        "1.0": {
+          "generation": 106,
+          "wall_s": 69.7
+        }
+      },
+      "final": {
+        "fitness": 2.0481081814414055,
+        "forward_m": 2.560429791795343,
+        "fell": false
+      },
+      "best_fitness": 2.7733086843406265,
+      "median_wall_s_per_generation": 0.805,
+      "simulated_s_per_wall_s": 256.0,
+      "total_wall_s": 152.1
+    }
+  ],
+  "evaluations": [
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "locomotion",
+      "seed": 2026,
+      "outcome": {
+        "fell": false,
+        "fitness": 2.6505528283338475,
+        "forward_m": 3.1076541311063455,
+        "heading_rad": 0.7179269702456127,
+        "lateral_m": -0.11721953681803894,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "locomotion",
+      "seed": 2026,
+      "outcome": {
+        "fell": false,
+        "fitness": 2.4617163786096614,
+        "forward_m": 2.7982441410422325,
+        "heading_rad": 0.5646479281254021,
+        "lateral_m": 0.01585832184900937,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "locomotion",
+      "seed": 2026,
+      "outcome": {
+        "fitness": 2.4638943030694263,
+        "forward_m": 2.760308319374978,
+        "lateral_m": -0.00405411841424016,
+        "heading_rad": 0.5021928281218868,
+        "survived_s": 5.0,
+        "fell": false
+      }
+    },
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "mujoco",
+      "seed": 2026,
+      "outcome": {
+        "fell": true,
+        "fitness": -0.5011396261321329,
+        "forward_m": 0.7069664145531053,
+        "heading_rad": 0.29302911736939513,
+        "lateral_m": 0.07782520347786949,
+        "survived_s": 0.96
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "mujoco",
+      "seed": 2026,
+      "outcome": {
+        "fell": false,
+        "fitness": 2.132426677669757,
+        "forward_m": 2.5742517933249474,
+        "heading_rad": -0.3875152985995983,
+        "lateral_m": -0.4712604252363235,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "mujoco",
+      "seed": 2026,
+      "outcome": {
+        "fitness": 2.289139803178617,
+        "forward_m": 2.897913746272803,
+        "lateral_m": -0.8522945329407436,
+        "heading_rad": -0.3341595590676089,
+        "survived_s": 5.0,
+        "fell": false
+      }
+    },
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "locomotion",
+      "seed": 11,
+      "outcome": {
+        "fell": false,
+        "fitness": 0.5371407640885417,
+        "forward_m": 0.5500613583098815,
+        "heading_rad": 0.01132133653632796,
+        "lateral_m": 0.010802788935947745,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "locomotion",
+      "seed": 11,
+      "outcome": {
+        "fell": false,
+        "fitness": 0.4773412473022182,
+        "forward_m": 0.5242786929011345,
+        "heading_rad": 0.06933493558558618,
+        "lateral_m": 0.020074240330359316,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "locomotion",
+      "seed": 11,
+      "outcome": {
+        "fitness": 0.5013413678436885,
+        "forward_m": 0.5532782241707346,
+        "lateral_m": 0.012909287856536323,
+        "heading_rad": 0.08565829937528821,
+        "survived_s": 5.0,
+        "fell": false
+      }
+    },
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "mujoco",
+      "seed": 11,
+      "outcome": {
+        "fell": true,
+        "fitness": -0.33486144260455375,
+        "forward_m": 0.7921557697124495,
+        "heading_rad": -0.11890643329064923,
+        "lateral_m": -0.09796061173159212,
+        "survived_s": 0.88
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "mujoco",
+      "seed": 11,
+      "outcome": {
+        "fell": false,
+        "fitness": 1.2929244607376,
+        "forward_m": 1.6861475929617882,
+        "heading_rad": -0.22273343464500103,
+        "lateral_m": -0.5359456507230789,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "mujoco",
+      "seed": 11,
+      "outcome": {
+        "fitness": 2.1440918433883898,
+        "forward_m": 2.485436524652259,
+        "lateral_m": -0.5253303508112256,
+        "heading_rad": -0.1269164139886929,
+        "survived_s": 5.0,
+        "fell": false
+      }
+    },
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "locomotion",
+      "seed": 12,
+      "outcome": {
+        "fell": false,
+        "fitness": 7.0043377637162365,
+        "forward_m": 8.069347750748008,
+        "heading_rad": -0.24354081897671043,
+        "lateral_m": -1.8311256331819428,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "locomotion",
+      "seed": 12,
+      "outcome": {
+        "fell": false,
+        "fitness": 4.376206557126005,
+        "forward_m": 4.604155920445919,
+        "heading_rad": -0.0007609093428719597,
+        "lateral_m": -0.394933309939006,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "locomotion",
+      "seed": 12,
+      "outcome": {
+        "fitness": -0.768769967762775,
+        "forward_m": 0.40702028736578255,
+        "lateral_m": -0.1383007455196294,
+        "heading_rad": -0.16260780733043573,
+        "survived_s": 0.92,
+        "fell": true
+      }
+    },
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "mujoco",
+      "seed": 12,
+      "outcome": {
+        "fell": true,
+        "fitness": -0.9165187274361286,
+        "forward_m": 0.36244640297494335,
+        "heading_rad": 0.3340085452488897,
+        "lateral_m": 0.16267250089049362,
+        "survived_s": 0.76
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "mujoco",
+      "seed": 12,
+      "outcome": {
+        "fell": false,
+        "fitness": 2.298857204015657,
+        "forward_m": 2.8401922211050987,
+        "heading_rad": 0.8171728661955407,
+        "lateral_m": 0.20545730314006505,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "mujoco",
+      "trained_in": "mujoco",
+      "seed": 12,
+      "outcome": {
+        "fitness": 2.0481081814414055,
+        "forward_m": 2.560429791795343,
+        "lateral_m": -0.4508628136364974,
+        "heading_rad": -0.510602572464861,
+        "survived_s": 5.0,
+        "fell": false
+      }
+    }
+  ]
+}

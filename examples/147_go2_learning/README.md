@@ -12,6 +12,12 @@ cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed
   --solver-iterations 1 --inner-passes 4   # the cheaper solve; same output path
 cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
   --backend locomotion   # rne_locomotion's contact step; go2-learning-locomotion-2026.json
+cargo run --release -p go2_learning --example 147_go2_learning -- --write-terrain terrain.json --terrain 7
+cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
+  --backend locomotion --terrain 7   # go2-learning-locomotion-terrain-2026.json
+python3 examples/147_go2_learning/mujoco_go2_learning.py check-terrain terrain.json
+python3 examples/147_go2_learning/mujoco_go2_learning.py train \
+  target/go2-learning/go2-learning-locomotion-terrain-2026.json OUT.json --terrain terrain.json
 python3 examples/147_go2_learning/mujoco_go2_learning.py train \
   target/go2-learning/go2-learning-rne-2026.json target/go2-learning/go2-learning-mujoco-2026.json
 cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate target/go2-learning/go2-learning-mujoco-2026.json
@@ -178,7 +184,10 @@ thresholds and final outcome, and every evaluation in both engines.
 
 ## Learning on RNE's locomotion step
 
-The same training on `--backend locomotion`, three seeds, 4 threads:
+The same training on `--backend locomotion`, three seeds, 4 threads, in the
+development container (MuJoCo's figures here come from the runs above; see
+[Side by side with MuJoCo](#side-by-side-with-mujoco) for both engines on one
+machine):
 
 | Seed | Fitness 0.5 reached (generation / s) | Fitness 1 reached (generation / s) | Fitness after 200 | Forward in 5 s | In RNE (4 iterations) | In RNE 2×1 |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
@@ -214,6 +223,59 @@ The same training on `--backend locomotion`, three seeds, 4 threads:
 
 The [summary](../../docs/media/go2-learning-locomotion.json) holds each run's
 timing, thresholds and final outcome, and its evaluations on Rapier.
+
+## Side by side with MuJoCo
+
+`.github/workflows/go2-learning.yml` trains each seed in RNE's locomotion
+step and in MuJoCo 3.9.0 on one 4-core GitHub runner, one engine after the
+other, then evaluates every final policy in both (and on Rapier for the flat
+floor). Its flat-floor results reproduced bit for bit on a second runner, with
+timings within 2%. The same seeds learn differently here than in the
+development container: the engines' arithmetic is deterministic, but the
+system math library's last bits differ, and 200 generations of ES amplify
+them.
+
+Flat floor:
+
+| Seed | RNE: fitness 1 (generation / s) | MuJoCo: fitness 1 | RNE after 200 | MuJoCo after 200 | RNE's walk in MuJoCo | MuJoCo's walk on RNE's step (on Rapier) |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| 2026 | 171 / 64 | 99 / 68 | 2.65 | 2.29 | walks, 2.76 m | falls after 0.96 s (walks, 2.57 m) |
+| 11 | — (0.54, a shuffle) | 94 / 66 | 0.54 | 2.14 | shuffles, 0.55 m | falls after 0.88 s (walks, 1.69 m) |
+| 12 | 97 / 32 | 106 / 70 | 7.00 | 2.05 | falls after 0.92 s | falls after 0.76 s (walks, 2.84 m) |
+
+![Fitness against wall-clock minutes and generations, RNE's locomotion step and MuJoCo on one runner, flat floor](../../docs/media/go2-learning-compare-flat.svg)
+
+Rough terrain (`--terrain 7`: 5 cm of fractal relief, the same height field
+in both engines; `check-terrain` ray-casts MuJoCo's copy at 40 of RNE's
+heights before training):
+
+| Seed | RNE: fitness 1 (generation / s) | MuJoCo: fitness 1 | RNE after 200 | MuJoCo after 200 | RNE's walk in MuJoCo | MuJoCo's walk on RNE's step |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| 2026 | 165 / 43 | 85 / 48 | 3.12 | 4.11 | walks, 3.37 m | falls after 0.84 s |
+| 11 | 64 / 14 | 187 / 116 | 7.59 | 1.05 | falls after 1.7 s | falls after 0.94 s |
+| 12 | 108 / 23 | — (0.53) | 5.22 | 0.53 | walks, 5.21 m | falls after 1.06 s |
+
+![Fitness against wall-clock minutes and generations, RNE's locomotion step and MuJoCo on one runner, rough terrain](../../docs/media/go2-learning-compare-terrain.svg)
+
+- **RNE trains 1.2–2.7 times as fast as MuJoCo on the same runner.**
+  - Flat: 309–528 simulated seconds per wall second on four cores, against
+    MuJoCo's 252–265; a generation took 0.34–0.63 s, against 0.74–0.81 s.
+  - Terrain: 693–818, against 307–385.
+  - One thread, untrained policy: 232–236 against MuJoCo's 180–188.
+- **Which engine learns the walk first depends on the seed.** Flat, RNE got
+  there first on two seeds of three and never on the third; on terrain RNE
+  reached fitness 1 on all three and MuJoCo on two. Three seeds do not rank
+  the engines' sample efficiency.
+- **Transfer runs one way.** RNE's walks hold in MuJoCo on two seeds of three
+  on each floor. MuJoCo's six walks all fall within about a second on RNE's
+  locomotion step, though its three flat walks hold on Rapier. The locomotion
+  step is further from MuJoCo than Rapier is: hard contacts and contact only
+  at the feet and lower legs, where both MuJoCo and Rapier collide every
+  link's geometry.
+
+The summaries ([flat](../../docs/media/go2-learning-compare-flat.json),
+[terrain](../../docs/media/go2-learning-compare-terrain.json)) hold each
+run's timing, thresholds and final outcome, and every evaluation.
 
 ## Speed
 
