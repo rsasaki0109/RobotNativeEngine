@@ -339,7 +339,7 @@ mod tests {
                 &G1_FEET[..],
             ),
             (
-                UrdfSceneSim::unitree_go2_dynamic_scene_path(),
+                UrdfSceneSim::unitree_go2_legacy_scene_path(),
                 16.087_000_011,
                 1,
                 &["FL_foot", "FR_foot", "RL_foot", "RR_foot"][..],

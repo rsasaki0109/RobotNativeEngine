@@ -48,6 +48,19 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `unitree_go2_dynamic` (robot asset and scene, and the terrain scene built on
+  it) now stands the Go2 on its feet: it fuses the URDF's fixed children into
+  the links they are fixed to and uses the declared masses, 16.087 kg in all,
+  as `unitree_go2_fused` does. It used to leave the feet, lower-calf bumpers and
+  head as loose bodies and give the bumpers 1 kg each, so the robot stood on its
+  calves ([#346](https://github.com/rsasaki0109/RobotNativeEngine/issues/346)).
+  That robot is kept, byte for byte, as `unitree_go2_legacy` (new
+  `UrdfSceneSim::unitree_go2_legacy_scene_path`, `unitree_go2_legacy_scene_path`
+  and `unitree_go2_terrain_legacy_scene_path`). `UnitreeGo2Episode`, its tests
+  and examples 38, 54–61, 64, 65, 106, 117 and 139, which were tuned on it,
+  now load it explicitly and replay unchanged. `UrdfSceneSim::link_contact_impulse_ns`
+  reports, for a link fused into its parent, the contacts of the body it joined.
+
 - Let articulated robots start in a pose and be driven by outside policies.
   `RapierBackend::set_multibody_joint_positions` and
   `UrdfSceneSim::set_joint_positions` set single-DoF joints to positions and

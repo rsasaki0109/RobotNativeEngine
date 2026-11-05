@@ -6,11 +6,15 @@ measured on the plant; the numbers that matter are pinned by tests in
 `unitree_go2_episode.rs`.
 
 > **The robot measured here has no feet ([#346](https://github.com/rsasaki0109/RobotNativeEngine/issues/346)).**
-> `unitree_go2_dynamic.rne.robot.toml` does not set `weld_fixed_children`, so
-> the importer leaves the fixed-joint children -- the four `*_foot` links and
-> `Head_upper`/`Head_lower` -- as loose bodies at their spawn poses on the
-> floor. The robot walks on its bare calf ends. Everything on this page was
-> measured on that robot, and two things follow directly:
+> It is the Go2 as `unitree_go2_dynamic.rne.robot.toml` first loaded it, kept
+> unchanged as `unitree_go2_legacy.rne.robot.toml` (scenes
+> `unitree_go2_legacy` and `unitree_go2_terrain_legacy`) so the controllers,
+> tests and examples on this page replay as measured. Its importer leaves the
+> fixed-joint children -- the four `*_foot` links, the eight lower-calf bumpers
+> and `Head_upper`/`Head_lower` -- as loose bodies at their spawn poses on the
+> floor, and gives the bumpers, which declare no inertial, 1 kg each. The robot
+> walks on its bare calf ends. Everything on this page was measured on that
+> robot, and two things follow directly:
 >
 > * `link_contact_impulse_ns("*_foot")` reads the loose foot, a constant
 >   ~0.2 N·s, so every "contact-gated" torque term below is applied on every
@@ -20,9 +24,14 @@ measured on the plant; the numbers that matter are pinned by tests in
 >
 > On this asset the scripted trot also walks tail first (it faces +x and
 > travels -x). The same model with its fixed children welded
-> (`unitree_go2_jump`) does not walk or steer with the current stack. Until
-> the walking asset is fixed and re-measured, treat the results here as
-> results for this footless robot.
+> (`unitree_go2_jump`) does not walk or steer with the current stack. Treat
+> the results here as results for this footless robot.
+>
+> `unitree_go2_dynamic` itself now fuses the fixed children into the links they
+> are fixed to and uses the URDF's declared masses (16.087 kg), as MuJoCo does;
+> settled on its default targets it stands within 7 mm of MuJoCo's Go2 (see
+> [example 147](../examples/147_go2_learning/README.md)). The controllers here
+> have not been re-measured on it.
 
 ## Walking with feet: a model-based trot
 

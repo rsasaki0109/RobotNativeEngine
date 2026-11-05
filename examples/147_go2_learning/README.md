@@ -84,9 +84,11 @@ python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
 
 ## The first RNE plant stood on its calves
 
-Earlier versions of this example used `unitree_go2_dynamic.rne.scene.toml`.
-Its robot asset left the URDF's fixed links as separate free bodies and gave
-the eight lower-calf links, which declare no inertial, 1 kg each.
+Earlier versions of this example used `unitree_go2_dynamic.rne.scene.toml` as
+it then was (kept since as `unitree_go2_legacy.rne.scene.toml`; the dynamic
+scene now fuses as below). Its robot asset left the URDF's fixed links as
+separate free bodies and gave the eight lower-calf links, which declare no
+inertial, 1 kg each.
 
 - **Symptom.** The RNE Go2 stood on its calves among its own feet, bumpers
   and head, which lay loose on the floor. Its base settled 7 cm lower than

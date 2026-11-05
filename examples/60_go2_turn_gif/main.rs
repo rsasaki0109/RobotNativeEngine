@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 
 use png::{BitDepth, ColorType, Encoder};
 use rne_ai::{
-    build_visual_render_scene, unitree_go2_dynamic_scene_path, unitree_go2_trot_targets,
+    build_visual_render_scene, unitree_go2_legacy_scene_path, unitree_go2_trot_targets,
     UnitreeGo2GaitCommand, UnitreeGo2TorqueOverlay, UrdfJointTorqueTarget, UrdfSceneSim,
 };
 use rne_math::{Transform3, Vec3};
@@ -63,7 +63,7 @@ struct TorqueWalker {
 
 impl TorqueWalker {
     fn new(overlay: UnitreeGo2TorqueOverlay) -> Self {
-        let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_dynamic_scene_path())
+        let mut sim = UrdfSceneSim::from_scene_path(&unitree_go2_legacy_scene_path())
             .expect("load dynamic Go2");
         sim.configure_position_motors(180.0, 18.0, TORQUE_LIMIT_NM);
         let stand = unitree_go2_trot_targets(

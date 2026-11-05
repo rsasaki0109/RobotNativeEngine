@@ -717,9 +717,19 @@ impl UrdfSceneSim {
         unitree_go2_scene_path()
     }
 
-    /// Vendored official Unitree Go2 dynamic multibody scene path.
+    /// Vendored official Unitree Go2 dynamic multibody scene path: the URDF's
+    /// fixed links fused into their parents and its declared masses, as
+    /// [`Self::unitree_go2_fused_scene_path`].
     pub fn unitree_go2_dynamic_scene_path() -> PathBuf {
         unitree_go2_dynamic_scene_path()
+    }
+
+    /// The Go2 as the dynamic scene first loaded it, for controllers tuned on
+    /// it: the URDF's fixed links (feet, lower-calf bumpers, head) are free
+    /// bodies and links without an inertial weigh 1 kg, so the robot stands
+    /// on its calves. New work should use [`Self::unitree_go2_dynamic_scene_path`].
+    pub fn unitree_go2_legacy_scene_path() -> PathBuf {
+        unitree_go2_legacy_scene_path()
     }
 
     /// Vendored Unitree Go2 multibody scene whose fixed URDF children (feet,
@@ -1563,7 +1573,8 @@ impl UrdfSceneSim {
     /// Updates both the backend-neutral component and the live backend
     /// collider (colliders materialize at scene load). Returns true only when
     /// the live collider was reached, so a false return means the physics
-    /// did not change.
+    /// did not change. A link fused into its parent body sets that body's
+    /// collider, which all its parts share.
     pub fn set_named_collider_friction(&mut self, name: &str, friction: f64) -> bool {
         if !friction.is_finite() || friction < 0.0 {
             return false;
@@ -1571,6 +1582,9 @@ impl UrdfSceneSim {
         let Some(entity) = find_entity_by_name(&self.world, name) else {
             return false;
         };
+        // A link fused into its parent body sets the friction of the collider
+        // it joined, which it shares with that body's other parts.
+        let entity = collider_owner(&self.world, entity);
         let Some(mut collider) = self.world.get_mut::<Collider>(entity) else {
             return false;
         };
@@ -2478,11 +2492,16 @@ impl UrdfSceneSim {
     ///
     /// This is intended for deterministic foot-contact observations. It returns
     /// zero when the link is absent, has no contact, or contacts have not yet
-    /// been produced by a physics step.
+    /// been produced by a physics step. A link fused into its parent body
+    /// (`fuse_fixed_children`) reports that body's contacts.
     pub fn link_contact_impulse_ns(&self, link_name: &str) -> f64 {
         let Some(link) = find_link_by_name(&self.world, link_name) else {
             return 0.0;
         };
+        // A link fused into its parent body (`fuse_fixed_children`) has no
+        // body or collider of its own: it reports the contacts of the body it
+        // joined.
+        let link = collider_owner(&self.world, link);
         self.backend
             .contacts(self.physics_world)
             .map(|contacts| {
@@ -2590,6 +2609,22 @@ fn asset_physics_error(path: &Path, error: rne_physics::PhysicsError) -> AssetEr
     }
 }
 
+/// `entity`, or, when it carries neither a body nor a collider (a URDF link
+/// fused into its parent body), its nearest ancestor with a collider.
+fn collider_owner(world: &World, entity: Entity) -> Entity {
+    if world.get::<RigidBody>(entity).is_some() {
+        return entity;
+    }
+    let mut current = entity;
+    while world.get::<Collider>(current).is_none() {
+        match world.get::<Parent>(current) {
+            Some(parent) => current = parent.0,
+            None => return entity,
+        }
+    }
+    current
+}
+
 fn find_link_by_name(world: &World, name: &str) -> Option<Entity> {
     for entity_ref in world.iter_entities() {
         let entity = entity_ref.id();
@@ -2686,9 +2721,21 @@ pub fn unitree_go2_scene_path() -> PathBuf {
     assets_scene_path("unitree_go2.rne.scene.toml")
 }
 
-/// Vendored official Unitree Go2 dynamic multibody scene path.
+/// Vendored official Unitree Go2 dynamic multibody scene path; see
+/// [`UrdfSceneSim::unitree_go2_dynamic_scene_path`].
 pub fn unitree_go2_dynamic_scene_path() -> PathBuf {
     assets_scene_path("unitree_go2_dynamic.rne.scene.toml")
+}
+
+/// The legacy Go2 scene; see [`UrdfSceneSim::unitree_go2_legacy_scene_path`].
+pub fn unitree_go2_legacy_scene_path() -> PathBuf {
+    assets_scene_path("unitree_go2_legacy.rne.scene.toml")
+}
+
+/// The terrain scene with the legacy Go2; see
+/// [`UrdfSceneSim::unitree_go2_legacy_scene_path`].
+pub fn unitree_go2_terrain_legacy_scene_path() -> PathBuf {
+    assets_scene_path("unitree_go2_terrain_legacy.rne.scene.toml")
 }
 
 /// Vendored Unitree Go2 scene with fused fixed children and declared masses;
