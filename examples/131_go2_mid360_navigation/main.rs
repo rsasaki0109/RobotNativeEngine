@@ -156,7 +156,9 @@ impl Nav {
             "assets/scenes/unitree_go2_two_rooms.rne.scene.toml",
         ))
         .expect("load two-room scene");
-        let trot = UnitreeGo2ModelTrot::stand_up(&mut sim);
+        // Ease each walk in over a second: a full-speed first step can tip
+        // the 16 kg Go2 into a stumble.
+        let trot = UnitreeGo2ModelTrot::stand_up(&mut sim).with_command_ease_in_s(1.0);
         let rig: LidarRigOcclusion = serde_json::from_str(
             &fs::read_to_string(repo_path(
                 "assets/sensors/livox_mid360/go2_rig_occlusion.json",

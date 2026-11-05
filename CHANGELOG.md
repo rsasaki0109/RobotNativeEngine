@@ -53,11 +53,15 @@ All notable changes to Robot Native Engine are documented in this file.
   declared 16.087 kg: the welded robot gave the eleven links that declare no
   mass (the eight lower-calf bumpers, the front camera, the IMU and the radar)
   1 kg each, 27.1 kg in all, against the 16.1 kg `UnitreeGo2ModelTrot` assumes.
-  `UnitreeGo2ModelTrot` now eases a walk's command in over its first second
-  from standing: on the lighter robot a full-speed first step tipped it into a
-  stumble (example 130's loop dropped its body to 0.104 m). Re-measured,
-  example 126 holds headings to 0.010 rad RMS over 10.8 m (0.037 rad over
-  8.5 m before) and examples 130 and 131 pass.
+  `UnitreeGo2ModelTrot::with_command_ease_in_s` (off by default) eases a
+  walk's command in from standing, and examples 126, 130 and 131 use one
+  second: on the lighter robot a full-speed first step tipped it into a
+  stumble (example 130's loop dropped its body to 0.104 m). Example 132's arm
+  Go2 keeps the full command; its door sequence fails with the ease-in.
+  Re-measured, example 126 holds headings to 0.010 rad RMS over 10.8 m
+  (0.037 rad over 8.5 m before) and within 0.017 rad RMS across its
+  robustness sweep (assumed mass ±10 %, speed ±20 %, heading gain −20 %, gait
+  period −10 %), its GIF is re-rendered, and examples 130, 131 and 132 pass.
 - `examples/109_go2_jump_sim` plans on the same 16.087 kg Go2 it now jumps:
   its planner model fuses the fixed links too. It had given the same eleven
   links 1 kg each, which matched the welded plant at 27.1 kg; against the

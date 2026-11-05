@@ -102,8 +102,10 @@ struct Walker {
 
 impl Walker {
     fn new() -> Self {
-        let mut sim = UrdfSceneSim::from_scene_path(&scene_path()).expect("load welded Go2");
-        let trot = UnitreeGo2ModelTrot::stand_up(&mut sim);
+        let mut sim = UrdfSceneSim::from_scene_path(&scene_path()).expect("load the jump Go2");
+        // Ease each walk in over a second: a full-speed first step can tip
+        // the 16 kg Go2 into a stumble.
+        let trot = UnitreeGo2ModelTrot::stand_up(&mut sim).with_command_ease_in_s(1.0);
         Self {
             sim,
             trot,

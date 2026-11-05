@@ -75,12 +75,15 @@ rate; example 130 steers it to waypoints):
 
 Measured: held headings 0.010 rad RMS, worst 0.047 rad; every segment ends
 within 0.01 rad of its command; 10.8 m walked along the facing; the body never
-below 0.306 m. A walk eases its command in over its first second: on the
+below 0.306 m. A walk eases its command in over its first second
+(`UnitreeGo2ModelTrot::with_command_ease_in_s(1.0)`, off by default): on the
 16 kg robot a full-speed first step tipped it into a stumble that dropped the
-body to 0.104 m in example 130's room loop. On the earlier 27 kg plant (8.5 m,
-0.037 rad RMS) it held within 0.050 rad RMS with the assumed mass ±10 %, the
-speed command ±20 %, the heading gain −20 % or the gait period −10 %; that
-sweep has not been repeated. `-- --smoke` gates the run and runs in CI.
+body to 0.104 m in example 130's room loop. It holds within 0.017 rad RMS
+(worst 0.071 rad, the heading gain −20 %) with the assumed mass ±10 %, the
+speed command ±20 %, the heading gain −20 % or the gait period −10 %, each
+run passing the smoke gate; the earlier 27 kg plant (8.5 m, 0.037 rad RMS)
+held within 0.050 rad RMS on the same sweep. `-- --smoke` gates the run and
+runs in CI.
 
 ## Speed
 

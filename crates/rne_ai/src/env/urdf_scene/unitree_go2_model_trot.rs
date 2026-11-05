@@ -54,9 +54,6 @@ const RAIBERT_GAIN_S: f64 = 0.1;
 /// Standing: horizontal spring holding the base where standing began, and the
 /// heading loop's gain.
 const STAND_POSITION_GAIN_N_PER_M: f64 = 1000.0;
-/// Seconds over which a walk eases its command in from standing. A full-speed
-/// first step tips the Go2 into a stumble that drops its body below 0.11 m.
-const COMMAND_EASE_IN_S: f64 = 1.0;
 const STAND_HEADING_GAIN_PER_S: f64 = 2.0;
 /// A foot this far above its resting height is still swinging.
 const FOOT_DOWN_TOLERANCE_M: f64 = 0.015;
@@ -83,6 +80,9 @@ pub struct UnitreeGo2ModelTrot {
     stand_anchor: Option<(Vec3, f64)>,
     /// The step the current walk started on, for its command ease-in.
     walk_start_step: Option<u64>,
+    /// Seconds over which a walk eases its command in from standing; zero
+    /// walks at the full command from the first step.
+    command_ease_in_s: f64,
 }
 
 /// One leg's kinematic state, read from the simulated link frames.
@@ -167,6 +167,7 @@ impl UnitreeGo2ModelTrot {
             heading_rad: 0.0,
             stand_anchor: None,
             walk_start_step: None,
+            command_ease_in_s: 0.0,
         }
     }
 
@@ -175,6 +176,19 @@ impl UnitreeGo2ModelTrot {
     pub fn with_total_mass_kg(mut self, mass_kg: f64) -> Self {
         if mass_kg.is_finite() && mass_kg > 0.0 {
             self.mass_kg = mass_kg;
+        }
+        self
+    }
+
+    /// Eases each walk's forward and yaw-rate command in linearly over
+    /// `seconds` from standing (after [`Self::stand_up`] or [`Self::stand`]),
+    /// so its first steps are short. On the 16.087 kg `unitree_go2_jump` a
+    /// full-speed first step can tip the Go2 into a stumble that drops its body
+    /// below 0.11 m; one second avoids it. Off (zero) by default; a negative
+    /// or non-finite value leaves it unchanged.
+    pub fn with_command_ease_in_s(mut self, seconds: f64) -> Self {
+        if seconds.is_finite() && seconds >= 0.0 {
+            self.command_ease_in_s = seconds;
         }
         self
     }
@@ -289,11 +303,15 @@ impl UnitreeGo2ModelTrot {
         self.stand_anchor = None;
         let t_s = self.time_s();
         // From standing, the walk eases its command in over
-        // COMMAND_EASE_IN_S, so the first steps are short.
+        // `command_ease_in_s`, so the first steps are short.
         let walk_start = *self.walk_start_step.get_or_insert(self.step);
-        let ease = ((self.step - walk_start) as f64
-            / (COMMAND_EASE_IN_S * UNITREE_GO2_MODEL_TROT_CONTROL_HZ))
-            .min(1.0);
+        let ease = if self.command_ease_in_s > 0.0 {
+            ((self.step - walk_start) as f64
+                / (self.command_ease_in_s * UNITREE_GO2_MODEL_TROT_CONTROL_HZ))
+                .min(1.0)
+        } else {
+            1.0
+        };
         let observed = sim.observe();
         let base = sim.named_transform("base").expect("base pose");
         let facing = base.rotation * Vec3::X;
@@ -372,6 +390,42 @@ impl UnitreeGo2ModelTrot {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn command_ease_in_shortens_the_first_steps() {
+        let path = crate::asset_path::bundled_asset_path(
+            std::path::Path::new("scenes").join("unitree_go2_jump.rne.scene.toml"),
+        );
+        let command = UnitreeGo2TrotCommand {
+            forward_speed_m_s: 0.3,
+            yaw_rate_rad_s: 0.0,
+        };
+        let walked = |ease_in_s: f64| {
+            let mut sim = UrdfSceneSim::from_scene_path(&path).expect("spawn the Go2");
+            let mut trot =
+                UnitreeGo2ModelTrot::stand_up(&mut sim).with_command_ease_in_s(ease_in_s);
+            let start = sim.observe().base_x_m;
+            // A quarter of a second: the eased walk is commanded at most a
+            // quarter of full speed.
+            for _ in 0..125 {
+                trot.step(&mut sim, command);
+            }
+            sim.observe().base_x_m - start
+        };
+        let full = walked(0.0);
+        let eased = walked(1.0);
+        assert!(
+            eased < full,
+            "easing in should walk less at first: eased {eased:.4} m, full {full:.4} m"
+        );
+        // A negative or non-finite duration is ignored.
+        let mut sim = UrdfSceneSim::from_scene_path(&path).expect("spawn the Go2");
+        let trot = UnitreeGo2ModelTrot::stand_up(&mut sim)
+            .with_command_ease_in_s(1.0)
+            .with_command_ease_in_s(-1.0)
+            .with_command_ease_in_s(f64::NAN);
+        assert_eq!(trot.command_ease_in_s, 1.0);
+    }
 
     #[test]
     fn stand_stops_a_walking_go2_and_holds_it_in_place() {
