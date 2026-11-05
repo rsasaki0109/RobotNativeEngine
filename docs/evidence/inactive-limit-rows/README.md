@@ -44,3 +44,7 @@ python3 docs/evidence/inactive-limit-rows/compare_reports.py \
 ```
 
 Its output at the transition is [comparison.json](comparison.json).
+
+When #520 merged ahead of this transition, the new report's `Cargo.toml` and
+`Cargo.lock` hashes were updated to the merged workspace, as every report
+binding them is; `comparison.json` records the transition before that.

@@ -7,6 +7,7 @@
 | G1 / H1 sim2sim | `cargo run --release -p g1_sim2sim --example 144_g1_sim2sim [-- --robot h1]` | unitree_rl_gym's pretrained G1 and H1 walking policies on RNE vs MuJoCo: speed, turn rate and posture, solver-iteration timing; see [the write-up](144_g1_sim2sim/README.md) |
 | Contact slide | `cargo run --release -p contact_slide --example 145_contact_slide` | A 10 kg block on four 5 mm spheres pushed, rocked and landed: Rapier against Coulomb friction's closed form and MuJoCo; see [the write-up](145_contact_slide/README.md) |
 | Go2 learning race | `cargo run --release -p go2_learning --example 147_go2_learning -- --train` | A Go2 learns to walk from scratch with evolution strategies, in RNE and in MuJoCo with the same algorithm and seed: learning per generation and per minute, and whether the walks transfer; see [the write-up](147_go2_learning/README.md) |
+| Contact closed forms | `cargo run --release -p contact_closed_form --example 146_contact_closed_form` | Boxes sliding in three directions and on inclines, balls rolling and bouncing, and mass-ratio stacks: Rapier against each closed form and MuJoCo; see [the write-up](146_contact_closed_form/README.md) |
 | Falling cube | `cargo run -p falling_cube --example 01_falling_cube` | Rapier gravity + physics sync |
 | Diff drive + LiDAR | `cargo run -p diff_drive_lidar --example 01_diff_drive_lidar` | Robot, sensors, DataBus |
 | Render clear | `cargo run -p render_clear --example 02_render_clear` | wgpu off-screen clear render |
