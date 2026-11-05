@@ -13,28 +13,29 @@
         "backend": "RNE locomotion",
         "floor_friction": 1.0,
         "inner_passes": 1,
-        "solver_iterations": 4
+        "solver_iterations": 4,
+        "terrain_seed": null
       },
       "generations": 200,
       "reached": {
         "0.5": {
-          "generation": 158,
-          "wall_s": 44.6
+          "generation": 72,
+          "wall_s": 17.3
         },
         "1.0": {
-          "generation": 168,
-          "wall_s": 48.7
+          "generation": 119,
+          "wall_s": 29.1
         }
       },
       "final": {
-        "fitness": 2.78800175697354,
-        "forward_m": 3.301088008449721,
+        "fitness": 5.258608176021111,
+        "forward_m": 5.519222620267676,
         "fell": false
       },
-      "best_fitness": 2.78800175697354,
-      "median_wall_s_per_generation": 0.274,
-      "simulated_s_per_wall_s": 613.7,
-      "total_wall_s": 59.8
+      "best_fitness": 5.500527766191571,
+      "median_wall_s_per_generation": 0.238,
+      "simulated_s_per_wall_s": 820.3,
+      "total_wall_s": 47.9
     },
     {
       "trained_in": "locomotion",
@@ -44,28 +45,29 @@
         "backend": "RNE locomotion",
         "floor_friction": 1.0,
         "inner_passes": 1,
-        "solver_iterations": 4
+        "solver_iterations": 4,
+        "terrain_seed": null
       },
       "generations": 200,
       "reached": {
         "0.5": {
-          "generation": 115,
-          "wall_s": 43.3
+          "generation": 46,
+          "wall_s": 10.2
         },
         "1.0": {
-          "generation": 166,
-          "wall_s": 67.8
+          "generation": 87,
+          "wall_s": 21.5
         }
       },
       "final": {
-        "fitness": 2.4430092339829312,
-        "forward_m": 3.0583901518454653,
+        "fitness": 2.7432963206684526,
+        "forward_m": 3.417134118096267,
         "fell": false
       },
-      "best_fitness": 2.493144150397586,
-      "median_wall_s_per_generation": 0.446,
-      "simulated_s_per_wall_s": 444.3,
-      "total_wall_s": 82.9
+      "best_fitness": 3.5610590631200996,
+      "median_wall_s_per_generation": 0.263,
+      "simulated_s_per_wall_s": 735.2,
+      "total_wall_s": 53.3
     },
     {
       "trained_in": "locomotion",
@@ -75,28 +77,29 @@
         "backend": "RNE locomotion",
         "floor_friction": 1.0,
         "inner_passes": 1,
-        "solver_iterations": 4
+        "solver_iterations": 4,
+        "terrain_seed": null
       },
       "generations": 200,
       "reached": {
         "0.5": {
-          "generation": 93,
-          "wall_s": 24.5
+          "generation": 45,
+          "wall_s": 10.6
         },
         "1.0": {
-          "generation": 98,
-          "wall_s": 26.4
+          "generation": 74,
+          "wall_s": 18.2
         }
       },
       "final": {
-        "fitness": 5.848998697127246,
-        "forward_m": 6.871904720249995,
+        "fitness": 2.337487462497287,
+        "forward_m": 2.6349794508746847,
         "fell": false
       },
-      "best_fitness": 6.87007780345849,
-      "median_wall_s_per_generation": 0.27,
-      "simulated_s_per_wall_s": 669.7,
-      "total_wall_s": 54.0
+      "best_fitness": 2.6457691776209016,
+      "median_wall_s_per_generation": 0.303,
+      "simulated_s_per_wall_s": 595.9,
+      "total_wall_s": 64.9
     }
   ],
   "evaluations": [
@@ -106,10 +109,10 @@
       "seed": 2026,
       "outcome": {
         "fell": false,
-        "fitness": 1.268260688852,
-        "forward_m": 2.3250946030020714,
-        "heading_rad": -0.5378688194407313,
-        "lateral_m": -1.5367408958936721,
+        "fitness": 5.240184194237647,
+        "forward_m": 5.292035482823849,
+        "heading_rad": 0.0313545309047146,
+        "lateral_m": -0.042310737606385374,
         "survived_s": 5.0
       }
     },
@@ -119,10 +122,10 @@
       "seed": 2026,
       "outcome": {
         "fell": false,
-        "fitness": 0.9644342149936914,
-        "forward_m": 2.175934672355652,
-        "heading_rad": -0.5768458941862347,
-        "lateral_m": -1.8177521213510772,
+        "fitness": 5.0749239356959315,
+        "forward_m": 5.150014042854309,
+        "heading_rad": -0.10969556975774923,
+        "lateral_m": -0.011257519348873757,
         "survived_s": 5.0
       }
     },
@@ -132,10 +135,10 @@
       "seed": 2026,
       "outcome": {
         "fell": false,
-        "fitness": 2.78800175697354,
-        "forward_m": 3.301088008449721,
-        "heading_rad": -0.29514021539224883,
-        "lateral_m": -0.7013635260988185,
+        "fitness": 5.258608176021111,
+        "forward_m": 5.519222620267676,
+        "heading_rad": -0.04970514185012524,
+        "lateral_m": -0.44428093919117867,
         "survived_s": 5.0
       }
     },
@@ -145,10 +148,10 @@
       "seed": 11,
       "outcome": {
         "fell": false,
-        "fitness": 1.4715457416598368,
-        "forward_m": 1.9659029468894005,
-        "heading_rad": 0.2886775416813937,
-        "lateral_m": 0.5793638857339829,
+        "fitness": 2.733597321924792,
+        "forward_m": 3.339014910161495,
+        "heading_rad": 0.2423869627869452,
+        "lateral_m": 0.9334797891115159,
         "survived_s": 5.0
       }
     },
@@ -158,10 +161,10 @@
       "seed": 11,
       "outcome": {
         "fell": false,
-        "fitness": 1.3259778571641898,
-        "forward_m": 1.9163119792938232,
-        "heading_rad": 0.29885350164878066,
-        "lateral_m": 0.7616034165403107,
+        "fitness": 3.0962333229029455,
+        "forward_m": 3.420662999153137,
+        "heading_rad": 0.042621786040579146,
+        "lateral_m": 0.5717646494886139,
         "survived_s": 5.0
       }
     },
@@ -171,10 +174,10 @@
       "seed": 11,
       "outcome": {
         "fell": false,
-        "fitness": 2.4430092339829312,
-        "forward_m": 3.0583901518454653,
-        "heading_rad": -0.6689690225048399,
-        "lateral_m": -0.4450870372190685,
+        "fitness": 2.7432963206684526,
+        "forward_m": 3.417134118096267,
+        "heading_rad": 0.29118333344655367,
+        "lateral_m": 1.0227653606408802,
         "survived_s": 5.0
       }
     },
@@ -184,10 +187,10 @@
       "seed": 12,
       "outcome": {
         "fell": false,
-        "fitness": 2.944484137559825,
-        "forward_m": 3.5664936527609825,
-        "heading_rad": -0.6935803408901628,
-        "lateral_m": -0.4928053585554153,
+        "fitness": 1.8678729708576005,
+        "forward_m": 2.525725267827511,
+        "heading_rad": -0.5920218668213658,
+        "lateral_m": -0.6824046937490493,
         "survived_s": 5.0
       }
     },
@@ -196,12 +199,12 @@
       "trained_in": "locomotion",
       "seed": 12,
       "outcome": {
-        "fell": true,
-        "fitness": 0.9336055545298387,
-        "forward_m": 2.757098078727722,
-        "heading_rad": -0.7458108728235435,
-        "lateral_m": -0.8387577518442413,
-        "survived_s": 4.3
+        "fell": false,
+        "fitness": 1.5229246919845532,
+        "forward_m": 2.232493042945862,
+        "heading_rad": -0.5861768850620085,
+        "lateral_m": -0.7783037408808013,
+        "survived_s": 5.0
       }
     },
     {
@@ -210,10 +213,10 @@
       "seed": 12,
       "outcome": {
         "fell": false,
-        "fitness": 5.848998697127246,
-        "forward_m": 6.871904720249995,
-        "heading_rad": 0.3537823769275722,
-        "lateral_m": 1.6424914711863496,
+        "fitness": 2.337487462497287,
+        "forward_m": 2.6349794508746847,
+        "heading_rad": -0.13917864478687128,
+        "lateral_m": -0.4108426627014198,
         "survived_s": 5.0
       }
     }

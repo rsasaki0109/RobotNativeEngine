@@ -280,9 +280,9 @@ impl QuadrupedTerrainSim {
     /// Lets `spheres` touch the terrain besides the feet. Each step adds a
     /// contact for every sphere within 1 cm of the terrain, after the feet,
     /// so a robot that kneels or falls lands on its knees or body instead of
-    /// sinking through the ground. None by default. A sphere higher above the
-    /// terrain's highest point than the terrain's steepest slope lets it come
-    /// within 1 cm costs no terrain query, so spheres on the body and the
+    /// sinking through the ground. None by default. A sphere too far above
+    /// the terrain's highest point to come within 1 cm, given the terrain's
+    /// steepest slope, costs no terrain query, so spheres on the body and the
     /// upper legs cost little while they are clear of the ground.
     pub fn set_body_spheres(&mut self, spheres: Vec<BodySphere>) -> Result<(), LocomotionError> {
         let links = self.quadruped.model().kinematic();
