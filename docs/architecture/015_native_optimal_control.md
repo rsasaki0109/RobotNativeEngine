@@ -90,11 +90,14 @@ external optimal-control/dynamics library.
   the dynamics to `1e-3`.
 - `examples/108_go2_jump_opt` optimizes a Unitree **Go2 jump** over a fixed
   crouch → push → flight contact sequence with per-phase action costs and FDDP:
-  with control limits of ±23.7 Nm the floating base reaches a **0.372 m apex**,
-  ends at the target with near-zero velocity, the torque saturates exactly at
-  the actuator limit, the joints stay natural (`[-3.31, 1.96]` rad), and the
-  contact dynamics are satisfied to machine precision. This is the first
-  **actuator-realizable** jump produced by the native stack.
+  with control limits of ±23.7 Nm the floating base rises 0.158 m to a
+  **0.408 m apex** against the 0.40 m target, ends at 0.399 m with near-zero
+  velocity, the torque saturates exactly at the actuator limit, the joints stay
+  natural (`[-3.09, 1.21]` rad), and the contact dynamics are satisfied to
+  machine precision. This is the first **actuator-realizable** jump produced
+  by the native stack. (The old 27.1 kg model, which gave the eleven links that
+  declare no mass 1 kg each, overshot the target to a 0.622 m apex at ten times
+  the cost.)
 - `rne_oc::ActuatorLimitCost` wraps any cost model with a differentiable hinge
   penalty on joint velocity limit violations, turning a velocity bound into a
   soft state constraint the existing backward pass can use. On the Go2 jump it

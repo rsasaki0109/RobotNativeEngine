@@ -348,16 +348,20 @@ threads.
 
 `examples/134_go2_terrain_trot` trots the Go2 for 8 s over seeded fractal
 terrain with an open-loop diagonal gait on implicit PD, inside the Go2's
-declared effort limits. It covers about 2.8 m (0.35 m/s) with roll and pitch
-under 0.15 rad and the body at least 0.27 m above the ground, saturating an
-actuator in about 1.5 % of the steps, and replays bit-for-bit. Five terrain
-seeds give 2.66–2.80 m.
+declared effort limits. It covers about 3.5 m (0.44 m/s) with roll and pitch
+under 0.12 rad and the body at least 0.29 m above the ground, peaking at 84 %
+of the effort limit without saturating, and replays bit-for-bit. Terrain seeds
+2024 to 2028 give 3.45–3.52 m. (On the old 27.1 kg model, which gave the
+eleven links that declare no mass 1 kg each, it covered 2.66–2.80 m and
+saturated an actuator in about 1.5 % of the steps.)
 
 `examples/135_go2_feedback_trot` drives the Go2 with the feedback trot over
-0.09 m of fractal relief: 0.36 m/s against a 0.4 m/s command, a 2.08 rad turn
-against a 2.0 rad command, and a 250 N, 0.1 s lateral push after which the
-body is back within 0.023 rad of level one second later (the open-loop gait of
-example 134 is still tilted 0.229 rad and cannot turn).
+0.09 m of fractal relief: 0.36 m/s against a 0.4 m/s command, a 2.06 rad turn
+against a 2.0 rad command, and a 150 N, 0.1 s lateral push (a 0.9 m/s sideways
+kick, close to the robot's 158 N weight) after which the body is back within
+0.031 rad of level one second later. The open-loop gait of example 134 cannot
+turn and falls 1.8 s after the push. On the old 27.1 kg model the course used a
+250 N push, the same kick.
 
 `examples/136_go2_parallel_rl` runs 32 terrain episodes for 300 control steps:
 none falls with the zero residual, random residuals earn less reward, and the

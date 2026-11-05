@@ -40,7 +40,10 @@ impl Default for TrotParams {
             period_s: 0.36,
             swing_height_m: 0.07,
             raibert_gain_s: 0.03,
-            stance_feedback_gain: 1.0,
+            // Tuned on the Go2's declared 16.087 kg: 0.3 to 0.7 all trot, turn and
+            // recover from a push; the 1.0 tuned on the old 27 kg model topples
+            // the light robot in a 0.6 rad/s turn.
+            stance_feedback_gain: 0.5,
             attitude_gain: 0.5,
             heading_gain_per_s: 2.0,
             max_step_m: 0.14,
