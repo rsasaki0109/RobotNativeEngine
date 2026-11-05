@@ -43,9 +43,10 @@ pub use algorithms::{
 };
 pub use contact::{
     contact_frame, contact_step, contact_step_coupled, contact_step_coupled_with_external_forces,
-    integrate_configuration, solve_contact_impulses, ContactAnchor, ContactOutcome, ContactPoint,
-    ContactSolution, ContactSolverConfig, ContactState, ContactStep, ContactStepConfig,
-    CoupledBody, CoupledContact, CoupledStep, JointLimitOutcome, JointLimitSide, JointPdControl,
+    contact_step_with_kinematics, integrate_configuration, solve_contact_impulses, ContactAnchor,
+    ContactOutcome, ContactPoint, ContactSolution, ContactSolverConfig, ContactState, ContactStep,
+    ContactStepConfig, CoupledBody, CoupledContact, CoupledStep, JointLimitOutcome, JointLimitSide,
+    JointPdControl,
 };
 pub use model::{ArticulatedModel, BaseMotion, DynamicsError};
 pub use spatial::{SpatialInertia, SpatialVec};

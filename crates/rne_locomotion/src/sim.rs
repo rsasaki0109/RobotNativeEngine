@@ -2,10 +2,13 @@
 
 use crate::quadruped::{terrain_surface, BaseState, LocomotionError, Quadruped};
 use rne_dynamics::{
-    contact_frame, contact_step, ContactOutcome, ContactPoint, ContactStepConfig, JointPdControl,
+    contact_frame, contact_step_with_kinematics, ContactOutcome, ContactPoint, ContactStepConfig,
+    JointPdControl,
 };
+use rne_ecs::Entity;
 use rne_math::Vec3;
 use rne_physics::ColliderShape;
+use rne_robot::ForwardKinematics;
 use std::sync::Arc;
 
 /// Settings of [`QuadrupedTerrainSim`].
@@ -111,7 +114,23 @@ pub struct QuadrupedTerrainSim {
     qd: Vec<f64>,
     warm: Option<Vec<[f64; 3]>>,
     time_s: f64,
+    body_spheres: Vec<BodySphere>,
 }
+
+/// A collision sphere fixed to a link of the robot, besides the feet: a knee,
+/// a shin or a body corner that can touch the terrain.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BodySphere {
+    /// Kinematic link the sphere moves with.
+    pub link: Entity,
+    /// Sphere center in the link frame, in meters.
+    pub center_local_m: Vec3,
+    /// Sphere radius, in meters.
+    pub radius_m: f64,
+}
+
+/// A body sphere joins a step's contacts when it is this close to the terrain.
+const BODY_CONTACT_MARGIN_M: f64 = 0.01;
 
 impl QuadrupedTerrainSim {
     /// Creates a simulation standing at the locomotion-frame origin.
@@ -140,6 +159,7 @@ impl QuadrupedTerrainSim {
             qd: vec![0.0; nv],
             warm: None,
             time_s: 0.0,
+            body_spheres: Vec::new(),
         };
         sim.reset_standing(0.0, 0.0, 0.0)?;
         Ok(sim)
@@ -178,6 +198,50 @@ impl QuadrupedTerrainSim {
         Ok(())
     }
 
+    /// Lets `spheres` touch the terrain besides the feet. Each step adds a
+    /// contact for every sphere within 1 cm of the terrain, after the feet,
+    /// so a robot that kneels or falls lands on its knees or body instead of
+    /// sinking through the ground. None by default.
+    pub fn set_body_spheres(&mut self, spheres: Vec<BodySphere>) -> Result<(), LocomotionError> {
+        let links = self.quadruped.model().kinematic();
+        if spheres.iter().any(|sphere| {
+            links.link_index(sphere.link).is_none()
+                || !sphere.center_local_m.is_finite()
+                || !(sphere.radius_m.is_finite() && sphere.radius_m >= 0.0)
+        }) {
+            return Err(LocomotionError::InvalidInput("body sphere"));
+        }
+        self.body_spheres = spheres;
+        Ok(())
+    }
+
+    /// Spheres besides the feet that can touch the terrain.
+    pub fn body_spheres(&self) -> &[BodySphere] {
+        &self.body_spheres
+    }
+
+    /// Puts the robot in configuration `q` (`(x, y, z, roll, pitch, yaw,
+    /// joints…)` in the locomotion frame) with generalized velocity `qd` (base
+    /// body twist, then joint rates), clears the contact warm start, and resets
+    /// the clock. Use it to start from a pose other than the stand pose, such
+    /// as a policy's default pose held above the ground.
+    pub fn set_state(&mut self, q: &[f64], qd: &[f64]) -> Result<(), LocomotionError> {
+        let nv = self.quadruped.model().nv();
+        if q.len() != nv || qd.len() != nv {
+            return Err(LocomotionError::InvalidInput(
+                "one value per generalized coordinate",
+            ));
+        }
+        if q.iter().chain(qd).any(|value| !value.is_finite()) {
+            return Err(LocomotionError::InvalidInput("finite state"));
+        }
+        self.q = q.to_vec();
+        self.qd = qd.to_vec();
+        self.warm = None;
+        self.time_s = 0.0;
+        Ok(())
+    }
+
     /// Advances one step under `command`, with an extra `base_force_n`
     /// (locomotion frame, through the base origin) held over the step.
     pub fn step(
@@ -200,11 +264,15 @@ impl QuadrupedTerrainSim {
         if !base_force_n.is_finite() {
             return Err(LocomotionError::InvalidInput("base force"));
         }
-        let contacts = self.quadruped.foot_contacts(
+        // One forward-kinematics pass places the contacts and serves the step.
+        let kinematics = model.kinematic().forward_kinematics(&self.q)?;
+        let mut contacts = self.quadruped.foot_contacts_from(
+            &kinematics,
             &self.terrain,
-            &self.q,
             self.config.friction_coefficient,
         )?;
+        let feet = contacts.len();
+        self.append_body_contacts(&kinematics, &mut contacts)?;
         let mut tau = vec![0.0; model.nv()];
         let rotation = self.base_state().rotation;
         let body_force = rotation.conjugate() * base_force_n;
@@ -227,20 +295,29 @@ impl QuadrupedTerrainSim {
             step_time_s: self.config.step_time_s,
             ..self.config.contact
         };
-        let step = contact_step(
+        // The feet warm-start from the previous step; body contacts come and
+        // go, so they start cold.
+        let warm = self.warm.as_ref().map(|feet_warm| {
+            let mut warm = feet_warm.clone();
+            warm.resize(contacts.len(), [0.0; 3]);
+            warm
+        });
+        let step = contact_step_with_kinematics(
             model,
+            &kinematics,
             &self.q,
             &self.qd,
             &tau,
             &contacts,
             Some(&pd),
             &config,
-            self.warm.as_deref(),
+            warm.as_deref(),
         )?;
         self.warm = Some(
             step.contacts
                 .iter()
                 .zip(&contacts)
+                .take(feet)
                 .map(|(outcome, contact)| {
                     let [t1, t2, n] = contact_frame(contact.normal_world);
                     let impulse = outcome.impulse_world_n_s;
@@ -312,6 +389,36 @@ impl QuadrupedTerrainSim {
         let (height, _) = terrain_surface(&self.terrain, self.q[0], self.q[1])?;
         Ok(self.q[2] - height)
     }
+
+    /// Appends a contact for each body sphere near the terrain.
+    fn append_body_contacts(
+        &self,
+        kinematics: &ForwardKinematics,
+        contacts: &mut Vec<ContactPoint>,
+    ) -> Result<(), LocomotionError> {
+        let model = self.quadruped.model();
+        for sphere in &self.body_spheres {
+            let Some(index) = model.kinematic().link_index(sphere.link) else {
+                continue;
+            };
+            let frame = kinematics.transforms()[index];
+            let center = frame.translation + frame.rotation * sphere.center_local_m;
+            let (height, normal) = terrain_surface(&self.terrain, center.x, center.y)?;
+            let gap = (center.z - height) * normal.z - sphere.radius_m;
+            if gap > BODY_CONTACT_MARGIN_M {
+                continue;
+            }
+            let point = center - normal * sphere.radius_m;
+            contacts.push(ContactPoint {
+                link: sphere.link,
+                point_local_m: frame.rotation.conjugate() * (point - frame.translation),
+                normal_world: normal,
+                gap_m: gap,
+                friction_coefficient: self.config.friction_coefficient,
+            });
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -330,6 +437,105 @@ mod tests {
         }
         .height_field(1)
         .expect("terrain")
+    }
+
+    #[test]
+    fn body_spheres_hold_a_limp_robot_off_the_floor() {
+        let go2 = Arc::new(Quadruped::go2().expect("go2"));
+        // No PD: the legs give way and the body drops.
+        let limp = TerrainSimConfig {
+            position_gain_nm_rad: 0.0,
+            velocity_gain_nm_s_rad: 0.0,
+            ..TerrainSimConfig::default()
+        };
+        let base = go2
+            .model()
+            .kinematic()
+            .link_entity_by_name("base")
+            .expect("base link");
+        let belly = BodySphere {
+            link: base,
+            center_local_m: Vec3::ZERO,
+            radius_m: 0.06,
+        };
+        let command = JointCommand::positions(go2.stand_pose_rad().to_vec());
+        let lowest = |spheres: Vec<BodySphere>| {
+            let mut sim = QuadrupedTerrainSim::new(go2.clone(), flat_terrain(), limp).expect("sim");
+            sim.set_body_spheres(spheres).expect("spheres");
+            let mut lowest = f64::INFINITY;
+            let mut body_contacts = 0;
+            for _ in 0..1000 {
+                let step = sim.step(&command, Vec3::ZERO).expect("step");
+                body_contacts = body_contacts.max(step.contacts.len() - 4);
+                lowest = lowest.min(sim.base_clearance_m().expect("clearance"));
+            }
+            (lowest, body_contacts)
+        };
+        let (sunk, none) = lowest(Vec::new());
+        assert!(sunk < 0.0, "without spheres the body sinks: {sunk}");
+        assert_eq!(none, 0);
+        let (held, touching) = lowest(vec![belly]);
+        assert!(held > 0.05, "the belly sphere holds the body up: {held}");
+        assert_eq!(touching, 1);
+
+        let mut sim = QuadrupedTerrainSim::new(go2.clone(), flat_terrain(), limp).expect("sim");
+        for bad in [
+            BodySphere {
+                radius_m: -0.01,
+                ..belly
+            },
+            BodySphere {
+                center_local_m: Vec3::new(f64::NAN, 0.0, 0.0),
+                ..belly
+            },
+            BodySphere {
+                link: Entity::PLACEHOLDER,
+                ..belly
+            },
+        ] {
+            assert!(sim.set_body_spheres(vec![bad]).is_err());
+        }
+        assert!(sim.body_spheres().is_empty());
+    }
+
+    #[test]
+    fn set_state_places_the_robot_and_rejects_bad_states() {
+        let go2 = Arc::new(Quadruped::go2().expect("go2"));
+        let mut sim =
+            QuadrupedTerrainSim::new(go2.clone(), flat_terrain(), TerrainSimConfig::default())
+                .expect("sim");
+        let targets = JointCommand::positions(go2.stand_pose_rad().to_vec());
+        sim.step(&targets, Vec3::ZERO).expect("step");
+        let nv = go2.model().nv();
+        let mut q = vec![0.0; nv];
+        q[0] = 0.4;
+        q[2] = 0.36;
+        q[5] = 0.3;
+        for (slot, angle) in q[6..].iter_mut().zip(go2.stand_pose_rad()) {
+            *slot = angle + 0.1;
+        }
+        let mut qd = vec![0.0; nv];
+        qd[0] = 0.2;
+        sim.set_state(&q, &qd).expect("set state");
+        assert_eq!(sim.q(), q.as_slice());
+        assert_eq!(sim.qd(), qd.as_slice());
+        assert_eq!(sim.time_s(), 0.0);
+        let state = sim.base_state();
+        assert!((state.position_m - Vec3::new(0.4, 0.0, 0.36)).length() < 1e-12);
+        assert!((state.heading_rad() - 0.3).abs() < 1e-12);
+        // Released above the ground, it falls and lands on its feet.
+        for _ in 0..500 {
+            sim.step(&targets, Vec3::ZERO).expect("step");
+        }
+        assert!(sim.base_clearance_m().expect("clearance") > 0.25);
+        assert!(sim.set_state(&q[1..], &qd).is_err());
+        assert!(sim.set_state(&q, &qd[1..]).is_err());
+        let mut bad = q.clone();
+        bad[3] = f64::NAN;
+        assert!(sim.set_state(&bad, &qd).is_err());
+        // A rejected state leaves the last one in place.
+        assert_eq!(sim.q().len(), nv);
+        assert!(sim.q().iter().all(|value| value.is_finite()));
     }
 
     #[test]

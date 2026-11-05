@@ -48,5 +48,5 @@ pub use quadruped::{
     locomotion_from_world, world_from_locomotion, BaseState, LegGeometry, LocomotionError,
     Quadruped, QuadrupedSpec,
 };
-pub use sim::{JointCommand, QuadrupedTerrainSim, SimStep, TerrainSimConfig};
+pub use sim::{BodySphere, JointCommand, QuadrupedTerrainSim, SimStep, TerrainSimConfig};
 pub use trot::{TrotController, TrotParams, VelocityCommand};
