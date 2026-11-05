@@ -41,8 +41,10 @@ measured on the plant; the numbers that matter are pinned by tests in
 
 `examples/126_go2_heading_steer` runs `unitree_go2_jump` -- the same URDF with
 its fixed children fused into the links they are fixed to and its declared
-masses (16.087 kg; it used to weld them and give the eight lower-calf bumpers,
-which declare no inertial, 1 kg each, 24 kg in all) -- and walks it
+masses (16.087 kg; it used to weld them and give the eleven links that declare
+no mass -- the eight lower-calf bumpers and the front camera, which declare no
+inertial, and the IMU and radar, which declare 0 kg -- 1 kg each, 27.1 kg in
+all) -- and walks it
 head first through an S (straight, left 90°, straight, right 90°, straight)
 over 46 s. Nothing below this section carries over to that model:
 
@@ -75,7 +77,7 @@ Measured: held headings 0.010 rad RMS, worst 0.047 rad; every segment ends
 within 0.01 rad of its command; 10.8 m walked along the facing; the body never
 below 0.306 m. A walk eases its command in over its first second: on the
 16 kg robot a full-speed first step tipped it into a stumble that dropped the
-body to 0.104 m in example 130's room loop. On the earlier 24 kg plant (8.5 m,
+body to 0.104 m in example 130's room loop. On the earlier 27 kg plant (8.5 m,
 0.037 rad RMS) it held within 0.050 rad RMS with the assumed mass ±10 %, the
 speed command ±20 %, the heading gain −20 % or the gait period −10 %; that
 sweep has not been repeated. `-- --smoke` gates the run and runs in CI.

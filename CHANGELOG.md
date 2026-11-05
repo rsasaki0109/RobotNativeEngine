@@ -50,14 +50,25 @@ All notable changes to Robot Native Engine are documented in this file.
 
 - `unitree_go2_jump` (and the Mid-360 room and two-rooms scenes built on it)
   fuses the Go2's fixed links instead of welding them, so it carries the URDF's
-  declared 16.087 kg: the welded robot gave the eight lower-calf bumpers 1 kg
-  each, 24 kg in all, against the 16.1 kg `UnitreeGo2ModelTrot` assumes.
+  declared 16.087 kg: the welded robot gave the eleven links that declare no
+  mass (the eight lower-calf bumpers, the front camera, the IMU and the radar)
+  1 kg each, 27.1 kg in all, against the 16.1 kg `UnitreeGo2ModelTrot` assumes.
   `UnitreeGo2ModelTrot` now eases a walk's command in over its first second
   from standing: on the lighter robot a full-speed first step tipped it into a
   stumble (example 130's loop dropped its body to 0.104 m). Re-measured,
   example 126 holds headings to 0.010 rad RMS over 10.8 m (0.037 rad over
-  8.5 m before) and examples 130 and 131 pass. Example 109's jump now lifts off
-  but tumbles on landing; its header records both plants.
+  8.5 m before) and examples 130 and 131 pass.
+- `examples/109_go2_jump_sim` plans on the same 16.087 kg Go2 it now jumps:
+  its planner model fuses the fixed links too. It had given the same eleven
+  links 1 kg each, which matched the welded plant at 27.1 kg; against the
+  16.087 kg plant the 27 kg plan flipped the robot mid-jump. `--com-ff` now
+  defaults to 1 (the plan's own center-of-mass acceleration): on the 16 kg
+  pair the old 2 leans 0.66 rad. `--wbc-stance` rises 0.140 m, the feet clear
+  77 mm at a peak lean of 0.246 rad, and it lands (settled tilt 0.008 rad),
+  against the documented 0.107 m, 44 mm and 0.325 rad on the 27 kg pair; it
+  leaves the ground ten nodes before the planned takeoff. The other modes
+  tumble or land tilted; the header lists each. `docs/media/go2-jump.gif` and
+  its still are re-rendered from the new run.
 
 - `unitree_go2_dynamic` (robot asset and scene, and the terrain scene built on
   it) now stands the Go2 on its feet: it fuses the URDF's fixed children into

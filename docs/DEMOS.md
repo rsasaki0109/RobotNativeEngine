@@ -738,9 +738,9 @@ executes it with the whole-body controller.
 
 <p align="center">
     <source media="(prefers-reduced-motion: reduce)" srcset="media/go2-jump.png">
-    <img src="media/go2-jump.gif" alt="A Unitree Go2 crouches, pushes off, tucks its legs in flight, and lands upright" width="460">
+    <img src="media/go2-jump.gif" alt="A Unitree Go2 crouches, pushes off, leaves the ground, and lands upright" width="460">
   <br>
-  <sub>Crouch–push–flight jump planned by the native FDDP solver, executed by the whole-body controller with torque feed-forward and low-gain tracking. The body rises 0.107 m, the feet clear 44 mm, and the peak lean is 0.33 rad (0.73 rad before the feed-forward). <a href="../examples/109_go2_jump_sim/main.rs">source</a></sub>
+  <sub>Crouch–push–flight jump planned by the native FDDP solver on the same 16.087 kg Go2 it runs on, executed by the whole-body controller with torque feed-forward and low-gain tracking. The body rises 0.140 m, the feet clear 77 mm, the peak lean is 0.25 rad, and it lands upright (settled tilt 0.008 rad). The controller does not keep the plan's timing: the feet leave the ground ten nodes before the planned takeoff. <a href="../examples/109_go2_jump_sim/main.rs">source</a></sub>
 </p>
 
 ```bash

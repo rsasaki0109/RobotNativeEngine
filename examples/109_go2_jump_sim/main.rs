@@ -2,10 +2,11 @@
 //! actuator-limited plan on the dynamic simulation.
 //!
 //! The plan uses a crouch -> push -> flight contact sequence with per-phase
-//! action costs and a ±23.7 Nm control box. The simulator uses the declared
-//! inertias (the mass-matched jump scene), so the plan and plant share the same
-//! masses. Execution applies the feed-forward torque plus a joint PD term, one
-//! planning node per simulation step.
+//! action costs and a ±23.7 Nm control box. Plan and plant are the same
+//! 16.087 kg Go2: the jump scene fuses the URDF's fixed links into the links
+//! they hang from, with the declared masses, and the planner's model fuses them
+//! the same way. Execution applies the feed-forward torque plus a joint PD
+//! term, one planning node per simulation step.
 //!
 //! Status: the plan is actuator-realizable (a 0.25 m apex, torque saturated at
 //! ±23.7 Nm, gap-free). It originally failed to transfer, and the cause was
@@ -17,19 +18,33 @@
 //! the calf instead of 0.213 m. Attaching it with the jump robot's
 //! `weld_fixed_children = true` option makes the optimized jump lift off.
 //!
-//! The welded jump robot still gave the eight lower-calf bumpers, which declare
-//! no inertial, 1 kg each: the plant weighed about 24 kg against the planner's
-//! 16. The jump robot now fuses its fixed links (`fuse_fixed_children`) with
-//! the declared masses, so plan and plant finally carry the same 16.087 kg. On
-//! it the default run still lifts off (feet up to 0.096 m) but tumbles on
-//! landing (`max_tilt=1.793`, `landed=false`), where the 24 kg plant landed
-//! (`max_tilt=0.407`, settled tilt 0.011 rad). The landing catch, tuned on the
-//! heavier plant, needs re-tuning. The numbers below were measured on the
-//! welded, 24 kg plant:
+//! The welded robot gave the eleven links that declare no mass (the eight
+//! lower-calf bumpers, the front camera, the IMU and the radar) the spawner's
+//! 1 kg default, and so did the planner's own model: plan and plant matched,
+//! but at 27.1 kg against the URDF's 16.087. Both now fuse the fixed links,
+//! and a link without a declared mass is massless, as the URDF specification
+//! has it. (Fusing only the plant flipped the robot mid-jump under the 27 kg
+//! plan.) Measured on the 16.087 kg pair (`landed` means the settled tilt
+//! stays below 0.6 rad):
 //!
-//! - torque + PD: apex 0.324 m, tilt 0.45 rad, feet skim but do not lift off
-//! - `--position-stance` (`--lookahead`): apex 0.402 m, jump 0.070 m, tilt 0.67
-//! - `--wbc-stance`: apex 0.438 m, jump 0.106 m (plan 0.250 m), tilt 0.73 rad
+//! - `--wbc-stance` (the demo): the body rises 0.140 m, the feet clear 77 mm,
+//!   peak lean 0.246 rad, `landed=true` with a settled tilt of 0.008 rad. The
+//!   stance does not keep the plan's timing: the body rises from node 6 while
+//!   the plan still crouches, and the feet leave the ground at node 15, ten
+//!   nodes before the planned takeoff, and are down again by node 24, so
+//!   `--tuck` (which acts in the planned flight) no longer changes these numbers.
+//! - `--wbc-stance --vel-weight 0`: rises 0.142 m, feet 113 mm, lean 0.60 rad,
+//!   lands.
+//! - torque + PD (no flag): the feet lift 59 mm but the body never rises above
+//!   the stand (lean 0.53 rad), and the catch settles tilted (0.75 rad,
+//!   `landed=false`).
+//! - `--position-stance` (also with `--lookahead 2`), `--wbc-stance
+//!   --no-ff-torque` and `--wbc-stance --mpc` tumble (lean 1.7 to 2.9 rad).
+//!
+//! `--com-ff` defaults to 1, the plan's own center-of-mass acceleration; the
+//! 2 it had, tuned on the 27 kg pair, leans 0.66 rad on the 16 kg one. The
+//! analysis below was done on the 27.1 kg pair and has not been repeated on
+//! the 16.087 kg one.
 //!
 //! **The jump is not clean yet: the base pitches forward about 0.7 rad and the
 //! robot lands nose-first.** The pitch is not from the pose — a static crouch
@@ -144,7 +159,7 @@ const BASE_KD: f64 = 12.0;
 const BASE_SIGN: f64 = 1.0;
 const WBC_COM_KP: f64 = 6.0;
 const WBC_COM_KD: f64 = 2.0;
-const WBC_COM_FF: f64 = 2.0;
+const WBC_COM_FF: f64 = 1.0;
 const WBC_ATTITUDE_KP: f64 = -200.0;
 const WBC_ATTITUDE_KD: f64 = 16.0;
 const ACTUATOR_VELOCITY_WEIGHT: f64 = 5.0;
@@ -211,6 +226,13 @@ fn build_model() -> ArticulatedModel {
     };
     let spawned = rne_urdf_import::spawn_urdf_document_with_config(&mut world, &document, config)
         .expect("spawn Go2");
+    // Fuse the fixed links as the jump scene does, so plan and plant carry the
+    // same 16.087 kg: a link that declares no mass (the lower-calf bumpers, the
+    // front camera, the IMU, the radar) is massless rather than the spawner's
+    // 1 kg default.
+    // The fused links stay in the kinematic tree, so the feet keep their
+    // frames for the contact phases.
+    rne_urdf_import::fuse_urdf_fixed_children(&mut world, &document.robot, &spawned);
     world.entity_mut(spawned.base_link).insert((
         Transform3::from_translation_rotation(
             Vec3::ZERO,
