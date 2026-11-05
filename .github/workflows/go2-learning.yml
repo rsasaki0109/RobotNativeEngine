@@ -1,0 +1,162 @@
+name: Go2 learning comparison
+
+# Example 147 trained in RNE's locomotion step and in MuJoCo on the same
+# runner, one engine after the other for each seed, then each engine
+# evaluates every final policy. Heavy (about half an hour a floor), so it
+# runs on demand and when this workflow changes.
+on:
+  workflow_dispatch:
+    inputs:
+      seeds:
+        description: "ES seeds, space-separated"
+        required: false
+        default: "2026 11 12"
+      floors:
+        description: 'Floors as a JSON list: "flat", "terrain"'
+        required: false
+        default: '["flat", "terrain"]'
+  push:
+    paths:
+      - ".github/workflows/go2-learning.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Go2 learning, RNE locomotion vs MuJoCo (${{ matrix.floor }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        floor: ${{ fromJSON(inputs.floors || '["flat", "terrain"]') }}
+    env:
+      SEEDS: ${{ inputs.seeds || '2026 11 12' }}
+      # The rough terrain's seed; the flat floor ignores it.
+      TERRAIN_SEED: "7"
+      FLOOR: ${{ matrix.floor }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-learning
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build example 147
+        run: cargo build --locked --release -p go2_learning --example 147_go2_learning
+
+      - name: Install MuJoCo
+        run: |
+          python -m venv .venv-mujoco
+          .venv-mujoco/bin/pip install --disable-pip-version-check \
+            -r examples/116_robot_workbench/python/requirements-mujoco.txt numpy
+          .venv-mujoco/bin/python -c "import mujoco; print('mujoco', mujoco.__version__)"
+
+      - name: Floor
+        run: |
+          set -euo pipefail
+          out=artifacts/go2-learning-$FLOOR
+          mkdir -p "$out"
+          if [ "$FLOOR" = terrain ]; then
+            target/release/examples/147_go2_learning --write-terrain "$out/terrain.json" \
+              --terrain "$TERRAIN_SEED"
+            # MuJoCo's height field must match RNE's heights before training.
+            .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
+              check-terrain "$out/terrain.json"
+            echo "RNE_FLOOR=--terrain $TERRAIN_SEED" >> "$GITHUB_ENV"
+            echo "MUJOCO_FLOOR=--terrain $out/terrain.json" >> "$GITHUB_ENV"
+            echo "TAG=locomotion-terrain" >> "$GITHUB_ENV"
+          else
+            echo "RNE_FLOOR=" >> "$GITHUB_ENV"
+            echo "MUJOCO_FLOOR=" >> "$GITHUB_ENV"
+            echo "TAG=locomotion" >> "$GITHUB_ENV"
+          fi
+          echo "OUT=$out" >> "$GITHUB_ENV"
+
+      - name: Train in both engines
+        run: |
+          set -euo pipefail
+          bin=target/release/examples/147_go2_learning
+          cores=$(nproc)
+          echo "cores: $cores"
+          for seed in $SEEDS; do
+            # shellcheck disable=SC2086
+            "$bin" --train --backend locomotion $RNE_FLOOR --seed "$seed" --threads "$cores" \
+              --output "$OUT"
+            # shellcheck disable=SC2086
+            .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py train \
+              "$OUT/go2-learning-$TAG-$seed.json" "$OUT/go2-learning-mujoco-$seed.json" \
+              --processes "$cores" $MUJOCO_FLOOR
+          done
+
+      - name: Single-thread speed
+        run: |
+          set -euo pipefail
+          for run in 1 2 3; do
+            # shellcheck disable=SC2086
+            target/release/examples/147_go2_learning --bench 8 --backend locomotion $RNE_FLOOR
+            # shellcheck disable=SC2086
+            .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py bench 8 \
+              $MUJOCO_FLOOR
+          done
+
+      - name: Evaluate every policy in every engine
+        run: |
+          set -euo pipefail
+          bin=target/release/examples/147_go2_learning
+          for seed in $SEEDS; do
+            for trained in "$TAG" mujoco; do
+              policy="$OUT/go2-learning-$trained-$seed.json"
+              # shellcheck disable=SC2086
+              "$bin" --evaluate "$policy" --backend locomotion $RNE_FLOOR \
+                > "$OUT/eval-locomotion-$trained-$seed.json"
+              if [ "$FLOOR" = flat ]; then
+                "$bin" --evaluate "$policy" --backend rapier > "$OUT/eval-rne-$trained-$seed.json"
+              fi
+              # shellcheck disable=SC2086
+              .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py evaluate \
+                "$policy" $MUJOCO_FLOOR > "$OUT/eval-mujoco-$trained-$seed.json"
+            done
+          done
+
+      - name: Summary
+        run: |
+          set -euo pipefail
+          args=()
+          evaluating="locomotion mujoco"
+          if [ "$FLOOR" = flat ]; then evaluating="locomotion rne mujoco"; fi
+          for seed in $SEEDS; do
+            for trained in "$TAG" mujoco; do
+              engine=$trained
+              if [ "$trained" = "$TAG" ]; then engine=locomotion; fi
+              args+=(--training "$engine:$seed=$OUT/go2-learning-$trained-$seed.json")
+              for evaluator in $evaluating; do
+                args+=(--evaluation "$evaluator/$engine:$seed=$OUT/eval-$evaluator-$trained-$seed.json")
+              done
+            done
+          done
+          python3 examples/147_go2_learning/learning_compare.py \
+            "$OUT/go2-learning-compare-$FLOOR.json" "$OUT/go2-learning-compare-$FLOOR.svg" \
+            "${args[@]}"
+          echo "--- summary JSON ---"
+          cat "$OUT/go2-learning-compare-$FLOOR.json"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-learning-compare-${{ matrix.floor }}
+          path: artifacts/go2-learning-${{ matrix.floor }}
+          if-no-files-found: warn
+          retention-days: 30

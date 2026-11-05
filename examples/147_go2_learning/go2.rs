@@ -44,6 +44,13 @@ pub(crate) const LATERAL_PENALTY: f64 = 0.5;
 pub(crate) const HEADING_PENALTY: f64 = 0.5;
 pub(crate) const FALL_PENALTY: f64 = 1.0;
 pub(crate) const SMOOTHNESS_PENALTY: f64 = 0.02;
+/// Rough terrain (`--terrain SEED`): fractal heights over a square this wide,
+/// sampled every 10 cm, with `rne_locomotion`'s episode relief (0.5 cycles
+/// per metre, 4 cm peak first octave), shifted to height zero at the origin.
+pub(crate) const TERRAIN_SIZE_M: f64 = 24.0;
+pub(crate) const TERRAIN_SAMPLES: u32 = 241;
+pub(crate) const TERRAIN_FREQUENCY_PER_M: f64 = 0.5;
+pub(crate) const TERRAIN_AMPLITUDE_M: f64 = 0.04;
 
 /// Which RNE backend simulates the robot.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -85,6 +92,8 @@ pub(crate) struct Plant {
     /// Rapier's inner constraint passes per solver iteration.
     pub(crate) inner_passes: usize,
     pub(crate) floor_friction: f64,
+    /// Seed of the rough terrain, or a flat floor.
+    pub(crate) terrain_seed: Option<u64>,
 }
 
 impl Default for Plant {
@@ -94,6 +103,7 @@ impl Default for Plant {
             solver_iterations: 4,
             inner_passes: 1,
             floor_friction: 1.0,
+            terrain_seed: None,
         }
     }
 }
@@ -111,6 +121,10 @@ pub(crate) trait Robot {
     fn base_velocity_z_up(&self) -> (Vec3, Vec3);
     /// Positions (rad) and velocities (rad/s) in [`LINKS`] order.
     fn joint_states(&self) -> Result<[(f64, f64); 12]>;
+    /// Height of the ground below `(x, y)` in the Z-up world, in meters.
+    fn ground_height_m(&self, _x_m: f64, _y_m: f64) -> f64 {
+        0.0
+    }
 }
 
 /// The Go2 on Rapier.
@@ -148,6 +162,9 @@ impl Robot for RapierGo2 {
 
 /// A Go2 on `plant`'s backend, started (but not yet settled).
 pub(crate) fn robot(plant: Plant) -> Result<Box<dyn Robot>> {
+    if plant.terrain_seed.is_some() && plant.backend != Backend::Locomotion {
+        return Err("rough terrain needs --backend locomotion".into());
+    }
     Ok(match plant.backend {
         Backend::Rapier => {
             let mut robot = RapierGo2(walker(plant)?);
@@ -155,9 +172,10 @@ pub(crate) fn robot(plant: Plant) -> Result<Box<dyn Robot>> {
             Box::new(robot)
         }
         Backend::Native => Box::new(crate::native::NativeGo2::new(plant.floor_friction)?),
-        Backend::Locomotion => {
-            Box::new(crate::locomotion::LocomotionGo2::new(plant.floor_friction)?)
-        }
+        Backend::Locomotion => Box::new(crate::locomotion::LocomotionGo2::new(
+            plant.floor_friction,
+            plant.terrain_seed,
+        )?),
     })
 }
 
@@ -214,6 +232,78 @@ pub(crate) fn settle(robot: &mut dyn Robot) -> Result<()> {
         robot.step()?;
     }
     Ok(())
+}
+
+/// The rough terrain for `seed`: a Y-up height field, zero at the origin.
+pub(crate) fn terrain(seed: u64) -> Result<rne_physics::ColliderShape> {
+    let spec = rne_physics::FractalTerrain {
+        size_x_m: TERRAIN_SIZE_M,
+        size_z_m: TERRAIN_SIZE_M,
+        columns: TERRAIN_SAMPLES,
+        rows: TERRAIN_SAMPLES,
+        frequency_per_m: TERRAIN_FREQUENCY_PER_M,
+        amplitude_m: TERRAIN_AMPLITUDE_M,
+        ..rne_physics::FractalTerrain::default()
+    };
+    let raw = spec.height_field(seed)?;
+    let origin = rne_physics::height_field_surface(&raw, 0.0, 0.0)
+        .ok_or("the terrain does not cover the origin")?
+        .height_m;
+    Ok(rne_physics::FractalTerrain {
+        height_offset_m: -origin,
+        ..spec
+    }
+    .height_field(seed)?)
+}
+
+/// Height of the Y-up `terrain` below Z-up `(x, y)`, in meters.
+pub(crate) fn terrain_height_m(terrain: &rne_physics::ColliderShape, x_m: f64, y_m: f64) -> f64 {
+    // Z-up (x, y) is Y-up (x, -z).
+    rne_physics::height_field_surface(terrain, x_m, -y_m).map_or(f64::NEG_INFINITY, |s| s.height_m)
+}
+
+/// The terrain for `seed` in the Z-up frame MuJoCo's height field uses:
+/// row `r` at `y = -size/2 + r size/(rows - 1)`, column `c` at
+/// `x = -size/2 + c size/(columns - 1)`, and the heights at a few probe
+/// points, so another engine can check its copy.
+pub(crate) fn terrain_json(seed: u64) -> Result<serde_json::Value> {
+    let shape = terrain(seed)?;
+    let rne_physics::ColliderShape::HeightField {
+        nrows,
+        ncols,
+        heights_m,
+        scale,
+    } = &shape
+    else {
+        return Err("a fractal terrain is a height field".into());
+    };
+    let (rows, columns) = (*nrows as usize, *ncols as usize);
+    // Y-up row r lies at z = -size/2 + r dz, that is at Z-up y = -z: the
+    // Z-up rows run the other way.
+    let heights: Vec<f64> = (0..rows)
+        .rev()
+        .flat_map(|row| (0..columns).map(move |column| (row, column)))
+        .map(|(row, column)| heights_m[row * columns + column] * scale.y)
+        .collect();
+    let mut normal = crate::es::Normal(seed);
+    let probes: Vec<[f64; 3]> = (0..40)
+        .map(|_| {
+            let x = (normal.sample() * 3.0).clamp(-10.0, 10.0);
+            let y = (normal.sample() * 3.0).clamp(-10.0, 10.0);
+            [x, y, terrain_height_m(&shape, x, y)]
+        })
+        .collect();
+    Ok(serde_json::json!({
+        "seed": seed,
+        "frame": "z-up: row r at y = -size/2 + r size/(rows-1), column c at x = -size/2 + c size/(columns-1)",
+        "size_m": TERRAIN_SIZE_M,
+        "rows": rows,
+        "columns": columns,
+        "frequency_per_m": TERRAIN_FREQUENCY_PER_M,
+        "amplitude_m": TERRAIN_AMPLITUDE_M,
+        "heights_m": heights,
+        "probes": probes,
+    }))
 }
 
 /// Heading about +z of a Z-up orientation.
@@ -291,7 +381,8 @@ pub(crate) fn episode(
         steps += 1;
         let (position, rotation) = robot.base_pose_z_up();
         let gravity_z = (rotation.inverse() * Vec3::new(0.0, 0.0, -1.0)).z;
-        if position.z < FALL_HEIGHT_M || gravity_z > FALL_GRAVITY_Z {
+        let clearance = position.z - robot.ground_height_m(position.x, position.y);
+        if clearance < FALL_HEIGHT_M || gravity_z > FALL_GRAVITY_Z {
             fell = true;
             break;
         }
@@ -322,6 +413,63 @@ mod tests {
     fn heading_is_the_rotation_about_z() {
         assert!((yaw(Quat::from_rotation_z(0.3)) - 0.3).abs() < 1e-12);
         assert!(yaw(Quat::from_rotation_x(0.4)).abs() < 1e-12);
+    }
+
+    #[test]
+    fn the_exported_terrain_matches_rne_at_its_probes() {
+        let terrain = terrain_json(7).unwrap();
+        let (rows, columns) = (
+            terrain["rows"].as_u64().unwrap() as usize,
+            terrain["columns"].as_u64().unwrap() as usize,
+        );
+        let size = terrain["size_m"].as_f64().unwrap();
+        let heights: Vec<f64> = terrain["heights_m"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|value| value.as_f64().unwrap())
+            .collect();
+        assert_eq!(heights.len(), rows * columns);
+        // Bilinear in the exported Z-up grid, as mujoco_go2_learning.py reads it.
+        let at = |x: f64, y: f64| {
+            let u = (x + 0.5 * size) / (size / (columns - 1) as f64);
+            let v = (y + 0.5 * size) / (size / (rows - 1) as f64);
+            let (column, row) = ((u as usize).min(columns - 2), (v as usize).min(rows - 2));
+            let (fu, fv) = (u - column as f64, v - row as f64);
+            let h = |r: usize, c: usize| heights[r * columns + c];
+            h(row, column) * (1.0 - fu) * (1.0 - fv)
+                + h(row, column + 1) * fu * (1.0 - fv)
+                + h(row + 1, column) * (1.0 - fu) * fv
+                + h(row + 1, column + 1) * fu * fv
+        };
+        let probes = terrain["probes"].as_array().unwrap();
+        assert_eq!(probes.len(), 40);
+        for probe in probes {
+            let [x, y, height] = [0, 1, 2].map(|i| probe[i].as_f64().unwrap());
+            assert!((at(x, y) - height).abs() < 1e-12, "({x}, {y})");
+        }
+        // Zero at the origin, where the robot starts, and not flat.
+        assert!(at(0.0, 0.0).abs() < 1e-12);
+        let spread = heights.iter().copied().fold(f64::MIN, f64::max)
+            - heights.iter().copied().fold(f64::MAX, f64::min);
+        assert!(spread > 0.02, "relief {spread}");
+    }
+
+    #[test]
+    fn a_still_policy_stands_on_the_terrain_and_rapier_refuses_it() {
+        let plant = Plant {
+            backend: Backend::Locomotion,
+            terrain_seed: Some(7),
+            ..Plant::default()
+        };
+        let mut go2 = robot(plant).unwrap();
+        let outcome = episode(go2.as_mut(), |_| [0.0; 12]).unwrap();
+        assert!(!outcome.fell, "{outcome:?}");
+        assert!(robot(Plant {
+            backend: Backend::Rapier,
+            ..plant
+        })
+        .is_err());
     }
 
     #[test]

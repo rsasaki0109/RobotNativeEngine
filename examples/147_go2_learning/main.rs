@@ -55,6 +55,7 @@ fn main() -> Result<()> {
     let mut output = PathBuf::from("target/go2-learning");
     let (mut train, mut evaluate, mut generation) = (false, None, None);
     let (mut bench, mut stand) = (None, None);
+    let mut write_terrain = None;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
@@ -70,6 +71,8 @@ fn main() -> Result<()> {
             "--backend" => plant.backend = go2::Backend::parse(&value()?)?,
             "--inner-passes" => plant.inner_passes = value()?.parse()?,
             "--friction" => plant.floor_friction = value()?.parse()?,
+            "--terrain" => plant.terrain_seed = Some(value()?.parse()?),
+            "--write-terrain" => write_terrain = Some(PathBuf::from(value()?)),
             "--generations" => config.generations = value()?.parse()?,
             "--pairs" => config.pairs = value()?.parse()?,
             "--sigma" => config.sigma = value()?.parse()?,
@@ -79,6 +82,17 @@ fn main() -> Result<()> {
             "--checkpoint-every" => config.checkpoint_every = value()?.parse()?,
             other => return Err(format!("unknown option {other}").into()),
         }
+    }
+    if let Some(path) = write_terrain {
+        let seed = plant
+            .terrain_seed
+            .ok_or("--write-terrain needs --terrain SEED")?;
+        std::fs::write(
+            &path,
+            serde_json::to_string(&go2::terrain_json(seed)?)? + "\n",
+        )?;
+        println!("wrote {}", path.display());
+        return Ok(());
     }
     if let Some(seconds) = stand {
         // Settle as an episode does, then hold the default targets.
@@ -106,9 +120,10 @@ fn main() -> Result<()> {
                    "mass_kg": match plant.backend {
                        go2::Backend::Rapier => Some(go2::rapier_mass_kg(plant)?),
                        go2::Backend::Native => None,
-                       go2::Backend::Locomotion => {
-                           Some(locomotion::LocomotionGo2::new(plant.floor_friction)?.mass_kg())
-                       }
+                       go2::Backend::Locomotion => Some(
+                           locomotion::LocomotionGo2::new(plant.floor_friction, plant.terrain_seed)?
+                               .mass_kg(),
+                       ),
                    },
                    "joint_rad": joints.iter().map(|(q, _)| *q).collect::<Vec<_>>()})
         );
@@ -155,6 +170,7 @@ fn main() -> Result<()> {
     let engine = match plant.backend {
         go2::Backend::Rapier => "rne",
         go2::Backend::Native => "native",
+        go2::Backend::Locomotion if plant.terrain_seed.is_some() => "locomotion-terrain",
         go2::Backend::Locomotion => "locomotion",
     };
     let path = output.join(format!("go2-learning-{engine}-{}.json", config.seed));

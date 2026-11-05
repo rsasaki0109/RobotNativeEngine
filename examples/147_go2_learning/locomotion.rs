@@ -55,21 +55,25 @@ pub(crate) struct LocomotionGo2 {
 }
 
 impl LocomotionGo2 {
-    pub(crate) fn new(floor_friction: f64) -> Result<Self> {
+    /// A Go2 on a flat floor, or on the rough terrain of `terrain_seed`.
+    pub(crate) fn new(floor_friction: f64, terrain_seed: Option<u64>) -> Result<Self> {
         let quadruped = Arc::new(Quadruped::go2()?);
         // LINKS runs leg by leg (FL, FR, RL, RR), hip, thigh and calf, as the
         // Go2 spec lists its legs.
         let legs = quadruped.legs();
         let actuated = std::array::from_fn(|index| legs[index / 3].joints[index % 3]);
-        let floor = FractalTerrain {
-            size_x_m: FLOOR_SIZE_M,
-            size_z_m: FLOOR_SIZE_M,
-            columns: 5,
-            rows: 5,
-            amplitude_m: 0.0,
-            ..FractalTerrain::default()
-        }
-        .height_field(0)?;
+        let floor = match terrain_seed {
+            Some(seed) => crate::go2::terrain(seed)?,
+            None => FractalTerrain {
+                size_x_m: FLOOR_SIZE_M,
+                size_z_m: FLOOR_SIZE_M,
+                columns: 5,
+                rows: 5,
+                amplitude_m: 0.0,
+                ..FractalTerrain::default()
+            }
+            .height_field(0)?,
+        };
         let mut config = TerrainSimConfig {
             step_time_s: DT_S,
             // The PD is explicit, in the commanded torque.
@@ -148,6 +152,10 @@ impl Robot for LocomotionGo2 {
     fn base_velocity_z_up(&self) -> (Vec3, Vec3) {
         let state = self.sim.base_state();
         (state.linear_velocity_m_s, state.angular_velocity_rad_s)
+    }
+
+    fn ground_height_m(&self, x_m: f64, y_m: f64) -> f64 {
+        crate::go2::terrain_height_m(self.sim.terrain(), x_m, y_m)
     }
 
     fn joint_states(&self) -> Result<[(f64, f64); 12]> {
