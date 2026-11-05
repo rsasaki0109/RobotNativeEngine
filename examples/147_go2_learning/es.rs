@@ -215,7 +215,8 @@ pub(crate) fn train(plant: Plant, threads: usize, config: Config) -> Result<Valu
         "plant": {"backend": plant.backend.name(),
                   "solver_iterations": plant.solver_iterations,
                   "inner_passes": plant.inner_passes,
-                  "floor_friction": plant.floor_friction},
+                  "floor_friction": plant.floor_friction,
+                  "terrain_seed": plant.terrain_seed},
         "threads": threads,
         "training": {
             "method": "evolution strategies, antithetic pairs, centred ranks, Adam",

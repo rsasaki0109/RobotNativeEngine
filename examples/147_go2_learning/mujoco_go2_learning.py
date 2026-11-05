@@ -24,8 +24,15 @@ Training repeats example 147's `--train` exactly:
 The settings and seed come from RNE's training report, so only the simulator
 differs. `--evaluate` runs one episode of a policy trained in either engine.
 
+`--terrain TERRAIN.json` replaces the floor with the height field
+`147_go2_learning --write-terrain TERRAIN.json --terrain SEED` writes, and
+the fall test measures the base's height above the ground below it, as RNE
+does; `check-terrain` ray-casts the field at the file's probe points against
+RNE's heights.
+
 Usage: mujoco_go2_learning.py train RNE_REPORT.json OUTPUT.json [--processes 4]
        mujoco_go2_learning.py evaluate POLICY.json [--generation N]
+       mujoco_go2_learning.py check-terrain TERRAIN.json
 """
 import argparse
 import json
@@ -64,7 +71,52 @@ def urdf_without_visuals():
     return ET.tostring(root, encoding="unicode")
 
 
-def build_model(floor_friction, cone, impratio):
+def load_terrain(path):
+    """A terrain file, or None for the flat floor."""
+    if path is None:
+        return None
+    terrain = json.loads(Path(path).read_text())
+    terrain["grid"] = np.array(terrain["heights_m"]).reshape(terrain["rows"], terrain["columns"])
+    return terrain
+
+
+def ground_height(terrain, x, y):
+    """The terrain's bilinear height below (x, y), as RNE's height field."""
+    if terrain is None:
+        return 0.0
+    grid, size = terrain["grid"], terrain["size_m"]
+    rows, columns = grid.shape
+    u = (x + 0.5 * size) / (size / (columns - 1))
+    v = (y + 0.5 * size) / (size / (rows - 1))
+    if not (0.0 <= u <= columns - 1 and 0.0 <= v <= rows - 1):
+        return -math.inf
+    column, row = min(int(u), columns - 2), min(int(v), rows - 2)
+    fu, fv = u - column, v - row
+    return (grid[row, column] * (1 - fu) * (1 - fv) + grid[row, column + 1] * fu * (1 - fv)
+            + grid[row + 1, column] * (1 - fu) * fv + grid[row + 1, column + 1] * fu * fv)
+
+
+def add_floor(spec, floor_friction, terrain):
+    """The flat floor, or the terrain as a height field: MuJoCo scales its
+    normalized elevation by size[2] above the geom, so the geom sits at the
+    lowest height and size[2] spans the range."""
+    friction = [floor_friction, 0.005, 0.0001]
+    if terrain is None:
+        floor = spec.worldbody.add_geom(type=mujoco.mjtGeom.mjGEOM_PLANE, size=[20, 20, 0.1],
+                                        friction=friction)
+    else:
+        grid = terrain["grid"]
+        low, high = float(grid.min()), float(grid.max())
+        half = 0.5 * terrain["size_m"]
+        field = spec.add_hfield(name="terrain", nrow=grid.shape[0], ncol=grid.shape[1],
+                                size=[half, half, max(high - low, 1e-6), 0.5])
+        field.userdata = ((grid - low) / max(high - low, 1e-6)).flatten().tolist()
+        floor = spec.worldbody.add_geom(type=mujoco.mjtGeom.mjGEOM_HFIELD, hfieldname="terrain",
+                                        pos=[0.0, 0.0, low], friction=friction)
+    floor.contype, floor.conaffinity = 0, 1
+
+
+def build_model(floor_friction, cone, impratio, terrain=None):
     spec = mujoco.MjSpec.from_string(urdf_without_visuals())
     # Links without an <inertial> are massless, as in the URDF specification
     # and in RNE, instead of taking mass from their geoms at 1000 kg/m^3.
@@ -77,9 +129,7 @@ def build_model(floor_friction, cone, impratio):
     for geom in spec.geoms:
         geom.contype, geom.conaffinity = 1, 0
         geom.friction = [floor_friction, 0.005, 0.0001]
-    floor = spec.worldbody.add_geom(type=mujoco.mjtGeom.mjGEOM_PLANE, size=[20, 20, 0.1],
-                                    friction=[floor_friction, 0.005, 0.0001])
-    floor.contype, floor.conaffinity = 0, 1
+    add_floor(spec, floor_friction, terrain)
     for name in JOINTS:
         actuator = spec.add_actuator(name=name, target=name, trntype=mujoco.mjtTrn.mjTRN_JOINT)
         actuator.set_to_position(kp=KP_NM_PER_RAD, kv=KD_NM_S_PER_RAD)
@@ -93,7 +143,9 @@ class Go2:
     """One Go2 that runs example 147's episode."""
 
     def __init__(self, plant):
-        self.model = build_model(plant["floor_friction"], plant["cone"], plant["impratio"])
+        self.terrain = load_terrain(plant.get("terrain"))
+        self.model = build_model(plant["floor_friction"], plant["cone"], plant["impratio"],
+                                 self.terrain)
         self.data = mujoco.MjData(self.model)
         ids = [self.model.joint(name).id for name in JOINTS]
         self.qpos = np.array([self.model.jnt_qposadr[i] for i in ids])
@@ -145,7 +197,8 @@ class Go2:
             self.step(DEFAULT_RAD + ACTION_SCALE_RAD * action)
             steps += 1
             gravity_z = -self.body_rotation()[2, 2]
-            if self.data.qpos[2] < FALL_HEIGHT_M or gravity_z > FALL_GRAVITY_Z:
+            x, y, z = self.data.qpos[:3]
+            if z - ground_height(self.terrain, x, y) < FALL_HEIGHT_M or gravity_z > FALL_GRAVITY_Z:
                 fell = True
                 break
         forward, lateral = self.data.qpos[0] - start[0], self.data.qpos[1] - start[1]
@@ -291,6 +344,34 @@ def load_policy(path, generation):
     return Mlp(value["hidden"], value["params"])
 
 
+def check_terrain(path):
+    """Ray-cast MuJoCo's copy of the terrain at RNE's probe points."""
+    terrain = load_terrain(path)
+    model = build_model(1.0, "elliptic", 100.0, terrain)
+    data = mujoco.MjData(model)
+    data.qpos[2] = 100.0  # the robot out of the rays' way
+    mujoco.mj_forward(model, data)
+    hfield_geoms = [g for g in range(model.ngeom)
+                    if model.geom_type[g] == mujoco.mjtGeom.mjGEOM_HFIELD]
+    worst, worst_bilinear = 0.0, 0.0
+    geomid = np.zeros(1, dtype=np.int32)
+    for x, y, height in terrain["probes"]:
+        start = np.array([x, y, 5.0])
+        distance = mujoco.mj_ray(model, data, start, np.array([0.0, 0.0, -1.0]), None, 1, -1,
+                                 geomid)
+        if distance < 0 or geomid[0] not in hfield_geoms:
+            raise SystemExit(f"no height-field hit at ({x:.3f}, {y:.3f})")
+        hit = 5.0 - distance
+        worst = max(worst, abs(hit - height))
+        worst_bilinear = max(worst_bilinear, abs(ground_height(terrain, x, y) - height))
+    print(json.dumps({"probes": len(terrain["probes"]), "worst_ray_error_m": worst,
+                      "worst_bilinear_error_m": worst_bilinear}))
+    # MuJoCo triangulates each 10 cm cell, RNE interpolates it bilinearly:
+    # they differ by at most the cell's twist, well under a millimetre here.
+    if worst > 2e-3 or worst_bilinear > 1e-9:
+        raise SystemExit("MuJoCo's terrain does not match RNE's")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -301,6 +382,9 @@ def main():
         command.add_argument("--impratio", type=float, default=100.0)
         command.add_argument("--friction", type=float, default=None,
                              help="floor and robot friction (default: the RNE report's, or 1)")
+        command.add_argument("--terrain", type=Path, default=None,
+                             help="height field written by 147_go2_learning --write-terrain")
+    sub.add_parser("check-terrain").add_argument("terrain", type=Path)
     sub.choices["train"].add_argument("rne_report", type=Path)
     sub.choices["train"].add_argument("output", type=Path)
     sub.choices["train"].add_argument("--processes", type=int, default=4)
@@ -311,19 +395,26 @@ def main():
     sub.choices["bench"].add_argument("--seed", type=int, default=2026)
     sub.choices["bench"].add_argument("--hidden", type=int, default=32)
     arguments = parser.parse_args()
+    if arguments.command == "check-terrain":
+        check_terrain(arguments.terrain)
+        return
     if arguments.command == "train":
         rne_report = json.loads(arguments.rne_report.read_text())
         friction = (rne_report["plant"]["floor_friction"] if arguments.friction is None
                     else arguments.friction)
         plant = {"floor_friction": friction, "cone": arguments.cone,
-                 "impratio": arguments.impratio}
+                 "impratio": arguments.impratio,
+                 "terrain": None if arguments.terrain is None else str(arguments.terrain)}
+        if (rne_report["plant"].get("terrain_seed") is None) != (arguments.terrain is None):
+            parser.error("train on terrain exactly when the RNE report did")
         report = train(rne_report, plant, arguments.processes)
         arguments.output.write_text(json.dumps(report, indent=2) + "\n")
         print(f"wrote {arguments.output}")
     elif arguments.command == "bench":
         # One process, one model: the initial policy's episodes, as --bench.
         plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
-                 "cone": arguments.cone, "impratio": arguments.impratio}
+                 "cone": arguments.cone, "impratio": arguments.impratio,
+                 "terrain": None if arguments.terrain is None else str(arguments.terrain)}
         normal = Normal(arguments.seed)
         params = np.zeros(Mlp.parameter_count(arguments.hidden))
         for index in range(arguments.hidden * OBSERVATIONS):
@@ -339,7 +430,8 @@ def main():
     elif arguments.command == "stand":
         # Settle as an episode does, then hold the default targets, as --stand.
         plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
-                 "cone": arguments.cone, "impratio": arguments.impratio}
+                 "cone": arguments.cone, "impratio": arguments.impratio,
+                 "terrain": None if arguments.terrain is None else str(arguments.terrain)}
         robot = Go2(plant)
         robot.settle()
         for _ in range(round(arguments.seconds / CONTROL_DT_S)):
@@ -357,7 +449,8 @@ def main():
             "mass_kg": float(robot.model.body_mass.sum())}))
     else:
         plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
-                 "cone": arguments.cone, "impratio": arguments.impratio}
+                 "cone": arguments.cone, "impratio": arguments.impratio,
+                 "terrain": None if arguments.terrain is None else str(arguments.terrain)}
         outcome = Go2(plant).episode(load_policy(arguments.policy, arguments.generation))
         print(json.dumps({"engine": f"mujoco {mujoco.__version__}", "plant": plant,
                           "policy": str(arguments.policy), "generation": arguments.generation,
