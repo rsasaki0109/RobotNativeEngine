@@ -8,7 +8,8 @@
 //! base's forward travel less penalties for sideways travel, heading, a fall
 //! and jerky actions. `mujoco_go2_learning.py` trains the same way in MuJoCo
 //! from this report's settings and seed, and either engine evaluates a
-//! policy trained in the other (`--evaluate`).
+//! policy trained in the other (`--evaluate`). `--backend locomotion` trains
+//! on `rne_locomotion`'s hard-contact step instead of Rapier.
 //!
 //! ```text
 //! cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026
@@ -17,6 +18,7 @@
 
 mod es;
 mod go2;
+mod locomotion;
 mod native;
 mod policy;
 
@@ -104,6 +106,9 @@ fn main() -> Result<()> {
                    "mass_kg": match plant.backend {
                        go2::Backend::Rapier => Some(go2::rapier_mass_kg(plant)?),
                        go2::Backend::Native => None,
+                       go2::Backend::Locomotion => {
+                           Some(locomotion::LocomotionGo2::new(plant.floor_friction)?.mass_kg())
+                       }
                    },
                    "joint_rad": joints.iter().map(|(q, _)| *q).collect::<Vec<_>>()})
         );
@@ -150,6 +155,7 @@ fn main() -> Result<()> {
     let engine = match plant.backend {
         go2::Backend::Rapier => "rne",
         go2::Backend::Native => "native",
+        go2::Backend::Locomotion => "locomotion",
     };
     let path = output.join(format!("go2-learning-{engine}-{}.json", config.seed));
     std::fs::write(&path, serde_json::to_string_pretty(&report)? + "\n")?;

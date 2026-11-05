@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "thresholds": [
+    0.5,
+    1.0
+  ],
+  "runs": [
+    {
+      "trained_in": "locomotion",
+      "seed": 2026,
+      "engine": "RNE locomotion",
+      "plant": {
+        "backend": "RNE locomotion",
+        "floor_friction": 1.0,
+        "inner_passes": 1,
+        "solver_iterations": 4
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 158,
+          "wall_s": 44.6
+        },
+        "1.0": {
+          "generation": 168,
+          "wall_s": 48.7
+        }
+      },
+      "final": {
+        "fitness": 2.78800175697354,
+        "forward_m": 3.301088008449721,
+        "fell": false
+      },
+      "best_fitness": 2.78800175697354,
+      "median_wall_s_per_generation": 0.274,
+      "simulated_s_per_wall_s": 613.7,
+      "total_wall_s": 59.8
+    },
+    {
+      "trained_in": "locomotion",
+      "seed": 11,
+      "engine": "RNE locomotion",
+      "plant": {
+        "backend": "RNE locomotion",
+        "floor_friction": 1.0,
+        "inner_passes": 1,
+        "solver_iterations": 4
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 115,
+          "wall_s": 43.3
+        },
+        "1.0": {
+          "generation": 166,
+          "wall_s": 67.8
+        }
+      },
+      "final": {
+        "fitness": 2.4430092339829312,
+        "forward_m": 3.0583901518454653,
+        "fell": false
+      },
+      "best_fitness": 2.493144150397586,
+      "median_wall_s_per_generation": 0.446,
+      "simulated_s_per_wall_s": 444.3,
+      "total_wall_s": 82.9
+    },
+    {
+      "trained_in": "locomotion",
+      "seed": 12,
+      "engine": "RNE locomotion",
+      "plant": {
+        "backend": "RNE locomotion",
+        "floor_friction": 1.0,
+        "inner_passes": 1,
+        "solver_iterations": 4
+      },
+      "generations": 200,
+      "reached": {
+        "0.5": {
+          "generation": 93,
+          "wall_s": 24.5
+        },
+        "1.0": {
+          "generation": 98,
+          "wall_s": 26.4
+        }
+      },
+      "final": {
+        "fitness": 5.848998697127246,
+        "forward_m": 6.871904720249995,
+        "fell": false
+      },
+      "best_fitness": 6.87007780345849,
+      "median_wall_s_per_generation": 0.27,
+      "simulated_s_per_wall_s": 669.7,
+      "total_wall_s": 54.0
+    }
+  ],
+  "evaluations": [
+    {
+      "evaluated_in": "rne",
+      "trained_in": "locomotion",
+      "seed": 2026,
+      "outcome": {
+        "fell": false,
+        "fitness": 1.268260688852,
+        "forward_m": 2.3250946030020714,
+        "heading_rad": -0.5378688194407313,
+        "lateral_m": -1.5367408958936721,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne2x1",
+      "trained_in": "locomotion",
+      "seed": 2026,
+      "outcome": {
+        "fell": false,
+        "fitness": 0.9644342149936914,
+        "forward_m": 2.175934672355652,
+        "heading_rad": -0.5768458941862347,
+        "lateral_m": -1.8177521213510772,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "locomotion",
+      "seed": 2026,
+      "outcome": {
+        "fell": false,
+        "fitness": 2.78800175697354,
+        "forward_m": 3.301088008449721,
+        "heading_rad": -0.29514021539224883,
+        "lateral_m": -0.7013635260988185,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "locomotion",
+      "seed": 11,
+      "outcome": {
+        "fell": false,
+        "fitness": 1.4715457416598368,
+        "forward_m": 1.9659029468894005,
+        "heading_rad": 0.2886775416813937,
+        "lateral_m": 0.5793638857339829,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne2x1",
+      "trained_in": "locomotion",
+      "seed": 11,
+      "outcome": {
+        "fell": false,
+        "fitness": 1.3259778571641898,
+        "forward_m": 1.9163119792938232,
+        "heading_rad": 0.29885350164878066,
+        "lateral_m": 0.7616034165403107,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "locomotion",
+      "seed": 11,
+      "outcome": {
+        "fell": false,
+        "fitness": 2.4430092339829312,
+        "forward_m": 3.0583901518454653,
+        "heading_rad": -0.6689690225048399,
+        "lateral_m": -0.4450870372190685,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne",
+      "trained_in": "locomotion",
+      "seed": 12,
+      "outcome": {
+        "fell": false,
+        "fitness": 2.944484137559825,
+        "forward_m": 3.5664936527609825,
+        "heading_rad": -0.6935803408901628,
+        "lateral_m": -0.4928053585554153,
+        "survived_s": 5.0
+      }
+    },
+    {
+      "evaluated_in": "rne2x1",
+      "trained_in": "locomotion",
+      "seed": 12,
+      "outcome": {
+        "fell": true,
+        "fitness": 0.9336055545298387,
+        "forward_m": 2.757098078727722,
+        "heading_rad": -0.7458108728235435,
+        "lateral_m": -0.8387577518442413,
+        "survived_s": 4.3
+      }
+    },
+    {
+      "evaluated_in": "locomotion",
+      "trained_in": "locomotion",
+      "seed": 12,
+      "outcome": {
+        "fell": false,
+        "fitness": 5.848998697127246,
+        "forward_m": 6.871904720249995,
+        "heading_rad": 0.3537823769275722,
+        "lateral_m": 1.6424914711863496,
+        "survived_s": 5.0
+      }
+    }
+  ]
+}

@@ -4,7 +4,7 @@ use rne_dynamics::{center_of_mass, ArticulatedModel, ContactPoint, DynamicsError
 use rne_ecs::{Entity, World};
 use rne_math::{Quat, Vec3};
 use rne_physics::{height_field_surface, ColliderShape, PhysicsError};
-use rne_robot::{FloatingBase, KinematicsError, Robot};
+use rne_robot::{FloatingBase, ForwardKinematics, KinematicsError, Robot};
 use rne_urdf_import::{
     fuse_urdf_fixed_children, parse_urdf_document, spawn_urdf_document_with_config, UrdfSpawnConfig,
 };
@@ -410,6 +410,16 @@ impl Quadruped {
         friction_coefficient: f64,
     ) -> Result<Vec<ContactPoint>, LocomotionError> {
         let kinematics = self.model.kinematic().forward_kinematics(q)?;
+        self.foot_contacts_from(&kinematics, terrain, friction_coefficient)
+    }
+
+    /// [`Self::foot_contacts`] from already computed forward kinematics.
+    pub(crate) fn foot_contacts_from(
+        &self,
+        kinematics: &ForwardKinematics,
+        terrain: &ColliderShape,
+        friction_coefficient: f64,
+    ) -> Result<Vec<ContactPoint>, LocomotionError> {
         self.legs
             .iter()
             .map(|leg| {

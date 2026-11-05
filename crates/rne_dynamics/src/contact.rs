@@ -44,6 +44,7 @@ use crate::model::{ArticulatedModel, DynamicsError};
 use crate::spatial::{inverse_transform, rotation_matrix};
 use rne_ecs::Entity;
 use rne_math::{Quat, Vec3};
+use rne_robot::ForwardKinematics;
 use rne_world::Transform3;
 
 /// Number of evenly spaced angles sampled to bracket the sliding direction.
@@ -861,6 +862,71 @@ pub fn contact_step(
     config: &ContactStepConfig,
     warm_start_n_s: Option<&[[f64; 3]]>,
 ) -> Result<ContactStep, DynamicsError> {
+    validate_step(model, q, qd, tau, pd, config)?;
+    // One forward-kinematics pass serves the mass matrix, the bias forces, the
+    // contact Jacobians, and the base integration of this step.
+    let kinematics = model.kinematic.forward_kinematics(q)?;
+    step_from_transforms(
+        model,
+        kinematics.transforms(),
+        q,
+        qd,
+        tau,
+        contacts,
+        pd,
+        config,
+        warm_start_n_s,
+    )
+}
+
+/// [`contact_step`] from `kinematics`, the forward kinematics of `q` that the
+/// caller has already computed (for instance to place the contacts), so the
+/// step does not compute it again.
+///
+/// `kinematics` must be `model.kinematic().forward_kinematics(q)`; other
+/// transforms give a step of a different configuration. The result is
+/// identical to [`contact_step`]'s.
+#[allow(clippy::too_many_arguments)]
+pub fn contact_step_with_kinematics(
+    model: &ArticulatedModel,
+    kinematics: &ForwardKinematics,
+    q: &[f64],
+    qd: &[f64],
+    tau: &[f64],
+    contacts: &[ContactPoint],
+    pd: Option<&JointPdControl>,
+    config: &ContactStepConfig,
+    warm_start_n_s: Option<&[[f64; 3]]>,
+) -> Result<ContactStep, DynamicsError> {
+    validate_step(model, q, qd, tau, pd, config)?;
+    if kinematics.transforms().len() != model.link_count() {
+        return Err(DynamicsError::DimensionMismatch {
+            provided: kinematics.transforms().len(),
+            expected: model.link_count(),
+        });
+    }
+    step_from_transforms(
+        model,
+        kinematics.transforms(),
+        q,
+        qd,
+        tau,
+        contacts,
+        pd,
+        config,
+        warm_start_n_s,
+    )
+}
+
+/// The checks [`contact_step`] makes of its inputs.
+fn validate_step(
+    model: &ArticulatedModel,
+    q: &[f64],
+    qd: &[f64],
+    tau: &[f64],
+    pd: Option<&JointPdControl>,
+    config: &ContactStepConfig,
+) -> Result<(), DynamicsError> {
     let nv = model.nv();
     for values in [q, qd, tau] {
         if values.len() != nv {
@@ -882,15 +948,28 @@ pub fn contact_step(
             "penetration recovery must lie in [0, 1]",
         ));
     }
-
     if let Some(pd) = pd {
         validate_pd(model, pd)?;
     }
+    Ok(())
+}
 
-    // One forward-kinematics pass serves the mass matrix, the bias forces, the
-    // contact Jacobians, and the base integration of this step.
-    let kinematics = model.kinematic.forward_kinematics(q)?;
-    let transforms = kinematics.transforms();
+/// The step of [`contact_step`] after its checks, from the link transforms
+/// of `q`.
+#[allow(clippy::too_many_arguments)]
+fn step_from_transforms(
+    model: &ArticulatedModel,
+    transforms: &[Transform3],
+    q: &[f64],
+    qd: &[f64],
+    tau: &[f64],
+    contacts: &[ContactPoint],
+    pd: Option<&JointPdControl>,
+    config: &ContactStepConfig,
+    warm_start_n_s: Option<&[[f64; 3]]>,
+) -> Result<ContactStep, DynamicsError> {
+    let nv = model.nv();
+    let dt = config.step_time_s;
     let xup = xup_transforms(model, transforms);
     let mass = mass_matrix_from_xup(model, &xup);
     let bias = rnea_from_xup(model, transforms, &xup, qd, &vec![0.0; nv]);
@@ -1576,7 +1655,37 @@ pub fn contact_frame(normal_world: Vec3) -> [Vec3; 3] {
 struct Cholesky {
     size: usize,
     lower: Vec<f64>,
-    parents: Option<Vec<Option<usize>>>,
+    /// For a tree factor: each coordinate's ancestors, nearest first, as
+    /// `ancestors[chain[i]..chain[i + 1]]`.
+    tree: Option<AncestorChains>,
+}
+
+/// Every coordinate's ancestor chain, flattened, so the tree solves walk
+/// contiguous indices instead of following parent links.
+struct AncestorChains {
+    chain: Vec<usize>,
+    ancestors: Vec<usize>,
+}
+
+impl AncestorChains {
+    fn new(parents: &[Option<usize>]) -> Self {
+        let mut chain = Vec::with_capacity(parents.len() + 1);
+        let mut ancestors = Vec::new();
+        chain.push(0);
+        for parent in parents {
+            let mut j = *parent;
+            while let Some(col) = j {
+                ancestors.push(col);
+                j = parents[col];
+            }
+            chain.push(ancestors.len());
+        }
+        Self { chain, ancestors }
+    }
+
+    fn of(&self, index: usize) -> &[usize] {
+        &self.ancestors[self.chain[index]..self.chain[index + 1]]
+    }
 }
 
 impl Cholesky {
@@ -1617,7 +1726,7 @@ impl Cholesky {
         Some(Self {
             size: n,
             lower: h,
-            parents: Some(parents.to_vec()),
+            tree: Some(AncestorChains::new(parents)),
         })
     }
 
@@ -1643,34 +1752,39 @@ impl Cholesky {
         Some(Self {
             size,
             lower,
-            parents: None,
+            tree: None,
         })
     }
 
     fn solve(&self, rhs: &[f64]) -> Vec<f64> {
+        let mut x = rhs.to_vec();
+        self.solve_in_place(&mut x);
+        x
+    }
+
+    /// Solves in place: `x` holds the right-hand side on entry and the
+    /// solution on return.
+    fn solve_in_place(&self, x: &mut [f64]) {
         let n = self.size;
         let l = &self.lower;
-        let mut x = rhs.to_vec();
-        if let Some(parents) = &self.parents {
+        if let Some(tree) = &self.tree {
             // Lᵀ y = b, leaves to root.
             for i in (0..n).rev() {
                 x[i] /= l[i * n + i];
-                let mut j = parents[i];
-                while let Some(col) = j {
-                    x[col] -= l[i * n + col] * x[i];
-                    j = parents[col];
+                let xi = x[i];
+                for &col in tree.of(i) {
+                    x[col] -= l[i * n + col] * xi;
                 }
             }
             // L x = y, root to leaves.
             for i in 0..n {
-                let mut j = parents[i];
-                while let Some(col) = j {
-                    x[i] -= l[i * n + col] * x[col];
-                    j = parents[col];
+                let mut value = x[i];
+                for &col in tree.of(i) {
+                    value -= l[i * n + col] * x[col];
                 }
-                x[i] /= l[i * n + i];
+                x[i] = value / l[i * n + i];
             }
-            return x;
+            return;
         }
         for row in 0..n {
             for k in 0..row {
@@ -1684,7 +1798,6 @@ impl Cholesky {
             }
             x[row] /= l[row * n + row];
         }
-        x
     }
 }
 
@@ -2532,6 +2645,73 @@ mod tests {
     }
 
     #[test]
+    fn a_step_from_precomputed_kinematics_matches_contact_step() {
+        let (model, link) = box_model(Vec3::new(0.0, -9.81, 0.0));
+        let mut q = vec![0.0; 6];
+        q[1] = HALF_EXTENTS_M[1] + 0.01;
+        q[3] = 0.05;
+        let mut qd = vec![0.0; 6];
+        qd[1] = -0.5;
+        let config = ContactStepConfig::default();
+        for _ in 0..40 {
+            let contacts = box_contacts(&model, link, &q, 0.8);
+            let kinematics = model.kinematic().forward_kinematics(&q).expect("fk");
+            let direct = contact_step(&model, &q, &qd, &[0.0; 6], &contacts, None, &config, None)
+                .expect("step");
+            let shared = contact_step_with_kinematics(
+                &model,
+                &kinematics,
+                &q,
+                &qd,
+                &[0.0; 6],
+                &contacts,
+                None,
+                &config,
+                None,
+            )
+            .expect("step");
+            assert_eq!(direct, shared);
+            q = direct.q;
+            qd = direct.qd;
+        }
+        // Kinematics of another model's link count, or a bad state, is refused.
+        let pendulum = pendulum_model();
+        let other = pendulum
+            .kinematic()
+            .forward_kinematics(&vec![0.0; pendulum.nv()])
+            .expect("fk");
+        if other.transforms().len() != model.link_count() {
+            assert!(contact_step_with_kinematics(
+                &model,
+                &other,
+                &q,
+                &qd,
+                &[0.0; 6],
+                &[],
+                None,
+                &config,
+                None
+            )
+            .is_err());
+        }
+        let kinematics = model.kinematic().forward_kinematics(&q).expect("fk");
+        let mut bad = qd.clone();
+        bad[0] = f64::NAN;
+        assert!(contact_step_with_kinematics(
+            &model,
+            &kinematics,
+            &q,
+            &bad,
+            &[0.0; 6],
+            &[],
+            None,
+            &config,
+            None
+        )
+        .is_err());
+    }
+
+    #[test]
     fn dropped_box_lands_without_bounce_or_penetration() {
         let (model, link) = box_model(Vec3::new(0.0, -9.81, 0.0));
         let mut q = vec![0.0; 6];
@@ -2948,7 +3128,7 @@ mod tests {
                 }
                 let rhs: Vec<f64> = (0..nv).map(|_| rng.next()).collect();
                 let tree = Cholesky::new(&matrix, Some(&parents)).expect("tree factor");
-                assert!(tree.parents.is_some());
+                assert!(tree.tree.is_some());
                 let dense = Cholesky::new(&matrix, None).expect("dense factor");
                 let fast = tree.solve(&rhs);
                 let reference = dense.solve(&rhs);

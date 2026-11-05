@@ -489,6 +489,27 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `examples/147_go2_learning --backend locomotion` trains the Go2 walk on
+  `rne_locomotion`'s hard-contact step instead of Rapier: the fused
+  16.087 kg model, foot spheres plus knee, calf and lower-calf bumper
+  spheres, the same explicit PD torque, and a contact solver stopping at
+  1e-5 N·s, 0.1 mm/s or 30 sweeps. On three seeds it reached fitness 1 in
+  26–68 s (MuJoCo 49–54 s, RNE 2×1 75–130 s), scored 2.44–5.85 after 200
+  generations (MuJoCo 2.05–2.29), and trained at 444–670 simulated seconds
+  per wall second on four cores (MuJoCo 330–339). Its walks hold on Rapier at
+  four iterations; RNE 2×1's walk does not hold on it. One thread runs 247
+  simulated seconds per wall second, against MuJoCo's 231.
+  `docs/media/go2-learning-locomotion.json` and `.svg` hold the runs, and
+  `learning_compare.py` takes `locomotion` as an engine.
+- `rne_locomotion::QuadrupedTerrainSim::set_state` starts the robot from any
+  configuration and velocity, and `set_body_spheres` (with `BodySphere`) lets
+  knees, shins or body corners touch the terrain besides the feet; each step
+  adds a contact for a sphere within 1 cm of the terrain.
+- `rne_dynamics::contact_step_with_kinematics` steps from forward kinematics
+  the caller already computed, with results identical to `contact_step`'s.
+  `QuadrupedTerrainSim` now runs one forward-kinematics pass a step, and the
+  tree Cholesky factor's solves walk flattened ancestor chains; a walking Go2
+  episode takes 12% fewer instructions, bit for bit the same.
 - Retain a separate eighteen-process ForceBased motor-visitation study derived
   from example 143. Compare public internal PGS/stabilization counts 1/2, 1/0
   and 3/0 with fixed signed targets and ON/fresh ON/OFF replay. All original

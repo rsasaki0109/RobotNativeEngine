@@ -127,6 +127,11 @@ and which it deliberately does not.
     weight), and `QuadrupedTerrainEpisode`, an `rne_ai::Episode` that draws a
     new terrain, heading, and command at every reset and takes a residual
     joint action on top of the trot (or on top of the stand pose).
+    `QuadrupedTerrainSim` can start from any state (`set_state`) and lets
+    spheres on the knees, shins or body touch the terrain besides the feet
+    (`set_body_spheres`). Each step runs one forward-kinematics pass, which
+    places the contacts and feeds `contact_step_with_kinematics`; example
+    147's `--backend locomotion` trains a Go2 walk on it faster than MuJoCo.
 12. **One contact problem per world** (`contact_step_coupled`). RaiSim solves
     every contact of a world in one per-contact iteration, so a robot
     standing on a box that stands on the ground feels the ground through the

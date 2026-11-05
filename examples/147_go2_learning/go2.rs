@@ -52,6 +52,9 @@ pub(crate) enum Backend {
     Rapier,
     /// `rne_physics_native`: `rne_dynamics`' articulated hard-contact stepping.
     Native,
+    /// `rne_locomotion`'s terrain step: `rne_dynamics`' hard-contact stepping
+    /// with spheres for the feet, knees and shins on a flat floor.
+    Locomotion,
 }
 
 impl Backend {
@@ -59,7 +62,8 @@ impl Backend {
         match text {
             "rapier" => Ok(Self::Rapier),
             "native" => Ok(Self::Native),
-            other => Err(format!("unknown backend {other} (rapier or native)").into()),
+            "locomotion" => Ok(Self::Locomotion),
+            other => Err(format!("unknown backend {other} (rapier, native or locomotion)").into()),
         }
     }
 
@@ -67,6 +71,7 @@ impl Backend {
         match self {
             Self::Rapier => "RNE Rapier",
             Self::Native => "RNE native",
+            Self::Locomotion => "RNE locomotion",
         }
     }
 }
@@ -150,6 +155,9 @@ pub(crate) fn robot(plant: Plant) -> Result<Box<dyn Robot>> {
             Box::new(robot)
         }
         Backend::Native => Box::new(crate::native::NativeGo2::new(plant.floor_friction)?),
+        Backend::Locomotion => {
+            Box::new(crate::locomotion::LocomotionGo2::new(plant.floor_friction)?)
+        }
     })
 }
 
@@ -317,8 +325,8 @@ mod tests {
     }
 
     #[test]
-    fn a_still_policy_stands_through_an_episode_on_either_backend() {
-        for backend in [Backend::Rapier, Backend::Native] {
+    fn a_still_policy_stands_through_an_episode_on_every_backend() {
+        for backend in [Backend::Rapier, Backend::Native, Backend::Locomotion] {
             let mut robot = robot(Plant {
                 backend,
                 ..Plant::default()

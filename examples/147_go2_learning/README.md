@@ -10,18 +10,20 @@ whether a walk learned in one works in the other.
 cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026   # target/go2-learning/go2-learning-rne-2026.json
 cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
   --solver-iterations 1 --inner-passes 4   # the cheaper solve; same output path
+cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
+  --backend locomotion   # rne_locomotion's contact step; go2-learning-locomotion-2026.json
 python3 examples/147_go2_learning/mujoco_go2_learning.py train \
   target/go2-learning/go2-learning-rne-2026.json target/go2-learning/go2-learning-mujoco-2026.json
 cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate target/go2-learning/go2-learning-mujoco-2026.json
 python3 examples/147_go2_learning/mujoco_go2_learning.py evaluate target/go2-learning/go2-learning-rne-2026.json
 cargo run --release -p go2_learning --example 147_go2_learning -- --stand 5   # settled stance, as JSON
 python3 examples/147_go2_learning/mujoco_go2_learning.py stand 5
-cargo run --release -p go2_learning --example 147_go2_learning -- --bench 8 [--solver-iterations 1] [--inner-passes 4] [--backend native]
+cargo run --release -p go2_learning --example 147_go2_learning -- --bench 8 [--solver-iterations 1] [--inner-passes 4] [--backend native|locomotion]
 python3 examples/147_go2_learning/mujoco_go2_learning.py bench 8 [--cone pyramidal --impratio 1]
 python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
   --training rne:2026=RNE_REPORT.json --training mujoco:2026=MUJOCO_REPORT.json \
   --evaluation mujoco/rne:2026=EVALUATION.json   # one --evaluation per engine and run
-# Engines are rne (4 iterations), rne2x1 (2 iterations), rne1x4 (1 iteration, 4 inner passes), native and mujoco.
+# Engines are rne (4 iterations), rne2x1 (2 iterations), rne1x4 (1 iteration, 4 inner passes), native, locomotion and mujoco.
 ```
 
 ## What runs
@@ -41,6 +43,15 @@ python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
   - one solver iteration with four inner constraint passes
     (`--solver-iterations 1 --inner-passes 4`, "RNE 1×4" below; see
     [Speed](#speed)).
+- **RNE locomotion step** (`--backend locomotion`, "RNE locomotion" below).
+  `rne_locomotion::QuadrupedTerrainSim` steps the same fused 16.087 kg model
+  with `rne_dynamics`' hard-contact step on a flat height field, without
+  Rapier. Its contacts are the 22 mm foot spheres and spheres for each leg's
+  knee, calf cylinder and two lower-calf bumpers
+  (`QuadrupedTerrainSim::set_body_spheres`); the thighs, hips, head and body
+  box have none. The joints get the same explicit PD torque as the other
+  engines. Its contact solver stops at 1e-5 N·s and 0.1 mm/s or 30 sweeps
+  (see [Learning on RNE's locomotion step](#learning-on-rnes-locomotion-step)).
 - **MuJoCo.** `mujoco_go2_learning.py` builds the robot from the same URDF
   with MuJoCo's importer (visuals and materials removed, `inertiafromgeom`
   off) and adds:
@@ -165,6 +176,45 @@ iterations for MuJoCo's. MuJoCo's three walks also hold for 5 s at 2×1
 The [summary](../../docs/media/go2-learning.json) holds each run's timing,
 thresholds and final outcome, and every evaluation in both engines.
 
+## Learning on RNE's locomotion step
+
+The same training on `--backend locomotion`, three seeds, 4 threads:
+
+| Seed | Fitness 0.5 reached (generation / s) | Fitness 1 reached (generation / s) | Fitness after 200 | Forward in 5 s | In RNE (4 iterations) | In RNE 2×1 |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| 2026 | 158 / 45 | 168 / 49 | 2.79 | 3.30 m | walks, 2.33 m | walks, 2.18 m |
+| 11 | 115 / 43 | 166 / 68 | 2.44 | 3.06 m | walks, 1.97 m | walks, 1.92 m |
+| 12 | 93 / 25 | 98 / 26 | 5.85 | 6.87 m | walks, 3.57 m | falls after 4.3 s, 2.8 m |
+
+![Fitness of the mean policy against wall-clock minutes and against generations for the three runs on RNE's locomotion step](../../docs/media/go2-learning-locomotion.svg)
+
+- **It learns the walk in MuJoCo's wall time, and further.**
+  - It reached fitness 1 in 26–68 s, against MuJoCo's 49–54 s and RNE 2×1's
+    75–130 s, but in more generations: 98–168, against MuJoCo's 94–106.
+  - After 200 generations its walks scored 2.44–5.85, MuJoCo's 2.05–2.29.
+- **It runs 1.3–2 times as fast as MuJoCo on four cores.**
+  - A generation took a median 0.27–0.45 s, against MuJoCo's 0.58–0.60 s.
+  - That is 444–670 simulated seconds per wall second, against 330–339.
+  - The cost per step follows the gait's contacts, so the three runs differ.
+- **Its walks hold on Rapier.** All three walk for 5 s at four iterations, at
+  46–60% of their fitness; at two iterations seed 12's falls after 4.3 s.
+  The other way fails: RNE 2×1's seed-11 walk falls after 0.56 s on the
+  locomotion step. MuJoCo was not installed for these runs, so neither
+  direction has been checked against it.
+- **Two settings were needed to learn this walk.**
+  - With `rne_locomotion`'s implicit joint PD in place of the explicit PD
+    torque, and only foot contacts, seed 2026 found a 0.4 m shuffle in 200
+    generations.
+  - With the library's solver tolerances (1e-10 N·s and 1e-8 m/s, up to 200
+    sweeps), seed 11's kneeling gait averaged 72 sweeps a step and trained at
+    137 simulated seconds per wall second, and that run did not reach fitness 1.
+    Its foot, knee and shin contacts on one calf are nearly redundant, so
+    Gauss–Seidel converges slowly; the looser stopping rule changes the
+    trained walks' fitness by less than 4%.
+
+The [summary](../../docs/media/go2-learning-locomotion.json) holds each run's
+timing, thresholds and final outcome, and its evaluations on Rapier.
+
 ## Speed
 
 Simulated seconds per wall second on one thread, for the untrained policy's
@@ -177,6 +227,7 @@ episodes (medians of three runs):
 | RNE, Rapier, 1 solver iteration | 76 |
 | RNE, Rapier, 1 solver iteration, 4 inner passes (`--inner-passes 4`) | 74 |
 | RNE, native backend (`--backend native`) | 13 |
+| RNE, locomotion step (`--backend locomotion`) | 247 (207–249) |
 | MuJoCo, elliptic cone, `impratio` 100 | 231 (185–243) |
 | MuJoCo, its defaults | 236 |
 
@@ -205,6 +256,15 @@ episodes (medians of three runs):
 - **What did not help.** Factoring the mass matrices along the kinematic tree
   without fill cuts the flops to a third at 18 DoF. Each solve still took
   about 2,950 instructions, against 2,160 for nalgebra's vectorized dense LU.
+- **The locomotion step matches MuJoCo on one thread** (247 against 231
+  simulated seconds per wall second), so on four threads it outruns
+  MuJoCo's four processes.
+  - It is `rne_dynamics::contact_step`. On a trained walk the contact solve
+    takes about 27% of it and the Cholesky solves of the contact columns 18%.
+  - It runs one forward-kinematics pass a step:
+    `contact_step_with_kinematics` reuses the pass that places the contacts.
+    With the tree factor's solves walking flattened ancestor chains, that
+    cut a walking episode's instructions by 12%, with bit-identical results.
 - **The native backend is slower still.**
   - It spends 85% of its time in `rne_dynamics`' coupled contact solve.
   - It has no compound colliders, so its Go2 still welds the fixed links and
@@ -221,3 +281,7 @@ episodes (medians of three runs):
   container's speed drifts between runs, so timings within a row compare
   better than timings across rows. Low-priority builds ran alongside parts of
   the RNE four-iteration and two-iteration runs.
+- The locomotion-step runs came later, in a fresh container of the same
+  4-core kind, and are compared with the MuJoCo runs above, not rerun beside
+  them. Their plant is a simplification: hard contacts, spheres for the feet
+  and lower legs only, and a looser contact solver.

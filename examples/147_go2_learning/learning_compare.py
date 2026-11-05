@@ -2,7 +2,8 @@
 """Compare example 147's Go2 training runs across engines.
 
 Inputs are training reports (`147_go2_learning --train`, with `--backend
-native` for RNE's native backend or `--solver-iterations 1 --inner-passes 4`
+native` for RNE's native backend, `--backend locomotion` for
+`rne_locomotion`'s terrain step, or `--solver-iterations 1 --inner-passes 4`
 for Rapier's cheaper solve, and `mujoco_go2_learning.py train`) and,
 optionally, evaluations of each run's final policy in each engine
 (`--evaluate`, `mujoco_go2_learning.py evaluate`). For every run the summary
@@ -17,7 +18,7 @@ generations, one line per run. Uses no third-party packages.
 
 Usage: learning_compare.py SUMMARY.json FIGURE.svg --training ENGINE:SEED=REPORT.json ...
        [--evaluation EVALUATING/ENGINE:SEED=EVALUATION.json ...]
-where ENGINE and EVALUATING are rne, rne2x1, rne1x4, native or mujoco.
+where ENGINE and EVALUATING are rne, rne2x1, rne1x4, native, locomotion or mujoco.
 """
 import argparse
 import json
@@ -26,9 +27,10 @@ from pathlib import Path
 
 ENGINES = {"rne": "RNE (4 iterations)", "rne2x1": "RNE (2 iterations)",
            "rne1x4": "RNE (1 iteration × 4 passes)",
-           "native": "RNE (native)", "mujoco": "MuJoCo"}
+           "native": "RNE (native)", "locomotion": "RNE (locomotion step)",
+           "mujoco": "MuJoCo"}
 COLORS = {"rne": "#2563eb", "rne2x1": "#0891b2", "rne1x4": "#7c3aed", "native": "#16a34a",
-          "mujoco": "#ea580c"}
+          "locomotion": "#db2777", "mujoco": "#ea580c"}
 INK, MUTED, GRID = "#1f2937", "#6b7280", "#e5e7eb"
 THRESHOLDS = (0.5, 1.0)
 
@@ -61,10 +63,12 @@ def panel(parts, x0, y0, w, h, title, lines, xmax, xlabel, ymin, ymax):
         parts.append(f'<line x1="{x0}" y1="{y:.1f}" x2="{x0 + w}" y2="{y:.1f}" stroke="{GRID}"/>')
         parts.append(f'<text x="{x0 - 6}" y="{y + 4:.1f}" font-size="10" fill="{MUTED}" '
                      f'text-anchor="end">{value:.1f}</text>')
+    # Whole numbers, unless the axis is too short for them to tell ticks apart.
+    decimals = 0 if xmax >= 8 else 1
     for k in range(5):
         x = x0 + w * k / 4
         parts.append(f'<text x="{x:.1f}" y="{y0 + h + 14}" font-size="10" fill="{MUTED}" '
-                     f'text-anchor="middle">{xmax * k / 4:.0f}</text>')
+                     f'text-anchor="middle">{xmax * k / 4:.{decimals}f}</text>')
     parts.append(f'<text x="{x0 + w / 2}" y="{y0 + h + 30}" font-size="11" fill="{MUTED}" '
                  f'text-anchor="middle">{xlabel}</text>')
     for engine, points in lines:
