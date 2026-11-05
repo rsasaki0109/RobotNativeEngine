@@ -48,6 +48,35 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `examples/147_go2_learning --backend locomotion` collides every collision
+  shape of the URDF MuJoCo and Rapier load: the head's lower sphere as
+  itself, cylinders (hips, the head's upper half, calves, lower-calf bumpers)
+  as spheres of their radius along their axes, and boxes (body, thighs) as
+  their eight corners, 106 contacts besides the feet where it had 40 on the
+  calves and knees. MuJoCo's walks lean on the head (on Rapier it comes
+  within 5 mm of the floor in 78–174 of 250 control steps), which sank
+  through the old plant's floor, so all six fell within about a second.
+  Rerun side by side on one CI runner (`docs/media/go2-learning-compare-flat`
+  and `-terrain`), all twelve cross-evaluations hold the 5 s where four did:
+  RNE's walks keep 68–100% of their fitness in MuJoCo and MuJoCo's 56–127% on
+  the locomotion step. RNE reached fitness 1 first in wall time in five runs
+  of six (flat 22–35 s against MuJoCo's 46–49 s), scored higher after 200
+  generations on five runs of six, and trained 1.7–2.7 times as fast (flat
+  589–683 simulated seconds per wall second against 351–371, terrain 566–613
+  against 213–267). The development container's runs
+  (`docs/media/go2-learning-locomotion`) reach fitness 1 in 74–119
+  generations where the old plant took 98–168, and their walks keep 65–113%
+  of their fitness on Rapier, where the old plant's kept 46–60%.
+
+- `rne_locomotion::QuadrupedTerrainSim` skips the terrain query for a body
+  sphere that cannot come within the contact margin this step, bounding the
+  height field's highest point and steepest slope once, and looks up each
+  body sphere's link when the spheres are set rather than every step. Steps
+  are bitwise unchanged (a test checks a collapse onto rough terrain both
+  ways); example 147's untrained-policy episodes take 7% fewer instructions
+  with its 106 body contacts than they took with 40. A zero radius makes a
+  body sphere a point.
+
 - `rne_dynamics`' sliding-friction solve bisects the friction direction by
   normalizing the sum of the bracket's edge directions instead of taking
   `sin_cos` at each midpoint, and the tree Cholesky solve skips coordinates

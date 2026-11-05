@@ -60,7 +60,8 @@ pub(crate) enum Backend {
     /// `rne_physics_native`: `rne_dynamics`' articulated hard-contact stepping.
     Native,
     /// `rne_locomotion`'s terrain step: `rne_dynamics`' hard-contact stepping
-    /// with spheres for the feet, knees and shins on a flat floor.
+    /// with every URDF collision shape as spheres and points, on a flat floor
+    /// or rough terrain.
     Locomotion,
 }
 

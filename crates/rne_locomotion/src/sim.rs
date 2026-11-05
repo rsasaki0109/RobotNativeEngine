@@ -115,10 +115,86 @@ pub struct QuadrupedTerrainSim {
     warm: Option<Vec<[f64; 3]>>,
     time_s: f64,
     body_spheres: Vec<BodySphere>,
+    /// Kinematic link index of each body sphere.
+    body_sphere_links: Vec<usize>,
+    /// Bounds of the terrain: see [`TerrainBounds`].
+    terrain_bounds: TerrainBounds,
+}
+
+/// The highest point of a height field, in the locomotion frame's z, and the
+/// least vertical component of its surface normal. A point `d` above the
+/// highest point lies at least `d` times that component from the surface's
+/// tangent plane anywhere below it, so a body sphere that far above the
+/// terrain cannot touch it this step and needs no terrain query.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct TerrainBounds {
+    top_m: f64,
+    min_normal_z: f64,
+}
+
+impl TerrainBounds {
+    /// Bounds that never skip a query, for a terrain that is not a valid
+    /// height field (whose queries then fail as before).
+    const NONE: Self = Self {
+        top_m: f64::INFINITY,
+        min_normal_z: 0.0,
+    };
+
+    fn of(terrain: &ColliderShape) -> Self {
+        let ColliderShape::HeightField {
+            nrows,
+            ncols,
+            heights_m,
+            scale,
+        } = terrain
+        else {
+            return Self::NONE;
+        };
+        let (rows, columns) = (*nrows as usize, *ncols as usize);
+        if rows < 2 || columns < 2 || heights_m.len() != rows * columns {
+            return Self::NONE;
+        }
+        let at = |row: usize, column: usize| heights_m[row * columns + column] * scale.y;
+        let top_m = (0..rows * columns)
+            .map(|index| heights_m[index] * scale.y)
+            .fold(f64::NEG_INFINITY, f64::max);
+        // The surface's slopes blend its cell edges' slopes, so the steepest
+        // edges bound them.
+        let (dx, dz) = (scale.x / (columns - 1) as f64, scale.z / (rows - 1) as f64);
+        let mut slope_x: f64 = 0.0;
+        let mut slope_z: f64 = 0.0;
+        for row in 0..rows {
+            for column in 0..columns {
+                if column + 1 < columns {
+                    slope_x = slope_x.max(((at(row, column + 1) - at(row, column)) / dx).abs());
+                }
+                if row + 1 < rows {
+                    slope_z = slope_z.max(((at(row + 1, column) - at(row, column)) / dz).abs());
+                }
+            }
+        }
+        let min_normal_z = 1.0 / (1.0 + slope_x * slope_x + slope_z * slope_z).sqrt();
+        if top_m.is_finite() && min_normal_z.is_finite() {
+            Self {
+                top_m,
+                min_normal_z,
+            }
+        } else {
+            Self::NONE
+        }
+    }
+
+    /// Whether a sphere centered at height `z_m` lies further than `margin_m`
+    /// from the terrain everywhere.
+    fn clears(&self, z_m: f64, radius_m: f64, margin_m: f64) -> bool {
+        let above = z_m - self.top_m;
+        above > 0.0 && above * self.min_normal_z - radius_m > margin_m
+    }
 }
 
 /// A collision sphere fixed to a link of the robot, besides the feet: a knee,
-/// a shin or a body corner that can touch the terrain.
+/// a shin or a body corner that can touch the terrain. A zero radius makes it
+/// a point, such as a box's corner.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct BodySphere {
     /// Kinematic link the sphere moves with.
@@ -160,7 +236,10 @@ impl QuadrupedTerrainSim {
             warm: None,
             time_s: 0.0,
             body_spheres: Vec::new(),
+            body_sphere_links: Vec::new(),
+            terrain_bounds: TerrainBounds::NONE,
         };
+        sim.terrain_bounds = TerrainBounds::of(&sim.terrain);
         sim.reset_standing(0.0, 0.0, 0.0)?;
         Ok(sim)
     }
@@ -201,7 +280,10 @@ impl QuadrupedTerrainSim {
     /// Lets `spheres` touch the terrain besides the feet. Each step adds a
     /// contact for every sphere within 1 cm of the terrain, after the feet,
     /// so a robot that kneels or falls lands on its knees or body instead of
-    /// sinking through the ground. None by default.
+    /// sinking through the ground. None by default. A sphere too far above
+    /// the terrain's highest point to come within 1 cm, given the terrain's
+    /// steepest slope, costs no terrain query, so spheres on the body and the
+    /// upper legs cost little while they are clear of the ground.
     pub fn set_body_spheres(&mut self, spheres: Vec<BodySphere>) -> Result<(), LocomotionError> {
         let links = self.quadruped.model().kinematic();
         if spheres.iter().any(|sphere| {
@@ -211,6 +293,10 @@ impl QuadrupedTerrainSim {
         }) {
             return Err(LocomotionError::InvalidInput("body sphere"));
         }
+        self.body_sphere_links = spheres
+            .iter()
+            .filter_map(|sphere| links.link_index(sphere.link))
+            .collect();
         self.body_spheres = spheres;
         Ok(())
     }
@@ -396,13 +482,15 @@ impl QuadrupedTerrainSim {
         kinematics: &ForwardKinematics,
         contacts: &mut Vec<ContactPoint>,
     ) -> Result<(), LocomotionError> {
-        let model = self.quadruped.model();
-        for sphere in &self.body_spheres {
-            let Some(index) = model.kinematic().link_index(sphere.link) else {
-                continue;
-            };
+        for (sphere, &index) in self.body_spheres.iter().zip(&self.body_sphere_links) {
             let frame = kinematics.transforms()[index];
             let center = frame.translation + frame.rotation * sphere.center_local_m;
+            if self
+                .terrain_bounds
+                .clears(center.z, sphere.radius_m, BODY_CONTACT_MARGIN_M)
+            {
+                continue;
+            }
             let (height, normal) = terrain_surface(&self.terrain, center.x, center.y)?;
             let gap = (center.z - height) * normal.z - sphere.radius_m;
             if gap > BODY_CONTACT_MARGIN_M {
@@ -496,6 +584,103 @@ mod tests {
             assert!(sim.set_body_spheres(vec![bad]).is_err());
         }
         assert!(sim.body_spheres().is_empty());
+    }
+
+    #[test]
+    fn terrain_bounds_bound_every_surface_query() {
+        let terrain = FractalTerrain {
+            size_x_m: 6.0,
+            size_z_m: 6.0,
+            columns: 61,
+            rows: 61,
+            amplitude_m: 0.08,
+            ..FractalTerrain::default()
+        }
+        .height_field(3)
+        .expect("terrain");
+        let bounds = TerrainBounds::of(&terrain);
+        assert!(bounds.top_m > 0.0 && bounds.top_m < 0.2, "{bounds:?}");
+        assert!(
+            bounds.min_normal_z > 0.5 && bounds.min_normal_z < 1.0,
+            "{bounds:?}"
+        );
+        let (mut highest, mut flattest) = (f64::NEG_INFINITY, f64::INFINITY);
+        for i in 0..200 {
+            for j in 0..200 {
+                let (x, y) = (-2.99 + 0.03 * i as f64, -2.99 + 0.03 * j as f64);
+                let (height, normal) = terrain_surface(&terrain, x, y).expect("on the terrain");
+                highest = highest.max(height);
+                flattest = flattest.min(normal.z);
+            }
+        }
+        assert!(highest <= bounds.top_m && bounds.top_m - highest < 0.01);
+        assert!(flattest >= bounds.min_normal_z);
+        let flat = TerrainBounds::of(&flat_terrain());
+        assert_eq!((flat.top_m, flat.min_normal_z), (0.0, 1.0));
+        assert!(flat.clears(0.031, 0.02, 0.01) && !flat.clears(0.029, 0.02, 0.01));
+        let none = TerrainBounds::of(&ColliderShape::Sphere { radius_m: 1.0 });
+        assert!(!none.clears(1.0e9, 0.0, 0.0));
+    }
+
+    #[test]
+    fn skipping_spheres_above_the_terrain_changes_no_step() {
+        let go2 = Arc::new(Quadruped::go2().expect("go2"));
+        let terrain = FractalTerrain {
+            size_x_m: 4.0,
+            size_z_m: 4.0,
+            columns: 41,
+            rows: 41,
+            amplitude_m: 0.05,
+            ..FractalTerrain::default()
+        }
+        .height_field(5)
+        .expect("terrain");
+        let limp = TerrainSimConfig {
+            position_gain_nm_rad: 0.0,
+            velocity_gain_nm_s_rad: 0.0,
+            ..TerrainSimConfig::default()
+        };
+        let links = go2.model().kinematic();
+        let link = |name: &str| links.link_entity_by_name(name).expect("link");
+        // A belly, corner points and knees, so the collapse lands on some.
+        let mut spheres = vec![BodySphere {
+            link: link("base"),
+            center_local_m: Vec3::ZERO,
+            radius_m: 0.05,
+        }];
+        for (x, y) in [(0.19, 0.05), (0.19, -0.05), (-0.19, 0.05), (-0.19, -0.05)] {
+            spheres.push(BodySphere {
+                link: link("base"),
+                center_local_m: Vec3::new(x, y, -0.057),
+                radius_m: 0.0,
+            });
+        }
+        for leg in ["FL", "FR", "RL", "RR"] {
+            spheres.push(BodySphere {
+                link: link(&format!("{leg}_calf")),
+                center_local_m: Vec3::ZERO,
+                radius_m: 0.017,
+            });
+        }
+        let command = JointCommand::positions(go2.stand_pose_rad().to_vec());
+        let run = |bounds: Option<TerrainBounds>| {
+            let mut sim =
+                QuadrupedTerrainSim::new(go2.clone(), terrain.clone(), limp).expect("sim");
+            sim.set_body_spheres(spheres.clone()).expect("spheres");
+            if let Some(bounds) = bounds {
+                sim.terrain_bounds = bounds;
+            }
+            let mut body_contacts = 0;
+            for _ in 0..600 {
+                let step = sim.step(&command, Vec3::ZERO).expect("step");
+                body_contacts += step.contacts.len() - 4;
+            }
+            (sim.q().to_vec(), sim.qd().to_vec(), body_contacts)
+        };
+        let skipping = run(None);
+        let querying = run(Some(TerrainBounds::NONE));
+        assert!(skipping.2 > 0, "the body lands on its spheres");
+        assert_eq!(skipping, querying);
     }
 
     #[test]

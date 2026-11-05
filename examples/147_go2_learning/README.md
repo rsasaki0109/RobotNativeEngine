@@ -52,11 +52,15 @@ python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
 - **RNE locomotion step** (`--backend locomotion`, "RNE locomotion" below).
   `rne_locomotion::QuadrupedTerrainSim` steps the same fused 16.087 kg model
   with `rne_dynamics`' hard-contact step on a flat height field, without
-  Rapier. Its contacts are the 22 mm foot spheres and spheres for each leg's
-  knee, calf cylinder and two lower-calf bumpers
-  (`QuadrupedTerrainSim::set_body_spheres`); the thighs, hips, head and body
-  box have none. The joints get the same explicit PD torque as the other
-  engines. Its contact solver stops at 1e-5 N·s and 0.1 mm/s or 30 sweeps
+  Rapier. Its contacts are the 22 mm foot spheres and every other collision
+  shape in the URDF (`QuadrupedTerrainSim::set_body_spheres`), 106 in all:
+  - the head's lower sphere as itself;
+  - each cylinder (hips, the head's upper half, calves, lower-calf bumpers)
+    as spheres of its radius along its axis, one radius apart;
+  - each box (body, thighs) as its eight corners, where a box first meets a
+    floor.
+
+  The joints get the same explicit PD torque as the other engines. Its contact solver stops at 1e-5 N·s and 0.1 mm/s or 30 sweeps
   (see [Learning on RNE's locomotion step](#learning-on-rnes-locomotion-step)).
 - **MuJoCo.** `mujoco_go2_learning.py` builds the robot from the same URDF
   with MuJoCo's importer (visuals and materials removed, `inertiafromgeom`
@@ -185,41 +189,50 @@ thresholds and final outcome, and every evaluation in both engines.
 ## Learning on RNE's locomotion step
 
 The same training on `--backend locomotion`, three seeds, 4 threads, in the
-development container (MuJoCo's figures here come from the runs above; see
+development container, with builds running alongside parts of it; see
 [Side by side with MuJoCo](#side-by-side-with-mujoco) for both engines on one
-machine):
+machine:
 
 | Seed | Fitness 0.5 reached (generation / s) | Fitness 1 reached (generation / s) | Fitness after 200 | Forward in 5 s | In RNE (4 iterations) | In RNE 2×1 |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
-| 2026 | 158 / 45 | 168 / 49 | 2.79 | 3.30 m | walks, 2.33 m | walks, 2.18 m |
-| 11 | 115 / 43 | 166 / 68 | 2.44 | 3.06 m | walks, 1.97 m | walks, 1.92 m |
-| 12 | 93 / 25 | 98 / 26 | 5.85 | 6.87 m | walks, 3.57 m | falls after 4.3 s, 2.8 m |
+| 2026 | 72 / 17 | 119 / 29 | 5.26 | 5.52 m | walks, 5.29 m | walks, 5.15 m |
+| 11 | 46 / 10 | 87 / 22 | 2.74 | 3.42 m | walks, 3.34 m | walks, 3.42 m |
+| 12 | 45 / 11 | 74 / 18 | 2.34 | 2.63 m | walks, 2.53 m | walks, 2.23 m |
 
 ![Fitness of the mean policy against wall-clock minutes and against generations for the three runs on RNE's locomotion step](../../docs/media/go2-learning-locomotion.svg)
 
-- **It learns the walk in MuJoCo's wall time, and further.**
-  - It reached fitness 1 in 26–68 s, against MuJoCo's 49–54 s and RNE 2×1's
-    75–130 s, but in more generations: 98–168, against MuJoCo's 94–106.
-  - After 200 generations its walks scored 2.44–5.85, MuJoCo's 2.05–2.29.
-- **It runs 1.3–2 times as fast as MuJoCo on four cores.**
-  - A generation took a median 0.27–0.45 s, against MuJoCo's 0.58–0.60 s.
-  - That is 444–670 simulated seconds per wall second, against 330–339.
-  - The cost per step follows the gait's contacts, so the three runs differ.
-- **Its walks hold on Rapier.** All three walk for 5 s at four iterations, at
-  46–60% of their fitness; at two iterations seed 12's falls after 4.3 s.
-  The other way fails: RNE 2×1's seed-11 walk falls after 0.56 s on the
-  locomotion step. MuJoCo was not installed for these runs, so neither
-  direction has been checked against it.
-- **Two settings were needed to learn this walk.**
-  - With `rne_locomotion`'s implicit joint PD in place of the explicit PD
-    torque, and only foot contacts, seed 2026 found a 0.4 m shuffle in 200
-    generations.
-  - With the library's solver tolerances (1e-10 N·s and 1e-8 m/s, up to 200
-    sweeps), seed 11's kneeling gait averaged 72 sweeps a step and trained at
-    137 simulated seconds per wall second, and that run did not reach fitness 1.
-    Its foot, knee and shin contacts on one calf are nearly redundant, so
-    Gauss–Seidel converges slowly; the looser stopping rule changes the
-    trained walks' fitness by less than 4%.
+- **Its walks hold on Rapier.** All three walk for 5 s at four and at two
+  iterations, at 65–113% of their fitness.
+- **Three settings were needed to learn walks that hold in other engines.**
+  - **Every collision shape touches the floor.** The first version of this
+    plant gave contacts to the feet, knees, calves and lower-calf bumpers
+    only, so its thighs, hips, head and body passed through the floor.
+    - MuJoCo's walks lean on the head's lower sphere: on Rapier it comes
+      within 5 mm of the floor in 78–174 of an episode's 250 control steps.
+      On the first plant the head sank instead, and all of MuJoCo's walks
+      fell within about a second.
+    - Its own walks found gaits that hold only without those contacts. On
+      the CI runner, seed 12's ran 8.07 m in 5 s and fell after 0.92 s in
+      MuJoCo, and seed 11's never got past a shuffle.
+    - Its walks held on Rapier at 46–60% of their fitness.
+    - On the current plant, seeds 11 and 12 lean on the head as MuJoCo's
+      walks do (within 5 mm in 93 and 112 control steps), and seed 2026
+      barely does (6).
+  - **Explicit PD.** With `rne_locomotion`'s implicit joint PD in place of
+    the explicit PD torque, and only foot contacts, seed 2026 found a 0.4 m
+    shuffle in 200 generations.
+  - **A looser solver stopping rule.** With the library's solver tolerances
+    (1e-10 N·s and 1e-8 m/s, up to 200 sweeps), the first plant's seed-11
+    kneeling gait averaged 72 sweeps a step and trained at 137 simulated
+    seconds per wall second, and that run did not reach fitness 1. Its foot,
+    knee and shin contacts on one calf are nearly redundant, so Gauss–Seidel
+    converges slowly. The looser stopping rule changes the trained walks'
+    fitness by less than 4%.
+- **The extra contacts are free while clear of the floor.**
+  `QuadrupedTerrainSim` skips the terrain query for a body sphere that cannot
+  come within the contact margin this step. The untrained policy's episodes
+  take 7% fewer instructions with the 106 body contacts than the first
+  plant's took with 40.
 
 The [summary](../../docs/media/go2-learning-locomotion.json) holds each run's
 timing, thresholds and final outcome, and its evaluations on Rapier.
@@ -228,20 +241,21 @@ timing, thresholds and final outcome, and its evaluations on Rapier.
 
 `.github/workflows/go2-learning.yml` trains each seed in RNE's locomotion
 step and in MuJoCo 3.9.0 on one 4-core GitHub runner, one engine after the
-other, then evaluates every final policy in both (and on Rapier for the flat
-floor). Its flat-floor results reproduced bit for bit on a second runner, with
-timings within 2%. The same seeds learn differently here than in the
-development container: the engines' arithmetic is deterministic, but the
-system math library's last bits differ, and 200 generations of ES amplify
-them.
+other. It then evaluates every final policy in both engines, and on Rapier
+for the flat floor.
+
+The same flat runs in the development container crossed fitness 0.5 and 1 in
+the same generations and ended within 0.02 of these. On the first plant they
+had diverged: the system math library's last bits differ between the
+machines, and 200 generations of ES amplified them.
 
 Flat floor:
 
 | Seed | RNE: fitness 1 (generation / s) | MuJoCo: fitness 1 | RNE after 200 | MuJoCo after 200 | RNE's walk in MuJoCo | MuJoCo's walk on RNE's step (on Rapier) |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
-| 2026 | 171 / 64 | 99 / 68 | 2.65 | 2.29 | walks, 2.76 m | falls after 0.96 s (walks, 2.57 m) |
-| 11 | — (0.54, a shuffle) | 94 / 66 | 0.54 | 2.14 | shuffles, 0.55 m | falls after 0.88 s (walks, 1.69 m) |
-| 12 | 97 / 32 | 106 / 70 | 7.00 | 2.05 | falls after 0.92 s | falls after 0.76 s (walks, 2.84 m) |
+| 2026 | 119 / 35 | 99 / 48 | 5.28 | 2.29 | walks, 5.44 m | walks, 2.23 m (walks, 2.57 m) |
+| 11 | 87 / 25 | 94 / 46 | 2.74 | 2.14 | walks, 3.08 m | walks, 2.39 m (walks, 1.69 m) |
+| 12 | 74 / 22 | 106 / 49 | 2.34 | 2.05 | walks, 2.67 m | walks, 2.88 m (walks, 2.84 m) |
 
 ![Fitness against wall-clock minutes and generations, RNE's locomotion step and MuJoCo on one runner, flat floor](../../docs/media/go2-learning-compare-flat.svg)
 
@@ -251,27 +265,34 @@ heights before training):
 
 | Seed | RNE: fitness 1 (generation / s) | MuJoCo: fitness 1 | RNE after 200 | MuJoCo after 200 | RNE's walk in MuJoCo | MuJoCo's walk on RNE's step |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
-| 2026 | 165 / 43 | 85 / 48 | 3.12 | 4.11 | walks, 3.37 m | falls after 0.84 s |
-| 11 | 64 / 14 | 187 / 116 | 7.59 | 1.05 | falls after 1.7 s | falls after 0.94 s |
-| 12 | 108 / 23 | — (0.53) | 5.22 | 0.53 | walks, 5.21 m | falls after 1.06 s |
+| 2026 | 146 / 49 | 85 / 71 | 2.11 | 4.11 | walks, 2.32 m | walks, 4.33 m |
+| 11 | 130 / 42 | 187 / 165 | 2.67 | 1.05 | walks, 2.26 m | walks, 1.09 m |
+| 12 | — (0.83) | — (0.53) | 0.83 | 0.53 | shuffles, 0.84 m | shuffles, 0.53 m |
 
 ![Fitness against wall-clock minutes and generations, RNE's locomotion step and MuJoCo on one runner, rough terrain](../../docs/media/go2-learning-compare-terrain.svg)
 
-- **RNE trains 1.2–2.7 times as fast as MuJoCo on the same runner.**
-  - Flat: 309–528 simulated seconds per wall second on four cores, against
-    MuJoCo's 252–265; a generation took 0.34–0.63 s, against 0.74–0.81 s.
-  - Terrain: 693–818, against 307–385.
-  - One thread, untrained policy: 232–236 against MuJoCo's 180–188.
-- **Which engine learns the walk first depends on the seed.** Flat, RNE got
-  there first on two seeds of three and never on the third; on terrain RNE
-  reached fitness 1 on all three and MuJoCo on two. Three seeds do not rank
-  the engines' sample efficiency.
-- **Transfer runs one way.** RNE's walks hold in MuJoCo on two seeds of three
-  on each floor. MuJoCo's six walks all fall within about a second on RNE's
-  locomotion step, though its three flat walks hold on Rapier. The locomotion
-  step is further from MuJoCo than Rapier is: hard contacts and contact only
-  at the feet and lower legs, where both MuJoCo and Rapier collide every
-  link's geometry.
+- **RNE trains 1.7–2.7 times as fast as MuJoCo on the same runner.**
+  - Flat: 589–683 simulated seconds per wall second on four cores, against
+    MuJoCo's 351–371. A generation took 0.29–0.34 s, against 0.53–0.59 s.
+  - Terrain: 566–613, against 213–267.
+  - One thread, untrained policy: 341–344 against 259–269 on the flat floor,
+    and 327–332 against 175–176 on terrain.
+  - The two floors ran on different runners, so compare speeds within a
+    floor, not across floors.
+- **RNE reaches the walk first in wall time.**
+  - Flat: RNE reached fitness 1 first on all three seeds, in 22–35 s against
+    MuJoCo's 46–49 s. It also took fewer generations on two seeds.
+  - Terrain: RNE was first on seeds 2026 and 11. On seed 2026 it was quicker
+    in wall time but needed more generations (146 against 85). On seed 12
+    neither engine reached fitness 1.
+  - After 200 generations RNE scored higher on five runs of six.
+  - Three seeds do not rank the engines' sample efficiency.
+- **Transfer runs both ways.** All twelve cross-evaluations walk or shuffle
+  through the 5 s.
+  - RNE's walks keep 68–100% of their fitness in MuJoCo.
+  - MuJoCo's walks keep 56–127% of theirs on RNE's locomotion step.
+  - On the first plant only four of the twelve held, and none of MuJoCo's
+    six.
 
 The summaries ([flat](../../docs/media/go2-learning-compare-flat.json),
 [terrain](../../docs/media/go2-learning-compare-terrain.json)) hold each
@@ -289,7 +310,7 @@ episodes (medians of three runs):
 | RNE, Rapier, 1 solver iteration | 76 |
 | RNE, Rapier, 1 solver iteration, 4 inner passes (`--inner-passes 4`) | 74 |
 | RNE, native backend (`--backend native`) | 13 |
-| RNE, locomotion step (`--backend locomotion`) | 247 (207–249) |
+| RNE, locomotion step (`--backend locomotion`) | 308 (296–401) |
 | MuJoCo, elliptic cone, `impratio` 100 | 231 (185–243) |
 | MuJoCo, its defaults | 236 |
 
@@ -318,9 +339,11 @@ episodes (medians of three runs):
 - **What did not help.** Factoring the mass matrices along the kinematic tree
   without fill cuts the flops to a third at 18 DoF. Each solve still took
   about 2,950 instructions, against 2,160 for nalgebra's vectorized dense LU.
-- **The locomotion step matches MuJoCo on one thread** (247 against 231
-  simulated seconds per wall second), so on four threads it outruns
-  MuJoCo's four processes.
+- **The locomotion step outruns MuJoCo on one thread.** In this container it
+  ran 308 simulated seconds per wall second against MuJoCo's 231, measured in
+  different sessions. On one CI runner it ran 341–344 against 259–269 (see
+  [Side by side with MuJoCo](#side-by-side-with-mujoco)). On four threads the
+  lead widens.
   - It is `rne_dynamics::contact_step`. On a trained walk the contact solve
     takes about 27% of it and the Cholesky solves of the contact columns 18%.
   - It runs one forward-kinematics pass a step:
@@ -335,7 +358,8 @@ episodes (medians of three runs):
 
 ## Limits
 
-- One robot on a flat floor, one task, three seeds, no domain randomization.
+- One robot, one task on a flat floor and on one rough terrain, three seeds,
+  no domain randomization.
   The policies make no claim about transfer to hardware.
 - MuJoCo's episode loop and policy run in Python, one call per 20 ms control
   period; RNE's run in Rust.
@@ -343,7 +367,11 @@ episodes (medians of three runs):
   container's speed drifts between runs, so timings within a row compare
   better than timings across rows. Low-priority builds ran alongside parts of
   the RNE four-iteration and two-iteration runs.
-- The locomotion-step runs came later, in a fresh container of the same
-  4-core kind, and are compared with the MuJoCo runs above, not rerun beside
-  them. Their plant is a simplification: hard contacts, spheres for the feet
-  and lower legs only, and a looser contact solver.
+- The locomotion-step runs in its own section came from a later session in
+  the development container. [Side by side with MuJoCo](#side-by-side-with-mujoco)
+  reruns them beside MuJoCo on one CI runner.
+- The locomotion step's plant is a simplification:
+  - its contacts are hard;
+  - a box touches only at its corners;
+  - a cylinder is a chain of spheres;
+  - its contact solver stops early.

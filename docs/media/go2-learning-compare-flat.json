@@ -19,23 +19,23 @@
       "generations": 200,
       "reached": {
         "0.5": {
-          "generation": 160,
-          "wall_s": 58.6
+          "generation": 72,
+          "wall_s": 20.6
         },
         "1.0": {
-          "generation": 171,
-          "wall_s": 64.4
+          "generation": 119,
+          "wall_s": 34.6
         }
       },
       "final": {
-        "fitness": 2.6505528283338475,
-        "forward_m": 3.1076541311063455,
+        "fitness": 5.275102451273651,
+        "forward_m": 5.6504802838358525,
         "fell": false
       },
-      "best_fitness": 2.6505528283338475,
-      "median_wall_s_per_generation": 0.339,
-      "simulated_s_per_wall_s": 470.5,
-      "total_wall_s": 78.0
+      "best_fitness": 5.323097816732899,
+      "median_wall_s_per_generation": 0.288,
+      "simulated_s_per_wall_s": 682.9,
+      "total_wall_s": 57.6
     },
     {
       "trained_in": "mujoco",
@@ -51,11 +51,11 @@
       "reached": {
         "0.5": {
           "generation": 74,
-          "wall_s": 47.7
+          "wall_s": 33.1
         },
         "1.0": {
           "generation": 99,
-          "wall_s": 67.5
+          "wall_s": 47.5
         }
       },
       "final": {
@@ -64,9 +64,9 @@
         "fell": false
       },
       "best_fitness": 3.5609181347505405,
-      "median_wall_s_per_generation": 0.743,
-      "simulated_s_per_wall_s": 265.4,
-      "total_wall_s": 145.3
+      "median_wall_s_per_generation": 0.533,
+      "simulated_s_per_wall_s": 371.3,
+      "total_wall_s": 103.9
     },
     {
       "trained_in": "locomotion",
@@ -82,20 +82,23 @@
       "generations": 200,
       "reached": {
         "0.5": {
-          "generation": 174,
-          "wall_s": 100.9
+          "generation": 46,
+          "wall_s": 12.7
         },
-        "1.0": null
+        "1.0": {
+          "generation": 87,
+          "wall_s": 24.8
+        }
       },
       "final": {
-        "fitness": 0.5371407640885417,
-        "forward_m": 0.5500613583098815,
+        "fitness": 2.7432963206684646,
+        "forward_m": 3.4171341180962767,
         "fell": false
       },
-      "best_fitness": 0.5371407640885417,
-      "median_wall_s_per_generation": 0.631,
-      "simulated_s_per_wall_s": 308.9,
-      "total_wall_s": 117.9
+      "best_fitness": 3.5610590631200583,
+      "median_wall_s_per_generation": 0.307,
+      "simulated_s_per_wall_s": 647.1,
+      "total_wall_s": 60.5
     },
     {
       "trained_in": "mujoco",
@@ -111,11 +114,11 @@
       "reached": {
         "0.5": {
           "generation": 67,
-          "wall_s": 43.6
+          "wall_s": 30.2
         },
         "1.0": {
           "generation": 94,
-          "wall_s": 66.0
+          "wall_s": 46.3
         }
       },
       "final": {
@@ -124,9 +127,9 @@
         "fell": false
       },
       "best_fitness": 2.1440918433883898,
-      "median_wall_s_per_generation": 0.79,
-      "simulated_s_per_wall_s": 251.5,
-      "total_wall_s": 151.5
+      "median_wall_s_per_generation": 0.575,
+      "simulated_s_per_wall_s": 350.6,
+      "total_wall_s": 108.7
     },
     {
       "trained_in": "locomotion",
@@ -142,23 +145,23 @@
       "generations": 200,
       "reached": {
         "0.5": {
-          "generation": 93,
-          "wall_s": 30.5
+          "generation": 45,
+          "wall_s": 12.7
         },
         "1.0": {
-          "generation": 97,
-          "wall_s": 32.3
+          "generation": 74,
+          "wall_s": 22.0
         }
       },
       "final": {
-        "fitness": 7.0043377637162365,
-        "forward_m": 8.069347750748008,
+        "fitness": 2.337487462489805,
+        "forward_m": 2.6349794508754747,
         "fell": false
       },
-      "best_fitness": 7.844043069362416,
-      "median_wall_s_per_generation": 0.34,
-      "simulated_s_per_wall_s": 527.6,
-      "total_wall_s": 68.7
+      "best_fitness": 2.645769177552041,
+      "median_wall_s_per_generation": 0.336,
+      "simulated_s_per_wall_s": 588.8,
+      "total_wall_s": 65.6
     },
     {
       "trained_in": "mujoco",
@@ -174,11 +177,11 @@
       "reached": {
         "0.5": {
           "generation": 42,
-          "wall_s": 25.0
+          "wall_s": 17.1
         },
         "1.0": {
           "generation": 106,
-          "wall_s": 69.7
+          "wall_s": 48.7
         }
       },
       "final": {
@@ -187,9 +190,9 @@
         "fell": false
       },
       "best_fitness": 2.7733086843406265,
-      "median_wall_s_per_generation": 0.805,
-      "simulated_s_per_wall_s": 256.0,
-      "total_wall_s": 152.1
+      "median_wall_s_per_generation": 0.587,
+      "simulated_s_per_wall_s": 356.6,
+      "total_wall_s": 109.2
     }
   ],
   "evaluations": [
@@ -199,10 +202,10 @@
       "seed": 2026,
       "outcome": {
         "fell": false,
-        "fitness": 2.6505528283338475,
-        "forward_m": 3.1076541311063455,
-        "heading_rad": 0.7179269702456127,
-        "lateral_m": -0.11721953681803894,
+        "fitness": 5.275102451273651,
+        "forward_m": 5.6504802838358525,
+        "heading_rad": -0.22501078452252463,
+        "lateral_m": -0.4811029892778393,
         "survived_s": 5.0
       }
     },
@@ -212,10 +215,10 @@
       "seed": 2026,
       "outcome": {
         "fell": false,
-        "fitness": 2.4617163786096614,
-        "forward_m": 2.7982441410422325,
-        "heading_rad": 0.5646479281254021,
-        "lateral_m": 0.01585832184900937,
+        "fitness": 3.2939539950589856,
+        "forward_m": 4.4261645302176476,
+        "heading_rad": 0.39979106859323565,
+        "lateral_m": 1.8238102229570359,
         "survived_s": 5.0
       }
     },
@@ -224,10 +227,10 @@
       "trained_in": "locomotion",
       "seed": 2026,
       "outcome": {
-        "fitness": 2.4638943030694263,
-        "forward_m": 2.760308319374978,
-        "lateral_m": -0.00405411841424016,
-        "heading_rad": 0.5021928281218868,
+        "fitness": 4.841978818998442,
+        "forward_m": 5.436634701738776,
+        "lateral_m": 1.0037257255521104,
+        "heading_rad": 0.14577896990753417,
         "survived_s": 5.0,
         "fell": false
       }
@@ -237,12 +240,12 @@
       "trained_in": "mujoco",
       "seed": 2026,
       "outcome": {
-        "fell": true,
-        "fitness": -0.5011396261321329,
-        "forward_m": 0.7069664145531053,
-        "heading_rad": 0.29302911736939513,
-        "lateral_m": 0.07782520347786949,
-        "survived_s": 0.96
+        "fell": false,
+        "fitness": 1.2934097747352178,
+        "forward_m": 2.2285438381268357,
+        "heading_rad": -0.6934130633560395,
+        "lateral_m": -1.1535376694671464,
+        "survived_s": 5.0
       }
     },
     {
@@ -277,10 +280,10 @@
       "seed": 11,
       "outcome": {
         "fell": false,
-        "fitness": 0.5371407640885417,
-        "forward_m": 0.5500613583098815,
-        "heading_rad": 0.01132133653632796,
-        "lateral_m": 0.010802788935947745,
+        "fitness": 2.7432963206684646,
+        "forward_m": 3.4171341180962767,
+        "heading_rad": 0.2911833334465918,
+        "lateral_m": 1.0227653606408385,
         "survived_s": 5.0
       }
     },
@@ -290,10 +293,10 @@
       "seed": 11,
       "outcome": {
         "fell": false,
-        "fitness": 0.4773412473022182,
-        "forward_m": 0.5242786929011345,
-        "heading_rad": 0.06933493558558618,
-        "lateral_m": 0.020074240330359316,
+        "fitness": 2.733597321924792,
+        "forward_m": 3.339014910161495,
+        "heading_rad": 0.2423869627869452,
+        "lateral_m": 0.9334797891115159,
         "survived_s": 5.0
       }
     },
@@ -302,10 +305,10 @@
       "trained_in": "locomotion",
       "seed": 11,
       "outcome": {
-        "fitness": 0.5013413678436885,
-        "forward_m": 0.5532782241707346,
-        "lateral_m": 0.012909287856536323,
-        "heading_rad": 0.08565829937528821,
+        "fitness": 2.7557463584598505,
+        "forward_m": 3.0834336484854306,
+        "lateral_m": 0.4535558187465066,
+        "heading_rad": 0.168686901535072,
         "survived_s": 5.0,
         "fell": false
       }
@@ -315,12 +318,12 @@
       "trained_in": "mujoco",
       "seed": 11,
       "outcome": {
-        "fell": true,
-        "fitness": -0.33486144260455375,
-        "forward_m": 0.7921557697124495,
-        "heading_rad": -0.11890643329064923,
-        "lateral_m": -0.09796061173159212,
-        "survived_s": 0.88
+        "fell": false,
+        "fitness": 2.061169738569265,
+        "forward_m": 2.38895041388355,
+        "heading_rad": 0.14019829988426774,
+        "lateral_m": -0.49190768743849805,
+        "survived_s": 5.0
       }
     },
     {
@@ -355,10 +358,10 @@
       "seed": 12,
       "outcome": {
         "fell": false,
-        "fitness": 7.0043377637162365,
-        "forward_m": 8.069347750748008,
-        "heading_rad": -0.24354081897671043,
-        "lateral_m": -1.8311256331819428,
+        "fitness": 2.337487462489805,
+        "forward_m": 2.6349794508754747,
+        "heading_rad": -0.13917864481002762,
+        "lateral_m": -0.4108426626995892,
         "survived_s": 5.0
       }
     },
@@ -368,10 +371,10 @@
       "seed": 12,
       "outcome": {
         "fell": false,
-        "fitness": 4.376206557126005,
-        "forward_m": 4.604155920445919,
-        "heading_rad": -0.0007609093428719597,
-        "lateral_m": -0.394933309939006,
+        "fitness": 1.8678729708576005,
+        "forward_m": 2.525725267827511,
+        "heading_rad": -0.5920218668213658,
+        "lateral_m": -0.6824046937490493,
         "survived_s": 5.0
       }
     },
@@ -380,12 +383,12 @@
       "trained_in": "locomotion",
       "seed": 12,
       "outcome": {
-        "fitness": -0.768769967762775,
-        "forward_m": 0.40702028736578255,
-        "lateral_m": -0.1383007455196294,
-        "heading_rad": -0.16260780733043573,
-        "survived_s": 0.92,
-        "fell": true
+        "fitness": 2.2383137972001625,
+        "forward_m": 2.6700841223153167,
+        "lateral_m": -0.5218625193864578,
+        "heading_rad": -0.3054705556338971,
+        "survived_s": 5.0,
+        "fell": false
       }
     },
     {
@@ -393,12 +396,12 @@
       "trained_in": "mujoco",
       "seed": 12,
       "outcome": {
-        "fell": true,
-        "fitness": -0.9165187274361286,
-        "forward_m": 0.36244640297494335,
-        "heading_rad": 0.3340085452488897,
-        "lateral_m": 0.16267250089049362,
-        "survived_s": 0.76
+        "fell": false,
+        "fitness": 2.592621891291356,
+        "forward_m": 2.8817011975231215,
+        "heading_rad": 0.2557370031847908,
+        "lateral_m": -0.26863555006342893,
+        "survived_s": 5.0
       }
     },
     {
