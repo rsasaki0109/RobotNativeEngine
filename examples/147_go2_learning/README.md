@@ -15,6 +15,11 @@ cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed
 cargo run --release -p go2_learning --example 147_go2_learning -- --write-terrain terrain.json --terrain 7
 cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
   --backend locomotion --terrain 7   # go2-learning-locomotion-terrain-2026.json
+cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
+  --backend locomotion --terrain 7 --random-starts --height-scan   # ...-terrain-starts-scan-2026.json
+cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate POLICY.json \
+  --backend locomotion --terrain 7 --starts 16   # the mean over 16 held-out starts
+#   --terrain-frequency 1.0 --terrain-amplitude 0.08 makes the terrain rougher (defaults 0.5, 0.04)
 python3 examples/147_go2_learning/mujoco_go2_learning.py check-terrain terrain.json
 python3 examples/147_go2_learning/mujoco_go2_learning.py train \
   target/go2-learning/go2-learning-locomotion-terrain-2026.json OUT.json --terrain terrain.json
@@ -22,6 +27,7 @@ python3 examples/147_go2_learning/mujoco_go2_learning.py train \
   target/go2-learning/go2-learning-rne-2026.json target/go2-learning/go2-learning-mujoco-2026.json
 cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate target/go2-learning/go2-learning-mujoco-2026.json
 python3 examples/147_go2_learning/mujoco_go2_learning.py evaluate target/go2-learning/go2-learning-rne-2026.json
+python3 examples/147_go2_learning/mujoco_go2_learning.py evaluate POLICY.json --terrain terrain.json --starts 16
 cargo run --release -p go2_learning --example 147_go2_learning -- --stand 5   # settled stance, as JSON
 python3 examples/147_go2_learning/mujoco_go2_learning.py stand 5
 cargo run --release -p go2_learning --example 147_go2_learning -- --bench 8 [--solver-iterations 1] [--inner-passes 4] [--backend native|locomotion]
