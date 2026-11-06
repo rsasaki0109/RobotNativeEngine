@@ -32,6 +32,14 @@ on:
         description: "The terrain's first-octave amplitude, metres"
         required: false
         default: "0.04"
+      terrain_size:
+        description: "The terrain's side, metres"
+        required: false
+        default: "24"
+      learner:
+        description: 'The learner: "es" (evolution strategies) or "ppo"'
+        required: false
+        default: "es"
   push:
     paths:
       - ".github/workflows/go2-learning.yml"
@@ -43,7 +51,7 @@ jobs:
   compare:
     name: Go2 learning, RNE locomotion vs MuJoCo (${{ matrix.floor }}, ${{ matrix.task }})
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 300
     strategy:
       fail-fast: false
       matrix:
@@ -61,6 +69,8 @@ jobs:
       TERRAIN_SEED: "7"
       TERRAIN_FREQUENCY: ${{ inputs.terrain_frequency || '0.5' }}
       TERRAIN_AMPLITUDE: ${{ inputs.terrain_amplitude || '0.04' }}
+      TERRAIN_SIZE: ${{ inputs.terrain_size || '24' }}
+      LEARNER: ${{ inputs.learner || 'es' }}
       FLOOR: ${{ matrix.floor }}
       TASK: ${{ matrix.task }}
       # Held-out starts each random-start policy is evaluated from.
@@ -97,12 +107,16 @@ jobs:
           set -euo pipefail
           name=$FLOOR
           relief="--terrain $TERRAIN_SEED --terrain-frequency $TERRAIN_FREQUENCY"
-          relief="$relief --terrain-amplitude $TERRAIN_AMPLITUDE"
+          relief="$relief --terrain-amplitude $TERRAIN_AMPLITUDE --terrain-size $TERRAIN_SIZE"
           if [ "$FLOOR" = terrain ] && { [ "$TERRAIN_FREQUENCY" != 0.5 ] \
             || [ "$TERRAIN_AMPLITUDE" != 0.04 ]; }; then
             name=$name-f$TERRAIN_FREQUENCY-a$TERRAIN_AMPLITUDE
           fi
+          if [ "$FLOOR" = terrain ] && [ "$TERRAIN_SIZE" != 24 ]; then
+            name=$name-s$TERRAIN_SIZE
+          fi
           if [ "$TASK" != proprioception ]; then name=$name-$TASK; fi
+          if [ "$LEARNER" != es ]; then name=$name-$LEARNER; fi
           out=artifacts/go2-learning-$name
           mkdir -p "$out"
           if [ "$FLOOR" = terrain ]; then
@@ -127,6 +141,9 @@ jobs:
               starts="--starts $EVALUATION_STARTS" ;;
             *) echo "unknown task $TASK"; exit 1 ;;
           esac
+          # MuJoCo reads the learner from RNE's report too.
+          if [ "$LEARNER" != es ]; then tag=$tag-$LEARNER; fi
+          echo "LEARNER_FLAGS=--learner $LEARNER" >> "$GITHUB_ENV"
           echo "TASK_FLAGS=$flags" >> "$GITHUB_ENV"
           echo "EVALUATE_STARTS=$starts" >> "$GITHUB_ENV"
           echo "TAG=$tag" >> "$GITHUB_ENV"
@@ -141,7 +158,7 @@ jobs:
           echo "cores: $cores"
           for seed in $SEEDS; do
             # shellcheck disable=SC2086
-            "$bin" --train --backend locomotion $RNE_FLOOR $TASK_FLAGS --seed "$seed" \
+            "$bin" --train --backend locomotion $RNE_FLOOR $TASK_FLAGS $LEARNER_FLAGS --seed "$seed" \
               --threads "$cores" --output "$OUT"
             # shellcheck disable=SC2086
             .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py train \

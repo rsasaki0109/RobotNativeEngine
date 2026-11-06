@@ -75,12 +75,15 @@ pub(crate) const TERRAIN_FREQUENCY_PER_M: f64 = 0.5;
 pub(crate) const TERRAIN_AMPLITUDE_M: f64 = 0.04;
 
 /// The terrain's first-octave frequency and amplitude
-/// (`--terrain-frequency`, `--terrain-amplitude`); the defaults are
-/// [`TERRAIN_FREQUENCY_PER_M`] and [`TERRAIN_AMPLITUDE_M`].
+/// (`--terrain-frequency`, `--terrain-amplitude`) and its side
+/// (`--terrain-size`, sampled every 10 cm); the defaults are
+/// [`TERRAIN_FREQUENCY_PER_M`], [`TERRAIN_AMPLITUDE_M`] and
+/// [`TERRAIN_SIZE_M`].
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct Relief {
     pub(crate) frequency_per_m: f64,
     pub(crate) amplitude_m: f64,
+    pub(crate) size_m: f64,
 }
 
 impl Default for Relief {
@@ -88,7 +91,15 @@ impl Default for Relief {
         Self {
             frequency_per_m: TERRAIN_FREQUENCY_PER_M,
             amplitude_m: TERRAIN_AMPLITUDE_M,
+            size_m: TERRAIN_SIZE_M,
         }
+    }
+}
+
+impl Relief {
+    /// Samples along each side: one every 10 cm, 241 for the default 24 m.
+    pub(crate) fn samples(self) -> u32 {
+        (self.size_m / TERRAIN_SIZE_M * f64::from(TERRAIN_SAMPLES - 1)).round() as u32 + 1
     }
 }
 
@@ -356,10 +367,10 @@ pub(crate) fn settle(robot: &mut dyn Robot, start: [f64; 2]) -> Result<()> {
 /// The rough terrain for `seed`: a Y-up height field, zero at the origin.
 pub(crate) fn terrain(seed: u64, relief: Relief) -> Result<rne_physics::ColliderShape> {
     let spec = rne_physics::FractalTerrain {
-        size_x_m: TERRAIN_SIZE_M,
-        size_z_m: TERRAIN_SIZE_M,
-        columns: TERRAIN_SAMPLES,
-        rows: TERRAIN_SAMPLES,
+        size_x_m: relief.size_m,
+        size_z_m: relief.size_m,
+        columns: relief.samples(),
+        rows: relief.samples(),
         frequency_per_m: relief.frequency_per_m,
         amplitude_m: relief.amplitude_m,
         ..rne_physics::FractalTerrain::default()
@@ -427,7 +438,7 @@ pub(crate) fn terrain_json(seed: u64, relief: Relief) -> Result<Value> {
     Ok(json!({
         "seed": seed,
         "frame": "z-up: row r at y = -size/2 + r size/(rows-1), column c at x = -size/2 + c size/(columns-1)",
-        "size_m": TERRAIN_SIZE_M,
+        "size_m": relief.size_m,
         "rows": rows,
         "columns": columns,
         "frequency_per_m": relief.frequency_per_m,
@@ -519,26 +530,56 @@ pub(crate) struct Outcome {
     pub(crate) control_steps: usize,
 }
 
+/// One control period of an episode, for a learner that needs rewards.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct Step {
+    /// This period's share of the episode's fitness: the episode's rewards
+    /// sum to its fitness, except that the smoothness penalty divides by
+    /// [`EPISODE_STEPS`] where the fitness divides by the periods walked.
+    pub(crate) reward: f64,
+    /// The episode ended in this period with a fall.
+    pub(crate) fell: bool,
+}
+
 /// Runs one episode from `start`, restarting the robot, with `policy`
 /// mapping the task's observation to an action in [-1, 1].
 pub(crate) fn episode(
     robot: &mut dyn Robot,
     task: Task,
     start: [f64; 2],
-    mut policy: impl FnMut(&[f64]) -> [f64; 12],
+    policy: impl FnMut(&[f64]) -> [f64; 12],
 ) -> Result<Outcome> {
+    Ok(episode_with(robot, task, start, policy, |_| {})?.0)
+}
+
+/// [`episode`], calling `on_step` after every control period, and returning
+/// the observation after the last one too (a learner's bootstrap state when
+/// the episode ran its full length).
+pub(crate) fn episode_with(
+    robot: &mut dyn Robot,
+    task: Task,
+    start: [f64; 2],
+    mut policy: impl FnMut(&[f64]) -> [f64; 12],
+    mut on_step: impl FnMut(Step),
+) -> Result<(Outcome, Vec<f64>)> {
     settle(robot, start)?;
     let (start, _) = robot.base_pose_z_up();
     let mut action = [0.0; 12];
     let mut change_square = 0.0;
     let mut steps = 0;
     let mut fell = false;
+    // The previous period's position, sideways offset and heading, for the
+    // per-period reward.
+    let (mut last_x, mut last_lateral, mut last_heading) = (start.x, 0.0, 0.0);
     for step in 0..EPISODE_STEPS {
         let observation = observe(robot, task, step, &action)?;
         let next = policy(&observation);
         let mut targets = [0.0; 12];
+        let mut step_change = 0.0;
         for index in 0..12 {
-            change_square += (next[index] - action[index]).powi(2);
+            let change = (next[index] - action[index]).powi(2);
+            change_square += change;
+            step_change += change;
             targets[index] = DEFAULT_RAD[index] + ACTION_SCALE_RAD * next[index];
         }
         action = next;
@@ -550,11 +591,22 @@ pub(crate) fn episode(
         let clearance = position.z - robot.ground_height_m(position.x, position.y);
         let arena = robot.arena_half_m();
         let outside = position.x.abs() > arena || position.y.abs() > arena;
-        if clearance < FALL_HEIGHT_M || gravity_z > FALL_GRAVITY_Z || outside {
-            fell = true;
+        fell = clearance < FALL_HEIGHT_M || gravity_z > FALL_GRAVITY_Z || outside;
+        let (lateral, heading) = ((position.y - start.y).abs(), yaw(rotation).abs());
+        on_step(Step {
+            reward: (position.x - last_x)
+                - LATERAL_PENALTY * (lateral - last_lateral)
+                - HEADING_PENALTY * (heading - last_heading)
+                - SMOOTHNESS_PENALTY * step_change / EPISODE_STEPS as f64
+                - if fell { FALL_PENALTY } else { 0.0 },
+            fell,
+        });
+        (last_x, last_lateral, last_heading) = (position.x, lateral, heading);
+        if fell {
             break;
         }
     }
+    let last = observe(robot, task, steps, &action)?;
     let (end, rotation) = robot.base_pose_z_up();
     let (forward_m, lateral_m, heading_rad) = (end.x - start.x, end.y - start.y, yaw(rotation));
     let fitness = forward_m
@@ -562,15 +614,18 @@ pub(crate) fn episode(
         - HEADING_PENALTY * heading_rad.abs()
         - SMOOTHNESS_PENALTY * change_square / steps as f64
         - if fell { FALL_PENALTY } else { 0.0 };
-    Ok(Outcome {
-        fitness,
-        forward_m,
-        lateral_m,
-        heading_rad,
-        survived_s: steps as f64 * CONTROL_DT_S,
-        fell,
-        control_steps: SETTLE_STEPS + steps,
-    })
+    Ok((
+        Outcome {
+            fitness,
+            forward_m,
+            lateral_m,
+            heading_rad,
+            survived_s: steps as f64 * CONTROL_DT_S,
+            fell,
+            control_steps: SETTLE_STEPS + steps,
+        },
+        last,
+    ))
 }
 
 #[cfg(test)]

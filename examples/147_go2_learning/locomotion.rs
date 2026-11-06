@@ -73,7 +73,7 @@ impl LocomotionGo2 {
         let legs = quadruped.legs();
         let actuated = std::array::from_fn(|index| legs[index / 3].joints[index % 3]);
         let side_m = match terrain_seed {
-            Some(_) => crate::go2::TERRAIN_SIZE_M,
+            Some(_) => relief.size_m,
             None => FLOOR_SIZE_M,
         };
         let floor = match terrain_seed {
