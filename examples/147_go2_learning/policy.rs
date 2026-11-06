@@ -2,7 +2,7 @@
 
 use serde_json::{json, Value};
 
-use crate::go2::OBSERVATIONS;
+use crate::go2::PROPRIOCEPTION;
 use crate::Result;
 
 /// Joint targets per action.
@@ -12,41 +12,51 @@ pub(crate) const ACTIONS: usize = 12;
 /// per hidden unit), b₁, W₂ (row per action), b₂.
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Mlp {
+    /// Observation width: the proprioception, and the height scan if the
+    /// task has one.
+    pub(crate) inputs: usize,
     pub(crate) hidden: usize,
     pub(crate) params: Vec<f64>,
 }
 
 impl Mlp {
-    pub(crate) fn parameter_count(hidden: usize) -> usize {
-        hidden * OBSERVATIONS + hidden + ACTIONS * hidden + ACTIONS
+    pub(crate) fn parameter_count(inputs: usize, hidden: usize) -> usize {
+        hidden * inputs + hidden + ACTIONS * hidden + ACTIONS
     }
 
     /// W₁ from `normal`'s first deviates over √inputs; b₁, W₂ and b₂ zero, so
     /// the policy starts by holding the default pose.
-    pub(crate) fn initial(hidden: usize, mut normal: impl FnMut() -> f64) -> Self {
-        let mut params = vec![0.0; Self::parameter_count(hidden)];
-        let scale = (OBSERVATIONS as f64).sqrt();
-        for weight in &mut params[..hidden * OBSERVATIONS] {
+    pub(crate) fn initial(inputs: usize, hidden: usize, mut normal: impl FnMut() -> f64) -> Self {
+        let mut params = vec![0.0; Self::parameter_count(inputs, hidden)];
+        let scale = (inputs as f64).sqrt();
+        for weight in &mut params[..hidden * inputs] {
             *weight = normal() / scale;
         }
-        Self { hidden, params }
+        Self {
+            inputs,
+            hidden,
+            params,
+        }
     }
 
     pub(crate) fn with_params(&self, params: Vec<f64>) -> Self {
         Self {
+            inputs: self.inputs,
             hidden: self.hidden,
             params,
         }
     }
 
-    pub(crate) fn act(&self, observation: &[f64; OBSERVATIONS]) -> [f64; ACTIONS] {
-        let hidden = self.hidden;
-        let (w1, rest) = self.params.split_at(hidden * OBSERVATIONS);
+    /// The action for `observation`, which has [`Self::inputs`] values.
+    pub(crate) fn act(&self, observation: &[f64]) -> [f64; ACTIONS] {
+        assert_eq!(observation.len(), self.inputs, "observation width");
+        let (inputs, hidden) = (self.inputs, self.hidden);
+        let (w1, rest) = self.params.split_at(hidden * inputs);
         let (b1, rest) = rest.split_at(hidden);
         let (w2, b2) = rest.split_at(ACTIONS * hidden);
         let h: Vec<f64> = (0..hidden)
             .map(|unit| {
-                let row = &w1[unit * OBSERVATIONS..(unit + 1) * OBSERVATIONS];
+                let row = &w1[unit * inputs..(unit + 1) * inputs];
                 (dot(row, observation) + b1[unit]).tanh()
             })
             .collect();
@@ -58,7 +68,7 @@ impl Mlp {
     }
 
     pub(crate) fn to_json(&self) -> Value {
-        json!({"model": "mlp", "inputs": OBSERVATIONS, "hidden": self.hidden,
+        json!({"model": "mlp", "inputs": self.inputs, "hidden": self.hidden,
                "outputs": ACTIONS, "params": self.params})
     }
 
@@ -66,16 +76,27 @@ impl Mlp {
         let hidden = value["hidden"]
             .as_u64()
             .ok_or("policy has no hidden width")? as usize;
+        let inputs = value["inputs"]
+            .as_u64()
+            .map_or(PROPRIOCEPTION, |n| n as usize);
         let params: Vec<f64> = value["params"]
             .as_array()
             .ok_or("policy has no params")?
             .iter()
             .map(|p| p.as_f64().ok_or("a parameter is not a number"))
             .collect::<std::result::Result<_, _>>()?;
-        if params.len() != Self::parameter_count(hidden) {
-            return Err(format!("{} parameters for a {hidden}-unit MLP", params.len()).into());
+        if params.len() != Self::parameter_count(inputs, hidden) {
+            return Err(format!(
+                "{} parameters for a {inputs}-input, {hidden}-unit MLP",
+                params.len()
+            )
+            .into());
         }
-        Ok(Self { hidden, params })
+        Ok(Self {
+            inputs,
+            hidden,
+            params,
+        })
     }
 }
 
@@ -93,11 +114,15 @@ mod tests {
         let fixture: Value =
             serde_json::from_str(include_str!("fixtures/mlp_check.json")).expect("fixture parses");
         let hidden = fixture["hidden"].as_u64().unwrap() as usize;
-        let params = (0..Mlp::parameter_count(hidden))
+        let params = (0..Mlp::parameter_count(PROPRIOCEPTION, hidden))
             .map(|i| 0.3 * (0.37 * i as f64).sin())
             .collect();
-        let mlp = Mlp { hidden, params };
-        let mut observation = [0.0; OBSERVATIONS];
+        let mlp = Mlp {
+            inputs: PROPRIOCEPTION,
+            hidden,
+            params,
+        };
+        let mut observation = [0.0; PROPRIOCEPTION];
         for (slot, value) in observation
             .iter_mut()
             .zip(fixture["observation"].as_array().unwrap())
@@ -114,11 +139,21 @@ mod tests {
     #[test]
     fn a_new_policy_holds_the_default_pose() {
         let mut deviate = 0.0;
-        let mlp = Mlp::initial(32, || {
+        let mlp = Mlp::initial(PROPRIOCEPTION, 32, || {
             deviate += 0.1;
             deviate
         });
         assert_eq!(mlp.params.len(), 32 * 44 + 32 + 12 * 32 + 12);
-        assert_eq!(mlp.act(&[0.5; OBSERVATIONS]), [0.0; ACTIONS]);
+        assert_eq!(mlp.act(&[0.5; PROPRIOCEPTION]), [0.0; ACTIONS]);
+        // With the height scan the policy reads 15 more inputs.
+        let scan = crate::go2::Task {
+            height_scan: true,
+            random_starts: false,
+        }
+        .observations();
+        let wide = Mlp::initial(scan, 32, || 0.1);
+        assert_eq!(scan, 59);
+        assert_eq!(wide.act(&[0.5; 59]), [0.0; ACTIONS]);
+        assert_eq!(Mlp::from_json(&wide.to_json()).unwrap(), wide);
     }
 }

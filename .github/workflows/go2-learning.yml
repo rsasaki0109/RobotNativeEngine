@@ -16,6 +16,22 @@ on:
         description: 'Floors as a JSON list: "flat", "terrain"'
         required: false
         default: '["flat", "terrain"]'
+      tasks:
+        description: >-
+          Tasks as a JSON list: "proprioception" (start at the origin, joint and
+          body state only), "starts" (every generation from its own point of
+          the terrain), "starts-scan" (starts, plus the height scan); the last
+          two need the terrain
+        required: false
+        default: '["proprioception"]'
+      terrain_frequency:
+        description: "The terrain's first-octave frequency, cycles per metre"
+        required: false
+        default: "0.5"
+      terrain_amplitude:
+        description: "The terrain's first-octave amplitude, metres"
+        required: false
+        default: "0.04"
   push:
     paths:
       - ".github/workflows/go2-learning.yml"
@@ -25,18 +41,30 @@ permissions:
 
 jobs:
   compare:
-    name: Go2 learning, RNE locomotion vs MuJoCo (${{ matrix.floor }})
+    name: Go2 learning, RNE locomotion vs MuJoCo (${{ matrix.floor }}, ${{ matrix.task }})
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
         floor: ${{ fromJSON(inputs.floors || '["flat", "terrain"]') }}
+        task: ${{ fromJSON(inputs.tasks || '["proprioception"]') }}
+        exclude:
+          # Random starts walk the terrain; the flat floor is the same everywhere.
+          - floor: flat
+            task: starts
+          - floor: flat
+            task: starts-scan
     env:
       SEEDS: ${{ inputs.seeds || '2026 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25' }}
-      # The rough terrain's seed; the flat floor ignores it.
+      # The rough terrain's seed and relief; the flat floor ignores them.
       TERRAIN_SEED: "7"
+      TERRAIN_FREQUENCY: ${{ inputs.terrain_frequency || '0.5' }}
+      TERRAIN_AMPLITUDE: ${{ inputs.terrain_amplitude || '0.04' }}
       FLOOR: ${{ matrix.floor }}
+      TASK: ${{ matrix.task }}
+      # Held-out starts each random-start policy is evaluated from.
+      EVALUATION_STARTS: "16"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,22 +95,42 @@ jobs:
       - name: Floor
         run: |
           set -euo pipefail
-          out=artifacts/go2-learning-$FLOOR
+          name=$FLOOR
+          relief="--terrain $TERRAIN_SEED --terrain-frequency $TERRAIN_FREQUENCY"
+          relief="$relief --terrain-amplitude $TERRAIN_AMPLITUDE"
+          if [ "$FLOOR" = terrain ] && { [ "$TERRAIN_FREQUENCY" != 0.5 ] \
+            || [ "$TERRAIN_AMPLITUDE" != 0.04 ]; }; then
+            name=$name-f$TERRAIN_FREQUENCY-a$TERRAIN_AMPLITUDE
+          fi
+          if [ "$TASK" != proprioception ]; then name=$name-$TASK; fi
+          out=artifacts/go2-learning-$name
           mkdir -p "$out"
           if [ "$FLOOR" = terrain ]; then
-            target/release/examples/147_go2_learning --write-terrain "$out/terrain.json" \
-              --terrain "$TERRAIN_SEED"
+            # shellcheck disable=SC2086
+            target/release/examples/147_go2_learning --write-terrain "$out/terrain.json" $relief
             # MuJoCo's height field must match RNE's heights before training.
             .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
               check-terrain "$out/terrain.json"
-            echo "RNE_FLOOR=--terrain $TERRAIN_SEED" >> "$GITHUB_ENV"
+            echo "RNE_FLOOR=$relief" >> "$GITHUB_ENV"
             echo "MUJOCO_FLOOR=--terrain $out/terrain.json" >> "$GITHUB_ENV"
-            echo "TAG=locomotion-terrain" >> "$GITHUB_ENV"
+            tag=locomotion-terrain
           else
             echo "RNE_FLOOR=" >> "$GITHUB_ENV"
             echo "MUJOCO_FLOOR=" >> "$GITHUB_ENV"
-            echo "TAG=locomotion" >> "$GITHUB_ENV"
+            tag=locomotion
           fi
+          # The task's training flags; MuJoCo reads the task from RNE's report.
+          case "$TASK" in
+            proprioception) flags=""; starts="" ;;
+            starts) flags="--random-starts"; tag=$tag-starts; starts="--starts $EVALUATION_STARTS" ;;
+            starts-scan) flags="--random-starts --height-scan"; tag=$tag-starts-scan
+              starts="--starts $EVALUATION_STARTS" ;;
+            *) echo "unknown task $TASK"; exit 1 ;;
+          esac
+          echo "TASK_FLAGS=$flags" >> "$GITHUB_ENV"
+          echo "EVALUATE_STARTS=$starts" >> "$GITHUB_ENV"
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+          echo "NAME=$name" >> "$GITHUB_ENV"
           echo "OUT=$out" >> "$GITHUB_ENV"
 
       - name: Train in both engines
@@ -93,8 +141,8 @@ jobs:
           echo "cores: $cores"
           for seed in $SEEDS; do
             # shellcheck disable=SC2086
-            "$bin" --train --backend locomotion $RNE_FLOOR --seed "$seed" --threads "$cores" \
-              --output "$OUT"
+            "$bin" --train --backend locomotion $RNE_FLOOR $TASK_FLAGS --seed "$seed" \
+              --threads "$cores" --output "$OUT"
             # shellcheck disable=SC2086
             .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py train \
               "$OUT/go2-learning-$TAG-$seed.json" "$OUT/go2-learning-mujoco-$seed.json" \
@@ -106,10 +154,11 @@ jobs:
           set -euo pipefail
           for run in 1 2 3; do
             # shellcheck disable=SC2086
-            target/release/examples/147_go2_learning --bench 8 --backend locomotion $RNE_FLOOR
+            target/release/examples/147_go2_learning --bench 8 --backend locomotion $RNE_FLOOR \
+              $TASK_FLAGS
             # shellcheck disable=SC2086
             .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py bench 8 \
-              $MUJOCO_FLOOR
+              $MUJOCO_FLOOR $TASK_FLAGS
           done
 
       - name: Evaluate every policy in every engine
@@ -120,14 +169,14 @@ jobs:
             for trained in "$TAG" mujoco; do
               policy="$OUT/go2-learning-$trained-$seed.json"
               # shellcheck disable=SC2086
-              "$bin" --evaluate "$policy" --backend locomotion $RNE_FLOOR \
+              "$bin" --evaluate "$policy" --backend locomotion $RNE_FLOOR $EVALUATE_STARTS \
                 > "$OUT/eval-locomotion-$trained-$seed.json"
               if [ "$FLOOR" = flat ]; then
                 "$bin" --evaluate "$policy" --backend rapier > "$OUT/eval-rne-$trained-$seed.json"
               fi
               # shellcheck disable=SC2086
               .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py evaluate \
-                "$policy" $MUJOCO_FLOOR > "$OUT/eval-mujoco-$trained-$seed.json"
+                "$policy" $MUJOCO_FLOOR $EVALUATE_STARTS > "$OUT/eval-mujoco-$trained-$seed.json"
             done
           done
 
@@ -148,16 +197,17 @@ jobs:
             done
           done
           python3 examples/147_go2_learning/learning_compare.py \
-            "$OUT/go2-learning-compare-$FLOOR.json" "$OUT/go2-learning-compare-$FLOOR.svg" \
+            "$OUT/go2-learning-compare-$NAME.json" "$OUT/go2-learning-compare-$NAME.svg" \
             "${args[@]}"
           echo "--- summary JSON ---"
-          cat "$OUT/go2-learning-compare-$FLOOR.json"
+          cat "$OUT/go2-learning-compare-$NAME.json"
 
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: go2-learning-compare-${{ matrix.floor }}
-          path: artifacts/go2-learning-${{ matrix.floor }}
+          # The Floor step names the run; if it failed, upload what there is.
+          name: go2-learning-compare-${{ env.NAME || format('{0}-{1}', matrix.floor, matrix.task) }}
+          path: ${{ env.OUT || 'artifacts' }}
           if-no-files-found: warn
           retention-days: 30

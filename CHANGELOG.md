@@ -546,6 +546,28 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `examples/147_go2_learning` asks whether seeing the terrain helps: on
+  `--terrain` the robot can start every generation at its own point of the
+  terrain (`--random-starts`), the policy can read a 15-ray height scan
+  around its base (`--height-scan`), and `--evaluate --starts N` walks a
+  policy from N held-out starts. `--terrain-frequency` and
+  `--terrain-amplitude` make the terrain rougher. An episode ends as a fall
+  once the base is within 1 m of the floor's edge, where a perturbed
+  candidate used to stop training with an off-terrain error.
+  `mujoco_go2_learning.py` mirrors all of it: the same SplitMix64 starts,
+  and the scan cast with `mj_ray`. Its `check-terrain` now bounds the two
+  engines' heights by a quarter of each cell's twist (MuJoCo triangulates
+  where RNE interpolates bilinearly) and checks the scan too.
+  The comparison workflow gains `tasks` and relief inputs. Over sixteen
+  seeds, the scan did not improve held-out fitness in either engine, on
+  either terrain: no engine's scan policies beat its blind ones on more than
+  9 seeds of 16, and on the rougher terrain the medians fall (RNE's from
+  1.44 to 0.59). Evolution strategies with a 32-unit MLP do not use the
+  extra 15 inputs. RNE trained 2.4–2.9 times as fast as MuJoCo on four
+  cores, and on the rougher terrain reached fitness 1 sooner on 12 seeds
+  against 2 (p 0.013). Runs without the new flags are bit-identical to
+  before.
+
 - `.github/workflows/go2-learning.yml` trains example 147 in RNE's locomotion
   step and in MuJoCo 3.9.0 on one runner, on the flat floor and on rough
   terrain, and evaluates every final policy in both engines. Example 147
