@@ -238,7 +238,9 @@ pub(crate) fn train(plant: Plant, task: Task, threads: usize, config: Config) ->
                   "solver_iterations": plant.solver_iterations,
                   "inner_passes": plant.inner_passes,
                   "floor_friction": plant.floor_friction,
-                  "terrain_seed": plant.terrain_seed},
+                  "terrain_seed": plant.terrain_seed,
+                  "terrain_frequency_per_m": plant.relief.frequency_per_m,
+                  "terrain_amplitude_m": plant.relief.amplitude_m},
         "task": task.to_json(),
         "threads": threads,
         "training": {

@@ -134,6 +134,8 @@ fn main() -> Result<()> {
             "--inner-passes" => plant.inner_passes = value()?.parse()?,
             "--friction" => plant.floor_friction = value()?.parse()?,
             "--terrain" => plant.terrain_seed = Some(value()?.parse()?),
+            "--terrain-frequency" => plant.relief.frequency_per_m = value()?.parse()?,
+            "--terrain-amplitude" => plant.relief.amplitude_m = value()?.parse()?,
             "--write-terrain" => write_terrain = Some(PathBuf::from(value()?)),
             "--height-scan" => task.height_scan = true,
             "--random-starts" => task.random_starts = true,
@@ -154,7 +156,7 @@ fn main() -> Result<()> {
             .ok_or("--write-terrain needs --terrain SEED")?;
         std::fs::write(
             &path,
-            serde_json::to_string(&go2::terrain_json(seed)?)? + "\n",
+            serde_json::to_string(&go2::terrain_json(seed, plant.relief)?)? + "\n",
         )?;
         println!("wrote {}", path.display());
         return Ok(());
@@ -186,7 +188,8 @@ fn main() -> Result<()> {
                        go2::Backend::Rapier => Some(go2::rapier_mass_kg(plant)?),
                        go2::Backend::Native => None,
                        go2::Backend::Locomotion => Some(
-                           locomotion::LocomotionGo2::new(plant.floor_friction, plant.terrain_seed)?
+                           locomotion::LocomotionGo2::new(
+                               plant.floor_friction, plant.terrain_seed, plant.relief)?
                                .mass_kg(),
                        ),
                    },

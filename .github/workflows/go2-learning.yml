@@ -24,6 +24,14 @@ on:
           two need the terrain
         required: false
         default: '["proprioception"]'
+      terrain_frequency:
+        description: "The terrain's first-octave frequency, cycles per metre"
+        required: false
+        default: "0.5"
+      terrain_amplitude:
+        description: "The terrain's first-octave amplitude, metres"
+        required: false
+        default: "0.04"
   push:
     paths:
       - ".github/workflows/go2-learning.yml"
@@ -49,8 +57,10 @@ jobs:
             task: starts-scan
     env:
       SEEDS: ${{ inputs.seeds || '2026 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25' }}
-      # The rough terrain's seed; the flat floor ignores it.
+      # The rough terrain's seed and relief; the flat floor ignores them.
       TERRAIN_SEED: "7"
+      TERRAIN_FREQUENCY: ${{ inputs.terrain_frequency || '0.5' }}
+      TERRAIN_AMPLITUDE: ${{ inputs.terrain_amplitude || '0.04' }}
       FLOOR: ${{ matrix.floor }}
       TASK: ${{ matrix.task }}
       # Held-out starts each random-start policy is evaluated from.
@@ -86,16 +96,22 @@ jobs:
         run: |
           set -euo pipefail
           name=$FLOOR
-          if [ "$TASK" != proprioception ]; then name=$FLOOR-$TASK; fi
+          relief="--terrain $TERRAIN_SEED --terrain-frequency $TERRAIN_FREQUENCY"
+          relief="$relief --terrain-amplitude $TERRAIN_AMPLITUDE"
+          if [ "$FLOOR" = terrain ] && { [ "$TERRAIN_FREQUENCY" != 0.5 ] \
+            || [ "$TERRAIN_AMPLITUDE" != 0.04 ]; }; then
+            name=$name-f$TERRAIN_FREQUENCY-a$TERRAIN_AMPLITUDE
+          fi
+          if [ "$TASK" != proprioception ]; then name=$name-$TASK; fi
           out=artifacts/go2-learning-$name
           mkdir -p "$out"
           if [ "$FLOOR" = terrain ]; then
-            target/release/examples/147_go2_learning --write-terrain "$out/terrain.json" \
-              --terrain "$TERRAIN_SEED"
+            # shellcheck disable=SC2086
+            target/release/examples/147_go2_learning --write-terrain "$out/terrain.json" $relief
             # MuJoCo's height field must match RNE's heights before training.
             .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
               check-terrain "$out/terrain.json"
-            echo "RNE_FLOOR=--terrain $TERRAIN_SEED" >> "$GITHUB_ENV"
+            echo "RNE_FLOOR=$relief" >> "$GITHUB_ENV"
             echo "MUJOCO_FLOOR=--terrain $out/terrain.json" >> "$GITHUB_ENV"
             tag=locomotion-terrain
           else
@@ -190,7 +206,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: go2-learning-compare-${{ matrix.floor }}${{ matrix.task != 'proprioception' && format('-{0}', matrix.task) || '' }}
-          path: artifacts/go2-learning-${{ matrix.floor }}${{ matrix.task != 'proprioception' && format('-{0}', matrix.task) || '' }}
+          name: go2-learning-compare-${{ env.NAME }}
+          path: ${{ env.OUT }}
           if-no-files-found: warn
           retention-days: 30

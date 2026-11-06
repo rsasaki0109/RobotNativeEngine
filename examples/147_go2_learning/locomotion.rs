@@ -60,8 +60,13 @@ pub(crate) struct LocomotionGo2 {
 }
 
 impl LocomotionGo2 {
-    /// A Go2 on a flat floor, or on the rough terrain of `terrain_seed`.
-    pub(crate) fn new(floor_friction: f64, terrain_seed: Option<u64>) -> Result<Self> {
+    /// A Go2 on a flat floor, or on the rough terrain of `terrain_seed` with
+    /// `relief`.
+    pub(crate) fn new(
+        floor_friction: f64,
+        terrain_seed: Option<u64>,
+        relief: crate::go2::Relief,
+    ) -> Result<Self> {
         let quadruped = Arc::new(Quadruped::go2()?);
         // LINKS runs leg by leg (FL, FR, RL, RR), hip, thigh and calf, as the
         // Go2 spec lists its legs.
@@ -72,7 +77,7 @@ impl LocomotionGo2 {
             None => FLOOR_SIZE_M,
         };
         let floor = match terrain_seed {
-            Some(seed) => crate::go2::terrain(seed)?,
+            Some(seed) => crate::go2::terrain(seed, relief)?,
             None => FractalTerrain {
                 size_x_m: FLOOR_SIZE_M,
                 size_z_m: FLOOR_SIZE_M,

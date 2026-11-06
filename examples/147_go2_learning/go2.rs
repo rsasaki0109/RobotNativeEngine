@@ -74,6 +74,24 @@ pub(crate) const TERRAIN_SAMPLES: u32 = 241;
 pub(crate) const TERRAIN_FREQUENCY_PER_M: f64 = 0.5;
 pub(crate) const TERRAIN_AMPLITUDE_M: f64 = 0.04;
 
+/// The terrain's first-octave frequency and amplitude
+/// (`--terrain-frequency`, `--terrain-amplitude`); the defaults are
+/// [`TERRAIN_FREQUENCY_PER_M`] and [`TERRAIN_AMPLITUDE_M`].
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct Relief {
+    pub(crate) frequency_per_m: f64,
+    pub(crate) amplitude_m: f64,
+}
+
+impl Default for Relief {
+    fn default() -> Self {
+        Self {
+            frequency_per_m: TERRAIN_FREQUENCY_PER_M,
+            amplitude_m: TERRAIN_AMPLITUDE_M,
+        }
+    }
+}
+
 /// Which RNE backend simulates the robot.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Backend {
@@ -117,6 +135,8 @@ pub(crate) struct Plant {
     pub(crate) floor_friction: f64,
     /// Seed of the rough terrain, or a flat floor.
     pub(crate) terrain_seed: Option<u64>,
+    /// The rough terrain's relief.
+    pub(crate) relief: Relief,
 }
 
 impl Default for Plant {
@@ -127,6 +147,7 @@ impl Default for Plant {
             inner_passes: 1,
             floor_friction: 1.0,
             terrain_seed: None,
+            relief: Relief::default(),
         }
     }
 }
@@ -272,6 +293,7 @@ pub(crate) fn robot(plant: Plant) -> Result<Box<dyn Robot>> {
         Backend::Locomotion => Box::new(crate::locomotion::LocomotionGo2::new(
             plant.floor_friction,
             plant.terrain_seed,
+            plant.relief,
         )?),
     })
 }
@@ -332,14 +354,14 @@ pub(crate) fn settle(robot: &mut dyn Robot, start: [f64; 2]) -> Result<()> {
 }
 
 /// The rough terrain for `seed`: a Y-up height field, zero at the origin.
-pub(crate) fn terrain(seed: u64) -> Result<rne_physics::ColliderShape> {
+pub(crate) fn terrain(seed: u64, relief: Relief) -> Result<rne_physics::ColliderShape> {
     let spec = rne_physics::FractalTerrain {
         size_x_m: TERRAIN_SIZE_M,
         size_z_m: TERRAIN_SIZE_M,
         columns: TERRAIN_SAMPLES,
         rows: TERRAIN_SAMPLES,
-        frequency_per_m: TERRAIN_FREQUENCY_PER_M,
-        amplitude_m: TERRAIN_AMPLITUDE_M,
+        frequency_per_m: relief.frequency_per_m,
+        amplitude_m: relief.amplitude_m,
         ..rne_physics::FractalTerrain::default()
     };
     let raw = spec.height_field(seed)?;
@@ -363,8 +385,8 @@ pub(crate) fn terrain_height_m(terrain: &rne_physics::ColliderShape, x_m: f64, y
 /// row `r` at `y = -size/2 + r size/(rows - 1)`, column `c` at
 /// `x = -size/2 + c size/(columns - 1)`, and the heights at a few probe
 /// points, so another engine can check its copy.
-pub(crate) fn terrain_json(seed: u64) -> Result<Value> {
-    let shape = terrain(seed)?;
+pub(crate) fn terrain_json(seed: u64, relief: Relief) -> Result<Value> {
+    let shape = terrain(seed, relief)?;
     let rne_physics::ColliderShape::HeightField {
         nrows,
         ncols,
@@ -408,8 +430,8 @@ pub(crate) fn terrain_json(seed: u64) -> Result<Value> {
         "size_m": TERRAIN_SIZE_M,
         "rows": rows,
         "columns": columns,
-        "frequency_per_m": TERRAIN_FREQUENCY_PER_M,
-        "amplitude_m": TERRAIN_AMPLITUDE_M,
+        "frequency_per_m": relief.frequency_per_m,
+        "amplitude_m": relief.amplitude_m,
         "heights_m": heights,
         "probes": probes,
         "height_scan": {
@@ -563,7 +585,7 @@ mod tests {
 
     #[test]
     fn the_exported_terrain_matches_rne_at_its_probes() {
-        let terrain = terrain_json(7).unwrap();
+        let terrain = terrain_json(7, Relief::default()).unwrap();
         let (rows, columns) = (
             terrain["rows"].as_u64().unwrap() as usize,
             terrain["columns"].as_u64().unwrap() as usize,
