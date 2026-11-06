@@ -9,7 +9,10 @@
 //! and jerky actions. `mujoco_go2_learning.py` trains the same way in MuJoCo
 //! from this report's settings and seed, and either engine evaluates a
 //! policy trained in the other (`--evaluate`). `--backend locomotion` trains
-//! on `rne_locomotion`'s hard-contact step instead of Rapier.
+//! on `rne_locomotion`'s hard-contact step instead of Rapier. On its rough
+//! terrain, `--random-starts` starts every generation at its own point and
+//! `--height-scan` lets the policy see the ground around it; `--evaluate
+//! POLICY.json --starts N` walks from N held-out points and reports the mean.
 //!
 //! ```text
 //! cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026
@@ -29,8 +32,8 @@ use serde_json::{json, Value};
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 /// A policy file's policy: a training report's final policy, the checkpoint
-/// at `generation`, or a bare policy.
-fn load_policy(path: &PathBuf, generation: Option<usize>) -> Result<policy::Mlp> {
+/// at `generation`, or a bare policy, and the task its inputs fit.
+fn load_policy(path: &PathBuf, generation: Option<usize>) -> Result<(policy::Mlp, go2::Task)> {
     let report: Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
     let value = match generation {
         Some(generation) => report["training"]["checkpoints"]
@@ -43,9 +46,66 @@ fn load_policy(path: &PathBuf, generation: Option<usize>) -> Result<policy::Mlp>
             .map(|checkpoint| checkpoint["policy"].clone())
             .ok_or_else(|| format!("no checkpoint at generation {generation}"))?,
         None if report.get("policy").is_some() => report["policy"].clone(),
-        None => report,
+        None => report.clone(),
     };
-    policy::Mlp::from_json(&value)
+    let policy = policy::Mlp::from_json(&value)?;
+    let task = go2::Task {
+        height_scan: policy.inputs > go2::PROPRIOCEPTION,
+        random_starts: go2::Task::from_json(&report["task"]).random_starts,
+    };
+    if policy.inputs != task.observations() {
+        return Err(format!("a policy with {} inputs fits no task", policy.inputs).into());
+    }
+    Ok((policy, task))
+}
+
+/// The mean of `outcomes`: a fall in any of them counts as a fall.
+fn mean_outcome(outcomes: &[go2::Outcome]) -> go2::Outcome {
+    let mean = |value: fn(&go2::Outcome) -> f64| {
+        outcomes.iter().map(value).sum::<f64>() / outcomes.len() as f64
+    };
+    go2::Outcome {
+        fitness: mean(|o| o.fitness),
+        forward_m: mean(|o| o.forward_m),
+        lateral_m: mean(|o| o.lateral_m),
+        heading_rad: mean(|o| o.heading_rad),
+        survived_s: mean(|o| o.survived_s),
+        fell: outcomes.iter().any(|o| o.fell),
+        control_steps: outcomes.iter().map(|o| o.control_steps).sum(),
+    }
+}
+
+/// `--evaluate`: one episode of the policy at `path` from the origin, or the
+/// mean over `starts` held-out starts, printed as JSON.
+fn evaluate_policy(
+    plant: go2::Plant,
+    path: &PathBuf,
+    generation: Option<usize>,
+    starts: Option<usize>,
+) -> Result<()> {
+    let (policy, task) = load_policy(path, generation)?;
+    let mut robot = go2::robot(plant)?;
+    let points = starts.map_or(vec![[0.0, 0.0]], go2::evaluation_starts);
+    let mut outcomes = Vec::new();
+    for start in &points {
+        outcomes.push(go2::episode(robot.as_mut(), task, *start, |observation| {
+            policy.act(observation)
+        })?);
+    }
+    let mut outcome = es::outcome_json(&mean_outcome(&outcomes));
+    let mut report = json!({"engine": plant.backend.name(), "policy": path,
+                            "generation": generation, "task": task.to_json()});
+    if starts.is_some() {
+        outcome["falls"] = json!(outcomes.iter().filter(|o| o.fell).count());
+        report["episodes"] = json!(points
+            .iter()
+            .zip(&outcomes)
+            .map(|(start, o)| json!({"start_m": start, "outcome": es::outcome_json(o)}))
+            .collect::<Vec<_>>());
+    }
+    report["outcome"] = outcome;
+    println!("{report}");
+    Ok(())
 }
 
 fn main() -> Result<()> {
@@ -56,6 +116,8 @@ fn main() -> Result<()> {
     let (mut train, mut evaluate, mut generation) = (false, None, None);
     let (mut bench, mut stand) = (None, None);
     let mut write_terrain = None;
+    let mut task = go2::Task::default();
+    let mut starts = None;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
@@ -73,6 +135,9 @@ fn main() -> Result<()> {
             "--friction" => plant.floor_friction = value()?.parse()?,
             "--terrain" => plant.terrain_seed = Some(value()?.parse()?),
             "--write-terrain" => write_terrain = Some(PathBuf::from(value()?)),
+            "--height-scan" => task.height_scan = true,
+            "--random-starts" => task.random_starts = true,
+            "--starts" => starts = Some(value()?.parse::<usize>()?),
             "--generations" => config.generations = value()?.parse()?,
             "--pairs" => config.pairs = value()?.parse()?,
             "--sigma" => config.sigma = value()?.parse()?,
@@ -97,7 +162,7 @@ fn main() -> Result<()> {
     if let Some(seconds) = stand {
         // Settle as an episode does, then hold the default targets.
         let mut robot = go2::robot(plant)?;
-        go2::settle(robot.as_mut())?;
+        go2::settle(robot.as_mut(), [0.0, 0.0])?;
         for _ in 0..(seconds / go2::CONTROL_DT_S).round() as usize {
             robot.step()?;
         }
@@ -130,49 +195,57 @@ fn main() -> Result<()> {
         return Ok(());
     }
     if let Some(episodes) = bench {
-        // One thread, one robot: the initial policy's episodes.
+        // One thread, one robot: the initial policy's episodes, each from its
+        // own start with random starts.
         let mut normal = es::Normal(config.seed);
-        let policy = policy::Mlp::initial(config.hidden, || normal.sample());
+        let policy = policy::Mlp::initial(task.observations(), config.hidden, || normal.sample());
+        let starts = go2::training_starts(config.seed, episodes);
         let mut robot = go2::robot(plant)?;
         let begin = std::time::Instant::now();
         let mut steps = 0;
-        for _ in 0..episodes {
-            steps +=
-                go2::episode(robot.as_mut(), |observation| policy.act(observation))?.control_steps;
+        for start in &starts[..episodes] {
+            let start = if task.random_starts {
+                *start
+            } else {
+                [0.0, 0.0]
+            };
+            steps += go2::episode(robot.as_mut(), task, start, |observation| {
+                policy.act(observation)
+            })?
+            .control_steps;
         }
         let wall_s = begin.elapsed().as_secs_f64();
         let simulated_s = steps as f64 * go2::CONTROL_DT_S;
         println!(
             "{}",
             json!({"engine": plant.backend.name(), "solver_iterations": plant.solver_iterations,
-                   "inner_passes": plant.inner_passes,
+                   "inner_passes": plant.inner_passes, "task": task.to_json(),
                    "episodes": episodes, "simulated_s": simulated_s, "wall_s": wall_s,
                    "simulated_s_per_wall_s": simulated_s / wall_s})
         );
         return Ok(());
     }
     if let Some(path) = evaluate {
-        let policy = load_policy(&path, generation)?;
-        let mut robot = go2::robot(plant)?;
-        let outcome = go2::episode(robot.as_mut(), |observation| policy.act(observation))?;
-        println!(
-            "{}",
-            json!({"engine": plant.backend.name(), "policy": path, "generation": generation,
-                   "outcome": es::outcome_json(&outcome)})
-        );
-        return Ok(());
+        return evaluate_policy(plant, &path, generation, starts);
     }
     if !train {
         return Err("pass --train or --evaluate POLICY.json".into());
     }
-    let report = es::train(plant, threads, config)?;
+    let report = es::train(plant, task, threads, config)?;
     std::fs::create_dir_all(&output)?;
-    let engine = match plant.backend {
+    let mut engine = match plant.backend {
         go2::Backend::Rapier => "rne",
         go2::Backend::Native => "native",
         go2::Backend::Locomotion if plant.terrain_seed.is_some() => "locomotion-terrain",
         go2::Backend::Locomotion => "locomotion",
-    };
+    }
+    .to_string();
+    if task.random_starts {
+        engine += "-starts";
+    }
+    if task.height_scan {
+        engine += "-scan";
+    }
     let path = output.join(format!("go2-learning-{engine}-{}.json", config.seed));
     std::fs::write(&path, serde_json::to_string_pretty(&report)? + "\n")?;
     println!("wrote {}", path.display());

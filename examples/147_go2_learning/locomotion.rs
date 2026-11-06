@@ -109,9 +109,25 @@ impl LocomotionGo2 {
 
 impl Robot for LocomotionGo2 {
     fn restart(&mut self) -> Result<()> {
+        self.restart_at([0.0, 0.0])
+    }
+
+    fn restart_at(&mut self, [x_m, y_m]: [f64; 2]) -> Result<()> {
         let nv = self.sim.quadruped().model().nv();
         let mut q = vec![0.0; nv];
-        q[2] = SPAWN_HEIGHT_M;
+        q[0] = x_m;
+        q[1] = y_m;
+        // The terrain is shifted to height zero at the origin, so a start there
+        // keeps the flat floor's spawn height exactly.
+        let ground = if [x_m, y_m] == [0.0, 0.0] {
+            0.0
+        } else {
+            self.ground_height_m(x_m, y_m)
+        };
+        if !ground.is_finite() {
+            return Err(format!("start ({x_m}, {y_m}) is off the terrain").into());
+        }
+        q[2] = SPAWN_HEIGHT_M + ground;
         for (index, angle) in DEFAULT_RAD.iter().enumerate() {
             q[6 + self.actuated[index]] = *angle;
         }

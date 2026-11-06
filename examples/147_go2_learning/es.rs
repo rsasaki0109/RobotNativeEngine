@@ -7,7 +7,7 @@ use std::time::Instant;
 
 use serde_json::{json, Value};
 
-use crate::go2::{self, Outcome, Plant, CONTROL_DT_S};
+use crate::go2::{self, Outcome, Plant, Task, CONTROL_DT_S};
 use crate::policy::Mlp;
 use crate::Result;
 
@@ -51,7 +51,8 @@ impl Config {
 pub(crate) struct Normal(pub(crate) u64);
 
 impl Normal {
-    fn uniform(&mut self) -> f64 {
+    /// A uniform deviate in (0, 1).
+    pub(crate) fn uniform(&mut self) -> f64 {
         self.0 = self.0.wrapping_add(0x9E37_79B9_7F4A_7C15);
         let mut z = self.0;
         z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
@@ -119,14 +120,21 @@ pub(crate) fn run_parallel<S, T: Send>(
         .collect()
 }
 
-/// Each candidate's episode in RNE, on `threads` reused walkers.
-fn evaluate(plant: Plant, candidates: &[Mlp], threads: usize) -> Result<Vec<Outcome>> {
+/// Each candidate's episode from `start` in RNE, on `threads` reused
+/// walkers.
+fn evaluate(
+    plant: Plant,
+    task: Task,
+    start: [f64; 2],
+    candidates: &[Mlp],
+    threads: usize,
+) -> Result<Vec<Outcome>> {
     run_parallel(
         candidates.len(),
         threads,
         || go2::robot(plant),
         |robot, index| {
-            go2::episode(robot.as_mut(), |observation| {
+            go2::episode(robot.as_mut(), task, start, |observation| {
                 candidates[index].act(observation)
             })
         },
@@ -140,9 +148,15 @@ pub(crate) fn outcome_json(outcome: &Outcome) -> Value {
 }
 
 /// Trains a walking policy from scratch in RNE; returns the training report.
-pub(crate) fn train(plant: Plant, threads: usize, config: Config) -> Result<Value> {
+/// With random starts, all of a generation's candidates start at that
+/// generation's point, so they compete on the same ground.
+pub(crate) fn train(plant: Plant, task: Task, threads: usize, config: Config) -> Result<Value> {
+    if task.random_starts && plant.terrain_seed.is_none() {
+        return Err("random starts need a terrain (--terrain SEED)".into());
+    }
+    let starts = go2::training_starts(config.seed, config.generations);
     let mut normal = Normal(config.seed);
-    let template = Mlp::initial(config.hidden, || normal.sample());
+    let template = Mlp::initial(task.observations(), config.hidden, || normal.sample());
     let dimension = template.params.len();
     let mut theta = template.params.clone();
     let (mut m, mut v) = (vec![0.0; dimension], vec![0.0; dimension]);
@@ -150,7 +164,7 @@ pub(crate) fn train(plant: Plant, threads: usize, config: Config) -> Result<Valu
     let begin = Instant::now();
     let mut control_steps = 0;
     let (mut log, mut checkpoints) = (Vec::new(), Vec::new());
-    for generation in 0..=config.generations {
+    for (generation, point) in starts.iter().enumerate() {
         let noise: Vec<Vec<f64>> = (0..config.pairs)
             .map(|_| (0..dimension).map(|_| normal.sample()).collect())
             .collect();
@@ -167,10 +181,15 @@ pub(crate) fn train(plant: Plant, threads: usize, config: Config) -> Result<Valu
                 }
             }
         }
-        let outcomes = evaluate(plant, &candidates, threads)?;
+        let start = if task.random_starts {
+            *point
+        } else {
+            [0.0, 0.0]
+        };
+        let outcomes = evaluate(plant, task, start, &candidates, threads)?;
         control_steps += outcomes.iter().map(|o| o.control_steps).sum::<usize>();
         let fitness: Vec<f64> = outcomes.iter().map(|o| o.fitness).collect();
-        let entry = json!({
+        let mut entry = json!({
             "generation": generation,
             "mean": outcome_json(&outcomes[0]),
             "population_mean_fitness": fitness.iter().sum::<f64>() / fitness.len() as f64,
@@ -178,6 +197,9 @@ pub(crate) fn train(plant: Plant, threads: usize, config: Config) -> Result<Valu
             "wall_s": begin.elapsed().as_secs_f64(),
             "simulated_s": control_steps as f64 * CONTROL_DT_S,
         });
+        if task.random_starts {
+            entry["start_m"] = json!(start);
+        }
         println!("{entry}");
         if config.checkpoint_every > 0
             && (generation % config.checkpoint_every == 0 || generation == config.generations)
@@ -217,6 +239,7 @@ pub(crate) fn train(plant: Plant, threads: usize, config: Config) -> Result<Valu
                   "inner_passes": plant.inner_passes,
                   "floor_friction": plant.floor_friction,
                   "terrain_seed": plant.terrain_seed},
+        "task": task.to_json(),
         "threads": threads,
         "training": {
             "method": "evolution strategies, antithetic pairs, centred ranks, Adam",
@@ -232,6 +255,19 @@ pub(crate) fn train(plant: Plant, threads: usize, config: Config) -> Result<Valu
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn random_starts_need_a_terrain() {
+        let task = Task {
+            height_scan: false,
+            random_starts: true,
+        };
+        let config = Config {
+            generations: 0,
+            ..Config::default()
+        };
+        assert!(train(Plant::default(), task, 1, config).is_err());
+    }
 
     #[test]
     fn centred_ranks_span_the_population() {

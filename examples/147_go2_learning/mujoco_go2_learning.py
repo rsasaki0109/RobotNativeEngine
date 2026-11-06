@@ -28,10 +28,17 @@ differs. `--evaluate` runs one episode of a policy trained in either engine.
 `147_go2_learning --write-terrain TERRAIN.json --terrain SEED` writes, and
 the fall test measures the base's height above the ground below it, as RNE
 does; `check-terrain` ray-casts the field at the file's probe points against
-RNE's heights.
+RNE's heights, and checks the height scan at the file's scan probes.
+
+Training follows the RNE report's task. With `random_starts`, every
+generation starts at its own point of the terrain, from the same SplitMix64
+stream as RNE's. With `height_scan`, the policy also reads 15 vertical rays
+around the base, cast with `mj_ray` against the floor alone, scaled as RNE
+scales them. `evaluate --starts N` walks from RNE's N held-out starts and
+reports the mean.
 
 Usage: mujoco_go2_learning.py train RNE_REPORT.json OUTPUT.json [--processes 4]
-       mujoco_go2_learning.py evaluate POLICY.json [--generation N]
+       mujoco_go2_learning.py evaluate POLICY.json [--generation N] [--starts N]
        mujoco_go2_learning.py check-terrain TERRAIN.json
 """
 import argparse
@@ -58,7 +65,23 @@ SETTLE_STEPS, EPISODE_STEPS = 50, 250
 GAIT_PERIOD_S, ACTION_SCALE_RAD = 0.5, 0.5
 FALL_HEIGHT_M, FALL_GRAVITY_Z = 0.10, -0.5
 LATERAL_PENALTY, HEADING_PENALTY, FALL_PENALTY, SMOOTHNESS_PENALTY = 0.5, 0.5, 1.0, 0.02
-OBSERVATIONS, ACTIONS = 44, 12
+PROPRIOCEPTION, ACTIONS = 44, 12
+# The height scan, as go2.rs defines it: vertical rays at these offsets in
+# the base's heading frame, x outer and y inner; each reading is
+# (base height above the hit - nominal) * gain, clipped to [-1, 1].
+HEIGHT_SCAN_X_M = (-0.2, 0.0, 0.2, 0.4, 0.6)
+HEIGHT_SCAN_Y_M = (-0.15, 0.0, 0.15)
+HEIGHT_SCAN_POINTS = len(HEIGHT_SCAN_X_M) * len(HEIGHT_SCAN_Y_M)
+HEIGHT_SCAN_NOMINAL_M, HEIGHT_SCAN_GAIN_PER_M = 0.3, 5.0
+# The floor's geom group, which the scan's rays alone see.
+FLOOR_GROUP = 3
+# Random starts, as go2.rs draws them.
+START_X_RANGE_M, START_Y_RANGE_M = (-8.0, 2.0), (-8.0, 8.0)
+START_STREAM, EVALUATION_STARTS_SEED = 0x5354415254530147, 0x4556414C0147
+
+
+def observations(task):
+    return PROPRIOCEPTION + (HEIGHT_SCAN_POINTS if task.get("height_scan") else 0)
 
 
 def urdf_without_visuals():
@@ -114,6 +137,8 @@ def add_floor(spec, floor_friction, terrain):
         floor = spec.worldbody.add_geom(type=mujoco.mjtGeom.mjGEOM_HFIELD, hfieldname="terrain",
                                         pos=[0.0, 0.0, low], friction=friction)
     floor.contype, floor.conaffinity = 0, 1
+    # Visualization and ray filtering only: the height scan sees the floor alone.
+    floor.group = FLOOR_GROUP
 
 
 def build_model(floor_friction, cone, impratio, terrain=None):
@@ -142,7 +167,8 @@ def build_model(floor_friction, cone, impratio, terrain=None):
 class Go2:
     """One Go2 that runs example 147's episode."""
 
-    def __init__(self, plant):
+    def __init__(self, plant, task=None):
+        self.task = task or {}
         self.terrain = load_terrain(plant.get("terrain"))
         self.model = build_model(plant["floor_friction"], plant["cone"], plant["impratio"],
                                  self.terrain)
@@ -151,11 +177,19 @@ class Go2:
         self.qpos = np.array([self.model.jnt_qposadr[i] for i in ids])
         self.qvel = np.array([self.model.jnt_dofadr[i] for i in ids])
         self.rotation = np.zeros(9)
+        self.ray_groups = np.zeros(6, dtype=np.uint8)
+        self.ray_groups[FLOOR_GROUP] = 1
+        self.ray_top = 1.0 + (0.0 if self.terrain is None else float(self.terrain["grid"].max()))
+        self.ray_hit = np.zeros(1, dtype=np.int32)
 
-    def settle(self):
-        """Start in the default pose at rest, base at 0.36 m, and stand."""
+    def settle(self, start=(0.0, 0.0)):
+        """Start in the default pose at rest, base 0.36 m above `start`, and
+        stand. The terrain is zero at the origin, so a start there keeps the
+        flat floor's height exactly, as go2.rs does."""
         mujoco.mj_resetData(self.model, self.data)
-        self.data.qpos[:3] = [0.0, 0.0, SPAWN_HEIGHT_M]
+        x, y = start
+        ground = 0.0 if (x, y) == (0.0, 0.0) else ground_height(self.terrain, x, y)
+        self.data.qpos[:3] = [x, y, SPAWN_HEIGHT_M + ground]
         self.data.qpos[3:7] = [1.0, 0.0, 0.0, 0.0]
         self.data.qpos[self.qpos] = DEFAULT_RAD
         mujoco.mj_forward(self.model, self.data)
@@ -170,23 +204,43 @@ class Go2:
         mujoco.mju_quat2Mat(self.rotation, self.data.qpos[3:7])
         return self.rotation.reshape(3, 3)
 
+    def height_scan(self):
+        """The scan's readings from mj_ray hits on the floor."""
+        x0, y0, z0 = self.data.qpos[:3]
+        heading = self.heading()
+        sin, cos = math.sin(heading), math.cos(heading)
+        down = np.array([0.0, 0.0, -1.0])
+        readings = []
+        for dx in HEIGHT_SCAN_X_M:
+            for dy in HEIGHT_SCAN_Y_M:
+                start = np.array([x0 + cos * dx - sin * dy, y0 + sin * dx + cos * dy,
+                                  self.ray_top])
+                distance = mujoco.mj_ray(self.model, self.data, start, down, self.ray_groups, 1,
+                                         -1, self.ray_hit)
+                hit = -math.inf if distance < 0 else self.ray_top - distance
+                reading = (z0 - hit - HEIGHT_SCAN_NOMINAL_M) * HEIGHT_SCAN_GAIN_PER_M
+                readings.append(min(max(reading, -1.0), 1.0))
+        return readings
+
     def observe(self, step, action):
         rotation = self.body_rotation()
         spin = self.data.qvel[3:6]  # the free joint's angular velocity is in the body frame
         gravity = rotation.T @ np.array([0.0, 0.0, -1.0])
         phase = (step * CONTROL_DT_S % GAIT_PERIOD_S) / GAIT_PERIOD_S
         angle = 2.0 * math.pi * phase
-        return np.concatenate([spin * 0.25, gravity, self.data.qpos[self.qpos] - DEFAULT_RAD,
-                               self.data.qvel[self.qvel] * 0.05, action,
-                               [math.sin(angle), math.cos(angle)]])
+        parts = [spin * 0.25, gravity, self.data.qpos[self.qpos] - DEFAULT_RAD,
+                 self.data.qvel[self.qvel] * 0.05, action, [math.sin(angle), math.cos(angle)]]
+        if self.task.get("height_scan"):
+            parts.append(self.height_scan())
+        return np.concatenate(parts)
 
     def heading(self):
         w, x, y, z = self.data.qpos[3:7]
         return math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
 
-    def episode(self, policy):
-        """As go2.rs's episode."""
-        self.settle()
+    def episode(self, policy, start=(0.0, 0.0)):
+        """As go2.rs's episode, from `start`."""
+        self.settle(start)
         start = self.data.qpos[:3].copy()
         action = np.zeros(ACTIONS)
         change_square, steps, fell = 0.0, 0, False
@@ -213,24 +267,33 @@ class Go2:
 class Mlp:
     """a = tanh(W2 tanh(W1 x + b1) + b2), parameters flat as policy.rs orders them."""
 
-    def __init__(self, hidden, params):
-        self.hidden, self.params = hidden, np.asarray(params, dtype=float)
+    def __init__(self, inputs, hidden, params):
+        self.inputs, self.hidden = inputs, hidden
+        self.params = np.asarray(params, dtype=float)
         p, h = self.params, hidden
-        self.w1 = p[:h * OBSERVATIONS].reshape(h, OBSERVATIONS)
-        self.b1 = p[h * OBSERVATIONS:h * OBSERVATIONS + h]
-        rest = h * OBSERVATIONS + h
+        self.w1 = p[:h * inputs].reshape(h, inputs)
+        self.b1 = p[h * inputs:h * inputs + h]
+        rest = h * inputs + h
         self.w2 = p[rest:rest + ACTIONS * h].reshape(ACTIONS, h)
         self.b2 = p[rest + ACTIONS * h:]
 
     @staticmethod
-    def parameter_count(hidden):
-        return hidden * OBSERVATIONS + hidden + ACTIONS * hidden + ACTIONS
+    def parameter_count(inputs, hidden):
+        return hidden * inputs + hidden + ACTIONS * hidden + ACTIONS
+
+    @staticmethod
+    def initial_params(inputs, hidden, normal):
+        """W1 from `normal`'s first deviates over sqrt(inputs), as policy.rs."""
+        params = np.zeros(Mlp.parameter_count(inputs, hidden))
+        for index in range(hidden * inputs):
+            params[index] = normal.sample() / math.sqrt(inputs)
+        return params
 
     def act(self, observation):
         return np.tanh(self.w2 @ np.tanh(self.w1 @ observation + self.b1) + self.b2)
 
     def to_json(self):
-        return {"model": "mlp", "inputs": OBSERVATIONS, "hidden": self.hidden,
+        return {"model": "mlp", "inputs": self.inputs, "hidden": self.hidden,
                 "outputs": ACTIONS, "params": self.params.tolist()}
 
 
@@ -253,6 +316,25 @@ class Normal:
         return math.sqrt(-2.0 * math.log(u)) * math.cos(2.0 * math.pi * v)
 
 
+def start_points(seed, count):
+    """`count` start points uniform in the start box, as go2.rs draws them."""
+    stream = Normal(seed)
+    points = []
+    for _ in range(count):
+        u, v = stream.uniform(), stream.uniform()
+        points.append((START_X_RANGE_M[0] + (START_X_RANGE_M[1] - START_X_RANGE_M[0]) * u,
+                       START_Y_RANGE_M[0] + (START_Y_RANGE_M[1] - START_Y_RANGE_M[0]) * v))
+    return points
+
+
+def training_starts(seed, generations):
+    return start_points(seed ^ START_STREAM, generations + 1)
+
+
+def evaluation_starts(count):
+    return start_points(EVALUATION_STARTS_SEED, count)
+
+
 def centred_ranks(values):
     order = sorted(range(len(values)), key=lambda i: (values[i], i))
     ranks = [0.0] * len(values)
@@ -265,14 +347,14 @@ def centred_ranks(values):
 ROBOT = None
 
 
-def init_worker(plant):
+def init_worker(plant, task):
     global ROBOT
-    ROBOT = Go2(plant)
+    ROBOT = Go2(plant, task)
 
 
 def run_candidate(job):
-    hidden, params = job
-    return ROBOT.episode(Mlp(hidden, params))
+    inputs, hidden, params, start = job
+    return ROBOT.episode(Mlp(inputs, hidden, params), start)
 
 
 def outcome_json(outcome):
@@ -284,15 +366,17 @@ def train(rne_report, plant, processes):
     config = rne_report["training"]["config"]
     hidden, pairs, sigma = config["hidden"], config["pairs"], config["sigma"]
     learning_rate, generations = config["learning_rate"], config["generations"]
+    task = {"height_scan": False, "random_starts": False, **rne_report.get("task", {})}
+    inputs = observations(task)
+    starts = training_starts(config["seed"], generations)
     normal = Normal(config["seed"])
-    dimension = Mlp.parameter_count(hidden)
-    theta = np.zeros(dimension)
-    for index in range(hidden * OBSERVATIONS):
-        theta[index] = normal.sample() / math.sqrt(OBSERVATIONS)
+    dimension = Mlp.parameter_count(inputs, hidden)
+    theta = Mlp.initial_params(inputs, hidden, normal)
     m, v = np.zeros(dimension), np.zeros(dimension)
     beta1, beta2 = 0.9, 0.999
     log, checkpoints, control_steps = [], [], 0
-    with multiprocessing.Pool(processes, initializer=init_worker, initargs=(plant,)) as pool:
+    with multiprocessing.Pool(processes, initializer=init_worker,
+                              initargs=(plant, task)) as pool:
         begin = time.perf_counter()
         for generation in range(generations + 1):
             noise = np.array([[normal.sample() for _ in range(dimension)] for _ in range(pairs)])
@@ -301,7 +385,8 @@ def train(rne_report, plant, processes):
                 for epsilon in noise:
                     for sign in (1.0, -1.0):
                         candidates.append(theta + sign * sigma * epsilon)
-            outcomes = pool.map(run_candidate, [(hidden, c) for c in candidates])
+            start = starts[generation] if task["random_starts"] else (0.0, 0.0)
+            outcomes = pool.map(run_candidate, [(inputs, hidden, c, start) for c in candidates])
             control_steps += sum(o["control_steps"] for o in outcomes)
             fitness = [o["fitness"] for o in outcomes]
             entry = {"generation": generation, "mean": outcome_json(outcomes[0]),
@@ -309,12 +394,14 @@ def train(rne_report, plant, processes):
                      "population_best_fitness": max(fitness),
                      "wall_s": time.perf_counter() - begin,
                      "simulated_s": control_steps * CONTROL_DT_S}
+            if task["random_starts"]:
+                entry["start_m"] = list(start)
             print(json.dumps(entry), flush=True)
             every = config["checkpoint_every"]
             if every and (generation % every == 0 or generation == generations):
                 checkpoints.append({"generation": generation, "wall_s": entry["wall_s"],
                                     "simulated_s": entry["simulated_s"],
-                                    "policy": Mlp(hidden, theta).to_json()})
+                                    "policy": Mlp(inputs, hidden, theta).to_json()})
             log.append(entry)
             if generation == generations:
                 break
@@ -328,20 +415,34 @@ def train(rne_report, plant, processes):
             theta = theta + learning_rate * (m / (1.0 - beta1 ** t)) / (
                 np.sqrt(v / (1.0 - beta2 ** t)) + 1e-8)
     return {"schema_version": 1, "engine": f"mujoco {mujoco.__version__}", "plant": plant,
-            "processes": processes,
+            "task": task, "processes": processes,
             "training": {"method": rne_report["training"]["method"], "parameters": dimension,
                          "config": config, "log": log, "checkpoints": checkpoints},
-            "policy": Mlp(hidden, theta).to_json()}
+            "policy": Mlp(inputs, hidden, theta).to_json()}
 
 
 def load_policy(path, generation):
+    """A policy file's policy and the task its inputs fit, as main.rs reads it."""
     report = json.loads(Path(path).read_text())
     if generation is not None:
         value = next(c["policy"] for c in report["training"]["checkpoints"]
                      if c["generation"] == generation)
     else:
         value = report.get("policy", report)
-    return Mlp(value["hidden"], value["params"])
+    inputs = value.get("inputs", PROPRIOCEPTION)
+    task = {"height_scan": inputs > PROPRIOCEPTION,
+            "random_starts": bool(report.get("task", {}).get("random_starts", False))}
+    if inputs != observations(task):
+        raise SystemExit(f"a policy with {inputs} inputs fits no task")
+    return Mlp(inputs, value["hidden"], value["params"]), task
+
+
+def mean_outcome(outcomes):
+    """The mean outcome, a fall in any counting as a fall, as main.rs."""
+    mean = {key: sum(o[key] for o in outcomes) / len(outcomes)
+            for key in ("fitness", "forward_m", "lateral_m", "heading_rad", "survived_s")}
+    mean["fell"] = any(o["fell"] for o in outcomes)
+    return mean
 
 
 def check_terrain(path):
@@ -364,11 +465,26 @@ def check_terrain(path):
         hit = 5.0 - distance
         worst = max(worst, abs(hit - height))
         worst_bilinear = max(worst_bilinear, abs(ground_height(terrain, x, y) - height))
+    # The height scan at RNE's scan probes: the robot placed there, out of
+    # the rays' way thanks to the floor-only ray group.
+    robot = Go2({"floor_friction": 1.0, "cone": "elliptic", "impratio": 100.0,
+                 "terrain": str(path)}, {"height_scan": True})
+    worst_scan = 0.0
+    scan_probes = terrain.get("height_scan", {}).get("probes", [])
+    for probe in scan_probes:
+        robot.data.qpos[:3] = probe["base_m"]
+        half = 0.5 * probe["heading_rad"]
+        robot.data.qpos[3:7] = [math.cos(half), 0.0, 0.0, math.sin(half)]
+        mujoco.mj_forward(robot.model, robot.data)
+        readings = robot.height_scan()
+        worst_scan = max(worst_scan, max(abs(a - b) for a, b in zip(readings, probe["readings"])))
     print(json.dumps({"probes": len(terrain["probes"]), "worst_ray_error_m": worst,
-                      "worst_bilinear_error_m": worst_bilinear}))
+                      "worst_bilinear_error_m": worst_bilinear,
+                      "scan_probes": len(scan_probes), "worst_scan_reading_error": worst_scan}))
     # MuJoCo triangulates each 10 cm cell, RNE interpolates it bilinearly:
-    # they differ by at most the cell's twist, well under a millimetre here.
-    if worst > 2e-3 or worst_bilinear > 1e-9:
+    # they differ by at most the cell's twist, well under a millimetre here,
+    # which the scan's gain of 5 per metre makes under 0.01.
+    if worst > 2e-3 or worst_bilinear > 1e-9 or worst_scan > 1e-2:
         raise SystemExit("MuJoCo's terrain does not match RNE's")
 
 
@@ -390,10 +506,14 @@ def main():
     sub.choices["train"].add_argument("--processes", type=int, default=4)
     sub.choices["evaluate"].add_argument("policy", type=Path)
     sub.choices["evaluate"].add_argument("--generation", type=int)
+    sub.choices["evaluate"].add_argument("--starts", type=int, default=None,
+                                         help="walk from RNE's N held-out starts")
     sub.choices["stand"].add_argument("seconds", type=float)
     sub.choices["bench"].add_argument("episodes", type=int)
     sub.choices["bench"].add_argument("--seed", type=int, default=2026)
     sub.choices["bench"].add_argument("--hidden", type=int, default=32)
+    sub.choices["bench"].add_argument("--height-scan", action="store_true")
+    sub.choices["bench"].add_argument("--random-starts", action="store_true")
     arguments = parser.parse_args()
     if arguments.command == "check-terrain":
         check_terrain(arguments.terrain)
@@ -415,16 +535,17 @@ def main():
         plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
                  "cone": arguments.cone, "impratio": arguments.impratio,
                  "terrain": None if arguments.terrain is None else str(arguments.terrain)}
-        normal = Normal(arguments.seed)
-        params = np.zeros(Mlp.parameter_count(arguments.hidden))
-        for index in range(arguments.hidden * OBSERVATIONS):
-            params[index] = normal.sample() / math.sqrt(OBSERVATIONS)
-        robot, policy = Go2(plant), Mlp(arguments.hidden, params)
+        task = {"height_scan": arguments.height_scan, "random_starts": arguments.random_starts}
+        inputs = observations(task)
+        params = Mlp.initial_params(inputs, arguments.hidden, Normal(arguments.seed))
+        robot, policy = Go2(plant, task), Mlp(inputs, arguments.hidden, params)
+        starts = training_starts(arguments.seed, arguments.episodes)[:arguments.episodes]
         begin = time.perf_counter()
-        steps = sum(robot.episode(policy)["control_steps"] for _ in range(arguments.episodes))
+        steps = sum(robot.episode(policy, start if task["random_starts"] else (0.0, 0.0))
+                    ["control_steps"] for start in starts)
         wall = time.perf_counter() - begin
         print(json.dumps({"engine": f"mujoco {mujoco.__version__}", "plant": plant,
-                          "episodes": arguments.episodes,
+                          "task": task, "episodes": arguments.episodes,
                           "simulated_s": steps * CONTROL_DT_S, "wall_s": wall,
                           "simulated_s_per_wall_s": steps * CONTROL_DT_S / wall}))
     elif arguments.command == "stand":
@@ -451,10 +572,20 @@ def main():
         plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
                  "cone": arguments.cone, "impratio": arguments.impratio,
                  "terrain": None if arguments.terrain is None else str(arguments.terrain)}
-        outcome = Go2(plant).episode(load_policy(arguments.policy, arguments.generation))
-        print(json.dumps({"engine": f"mujoco {mujoco.__version__}", "plant": plant,
-                          "policy": str(arguments.policy), "generation": arguments.generation,
-                          "outcome": outcome_json(outcome)}))
+        policy, task = load_policy(arguments.policy, arguments.generation)
+        robot = Go2(plant, task)
+        points = [(0.0, 0.0)] if arguments.starts is None else evaluation_starts(arguments.starts)
+        outcomes = [robot.episode(policy, start) for start in points]
+        outcome = outcome_json(mean_outcome(outcomes))
+        report = {"engine": f"mujoco {mujoco.__version__}", "plant": plant,
+                  "policy": str(arguments.policy), "generation": arguments.generation,
+                  "task": task}
+        if arguments.starts is not None:
+            outcome["falls"] = sum(o["fell"] for o in outcomes)
+            report["episodes"] = [{"start_m": list(start), "outcome": outcome_json(o)}
+                                  for start, o in zip(points, outcomes)]
+        report["outcome"] = outcome
+        print(json.dumps(report))
 
 
 if __name__ == "__main__":

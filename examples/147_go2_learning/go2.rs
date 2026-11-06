@@ -3,6 +3,7 @@
 use rne_ai::{PdJointConfig, PdJointWalker, PolicyWalkPlant, UrdfSceneSim};
 use rne_core::SimDuration;
 use rne_math::{Quat, Vec3};
+use serde_json::{json, Value};
 
 use crate::Result;
 
@@ -35,9 +36,30 @@ pub(crate) const ACTION_SCALE_RAD: f64 = 0.5;
 /// The robot has fallen when its base is this low, or tilted more than 60°.
 pub(crate) const FALL_HEIGHT_M: f64 = 0.10;
 pub(crate) const FALL_GRAVITY_Z: f64 = -0.5;
-/// Observation width: angular velocity, gravity, joint positions and
-/// velocities, previous action, gait clock.
-pub(crate) const OBSERVATIONS: usize = 3 + 3 + 12 + 12 + 12 + 2;
+/// Proprioceptive observation width: angular velocity, gravity, joint
+/// positions and velocities, previous action, gait clock.
+pub(crate) const PROPRIOCEPTION: usize = 3 + 3 + 12 + 12 + 12 + 2;
+/// Height scan (`--height-scan`): vertical rays at these offsets from the
+/// base, forward and to the left in its heading frame (roll and pitch
+/// ignored), x outer and y inner, appended to the proprioception.
+pub(crate) const HEIGHT_SCAN_X_M: [f64; 5] = [-0.2, 0.0, 0.2, 0.4, 0.6];
+pub(crate) const HEIGHT_SCAN_Y_M: [f64; 3] = [-0.15, 0.0, 0.15];
+pub(crate) const HEIGHT_SCAN_POINTS: usize = HEIGHT_SCAN_X_M.len() * HEIGHT_SCAN_Y_M.len();
+/// Each reading is the base's height above the ray's hit, less this nominal
+/// stance height, times this gain, clipped to [-1, 1]: 0 under a standing
+/// robot on level ground, about ±0.1 over the terrain's 2 cm bumps.
+pub(crate) const HEIGHT_SCAN_NOMINAL_M: f64 = 0.3;
+pub(crate) const HEIGHT_SCAN_GAIN_PER_M: f64 = 5.0;
+/// Random starts (`--random-starts`): every generation's episodes start at a
+/// point drawn uniformly from this box on the terrain, so a policy cannot
+/// learn one path by heart; it leaves room to walk 10 m forward and 4 m
+/// sideways before the terrain's 12 m edge.
+pub(crate) const START_X_RANGE_M: [f64; 2] = [-8.0, 2.0];
+pub(crate) const START_Y_RANGE_M: [f64; 2] = [-8.0, 8.0];
+/// Mixed into the ES seed for the training starts' stream, and the seed of
+/// the held-out evaluation starts (`--evaluate --starts N`).
+pub(crate) const START_STREAM: u64 = 0x5354_4152_5453_0147;
+pub(crate) const EVALUATION_STARTS_SEED: u64 = 0x4556_414C_0147;
 /// Fitness weights: per metre sideways, per radian of heading, per fall and
 /// on the mean squared action change per step.
 pub(crate) const LATERAL_PENALTY: f64 = 0.5;
@@ -109,11 +131,75 @@ impl Default for Plant {
     }
 }
 
+/// What the policy observes, and where episodes start.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub(crate) struct Task {
+    /// Append the height scan to the proprioception.
+    pub(crate) height_scan: bool,
+    /// Start every generation at its own point of the terrain.
+    pub(crate) random_starts: bool,
+}
+
+impl Task {
+    /// The policy's input width.
+    pub(crate) fn observations(self) -> usize {
+        PROPRIOCEPTION
+            + if self.height_scan {
+                HEIGHT_SCAN_POINTS
+            } else {
+                0
+            }
+    }
+
+    pub(crate) fn to_json(self) -> Value {
+        json!({"height_scan": self.height_scan, "random_starts": self.random_starts})
+    }
+
+    /// A report's task; reports from before tasks existed had neither.
+    pub(crate) fn from_json(value: &Value) -> Self {
+        let flag = |key: &str| value[key].as_bool().unwrap_or(false);
+        Self {
+            height_scan: flag("height_scan"),
+            random_starts: flag("random_starts"),
+        }
+    }
+}
+
+/// `count` start points uniform in the start box, from SplitMix64 `seed`.
+fn start_points(seed: u64, count: usize) -> Vec<[f64; 2]> {
+    let mut stream = crate::es::Normal(seed);
+    let lerp = |[low, high]: [f64; 2], t: f64| low + (high - low) * t;
+    (0..count)
+        .map(|_| {
+            let (u, v) = (stream.uniform(), stream.uniform());
+            [lerp(START_X_RANGE_M, u), lerp(START_Y_RANGE_M, v)]
+        })
+        .collect()
+}
+
+/// Each generation's start for ES seed `seed`, generation 0 first.
+pub(crate) fn training_starts(seed: u64, generations: usize) -> Vec<[f64; 2]> {
+    start_points(seed ^ START_STREAM, generations + 1)
+}
+
+/// The held-out starts every policy is evaluated from.
+pub(crate) fn evaluation_starts(count: usize) -> Vec<[f64; 2]> {
+    start_points(EVALUATION_STARTS_SEED, count)
+}
+
 /// What an episode needs of a simulated Go2, in the Z-up world.
 pub(crate) trait Robot {
     /// Back to the start: default pose and targets, at rest, base at
     /// [`SPAWN_HEIGHT_M`].
     fn restart(&mut self) -> Result<()>;
+    /// [`Self::restart`] with the base above `start` instead of the origin;
+    /// only a backend with a terrain has anywhere else to start.
+    fn restart_at(&mut self, start: [f64; 2]) -> Result<()> {
+        if start != [0.0, 0.0] {
+            return Err("random starts need --backend locomotion and a terrain".into());
+        }
+        self.restart()
+    }
     fn set_targets_rad(&mut self, targets_rad: &[f64; 12]) -> Result<()>;
     /// One control period of PD-controlled physics steps.
     fn step(&mut self) -> Result<()>;
@@ -224,10 +310,10 @@ pub(crate) fn rapier_mass_kg(plant: Plant) -> Result<f64> {
         .sum())
 }
 
-/// Restarts the robot and stands it on its default pose for
+/// Restarts the robot above `start` and stands it on its default pose for
 /// [`SETTLE_STEPS`] control periods.
-pub(crate) fn settle(robot: &mut dyn Robot) -> Result<()> {
-    robot.restart()?;
+pub(crate) fn settle(robot: &mut dyn Robot, start: [f64; 2]) -> Result<()> {
+    robot.restart_at(start)?;
     robot.set_targets_rad(&DEFAULT_RAD)?;
     for _ in 0..SETTLE_STEPS {
         robot.step()?;
@@ -267,7 +353,7 @@ pub(crate) fn terrain_height_m(terrain: &rne_physics::ColliderShape, x_m: f64, y
 /// row `r` at `y = -size/2 + r size/(rows - 1)`, column `c` at
 /// `x = -size/2 + c size/(columns - 1)`, and the heights at a few probe
 /// points, so another engine can check its copy.
-pub(crate) fn terrain_json(seed: u64) -> Result<serde_json::Value> {
+pub(crate) fn terrain_json(seed: u64) -> Result<Value> {
     let shape = terrain(seed)?;
     let rne_physics::ColliderShape::HeightField {
         nrows,
@@ -294,7 +380,19 @@ pub(crate) fn terrain_json(seed: u64) -> Result<serde_json::Value> {
             [x, y, terrain_height_m(&shape, x, y)]
         })
         .collect();
-    Ok(serde_json::json!({
+    // The height scan at a few poses on the terrain, so another engine can
+    // check its scan too.
+    let scan_probes: Vec<Value> = (0..10)
+        .map(|_| {
+            let x = (normal.sample() * 3.0).clamp(-8.0, 8.0);
+            let y = (normal.sample() * 3.0).clamp(-8.0, 8.0);
+            let heading = normal.sample();
+            let base = Vec3::new(x, y, terrain_height_m(&shape, x, y) + 0.28);
+            let readings = height_scan(base, heading, |x, y| terrain_height_m(&shape, x, y));
+            json!({"base_m": base.to_array(), "heading_rad": heading, "readings": readings.to_vec()})
+        })
+        .collect();
+    Ok(json!({
         "seed": seed,
         "frame": "z-up: row r at y = -size/2 + r size/(rows-1), column c at x = -size/2 + c size/(columns-1)",
         "size_m": TERRAIN_SIZE_M,
@@ -304,6 +402,11 @@ pub(crate) fn terrain_json(seed: u64) -> Result<serde_json::Value> {
         "amplitude_m": TERRAIN_AMPLITUDE_M,
         "heights_m": heights,
         "probes": probes,
+        "height_scan": {
+            "x_m": HEIGHT_SCAN_X_M, "y_m": HEIGHT_SCAN_Y_M,
+            "nominal_m": HEIGHT_SCAN_NOMINAL_M, "gain_per_m": HEIGHT_SCAN_GAIN_PER_M,
+            "probes": scan_probes,
+        },
     }))
 }
 
@@ -313,20 +416,44 @@ pub(crate) fn yaw(rotation: Quat) -> f64 {
     (2.0 * (w * z + x * y)).atan2(1.0 - 2.0 * (y * y + z * z))
 }
 
-/// The policy's observation of `walker` at control step `step` of an
+/// The height scan's readings around a base at `position` facing `heading`,
+/// where `ground` gives the terrain height below a point.
+pub(crate) fn height_scan(
+    position: Vec3,
+    heading_rad: f64,
+    ground: impl Fn(f64, f64) -> f64,
+) -> [f64; HEIGHT_SCAN_POINTS] {
+    let (sin, cos) = heading_rad.sin_cos();
+    let mut readings = [0.0; HEIGHT_SCAN_POINTS];
+    for (row, x) in HEIGHT_SCAN_X_M.iter().enumerate() {
+        for (column, y) in HEIGHT_SCAN_Y_M.iter().enumerate() {
+            let hit = ground(
+                position.x + cos * x - sin * y,
+                position.y + sin * x + cos * y,
+            );
+            readings[row * HEIGHT_SCAN_Y_M.len() + column] =
+                ((position.z - hit - HEIGHT_SCAN_NOMINAL_M) * HEIGHT_SCAN_GAIN_PER_M)
+                    .clamp(-1.0, 1.0);
+        }
+    }
+    readings
+}
+
+/// The policy's observation of `robot` at control step `step` of an
 /// episode, after the previous `action`.
 pub(crate) fn observe(
     robot: &dyn Robot,
+    task: Task,
     step: usize,
     action: &[f64; 12],
-) -> Result<[f64; OBSERVATIONS]> {
-    let (_, rotation) = robot.base_pose_z_up();
+) -> Result<Vec<f64>> {
+    let (position, rotation) = robot.base_pose_z_up();
     let (_, spin_world) = robot.base_velocity_z_up();
     let inverse = rotation.inverse();
     let spin = inverse * spin_world;
     let gravity = inverse * Vec3::new(0.0, 0.0, -1.0);
     let joints = robot.joint_states()?;
-    let mut observation = [0.0; OBSERVATIONS];
+    let mut observation = vec![0.0; task.observations()];
     observation[..3].copy_from_slice(&[spin.x * 0.25, spin.y * 0.25, spin.z * 0.25]);
     observation[3..6].copy_from_slice(&[gravity.x, gravity.y, gravity.z]);
     for (index, (position, velocity)) in joints.iter().enumerate() {
@@ -338,6 +465,10 @@ pub(crate) fn observe(
     let angle = std::f64::consts::TAU * phase;
     observation[42] = angle.sin();
     observation[43] = angle.cos();
+    if task.height_scan {
+        let readings = height_scan(position, yaw(rotation), |x, y| robot.ground_height_m(x, y));
+        observation[PROPRIOCEPTION..].copy_from_slice(&readings);
+    }
     Ok(observation)
 }
 
@@ -356,20 +487,22 @@ pub(crate) struct Outcome {
     pub(crate) control_steps: usize,
 }
 
-/// Runs one episode, restarting the robot, with `policy` mapping an
-/// observation to an action in [-1, 1].
+/// Runs one episode from `start`, restarting the robot, with `policy`
+/// mapping the task's observation to an action in [-1, 1].
 pub(crate) fn episode(
     robot: &mut dyn Robot,
-    mut policy: impl FnMut(&[f64; OBSERVATIONS]) -> [f64; 12],
+    task: Task,
+    start: [f64; 2],
+    mut policy: impl FnMut(&[f64]) -> [f64; 12],
 ) -> Result<Outcome> {
-    settle(robot)?;
+    settle(robot, start)?;
     let (start, _) = robot.base_pose_z_up();
     let mut action = [0.0; 12];
     let mut change_square = 0.0;
     let mut steps = 0;
     let mut fell = false;
     for step in 0..EPISODE_STEPS {
-        let observation = observe(robot, step, &action)?;
+        let observation = observe(robot, task, step, &action)?;
         let next = policy(&observation);
         let mut targets = [0.0; 12];
         for index in 0..12 {
@@ -457,6 +590,85 @@ mod tests {
     }
 
     #[test]
+    fn the_height_scan_reads_the_ground_around_the_heading() {
+        // Level ground: a base at the nominal height reads zero everywhere,
+        // and 0.2 m higher it saturates.
+        let level = height_scan(Vec3::new(1.0, 2.0, 0.3), 0.7, |_, _| 0.0);
+        assert!(
+            level.iter().all(|reading| reading.abs() < 1e-12),
+            "{level:?}"
+        );
+        let high = height_scan(Vec3::new(1.0, 2.0, 0.5), 0.7, |_, _| 0.0);
+        assert!(
+            high.iter().all(|reading| (reading - 1.0).abs() < 1e-12),
+            "{high:?}"
+        );
+        // Ground rising 10 cm per metre along +y, the base facing +y: the
+        // rays ahead (x offsets) see it rise, the ones beside it do not.
+        let heading = std::f64::consts::FRAC_PI_2;
+        let scan = height_scan(Vec3::new(0.0, 0.0, 0.3), heading, |_, y| 0.1 * y);
+        for (row, x) in HEIGHT_SCAN_X_M.iter().enumerate() {
+            for column in 0..HEIGHT_SCAN_Y_M.len() {
+                let expected = -0.1 * x * HEIGHT_SCAN_GAIN_PER_M;
+                let reading = scan[row * HEIGHT_SCAN_Y_M.len() + column];
+                assert!(
+                    (reading - expected).abs() < 1e-12,
+                    "{x}: {reading} vs {expected}"
+                );
+            }
+        }
+        // Off the terrain the ground is minus infinity: the reading saturates.
+        let off = height_scan(Vec3::new(0.0, 0.0, 0.3), 0.0, |_, _| f64::NEG_INFINITY);
+        assert!(off.iter().all(|reading| *reading == 1.0));
+    }
+
+    #[test]
+    fn random_starts_are_reproducible_and_on_the_terrain() {
+        let starts = training_starts(2026, 200);
+        assert_eq!(starts.len(), 201);
+        assert_eq!(starts, training_starts(2026, 200));
+        assert_ne!(starts[..10], training_starts(11, 200)[..10]);
+        let held_out = evaluation_starts(16);
+        assert!(held_out.iter().all(|start| !starts.contains(start)));
+        let inside = |[x, y]: [f64; 2]| {
+            (START_X_RANGE_M[0]..=START_X_RANGE_M[1]).contains(&x)
+                && (START_Y_RANGE_M[0]..=START_Y_RANGE_M[1]).contains(&y)
+        };
+        assert!(starts.iter().chain(&held_out).all(|start| inside(*start)));
+        // Room to walk 10 m forward and 4 m sideways on the 24 m terrain.
+        let half = 0.5 * TERRAIN_SIZE_M;
+        assert!(START_X_RANGE_M[1] + 10.0 <= half && START_Y_RANGE_M[1] + 4.0 <= half);
+    }
+
+    #[test]
+    fn a_height_scan_policy_stands_from_a_random_start() {
+        let plant = Plant {
+            backend: Backend::Locomotion,
+            terrain_seed: Some(7),
+            ..Plant::default()
+        };
+        let task = Task {
+            height_scan: true,
+            random_starts: true,
+        };
+        let mut go2 = robot(plant).unwrap();
+        let start = training_starts(2026, 0)[0];
+        let mut widths = Vec::new();
+        let outcome = episode(go2.as_mut(), task, start, |observation| {
+            widths.push(observation.len());
+            [0.0; 12]
+        })
+        .unwrap();
+        assert!(!outcome.fell && outcome.survived_s == 5.0, "{outcome:?}");
+        assert!(widths.iter().all(|width| *width == 59));
+        // The base settled above the start, at its spawn height over the ground.
+        let (position, _) = go2.base_pose_z_up();
+        assert!((position.x - start[0]).abs() < 0.3 && (position.y - start[1]).abs() < 0.3);
+        let clearance = position.z - go2.ground_height_m(position.x, position.y);
+        assert!(clearance > 0.2 && clearance < 0.35, "{clearance}");
+    }
+
+    #[test]
     fn a_still_policy_stands_on_the_terrain_and_rapier_refuses_it() {
         let plant = Plant {
             backend: Backend::Locomotion,
@@ -464,7 +676,7 @@ mod tests {
             ..Plant::default()
         };
         let mut go2 = robot(plant).unwrap();
-        let outcome = episode(go2.as_mut(), |_| [0.0; 12]).unwrap();
+        let outcome = episode(go2.as_mut(), Task::default(), [0.0, 0.0], |_| [0.0; 12]).unwrap();
         assert!(!outcome.fell, "{outcome:?}");
         assert!(robot(Plant {
             backend: Backend::Rapier,
@@ -481,12 +693,20 @@ mod tests {
                 ..Plant::default()
             })
             .unwrap();
-            let outcome = episode(robot.as_mut(), |_| [0.0; 12]).unwrap();
+            let still = |_: &[f64]| [0.0; 12];
+            let outcome = episode(robot.as_mut(), Task::default(), [0.0, 0.0], still).unwrap();
             assert!(!outcome.fell, "{backend:?}: {outcome:?}");
             assert!(outcome.forward_m.abs() < 0.05, "{backend:?}: {outcome:?}");
             assert_eq!(outcome.control_steps, SETTLE_STEPS + EPISODE_STEPS);
             // A second episode on the same robot replays the first.
-            assert_eq!(episode(robot.as_mut(), |_| [0.0; 12]).unwrap(), outcome);
+            assert_eq!(
+                episode(robot.as_mut(), Task::default(), [0.0, 0.0], still).unwrap(),
+                outcome
+            );
+            // Only the terrain backend has anywhere else to start.
+            if backend != Backend::Locomotion {
+                assert!(episode(robot.as_mut(), Task::default(), [1.0, 0.0], still).is_err());
+            }
         }
     }
 }
