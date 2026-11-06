@@ -2,15 +2,16 @@ name: Go2 learning comparison
 
 # Example 147 trained in RNE's locomotion step and in MuJoCo on the same
 # runner, one engine after the other for each seed, then each engine
-# evaluates every final policy. Heavy (about half an hour a floor), so it
-# runs on demand and when this workflow changes.
+# evaluates every final policy. Sixteen seeds, so that the summary's sign
+# tests can tell the engines apart. Heavy (about an hour a floor), so it runs
+# on demand and when this workflow changes.
 on:
   workflow_dispatch:
     inputs:
       seeds:
         description: "ES seeds, space-separated"
         required: false
-        default: "2026 11 12"
+        default: "2026 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25"
       floors:
         description: 'Floors as a JSON list: "flat", "terrain"'
         required: false
@@ -32,7 +33,7 @@ jobs:
       matrix:
         floor: ${{ fromJSON(inputs.floors || '["flat", "terrain"]') }}
     env:
-      SEEDS: ${{ inputs.seeds || '2026 11 12' }}
+      SEEDS: ${{ inputs.seeds || '2026 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25' }}
       # The rough terrain's seed; the flat floor ignores it.
       TERRAIN_SEED: "7"
       FLOOR: ${{ matrix.floor }}

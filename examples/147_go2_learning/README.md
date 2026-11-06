@@ -239,64 +239,138 @@ timing, thresholds and final outcome, and its evaluations on Rapier.
 
 ## Side by side with MuJoCo
 
-`.github/workflows/go2-learning.yml` trains each seed in RNE's locomotion
-step and in MuJoCo 3.9.0 on one 4-core GitHub runner, one engine after the
-other. It then evaluates every final policy in both engines, and on Rapier
-for the flat floor.
+`.github/workflows/go2-learning.yml` trains sixteen seeds (2026 and 11–25) in
+RNE's locomotion step and in MuJoCo 3.9.0 on one 4-core GitHub runner per
+floor, one engine after the other. It then evaluates every final policy in
+both engines, and on Rapier for the flat floor. `learning_compare.py` pairs the
+two engines' runs of each seed, since both start from that seed's policy and
+draw the same ES noise, and counts which engine was ahead, with the two-sided
+sign test's p-value over the seeds where they differ.
 
-The same flat runs in the development container crossed fitness 0.5 and 1 in
-the same generations and ended within 0.02 of these. On the first plant they
-had diverged: the system math library's last bits differ between the
-machines, and 200 generations of ES amplified them.
+- **Reproducibility.** The first three seeds repeated an earlier three-seed
+  run on another runner bit for bit: the same thresholds, the same final
+  fitness and the same evaluations.
+- **Development container.** The first three flat seeds, run there, crossed
+  fitness 0.5 and 1 in the same generations and ended within 0.02 of these.
+- **The first plant was different.** There the two machines' runs diverged:
+  the system math library's last bits differ between them, and 200
+  generations of ES amplified the difference.
 
-Flat floor:
+Medians, with quartiles in brackets. A run that never reaches fitness 1
+counts as slower than any run that does, so a quartile past the reached runs
+reads "never".
 
-| Seed | RNE: fitness 1 (generation / s) | MuJoCo: fitness 1 | RNE after 200 | MuJoCo after 200 | RNE's walk in MuJoCo | MuJoCo's walk on RNE's step (on Rapier) |
+| | Flat: RNE | Flat: MuJoCo | Terrain: RNE | Terrain: MuJoCo |
+| --- | ---: | ---: | ---: | ---: |
+| Runs that reach fitness 1 | 14 of 16 | 13 of 16 | 12 of 16 | 10 of 16 |
+| Generations to fitness 1 | 134 (91–166) | 106 (94–167) | 142 (122–never) | 156 (128–never) |
+| Seconds to fitness 1 | 42 (27–54) | 49 (46–83) | 47 (39–never) | 130 (104–never) |
+| Fitness after 200 generations | 2.07 (1.40–2.71) | 1.58 (1.23–2.15) | 1.62 (0.88–3.48) | 1.06 (0.81–1.72) |
+| Simulated s per wall s, 4 cores | 621 (588–641) | 373 (350–393) | 591 (562–610) | 222 (214–234) |
+| Simulated s per wall s, one thread | 342–343 | 263–264 | 331–334 | 172–177 |
+
+Per seed, RNE against MuJoCo: seeds RNE was ahead on, against seeds MuJoCo was
+ahead on, with ties and the sign test's p-value:
+
+| Ahead on | Flat | Terrain |
+| --- | --- | --- |
+| Fitness 0.5 in fewer generations | 6 against 10 (p 0.45) | 11 against 4, 1 tie (p 0.12) |
+| Fitness 0.5 sooner | 15 against 1 (p 0.0005) | 16 against 0 (p 0.00003) |
+| Fitness 1 in fewer generations | 8 against 7, 1 tie (p 1.0) | 8 against 6, 2 ties (p 0.79) |
+| Fitness 1 sooner | 11 against 4, 1 tie (p 0.12) | 12 against 2, 2 ties (p 0.013) |
+| Fitness after 200 generations | 11 against 5 (p 0.21) | 11 against 5 (p 0.21) |
+
+![Fitness against wall-clock minutes and generations, sixteen seeds in RNE's locomotion step and MuJoCo on one runner, flat floor; bold lines are medians](../../docs/media/go2-learning-compare-flat.svg)
+
+![The same on rough terrain](../../docs/media/go2-learning-compare-terrain.svg)
+
+- **RNE gets there sooner, but not in fewer samples.**
+  - Wall clock: RNE reached fitness 0.5 sooner on 31 of the 32 seeds over
+    both floors. It reached fitness 1 sooner on 11 of 16 flat seeds and 12
+    of 16 terrain seeds; the terrain result is significant (p 0.013), the
+    flat one is not (p 0.12).
+  - Generations: neither engine is ahead. RNE reached fitness 1 in fewer
+    generations on 8 seeds against 7 flat, and 8 against 6 on terrain.
+  - The lead is the cost of a generation: 0.31 s against MuJoCo's 0.51 s on
+    the flat floor, and 0.33 s against 0.86 s on terrain.
+- **RNE's walks end fitter, but not significantly.** RNE's final fitness was
+  higher on 11 seeds of 16 on each floor (p 0.21). The medians are 2.07
+  against 1.58 flat and 1.62 against 1.06 on terrain.
+- **RNE trains 1.7 times as fast as MuJoCo on the flat floor and 2.7 times
+  on terrain, on four cores.** On one thread it is 1.3 and 1.9 times as
+  fast.
+  - The two floors ran on different runners, so compare speeds within a
+    floor, not across floors.
+- **Transfer runs both ways.** 61 of the 64 cross-engine evaluations hold
+  the 5 s, and all 32 on Rapier do.
+  - MuJoCo's walks hold on RNE's locomotion step for all 16 seeds on each
+    floor. Their median fitness there is 1.36 flat (1.58 in MuJoCo) and
+    1.03 on terrain (1.06).
+  - RNE's walks hold in MuJoCo on 15 flat seeds and 14 terrain seeds. Their
+    median fitness there is 1.56 flat (2.07 on RNE) and 1.26 on terrain
+    (1.62).
+  - The three that fall are RNE's seed 13 on the flat floor, after 2.8 s,
+    and its seeds 21 and 24 on terrain, after 1.6 and 4.4 s.
+
+Each seed, flat floor. A policy "walks" in the other engine when its fitness
+there is 1 or more, and "shuffles" when it stays up but scores less:
+
+<details>
+<summary>Sixteen seeds, flat floor</summary>
+
+| Seed | RNE: fitness 1 (generation / s) | MuJoCo: fitness 1 | RNE after 200 | MuJoCo after 200 | RNE's walk in MuJoCo | MuJoCo's walk on RNE's step |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
-| 2026 | 119 / 35 | 99 / 48 | 5.28 | 2.29 | walks, 5.44 m | walks, 2.23 m (walks, 2.57 m) |
-| 11 | 87 / 25 | 94 / 46 | 2.74 | 2.14 | walks, 3.08 m | walks, 2.39 m (walks, 1.69 m) |
-| 12 | 74 / 22 | 106 / 49 | 2.34 | 2.05 | walks, 2.67 m | walks, 2.88 m (walks, 2.84 m) |
+| 2026 | 119 / 35 | 99 / 48 | 5.28 | 2.29 | walks, 5.44 m | walks, 2.23 m |
+| 11 | 87 / 25 | 94 / 46 | 2.74 | 2.14 | walks, 3.08 m | walks, 2.39 m |
+| 12 | 74 / 22 | 106 / 48 | 2.34 | 2.05 | walks, 2.67 m | walks, 2.88 m |
+| 13 | 110 / 34 | 157 / 77 | 2.49 | 1.15 | falls after 2.8 s | walks, 1.44 m |
+| 14 | 166 / 52 | 91 / 46 | 1.49 | 1.71 | walks, 2.17 m | walks, 1.97 m |
+| 15 | 85 / 26 | 99 / 50 | 2.69 | 1.96 | walks, 2.82 m | walks, 1.84 m |
+| 16 | 156 / 50 | 164 / 82 | 1.16 | 1.39 | walks, 1.35 m | walks, 1.93 m |
+| 17 | 166 / 50 | — | 2.87 | 0.58 | walks, 2.19 m | shuffles, 0.65 m |
+| 18 | 91 / 27 | 71 / 34 | 1.71 | 1.46 | walks, 2.15 m | walks, 2.32 m |
+| 19 | — | 159 / 76 | 0.95 | 1.26 | shuffles, 1.01 m | walks, 1.21 m |
+| 20 | 90 / 26 | 65 / 31 | 4.35 | 4.00 | walks, 4.78 m | walks, 4.75 m |
+| 21 | 113 / 36 | 177 / 85 | 1.92 | 1.33 | walks, 2.02 m | walks, 1.35 m |
+| 22 | 177 / 63 | — | 0.82 | 0.58 | walks, 1.35 m | shuffles, 0.60 m |
+| 23 | 151 / 48 | 105 / 46 | 1.90 | 5.38 | walks, 1.99 m | walks, 5.93 m |
+| 24 | 148 / 60 | 94 / 46 | 2.21 | 2.16 | walks, 2.35 m | walks, 2.48 m |
+| 25 | — | — | 0.51 | 0.52 | shuffles, 0.52 m | shuffles, 0.53 m |
 
-![Fitness against wall-clock minutes and generations, RNE's locomotion step and MuJoCo on one runner, flat floor](../../docs/media/go2-learning-compare-flat.svg)
+</details>
 
 Rough terrain (`--terrain 7`: 5 cm of fractal relief, the same height field
 in both engines; `check-terrain` ray-casts MuJoCo's copy at 40 of RNE's
 heights before training):
 
+<details>
+<summary>Sixteen seeds, rough terrain</summary>
+
 | Seed | RNE: fitness 1 (generation / s) | MuJoCo: fitness 1 | RNE after 200 | MuJoCo after 200 | RNE's walk in MuJoCo | MuJoCo's walk on RNE's step |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
 | 2026 | 146 / 49 | 85 / 71 | 2.11 | 4.11 | walks, 2.32 m | walks, 4.33 m |
-| 11 | 130 / 42 | 187 / 165 | 2.67 | 1.05 | walks, 2.26 m | walks, 1.09 m |
-| 12 | — (0.83) | — (0.53) | 0.83 | 0.53 | shuffles, 0.84 m | shuffles, 0.53 m |
+| 11 | 130 / 42 | 187 / 165 | 2.67 | 1.05 | walks, 2.26 m | shuffles, 1.09 m |
+| 12 | — | — | 0.83 | 0.53 | shuffles, 0.84 m | shuffles, 0.53 m |
+| 13 | — | — | 0.77 | 0.86 | shuffles, 0.77 m | shuffles, 1.00 m |
+| 14 | 112 / 35 | 91 / 73 | 5.48 | 1.71 | walks, 5.26 m | walks, 2.16 m |
+| 15 | 125 / 40 | 92 / 76 | 1.65 | 2.35 | walks, 1.58 m | walks, 2.88 m |
+| 16 | 79 / 25 | 152 / 129 | 3.35 | 1.64 | walks, 2.19 m | walks, 1.78 m |
+| 17 | — | 118 / 92 | 0.89 | 3.83 | shuffles, 0.92 m | walks, 4.02 m |
+| 18 | 171 / 59 | — | 1.05 | 0.49 | shuffles, 1.02 m | shuffles, 0.53 m |
+| 19 | 42 / 12 | — | 6.64 | 0.59 | walks, 4.85 m | shuffles, 0.63 m |
+| 20 | 188 / 65 | — | 0.86 | 0.80 | shuffles, 0.98 m | shuffles, 0.80 m |
+| 21 | 125 / 41 | 159 / 122 | 3.88 | 1.07 | falls after 1.6 s | walks, 1.62 m |
+| 22 | — | 131 / 107 | 0.52 | 1.73 | shuffles, 0.54 m | walks, 1.97 m |
+| 23 | 173 / 60 | 146 / 115 | 1.32 | 1.00 | walks, 1.73 m | shuffles, 1.02 m |
+| 24 | 74 / 23 | — | 5.16 | 0.81 | falls after 4.4 s | shuffles, 0.86 m |
+| 25 | 138 / 44 | 153 / 131 | 1.59 | 1.27 | walks, 1.80 m | walks, 1.79 m |
 
-![Fitness against wall-clock minutes and generations, RNE's locomotion step and MuJoCo on one runner, rough terrain](../../docs/media/go2-learning-compare-terrain.svg)
-
-- **RNE trains 1.7–2.7 times as fast as MuJoCo on the same runner.**
-  - Flat: 589–683 simulated seconds per wall second on four cores, against
-    MuJoCo's 351–371. A generation took 0.29–0.34 s, against 0.53–0.59 s.
-  - Terrain: 566–613, against 213–267.
-  - One thread, untrained policy: 341–344 against 259–269 on the flat floor,
-    and 327–332 against 175–176 on terrain.
-  - The two floors ran on different runners, so compare speeds within a
-    floor, not across floors.
-- **RNE reaches the walk first in wall time.**
-  - Flat: RNE reached fitness 1 first on all three seeds, in 22–35 s against
-    MuJoCo's 46–49 s. It also took fewer generations on two seeds.
-  - Terrain: RNE was first on seeds 2026 and 11. On seed 2026 it was quicker
-    in wall time but needed more generations (146 against 85). On seed 12
-    neither engine reached fitness 1.
-  - After 200 generations RNE scored higher on five runs of six.
-  - Three seeds do not rank the engines' sample efficiency.
-- **Transfer runs both ways.** All twelve cross-evaluations walk or shuffle
-  through the 5 s.
-  - RNE's walks keep 68–100% of their fitness in MuJoCo.
-  - MuJoCo's walks keep 56–127% of theirs on RNE's locomotion step.
-  - On the first plant only four of the twelve held, and none of MuJoCo's
-    six.
+</details>
 
 The summaries ([flat](../../docs/media/go2-learning-compare-flat.json),
 [terrain](../../docs/media/go2-learning-compare-terrain.json)) hold each
-run's timing, thresholds and final outcome, and every evaluation.
+run's timing, thresholds and final outcome, every evaluation, and the
+`aggregate` statistics above.
 
 ## Speed
 
@@ -341,7 +415,7 @@ episodes (medians of three runs):
   about 2,950 instructions, against 2,160 for nalgebra's vectorized dense LU.
 - **The locomotion step outruns MuJoCo on one thread.** In this container it
   ran 308 simulated seconds per wall second against MuJoCo's 231, measured in
-  different sessions. On one CI runner it ran 341–344 against 259–269 (see
+  different sessions. On one CI runner it ran 342–343 against 263–264 (see
   [Side by side with MuJoCo](#side-by-side-with-mujoco)). On four threads the
   lead widens.
   - It is `rne_dynamics::contact_step`. On a trained walk the contact solve
@@ -358,8 +432,9 @@ episodes (medians of three runs):
 
 ## Limits
 
-- One robot, one task on a flat floor and on one rough terrain, three seeds,
-  no domain randomization.
+- One robot, one task on a flat floor and on one rough terrain, no domain
+  randomization; sixteen seeds side by side with MuJoCo, three in the
+  development container.
   The policies make no claim about transfer to hardware.
 - MuJoCo's episode loop and policy run in Python, one call per 20 ms control
   period; RNE's run in Rust.
