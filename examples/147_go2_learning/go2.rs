@@ -212,7 +212,17 @@ pub(crate) trait Robot {
     fn ground_height_m(&self, _x_m: f64, _y_m: f64) -> f64 {
         0.0
     }
+    /// Half the side of the square around the origin the base must stay
+    /// inside: a robot that walks out of it would put a foot off the floor's
+    /// edge, so the episode ends there as a fall.
+    fn arena_half_m(&self) -> f64 {
+        f64::INFINITY
+    }
 }
+
+/// How far inside the floor's edge the arena ends, in meters: farther than a
+/// foot reaches from the base, or the base moves in a control period.
+pub(crate) const ARENA_EDGE_MARGIN_M: f64 = 1.0;
 
 /// The Go2 on Rapier.
 pub(crate) struct RapierGo2(PdJointWalker);
@@ -516,7 +526,9 @@ pub(crate) fn episode(
         let (position, rotation) = robot.base_pose_z_up();
         let gravity_z = (rotation.inverse() * Vec3::new(0.0, 0.0, -1.0)).z;
         let clearance = position.z - robot.ground_height_m(position.x, position.y);
-        if clearance < FALL_HEIGHT_M || gravity_z > FALL_GRAVITY_Z {
+        let arena = robot.arena_half_m();
+        let outside = position.x.abs() > arena || position.y.abs() > arena;
+        if clearance < FALL_HEIGHT_M || gravity_z > FALL_GRAVITY_Z || outside {
             fell = true;
             break;
         }
@@ -666,6 +678,28 @@ mod tests {
         assert!((position.x - start[0]).abs() < 0.3 && (position.y - start[1]).abs() < 0.3);
         let clearance = position.z - go2.ground_height_m(position.x, position.y);
         assert!(clearance > 0.2 && clearance < 0.35, "{clearance}");
+    }
+
+    #[test]
+    fn walking_near_the_terrain_edge_ends_the_episode_as_a_fall() {
+        let plant = Plant {
+            backend: Backend::Locomotion,
+            terrain_seed: Some(7),
+            ..Plant::default()
+        };
+        let mut go2 = robot(plant).unwrap();
+        let arena = go2.arena_half_m();
+        assert_eq!(arena, 0.5 * TERRAIN_SIZE_M - ARENA_EDGE_MARGIN_M);
+        let still = |_: &[f64]| [0.0; 12];
+        // Standing just inside the arena is fine; just outside it, the first
+        // control period ends the episode before a foot could leave the field.
+        let inside = episode(go2.as_mut(), Task::default(), [arena - 0.2, 0.0], still).unwrap();
+        assert!(!inside.fell, "{inside:?}");
+        let outside = episode(go2.as_mut(), Task::default(), [0.0, -arena - 0.2], still).unwrap();
+        assert!(
+            outside.fell && outside.survived_s == CONTROL_DT_S,
+            "{outside:?}"
+        );
     }
 
     #[test]

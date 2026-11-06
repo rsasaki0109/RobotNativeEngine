@@ -75,6 +75,9 @@ HEIGHT_SCAN_POINTS = len(HEIGHT_SCAN_X_M) * len(HEIGHT_SCAN_Y_M)
 HEIGHT_SCAN_NOMINAL_M, HEIGHT_SCAN_GAIN_PER_M = 0.3, 5.0
 # The floor's geom group, which the scan's rays alone see.
 FLOOR_GROUP = 3
+# An episode ends as a fall when the base comes this close to the floor's
+# edge, RNE's flat floor being this wide, as go2.rs and locomotion.rs.
+ARENA_EDGE_MARGIN_M, FLAT_FLOOR_SIZE_M = 1.0, 40.0
 # Random starts, as go2.rs draws them.
 START_X_RANGE_M, START_Y_RANGE_M = (-8.0, 2.0), (-8.0, 8.0)
 START_STREAM, EVALUATION_STARTS_SEED = 0x5354415254530147, 0x4556414C0147
@@ -181,6 +184,10 @@ class Go2:
         self.ray_groups[FLOOR_GROUP] = 1
         self.ray_top = 1.0 + (0.0 if self.terrain is None else float(self.terrain["grid"].max()))
         self.ray_hit = np.zeros(1, dtype=np.int32)
+        # The base must stay this far inside the floor's edge, as go2.rs's
+        # arena: RNE's flat floor is 40 m square, the terrain its own size.
+        side = FLAT_FLOOR_SIZE_M if self.terrain is None else self.terrain["size_m"]
+        self.arena_half = 0.5 * side - ARENA_EDGE_MARGIN_M
 
     def settle(self, start=(0.0, 0.0)):
         """Start in the default pose at rest, base 0.36 m above `start`, and
@@ -252,7 +259,9 @@ class Go2:
             steps += 1
             gravity_z = -self.body_rotation()[2, 2]
             x, y, z = self.data.qpos[:3]
-            if z - ground_height(self.terrain, x, y) < FALL_HEIGHT_M or gravity_z > FALL_GRAVITY_Z:
+            outside = abs(x) > self.arena_half or abs(y) > self.arena_half
+            if (z - ground_height(self.terrain, x, y) < FALL_HEIGHT_M
+                    or gravity_z > FALL_GRAVITY_Z or outside):
                 fell = True
                 break
         forward, lateral = self.data.qpos[0] - start[0], self.data.qpos[1] - start[1]

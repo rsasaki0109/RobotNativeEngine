@@ -54,6 +54,9 @@ pub(crate) struct LocomotionGo2 {
     /// PD targets, by actuated coordinate.
     targets_rad: [f64; 12],
     command: JointCommand,
+    /// See [`Robot::arena_half_m`]: the floor's or the terrain's half side,
+    /// less [`crate::go2::ARENA_EDGE_MARGIN_M`].
+    arena_half_m: f64,
 }
 
 impl LocomotionGo2 {
@@ -64,6 +67,10 @@ impl LocomotionGo2 {
         // Go2 spec lists its legs.
         let legs = quadruped.legs();
         let actuated = std::array::from_fn(|index| legs[index / 3].joints[index % 3]);
+        let side_m = match terrain_seed {
+            Some(_) => crate::go2::TERRAIN_SIZE_M,
+            None => FLOOR_SIZE_M,
+        };
         let floor = match terrain_seed {
             Some(seed) => crate::go2::terrain(seed)?,
             None => FractalTerrain {
@@ -96,6 +103,7 @@ impl LocomotionGo2 {
             actuated,
             targets_rad: [0.0; 12],
             command: JointCommand::positions(vec![0.0; 12]),
+            arena_half_m: 0.5 * side_m - crate::go2::ARENA_EDGE_MARGIN_M,
         };
         robot.restart()?;
         Ok(robot)
@@ -174,6 +182,10 @@ impl Robot for LocomotionGo2 {
 
     fn ground_height_m(&self, x_m: f64, y_m: f64) -> f64 {
         crate::go2::terrain_height_m(self.sim.terrain(), x_m, y_m)
+    }
+
+    fn arena_half_m(&self) -> f64 {
+        self.arena_half_m
     }
 
     fn joint_states(&self) -> Result<[(f64, f64); 12]> {
