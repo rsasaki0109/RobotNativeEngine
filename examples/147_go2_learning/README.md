@@ -378,6 +378,88 @@ The summaries ([flat](../../docs/media/go2-learning-compare-flat.json),
 run's timing, thresholds and final outcome, every evaluation, and the
 `aggregate` statistics above.
 
+## Seeing the ground
+
+Can a policy that sees the terrain walk it better than one that does not?
+Three options set up the test:
+
+- **Random starts** (`--random-starts`, terrain only).
+  - The problem: from the origin, every episode walks the same path over the
+    one fixed terrain, so a blind policy can learn that path by heart.
+  - Each generation's episodes instead start at a point drawn uniformly from
+    x in [-8, 2] m and y in [-8, 8] m. All of a generation's candidates start
+    on the same point.
+  - `--evaluate POLICY.json --starts 16` walks a policy from 16 held-out
+    points and reports the mean. A fall from any of them counts as a fall.
+  - An episode also ends as a fall when the base comes within 1 m of the
+    floor's edge.
+- **A height scan** (`--height-scan`) appends 15 readings to the 44
+  proprioceptive inputs.
+  - Each reading is a vertical ray at one of 5 × 3 points: from 0.2 m behind
+    to 0.6 m ahead of the base, and up to 0.15 m to either side, in the
+    base's heading frame.
+  - The reading is the base's height above the ray's hit, less 0.3 m, times
+    5, clipped to [-1, 1].
+  - RNE reads its height field. MuJoCo casts `mj_ray` against the floor's
+    geom group alone.
+  - `check-terrain` compares the two engines' readings at ten poses. They
+    differ by 0.0017 at most on the default terrain, within the bound set by
+    MuJoCo's triangulated cells (a quarter of a cell's twist, times the
+    gain).
+- **A rougher terrain** (`--terrain-frequency 1.0 --terrain-amplitude 0.08`):
+  10 cm of relief over 1 m wavelengths, against the default's 5 cm over 2 m.
+
+Both engines draw the same starts and the same initial policy; the Python
+and Rust copies are bit-identical. The workflow's `tasks` input runs
+`starts` (blind) and `starts-scan` side by side, sixteen seeds each.
+
+Fitness from the 16 held-out starts, per policy, median and quartiles:
+
+| Terrain | Trained in, walking in | Blind | Blind falls of 256 | With the scan | Scan falls of 256 | Seeds the scan did better on |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| default | RNE, RNE | 0.76 (0.60–1.49) | 8 | 0.89 (0.81–1.00) | 3 | 9 of 16 (p 0.80) |
+| default | RNE, MuJoCo | 0.68 (0.53–0.94) | 12 | 0.80 (0.73–0.91) | 15 | 9 of 16 (p 0.80) |
+| default | MuJoCo, MuJoCo | 1.11 (0.75–2.57) | 3 | 0.77 (0.71–1.63) | 5 | 7 of 16 (p 0.80) |
+| default | MuJoCo, RNE | 0.99 (0.72–3.09) | 1 | 0.82 (0.72–1.48) | 1 | 8 of 16 (p 1.0) |
+| rougher | RNE, RNE | 1.44 (0.62–2.79) | 14 | 0.59 (0.48–2.44) | 13 | 7 of 16 (p 0.80) |
+| rougher | RNE, MuJoCo | 1.26 (0.53–1.87) | 19 | 0.45 (0.41–1.05) | 37 | 5 of 16 (p 0.21) |
+| rougher | MuJoCo, MuJoCo | 0.91 (0.52–1.69) | 16 | 0.62 (0.51–2.42) | 16 | 9 of 16 (p 0.80) |
+| rougher | MuJoCo, RNE | 0.96 (0.52–1.89) | 16 | 0.60 (0.48–2.61) | 17 | 8 of 16 (p 1.0) |
+
+- **The scan does not help this learner.** On neither terrain did either
+  engine's scan policies beat its blind ones on more than 9 seeds of 16. On
+  the rougher terrain the medians even fall with the scan.
+  - What is being tested is evolution strategies with 16 antithetic pairs
+    and a 32-unit MLP over 200 generations. With the scan that MLP has 480
+    more weights to tune, and the search does not turn the extra inputs into
+    better steps.
+  - Blind policies generalise to unseen starts: on the default terrain RNE's
+    fall in 8 of 256 episodes and MuJoCo's in 3.
+- **Learning against MuJoCo, per seed.**
+  - Default terrain, blind: MuJoCo reached fitness 1 in fewer generations on
+    9 seeds against RNE's 2, with 5 ties (p 0.065). RNE reached it sooner in
+    wall time on 7 seeds against 4 (p 0.55).
+  - Rougher terrain, blind: RNE reached fitness 1 sooner on 12 seeds against
+    2 (p 0.013), and in fewer generations on 10 against 4 (p 0.18).
+  - In every case RNE reached fitness 0.5 sooner on all 16 seeds.
+- **Speed on four cores**, simulated seconds per wall second:
+
+  | | Blind: RNE | Blind: MuJoCo | With the scan: RNE | With the scan: MuJoCo |
+  | --- | ---: | ---: | ---: | ---: |
+  | Default terrain | 571 | 208 | 405 | 144 |
+  | Rougher terrain | 716 | 298 | 400 | 139 |
+
+  - RNE is 2.4–2.9 times as fast.
+  - Each job ran on its own runner, so compare speeds within a row only.
+  - MuJoCo's scan is 15 `mj_ray` calls from Python each control period.
+
+The summaries
+([default blind](../../docs/media/go2-learning-compare-terrain-starts.json),
+[default scan](../../docs/media/go2-learning-compare-terrain-starts-scan.json),
+[rougher blind](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-starts.json),
+[rougher scan](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-starts-scan.json))
+hold every run and every held-out evaluation, with an `.svg` figure each.
+
 ## Speed
 
 Simulated seconds per wall second on one thread, for the untrained policy's
@@ -438,9 +520,12 @@ episodes (medians of three runs):
 
 ## Limits
 
-- One robot, one task on a flat floor and on one rough terrain, no domain
-  randomization; sixteen seeds side by side with MuJoCo, three in the
-  development container.
+- One robot, one task on a flat floor and on one terrain at two reliefs.
+  The only randomization is the random starts. Sixteen seeds side by side
+  with MuJoCo, three in the development container.
+- One learner, evolution strategies with a 32-unit MLP. What
+  [Seeing the ground](#seeing-the-ground) finds about the height scan
+  holds for it, not for reinforcement learning in general.
   The policies make no claim about transfer to hardware.
 - MuJoCo's episode loop and policy run in Python, one call per 20 ms control
   period; RNE's run in Rust.
