@@ -206,7 +206,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: go2-learning-compare-${{ env.NAME }}
-          path: ${{ env.OUT }}
+          # The Floor step names the run; if it failed, upload what there is.
+          name: go2-learning-compare-${{ env.NAME || format('{0}-{1}', matrix.floor, matrix.task) }}
+          path: ${{ env.OUT || 'artifacts' }}
           if-no-files-found: warn
           retention-days: 30

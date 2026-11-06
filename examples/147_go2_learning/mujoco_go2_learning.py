@@ -487,13 +487,20 @@ def check_terrain(path):
         mujoco.mj_forward(robot.model, robot.data)
         readings = robot.height_scan()
         worst_scan = max(worst_scan, max(abs(a - b) for a, b in zip(readings, probe["readings"])))
+    # MuJoCo splits each 10 cm cell into two triangles, RNE interpolates it
+    # bilinearly: they differ by at most a quarter of the cell's twist
+    # (h00 + h11 - h01 - h10), at its centre. The rays may miss by that much
+    # and a hair more, and the scan's readings by that times its gain.
+    grid = terrain["grid"]
+    twist = np.abs(grid[:-1, :-1] + grid[1:, 1:] - grid[:-1, 1:] - grid[1:, :-1]).max()
+    ray_tolerance = 0.25 * float(twist) + 1e-4
+    scan_tolerance = HEIGHT_SCAN_GAIN_PER_M * ray_tolerance
     print(json.dumps({"probes": len(terrain["probes"]), "worst_ray_error_m": worst,
+                      "ray_tolerance_m": ray_tolerance,
                       "worst_bilinear_error_m": worst_bilinear,
-                      "scan_probes": len(scan_probes), "worst_scan_reading_error": worst_scan}))
-    # MuJoCo triangulates each 10 cm cell, RNE interpolates it bilinearly:
-    # they differ by at most the cell's twist, well under a millimetre here,
-    # which the scan's gain of 5 per metre makes under 0.01.
-    if worst > 2e-3 or worst_bilinear > 1e-9 or worst_scan > 1e-2:
+                      "scan_probes": len(scan_probes), "worst_scan_reading_error": worst_scan,
+                      "scan_tolerance": scan_tolerance}))
+    if worst > ray_tolerance or worst_bilinear > 1e-9 or worst_scan > scan_tolerance:
         raise SystemExit("MuJoCo's terrain does not match RNE's")
 
 
