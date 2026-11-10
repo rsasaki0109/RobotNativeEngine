@@ -36,6 +36,24 @@ on:
         description: "The terrain's side, metres"
         required: false
         default: "24"
+      terrain_cell:
+        description: "The terrain's sample spacing, metres"
+        required: false
+        default: "0.1"
+      gap_depth:
+        description: "Depth of the terrain's gaps, metres; 0 for none"
+        required: false
+        default: "0"
+      iterations:
+        description: "PPO iterations; empty for the learner's default (400)"
+        required: false
+        default: ""
+      train_mujoco:
+        description: >-
+          "true" to train in MuJoCo too; "false" trains in RNE only, and MuJoCo
+          still evaluates RNE's policies
+        required: false
+        default: "true"
       learner:
         description: 'The learner: "es" (evolution strategies) or "ppo"'
         required: false
@@ -70,7 +88,11 @@ jobs:
       TERRAIN_FREQUENCY: ${{ inputs.terrain_frequency || '0.5' }}
       TERRAIN_AMPLITUDE: ${{ inputs.terrain_amplitude || '0.04' }}
       TERRAIN_SIZE: ${{ inputs.terrain_size || '24' }}
+      TERRAIN_CELL: ${{ inputs.terrain_cell || '0.1' }}
+      GAP_DEPTH: ${{ inputs.gap_depth || '0' }}
       LEARNER: ${{ inputs.learner || 'es' }}
+      ITERATIONS: ${{ inputs.iterations || '' }}
+      TRAIN_MUJOCO: ${{ inputs.train_mujoco || 'true' }}
       FLOOR: ${{ matrix.floor }}
       TASK: ${{ matrix.task }}
       # Held-out starts each random-start policy is evaluated from.
@@ -115,8 +137,17 @@ jobs:
           if [ "$FLOOR" = terrain ] && [ "$TERRAIN_SIZE" != 24 ]; then
             name=$name-s$TERRAIN_SIZE
           fi
+          if [ "$TERRAIN_CELL" != 0.1 ]; then
+            relief="$relief --terrain-cell $TERRAIN_CELL"
+            if [ "$FLOOR" = terrain ]; then name=$name-c$TERRAIN_CELL; fi
+          fi
+          if [ "$GAP_DEPTH" != 0 ]; then
+            relief="$relief --gap-depth $GAP_DEPTH"
+            if [ "$FLOOR" = terrain ]; then name=$name-gaps$GAP_DEPTH; fi
+          fi
           if [ "$TASK" != proprioception ]; then name=$name-$TASK; fi
           if [ "$LEARNER" != es ]; then name=$name-$LEARNER; fi
+          if [ -n "$ITERATIONS" ]; then name=$name-i$ITERATIONS; fi
           out=artifacts/go2-learning-$name
           mkdir -p "$out"
           if [ "$FLOOR" = terrain ]; then
@@ -143,7 +174,13 @@ jobs:
           esac
           # MuJoCo reads the learner from RNE's report too.
           if [ "$LEARNER" != es ]; then tag=$tag-$LEARNER; fi
-          echo "LEARNER_FLAGS=--learner $LEARNER" >> "$GITHUB_ENV"
+          learner="--learner $LEARNER"
+          if [ -n "$ITERATIONS" ]; then learner="$learner --iterations $ITERATIONS"; fi
+          echo "LEARNER_FLAGS=$learner" >> "$GITHUB_ENV"
+          # The engines whose final policies the later steps evaluate.
+          trained="$tag"
+          if [ "$TRAIN_MUJOCO" = true ]; then trained="$trained mujoco"; fi
+          echo "TRAINED=$trained" >> "$GITHUB_ENV"
           echo "TASK_FLAGS=$flags" >> "$GITHUB_ENV"
           echo "EVALUATE_STARTS=$starts" >> "$GITHUB_ENV"
           echo "TAG=$tag" >> "$GITHUB_ENV"
@@ -160,10 +197,12 @@ jobs:
             # shellcheck disable=SC2086
             "$bin" --train --backend locomotion $RNE_FLOOR $TASK_FLAGS $LEARNER_FLAGS --seed "$seed" \
               --threads "$cores" --output "$OUT"
-            # shellcheck disable=SC2086
-            .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py train \
-              "$OUT/go2-learning-$TAG-$seed.json" "$OUT/go2-learning-mujoco-$seed.json" \
-              --processes "$cores" $MUJOCO_FLOOR
+            if [ "$TRAIN_MUJOCO" = true ]; then
+              # shellcheck disable=SC2086
+              .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py train \
+                "$OUT/go2-learning-$TAG-$seed.json" "$OUT/go2-learning-mujoco-$seed.json" \
+                --processes "$cores" $MUJOCO_FLOOR
+            fi
           done
 
       - name: Single-thread speed
@@ -183,7 +222,7 @@ jobs:
           set -euo pipefail
           bin=target/release/examples/147_go2_learning
           for seed in $SEEDS; do
-            for trained in "$TAG" mujoco; do
+            for trained in $TRAINED; do
               policy="$OUT/go2-learning-$trained-$seed.json"
               # shellcheck disable=SC2086
               "$bin" --evaluate "$policy" --backend locomotion $RNE_FLOOR $EVALUATE_STARTS \
@@ -204,7 +243,7 @@ jobs:
           evaluating="locomotion mujoco"
           if [ "$FLOOR" = flat ]; then evaluating="locomotion rne mujoco"; fi
           for seed in $SEEDS; do
-            for trained in "$TAG" mujoco; do
+            for trained in $TRAINED; do
               engine=$trained
               if [ "$trained" = "$TAG" ]; then engine=locomotion; fi
               args+=(--training "$engine:$seed=$OUT/go2-learning-$trained-$seed.json")
