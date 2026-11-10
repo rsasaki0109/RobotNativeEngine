@@ -23,6 +23,10 @@ cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate POL
 cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
   --backend locomotion --learner ppo   # PPO in place of evolution strategies; ...-locomotion-ppo-2026.json
 #   --iterations 400 --envs 16 --hidden 64 are PPO's defaults; --terrain-size 48 widens the terrain (default 24 m)
+cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate POLICY.json \
+  --backend locomotion --trace TRACE.json   # every control period's state and targets; --trace-start X,Y
+python3 examples/147_go2_learning/mujoco_go2_learning.py evaluate POLICY.json --trace TRACE.json
+python3 examples/147_go2_learning/mujoco_go2_learning.py replay TRACE.json REPLAY.json   # MuJoCo from each RNE state
 python3 examples/147_go2_learning/mujoco_go2_learning.py check-terrain terrain.json
 python3 examples/147_go2_learning/mujoco_go2_learning.py train \
   target/go2-learning/go2-learning-locomotion-terrain-2026.json OUT.json --terrain terrain.json
@@ -529,7 +533,8 @@ On the terrain, from 16 held-out starts per policy:
   - So 10 cm of relief does not require sight. The test needs a terrain a
     blind robot cannot walk, such as steps or gaps.
 - **RNE's PPO walks do not carry over to MuJoCo; MuJoCo's carry over to
-  RNE.**
+  RNE.** The `go2-trace` workflow looks for the reason (see
+  [Tracing a walk](#tracing-a-walk)).
   - On the terrain, RNE-trained policies score 0.4–0.9 in MuJoCo against
     8.6–10.8 at home, and 3 to 6 of 16 fall from some start.
   - On the flat floor they keep 6.91 of 12.25. On RNE's own Rapier backend
@@ -568,6 +573,25 @@ The summaries
 [rougher blind](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-s48-starts-ppo.json),
 [rougher scan](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-s48-starts-scan-ppo.json))
 hold every run and every evaluation, with an `.svg` figure each.
+
+## Tracing a walk
+
+To find where the engines part on a walk, each can record one:
+
+- `--evaluate POLICY --trace TRACE.json` (locomotion and Rapier backends)
+  and `mujoco_go2_learning.py evaluate POLICY --trace TRACE.json` walk the
+  policy once and record, before every control period, settling included:
+  the base's position, orientation and world-frame velocities, the joints'
+  positions and velocities, and the targets then applied.
+- `mujoco_go2_learning.py replay TRACE.json REPLAY.json` puts MuJoCo in each
+  of an RNE trace's states, steps one control period with RNE's targets, and
+  records the difference from RNE's next state and the normal force on each
+  body touching the floor.
+- On the locomotion backend, `--evaluate` also reports each link's share of
+  the ground's normal impulse (`contact_load`), settling included.
+
+The `go2-trace` workflow runs all three for every seed of the PPO
+comparison runs, on the flat floor and on the default terrain.
 
 ## Speed
 

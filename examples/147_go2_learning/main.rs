@@ -409,3 +409,74 @@ fn main() -> Result<()> {
     println!("wrote {}", path.display());
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use go2::Robot;
+
+    #[test]
+    fn a_trace_holds_every_control_period_and_the_targets_applied() {
+        let plant = go2::Plant {
+            backend: go2::Backend::Locomotion,
+            ..go2::Plant::default()
+        };
+        let mut robot = go2::robot(plant).unwrap();
+        let mut tracing = Tracing {
+            inner: robot.as_mut(),
+            targets_rad: go2::DEFAULT_RAD,
+            periods: Vec::new(),
+        };
+        let lean = [0.1; 12];
+        let outcome =
+            go2::episode(&mut tracing, go2::Task::default(), [0.0, 0.0], |_| lean).unwrap();
+        assert!(!outcome.fell, "{outcome:?}");
+        let periods = &tracing.periods;
+        assert_eq!(periods.len(), go2::SETTLE_STEPS + go2::EPISODE_STEPS);
+        // Settling holds the default pose; the policy's periods track its
+        // action, scaled, around it.
+        assert_eq!(periods[0]["targets_rad"], json!(go2::DEFAULT_RAD));
+        let target = go2::DEFAULT_RAD[2] + go2::ACTION_SCALE_RAD * 0.1;
+        assert_eq!(periods[go2::SETTLE_STEPS]["targets_rad"][2], json!(target));
+        // The first state is the spawn pose at rest, and each state is the
+        // one the previous period left.
+        assert_eq!(periods[0]["position_m"][2], json!(go2::SPAWN_HEIGHT_M));
+        assert_eq!(periods[0]["quaternion_wxyz"], json!([1.0, 0.0, 0.0, 0.0]));
+        let last = tracing.state().unwrap();
+        let (position, _) = tracing.base_pose_z_up();
+        assert_eq!(
+            last["position_m"],
+            json!([position.x, position.y, position.z])
+        );
+        assert_ne!(periods[1]["position_m"], periods[0]["position_m"]);
+    }
+
+    #[test]
+    fn a_standing_go2_puts_its_weight_through_its_feet() {
+        let plant = go2::Plant {
+            backend: go2::Backend::Locomotion,
+            ..go2::Plant::default()
+        };
+        let mut robot = go2::robot(plant).unwrap();
+        go2::episode(robot.as_mut(), go2::Task::default(), [0.0, 0.0], |_| {
+            [0.0; 12]
+        })
+        .unwrap();
+        let load = robot.contact_load().unwrap();
+        let total: f64 = load.iter().map(|(_, impulse, _)| impulse).sum();
+        let feet: f64 = load
+            .iter()
+            .filter(|(name, _, _)| name.ends_with("_foot"))
+            .map(|(_, impulse, _)| impulse)
+            .sum();
+        assert!(feet / total > 0.999, "{load:?}");
+        // Six seconds of standing carry the robot's weight, less the short
+        // fall from the spawn height.
+        let periods = (go2::SETTLE_STEPS + go2::EPISODE_STEPS) as f64;
+        let weight_n_s = 16.087 * 9.81 * periods * go2::CONTROL_DT_S;
+        assert!(
+            (total / weight_n_s - 1.0).abs() < 0.05,
+            "{total} {weight_n_s}"
+        );
+    }
+}

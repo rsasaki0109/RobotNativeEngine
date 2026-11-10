@@ -546,6 +546,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `examples/147_go2_learning` records walks to find where RNE and MuJoCo
+  part: `--evaluate --trace` and `mujoco_go2_learning.py evaluate --trace`
+  write every control period's state and targets, `mujoco_go2_learning.py
+  replay` steps MuJoCo one period from each state of an RNE trace and
+  records the difference from RNE's next state, and `--evaluate` on the
+  locomotion backend reports each link's share of the ground's normal
+  impulse. The `go2-trace` workflow runs them for the PPO comparison runs'
+  policies.
+
 - `examples/147_go2_learning` learns with PPO too (`--learner ppo`): a
   Gaussian policy around the same MLP, a two-layer critic, generalized
   advantage estimation, the clipped surrogate and Adam, 400 iterations of 16
