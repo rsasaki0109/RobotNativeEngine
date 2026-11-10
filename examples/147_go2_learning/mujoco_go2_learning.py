@@ -211,6 +211,8 @@ class Go2:
             self.trace.append({**self.state(), "targets_rad": list(map(float, targets_rad))})
         self.data.ctrl[:] = targets_rad
         mujoco.mj_step(self.model, self.data, nstep=DECIMATION)
+        if self.trace is not None:
+            self.trace[-1]["contacts_n"] = self.contact_forces()
 
     def state(self):
         """The base's pose and world-frame velocities and the joints' states,

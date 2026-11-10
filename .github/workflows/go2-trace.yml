@@ -5,7 +5,8 @@ name: Go2 learning traces
 # run, each engine walks each engine's final policy once from the origin and
 # records its trace, and MuJoCo replays every RNE trace period by period:
 # from each RNE state, with the targets RNE applied, one control period in
-# MuJoCo against RNE's next state. Light (minutes), so it runs on demand and
+# MuJoCo against RNE's next state. MuJoCo's own traces also hold the
+# normal force on each body touching the floor after each period. Light (minutes), so it runs on demand and
 # when this workflow changes.
 on:
   workflow_dispatch:

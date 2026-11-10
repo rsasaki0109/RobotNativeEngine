@@ -582,7 +582,9 @@ To find where the engines part on a walk, each can record one:
   and `mujoco_go2_learning.py evaluate POLICY --trace TRACE.json` walk the
   policy once and record, before every control period, settling included:
   the base's position, orientation and world-frame velocities, the joints'
-  positions and velocities, and the targets then applied.
+  positions and velocities, and the targets then applied. MuJoCo's trace
+  also holds the normal force on each body touching the floor after each
+  period.
 - `mujoco_go2_learning.py replay TRACE.json REPLAY.json` puts MuJoCo in each
   of an RNE trace's states, steps one control period with RNE's targets, and
   records the difference from RNE's next state and the normal force on each
