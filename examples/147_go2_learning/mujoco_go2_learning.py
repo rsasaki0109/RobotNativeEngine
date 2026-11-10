@@ -254,7 +254,7 @@ class Go2:
             mujoco.mj_contactForce(self.model, self.data, index, wrench)
             geom = contact.geom2 if self.model.geom_bodyid[contact.geom1] == 0 else contact.geom1
             details.append({"body": self.model.body(self.model.geom_bodyid[geom]).name,
-                            "geom": mujoco.mjtGeom(self.model.geom_type[geom]).name[8:].lower(),
+                            "geom": mujoco.mjtGeom(self.model.geom_type[geom]).name[len("mjGEOM_"):].lower(),
                             "penetration_m": -float(contact.dist),
                             "normal": contact.frame[:3].tolist(), "force_n": float(wrench[0])})
         return details
