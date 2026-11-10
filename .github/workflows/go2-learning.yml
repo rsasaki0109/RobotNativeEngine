@@ -36,6 +36,14 @@ on:
         description: "The terrain's side, metres"
         required: false
         default: "24"
+      terrain_cell:
+        description: "The terrain's sample spacing, metres"
+        required: false
+        default: "0.1"
+      gap_depth:
+        description: "Depth of the terrain's gaps, metres; 0 for none"
+        required: false
+        default: "0"
       learner:
         description: 'The learner: "es" (evolution strategies) or "ppo"'
         required: false
@@ -70,6 +78,8 @@ jobs:
       TERRAIN_FREQUENCY: ${{ inputs.terrain_frequency || '0.5' }}
       TERRAIN_AMPLITUDE: ${{ inputs.terrain_amplitude || '0.04' }}
       TERRAIN_SIZE: ${{ inputs.terrain_size || '24' }}
+      TERRAIN_CELL: ${{ inputs.terrain_cell || '0.1' }}
+      GAP_DEPTH: ${{ inputs.gap_depth || '0' }}
       LEARNER: ${{ inputs.learner || 'es' }}
       FLOOR: ${{ matrix.floor }}
       TASK: ${{ matrix.task }}
@@ -114,6 +124,14 @@ jobs:
           fi
           if [ "$FLOOR" = terrain ] && [ "$TERRAIN_SIZE" != 24 ]; then
             name=$name-s$TERRAIN_SIZE
+          fi
+          if [ "$TERRAIN_CELL" != 0.1 ]; then
+            relief="$relief --terrain-cell $TERRAIN_CELL"
+            if [ "$FLOOR" = terrain ]; then name=$name-c$TERRAIN_CELL; fi
+          fi
+          if [ "$GAP_DEPTH" != 0 ]; then
+            relief="$relief --gap-depth $GAP_DEPTH"
+            if [ "$FLOOR" = terrain ]; then name=$name-gaps$GAP_DEPTH; fi
           fi
           if [ "$TASK" != proprioception ]; then name=$name-$TASK; fi
           if [ "$LEARNER" != es ]; then name=$name-$LEARNER; fi

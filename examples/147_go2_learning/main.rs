@@ -86,7 +86,10 @@ fn evaluate_policy(
 ) -> Result<()> {
     let (policy, task) = load_policy(path, generation)?;
     let mut robot = go2::robot(plant)?;
-    let points = starts.map_or(vec![[0.0, 0.0]], go2::evaluation_starts);
+    let gaps = go2::plant_gaps(plant);
+    let points = starts.map_or(vec![[0.0, 0.0]], |count| {
+        go2::evaluation_starts(count, &gaps)
+    });
     let mut outcomes = Vec::new();
     for start in &points {
         outcomes.push(go2::episode(robot.as_mut(), task, *start, |observation| {
@@ -236,7 +239,7 @@ fn report_tag(plant: go2::Plant, task: go2::Task, learner: &str) -> String {
     tag
 }
 
-/// `X,Y` in meters.
+/// `A,B` in meters: a point, or a range.
 fn parse_point(value: &str) -> Result<[f64; 2]> {
     let (x, y) = value.split_once(',').ok_or("a point is X,Y")?;
     Ok([x.parse()?, y.parse()?])
@@ -252,6 +255,21 @@ fn write_terrain_file(plant: go2::Plant, path: &PathBuf) -> Result<()> {
         serde_json::to_string(&go2::terrain_json(seed, plant.relief)?)? + "\n",
     )?;
     println!("wrote {}", path.display());
+    Ok(())
+}
+
+/// Sets one of the terrain's relief options.
+fn set_relief(relief: &mut go2::Relief, option: &str, value: &str) -> Result<()> {
+    match option {
+        "--terrain-frequency" => relief.frequency_per_m = value.parse()?,
+        "--terrain-amplitude" => relief.amplitude_m = value.parse()?,
+        "--terrain-size" => relief.size_m = value.parse()?,
+        "--terrain-cell" => relief.cell_m = value.parse()?,
+        "--gap-depth" => relief.gaps.depth_m = value.parse()?,
+        "--gap-width" => relief.gaps.width_m = parse_point(value)?,
+        "--gap-spacing" => relief.gaps.spacing_m = parse_point(value)?,
+        other => return Err(format!("unknown option {other}").into()),
+    }
     Ok(())
 }
 
@@ -286,9 +304,9 @@ fn main() -> Result<()> {
             "--inner-passes" => plant.inner_passes = value()?.parse()?,
             "--friction" => plant.floor_friction = value()?.parse()?,
             "--terrain" => plant.terrain_seed = Some(value()?.parse()?),
-            "--terrain-frequency" => plant.relief.frequency_per_m = value()?.parse()?,
-            "--terrain-amplitude" => plant.relief.amplitude_m = value()?.parse()?,
-            "--terrain-size" => plant.relief.size_m = value()?.parse()?,
+            relief if relief.starts_with("--terrain-") || relief.starts_with("--gap-") => {
+                set_relief(&mut plant.relief, relief, &value()?)?;
+            }
             "--write-terrain" => write_terrain = Some(PathBuf::from(value()?)),
             "--height-scan" => task.height_scan = true,
             "--random-starts" => task.random_starts = true,
@@ -359,7 +377,7 @@ fn main() -> Result<()> {
         // own start with random starts.
         let mut normal = es::Normal(config.seed);
         let policy = policy::Mlp::initial(task.observations(), config.hidden, || normal.sample());
-        let starts = go2::training_starts(config.seed, episodes);
+        let starts = go2::training_starts(config.seed, episodes, &go2::plant_gaps(plant));
         let mut robot = go2::robot(plant)?;
         let begin = std::time::Instant::now();
         let mut steps = 0;

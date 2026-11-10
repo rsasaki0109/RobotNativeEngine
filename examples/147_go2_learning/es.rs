@@ -154,7 +154,7 @@ pub(crate) fn train(plant: Plant, task: Task, threads: usize, config: Config) ->
     if task.random_starts && plant.terrain_seed.is_none() {
         return Err("random starts need a terrain (--terrain SEED)".into());
     }
-    let starts = go2::training_starts(config.seed, config.generations);
+    let starts = go2::training_starts(config.seed, config.generations, &go2::plant_gaps(plant));
     let mut normal = Normal(config.seed);
     let template = Mlp::initial(task.observations(), config.hidden, || normal.sample());
     let dimension = template.params.len();
@@ -234,14 +234,7 @@ pub(crate) fn train(plant: Plant, task: Task, threads: usize, config: Config) ->
     Ok(json!({
         "schema_version": 1,
         "engine": plant.backend.name(),
-        "plant": {"backend": plant.backend.name(),
-                  "solver_iterations": plant.solver_iterations,
-                  "inner_passes": plant.inner_passes,
-                  "floor_friction": plant.floor_friction,
-                  "terrain_seed": plant.terrain_seed,
-                  "terrain_frequency_per_m": plant.relief.frequency_per_m,
-                  "terrain_amplitude_m": plant.relief.amplitude_m,
-                  "terrain_size_m": plant.relief.size_m},
+        "plant": go2::plant_json(plant),
         "task": task.to_json(),
         "threads": threads,
         "training": {

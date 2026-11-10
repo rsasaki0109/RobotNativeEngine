@@ -73,6 +73,32 @@ pub(crate) const TERRAIN_SIZE_M: f64 = 24.0;
 pub(crate) const TERRAIN_SAMPLES: u32 = 241;
 pub(crate) const TERRAIN_FREQUENCY_PER_M: f64 = 0.5;
 pub(crate) const TERRAIN_AMPLITUDE_M: f64 = 0.04;
+/// Mixed into the terrain seed for the gaps' stream.
+pub(crate) const GAP_STREAM: u64 = 0x4741_5053_0147;
+/// How far from a gap's edge a start (and the origin) stays: farther than
+/// a foot reaches from the base, plus a cell of the height field.
+pub(crate) const START_GAP_CLEARANCE_M: f64 = 0.45;
+
+/// Trenches across the terrain (`--gap-depth`, `--gap-width`,
+/// `--gap-spacing`): each runs the terrain's whole width in y, at a random
+/// width, after a random run of floor along x. A depth of zero, the default,
+/// leaves the terrain without gaps.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct Gaps {
+    pub(crate) depth_m: f64,
+    pub(crate) width_m: [f64; 2],
+    pub(crate) spacing_m: [f64; 2],
+}
+
+impl Default for Gaps {
+    fn default() -> Self {
+        Self {
+            depth_m: 0.0,
+            width_m: [0.25, 0.35],
+            spacing_m: [0.8, 1.6],
+        }
+    }
+}
 
 /// The terrain's first-octave frequency and amplitude
 /// (`--terrain-frequency`, `--terrain-amplitude`) and its side
@@ -84,6 +110,9 @@ pub(crate) struct Relief {
     pub(crate) frequency_per_m: f64,
     pub(crate) amplitude_m: f64,
     pub(crate) size_m: f64,
+    /// The height field's sample spacing (`--terrain-cell`), 10 cm by default.
+    pub(crate) cell_m: f64,
+    pub(crate) gaps: Gaps,
 }
 
 impl Default for Relief {
@@ -92,15 +121,74 @@ impl Default for Relief {
             frequency_per_m: TERRAIN_FREQUENCY_PER_M,
             amplitude_m: TERRAIN_AMPLITUDE_M,
             size_m: TERRAIN_SIZE_M,
+            cell_m: TERRAIN_SIZE_M / f64::from(TERRAIN_SAMPLES - 1),
+            gaps: Gaps::default(),
         }
     }
 }
 
 impl Relief {
-    /// Samples along each side: one every 10 cm, 241 for the default 24 m.
+    /// Samples along each side: one every `cell_m`, 241 for the default 24 m
+    /// at 10 cm.
     pub(crate) fn samples(self) -> u32 {
-        (self.size_m / TERRAIN_SIZE_M * f64::from(TERRAIN_SAMPLES - 1)).round() as u32 + 1
+        (self.size_m / self.cell_m).round() as u32 + 1
     }
+}
+
+/// The gaps of the terrain of `seed`, as `[start, end]` along x in metres,
+/// west to east: none within [`START_GAP_CLEARANCE_M`] of the origin or
+/// within [`ARENA_EDGE_MARGIN_M`] of the terrain's edge.
+pub(crate) fn gap_intervals(seed: u64, relief: Relief) -> Vec<[f64; 2]> {
+    let gaps = relief.gaps;
+    if gaps.depth_m <= 0.0 {
+        return Vec::new();
+    }
+    let mut stream = crate::es::Normal(seed ^ GAP_STREAM);
+    let lerp = |[low, high]: [f64; 2], t: f64| low + (high - low) * t;
+    let half = 0.5 * relief.size_m;
+    let mut x = -half + ARENA_EDGE_MARGIN_M;
+    let mut intervals = Vec::new();
+    loop {
+        x += lerp(gaps.spacing_m, stream.uniform());
+        let width = lerp(gaps.width_m, stream.uniform());
+        if x + width > half - ARENA_EDGE_MARGIN_M {
+            return intervals;
+        }
+        if x + width < -START_GAP_CLEARANCE_M || x > START_GAP_CLEARANCE_M {
+            intervals.push([x, x + width]);
+        }
+        x += width;
+    }
+}
+
+/// A report's plant. The terrain's sample spacing and gaps appear only when
+/// they differ from the defaults, so reports without them read as before.
+pub(crate) fn plant_json(plant: Plant) -> Value {
+    let mut value = json!({"backend": plant.backend.name(),
+                           "solver_iterations": plant.solver_iterations,
+                           "inner_passes": plant.inner_passes,
+                           "floor_friction": plant.floor_friction,
+                           "terrain_seed": plant.terrain_seed,
+                           "terrain_frequency_per_m": plant.relief.frequency_per_m,
+                           "terrain_amplitude_m": plant.relief.amplitude_m,
+                           "terrain_size_m": plant.relief.size_m});
+    let default = Relief::default();
+    if plant.relief.cell_m != default.cell_m {
+        value["terrain_cell_m"] = json!(plant.relief.cell_m);
+    }
+    if plant.relief.gaps.depth_m > 0.0 {
+        let gaps = plant.relief.gaps;
+        value["gaps"] = json!({"depth_m": gaps.depth_m, "width_m": gaps.width_m,
+                               "spacing_m": gaps.spacing_m});
+    }
+    value
+}
+
+/// The gaps of `plant`'s terrain; none on a flat floor.
+pub(crate) fn plant_gaps(plant: Plant) -> Vec<[f64; 2]> {
+    plant
+        .terrain_seed
+        .map_or_else(Vec::new, |seed| gap_intervals(seed, plant.relief))
 }
 
 /// Which RNE backend simulates the robot.
@@ -197,26 +285,37 @@ impl Task {
     }
 }
 
-/// `count` start points uniform in the start box, from SplitMix64 `seed`.
-fn start_points(seed: u64, count: usize) -> Vec<[f64; 2]> {
+/// `count` start points uniform in the start box, from SplitMix64 `seed`,
+/// skipping any within [`START_GAP_CLEARANCE_M`] of a gap: without gaps,
+/// the stream's first `2 count` uniforms.
+fn start_points(seed: u64, count: usize, gaps: &[[f64; 2]]) -> Vec<[f64; 2]> {
     let mut stream = crate::es::Normal(seed);
     let lerp = |[low, high]: [f64; 2], t: f64| low + (high - low) * t;
-    (0..count)
-        .map(|_| {
-            let (u, v) = (stream.uniform(), stream.uniform());
-            [lerp(START_X_RANGE_M, u), lerp(START_Y_RANGE_M, v)]
+    let clear = |x: f64| {
+        gaps.iter().all(|[start, end]| {
+            x < start - START_GAP_CLEARANCE_M || x > end + START_GAP_CLEARANCE_M
         })
-        .collect()
+    };
+    let mut points = Vec::with_capacity(count);
+    while points.len() < count {
+        let (u, v) = (stream.uniform(), stream.uniform());
+        let point = [lerp(START_X_RANGE_M, u), lerp(START_Y_RANGE_M, v)];
+        if clear(point[0]) {
+            points.push(point);
+        }
+    }
+    points
 }
 
-/// Each generation's start for ES seed `seed`, generation 0 first.
-pub(crate) fn training_starts(seed: u64, generations: usize) -> Vec<[f64; 2]> {
-    start_points(seed ^ START_STREAM, generations + 1)
+/// Each generation's start for ES seed `seed`, generation 0 first, clear of
+/// `gaps`.
+pub(crate) fn training_starts(seed: u64, generations: usize, gaps: &[[f64; 2]]) -> Vec<[f64; 2]> {
+    start_points(seed ^ START_STREAM, generations + 1, gaps)
 }
 
-/// The held-out starts every policy is evaluated from.
-pub(crate) fn evaluation_starts(count: usize) -> Vec<[f64; 2]> {
-    start_points(EVALUATION_STARTS_SEED, count)
+/// The held-out starts every policy is evaluated from, clear of `gaps`.
+pub(crate) fn evaluation_starts(count: usize, gaps: &[[f64; 2]]) -> Vec<[f64; 2]> {
+    start_points(EVALUATION_STARTS_SEED, count, gaps)
 }
 
 /// What an episode needs of a simulated Go2, in the Z-up world.
@@ -385,11 +484,34 @@ pub(crate) fn terrain(seed: u64, relief: Relief) -> Result<rne_physics::Collider
     let origin = rne_physics::height_field_surface(&raw, 0.0, 0.0)
         .ok_or("the terrain does not cover the origin")?
         .height_m;
-    Ok(rne_physics::FractalTerrain {
+    let shifted = rne_physics::FractalTerrain {
         height_offset_m: -origin,
         ..spec
+    };
+    let gaps = gap_intervals(seed, relief);
+    if gaps.is_empty() {
+        return Ok(shifted.height_field(seed)?);
     }
-    .height_field(seed)?)
+    // Lower every column of samples whose x lies in a gap: the floor between
+    // a gap's last sample and the next sample outside it slopes across one
+    // cell.
+    let mut heights = shifted.heights_m(seed)?;
+    let columns = spec.columns as usize;
+    let dx = spec.size_x_m / (columns - 1) as f64;
+    for column in 0..columns {
+        let x = -0.5 * spec.size_x_m + column as f64 * dx;
+        if gaps.iter().any(|[start, end]| x >= *start && x <= *end) {
+            for row in 0..spec.rows as usize {
+                heights[row * columns + column] -= relief.gaps.depth_m;
+            }
+        }
+    }
+    Ok(rne_physics::ColliderShape::HeightField {
+        nrows: spec.rows,
+        ncols: spec.columns,
+        heights_m: std::sync::Arc::from(heights),
+        scale: Vec3::new(spec.size_x_m, 1.0, spec.size_z_m),
+    })
 }
 
 /// Height of the Y-up `terrain` below Z-up `(x, y)`, in meters.
@@ -449,6 +571,8 @@ pub(crate) fn terrain_json(seed: u64, relief: Relief) -> Result<Value> {
         "columns": columns,
         "frequency_per_m": relief.frequency_per_m,
         "amplitude_m": relief.amplitude_m,
+        "gaps_m": gap_intervals(seed, relief),
+        "gap_depth_m": relief.gaps.depth_m,
         "heights_m": heights,
         "probes": probes,
         "height_scan": {
@@ -719,11 +843,11 @@ mod tests {
 
     #[test]
     fn random_starts_are_reproducible_and_on_the_terrain() {
-        let starts = training_starts(2026, 200);
+        let starts = training_starts(2026, 200, &[]);
         assert_eq!(starts.len(), 201);
-        assert_eq!(starts, training_starts(2026, 200));
-        assert_ne!(starts[..10], training_starts(11, 200)[..10]);
-        let held_out = evaluation_starts(16);
+        assert_eq!(starts, training_starts(2026, 200, &[]));
+        assert_ne!(starts[..10], training_starts(11, 200, &[])[..10]);
+        let held_out = evaluation_starts(16, &[]);
         assert!(held_out.iter().all(|start| !starts.contains(start)));
         let inside = |[x, y]: [f64; 2]| {
             (START_X_RANGE_M[0]..=START_X_RANGE_M[1]).contains(&x)
@@ -733,6 +857,86 @@ mod tests {
         // Room to walk 10 m forward and 4 m sideways on the 24 m terrain.
         let half = 0.5 * TERRAIN_SIZE_M;
         assert!(START_X_RANGE_M[1] + 10.0 <= half && START_Y_RANGE_M[1] + 4.0 <= half);
+    }
+
+    /// The gap terrain the workflow's `gap_depth` input builds: flat, 48 m,
+    /// sampled every 5 cm, with 30 cm deep gaps.
+    fn gap_relief() -> Relief {
+        Relief {
+            amplitude_m: 0.0,
+            size_m: 48.0,
+            cell_m: 0.05,
+            gaps: Gaps {
+                depth_m: 0.3,
+                ..Gaps::default()
+            },
+            ..Relief::default()
+        }
+    }
+
+    #[test]
+    fn gaps_cross_the_terrain_and_starts_keep_clear_of_them() {
+        let relief = gap_relief();
+        let gaps = gap_intervals(7, relief);
+        assert_eq!(gaps, gap_intervals(7, relief));
+        assert!(gaps.len() > 20, "{}", gaps.len());
+        let half = 0.5 * relief.size_m - ARENA_EDGE_MARGIN_M;
+        for pair in gaps.windows(2) {
+            // A run of 0.8-1.6 m of floor, longer only where the gaps
+            // around the origin were left out.
+            let run = pair[1][0] - pair[0][1];
+            let around_origin = pair[0][1] < 0.0 && pair[1][0] > 0.0;
+            assert!(run >= 0.8 && (run <= 1.6 || around_origin), "{run}");
+        }
+        for [start, end] in &gaps {
+            assert!((0.25..=0.35).contains(&(end - start)));
+            assert!(*start >= -half && *end <= half);
+            assert!(*end < -START_GAP_CLEARANCE_M || *start > START_GAP_CLEARANCE_M);
+        }
+        assert!(gap_intervals(7, Relief::default()).is_empty());
+        // The floor is flat between gaps and 30 cm down inside them.
+        let shape = terrain(7, relief).unwrap();
+        let [start, end] = gaps[gaps.len() / 2];
+        assert_eq!(terrain_height_m(&shape, 0.5 * (start + end), 3.0), -0.3);
+        assert_eq!(terrain_height_m(&shape, start - 0.06, -3.0), 0.0);
+        assert_eq!(terrain_height_m(&shape, 0.0, 0.0), 0.0);
+        // Starts skip the gaps, drawn from the same stream as without them.
+        let free = training_starts(2026, 200, &[]);
+        let clear = training_starts(2026, 200, &gaps);
+        assert_eq!(clear.len(), 201);
+        let away = |[x, _]: [f64; 2]| {
+            gaps.iter().all(|[start, end]| {
+                x < start - START_GAP_CLEARANCE_M || x > end + START_GAP_CLEARANCE_M
+            })
+        };
+        assert!(clear.iter().all(|start| away(*start)));
+        let kept: Vec<_> = free.iter().copied().filter(|start| away(*start)).collect();
+        assert_eq!(clear[..kept.len()], kept[..]);
+        assert!(evaluation_starts(16, &gaps)
+            .iter()
+            .all(|start| away(*start)));
+    }
+
+    #[test]
+    fn the_height_scan_sees_a_gap_ahead() {
+        let relief = gap_relief();
+        let shape = terrain(7, relief).unwrap();
+        let gaps = gap_intervals(7, relief);
+        let [start, end] = gaps[gaps.len() / 2];
+        let ground = |x: f64, y: f64| terrain_height_m(&shape, x, y);
+        // Facing +x with the gap's middle 0.4 m ahead: the rays 0.4 m ahead
+        // read the gap's floor, clipped, and those over the floor do not.
+        let middle = 0.5 * (start + end);
+        let base = Vec3::new(middle - 0.4, 0.0, 0.28);
+        let readings = height_scan(base, 0.0, ground);
+        for (index, reading) in readings.iter().enumerate() {
+            let x = HEIGHT_SCAN_X_M[index / HEIGHT_SCAN_Y_M.len()];
+            if (x - 0.4).abs() < 1e-12 {
+                assert_eq!(*reading, 1.0, "{readings:?}");
+            } else if x <= 0.0 {
+                assert!(reading.abs() < 0.11, "{readings:?}");
+            }
+        }
     }
 
     #[test]
@@ -747,7 +951,7 @@ mod tests {
             random_starts: true,
         };
         let mut go2 = robot(plant).unwrap();
-        let start = training_starts(2026, 0)[0];
+        let start = training_starts(2026, 0, &[])[0];
         let mut widths = Vec::new();
         let outcome = episode(go2.as_mut(), task, start, |observation| {
             widths.push(observation.len());

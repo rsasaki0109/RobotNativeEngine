@@ -80,6 +80,8 @@ FLOOR_GROUP = 3
 ARENA_EDGE_MARGIN_M, FLAT_FLOOR_SIZE_M = 1.0, 40.0
 # Random starts, as go2.rs draws them.
 START_X_RANGE_M, START_Y_RANGE_M = (-8.0, 2.0), (-8.0, 8.0)
+# How far a start stays from a gap's edge, as go2.rs's START_GAP_CLEARANCE_M.
+START_GAP_CLEARANCE_M = 0.45
 START_STREAM, EVALUATION_STARTS_SEED = 0x5354415254530147, 0x4556414C0147
 
 
@@ -406,23 +408,33 @@ class Normal:
         return math.sqrt(-2.0 * math.log(u)) * math.cos(2.0 * math.pi * v)
 
 
-def start_points(seed, count):
-    """`count` start points uniform in the start box, as go2.rs draws them."""
+def start_points(seed, count, gaps=()):
+    """`count` start points uniform in the start box, skipping any near one of
+    `gaps` (`[start, end]` along x), as go2.rs draws them."""
     stream = Normal(seed)
     points = []
-    for _ in range(count):
+    while len(points) < count:
         u, v = stream.uniform(), stream.uniform()
-        points.append((START_X_RANGE_M[0] + (START_X_RANGE_M[1] - START_X_RANGE_M[0]) * u,
-                       START_Y_RANGE_M[0] + (START_Y_RANGE_M[1] - START_Y_RANGE_M[0]) * v))
+        point = (START_X_RANGE_M[0] + (START_X_RANGE_M[1] - START_X_RANGE_M[0]) * u,
+                 START_Y_RANGE_M[0] + (START_Y_RANGE_M[1] - START_Y_RANGE_M[0]) * v)
+        if all(point[0] < start - START_GAP_CLEARANCE_M or point[0] > end + START_GAP_CLEARANCE_M
+               for start, end in gaps):
+            points.append(point)
     return points
 
 
-def training_starts(seed, generations):
-    return start_points(seed ^ START_STREAM, generations + 1)
+def terrain_gaps(plant):
+    """The gaps of `plant`'s terrain file, as `--write-terrain` lists them."""
+    terrain = load_terrain(plant.get("terrain"))
+    return [] if terrain is None else terrain.get("gaps_m", [])
 
 
-def evaluation_starts(count):
-    return start_points(EVALUATION_STARTS_SEED, count)
+def training_starts(seed, generations, gaps=()):
+    return start_points(seed ^ START_STREAM, generations + 1, gaps)
+
+
+def evaluation_starts(count, gaps=()):
+    return start_points(EVALUATION_STARTS_SEED, count, gaps)
 
 
 def centred_ranks(values):
@@ -458,7 +470,7 @@ def train(rne_report, plant, processes):
     learning_rate, generations = config["learning_rate"], config["generations"]
     task = {"height_scan": False, "random_starts": False, **rne_report.get("task", {})}
     inputs = observations(task)
-    starts = training_starts(config["seed"], generations)
+    starts = training_starts(config["seed"], generations, terrain_gaps(plant))
     normal = Normal(config["seed"])
     dimension = Mlp.parameter_count(inputs, hidden)
     theta = Mlp.initial_params(inputs, hidden, normal)
@@ -723,7 +735,7 @@ def train_ppo(rne_report, plant, processes):
     normalizer = Normalizer(inputs)
     adams = (Adam(len(actor)), Adam(ACTIONS), Adam(len(critic)))
     per_iteration = envs + 1
-    starts = training_starts(seed, (iterations + 1) * per_iteration - 1)
+    starts = training_starts(seed, (iterations + 1) * per_iteration - 1, terrain_gaps(plant))
     log, checkpoints, control_steps = [], [], 0
     with multiprocessing.Pool(processes, initializer=init_worker,
                               initargs=(plant, task)) as pool:
@@ -944,7 +956,8 @@ def main():
         inputs = observations(task)
         params = Mlp.initial_params(inputs, arguments.hidden, Normal(arguments.seed))
         robot, policy = Go2(plant, task), Mlp(inputs, arguments.hidden, params)
-        starts = training_starts(arguments.seed, arguments.episodes)[:arguments.episodes]
+        starts = training_starts(arguments.seed, arguments.episodes,
+                                 terrain_gaps(plant))[:arguments.episodes]
         begin = time.perf_counter()
         steps = sum(robot.episode(policy, start if task["random_starts"] else (0.0, 0.0))
                     ["control_steps"] for start in starts)
@@ -983,7 +996,8 @@ def main():
             plant["solref_s"] = arguments.solref
         policy, task = load_policy(arguments.policy, arguments.generation)
         robot = Go2(plant, task)
-        points = [(0.0, 0.0)] if arguments.starts is None else evaluation_starts(arguments.starts)
+        points = ([(0.0, 0.0)] if arguments.starts is None
+                  else evaluation_starts(arguments.starts, terrain_gaps(plant)))
         if arguments.trace is not None:
             robot.trace = []
             outcome = robot.episode(policy, points[0])

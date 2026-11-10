@@ -459,7 +459,11 @@ pub(crate) fn train(plant: Plant, task: Task, threads: usize, config: Config) ->
     let per_iteration = config.envs + 1;
     // (iterations + 1) × per_iteration points: the last iteration logs its
     // deterministic episode too.
-    let starts = go2::training_starts(config.seed, (config.iterations + 1) * per_iteration - 1);
+    let starts = go2::training_starts(
+        config.seed,
+        (config.iterations + 1) * per_iteration - 1,
+        &go2::plant_gaps(plant),
+    );
     let begin = Instant::now();
     let mut control_steps = 0;
     let (mut log, mut checkpoints) = (Vec::new(), Vec::new());
@@ -566,14 +570,7 @@ pub(crate) fn train(plant: Plant, task: Task, threads: usize, config: Config) ->
     Ok(json!({
         "schema_version": 1,
         "engine": plant.backend.name(),
-        "plant": {"backend": plant.backend.name(),
-                  "solver_iterations": plant.solver_iterations,
-                  "inner_passes": plant.inner_passes,
-                  "floor_friction": plant.floor_friction,
-                  "terrain_seed": plant.terrain_seed,
-                  "terrain_frequency_per_m": plant.relief.frequency_per_m,
-                  "terrain_amplitude_m": plant.relief.amplitude_m,
-                  "terrain_size_m": plant.relief.size_m},
+        "plant": go2::plant_json(plant),
         "task": task.to_json(),
         "threads": threads,
         "training": {
@@ -802,7 +799,7 @@ mod tests {
         // The exported policy is the last logged one.
         let mut robot = go2::robot(plant).unwrap();
         let last = log.last().unwrap();
-        let start = go2::training_starts(config.seed, 3 * (config.envs + 1) - 1)[2 * 3 + 2];
+        let start = go2::training_starts(config.seed, 3 * (config.envs + 1) - 1, &[])[2 * 3 + 2];
         let outcome = go2::episode(robot.as_mut(), task, start, |x| policy.act(x)).unwrap();
         assert_eq!(outcome_json(&outcome), last["mean"]);
     }
