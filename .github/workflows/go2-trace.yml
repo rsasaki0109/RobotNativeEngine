@@ -6,8 +6,9 @@ name: Go2 learning traces
 # records its trace, and MuJoCo replays every RNE trace period by period:
 # from each RNE state, with the targets RNE applied, one control period in
 # MuJoCo against RNE's next state. MuJoCo's own traces also hold the
-# normal force on each body touching the floor after each period. Light
-# (minutes), so it runs on demand and when this workflow changes.
+# normal force on each body touching the floor after each period, and
+# MuJoCo walks each policy again with finer steps and stiffer contacts.
+# Light (minutes), so it runs on demand and when this workflow changes.
 on:
   workflow_dispatch:
     inputs:
@@ -105,6 +106,30 @@ jobs:
                 --trace "$OUT/trace-mujoco-$trained-$seed.json" > /dev/null
               "${mujoco[@]}" replay "$OUT/trace-locomotion-$trained-$seed.json" \
                 "$OUT/replay-$trained-$seed.json" "${terrain[@]}"
+            done
+          done
+
+      - name: MuJoCo's contact settings
+        run: |
+          set -euo pipefail
+          # Each final policy from the origin in MuJoCo as configured, with
+          # five physics steps to each of RNE's, and with those and stiffer
+          # contacts (a 4 ms time constant against the default 20 ms).
+          mujoco=(.venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py)
+          terrain=()
+          if [ -n "$RELIEF" ]; then terrain=(--terrain "$OUT/terrain.json"); fi
+          for seed in $SEEDS; do
+            for trained in "$TAG" mujoco; do
+              policy=policies/go2-learning-$trained-$seed.json
+              for variant in default substeps5 stiff; do
+                case $variant in
+                  default) flags=() ;;
+                  substeps5) flags=(--substeps 5) ;;
+                  stiff) flags=(--substeps 5 --solref 0.004) ;;
+                esac
+                "${mujoco[@]}" evaluate "$policy" "${terrain[@]}" "${flags[@]}" \
+                  > "$OUT/mujoco-$variant-$trained-$seed.json"
+              done
             done
           done
 
