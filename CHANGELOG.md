@@ -546,6 +546,24 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `examples/147_go2_learning` learns with PPO too (`--learner ppo`): a
+  Gaussian policy around the same MLP, a two-layer critic, generalized
+  advantage estimation, the clipped surrogate and Adam, 400 iterations of 16
+  episodes. An episode's rewards sum to its evolution-strategies fitness,
+  the observation statistics fold into the exported policy, and a run does
+  not depend on the thread count. `mujoco_go2_learning.py` trains the same
+  algorithm with the same random streams. `--terrain-size` widens the
+  terrain, and the comparison workflow takes `learner` and `terrain_size`
+  inputs; `learning_compare.py` reads PPO reports. Over sixteen seeds PPO
+  scores several times what evolution strategies did (10.76 against 0.76
+  on the default terrain in RNE, 12.25 against 2.07 on the flat floor). The height scan still does not help, in
+  either engine on either terrain: blind policies fall once in 512 held-out
+  episodes, so this relief does not require sight. RNE trained 1.7–2.2 times
+  as fast as MuJoCo and reached fitness 1 sooner on 79 of 80 seed pairs.
+  RNE's PPO walks do not carry over to MuJoCo on the terrain (0.4–0.9
+  against 8.6–10.8 at home), while MuJoCo's carry over to RNE; the cause is
+  not yet diagnosed. Evolution-strategies runs are bit-identical to before.
+
 - `examples/147_go2_learning` asks whether seeing the terrain helps: on
   `--terrain` the robot can start every generation at its own point of the
   terrain (`--random-starts`), the policy can read a 15-ray height scan

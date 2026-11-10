@@ -49,6 +49,13 @@ THRESHOLDS = (0.5, 1.0)
 MEDIAN_FROM_RUNS = 5
 
 
+def generations_of(report):
+    """A run's length: ES generations, or PPO iterations (the log counts both
+    under "generation")."""
+    config = report["training"]["config"]
+    return config["generations"] if "generations" in config else config["iterations"]
+
+
 def run_summary(report):
     log = report["training"]["log"]
     reached = {}
@@ -60,7 +67,7 @@ def run_summary(report):
     per_generation = [b - a for a, b in zip(walls, walls[1:-1])] or walls[:1]
     last = log[-1]
     return {"engine": report["engine"], "plant": report["plant"],
-            "generations": report["training"]["config"]["generations"],
+            "generations": generations_of(report),
             "reached": reached,
             "final": {key: last["mean"][key] for key in ("fitness", "forward_m", "fell")},
             "best_fitness": max(e["mean"]["fitness"] for e in log),
@@ -234,7 +241,7 @@ def svg(runs):
     fitness = [e["mean"]["fitness"] for _, _, report in runs for e in report["training"]["log"]]
     ymin, ymax = min(-0.5, min(fitness)), max(1.5, max(fitness))
     minutes = max(r["training"]["log"][-1]["wall_s"] for _, _, r in runs) / 60
-    generations = max(r["training"]["config"]["generations"] for _, _, r in runs)
+    generations = max(generations_of(r) for _, _, r in runs)
     by_time = [(engine, [(e["wall_s"] / 60, e["mean"]["fitness"])
                          for e in report["training"]["log"]]) for engine, _, report in runs]
     by_generation = [(engine, [(e["generation"], e["mean"]["fitness"])

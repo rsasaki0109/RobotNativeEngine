@@ -247,30 +247,46 @@ class Go2:
 
     def episode(self, policy, start=(0.0, 0.0)):
         """As go2.rs's episode, from `start`."""
+        return self.episode_with(policy.act, start)[0]
+
+    def episode_with(self, act, start=(0.0, 0.0), on_step=None):
+        """As go2.rs's episode_with: `act` maps an observation to the action
+        applied, `on_step(reward, fell)` follows every control period, and the
+        observation after the last period comes back with the outcome."""
         self.settle(start)
         start = self.data.qpos[:3].copy()
         action = np.zeros(ACTIONS)
         change_square, steps, fell = 0.0, 0, False
+        last_x, last_lateral, last_heading = start[0], 0.0, 0.0
         for step in range(EPISODE_STEPS):
-            following = policy.act(self.observe(step, action))
-            change_square += float(np.sum((following - action) ** 2))
+            following = act(self.observe(step, action))
+            step_change = float(np.sum((following - action) ** 2))
+            change_square += step_change
             action = following
             self.step(DEFAULT_RAD + ACTION_SCALE_RAD * action)
             steps += 1
             gravity_z = -self.body_rotation()[2, 2]
             x, y, z = self.data.qpos[:3]
             outside = abs(x) > self.arena_half or abs(y) > self.arena_half
-            if (z - ground_height(self.terrain, x, y) < FALL_HEIGHT_M
-                    or gravity_z > FALL_GRAVITY_Z or outside):
-                fell = True
+            fell = bool(z - ground_height(self.terrain, x, y) < FALL_HEIGHT_M
+                        or gravity_z > FALL_GRAVITY_Z or outside)
+            lateral, heading = abs(y - start[1]), abs(self.heading())
+            if on_step is not None:
+                on_step((x - last_x) - LATERAL_PENALTY * (lateral - last_lateral)
+                        - HEADING_PENALTY * (heading - last_heading)
+                        - SMOOTHNESS_PENALTY * step_change / EPISODE_STEPS
+                        - (FALL_PENALTY if fell else 0.0), fell)
+            last_x, last_lateral, last_heading = x, lateral, heading
+            if fell:
                 break
+        last = self.observe(steps, action)
         forward, lateral = self.data.qpos[0] - start[0], self.data.qpos[1] - start[1]
         heading = self.heading()
         fitness = (forward - LATERAL_PENALTY * abs(lateral) - HEADING_PENALTY * abs(heading)
                    - SMOOTHNESS_PENALTY * change_square / steps - (FALL_PENALTY if fell else 0.0))
-        return {"fitness": fitness, "forward_m": forward, "lateral_m": lateral,
-                "heading_rad": heading, "survived_s": steps * CONTROL_DT_S, "fell": fell,
-                "control_steps": SETTLE_STEPS + steps}
+        return ({"fitness": fitness, "forward_m": forward, "lateral_m": lateral,
+                 "heading_rad": heading, "survived_s": steps * CONTROL_DT_S, "fell": fell,
+                 "control_steps": SETTLE_STEPS + steps}, last)
 
 
 class Mlp:
@@ -430,6 +446,268 @@ def train(rne_report, plant, processes):
             "policy": Mlp(inputs, hidden, theta).to_json()}
 
 
+# PPO (`--learner ppo` in RNE's report), as ppo.rs: the same networks,
+# settings, rewards and random streams.
+PPO_NOISE_STREAM = 0x5050_4F4E_4F49_5345
+PPO_SHUFFLE_STREAM = 0x5050_4F53_4855_4646
+PPO_CRITIC_STREAM = 0x5050_4F43_5249_5449
+HALF_LOG_TAU = 0.5 * math.log(2.0 * math.pi)
+
+
+class Normalizer:
+    """Running observation means and variances (Chan's parallel update)."""
+
+    def __init__(self, width):
+        self.count, self.mean, self.m2 = 0.0, np.zeros(width), np.zeros(width)
+
+    def scale(self):
+        if self.count == 0.0:
+            return np.ones_like(self.mean)
+        return np.sqrt(self.m2 / self.count + 1e-8)
+
+    def update(self, batch):
+        if len(batch) == 0:
+            return
+        batch = np.asarray(batch)
+        n = float(len(batch))
+        mean = batch.mean(axis=0)
+        m2 = ((batch - mean) ** 2).sum(axis=0)
+        total = self.count + n
+        delta = mean - self.mean
+        self.mean = self.mean + delta * n / total
+        self.m2 = self.m2 + m2 + delta * delta * self.count * n / total
+        self.count = total
+
+    def fold(self, inputs, hidden, params):
+        """Actor parameters that read raw observations."""
+        scale = self.scale()
+        params = np.array(params, dtype=float)
+        w1 = params[:hidden * inputs].reshape(hidden, inputs) / scale
+        params[:hidden * inputs] = w1.ravel()
+        params[hidden * inputs:hidden * inputs + hidden] -= w1 @ self.mean
+        return params
+
+
+def critic_initial(inputs, hidden, normal):
+    count = hidden * inputs + hidden + hidden * hidden + hidden + hidden + 1
+    params = np.zeros(count)
+    for index in range(hidden * inputs):
+        params[index] = normal.sample() / math.sqrt(inputs)
+    w2 = hidden * inputs + hidden
+    for index in range(hidden * hidden):
+        params[w2 + index] = normal.sample() / math.sqrt(hidden)
+    return params
+
+
+def critic_parts(params, inputs, hidden):
+    w1 = params[:hidden * inputs].reshape(hidden, inputs)
+    b1 = params[hidden * inputs:hidden * inputs + hidden]
+    at = hidden * inputs + hidden
+    w2 = params[at:at + hidden * hidden].reshape(hidden, hidden)
+    b2 = params[at + hidden * hidden:at + hidden * hidden + hidden]
+    at += hidden * hidden + hidden
+    return w1, b1, w2, b2, params[at:at + hidden], params[at + hidden]
+
+
+def critic_values(params, inputs, hidden, x):
+    w1, b1, w2, b2, w3, b3 = critic_parts(params, inputs, hidden)
+    h1 = np.tanh(x @ w1.T + b1)
+    h2 = np.tanh(h1 @ w2.T + b2)
+    return h2 @ w3 + b3, h1, h2
+
+
+def actor_parts(params, inputs, hidden):
+    w1 = params[:hidden * inputs].reshape(hidden, inputs)
+    b1 = params[hidden * inputs:hidden * inputs + hidden]
+    at = hidden * inputs + hidden
+    return w1, b1, params[at:at + ACTIONS * hidden].reshape(ACTIONS, hidden), \
+        params[at + ACTIONS * hidden:]
+
+
+class Adam:
+    """Adam after scaling the gradient to a norm of at most max_norm, as ppo.rs."""
+
+    def __init__(self, dimension):
+        self.m, self.v, self.t = np.zeros(dimension), np.zeros(dimension), 0
+
+    def step(self, params, grad, learning_rate, max_norm):
+        norm = float(np.sqrt(np.sum(grad * grad)))
+        grad = grad * (max_norm / norm if norm > max_norm else 1.0)
+        self.t += 1
+        self.m = 0.9 * self.m + 0.1 * grad
+        self.v = 0.999 * self.v + 0.001 * grad * grad
+        m_hat = self.m / (1.0 - 0.9 ** self.t)
+        v_hat = self.v / (1.0 - 0.999 ** self.t)
+        return params - learning_rate * m_hat / (np.sqrt(v_hat) + 1e-5)
+
+
+def ppo_rollout(job):
+    """One robot's episode with the stochastic policy (a pool job)."""
+    inputs, hidden, actor, log_std, mean, scale, start, noise_seed = job
+    w1, b1, w2, b2 = actor_parts(actor, inputs, hidden)
+    noise, std = Normal(noise_seed), np.exp(log_std)
+    record = {"observations": [], "raw": [], "actions": [], "log_probs": [], "rewards": [],
+              "fell": False}
+
+    def act(observation):
+        x = (observation - mean) / scale
+        mu = np.tanh(w2 @ np.tanh(w1 @ x + b1) + b2)
+        action = mu + std * np.array([noise.sample() for _ in range(ACTIONS)])
+        z = (action - mu) / std
+        record["log_probs"].append(float(np.sum(-0.5 * z * z - log_std - HALF_LOG_TAU)))
+        record["actions"].append(action)
+        record["raw"].append(observation)
+        record["observations"].append(x)
+        return np.clip(action, -1.0, 1.0)
+
+    def on_step(reward, fell):
+        record["rewards"].append(reward)
+        record["fell"] = record["fell"] or fell
+
+    outcome, last = ROBOT.episode_with(act, start, on_step)
+    record["bootstrap"] = None if record["fell"] else (last - mean) / scale
+    record["outcome"] = outcome
+    return record
+
+
+def ppo_mean_episode(job):
+    """The deterministic policy's episode (a pool job)."""
+    inputs, hidden, params, start = job
+    return ROBOT.episode(Mlp(inputs, hidden, params), start)
+
+
+def ppo_update(actor, critic, log_std, adams, trajectories, iteration, config, inputs):
+    hidden, gamma, lam = config["hidden"], config["gamma"], config["lambda"]
+    xs, actions, old_log_probs, advantages, targets = [], [], [], [], []
+    for t in trajectories:
+        x = np.array(t["observations"])
+        values = critic_values(critic, inputs, hidden, x)[0]
+        last = 0.0 if t["bootstrap"] is None else float(
+            critic_values(critic, inputs, hidden, t["bootstrap"][None, :])[0][0])
+        adv, running = np.zeros(len(values)), 0.0
+        for step in range(len(values) - 1, -1, -1):
+            following = values[step + 1] if step + 1 < len(values) else last
+            delta = t["rewards"][step] + gamma * following - values[step]
+            running = delta + gamma * lam * running
+            adv[step] = running
+        xs.append(x)
+        actions.append(np.array(t["actions"]))
+        old_log_probs.append(np.array(t["log_probs"]))
+        advantages.append(adv)
+        targets.append(adv + values)
+    x, a = np.concatenate(xs), np.concatenate(actions)
+    old, adv, target = (np.concatenate(old_log_probs), np.concatenate(advantages),
+                        np.concatenate(targets))
+    adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+    shuffle = Normal(config["seed"] ^ PPO_SHUFFLE_STREAM ^ iteration)
+    order = list(range(len(adv)))
+    actor_adam, std_adam, critic_adam = adams
+    for _ in range(config["epochs"]):
+        for i in range(len(order) - 1, 0, -1):
+            j = min(int(shuffle.uniform() * (i + 1)), i)
+            order[i], order[j] = order[j], order[i]
+        size = -(-len(order) // config["minibatches"])
+        for begin in range(0, len(order), size):
+            batch = np.array(order[begin:begin + size])
+            n = float(len(batch))
+            xb, ab, ob, advb, tb = x[batch], a[batch], old[batch], adv[batch], target[batch]
+            w1, b1, w2, b2 = actor_parts(actor, inputs, hidden)
+            h = np.tanh(xb @ w1.T + b1)
+            mu = np.tanh(h @ w2.T + b2)
+            std = np.exp(log_std)
+            z = (ab - mu) / std
+            new = np.sum(-0.5 * z * z - log_std - HALF_LOG_TAU, axis=1)
+            ratio = np.exp(new - ob)
+            clipped = ((advb > 0) & (ratio > 1 + config["clip"])) | \
+                      ((advb < 0) & (ratio < 1 - config["clip"]))
+            d_log_prob = np.where(clipped, 0.0, -ratio * advb / n)
+            variance = std * std
+            diff = ab - mu
+            d_mu = d_log_prob[:, None] * diff / variance
+            std_grad = np.sum(d_log_prob[:, None] * (diff * diff / variance - 1.0), axis=0)
+            d_z2 = d_mu * (1 - mu * mu)
+            d_h = d_z2 @ w2
+            d_z1 = d_h * (1 - h * h)
+            actor_grad = np.concatenate([(d_z1.T @ xb).ravel(), d_z1.sum(axis=0),
+                                         (d_z2.T @ h).ravel(), d_z2.sum(axis=0)])
+            values, h1, h2 = critic_values(critic, inputs, hidden, xb)
+            cw1, cb1, cw2, cb2, cw3, cb3 = critic_parts(critic, inputs, hidden)
+            d_v = (values - tb) / n
+            d_h2 = d_v[:, None] * cw3 * (1 - h2 * h2)
+            d_h1 = (d_h2 @ cw2) * (1 - h1 * h1)
+            critic_grad = np.concatenate([(d_h1.T @ xb).ravel(), d_h1.sum(axis=0),
+                                          (d_h2.T @ h1).ravel(), d_h2.sum(axis=0),
+                                          d_v @ h2, [d_v.sum()]])
+            actor = actor_adam.step(actor, actor_grad, config["learning_rate"],
+                                    config["max_grad_norm"])
+            log_std = std_adam.step(log_std, std_grad, config["learning_rate"],
+                                    config["max_grad_norm"])
+            critic = critic_adam.step(critic, critic_grad, config["learning_rate"],
+                                      config["max_grad_norm"])
+    return actor, critic, log_std
+
+
+def train_ppo(rne_report, plant, processes):
+    config = rne_report["training"]["config"]
+    task = {"height_scan": False, "random_starts": False, **rne_report.get("task", {})}
+    inputs, hidden, envs = observations(task), config["hidden"], config["envs"]
+    iterations, seed = config["iterations"], config["seed"]
+    actor = Mlp.initial_params(inputs, hidden, Normal(seed))
+    critic = critic_initial(inputs, hidden, Normal(seed ^ PPO_CRITIC_STREAM))
+    log_std = np.full(ACTIONS, math.log(config["initial_std"]))
+    normalizer = Normalizer(inputs)
+    adams = (Adam(len(actor)), Adam(ACTIONS), Adam(len(critic)))
+    per_iteration = envs + 1
+    starts = training_starts(seed, (iterations + 1) * per_iteration - 1)
+    log, checkpoints, control_steps = [], [], 0
+    with multiprocessing.Pool(processes, initializer=init_worker,
+                              initargs=(plant, task)) as pool:
+        begin = time.perf_counter()
+        for iteration in range(iterations + 1):
+            def start_of(index):
+                return (starts[iteration * per_iteration + index] if task["random_starts"]
+                        else (0.0, 0.0))
+            policy = normalizer.fold(inputs, hidden, actor)
+            mean_job = pool.apply_async(ppo_mean_episode,
+                                        ((inputs, hidden, policy, start_of(envs)),))
+            trajectories = []
+            if iteration < iterations:
+                scale = normalizer.scale()
+                jobs = [(inputs, hidden, actor, log_std, normalizer.mean, scale, start_of(env),
+                         seed ^ PPO_NOISE_STREAM ^ (iteration << 20 | env))
+                        for env in range(envs)]
+                trajectories = pool.map(ppo_rollout, jobs)
+            mean_outcome = mean_job.get()
+            control_steps += mean_outcome["control_steps"] + sum(
+                t["outcome"]["control_steps"] for t in trajectories)
+            fitness = [t["outcome"]["fitness"] for t in trajectories]
+            entry = {"generation": iteration, "mean": outcome_json(mean_outcome),
+                     "population_mean_fitness": sum(fitness) / len(fitness) if fitness else None,
+                     "population_best_fitness": max(fitness) if fitness else None,
+                     "action_std": float(np.exp(log_std).mean()),
+                     "wall_s": time.perf_counter() - begin,
+                     "simulated_s": control_steps * CONTROL_DT_S}
+            print(json.dumps(entry), flush=True)
+            every = config["checkpoint_every"]
+            if every and (iteration % every == 0 or iteration == iterations):
+                checkpoints.append({"generation": iteration, "wall_s": entry["wall_s"],
+                                    "simulated_s": entry["simulated_s"],
+                                    "policy": Mlp(inputs, hidden, policy).to_json()})
+            log.append(entry)
+            if iteration == iterations:
+                break
+            actor, critic, log_std = ppo_update(actor, critic, log_std, adams, trajectories,
+                                                iteration, config, inputs)
+            normalizer.update([o for t in trajectories for o in t["raw"]])
+    policy = normalizer.fold(inputs, hidden, actor)
+    return {"schema_version": 1, "engine": f"mujoco {mujoco.__version__}", "plant": plant,
+            "task": task, "processes": processes,
+            "training": {"method": rne_report["training"]["method"],
+                         "parameters": len(actor) + ACTIONS + len(critic),
+                         "config": config, "log": log, "checkpoints": checkpoints},
+            "policy": Mlp(inputs, hidden, policy).to_json()}
+
+
 def load_policy(path, generation):
     """A policy file's policy and the task its inputs fit, as main.rs reads it."""
     report = json.loads(Path(path).read_text())
@@ -543,7 +821,9 @@ def main():
                  "terrain": None if arguments.terrain is None else str(arguments.terrain)}
         if (rne_report["plant"].get("terrain_seed") is None) != (arguments.terrain is None):
             parser.error("train on terrain exactly when the RNE report did")
-        report = train(rne_report, plant, arguments.processes)
+        learner = rne_report["training"]["config"].get("learner", "es")
+        trainer = {"es": train, "ppo": train_ppo}[learner]
+        report = trainer(rne_report, plant, arguments.processes)
         arguments.output.write_text(json.dumps(report, indent=2) + "\n")
         print(f"wrote {arguments.output}")
     elif arguments.command == "bench":

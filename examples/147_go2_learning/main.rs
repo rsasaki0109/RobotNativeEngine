@@ -24,6 +24,7 @@ mod go2;
 mod locomotion;
 mod native;
 mod policy;
+mod ppo;
 
 use std::path::PathBuf;
 
@@ -108,9 +109,34 @@ fn evaluate_policy(
     Ok(())
 }
 
+/// A training report's file tag: the backend and floor, then the task and a
+/// non-default learner.
+fn report_tag(plant: go2::Plant, task: go2::Task, learner: &str) -> String {
+    let mut tag = match plant.backend {
+        go2::Backend::Rapier => "rne",
+        go2::Backend::Native => "native",
+        go2::Backend::Locomotion if plant.terrain_seed.is_some() => "locomotion-terrain",
+        go2::Backend::Locomotion => "locomotion",
+    }
+    .to_string();
+    if task.random_starts {
+        tag += "-starts";
+    }
+    if task.height_scan {
+        tag += "-scan";
+    }
+    if learner != "es" {
+        tag += &format!("-{learner}");
+    }
+    tag
+}
+
 fn main() -> Result<()> {
     let mut plant = go2::Plant::default();
     let mut config = es::Config::default();
+    let mut ppo_config = ppo::Config::default();
+    let mut learner = "es".to_string();
+    let mut hidden = None;
     let mut threads = std::thread::available_parallelism().map_or(1, |n| n.get());
     let mut output = PathBuf::from("target/go2-learning");
     let (mut train, mut evaluate, mut generation) = (false, None, None);
@@ -136,6 +162,7 @@ fn main() -> Result<()> {
             "--terrain" => plant.terrain_seed = Some(value()?.parse()?),
             "--terrain-frequency" => plant.relief.frequency_per_m = value()?.parse()?,
             "--terrain-amplitude" => plant.relief.amplitude_m = value()?.parse()?,
+            "--terrain-size" => plant.relief.size_m = value()?.parse()?,
             "--write-terrain" => write_terrain = Some(PathBuf::from(value()?)),
             "--height-scan" => task.height_scan = true,
             "--random-starts" => task.random_starts = true,
@@ -144,11 +171,21 @@ fn main() -> Result<()> {
             "--pairs" => config.pairs = value()?.parse()?,
             "--sigma" => config.sigma = value()?.parse()?,
             "--learning-rate" => config.learning_rate = value()?.parse()?,
-            "--hidden" => config.hidden = value()?.parse()?,
-            "--seed" => config.seed = value()?.parse()?,
+            "--hidden" => hidden = Some(value()?.parse()?),
+            "--seed" => {
+                config.seed = value()?.parse()?;
+                ppo_config.seed = config.seed;
+            }
+            "--learner" => learner = value()?,
+            "--iterations" => ppo_config.iterations = value()?.parse()?,
+            "--envs" => ppo_config.envs = value()?.parse()?,
             "--checkpoint-every" => config.checkpoint_every = value()?.parse()?,
             other => return Err(format!("unknown option {other}").into()),
         }
+    }
+    if let Some(hidden) = hidden {
+        config.hidden = hidden;
+        ppo_config.hidden = hidden;
     }
     if let Some(path) = write_terrain {
         let seed = plant
@@ -234,22 +271,17 @@ fn main() -> Result<()> {
     if !train {
         return Err("pass --train or --evaluate POLICY.json".into());
     }
-    let report = es::train(plant, task, threads, config)?;
+    let report = match learner.as_str() {
+        "es" => es::train(plant, task, threads, config)?,
+        "ppo" => ppo::train(plant, task, threads, ppo_config)?,
+        other => return Err(format!("unknown learner {other} (es or ppo)").into()),
+    };
+    let path = output.join(format!(
+        "go2-learning-{}-{}.json",
+        report_tag(plant, task, &learner),
+        config.seed
+    ));
     std::fs::create_dir_all(&output)?;
-    let mut engine = match plant.backend {
-        go2::Backend::Rapier => "rne",
-        go2::Backend::Native => "native",
-        go2::Backend::Locomotion if plant.terrain_seed.is_some() => "locomotion-terrain",
-        go2::Backend::Locomotion => "locomotion",
-    }
-    .to_string();
-    if task.random_starts {
-        engine += "-starts";
-    }
-    if task.height_scan {
-        engine += "-scan";
-    }
-    let path = output.join(format!("go2-learning-{engine}-{}.json", config.seed));
     std::fs::write(&path, serde_json::to_string_pretty(&report)? + "\n")?;
     println!("wrote {}", path.display());
     Ok(())

@@ -20,6 +20,9 @@ cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed
 cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate POLICY.json \
   --backend locomotion --terrain 7 --starts 16   # the mean over 16 held-out starts
 #   --terrain-frequency 1.0 --terrain-amplitude 0.08 makes the terrain rougher (defaults 0.5, 0.04)
+cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
+  --backend locomotion --learner ppo   # PPO in place of evolution strategies; ...-locomotion-ppo-2026.json
+#   --iterations 400 --envs 16 --hidden 64 are PPO's defaults; --terrain-size 48 widens the terrain (default 24 m)
 python3 examples/147_go2_learning/mujoco_go2_learning.py check-terrain terrain.json
 python3 examples/147_go2_learning/mujoco_go2_learning.py train \
   target/go2-learning/go2-learning-locomotion-terrain-2026.json OUT.json --terrain terrain.json
@@ -460,6 +463,112 @@ The summaries
 [rougher scan](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-starts-scan.json))
 hold every run and every held-out evaluation, with an `.svg` figure each.
 
+## Learning with PPO
+
+Evolution strategies did not use the height scan. To tell the scan's worth
+from that learner's limits, `--learner ppo` trains the same task with
+proximal policy optimization, in both engines.
+
+- **The learner.**
+  - A Gaussian policy around the same one-hidden-layer MLP, 64 units by
+    default, with a state-independent standard deviation that starts at 0.3.
+  - A critic with two tanh layers, generalized advantage estimation
+    (γ 0.99, λ 0.95), the clipped surrogate (0.2), and Adam at 3e-4 with
+    the gradient's norm clipped at 1.
+  - 400 iterations of 16 episodes, about the evolution strategies' budget,
+    with 5 epochs of 4 minibatches each.
+  - An episode's rewards sum to its evolution-strategies fitness, so the two
+    learners' numbers compare directly.
+  - The running observation statistics are folded into the exported
+    policy's first layer, so `--evaluate` and MuJoCo run it unchanged.
+  - A minibatch's gradient is summed over eight fixed slices, so a run does
+    not depend on the thread count.
+- **MuJoCo's copy** in `mujoco_go2_learning.py` is the same algorithm with
+  the same settings and random streams, vectorized with numpy. It trains
+  with PPO when RNE's report says so.
+- **A wider terrain.** PPO's walks cover over 10 m in an episode, so the
+  random-start runs use `--terrain-size 48`: the same relief on a 48 m
+  floor, where a fast walk does not reach the edge.
+
+Sixteen seeds per configuration, on four cores. On the flat floor, from the
+origin:
+
+| Trained in | Walking in | Fitness, median (quartiles) | Falls |
+| --- | --- | ---: | ---: |
+| RNE | RNE | 12.25 (10.48–12.64) | 0 of 16 |
+| RNE | RNE on Rapier | 11.35 (9.95–12.56) | 0 of 16 |
+| RNE | MuJoCo | 6.91 (5.68–10.12) | 0 of 16 |
+| MuJoCo | MuJoCo | 10.73 (9.19–11.88) | 0 of 16 |
+| MuJoCo | RNE | 9.83 (8.71–11.89) | 0 of 16 |
+| MuJoCo | RNE on Rapier | 10.52 (9.12–12.31) | 0 of 16 |
+
+On the terrain, from 16 held-out starts per policy:
+
+| Terrain | Trained in, walking in | Blind | Blind falls of 256 | With the scan | Scan falls of 256 | Seeds the scan did better on |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| default | RNE, RNE | 10.76 (9.76–12.58) | 1 | 10.60 (9.79–11.57) | 0 | 9 of 16 (p 0.80) |
+| default | RNE, MuJoCo | 0.68 (0.42–3.31) | 6 | 0.44 (0.07–0.69) | 5 | 5 of 16 (p 0.21) |
+| default | MuJoCo, MuJoCo | 8.36 (7.37–8.96) | 0 | 7.91 (6.85–8.50) | 0 | 5 of 16 (p 0.21) |
+| default | MuJoCo, RNE | 7.30 (6.25–9.59) | 0 | 7.20 (5.75–7.96) | 0 | 6 of 16 (p 0.45) |
+| rougher | RNE, RNE | 9.75 (8.39–10.73) | 0 | 8.62 (7.43–9.63) | 0 | 7 of 16 (p 0.80) |
+| rougher | RNE, MuJoCo | 0.93 (0.43–1.76) | 10 | 0.49 (-0.10–0.81) | 5 | 4 of 16 (p 0.077) |
+| rougher | MuJoCo, MuJoCo | 6.02 (5.15–7.05) | 0 | 5.98 (5.17–7.37) | 0 | 10 of 16 (p 0.45) |
+| rougher | MuJoCo, RNE | 6.19 (4.68–7.59) | 0 | 6.47 (5.07–7.46) | 0 | 8 of 16 (p 1.0) |
+
+- **PPO scores several times what evolution strategies did.** On the
+  default terrain RNE's blind policies score 10.76 against 0.76, and
+  MuJoCo's 8.36 against 1.11. On the flat floor RNE's score 12.25 against
+  2.07 and MuJoCo's 10.73 against 1.58, and every one of the 32 policies
+  scores at least 5.85 in its own engine.
+- **The scan still does not help.** With a learner that plainly works,
+  blind and scan policies score the same in both engines on both terrains.
+  No sign test comes near significance, and the one that leans (p 0.077)
+  leans against the scan.
+  - Blind policies almost never fall here: once in 512 held-out episodes
+    for RNE, never for MuJoCo.
+  - So 10 cm of relief does not require sight. The test needs a terrain a
+    blind robot cannot walk, such as steps or gaps.
+- **RNE's PPO walks do not carry over to MuJoCo; MuJoCo's carry over to
+  RNE.**
+  - On the terrain, RNE-trained policies score 0.4–0.9 in MuJoCo against
+    8.6–10.8 at home, and 3 to 6 of 16 fall from some start.
+  - On the flat floor they keep 6.91 of 12.25. On RNE's own Rapier backend
+    they keep 11.35.
+  - MuJoCo-trained policies lose little in RNE: 7.30 against 8.36 on the
+    default terrain.
+  - The evolution-strategies walks, at a tenth of the speed, carried over
+    both ways. What the faster RNE walks rely on that MuJoCo does not give
+    them is not yet diagnosed, so RNE's higher scores below are scores in
+    RNE only.
+- **Learning against MuJoCo, per seed.**
+  - In wall time RNE reached fitness 1 sooner on 16 seeds of 16 in four of
+    the five configurations, and on 15 in the fifth (rougher terrain,
+    blind).
+  - In iterations neither engine leads: no sign test falls below p 0.077.
+  - After training, RNE's policies were fitter at home than MuJoCo's on
+    13–16 seeds of 16 on the terrain (p 0.021 or lower), and on 9 of 16
+    on the flat floor (p 0.80).
+- **Speed on four cores**, simulated seconds per wall second, training
+  included:
+
+  | | RNE | MuJoCo | Ratio |
+  | --- | ---: | ---: | ---: |
+  | Flat floor | 263 | 143 | 1.8 |
+  | Default terrain, blind | 214 | 120 | 1.8 |
+  | Default terrain, with the scan | 314 | 174 | 1.8 |
+  | Rougher terrain, blind | 226 | 136 | 1.7 |
+  | Rougher terrain, with the scan | 182 | 84 | 2.2 |
+
+  - Each row ran on its own runner, so compare speeds within a row only.
+
+The summaries
+([flat](../../docs/media/go2-learning-compare-flat-ppo.json),
+[default blind](../../docs/media/go2-learning-compare-terrain-s48-starts-ppo.json),
+[default scan](../../docs/media/go2-learning-compare-terrain-s48-starts-scan-ppo.json),
+[rougher blind](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-s48-starts-ppo.json),
+[rougher scan](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-s48-starts-scan-ppo.json))
+hold every run and every evaluation, with an `.svg` figure each.
+
 ## Speed
 
 Simulated seconds per wall second on one thread, for the untrained policy's
@@ -523,9 +632,11 @@ episodes (medians of three runs):
 - One robot, one task on a flat floor and on one terrain at two reliefs.
   The only randomization is the random starts. Sixteen seeds side by side
   with MuJoCo, three in the development container.
-- One learner, evolution strategies with a 32-unit MLP. What
-  [Seeing the ground](#seeing-the-ground) finds about the height scan
-  holds for it, not for reinforcement learning in general.
+- Two learners, evolution strategies and PPO, each with one set of
+  hyperparameters. Neither used the height scan, on terrains a blind robot
+  walks without falling.
+- RNE's PPO walks lose most of their fitness in MuJoCo
+  ([Learning with PPO](#learning-with-ppo)), for a reason not yet found.
   The policies make no claim about transfer to hardware.
 - MuJoCo's episode loop and policy run in Python, one call per 20 ms control
   period; RNE's run in Rust.

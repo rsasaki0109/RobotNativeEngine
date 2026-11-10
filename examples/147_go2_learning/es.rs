@@ -240,7 +240,8 @@ pub(crate) fn train(plant: Plant, task: Task, threads: usize, config: Config) ->
                   "floor_friction": plant.floor_friction,
                   "terrain_seed": plant.terrain_seed,
                   "terrain_frequency_per_m": plant.relief.frequency_per_m,
-                  "terrain_amplitude_m": plant.relief.amplitude_m},
+                  "terrain_amplitude_m": plant.relief.amplitude_m,
+                  "terrain_size_m": plant.relief.size_m},
         "task": task.to_json(),
         "threads": threads,
         "training": {
