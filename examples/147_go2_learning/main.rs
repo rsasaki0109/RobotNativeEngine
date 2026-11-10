@@ -105,7 +105,112 @@ fn evaluate_policy(
             .collect::<Vec<_>>());
     }
     report["outcome"] = outcome;
+    if let Some(load) = robot.contact_load() {
+        let total: f64 = load.iter().map(|(_, impulse, _)| impulse).sum();
+        report["contact_load"] = load
+            .iter()
+            .filter(|(_, impulse, _)| *impulse > 0.0)
+            .map(|(name, impulse, steps)| {
+                (
+                    name.clone(),
+                    json!({"share": impulse / total, "steps": steps}),
+                )
+            })
+            .collect::<serde_json::Map<_, _>>()
+            .into();
+    }
     println!("{report}");
+    Ok(())
+}
+
+/// A robot that records, before every control period, its state and the
+/// targets it is about to track: the trace `mujoco_go2_learning.py replay`
+/// steps MuJoCo from, period by period.
+struct Tracing<'a> {
+    inner: &'a mut dyn go2::Robot,
+    targets_rad: [f64; 12],
+    periods: Vec<Value>,
+}
+
+impl Tracing<'_> {
+    fn state(&self) -> Result<Value> {
+        let (position, rotation) = self.inner.base_pose_z_up();
+        let (linear, angular) = self.inner.base_velocity_z_up();
+        let joints = self.inner.joint_states()?;
+        Ok(json!({
+            "position_m": [position.x, position.y, position.z],
+            "quaternion_wxyz": [rotation.w, rotation.x, rotation.y, rotation.z],
+            "linear_velocity_m_s": [linear.x, linear.y, linear.z],
+            "angular_velocity_rad_s": [angular.x, angular.y, angular.z],
+            "joints_rad": joints.iter().map(|joint| joint.0).collect::<Vec<_>>(),
+            "joint_velocities_rad_s": joints.iter().map(|joint| joint.1).collect::<Vec<_>>(),
+        }))
+    }
+}
+
+impl go2::Robot for Tracing<'_> {
+    fn restart(&mut self) -> Result<()> {
+        self.periods.clear();
+        self.inner.restart()
+    }
+    fn restart_at(&mut self, start: [f64; 2]) -> Result<()> {
+        self.periods.clear();
+        self.inner.restart_at(start)
+    }
+    fn set_targets_rad(&mut self, targets_rad: &[f64; 12]) -> Result<()> {
+        self.targets_rad = *targets_rad;
+        self.inner.set_targets_rad(targets_rad)
+    }
+    fn step(&mut self) -> Result<()> {
+        let mut period = self.state()?;
+        period["targets_rad"] = json!(self.targets_rad);
+        self.periods.push(period);
+        self.inner.step()
+    }
+    fn base_pose_z_up(&self) -> (rne_math::Vec3, rne_math::Quat) {
+        self.inner.base_pose_z_up()
+    }
+    fn base_velocity_z_up(&self) -> (rne_math::Vec3, rne_math::Vec3) {
+        self.inner.base_velocity_z_up()
+    }
+    fn joint_states(&self) -> Result<[(f64, f64); 12]> {
+        self.inner.joint_states()
+    }
+    fn ground_height_m(&self, x_m: f64, y_m: f64) -> f64 {
+        self.inner.ground_height_m(x_m, y_m)
+    }
+    fn arena_half_m(&self) -> f64 {
+        self.inner.arena_half_m()
+    }
+}
+
+/// Walks `path`'s policy once from `start` and writes its trace: the state
+/// before every control period (settling included) with the targets then
+/// applied, and the state after the last.
+fn trace_policy(
+    plant: go2::Plant,
+    path: &PathBuf,
+    generation: Option<usize>,
+    start: [f64; 2],
+    output: &PathBuf,
+) -> Result<()> {
+    let (policy, task) = load_policy(path, generation)?;
+    let mut robot = go2::robot(plant)?;
+    let mut tracing = Tracing {
+        inner: robot.as_mut(),
+        targets_rad: go2::DEFAULT_RAD,
+        periods: Vec::new(),
+    };
+    let outcome = go2::episode(&mut tracing, task, start, |observation| {
+        policy.act(observation)
+    })?;
+    let last = tracing.state()?;
+    let trace = json!({"engine": plant.backend.name(), "policy": path, "task": task.to_json(),
+                       "start_m": start, "settle_periods": go2::SETTLE_STEPS,
+                       "outcome": es::outcome_json(&outcome),
+                       "periods": tracing.periods, "last": last});
+    std::fs::write(output, serde_json::to_string(&trace)? + "\n")?;
+    println!("wrote {}", output.display());
     Ok(())
 }
 
@@ -131,6 +236,25 @@ fn report_tag(plant: go2::Plant, task: go2::Task, learner: &str) -> String {
     tag
 }
 
+/// `X,Y` in meters.
+fn parse_point(value: &str) -> Result<[f64; 2]> {
+    let (x, y) = value.split_once(',').ok_or("a point is X,Y")?;
+    Ok([x.parse()?, y.parse()?])
+}
+
+/// Writes the terrain of `plant`'s seed and relief, as `--write-terrain`.
+fn write_terrain_file(plant: go2::Plant, path: &PathBuf) -> Result<()> {
+    let seed = plant
+        .terrain_seed
+        .ok_or("--write-terrain needs --terrain SEED")?;
+    std::fs::write(
+        path,
+        serde_json::to_string(&go2::terrain_json(seed, plant.relief)?)? + "\n",
+    )?;
+    println!("wrote {}", path.display());
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let mut plant = go2::Plant::default();
     let mut config = es::Config::default();
@@ -144,6 +268,8 @@ fn main() -> Result<()> {
     let mut write_terrain = None;
     let mut task = go2::Task::default();
     let mut starts = None;
+    let mut trace = None;
+    let mut trace_start = [0.0, 0.0];
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
@@ -167,6 +293,8 @@ fn main() -> Result<()> {
             "--height-scan" => task.height_scan = true,
             "--random-starts" => task.random_starts = true,
             "--starts" => starts = Some(value()?.parse::<usize>()?),
+            "--trace" => trace = Some(PathBuf::from(value()?)),
+            "--trace-start" => trace_start = parse_point(&value()?)?,
             "--generations" => config.generations = value()?.parse()?,
             "--pairs" => config.pairs = value()?.parse()?,
             "--sigma" => config.sigma = value()?.parse()?,
@@ -188,15 +316,7 @@ fn main() -> Result<()> {
         ppo_config.hidden = hidden;
     }
     if let Some(path) = write_terrain {
-        let seed = plant
-            .terrain_seed
-            .ok_or("--write-terrain needs --terrain SEED")?;
-        std::fs::write(
-            &path,
-            serde_json::to_string(&go2::terrain_json(seed, plant.relief)?)? + "\n",
-        )?;
-        println!("wrote {}", path.display());
-        return Ok(());
+        return write_terrain_file(plant, &path);
     }
     if let Some(seconds) = stand {
         // Settle as an episode does, then hold the default targets.
@@ -266,6 +386,9 @@ fn main() -> Result<()> {
         return Ok(());
     }
     if let Some(path) = evaluate {
+        if let Some(output) = trace {
+            return trace_policy(plant, &path, generation, trace_start, &output);
+        }
         return evaluate_policy(plant, &path, generation, starts);
     }
     if !train {
