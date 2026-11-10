@@ -57,6 +57,9 @@ pub(crate) struct LocomotionGo2 {
     /// See [`Robot::arena_half_m`]: the floor's or the terrain's half side,
     /// less [`crate::go2::ARENA_EDGE_MARGIN_M`].
     arena_half_m: f64,
+    /// See [`Robot::contact_load`]: by kinematic link, the normal impulse
+    /// the ground has put through it and the physics steps it carried any.
+    contact_load: Vec<(f64, usize)>,
 }
 
 impl LocomotionGo2 {
@@ -109,7 +112,13 @@ impl LocomotionGo2 {
             targets_rad: [0.0; 12],
             command: JointCommand::positions(vec![0.0; 12]),
             arena_half_m: 0.5 * side_m - crate::go2::ARENA_EDGE_MARGIN_M,
+            contact_load: Vec::new(),
         };
+        let kinematic = robot.sim.quadruped().model().kinematic();
+        let links = (0..)
+            .take_while(|&index| kinematic.link_entity(index).is_some())
+            .count();
+        robot.contact_load = vec![(0.0, 0); links];
         robot.restart()?;
         Ok(robot)
     }
@@ -170,9 +179,38 @@ impl Robot for LocomotionGo2 {
             // With zero PD gains the position targets only fill the command.
             self.command.positions_rad.copy_from_slice(positions);
             self.command.feedforward_nm = torques;
-            self.sim.step(&self.command, Vec3::ZERO)?;
+            let step = self.sim.step(&self.command, Vec3::ZERO)?;
+            let kinematic = self.sim.quadruped().model().kinematic();
+            let mut loaded = vec![false; self.contact_load.len()];
+            for (contact, outcome) in step.contacts.iter().zip(&step.outcomes) {
+                let normal = outcome.impulse_world_n_s.dot(contact.normal_world);
+                if normal <= 0.0 {
+                    continue;
+                }
+                if let Some(index) = kinematic.link_index(contact.link) {
+                    self.contact_load[index].0 += normal;
+                    loaded[index] = true;
+                }
+            }
+            for (load, loaded) in self.contact_load.iter_mut().zip(loaded) {
+                load.1 += usize::from(loaded);
+            }
         }
         Ok(())
+    }
+
+    fn contact_load(&self) -> Option<Vec<(String, f64, usize)>> {
+        let kinematic = self.sim.quadruped().model().kinematic();
+        Some(
+            self.contact_load
+                .iter()
+                .enumerate()
+                .map(|(index, (impulse, steps))| {
+                    let name = kinematic.link_name(index).unwrap_or("?").to_string();
+                    (name, *impulse, *steps)
+                })
+                .collect(),
+        )
     }
 
     fn base_pose_z_up(&self) -> (Vec3, Quat) {

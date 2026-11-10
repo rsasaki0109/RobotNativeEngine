@@ -144,12 +144,15 @@ def add_floor(spec, floor_friction, terrain):
     floor.group = FLOOR_GROUP
 
 
-def build_model(floor_friction, cone, impratio, terrain=None):
+def build_model(floor_friction, cone, impratio, terrain=None, substeps=1, solref_s=None):
+    """The Go2 on its floor. `substeps` splits each physics step (a
+    diagnostic: the episode is the same in simulated time), and `solref_s`
+    sets every contact's time constant (MuJoCo's default is 0.02 s)."""
     spec = mujoco.MjSpec.from_string(urdf_without_visuals())
     # Links without an <inertial> are massless, as in the URDF specification
     # and in RNE, instead of taking mass from their geoms at 1000 kg/m^3.
     spec.compiler.inertiafromgeom = mujoco.mjtInertiaFromGeom.mjINERTIAFROMGEOM_FALSE
-    spec.option.timestep = DT_S
+    spec.option.timestep = DT_S / substeps
     spec.option.cone = {"pyramidal": mujoco.mjtCone.mjCONE_PYRAMIDAL,
                         "elliptic": mujoco.mjtCone.mjCONE_ELLIPTIC}[cone]
     spec.option.impratio = impratio
@@ -158,6 +161,9 @@ def build_model(floor_friction, cone, impratio, terrain=None):
         geom.contype, geom.conaffinity = 1, 0
         geom.friction = [floor_friction, 0.005, 0.0001]
     add_floor(spec, floor_friction, terrain)
+    if solref_s is not None:
+        for geom in spec.geoms:
+            geom.solref = [solref_s, 1.0]
     for name in JOINTS:
         actuator = spec.add_actuator(name=name, target=name, trntype=mujoco.mjtTrn.mjTRN_JOINT)
         actuator.set_to_position(kp=KP_NM_PER_RAD, kv=KD_NM_S_PER_RAD)
@@ -173,8 +179,9 @@ class Go2:
     def __init__(self, plant, task=None):
         self.task = task or {}
         self.terrain = load_terrain(plant.get("terrain"))
+        self.substeps = plant.get("substeps", 1)
         self.model = build_model(plant["floor_friction"], plant["cone"], plant["impratio"],
-                                 self.terrain)
+                                 self.terrain, self.substeps, plant.get("solref_s"))
         self.data = mujoco.MjData(self.model)
         ids = [self.model.joint(name).id for name in JOINTS]
         self.qpos = np.array([self.model.jnt_qposadr[i] for i in ids])
@@ -188,6 +195,9 @@ class Go2:
         # arena: RNE's flat floor is 40 m square, the terrain its own size.
         side = FLAT_FLOOR_SIZE_M if self.terrain is None else self.terrain["size_m"]
         self.arena_half = 0.5 * side - ARENA_EDGE_MARGIN_M
+        # States before each control period and the targets then applied,
+        # while a trace is recorded (see `step`).
+        self.trace = None
 
     def settle(self, start=(0.0, 0.0)):
         """Start in the default pose at rest, base 0.36 m above `start`, and
@@ -204,8 +214,63 @@ class Go2:
             self.step(DEFAULT_RAD)
 
     def step(self, targets_rad):
+        if self.trace is not None:
+            self.trace.append({**self.state(), "targets_rad": list(map(float, targets_rad))})
         self.data.ctrl[:] = targets_rad
-        mujoco.mj_step(self.model, self.data, nstep=DECIMATION)
+        mujoco.mj_step(self.model, self.data, nstep=DECIMATION * self.substeps)
+        if self.trace is not None:
+            self.trace[-1]["contacts_n"] = self.contact_forces()
+            self.trace[-1]["contacts"] = self.contact_details()
+
+    def state(self):
+        """The base's pose and world-frame velocities and the joints' states,
+        as main.rs's --trace records them."""
+        rotation = self.body_rotation()
+        return {"position_m": self.data.qpos[:3].tolist(),
+                "quaternion_wxyz": self.data.qpos[3:7].tolist(),
+                "linear_velocity_m_s": self.data.qvel[:3].tolist(),
+                "angular_velocity_rad_s": (rotation @ self.data.qvel[3:6]).tolist(),
+                "joints_rad": self.data.qpos[self.qpos].tolist(),
+                "joint_velocities_rad_s": self.data.qvel[self.qvel].tolist()}
+
+    def set_state(self, state):
+        """Puts the robot in a traced state (see `state`), at rest otherwise."""
+        mujoco.mj_resetData(self.model, self.data)
+        self.data.qpos[:3] = state["position_m"]
+        self.data.qpos[3:7] = state["quaternion_wxyz"]
+        self.data.qpos[self.qpos] = state["joints_rad"]
+        self.data.qvel[:3] = state["linear_velocity_m_s"]
+        self.data.qvel[self.qvel] = state["joint_velocities_rad_s"]
+        mujoco.mj_forward(self.model, self.data)
+        self.data.qvel[3:6] = self.body_rotation().T @ np.asarray(state["angular_velocity_rad_s"])
+        mujoco.mj_forward(self.model, self.data)
+
+    def contact_details(self):
+        """Every robot contact with the floor now: its body and geom type,
+        penetration (m, positive into the floor), normal and normal force."""
+        details, wrench = [], np.zeros(6)
+        for index in range(self.data.ncon):
+            contact = self.data.contact[index]
+            mujoco.mj_contactForce(self.model, self.data, index, wrench)
+            geom = contact.geom2 if self.model.geom_bodyid[contact.geom1] == 0 else contact.geom1
+            details.append({"body": self.model.body(self.model.geom_bodyid[geom]).name,
+                            "geom": mujoco.mjtGeom(self.model.geom_type[geom]).name[len("mjGEOM_"):].lower(),
+                            "penetration_m": -float(contact.dist),
+                            "normal": contact.frame[:3].tolist(), "force_n": float(wrench[0])})
+        return details
+
+    def contact_forces(self):
+        """Normal force on each robot body touching the floor now, in N."""
+        forces, wrench = {}, np.zeros(6)
+        for index in range(self.data.ncon):
+            contact = self.data.contact[index]
+            mujoco.mj_contactForce(self.model, self.data, index, wrench)
+            for geom in (contact.geom1, contact.geom2):
+                body = self.model.geom_bodyid[geom]
+                if body != 0:
+                    name = self.model.body(body).name
+                    forces[name] = forces.get(name, 0.0) + float(wrench[0])
+        return forces
 
     def body_rotation(self):
         mujoco.mju_quat2Mat(self.rotation, self.data.qpos[3:7])
@@ -732,6 +797,29 @@ def mean_outcome(outcomes):
     return mean
 
 
+def replay(trace_path, plant):
+    """Steps MuJoCo one control period from every state of an RNE trace,
+    with the targets RNE applied, and compares the result with RNE's next
+    state: where the two engines' dynamics part, and on what contacts."""
+    trace = json.loads(Path(trace_path).read_text())
+    robot = Go2(plant)
+    states = trace["periods"] + [trace["last"]]
+    periods = []
+    for before, after in zip(trace["periods"], states[1:]):
+        robot.set_state(before)
+        robot.step(np.asarray(before["targets_rad"]))
+        mine = robot.state()
+        difference = {key: (np.asarray(mine[key]) - np.asarray(after[key])).tolist()
+                      for key in ("position_m", "linear_velocity_m_s", "angular_velocity_rad_s",
+                                  "joints_rad", "joint_velocities_rad_s")}
+        periods.append({"difference": difference, "contacts_n": robot.contact_forces(),
+                        "mujoco": mine})
+    return {"engine": f"mujoco {mujoco.__version__}", "plant": plant, "trace": str(trace_path),
+            "trace_engine": trace["engine"], "settle_periods": trace["settle_periods"],
+            "outcome": trace["outcome"], "periods": periods}
+
+
+
 def check_terrain(path):
     """Ray-cast MuJoCo's copy of the terrain at RNE's probe points."""
     terrain = load_terrain(path)
@@ -795,11 +883,25 @@ def main():
         command.add_argument("--terrain", type=Path, default=None,
                              help="height field written by 147_go2_learning --write-terrain")
     sub.add_parser("check-terrain").add_argument("terrain", type=Path)
+    for name in ("replay",):
+        command = sub.add_parser(name)
+        command.add_argument("trace", type=Path, help="written by 147_go2_learning --trace")
+        command.add_argument("output", type=Path)
+        command.add_argument("--cone", choices=["pyramidal", "elliptic"], default="elliptic")
+        command.add_argument("--impratio", type=float, default=100.0)
+        command.add_argument("--friction", type=float, default=1.0)
+        command.add_argument("--terrain", type=Path, default=None)
     sub.choices["train"].add_argument("rne_report", type=Path)
     sub.choices["train"].add_argument("output", type=Path)
     sub.choices["train"].add_argument("--processes", type=int, default=4)
     sub.choices["evaluate"].add_argument("policy", type=Path)
     sub.choices["evaluate"].add_argument("--generation", type=int)
+    sub.choices["evaluate"].add_argument("--substeps", type=int, default=1,
+                                         help="physics steps per step of RNE's (diagnostic)")
+    sub.choices["evaluate"].add_argument("--solref", type=float, default=None,
+                                         help="contact time constant, s (diagnostic)")
+    sub.choices["evaluate"].add_argument("--trace", type=Path, default=None,
+                                         help="write the first episode's trace, as --trace")
     sub.choices["evaluate"].add_argument("--starts", type=int, default=None,
                                          help="walk from RNE's N held-out starts")
     sub.choices["stand"].add_argument("seconds", type=float)
@@ -811,6 +913,13 @@ def main():
     arguments = parser.parse_args()
     if arguments.command == "check-terrain":
         check_terrain(arguments.terrain)
+        return
+    if arguments.command == "replay":
+        plant = {"floor_friction": arguments.friction, "cone": arguments.cone,
+                 "impratio": arguments.impratio,
+                 "terrain": None if arguments.terrain is None else str(arguments.terrain)}
+        arguments.output.write_text(json.dumps(replay(arguments.trace, plant)) + "\n")
+        print(f"wrote {arguments.output}")
         return
     if arguments.command == "train":
         rne_report = json.loads(arguments.rne_report.read_text())
@@ -868,9 +977,22 @@ def main():
         plant = {"floor_friction": 1.0 if arguments.friction is None else arguments.friction,
                  "cone": arguments.cone, "impratio": arguments.impratio,
                  "terrain": None if arguments.terrain is None else str(arguments.terrain)}
+        if arguments.substeps != 1:
+            plant["substeps"] = arguments.substeps
+        if arguments.solref is not None:
+            plant["solref_s"] = arguments.solref
         policy, task = load_policy(arguments.policy, arguments.generation)
         robot = Go2(plant, task)
         points = [(0.0, 0.0)] if arguments.starts is None else evaluation_starts(arguments.starts)
+        if arguments.trace is not None:
+            robot.trace = []
+            outcome = robot.episode(policy, points[0])
+            trace = {"engine": f"mujoco {mujoco.__version__}", "policy": str(arguments.policy),
+                     "task": task, "start_m": list(points[0]), "settle_periods": SETTLE_STEPS,
+                     "outcome": outcome_json(outcome), "periods": robot.trace,
+                     "last": robot.state()}
+            arguments.trace.write_text(json.dumps(trace) + "\n")
+            robot.trace = None
         outcomes = [robot.episode(policy, start) for start in points]
         outcome = outcome_json(mean_outcome(outcomes))
         report = {"engine": f"mujoco {mujoco.__version__}", "plant": plant,

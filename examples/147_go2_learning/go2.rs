@@ -250,6 +250,12 @@ pub(crate) trait Robot {
     fn arena_half_m(&self) -> f64 {
         f64::INFINITY
     }
+    /// By link: the ground's normal impulse through it (N·s) and the physics
+    /// steps it carried any, summed since the robot was built; `None` where
+    /// the backend does not report contacts.
+    fn contact_load(&self) -> Option<Vec<(String, f64, usize)>> {
+        None
+    }
 }
 
 /// How far inside the floor's edge the arena ends, in meters: farther than a

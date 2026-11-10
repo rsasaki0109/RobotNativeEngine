@@ -546,6 +546,21 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `examples/147_go2_learning` records walks to find where RNE and MuJoCo
+  part: `--evaluate --trace` and `mujoco_go2_learning.py evaluate --trace`
+  write every control period's state and targets, `mujoco_go2_learning.py
+  replay` steps MuJoCo one period from each state of an RNE trace and
+  records the difference from RNE's next state, and `--evaluate` on the
+  locomotion backend reports each link's share of the ground's normal
+  impulse. The `go2-trace` workflow runs them for the PPO comparison runs'
+  policies, and `mujoco_go2_learning.py evaluate --substeps --solref` walks
+  a policy with finer steps or stiffer contacts. They find why RNE's PPO
+  walks stall in MuJoCo on the terrain: at MuJoCo's default 20 ms contact
+  time constant their fast footfalls bury a foot 24 mm deep (median), and
+  the height field's cell sides clamp it at six to twelve times the robot's
+  weight. With 1 ms steps and a 4 ms time constant the same policies score
+  8.15 in MuJoCo instead of 0.49, against 10.28 in RNE.
+
 - `examples/147_go2_learning` learns with PPO too (`--learner ppo`): a
   Gaussian policy around the same MLP, a two-layer critic, generalized
   advantage estimation, the clipped surrogate and Adam, 400 iterations of 16

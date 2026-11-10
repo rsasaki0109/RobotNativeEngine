@@ -23,6 +23,10 @@ cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate POL
 cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
   --backend locomotion --learner ppo   # PPO in place of evolution strategies; ...-locomotion-ppo-2026.json
 #   --iterations 400 --envs 16 --hidden 64 are PPO's defaults; --terrain-size 48 widens the terrain (default 24 m)
+cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate POLICY.json \
+  --backend locomotion --trace TRACE.json   # every control period's state and targets; --trace-start X,Y
+python3 examples/147_go2_learning/mujoco_go2_learning.py evaluate POLICY.json --trace TRACE.json
+python3 examples/147_go2_learning/mujoco_go2_learning.py replay TRACE.json REPLAY.json   # MuJoCo from each RNE state
 python3 examples/147_go2_learning/mujoco_go2_learning.py check-terrain terrain.json
 python3 examples/147_go2_learning/mujoco_go2_learning.py train \
   target/go2-learning/go2-learning-locomotion-terrain-2026.json OUT.json --terrain terrain.json
@@ -529,7 +533,9 @@ On the terrain, from 16 held-out starts per policy:
   - So 10 cm of relief does not require sight. The test needs a terrain a
     blind robot cannot walk, such as steps or gaps.
 - **RNE's PPO walks do not carry over to MuJoCo; MuJoCo's carry over to
-  RNE.**
+  RNE.** In MuJoCo their fast footfalls bury a foot in the soft contact,
+  and on the terrain the height field's cells clamp it (see
+  [Why RNE's PPO walks stall in MuJoCo](#why-rnes-ppo-walks-stall-in-mujoco)).
   - On the terrain, RNE-trained policies score 0.4–0.9 in MuJoCo against
     8.6–10.8 at home, and 3 to 6 of 16 fall from some start.
   - On the flat floor they keep 6.91 of 12.25. On RNE's own Rapier backend
@@ -537,9 +543,7 @@ On the terrain, from 16 held-out starts per policy:
   - MuJoCo-trained policies lose little in RNE: 7.30 against 8.36 on the
     default terrain.
   - The evolution-strategies walks, at a tenth of the speed, carried over
-    both ways. What the faster RNE walks rely on that MuJoCo does not give
-    them is not yet diagnosed, so RNE's higher scores below are scores in
-    RNE only.
+    both ways. RNE's higher scores below are scores in RNE.
 - **Learning against MuJoCo, per seed.**
   - In wall time RNE reached fitness 1 sooner on 16 seeds of 16 in four of
     the five configurations, and on 15 in the fifth (rougher terrain,
@@ -568,6 +572,77 @@ The summaries
 [rougher blind](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-s48-starts-ppo.json),
 [rougher scan](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-s48-starts-scan-ppo.json))
 hold every run and every evaluation, with an `.svg` figure each.
+
+## Tracing a walk
+
+To find where the engines part on a walk, each can record one:
+
+- `--evaluate POLICY --trace TRACE.json` (locomotion and Rapier backends)
+  and `mujoco_go2_learning.py evaluate POLICY --trace TRACE.json` walk the
+  policy once and record, before every control period, settling included:
+  the base's position, orientation and world-frame velocities, the joints'
+  positions and velocities, and the targets then applied. MuJoCo's trace
+  also holds every floor contact after each period: body, geom type,
+  penetration, normal and normal force.
+- `mujoco_go2_learning.py evaluate --substeps N --solref SECONDS` walks a
+  policy with N MuJoCo steps to each of RNE's and with a contact time
+  constant other than MuJoCo's 0.02 s: diagnostics, not the comparison's
+  settings.
+- `mujoco_go2_learning.py replay TRACE.json REPLAY.json` puts MuJoCo in each
+  of an RNE trace's states, steps one control period with RNE's targets, and
+  records the difference from RNE's next state and the normal force on each
+  body touching the floor.
+- On the locomotion backend, `--evaluate` also reports each link's share of
+  the ground's normal impulse (`contact_load`), settling included.
+
+The `go2-trace` workflow runs all three for every seed of the PPO
+comparison runs, on the flat floor and on the default terrain. It also walks
+every policy in MuJoCo with five physics steps to each of RNE's, and with
+those and a 4 ms contact time constant.
+
+### Why RNE's PPO walks stall in MuJoCo
+
+On the terrain, an RNE-trained PPO walk in MuJoCo takes a few strides and
+then stands still for the rest of the episode, still stepping. Run
+42802068449 shows why:
+
+- **A foot is buried in the height field.**
+  - MuJoCo's contacts are soft: at its default 20 ms time constant and RNE's
+    5 ms step, a foot lands up to a few centimetres deep.
+  - RNE-trained walks swing their feet fast and land them hard. Their
+    deepest foot penetrates a median 23.7 mm each control period, more than
+    the foot's 22 mm radius. MuJoCo-trained walks' deepest foot penetrates
+    3.7 mm.
+  - Buried in the height field, the foot sphere meets the sides of its cell
+    prisms. In 65% of the RNE-trained walks' periods a contact of over 100 N
+    has a normal within 30° of horizontal, against 5% for MuJoCo-trained
+    walks.
+  - The sides then clamp the foot: one front leg carries 1,000–2,000 N,
+    six to twelve times the robot's weight, while the base does not move.
+- **Stiffer contacts free it.** From the origin, the median fitness of each
+  set of 16 policies in MuJoCo:
+
+  | Floor | Trained in | MuJoCo as configured | 1 ms steps | 1 ms steps, 4 ms time constant | In RNE |
+  | --- | --- | ---: | ---: | ---: | ---: |
+  | default terrain | RNE | 0.49 | 0.48 | 8.15 | 10.28 |
+  | default terrain | MuJoCo | 8.01 | 9.03 | 8.33 | 7.91 |
+  | flat | RNE | 6.91 | 9.40 | 9.35 | 12.25 |
+  | flat | MuJoCo | 10.73 | 11.34 | 10.11 | 9.83 |
+
+  - With stiffer contacts, all 16 RNE-trained terrain policies score higher
+    in MuJoCo (p 3e-5), and none falls.
+  - Finer steps alone do not help on the terrain. The foot still sinks, and
+    the time constant sets how far.
+  - MuJoCo-trained policies score about the same either way: they learned
+    footfalls that do not bury the foot.
+- **On the flat floor** a plane has no sides to clamp a foot, but stiffer or
+  finer-stepped contacts still lift the RNE-trained walks from 6.91 to 9.4,
+  better on 13 seeds of 16 (p 0.021).
+
+So most of the transfer loss is MuJoCo's soft contact model at these
+settings, not something RNE's walks exploit in RNE. Some loss remains: on the
+flat floor RNE-trained walks score 9.4 in stiffer MuJoCo against 12.25 at
+home. The comparison itself keeps MuJoCo's defaults.
 
 ## Speed
 
@@ -635,8 +710,11 @@ episodes (medians of three runs):
 - Two learners, evolution strategies and PPO, each with one set of
   hyperparameters. Neither used the height scan, on terrains a blind robot
   walks without falling.
-- RNE's PPO walks lose most of their fitness in MuJoCo
-  ([Learning with PPO](#learning-with-ppo)), for a reason not yet found.
+- RNE's PPO walks lose most of their fitness in MuJoCo, mostly to its soft
+  contacts at the comparison's settings
+  ([Why RNE's PPO walks stall in MuJoCo](#why-rnes-ppo-walks-stall-in-mujoco)).
+  Neither engine's contact model has been checked against a real Go2's
+  footfalls.
   The policies make no claim about transfer to hardware.
 - MuJoCo's episode loop and policy run in Python, one call per 20 ms control
   period; RNE's run in Rust.
