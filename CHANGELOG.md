@@ -546,6 +546,24 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `examples/147_go2_learning`'s terrain can have gaps: `--gap-depth`
+  cuts trenches across it, 0.25-0.35 m wide (`--gap-width`) after 0.8-1.6 m
+  of floor (`--gap-spacing`). `--terrain-cell` sets the height field's
+  spacing. Random and held-out starts skip points near a gap; without gaps
+  they are the same points. `mujoco_go2_learning.py` draws the same starts
+  from the gaps `--write-terrain` lists. The comparison workflow gains
+  `terrain_cell`, `gap_depth`, `iterations` and `train_mujoco` inputs.
+  Over sixteen seeds of PPO on a flat terrain with 30 cm deep gaps, the
+  height scan made a difference for the first time:
+  - The scan policies reached fitness 1 in a median 230 iterations against
+    the blind policies' 547 (15 seeds of 16, p 0.0005).
+  - They fell from 7 of 256 held-out starts in RNE against 62, and from 28
+    against 71 in MuJoCo (13 seeds of 16 fewer, p 0.0018).
+  - The final fitness did not differ (1.12 against 1.22 in RNE): both
+    shuffle about 1.3 m in 5 s.
+
+  Runs without the new flags are unchanged.
+
 - `examples/147_go2_learning` records walks to find where RNE and MuJoCo
   part: `--evaluate --trace` and `mujoco_go2_learning.py evaluate --trace`
   write every control period's state and targets, `mujoco_go2_learning.py

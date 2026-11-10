@@ -23,6 +23,7 @@ cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate POL
 cargo run --release -p go2_learning --example 147_go2_learning -- --train --seed 2026 \
   --backend locomotion --learner ppo   # PPO in place of evolution strategies; ...-locomotion-ppo-2026.json
 #   --iterations 400 --envs 16 --hidden 64 are PPO's defaults; --terrain-size 48 widens the terrain (default 24 m)
+#   --terrain-amplitude 0 --terrain-cell 0.05 --gap-depth 0.3 makes a flat terrain with gaps across it
 cargo run --release -p go2_learning --example 147_go2_learning -- --evaluate POLICY.json \
   --backend locomotion --trace TRACE.json   # every control period's state and targets; --trace-start X,Y
 python3 examples/147_go2_learning/mujoco_go2_learning.py evaluate POLICY.json --trace TRACE.json
@@ -573,6 +574,70 @@ The summaries
 [rougher scan](../../docs/media/go2-learning-compare-terrain-f1.0-a0.08-s48-starts-scan-ppo.json))
 hold every run and every evaluation, with an `.svg` figure each.
 
+## Gaps
+
+PPO's blind and scan policies scored the same on the rolling terrains, and
+blind policies almost never fell there: walking those terrains does not
+require sight. A terrain with gaps does.
+
+- **The terrain** (`--terrain-amplitude 0 --terrain-cell 0.05 --gap-depth
+  0.3`):
+  - A flat 48 m floor, sampled every 5 cm.
+  - Trenches 30 cm deep run its whole width in y, across the walking
+    direction.
+  - Each is 0.25-0.35 m wide (`--gap-width`), after 0.8-1.6 m of floor
+    (`--gap-spacing`), drawn from a SplitMix64 stream of the terrain seed.
+  - There are none within 0.45 m of the origin or 1 m of the edge.
+  - The walls slope across one 5 cm cell.
+- **Starts** skip any point within 0.45 m of a gap, so the robot settles
+  with all four feet on the floor.
+  - They are drawn from the same stream as before; without gaps they are
+    the same points.
+  - `--write-terrain` lists the gaps, and `mujoco_go2_learning.py` draws the
+    same starts from that list, bit-identical to RNE's.
+- **Policies that never saw a gap fall into them.** PPO policies from the
+  default terrain, walked here from 16 held-out starts, score 0.0-1.1 and
+  fall from 3 to 16 of the starts, blind or not.
+
+Sixteen seeds each, PPO for 800 iterations, trained in RNE alone (the
+workflow's `train_mujoco: false`; MuJoCo would take the job past its time
+limit). Each policy was walked from 16 held-out starts; median and quartiles
+of the 16 policies:
+
+| | Blind | With the scan | Per seed |
+| --- | ---: | ---: | --- |
+| Fitness in RNE | 1.22 (0.71-1.31) | 1.12 (0.92-1.32) | scan higher on 9 of 16 (p 0.80) |
+| Falls in RNE, of 256 | 62 | 7 | scan fewer on 7, more on 2 (p 0.18) |
+| Fitness in MuJoCo | 0.63 (0.22-0.77) | 0.79 (0.55-0.96) | scan higher on 9 of 16 (p 0.80) |
+| Falls in MuJoCo, of 256 | 71 | 28 | scan fewer on 13, more on 1 (p 0.0018) |
+| Iterations to fitness 1 | 547 (476-632) | 230 (187-278) | scan sooner on 15 of 16 (p 0.0005) |
+| Iterations to fitness 2 | 647 (510-768), 3 never | 305 (217-415) | scan sooner on 13 of 16 (p 0.021) |
+
+- **Sight makes the gaps learnable sooner.**
+  - The scan policies reached fitness 1 in a median 230 iterations, against
+    the blind policies' 547.
+  - With 400 iterations, the default, two blind development runs never got
+    past standing still (0.25 from held-out starts); the scan runs walked
+    (0.82, 0.93).
+- **And it makes the walks safer.**
+  - In RNE, 11 of 16 blind policies fall from at least one start, against 6
+    with the scan. Four blind policies fall from 8-15 of their 16.
+  - In MuJoCo, every blind policy falls from at least one start.
+- **It does not make them go farther.** After 800 iterations both kinds
+  cover about 1.3-1.4 m in 5 s, crossing a gap or two. That is a careful
+  shuffle, against the 11 m the same learner walks on the rolling terrain.
+  The final fitness does not differ.
+- **Limits.**
+  - One gap layout, and PPO's settings from the rolling terrain.
+  - The scan's 0.2 m spacing along x is no finer than the narrowest gap.
+  - The logged deterministic episodes, one start an iteration, are noisy:
+    the scan runs peak and then fall back.
+
+The summaries
+([blind](../../docs/media/go2-learning-compare-gaps-starts-ppo.json),
+[scan](../../docs/media/go2-learning-compare-gaps-starts-scan-ppo.json))
+hold every run and every evaluation, with an `.svg` figure each.
+
 ## Tracing a walk
 
 To find where the engines part on a walk, each can record one:
@@ -708,8 +773,9 @@ episodes (medians of three runs):
   The only randomization is the random starts. Sixteen seeds side by side
   with MuJoCo, three in the development container.
 - Two learners, evolution strategies and PPO, each with one set of
-  hyperparameters. Neither used the height scan, on terrains a blind robot
-  walks without falling.
+  hyperparameters. Neither used the height scan on terrains a blind robot
+  walks without falling. On gaps, PPO with the scan learned sooner and fell
+  less, but did not walk farther ([Gaps](#gaps)).
 - RNE's PPO walks lose most of their fitness in MuJoCo, mostly to its soft
   contacts at the comparison's settings
   ([Why RNE's PPO walks stall in MuJoCo](#why-rnes-ppo-walks-stall-in-mujoco)).
