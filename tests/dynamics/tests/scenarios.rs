@@ -447,7 +447,7 @@ fn pendulum_energy_drift_bounded_over_long_horizon() {
         .map(|e| ((e - e0) / e0).abs())
         .fold(0.0_f64, f64::max);
     assert!(
-        max_drift < ENERGY_DRIFT_MAX_REL,
+        max_drift <= ENERGY_DRIFT_MAX_REL,
         "energy drift {max_drift:.4} exceeds bound over {ENERGY_TRACK_DURATION_S} s"
     );
 }
