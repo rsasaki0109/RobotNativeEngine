@@ -51,6 +51,9 @@ pub(crate) struct Config {
     /// Hidden units of the policy, and of each of the critic's two layers.
     pub(crate) hidden: usize,
     pub(crate) learning_rate: f64,
+    /// Lower the learning rate linearly to zero over the run
+    /// (`--anneal-learning-rate`), rather than hold it.
+    pub(crate) anneal_learning_rate: bool,
     pub(crate) epochs: usize,
     pub(crate) minibatches: usize,
     pub(crate) clip: f64,
@@ -73,6 +76,7 @@ impl Default for Config {
             envs: 16,
             hidden: 64,
             learning_rate: 3e-4,
+            anneal_learning_rate: false,
             epochs: 5,
             minibatches: 4,
             clip: 0.2,
@@ -88,12 +92,25 @@ impl Default for Config {
 
 impl Config {
     pub(crate) fn to_json(self) -> Value {
-        json!({"learner": "ppo", "iterations": self.iterations, "envs": self.envs,
+        let mut value = json!({"learner": "ppo", "iterations": self.iterations, "envs": self.envs,
                "hidden": self.hidden, "learning_rate": self.learning_rate,
                "epochs": self.epochs, "minibatches": self.minibatches, "clip": self.clip,
                "gamma": self.gamma, "lambda": self.lambda, "initial_std": self.initial_std,
                "max_grad_norm": self.max_grad_norm, "seed": self.seed,
-               "checkpoint_every": self.checkpoint_every})
+               "checkpoint_every": self.checkpoint_every});
+        if self.anneal_learning_rate {
+            value["anneal_learning_rate"] = json!(true);
+        }
+        value
+    }
+
+    /// The learning rate of the update after iteration `iteration`.
+    fn learning_rate_at(self, iteration: usize) -> f64 {
+        if self.anneal_learning_rate {
+            self.learning_rate * (1.0 - iteration as f64 / self.iterations as f64)
+        } else {
+            self.learning_rate
+        }
     }
 }
 
@@ -604,6 +621,7 @@ fn update(
     iteration: usize,
     config: Config,
 ) {
+    let learning_rate = config.learning_rate_at(iteration);
     // Generalized advantages and returns, per trajectory.
     let mut samples: Vec<Sample> = Vec::new();
     for t in trajectories {
@@ -722,19 +740,14 @@ fn update(
             actor_adam.step(
                 &mut actor.params,
                 &actor_grad,
-                config.learning_rate,
+                learning_rate,
                 config.max_grad_norm,
             );
-            std_adam.step(
-                log_std,
-                &std_grad,
-                config.learning_rate,
-                config.max_grad_norm,
-            );
+            std_adam.step(log_std, &std_grad, learning_rate, config.max_grad_norm);
             critic_adam.step(
                 &mut critic.params,
                 &critic_grad,
-                config.learning_rate,
+                learning_rate,
                 config.max_grad_norm,
             );
         }
