@@ -546,6 +546,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 148 trains Stable-Baselines3 PPO on example 147's gaps.
+  `train_ppo.py` trains in stages, either on the task's gaps throughout or
+  on a curriculum of gap widths from narrow to the task's 25–35 cm. After
+  each stage it walks the policy once in 64 held-out environments and
+  records the return, the distance, the gaps reached and crossed, and the
+  falls. It normalizes observations and rewards and takes PPO's settings as
+  flags. `Go2LearningBatch` gains a `gap_width` range and `gap_intervals()`.
+  The `Go2 SB3 PPO` workflow trains a flat-floor job and blind and
+  height-scan jobs on gaps, with and without the curriculum, in CI.
+
 - `rne_py_locomotion`, a new Python extension, runs
   `rne_locomotion::go2_learning` from Python: `Go2LearningBatch` is a native
   parallel batch of example 147's Go2 walking task, on a flat floor or a

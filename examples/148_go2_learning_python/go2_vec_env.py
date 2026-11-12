@@ -30,6 +30,7 @@ class NativeGo2VecEnv(VecEnv):
     """Vectorized Go2 walking environments over one Rust batch call."""
 
     def __init__(self, n_envs=8, seed=1, threads=0, **task):
+        self._seed, self._threads = seed, threads
         self._batch = rne_py_locomotion.Go2LearningBatch(n_envs, seed, threads, **task)
         self.task_spec = json.loads(
             self._batch.task_spec_json()
@@ -69,6 +70,18 @@ class NativeGo2VecEnv(VecEnv):
     def base_positions(self):
         """Each environment's base position (x, y, z), Z-up, in meters."""
         return np.asarray(self._batch.base_positions())
+
+    def gap_intervals(self):
+        """The gaps across the floor, (start, end) along x, in meters."""
+        return [tuple(gap) for gap in self._batch.gap_intervals()]
+
+    def set_task(self, **task):
+        """Rebuilds the batch on a new task with the same environments, seed
+        and spaces (a curriculum stage). Call `reset` before stepping."""
+        batch = rne_py_locomotion.Go2LearningBatch(self.num_envs, self._seed, self._threads, **task)
+        if batch.observation_dim != self._batch.observation_dim:
+            raise ValueError("a new task must keep the observation width")
+        self._batch = batch
 
     def close(self):
         return None
