@@ -6,160 +6,17 @@ use rne_math::{Quat, Vec3};
 use serde_json::{json, Value};
 
 use crate::Result;
+use rne_locomotion::go2_learning::{has_fallen, period_reward, RewardState};
 
-/// Actuated joints' child links, in action order (unitree_rl_gym's).
-pub(crate) const LINKS: [&str; 12] = [
-    "FL_hip", "FL_thigh", "FL_calf", "FR_hip", "FR_thigh", "FR_calf", "RL_hip", "RL_thigh",
-    "RL_calf", "RR_hip", "RR_thigh", "RR_calf",
-];
-/// unitree_rl_gym's Go2 default joint angles.
-pub(crate) const DEFAULT_RAD: [f64; 12] = [
-    0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5,
-];
-/// unitree_rl_gym's Go2 PD gains.
-pub(crate) const KP_NM_PER_RAD: f64 = 20.0;
-pub(crate) const KD_NM_S_PER_RAD: f64 = 0.5;
-/// Physics step and steps per control period (50 Hz control).
-pub(crate) const DT_S: f64 = 0.005;
-pub(crate) const DECIMATION: usize = 4;
-pub(crate) const CONTROL_DT_S: f64 = DT_S * DECIMATION as f64;
-/// Control periods the robot stands on its default pose before an episode,
-/// after it starts in that pose, at rest, with its base this high.
-pub(crate) const SETTLE_STEPS: usize = 50;
-pub(crate) const SPAWN_HEIGHT_M: f64 = 0.36;
-/// Control periods in an episode (5 s).
-pub(crate) const EPISODE_STEPS: usize = 250;
-/// Period of the gait clock the policy observes.
-pub(crate) const GAIT_PERIOD_S: f64 = 0.5;
-/// Largest target offset from the default pose.
-pub(crate) const ACTION_SCALE_RAD: f64 = 0.5;
-/// The robot has fallen when its base is this low, or tilted more than 60°.
-pub(crate) const FALL_HEIGHT_M: f64 = 0.10;
-pub(crate) const FALL_GRAVITY_Z: f64 = -0.5;
-/// Proprioceptive observation width: angular velocity, gravity, joint
-/// positions and velocities, previous action, gait clock.
-pub(crate) const PROPRIOCEPTION: usize = 3 + 3 + 12 + 12 + 12 + 2;
-/// Height scan (`--height-scan`): vertical rays at these offsets from the
-/// base, forward and to the left in its heading frame (roll and pitch
-/// ignored), x outer and y inner, appended to the proprioception.
-pub(crate) const HEIGHT_SCAN_X_M: [f64; 5] = [-0.2, 0.0, 0.2, 0.4, 0.6];
-pub(crate) const HEIGHT_SCAN_Y_M: [f64; 3] = [-0.15, 0.0, 0.15];
-pub(crate) const HEIGHT_SCAN_POINTS: usize = HEIGHT_SCAN_X_M.len() * HEIGHT_SCAN_Y_M.len();
-/// Each reading is the base's height above the ray's hit, less this nominal
-/// stance height, times this gain, clipped to [-1, 1]: 0 under a standing
-/// robot on level ground, about ±0.1 over the terrain's 2 cm bumps.
-pub(crate) const HEIGHT_SCAN_NOMINAL_M: f64 = 0.3;
-pub(crate) const HEIGHT_SCAN_GAIN_PER_M: f64 = 5.0;
-/// Random starts (`--random-starts`): every generation's episodes start at a
-/// point drawn uniformly from this box on the terrain, so a policy cannot
-/// learn one path by heart; it leaves room to walk 10 m forward and 4 m
-/// sideways before the terrain's 12 m edge.
-pub(crate) const START_X_RANGE_M: [f64; 2] = [-8.0, 2.0];
-pub(crate) const START_Y_RANGE_M: [f64; 2] = [-8.0, 8.0];
-/// Mixed into the ES seed for the training starts' stream, and the seed of
-/// the held-out evaluation starts (`--evaluate --starts N`).
-pub(crate) const START_STREAM: u64 = 0x5354_4152_5453_0147;
-pub(crate) const EVALUATION_STARTS_SEED: u64 = 0x4556_414C_0147;
-/// Fitness weights: per metre sideways, per radian of heading, per fall and
-/// on the mean squared action change per step.
-pub(crate) const LATERAL_PENALTY: f64 = 0.5;
-pub(crate) const HEADING_PENALTY: f64 = 0.5;
-pub(crate) const FALL_PENALTY: f64 = 1.0;
-pub(crate) const SMOOTHNESS_PENALTY: f64 = 0.02;
-/// Rough terrain (`--terrain SEED`): fractal heights over a square this wide,
-/// sampled every 10 cm, with `rne_locomotion`'s episode relief (0.5 cycles
-/// per metre, 4 cm peak first octave), shifted to height zero at the origin.
-pub(crate) const TERRAIN_SIZE_M: f64 = 24.0;
-pub(crate) const TERRAIN_SAMPLES: u32 = 241;
-pub(crate) const TERRAIN_FREQUENCY_PER_M: f64 = 0.5;
-pub(crate) const TERRAIN_AMPLITUDE_M: f64 = 0.04;
-/// Mixed into the terrain seed for the gaps' stream.
-pub(crate) const GAP_STREAM: u64 = 0x4741_5053_0147;
-/// How far from a gap's edge a start (and the origin) stays: farther than
-/// a foot reaches from the base, plus a cell of the height field.
-pub(crate) const START_GAP_CLEARANCE_M: f64 = 0.45;
-
-/// Trenches across the terrain (`--gap-depth`, `--gap-width`,
-/// `--gap-spacing`): each runs the terrain's whole width in y, at a random
-/// width, after a random run of floor along x. A depth of zero, the default,
-/// leaves the terrain without gaps.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct Gaps {
-    pub(crate) depth_m: f64,
-    pub(crate) width_m: [f64; 2],
-    pub(crate) spacing_m: [f64; 2],
-}
-
-impl Default for Gaps {
-    fn default() -> Self {
-        Self {
-            depth_m: 0.0,
-            width_m: [0.25, 0.35],
-            spacing_m: [0.8, 1.6],
-        }
-    }
-}
-
-/// The terrain's first-octave frequency and amplitude
-/// (`--terrain-frequency`, `--terrain-amplitude`) and its side
-/// (`--terrain-size`, sampled every 10 cm); the defaults are
-/// [`TERRAIN_FREQUENCY_PER_M`], [`TERRAIN_AMPLITUDE_M`] and
-/// [`TERRAIN_SIZE_M`].
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct Relief {
-    pub(crate) frequency_per_m: f64,
-    pub(crate) amplitude_m: f64,
-    pub(crate) size_m: f64,
-    /// The height field's sample spacing (`--terrain-cell`), 10 cm by default.
-    pub(crate) cell_m: f64,
-    pub(crate) gaps: Gaps,
-}
-
-impl Default for Relief {
-    fn default() -> Self {
-        Self {
-            frequency_per_m: TERRAIN_FREQUENCY_PER_M,
-            amplitude_m: TERRAIN_AMPLITUDE_M,
-            size_m: TERRAIN_SIZE_M,
-            cell_m: TERRAIN_SIZE_M / f64::from(TERRAIN_SAMPLES - 1),
-            gaps: Gaps::default(),
-        }
-    }
-}
-
-impl Relief {
-    /// Samples along each side: one every `cell_m`, 241 for the default 24 m
-    /// at 10 cm.
-    pub(crate) fn samples(self) -> u32 {
-        (self.size_m / self.cell_m).round() as u32 + 1
-    }
-}
-
-/// The gaps of the terrain of `seed`, as `[start, end]` along x in metres,
-/// west to east: none within [`START_GAP_CLEARANCE_M`] of the origin or
-/// within [`ARENA_EDGE_MARGIN_M`] of the terrain's edge.
-pub(crate) fn gap_intervals(seed: u64, relief: Relief) -> Vec<[f64; 2]> {
-    let gaps = relief.gaps;
-    if gaps.depth_m <= 0.0 {
-        return Vec::new();
-    }
-    let mut stream = crate::es::Normal(seed ^ GAP_STREAM);
-    let lerp = |[low, high]: [f64; 2], t: f64| low + (high - low) * t;
-    let half = 0.5 * relief.size_m;
-    let mut x = -half + ARENA_EDGE_MARGIN_M;
-    let mut intervals = Vec::new();
-    loop {
-        x += lerp(gaps.spacing_m, stream.uniform());
-        let width = lerp(gaps.width_m, stream.uniform());
-        if x + width > half - ARENA_EDGE_MARGIN_M {
-            return intervals;
-        }
-        if x + width < -START_GAP_CLEARANCE_M || x > START_GAP_CLEARANCE_M {
-            intervals.push([x, x + width]);
-        }
-        x += width;
-    }
-}
+/// Example 147's task lives in `rne_locomotion::go2_learning`: its
+/// constants, terrains, starts and height scan are the library's.
+pub(crate) use rne_locomotion::go2_learning::{
+    evaluation_starts, gap_intervals, height_scan, terrain, terrain_height_m, training_starts, yaw,
+    Relief, ACTION_SCALE_RAD, CONTROL_DT_S, DECIMATION, DEFAULT_RAD, DT_S, EPISODE_STEPS,
+    FALL_PENALTY, HEADING_PENALTY, HEIGHT_SCAN_GAIN_PER_M, HEIGHT_SCAN_NOMINAL_M,
+    HEIGHT_SCAN_POINTS, HEIGHT_SCAN_X_M, HEIGHT_SCAN_Y_M, KD_NM_S_PER_RAD, KP_NM_PER_RAD,
+    LATERAL_PENALTY, LINKS, PROPRIOCEPTION, SETTLE_STEPS, SMOOTHNESS_PENALTY, SPAWN_HEIGHT_M,
+};
 
 /// A report's plant. The terrain's sample spacing and gaps appear only when
 /// they differ from the defaults, so reports without them read as before.
@@ -285,39 +142,6 @@ impl Task {
     }
 }
 
-/// `count` start points uniform in the start box, from SplitMix64 `seed`,
-/// skipping any within [`START_GAP_CLEARANCE_M`] of a gap: without gaps,
-/// the stream's first `2 count` uniforms.
-fn start_points(seed: u64, count: usize, gaps: &[[f64; 2]]) -> Vec<[f64; 2]> {
-    let mut stream = crate::es::Normal(seed);
-    let lerp = |[low, high]: [f64; 2], t: f64| low + (high - low) * t;
-    let clear = |x: f64| {
-        gaps.iter().all(|[start, end]| {
-            x < start - START_GAP_CLEARANCE_M || x > end + START_GAP_CLEARANCE_M
-        })
-    };
-    let mut points = Vec::with_capacity(count);
-    while points.len() < count {
-        let (u, v) = (stream.uniform(), stream.uniform());
-        let point = [lerp(START_X_RANGE_M, u), lerp(START_Y_RANGE_M, v)];
-        if clear(point[0]) {
-            points.push(point);
-        }
-    }
-    points
-}
-
-/// Each generation's start for ES seed `seed`, generation 0 first, clear of
-/// `gaps`.
-pub(crate) fn training_starts(seed: u64, generations: usize, gaps: &[[f64; 2]]) -> Vec<[f64; 2]> {
-    start_points(seed ^ START_STREAM, generations + 1, gaps)
-}
-
-/// The held-out starts every policy is evaluated from, clear of `gaps`.
-pub(crate) fn evaluation_starts(count: usize, gaps: &[[f64; 2]]) -> Vec<[f64; 2]> {
-    start_points(EVALUATION_STARTS_SEED, count, gaps)
-}
-
 /// What an episode needs of a simulated Go2, in the Z-up world.
 pub(crate) trait Robot {
     /// Back to the start: default pose and targets, at rest, base at
@@ -356,10 +180,6 @@ pub(crate) trait Robot {
         None
     }
 }
-
-/// How far inside the floor's edge the arena ends, in meters: farther than a
-/// foot reaches from the base, or the base moves in a control period.
-pub(crate) const ARENA_EDGE_MARGIN_M: f64 = 1.0;
 
 /// The Go2 on Rapier.
 pub(crate) struct RapierGo2(PdJointWalker);
@@ -469,57 +289,6 @@ pub(crate) fn settle(robot: &mut dyn Robot, start: [f64; 2]) -> Result<()> {
     Ok(())
 }
 
-/// The rough terrain for `seed`: a Y-up height field, zero at the origin.
-pub(crate) fn terrain(seed: u64, relief: Relief) -> Result<rne_physics::ColliderShape> {
-    let spec = rne_physics::FractalTerrain {
-        size_x_m: relief.size_m,
-        size_z_m: relief.size_m,
-        columns: relief.samples(),
-        rows: relief.samples(),
-        frequency_per_m: relief.frequency_per_m,
-        amplitude_m: relief.amplitude_m,
-        ..rne_physics::FractalTerrain::default()
-    };
-    let raw = spec.height_field(seed)?;
-    let origin = rne_physics::height_field_surface(&raw, 0.0, 0.0)
-        .ok_or("the terrain does not cover the origin")?
-        .height_m;
-    let shifted = rne_physics::FractalTerrain {
-        height_offset_m: -origin,
-        ..spec
-    };
-    let gaps = gap_intervals(seed, relief);
-    if gaps.is_empty() {
-        return Ok(shifted.height_field(seed)?);
-    }
-    // Lower every column of samples whose x lies in a gap: the floor between
-    // a gap's last sample and the next sample outside it slopes across one
-    // cell.
-    let mut heights = shifted.heights_m(seed)?;
-    let columns = spec.columns as usize;
-    let dx = spec.size_x_m / (columns - 1) as f64;
-    for column in 0..columns {
-        let x = -0.5 * spec.size_x_m + column as f64 * dx;
-        if gaps.iter().any(|[start, end]| x >= *start && x <= *end) {
-            for row in 0..spec.rows as usize {
-                heights[row * columns + column] -= relief.gaps.depth_m;
-            }
-        }
-    }
-    Ok(rne_physics::ColliderShape::HeightField {
-        nrows: spec.rows,
-        ncols: spec.columns,
-        heights_m: std::sync::Arc::from(heights),
-        scale: Vec3::new(spec.size_x_m, 1.0, spec.size_z_m),
-    })
-}
-
-/// Height of the Y-up `terrain` below Z-up `(x, y)`, in meters.
-pub(crate) fn terrain_height_m(terrain: &rne_physics::ColliderShape, x_m: f64, y_m: f64) -> f64 {
-    // Z-up (x, y) is Y-up (x, -z).
-    rne_physics::height_field_surface(terrain, x_m, -y_m).map_or(f64::NEG_INFINITY, |s| s.height_m)
-}
-
 /// The terrain for `seed` in the Z-up frame MuJoCo's height field uses:
 /// row `r` at `y = -size/2 + r size/(rows - 1)`, column `c` at
 /// `x = -size/2 + c size/(columns - 1)`, and the heights at a few probe
@@ -583,35 +352,6 @@ pub(crate) fn terrain_json(seed: u64, relief: Relief) -> Result<Value> {
     }))
 }
 
-/// Heading about +z of a Z-up orientation.
-pub(crate) fn yaw(rotation: Quat) -> f64 {
-    let Quat { x, y, z, w } = rotation;
-    (2.0 * (w * z + x * y)).atan2(1.0 - 2.0 * (y * y + z * z))
-}
-
-/// The height scan's readings around a base at `position` facing `heading`,
-/// where `ground` gives the terrain height below a point.
-pub(crate) fn height_scan(
-    position: Vec3,
-    heading_rad: f64,
-    ground: impl Fn(f64, f64) -> f64,
-) -> [f64; HEIGHT_SCAN_POINTS] {
-    let (sin, cos) = heading_rad.sin_cos();
-    let mut readings = [0.0; HEIGHT_SCAN_POINTS];
-    for (row, x) in HEIGHT_SCAN_X_M.iter().enumerate() {
-        for (column, y) in HEIGHT_SCAN_Y_M.iter().enumerate() {
-            let hit = ground(
-                position.x + cos * x - sin * y,
-                position.y + sin * x + cos * y,
-            );
-            readings[row * HEIGHT_SCAN_Y_M.len() + column] =
-                ((position.z - hit - HEIGHT_SCAN_NOMINAL_M) * HEIGHT_SCAN_GAIN_PER_M)
-                    .clamp(-1.0, 1.0);
-        }
-    }
-    readings
-}
-
 /// The policy's observation of `robot` at control step `step` of an
 /// episode, after the previous `action`.
 pub(crate) fn observe(
@@ -622,27 +362,17 @@ pub(crate) fn observe(
 ) -> Result<Vec<f64>> {
     let (position, rotation) = robot.base_pose_z_up();
     let (_, spin_world) = robot.base_velocity_z_up();
-    let inverse = rotation.inverse();
-    let spin = inverse * spin_world;
-    let gravity = inverse * Vec3::new(0.0, 0.0, -1.0);
-    let joints = robot.joint_states()?;
-    let mut observation = vec![0.0; task.observations()];
-    observation[..3].copy_from_slice(&[spin.x * 0.25, spin.y * 0.25, spin.z * 0.25]);
-    observation[3..6].copy_from_slice(&[gravity.x, gravity.y, gravity.z]);
-    for (index, (position, velocity)) in joints.iter().enumerate() {
-        observation[6 + index] = position - DEFAULT_RAD[index];
-        observation[18 + index] = velocity * 0.05;
-    }
-    observation[30..42].copy_from_slice(action);
-    let phase = (step as f64 * CONTROL_DT_S % GAIT_PERIOD_S) / GAIT_PERIOD_S;
-    let angle = std::f64::consts::TAU * phase;
-    observation[42] = angle.sin();
-    observation[43] = angle.cos();
-    if task.height_scan {
-        let readings = height_scan(position, yaw(rotation), |x, y| robot.ground_height_m(x, y));
-        observation[PROPRIOCEPTION..].copy_from_slice(&readings);
-    }
-    Ok(observation)
+    let scan = task
+        .height_scan
+        .then(|| height_scan(position, yaw(rotation), |x, y| robot.ground_height_m(x, y)));
+    Ok(rne_locomotion::go2_learning::observation(
+        rotation,
+        spin_world,
+        &robot.joint_states()?,
+        step,
+        action,
+        scan.as_ref(),
+    ))
 }
 
 /// How an episode went.
@@ -700,7 +430,10 @@ pub(crate) fn episode_with(
     let mut fell = false;
     // The previous period's position, sideways offset and heading, for the
     // per-period reward.
-    let (mut last_x, mut last_lateral, mut last_heading) = (start.x, 0.0, 0.0);
+    let mut last = RewardState {
+        x_m: start.x,
+        ..RewardState::default()
+    };
     for step in 0..EPISODE_STEPS {
         let observation = observe(robot, task, step, &action)?;
         let next = policy(&observation);
@@ -717,21 +450,11 @@ pub(crate) fn episode_with(
         robot.step()?;
         steps += 1;
         let (position, rotation) = robot.base_pose_z_up();
-        let gravity_z = (rotation.inverse() * Vec3::new(0.0, 0.0, -1.0)).z;
-        let clearance = position.z - robot.ground_height_m(position.x, position.y);
-        let arena = robot.arena_half_m();
-        let outside = position.x.abs() > arena || position.y.abs() > arena;
-        fell = clearance < FALL_HEIGHT_M || gravity_z > FALL_GRAVITY_Z || outside;
-        let (lateral, heading) = ((position.y - start.y).abs(), yaw(rotation).abs());
-        on_step(Step {
-            reward: (position.x - last_x)
-                - LATERAL_PENALTY * (lateral - last_lateral)
-                - HEADING_PENALTY * (heading - last_heading)
-                - SMOOTHNESS_PENALTY * step_change / EPISODE_STEPS as f64
-                - if fell { FALL_PENALTY } else { 0.0 },
-            fell,
-        });
-        (last_x, last_lateral, last_heading) = (position.x, lateral, heading);
+        let ground = robot.ground_height_m(position.x, position.y);
+        fell = has_fallen(position, rotation, ground, robot.arena_half_m());
+        let (reward, now) = period_reward(last, position, rotation, start.y, step_change, fell);
+        on_step(Step { reward, fell });
+        last = now;
         if fell {
             break;
         }
@@ -761,6 +484,10 @@ pub(crate) fn episode_with(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rne_locomotion::go2_learning::{
+        Gaps, ARENA_EDGE_MARGIN_M, START_GAP_CLEARANCE_M, START_X_RANGE_M, START_Y_RANGE_M,
+        TERRAIN_SIZE_M,
+    };
 
     #[test]
     fn heading_is_the_rotation_about_z() {
@@ -1029,5 +756,64 @@ mod tests {
                 assert!(episode(robot.as_mut(), Task::default(), [1.0, 0.0], still).is_err());
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod library_episode {
+    use super::*;
+    use rne_ai::Episode;
+    use rne_locomotion::go2_learning::{Floor, Go2LearningConfig, Go2LearningEpisode};
+
+    /// A fixed policy that moves: each joint follows a mix of the clock and
+    /// its own velocity.
+    fn policy(observation: &[f64]) -> [f64; 12] {
+        std::array::from_fn(|joint| {
+            (0.8 * observation[42 + joint % 2] - 0.3 * observation[18 + joint]).tanh()
+        })
+    }
+
+    #[test]
+    fn the_library_episode_is_this_examples_episode() {
+        let relief = Relief::default();
+        let plant = Plant {
+            backend: Backend::Locomotion,
+            terrain_seed: Some(7),
+            relief,
+            ..Plant::default()
+        };
+        let task = Task {
+            height_scan: true,
+            random_starts: true,
+        };
+        let start = training_starts(2026, 0, &[])[0];
+        let mut robot = robot(plant).unwrap();
+        let mut rewards = Vec::new();
+        let (outcome, last) = episode_with(robot.as_mut(), task, start, policy, |step| {
+            rewards.push(step.reward)
+        })
+        .unwrap();
+        let mut episode = Go2LearningEpisode::new(Go2LearningConfig {
+            floor: Floor::Terrain { seed: 7, relief },
+            height_scan: true,
+            random_starts: true,
+            seed: 2026,
+            ..Go2LearningConfig::default()
+        })
+        .unwrap();
+        let mut observation = episode.reset().observation;
+        let mut library_rewards = Vec::new();
+        loop {
+            let step = episode.step(policy(&observation));
+            library_rewards.push(step.reward);
+            observation = step.observation;
+            if step.terminated || step.truncated {
+                assert_eq!(step.terminated, outcome.fell);
+                break;
+            }
+        }
+        assert!(rewards.len() > 50, "{}", rewards.len());
+        assert_eq!(library_rewards, rewards);
+        assert_eq!(observation, last);
     }
 }

@@ -46,6 +46,11 @@ python3 examples/147_go2_learning/learning_compare.py SUMMARY.json FIGURE.svg \
 # Engines are rne (4 iterations), rne2x1 (2 iterations), rne1x4 (1 iteration, 4 inner passes), native, locomotion and mujoco.
 ```
 
+The task itself (the locomotion plant, terrains, starts, height scan,
+observation and reward) is `rne_locomotion::go2_learning`, so other code can
+train on it: `Go2LearningEpisode` is an `rne_ai::Episode`, and
+`rne_ai::VectorizedEpisode` steps a batch of them in parallel.
+
 ## What runs
 
 - **Robot.** The vendored Go2 URDF

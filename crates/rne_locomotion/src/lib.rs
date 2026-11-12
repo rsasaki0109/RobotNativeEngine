@@ -17,6 +17,9 @@
 //!   [`rne_ai::Episode`] with a new terrain and command each episode, so
 //!   [`rne_ai::VectorizedEpisode`] can run many of them in parallel, the
 //!   role raisimGym plays for RaiSim.
+//! - [`go2_learning`] is the Go2 walking task of example 147: the Go2 with
+//!   every URDF collision shape touching the ground, terrains with gaps, a
+//!   height scan, random starts, and [`go2_learning::Go2LearningEpisode`].
 //!
 //! # Frames
 //!
@@ -35,6 +38,7 @@
 #![deny(missing_docs)]
 
 mod episode;
+pub mod go2_learning;
 mod quadruped;
 mod sim;
 mod trot;

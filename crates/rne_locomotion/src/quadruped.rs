@@ -15,7 +15,7 @@ use thiserror::Error;
 pub(crate) const GRAVITY_M_S2: Vec3 = Vec3::new(0.0, 0.0, -9.81);
 
 /// Vendored Unitree Go2 description.
-const GO2_URDF: &str =
+pub(crate) const GO2_URDF: &str =
     include_str!("../../../assets/robots/go2_description/go2_description.rne.urdf");
 
 /// Converts a point or direction from RNE's Y-up world into the Z-up
