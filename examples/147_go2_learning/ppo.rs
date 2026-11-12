@@ -783,6 +783,25 @@ mod tests {
     }
 
     #[test]
+    fn the_annealed_learning_rate_falls_linearly_to_zero() {
+        let held = Config::default();
+        assert_eq!(held.learning_rate_at(0), held.learning_rate);
+        assert_eq!(held.learning_rate_at(399), held.learning_rate);
+        assert!(held.to_json().get("anneal_learning_rate").is_none());
+        let annealed = Config {
+            anneal_learning_rate: true,
+            ..held
+        };
+        assert_eq!(annealed.learning_rate_at(0), annealed.learning_rate);
+        assert_eq!(
+            annealed.learning_rate_at(100),
+            0.75 * annealed.learning_rate
+        );
+        assert_eq!(annealed.learning_rate_at(400), 0.0);
+        assert_eq!(annealed.to_json()["anneal_learning_rate"], true);
+    }
+
+    #[test]
     fn a_short_run_from_random_starts_trains_and_exports_a_policy() {
         let plant = Plant {
             backend: go2::Backend::Locomotion,

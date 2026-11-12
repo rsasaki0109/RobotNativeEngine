@@ -546,6 +546,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `examples/147_go2_learning`'s PPO can lower its learning rate linearly
+  to zero (`--anneal-learning-rate`). On the gap terrain it did not help,
+  and neither did 2.5 times the samples or training on narrower gaps: no
+  policy, blind or with the scan, crosses a gap. The README's Gaps section
+  now says so; it had read that the walks crossed a gap or two.
+
 - `examples/147_go2_learning`'s terrain can have gaps: `--gap-depth`
   cuts trenches across it, 0.25-0.35 m wide (`--gap-width`) after 0.8-1.6 m
   of floor (`--gap-spacing`). `--terrain-cell` sets the height field's
@@ -559,8 +565,9 @@ All notable changes to Robot Native Engine are documented in this file.
     the blind policies' 547 (15 seeds of 16, p 0.0005).
   - They fell from 7 of 256 held-out starts in RNE against 62, and from 28
     against 71 in MuJoCo (13 seeds of 16 fewer, p 0.0018).
-  - The final fitness did not differ (1.12 against 1.22 in RNE): both
-    shuffle about 1.3 m in 5 s.
+  - The final fitness did not differ (1.12 against 1.22 in RNE): no policy
+    crosses a gap. They walk up to the first one and stop; the scan stops
+    them at its edge rather than in it.
 
   Runs without the new flags are unchanged.
 
