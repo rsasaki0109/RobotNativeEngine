@@ -325,6 +325,7 @@ fn main() -> Result<()> {
             "--learner" => learner = value()?,
             "--iterations" => ppo_config.iterations = value()?.parse()?,
             "--envs" => ppo_config.envs = value()?.parse()?,
+            "--anneal-learning-rate" => ppo_config.anneal_learning_rate = true,
             "--checkpoint-every" => config.checkpoint_every = value()?.parse()?,
             other => return Err(format!("unknown option {other}").into()),
         }

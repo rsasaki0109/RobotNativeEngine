@@ -613,20 +613,37 @@ of the 16 policies:
 | Iterations to fitness 1 | 547 (476-632) | 230 (187-278) | scan sooner on 15 of 16 (p 0.0005) |
 | Iterations to fitness 2 | 647 (510-768), 3 never | 305 (217-415) | scan sooner on 13 of 16 (p 0.021) |
 
-- **Sight makes the gaps learnable sooner.**
+- **No policy crosses a gap.** In all 512 held-out episodes, blind or with
+  the scan, the base never got past a gap's far edge. The first gap lies
+  0.45-1.6 m ahead of a start; the policies walk up to it and stop. Their
+  fitness of about 1.2 is that approach.
+- **Sight teaches the stop sooner.**
   - The scan policies reached fitness 1 in a median 230 iterations, against
     the blind policies' 547.
   - With 400 iterations, the default, two blind development runs never got
     past standing still (0.25 from held-out starts); the scan runs walked
     (0.82, 0.93).
-- **And it makes the walks safer.**
+- **And it stops them at the edge rather than in the gap.**
   - In RNE, 11 of 16 blind policies fall from at least one start, against 6
     with the scan. Four blind policies fall from 8-15 of their 16.
   - In MuJoCo, every blind policy falls from at least one start.
-- **It does not make them go farther.** After 800 iterations both kinds
-  cover about 1.3-1.4 m in 5 s, crossing a gap or two. That is a careful
-  shuffle, against the 11 m the same learner walks on the rolling terrain.
-  The final fitness does not differ.
+- **It does not make them cross.** Both kinds cover about 1.3 m in 5 s,
+  against the 11 m the same learner walks on the rolling terrain, and the
+  final fitness does not differ.
+- **What did not make them cross either.** Seed 2026, from the 16 held-out
+  starts, 0 episodes of 16 past a gap in every case:
+
+  | Change | With the scan | Blind |
+  | --- | ---: | ---: |
+  | None (800 iterations of 16 episodes) | 1.12 (median of 16 seeds) | 1.22 (median of 16 seeds) |
+  | The learning rate lowered linearly to zero (`--anneal-learning-rate`) | 0.77 | 0.17 |
+  | 64 episodes an iteration, 500 iterations: 2.5 times the samples | 0.92 | 0.30 |
+  | Trained on gaps 5-35 cm wide (`--gap-width 0.05,0.35`) | 0.50 | -0.05 |
+
+  - With the learning rate lowered, the runs break out later or not at
+    all. Seed 11 gave 0.58 with the scan and 1.15 blind.
+  - On their own 5-35 cm gaps the mixed-width policies score 1.15 with the
+    scan and 0.87 blind, and still cross no gap.
 - **Limits.**
   - One gap layout, and PPO's settings from the rolling terrain.
   - The scan's 0.2 m spacing along x is no finer than the narrowest gap.
