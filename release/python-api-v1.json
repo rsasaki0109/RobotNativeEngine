@@ -44,6 +44,49 @@
       ]
     },
     {
+      "name": "Go2LearningBatch",
+      "kind": "class",
+      "text_signature": "(num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=False, random_starts=False, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0)",
+      "value": null,
+      "methods": [
+        {
+          "name": "base_positions",
+          "text_signature": "($self)"
+        },
+        {
+          "name": "reset",
+          "text_signature": "($self)"
+        },
+        {
+          "name": "step",
+          "text_signature": "($self, actions)"
+        },
+        {
+          "name": "task_spec_json",
+          "text_signature": "($self)"
+        }
+      ],
+      "properties": [
+        "episode_steps",
+        "num_envs",
+        "observation_dim"
+      ]
+    },
+    {
+      "name": "Go2LearningBatchStep",
+      "kind": "class",
+      "text_signature": null,
+      "value": null,
+      "methods": [],
+      "properties": [
+        "observations",
+        "rewards",
+        "terminal_observations",
+        "terminated",
+        "truncated"
+      ]
+    },
+    {
       "name": "IkClutterPickPlacePolicy",
       "kind": "class",
       "text_signature": "()",

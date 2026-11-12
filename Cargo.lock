@@ -4804,6 +4804,7 @@ dependencies = [
  "approx",
  "pyo3",
  "rne_ai",
+ "rne_locomotion",
  "serde_json",
  "tempfile",
 ]
