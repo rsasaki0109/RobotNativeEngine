@@ -1,0 +1,25 @@
+[package]
+name = "rne_py_locomotion"
+description = "Python bindings for rne_locomotion's learning tasks (a separate extension: rne_locomotion is not published)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[lib]
+name = "rne_py_locomotion"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3 = { workspace = true }
+rne_locomotion = { workspace = true }
+serde_json = "1"
+
+[features]
+default = []
+extension-module = ["pyo3/extension-module"]

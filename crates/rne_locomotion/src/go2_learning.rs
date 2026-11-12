@@ -20,7 +20,11 @@
 
 use std::sync::Arc;
 
-use rne_ai::{Episode, EpisodeStep};
+use rne_ai::{
+    ActionSpec, Episode, EpisodeStep, ObservationSpec, ResetSpec, RewardSpec, RewardTermSpec,
+    TaskSpec, TensorBounds, TensorDType, TensorSpec, TerminationConditionSpec, TerminationKind,
+    TerminationSpec,
+};
 use rne_math::{Quat, Vec3};
 use rne_physics::{ColliderShape, FractalTerrain};
 use rne_urdf_import::{parse_urdf, rpy_to_quat, UrdfGeometry};
@@ -964,6 +968,244 @@ impl Episode for Go2LearningEpisode {
     }
 }
 
+/// Portable task contract of [`Go2LearningEpisode`] with `config`.
+pub fn go2_learning_task_spec(config: &Go2LearningConfig) -> TaskSpec {
+    let mut observation = vec![
+        TensorSpec::new(
+            "base_angular_velocity_quarter_rad_s",
+            TensorDType::F64,
+            vec![3],
+            "rad/s",
+        ),
+        TensorSpec::new("projected_gravity", TensorDType::F64, vec![3], "1"),
+        TensorSpec::new(
+            "joint_position_offset_rad",
+            TensorDType::F64,
+            vec![12],
+            "rad",
+        ),
+        TensorSpec::new(
+            "joint_velocity_twentieth_rad_s",
+            TensorDType::F64,
+            vec![12],
+            "rad/s",
+        ),
+        TensorSpec::new("previous_action", TensorDType::F64, vec![12], "1"),
+        TensorSpec::new("gait_clock", TensorDType::F64, vec![2], "1"),
+    ];
+    if config.height_scan {
+        observation.push(
+            TensorSpec::new(
+                "height_scan",
+                TensorDType::F64,
+                vec![HEIGHT_SCAN_POINTS],
+                "1",
+            )
+            .with_bounds(TensorBounds::broadcast(-1.0, 1.0)),
+        );
+    }
+    TaskSpec::new(
+        "rne.unitree_go2.learning.v1",
+        CONTROL_DT_S,
+        ObservationSpec::new(observation),
+        ActionSpec::new(vec![TensorSpec::new(
+            "joint_action",
+            TensorDType::F64,
+            vec![12],
+            "1",
+        )
+        .with_bounds(TensorBounds::broadcast(-1.0, 1.0))]),
+        RewardSpec::weighted_sum(vec![
+            RewardTermSpec::new("forward_progress", 1.0, "m"),
+            RewardTermSpec::new("lateral_offset_growth", -LATERAL_PENALTY, "m"),
+            RewardTermSpec::new("heading_growth", -HEADING_PENALTY, "rad"),
+            RewardTermSpec::new(
+                "action_change_squared",
+                -SMOOTHNESS_PENALTY / EPISODE_STEPS as f64,
+                "1",
+            ),
+            RewardTermSpec::new("fallen", -FALL_PENALTY, "1"),
+        ]),
+        TerminationSpec::new(
+            vec![TerminationConditionSpec::new(
+                "fallen",
+                TerminationKind::Failure,
+            )],
+            Some(EPISODE_STEPS as u64),
+        ),
+        ResetSpec::splitmix64(true),
+    )
+}
+
+/// One [`Go2LearningBatch`] reset or step, in environment order.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Go2LearningBatchStep {
+    /// Each environment's observation: after a step that ended its episode,
+    /// the first observation of the next one.
+    pub observations: Vec<Vec<f64>>,
+    /// Each environment's reward for the step; zero at a reset.
+    pub rewards: Vec<f64>,
+    /// Whether the step ended the environment's episode with a fall.
+    pub terminated: Vec<bool>,
+    /// Whether the step ended it at [`EPISODE_STEPS`].
+    pub truncated: Vec<bool>,
+    /// The last observation of an episode the step ended, before the reset;
+    /// `None` where the episode goes on.
+    pub terminal_observations: Vec<Option<Vec<f64>>>,
+}
+
+/// Many [`Go2LearningEpisode`]s stepped together on worker threads, each
+/// reset as soon as its episode ends, keeping the step's reward, its end
+/// flags and the episode's last observation, as vectorized reinforcement
+/// learning expects.
+///
+/// Environment `i` draws its starts from seed `seed + i`. The environments
+/// are independent and the threads take contiguous chunks of them, so the
+/// results are the same for any thread count.
+#[derive(Debug)]
+pub struct Go2LearningBatch {
+    episodes: Vec<Go2LearningEpisode>,
+    threads: usize,
+}
+
+impl Go2LearningBatch {
+    /// `num_envs` episodes of `config`, environment `i` with seed
+    /// `seed + i`, stepped on up to `threads` threads (zero or one: the
+    /// calling thread).
+    pub fn new(
+        config: Go2LearningConfig,
+        num_envs: usize,
+        seed: u64,
+        threads: usize,
+    ) -> Result<Self, LocomotionError> {
+        if num_envs == 0 {
+            return Err(LocomotionError::InvalidInput(
+                "a batch needs an environment",
+            ));
+        }
+        let episodes = (0..num_envs)
+            .map(|index| {
+                Go2LearningEpisode::new(Go2LearningConfig {
+                    seed: seed.wrapping_add(index as u64),
+                    ..config
+                })
+            })
+            .collect::<Result<_, _>>()?;
+        Ok(Self { episodes, threads })
+    }
+
+    /// The number of environments.
+    pub fn num_envs(&self) -> usize {
+        self.episodes.len()
+    }
+
+    /// One environment's episode.
+    pub fn episode(&self, index: usize) -> &Go2LearningEpisode {
+        &self.episodes[index]
+    }
+
+    /// Resets every environment.
+    pub fn reset(&mut self) -> Go2LearningBatchStep {
+        let results = self.run(None, |episode, _| (episode.reset(), None));
+        collect(results)
+    }
+
+    /// Steps every environment with its action, resetting those whose
+    /// episode ended.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `actions` does not hold one action per environment.
+    pub fn step(&mut self, actions: &[[f64; 12]]) -> Go2LearningBatchStep {
+        assert_eq!(
+            actions.len(),
+            self.episodes.len(),
+            "one action per environment"
+        );
+        let results = self.run(Some(actions), |episode, action| {
+            let step = episode.step(*action.expect("an action per environment"));
+            if step.terminated || step.truncated {
+                let next = episode.reset();
+                let terminal = Some(step.observation);
+                (
+                    EpisodeStep {
+                        observation: next.observation,
+                        ..step_flags(step.reward, step.terminated, step.truncated)
+                    },
+                    terminal,
+                )
+            } else {
+                (step, None)
+            }
+        });
+        collect(results)
+    }
+
+    fn run<F>(&mut self, actions: Option<&[[f64; 12]]>, run: F) -> Vec<EnvResult>
+    where
+        F: Fn(&mut Go2LearningEpisode, Option<&[f64; 12]>) -> EnvResult + Sync,
+    {
+        let threads = self.threads.clamp(1, self.episodes.len());
+        let chunk = self.episodes.len().div_ceil(threads);
+        let run = &run;
+        std::thread::scope(|scope| {
+            let handles: Vec<_> = self
+                .episodes
+                .chunks_mut(chunk)
+                .enumerate()
+                .map(|(part, episodes)| {
+                    scope.spawn(move || {
+                        episodes
+                            .iter_mut()
+                            .enumerate()
+                            .map(|(offset, episode)| {
+                                let action = actions.map(|all| &all[part * chunk + offset]);
+                                run(episode, action)
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                })
+                .collect();
+            handles
+                .into_iter()
+                .flat_map(|handle| handle.join().expect("an environment thread"))
+                .collect()
+        })
+    }
+}
+
+/// One environment's step, and its episode's last observation when the
+/// step ended it.
+type EnvResult = (EpisodeStep<Vec<f64>>, Option<Vec<f64>>);
+
+/// An episode step with no observation yet.
+fn step_flags(reward: f64, terminated: bool, truncated: bool) -> EpisodeStep<Vec<f64>> {
+    EpisodeStep {
+        observation: Vec::new(),
+        reward,
+        terminated,
+        truncated,
+    }
+}
+
+fn collect(results: Vec<EnvResult>) -> Go2LearningBatchStep {
+    let mut step = Go2LearningBatchStep {
+        observations: Vec::with_capacity(results.len()),
+        rewards: Vec::with_capacity(results.len()),
+        terminated: Vec::with_capacity(results.len()),
+        truncated: Vec::with_capacity(results.len()),
+        terminal_observations: Vec::with_capacity(results.len()),
+    };
+    for (result, terminal) in results {
+        step.observations.push(result.observation);
+        step.rewards.push(result.reward);
+        step.terminated.push(result.terminated);
+        step.truncated.push(result.truncated);
+        step.terminal_observations.push(terminal);
+    }
+    step
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1084,6 +1326,65 @@ mod tests {
             assert_eq!(serial.step(&actions), parallel.step_parallel(&actions, 2));
         }
         assert_eq!(serial.replay_digest(), parallel.replay_digest());
+    }
+
+    #[test]
+    fn a_batch_resets_finished_episodes_and_keeps_their_ends() {
+        let config = Go2LearningConfig::default();
+        let mut serial = Go2LearningBatch::new(config, 3, 5, 1).unwrap();
+        let mut threaded = Go2LearningBatch::new(config, 3, 5, 3).unwrap();
+        assert_eq!(serial.reset(), threaded.reset());
+        let mut ends = 0;
+        for period in 0..EPISODE_STEPS + 5 {
+            // Environment 0 stands; 1 and 2 thrash and fall.
+            let actions: Vec<[f64; 12]> = (0..3)
+                .map(|env| {
+                    if env == 0 {
+                        [0.0; 12]
+                    } else {
+                        [if period % 2 == 0 { 1.0 } else { -1.0 }; 12]
+                    }
+                })
+                .collect();
+            let step = serial.step(&actions);
+            assert_eq!(step, threaded.step(&actions));
+            for env in 0..3 {
+                let ended = step.terminated[env] || step.truncated[env];
+                assert_eq!(ended, step.terminal_observations[env].is_some());
+                if ended {
+                    ends += 1;
+                    // The batch already holds the next episode's first state.
+                    assert_eq!(serial.episode(env).step_in_episode(), 0);
+                    assert_eq!(step.observations[env][30..42], [0.0; 12]);
+                }
+            }
+            if period + 1 == EPISODE_STEPS {
+                assert!(step.truncated[0], "{step:?}");
+            }
+        }
+        assert!(ends >= 1);
+        assert!(Go2LearningBatch::new(config, 0, 5, 1).is_err());
+    }
+
+    #[test]
+    fn the_task_spec_describes_the_observation_and_action() {
+        let blind = go2_learning_task_spec(&Go2LearningConfig::default());
+        if let Err(error) = blind.validate() {
+            panic!("{error}");
+        }
+        let width = |spec: &TaskSpec| {
+            spec.observation
+                .tensors
+                .iter()
+                .map(|tensor| tensor.shape.iter().product::<usize>())
+                .sum::<usize>()
+        };
+        assert_eq!(width(&blind), PROPRIOCEPTION);
+        let scan = go2_learning_task_spec(&Go2LearningConfig {
+            height_scan: true,
+            ..Go2LearningConfig::default()
+        });
+        assert_eq!(width(&scan), PROPRIOCEPTION + HEIGHT_SCAN_POINTS);
     }
 
     #[test]

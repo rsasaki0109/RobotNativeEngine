@@ -35,6 +35,7 @@ members = [
   "crates/rne_assets",
   "crates/rne_collision_bake",
   "crates/rne_py",
+  "crates/rne_py_locomotion",
   "crates/rne_plateau",
   "crates/rne_traffic",
   "crates/rne_openscenario",
