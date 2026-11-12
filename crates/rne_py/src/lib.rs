@@ -2,7 +2,6 @@
 
 #![deny(missing_docs)]
 
-mod go2_learning;
 mod sim;
 
 use pyo3::prelude::*;
@@ -2202,8 +2201,6 @@ fn rne_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyUnitreeG1JointStepResult>()?;
     m.add_class::<PyUnitreeG1JointBatch>()?;
     m.add_class::<PyUnitreeG1JointBatchStep>()?;
-    m.add_class::<go2_learning::PyGo2LearningBatch>()?;
-    m.add_class::<go2_learning::PyGo2LearningBatchStep>()?;
     m.add_class::<PyPortableUnitreeGo2Batch>()?;
     m.add_class::<PyPortableUnitreeGo2BatchStep>()?;
     m.add_class::<PyMmLiftJointTarget>()?;

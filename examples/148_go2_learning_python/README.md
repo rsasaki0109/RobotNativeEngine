@@ -1,11 +1,15 @@
 # 148 · Example 147's Go2 walking task from Python
 
-`rne_py.Go2LearningBatch` is `rne_locomotion::go2_learning` as a native
+`rne_py_locomotion.Go2LearningBatch` is `rne_locomotion::go2_learning` as a native
 parallel batch: the Go2 of example 147 with every URDF collision shape
 touching the ground, on a flat floor or on a terrain with fractal relief and
 gaps, observing its joints and body (44 values) and optionally a 15-ray
 height scan (59). One Python call steps every environment on the available
 cores.
+
+The extension is `rne_py_locomotion`, apart from `rne_py`: it is built on
+`rne_locomotion`, which is not published, while `rne_py` is a published
+crate.
 
 ## Contract
 
@@ -32,7 +36,7 @@ machine-readable form (`task_spec_json()`).
 ## Run
 
 ```bash
-.venv/bin/maturin develop -m crates/rne_py/Cargo.toml --release
+.venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
 .venv/bin/python examples/148_go2_learning_python/run.py --smoke
 .venv/bin/python examples/148_go2_learning_python/run.py --floor gaps --height-scan
 .venv/bin/python examples/148_go2_learning_python/train_ppo.py --smoke
@@ -40,7 +44,7 @@ machine-readable form (`task_spec_json()`).
   --floor gaps --height-scan --timesteps 5000000 --n-envs 16
 ```
 
-`run.py` needs only `rne_py`. `train_ppo.py` uses Stable-Baselines3's PPO
+`run.py` needs only `rne_py_locomotion`. `train_ppo.py` uses Stable-Baselines3's PPO
 through `go2_vec_env.NativeGo2VecEnv`, a `VecEnv` over the batch.
 
 ## Limits

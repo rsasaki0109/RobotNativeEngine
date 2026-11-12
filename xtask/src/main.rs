@@ -4065,6 +4065,19 @@ fn mobile_manipulator_rl_smokes() -> anyhow::Result<()> {
         let script_path = format!("examples/93_g1_joint_locomotion_rl/{script}");
         run_program(&venv_py, &[&script_path, "--smoke"])?;
     }
+    // Example 148's extension is separate from rne_py: rne_locomotion, which
+    // it binds, is not published.
+    run_program(
+        &venv_py,
+        &[
+            "-m",
+            "maturin",
+            "develop",
+            "-m",
+            "crates/rne_py_locomotion/Cargo.toml",
+            "--release",
+        ],
+    )?;
     for script in ["run.py", "train_ppo.py"] {
         let script_path = format!("examples/148_go2_learning_python/{script}");
         run_program(&venv_py, &[&script_path, "--smoke"])?;

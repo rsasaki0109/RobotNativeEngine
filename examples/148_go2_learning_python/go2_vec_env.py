@@ -1,6 +1,6 @@
 """Stable-Baselines3 VecEnv over example 147's Go2 walking task.
 
-`rne_py.Go2LearningBatch` steps every environment on the available cores in
+`rne_py_locomotion.Go2LearningBatch` steps every environment on the available cores in
 one Rust call and resets an environment as soon as its episode ends. Its
 `terminal_observations` give SB3 the episode's last observation, which PPO
 bootstraps a truncated episode from.
@@ -13,7 +13,7 @@ import numpy as np
 from gymnasium import spaces
 from stable_baselines3.common.vec_env import VecEnv
 
-import rne_py
+import rne_py_locomotion
 
 
 def _space_size(space):
@@ -30,9 +30,9 @@ class NativeGo2VecEnv(VecEnv):
     """Vectorized Go2 walking environments over one Rust batch call."""
 
     def __init__(self, n_envs=8, seed=1, threads=0, **task):
-        self._batch = rne_py.Go2LearningBatch(n_envs, seed, threads, **task)
+        self._batch = rne_py_locomotion.Go2LearningBatch(n_envs, seed, threads, **task)
         self.task_spec = json.loads(
-            rne_py.canonical_task_spec_json(self._batch.task_spec_json())
+            self._batch.task_spec_json()
         )
         action_dim = _space_size(self.task_spec["action"])
         observation_dim = _space_size(self.task_spec["observation"])

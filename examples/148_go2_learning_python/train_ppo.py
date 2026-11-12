@@ -1,6 +1,6 @@
 """Train example 147's Go2 walk with Stable-Baselines3 PPO.
 
-The environments are `rne_py.Go2LearningBatch`, stepped in parallel in one
+The environments are `rne_py_locomotion.Go2LearningBatch`, stepped in parallel in one
 Rust call per control period. `--smoke` trains a few thousand steps for CI.
 
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py --smoke

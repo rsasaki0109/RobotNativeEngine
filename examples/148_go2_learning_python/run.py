@@ -1,11 +1,11 @@
 """Step example 147's Go2 walking task from Python, with no RL library.
 
-`rne_py.Go2LearningBatch` is `rne_locomotion::go2_learning` as a native
+`rne_py_locomotion.Go2LearningBatch` is `rne_locomotion::go2_learning` as a native
 parallel batch. This script walks a few environments with a fixed open-loop
 trot-like action, checks the contract the batch keeps, and prints what it
 saw. `--smoke` keeps it short for CI.
 
-    .venv/bin/maturin develop -m crates/rne_py/Cargo.toml --release
+    .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
     .venv/bin/python examples/148_go2_learning_python/run.py --smoke
 """
 
@@ -15,11 +15,11 @@ import math
 import sys
 
 try:
-    import rne_py
+    import rne_py_locomotion
 except ImportError:
     sys.exit(
-        "rne_py is not installed. Build it with: "
-        ".venv/bin/maturin develop -m crates/rne_py/Cargo.toml --release"
+        "rne_py_locomotion is not installed. Build it with: "
+        ".venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release"
     )
 
 
@@ -41,8 +41,8 @@ def trot(period, joint):
 
 
 def walk(args):
-    batch = rne_py.Go2LearningBatch(args.n_envs, args.seed, 0, **task_arguments(args))
-    spec = json.loads(rne_py.canonical_task_spec_json(batch.task_spec_json()))
+    batch = rne_py_locomotion.Go2LearningBatch(args.n_envs, args.seed, 0, **task_arguments(args))
+    spec = json.loads(batch.task_spec_json())
     width = batch.observation_dim
     first = batch.reset()
     assert len(first.observations) == args.n_envs

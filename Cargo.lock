@@ -4804,9 +4804,17 @@ dependencies = [
  "approx",
  "pyo3",
  "rne_ai",
- "rne_locomotion",
  "serde_json",
  "tempfile",
+]
+
+[[package]]
+name = "rne_py_locomotion"
+version = "0.4.0"
+dependencies = [
+ "pyo3",
+ "rne_locomotion",
+ "serde_json",
 ]
 
 [[package]]

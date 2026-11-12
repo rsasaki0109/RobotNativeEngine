@@ -546,17 +546,18 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
-- `rne_py.Go2LearningBatch` runs `rne_locomotion::go2_learning` from Python:
-  a native parallel batch of example 147's Go2 walking task, on a flat floor
-  or a terrain with relief and gaps, with or without the height scan and
-  random starts. A finished environment is reset at once, and
+- `rne_py_locomotion`, a new Python extension, runs
+  `rne_locomotion::go2_learning` from Python: `Go2LearningBatch` is a native
+  parallel batch of example 147's Go2 walking task, on a flat floor or a
+  terrain with relief and gaps, with or without the height scan and random
+  starts. A finished environment is reset at once, and
   `terminal_observations` holds its episode's last observation. Its
-  `TaskSpec` (`rne.unitree_go2.learning.v1`) gives the spaces. In Rust,
+  `TaskSpec` (`rne.unitree_go2.learning.v1`) gives the spaces. It is apart
+  from `rne_py` because `rne_locomotion` is not published. In Rust,
   `Go2LearningBatch` and `go2_learning_task_spec` back it, with results
   independent of the thread count. `examples/148_go2_learning_python` adds
   a Stable-Baselines3 `VecEnv`, a dependency-free walk and a PPO trainer;
-  xtask's Python smokes run both, and `release/python-api-v1.json` gains
-  the two classes (28 to 30 exports).
+  xtask's Python smokes build the extension and run both.
 
 - `rne_locomotion::go2_learning` is example 147's Go2 walking task as a
   library: `Go2LearningRobot` (the fused 16.087 kg Go2 on the hard-contact

@@ -1,5 +1,13 @@
-//! Python bindings for `rne_locomotion::go2_learning`: example 147's Go2
-//! walking task as a native parallel batch.
+//! Python bindings for `rne_locomotion`'s learning tasks, as the
+//! `rne_py_locomotion` extension module.
+//!
+//! `rne_locomotion` is not published, so these bindings live apart from
+//! `rne_py`, whose crate is: build them with
+//! `maturin develop -m crates/rne_py_locomotion/Cargo.toml --release`.
+//! The module holds example 147's Go2 walking task as a native parallel
+//! batch, [`PyGo2LearningBatch`].
+
+#![deny(missing_docs)]
 
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
@@ -10,8 +18,8 @@ use rne_locomotion::go2_learning::{
 
 /// Result of a [`PyGo2LearningBatch`] reset or step, in environment order.
 #[pyclass(name = "Go2LearningBatchStep", skip_from_py_object)]
-#[derive(Clone)]
-pub(crate) struct PyGo2LearningBatchStep {
+#[derive(Clone, Debug)]
+pub struct PyGo2LearningBatchStep {
     inner: Go2LearningBatchStep,
 }
 
@@ -59,7 +67,8 @@ impl PyGo2LearningBatchStep {
 /// last observation is in `terminal_observations`. Environment `i` draws its
 /// starts from seed `seed + i`, and the results do not depend on `threads`.
 #[pyclass(name = "Go2LearningBatch")]
-pub(crate) struct PyGo2LearningBatch {
+#[derive(Debug)]
+pub struct PyGo2LearningBatch {
     inner: Go2LearningBatch,
     config: Go2LearningConfig,
 }
@@ -193,6 +202,15 @@ impl PyGo2LearningBatch {
             })
             .collect()
     }
+}
+
+/// The `rne_py_locomotion` Python module.
+#[pymodule]
+fn rne_py_locomotion(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    m.add_class::<PyGo2LearningBatch>()?;
+    m.add_class::<PyGo2LearningBatchStep>()?;
+    Ok(())
 }
 
 #[cfg(test)]
