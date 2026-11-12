@@ -75,6 +75,35 @@ edge, so the hind feet are across. The `Go2 SB3 PPO` workflow
 jobs (blind or with the scan, with or without the curriculum) and uploads
 each job's results.
 
+### Results
+
+The first run (workflow run 43319917776): 10M timesteps per job, 64
+environments, seed 2026, on a GitHub runner's 4 cores. These are the last
+stage's evaluations, over 64 held-out episodes on the task's 25–35 cm gaps.
+
+| Job | Return | Distance | Gaps reached | Crossed | Falls | Steps/s |
+|---|---|---|---|---|---|---|
+| Flat floor | 17.55 | 19.1 m | – | – | 64 at the arena edge | 11 186 |
+| Gaps, blind | 1.30 | 1.43 m | 64 | 0 | 3 | 6 061 |
+| Gaps, scan | 1.08 | 1.43 m | 64 | 0 | 15 | 8 504 |
+| Gaps, blind, curriculum | 1.30 | 1.46 m | 64 | 0 | 4 | 7 693 |
+| Gaps, scan, curriculum | 1.19 | 1.47 m | 64 | 0 | 6 | 5 228 |
+
+- **Flat floor.** SB3 learns to walk: its policy runs to the arena's edge,
+  19 m from the origin, before the 5 s are up. Every flat-floor
+  evaluation starts at the origin, so its 64 episodes are one walk. Its
+  return beats example 147's PPO (12.25).
+- **Gaps.** No policy crossed a gap. Every one reached the first gap ahead
+  of it, about 1.5 m from its start, and stopped there, mostly without
+  falling. That is the same outcome as example 147's own PPO.
+- **Curriculum.** The curriculum did not help. Its narrow-gap stages fell
+  at the task's gaps more often, 29–54 of 64.
+
+Since a standard PPO stops where example 147's did, the next question is
+whether the task allows a crossing at all: whether a foot that drops into
+a 30 cm trench can climb out, and how wide the gap is at the top once the
+terrain's 5 cm samples slope its edges.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

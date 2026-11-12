@@ -554,7 +554,10 @@ All notable changes to Robot Native Engine are documented in this file.
   falls. It normalizes observations and rewards and takes PPO's settings as
   flags. `Go2LearningBatch` gains a `gap_width` range and `gap_intervals()`.
   The `Go2 SB3 PPO` workflow trains a flat-floor job and blind and
-  height-scan jobs on gaps, with and without the curriculum, in CI.
+  height-scan jobs on gaps, with and without the curriculum, in CI. In
+  its first run, 10M timesteps per job, the flat-floor policy ran 19 m in
+  5 s. No gap policy crossed a gap: each walked about 1.5 m to the first
+  gap and stopped.
 
 - `rne_py_locomotion`, a new Python extension, runs
   `rne_locomotion::go2_learning` from Python: `Go2LearningBatch` is a native
