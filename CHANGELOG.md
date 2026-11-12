@@ -546,6 +546,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_locomotion::go2_learning` is example 147's Go2 walking task as a
+  library: `Go2LearningRobot` (the fused 16.087 kg Go2 on the hard-contact
+  terrain step, with every URDF collision shape touching the ground and an
+  explicit PD at 5 ms steps), `terrain` with fractal relief and gaps, the
+  height scan, random and held-out starts, `observation`, `period_reward`,
+  and `Go2LearningEpisode`, an `rne_ai::Episode` that runs in
+  `VectorizedEpisode`. Example 147 now builds on it: its terrains,
+  evaluations, stance and short ES and PPO trainings are bit-identical to
+  before, and a test checks that the library episode's rewards and last
+  observation equal the example's.
+
 - `examples/147_go2_learning`'s PPO can lower its learning rate linearly
   to zero (`--anneal-learning-rate`). On the gap terrain it did not help,
   and neither did 2.5 times the samples or training on narrower gaps: no
