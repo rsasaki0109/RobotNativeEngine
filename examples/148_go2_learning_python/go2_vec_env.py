@@ -71,6 +71,11 @@ class NativeGo2VecEnv(VecEnv):
         """Each environment's base position (x, y, z), Z-up, in meters."""
         return np.asarray(self._batch.base_positions())
 
+    def foot_positions(self):
+        """Each environment's foot centers, (n_envs, 4, 3), Z-up, in meters:
+        front-left, front-right, rear-left, rear-right."""
+        return np.asarray(self._batch.foot_positions())
+
     def gap_intervals(self):
         """The gaps across the floor, (start, end) along x, in meters."""
         return [tuple(gap) for gap in self._batch.gap_intervals()]

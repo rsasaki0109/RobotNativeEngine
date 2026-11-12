@@ -2,17 +2,19 @@
 
 The environments are `rne_py_locomotion.Go2LearningBatch`, stepped in parallel in one
 Rust call per control period. Training runs in stages: on gaps,
-`--curriculum` gives each stage its range of gap widths (narrow first),
-and without it every stage is the task itself. After each stage the
-deterministic policy walks one episode in each of `--eval-envs` held-out
-environments on the task itself, and the results file records its return,
-how far it walked, how many gaps it crossed and how often it fell.
+`--curriculum` gives each stage its range of gap widths and optionally its
+depth (easy first), and without it every stage is the task itself. After
+each stage the deterministic policy walks one episode in each of
+`--eval-envs` held-out environments, on the task itself and on the stage's
+own gaps when they differ. The results file records the return, how far
+it walked, how many gaps it crossed, how often it fell, and how its
+episodes ended: with a foot in a gap, or stopped short of one.
 `--smoke` trains a few hundred steps on every path for CI.
 
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py --smoke
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py \\
         --floor gaps --height-scan --timesteps 20000000 --n-envs 64 \\
-        --curriculum 0.05-0.10,0.10-0.20,0.18-0.28,0.25-0.35
+        --curriculum 0.25-0.35@0.03,0.25-0.35@0.08,0.25-0.35@0.15,0.25-0.35@0.3
 """
 
 import argparse
@@ -41,6 +43,13 @@ from run import task_arguments
 
 # The gaps of example 147's gap task, in meters.
 TASK_GAP_WIDTH_M = (0.25, 0.35)
+TASK_GAP_DEPTH_M = 0.3
+# A foot whose center is this far below the floor is in a gap: resting on
+# the floor, it is a foot radius (2 cm) above it.
+IN_GAP_BELOW_M = 0.02
+# An episode that ends this close before a gap, upright and with no foot in
+# it, stopped short of the gap.
+SHORT_OF_GAP_M = 0.6
 # A gap counts as crossed once the base is this far past its far edge, so
 # the hind feet (0.19 m behind the base) are across too.
 CROSSED_PAST_M = 0.25
@@ -48,58 +57,69 @@ CROSSED_PAST_M = 0.25
 EVALUATION_SEED_OFFSET = 10_000
 
 
-def parse_widths(text):
-    """`0.05-0.10,0.25-0.35` → [(0.05, 0.10), (0.25, 0.35)]."""
+def parse_curriculum(text):
+    """`0.05-0.10,0.25-0.35@0.08` → [((0.05, 0.10), 0.3), ((0.25, 0.35), 0.08)]:
+    each stage's gap widths and depth (the task's 0.3 m unless given)."""
     stages = []
     for stage in text.split(","):
-        low, high = (float(value) for value in stage.split("-"))
-        stages.append((low, high))
+        widths, _, depth = stage.partition("@")
+        low, high = (float(value) for value in widths.split("-"))
+        stages.append(((low, high), float(depth) if depth else TASK_GAP_DEPTH_M))
     return stages
 
 
 def walk_once(model, env, normalize):
     """The deterministic policy's first episode in every environment of
-    `env`: (return, start x, last x, fell) each."""
+    `env`: (return, start x, last x, last feet, fell) each."""
     observations = env.reset()
     count = env.num_envs
     start_x = env.base_positions()[:, 0].copy()
     last_x = start_x.copy()
+    last_feet = env.foot_positions()
     totals, fell, done = np.zeros(count), np.zeros(count, bool), np.zeros(count, bool)
     for _ in range(env._batch.episode_steps):
         actions, _ = model.predict(normalize(observations), deterministic=True)
-        before_x = env.base_positions()[:, 0]
+        before_x, before_feet = env.base_positions()[:, 0], env.foot_positions()
         observations, rewards, dones, infos = env.step(actions)
-        after_x = env.base_positions()[:, 0]
+        after_x, after_feet = env.base_positions()[:, 0], env.foot_positions()
         for index in range(count):
             if done[index]:
                 continue
             totals[index] += float(rewards[index])
             if dones[index]:
                 # The batch has reset this environment already: its last
-                # position is the one before the final period.
+                # state is the one before the final period.
                 done[index] = True
-                last_x[index] = before_x[index]
+                last_x[index], last_feet[index] = before_x[index], before_feet[index]
                 fell[index] = not infos[index].get("TimeLimit.truncated", False)
             else:
-                last_x[index] = after_x[index]
+                last_x[index], last_feet[index] = after_x[index], after_feet[index]
         if done.all():
             break
-    return totals, start_x, last_x, fell
+    return totals, start_x, last_x, last_feet, fell
 
 
 def evaluate(model, env, normalize):
     """Return, distance, gaps crossed and falls of the deterministic policy
     over one episode in each environment of `env`."""
-    totals, start_x, last_x, fell = walk_once(model, env, normalize)
+    totals, start_x, last_x, last_feet, fell = walk_once(model, env, normalize)
     gaps = env.gap_intervals()
     crossed, reached, fell_in_gap = [], [], 0
-    for begin, end, did_fall in zip(start_x, last_x, fell):
+    front_in_gap = rear_in_gap = short_of_gap = 0
+    for begin, end, feet, did_fall in zip(start_x, last_x, last_feet, fell):
         ahead = [gap for gap in gaps if gap[0] > begin]
         crossed.append(sum(1 for gap in ahead if end > gap[1] + CROSSED_PAST_M))
         # Its front feet (0.19 m ahead of the base) at the gap.
         reached.append(sum(1 for gap in ahead if end > gap[0] - 0.2))
         if did_fall and any(gap[0] - 0.3 < end < gap[1] + 0.3 for gap in gaps):
             fell_in_gap += 1
+        in_gap = feet[:, 2] < -IN_GAP_BELOW_M
+        front_in_gap += int(in_gap[:2].any())
+        rear_in_gap += int(in_gap[2:].any() and not in_gap[:2].any())
+        next_gap = min((gap[0] for gap in gaps if gap[0] > end), default=None)
+        if (not did_fall and not in_gap.any() and next_gap is not None
+                and next_gap - feet[:2, 0].max() < SHORT_OF_GAP_M):
+            short_of_gap += 1
     return {
         "episodes": len(totals),
         "mean_return": float(totals.mean()),
@@ -109,6 +129,12 @@ def evaluate(model, env, normalize):
         "gaps_reached": int(sum(reached)),
         "gaps_crossed": int(sum(crossed)),
         "episodes_crossing_a_gap": int(sum(1 for count in crossed if count > 0)),
+        # How the episodes ended: a front foot in a gap, only a rear foot in
+        # one, or upright with the front feet within SHORT_OF_GAP_M of the
+        # next gap and no foot in any.
+        "ended_front_foot_in_gap": front_in_gap,
+        "ended_rear_foot_in_gap": rear_in_gap,
+        "ended_short_of_gap": short_of_gap,
     }
 
 
@@ -124,7 +150,8 @@ def main():
     parser.add_argument("--stages", type=int, default=4,
                         help="training stages without --curriculum (one evaluation each)")
     parser.add_argument("--curriculum", default="",
-                        help="gap widths per stage, e.g. 0.05-0.10,0.25-0.35 (gaps only)")
+                        help="gap widths (and @depth) per stage, e.g. "
+                             "0.05-0.10,0.25-0.35@0.08 (gaps only)")
     parser.add_argument("--n-steps", type=int, default=256, help="rollout periods per env")
     parser.add_argument("--batch-size", type=int, default=4096)
     parser.add_argument("--n-epochs", type=int, default=5)
@@ -143,7 +170,7 @@ def main():
         # Gaps with the scan, a two-stage curriculum and normalization: every
         # path, a few hundred steps.
         args.floor, args.height_scan = "gaps", True
-        args.curriculum = "0.05-0.10,0.25-0.35"
+        args.curriculum = "0.05-0.10@0.1,0.25-0.35"
         args.n_envs, args.n_steps, args.batch_size, args.timesteps = 2, 64, 64, 256
         args.eval_envs, args.n_epochs = 2, 1
 
@@ -151,17 +178,25 @@ def main():
     if args.curriculum:
         if args.floor != "gaps":
             parser.error("--curriculum needs --floor gaps")
-        widths = parse_widths(args.curriculum)
+        stages = parse_curriculum(args.curriculum)
     else:
-        widths = [TASK_GAP_WIDTH_M if args.floor == "gaps" else None] * args.stages
+        target = (TASK_GAP_WIDTH_M, TASK_GAP_DEPTH_M) if args.floor == "gaps" else None
+        stages = [target] * args.stages
+    final = (TASK_GAP_WIDTH_M, TASK_GAP_DEPTH_M) if args.floor == "gaps" else None
 
-    def stage_task(width):
-        return task if width is None else {**task, "gap_width": width}
+    def stage_task(stage):
+        if stage is None:
+            return task
+        width, depth = stage
+        return {**task, "gap_width": width, "gap_depth": depth}
 
-    raw = NativeGo2VecEnv(n_envs=args.n_envs, seed=args.seed, **stage_task(widths[0]))
+    def held_out(stage):
+        return NativeGo2VecEnv(n_envs=args.eval_envs, seed=args.seed + EVALUATION_SEED_OFFSET,
+                               **stage_task(stage))
+
+    raw = NativeGo2VecEnv(n_envs=args.n_envs, seed=args.seed, **stage_task(stages[0]))
     env = raw if args.no_normalize else VecNormalize(raw, gamma=args.gamma)
-    held_out = NativeGo2VecEnv(n_envs=args.eval_envs, seed=args.seed + EVALUATION_SEED_OFFSET,
-                               **stage_task(TASK_GAP_WIDTH_M if args.floor == "gaps" else None))
+    task_held_out = held_out(final)
     normalize = (lambda observations: observations) if args.no_normalize else env.normalize_obs
 
     layers = [int(size) for size in args.net.split(",")]
@@ -174,17 +209,22 @@ def main():
         seed=args.seed, verbose=0,
     )
 
-    stage_timesteps = args.timesteps // len(widths)
+    stage_timesteps = args.timesteps // len(stages)
     history, started = [], time.monotonic()
-    for stage, width in enumerate(widths):
-        if stage > 0 and width != widths[stage - 1]:
-            raw.set_task(**stage_task(width))
+    for index, stage in enumerate(stages):
+        if index > 0 and stage != stages[index - 1]:
+            raw.set_task(**stage_task(stage))
             model._last_obs = env.reset()
             model._last_episode_starts = np.ones((args.n_envs,), dtype=bool)
         model.learn(total_timesteps=stage_timesteps, reset_num_timesteps=False)
-        result = evaluate(model, held_out, normalize)
-        result.update(stage=stage, gap_width_m=width, timesteps=model.num_timesteps,
+        result = evaluate(model, task_held_out, normalize)
+        result.update(stage=index, gap_width_m=None if stage is None else stage[0],
+                      gap_depth_m=None if stage is None else stage[1],
+                      timesteps=model.num_timesteps,
                       seconds=round(time.monotonic() - started, 1))
+        if stage != final:
+            # The same policy on this stage's own gaps.
+            result["on_stage_gaps"] = evaluate(model, held_out(stage), normalize)
         history.append(result)
         print(json.dumps(result), flush=True)
 
@@ -216,7 +256,7 @@ def main():
     print(json.dumps({key: summary[key] for key in ("floor", "height_scan", "timesteps",
                                                      "steps_per_second", "final")}))
     if args.smoke:
-        assert len(history) == len(widths)
+        assert len(history) == len(stages) and "on_stage_gaps" in history[0]
         print("smoke ok")
 
 

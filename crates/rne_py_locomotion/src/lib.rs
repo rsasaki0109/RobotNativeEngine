@@ -212,6 +212,23 @@ impl PyGo2LearningBatch {
             .collect()
     }
 
+    /// Each environment's four foot sphere centers (x, y, z) in meters,
+    /// Z-up, in front-left, front-right, rear-left, rear-right order
+    /// (evaluation only).
+    fn foot_positions(&self) -> PyResult<Vec<Vec<[f64; 3]>>> {
+        (0..self.inner.num_envs())
+            .map(|index| {
+                let centers = self
+                    .inner
+                    .episode(index)
+                    .robot()
+                    .foot_centers_z_up_m()
+                    .map_err(|error| PyValueError::new_err(format!("foot positions: {error}")))?;
+                Ok(centers.iter().map(|c| [c.x, c.y, c.z]).collect())
+            })
+            .collect()
+    }
+
     /// The gaps across the batch's floor, as (start, end) along x in
     /// meters (none on a flat floor or with `gap_depth=0`).
     fn gap_intervals(&self) -> Vec<[f64; 2]> {
@@ -297,6 +314,9 @@ mod tests {
         .unwrap();
         let gaps = batch.gap_intervals();
         assert!(gaps.len() > 5);
+        let feet = batch.foot_positions().unwrap();
+        assert_eq!(feet.len(), 1);
+        assert_eq!(feet[0].len(), 4);
         assert!(
             gaps.iter()
                 .all(|[start, end]| end - start >= narrow.0 - 1e-12

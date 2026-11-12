@@ -546,6 +546,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 148 diagnoses where its gap policies stop. Curriculum stages
+  take a depth (`0.25-0.35@0.03`), so gaps can deepen as well as widen.
+  Each stage's policy is also evaluated on that stage's own gaps. Each
+  evaluation counts the episodes that ended with a front or rear foot in a
+  gap, or short of one. `Go2LearningRobot::foot_centers_z_up_m`,
+  `Quadruped::foot_centers_m` and the binding's `foot_positions()` give
+  the feet. The workflow adds deepening and shallow-gap jobs.
+
 - Example 148 trains Stable-Baselines3 PPO on example 147's gaps.
   `train_ppo.py` trains in stages, either on the task's gaps throughout or
   on a curriculum of gap widths from narrow to the task's 25–35 cm. After

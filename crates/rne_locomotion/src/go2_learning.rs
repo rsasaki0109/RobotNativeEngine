@@ -597,6 +597,12 @@ impl Go2LearningRobot {
         (state.linear_velocity_m_s, state.angular_velocity_rad_s)
     }
 
+    /// Each foot sphere's center, Z-up, in meters, in front-left,
+    /// front-right, rear-left, rear-right order.
+    pub fn foot_centers_z_up_m(&self) -> Result<Vec<Vec3>, LocomotionError> {
+        self.sim.quadruped().foot_centers_m(self.sim.q())
+    }
+
     /// Height of the ground below `(x_m, y_m)`, in meters; negative infinity
     /// off the floor.
     pub fn ground_height_m(&self, x_m: f64, y_m: f64) -> f64 {
@@ -1237,6 +1243,15 @@ mod tests {
             .map(|(_, impulse, _)| impulse)
             .sum();
         assert!(feet > 0.0);
+        // Standing, each foot rests on the floor; the front feet are ahead
+        // of the base and the rear ones behind it.
+        let centers = episode.robot().foot_centers_z_up_m().unwrap();
+        let radius_m = episode.robot().sim().quadruped().foot_radius_m();
+        for (leg, center) in centers.iter().enumerate() {
+            assert!((center.z - radius_m).abs() < 0.01, "{leg}: {center:?}");
+            let ahead = center.x > position.x;
+            assert_eq!(ahead, leg < 2, "{leg}: {center:?} vs {position:?}");
+        }
     }
 
     #[test]

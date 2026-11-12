@@ -61,19 +61,37 @@ and stop. `train_ppo.py` tries the usual remedies on the same task:
   e^-0.5);
 - many environments (64 by default in CI);
 - observations and rewards normalized (`VecNormalize`);
-- with `--curriculum`, gaps widened stage by stage, from 5–10 cm to the
-  task's 25–35 cm.
+- with `--curriculum`, easier gaps first: each entry is a stage's range of
+  widths and, after `@`, its depth (the task's 0.3 m unless given), e.g.
+  `0.05-0.10,0.25-0.35` widens the gaps and
+  `0.25-0.35@0.03,0.25-0.35@0.3` deepens them.
 
 Training runs in stages (`--stages`, or one per curriculum entry). After
 each stage the deterministic policy walks one episode in each of
 `--eval-envs` held-out environments (seeds 10 000 past training's) on the
-task's gaps. `results.json` records, per stage, the mean return and
-distance, the falls and the falls at a gap, and the gaps reached and
-crossed; a gap counts as crossed once the base is 0.25 m past its far
-edge, so the hind feet are across. The `Go2 SB3 PPO` workflow
-(`.github/workflows/go2-sb3.yml`) trains a flat-floor job and four gap
-jobs (blind or with the scan, with or without the curriculum) and uploads
-each job's results.
+task's gaps, and on the stage's own when they differ (`on_stage_gaps`).
+`results.json` records the following for each stage:
+
+- the mean return and distance;
+- the falls, and the falls at a gap;
+- the gaps reached and crossed: a gap counts as crossed once the base is
+  0.25 m past its far edge, so the hind feet are across too;
+- how the episodes ended: with a front foot in a gap, with only a rear
+  foot in one (a foot centre more than 2 cm below the floor), or upright
+  with the front feet within 0.6 m of the next gap and none in it
+  (`ended_short_of_gap`).
+
+The `Go2 SB3 PPO` workflow (`.github/workflows/go2-sb3.yml`) trains these
+jobs and uploads each one's results:
+
+- a flat floor;
+- the task's gaps throughout;
+- gaps widened from 5–10 cm;
+- gaps deepened from 3 cm;
+- shallow 5 cm gaps throughout, which ask whether the policy can cross at
+  all when a foot that drops in can step out.
+
+Each gap job runs once blind and once with the scan.
 
 ### Results
 
@@ -86,8 +104,8 @@ stage's evaluations, over 64 held-out episodes on the task's 25–35 cm gaps.
 | Flat floor | 17.55 | 19.1 m | – | – | 64 at the arena edge | 11 186 |
 | Gaps, blind | 1.30 | 1.43 m | 64 | 0 | 3 | 6 061 |
 | Gaps, scan | 1.08 | 1.43 m | 64 | 0 | 15 | 8 504 |
-| Gaps, blind, curriculum | 1.30 | 1.46 m | 64 | 0 | 4 | 7 693 |
-| Gaps, scan, curriculum | 1.19 | 1.47 m | 64 | 0 | 6 | 5 228 |
+| Gaps, blind, widening | 1.30 | 1.46 m | 64 | 0 | 4 | 7 693 |
+| Gaps, scan, widening | 1.19 | 1.47 m | 64 | 0 | 6 | 5 228 |
 
 - **Flat floor.** SB3 learns to walk: its policy runs to the arena's edge,
   19 m from the origin, before the 5 s are up. Every flat-floor
@@ -96,7 +114,7 @@ stage's evaluations, over 64 held-out episodes on the task's 25–35 cm gaps.
 - **Gaps.** No policy crossed a gap. Every one reached the first gap ahead
   of it, about 1.5 m from its start, and stopped there, mostly without
   falling. That is the same outcome as example 147's own PPO.
-- **Curriculum.** The curriculum did not help. Its narrow-gap stages fell
+- **Widening.** Widening the gaps did not help. Its narrow-gap stages fell
   at the task's gaps more often, 29–54 of 64.
 
 Since a standard PPO stops where example 147's did, the next question is
