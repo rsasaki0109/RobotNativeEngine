@@ -78,9 +78,10 @@ impl PyGo2LearningBatch {
     /// Creates a seeded batch. `terrain_seed=None` is a flat floor; a seed
     /// builds a terrain of `terrain_size` m sampled every `terrain_cell` m,
     /// with `terrain_amplitude` m of relief at `terrain_frequency` cycles per
-    /// meter and gaps `gap_depth` m deep (none at 0).
+    /// meter and gaps `gap_depth` m deep (none at 0), each between
+    /// `gap_width[0]` and `gap_width[1]` m wide.
     #[new]
-    #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0))]
+    #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0, gap_width=(0.25, 0.35)))]
     #[allow(clippy::too_many_arguments)]
     fn new(
         num_envs: usize,
@@ -95,9 +96,16 @@ impl PyGo2LearningBatch {
         terrain_amplitude: f64,
         terrain_frequency: f64,
         gap_depth: f64,
+        gap_width: (f64, f64),
     ) -> PyResult<Self> {
         if num_envs == 0 {
             return Err(PyValueError::new_err("num_envs must be greater than zero"));
+        }
+        let (narrowest_m, widest_m) = gap_width;
+        if !(narrowest_m.is_finite() && narrowest_m > 0.0 && widest_m >= narrowest_m) {
+            return Err(PyValueError::new_err(
+                "gap_width must be (narrowest, widest) with 0 < narrowest <= widest",
+            ));
         }
         let floor = match terrain_seed {
             None => Floor::Flat,
@@ -110,6 +118,7 @@ impl PyGo2LearningBatch {
                     cell_m: terrain_cell,
                     gaps: Gaps {
                         depth_m: gap_depth,
+                        width_m: [narrowest_m, widest_m],
                         ..Gaps::default()
                     },
                 },
@@ -202,6 +211,12 @@ impl PyGo2LearningBatch {
             })
             .collect()
     }
+
+    /// The gaps across the batch's floor, as (start, end) along x in
+    /// meters (none on a flat floor or with `gap_depth=0`).
+    fn gap_intervals(&self) -> Vec<[f64; 2]> {
+        self.config.gaps()
+    }
 }
 
 /// The `rne_py_locomotion` Python module.
@@ -217,11 +232,26 @@ fn rne_py_locomotion(m: &Bound<'_, PyModule>) -> PyResult<()> {
 mod tests {
     use super::*;
 
+    const WIDTH_M: (f64, f64) = (0.25, 0.35);
+
     #[test]
     fn the_batch_steps_and_rejects_malformed_actions() {
-        let mut batch =
-            PyGo2LearningBatch::new(2, 3, 2, Some(7), true, true, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0)
-                .unwrap();
+        let mut batch = PyGo2LearningBatch::new(
+            2,
+            3,
+            2,
+            Some(7),
+            true,
+            true,
+            1.0,
+            24.0,
+            0.1,
+            0.04,
+            0.5,
+            0.0,
+            WIDTH_M,
+        )
+        .unwrap();
         assert_eq!(batch.observation_dim(), 59);
         let reset = batch.reset();
         assert_eq!(reset.observations().len(), 2);
@@ -236,13 +266,64 @@ mod tests {
             serde_json::from_str(&batch.task_spec_json().unwrap()).unwrap();
         assert_eq!(spec["task_id"], "rne.unitree_go2.learning.v1");
         assert!(PyGo2LearningBatch::new(
-            0, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0
+            0, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M
         )
         .is_err());
         // Random starts need a terrain.
         assert!(PyGo2LearningBatch::new(
-            1, 3, 1, None, false, true, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0
+            1, 3, 1, None, false, true, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M
         )
         .is_err());
+    }
+
+    #[test]
+    fn the_batch_lays_gaps_of_the_widths_asked_for() {
+        let narrow = (0.05, 0.1);
+        let batch = PyGo2LearningBatch::new(
+            1,
+            3,
+            1,
+            Some(7),
+            true,
+            true,
+            1.0,
+            24.0,
+            0.05,
+            0.0,
+            0.5,
+            0.3,
+            narrow,
+        )
+        .unwrap();
+        let gaps = batch.gap_intervals();
+        assert!(gaps.len() > 5);
+        assert!(
+            gaps.iter()
+                .all(|[start, end]| end - start >= narrow.0 - 1e-12
+                    && end - start <= narrow.1 + 1e-12)
+        );
+        let flat = PyGo2LearningBatch::new(
+            1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M,
+        )
+        .unwrap();
+        assert!(flat.gap_intervals().is_empty());
+        for bad in [(0.0, 0.1), (0.2, 0.1), (f64::NAN, 0.1)] {
+            assert!(PyGo2LearningBatch::new(
+                1,
+                3,
+                1,
+                Some(7),
+                false,
+                true,
+                1.0,
+                24.0,
+                0.05,
+                0.0,
+                0.5,
+                0.3,
+                bad
+            )
+            .is_err());
+        }
     }
 }

@@ -1,0 +1,112 @@
+name: Go2 SB3 PPO
+
+# Can a standard PPO (Stable-Baselines3) with many environments, normalized
+# observations and rewards, and gaps widened stage by stage learn to cross
+# example 147's gaps, which example 147's own PPO never crossed? Each job
+# trains one policy on example 148's native batch (blind or with the height
+# scan; the task's gaps throughout, or a curriculum from 5-10 cm to the
+# task's 25-35 cm) and after each stage walks it once in each of 64
+# held-out environments: return, distance, gaps crossed and falls. A flat
+# floor job shows whether the same settings learn to walk at all. Heavy
+# (hours), so it runs on demand and when this workflow changes.
+on:
+  workflow_dispatch:
+    inputs:
+      timesteps:
+        description: "Training timesteps per job"
+        required: false
+        default: "10000000"
+      n_envs:
+        description: "Parallel environments"
+        required: false
+        default: "64"
+      seed:
+        description: "Training seed"
+        required: false
+        default: "2026"
+      curriculum:
+        description: "Gap widths per curriculum stage"
+        required: false
+        default: "0.05-0.10,0.10-0.20,0.18-0.28,0.25-0.35"
+  push:
+    paths:
+      - ".github/workflows/go2-sb3.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    name: Go2 SB3 (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: flat
+            flags: "--floor flat"
+            curriculum: false
+          - name: gaps-blind
+            flags: "--floor gaps"
+            curriculum: false
+          - name: gaps-scan
+            flags: "--floor gaps --height-scan"
+            curriculum: false
+          - name: gaps-blind-curriculum
+            flags: "--floor gaps"
+            curriculum: true
+          - name: gaps-scan-curriculum
+            flags: "--floor gaps --height-scan"
+            curriculum: true
+    env:
+      TIMESTEPS: ${{ inputs.timesteps || '10000000' }}
+      N_ENVS: ${{ inputs.n_envs || '64' }}
+      SEED: ${{ inputs.seed || '2026' }}
+      CURRICULUM: ${{ matrix.curriculum && (inputs.curriculum || '0.05-0.10,0.10-0.20,0.18-0.28,0.25-0.35') || '' }}
+      FLAGS: ${{ matrix.flags }}
+      OUT: artifacts/go2-sb3-${{ matrix.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-sb3
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install SB3 and build rne_py_locomotion
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 \
+            -r examples/27_mobile_manipulator_rl/requirements-ci.txt
+          .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
+
+      - name: Train and evaluate
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          extra=()
+          if [ -n "$CURRICULUM" ]; then extra=(--curriculum "$CURRICULUM"); fi
+          # shellcheck disable=SC2086
+          .venv/bin/python examples/148_go2_learning_python/train_ppo.py $FLAGS \
+            --timesteps "$TIMESTEPS" --n-envs "$N_ENVS" --seed "$SEED" \
+            --out "$OUT" "${extra[@]}" | tee "$OUT.log"
+          mv "$OUT.log" "$OUT/train.log"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-sb3-${{ matrix.name }}
+          path: ${{ env.OUT }}
+          if-no-files-found: warn
+          retention-days: 30
