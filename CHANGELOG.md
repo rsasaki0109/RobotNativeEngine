@@ -546,6 +546,13 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 148's `walk_policy.py` walks an exported policy in RNE from
+  example 147's held-out evaluation starts and compares it episode by
+  episode with MuJoCo's walk of the same policy. `Go2LearningEpisode::set_start`
+  and `Go2LearningBatch::set_start` start episodes at a given point; the
+  binding gains `set_starts` and `evaluation_starts`. The MuJoCo workflow
+  runs the comparison.
+
 - The gap depth curriculum can recycle: with `DepthCurriculum::recycle`
   (`set_depth_curriculum(recycle=True)`, `train_ppo.py --recycle-levels`),
   an environment that masters the deepest level goes to a level drawn

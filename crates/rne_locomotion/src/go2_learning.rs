@@ -870,6 +870,7 @@ pub struct Go2LearningEpisode {
     last_error: Option<String>,
     level: Option<u32>,
     level_draws: SplitMix64,
+    fixed_start: Option<[f64; 2]>,
 }
 
 impl Go2LearningEpisode {
@@ -894,6 +895,7 @@ impl Go2LearningEpisode {
             last_error: None,
             level: None,
             level_draws: SplitMix64(config.seed ^ LEVEL_STREAM),
+            fixed_start: None,
         })
     }
 
@@ -922,6 +924,14 @@ impl Go2LearningEpisode {
         }
         self.level = level;
         Ok(())
+    }
+
+    /// Starts the next episodes at `start` (x, y in meters, Z-up), whatever
+    /// the configuration's starts and the level, or as configured again
+    /// for `None`: for walking a policy from given points, such as
+    /// [`evaluation_starts`]. A random-start stream still advances.
+    pub fn set_start(&mut self, start: Option<[f64; 2]>) {
+        self.fixed_start = start;
     }
 
     /// The level the next episodes start in, if one is set.
@@ -983,7 +993,10 @@ impl Go2LearningEpisode {
         } else {
             [0.0, 0.0]
         };
-        if let (Some(level), Floor::Terrain { relief, .. }) = (self.level, self.config.floor) {
+        if let Some(fixed) = self.fixed_start {
+            start = fixed;
+        } else if let (Some(level), Floor::Terrain { relief, .. }) = (self.level, self.config.floor)
+        {
             let [south, north] = relief.gaps.level_band_m(level);
             let [low, high] = START_Y_RANGE_M;
             let fraction = (start[1] - low) / (high - low);
@@ -1273,6 +1286,16 @@ impl Go2LearningBatch {
         self.episodes[index].set_level(level)
     }
 
+    /// Starts environment `index`'s next episodes at `start`
+    /// ([`Go2LearningEpisode::set_start`]).
+    ///
+    /// # Panics
+    ///
+    /// Panics when `index` is not an environment's.
+    pub fn set_start(&mut self, index: usize, start: Option<[f64; 2]>) {
+        self.episodes[index].set_start(start);
+    }
+
     /// Each environment's level, if set.
     pub fn levels(&self) -> Vec<Option<u32>> {
         self.episodes
@@ -1559,6 +1582,16 @@ mod tests {
             );
             assert_eq!(episode.gaps_crossed(), 0);
         }
+        // A fixed start overrides the level's band. Settling shifts the
+        // base a little along x.
+        let start = evaluation_starts(1, &config.gaps())[0];
+        episode.set_start(Some(start));
+        episode.reset();
+        let (position, _) = episode.robot().base_pose_z_up();
+        assert!(
+            (position.x - start[0]).abs() < 0.2 && (position.y - start[1]).abs() < 0.02,
+            "{start:?} {position:?}"
+        );
         // Levels need random starts on a terrain.
         let mut fixed = Go2LearningEpisode::new(Go2LearningConfig {
             random_starts: false,

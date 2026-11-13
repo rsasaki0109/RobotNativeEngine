@@ -7,7 +7,8 @@ name: Go2 SB3 PPO in MuJoCo
 # 25-35 cm wide, 30 cm deep gaps): as MuJoCo is configured, and with five
 # physics steps to each of RNE's and stiffer contacts (a 4 ms time constant
 # against the default 20 ms), which closed most of the transfer gap of
-# example 147's own walks. Light (minutes), so it runs on demand
+# example 147's own walks. RNE then walks the same policy from the same
+# starts, and the report compares the walks episode by episode. Light (minutes), so it runs on demand
 # and when this workflow changes.
 on:
   workflow_dispatch:
@@ -98,6 +99,23 @@ jobs:
               "fitness", "forward_m", "falls", "gaps_crossed", "episodes_crossing_a_gap")})
           PY
           done
+
+      - name: Walk in RNE from the same starts
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 numpy==2.1.3
+          .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
+          .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
+            --starts 64 --against default="$OUT/mujoco-default.json" \
+            --against stiff="$OUT/mujoco-stiff.json" > "$OUT/rne.json"
+          python - "$OUT/rne.json" <<'PY'
+          import json, sys
+          report = json.load(open(sys.argv[1]))
+          print("rne", report["outcome"])
+          for name, against in report["against"].items():
+              print(name, {key: value for key, value in against.items() if key != "episodes"})
+          PY
 
       - name: Upload results
         if: always()

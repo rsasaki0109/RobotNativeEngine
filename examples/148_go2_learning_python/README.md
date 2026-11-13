@@ -298,6 +298,14 @@ contacts (a 4 ms time constant against the default 20 ms). Workflow run
   Why the scan policies cross more in stiff MuJoCo than in RNE, and why
   two blind policies cross there at all, is not explained yet.
 
+#### The same starts in both simulators
+
+`walk_policy.py` walks an exported policy in RNE from example 147's
+held-out evaluation starts (`Go2LearningBatch.evaluation_starts` and
+`set_starts`), the points MuJoCo's script walks from, and
+`--against NAME=FILE` compares the two walks episode by episode. The
+MuJoCo workflow runs it after its own walks.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
