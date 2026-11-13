@@ -7,7 +7,8 @@ name: Go2 SB3 PPO in MuJoCo
 # 25-35 cm wide, 30 cm deep gaps): as MuJoCo is configured, and with five
 # physics steps to each of RNE's and stiffer contacts (a 4 ms time constant
 # against the default 20 ms), which closed most of the transfer gap of
-# example 147's own walks. Light (minutes); it runs on demand.
+# example 147's own walks. Light (minutes), so it runs on demand
+# and when this workflow changes.
 on:
   workflow_dispatch:
     inputs:
@@ -15,6 +16,9 @@ on:
         description: "Go2 SB3 PPO depth levels run whose policies to walk"
         required: false
         default: "43374349191"
+  push:
+    paths:
+      - ".github/workflows/go2-sb3-mujoco.yml"
 
 permissions:
   contents: read
