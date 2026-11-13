@@ -122,6 +122,48 @@ whether the task allows a crossing at all: whether a foot that drops into
 a 30 cm trench can climb out, and how wide the gap is at the top once the
 terrain's 5 cm samples slope its edges.
 
+### Where the gap policies stop
+
+The second run (workflow run 43330784351) has the same settings. It adds
+how each episode ended, curricula that deepen the gaps, and shallow 5 cm
+gaps throughout. Each stage's policy was evaluated on the task's 25–35 cm,
+30 cm deep gaps and on its own stage's gaps. There are 64 episodes per
+evaluation; "crossed" totals every episode's gaps.
+
+| Job, last stage | Own gaps | Crossed | Falls | Ended with a front foot in a gap |
+|---|---|---|---|---|
+| Blind | 30 cm deep | 0 | 3 | 51 |
+| Scan | 30 cm deep | 0 | 2 | 64 |
+| Blind, widening | 30 cm deep | 0 | 15 | 39 (18 more a rear foot) |
+| Scan, widening | 30 cm deep | 0 | 1 | 53 |
+| Blind, shallow | 5 cm deep | 632 | 0 | 13 |
+| Scan, shallow | 5 cm deep | 602 | 0 | 10 |
+
+The deepening curricula went 3, 8, 15, then 30 cm. Crossings on each
+stage's own gaps:
+
+| Depth | Blind | Scan |
+|---|---|---|
+| 3 cm | 389 | 421 |
+| 8 cm | 281 | 270 |
+| 15 cm | 40 (8 falls) | 196 (1 fall) |
+| 30 cm | 0 | 0 |
+
+- **Trapped, not stopped short.** On 30 cm gaps the policies do not stop
+  short: almost every episode ends with a front foot in the gap. A Go2
+  foot that drops 30 cm into a trench does not climb back out.
+- **Stepping through.** Over shallow gaps the same gait crosses about ten
+  gaps per episode, 25–35 cm wide, and walks 16–17 m. It steps into each
+  gap and out again rather than over it. Gaps that are only wide, or only
+  shallow, are easy; deep ones need a foot placed beyond the gap.
+- **Where the scan helps.** At 15 cm the scan policy crossed 196 gaps with
+  one fall, against the blind policy's 40 with eight. This is one seed.
+- **Deeper gaps.** No policy learned to step over a 30 cm gap in 10M
+  timesteps. The task is not impossible, since a gait that never puts a
+  foot into a gap crosses it, but nothing in these runs found such a gait.
+  None of the stages carried over to the 30 cm gaps either: every
+  curriculum's last stage behaves like training on them throughout.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
