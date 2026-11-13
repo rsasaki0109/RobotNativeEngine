@@ -117,6 +117,30 @@ jobs:
               print(name, {key: value for key, value in against.items() if key != "episodes"})
           PY
 
+      - name: Trace an episode the simulators disagree on
+        run: |
+          set -euo pipefail
+          # The first episode MuJoCo (stiff) crosses a gap in and RNE does
+          # not, or else the one where they differ most.
+          episode=$(python - "$OUT/rne.json" <<'PY'
+          import json, sys
+          pairs = json.load(open(sys.argv[1]))["against"]["stiff"]["episodes"]
+          gap = [p["mujoco"]["gaps_crossed"] - p["rne"]["gaps_crossed"] for p in pairs]
+          clear = [i for i, p in enumerate(pairs)
+                   if p["rne"]["gaps_crossed"] == 0 and p["mujoco"]["gaps_crossed"] > 0]
+          print(clear[0] if clear else max(range(len(gap)), key=lambda i: gap[i]))
+          PY
+          )
+          echo "episode $episode"
+          .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
+            --starts 1 --trace "$episode" "$OUT/trace-rne.json" > /dev/null
+          .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
+            evaluate policy/policy.json --terrain "$OUT/terrain.json" --starts 64 \
+            --substeps 5 --solref 0.004 --trace "$OUT/trace-mujoco.json" \
+            --trace-episode "$episode" > /dev/null
+          # The terrain file is large and reproducible.
+          rm "$OUT/terrain.json"
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4

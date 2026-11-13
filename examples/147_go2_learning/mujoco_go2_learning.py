@@ -252,7 +252,8 @@ class Go2:
 
     def contact_details(self):
         """Every robot contact with the floor now: its body and geom type,
-        penetration (m, positive into the floor), normal and normal force."""
+        penetration (m, positive into the floor), position, normal and
+        normal force."""
         details, wrench = [], np.zeros(6)
         for index in range(self.data.ncon):
             contact = self.data.contact[index]
@@ -261,6 +262,7 @@ class Go2:
             details.append({"body": self.model.body(self.model.geom_bodyid[geom]).name,
                             "geom": mujoco.mjtGeom(self.model.geom_type[geom]).name[len("mjGEOM_"):].lower(),
                             "penetration_m": -float(contact.dist),
+                            "position_m": contact.pos.tolist(),
                             "normal": contact.frame[:3].tolist(), "force_n": float(wrench[0])})
         return details
 
@@ -951,7 +953,9 @@ def main():
     sub.choices["evaluate"].add_argument("--solref", type=float, default=None,
                                          help="contact time constant, s (diagnostic)")
     sub.choices["evaluate"].add_argument("--trace", type=Path, default=None,
-                                         help="write the first episode's trace, as --trace")
+                                         help="write one episode's trace, as --trace")
+    sub.choices["evaluate"].add_argument("--trace-episode", type=int, default=0,
+                                         help="which of --starts the trace walks from")
     sub.choices["evaluate"].add_argument("--starts", type=int, default=None,
                                          help="walk from RNE's N held-out starts")
     sub.choices["stand"].add_argument("seconds", type=float)
@@ -1038,9 +1042,10 @@ def main():
                   else evaluation_starts(arguments.starts, terrain_gaps(plant)))
         if arguments.trace is not None:
             robot.trace = []
-            outcome = robot.episode(policy, points[0])
+            traced = points[arguments.trace_episode]
+            outcome = robot.episode(policy, traced)
             trace = {"engine": f"mujoco {mujoco.__version__}", "policy": str(arguments.policy),
-                     "task": task, "start_m": list(points[0]), "settle_periods": SETTLE_STEPS,
+                     "task": task, "start_m": list(traced), "settle_periods": SETTLE_STEPS,
                      "outcome": outcome_json(outcome), "periods": robot.trace,
                      "last": robot.state()}
             arguments.trace.write_text(json.dumps(trace) + "\n")

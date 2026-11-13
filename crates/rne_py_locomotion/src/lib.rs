@@ -205,6 +205,16 @@ impl PyGo2LearningBatch {
         EPISODE_STEPS
     }
 
+    /// Environment `index`'s ground contact so far, by link name: the
+    /// normal impulse through the link (N·s) and the physics steps it
+    /// carried any, summed since the batch was built (evaluation only).
+    fn contact_load(&self, index: usize) -> PyResult<Vec<(String, f64, usize)>> {
+        if index >= self.inner.num_envs() {
+            return Err(PyValueError::new_err("no such environment"));
+        }
+        Ok(self.inner.episode(index).robot().contact_load())
+    }
+
     /// Each environment's base position (x, y, z) in meters, Z-up
     /// (evaluation only).
     fn base_positions(&self) -> Vec<[f64; 3]> {
@@ -401,6 +411,8 @@ mod tests {
         .unwrap();
         let gaps = batch.gap_intervals();
         assert!(gaps.len() > 5);
+        assert!(batch.contact_load(0).unwrap().len() > 4);
+        assert!(batch.contact_load(1).is_err());
         let feet = batch.foot_positions().unwrap();
         assert_eq!(feet.len(), 1);
         assert_eq!(feet[0].len(), 4);

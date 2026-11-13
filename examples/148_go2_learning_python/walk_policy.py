@@ -112,6 +112,40 @@ def walk(policy, task, count):
     return episodes
 
 
+def trace(policy, task, index, path):
+    """Walks the episode from evaluation start `index` alone and writes
+    each control period: the base, the four foot centers (front-left,
+    front-right, rear-left, rear-right) and each link's ground contact
+    over the period (normal impulse in N·s, physics steps in contact)."""
+    batch = rne_py_locomotion.Go2LearningBatch(1, 1, 1, **task_arguments(task))
+    start = batch.evaluation_starts(index + 1)[index]
+    batch.set_starts([start])
+    observations = np.asarray(batch.reset().observations)
+    load = {name: (impulse, steps) for name, impulse, steps in batch.contact_load(0)}
+    periods, fell = [], False
+    for _ in range(batch.episode_steps):
+        actions = policy.act(observations)
+        period = {"position_m": batch.base_positions()[0],
+                  "feet_m": batch.foot_positions()[0], "action": actions[0].tolist()}
+        step = batch.step(actions.tolist())
+        observations = np.asarray(step.observations)
+        if step.terminated[0] or step.truncated[0]:
+            # The batch has reset the environment: the last period's
+            # contacts are lost with it.
+            fell = bool(step.terminated[0])
+            periods.append(period)
+            break
+        after = {name: (impulse, steps) for name, impulse, steps in batch.contact_load(0)}
+        period["contacts"] = {name: {"impulse_n_s": after[name][0] - load[name][0],
+                                     "steps": after[name][1] - load[name][1]}
+                              for name in after if after[name][1] > load[name][1]}
+        load = after
+        periods.append(period)
+    with open(path, "w") as file:
+        json.dump({"engine": "rne", "start_m": list(start), "episode": index, "fell": fell,
+                   "gaps_m": batch.gap_intervals(), "periods": periods}, file)
+
+
 def summary(episodes):
     return {
         "fitness": sum(e["fitness"] for e in episodes) / len(episodes),
@@ -171,8 +205,12 @@ def main():
     parser.add_argument("--starts", type=int, default=64)
     parser.add_argument("--against", action="append", default=[], metavar="NAME=FILE",
                         help="a MuJoCo evaluation of the same policy and starts")
+    parser.add_argument("--trace", nargs=2, metavar=("EPISODE", "FILE"), default=None,
+                        help="write the trace of one episode of --starts")
     args = parser.parse_args()
     exported = json.load(open(args.policy))
+    if args.trace is not None:
+        trace(Policy(exported["policy"]), exported["task"], int(args.trace[0]), args.trace[1])
     episodes = walk(Policy(exported["policy"]), exported["task"], args.starts)
     report = {"task": exported["task"], "outcome": summary(episodes), "episodes": episodes,
               "against": {}}
