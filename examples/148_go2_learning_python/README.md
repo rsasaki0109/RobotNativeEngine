@@ -306,6 +306,35 @@ held-out evaluation starts (`Go2LearningBatch.evaluation_starts` and
 `--against NAME=FILE` compares the two walks episode by episode. The
 MuJoCo workflow runs it after its own walks.
 
+Workflow run 43416011439 covered the recycling run's policies: 64
+episodes, 30 cm gaps, MuJoCo with stiff contacts.
+
+| Policy, seed | RNE: crossed, falls, distance | MuJoCo: crossed | Episodes where RNE crossed fewer / equal / more |
+|---|---|---|---|
+| Scan 2026 | 315, 4, 9.45 m | 442 | 57 / 6 / 1 |
+| Scan 2027 | 277, 3, 8.51 m | 479 | 60 / 4 / 0 |
+| Scan 2028 | 285, 1, 8.66 m | 382 | 24 / 36 / 4 |
+| Blind 2026 | 53, 18, 3.02 m | 59 | 23 / 12 / 29 |
+| Blind 2027 | 6, 11, 1.68 m | 69 | 40 / 24 / 0 |
+| Blind 2028 | 0, 14, 1.67 m | 63 | 37 / 27 / 0 |
+
+- **The difference is not the starts.** From the same 64 points the scan
+  policies still cross about a third fewer gaps in RNE than in MuJoCo
+  with stiff contacts. The settled start positions agree to a millimeter.
+- **Slower, mostly.** Of the scan episodes where RNE crossed fewer, 12–41
+  ended still walking, with no fall and no foot in a gap: the same policy
+  covers 8.5–9.5 m in RNE and 11–13 m in MuJoCo. Another 11–16 ended with
+  a front foot in a gap, which happens in RNE and hardly ever in MuJoCo
+  (0–1 falls there, though its feet were not recorded).
+- **Blind policies.** Two blind policies cross almost nothing in RNE, 0
+  and 6 gaps, and 63–69 in MuJoCo. So a foot that drops into a gap fares
+  differently in the two simulators, not just the walking speed. Which
+  contact causes it is not established yet.
+- **MuJoCo's own spread.** Its totals differ a little between this run
+  and the earlier one on the same policies and starts (59 against 61, 63
+  against 70, 382 against 385), so MuJoCo's walks are not bit-reproducible
+  across runners.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
