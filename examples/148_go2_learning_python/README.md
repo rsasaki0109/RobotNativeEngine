@@ -188,6 +188,41 @@ each. The `Go2 SB3 PPO depth levels` workflow
 (`.github/workflows/go2-sb3-levels.yml`) trains 50M timesteps on eight
 levels, blind and with the scan, on three seeds each.
 
+#### Results: the scan policies cross 30 cm gaps
+
+The first run was workflow run 43351998314: 50M timesteps per job and
+64 environments, taking about 1.5–2 hours per job at 6 900–10 100
+steps/s. These are the last stage's walks at the deepest level, the
+task's 30 cm gaps, and at 15 cm. Each row is 64 held-out episodes.
+
+| Policy, seed | Crossed at 30 cm | Episodes crossing | Falls | Distance | Crossed at 15 cm |
+|---|---|---|---|---|---|
+| Blind, 2026 | 64 | 45 | 17 | 3.05 m | 113 |
+| Blind, 2027 | 4 | 4 | 7 | 1.67 m | 176 |
+| Blind, 2028 | 0 | 0 | 14 | 1.49 m | 153 |
+| Scan, 2026 | 440 | 64 | 0 | 12.27 m | 319 |
+| Scan, 2027 | 411 | 64 | 0 | 11.77 m | 312 |
+| Scan, 2028 | 335 | 63 | 4 | 9.92 m | 282 |
+
+- **The scan policies cross.** Every scan policy learned to cross the
+  30 cm gaps. That is about six gaps per episode, so they walk 10–12 m in
+  5 s and seldom fall.
+- **Blind policies cross shallow gaps only.** Blind policies cross 15 cm
+  gaps but rarely 30 cm ones, which they cannot see.
+- **Scan training levels.** By the last stage 56–64 of the 64 scan
+  training environments were at the deepest level.
+- **Blind training levels.** The blind ones spread over levels 4–7: they
+  move up and fall back.
+- **Shallow gaps got worse with the scan.** With nearly every environment
+  training on 30 cm gaps, the scan policies cross shallow gaps less well
+  than deep ones. At 7.5–15 cm deep, 37–47 of 64 episodes end with a front
+  foot in a gap. Such gaps barely move the scan's readings: 5 per meter,
+  so 0.4–0.75. Legged-robot curricula usually send an environment that
+  masters the last level back to a random one, which keeps the easier
+  levels in training. This curriculum does not do that yet.
+- **The per-environment curriculum works.** The stage-by-stage curricula
+  never carried over to 30 cm gaps; this one does.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

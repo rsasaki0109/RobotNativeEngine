@@ -557,7 +557,10 @@ All notable changes to Robot Native Engine are documented in this file.
   `gap_levels`, `set_levels`, `levels`, `set_depth_curriculum` and
   `level_depths`, and `train_ppo.py` gains `--depth-levels`. The `Go2 SB3
   PPO depth levels` workflow trains it blind and with the scan on three
-  seeds.
+  seeds. In its first run, 50M timesteps per job, all three scan policies
+  crossed the 30 cm gaps: 335–440 crossings over 64 held-out episodes,
+  walking 10–12 m in 5 s with at most four falls. The blind policies
+  crossed 0–64.
 
 - Example 148 diagnoses where its gap policies stop. Curriculum stages
   take a depth (`0.25-0.35@0.03`), so gaps can deepen as well as widen.
