@@ -8,7 +8,9 @@ name: Go2 SB3 PPO in MuJoCo
 # physics steps to each of RNE's and stiffer contacts (a 4 ms time constant
 # against the default 20 ms), which closed most of the transfer gap of
 # example 147's own walks. RNE then walks the same policy from the same
-# starts, and the report compares the walks episode by episode. Light (minutes), so it runs on demand
+# starts, and the report compares the walks episode by episode.
+# The policies were trained before rne_locomotion's spheres stopped hitting
+# the air above a gap's rim; RNE walks them here with that fixed. Light (minutes), so it runs on demand
 # and when this workflow changes.
 on:
   workflow_dispatch:

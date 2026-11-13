@@ -1558,6 +1558,88 @@ mod tests {
     }
 
     #[test]
+    fn a_sphere_above_a_gaps_rim_touches_nothing() {
+        use crate::quadruped::sphere_terrain_gap;
+        // Flat floor with 30 cm gaps whose walls drop across one 5 cm cell.
+        let relief = Relief {
+            gaps: Gaps {
+                depth_levels: 1,
+                ..leveled_gaps().gaps
+            },
+            ..leveled_gaps()
+        };
+        let shape = terrain(7, relief).unwrap();
+        let [start, end] = gap_intervals(7, relief)[0];
+        let floor = |x: f64| terrain_height_m(&shape, x, 0.0);
+        // The far wall: the cell between the last lowered sample and the
+        // first one back on the floor.
+        let mut rim = end;
+        while floor(rim) < -1e-9 {
+            rim += 0.001;
+        }
+        // The rim is a grid sample.
+        let rim = (rim / relief.cell_m).floor() * relief.cell_m;
+        let over_wall = rim - 0.02;
+        assert!(floor(over_wall) < -0.05 && floor(over_wall) > -0.25);
+        let radius = 0.05;
+        // 20 cm above the floor over the wall, the wall's plane is 7 cm
+        // away; the terrain is the rim, about 20 cm below.
+        let (gap, normal) =
+            sphere_terrain_gap(&shape, Vec3::new(over_wall, 0.0, 0.2), radius).unwrap();
+        assert!(gap >= 0.1, "{gap}");
+        assert!(normal.z > 0.9, "{normal:?}");
+        // Just above the rim it touches the rim, pushed up and back over
+        // the gap, not straight back.
+        let center = Vec3::new(over_wall, 0.0, 0.06);
+        let (gap, normal) = sphere_terrain_gap(&shape, center, radius).unwrap();
+        let to_rim = (center - Vec3::new(rim, 0.0, 0.0)).length();
+        assert!((gap - (to_rim - radius)).abs() < 1e-9, "{gap} {to_rim}");
+        assert!(gap > 0.0);
+        assert!(normal.z > 0.8 && normal.x < 0.0, "{normal:?}");
+        // A foot-sized sphere resting against the wall inside the gap, its
+        // center still over the wall's cell: the wall's plane holds, and
+        // the normal is the wall's, nearly level.
+        let foot = 0.022;
+        let touch = rim - 0.01;
+        let (wall_height, wall_normal) =
+            crate::quadruped::terrain_surface(&shape, touch, 0.0).unwrap();
+        let on_wall = Vec3::new(touch, 0.0, wall_height) + wall_normal * foot;
+        let (gap, normal) = sphere_terrain_gap(&shape, on_wall, foot).unwrap();
+        assert!(gap.abs() < 1e-9, "{gap}");
+        assert!(normal.z < 0.2 && normal.x < -0.9, "{normal:?}");
+        // On the floor and on the gap's bottom, the plane below holds.
+        for x in [start - 0.3, 0.5 * (start + end)] {
+            let center = Vec3::new(x, 0.0, floor(x) + radius + 0.003);
+            let (gap, normal) = sphere_terrain_gap(&shape, center, radius).unwrap();
+            assert!((gap - 0.003).abs() < 1e-12, "{x}: {gap}");
+            assert_eq!(normal, Vec3::new(0.0, 0.0, 1.0));
+        }
+    }
+
+    #[test]
+    fn on_gentle_relief_the_plane_below_a_sphere_stands_for_the_terrain() {
+        use crate::quadruped::{sphere_terrain_gap, terrain_surface};
+        // The default fractal relief: every sphere near it gets exactly the
+        // tangent plane's gap and normal, as before the rim fix.
+        let shape = terrain(7, Relief::default()).unwrap();
+        let mut stream = SplitMix64(11);
+        for _ in 0..20_000 {
+            let x = -10.0 + 20.0 * stream.uniform();
+            let y = -10.0 + 20.0 * stream.uniform();
+            let radius = 0.01 + 0.09 * stream.uniform();
+            let (height, normal) = terrain_surface(&shape, x, y).unwrap();
+            let above = -0.5 * radius + 2.5 * radius * stream.uniform();
+            let center = Vec3::new(x, y, height + above);
+            let plane = (center.z - height) * normal.z - radius;
+            assert_eq!(
+                sphere_terrain_gap(&shape, center, radius).unwrap(),
+                (plane, normal),
+                "{center:?} r {radius}"
+            );
+        }
+    }
+
+    #[test]
     fn a_level_starts_episodes_in_its_band() {
         let config = Go2LearningConfig {
             floor: Floor::Terrain {
