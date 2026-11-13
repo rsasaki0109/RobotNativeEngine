@@ -9,12 +9,20 @@ each stage the deterministic policy walks one episode in each of
 own gaps when they differ. The results file records the return, how far
 it walked, how many gaps it crossed, how often it fell, and how its
 episodes ended: with a foot in a gap, or stopped short of one.
+
+With `--depth-levels N` the gaps deepen in N levels along y instead, up
+to the task's 30 cm, and each environment moves up a level when an episode
+crosses `--promote-after-gaps` gaps and down one when it crosses none.
+Each evaluation then also walks the policy at every level (`by_level`) and
+records how many environments trained at each (`training_levels`).
 `--smoke` trains a few hundred steps on every path for CI.
 
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py --smoke
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py \\
         --floor gaps --height-scan --timesteps 20000000 --n-envs 64 \\
         --curriculum 0.25-0.35@0.03,0.25-0.35@0.08,0.25-0.35@0.15,0.25-0.35@0.3
+    .venv/bin/python examples/148_go2_learning_python/train_ppo.py \\
+        --floor gaps --height-scan --timesteps 50000000 --n-envs 64 --depth-levels 8
 """
 
 import argparse
@@ -138,6 +146,18 @@ def evaluate(model, env, normalize):
     }
 
 
+def evaluate_levels(model, env, normalize, depths):
+    """`evaluate` at each gap depth level of `env`, every environment
+    starting at that level."""
+    results = []
+    for level, depth in enumerate(depths):
+        env.set_levels([level] * env.num_envs)
+        result = evaluate(model, env, normalize)
+        result.update(level=level, gap_depth_m=depth)
+        results.append(result)
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -152,6 +172,11 @@ def main():
     parser.add_argument("--curriculum", default="",
                         help="gap widths (and @depth) per stage, e.g. "
                              "0.05-0.10,0.25-0.35@0.08 (gaps only)")
+    parser.add_argument("--depth-levels", type=int, default=1,
+                        help="gaps deepen in this many levels along y, each environment "
+                             "moving up and down them as it crosses gaps (gaps only)")
+    parser.add_argument("--promote-after-gaps", type=int, default=2,
+                        help="gaps an episode must cross to move up a depth level")
     parser.add_argument("--n-steps", type=int, default=256, help="rollout periods per env")
     parser.add_argument("--batch-size", type=int, default=4096)
     parser.add_argument("--n-epochs", type=int, default=5)
@@ -166,15 +191,31 @@ def main():
     parser.add_argument("--out", default="target/go2_learning_ppo")
     parser.add_argument("--smoke", action="store_true")
     args = parser.parse_args()
-    if args.smoke:
-        # Gaps with the scan, a two-stage curriculum and normalization: every
-        # path, a few hundred steps.
-        args.floor, args.height_scan = "gaps", True
-        args.curriculum = "0.05-0.10@0.1,0.25-0.35"
-        args.n_envs, args.n_steps, args.batch_size, args.timesteps = 2, 64, 64, 256
-        args.eval_envs, args.n_epochs = 2, 1
+    if not args.smoke:
+        train(args, parser)
+        return
+    # Gaps with the scan and normalization, a few hundred steps on each
+    # path: a two-stage curriculum, then depth levels.
+    args.floor, args.height_scan = "gaps", True
+    args.n_envs, args.n_steps, args.batch_size, args.timesteps = 2, 64, 64, 256
+    args.eval_envs, args.n_epochs = 2, 1
+    for curriculum, levels in (("0.05-0.10@0.1,0.25-0.35", 1), ("", 3)):
+        args.curriculum, args.depth_levels, args.stages = curriculum, levels, 2
+        history = train(args, parser)
+        assert len(history) == 2
+        assert ("on_stage_gaps" in history[0]) == bool(curriculum)
+        assert ("by_level" in history[0]) == (levels > 1)
+    print("smoke ok")
 
+
+def train(args, parser):
+    """Trains and evaluates as `args` ask; returns each stage's results."""
     task = task_arguments(args)
+    levels = args.depth_levels > 1
+    if levels:
+        if args.floor != "gaps" or args.curriculum:
+            parser.error("--depth-levels needs --floor gaps and no --curriculum")
+        task["gap_levels"] = args.depth_levels
     if args.curriculum:
         if args.floor != "gaps":
             parser.error("--curriculum needs --floor gaps")
@@ -195,8 +236,14 @@ def main():
                                **stage_task(stage))
 
     raw = NativeGo2VecEnv(n_envs=args.n_envs, seed=args.seed, **stage_task(stages[0]))
+    if levels:
+        raw.set_depth_curriculum(args.promote_after_gaps)
     env = raw if args.no_normalize else VecNormalize(raw, gamma=args.gamma)
     task_held_out = held_out(final)
+    if levels:
+        # The task's gaps are the deepest level's.
+        depths = task_held_out.level_depths()
+        task_held_out.set_levels([len(depths) - 1] * args.eval_envs)
     normalize = (lambda observations: observations) if args.no_normalize else env.normalize_obs
 
     layers = [int(size) for size in args.net.split(",")]
@@ -225,6 +272,11 @@ def main():
         if stage != final:
             # The same policy on this stage's own gaps.
             result["on_stage_gaps"] = evaluate(model, held_out(stage), normalize)
+        if levels:
+            reached = raw.levels()
+            result["training_levels"] = [reached.count(level) for level in range(len(depths))]
+            result["by_level"] = evaluate_levels(model, task_held_out, normalize, depths)
+            task_held_out.set_levels([len(depths) - 1] * args.eval_envs)
         history.append(result)
         print(json.dumps(result), flush=True)
 
@@ -235,6 +287,8 @@ def main():
         "seed": args.seed,
         "n_envs": args.n_envs,
         "curriculum": args.curriculum or None,
+        "depth_levels": args.depth_levels,
+        "promote_after_gaps": args.promote_after_gaps if levels else None,
         "normalize": not args.no_normalize,
         "hyperparameters": {
             "n_steps": args.n_steps, "batch_size": args.batch_size,
@@ -255,9 +309,7 @@ def main():
             env.save(os.path.join(args.out, "vec_normalize.pkl"))
     print(json.dumps({key: summary[key] for key in ("floor", "height_scan", "timesteps",
                                                      "steps_per_second", "final")}))
-    if args.smoke:
-        assert len(history) == len(stages) and "on_stage_gaps" in history[0]
-        print("smoke ok")
+    return history
 
 
 if __name__ == "__main__":

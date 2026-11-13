@@ -164,6 +164,30 @@ stage's own gaps:
   None of the stages carried over to the 30 cm gaps either: every
   curriculum's last stage behaves like training on them throughout.
 
+### Depth levels
+
+None of the stage-by-stage curricula carried over to the 30 cm gaps: each
+stage changes every environment's gaps at once. Legged-robot
+reinforcement learning usually moves each environment on its own instead,
+up when it succeeds and down when it fails. `--depth-levels N` does that,
+in the Rust batch:
+
+- the gaps deepen in N levels along y (`gap_levels=N`), each a band of the
+  start area, from 30 / N cm to the task's 30 cm;
+- each environment starts its episodes in its level's band;
+- when an episode ends, its environment moves up a level if the robot
+  crossed `--promote-after-gaps` gaps (2) and down one if it crossed
+  none, before the batch resets it.
+
+`Go2LearningBatch.set_depth_curriculum`, `set_levels`, `levels` and
+`level_depths` drive it from Python, as do
+`Go2LearningBatch::set_curriculum` and `DepthCurriculum` in Rust. After
+each stage the policy walks 64 held-out episodes at every level
+(`by_level`), and `training_levels` counts the training environments at
+each. The `Go2 SB3 PPO depth levels` workflow
+(`.github/workflows/go2-sb3-levels.yml`) trains 50M timesteps on eight
+levels, blind and with the scan, on three seeds each.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
