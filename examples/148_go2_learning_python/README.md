@@ -335,6 +335,47 @@ episodes, 30 cm gaps, MuJoCo with stiff contacts.
   against 70, 382 against 385), so MuJoCo's walks are not bit-reproducible
   across runners.
 
+#### The cause: spheres hit the air above a gap's rim
+
+Tracing one episode in both simulators (`walk_policy.py --trace`, MuJoCo's
+`evaluate --trace-episode`) showed where they part. Blind policy 2028
+bounds toward its first gap at 2 m/s, and the two walks agree to about a
+centimeter until the body is over the gap. MuJoCo carries it across. In
+RNE the base stopped dead within two control periods, 25 cm above the
+floor, and the only link in contact was the head.
+
+RNE's spheres touched the terrain through the tangent plane below their
+center, taken as endless. Over the far wall of a gap, which climbs 30 cm
+across one 5 cm cell, that plane rises past the rim: a sphere 20 cm above
+the floor was 3–8 cm from it and was pushed back level. `rne_locomotion`
+now uses the plane only where it lies on the terrain, and the distance to
+the terrain's nearest point elsewhere. Contacts on gentle relief and flat
+floors are unchanged.
+
+Workflow run 43523469012 walked the same policies again, from the same
+starts, in RNE with the fix. The policies were still the ones trained
+before it.
+
+| Policy, seed | RNE before: crossed, falls | RNE fixed: crossed, falls, distance | MuJoCo stiff: crossed |
+|---|---|---|---|
+| Scan 2026 | 315, 4 | 443, 0, 12.37 m | 441 |
+| Scan 2027 | 277, 3 | 496, 0, 13.60 m | 480 |
+| Scan 2028 | 285, 1 | 407, 0, 11.62 m | 382 |
+| Blind 2026 | 53, 18 | 80, 42, 3.64 m | 59 |
+| Blind 2027 | 6, 11 | 82, 18, 3.53 m | 69 |
+| Blind 2028 | 0, 14 | 84, 19, 3.76 m | 70 |
+
+- **RNE and MuJoCo now agree.** The scan policies cross 407–496 gaps in
+  RNE against 382–480 in MuJoCo with stiff contacts, and in 41–48 of 64
+  episodes they cross the same number in both.
+- **The earlier RNE numbers on 30 cm gaps were depressed by the fault.**
+  That holds for every gap result above this section, including the
+  training runs: the policies learned on gaps with an unseen wall over
+  each far rim.
+- **The scan still decides it.** Blind policies cross about 80 gaps and
+  fall in 18–42 of 64 episodes; scan policies cross five times as many
+  and do not fall.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
