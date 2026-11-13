@@ -124,6 +124,9 @@ pub const START_GAP_CLEARANCE_M: f64 = 0.45;
 pub const ARENA_EDGE_MARGIN_M: f64 = 1.0;
 /// Side of the square flat floor, in meters.
 pub const FLOOR_SIZE_M: f64 = 40.0;
+/// A gap counts as crossed once the base is this far past its far edge, so
+/// the hind feet (0.19 m behind the base) are across too, in meters.
+pub const GAP_CROSSED_PAST_M: f64 = 0.25;
 
 /// Bisection steps of the sliding-friction solve: 30 resolve the friction
 /// direction to 2e-10 rad, where the default 60 run past double precision.
@@ -163,14 +166,21 @@ impl SplitMix64 {
 /// Trenches across the terrain: each runs the terrain's whole width in y,
 /// at a random width, after a random run of floor along x. A depth of zero,
 /// the default, leaves the terrain without gaps.
+///
+/// With `depth_levels` above one, the gaps deepen in steps along y, for a
+/// curriculum: [`START_Y_RANGE_M`] splits into that many equal bands, south
+/// to north, and band `k` (level `k`) is [`Self::level_depth_m`] deep.
+/// Beyond the range the nearest band's depth holds.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Gaps {
-    /// Depth below the floor, in meters.
+    /// Depth below the floor, in meters: the deepest level's.
     pub depth_m: f64,
     /// Range of widths along x, in meters.
     pub width_m: [f64; 2],
     /// Range of the runs of floor between gaps, in meters.
     pub spacing_m: [f64; 2],
+    /// Depth levels along y; one, the default, is `depth_m` everywhere.
+    pub depth_levels: u32,
 }
 
 impl Default for Gaps {
@@ -179,7 +189,38 @@ impl Default for Gaps {
             depth_m: 0.0,
             width_m: [0.25, 0.35],
             spacing_m: [0.8, 1.6],
+            depth_levels: 1,
         }
+    }
+}
+
+impl Gaps {
+    /// Depth of level `level`, counted from 0, in meters: `depth_m` times
+    /// `(level + 1) / depth_levels`, so the last level is `depth_m` deep.
+    pub fn level_depth_m(self, level: u32) -> f64 {
+        let levels = self.depth_levels.max(1);
+        self.depth_m * f64::from(level.min(levels - 1) + 1) / f64::from(levels)
+    }
+
+    /// The level whose band holds Z-up `y_m`.
+    pub fn level_at(self, y_m: f64) -> u32 {
+        let levels = self.depth_levels.max(1);
+        let [south, north] = START_Y_RANGE_M;
+        let band = (y_m - south) / (north - south) * f64::from(levels);
+        // A float-to-int cast saturates, so a y south of the range is 0.
+        (band.floor() as u32).min(levels - 1)
+    }
+
+    /// The y range of level `level`'s band, in meters, Z-up.
+    pub fn level_band_m(self, level: u32) -> [f64; 2] {
+        let levels = self.depth_levels.max(1);
+        let level = level.min(levels - 1);
+        let [south, north] = START_Y_RANGE_M;
+        let width = (north - south) / f64::from(levels);
+        [
+            south + width * f64::from(level),
+            south + width * f64::from(level + 1),
+        ]
     }
 }
 
@@ -247,6 +288,11 @@ pub fn gap_intervals(seed: u64, relief: Relief) -> Vec<[f64; 2]> {
 /// The terrain for `seed`: a Y-up height field, zero at the origin, with
 /// `relief`'s gaps cut into it.
 pub fn terrain(seed: u64, relief: Relief) -> Result<ColliderShape, LocomotionError> {
+    if relief.gaps.depth_levels == 0 {
+        return Err(LocomotionError::InvalidInput(
+            "gaps need at least one depth level",
+        ));
+    }
     let spec = FractalTerrain {
         size_x_m: relief.size_m,
         size_z_m: relief.size_m,
@@ -270,17 +316,26 @@ pub fn terrain(seed: u64, relief: Relief) -> Result<ColliderShape, LocomotionErr
     if gaps.is_empty() {
         return Ok(shifted.height_field(seed)?);
     }
-    // Lower every column of samples whose x lies in a gap: the floor between
-    // a gap's last sample and the next sample outside it slopes across one
-    // cell.
+    // Lower every column of samples whose x lies in a gap, by the depth of
+    // each sample's level: the floor between a gap's last sample and the
+    // next sample outside it slopes across one cell.
     let mut heights = shifted.heights_m(seed)?;
     let columns = spec.columns as usize;
+    let rows = spec.rows as usize;
     let dx = spec.size_x_m / (columns - 1) as f64;
+    let dz = spec.size_z_m / (rows - 1) as f64;
+    // Y-up row z is Z-up y = -z.
+    let depths: Vec<f64> = (0..rows)
+        .map(|row| {
+            let y = -(-0.5 * spec.size_z_m + row as f64 * dz);
+            relief.gaps.level_depth_m(relief.gaps.level_at(y))
+        })
+        .collect();
     for column in 0..columns {
         let x = -0.5 * spec.size_x_m + column as f64 * dx;
         if gaps.iter().any(|[start, end]| x >= *start && x <= *end) {
-            for row in 0..spec.rows as usize {
-                heights[row * columns + column] -= relief.gaps.depth_m;
+            for (row, depth) in depths.iter().enumerate() {
+                heights[row * columns + column] -= depth;
             }
         }
     }
@@ -597,6 +652,12 @@ impl Go2LearningRobot {
         (state.linear_velocity_m_s, state.angular_velocity_rad_s)
     }
 
+    /// Each foot sphere's center, Z-up, in meters, in front-left,
+    /// front-right, rear-left, rear-right order.
+    pub fn foot_centers_z_up_m(&self) -> Result<Vec<Vec3>, LocomotionError> {
+        self.sim.quadruped().foot_centers_m(self.sim.q())
+    }
+
     /// Height of the ground below `(x_m, y_m)`, in meters; negative infinity
     /// off the floor.
     pub fn ground_height_m(&self, x_m: f64, y_m: f64) -> f64 {
@@ -799,10 +860,12 @@ pub struct Go2LearningEpisode {
     starts: SplitMix64,
     action: [f64; 12],
     step: usize,
+    start_x_m: f64,
     start_y_m: f64,
     reward_state: RewardState,
     episode_index: u32,
     last_error: Option<String>,
+    level: Option<u32>,
 }
 
 impl Go2LearningEpisode {
@@ -820,11 +883,56 @@ impl Go2LearningEpisode {
             config,
             action: [0.0; 12],
             step: 0,
+            start_x_m: 0.0,
             start_y_m: 0.0,
             reward_state: RewardState::default(),
             episode_index: 0,
             last_error: None,
+            level: None,
         })
+    }
+
+    /// Starts the next episodes in level `level`'s band of the gaps
+    /// ([`Gaps::level_band_m`]), or anywhere for `None`, the default. A
+    /// level's start keeps the stream's x and moves its y into the middle
+    /// half of the band.
+    ///
+    /// # Errors
+    ///
+    /// [`LocomotionError::InvalidInput`] without random starts on a
+    /// terrain, or for a level past the gaps' last.
+    pub fn set_level(&mut self, level: Option<u32>) -> Result<(), LocomotionError> {
+        if let Some(level) = level {
+            let Floor::Terrain { relief, .. } = self.config.floor else {
+                return Err(LocomotionError::InvalidInput("levels need a terrain"));
+            };
+            if !self.config.random_starts {
+                return Err(LocomotionError::InvalidInput("levels need random starts"));
+            }
+            if level >= relief.gaps.depth_levels {
+                return Err(LocomotionError::InvalidInput(
+                    "the level is past the gaps' last",
+                ));
+            }
+        }
+        self.level = level;
+        Ok(())
+    }
+
+    /// The level the next episodes start in, if one is set.
+    pub fn level(&self) -> Option<u32> {
+        self.level
+    }
+
+    /// Gaps the base has crossed since the episode began: those starting
+    /// ahead of its start whose far edge it is more than
+    /// [`GAP_CROSSED_PAST_M`] beyond, so the hind feet are across too.
+    pub fn gaps_crossed(&self) -> usize {
+        let (position, _) = self.robot.base_pose_z_up();
+        self.gaps
+            .iter()
+            .filter(|[start, end]| *start > self.start_x_m && position.x > end + GAP_CROSSED_PAST_M)
+            .count()
     }
 
     /// The configuration.
@@ -865,11 +973,17 @@ impl Go2LearningEpisode {
     /// [`Episode::reset`], returning a simulation error instead of ending
     /// the episode on it.
     pub fn try_reset(&mut self) -> Result<Vec<f64>, LocomotionError> {
-        let start = if self.config.random_starts {
+        let mut start = if self.config.random_starts {
             next_start(&mut self.starts, &self.gaps)
         } else {
             [0.0, 0.0]
         };
+        if let (Some(level), Floor::Terrain { relief, .. }) = (self.level, self.config.floor) {
+            let [south, north] = relief.gaps.level_band_m(level);
+            let [low, high] = START_Y_RANGE_M;
+            let fraction = (start[1] - low) / (high - low);
+            start[1] = south + (0.25 + 0.5 * fraction) * (north - south);
+        }
         self.robot.restart_at(start)?;
         self.robot.set_targets_rad(&DEFAULT_RAD);
         for _ in 0..SETTLE_STEPS {
@@ -878,6 +992,7 @@ impl Go2LearningEpisode {
         let (position, _) = self.robot.base_pose_z_up();
         self.action = [0.0; 12];
         self.step = 0;
+        self.start_x_m = position.x;
         self.start_y_m = position.y;
         self.reward_state = RewardState {
             x_m: position.x,
@@ -1066,6 +1181,33 @@ pub struct Go2LearningBatchStep {
 pub struct Go2LearningBatch {
     episodes: Vec<Go2LearningEpisode>,
     threads: usize,
+    curriculum: Option<DepthCurriculum>,
+}
+
+/// A per-environment curriculum over the gaps' depth levels
+/// ([`Gaps::depth_levels`]), after the terrain curricula of legged-robot
+/// reinforcement learning: when an episode ends, its environment moves up a
+/// level if the robot crossed at least `promote_after_gaps` gaps, down one
+/// if it crossed none, and stays otherwise. The batch moves the level
+/// before it resets the environment, so the next episode starts there.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct DepthCurriculum {
+    /// Gaps an episode must cross to move its environment up a level.
+    pub promote_after_gaps: usize,
+}
+
+impl DepthCurriculum {
+    /// The level after an episode at `level` (of `levels`) that crossed
+    /// `crossed` gaps.
+    pub fn next_level(self, level: u32, levels: u32, crossed: usize) -> u32 {
+        if crossed >= self.promote_after_gaps.max(1) {
+            (level + 1).min(levels.saturating_sub(1))
+        } else if crossed == 0 {
+            level.saturating_sub(1)
+        } else {
+            level
+        }
+    }
 }
 
 impl Go2LearningBatch {
@@ -1091,7 +1233,56 @@ impl Go2LearningBatch {
                 })
             })
             .collect::<Result<_, _>>()?;
-        Ok(Self { episodes, threads })
+        Ok(Self {
+            episodes,
+            threads,
+            curriculum: None,
+        })
+    }
+
+    /// Starts environment `index`'s next episodes at `level`
+    /// ([`Go2LearningEpisode::set_level`]).
+    ///
+    /// # Errors
+    ///
+    /// As [`Go2LearningEpisode::set_level`].
+    ///
+    /// # Panics
+    ///
+    /// Panics when `index` is not an environment's.
+    pub fn set_level(&mut self, index: usize, level: Option<u32>) -> Result<(), LocomotionError> {
+        self.episodes[index].set_level(level)
+    }
+
+    /// Each environment's level, if set.
+    pub fn levels(&self) -> Vec<Option<u32>> {
+        self.episodes
+            .iter()
+            .map(Go2LearningEpisode::level)
+            .collect()
+    }
+
+    /// Moves each environment's level by `curriculum` as its episodes end,
+    /// or stops moving them for `None`. Enabling it starts every
+    /// environment without a level at level 0.
+    ///
+    /// # Errors
+    ///
+    /// As [`Go2LearningEpisode::set_level`]: the curriculum needs a terrain
+    /// with gaps and random starts.
+    pub fn set_curriculum(
+        &mut self,
+        curriculum: Option<DepthCurriculum>,
+    ) -> Result<(), LocomotionError> {
+        if curriculum.is_some() {
+            for episode in &mut self.episodes {
+                if episode.level().is_none() {
+                    episode.set_level(Some(0))?;
+                }
+            }
+        }
+        self.curriculum = curriculum;
+        Ok(())
     }
 
     /// The number of environments.
@@ -1122,9 +1313,20 @@ impl Go2LearningBatch {
             self.episodes.len(),
             "one action per environment"
         );
+        let curriculum = self.curriculum;
         let results = self.run(Some(actions), |episode, action| {
             let step = episode.step(*action.expect("an action per environment"));
             if step.terminated || step.truncated {
+                if let (Some(curriculum), Some(level), Floor::Terrain { relief, .. }) =
+                    (curriculum, episode.level(), episode.config().floor)
+                {
+                    let next = curriculum.next_level(
+                        level,
+                        relief.gaps.depth_levels,
+                        episode.gaps_crossed(),
+                    );
+                    episode.level = Some(next);
+                }
                 let next = episode.reset();
                 let terminal = Some(step.observation);
                 (
@@ -1237,6 +1439,153 @@ mod tests {
             .map(|(_, impulse, _)| impulse)
             .sum();
         assert!(feet > 0.0);
+        // Standing, each foot rests on the floor; the front feet are ahead
+        // of the base and the rear ones behind it.
+        let centers = episode.robot().foot_centers_z_up_m().unwrap();
+        let radius_m = episode.robot().sim().quadruped().foot_radius_m();
+        for (leg, center) in centers.iter().enumerate() {
+            assert!((center.z - radius_m).abs() < 0.01, "{leg}: {center:?}");
+            let ahead = center.x > position.x;
+            assert_eq!(ahead, leg < 2, "{leg}: {center:?} vs {position:?}");
+        }
+    }
+
+    /// A terrain with flat floor and 30 cm gaps in four depth levels.
+    fn leveled_gaps() -> Relief {
+        Relief {
+            amplitude_m: 0.0,
+            size_m: 24.0,
+            cell_m: 0.05,
+            gaps: Gaps {
+                depth_m: 0.3,
+                depth_levels: 4,
+                ..Gaps::default()
+            },
+            ..Relief::default()
+        }
+    }
+
+    #[test]
+    fn gaps_deepen_level_by_level_along_y() {
+        let relief = leveled_gaps();
+        let gaps = relief.gaps;
+        assert_eq!(gaps.level_depth_m(0), 0.075);
+        assert_eq!(gaps.level_depth_m(3), 0.3);
+        assert_eq!(gaps.level_depth_m(9), 0.3);
+        assert_eq!(gaps.level_band_m(0), [-8.0, -4.0]);
+        assert_eq!(gaps.level_band_m(3), [4.0, 8.0]);
+        assert_eq!(gaps.level_at(-20.0), 0);
+        assert_eq!(gaps.level_at(-7.9), 0);
+        assert_eq!(gaps.level_at(-3.9), 1);
+        assert_eq!(gaps.level_at(7.9), 3);
+        assert_eq!(gaps.level_at(20.0), 3);
+        // One level is the plain depth everywhere.
+        let plain = Gaps {
+            depth_levels: 1,
+            ..gaps
+        };
+        assert_eq!(plain.level_depth_m(0), 0.3);
+        assert_eq!(plain.level_at(7.9), 0);
+
+        let shape = terrain(7, relief).unwrap();
+        let [start, end] = gap_intervals(7, relief)[0];
+        let middle = 0.5 * (start + end);
+        for level in 0..4 {
+            let [south, north] = gaps.level_band_m(level);
+            let y = 0.5 * (south + north);
+            let floor = terrain_height_m(&shape, middle, y);
+            assert!(
+                (floor + gaps.level_depth_m(level)).abs() < 1e-9,
+                "level {level}: {floor}"
+            );
+            assert!(terrain_height_m(&shape, end + 0.2, y).abs() < 1e-9);
+        }
+        assert!(terrain(
+            7,
+            Relief {
+                gaps: Gaps {
+                    depth_levels: 0,
+                    ..gaps
+                },
+                ..relief
+            }
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn a_level_starts_episodes_in_its_band() {
+        let config = Go2LearningConfig {
+            floor: Floor::Terrain {
+                seed: 7,
+                relief: leveled_gaps(),
+            },
+            random_starts: true,
+            ..Go2LearningConfig::default()
+        };
+        let mut episode = Go2LearningEpisode::new(config).unwrap();
+        assert!(episode.set_level(Some(4)).is_err());
+        episode.set_level(Some(2)).unwrap();
+        assert_eq!(episode.level(), Some(2));
+        let [south, north] = leveled_gaps().gaps.level_band_m(2);
+        for _ in 0..3 {
+            episode.reset();
+            let (position, _) = episode.robot().base_pose_z_up();
+            let quarter = 0.25 * (north - south);
+            assert!(
+                position.y > south + quarter - 0.05 && position.y < north - quarter + 0.05,
+                "{position:?}"
+            );
+            assert_eq!(episode.gaps_crossed(), 0);
+        }
+        // Levels need random starts on a terrain.
+        let mut fixed = Go2LearningEpisode::new(Go2LearningConfig {
+            random_starts: false,
+            ..config
+        })
+        .unwrap();
+        assert!(fixed.set_level(Some(0)).is_err());
+        let mut flat = Go2LearningEpisode::new(Go2LearningConfig::default()).unwrap();
+        assert!(flat.set_level(Some(0)).is_err());
+        assert!(flat.set_level(None).is_ok());
+    }
+
+    #[test]
+    fn the_depth_curriculum_moves_levels_by_the_gaps_crossed() {
+        let curriculum = DepthCurriculum {
+            promote_after_gaps: 2,
+        };
+        assert_eq!(curriculum.next_level(1, 4, 2), 2);
+        assert_eq!(curriculum.next_level(3, 4, 5), 3);
+        assert_eq!(curriculum.next_level(1, 4, 1), 1);
+        assert_eq!(curriculum.next_level(1, 4, 0), 0);
+        assert_eq!(curriculum.next_level(0, 4, 0), 0);
+
+        // A robot that stands crosses nothing: its environment moves down
+        // a level when the episode ends.
+        let config = Go2LearningConfig {
+            floor: Floor::Terrain {
+                seed: 7,
+                relief: leveled_gaps(),
+            },
+            random_starts: true,
+            ..Go2LearningConfig::default()
+        };
+        let mut batch = Go2LearningBatch::new(config, 2, 3, 2).unwrap();
+        batch.set_level(1, Some(2)).unwrap();
+        batch.set_curriculum(Some(curriculum)).unwrap();
+        assert_eq!(batch.levels(), vec![Some(0), Some(2)]);
+        batch.reset();
+        for _ in 0..EPISODE_STEPS {
+            batch.step(&[[0.0; 12]; 2]);
+        }
+        assert_eq!(batch.levels(), vec![Some(0), Some(1)]);
+        let [south, north] = leveled_gaps().gaps.level_band_m(1);
+        let (position, _) = batch.episode(1).robot().base_pose_z_up();
+        assert!(position.y > south && position.y < north, "{position:?}");
+        // A flat floor has no levels.
+        let mut flat = Go2LearningBatch::new(Go2LearningConfig::default(), 1, 3, 1).unwrap();
+        assert!(flat.set_curriculum(Some(curriculum)).is_err());
     }
 
     #[test]

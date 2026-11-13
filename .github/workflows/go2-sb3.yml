@@ -1,14 +1,18 @@
 name: Go2 SB3 PPO
 
 # Can a standard PPO (Stable-Baselines3) with many environments, normalized
-# observations and rewards, and gaps widened stage by stage learn to cross
-# example 147's gaps, which example 147's own PPO never crossed? Each job
-# trains one policy on example 148's native batch (blind or with the height
-# scan; the task's gaps throughout, or a curriculum from 5-10 cm to the
-# task's 25-35 cm) and after each stage walks it once in each of 64
-# held-out environments: return, distance, gaps crossed and falls. A flat
-# floor job shows whether the same settings learn to walk at all. Heavy
-# (hours), so it runs on demand and when this workflow changes.
+# observations and rewards, and an easier start learn to cross example
+# 147's gaps, which example 147's own PPO never crossed? Each job trains
+# one policy on example 148's native batch, blind or with the height scan,
+# on the task's 25-35 cm, 30 cm deep gaps throughout or on a curriculum:
+# widths from 5-10 cm up, depths from 3 cm down, or shallow 5 cm gaps
+# throughout (can it cross at all when a foot that drops in can step out?).
+# After each stage it walks the policy once in each of 64 held-out
+# environments, on the task's gaps and on the stage's own: return,
+# distance, gaps crossed, falls, and whether the episodes ended with a foot
+# in a gap or short of one. A flat floor job shows whether the same
+# settings learn to walk at all. Heavy (an hour), so it runs on demand and
+# when this workflow changes.
 on:
   workflow_dispatch:
     inputs:
@@ -24,10 +28,6 @@ on:
         description: "Training seed"
         required: false
         default: "2026"
-      curriculum:
-        description: "Gap widths per curriculum stage"
-        required: false
-        default: "0.05-0.10,0.10-0.20,0.18-0.28,0.25-0.35"
   push:
     paths:
       - ".github/workflows/go2-sb3.yml"
@@ -46,24 +46,36 @@ jobs:
         include:
           - name: flat
             flags: "--floor flat"
-            curriculum: false
+            curriculum: ""
           - name: gaps-blind
             flags: "--floor gaps"
-            curriculum: false
+            curriculum: ""
           - name: gaps-scan
             flags: "--floor gaps --height-scan"
-            curriculum: false
-          - name: gaps-blind-curriculum
+            curriculum: ""
+          - name: gaps-blind-widening
             flags: "--floor gaps"
-            curriculum: true
-          - name: gaps-scan-curriculum
+            curriculum: "0.05-0.10,0.10-0.20,0.18-0.28,0.25-0.35"
+          - name: gaps-scan-widening
             flags: "--floor gaps --height-scan"
-            curriculum: true
+            curriculum: "0.05-0.10,0.10-0.20,0.18-0.28,0.25-0.35"
+          - name: gaps-blind-deepening
+            flags: "--floor gaps"
+            curriculum: "0.25-0.35@0.03,0.25-0.35@0.08,0.25-0.35@0.15,0.25-0.35@0.3"
+          - name: gaps-scan-deepening
+            flags: "--floor gaps --height-scan"
+            curriculum: "0.25-0.35@0.03,0.25-0.35@0.08,0.25-0.35@0.15,0.25-0.35@0.3"
+          - name: gaps-blind-shallow
+            flags: "--floor gaps"
+            curriculum: "0.25-0.35@0.05,0.25-0.35@0.05,0.25-0.35@0.05,0.25-0.35@0.05"
+          - name: gaps-scan-shallow
+            flags: "--floor gaps --height-scan"
+            curriculum: "0.25-0.35@0.05,0.25-0.35@0.05,0.25-0.35@0.05,0.25-0.35@0.05"
     env:
       TIMESTEPS: ${{ inputs.timesteps || '10000000' }}
       N_ENVS: ${{ inputs.n_envs || '64' }}
       SEED: ${{ inputs.seed || '2026' }}
-      CURRICULUM: ${{ matrix.curriculum && (inputs.curriculum || '0.05-0.10,0.10-0.20,0.18-0.28,0.25-0.35') || '' }}
+      CURRICULUM: ${{ matrix.curriculum }}
       FLAGS: ${{ matrix.flags }}
       OUT: artifacts/go2-sb3-${{ matrix.name }}
     steps:

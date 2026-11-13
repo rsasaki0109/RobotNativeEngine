@@ -546,6 +546,27 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Gaps can deepen in levels along y for a per-environment curriculum.
+  `Gaps::depth_levels` splits the start area into bands, from
+  `depth_m / depth_levels` up to `depth_m`. The default, one level, leaves
+  terrains unchanged. `Go2LearningEpisode::set_level` starts episodes in a
+  level's band, and `gaps_crossed` counts the gaps an episode has crossed.
+  `Go2LearningBatch::set_curriculum` with a `DepthCurriculum` moves each
+  environment up a level after an episode that crossed enough gaps and
+  down one after an episode that crossed none. The binding gains
+  `gap_levels`, `set_levels`, `levels`, `set_depth_curriculum` and
+  `level_depths`, and `train_ppo.py` gains `--depth-levels`. The `Go2 SB3
+  PPO depth levels` workflow trains it blind and with the scan on three
+  seeds.
+
+- Example 148 diagnoses where its gap policies stop. Curriculum stages
+  take a depth (`0.25-0.35@0.03`), so gaps can deepen as well as widen.
+  Each stage's policy is also evaluated on that stage's own gaps. Each
+  evaluation counts the episodes that ended with a front or rear foot in a
+  gap, or short of one. `Go2LearningRobot::foot_centers_z_up_m`,
+  `Quadruped::foot_centers_m` and the binding's `foot_positions()` give
+  the feet. The workflow adds deepening and shallow-gap jobs.
+
 - Example 148 trains Stable-Baselines3 PPO on example 147's gaps.
   `train_ppo.py` trains in stages, either on the task's gaps throughout or
   on a curriculum of gap widths from narrow to the task's 25–35 cm. After

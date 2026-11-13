@@ -308,6 +308,20 @@ impl Quadruped {
         self.foot_radius_m
     }
 
+    /// Each foot sphere's center at configuration `q`, in the Z-up
+    /// locomotion frame, in leg order, in meters.
+    pub fn foot_centers_m(&self, q: &[f64]) -> Result<Vec<Vec3>, LocomotionError> {
+        let kinematics = self.model.kinematic().forward_kinematics(q)?;
+        Ok(self
+            .legs
+            .iter()
+            .map(|leg| {
+                let foot = kinematics.transforms()[leg.foot_index];
+                foot.translation + foot.rotation * self.foot_center_local_m
+            })
+            .collect())
+    }
+
     /// Total mass, in kilograms.
     pub fn mass_kg(&self) -> f64 {
         self.mass_kg

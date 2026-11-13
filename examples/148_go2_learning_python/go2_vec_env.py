@@ -71,6 +71,27 @@ class NativeGo2VecEnv(VecEnv):
         """Each environment's base position (x, y, z), Z-up, in meters."""
         return np.asarray(self._batch.base_positions())
 
+    def foot_positions(self):
+        """Each environment's foot centers, (n_envs, 4, 3), Z-up, in meters:
+        front-left, front-right, rear-left, rear-right."""
+        return np.asarray(self._batch.foot_positions())
+
+    def levels(self):
+        """Each environment's gap depth level (None: it starts anywhere)."""
+        return self._batch.levels()
+
+    def set_levels(self, levels):
+        """Starts each environment's next episodes at its level in `levels`."""
+        self._batch.set_levels(list(levels))
+
+    def set_depth_curriculum(self, promote_after_gaps=2):
+        """Moves each environment's level as its episodes end (None stops)."""
+        self._batch.set_depth_curriculum(promote_after_gaps)
+
+    def level_depths(self):
+        """Each gap depth level's depth, in meters, shallowest first."""
+        return self._batch.level_depths()
+
     def gap_intervals(self):
         """The gaps across the floor, (start, end) along x, in meters."""
         return [tuple(gap) for gap in self._batch.gap_intervals()]

@@ -12,8 +12,8 @@
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use rne_locomotion::go2_learning::{
-    go2_learning_task_spec, Floor, Gaps, Go2LearningBatch, Go2LearningBatchStep, Go2LearningConfig,
-    Relief, EPISODE_STEPS,
+    go2_learning_task_spec, DepthCurriculum, Floor, Gaps, Go2LearningBatch, Go2LearningBatchStep,
+    Go2LearningConfig, Relief, EPISODE_STEPS,
 };
 
 /// Result of a [`PyGo2LearningBatch`] reset or step, in environment order.
@@ -79,9 +79,11 @@ impl PyGo2LearningBatch {
     /// builds a terrain of `terrain_size` m sampled every `terrain_cell` m,
     /// with `terrain_amplitude` m of relief at `terrain_frequency` cycles per
     /// meter and gaps `gap_depth` m deep (none at 0), each between
-    /// `gap_width[0]` and `gap_width[1]` m wide.
+    /// `gap_width[0]` and `gap_width[1]` m wide. With `gap_levels` above
+    /// one the gaps deepen in that many steps along y, up to `gap_depth`
+    /// (see `set_levels` and `set_depth_curriculum`).
     #[new]
-    #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0, gap_width=(0.25, 0.35)))]
+    #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0, gap_width=(0.25, 0.35), gap_levels=1))]
     #[allow(clippy::too_many_arguments)]
     fn new(
         num_envs: usize,
@@ -97,6 +99,7 @@ impl PyGo2LearningBatch {
         terrain_frequency: f64,
         gap_depth: f64,
         gap_width: (f64, f64),
+        gap_levels: u32,
     ) -> PyResult<Self> {
         if num_envs == 0 {
             return Err(PyValueError::new_err("num_envs must be greater than zero"));
@@ -119,6 +122,7 @@ impl PyGo2LearningBatch {
                     gaps: Gaps {
                         depth_m: gap_depth,
                         width_m: [narrowest_m, widest_m],
+                        depth_levels: gap_levels,
                         ..Gaps::default()
                     },
                 },
@@ -212,6 +216,72 @@ impl PyGo2LearningBatch {
             .collect()
     }
 
+    /// Each environment's four foot sphere centers (x, y, z) in meters,
+    /// Z-up, in front-left, front-right, rear-left, rear-right order
+    /// (evaluation only).
+    fn foot_positions(&self) -> PyResult<Vec<Vec<[f64; 3]>>> {
+        (0..self.inner.num_envs())
+            .map(|index| {
+                let centers = self
+                    .inner
+                    .episode(index)
+                    .robot()
+                    .foot_centers_z_up_m()
+                    .map_err(|error| PyValueError::new_err(format!("foot positions: {error}")))?;
+                Ok(centers.iter().map(|c| [c.x, c.y, c.z]).collect())
+            })
+            .collect()
+    }
+
+    /// Each environment's gap depth level, or `None` where it starts
+    /// anywhere.
+    fn levels(&self) -> Vec<Option<u32>> {
+        self.inner.levels()
+    }
+
+    /// Starts each environment's next episodes at its level in `levels`
+    /// (`None` for anywhere), one per environment. Levels need random
+    /// starts on a terrain and count from 0 to `gap_levels - 1`.
+    fn set_levels(&mut self, levels: Vec<Option<u32>>) -> PyResult<()> {
+        if levels.len() != self.inner.num_envs() {
+            return Err(PyValueError::new_err(format!(
+                "expected {} levels, got {}",
+                self.inner.num_envs(),
+                levels.len()
+            )));
+        }
+        for (index, level) in levels.into_iter().enumerate() {
+            self.inner
+                .set_level(index, level)
+                .map_err(|error| PyValueError::new_err(format!("level: {error}")))?;
+        }
+        Ok(())
+    }
+
+    /// Moves each environment up a gap depth level when an episode crosses
+    /// at least `promote_after_gaps` gaps and down one when it crosses
+    /// none (`promote_after_gaps=None` stops it). Environments without a
+    /// level start at 0.
+    #[pyo3(signature = (promote_after_gaps=Some(2)))]
+    fn set_depth_curriculum(&mut self, promote_after_gaps: Option<usize>) -> PyResult<()> {
+        self.inner
+            .set_curriculum(
+                promote_after_gaps.map(|promote_after_gaps| DepthCurriculum { promote_after_gaps }),
+            )
+            .map_err(|error| PyValueError::new_err(format!("curriculum: {error}")))
+    }
+
+    /// Each gap depth level's depth, in meters, shallowest first (one entry
+    /// with `gap_levels=1`; empty on a flat floor).
+    fn level_depths(&self) -> Vec<f64> {
+        match self.config.floor {
+            Floor::Flat => Vec::new(),
+            Floor::Terrain { relief, .. } => (0..relief.gaps.depth_levels)
+                .map(|level| relief.gaps.level_depth_m(level))
+                .collect(),
+        }
+    }
+
     /// The gaps across the batch's floor, as (start, end) along x in
     /// meters (none on a flat floor or with `gap_depth=0`).
     fn gap_intervals(&self) -> Vec<[f64; 2]> {
@@ -250,6 +320,7 @@ mod tests {
             0.5,
             0.0,
             WIDTH_M,
+            1,
         )
         .unwrap();
         assert_eq!(batch.observation_dim(), 59);
@@ -266,12 +337,12 @@ mod tests {
             serde_json::from_str(&batch.task_spec_json().unwrap()).unwrap();
         assert_eq!(spec["task_id"], "rne.unitree_go2.learning.v1");
         assert!(PyGo2LearningBatch::new(
-            0, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M
+            0, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1
         )
         .is_err());
         // Random starts need a terrain.
         assert!(PyGo2LearningBatch::new(
-            1, 3, 1, None, false, true, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M
+            1, 3, 1, None, false, true, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1
         )
         .is_err());
     }
@@ -293,17 +364,21 @@ mod tests {
             0.5,
             0.3,
             narrow,
+            1,
         )
         .unwrap();
         let gaps = batch.gap_intervals();
         assert!(gaps.len() > 5);
+        let feet = batch.foot_positions().unwrap();
+        assert_eq!(feet.len(), 1);
+        assert_eq!(feet[0].len(), 4);
         assert!(
             gaps.iter()
                 .all(|[start, end]| end - start >= narrow.0 - 1e-12
                     && end - start <= narrow.1 + 1e-12)
         );
         let flat = PyGo2LearningBatch::new(
-            1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M,
+            1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1,
         )
         .unwrap();
         assert!(flat.gap_intervals().is_empty());
@@ -321,9 +396,49 @@ mod tests {
                 0.0,
                 0.5,
                 0.3,
-                bad
+                bad,
+                1,
             )
             .is_err());
         }
+    }
+
+    #[test]
+    fn levels_and_the_depth_curriculum_reach_the_batch() {
+        let mut batch = PyGo2LearningBatch::new(
+            2,
+            3,
+            1,
+            Some(7),
+            false,
+            true,
+            1.0,
+            24.0,
+            0.05,
+            0.0,
+            0.5,
+            0.3,
+            WIDTH_M,
+            4,
+        )
+        .unwrap();
+        let depths = batch.level_depths();
+        assert_eq!(depths.len(), 4);
+        for (depth, expected) in depths.iter().zip([0.075, 0.15, 0.225, 0.3]) {
+            assert!((depth - expected).abs() < 1e-12, "{depths:?}");
+        }
+        assert_eq!(batch.levels(), vec![None, None]);
+        batch.set_levels(vec![Some(3), None]).unwrap();
+        assert!(batch.set_levels(vec![Some(4), None]).is_err());
+        assert!(batch.set_levels(vec![Some(0)]).is_err());
+        batch.set_depth_curriculum(Some(2)).unwrap();
+        assert_eq!(batch.levels(), vec![Some(3), Some(0)]);
+        batch.set_depth_curriculum(None).unwrap();
+        let mut flat = PyGo2LearningBatch::new(
+            1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1,
+        )
+        .unwrap();
+        assert!(flat.level_depths().is_empty());
+        assert!(flat.set_depth_curriculum(Some(2)).is_err());
     }
 }

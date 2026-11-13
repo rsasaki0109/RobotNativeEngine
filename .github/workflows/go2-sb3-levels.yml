@@ -1,0 +1,94 @@
+name: Go2 SB3 PPO depth levels
+
+# Example 148's gap policies step into each gap and out again: over 30 cm
+# gaps a front foot drops in and stays. Can a per-environment terrain
+# curriculum, the kind legged-robot reinforcement learning uses, teach
+# Stable-Baselines3's PPO to step over them? The gaps deepen in eight levels
+# along y, 3.75 cm to the task's 30 cm, and each environment moves up a
+# level when an episode crosses two gaps and down one when it crosses none.
+# Each job trains one policy, blind or with the height scan, on one seed,
+# and after each of four stages walks it once in each of 64 held-out
+# environments at every level: gaps crossed, falls, how the episodes ended,
+# and how many training environments were at each level. Heavy (hours),
+# so it runs on demand and when this workflow changes.
+on:
+  workflow_dispatch:
+    inputs:
+      timesteps:
+        description: "Training timesteps per job"
+        required: false
+        default: "50000000"
+      n_envs:
+        description: "Parallel environments"
+        required: false
+        default: "64"
+      depth_levels:
+        description: "Gap depth levels"
+        required: false
+        default: "8"
+  push:
+    paths:
+      - ".github/workflows/go2-sb3-levels.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    name: Go2 SB3 levels (${{ matrix.sight }}, seed ${{ matrix.seed }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        sight: [blind, scan]
+        seed: [2026, 2027, 2028]
+    env:
+      TIMESTEPS: ${{ inputs.timesteps || '50000000' }}
+      N_ENVS: ${{ inputs.n_envs || '64' }}
+      DEPTH_LEVELS: ${{ inputs.depth_levels || '8' }}
+      SEED: ${{ matrix.seed }}
+      SCAN: ${{ matrix.sight == 'scan' && '--height-scan' || '' }}
+      OUT: artifacts/go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-sb3
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install SB3 and build rne_py_locomotion
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 \
+            -r examples/27_mobile_manipulator_rl/requirements-ci.txt
+          .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
+
+      - name: Train and evaluate
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          # shellcheck disable=SC2086
+          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN \
+            --depth-levels "$DEPTH_LEVELS" --timesteps "$TIMESTEPS" --n-envs "$N_ENVS" \
+            --seed "$SEED" --out "$OUT" | tee "$OUT.log"
+          mv "$OUT.log" "$OUT/train.log"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
+          path: ${{ env.OUT }}
+          if-no-files-found: warn
+          retention-days: 30
