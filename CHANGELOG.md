@@ -553,6 +553,16 @@ All notable changes to Robot Native Engine are documented in this file.
   so the shallower levels stay in training. `train_ppo.py` also writes
   `policy.json`, the deterministic policy and its observation normalization
   as plain numbers.
+  With recycling, the scan policies cross gaps of every depth: 405–536
+  crossings over 64 episodes at 7.5–15 cm, against 78–319 before, and
+  243–338 at 30 cm, against 335–440.
+
+- Example 147's `mujoco_go2_learning.py evaluate` reads example 148's
+  `policy.json` and, on a terrain with gaps, reports the gaps crossed. The
+  `Go2 SB3 PPO in MuJoCo` workflow walks a depth-levels run's policies in
+  MuJoCo. Trained only in RNE, the scan policies cross the 30 cm gaps in
+  MuJoCo with stiff contacts (385–479 crossings over 64 episodes, at most
+  one fall), and do not with MuJoCo's default contacts (2–13).
 
 - Gaps can deepen in levels along y for a per-environment curriculum.
   `Gaps::depth_levels` splits the start area into bands, from
