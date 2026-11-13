@@ -95,6 +95,9 @@ pub const START_X_RANGE_M: [f64; 2] = [-8.0, 2.0];
 pub const START_Y_RANGE_M: [f64; 2] = [-8.0, 8.0];
 /// Mixed into a seed for the training starts' stream.
 pub const START_STREAM: u64 = 0x5354_4152_5453_0147;
+/// An episode's stream of recycled curriculum levels is seeded with its
+/// seed XOR this ([`DepthCurriculum::recycle`]).
+pub const LEVEL_STREAM: u64 = 0x4c45_5645_4c53_0147;
 /// Seed of the held-out evaluation starts.
 pub const EVALUATION_STARTS_SEED: u64 = 0x4556_414C_0147;
 /// Fitness and reward weight per meter sideways.
@@ -866,6 +869,7 @@ pub struct Go2LearningEpisode {
     episode_index: u32,
     last_error: Option<String>,
     level: Option<u32>,
+    level_draws: SplitMix64,
 }
 
 impl Go2LearningEpisode {
@@ -889,6 +893,7 @@ impl Go2LearningEpisode {
             episode_index: 0,
             last_error: None,
             level: None,
+            level_draws: SplitMix64(config.seed ^ LEVEL_STREAM),
         })
     }
 
@@ -1190,18 +1195,32 @@ pub struct Go2LearningBatch {
 /// level if the robot crossed at least `promote_after_gaps` gaps, down one
 /// if it crossed none, and stays otherwise. The batch moves the level
 /// before it resets the environment, so the next episode starts there.
+///
+/// With `recycle`, an environment that would move up from the last level
+/// goes to a level drawn uniformly from all of them instead, from its own
+/// seeded stream ([`LEVEL_STREAM`]): the easier levels stay in training
+/// once the policy masters the hardest.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct DepthCurriculum {
     /// Gaps an episode must cross to move its environment up a level.
     pub promote_after_gaps: usize,
+    /// Whether mastering the last level sends the environment to a random
+    /// level rather than keeping it there.
+    pub recycle: bool,
 }
 
 impl DepthCurriculum {
     /// The level after an episode at `level` (of `levels`) that crossed
-    /// `crossed` gaps.
-    pub fn next_level(self, level: u32, levels: u32, crossed: usize) -> u32 {
+    /// `crossed` gaps; `draw`, uniform in [0, 1), picks the level when the
+    /// curriculum recycles.
+    pub fn next_level(self, level: u32, levels: u32, crossed: usize, draw: f64) -> u32 {
+        let last = levels.saturating_sub(1);
         if crossed >= self.promote_after_gaps.max(1) {
-            (level + 1).min(levels.saturating_sub(1))
+            if self.recycle && level >= last {
+                ((draw * f64::from(levels)) as u32).min(last)
+            } else {
+                (level + 1).min(last)
+            }
         } else if crossed == 0 {
             level.saturating_sub(1)
         } else {
@@ -1320,10 +1339,12 @@ impl Go2LearningBatch {
                 if let (Some(curriculum), Some(level), Floor::Terrain { relief, .. }) =
                     (curriculum, episode.level(), episode.config().floor)
                 {
+                    let draw = episode.level_draws.uniform();
                     let next = curriculum.next_level(
                         level,
                         relief.gaps.depth_levels,
                         episode.gaps_crossed(),
+                        draw,
                     );
                     episode.level = Some(next);
                 }
@@ -1554,12 +1575,24 @@ mod tests {
     fn the_depth_curriculum_moves_levels_by_the_gaps_crossed() {
         let curriculum = DepthCurriculum {
             promote_after_gaps: 2,
+            recycle: false,
         };
-        assert_eq!(curriculum.next_level(1, 4, 2), 2);
-        assert_eq!(curriculum.next_level(3, 4, 5), 3);
-        assert_eq!(curriculum.next_level(1, 4, 1), 1);
-        assert_eq!(curriculum.next_level(1, 4, 0), 0);
-        assert_eq!(curriculum.next_level(0, 4, 0), 0);
+        assert_eq!(curriculum.next_level(1, 4, 2, 0.0), 2);
+        assert_eq!(curriculum.next_level(3, 4, 5, 0.0), 3);
+        assert_eq!(curriculum.next_level(1, 4, 1, 0.0), 1);
+        assert_eq!(curriculum.next_level(1, 4, 0, 0.0), 0);
+        assert_eq!(curriculum.next_level(0, 4, 0, 0.0), 0);
+        // Recycling sends a mastered last level anywhere, and changes
+        // nothing below it.
+        let recycling = DepthCurriculum {
+            recycle: true,
+            ..curriculum
+        };
+        assert_eq!(recycling.next_level(3, 4, 5, 0.0), 0);
+        assert_eq!(recycling.next_level(3, 4, 5, 0.6), 2);
+        assert_eq!(recycling.next_level(3, 4, 5, 0.999), 3);
+        assert_eq!(recycling.next_level(1, 4, 2, 0.0), 2);
+        assert_eq!(recycling.next_level(3, 4, 0, 0.0), 2);
 
         // A robot that stands crosses nothing: its environment moves down
         // a level when the episode ends.

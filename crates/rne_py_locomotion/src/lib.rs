@@ -260,13 +260,21 @@ impl PyGo2LearningBatch {
 
     /// Moves each environment up a gap depth level when an episode crosses
     /// at least `promote_after_gaps` gaps and down one when it crosses
-    /// none (`promote_after_gaps=None` stops it). Environments without a
-    /// level start at 0.
-    #[pyo3(signature = (promote_after_gaps=Some(2)))]
-    fn set_depth_curriculum(&mut self, promote_after_gaps: Option<usize>) -> PyResult<()> {
+    /// none (`promote_after_gaps=None` stops it). With `recycle`, an
+    /// environment that masters the deepest level goes to a random level
+    /// instead of staying. Environments without a level start at 0.
+    #[pyo3(signature = (promote_after_gaps=Some(2), recycle=false))]
+    fn set_depth_curriculum(
+        &mut self,
+        promote_after_gaps: Option<usize>,
+        recycle: bool,
+    ) -> PyResult<()> {
         self.inner
             .set_curriculum(
-                promote_after_gaps.map(|promote_after_gaps| DepthCurriculum { promote_after_gaps }),
+                promote_after_gaps.map(|promote_after_gaps| DepthCurriculum {
+                    promote_after_gaps,
+                    recycle,
+                }),
             )
             .map_err(|error| PyValueError::new_err(format!("curriculum: {error}")))
     }
@@ -431,14 +439,14 @@ mod tests {
         batch.set_levels(vec![Some(3), None]).unwrap();
         assert!(batch.set_levels(vec![Some(4), None]).is_err());
         assert!(batch.set_levels(vec![Some(0)]).is_err());
-        batch.set_depth_curriculum(Some(2)).unwrap();
+        batch.set_depth_curriculum(Some(2), true).unwrap();
         assert_eq!(batch.levels(), vec![Some(3), Some(0)]);
-        batch.set_depth_curriculum(None).unwrap();
+        batch.set_depth_curriculum(None, false).unwrap();
         let mut flat = PyGo2LearningBatch::new(
             1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1,
         )
         .unwrap();
         assert!(flat.level_depths().is_empty());
-        assert!(flat.set_depth_curriculum(Some(2)).is_err());
+        assert!(flat.set_depth_curriculum(Some(2), false).is_err());
     }
 }

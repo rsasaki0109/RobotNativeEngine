@@ -188,6 +188,116 @@ each. The `Go2 SB3 PPO depth levels` workflow
 (`.github/workflows/go2-sb3-levels.yml`) trains 50M timesteps on eight
 levels, blind and with the scan, on three seeds each.
 
+`--recycle-levels` sends an environment that masters the deepest level to
+a level drawn uniformly from all of them (`DepthCurriculum::recycle`), so
+the shallower levels stay in training. The workflow now passes it; the
+results below are from before it existed.
+
+Every run also writes `policy.json`: the deterministic policy's layers and
+its observation normalization as plain numbers, for evaluation in another
+simulator.
+
+#### Results: the scan policies cross 30 cm gaps
+
+The first run was workflow run 43351998314: 50M timesteps per job and
+64 environments, taking about 1.5–2 hours per job at 6 900–10 100
+steps/s. These are the last stage's walks at the deepest level, the
+task's 30 cm gaps, and at 15 cm. Each row is 64 held-out episodes.
+
+| Policy, seed | Crossed at 30 cm | Episodes crossing | Falls | Distance | Crossed at 15 cm |
+|---|---|---|---|---|---|
+| Blind, 2026 | 64 | 45 | 17 | 3.05 m | 113 |
+| Blind, 2027 | 4 | 4 | 7 | 1.67 m | 176 |
+| Blind, 2028 | 0 | 0 | 14 | 1.49 m | 153 |
+| Scan, 2026 | 440 | 64 | 0 | 12.27 m | 319 |
+| Scan, 2027 | 411 | 64 | 0 | 11.77 m | 312 |
+| Scan, 2028 | 335 | 63 | 4 | 9.92 m | 282 |
+
+- **The scan policies cross.** Every scan policy learned to cross the
+  30 cm gaps. That is about six gaps per episode, so they walk 10–12 m in
+  5 s and seldom fall.
+- **Blind policies cross shallow gaps only.** Blind policies cross 15 cm
+  gaps but rarely 30 cm ones, which they cannot see.
+- **Scan training levels.** By the last stage 56–64 of the 64 scan
+  training environments were at the deepest level.
+- **Blind training levels.** The blind ones spread over levels 4–7: they
+  move up and fall back.
+- **Shallow gaps got worse with the scan.** With nearly every environment
+  training on 30 cm gaps, the scan policies cross shallow gaps less well
+  than deep ones. At 7.5–15 cm deep, 37–47 of 64 episodes end with a front
+  foot in a gap. Such gaps barely move the scan's readings: 5 per meter,
+  so 0.4–0.75. Legged-robot curricula usually send an environment that
+  masters the last level back to a random one, which keeps the easier
+  levels in training. This curriculum does not do that yet.
+- **The per-environment curriculum works.** The stage-by-stage curricula
+  never carried over to 30 cm gaps; this one does.
+
+#### Results with recycling
+
+The second run was workflow run 43374349191, with the same settings plus
+`--recycle-levels`. These are gaps crossed over 64 held-out episodes at
+each depth, last stage. The first three rows are the first run's scan
+policies, for comparison.
+
+| Policy, seed | 3.75 cm | 7.5 cm | 11.25 cm | 15 cm | 22.5 cm | 30 cm |
+|---|---|---|---|---|---|---|
+| Scan 2026, no recycling | 406 | 169 | 204 | 319 | 443 | 440 |
+| Scan 2027, no recycling | 239 | 78 | 254 | 312 | 420 | 411 |
+| Scan 2028, no recycling | 352 | 176 | 200 | 282 | 363 | 335 |
+| Scan 2026 | 464 | 501 | 515 | 505 | 468 | 338 |
+| Scan 2027 | 519 | 481 | 533 | 536 | 481 | 315 |
+| Scan 2028 | 433 | 405 | 414 | 409 | 396 | 243 |
+| Blind 2026 | 278 | 169 | 126 | 116 | 119 | 66 |
+| Blind 2027 | 310 | 199 | 155 | 163 | 112 | 4 |
+| Blind 2028 | 252 | 202 | 177 | 153 | 97 | 0 |
+
+- **Shallow gaps recovered.** With recycling the scan policies cross gaps
+  of every depth. At 7.5–15 cm deep they cross two to six times as many
+  as before. Episodes ending with a front foot in such a gap fell from
+  37–47 of 64 to 0–5 for two seeds and 9–15 for the third.
+- **The deepest level costs something.** At 30 cm they cross 243–338 gaps
+  against 335–440, and fall in 6–10 of 64 episodes against 0–4. Training
+  time is now shared between the levels.
+- **Blind policies barely change.** They rarely master the deepest level,
+  so they are seldom recycled. Seed 2028 never was, and its results are
+  identical to the first run's.
+
+#### The same policies in MuJoCo
+
+`mujoco_go2_learning.py evaluate` (example 147) reads `policy.json`, and
+the `Go2 SB3 PPO in MuJoCo` workflow (`.github/workflows/go2-sb3-mujoco.yml`)
+walks each policy of the recycling run in MuJoCo, from 64 held-out starts
+on the task's terrain with 30 cm gaps. It walks them twice: as MuJoCo is
+configured, and with five physics steps to each of RNE's and stiffer
+contacts (a 4 ms time constant against the default 20 ms). Workflow run
+43391649720:
+
+| Policy, seed | RNE: crossed, falls | MuJoCo default: crossed, falls | MuJoCo stiff: crossed, falls, distance |
+|---|---|---|---|
+| Scan 2026 | 338, 6 | 2, 5 | 442, 0, 12.27 m |
+| Scan 2027 | 315, 6 | 13, 16 | 479, 0, 13.12 m |
+| Scan 2028 | 243, 10 | 7, 21 | 385, 1, 11.10 m |
+| Blind 2026 | 66, 12 | 1, 8 | 61, 28, 3.25 m |
+| Blind 2027 | 4, 16 | 14, 13 | 69, 18, 3.26 m |
+| Blind 2028 | 0, 14 | 16, 18 | 70, 15, 3.31 m |
+
+- **With stiff contacts the scan policies transfer.** Trained only in
+  RNE, they cross the 30 cm gaps in MuJoCo in 63–64 of 64 episodes, with
+  at most one fall.
+- **With MuJoCo's default contacts they do not.** They cross 2–13 gaps in
+  64 episodes. Example 147 found the same for its own walks: at the
+  default 20 ms time constant the feet sink into the floor and catch on
+  the height field's cells.
+- **The scan matters in MuJoCo too.** With stiff contacts the blind
+  policies cross 61–70 gaps and fall in 15–28 episodes; the scan policies
+  cross 385–479.
+- **The columns are not the same episodes.** RNE's numbers are the
+  training script's evaluation, from its own starts in the deepest
+  level's band; MuJoCo's are from example 147's held-out starts over the
+  whole start area. The counts compare in size, not episode by episode.
+  Why the scan policies cross more in stiff MuJoCo than in RNE, and why
+  two blind policies cross there at all, is not explained yet.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

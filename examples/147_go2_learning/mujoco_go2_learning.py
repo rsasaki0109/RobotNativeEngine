@@ -82,6 +82,9 @@ ARENA_EDGE_MARGIN_M, FLAT_FLOOR_SIZE_M = 1.0, 40.0
 START_X_RANGE_M, START_Y_RANGE_M = (-8.0, 2.0), (-8.0, 8.0)
 # How far a start stays from a gap's edge, as go2.rs's START_GAP_CLEARANCE_M.
 START_GAP_CLEARANCE_M = 0.45
+# A gap is crossed when the base ends this far past its far edge; mirrors
+# GAP_CROSSED_PAST_M in crates/rne_locomotion/src/go2_learning.rs.
+GAP_CROSSED_PAST_M = 0.25
 START_STREAM, EVALUATION_STARTS_SEED = 0x5354415254530147, 0x4556414C0147
 
 
@@ -353,7 +356,8 @@ class Go2:
                    - SMOOTHNESS_PENALTY * change_square / steps - (FALL_PENALTY if fell else 0.0))
         return ({"fitness": fitness, "forward_m": forward, "lateral_m": lateral,
                  "heading_rad": heading, "survived_s": steps * CONTROL_DT_S, "fell": fell,
-                 "control_steps": SETTLE_STEPS + steps}, last)
+                 "control_steps": SETTLE_STEPS + steps,
+                 "start_x_m": float(start[0]), "final_x_m": float(self.data.qpos[0])}, last)
 
 
 class Mlp:
@@ -387,6 +391,32 @@ class Mlp:
     def to_json(self):
         return {"model": "mlp", "inputs": self.inputs, "hidden": self.hidden,
                 "outputs": ACTIONS, "params": self.params.tolist()}
+
+
+class Sb3Mlp:
+    """A policy exported by 148_go2_learning_python/train_ppo.py: Stable-Baselines3's
+    deterministic MlpPolicy behind VecNormalize, with ELU between its layers."""
+
+    def __init__(self, value):
+        self.inputs = value["inputs"]
+        if value.get("activation", "elu") != "elu":
+            raise SystemExit(f"unsupported activation {value['activation']!r}")
+        self.layers = [(np.asarray(layer["w"], dtype=float), np.asarray(layer["b"], dtype=float))
+                       for layer in value["layers"]]
+        self.mean = np.asarray(value["obs_mean"], dtype=float)
+        self.var = np.asarray(value["obs_var"], dtype=float)
+        self.clip_obs = value.get("clip_obs")
+        self.epsilon = value.get("epsilon", 1e-8)
+
+    def act(self, observation):
+        x = (observation - self.mean) / np.sqrt(self.var + self.epsilon)
+        if self.clip_obs is not None:
+            x = np.clip(x, -self.clip_obs, self.clip_obs)
+        for w, b in self.layers[:-1]:
+            x = w @ x + b
+            x = np.where(x > 0.0, x, np.exp(np.minimum(x, 0.0)) - 1.0)
+        w, b = self.layers[-1]
+        return np.clip(w @ x + b, -1.0, 1.0)
 
 
 class Normal:
@@ -798,7 +828,15 @@ def load_policy(path, generation):
             "random_starts": bool(report.get("task", {}).get("random_starts", False))}
     if inputs != observations(task):
         raise SystemExit(f"a policy with {inputs} inputs fits no task")
+    if value.get("model") == "sb3_mlp":
+        return Sb3Mlp(value), task
     return Mlp(inputs, value["hidden"], value["params"]), task
+
+
+def gaps_crossed(gaps, start_x, final_x):
+    """How many of `gaps` (`[start, end]` along x) an episode crossed."""
+    return sum(1 for start, end in gaps
+               if start > start_x and final_x > end + GAP_CROSSED_PAST_M)
 
 
 def mean_outcome(outcomes):
@@ -1016,6 +1054,15 @@ def main():
             outcome["falls"] = sum(o["fell"] for o in outcomes)
             report["episodes"] = [{"start_m": list(start), "outcome": outcome_json(o)}
                                   for start, o in zip(points, outcomes)]
+        gaps = terrain_gaps(plant)
+        if gaps:
+            crossed = [gaps_crossed(gaps, o["start_x_m"], o["final_x_m"]) for o in outcomes]
+            if arguments.starts is not None:
+                for episode, o, count in zip(report["episodes"], outcomes, crossed):
+                    episode.update(start_x_m=o["start_x_m"], final_x_m=o["final_x_m"],
+                                   gaps_crossed=count)
+            outcome["gaps_crossed"] = sum(crossed)
+            outcome["episodes_crossing_a_gap"] = sum(1 for count in crossed if count > 0)
         report["outcome"] = outcome
         print(json.dumps(report))
 

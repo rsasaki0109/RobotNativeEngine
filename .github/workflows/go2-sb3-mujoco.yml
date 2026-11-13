@@ -1,0 +1,109 @@
+name: Go2 SB3 PPO in MuJoCo
+
+# Do example 148's gap-crossing policies, trained in RNE with
+# Stable-Baselines3, cross the same gaps in MuJoCo? Each job takes the
+# policy.json of one job of a `Go2 SB3 PPO depth levels` run and walks it in
+# MuJoCo from 64 held-out starts on the task's terrain (48 m, 5 cm samples,
+# 25-35 cm wide, 30 cm deep gaps): as MuJoCo is configured, and with five
+# physics steps to each of RNE's and stiffer contacts (a 4 ms time constant
+# against the default 20 ms), which closed most of the transfer gap of
+# example 147's own walks. Light (minutes), so it runs on demand
+# and when this workflow changes.
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: "Go2 SB3 PPO depth levels run whose policies to walk"
+        required: false
+        default: "43374349191"
+  push:
+    paths:
+      - ".github/workflows/go2-sb3-mujoco.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  walk:
+    name: Go2 SB3 in MuJoCo (${{ matrix.sight }}, seed ${{ matrix.seed }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        sight: [blind, scan]
+        seed: [2026, 2027, 2028]
+    env:
+      RUN: ${{ inputs.run || '43374349191' }}
+      NAME: go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
+      OUT: artifacts/go2-sb3-mujoco-${{ matrix.sight }}-${{ matrix.seed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-learning
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build example 147
+        run: cargo build --locked --release -p go2_learning --example 147_go2_learning
+
+      - name: Install MuJoCo
+        run: |
+          python -m venv .venv-mujoco
+          .venv-mujoco/bin/pip install --disable-pip-version-check \
+            -r examples/116_robot_workbench/python/requirements-mujoco.txt numpy
+          .venv-mujoco/bin/python -c "import mujoco; print('mujoco', mujoco.__version__)"
+
+      - name: Download the policy
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.NAME }}
+          run-id: ${{ env.RUN }}
+          github-token: ${{ github.token }}
+          path: policy
+
+      - name: Walk in MuJoCo
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"
+          # The task's terrain: example 148's `--floor gaps`.
+          target/release/examples/147_go2_learning --write-terrain "$OUT/terrain.json" \
+            --terrain 7 --terrain-size 48 --terrain-cell 0.05 --terrain-amplitude 0 \
+            --gap-depth 0.3
+          cp policy/results.json "$OUT/rne-results.json"
+          mujoco=(.venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py)
+          for variant in default stiff; do
+            case $variant in
+              default) flags=() ;;
+              stiff) flags=(--substeps 5 --solref 0.004) ;;
+            esac
+            "${mujoco[@]}" evaluate policy/policy.json --terrain "$OUT/terrain.json" \
+              --starts 64 "${flags[@]}" > "$OUT/mujoco-$variant.json"
+            python - "$OUT/mujoco-$variant.json" <<'PY'
+          import json, sys
+          report = json.load(open(sys.argv[1]))
+          outcome = report["outcome"]
+          print(sys.argv[1], {key: outcome.get(key) for key in (
+              "fitness", "forward_m", "falls", "gaps_crossed", "episodes_crossing_a_gap")})
+          PY
+          done
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-sb3-mujoco-${{ matrix.sight }}-${{ matrix.seed }}
+          path: ${{ env.OUT }}
+          if-no-files-found: warn
+          retention-days: 30

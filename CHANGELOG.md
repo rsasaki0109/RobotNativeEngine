@@ -546,6 +546,24 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- The gap depth curriculum can recycle: with `DepthCurriculum::recycle`
+  (`set_depth_curriculum(recycle=True)`, `train_ppo.py --recycle-levels`),
+  an environment that masters the deepest level goes to a level drawn
+  uniformly from all of them, from its own seeded stream (`LEVEL_STREAM`),
+  so the shallower levels stay in training. `train_ppo.py` also writes
+  `policy.json`, the deterministic policy and its observation normalization
+  as plain numbers.
+  With recycling, the scan policies cross gaps of every depth: 405–536
+  crossings over 64 episodes at 7.5–15 cm, against 78–319 before, and
+  243–338 at 30 cm, against 335–440.
+
+- Example 147's `mujoco_go2_learning.py evaluate` reads example 148's
+  `policy.json` and, on a terrain with gaps, reports the gaps crossed. The
+  `Go2 SB3 PPO in MuJoCo` workflow walks a depth-levels run's policies in
+  MuJoCo. Trained only in RNE, the scan policies cross the 30 cm gaps in
+  MuJoCo with stiff contacts (385–479 crossings over 64 episodes, at most
+  one fall), and do not with MuJoCo's default contacts (2–13).
+
 - Gaps can deepen in levels along y for a per-environment curriculum.
   `Gaps::depth_levels` splits the start area into bands, from
   `depth_m / depth_levels` up to `depth_m`. The default, one level, leaves
@@ -557,7 +575,10 @@ All notable changes to Robot Native Engine are documented in this file.
   `gap_levels`, `set_levels`, `levels`, `set_depth_curriculum` and
   `level_depths`, and `train_ppo.py` gains `--depth-levels`. The `Go2 SB3
   PPO depth levels` workflow trains it blind and with the scan on three
-  seeds.
+  seeds. In its first run, 50M timesteps per job, all three scan policies
+  crossed the 30 cm gaps: 335–440 crossings over 64 held-out episodes,
+  walking 10–12 m in 5 s with at most four falls. The blind policies
+  crossed 0–64.
 
 - Example 148 diagnoses where its gap policies stop. Curriculum stages
   take a depth (`0.25-0.35@0.03`), so gaps can deepen as well as widen.

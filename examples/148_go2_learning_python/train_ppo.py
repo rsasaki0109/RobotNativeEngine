@@ -146,6 +146,28 @@ def evaluate(model, env, normalize):
     }
 
 
+def policy_json(model, env, normalized, task):
+    """The deterministic policy as plain numbers, for another simulator:
+    clip((observation - mean) / sqrt(var + epsilon), ±clip_obs), then each
+    layer `w @ x + b` with the activation after all but the last, then the
+    result clipped to [-1, 1]."""
+    linears = [layer for layer in model.policy.mlp_extractor.policy_net
+               if isinstance(layer, torch.nn.Linear)] + [model.policy.action_net]
+    layers = [{"w": layer.weight.detach().cpu().tolist(),
+               "b": layer.bias.detach().cpu().tolist()} for layer in linears]
+    inputs = len(layers[0]["w"][0])
+    return {
+        "policy": {
+            "model": "sb3_mlp", "inputs": inputs, "activation": "elu", "layers": layers,
+            "obs_mean": env.obs_rms.mean.tolist() if normalized else [0.0] * inputs,
+            "obs_var": env.obs_rms.var.tolist() if normalized else [1.0] * inputs,
+            "clip_obs": float(env.clip_obs) if normalized else None,
+            "epsilon": float(env.epsilon) if normalized else 0.0,
+        },
+        "task": task,
+    }
+
+
 def evaluate_levels(model, env, normalize, depths):
     """`evaluate` at each gap depth level of `env`, every environment
     starting at that level."""
@@ -177,6 +199,9 @@ def main():
                              "moving up and down them as it crosses gaps (gaps only)")
     parser.add_argument("--promote-after-gaps", type=int, default=2,
                         help="gaps an episode must cross to move up a depth level")
+    parser.add_argument("--recycle-levels", action="store_true",
+                        help="send an environment that masters the deepest level to a "
+                             "random level, so the shallower ones stay in training")
     parser.add_argument("--n-steps", type=int, default=256, help="rollout periods per env")
     parser.add_argument("--batch-size", type=int, default=4096)
     parser.add_argument("--n-epochs", type=int, default=5)
@@ -201,6 +226,7 @@ def main():
     args.eval_envs, args.n_epochs = 2, 1
     for curriculum, levels in (("0.05-0.10@0.1,0.25-0.35", 1), ("", 3)):
         args.curriculum, args.depth_levels, args.stages = curriculum, levels, 2
+        args.recycle_levels = levels > 1
         history = train(args, parser)
         assert len(history) == 2
         assert ("on_stage_gaps" in history[0]) == bool(curriculum)
@@ -237,7 +263,7 @@ def train(args, parser):
 
     raw = NativeGo2VecEnv(n_envs=args.n_envs, seed=args.seed, **stage_task(stages[0]))
     if levels:
-        raw.set_depth_curriculum(args.promote_after_gaps)
+        raw.set_depth_curriculum(args.promote_after_gaps, args.recycle_levels)
     env = raw if args.no_normalize else VecNormalize(raw, gamma=args.gamma)
     task_held_out = held_out(final)
     if levels:
@@ -289,6 +315,7 @@ def train(args, parser):
         "curriculum": args.curriculum or None,
         "depth_levels": args.depth_levels,
         "promote_after_gaps": args.promote_after_gaps if levels else None,
+        "recycle_levels": args.recycle_levels if levels else None,
         "normalize": not args.no_normalize,
         "hyperparameters": {
             "n_steps": args.n_steps, "batch_size": args.batch_size,
@@ -303,6 +330,12 @@ def train(args, parser):
     }
     with open(os.path.join(args.out, "results.json"), "w") as file:
         json.dump(summary, file, indent=2)
+    exported = policy_json(model, env, not args.no_normalize,
+                           {"floor": args.floor, "height_scan": args.height_scan,
+                            "random_starts": args.floor != "flat"})
+    assert exported["policy"]["inputs"] == raw.observation_space.shape[0]
+    with open(os.path.join(args.out, "policy.json"), "w") as file:
+        json.dump(exported, file)
     if not args.smoke:
         model.save(os.path.join(args.out, "ppo_go2"))
         if not args.no_normalize:
