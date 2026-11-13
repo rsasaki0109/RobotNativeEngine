@@ -232,6 +232,36 @@ task's 30 cm gaps, and at 15 cm. Each row is 64 held-out episodes.
 - **The per-environment curriculum works.** The stage-by-stage curricula
   never carried over to 30 cm gaps; this one does.
 
+#### Results with recycling
+
+The second run was workflow run 43374349191, with the same settings plus
+`--recycle-levels`. These are gaps crossed over 64 held-out episodes at
+each depth, last stage. The first three rows are the first run's scan
+policies, for comparison.
+
+| Policy, seed | 3.75 cm | 7.5 cm | 11.25 cm | 15 cm | 22.5 cm | 30 cm |
+|---|---|---|---|---|---|---|
+| Scan 2026, no recycling | 406 | 169 | 204 | 319 | 443 | 440 |
+| Scan 2027, no recycling | 239 | 78 | 254 | 312 | 420 | 411 |
+| Scan 2028, no recycling | 352 | 176 | 200 | 282 | 363 | 335 |
+| Scan 2026 | 464 | 501 | 515 | 505 | 468 | 338 |
+| Scan 2027 | 519 | 481 | 533 | 536 | 481 | 315 |
+| Scan 2028 | 433 | 405 | 414 | 409 | 396 | 243 |
+| Blind 2026 | 278 | 169 | 126 | 116 | 119 | 66 |
+| Blind 2027 | 310 | 199 | 155 | 163 | 112 | 4 |
+| Blind 2028 | 252 | 202 | 177 | 153 | 97 | 0 |
+
+- **Shallow gaps recovered.** With recycling the scan policies cross gaps
+  of every depth. At 7.5–15 cm deep they cross two to six times as many
+  as before. Episodes ending with a front foot in such a gap fell from
+  37–47 of 64 to 0–5 for two seeds and 9–15 for the third.
+- **The deepest level costs something.** At 30 cm they cross 243–338 gaps
+  against 335–440, and fall in 6–10 of 64 episodes against 0–4. Training
+  time is now shared between the levels.
+- **Blind policies barely change.** They rarely master the deepest level,
+  so they are seldom recycled. Seed 2028 never was, and its results are
+  identical to the first run's.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
