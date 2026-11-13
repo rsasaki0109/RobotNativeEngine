@@ -6,6 +6,9 @@ name: Go2 SB3 PPO depth levels
 # Stable-Baselines3's PPO to step over them? The gaps deepen in eight levels
 # along y, 3.75 cm to the task's 30 cm, and each environment moves up a
 # level when an episode crosses two gaps and down one when it crosses none.
+# In the first run every environment of the scan policies ended at the
+# deepest level and the policies lost the shallow gaps, so an environment
+# that masters the deepest level now goes to a random one (--recycle-levels).
 # Each job trains one policy, blind or with the height scan, on one seed,
 # and after each of four stages walks it once in each of 64 held-out
 # environments at every level: gaps crossed, falls, how the episodes ended,
@@ -26,6 +29,10 @@ on:
         description: "Gap depth levels"
         required: false
         default: "8"
+      recycle:
+        description: "Send environments that master the deepest level to a random one"
+        required: false
+        default: "true"
   push:
     paths:
       - ".github/workflows/go2-sb3-levels.yml"
@@ -49,6 +56,7 @@ jobs:
       DEPTH_LEVELS: ${{ inputs.depth_levels || '8' }}
       SEED: ${{ matrix.seed }}
       SCAN: ${{ matrix.sight == 'scan' && '--height-scan' || '' }}
+      RECYCLE: ${{ inputs.recycle == 'false' && ' ' || '--recycle-levels' }}
       OUT: artifacts/go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
     steps:
       - name: Checkout
@@ -79,7 +87,7 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
           # shellcheck disable=SC2086
-          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN \
+          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN $RECYCLE \
             --depth-levels "$DEPTH_LEVELS" --timesteps "$TIMESTEPS" --n-envs "$N_ENVS" \
             --seed "$SEED" --out "$OUT" | tee "$OUT.log"
           mv "$OUT.log" "$OUT/train.log"

@@ -84,9 +84,10 @@ class NativeGo2VecEnv(VecEnv):
         """Starts each environment's next episodes at its level in `levels`."""
         self._batch.set_levels(list(levels))
 
-    def set_depth_curriculum(self, promote_after_gaps=2):
-        """Moves each environment's level as its episodes end (None stops)."""
-        self._batch.set_depth_curriculum(promote_after_gaps)
+    def set_depth_curriculum(self, promote_after_gaps=2, recycle=False):
+        """Moves each environment's level as its episodes end (None stops);
+        `recycle` sends one that masters the deepest level to a random one."""
+        self._batch.set_depth_curriculum(promote_after_gaps, recycle)
 
     def level_depths(self):
         """Each gap depth level's depth, in meters, shallowest first."""

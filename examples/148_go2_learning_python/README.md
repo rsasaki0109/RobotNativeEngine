@@ -188,6 +188,15 @@ each. The `Go2 SB3 PPO depth levels` workflow
 (`.github/workflows/go2-sb3-levels.yml`) trains 50M timesteps on eight
 levels, blind and with the scan, on three seeds each.
 
+`--recycle-levels` sends an environment that masters the deepest level to
+a level drawn uniformly from all of them (`DepthCurriculum::recycle`), so
+the shallower levels stay in training. The workflow now passes it; the
+results below are from before it existed.
+
+Every run also writes `policy.json`: the deterministic policy's layers and
+its observation normalization as plain numbers, for evaluation in another
+simulator.
+
 #### Results: the scan policies cross 30 cm gaps
 
 The first run was workflow run 43351998314: 50M timesteps per job and

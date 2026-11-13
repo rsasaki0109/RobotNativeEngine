@@ -546,6 +546,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- The gap depth curriculum can recycle: with `DepthCurriculum::recycle`
+  (`set_depth_curriculum(recycle=True)`, `train_ppo.py --recycle-levels`),
+  an environment that masters the deepest level goes to a level drawn
+  uniformly from all of them, from its own seeded stream (`LEVEL_STREAM`),
+  so the shallower levels stay in training. `train_ppo.py` also writes
+  `policy.json`, the deterministic policy and its observation normalization
+  as plain numbers.
+
 - Gaps can deepen in levels along y for a per-environment curriculum.
   `Gaps::depth_levels` splits the start area into bands, from
   `depth_m / depth_levels` up to `depth_m`. The default, one level, leaves
