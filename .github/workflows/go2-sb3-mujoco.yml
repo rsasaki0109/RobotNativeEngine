@@ -9,8 +9,8 @@ name: Go2 SB3 PPO in MuJoCo
 # against the default 20 ms), which closed most of the transfer gap of
 # example 147's own walks. RNE then walks the same policy from the same
 # starts, and the report compares the walks episode by episode.
-# The policies were trained before rne_locomotion's spheres stopped hitting
-# the air above a gap's rim; RNE walks them here with that fixed. Light (minutes), so it runs on demand
+# The default run trained with rne_locomotion's sphere contact fixed (no
+# unseen wall over a gap's far rim); run 43374349191 trained before it. Light (minutes), so it runs on demand
 # and when this workflow changes.
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ on:
       run:
         description: "Go2 SB3 PPO depth levels run whose policies to walk"
         required: false
-        default: "43374349191"
+        default: "43541974300"
   push:
     paths:
       - ".github/workflows/go2-sb3-mujoco.yml"
@@ -38,7 +38,7 @@ jobs:
         sight: [blind, scan]
         seed: [2026, 2027, 2028]
     env:
-      RUN: ${{ inputs.run || '43374349191' }}
+      RUN: ${{ inputs.run || '43541974300' }}
       NAME: go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
       OUT: artifacts/go2-sb3-mujoco-${{ matrix.sight }}-${{ matrix.seed }}
     steps:
