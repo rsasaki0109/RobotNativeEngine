@@ -13,7 +13,7 @@ use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use rne_locomotion::go2_learning::{
     evaluation_starts, go2_learning_task_spec, DepthCurriculum, Floor, Gaps, Go2LearningBatch,
-    Go2LearningBatchStep, Go2LearningConfig, Relief, EPISODE_STEPS,
+    Go2LearningBatchStep, Go2LearningConfig, Relief, ACTION_SCALE_RAD, DEFAULT_RAD, EPISODE_STEPS,
 };
 
 /// Result of a [`PyGo2LearningBatch`] reset or step, in environment order.
@@ -203,6 +203,28 @@ impl PyGo2LearningBatch {
     #[getter]
     fn episode_steps(&self) -> usize {
         EPISODE_STEPS
+    }
+
+    /// The joint angles an all-zero action holds, in radians, in the
+    /// action's joint order.
+    #[getter]
+    fn default_pose_rad(&self) -> Vec<f64> {
+        DEFAULT_RAD.to_vec()
+    }
+
+    /// Radians of joint target per unit of action.
+    #[getter]
+    fn action_scale_rad(&self) -> f64 {
+        ACTION_SCALE_RAD
+    }
+
+    /// Environment `index`'s joint positions (rad) and velocities (rad/s),
+    /// in the action's joint order (evaluation only).
+    fn joint_states(&self, index: usize) -> PyResult<Vec<(f64, f64)>> {
+        if index >= self.inner.num_envs() {
+            return Err(PyValueError::new_err("no such environment"));
+        }
+        Ok(self.inner.episode(index).robot().joint_states().to_vec())
     }
 
     /// Environment `index`'s ground contact so far, by link name: the
@@ -413,6 +435,10 @@ mod tests {
         assert!(gaps.len() > 5);
         assert!(batch.contact_load(0).unwrap().len() > 4);
         assert!(batch.contact_load(1).is_err());
+        assert_eq!(batch.joint_states(0).unwrap().len(), 12);
+        assert!(batch.joint_states(1).is_err());
+        assert_eq!(batch.default_pose_rad().len(), 12);
+        assert!(batch.action_scale_rad() > 0.0);
         let feet = batch.foot_positions().unwrap();
         assert_eq!(feet.len(), 1);
         assert_eq!(feet[0].len(), 4);

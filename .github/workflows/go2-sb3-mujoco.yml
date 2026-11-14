@@ -140,6 +140,9 @@ jobs:
             evaluate policy/policy.json --terrain "$OUT/terrain.json" --starts 64 \
             --substeps 5 --solref 0.004 --trace "$OUT/trace-mujoco.json" \
             --trace-episode "$episode" > /dev/null
+          # How hard each walk drives the actuators, against the URDF's limits.
+          python examples/148_go2_learning_python/trace_limits.py \
+            "$OUT/trace-rne.json" "$OUT/trace-mujoco.json" | tee "$OUT/limits.json"
           # The terrain file is large and reproducible.
           rm "$OUT/terrain.json"
 
