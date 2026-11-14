@@ -569,6 +569,9 @@ All notable changes to Robot Native Engine are documented in this file.
   retrained gap policies turned the calves at up to twice their 15.7 rad/s
   limit, in RNE and in MuJoCo alike; `trace_limits.py` measures that from
   a traced walk.
+  Trained with the limits, the scan policies still cover 16–17 m in 5 s and
+  their calves still pass the limit in 5–15% of samples: stopping the
+  motor's push at the limit does not hold the joint to it.
 
 - Example 148's README records the gap policies retrained with the fixed
   sphere contact. Scan policies cross 659–695 of the 30 cm gaps over 64

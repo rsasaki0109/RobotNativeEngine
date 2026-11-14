@@ -457,6 +457,37 @@ same rule (`evaluate --velocity-limits`, or a policy file whose task says
 so). It is off by default, so example 147's task and the results above
 are unchanged. The depth-levels workflow now trains with it.
 
+#### Trained with the velocity limits: the rule is too weak
+
+Workflow run 43563466782 trained with `--velocity-limits` and the same
+settings otherwise, and run 43575923691 walked the policies in both
+simulators from the same 64 starts. The table gives the 30 cm gaps.
+
+| Policy, seed | RNE: crossed, falls, distance | Without the limits: crossed, distance | MuJoCo stiff: crossed, falls |
+|---|---|---|---|
+| Scan 2026 | 627, 3, 16.55 m | 693, 18.30 m | 239, 34 |
+| Scan 2027 | 599, 0, 15.99 m | 663, 17.35 m | 406, 6 |
+| Scan 2028 | 635, 0, 16.93 m | 685, 18.13 m | 167, 40 |
+| Blind 2026 | 373, 2, 10.84 m | 485, 13.23 m | 266, 5 |
+| Blind 2027 | 337, 17, 9.80 m | 304, 9.20 m | 239, 7 |
+| Blind 2028 | 298, 13, 9.09 m | 362, 10.54 m | 282, 6 |
+
+- **The walks are hardly slower.** The scan policies still cover 16–17 m
+  in 5 s, about 8% less than without the limits.
+- **The calves still pass their limit.** In the traced scan walks they are
+  over 15.7 rad/s in 5–15% of the samples, against 17–20% before, and
+  still peak at 28–31 rad/s. A motor that only stops pushing at its limit
+  does not stop the joint: the leg's swing and the ground carry it past.
+- **Transfer to MuJoCo got worse.** With stiff contacts the scan policies
+  cross 167–406 gaps there and two of them fall in 34 and 40 of 64
+  episodes. Why is not established. The two simulators apply the rule at
+  different rates (every 5 ms in RNE, every 1 ms of MuJoCo's finer steps),
+  which is one candidate.
+
+So this rule does not make the task's walks ones the real motors could
+turn. A motor model whose torque falls with speed and brakes past the
+limit, or a penalty on joint speed in the reward, is still needed.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
