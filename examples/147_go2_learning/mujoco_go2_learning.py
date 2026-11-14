@@ -194,9 +194,10 @@ class Go2:
         ids = [self.model.joint(name).id for name in JOINTS]
         self.qpos = np.array([self.model.jnt_qposadr[i] for i in ids])
         self.qvel = np.array([self.model.jnt_dofadr[i] for i in ids])
-        # With velocity limits a motor whose joint turns at its limit or
-        # faster gives no torque in the direction it turns, as
-        # Go2LearningRobot::set_velocity_limits.
+        # With velocity limits the torque a motor can give in the direction
+        # its joint turns falls in a line to zero at the velocity limit, and
+        # past it the motor must brake, as go2_learning.rs's
+        # motor_torque_range.
         self.velocity_limits = bool(plant.get("velocity_limits", False))
         self.force_range = self.model.actuator_forcerange.copy()
         self.rotation = np.zeros(9)
@@ -232,10 +233,12 @@ class Go2:
         self.data.ctrl[:] = targets_rad
         if self.velocity_limits:
             for _ in range(DECIMATION * self.substeps):
-                speeds = self.data.qvel[self.qvel]
-                self.model.actuator_forcerange[:] = self.force_range
-                self.model.actuator_forcerange[speeds >= VELOCITY_LIMIT_RAD_S, 1] = 0.0
-                self.model.actuator_forcerange[speeds <= -VELOCITY_LIMIT_RAD_S, 0] = 0.0
+                ratio = self.data.qvel[self.qvel] / VELOCITY_LIMIT_RAD_S
+                limit = self.force_range[:, 1]
+                self.model.actuator_forcerange[:, 0] = np.clip(limit * (-1.0 - ratio),
+                                                               -limit, limit)
+                self.model.actuator_forcerange[:, 1] = np.clip(limit * (1.0 - ratio),
+                                                               -limit, limit)
                 mujoco.mj_step(self.model, self.data)
         else:
             mujoco.mj_step(self.model, self.data, nstep=DECIMATION * self.substeps)

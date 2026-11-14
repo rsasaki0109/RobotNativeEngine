@@ -575,12 +575,21 @@ impl Go2LearningRobot {
         Ok(robot)
     }
 
-    /// Makes the motors hold the joints' velocity limits
-    /// ([`VELOCITY_LIMIT_RAD_S`]) or, by default, not. A motor whose joint
-    /// turns at its limit or faster gives no torque in the direction it is
-    /// turning; it still brakes. Without it a joint can be driven as fast
-    /// as the effort limit allows, which lets a policy learn gaits the
-    /// real motors could not turn.
+    /// Gives the motors a torque-speed curve that holds the joints'
+    /// velocity limits ([`VELOCITY_LIMIT_RAD_S`]) or, by default, not.
+    ///
+    /// With it the torque a motor can give in the direction its joint is
+    /// turning falls in a line from the effort limit at rest to zero at the
+    /// velocity limit, and past the limit the motor must brake: at speed
+    /// `v` the torque stays within `[-limit, limit * (1 - v / v_limit)]`
+    /// for `v > 0`, mirrored for `v < 0`, and never beyond the effort
+    /// limit. It is the DC motor model of legged-robot simulators, with
+    /// the stall torque at the effort limit.
+    ///
+    /// Without it a joint can be driven as fast as the effort limit
+    /// allows, which lets a policy learn gaits the real motors could not
+    /// turn. Merely giving no torque past the limit does not stop that:
+    /// the leg's swing and the ground carry the joint on.
     pub fn set_velocity_limits(&mut self, enforce: bool) {
         self.velocity_limits_rad_s = enforce.then(|| {
             let mut limits = [0.0; 12];
@@ -639,19 +648,16 @@ impl Go2LearningRobot {
             let speed_limits = self.velocity_limits_rad_s;
             let torques: Vec<f64> = (0..12)
                 .map(|joint| {
-                    let torque = (KP_NM_PER_RAD * (self.targets_rad[joint] - positions[joint])
-                        - KD_NM_S_PER_RAD * velocities[joint])
-                        .clamp(-limits[joint], limits[joint]);
-                    match speed_limits {
-                        // At its speed limit a motor does not push on.
-                        Some(speeds)
-                            if velocities[joint].abs() >= speeds[joint]
-                                && torque * velocities[joint] > 0.0 =>
-                        {
-                            0.0
+                    let torque = KP_NM_PER_RAD * (self.targets_rad[joint] - positions[joint])
+                        - KD_NM_S_PER_RAD * velocities[joint];
+                    let limit = limits[joint];
+                    let (lowest, highest) = match speed_limits {
+                        Some(speeds) => {
+                            motor_torque_range(limit, velocities[joint] / speeds[joint])
                         }
-                        _ => torque,
-                    }
+                        None => (-limit, limit),
+                    };
+                    torque.clamp(lowest, highest)
                 })
                 .collect();
             // With zero PD gains the position targets only fill the command.
@@ -736,6 +742,15 @@ impl Go2LearningRobot {
     pub fn sim(&self) -> &QuadrupedTerrainSim {
         &self.sim
     }
+}
+
+/// The torques a motor with effort limit `limit` can give while its joint
+/// turns at `speed_ratio` times its velocity limit
+/// ([`Go2LearningRobot::set_velocity_limits`]): lowest and highest.
+pub fn motor_torque_range(limit: f64, speed_ratio: f64) -> (f64, f64) {
+    let highest = (limit * (1.0 - speed_ratio)).clamp(-limit, limit);
+    let lowest = (limit * (-1.0 - speed_ratio)).clamp(-limit, limit);
+    (lowest, highest)
 }
 
 /// The policy's observation: [`PROPRIOCEPTION`] values, then
@@ -843,8 +858,8 @@ pub struct Go2LearningConfig {
     pub random_starts: bool,
     /// Seed of the start stream.
     pub seed: u64,
-    /// Make the motors hold the joints' velocity limits
-    /// ([`Go2LearningRobot::set_velocity_limits`]).
+    /// Give the motors the torque-speed curve that holds the joints'
+    /// velocity limits ([`Go2LearningRobot::set_velocity_limits`]).
     pub velocity_limits: bool,
 }
 
@@ -1680,9 +1695,19 @@ mod tests {
     }
 
     #[test]
-    fn a_motor_at_its_velocity_limit_stops_pushing() {
+    fn a_motors_torque_falls_with_speed_and_brakes_past_the_limit() {
+        // At rest the whole effort limit either way; at half speed half of
+        // it forward; none at the limit; past it the motor must brake.
+        assert_eq!(motor_torque_range(20.0, 0.0), (-20.0, 20.0));
+        assert_eq!(motor_torque_range(20.0, 0.5), (-20.0, 10.0));
+        assert_eq!(motor_torque_range(20.0, 1.0), (-20.0, 0.0));
+        assert_eq!(motor_torque_range(20.0, 1.5), (-20.0, -10.0));
+        assert_eq!(motor_torque_range(20.0, 3.0), (-20.0, -20.0));
+        assert_eq!(motor_torque_range(20.0, -0.5), (-10.0, 20.0));
+        assert_eq!(motor_torque_range(20.0, -1.5), (10.0, 20.0));
+
         // Swing every joint as hard as the actions allow, with and without
-        // the limits: with them no joint ends a period far over its limit.
+        // the curve.
         let fastest = |velocity_limits: bool| {
             let mut episode = Go2LearningEpisode::new(Go2LearningConfig {
                 velocity_limits,
@@ -1703,8 +1728,8 @@ mod tests {
         let free = fastest(false);
         let held = fastest(true);
         // The calf's 15.7 rad/s is the limit this swing passes. Held, the
-        // motor stops pushing there; the thrashing robot's contacts and its
-        // other joints still carry the calf past it, but less far.
+        // thrashing robot's contacts can still knock the calf past it, but
+        // the motor brakes it there.
         assert!(free[2] > 1.5 * VELOCITY_LIMIT_RAD_S[2], "{free:?}");
         assert!(held[2] < free[2] - 2.0, "{held:?} {free:?}");
         // The default leaves the walk as it was.

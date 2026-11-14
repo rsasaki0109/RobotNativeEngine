@@ -62,6 +62,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `Go2LearningConfig::velocity_limits` now gives the motors a torque-speed
+  curve (`motor_torque_range`): the torque a motor can give in the
+  direction its joint turns falls in a line from the effort limit at rest
+  to zero at the velocity limit, and past the limit the motor must brake.
+  Before, a motor at its limit only stopped pushing, which did not hold
+  the joints to their limits. `mujoco_go2_learning.py evaluate
+  --velocity-limits` applies the same curve. Still off by default.
+
 - `.github/workflows/go2-learning.yml` trains sixteen seeds by default, and
   `examples/147_go2_learning/learning_compare.py`'s summaries gain an
   `aggregate` section:

@@ -488,6 +488,17 @@ So this rule does not make the task's walks ones the real motors could
 turn. A motor model whose torque falls with speed and brakes past the
 limit, or a penalty on joint speed in the reward, is still needed.
 
+#### A torque-speed curve
+
+`velocity_limits` now gives the motors the DC motor model legged-robot
+simulators use, with the stall torque at the effort limit
+(`motor_torque_range`): the torque a motor can give in the direction its
+joint turns falls in a line from the effort limit at rest to zero at the
+velocity limit, and past the limit the motor must brake. MuJoCo's script
+applies the same curve each physics step. The results above this section
+used the weaker rule, which gave no torque past the limit and nothing
+else.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

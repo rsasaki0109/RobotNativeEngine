@@ -13,7 +13,10 @@ name: Go2 SB3 PPO depth levels
 # (rne_locomotion's sphere contact, since fixed); later runs do not. Run
 # 43541974300, the first without it, learned to cross at 3.6 m/s by turning
 # the calves at up to twice their motors' velocity limit, which neither
-# simulator held; the motors now hold it (--velocity-limits).
+# simulator held. Run 43563466782 trained with motors that give no torque
+# past the limit, which hardly slowed the walks. The motors now have a
+# torque-speed curve: torque falls to zero at the limit and brakes past it
+# (--velocity-limits).
 # Each job trains one policy, blind or with the height scan, on one seed,
 # and after each of four stages walks it once in each of 64 held-out
 # environments at every level: gaps crossed, falls, how the episodes ended,
