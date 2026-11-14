@@ -12,6 +12,7 @@ name: Go2 SB3 PPO in MuJoCo
 # The default run trained with rne_locomotion's sphere contact fixed (no
 # unseen wall over a gap's far rim) and with the motors holding the joints'
 # velocity limits by a torque-speed curve, which MuJoCo then applies too.
+# Run 43581407624 trained with that curve chattering at RNE's 5 ms step.
 # Run 43563466782 trained with motors that only gave no torque past the
 # limit, run 43541974300 without limits, and run 43374349191 before the
 # contact fix. Light (minutes), so it runs on demand
@@ -22,7 +23,7 @@ on:
       run:
         description: "Go2 SB3 PPO depth levels run whose policies to walk"
         required: false
-        default: "43581407624"
+        default: "43596078138"
   push:
     paths:
       - ".github/workflows/go2-sb3-mujoco.yml"
@@ -42,7 +43,7 @@ jobs:
         sight: [blind, scan]
         seed: [2026, 2027, 2028]
     env:
-      RUN: ${{ inputs.run || '43581407624' }}
+      RUN: ${{ inputs.run || '43596078138' }}
       NAME: go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
       OUT: artifacts/go2-sb3-mujoco-${{ matrix.sight }}-${{ matrix.seed }}
     steps:
