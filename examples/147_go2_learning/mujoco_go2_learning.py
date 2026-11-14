@@ -61,6 +61,10 @@ KP_NM_PER_RAD, KD_NM_S_PER_RAD = 20.0, 0.5
 # The Go2 description's joint velocity limits (hip, thigh, calf of each
 # leg), as go2_learning.rs's VELOCITY_LIMIT_RAD_S.
 VELOCITY_LIMIT_RAD_S = np.tile([30.1, 30.1, 15.7], 4)
+# Each joint's least own inertia, kg·m², as Go2LearningRobot::set_velocity_limits
+# computes it (hip, thigh, calf; front legs, then rear): for --hold-torque's
+# braking cap.
+LEAST_INERTIA_KG_M2 = np.array([0.01447, 0.01057, 0.00497] * 2 + [0.01294, 0.01057, 0.00497] * 2)
 DT_S, DECIMATION = 0.005, 4
 CONTROL_DT_S = DT_S * DECIMATION
 SPAWN_HEIGHT_M = 0.36
@@ -194,10 +198,16 @@ class Go2:
         ids = [self.model.joint(name).id for name in JOINTS]
         self.qpos = np.array([self.model.jnt_qposadr[i] for i in ids])
         self.qvel = np.array([self.model.jnt_dofadr[i] for i in ids])
-        # With velocity limits a motor whose joint turns at its limit or
-        # faster gives no torque in the direction it turns, as
-        # Go2LearningRobot::set_velocity_limits.
+        # With velocity limits the torque a motor can give in the direction
+        # its joint turns falls in a line to zero at the velocity limit, and
+        # past it the motor must brake, as go2_learning.rs's
+        # motor_torque_range.
         self.velocity_limits = bool(plant.get("velocity_limits", False))
+        # Diagnostic: set each joint's torque once per step of RNE's (every
+        # `substeps` physics steps) from the state then, and hold it, as
+        # RNE's plant does, instead of letting the actuator follow the
+        # joint every physics step.
+        self.hold_torque = bool(plant.get("hold_torque", False))
         self.force_range = self.model.actuator_forcerange.copy()
         self.rotation = np.zeros(9)
         self.ray_groups = np.zeros(6, dtype=np.uint8)
@@ -230,12 +240,37 @@ class Go2:
         if self.trace is not None:
             self.trace.append({**self.state(), "targets_rad": list(map(float, targets_rad))})
         self.data.ctrl[:] = targets_rad
-        if self.velocity_limits:
+        if self.hold_torque:
+            limit = self.force_range[:, 1]
+            for index in range(DECIMATION * self.substeps):
+                if index % self.substeps == 0:
+                    speeds = self.data.qvel[self.qvel]
+                    torque = (KP_NM_PER_RAD * (targets_rad - self.data.qpos[self.qpos])
+                              - KD_NM_S_PER_RAD * speeds)
+                    lowest, highest = -limit, limit
+                    if self.velocity_limits:
+                        ratio = speeds / VELOCITY_LIMIT_RAD_S
+                        highest = np.clip(limit * (1.0 - ratio), -limit, limit)
+                        lowest = np.clip(limit * (-1.0 - ratio), -limit, limit)
+                        # As motor_torque_range_for_step: past the limit,
+                        # brake no harder than a step of RNE's allows.
+                        excess = LEAST_INERTIA_KG_M2 * (np.abs(speeds) - VELOCITY_LIMIT_RAD_S) / DT_S
+                        highest = np.where(speeds > VELOCITY_LIMIT_RAD_S,
+                                           np.maximum(highest, -excess), highest)
+                        lowest = np.where(speeds < -VELOCITY_LIMIT_RAD_S,
+                                          np.minimum(lowest, excess), lowest)
+                    held = np.clip(torque, lowest, highest)
+                    self.model.actuator_forcerange[:, 0] = held
+                    self.model.actuator_forcerange[:, 1] = held
+                mujoco.mj_step(self.model, self.data)
+        elif self.velocity_limits:
             for _ in range(DECIMATION * self.substeps):
-                speeds = self.data.qvel[self.qvel]
-                self.model.actuator_forcerange[:] = self.force_range
-                self.model.actuator_forcerange[speeds >= VELOCITY_LIMIT_RAD_S, 1] = 0.0
-                self.model.actuator_forcerange[speeds <= -VELOCITY_LIMIT_RAD_S, 0] = 0.0
+                ratio = self.data.qvel[self.qvel] / VELOCITY_LIMIT_RAD_S
+                limit = self.force_range[:, 1]
+                self.model.actuator_forcerange[:, 0] = np.clip(limit * (-1.0 - ratio),
+                                                               -limit, limit)
+                self.model.actuator_forcerange[:, 1] = np.clip(limit * (1.0 - ratio),
+                                                               -limit, limit)
                 mujoco.mj_step(self.model, self.data)
         else:
             mujoco.mj_step(self.model, self.data, nstep=DECIMATION * self.substeps)
@@ -972,6 +1007,9 @@ def main():
         "--velocity-limits", action="store_true",
         help="make the motors hold the joints' velocity limits (also on when the "
              "policy file's task says so)")
+    sub.choices["evaluate"].add_argument(
+        "--hold-torque", action="store_true",
+        help="set the joint torques once per step of RNE's and hold them (diagnostic)")
     sub.choices["evaluate"].add_argument("--trace", type=Path, default=None,
                                          help="write one episode's trace, as --trace")
     sub.choices["evaluate"].add_argument("--trace-episode", type=int, default=0,
@@ -1060,6 +1098,8 @@ def main():
         trained = json.loads(Path(arguments.policy).read_text()).get("task", {})
         if arguments.velocity_limits or trained.get("velocity_limits"):
             plant["velocity_limits"] = True
+        if arguments.hold_torque:
+            plant["hold_torque"] = True
         robot = Go2(plant, task)
         points = ([(0.0, 0.0)] if arguments.starts is None
                   else evaluation_starts(arguments.starts, terrain_gaps(plant)))

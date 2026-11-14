@@ -200,9 +200,9 @@ def main():
     parser.add_argument("--promote-after-gaps", type=int, default=2,
                         help="gaps an episode must cross to move up a depth level")
     parser.add_argument("--velocity-limits", action="store_true",
-                        help="make the motors hold the joints' velocity limits: without "
-                             "them the policies learn gaits that turn the calves up to "
-                             "twice as fast as their motors allow")
+                        help="give the motors a torque-speed curve that holds the "
+                             "joints' velocity limits: without it the policies learn gaits "
+                             "that turn the calves up to twice as fast as their motors allow")
     parser.add_argument("--recycle-levels", action="store_true",
                         help="send an environment that masters the deepest level to a "
                              "random level, so the shallower ones stay in training")

@@ -82,8 +82,9 @@ impl PyGo2LearningBatch {
     /// `gap_width[0]` and `gap_width[1]` m wide. With `gap_levels` above
     /// one the gaps deepen in that many steps along y, up to `gap_depth`
     /// (see `set_levels` and `set_depth_curriculum`). With
-    /// `velocity_limits` the motors hold the joints' velocity limits: one
-    /// turning at its limit gives no torque in the direction it turns.
+    /// `velocity_limits` the motors hold the joints' velocity limits: the
+    /// torque one can give in the direction its joint turns falls in a line
+    /// to zero at the limit, and past it the motor brakes.
     #[new]
     #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0, gap_width=(0.25, 0.35), gap_levels=1, velocity_limits=false))]
     #[allow(clippy::too_many_arguments)]

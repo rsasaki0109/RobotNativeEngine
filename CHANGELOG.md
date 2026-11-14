@@ -62,6 +62,22 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `Go2LearningConfig::velocity_limits` now gives the motors a torque-speed
+  curve (`motor_torque_range`): the torque a motor can give in the
+  direction its joint turns falls in a line from the effort limit at rest
+  to zero at the velocity limit, and past the limit the motor must brake.
+  Before, a motor at its limit only stopped pushing, which did not hold
+  the joints to their limits. `mujoco_go2_learning.py evaluate
+  --velocity-limits` applies the same curve. Still off by default.
+  In RNE the torque is set once per 5 ms step, so past the limit the motor
+  brakes no harder than brings the joint back to the limit within the
+  step (`motor_torque_range_for_step`): as written, the curve made a
+  swinging calf chatter between its ends.
+  Trained with it, the gap policies' calves peak at 19–26 rad/s in RNE,
+  against 43–57 with the curve as written, and blind policies cross about
+  as many gaps in MuJoCo as in RNE. The scan policies still run at about
+  3.3 m/s and cross 606–670 gaps in RNE against 231–375 in MuJoCo.
+
 - `.github/workflows/go2-learning.yml` trains sixteen seeds by default, and
   `examples/147_go2_learning/learning_compare.py`'s summaries gain an
   `aggregate` section:
@@ -572,6 +588,13 @@ All notable changes to Robot Native Engine are documented in this file.
   Trained with the limits, the scan policies still cover 16–17 m in 5 s and
   their calves still pass the limit in 5–15% of samples: stopping the
   motor's push at the limit does not hold the joint to it.
+
+- Example 147's `mujoco_go2_learning.py evaluate --hold-torque` sets each
+  joint's PD torque once per step of RNE's and holds it, as RNE's plant
+  does. Example 148's README records that stiffer MuJoCo contacts (2 and
+  1 ms) do not bring the scan policies' walks closer to RNE's, and that
+  holding the torque closes about a third of the gap: the scan policies
+  cross 335–450 gaps in MuJoCo with it, 231–375 without, 606–670 in RNE.
 
 - Example 148's README records the gap policies retrained with the fixed
   sphere contact. Scan policies cross 659–695 of the 30 cm gaps over 64

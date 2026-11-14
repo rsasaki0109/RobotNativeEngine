@@ -488,6 +488,137 @@ So this rule does not make the task's walks ones the real motors could
 turn. A motor model whose torque falls with speed and brakes past the
 limit, or a penalty on joint speed in the reward, is still needed.
 
+#### A torque-speed curve
+
+`velocity_limits` now gives the motors the DC motor model legged-robot
+simulators use, with the stall torque at the effort limit
+(`motor_torque_range`): the torque a motor can give in the direction its
+joint turns falls in a line from the effort limit at rest to zero at the
+velocity limit, and past the limit the motor must brake. MuJoCo's script
+applies the same curve each physics step. The results above this section
+used the weaker rule, which gave no torque past the limit and nothing
+else.
+
+Trained with the curve (workflow run 43581407624) and walked in both
+simulators from the same 64 starts on 30 cm gaps (run 43594323954):
+
+| Policy, seed | RNE: crossed, falls, distance | MuJoCo stiff: crossed, falls | Calf peak speed in the traced walk: RNE, MuJoCo |
+|---|---|---|---|
+| Scan 2026 | 627, 0, 16.76 m | 276, 2 | 56.8, 19.9 rad/s |
+| Scan 2027 | 601, 0, 16.05 m | 239, 28 | 52.9, 20.6 rad/s |
+| Scan 2028 | 582, 0, 15.61 m | 510, 0 | 57.2, 20.2 rad/s |
+| Blind 2026 | 336, 6, 9.77 m | 171, 2 | 52.5, 20.8 rad/s |
+| Blind 2027 | 330, 5, 9.90 m | 263, 10 | 42.7, 19.0 rad/s |
+| Blind 2028 | 248, 3, 7.90 m | 74, 26 | 46.4, 17.5 rad/s |
+
+- **The curve holds in MuJoCo and not in RNE.** The same policies under
+  the same curve turn the calves at 17–21 rad/s at most in MuJoCo, over
+  the 15.7 rad/s limit in 1–7% of samples. In RNE they reach 43–57 rad/s,
+  faster than with no limit at all, and the walks are as fast as before
+  (16–17 m in 5 s).
+- **Likely cause: the curve is applied explicitly at RNE's 5 ms step.**
+  Past the limit the curve acts as a damper of 45.43 / 15.7 = 2.9 N·m·s/rad
+  on the calf, whose inertia about the knee is about 0.005 kg·m². An
+  explicit damper is stable only while damping × step / inertia stays
+  under 2; here it is 2.9, so the torque overshoots and the joint
+  chatters between the curve's ends. MuJoCo's stiff setting steps at 1 ms,
+  where the same number is 0.6. This is arithmetic from the URDF, not yet
+  a measurement of the chatter itself.
+- **So these RNE walks are not a result about the motors.** The task
+  needs the curve applied stably in RNE, by solving it together with the
+  step or by finer steps, before training with it means anything.
+
+#### Braking no harder than a step allows
+
+A hop in RNE confirmed the chatter: with the curve as written, a calf in
+the air went 30, −20, 20, 5, 25, −10 rad/s over successive 5 ms steps.
+`motor_torque_range_for_step` now brakes a joint past its limit no harder
+than brings it back to the limit in one step, were the joint as light as
+it gets (each joint's own inertia with the calves folded: 0.005 kg·m² for
+a calf). The same hop then settles at 30, 15, 21, 16, 17, 16 rad/s.
+MuJoCo's script keeps the plain curve, which its 1 ms steps hold.
+
+One thing remains in both simulators' plants: the joints have no rotor
+inertia, so a PD kick of 20 N·m still takes a calf in the air from rest
+to 30 rad/s in a single 5 ms step, before the curve can act.
+
+Trained with the stable curve (workflow run 43596078138) and walked in
+both simulators from the same 64 starts on 30 cm gaps (run 43611371646):
+
+| Policy, seed | RNE: crossed, falls, distance | MuJoCo stiff: crossed, falls | Calf speed in the traced walk, RNE: 95th percentile, peak |
+|---|---|---|---|
+| Scan 2026 | 606, 0, 16.24 m | 231, 25 | 19.4, 26.3 rad/s |
+| Scan 2027 | 614, 0, 16.49 m | 375, 16 | 19.0, 25.6 rad/s |
+| Scan 2028 | 670, 0, 17.56 m | 275, 37 | 18.9, 26.3 rad/s |
+| Blind 2026 | 338, 3, 9.90 m | 277, 4 | 15.8, 24.2 rad/s |
+| Blind 2027 | 258, 18, 7.96 m | 249, 11 | 9.8, 19.1 rad/s |
+| Blind 2028 | 330, 3, 10.14 m | 279, 4 | 14.2, 20.1 rad/s |
+
+- **The curve now holds in RNE.** The calves peak at 19–26 rad/s where
+  they reached 43–57, and RNE's and MuJoCo's joint speeds agree again
+  (MuJoCo: 19–24 rad/s peak). The scan walks still pass the calf's
+  15.7 rad/s in about a tenth of the samples.
+- **The walks are no slower.** The scan policies still cover 16–17.5 m in
+  5 s. The calves' overspeed was not what made them fast: with the motors
+  held near their limits the gait still runs at about 3.3 m/s.
+- **Blind policies now agree across the simulators.** They cross 258–338
+  gaps in RNE and 249–279 in MuJoCo.
+- **Scan policies do not.** They cross 606–670 gaps in RNE without a fall
+  and 231–375 in MuJoCo, falling in 16–37 of 64 episodes there. What the
+  faster scan gait relies on that MuJoCo does not give it is not
+  established.
+- **The scan is worth about twice the crossings** in RNE, as before.
+
+#### Not contact softness; partly how often the torque is set
+
+Is what is left between the simulators contact softness? MuJoCo walked
+the same policies from the same starts with stiffer contacts still: ten
+physics steps to each of RNE's with a 2 ms time constant, and twenty with
+1 ms (run 43630116940). Crossed and falls of 64 episodes:
+
+| Policy, seed | RNE | MuJoCo stiff (4 ms) | Stiffer (2 ms) | Stiffest (1 ms) |
+|---|---|---|---|---|
+| Scan 2026 | 606, 0 | 231, 25 | 202, 18 | 183, 22 |
+| Scan 2027 | 614, 0 | 375, 16 | 390, 14 | 373, 17 |
+| Scan 2028 | 670, 0 | 275, 37 | 287, 30 | 267, 27 |
+| Blind 2026 | 338, 3 | 277, 4 | 265, 1 | 264, 3 |
+| Blind 2027 | 258, 18 | 249, 11 | 266, 7 | 254, 11 |
+| Blind 2028 | 330, 3 | 288, 2 | 277, 6 | 285, 5 |
+
+Stiffer contacts do not bring MuJoCo closer to RNE, so contact softness is
+not the gap.
+
+RNE sets each joint's PD torque once per 5 ms step and holds it; MuJoCo's
+position actuators recompute it every physics step, 1 ms in the stiff
+setting. `mujoco_go2_learning.py --hold-torque` sets the torque once per
+step of RNE's and holds it, with the same braking cap
+(`motor_torque_range_for_step`). Stiff contacts, run 43631841078; crossed,
+falls and distance:
+
+| Policy, seed | RNE | MuJoCo stiff | MuJoCo stiff, torque held |
+|---|---|---|---|
+| Scan 2026 | 606, 0, 16.24 m | 231, 25, 7.52 m | 369, 17, 10.66 m |
+| Scan 2027 | 614, 0, 16.49 m | 375, 16, 10.81 m | 450, 12, 12.44 m |
+| Scan 2028 | 670, 0, 17.56 m | 275, 37, 8.41 m | 335, 30, 9.85 m |
+| Blind 2026 | 338, 3, 9.90 m | 288, 6, 8.76 m | 290, 10, 8.83 m |
+| Blind 2027 | 257, 19, 7.94 m | 253, 10, 7.89 m | 241, 10, 7.53 m |
+| Blind 2028 | 330, 3, 10.14 m | 288, 2, 9.07 m | 234, 4, 7.68 m |
+
+- **Holding the torque closes part of the scan gap.** With torques set as
+  RNE sets them, MuJoCo's scan walks cross 60–138 more gaps, fall less and
+  go 1.4–3.1 m further. That is about a third of the difference from RNE.
+  The blind walks, which are slower, do not gain.
+- **The fast scan gait uses the 5 ms hold.** A PD torque held over 5 ms
+  acts on a joint that has moved meanwhile. The policy learned to drive the
+  legs through that, and it is a property of RNE's plant, not of the Go2.
+  The robot's motor drivers close the PD loop far faster than 200 Hz, so
+  MuJoCo's per-millisecond PD is the more faithful plant here.
+- **Two thirds of the gap remain**, with the torque update rate matched
+  and contacts stiff.
+- The counts move by a few percent between CI runs on different runners in
+  both simulators (MuJoCo stiff, blind 2026: 277 then 288), so differences
+  of that size are not results.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
