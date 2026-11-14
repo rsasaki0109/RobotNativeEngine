@@ -449,6 +449,14 @@ episodes (workflow run 43560671958):
 - **Torque is rarely the constraint.** The thighs sit at their effort
   limit in 6–7% of the samples, the other joints almost never.
 
+`velocity_limits=True` (`train_ppo.py --velocity-limits`,
+`Go2LearningConfig::velocity_limits`) makes the motors hold those limits:
+a motor whose joint turns at its limit or faster gives no torque in the
+direction it turns, though it still brakes. MuJoCo's script applies the
+same rule (`evaluate --velocity-limits`, or a policy file whose task says
+so). It is off by default, so example 147's task and the results above
+are unchanged. The depth-levels workflow now trains with it.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

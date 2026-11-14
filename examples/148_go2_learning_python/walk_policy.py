@@ -57,10 +57,11 @@ class Policy:
 def task_arguments(task):
     """The batch arguments of train_ppo.py's `--floor` (run.py's
     `task_arguments`)."""
+    limits = {"velocity_limits": True} if task.get("velocity_limits") else {}
     if task["floor"] == "flat":
-        return {}
+        return limits
     arguments = {"terrain_seed": 7, "random_starts": True,
-                 "height_scan": task["height_scan"], "terrain_size": 48.0}
+                 "height_scan": task["height_scan"], "terrain_size": 48.0, **limits}
     if task["floor"] == "gaps":
         arguments.update(terrain_amplitude=0.0, terrain_cell=0.05, gap_depth=0.3)
     return arguments
