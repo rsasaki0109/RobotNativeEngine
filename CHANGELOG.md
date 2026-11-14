@@ -589,6 +589,13 @@ All notable changes to Robot Native Engine are documented in this file.
   their calves still pass the limit in 5–15% of samples: stopping the
   motor's push at the limit does not hold the joint to it.
 
+- Example 147's `mujoco_go2_learning.py evaluate --hold-torque` sets each
+  joint's PD torque once per step of RNE's and holds it, as RNE's plant
+  does. Example 148's README records that stiffer MuJoCo contacts (2 and
+  1 ms) do not bring the scan policies' walks closer to RNE's, and that
+  holding the torque closes about a third of the gap: the scan policies
+  cross 335–450 gaps in MuJoCo with it, 231–375 without, 606–670 in RNE.
+
 - Example 148's README records the gap policies retrained with the fixed
   sphere contact. Scan policies cross 659–695 of the 30 cm gaps over 64
   episodes without a fall, against 243–338 before the fix. Blind policies

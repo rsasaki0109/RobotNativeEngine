@@ -569,6 +569,56 @@ both simulators from the same 64 starts on 30 cm gaps (run 43611371646):
   established.
 - **The scan is worth about twice the crossings** in RNE, as before.
 
+#### Not contact softness; partly how often the torque is set
+
+Is what is left between the simulators contact softness? MuJoCo walked
+the same policies from the same starts with stiffer contacts still: ten
+physics steps to each of RNE's with a 2 ms time constant, and twenty with
+1 ms (run 43630116940). Crossed and falls of 64 episodes:
+
+| Policy, seed | RNE | MuJoCo stiff (4 ms) | Stiffer (2 ms) | Stiffest (1 ms) |
+|---|---|---|---|---|
+| Scan 2026 | 606, 0 | 231, 25 | 202, 18 | 183, 22 |
+| Scan 2027 | 614, 0 | 375, 16 | 390, 14 | 373, 17 |
+| Scan 2028 | 670, 0 | 275, 37 | 287, 30 | 267, 27 |
+| Blind 2026 | 338, 3 | 277, 4 | 265, 1 | 264, 3 |
+| Blind 2027 | 258, 18 | 249, 11 | 266, 7 | 254, 11 |
+| Blind 2028 | 330, 3 | 288, 2 | 277, 6 | 285, 5 |
+
+Stiffer contacts do not bring MuJoCo closer to RNE, so contact softness is
+not the gap.
+
+RNE sets each joint's PD torque once per 5 ms step and holds it; MuJoCo's
+position actuators recompute it every physics step, 1 ms in the stiff
+setting. `mujoco_go2_learning.py --hold-torque` sets the torque once per
+step of RNE's and holds it, with the same braking cap
+(`motor_torque_range_for_step`). Stiff contacts, run 43631841078; crossed,
+falls and distance:
+
+| Policy, seed | RNE | MuJoCo stiff | MuJoCo stiff, torque held |
+|---|---|---|---|
+| Scan 2026 | 606, 0, 16.24 m | 231, 25, 7.52 m | 369, 17, 10.66 m |
+| Scan 2027 | 614, 0, 16.49 m | 375, 16, 10.81 m | 450, 12, 12.44 m |
+| Scan 2028 | 670, 0, 17.56 m | 275, 37, 8.41 m | 335, 30, 9.85 m |
+| Blind 2026 | 338, 3, 9.90 m | 288, 6, 8.76 m | 290, 10, 8.83 m |
+| Blind 2027 | 257, 19, 7.94 m | 253, 10, 7.89 m | 241, 10, 7.53 m |
+| Blind 2028 | 330, 3, 10.14 m | 288, 2, 9.07 m | 234, 4, 7.68 m |
+
+- **Holding the torque closes part of the scan gap.** With torques set as
+  RNE sets them, MuJoCo's scan walks cross 60–138 more gaps, fall less and
+  go 1.4–3.1 m further. That is about a third of the difference from RNE.
+  The blind walks, which are slower, do not gain.
+- **The fast scan gait uses the 5 ms hold.** A PD torque held over 5 ms
+  acts on a joint that has moved meanwhile. The policy learned to drive the
+  legs through that, and it is a property of RNE's plant, not of the Go2.
+  The robot's motor drivers close the PD loop far faster than 200 Hz, so
+  MuJoCo's per-millisecond PD is the more faithful plant here.
+- **Two thirds of the gap remain**, with the torque update rate matched
+  and contacts stiff.
+- The counts move by a few percent between CI runs on different runners in
+  both simulators (MuJoCo stiff, blind 2026: 277 then 288), so differences
+  of that size are not results.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
