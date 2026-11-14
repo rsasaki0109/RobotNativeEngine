@@ -93,12 +93,15 @@ jobs:
           mujoco=(.venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py)
           # Stiffer contacts still, to see whether what is left between the
           # simulators is contact softness: time constants of 2 and 1 ms.
-          for variant in default stiff stiffer stiffest; do
+          # And the stiff setting with the torques set once per step of
+          # RNE's and held, as RNE's plant sets them.
+          for variant in default stiff stiffer stiffest held; do
             case $variant in
               default) flags=() ;;
               stiff) flags=(--substeps 5 --solref 0.004) ;;
               stiffer) flags=(--substeps 10 --solref 0.002) ;;
               stiffest) flags=(--substeps 20 --solref 0.001) ;;
+              held) flags=(--substeps 5 --solref 0.004 --hold-torque) ;;
             esac
             "${mujoco[@]}" evaluate policy/policy.json --terrain "$OUT/terrain.json" \
               --starts 64 "${flags[@]}" > "$OUT/mujoco-$variant.json"
@@ -121,7 +124,8 @@ jobs:
             --starts 64 --against default="$OUT/mujoco-default.json" \
             --against stiff="$OUT/mujoco-stiff.json" \
             --against stiffer="$OUT/mujoco-stiffer.json" \
-            --against stiffest="$OUT/mujoco-stiffest.json" > "$OUT/rne.json"
+            --against stiffest="$OUT/mujoco-stiffest.json" \
+            --against held="$OUT/mujoco-held.json" > "$OUT/rne.json"
           python - "$OUT/rne.json" <<'PY'
           import json, sys
           report = json.load(open(sys.argv[1]))
