@@ -9,6 +9,8 @@ name: Go2 SB3 PPO depth levels
 # In the first run every environment of the scan policies ended at the
 # deepest level and the policies lost the shallow gaps, so an environment
 # that masters the deepest level now goes to a random one (--recycle-levels).
+# Runs before 2026-11-14 trained with an unseen wall over each gap's far rim
+# (rne_locomotion's sphere contact, since fixed); later runs do not.
 # Each job trains one policy, blind or with the height scan, on one seed,
 # and after each of four stages walks it once in each of 64 held-out
 # environments at every level: gaps crossed, falls, how the episodes ended,
