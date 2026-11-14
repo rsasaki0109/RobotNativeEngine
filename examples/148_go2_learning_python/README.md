@@ -542,6 +542,33 @@ One thing remains in both simulators' plants: the joints have no rotor
 inertia, so a PD kick of 20 N·m still takes a calf in the air from rest
 to 30 rad/s in a single 5 ms step, before the curve can act.
 
+Trained with the stable curve (workflow run 43596078138) and walked in
+both simulators from the same 64 starts on 30 cm gaps (run 43611371646):
+
+| Policy, seed | RNE: crossed, falls, distance | MuJoCo stiff: crossed, falls | Calf speed in the traced walk, RNE: 95th percentile, peak |
+|---|---|---|---|
+| Scan 2026 | 606, 0, 16.24 m | 231, 25 | 19.4, 26.3 rad/s |
+| Scan 2027 | 614, 0, 16.49 m | 375, 16 | 19.0, 25.6 rad/s |
+| Scan 2028 | 670, 0, 17.56 m | 275, 37 | 18.9, 26.3 rad/s |
+| Blind 2026 | 338, 3, 9.90 m | 277, 4 | 15.8, 24.2 rad/s |
+| Blind 2027 | 258, 18, 7.96 m | 249, 11 | 9.8, 19.1 rad/s |
+| Blind 2028 | 330, 3, 10.14 m | 279, 4 | 14.2, 20.1 rad/s |
+
+- **The curve now holds in RNE.** The calves peak at 19–26 rad/s where
+  they reached 43–57, and RNE's and MuJoCo's joint speeds agree again
+  (MuJoCo: 19–24 rad/s peak). The scan walks still pass the calf's
+  15.7 rad/s in about a tenth of the samples.
+- **The walks are no slower.** The scan policies still cover 16–17.5 m in
+  5 s. The calves' overspeed was not what made them fast: with the motors
+  held near their limits the gait still runs at about 3.3 m/s.
+- **Blind policies now agree across the simulators.** They cross 258–338
+  gaps in RNE and 249–279 in MuJoCo.
+- **Scan policies do not.** They cross 606–670 gaps in RNE without a fall
+  and 231–375 in MuJoCo, falling in 16–37 of 64 episodes there. What the
+  faster scan gait relies on that MuJoCo does not give it is not
+  established.
+- **The scan is worth about twice the crossings** in RNE, as before.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

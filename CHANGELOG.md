@@ -73,6 +73,10 @@ All notable changes to Robot Native Engine are documented in this file.
   brakes no harder than brings the joint back to the limit within the
   step (`motor_torque_range_for_step`): as written, the curve made a
   swinging calf chatter between its ends.
+  Trained with it, the gap policies' calves peak at 19–26 rad/s in RNE,
+  against 43–57 with the curve as written, and blind policies cross about
+  as many gaps in MuJoCo as in RNE. The scan policies still run at about
+  3.3 m/s and cross 606–670 gaps in RNE against 231–375 in MuJoCo.
 
 - `.github/workflows/go2-learning.yml` trains sixteen seeds by default, and
   `examples/147_go2_learning/learning_compare.py`'s summaries gain an
