@@ -58,6 +58,9 @@ JOINTS = [f"{leg}_{part}_joint" for leg in ("FL", "FR", "RL", "RR")
           for part in ("hip", "thigh", "calf")]
 DEFAULT_RAD = np.array([0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5])
 KP_NM_PER_RAD, KD_NM_S_PER_RAD = 20.0, 0.5
+# The Go2 description's joint velocity limits (hip, thigh, calf of each
+# leg), as go2_learning.rs's VELOCITY_LIMIT_RAD_S.
+VELOCITY_LIMIT_RAD_S = np.tile([30.1, 30.1, 15.7], 4)
 DT_S, DECIMATION = 0.005, 4
 CONTROL_DT_S = DT_S * DECIMATION
 SPAWN_HEIGHT_M = 0.36
@@ -191,6 +194,11 @@ class Go2:
         ids = [self.model.joint(name).id for name in JOINTS]
         self.qpos = np.array([self.model.jnt_qposadr[i] for i in ids])
         self.qvel = np.array([self.model.jnt_dofadr[i] for i in ids])
+        # With velocity limits a motor whose joint turns at its limit or
+        # faster gives no torque in the direction it turns, as
+        # Go2LearningRobot::set_velocity_limits.
+        self.velocity_limits = bool(plant.get("velocity_limits", False))
+        self.force_range = self.model.actuator_forcerange.copy()
         self.rotation = np.zeros(9)
         self.ray_groups = np.zeros(6, dtype=np.uint8)
         self.ray_groups[FLOOR_GROUP] = 1
@@ -222,7 +230,15 @@ class Go2:
         if self.trace is not None:
             self.trace.append({**self.state(), "targets_rad": list(map(float, targets_rad))})
         self.data.ctrl[:] = targets_rad
-        mujoco.mj_step(self.model, self.data, nstep=DECIMATION * self.substeps)
+        if self.velocity_limits:
+            for _ in range(DECIMATION * self.substeps):
+                speeds = self.data.qvel[self.qvel]
+                self.model.actuator_forcerange[:] = self.force_range
+                self.model.actuator_forcerange[speeds >= VELOCITY_LIMIT_RAD_S, 1] = 0.0
+                self.model.actuator_forcerange[speeds <= -VELOCITY_LIMIT_RAD_S, 0] = 0.0
+                mujoco.mj_step(self.model, self.data)
+        else:
+            mujoco.mj_step(self.model, self.data, nstep=DECIMATION * self.substeps)
         if self.trace is not None:
             self.trace[-1]["contacts_n"] = self.contact_forces()
             self.trace[-1]["contacts"] = self.contact_details()
@@ -952,6 +968,10 @@ def main():
                                          help="physics steps per step of RNE's (diagnostic)")
     sub.choices["evaluate"].add_argument("--solref", type=float, default=None,
                                          help="contact time constant, s (diagnostic)")
+    sub.choices["evaluate"].add_argument(
+        "--velocity-limits", action="store_true",
+        help="make the motors hold the joints' velocity limits (also on when the "
+             "policy file's task says so)")
     sub.choices["evaluate"].add_argument("--trace", type=Path, default=None,
                                          help="write one episode's trace, as --trace")
     sub.choices["evaluate"].add_argument("--trace-episode", type=int, default=0,
@@ -1037,6 +1057,9 @@ def main():
         if arguments.solref is not None:
             plant["solref_s"] = arguments.solref
         policy, task = load_policy(arguments.policy, arguments.generation)
+        trained = json.loads(Path(arguments.policy).read_text()).get("task", {})
+        if arguments.velocity_limits or trained.get("velocity_limits"):
+            plant["velocity_limits"] = True
         robot = Go2(plant, task)
         points = ([(0.0, 0.0)] if arguments.starts is None
                   else evaluation_starts(arguments.starts, terrain_gaps(plant)))

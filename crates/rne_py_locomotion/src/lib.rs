@@ -13,7 +13,7 @@ use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use rne_locomotion::go2_learning::{
     evaluation_starts, go2_learning_task_spec, DepthCurriculum, Floor, Gaps, Go2LearningBatch,
-    Go2LearningBatchStep, Go2LearningConfig, Relief, EPISODE_STEPS,
+    Go2LearningBatchStep, Go2LearningConfig, Relief, ACTION_SCALE_RAD, DEFAULT_RAD, EPISODE_STEPS,
 };
 
 /// Result of a [`PyGo2LearningBatch`] reset or step, in environment order.
@@ -81,9 +81,11 @@ impl PyGo2LearningBatch {
     /// meter and gaps `gap_depth` m deep (none at 0), each between
     /// `gap_width[0]` and `gap_width[1]` m wide. With `gap_levels` above
     /// one the gaps deepen in that many steps along y, up to `gap_depth`
-    /// (see `set_levels` and `set_depth_curriculum`).
+    /// (see `set_levels` and `set_depth_curriculum`). With
+    /// `velocity_limits` the motors hold the joints' velocity limits: one
+    /// turning at its limit gives no torque in the direction it turns.
     #[new]
-    #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0, gap_width=(0.25, 0.35), gap_levels=1))]
+    #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0, gap_width=(0.25, 0.35), gap_levels=1, velocity_limits=false))]
     #[allow(clippy::too_many_arguments)]
     fn new(
         num_envs: usize,
@@ -100,6 +102,7 @@ impl PyGo2LearningBatch {
         gap_depth: f64,
         gap_width: (f64, f64),
         gap_levels: u32,
+        velocity_limits: bool,
     ) -> PyResult<Self> {
         if num_envs == 0 {
             return Err(PyValueError::new_err("num_envs must be greater than zero"));
@@ -134,6 +137,7 @@ impl PyGo2LearningBatch {
             height_scan,
             random_starts,
             seed,
+            velocity_limits,
         };
         let threads = if threads == 0 {
             std::thread::available_parallelism().map_or(1, |n| n.get())
@@ -203,6 +207,28 @@ impl PyGo2LearningBatch {
     #[getter]
     fn episode_steps(&self) -> usize {
         EPISODE_STEPS
+    }
+
+    /// The joint angles an all-zero action holds, in radians, in the
+    /// action's joint order.
+    #[getter]
+    fn default_pose_rad(&self) -> Vec<f64> {
+        DEFAULT_RAD.to_vec()
+    }
+
+    /// Radians of joint target per unit of action.
+    #[getter]
+    fn action_scale_rad(&self) -> f64 {
+        ACTION_SCALE_RAD
+    }
+
+    /// Environment `index`'s joint positions (rad) and velocities (rad/s),
+    /// in the action's joint order (evaluation only).
+    fn joint_states(&self, index: usize) -> PyResult<Vec<(f64, f64)>> {
+        if index >= self.inner.num_envs() {
+            return Err(PyValueError::new_err("no such environment"));
+        }
+        Ok(self.inner.episode(index).robot().joint_states().to_vec())
     }
 
     /// Environment `index`'s ground contact so far, by link name: the
@@ -363,6 +389,7 @@ mod tests {
             0.0,
             WIDTH_M,
             1,
+            false,
         )
         .unwrap();
         assert_eq!(batch.observation_dim(), 59);
@@ -379,12 +406,12 @@ mod tests {
             serde_json::from_str(&batch.task_spec_json().unwrap()).unwrap();
         assert_eq!(spec["task_id"], "rne.unitree_go2.learning.v1");
         assert!(PyGo2LearningBatch::new(
-            0, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1
+            0, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1, false
         )
         .is_err());
         // Random starts need a terrain.
         assert!(PyGo2LearningBatch::new(
-            1, 3, 1, None, false, true, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1
+            1, 3, 1, None, false, true, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1, false
         )
         .is_err());
     }
@@ -407,12 +434,17 @@ mod tests {
             0.3,
             narrow,
             1,
+            false,
         )
         .unwrap();
         let gaps = batch.gap_intervals();
         assert!(gaps.len() > 5);
         assert!(batch.contact_load(0).unwrap().len() > 4);
         assert!(batch.contact_load(1).is_err());
+        assert_eq!(batch.joint_states(0).unwrap().len(), 12);
+        assert!(batch.joint_states(1).is_err());
+        assert_eq!(batch.default_pose_rad().len(), 12);
+        assert!(batch.action_scale_rad() > 0.0);
         let feet = batch.foot_positions().unwrap();
         assert_eq!(feet.len(), 1);
         assert_eq!(feet[0].len(), 4);
@@ -422,7 +454,7 @@ mod tests {
                     && end - start <= narrow.1 + 1e-12)
         );
         let flat = PyGo2LearningBatch::new(
-            1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1,
+            1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1, false,
         )
         .unwrap();
         assert!(flat.gap_intervals().is_empty());
@@ -442,6 +474,7 @@ mod tests {
                 0.3,
                 bad,
                 1,
+                false,
             )
             .is_err());
         }
@@ -464,6 +497,7 @@ mod tests {
             0.3,
             WIDTH_M,
             4,
+            false,
         )
         .unwrap();
         let depths = batch.level_depths();
@@ -498,7 +532,7 @@ mod tests {
         assert_eq!(batch.levels(), vec![Some(3), Some(0)]);
         batch.set_depth_curriculum(None, false).unwrap();
         let mut flat = PyGo2LearningBatch::new(
-            1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1,
+            1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1, false,
         )
         .unwrap();
         assert!(flat.level_depths().is_empty());

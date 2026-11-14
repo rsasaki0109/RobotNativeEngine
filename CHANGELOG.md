@@ -560,6 +560,25 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- The Go2 learning task can hold the joints' velocity limits. With
+  `Go2LearningConfig::velocity_limits` (`Go2LearningRobot::set_velocity_limits`,
+  the binding's `velocity_limits`, `train_ppo.py --velocity-limits`), a
+  motor whose joint turns at its limit or faster gives no torque in the
+  direction it turns. `mujoco_go2_learning.py evaluate --velocity-limits`
+  applies the same rule. It is off by default. Without it, example 148's
+  retrained gap policies turned the calves at up to twice their 15.7 rad/s
+  limit, in RNE and in MuJoCo alike; `trace_limits.py` measures that from
+  a traced walk.
+  Trained with the limits, the scan policies still cover 16–17 m in 5 s and
+  their calves still pass the limit in 5–15% of samples: stopping the
+  motor's push at the limit does not hold the joint to it.
+
+- Example 148's README records the gap policies retrained with the fixed
+  sphere contact. Scan policies cross 659–695 of the 30 cm gaps over 64
+  episodes without a fall, against 243–338 before the fix. Blind policies
+  cross 298–471, against 0–66. In MuJoCo with stiff contacts the scan
+  policies cross 310–495.
+
 - Example 148's `walk_policy.py` walks an exported policy in RNE from
   example 147's held-out evaluation starts and compares it episode by
   episode with MuJoCo's walk of the same policy. `Go2LearningEpisode::set_start`
