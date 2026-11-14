@@ -39,6 +39,9 @@ pub const LINKS: [&str; 12] = [
     "FL_hip", "FL_thigh", "FL_calf", "FR_hip", "FR_thigh", "FR_calf", "RL_hip", "RL_thigh",
     "RL_calf", "RR_hip", "RR_thigh", "RR_calf",
 ];
+/// The Go2 description's joint velocity limits, in radians per second: the
+/// hip, thigh and calf of each leg ([`Go2LearningRobot::set_velocity_limits`]).
+pub const VELOCITY_LIMIT_RAD_S: [f64; 3] = [30.1, 30.1, 15.7];
 /// unitree_rl_gym's Go2 default joint angles, in [`LINKS`] order.
 pub const DEFAULT_RAD: [f64; 12] = [
     0.1, 0.8, -1.5, -0.1, 0.8, -1.5, 0.1, 1.0, -1.5, -0.1, 1.0, -1.5,
@@ -508,6 +511,9 @@ pub struct Go2LearningRobot {
     targets_rad: [f64; 12],
     command: JointCommand,
     arena_half_m: f64,
+    /// Each joint's velocity limit, by actuated coordinate, when the
+    /// motors hold them.
+    velocity_limits_rad_s: Option<[f64; 12]>,
     /// By kinematic link: the ground's normal impulse through it and the
     /// physics steps it carried any.
     contact_load: Vec<(f64, usize)>,
@@ -562,10 +568,27 @@ impl Go2LearningRobot {
             targets_rad: [0.0; 12],
             command: JointCommand::positions(vec![0.0; 12]),
             arena_half_m: 0.5 * side_m - ARENA_EDGE_MARGIN_M,
+            velocity_limits_rad_s: None,
             contact_load: vec![(0.0, 0); links],
         };
         robot.restart_at([0.0, 0.0])?;
         Ok(robot)
+    }
+
+    /// Makes the motors hold the joints' velocity limits
+    /// ([`VELOCITY_LIMIT_RAD_S`]) or, by default, not. A motor whose joint
+    /// turns at its limit or faster gives no torque in the direction it is
+    /// turning; it still brakes. Without it a joint can be driven as fast
+    /// as the effort limit allows, which lets a policy learn gaits the
+    /// real motors could not turn.
+    pub fn set_velocity_limits(&mut self, enforce: bool) {
+        self.velocity_limits_rad_s = enforce.then(|| {
+            let mut limits = [0.0; 12];
+            for (index, &joint) in self.actuated.iter().enumerate() {
+                limits[joint] = VELOCITY_LIMIT_RAD_S[index % 3];
+            }
+            limits
+        });
     }
 
     /// The robot's total mass, in kilograms.
@@ -613,11 +636,22 @@ impl Go2LearningRobot {
             let positions = self.sim.joint_positions_rad();
             let velocities = self.sim.joint_velocities_rad_s();
             let limits = self.sim.quadruped().effort_limits();
+            let speed_limits = self.velocity_limits_rad_s;
             let torques: Vec<f64> = (0..12)
                 .map(|joint| {
-                    (KP_NM_PER_RAD * (self.targets_rad[joint] - positions[joint])
+                    let torque = (KP_NM_PER_RAD * (self.targets_rad[joint] - positions[joint])
                         - KD_NM_S_PER_RAD * velocities[joint])
-                        .clamp(-limits[joint], limits[joint])
+                        .clamp(-limits[joint], limits[joint]);
+                    match speed_limits {
+                        // At its speed limit a motor does not push on.
+                        Some(speeds)
+                            if velocities[joint].abs() >= speeds[joint]
+                                && torque * velocities[joint] > 0.0 =>
+                        {
+                            0.0
+                        }
+                        _ => torque,
+                    }
                 })
                 .collect();
             // With zero PD gains the position targets only fill the command.
@@ -809,6 +843,9 @@ pub struct Go2LearningConfig {
     pub random_starts: bool,
     /// Seed of the start stream.
     pub seed: u64,
+    /// Make the motors hold the joints' velocity limits
+    /// ([`Go2LearningRobot::set_velocity_limits`]).
+    pub velocity_limits: bool,
 }
 
 impl Default for Go2LearningConfig {
@@ -819,6 +856,7 @@ impl Default for Go2LearningConfig {
             height_scan: false,
             random_starts: false,
             seed: 0,
+            velocity_limits: false,
         }
     }
 }
@@ -881,8 +919,10 @@ impl Go2LearningEpisode {
                 "random starts need a terrain",
             ));
         }
+        let mut robot = Go2LearningRobot::new(config.floor_friction, config.floor)?;
+        robot.set_velocity_limits(config.velocity_limits);
         Ok(Self {
-            robot: Go2LearningRobot::new(config.floor_friction, config.floor)?,
+            robot,
             gaps: config.gaps(),
             starts: SplitMix64(config.seed ^ START_STREAM),
             config,
@@ -1637,6 +1677,38 @@ mod tests {
                 "{center:?} r {radius}"
             );
         }
+    }
+
+    #[test]
+    fn a_motor_at_its_velocity_limit_stops_pushing() {
+        // Swing every joint as hard as the actions allow, with and without
+        // the limits: with them no joint ends a period far over its limit.
+        let fastest = |velocity_limits: bool| {
+            let mut episode = Go2LearningEpisode::new(Go2LearningConfig {
+                velocity_limits,
+                ..Go2LearningConfig::default()
+            })
+            .unwrap();
+            episode.reset();
+            let mut fastest = [0.0_f64; 3];
+            for step in 0..60 {
+                let sign = if (step / 3) % 2 == 0 { 1.0 } else { -1.0 };
+                episode.step([sign; 12]);
+                for (index, (_, velocity)) in episode.robot().joint_states().iter().enumerate() {
+                    fastest[index % 3] = fastest[index % 3].max(velocity.abs());
+                }
+            }
+            fastest
+        };
+        let free = fastest(false);
+        let held = fastest(true);
+        // The calf's 15.7 rad/s is the limit this swing passes. Held, the
+        // motor stops pushing there; the thrashing robot's contacts and its
+        // other joints still carry the calf past it, but less far.
+        assert!(free[2] > 1.5 * VELOCITY_LIMIT_RAD_S[2], "{free:?}");
+        assert!(held[2] < free[2] - 2.0, "{held:?} {free:?}");
+        // The default leaves the walk as it was.
+        assert_eq!(fastest(false), free);
     }
 
     #[test]

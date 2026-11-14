@@ -57,10 +57,11 @@ class Policy:
 def task_arguments(task):
     """The batch arguments of train_ppo.py's `--floor` (run.py's
     `task_arguments`)."""
+    limits = {"velocity_limits": True} if task.get("velocity_limits") else {}
     if task["floor"] == "flat":
-        return {}
+        return limits
     arguments = {"terrain_seed": 7, "random_starts": True,
-                 "height_scan": task["height_scan"], "terrain_size": 48.0}
+                 "height_scan": task["height_scan"], "terrain_size": 48.0, **limits}
     if task["floor"] == "gaps":
         arguments.update(terrain_amplitude=0.0, terrain_cell=0.05, gap_depth=0.3)
     return arguments
@@ -115,8 +116,9 @@ def walk(policy, task, count):
 def trace(policy, task, index, path):
     """Walks the episode from evaluation start `index` alone and writes
     each control period: the base, the four foot centers (front-left,
-    front-right, rear-left, rear-right) and each link's ground contact
-    over the period (normal impulse in N·s, physics steps in contact)."""
+    front-right, rear-left, rear-right), the joints' states and targets as
+    the period begins, and each link's ground contact over the period
+    (normal impulse in N·s, physics steps in contact)."""
     batch = rne_py_locomotion.Go2LearningBatch(1, 1, 1, **task_arguments(task))
     start = batch.evaluation_starts(index + 1)[index]
     batch.set_starts([start])
@@ -125,8 +127,13 @@ def trace(policy, task, index, path):
     periods, fell = [], False
     for _ in range(batch.episode_steps):
         actions = policy.act(observations)
+        joints = batch.joint_states(0)
+        targets = (np.asarray(batch.default_pose_rad)
+                   + batch.action_scale_rad * actions[0]).tolist()
         period = {"position_m": batch.base_positions()[0],
-                  "feet_m": batch.foot_positions()[0], "action": actions[0].tolist()}
+                  "feet_m": batch.foot_positions()[0], "action": actions[0].tolist(),
+                  "joints_rad": [q for q, _ in joints],
+                  "joint_velocities_rad_s": [v for _, v in joints], "targets_rad": targets}
         step = batch.step(actions.tolist())
         observations = np.asarray(step.observations)
         if step.terminated[0] or step.truncated[0]:

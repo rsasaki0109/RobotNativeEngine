@@ -9,6 +9,11 @@ name: Go2 SB3 PPO depth levels
 # In the first run every environment of the scan policies ended at the
 # deepest level and the policies lost the shallow gaps, so an environment
 # that masters the deepest level now goes to a random one (--recycle-levels).
+# Runs before 2026-11-14 trained with an unseen wall over each gap's far rim
+# (rne_locomotion's sphere contact, since fixed); later runs do not. Run
+# 43541974300, the first without it, learned to cross at 3.6 m/s by turning
+# the calves at up to twice their motors' velocity limit, which neither
+# simulator held; the motors now hold it (--velocity-limits).
 # Each job trains one policy, blind or with the height scan, on one seed,
 # and after each of four stages walks it once in each of 64 held-out
 # environments at every level: gaps crossed, falls, how the episodes ended,
@@ -29,6 +34,10 @@ on:
         description: "Gap depth levels"
         required: false
         default: "8"
+      velocity_limits:
+        description: "Make the motors hold the joints' velocity limits"
+        required: false
+        default: "true"
       recycle:
         description: "Send environments that master the deepest level to a random one"
         required: false
@@ -57,6 +66,7 @@ jobs:
       SEED: ${{ matrix.seed }}
       SCAN: ${{ matrix.sight == 'scan' && '--height-scan' || '' }}
       RECYCLE: ${{ inputs.recycle == 'false' && ' ' || '--recycle-levels' }}
+      LIMITS: ${{ inputs.velocity_limits == 'false' && ' ' || '--velocity-limits' }}
       OUT: artifacts/go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
     steps:
       - name: Checkout
@@ -87,7 +97,7 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
           # shellcheck disable=SC2086
-          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN $RECYCLE \
+          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN $RECYCLE $LIMITS \
             --depth-levels "$DEPTH_LEVELS" --timesteps "$TIMESTEPS" --n-envs "$N_ENVS" \
             --seed "$SEED" --out "$OUT" | tee "$OUT.log"
           mv "$OUT.log" "$OUT/train.log"

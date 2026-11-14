@@ -199,6 +199,10 @@ def main():
                              "moving up and down them as it crosses gaps (gaps only)")
     parser.add_argument("--promote-after-gaps", type=int, default=2,
                         help="gaps an episode must cross to move up a depth level")
+    parser.add_argument("--velocity-limits", action="store_true",
+                        help="make the motors hold the joints' velocity limits: without "
+                             "them the policies learn gaits that turn the calves up to "
+                             "twice as fast as their motors allow")
     parser.add_argument("--recycle-levels", action="store_true",
                         help="send an environment that masters the deepest level to a "
                              "random level, so the shallower ones stay in training")
@@ -226,7 +230,7 @@ def main():
     args.eval_envs, args.n_epochs = 2, 1
     for curriculum, levels in (("0.05-0.10@0.1,0.25-0.35", 1), ("", 3)):
         args.curriculum, args.depth_levels, args.stages = curriculum, levels, 2
-        args.recycle_levels = levels > 1
+        args.recycle_levels = args.velocity_limits = levels > 1
         history = train(args, parser)
         assert len(history) == 2
         assert ("on_stage_gaps" in history[0]) == bool(curriculum)
@@ -237,6 +241,8 @@ def main():
 def train(args, parser):
     """Trains and evaluates as `args` ask; returns each stage's results."""
     task = task_arguments(args)
+    if args.velocity_limits:
+        task["velocity_limits"] = True
     levels = args.depth_levels > 1
     if levels:
         if args.floor != "gaps" or args.curriculum:
@@ -316,6 +322,7 @@ def train(args, parser):
         "depth_levels": args.depth_levels,
         "promote_after_gaps": args.promote_after_gaps if levels else None,
         "recycle_levels": args.recycle_levels if levels else None,
+        "velocity_limits": args.velocity_limits,
         "normalize": not args.no_normalize,
         "hyperparameters": {
             "n_steps": args.n_steps, "batch_size": args.batch_size,
@@ -332,7 +339,8 @@ def train(args, parser):
         json.dump(summary, file, indent=2)
     exported = policy_json(model, env, not args.no_normalize,
                            {"floor": args.floor, "height_scan": args.height_scan,
-                            "random_starts": args.floor != "flat"})
+                            "random_starts": args.floor != "flat",
+                            "velocity_limits": args.velocity_limits})
     assert exported["policy"]["inputs"] == raw.observation_space.shape[0]
     with open(os.path.join(args.out, "policy.json"), "w") as file:
         json.dump(exported, file)

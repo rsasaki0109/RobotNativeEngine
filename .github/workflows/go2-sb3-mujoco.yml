@@ -9,8 +9,10 @@ name: Go2 SB3 PPO in MuJoCo
 # against the default 20 ms), which closed most of the transfer gap of
 # example 147's own walks. RNE then walks the same policy from the same
 # starts, and the report compares the walks episode by episode.
-# The policies were trained before rne_locomotion's spheres stopped hitting
-# the air above a gap's rim; RNE walks them here with that fixed. Light (minutes), so it runs on demand
+# The default run trained with rne_locomotion's sphere contact fixed (no
+# unseen wall over a gap's far rim) and with the motors holding the joints'
+# velocity limits, which MuJoCo then holds too. Run 43541974300 trained
+# without the limits, and run 43374349191 before the contact fix. Light (minutes), so it runs on demand
 # and when this workflow changes.
 on:
   workflow_dispatch:
@@ -18,7 +20,7 @@ on:
       run:
         description: "Go2 SB3 PPO depth levels run whose policies to walk"
         required: false
-        default: "43374349191"
+        default: "43563466782"
   push:
     paths:
       - ".github/workflows/go2-sb3-mujoco.yml"
@@ -38,7 +40,7 @@ jobs:
         sight: [blind, scan]
         seed: [2026, 2027, 2028]
     env:
-      RUN: ${{ inputs.run || '43374349191' }}
+      RUN: ${{ inputs.run || '43563466782' }}
       NAME: go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
       OUT: artifacts/go2-sb3-mujoco-${{ matrix.sight }}-${{ matrix.seed }}
     steps:
@@ -140,6 +142,9 @@ jobs:
             evaluate policy/policy.json --terrain "$OUT/terrain.json" --starts 64 \
             --substeps 5 --solref 0.004 --trace "$OUT/trace-mujoco.json" \
             --trace-episode "$episode" > /dev/null
+          # How hard each walk drives the actuators, against the URDF's limits.
+          python examples/148_go2_learning_python/trace_limits.py \
+            "$OUT/trace-rne.json" "$OUT/trace-mujoco.json" | tee "$OUT/limits.json"
           # The terrain file is large and reproducible.
           rm "$OUT/terrain.json"
 
