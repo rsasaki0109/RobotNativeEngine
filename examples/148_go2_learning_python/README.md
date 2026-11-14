@@ -376,6 +376,53 @@ before it.
   fall in 18–42 of 64 episodes; scan policies cross five times as many
   and do not fall.
 
+#### Retrained with the fixed contact
+
+Workflow run 43541974300 trained again with the same settings (50M
+timesteps, eight depth levels, recycling) and the contact fixed. These
+are the last stage's 64 held-out episodes at each depth.
+
+| Policy, seed | 7.5 cm | 15 cm | 30 cm | Falls at 30 cm | Distance at 30 cm |
+|---|---|---|---|---|---|
+| Scan 2026 | 670 | 692 | 695 | 0 | 18.30 m |
+| Scan 2027 | 634 | 658 | 659 | 0 | 17.32 m |
+| Scan 2028 | 653 | 683 | 677 | 0 | 18.05 m |
+| Blind 2026 | 494 | 470 | 471 | 2 | 13.01 m |
+| Blind 2027 | 397 | 358 | 298 | 1 | 8.88 m |
+| Blind 2028 | 478 | 423 | 378 | 1 | 10.95 m |
+
+- **Without the unseen wall, the gaps are far easier.** The scan
+  policies cross about eleven 30 cm gaps an episode without a fall, at
+  3.6 m/s, close to their speed on a flat floor. Before the fix they
+  crossed 243–338.
+- **Blind policies cross them too.** They cross 298–471 gaps at 30 cm,
+  where they crossed 0–66 before, by running fast enough that a foot
+  seldom stays in a gap. The gaps no longer need sight. The scan is still
+  worth about 1.5–2 times the crossings and the distance.
+- **Every level is in training.** The training environments spread over
+  all eight levels, as recycling intends.
+
+The MuJoCo workflow (run 43557248261) walked these policies from the same
+64 starts on 30 cm gaps:
+
+| Policy, seed | RNE: crossed, falls, distance | MuJoCo stiff: crossed | MuJoCo default: crossed |
+|---|---|---|---|
+| Scan 2026 | 693, 0, 18.30 m | 452 | 31 |
+| Scan 2027 | 663, 0, 17.35 m | 495 | 30 |
+| Scan 2028 | 685, 0, 18.13 m | 310 | 6 |
+| Blind 2026 | 485, 0, 13.23 m | 314 | 16 |
+| Blind 2027 | 304, 2, 9.20 m | 261 | 18 |
+| Blind 2028 | 362, 4, 10.54 m | 291 | 6 |
+
+- **The faster walks transfer less well.** In MuJoCo with stiff contacts
+  the scan policies cross 45–75% of what they cross in RNE, and scan 2026
+  falls in 10 of 64 episodes there against none in RNE. The policies
+  trained before the fix walked at 2.4 m/s and matched MuJoCo within a
+  few percent once the contact was fixed.
+- **Open.** Whether 3.6 m/s is a walk the real robot's actuators could
+  produce, or one that leans on something RNE's plant allows and MuJoCo's
+  does not, is not established.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

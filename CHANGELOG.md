@@ -560,6 +560,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 148's README records the gap policies retrained with the fixed
+  sphere contact. Scan policies cross 659–695 of the 30 cm gaps over 64
+  episodes without a fall, against 243–338 before the fix. Blind policies
+  cross 298–471, against 0–66. In MuJoCo with stiff contacts the scan
+  policies cross 310–495.
+
 - Example 148's `walk_policy.py` walks an exported policy in RNE from
   example 147's held-out evaluation starts and compares it episode by
   episode with MuJoCo's walk of the same policy. `Go2LearningEpisode::set_start`
