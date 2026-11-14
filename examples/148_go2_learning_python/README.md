@@ -528,6 +528,20 @@ simulators from the same 64 starts on 30 cm gaps (run 43594323954):
   needs the curve applied stably in RNE, by solving it together with the
   step or by finer steps, before training with it means anything.
 
+#### Braking no harder than a step allows
+
+A hop in RNE confirmed the chatter: with the curve as written, a calf in
+the air went 30, −20, 20, 5, 25, −10 rad/s over successive 5 ms steps.
+`motor_torque_range_for_step` now brakes a joint past its limit no harder
+than brings it back to the limit in one step, were the joint as light as
+it gets (each joint's own inertia with the calves folded: 0.005 kg·m² for
+a calf). The same hop then settles at 30, 15, 21, 16, 17, 16 rad/s.
+MuJoCo's script keeps the plain curve, which its 1 ms steps hold.
+
+One thing remains in both simulators' plants: the joints have no rotor
+inertia, so a PD kick of 20 N·m still takes a calf in the air from rest
+to 30 rad/s in a single 5 ms step, before the curve can act.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

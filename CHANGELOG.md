@@ -69,6 +69,10 @@ All notable changes to Robot Native Engine are documented in this file.
   Before, a motor at its limit only stopped pushing, which did not hold
   the joints to their limits. `mujoco_go2_learning.py evaluate
   --velocity-limits` applies the same curve. Still off by default.
+  In RNE the torque is set once per 5 ms step, so past the limit the motor
+  brakes no harder than brings the joint back to the limit within the
+  step (`motor_torque_range_for_step`): as written, the curve made a
+  swinging calf chatter between its ends.
 
 - `.github/workflows/go2-learning.yml` trains sixteen seeds by default, and
   `examples/147_go2_learning/learning_compare.py`'s summaries gain an

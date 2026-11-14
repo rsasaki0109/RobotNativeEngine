@@ -511,9 +511,9 @@ pub struct Go2LearningRobot {
     targets_rad: [f64; 12],
     command: JointCommand,
     arena_half_m: f64,
-    /// Each joint's velocity limit, by actuated coordinate, when the
-    /// motors hold them.
-    velocity_limits_rad_s: Option<[f64; 12]>,
+    /// Each joint's velocity limit and its least inertia (kg·m²), by
+    /// actuated coordinate, when the motors hold the limits.
+    velocity_limits_rad_s: Option<([f64; 12], [f64; 12])>,
     /// By kinematic link: the ground's normal impulse through it and the
     /// physics steps it carried any.
     contact_load: Vec<(f64, usize)>,
@@ -590,14 +590,48 @@ impl Go2LearningRobot {
     /// allows, which lets a policy learn gaits the real motors could not
     /// turn. Merely giving no torque past the limit does not stop that:
     /// the leg's swing and the ground carry the joint on.
-    pub fn set_velocity_limits(&mut self, enforce: bool) {
-        self.velocity_limits_rad_s = enforce.then(|| {
-            let mut limits = [0.0; 12];
-            for (index, &joint) in self.actuated.iter().enumerate() {
-                limits[joint] = VELOCITY_LIMIT_RAD_S[index % 3];
-            }
-            limits
-        });
+    ///
+    /// The torques are set once per 5 ms physics step from the speed as
+    /// the step begins, and past the limit the curve is a stiff damper: on
+    /// a swinging calf, 0.005 kg·m² about its knee, its braking torque
+    /// would reverse the joint within the step and the joint would chatter
+    /// between the curve's ends. So past the limit the motor brakes no
+    /// harder than brings the joint back to the limit in one step, were
+    /// the joint as light as it gets ([`motor_torque_range_for_step`]).
+    ///
+    /// # Errors
+    ///
+    /// [`LocomotionError`] when the model's joint inertias cannot be
+    /// computed.
+    pub fn set_velocity_limits(&mut self, enforce: bool) -> Result<(), LocomotionError> {
+        if !enforce {
+            self.velocity_limits_rad_s = None;
+            return Ok(());
+        }
+        // Each joint's own inertia with the calves folded to their limit,
+        // where the legs are most compact: a joint's inertia is never much
+        // less, and the ground only adds to it.
+        let model = self.sim.quadruped().model();
+        let base = model.base_dof();
+        let mut q = self.sim.q().to_vec();
+        for (index, &joint) in self.actuated.iter().enumerate() {
+            q[base + joint] = if index % 3 == 2 {
+                model
+                    .joint_position_limits(base + joint)
+                    .map_or(DEFAULT_RAD[index], |(lower, _)| lower)
+            } else {
+                DEFAULT_RAD[index]
+            };
+        }
+        let inertia = rne_dynamics::mass_matrix(model, &q)?;
+        let mut limits = [0.0; 12];
+        let mut inertias = [0.0; 12];
+        for (index, &joint) in self.actuated.iter().enumerate() {
+            limits[joint] = VELOCITY_LIMIT_RAD_S[index % 3];
+            inertias[joint] = inertia.get(base + joint, base + joint);
+        }
+        self.velocity_limits_rad_s = Some((limits, inertias));
+        Ok(())
     }
 
     /// The robot's total mass, in kilograms.
@@ -652,9 +686,13 @@ impl Go2LearningRobot {
                         - KD_NM_S_PER_RAD * velocities[joint];
                     let limit = limits[joint];
                     let (lowest, highest) = match speed_limits {
-                        Some(speeds) => {
-                            motor_torque_range(limit, velocities[joint] / speeds[joint])
-                        }
+                        Some((speeds, inertias)) => motor_torque_range_for_step(
+                            limit,
+                            velocities[joint],
+                            speeds[joint],
+                            inertias[joint],
+                            DT_S,
+                        ),
                         None => (-limit, limit),
                     };
                     torque.clamp(lowest, highest)
@@ -751,6 +789,30 @@ pub fn motor_torque_range(limit: f64, speed_ratio: f64) -> (f64, f64) {
     let highest = (limit * (1.0 - speed_ratio)).clamp(-limit, limit);
     let lowest = (limit * (-1.0 - speed_ratio)).clamp(-limit, limit);
     (lowest, highest)
+}
+
+/// [`motor_torque_range`] for a torque held over one step of `dt_s` from
+/// the speed `velocity_rad_s` at its start, on a joint of inertia
+/// `inertia_kg_m2` and velocity limit `limit_rad_s`: past the limit the
+/// motor brakes no harder than brings the joint back to the limit within
+/// the step, so that a light joint does not overshoot and chatter.
+pub fn motor_torque_range_for_step(
+    limit: f64,
+    velocity_rad_s: f64,
+    limit_rad_s: f64,
+    inertia_kg_m2: f64,
+    dt_s: f64,
+) -> (f64, f64) {
+    let (lowest, highest) = motor_torque_range(limit, velocity_rad_s / limit_rad_s);
+    // The torque that changes the speed by the excess in one step.
+    let to_limit = |excess: f64| inertia_kg_m2 * excess / dt_s;
+    if velocity_rad_s > limit_rad_s {
+        (lowest, highest.max(-to_limit(velocity_rad_s - limit_rad_s)))
+    } else if velocity_rad_s < -limit_rad_s {
+        (lowest.min(to_limit(-limit_rad_s - velocity_rad_s)), highest)
+    } else {
+        (lowest, highest)
+    }
 }
 
 /// The policy's observation: [`PROPRIOCEPTION`] values, then
@@ -935,7 +997,7 @@ impl Go2LearningEpisode {
             ));
         }
         let mut robot = Go2LearningRobot::new(config.floor_friction, config.floor)?;
-        robot.set_velocity_limits(config.velocity_limits);
+        robot.set_velocity_limits(config.velocity_limits)?;
         Ok(Self {
             robot,
             gaps: config.gaps(),
@@ -1705,6 +1767,20 @@ mod tests {
         assert_eq!(motor_torque_range(20.0, 3.0), (-20.0, -20.0));
         assert_eq!(motor_torque_range(20.0, -0.5), (-10.0, 20.0));
         assert_eq!(motor_torque_range(20.0, -1.5), (10.0, 20.0));
+        // Over a step, a light joint past its limit is braked back to the
+        // limit and no further; a heavy one gets the curve's braking.
+        let (_, highest) = motor_torque_range_for_step(45.0, 30.0, 15.0, 0.005, 0.005);
+        assert!((highest + 15.0).abs() < 1e-12, "{highest}");
+        let (lowest, _) = motor_torque_range_for_step(45.0, -30.0, 15.0, 0.005, 0.005);
+        assert!((lowest - 15.0).abs() < 1e-12, "{lowest}");
+        assert_eq!(
+            motor_torque_range_for_step(45.0, 30.0, 15.0, 1.0, 0.005),
+            (-45.0, -45.0)
+        );
+        assert_eq!(
+            motor_torque_range_for_step(45.0, 7.5, 15.0, 0.005, 0.005),
+            motor_torque_range(45.0, 0.5)
+        );
 
         // Swing every joint as hard as the actions allow, with and without
         // the curve.
