@@ -576,6 +576,18 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_dynamics::JointPdControl::torque_bounds` holds each actuated joint's
+  torque within a lowest and highest value besides its effort limit, so an
+  implicit PD can carry a motor's torque-speed curve.
+  `QuadrupedTerrainSim::step_bounded` and `set_pd_gains` pass them on.
+- `Go2LearningConfig::implicit_pd` (`Go2LearningRobot::set_implicit_pd`)
+  integrates the Go2 task's joint PD within each 5 ms physics step instead
+  of holding the torque set at the step's start, as the robot's motor
+  drivers act far faster than 200 Hz. Off by default. Example 148's
+  `train_ppo.py --implicit-pd` trains with it, `walk_policy.py
+  --implicit-pd` walks with it, and the binding takes `implicit_pd`.
+  `Go2LearningRobot::actuator_torques_nm` reports the last step's torques.
+
 - The Go2 learning task can hold the joints' velocity limits. With
   `Go2LearningConfig::velocity_limits` (`Go2LearningRobot::set_velocity_limits`,
   the binding's `velocity_limits`, `train_ppo.py --velocity-limits`), a

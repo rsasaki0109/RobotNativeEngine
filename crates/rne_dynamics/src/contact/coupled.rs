@@ -12,11 +12,10 @@
 
 use super::{
     active_joint_limits, actuator_torques, add_base_transport_force,
-    add_prescribed_contact_velocity, contact_frame, effort_limit, fold_implicit_pd,
-    integrate_from_base_frame, prescribed_point_velocity, solve_contact_impulses,
-    transport_base_velocity, validate_pd, Cholesky, ContactOutcome, ContactStep, ContactStepConfig,
-    JointLimitOutcome, JointLimitSide, JointPdControl, LimitRow, EFFORT_TOLERANCE,
-    MAX_EFFORT_PASSES,
+    add_prescribed_contact_velocity, contact_frame, fold_implicit_pd, integrate_from_base_frame,
+    prescribed_point_velocity, saturated_torque, solve_contact_impulses, transport_base_velocity,
+    validate_pd, Cholesky, ContactOutcome, ContactStep, ContactStepConfig, JointLimitOutcome,
+    JointLimitSide, JointPdControl, LimitRow, MAX_EFFORT_PASSES,
 };
 use crate::algorithms::{
     mass_matrix_from_xup, point_linear_jacobian, rnea_from_xup, xup_transforms, DenseMatrix,
@@ -210,11 +209,9 @@ fn step_with_external(
                     if held[joint].is_some() {
                         continue;
                     }
-                    if let Some(limit) = effort_limit(body.model, body.pd, joint) {
-                        if torque.abs() > limit * (1.0 + EFFORT_TOLERANCE) {
-                            held[joint] = Some(torque.clamp(-limit, limit));
-                            changed = true;
-                        }
+                    if let Some(saturated) = saturated_torque(body.model, body.pd, joint, *torque) {
+                        held[joint] = Some(saturated);
+                        changed = true;
                     }
                 }
             }

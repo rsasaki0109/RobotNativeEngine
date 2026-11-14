@@ -91,16 +91,14 @@ jobs:
             --gap-depth 0.3
           cp policy/results.json "$OUT/rne-results.json"
           mujoco=(.venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py)
-          # Stiffer contacts still, to see whether what is left between the
-          # simulators is contact softness: time constants of 2 and 1 ms.
           # And the stiff setting with the torques set once per step of
-          # RNE's and held, as RNE's plant sets them.
-          for variant in default stiff stiffer stiffest held; do
+          # RNE's and held, as RNE's plant held them before --implicit-pd.
+          # (Stiffer contacts still, 2 and 1 ms, changed nothing: run
+          # 43630116940.)
+          for variant in default stiff held; do
             case $variant in
               default) flags=() ;;
               stiff) flags=(--substeps 5 --solref 0.004) ;;
-              stiffer) flags=(--substeps 10 --solref 0.002) ;;
-              stiffest) flags=(--substeps 20 --solref 0.001) ;;
               held) flags=(--substeps 5 --solref 0.004 --hold-torque) ;;
             esac
             "${mujoco[@]}" evaluate policy/policy.json --terrain "$OUT/terrain.json" \
@@ -123,16 +121,21 @@ jobs:
           .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
             --starts 64 --against default="$OUT/mujoco-default.json" \
             --against stiff="$OUT/mujoco-stiff.json" \
-            --against stiffer="$OUT/mujoco-stiffer.json" \
-            --against stiffest="$OUT/mujoco-stiffest.json" \
             --against held="$OUT/mujoco-held.json" > "$OUT/rne.json"
-          python - "$OUT/rne.json" <<'PY'
+          # The same policy in RNE with the PD integrated within each step,
+          # whatever it trained with.
+          .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
+            --starts 64 --implicit-pd --against stiff="$OUT/mujoco-stiff.json" \
+            --against held="$OUT/mujoco-held.json" > "$OUT/rne-implicit.json"
+          for report in rne rne-implicit; do
+            python - "$OUT/$report.json" "$report" <<'PY'
           import json, sys
           report = json.load(open(sys.argv[1]))
-          print("rne", report["outcome"])
+          print(sys.argv[2], report["outcome"])
           for name, against in report["against"].items():
-              print(name, {key: value for key, value in against.items() if key != "episodes"})
+              print(" ", name, {key: value for key, value in against.items() if key != "episodes"})
           PY
+          done
 
       - name: Trace an episode the simulators disagree on
         run: |

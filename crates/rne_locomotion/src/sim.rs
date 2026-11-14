@@ -279,6 +279,25 @@ impl QuadrupedTerrainSim {
         Ok(())
     }
 
+    /// Sets the joint PD gains the step integrates implicitly: stiffness
+    /// in N·m per radian, damping in N·m·s per radian.
+    pub fn set_pd_gains(
+        &mut self,
+        position_gain_nm_rad: f64,
+        velocity_gain_nm_s_rad: f64,
+    ) -> Result<(), LocomotionError> {
+        if !(position_gain_nm_rad.is_finite()
+            && position_gain_nm_rad >= 0.0
+            && velocity_gain_nm_s_rad.is_finite()
+            && velocity_gain_nm_s_rad >= 0.0)
+        {
+            return Err(LocomotionError::InvalidInput("PD gains"));
+        }
+        self.config.position_gain_nm_rad = position_gain_nm_rad;
+        self.config.velocity_gain_nm_s_rad = velocity_gain_nm_s_rad;
+        Ok(())
+    }
+
     /// Lets `spheres` touch the terrain besides the feet. Each step adds a
     /// contact for every sphere within 1 cm of the terrain, after the feet,
     /// so a robot that kneels or falls lands on its knees or body instead of
@@ -337,6 +356,19 @@ impl QuadrupedTerrainSim {
         command: &JointCommand,
         base_force_n: Vec3,
     ) -> Result<SimStep, LocomotionError> {
+        self.step_bounded(command, base_force_n, &[])
+    }
+
+    /// [`Self::step`] with each actuated joint's torque, feed-forward plus
+    /// PD, held within `torque_bounds_nm` (lowest, highest; N·m) as well as
+    /// its effort limit: see [`JointPdControl::torque_bounds`]. Empty
+    /// bounds leave the effort limits alone.
+    pub fn step_bounded(
+        &mut self,
+        command: &JointCommand,
+        base_force_n: Vec3,
+        torque_bounds_nm: &[[f64; 2]],
+    ) -> Result<SimStep, LocomotionError> {
         let model = self.quadruped.model();
         let base = model.base_dof();
         let actuated = self.quadruped.actuated_count();
@@ -344,6 +376,7 @@ impl QuadrupedTerrainSim {
         if command.positions_rad.len() != actuated
             || !optional(&command.velocities_rad_s)
             || !optional(&command.feedforward_nm)
+            || !(torque_bounds_nm.is_empty() || torque_bounds_nm.len() == actuated)
         {
             return Err(LocomotionError::InvalidInput(
                 "one value per actuated joint",
@@ -378,6 +411,7 @@ impl QuadrupedTerrainSim {
                 command.velocities_rad_s.clone()
             },
             effort_limits: Vec::new(),
+            torque_bounds: torque_bounds_nm.to_vec(),
         };
         let config = ContactStepConfig {
             step_time_s: self.config.step_time_s,

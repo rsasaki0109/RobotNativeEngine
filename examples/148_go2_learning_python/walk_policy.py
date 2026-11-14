@@ -58,6 +58,8 @@ def task_arguments(task):
     """The batch arguments of train_ppo.py's `--floor` (run.py's
     `task_arguments`)."""
     limits = {"velocity_limits": True} if task.get("velocity_limits") else {}
+    if task.get("implicit_pd"):
+        limits["implicit_pd"] = True
     if task["floor"] == "flat":
         return limits
     arguments = {"terrain_seed": 7, "random_starts": True,
@@ -212,10 +214,15 @@ def main():
     parser.add_argument("--starts", type=int, default=64)
     parser.add_argument("--against", action="append", default=[], metavar="NAME=FILE",
                         help="a MuJoCo evaluation of the same policy and starts")
+    parser.add_argument("--implicit-pd", action="store_true",
+                        help="walk with the joints' PD integrated within each physics step, "
+                             "whatever the policy trained with")
     parser.add_argument("--trace", nargs=2, metavar=("EPISODE", "FILE"), default=None,
                         help="write the trace of one episode of --starts")
     args = parser.parse_args()
     exported = json.load(open(args.policy))
+    if args.implicit_pd:
+        exported["task"]["implicit_pd"] = True
     if args.trace is not None:
         trace(Policy(exported["policy"]), exported["task"], int(args.trace[0]), args.trace[1])
     episodes = walk(Policy(exported["policy"]), exported["task"], args.starts)

@@ -514,6 +514,10 @@ pub struct Go2LearningRobot {
     /// Each joint's velocity limit and its least inertia (kg·m²), by
     /// actuated coordinate, when the motors hold the limits.
     velocity_limits_rad_s: Option<([f64; 12], [f64; 12])>,
+    /// Whether the PD is integrated implicitly within each step.
+    implicit_pd: bool,
+    /// The last physics step's actuator torques, by actuated coordinate.
+    actuator_torques_nm: [f64; 12],
     /// By kinematic link: the ground's normal impulse through it and the
     /// physics steps it carried any.
     contact_load: Vec<(f64, usize)>,
@@ -569,10 +573,37 @@ impl Go2LearningRobot {
             command: JointCommand::positions(vec![0.0; 12]),
             arena_half_m: 0.5 * side_m - ARENA_EDGE_MARGIN_M,
             velocity_limits_rad_s: None,
+            implicit_pd: false,
+            actuator_torques_nm: [0.0; 12],
             contact_load: vec![(0.0, 0); links],
         };
         robot.restart_at([0.0, 0.0])?;
         Ok(robot)
+    }
+
+    /// Integrates the joints' PD within each physics step, from the state
+    /// at its end, or, by default, sets the PD torque from the state at the
+    /// step's start and holds it over the step's 5 ms.
+    ///
+    /// The Go2's motor drivers close the PD loop far faster than 200 Hz, so
+    /// a torque held for 5 ms on a joint that moves meanwhile is a property
+    /// of the plant, not of the robot: example 148's scan policies learned a
+    /// fast gait that relies on it and loses it in MuJoCo, whose actuators
+    /// recompute the PD every millisecond. Integrated implicitly, the PD acts
+    /// as a continuous one does, and it stays stable at the 5 ms step. The
+    /// effort limits and the torque-speed curve
+    /// ([`Self::set_velocity_limits`]) still bound the torque, now at the
+    /// step's end; the curve's range comes from the speed at the step's
+    /// start.
+    pub fn set_implicit_pd(&mut self, implicit: bool) -> Result<(), LocomotionError> {
+        let (kp, kd) = if implicit {
+            (KP_NM_PER_RAD, KD_NM_S_PER_RAD)
+        } else {
+            (0.0, 0.0)
+        };
+        self.sim.set_pd_gains(kp, kd)?;
+        self.implicit_pd = implicit;
+        Ok(())
     }
 
     /// Gives the motors a torque-speed curve that holds the joints'
@@ -673,35 +704,55 @@ impl Go2LearningRobot {
     }
 
     /// One control period: [`DECIMATION`] physics steps, each with the PD
-    /// torque computed at its start and clamped to the effort limits.
+    /// torque held from its start or integrated implicitly
+    /// ([`Self::set_implicit_pd`]), within the effort limits and, when set,
+    /// the torque-speed curve.
     pub fn step(&mut self) -> Result<(), LocomotionError> {
         for _ in 0..DECIMATION {
             let positions = self.sim.joint_positions_rad();
             let velocities = self.sim.joint_velocities_rad_s();
             let limits = self.sim.quadruped().effort_limits();
             let speed_limits = self.velocity_limits_rad_s;
-            let torques: Vec<f64> = (0..12)
-                .map(|joint| {
-                    let torque = KP_NM_PER_RAD * (self.targets_rad[joint] - positions[joint])
-                        - KD_NM_S_PER_RAD * velocities[joint];
-                    let limit = limits[joint];
-                    let (lowest, highest) = match speed_limits {
-                        Some((speeds, inertias)) => motor_torque_range_for_step(
-                            limit,
-                            velocities[joint],
-                            speeds[joint],
-                            inertias[joint],
-                            DT_S,
-                        ),
-                        None => (-limit, limit),
-                    };
-                    torque.clamp(lowest, highest)
-                })
-                .collect();
-            // With zero PD gains the position targets only fill the command.
-            self.command.positions_rad.copy_from_slice(positions);
-            self.command.feedforward_nm = torques;
-            let step = self.sim.step(&self.command, Vec3::ZERO)?;
+            let bounds: [[f64; 2]; 12] = std::array::from_fn(|joint| {
+                let limit = limits[joint];
+                let (lowest, highest) = match speed_limits {
+                    Some((speeds, inertias)) => motor_torque_range_for_step(
+                        limit,
+                        velocities[joint],
+                        speeds[joint],
+                        inertias[joint],
+                        DT_S,
+                    ),
+                    None => (-limit, limit),
+                };
+                [lowest, highest]
+            });
+            let step = if self.implicit_pd {
+                self.command
+                    .positions_rad
+                    .copy_from_slice(&self.targets_rad);
+                self.command.feedforward_nm.clear();
+                self.sim.step_bounded(&self.command, Vec3::ZERO, &bounds)?
+            } else {
+                let torques: Vec<f64> = (0..12)
+                    .map(|joint| {
+                        let torque = KP_NM_PER_RAD * (self.targets_rad[joint] - positions[joint])
+                            - KD_NM_S_PER_RAD * velocities[joint];
+                        torque.clamp(bounds[joint][0], bounds[joint][1])
+                    })
+                    .collect();
+                // With zero PD gains the position targets only fill the command.
+                self.command.positions_rad.copy_from_slice(positions);
+                self.command.feedforward_nm = torques;
+                self.sim.step(&self.command, Vec3::ZERO)?
+            };
+            for (slot, torque) in self
+                .actuator_torques_nm
+                .iter_mut()
+                .zip(&step.actuator_torques)
+            {
+                *slot = *torque;
+            }
             let kinematic = self.sim.quadruped().model().kinematic();
             let mut loaded = vec![false; self.contact_load.len()];
             for (contact, outcome) in step.contacts.iter().zip(&step.outcomes) {
@@ -760,6 +811,11 @@ impl Go2LearningRobot {
             let joint = self.actuated[index];
             (positions[joint], velocities[joint])
         })
+    }
+
+    /// The last physics step's actuator torques (N·m), in [`LINKS`] order.
+    pub fn actuator_torques_nm(&self) -> [f64; 12] {
+        std::array::from_fn(|index| self.actuator_torques_nm[self.actuated[index]])
     }
 
     /// By link name: the ground's normal impulse through it (N·s) and the
@@ -923,6 +979,9 @@ pub struct Go2LearningConfig {
     /// Give the motors the torque-speed curve that holds the joints'
     /// velocity limits ([`Go2LearningRobot::set_velocity_limits`]).
     pub velocity_limits: bool,
+    /// Integrate the joints' PD within each physics step instead of holding
+    /// its torque over the step ([`Go2LearningRobot::set_implicit_pd`]).
+    pub implicit_pd: bool,
 }
 
 impl Default for Go2LearningConfig {
@@ -934,6 +993,7 @@ impl Default for Go2LearningConfig {
             random_starts: false,
             seed: 0,
             velocity_limits: false,
+            implicit_pd: false,
         }
     }
 }
@@ -998,6 +1058,7 @@ impl Go2LearningEpisode {
         }
         let mut robot = Go2LearningRobot::new(config.floor_friction, config.floor)?;
         robot.set_velocity_limits(config.velocity_limits)?;
+        robot.set_implicit_pd(config.implicit_pd)?;
         Ok(Self {
             robot,
             gaps: config.gaps(),
@@ -1810,6 +1871,59 @@ mod tests {
         assert!(held[2] < free[2] - 2.0, "{held:?} {free:?}");
         // The default leaves the walk as it was.
         assert_eq!(fastest(false), free);
+    }
+
+    #[test]
+    fn the_implicit_pd_stands_and_swings_within_the_motors() {
+        let episode = |velocity_limits: bool, implicit_pd: bool| {
+            let mut episode = Go2LearningEpisode::new(Go2LearningConfig {
+                velocity_limits,
+                implicit_pd,
+                ..Go2LearningConfig::default()
+            })
+            .unwrap();
+            episode.reset();
+            episode
+        };
+        // Standing on the default pose, the implicit PD holds the robot up
+        // as the held one does.
+        let height = |implicit_pd: bool| {
+            let mut episode = episode(false, implicit_pd);
+            for _ in 0..100 {
+                let step = episode.step([0.0; 12]);
+                assert!(!step.terminated && step.reward.is_finite());
+            }
+            episode.robot().base_pose_z_up().0.z
+        };
+        let (held, implicit) = (height(false), height(true));
+        assert!((held - implicit).abs() < 0.01, "{held} {implicit}");
+
+        // Swinging every joint as hard as the actions allow, the torques stay
+        // within the effort limits and the curve still slows the calves.
+        let fastest = |velocity_limits: bool| {
+            let mut episode = episode(velocity_limits, true);
+            let limits = episode.robot().sim.quadruped().effort_limits().to_vec();
+            let actuated = episode.robot().actuated;
+            let mut fastest = [0.0_f64; 3];
+            for step in 0..60 {
+                let sign = if (step / 3) % 2 == 0 { 1.0 } else { -1.0 };
+                let outcome = episode.step([sign; 12]);
+                assert!(outcome.reward.is_finite(), "step {step}");
+                for (index, (_, velocity)) in episode.robot().joint_states().iter().enumerate() {
+                    fastest[index % 3] = fastest[index % 3].max(velocity.abs());
+                }
+                let torques = episode.robot().actuator_torques_nm();
+                for (torque, joint) in torques.iter().zip(actuated) {
+                    let limit = limits[joint];
+                    assert!(torque.abs() <= limit * (1.0 + 1e-9), "{torque} {limit}");
+                }
+            }
+            fastest
+        };
+        let free = fastest(false);
+        let held = fastest(true);
+        assert!(free[2] > VELOCITY_LIMIT_RAD_S[2], "{free:?}");
+        assert!(held[2] < free[2] - 2.0, "{held:?} {free:?}");
     }
 
     #[test]

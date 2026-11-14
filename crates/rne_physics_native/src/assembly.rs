@@ -308,6 +308,7 @@ impl Assembly {
                 target_positions: vec![0.0; actuated],
                 target_velocities: vec![0.0; actuated],
                 effort_limits: vec![f64::INFINITY; actuated],
+                torque_bounds: Vec::new(),
             },
             tau: vec![0.0; nv],
         };
