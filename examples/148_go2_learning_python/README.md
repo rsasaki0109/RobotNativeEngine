@@ -423,6 +423,32 @@ The MuJoCo workflow (run 43557248261) walked these policies from the same
   produce, or one that leans on something RNE's plant allows and MuJoCo's
   does not, is not established.
 
+#### The fast walks overdrive the calf motors
+
+`trace_limits.py` sums a traced walk's joint speeds and PD torques against
+the URDF's limits. Both simulators clamp torque to the effort limit, and
+neither enforces the velocity limit. The retrained policies' traced
+episodes (workflow run 43560671958):
+
+| Walk | Base speed | Calf speed: 95th percentile, peak (limit 15.7 rad/s) | Calf samples over the limit | Thigh torque at its limit |
+|---|---|---|---|---|
+| Scan 2026, RNE | 3.65 m/s | 21.4, 28.8 rad/s | 17% | 6% |
+| Scan 2026, MuJoCo | 3.41 m/s | 21.6, 26.4 rad/s | 20% | 6% |
+| Scan 2027, RNE | 3.54 m/s | 21.3, 30.8 rad/s | 20% | 7% |
+| Scan 2027, MuJoCo | 3.28 m/s | 21.4, 29.2 rad/s | 19% | 6% |
+| Blind 2026, RNE | 1.86 m/s | 17.1, 27.7 rad/s | 7% | 1% |
+| Blind 2026, MuJoCo | 2.58 m/s | 18.5, 26.1 rad/s | 10% | 1% |
+
+- **The calves turn up to twice as fast as their motors allow.** The
+  URDF gives the calf 15.7 rad/s; the scan walks exceed it in about a
+  fifth of the samples and peak near 30 rad/s. Hips and thighs stay under
+  their 30.1 rad/s.
+- **Both simulators allow it.** The numbers agree between RNE and MuJoCo,
+  so this is not what separates them. It is a limit the task's plant
+  lacks: a real Go2 could not walk these gaits as modeled.
+- **Torque is rarely the constraint.** The thighs sit at their effort
+  limit in 6–7% of the samples, the other joints almost never.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
