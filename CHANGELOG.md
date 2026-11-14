@@ -6,6 +6,20 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Fixed
 
+- `rne_locomotion`'s spheres no longer hit the air above the rim of a
+  steep terrain face. A foot or body sphere touched the terrain through
+  the tangent plane below its center, taken as endless: over a wall that
+  drops 30 cm across one 5 cm cell, that plane rises past the rim, so a
+  sphere 20 cm above the floor was reported 3–8 cm from the terrain and
+  pushed back level. Example 148's gap walks ran into it: a Go2 bounding
+  over a gap at 2 m/s was stopped dead by its head, where MuJoCo carries
+  the same walk across. Now the plane is used only where the foot of the
+  sphere's perpendicular onto it lies on the terrain. Elsewhere the gap is
+  the distance to the nearest point of the terrain's triangles. On gentle
+  relief and flat floors the contacts are bit-identical to before. One
+  limit remains: a sphere still touches the terrain only through the plane
+  below its center.
+
 - Report Rapier contact forces as the forces applied. Rapier 0.22 counted
   a warm-started contact's carried-in impulse as part of the step's total, so
   `ContactEvent::impulse`, `ContactPointSample::normal_force_n` and Rapier's
@@ -545,6 +559,13 @@ All notable changes to Robot Native Engine are documented in this file.
   `rne_nav`. Historical `0.1.0`/`0.2.0` fixtures remain unchanged and readable.
 
 ### Added
+
+- Example 148's `walk_policy.py` walks an exported policy in RNE from
+  example 147's held-out evaluation starts and compares it episode by
+  episode with MuJoCo's walk of the same policy. `Go2LearningEpisode::set_start`
+  and `Go2LearningBatch::set_start` start episodes at a given point; the
+  binding gains `set_starts` and `evaluation_starts`. The MuJoCo workflow
+  runs the comparison.
 
 - The gap depth curriculum can recycle: with `DepthCurriculum::recycle`
   (`set_depth_curriculum(recycle=True)`, `train_ppo.py --recycle-levels`),

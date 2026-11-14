@@ -12,8 +12,8 @@
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use rne_locomotion::go2_learning::{
-    go2_learning_task_spec, DepthCurriculum, Floor, Gaps, Go2LearningBatch, Go2LearningBatchStep,
-    Go2LearningConfig, Relief, EPISODE_STEPS,
+    evaluation_starts, go2_learning_task_spec, DepthCurriculum, Floor, Gaps, Go2LearningBatch,
+    Go2LearningBatchStep, Go2LearningConfig, Relief, EPISODE_STEPS,
 };
 
 /// Result of a [`PyGo2LearningBatch`] reset or step, in environment order.
@@ -205,6 +205,16 @@ impl PyGo2LearningBatch {
         EPISODE_STEPS
     }
 
+    /// Environment `index`'s ground contact so far, by link name: the
+    /// normal impulse through the link (N·s) and the physics steps it
+    /// carried any, summed since the batch was built (evaluation only).
+    fn contact_load(&self, index: usize) -> PyResult<Vec<(String, f64, usize)>> {
+        if index >= self.inner.num_envs() {
+            return Err(PyValueError::new_err("no such environment"));
+        }
+        Ok(self.inner.episode(index).robot().contact_load())
+    }
+
     /// Each environment's base position (x, y, z) in meters, Z-up
     /// (evaluation only).
     fn base_positions(&self) -> Vec<[f64; 3]> {
@@ -277,6 +287,30 @@ impl PyGo2LearningBatch {
                 }),
             )
             .map_err(|error| PyValueError::new_err(format!("curriculum: {error}")))
+    }
+
+    /// Starts each environment's next episodes at its (x, y) in `starts`,
+    /// in meters (`None`: as configured), one per environment, whatever
+    /// its level.
+    fn set_starts(&mut self, starts: Vec<Option<[f64; 2]>>) -> PyResult<()> {
+        if starts.len() != self.inner.num_envs() {
+            return Err(PyValueError::new_err(format!(
+                "expected {} starts, got {}",
+                self.inner.num_envs(),
+                starts.len()
+            )));
+        }
+        for (index, start) in starts.into_iter().enumerate() {
+            self.inner.set_start(index, start);
+        }
+        Ok(())
+    }
+
+    /// Example 147's first `count` held-out evaluation starts on this
+    /// floor, clear of its gaps: the points `mujoco_go2_learning.py
+    /// evaluate --starts` walks from.
+    fn evaluation_starts(&self, count: usize) -> Vec<[f64; 2]> {
+        evaluation_starts(count, &self.config.gaps())
     }
 
     /// Each gap depth level's depth, in meters, shallowest first (one entry
@@ -377,6 +411,8 @@ mod tests {
         .unwrap();
         let gaps = batch.gap_intervals();
         assert!(gaps.len() > 5);
+        assert!(batch.contact_load(0).unwrap().len() > 4);
+        assert!(batch.contact_load(1).is_err());
         let feet = batch.foot_positions().unwrap();
         assert_eq!(feet.len(), 1);
         assert_eq!(feet[0].len(), 4);
@@ -439,6 +475,25 @@ mod tests {
         batch.set_levels(vec![Some(3), None]).unwrap();
         assert!(batch.set_levels(vec![Some(4), None]).is_err());
         assert!(batch.set_levels(vec![Some(0)]).is_err());
+        let starts = batch.evaluation_starts(2);
+        assert_eq!(starts.len(), 2);
+        batch
+            .set_starts(starts.iter().copied().map(Some).collect())
+            .unwrap();
+        assert!(batch.set_starts(vec![None]).is_err());
+        batch.reset();
+        // Settling shifts the base a little along x.
+        for (start, position) in starts.iter().zip(batch.base_positions()) {
+            assert!(
+                (start[0] - position[0]).abs() < 0.2,
+                "{start:?} {position:?}"
+            );
+            assert!(
+                (start[1] - position[1]).abs() < 0.02,
+                "{start:?} {position:?}"
+            );
+        }
+        batch.set_starts(vec![None, None]).unwrap();
         batch.set_depth_curriculum(Some(2), true).unwrap();
         assert_eq!(batch.levels(), vec![Some(3), Some(0)]);
         batch.set_depth_curriculum(None, false).unwrap();

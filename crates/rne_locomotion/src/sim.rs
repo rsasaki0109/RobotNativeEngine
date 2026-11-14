@@ -1,6 +1,8 @@
 //! Hard-contact quadruped simulation over a height-field terrain.
 
-use crate::quadruped::{terrain_surface, BaseState, LocomotionError, Quadruped};
+use crate::quadruped::{
+    sphere_terrain_gap, terrain_surface, BaseState, LocomotionError, Quadruped,
+};
 use rne_dynamics::{
     contact_frame, contact_step_with_kinematics, ContactOutcome, ContactPoint, ContactStepConfig,
     JointPdControl,
@@ -491,8 +493,7 @@ impl QuadrupedTerrainSim {
             {
                 continue;
             }
-            let (height, normal) = terrain_surface(&self.terrain, center.x, center.y)?;
-            let gap = (center.z - height) * normal.z - sphere.radius_m;
+            let (gap, normal) = sphere_terrain_gap(&self.terrain, center, sphere.radius_m)?;
             if gap > BODY_CONTACT_MARGIN_M {
                 continue;
             }

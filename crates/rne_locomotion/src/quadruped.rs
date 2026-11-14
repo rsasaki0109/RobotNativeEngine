@@ -439,14 +439,13 @@ impl Quadruped {
             .map(|leg| {
                 let foot = kinematics.transforms()[leg.foot_index];
                 let center = foot.translation + foot.rotation * self.foot_center_local_m;
-                let (height, normal) = terrain_surface(terrain, center.x, center.y)?;
-                let clearance = (center.z - height) * normal.z;
+                let (gap_m, normal) = sphere_terrain_gap(terrain, center, self.foot_radius_m)?;
                 let point = center - normal * self.foot_radius_m;
                 Ok(ContactPoint {
                     link: leg.foot_link,
                     point_local_m: foot.rotation.conjugate() * (point - foot.translation),
                     normal_world: normal,
-                    gap_m: clearance - self.foot_radius_m,
+                    gap_m,
                     friction_coefficient,
                 })
             })
@@ -464,6 +463,162 @@ pub(crate) fn terrain_surface(
     let surface = height_field_surface(terrain, world.x, world.z)
         .ok_or(LocomotionError::OffTerrain { x_m, y_m })?;
     Ok((surface.height_m, locomotion_from_world(surface.normal)))
+}
+
+/// How far the foot of a sphere's perpendicular onto the tangent plane below
+/// it may lie from the terrain, in meters, for that plane to stand for the
+/// terrain.
+const TANGENT_PLANE_TOLERANCE_M: f64 = 1e-3;
+/// How far beyond a sphere's radius [`sphere_terrain_gap`] looks for the
+/// terrain when the tangent plane below the sphere does not stand for it,
+/// in meters. A sphere farther than this from the terrain reports this gap.
+const SPHERE_TERRAIN_REACH_M: f64 = 0.1;
+
+/// The gap between a sphere at locomotion-frame `center_m` and the Y-up
+/// `terrain`, in meters (negative when it penetrates), and the unit normal
+/// of the contact, from the terrain toward the sphere.
+///
+/// Below the sphere's center the terrain has a tangent plane. Where the
+/// foot of the center's perpendicular onto that plane lies on the terrain
+/// (within [`TANGENT_PLANE_TOLERANCE_M`]), the plane stands for the
+/// terrain: the gap is the distance to it, less the radius, and the normal
+/// is the plane's. That holds on gentle relief and for a sphere resting on
+/// a steep face.
+///
+/// Above the rim of a steep face it does not: the plane runs on past the
+/// rim into the air, and would stop a sphere that is nowhere near the
+/// terrain. There the gap is the distance to the nearest point of the
+/// terrain's triangles (each grid cell split along one diagonal) within
+/// [`SPHERE_TERRAIN_REACH_M`] of the sphere's surface, and the normal
+/// points from that point to the center.
+///
+/// One limit remains: a sphere touches the terrain only through the plane
+/// below its center, so one whose center is over level ground does not
+/// feel a steep face beside it until its center is over that face.
+pub(crate) fn sphere_terrain_gap(
+    terrain: &ColliderShape,
+    center_m: Vec3,
+    radius_m: f64,
+) -> Result<(f64, Vec3), LocomotionError> {
+    let (height, normal) = terrain_surface(terrain, center_m.x, center_m.y)?;
+    let distance = (center_m.z - height) * normal.z;
+    let plane = (distance - radius_m, normal);
+    if distance <= 0.0 {
+        // The center is under the terrain: push it out along the plane.
+        return Ok(plane);
+    }
+    let foot = center_m - normal * distance;
+    match terrain_surface(terrain, foot.x, foot.y) {
+        Ok((below, _)) if (below - foot.z).abs() <= TANGENT_PLANE_TOLERANCE_M => Ok(plane),
+        _ => Ok(nearest_terrain_point(terrain, center_m, radius_m).unwrap_or(plane)),
+    }
+}
+
+/// [`sphere_terrain_gap`] from the terrain's triangles; `None` for a
+/// terrain that is not a valid height field.
+fn nearest_terrain_point(
+    terrain: &ColliderShape,
+    center_m: Vec3,
+    radius_m: f64,
+) -> Option<(f64, Vec3)> {
+    let ColliderShape::HeightField {
+        nrows,
+        ncols,
+        heights_m,
+        scale,
+    } = terrain
+    else {
+        return None;
+    };
+    let (rows, columns) = (*nrows as usize, *ncols as usize);
+    if rows < 2 || columns < 2 || heights_m.len() != rows * columns {
+        return None;
+    }
+    let dx = scale.x / (columns - 1) as f64;
+    let dz = scale.z / (rows - 1) as f64;
+    let reach = radius_m + SPHERE_TERRAIN_REACH_M;
+    // Grid coordinates of the center: column along x, row along Y-up z,
+    // which is locomotion -y.
+    let u = (center_m.x + 0.5 * scale.x) / dx;
+    let v = (-center_m.y + 0.5 * scale.z) / dz;
+    let cells = |along: f64, step: f64, count: usize| {
+        let first = ((along - reach / step).floor().max(0.0) as usize).min(count - 2);
+        let last = ((along + reach / step).floor().max(0.0) as usize).min(count - 2);
+        first..=last
+    };
+    let vertex = |row: usize, column: usize| {
+        locomotion_from_world(Vec3::new(
+            -0.5 * scale.x + column as f64 * dx,
+            heights_m[row * columns + column] * scale.y,
+            -0.5 * scale.z + row as f64 * dz,
+        ))
+    };
+    let mut nearest: Option<(f64, Vec3)> = None;
+    for row in cells(v, dz, rows) {
+        for column in cells(u, dx, columns) {
+            let corners = [
+                vertex(row, column),
+                vertex(row, column + 1),
+                vertex(row + 1, column),
+                vertex(row + 1, column + 1),
+            ];
+            for triangle in [[0, 1, 3], [0, 3, 2]] {
+                let point = closest_point_on_triangle(
+                    center_m,
+                    corners[triangle[0]],
+                    corners[triangle[1]],
+                    corners[triangle[2]],
+                );
+                let distance = (center_m - point).length();
+                if nearest.is_none_or(|(best, _)| distance < best) {
+                    nearest = Some((distance, point));
+                }
+            }
+        }
+    }
+    let up = Vec3::new(0.0, 0.0, 1.0);
+    Some(match nearest {
+        Some((distance, point)) if distance <= reach && distance > 1e-9 => {
+            (distance - radius_m, (center_m - point) / distance)
+        }
+        // On the terrain exactly, or out of reach of it.
+        Some((distance, _)) if distance <= reach => (-radius_m, up),
+        _ => (SPHERE_TERRAIN_REACH_M, up),
+    })
+}
+
+/// The point of triangle `a b c` nearest `p` (Ericson, Real-Time Collision
+/// Detection, 5.1.5).
+fn closest_point_on_triangle(p: Vec3, a: Vec3, b: Vec3, c: Vec3) -> Vec3 {
+    let (ab, ac, ap) = (b - a, c - a, p - a);
+    let (d1, d2) = (ab.dot(ap), ac.dot(ap));
+    if d1 <= 0.0 && d2 <= 0.0 {
+        return a;
+    }
+    let bp = p - b;
+    let (d3, d4) = (ab.dot(bp), ac.dot(bp));
+    if d3 >= 0.0 && d4 <= d3 {
+        return b;
+    }
+    let vc = d1 * d4 - d3 * d2;
+    if vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0 {
+        return a + ab * (d1 / (d1 - d3));
+    }
+    let cp = p - c;
+    let (d5, d6) = (ab.dot(cp), ac.dot(cp));
+    if d6 >= 0.0 && d5 <= d6 {
+        return c;
+    }
+    let vb = d5 * d2 - d1 * d6;
+    if vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0 {
+        return a + ac * (d2 / (d2 - d6));
+    }
+    let va = d3 * d6 - d5 * d4;
+    if va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0 {
+        return b + (c - b) * ((d4 - d3) / ((d4 - d3) + (d5 - d6)));
+    }
+    let denominator = 1.0 / (va + vb + vc);
+    a + ab * (vb * denominator) + ac * (vc * denominator)
 }
 
 /// Pose and velocity of the floating base in the Z-up locomotion frame.

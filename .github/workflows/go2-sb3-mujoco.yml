@@ -7,7 +7,10 @@ name: Go2 SB3 PPO in MuJoCo
 # 25-35 cm wide, 30 cm deep gaps): as MuJoCo is configured, and with five
 # physics steps to each of RNE's and stiffer contacts (a 4 ms time constant
 # against the default 20 ms), which closed most of the transfer gap of
-# example 147's own walks. Light (minutes), so it runs on demand
+# example 147's own walks. RNE then walks the same policy from the same
+# starts, and the report compares the walks episode by episode.
+# The policies were trained before rne_locomotion's spheres stopped hitting
+# the air above a gap's rim; RNE walks them here with that fixed. Light (minutes), so it runs on demand
 # and when this workflow changes.
 on:
   workflow_dispatch:
@@ -98,6 +101,47 @@ jobs:
               "fitness", "forward_m", "falls", "gaps_crossed", "episodes_crossing_a_gap")})
           PY
           done
+
+      - name: Walk in RNE from the same starts
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 numpy==2.1.3
+          .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
+          .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
+            --starts 64 --against default="$OUT/mujoco-default.json" \
+            --against stiff="$OUT/mujoco-stiff.json" > "$OUT/rne.json"
+          python - "$OUT/rne.json" <<'PY'
+          import json, sys
+          report = json.load(open(sys.argv[1]))
+          print("rne", report["outcome"])
+          for name, against in report["against"].items():
+              print(name, {key: value for key, value in against.items() if key != "episodes"})
+          PY
+
+      - name: Trace an episode the simulators disagree on
+        run: |
+          set -euo pipefail
+          # The first episode MuJoCo (stiff) crosses a gap in and RNE does
+          # not, or else the one where they differ most.
+          episode=$(python - "$OUT/rne.json" <<'PY'
+          import json, sys
+          pairs = json.load(open(sys.argv[1]))["against"]["stiff"]["episodes"]
+          gap = [p["mujoco"]["gaps_crossed"] - p["rne"]["gaps_crossed"] for p in pairs]
+          clear = [i for i, p in enumerate(pairs)
+                   if p["rne"]["gaps_crossed"] == 0 and p["mujoco"]["gaps_crossed"] > 0]
+          print(clear[0] if clear else max(range(len(gap)), key=lambda i: gap[i]))
+          PY
+          )
+          echo "episode $episode"
+          .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
+            --starts 1 --trace "$episode" "$OUT/trace-rne.json" > /dev/null
+          .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
+            evaluate policy/policy.json --terrain "$OUT/terrain.json" --starts 64 \
+            --substeps 5 --solref 0.004 --trace "$OUT/trace-mujoco.json" \
+            --trace-episode "$episode" > /dev/null
+          # The terrain file is large and reproducible.
+          rm "$OUT/terrain.json"
 
       - name: Upload results
         if: always()
