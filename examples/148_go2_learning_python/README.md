@@ -499,6 +499,35 @@ applies the same curve each physics step. The results above this section
 used the weaker rule, which gave no torque past the limit and nothing
 else.
 
+Trained with the curve (workflow run 43581407624) and walked in both
+simulators from the same 64 starts on 30 cm gaps (run 43594323954):
+
+| Policy, seed | RNE: crossed, falls, distance | MuJoCo stiff: crossed, falls | Calf peak speed in the traced walk: RNE, MuJoCo |
+|---|---|---|---|
+| Scan 2026 | 627, 0, 16.76 m | 276, 2 | 56.8, 19.9 rad/s |
+| Scan 2027 | 601, 0, 16.05 m | 239, 28 | 52.9, 20.6 rad/s |
+| Scan 2028 | 582, 0, 15.61 m | 510, 0 | 57.2, 20.2 rad/s |
+| Blind 2026 | 336, 6, 9.77 m | 171, 2 | 52.5, 20.8 rad/s |
+| Blind 2027 | 330, 5, 9.90 m | 263, 10 | 42.7, 19.0 rad/s |
+| Blind 2028 | 248, 3, 7.90 m | 74, 26 | 46.4, 17.5 rad/s |
+
+- **The curve holds in MuJoCo and not in RNE.** The same policies under
+  the same curve turn the calves at 17–21 rad/s at most in MuJoCo, over
+  the 15.7 rad/s limit in 1–7% of samples. In RNE they reach 43–57 rad/s,
+  faster than with no limit at all, and the walks are as fast as before
+  (16–17 m in 5 s).
+- **Likely cause: the curve is applied explicitly at RNE's 5 ms step.**
+  Past the limit the curve acts as a damper of 45.43 / 15.7 = 2.9 N·m·s/rad
+  on the calf, whose inertia about the knee is about 0.005 kg·m². An
+  explicit damper is stable only while damping × step / inertia stays
+  under 2; here it is 2.9, so the torque overshoots and the joint
+  chatters between the curve's ends. MuJoCo's stiff setting steps at 1 ms,
+  where the same number is 0.6. This is arithmetic from the URDF, not yet
+  a measurement of the chatter itself.
+- **So these RNE walks are not a result about the motors.** The task
+  needs the curve applied stably in RNE, by solving it together with the
+  step or by finer steps, before training with it means anything.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
