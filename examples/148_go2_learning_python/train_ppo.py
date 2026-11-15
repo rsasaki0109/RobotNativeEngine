@@ -208,6 +208,9 @@ def main():
                              "of holding its torque over the step")
     parser.add_argument("--armature", type=float, default=0.0, metavar="KG_M2",
                         help="give every joint this rotor inertia (the Go2's is 0.01)")
+    parser.add_argument("--substeps", type=int, default=1,
+                        help="split each 5 ms physics step into this many: the PD and the "
+                             "contacts are then computed that much more often")
     parser.add_argument("--domain-randomization", action="store_true",
                         help="train under disturbance: floor friction 0.5-1.25 and motor "
                              "strength 0.9-1.1 per episode, action noise 0.1, and a push of "
@@ -286,6 +289,8 @@ def train(args, parser):
         task["implicit_pd"] = True
     if args.armature:
         task["armature"] = args.armature
+    if args.substeps != 1:
+        task["substeps"] = args.substeps
     levels = args.depth_levels > 1
     if levels:
         if args.floor != "gaps" or args.curriculum:
@@ -369,6 +374,7 @@ def train(args, parser):
         "velocity_limits": args.velocity_limits,
         "implicit_pd": args.implicit_pd,
         "armature_kg_m2": args.armature,
+        "physics_substeps": args.substeps,
         "randomization": disturbances or None,
         "normalize": not args.no_normalize,
         "hyperparameters": {
@@ -389,7 +395,8 @@ def train(args, parser):
                             "random_starts": args.floor != "flat",
                             "velocity_limits": args.velocity_limits,
                             "implicit_pd": args.implicit_pd,
-                            "armature_kg_m2": args.armature})
+                            "armature_kg_m2": args.armature,
+                            "physics_substeps": args.substeps})
     assert exported["policy"]["inputs"] == raw.observation_space.shape[0]
     with open(os.path.join(args.out, "policy.json"), "w") as file:
         json.dump(exported, file)

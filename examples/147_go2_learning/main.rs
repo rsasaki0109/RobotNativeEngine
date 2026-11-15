@@ -239,6 +239,17 @@ fn report_tag(plant: go2::Plant, task: go2::Task, learner: &str) -> String {
     tag
 }
 
+/// How a replay drives RNE's joints: the implicit PD, the torque-speed
+/// curve, every joint's rotor inertia (kg·m², as the trace's simulator had)
+/// and the steps each 5 ms physics step is split into.
+#[derive(Clone, Copy)]
+struct ReplayMotors {
+    implicit_pd: bool,
+    velocity_limits: bool,
+    armature_kg_m2: f64,
+    substeps: usize,
+}
+
 /// `A,B` in meters: a point, or a range.
 /// Steps RNE from the states of another simulator's trace (a
 /// `mujoco_go2_learning.py evaluate --trace` file): from every period's state
@@ -251,9 +262,14 @@ fn replay_trace(
     path: &PathBuf,
     from: Option<usize>,
     periods: usize,
-    implicit_pd: bool,
-    velocity_limits: bool,
+    motors: ReplayMotors,
 ) -> Result<()> {
+    let ReplayMotors {
+        implicit_pd,
+        velocity_limits,
+        armature_kg_m2,
+        substeps,
+    } = motors;
     use rne_locomotion::go2_learning::{Floor, Go2LearningRobot};
     let trace: Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
     let mut states: Vec<Value> = trace["periods"]
@@ -269,8 +285,11 @@ fn replay_trace(
         None => Floor::Flat,
     };
     let mut robot = Go2LearningRobot::new(plant.floor_friction, floor)?;
+    // The armature first: the velocity limits' braking cap reads it.
+    robot.set_joint_armature(armature_kg_m2)?;
     robot.set_velocity_limits(velocity_limits)?;
     robot.set_implicit_pd(implicit_pd)?;
+    robot.set_physics_substeps(substeps)?;
     let vec3 = |value: &Value| -> Result<rne_math::Vec3> {
         let v: Vec<f64> = serde_json::from_value(value.clone())?;
         Ok(rne_math::Vec3::new(v[0], v[1], v[2]))
@@ -343,6 +362,7 @@ fn replay_trace(
         "{}",
         json!({"engine": "rne", "trace": path, "trace_engine": trace["engine"],
                "implicit_pd": implicit_pd, "velocity_limits": velocity_limits,
+               "armature_kg_m2": armature_kg_m2, "substeps": substeps,
                "from": from, "periods": report})
     );
     Ok(())
@@ -438,6 +458,7 @@ fn main() -> Result<()> {
     let mut replay = None;
     let (mut replay_from, mut replay_periods) = (None, 1);
     let (mut implicit_pd, mut velocity_limits) = (false, false);
+    let (mut armature_kg_m2, mut substeps) = (0.0, 1);
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
@@ -468,6 +489,8 @@ fn main() -> Result<()> {
             "--replay-periods" => replay_periods = value()?.parse()?,
             "--implicit-pd" => implicit_pd = true,
             "--velocity-limits" => velocity_limits = true,
+            "--armature" => armature_kg_m2 = value()?.parse()?,
+            "--substeps" => substeps = value()?.parse()?,
             "--generations" => config.generations = value()?.parse()?,
             "--pairs" => config.pairs = value()?.parse()?,
             "--sigma" => config.sigma = value()?.parse()?,
@@ -498,8 +521,12 @@ fn main() -> Result<()> {
             &path,
             replay_from,
             replay_periods,
-            implicit_pd,
-            velocity_limits,
+            ReplayMotors {
+                implicit_pd,
+                velocity_limits,
+                armature_kg_m2,
+                substeps,
+            },
         );
     }
     if let Some(seconds) = stand {

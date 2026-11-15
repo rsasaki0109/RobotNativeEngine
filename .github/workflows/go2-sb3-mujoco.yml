@@ -14,6 +14,7 @@ name: Go2 SB3 PPO in MuJoCo
 # velocity limits by a torque-speed curve, which MuJoCo then applies too.
 # The default run also integrated the joints' PD within each physics step
 # (--implicit-pd); run 43596078138 held the PD torque over each 5 ms step.
+# RNE also walks each policy at MuJoCo's 1 ms step (--substeps 5).
 # Run 43581407624 trained with that curve chattering at RNE's 5 ms step.
 # Run 43563466782 trained with motors that only gave no torque past the
 # limit, run 43541974300 without limits, and run 43374349191 before the
@@ -129,7 +130,12 @@ jobs:
           .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
             --starts 64 --implicit-pd --against stiff="$OUT/mujoco-stiff.json" \
             --against held="$OUT/mujoco-held.json" > "$OUT/rne-implicit.json"
-          for report in rne rne-implicit; do
+          # The same policy in RNE at MuJoCo's 1 ms step: each 5 ms step
+          # split in five, the PD and the contacts computed that often.
+          .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
+            --starts 64 --substeps 5 --against stiff="$OUT/mujoco-stiff.json" \
+            > "$OUT/rne-substeps-5.json"
+          for report in rne rne-implicit rne-substeps-5; do
             python - "$OUT/$report.json" "$report" <<'PY'
           import json, sys
           report = json.load(open(sys.argv[1]))

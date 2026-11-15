@@ -298,6 +298,20 @@ impl QuadrupedTerrainSim {
         Ok(())
     }
 
+    /// Sets the integration step, in seconds.
+    ///
+    /// # Errors
+    ///
+    /// [`LocomotionError::InvalidInput`] unless `step_time_s` is finite and
+    /// positive.
+    pub fn set_step_time_s(&mut self, step_time_s: f64) -> Result<(), LocomotionError> {
+        if !(step_time_s.is_finite() && step_time_s > 0.0) {
+            return Err(LocomotionError::InvalidInput("step time"));
+        }
+        self.config.step_time_s = step_time_s;
+        Ok(())
+    }
+
     /// Gives every actuated joint the rotor inertia `armature` (kg·m²):
     /// see [`Quadruped::set_joint_armature`]. The simulated quadruped is
     /// copied if it is shared.
