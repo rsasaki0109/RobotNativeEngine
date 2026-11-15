@@ -157,10 +157,11 @@ def add_floor(spec, floor_friction, terrain):
 
 
 def build_model(floor_friction, cone, impratio, terrain=None, substeps=1, solref_s=None,
-                armature=0.0):
+                armature=0.0, dampratio=1.0):
     """The Go2 on its floor. `substeps` splits each physics step (a
     diagnostic: the episode is the same in simulated time), `solref_s`
-    sets every contact's time constant (MuJoCo's default is 0.02 s), and
+    sets every contact's time constant (MuJoCo's default is 0.02 s) and
+    `dampratio` its damping ratio (MuJoCo's default is 1), and
     `armature` gives every joint that rotor inertia (kg·m²), as RNE's
     `Go2LearningConfig::armature_kg_m2`."""
     spec = mujoco.MjSpec.from_string(urdf_without_visuals())
@@ -178,7 +179,7 @@ def build_model(floor_friction, cone, impratio, terrain=None, substeps=1, solref
     add_floor(spec, floor_friction, terrain)
     if solref_s is not None:
         for geom in spec.geoms:
-            geom.solref = [solref_s, 1.0]
+            geom.solref = [solref_s, dampratio]
     for name in JOINTS:
         actuator = spec.add_actuator(name=name, target=name, trntype=mujoco.mjtTrn.mjTRN_JOINT)
         actuator.set_to_position(kp=KP_NM_PER_RAD, kv=KD_NM_S_PER_RAD)
@@ -198,7 +199,7 @@ class Go2:
         self.substeps = plant.get("substeps", 1)
         self.model = build_model(plant["floor_friction"], plant["cone"], plant["impratio"],
                                  self.terrain, self.substeps, plant.get("solref_s"),
-                                 plant.get("armature", 0.0))
+                                 plant.get("armature", 0.0), plant.get("dampratio", 1.0))
         self.data = mujoco.MjData(self.model)
         ids = [self.model.joint(name).id for name in JOINTS]
         self.qpos = np.array([self.model.jnt_qposadr[i] for i in ids])
@@ -1047,6 +1048,8 @@ def main():
                              help="physics steps per step of RNE's")
         command.add_argument("--solref", type=float, default=None,
                              help="contact time constant, s")
+        command.add_argument("--dampratio", type=float, default=1.0,
+                             help="contact damping ratio, with --solref")
         command.add_argument("--armature", type=float, default=0.0,
                              help="every joint's rotor inertia, kg·m²")
         command.add_argument("--velocity-limits", action="store_true",
@@ -1060,6 +1063,8 @@ def main():
                                          help="physics steps per step of RNE's (diagnostic)")
     sub.choices["evaluate"].add_argument("--solref", type=float, default=None,
                                          help="contact time constant, s (diagnostic)")
+    sub.choices["evaluate"].add_argument("--dampratio", type=float, default=1.0,
+                                         help="contact damping ratio, with --solref (diagnostic)")
     sub.choices["evaluate"].add_argument(
         "--velocity-limits", action="store_true",
         help="make the motors hold the joints' velocity limits (also on when the "
@@ -1088,6 +1093,7 @@ def main():
                  "impratio": arguments.impratio,
                  "terrain": None if arguments.terrain is None else str(arguments.terrain),
                  "substeps": arguments.substeps, "solref_s": arguments.solref,
+                 "dampratio": arguments.dampratio,
                  "armature": arguments.armature, "velocity_limits": arguments.velocity_limits}
         arguments.output.write_text(json.dumps(replay(arguments.trace, plant)) + "\n")
         print(f"wrote {arguments.output}")
@@ -1153,6 +1159,8 @@ def main():
             plant["substeps"] = arguments.substeps
         if arguments.solref is not None:
             plant["solref_s"] = arguments.solref
+        if arguments.dampratio != 1.0:
+            plant["dampratio"] = arguments.dampratio
         policy, task = load_policy(arguments.policy, arguments.generation)
         trained = json.loads(Path(arguments.policy).read_text()).get("task", {})
         if trained.get("armature_kg_m2"):

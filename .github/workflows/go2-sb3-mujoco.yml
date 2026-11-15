@@ -97,12 +97,16 @@ jobs:
           # And the stiff setting with the torques set once per step of
           # RNE's and held, as RNE's plant held them before --implicit-pd.
           # (Stiffer contacts still, 2 and 1 ms, changed nothing: run
-          # 43630116940.)
-          for variant in default stiff held; do
+          # 43630116940.) And the stiff setting with its contacts damped
+          # two and five times critically: at dampratio 1 a head or shin
+          # that strikes the floor leaves it about as fast as it came, where
+          # RNE's contact stops it.
+          for variant in default stiff held damped-2 damped-5; do
             case $variant in
               default) flags=() ;;
               stiff) flags=(--substeps 5 --solref 0.004) ;;
               held) flags=(--substeps 5 --solref 0.004 --hold-torque) ;;
+              damped-*) flags=(--substeps 5 --solref 0.004 --dampratio "${variant#damped-}") ;;
             esac
             "${mujoco[@]}" evaluate policy/policy.json --terrain "$OUT/terrain.json" \
               --starts 64 "${flags[@]}" > "$OUT/mujoco-$variant.json"
@@ -124,7 +128,8 @@ jobs:
           .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
             --starts 64 --against default="$OUT/mujoco-default.json" \
             --against stiff="$OUT/mujoco-stiff.json" \
-            --against held="$OUT/mujoco-held.json" > "$OUT/rne.json"
+            --against held="$OUT/mujoco-held.json" --against damped-2="$OUT/mujoco-damped-2.json" \
+            --against damped-5="$OUT/mujoco-damped-5.json" > "$OUT/rne.json"
           # The same policy in RNE with the PD integrated within each step,
           # whatever it trained with.
           .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
@@ -200,6 +205,9 @@ jobs:
           .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
             replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco.json" --terrain "$OUT/terrain.json" \
             --substeps 5 --solref 0.004 $motors
+          .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
+            replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco-damped-5.json" \
+            --terrain "$OUT/terrain.json" --substeps 5 --solref 0.004 --dampratio 5 $motors
           # How hard each walk drives the actuators, against the URDF's limits.
           python examples/148_go2_learning_python/trace_limits.py \
             "$OUT/trace-rne.json" "$OUT/trace-mujoco.json" | tee "$OUT/limits.json"
