@@ -576,6 +576,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 147's `--replay TRACE.json` steps RNE from the states of a
+  MuJoCo trace with the targets it applied, one control period from each
+  state or open loop from one (`--replay-from`, `--replay-periods`), with
+  `--implicit-pd` and `--velocity-limits`; `Go2LearningRobot::set_state_z_up`
+  sets a state. Example 148's `walk_policy.py --action-noise` and
+  `--friction` walk a policy disturbed. Example 148's README records that
+  RNE follows a MuJoCo fall of a gap policy within 1-2 cm over 0.9 s from
+  MuJoCo's state, and that the policies fall in RNE as often as in MuJoCo
+  under action noise of 0.1 rad: what is left between the simulators is a
+  brittle policy, not either simulator's physics.
+
 - `rne_dynamics::JointPdControl::torque_bounds` holds each actuated joint's
   torque within a lowest and highest value besides its effort limit, so an
   implicit PD can carry a motor's torque-speed curve.

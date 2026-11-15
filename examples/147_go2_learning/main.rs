@@ -240,6 +240,153 @@ fn report_tag(plant: go2::Plant, task: go2::Task, learner: &str) -> String {
 }
 
 /// `A,B` in meters: a point, or a range.
+/// Steps RNE from the states of another simulator's trace (a
+/// `mujoco_go2_learning.py evaluate --trace` file): from every period's state
+/// one control period with the targets the trace applied then, or, with
+/// `from`, `periods` periods in a row from that one state, open loop. Each
+/// period reports RNE's state after it, the trace's, and the links that
+/// touched the ground.
+fn replay_trace(
+    plant: go2::Plant,
+    path: &PathBuf,
+    from: Option<usize>,
+    periods: usize,
+    implicit_pd: bool,
+    velocity_limits: bool,
+) -> Result<()> {
+    use rne_locomotion::go2_learning::{Floor, Go2LearningRobot};
+    let trace: Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+    let mut states: Vec<Value> = trace["periods"]
+        .as_array()
+        .ok_or("the trace has no periods")?
+        .clone();
+    states.push(trace["last"].clone());
+    let floor = match plant.terrain_seed {
+        Some(seed) => Floor::Terrain {
+            seed,
+            relief: plant.relief,
+        },
+        None => Floor::Flat,
+    };
+    let mut robot = Go2LearningRobot::new(plant.floor_friction, floor)?;
+    robot.set_velocity_limits(velocity_limits)?;
+    robot.set_implicit_pd(implicit_pd)?;
+    let vec3 = |value: &Value| -> Result<rne_math::Vec3> {
+        let v: Vec<f64> = serde_json::from_value(value.clone())?;
+        Ok(rne_math::Vec3::new(v[0], v[1], v[2]))
+    };
+    let set = |robot: &mut Go2LearningRobot, state: &Value| -> Result<()> {
+        let q: Vec<f64> = serde_json::from_value(state["quaternion_wxyz"].clone())?;
+        let joints: Vec<f64> = serde_json::from_value(state["joints_rad"].clone())?;
+        let rates: Vec<f64> = serde_json::from_value(state["joint_velocities_rad_s"].clone())?;
+        let joints: [(f64, f64); 12] = std::array::from_fn(|index| (joints[index], rates[index]));
+        robot.set_state_z_up(
+            vec3(&state["position_m"])?,
+            rne_math::Quat::from_xyzw(q[1], q[2], q[3], q[0]),
+            vec3(&state["linear_velocity_m_s"])?,
+            vec3(&state["angular_velocity_rad_s"])?,
+            &joints,
+        )?;
+        Ok(())
+    };
+    let targets = |state: &Value| -> Result<[f64; 12]> {
+        let targets: Vec<f64> = serde_json::from_value(state["targets_rad"].clone())?;
+        Ok(std::array::from_fn(|index| targets[index]))
+    };
+    let mut report = Vec::new();
+    let mut step = |robot: &mut Go2LearningRobot, index: usize| -> Result<()> {
+        let before = robot.contact_load();
+        robot.set_targets_rad(&targets(&states[index])?);
+        robot.step()?;
+        let after = robot.contact_load();
+        let touching: Vec<&str> = after
+            .iter()
+            .zip(&before)
+            .filter(|(after, before)| after.2 > before.2)
+            .map(|(after, _)| after.0.as_str())
+            .collect();
+        let (position, rotation) = robot.base_pose_z_up();
+        let (linear, angular) = robot.base_velocity_z_up();
+        let joints = robot.joint_states();
+        report.push(json!({
+            "period": index,
+            "rne": {
+                "position_m": position.to_array(),
+                "quaternion_wxyz": [rotation.w, rotation.x, rotation.y, rotation.z],
+                "linear_velocity_m_s": linear.to_array(),
+                "angular_velocity_rad_s": angular.to_array(),
+                "joints_rad": joints.iter().map(|joint| joint.0).collect::<Vec<_>>(),
+                "joint_velocities_rad_s": joints.iter().map(|joint| joint.1).collect::<Vec<_>>(),
+                "feet_m": robot.foot_centers_z_up_m()?.iter().map(|foot| foot.to_array())
+                    .collect::<Vec<_>>(),
+                "touching": touching,
+            },
+            "trace": states[index + 1].clone(),
+        }));
+        Ok(())
+    };
+    match from {
+        Some(from) => {
+            set(&mut robot, &states[from])?;
+            for index in from..(from + periods).min(states.len() - 1) {
+                step(&mut robot, index)?;
+            }
+        }
+        None => {
+            for (index, state) in states[..states.len() - 1].iter().enumerate() {
+                set(&mut robot, state)?;
+                step(&mut robot, index)?;
+            }
+        }
+    }
+    println!(
+        "{}",
+        json!({"engine": "rne", "trace": path, "trace_engine": trace["engine"],
+               "implicit_pd": implicit_pd, "velocity_limits": velocity_limits,
+               "from": from, "periods": report})
+    );
+    Ok(())
+}
+
+/// Stands the robot `seconds` after settling, as `--stand`, and prints
+/// its pose.
+fn stand_report(plant: go2::Plant, seconds: f64) -> Result<()> {
+    // Settle as an episode does, then hold the default targets.
+    let mut robot = go2::robot(plant)?;
+    go2::settle(robot.as_mut(), [0.0, 0.0])?;
+    for _ in 0..(seconds / go2::CONTROL_DT_S).round() as usize {
+        robot.step()?;
+    }
+    let ((position, rotation), (velocity, _)) =
+        (robot.base_pose_z_up(), robot.base_velocity_z_up());
+    let up = rotation * rne_math::Vec3::Z;
+    let forward = rotation * rne_math::Vec3::X;
+    let joints = robot.joint_states()?;
+    println!(
+        "{}",
+        json!({"engine": plant.backend.name(), "plant": {
+                   "solver_iterations": plant.solver_iterations,
+                   "inner_passes": plant.inner_passes,
+                   "floor_friction": plant.floor_friction},
+               "seconds_after_settling": seconds,
+               "base_m": position.to_array(), "base_speed_m_s": velocity.length(),
+               "base_quat_wxyz": [rotation.w, rotation.x, rotation.y, rotation.z],
+               "pitch_rad": forward.z.asin(), "roll_rad": (rotation * rne_math::Vec3::Y).z.asin(),
+               "tilt_rad": up.z.clamp(-1.0, 1.0).acos(),
+               "mass_kg": match plant.backend {
+                   go2::Backend::Rapier => Some(go2::rapier_mass_kg(plant)?),
+                   go2::Backend::Native => None,
+                   go2::Backend::Locomotion => Some(
+                       locomotion::LocomotionGo2::new(
+                           plant.floor_friction, plant.terrain_seed, plant.relief)?
+                           .mass_kg(),
+                   ),
+               },
+               "joint_rad": joints.iter().map(|(q, _)| *q).collect::<Vec<_>>()})
+    );
+    Ok(())
+}
+
 fn parse_point(value: &str) -> Result<[f64; 2]> {
     let (x, y) = value.split_once(',').ok_or("a point is X,Y")?;
     Ok([x.parse()?, y.parse()?])
@@ -288,6 +435,9 @@ fn main() -> Result<()> {
     let mut starts = None;
     let mut trace = None;
     let mut trace_start = [0.0, 0.0];
+    let mut replay = None;
+    let (mut replay_from, mut replay_periods) = (None, 1);
+    let (mut implicit_pd, mut velocity_limits) = (false, false);
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
@@ -313,6 +463,11 @@ fn main() -> Result<()> {
             "--starts" => starts = Some(value()?.parse::<usize>()?),
             "--trace" => trace = Some(PathBuf::from(value()?)),
             "--trace-start" => trace_start = parse_point(&value()?)?,
+            "--replay" => replay = Some(PathBuf::from(value()?)),
+            "--replay-from" => replay_from = Some(value()?.parse()?),
+            "--replay-periods" => replay_periods = value()?.parse()?,
+            "--implicit-pd" => implicit_pd = true,
+            "--velocity-limits" => velocity_limits = true,
             "--generations" => config.generations = value()?.parse()?,
             "--pairs" => config.pairs = value()?.parse()?,
             "--sigma" => config.sigma = value()?.parse()?,
@@ -337,41 +492,18 @@ fn main() -> Result<()> {
     if let Some(path) = write_terrain {
         return write_terrain_file(plant, &path);
     }
-    if let Some(seconds) = stand {
-        // Settle as an episode does, then hold the default targets.
-        let mut robot = go2::robot(plant)?;
-        go2::settle(robot.as_mut(), [0.0, 0.0])?;
-        for _ in 0..(seconds / go2::CONTROL_DT_S).round() as usize {
-            robot.step()?;
-        }
-        let ((position, rotation), (velocity, _)) =
-            (robot.base_pose_z_up(), robot.base_velocity_z_up());
-        let up = rotation * rne_math::Vec3::Z;
-        let forward = rotation * rne_math::Vec3::X;
-        let joints = robot.joint_states()?;
-        println!(
-            "{}",
-            json!({"engine": plant.backend.name(), "plant": {
-                       "solver_iterations": plant.solver_iterations,
-                       "inner_passes": plant.inner_passes,
-                       "floor_friction": plant.floor_friction},
-                   "seconds_after_settling": seconds,
-                   "base_m": position.to_array(), "base_speed_m_s": velocity.length(),
-                   "base_quat_wxyz": [rotation.w, rotation.x, rotation.y, rotation.z],
-                   "pitch_rad": forward.z.asin(), "roll_rad": (rotation * rne_math::Vec3::Y).z.asin(),
-                   "tilt_rad": up.z.clamp(-1.0, 1.0).acos(),
-                   "mass_kg": match plant.backend {
-                       go2::Backend::Rapier => Some(go2::rapier_mass_kg(plant)?),
-                       go2::Backend::Native => None,
-                       go2::Backend::Locomotion => Some(
-                           locomotion::LocomotionGo2::new(
-                               plant.floor_friction, plant.terrain_seed, plant.relief)?
-                               .mass_kg(),
-                       ),
-                   },
-                   "joint_rad": joints.iter().map(|(q, _)| *q).collect::<Vec<_>>()})
+    if let Some(path) = replay {
+        return replay_trace(
+            plant,
+            &path,
+            replay_from,
+            replay_periods,
+            implicit_pd,
+            velocity_limits,
         );
-        return Ok(());
+    }
+    if let Some(seconds) = stand {
+        return stand_report(plant, seconds);
     }
     if let Some(episodes) = bench {
         // One thread, one robot: the initial policy's episodes, each from its

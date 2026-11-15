@@ -670,6 +670,58 @@ Then retrained with the implicit PD (and the torque-speed curve; run
 - MuJoCo as configured by default (20 ms contact time constant, 5 ms steps)
   stays far off (0–14 crossings), as for every policy before.
 
+#### Where MuJoCo's walks fall: the same physics, a brittle policy
+
+Scan 2028 falls in 32 of its 64 MuJoCo walks and in none in RNE. 14 of
+those falls end with the base over the far rim of the widest gap on the
+course (6.39–6.73 m, 34 cm), its hind legs above the gap. A trace of one
+(run 43671392747) shows how: about 0.9 s before the stall a front foot
+lands on the far rim, slides 10 cm down the wall, the speed drops from 2.9
+to 1.7 m/s, the robot pitches nose-down onto its head and stops. The other
+policies' MuJoCo falls go the same two ways: a front foot lands on a rim,
+or a hind foot drops into a gap and the calf strikes its far wall.
+
+Does RNE's physics do otherwise? Example 147's `--replay` sets RNE to each
+state of a MuJoCo trace (`Go2LearningRobot::set_state_z_up`) and steps it
+with the targets MuJoCo applied there, one control period from each state
+or open loop from one:
+
+- From MuJoCo's state 0.2 s before the front foot reaches the rim, RNE
+  with MuJoCo's targets follows MuJoCo's fall within 1–2 cm for 0.9 s: the
+  foot slides into the gap, the head strikes, the robot stalls.
+- One period at a time over whole walks (four policies), RNE's base
+  velocity after a period differs from MuJoCo's by 1–10 mm/s on average,
+  with a spread of 1–7 cm/s forward and about 5 cm/s up.
+
+So the simulators agree on the fall. The walks part slowly instead:
+from the same start, MuJoCo's walk is 35 cm ahead after 2.6 s, which brings
+the robot to the wide gap at another phase of its stride, one where the
+policy puts a front foot on the rim. Does a small disturbance in RNE do the
+same? The policies walked again in RNE (run 43672568051) with Gaussian noise
+on every action (standard deviation in action units; one unit is 0.5 rad)
+and on other floors; crossed and falls:
+
+| Policy, seed | RNE | Noise 0.05 | 0.1 | 0.2 | Friction 0.7 | Friction 1.3 | MuJoCo stiff |
+|---|---|---|---|---|---|---|---|
+| Scan 2026 | 579, 0 | 567, 0 | 499, 4 | 292, 18 | 540, 2 | 562, 1 | 517, 8 |
+| Scan 2027 | 565, 0 | 555, 0 | 540, 1 | 380, 15 | 449, 6 | 553, 1 | 460, 6 |
+| Scan 2028 | 543, 0 | 521, 1 | 509, 0 | 258, 30 | 452, 7 | 539, 0 | 363, 31 |
+| Blind 2026 | 289, 5 | 277, 2 | 250, 4 | 192, 9 | 250, 11 | 214, 10 | 218, 11 |
+| Blind 2027 | 233, 4 | 222, 4 | 193, 8 | 151, 8 | 208, 7 | 183, 10 | 168, 8 |
+| Blind 2028 | 298, 6 | 302, 2 | 301, 4 | 203, 15 | 223, 16 | 295, 2 | 265, 6 |
+
+- **The policies are brittle.** Trained in one deterministic plant, they
+  fall in RNE too once it is disturbed: noise of 0.2 (0.1 rad on each
+  target) makes the scan policies fall 15–30 times, and a floor of
+  friction 0.7 costs up to a fifth of their crossings.
+- **MuJoCo's walks look like disturbed RNE walks.** Scan 2028 falls 31
+  times in MuJoCo and 30 in RNE with noise 0.2; the others sit between
+  noise 0.1 and 0.2.
+- **What is left between the simulators is thus not a fault of either.**
+  It is a policy that has learned one plant's exact dynamics. Training it
+  under disturbance (domain randomization: friction, masses, pushes,
+  action noise or delay) is the standard remedy, and the next step.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

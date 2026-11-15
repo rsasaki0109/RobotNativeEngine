@@ -139,18 +139,38 @@ jobs:
           PY
           done
 
+      - name: Walk in RNE perturbed
+        run: |
+          set -euo pipefail
+          # Is the policy brittle? RNE replays MuJoCo's falls from MuJoCo's
+          # states within centimeters, and the two simulators' one-period
+          # steps agree to a few cm/s, yet the policy falls in one and not
+          # the other. Walk it in RNE with noise on its actions and with
+          # other floor friction.
+          for perturbation in noise-0.05 noise-0.1 noise-0.2 friction-0.7 friction-1.3; do
+            case $perturbation in
+              noise-*) flags=(--action-noise "${perturbation#noise-}") ;;
+              friction-*) flags=(--friction "${perturbation#friction-}") ;;
+            esac
+            .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
+              --starts 64 "${flags[@]}" > "$OUT/rne-$perturbation.json"
+            python - "$OUT/rne-$perturbation.json" "$perturbation" <<'PY'
+          import json, sys
+          print(sys.argv[2], json.load(open(sys.argv[1]))["outcome"])
+          PY
+          done
+
       - name: Trace an episode the simulators disagree on
         run: |
           set -euo pipefail
-          # The first episode MuJoCo (stiff) crosses a gap in and RNE does
-          # not, or else the one where they differ most.
+          # The first episode that falls in MuJoCo (stiff) and not in RNE,
+          # or else the one where RNE crosses the most gaps more.
           episode=$(python - "$OUT/rne.json" <<'PY'
           import json, sys
           pairs = json.load(open(sys.argv[1]))["against"]["stiff"]["episodes"]
-          gap = [p["mujoco"]["gaps_crossed"] - p["rne"]["gaps_crossed"] for p in pairs]
-          clear = [i for i, p in enumerate(pairs)
-                   if p["rne"]["gaps_crossed"] == 0 and p["mujoco"]["gaps_crossed"] > 0]
-          print(clear[0] if clear else max(range(len(gap)), key=lambda i: gap[i]))
+          gap = [p["rne"]["gaps_crossed"] - p["mujoco"]["gaps_crossed"] for p in pairs]
+          fell = [i for i, p in enumerate(pairs) if p["mujoco"]["fell"] and not p["rne"]["fell"]]
+          print(fell[0] if fell else max(range(len(gap)), key=lambda i: gap[i]))
           PY
           )
           echo "episode $episode"
