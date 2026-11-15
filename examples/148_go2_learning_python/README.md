@@ -722,6 +722,46 @@ and on other floors; crossed and falls:
   under disturbance (domain randomization: friction, masses, pushes,
   action noise or delay) is the standard remedy, and the next step.
 
+#### A third simulator: Genesis
+
+`examples/147_go2_learning/genesis_go2_learning.py` runs the MuJoCo
+script's episode, observation, policies and starts on a
+[Genesis](https://github.com/Genesis-Embodied-AI/Genesis) plant (1.4.6, on
+the CPU): the same URDF, the terrain as a Genesis height field, Genesis's
+position control at kp 20 and kd 0.5 within the effort limits, the
+torque-speed curve before every 1 ms physics step. Genesis gives every
+joint 0.1 kg·m² of rotor inertia by default, twenty times a calf's own;
+that is turned off, as RNE and MuJoCo have none. Checked first (run
+43679869584): the robot weighs 16.087 kg and stands at 0.248 m, as in RNE,
+and stood with its hind feet over a gap it sinks into it while on flat
+floor it stands level, so the terrain lies as RNE's.
+
+The same policies (run 43640346938) from the same 64 starts; crossed,
+falls and distance:
+
+| Policy, seed | RNE | MuJoCo stiff | Genesis |
+|---|---|---|---|
+| Scan 2026 | 579, 0, 15.5 m | 517, 8, 14.1 m | 464, 7, 12.7 m |
+| Scan 2027 | 565, 0, 15.1 m | 460, 6, 12.8 m | 458, 7, 12.6 m |
+| Scan 2028 | 543, 0, 14.5 m | 363, 31, 10.6 m | 330, 25, 9.8 m |
+| Blind 2026 | 290, 4, 9.0 m | 218, 11, 7.2 m | 207, 10, 6.8 m |
+| Blind 2027 | 233, 4, 7.4 m | 168, 8, 5.8 m | 143, 16, 5.2 m |
+| Blind 2028 | 298, 6, 9.1 m | 265, 6, 8.3 m | 231, 19, 7.6 m |
+
+- **Genesis lands where MuJoCo does.** Both cross 10–40% fewer gaps than
+  RNE and fall in about as many episodes; scan 2028 is the weak policy in
+  both (31 and 25 falls).
+- **Episode by episode they agree no better than with RNE.** The
+  correlation of gaps crossed per start is -0.47 to +0.26 between any two
+  of the three simulators, MuJoCo and Genesis included, and the two share
+  few of their falls (0–2 of 6–19, except scan 2028's 15 of 25–31 at the
+  wide gap). Which start fails is chaos; how many fail is the policy.
+- **That is what a policy fitted to one plant looks like.** It does best in
+  the simulator it trained in and about equally worse in any other, as it
+  does in RNE disturbed by action noise of 0.1–0.2. It does not tell RNE's
+  physics from the other two's; a policy trained under disturbance should
+  narrow the gap in both if the policy, not RNE, is the cause.
+
 #### Trained under disturbance
 
 `train_ppo.py --domain-randomization` trains under disturbance: each

@@ -1,0 +1,192 @@
+name: Go2 SB3 PPO in Genesis
+
+# A third simulator for example 148's gap policies. RNE and MuJoCo agree on
+# how the policies fall (example 148's README); Genesis, with its own rigid
+# solver, is a third opinion when two disagree. Each job takes one policy
+# of a `Go2 SB3 PPO depth levels` run, walks it in Genesis from the same 64
+# held-out starts as the MuJoCo workflow, then in RNE, and compares the
+# walks start by start. The check job first shows that the robot stands
+# and that the terrain lies as RNE's. Genesis runs on the CPU here.
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: "Go2 SB3 PPO depth levels run whose policies to walk"
+        required: false
+        default: "43640346938"
+  push:
+    paths:
+      - ".github/workflows/go2-sb3-genesis.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  RUN: ${{ inputs.run || '43640346938' }}
+  PYOPENGL_PLATFORM: egl
+
+jobs:
+  check:
+    name: Genesis plant check
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-learning
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Genesis
+        run: |
+          # Genesis builds an offscreen renderer with its scene, which needs EGL.
+          sudo apt-get update -q && sudo apt-get install -y -q libegl1 libegl-mesa0 libgl1 libglu1-mesa
+          export PYOPENGL_PLATFORM=egl
+          python -m venv .venv-genesis
+          .venv-genesis/bin/pip install --disable-pip-version-check \
+            torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+          .venv-genesis/bin/pip install --disable-pip-version-check genesis-world==1.4.6 matplotlib
+          .venv-genesis/bin/python -c "import genesis, mujoco; print('genesis', genesis.__version__, 'mujoco', mujoco.__version__)"
+
+      - name: Build example 147
+        run: cargo build --locked --release -p go2_learning --example 147_go2_learning
+
+      - name: Download a policy
+        uses: actions/download-artifact@v4
+        with:
+          name: go2-sb3-levels-scan-2028
+          run-id: ${{ env.RUN }}
+          github-token: ${{ github.token }}
+          path: policy
+
+      - name: Stand, check the terrain, walk four starts
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/genesis-check
+          OUT=artifacts/genesis-check
+          target/release/examples/147_go2_learning --write-terrain "$OUT/terrain.json" \
+            --terrain 7 --terrain-size 48 --terrain-cell 0.05 --terrain-amplitude 0 \
+            --gap-depth 0.3
+          cd examples/147_go2_learning
+          genesis=(../../.venv-genesis/bin/python genesis_go2_learning.py)
+          "${genesis[@]}" stand --output "../../$OUT/stand.json"
+          cat "../../$OUT/stand.json"
+          "${genesis[@]}" check-terrain "../../$OUT/terrain.json" --output "../../$OUT/check-terrain.json"
+          cat "../../$OUT/check-terrain.json"
+          time "${genesis[@]}" evaluate ../../policy/policy.json --terrain "../../$OUT/terrain.json" \
+            --starts 4 --output "../../$OUT/walk-4.json"
+          cat "../../$OUT/walk-4.json"
+          # The terrain file is large and reproducible.
+          rm "../../$OUT/terrain.json"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-sb3-genesis-check
+          path: artifacts/genesis-check
+          if-no-files-found: warn
+          retention-days: 30
+
+  walk:
+    name: Go2 SB3 in Genesis (${{ matrix.sight }}, seed ${{ matrix.seed }})
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        sight: [blind, scan]
+        seed: [2026, 2027, 2028]
+    env:
+      NAME: go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
+      OUT: artifacts/go2-sb3-genesis-${{ matrix.sight }}-${{ matrix.seed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-learning
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Genesis
+        run: |
+          # Genesis builds an offscreen renderer with its scene, which needs EGL.
+          sudo apt-get update -q && sudo apt-get install -y -q libegl1 libegl-mesa0 libgl1 libglu1-mesa
+          export PYOPENGL_PLATFORM=egl
+          python -m venv .venv-genesis
+          .venv-genesis/bin/pip install --disable-pip-version-check \
+            torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+          .venv-genesis/bin/pip install --disable-pip-version-check genesis-world==1.4.6 matplotlib
+
+      - name: Build example 147
+        run: cargo build --locked --release -p go2_learning --example 147_go2_learning
+
+      - name: Download the policy
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.NAME }}
+          run-id: ${{ env.RUN }}
+          github-token: ${{ github.token }}
+          path: policy
+
+      - name: Walk in Genesis
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"
+          target/release/examples/147_go2_learning --write-terrain "$OUT/terrain.json" \
+            --terrain 7 --terrain-size 48 --terrain-cell 0.05 --terrain-amplitude 0 \
+            --gap-depth 0.3
+          (cd examples/147_go2_learning && ../../.venv-genesis/bin/python genesis_go2_learning.py \
+            evaluate ../../policy/policy.json --terrain "../../$OUT/terrain.json" --starts 64 \
+            --output "../../$OUT/genesis.json")
+          python - "$OUT/genesis.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))["outcome"])
+          PY
+
+      - name: Walk in RNE from the same starts
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 numpy==2.1.3
+          .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
+          .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
+            --starts 64 --against genesis="$OUT/genesis.json" > "$OUT/rne.json"
+          python - "$OUT/rne.json" <<'PY'
+          import json, sys
+          report = json.load(open(sys.argv[1]))
+          print("rne", report["outcome"])
+          for name, against in report["against"].items():
+              print(name, {key: value for key, value in against.items() if key != "episodes"})
+          PY
+          rm "$OUT/terrain.json"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-sb3-genesis-${{ matrix.sight }}-${{ matrix.seed }}
+          path: ${{ env.OUT }}
+          if-no-files-found: warn
+          retention-days: 30

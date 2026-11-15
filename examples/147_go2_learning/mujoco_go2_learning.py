@@ -334,9 +334,29 @@ class Go2:
         mujoco.mju_quat2Mat(self.rotation, self.data.qpos[3:7])
         return self.rotation.reshape(3, 3)
 
+    # The state the episode reads, so another simulator's plant
+    # (genesis_go2_learning.py) can run the same episode.
+    def base_position(self):
+        """The base origin, world frame, m."""
+        return self.data.qpos[:3]
+
+    def base_quaternion(self):
+        """The base orientation, w x y z."""
+        return self.data.qpos[3:7]
+
+    def body_spin(self):
+        """The base's angular velocity in its own frame, rad/s."""
+        return self.data.qvel[3:6]  # the free joint's angular velocity is in the body frame
+
+    def joint_positions(self):
+        return self.data.qpos[self.qpos]
+
+    def joint_velocities(self):
+        return self.data.qvel[self.qvel]
+
     def height_scan(self):
         """The scan's readings from mj_ray hits on the floor."""
-        x0, y0, z0 = self.data.qpos[:3]
+        x0, y0, z0 = self.base_position()
         heading = self.heading()
         sin, cos = math.sin(heading), math.cos(heading)
         down = np.array([0.0, 0.0, -1.0])
@@ -354,18 +374,18 @@ class Go2:
 
     def observe(self, step, action):
         rotation = self.body_rotation()
-        spin = self.data.qvel[3:6]  # the free joint's angular velocity is in the body frame
+        spin = self.body_spin()
         gravity = rotation.T @ np.array([0.0, 0.0, -1.0])
         phase = (step * CONTROL_DT_S % GAIT_PERIOD_S) / GAIT_PERIOD_S
         angle = 2.0 * math.pi * phase
-        parts = [spin * 0.25, gravity, self.data.qpos[self.qpos] - DEFAULT_RAD,
-                 self.data.qvel[self.qvel] * 0.05, action, [math.sin(angle), math.cos(angle)]]
+        parts = [spin * 0.25, gravity, self.joint_positions() - DEFAULT_RAD,
+                 self.joint_velocities() * 0.05, action, [math.sin(angle), math.cos(angle)]]
         if self.task.get("height_scan"):
             parts.append(self.height_scan())
         return np.concatenate(parts)
 
     def heading(self):
-        w, x, y, z = self.data.qpos[3:7]
+        w, x, y, z = self.base_quaternion()
         return math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
 
     def episode(self, policy, start=(0.0, 0.0)):
@@ -377,7 +397,7 @@ class Go2:
         applied, `on_step(reward, fell)` follows every control period, and the
         observation after the last period comes back with the outcome."""
         self.settle(start)
-        start = self.data.qpos[:3].copy()
+        start = np.array(self.base_position(), dtype=float)
         action = np.zeros(ACTIONS)
         change_square, steps, fell = 0.0, 0, False
         last_x, last_lateral, last_heading = start[0], 0.0, 0.0
@@ -389,7 +409,7 @@ class Go2:
             self.step(DEFAULT_RAD + ACTION_SCALE_RAD * action)
             steps += 1
             gravity_z = -self.body_rotation()[2, 2]
-            x, y, z = self.data.qpos[:3]
+            x, y, z = self.base_position()
             outside = abs(x) > self.arena_half or abs(y) > self.arena_half
             fell = bool(z - ground_height(self.terrain, x, y) < FALL_HEIGHT_M
                         or gravity_z > FALL_GRAVITY_Z or outside)
@@ -403,14 +423,15 @@ class Go2:
             if fell:
                 break
         last = self.observe(steps, action)
-        forward, lateral = self.data.qpos[0] - start[0], self.data.qpos[1] - start[1]
+        end = self.base_position()
+        forward, lateral = end[0] - start[0], end[1] - start[1]
         heading = self.heading()
         fitness = (forward - LATERAL_PENALTY * abs(lateral) - HEADING_PENALTY * abs(heading)
                    - SMOOTHNESS_PENALTY * change_square / steps - (FALL_PENALTY if fell else 0.0))
         return ({"fitness": fitness, "forward_m": forward, "lateral_m": lateral,
                  "heading_rad": heading, "survived_s": steps * CONTROL_DT_S, "fell": fell,
                  "control_steps": SETTLE_STEPS + steps,
-                 "start_x_m": float(start[0]), "final_x_m": float(self.data.qpos[0])}, last)
+                 "start_x_m": float(start[0]), "final_x_m": float(end[0])}, last)
 
 
 class Mlp:
