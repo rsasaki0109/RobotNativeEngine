@@ -226,6 +226,9 @@ class Go2:
         # States before each control period and the targets then applied,
         # while a trace is recorded (see `step`).
         self.trace = None
+        # The floor's normal impulse (N·s) through each body and geom type
+        # ("FL_calf:sphere"), summed over physics steps while a dict.
+        self.impulses = None
 
     def settle(self, start=(0.0, 0.0)):
         """Start in the default pose at rest, base 0.36 m above `start`, and
@@ -267,7 +270,7 @@ class Go2:
                     held = np.clip(torque, lowest, highest)
                     self.model.actuator_forcerange[:, 0] = held
                     self.model.actuator_forcerange[:, 1] = held
-                mujoco.mj_step(self.model, self.data)
+                self.physics_step()
         elif self.velocity_limits:
             for _ in range(DECIMATION * self.substeps):
                 ratio = self.data.qvel[self.qvel] / VELOCITY_LIMIT_RAD_S
@@ -276,7 +279,10 @@ class Go2:
                                                                -limit, limit)
                 self.model.actuator_forcerange[:, 1] = np.clip(limit * (1.0 - ratio),
                                                                -limit, limit)
-                mujoco.mj_step(self.model, self.data)
+                self.physics_step()
+        elif self.impulses is not None:
+            for _ in range(DECIMATION * self.substeps):
+                self.physics_step()
         else:
             mujoco.mj_step(self.model, self.data, nstep=DECIMATION * self.substeps)
         if self.trace is not None:
@@ -305,6 +311,22 @@ class Go2:
         mujoco.mj_forward(self.model, self.data)
         self.data.qvel[3:6] = self.body_rotation().T @ np.asarray(state["angular_velocity_rad_s"])
         mujoco.mj_forward(self.model, self.data)
+
+    def physics_step(self):
+        """One physics step, adding the floor's normal impulses to
+        `impulses` while it is a dict."""
+        mujoco.mj_step(self.model, self.data)
+        if self.impulses is None:
+            return
+        wrench = np.zeros(6)
+        for index in range(self.data.ncon):
+            contact = self.data.contact[index]
+            mujoco.mj_contactForce(self.model, self.data, index, wrench)
+            geom = contact.geom2 if self.model.geom_bodyid[contact.geom1] == 0 else contact.geom1
+            name = (self.model.body(self.model.geom_bodyid[geom]).name + ":"
+                    + mujoco.mjtGeom(self.model.geom_type[geom]).name[len("mjGEOM_"):].lower())
+            self.impulses[name] = (self.impulses.get(name, 0.0)
+                                   + float(wrench[0]) * self.model.opt.timestep)
 
     def contact_details(self):
         """Every robot contact with the floor now: its body and geom type,
@@ -936,13 +958,14 @@ def replay(trace_path, plant):
     periods = []
     for before, after in zip(trace["periods"], states[1:]):
         robot.set_state(before)
+        robot.impulses = {}
         robot.step(np.asarray(before["targets_rad"]))
         mine = robot.state()
         difference = {key: (np.asarray(mine[key]) - np.asarray(after[key])).tolist()
                       for key in ("position_m", "linear_velocity_m_s", "angular_velocity_rad_s",
                                   "joints_rad", "joint_velocities_rad_s")}
         periods.append({"difference": difference, "contacts_n": robot.contact_forces(),
-                        "mujoco": mine})
+                        "impulses_n_s": robot.impulses, "mujoco": mine})
     return {"engine": f"mujoco {mujoco.__version__}", "plant": plant, "trace": str(trace_path),
             "trace_engine": trace["engine"], "settle_periods": trace["settle_periods"],
             "outcome": trace["outcome"], "periods": periods}
@@ -1020,6 +1043,14 @@ def main():
         command.add_argument("--impratio", type=float, default=100.0)
         command.add_argument("--friction", type=float, default=1.0)
         command.add_argument("--terrain", type=Path, default=None)
+        command.add_argument("--substeps", type=int, default=1,
+                             help="physics steps per step of RNE's")
+        command.add_argument("--solref", type=float, default=None,
+                             help="contact time constant, s")
+        command.add_argument("--armature", type=float, default=0.0,
+                             help="every joint's rotor inertia, kg·m²")
+        command.add_argument("--velocity-limits", action="store_true",
+                             help="make the motors hold the joints' velocity limits")
     sub.choices["train"].add_argument("rne_report", type=Path)
     sub.choices["train"].add_argument("output", type=Path)
     sub.choices["train"].add_argument("--processes", type=int, default=4)
@@ -1055,7 +1086,9 @@ def main():
     if arguments.command == "replay":
         plant = {"floor_friction": arguments.friction, "cone": arguments.cone,
                  "impratio": arguments.impratio,
-                 "terrain": None if arguments.terrain is None else str(arguments.terrain)}
+                 "terrain": None if arguments.terrain is None else str(arguments.terrain),
+                 "substeps": arguments.substeps, "solref_s": arguments.solref,
+                 "armature": arguments.armature, "velocity_limits": arguments.velocity_limits}
         arguments.output.write_text(json.dumps(replay(arguments.trace, plant)) + "\n")
         print(f"wrote {arguments.output}")
         return

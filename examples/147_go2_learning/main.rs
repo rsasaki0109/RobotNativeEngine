@@ -324,6 +324,13 @@ fn replay_trace(
             .filter(|(after, before)| after.2 > before.2)
             .map(|(after, _)| after.0.as_str())
             .collect();
+        // The ground's normal impulse through each link touching it, N·s.
+        let impulses: serde_json::Map<String, Value> = after
+            .iter()
+            .zip(&before)
+            .filter(|(after, before)| after.2 > before.2)
+            .map(|(after, before)| (after.0.clone(), json!(after.1 - before.1)))
+            .collect();
         let (position, rotation) = robot.base_pose_z_up();
         let (linear, angular) = robot.base_velocity_z_up();
         let joints = robot.joint_states();
@@ -339,6 +346,7 @@ fn replay_trace(
                 "feet_m": robot.foot_centers_z_up_m()?.iter().map(|foot| foot.to_array())
                     .collect::<Vec<_>>(),
                 "touching": touching,
+                "impulses_n_s": impulses,
             },
             "trace": states[index + 1].clone(),
         }));

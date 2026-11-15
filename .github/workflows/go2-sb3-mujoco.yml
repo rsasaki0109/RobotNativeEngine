@@ -186,6 +186,20 @@ jobs:
             evaluate policy/policy.json --terrain "$OUT/terrain.json" --starts 64 \
             --substeps 5 --solref 0.004 --trace "$OUT/trace-mujoco.json" \
             --trace-episode "$episode" > /dev/null
+          # MuJoCo from each state of its own trace, one period at a time,
+          # with the floor's normal impulse through each body and geom type:
+          # against RNE's replay of the same trace (example 147's --replay),
+          # where the two engines take a contact differently.
+          motors=$(python - policy/policy.json <<'PY'
+          import json, sys
+          task = json.load(open(sys.argv[1]))["task"]
+          flags = ["--armature", str(task.get("armature_kg_m2", 0.0))]
+          print(" ".join(flags + (["--velocity-limits"] if task.get("velocity_limits") else [])))
+          PY
+          )
+          .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
+            replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco.json" --terrain "$OUT/terrain.json" \
+            --substeps 5 --solref 0.004 $motors
           # How hard each walk drives the actuators, against the URDF's limits.
           python examples/148_go2_learning_python/trace_limits.py \
             "$OUT/trace-rne.json" "$OUT/trace-mujoco.json" | tee "$OUT/limits.json"
