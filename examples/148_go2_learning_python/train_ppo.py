@@ -206,6 +206,20 @@ def main():
     parser.add_argument("--implicit-pd", action="store_true",
                         help="integrate the joints' PD within each 5 ms physics step instead "
                              "of holding its torque over the step")
+    parser.add_argument("--domain-randomization", action="store_true",
+                        help="train under disturbance: floor friction 0.5-1.25 and motor "
+                             "strength 0.9-1.1 per episode, action noise 0.1, and a push of "
+                             "up to 0.5 m/s about once per episode (each settable below)")
+    parser.add_argument("--randomize-friction", default=None, metavar="LOW,HIGH",
+                        help="draw each training episode's floor friction from this range")
+    parser.add_argument("--randomize-strength", default=None, metavar="LOW,HIGH",
+                        help="draw each training episode's factor on the PD gains from this range")
+    parser.add_argument("--action-noise", type=float, default=None,
+                        help="Gaussian noise added to every training action")
+    parser.add_argument("--push-probability", type=float, default=None,
+                        help="chance of a push in each training control period")
+    parser.add_argument("--push-velocity", type=float, default=None,
+                        help="largest velocity change of a push along x and y, m/s")
     parser.add_argument("--recycle-levels", action="store_true",
                         help="send an environment that masters the deepest level to a "
                              "random level, so the shallower ones stay in training")
@@ -234,6 +248,7 @@ def main():
     for curriculum, levels in (("0.05-0.10@0.1,0.25-0.35", 1), ("", 3)):
         args.curriculum, args.depth_levels, args.stages = curriculum, levels, 2
         args.recycle_levels = args.velocity_limits = args.implicit_pd = levels > 1
+        args.domain_randomization = levels > 1
         history = train(args, parser)
         assert len(history) == 2
         assert ("on_stage_gaps" in history[0]) == bool(curriculum)
@@ -241,9 +256,27 @@ def main():
     print("smoke ok")
 
 
+def randomization(args):
+    """The training environments' disturbances (the held-out ones have
+    none), as Go2LearningBatch arguments."""
+    pair = lambda text: tuple(float(value) for value in text.split(","))
+    preset = ({"friction_range": (0.5, 1.25), "motor_strength": (0.9, 1.1),
+               "action_noise": 0.1, "push_probability": 0.004, "push_velocity": 0.5}
+              if args.domain_randomization else {})
+    if args.randomize_friction:
+        preset["friction_range"] = pair(args.randomize_friction)
+    if args.randomize_strength:
+        preset["motor_strength"] = pair(args.randomize_strength)
+    for name in ("action_noise", "push_probability", "push_velocity"):
+        if getattr(args, name) is not None:
+            preset[name] = getattr(args, name)
+    return preset
+
+
 def train(args, parser):
     """Trains and evaluates as `args` ask; returns each stage's results."""
     task = task_arguments(args)
+    disturbances = randomization(args)
     if args.velocity_limits:
         task["velocity_limits"] = True
     if args.implicit_pd:
@@ -272,7 +305,8 @@ def train(args, parser):
         return NativeGo2VecEnv(n_envs=args.eval_envs, seed=args.seed + EVALUATION_SEED_OFFSET,
                                **stage_task(stage))
 
-    raw = NativeGo2VecEnv(n_envs=args.n_envs, seed=args.seed, **stage_task(stages[0]))
+    raw = NativeGo2VecEnv(n_envs=args.n_envs, seed=args.seed, **stage_task(stages[0]),
+                          **disturbances)
     if levels:
         raw.set_depth_curriculum(args.promote_after_gaps, args.recycle_levels)
     env = raw if args.no_normalize else VecNormalize(raw, gamma=args.gamma)
@@ -297,7 +331,7 @@ def train(args, parser):
     history, started = [], time.monotonic()
     for index, stage in enumerate(stages):
         if index > 0 and stage != stages[index - 1]:
-            raw.set_task(**stage_task(stage))
+            raw.set_task(**stage_task(stage), **disturbances)
             model._last_obs = env.reset()
             model._last_episode_starts = np.ones((args.n_envs,), dtype=bool)
         model.learn(total_timesteps=stage_timesteps, reset_num_timesteps=False)
@@ -329,6 +363,7 @@ def train(args, parser):
         "recycle_levels": args.recycle_levels if levels else None,
         "velocity_limits": args.velocity_limits,
         "implicit_pd": args.implicit_pd,
+        "randomization": disturbances or None,
         "normalize": not args.no_normalize,
         "hyperparameters": {
             "n_steps": args.n_steps, "batch_size": args.batch_size,

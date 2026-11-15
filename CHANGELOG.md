@@ -576,6 +576,19 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Domain randomization for the Go2 learning task:
+  `Go2LearningConfig::randomization` (`Randomization`) draws each
+  episode's floor friction and motor strength (a factor on the PD gains)
+  from ranges, adds Gaussian noise to the actions the robot tracks, and
+  pushes the base at random, from the episode's own seeded stream
+  (`DISTURBANCE_STREAM`). None by default. `Go2LearningRobot` gains
+  `set_floor_friction`, `set_motor_strength` and `set_base_force_n`;
+  `QuadrupedTerrainSim::set_friction_coefficient`. The binding takes
+  `friction_range`, `motor_strength`, `action_noise`, `push_probability`
+  and `push_velocity`; example 148's `train_ppo.py --domain-randomization`
+  (and its parts) disturbs the training environments only, and the
+  depth-levels workflow trains so.
+
 - Example 147's `--replay TRACE.json` steps RNE from the states of a
   MuJoCo trace with the targets it applied, one control period from each
   state or open loop from one (`--replay-from`, `--replay-periods`), with
