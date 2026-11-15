@@ -76,6 +76,13 @@ jobs:
             -r examples/116_robot_workbench/python/requirements-mujoco.txt numpy
           .venv-mujoco/bin/python -c "import mujoco; print('mujoco', mujoco.__version__)"
 
+      - name: A sliding edge strike against its closed form
+        run: |
+          # The head and shin strikes in miniature: does MuJoCo give the
+          # rigid Coulomb impulse? (RNE's is checked by rne_dynamics' tests.)
+          mkdir -p "$OUT"
+          .venv-mujoco/bin/python examples/147_go2_learning/mujoco_strike.py | tee "$OUT/strike.json"
+
       - name: Download the policy
         uses: actions/download-artifact@v4
         with:
