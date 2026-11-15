@@ -844,6 +844,60 @@ MuJoCo 448/530/483 with 7/7/7 falls, Genesis 428/491/488 with 12/14/10.
   RNE and Genesis agree on all three scan policies; MuJoCo's falls gather
   in one policy, and why MuJoCo alone keeps them is not established.
 
+#### What is left: MuJoCo's stiff contacts bounce
+
+Scan 2028 still falls 22 times in MuJoCo and none in RNE. Two tools look
+at why, both replaying MuJoCo's trace of a fall (run 43736761486) one
+control period at a time from each of its states with the targets MuJoCo
+applied: example 147's `--replay` steps RNE, `mujoco_go2_learning.py
+replay` steps MuJoCo again, and each reports the ground's normal impulse
+through every link it touched.
+
+- **The 5 ms step biases the PD a little.** From MuJoCo's states RNE's
+  implicit PD ends each period with the joints 0.21–0.27 rad/s slower than
+  MuJoCo's, whose actuators recompute the PD every millisecond.
+  `Go2LearningRobot::set_physics_substeps` (`--substeps`) splits each 5 ms
+  step: at five, the bias is gone and the base's angular velocity after a
+  period differs from MuJoCo's by a third as much. The walks hardly change
+  (below), so this is not why MuJoCo's fall.
+- **Feet agree; shins and the head do not.** Summed over the traces, the
+  feet's impulses differ by 5%. But when a shin or the head strikes the
+  floor, MuJoCo's stiff setting (4 ms, damping ratio 1) gives it about
+  twice RNE's impulse (shins 14.4 against 7.0 N·s, 10.2 against 4.7):
+  the robot's nose, coming down at 0.6–0.8 m/s, stops or rises (up to
+  +0.2 m/s), where in RNE it still sinks at about 0.2 m/s. Twice the
+  impulse is what a fully elastic bounce takes. The replays' errors gather there: periods
+  with a shin or head contact differ by 7.4 cm/s in base velocity (median),
+  the rest by 0.8 cm/s.
+- **Damped, MuJoCo takes those strikes as RNE does.** With the contacts
+  damped five times critically (`--dampratio 5`), MuJoCo's shin impulses
+  come within about 10% of RNE's period by period (6.6 against 7.0 N·s,
+  4.0 against 4.7) and the nose comes down as in RNE (−0.21 m/s against
+  −0.21); over a trace the feet's impulses match RNE's to 0.3%. The head still bounces (16.6 against 11.0 N·s in
+  scan 2028's fall).
+
+The same policies (run 43699237646, with rotor inertia) from the same 64
+starts; crossed and falls:
+
+| Policy, seed | RNE | RNE, 1 ms | MuJoCo stiff | Damped 2× | Damped 5× |
+|---|---|---|---|---|---|
+| Scan 2026 | 485, 0 | 493, 0 | 476, 4 | 478, 2 | 450, 4 |
+| Scan 2027 | 484, 0 | 482, 0 | 422, 9 | 449, 9 | 445, 5 |
+| Scan 2028 | 407, 0 | 415, 0 | 296, 22 | 346, 13 | 374, 10 |
+| Blind 2026 | 169, 9 | 141, 22 | 174, 8 | 167, 11 | 162, 9 |
+| Blind 2027 | 211, 11 | 178, 10 | 191, 7 | 199, 10 | 189, 11 |
+| Blind 2028 | 159, 7 | 132, 17 | 142, 7 | 141, 11 | 132, 10 |
+
+- **About half of scan 2028's MuJoCo falls are the bounce.** Damped, it
+  falls 10 times where it fell 22, crosses 374 gaps where it crossed 296,
+  and matches RNE's walk in 42 of 64 episodes where it matched 29. Scan
+  2027 falls 5 times where it fell 9.
+- **At 1 ms RNE walks as at 5 ms**: the scan policies cross the same gaps
+  and still never fall. The blind policies do worse at 1 ms (141–178
+  crossed), which they never trained at.
+- **What remains**, 4–10 falls of the scan policies in damped MuJoCo, is
+  not established; the head strike is one candidate.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
