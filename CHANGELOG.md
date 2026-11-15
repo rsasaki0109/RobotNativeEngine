@@ -587,7 +587,9 @@ All notable changes to Robot Native Engine are documented in this file.
   `armature`; example 148's `train_ppo.py --armature` trains with it, and
   `walk_policy.py`, `mujoco_go2_learning.py` and `genesis_go2_learning.py`
   walk a policy with the rotor inertia it trained with. The depth-levels
-  workflow trains with 0.01.
+  workflow trains with 0.01. With it, the scan policies keep 93–98% of
+  their RNE gap crossings in Genesis (83–89% without) and 73–99% in
+  MuJoCo; example 148's README has the walks.
 
 - Domain randomization for the Go2 learning task:
   `Go2LearningConfig::randomization` (`Randomization`) draws each
