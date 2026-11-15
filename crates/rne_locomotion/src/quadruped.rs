@@ -283,6 +283,15 @@ impl Quadruped {
         &self.model
     }
 
+    /// Gives every actuated joint the rotor inertia `armature` (kg·m²):
+    /// see [`ArticulatedModel::set_joint_armature`].
+    pub fn set_joint_armature(&mut self, armature: f64) -> Result<(), LocomotionError> {
+        for dof in self.model.base_dof()..self.model.nv() {
+            self.model.set_joint_armature(dof, armature)?;
+        }
+        Ok(())
+    }
+
     /// Leg geometry in front-left, front-right, rear-left, rear-right order.
     pub fn legs(&self) -> &[LegGeometry; 4] {
         &self.legs

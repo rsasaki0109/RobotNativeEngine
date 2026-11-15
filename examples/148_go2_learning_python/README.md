@@ -731,7 +731,8 @@ the CPU): the same URDF, the terrain as a Genesis height field, Genesis's
 position control at kp 20 and kd 0.5 within the effort limits, the
 torque-speed curve before every 1 ms physics step. Genesis gives every
 joint 0.1 kg·m² of rotor inertia by default, twenty times a calf's own;
-that is turned off, as RNE and MuJoCo have none. Checked first (run
+that is turned off, as RNE and MuJoCo have none (until
+[Rotor inertia](#rotor-inertia), where all three give 0.01 kg·m²). Checked first (run
 43679869584): the robot weighs 16.087 kg and stands at 0.248 m, as in RNE,
 and stood with its hind feet over a gap it sinks into it while on flat
 floor it stands level, so the terrain lies as RNE's.
@@ -801,6 +802,47 @@ under noise 0.2 they fell 18/15/30 times in RNE.
   learned that plant; trained under disturbance, they walk about as well
   in any of the three. What is left, 7–14 falls in MuJoCo and Genesis
   against 0–2 in RNE, is not established.
+
+#### Rotor inertia
+
+A real Go2 joint turns a motor rotor through a gearbox, and the rotor's
+inertia, multiplied by the gear ratio squared, adds to the joint's: MuJoCo
+Menagerie's Go2 gives every joint 0.01 kg·m² of it, about twice a calf's
+own inertia about its axis. `ArticulatedModel::set_joint_armature` adds such
+an inertia to a joint's diagonal of the mass matrix (`GO2_ARMATURE_KG_M2`,
+`Go2LearningConfig::armature_kg_m2`, `train_ppo.py --armature`); the walks
+carry it into MuJoCo (`armature`) and Genesis. Trained so, under the same
+disturbance as above (run 43699237646), and walked from the same 64 starts
+in RNE, RNE disturbed, MuJoCo (run 43712341341) and Genesis (run
+43712343553), all three with 0.01 kg·m²; crossed and falls:
+
+| Policy, seed | RNE | Noise 0.1 | Noise 0.2 | Friction 0.7 | MuJoCo stiff | Genesis |
+|---|---|---|---|---|---|---|
+| Scan 2026 | 485, 0 | 477, 0 | 447, 0 | 481, 0 | 481, 2 | 475, 1 |
+| Scan 2027 | 484, 0 | 473, 0 | 435, 0 | 483, 0 | 422, 9 | 472, 1 |
+| Scan 2028 | 407, 0 | 394, 0 | 360, 1 | 408, 0 | 296, 22 | 379, 8 |
+| Blind 2026 | 169, 9 | 173, 12 | 156, 10 | 187, 7 | 174, 8 | 161, 8 |
+| Blind 2027 | 211, 11 | 198, 8 | 183, 8 | 204, 11 | 191, 7 | 179, 14 |
+| Blind 2028 | 159, 7 | 154, 7 | 136, 6 | 141, 11 | 142, 7 | 148, 5 |
+
+Against the policies trained without it (above): scan RNE 497/592/547,
+MuJoCo 448/530/483 with 7/7/7 falls, Genesis 428/491/488 with 12/14/10.
+
+- **Genesis now agrees with RNE.** The scan policies keep 93–98% of their
+  RNE crossings in Genesis, against 83–89% without the inertia, and fall
+  1/1/8 times where they fell 12/14/10.
+- **MuJoCo agrees with two of three.** Scan 2026 keeps 99% of its
+  crossings in MuJoCo with 2 falls; scan 2027 keeps 87% with 9. Scan
+  2028, again the weak seed, keeps 73% and falls 22 times, against 7
+  before. Where the two disagree start by start, RNE crosses more and is
+  walking, not fallen.
+- **The legs are slower, so the policies cross less.** With the same
+  training budget the scan policies cross 407–485 gaps in RNE, against
+  497–592, and walk 11.4–13.3 m, against 13.6–15.9 m; the blind policies
+  cross 159–211, against 168–266. Noise of 0.2 costs them 0–1 falls.
+- **So part of the rest was the plant.** A rotor every real Go2 has makes
+  RNE and Genesis agree on all three scan policies; MuJoCo's falls gather
+  in one policy, and why MuJoCo alone keeps them is not established.
 
 ## Limits
 

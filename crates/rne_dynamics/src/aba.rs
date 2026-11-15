@@ -92,7 +92,7 @@ pub fn aba(
         if let Some(dof) = body_joint_dof(model, index) {
             let subspace = model.dofs[dof].s;
             let u_vec = mat6_mul_vec(&articulated_inertia[index], &subspace);
-            let d = dot6(&subspace, &u_vec);
+            let d = dot6(&subspace, &u_vec) + model.dofs[dof].armature;
             if d.is_nan() || d <= MIN_JOINT_INERTIA {
                 return Err(DynamicsError::SingularMassMatrix);
             }
@@ -252,6 +252,62 @@ mod tests {
         let mut free = floating.clone();
         free.set_fixed_base_motion(fixed.fixed_base_motion());
         assert_eq!(free.fixed_base_motion(), BaseMotion::default());
+    }
+
+    #[test]
+    #[allow(clippy::needless_range_loop)]
+    fn armature_adds_to_each_joint_in_every_algorithm() {
+        for floating in [false, true] {
+            let mut model = branching_tree(floating, 5);
+            let base = model.base_dof();
+            let nv = model.nv();
+            let mut rng = Lcg(29);
+            let q: Vec<f64> = (0..nv).map(|_| 0.5 * rng.next()).collect();
+            let qd: Vec<f64> = (0..nv).map(|_| rng.next()).collect();
+            let qdd: Vec<f64> = (0..nv).map(|_| 3.0 * rng.next()).collect();
+            let bare = crate::mass_matrix(&model, &q).expect("mass");
+            let bare_tau = crate::rnea(&model, &q, &qd, &qdd).expect("rnea");
+            let armature: Vec<f64> = (0..nv)
+                .map(|dof| {
+                    if dof < base {
+                        0.0
+                    } else {
+                        0.01 * (1 + dof) as f64
+                    }
+                })
+                .collect();
+            for dof in base..nv {
+                model
+                    .set_joint_armature(dof, armature[dof])
+                    .expect("armature");
+            }
+            // The mass matrix gains the armature on its diagonal, and only there.
+            let mass = crate::mass_matrix(&model, &q).expect("mass");
+            for row in 0..nv {
+                for col in 0..nv {
+                    let added = if row == col { armature[row] } else { 0.0 };
+                    let difference = mass.get(row, col) - bare.get(row, col);
+                    assert!((difference - added).abs() < 1e-12, "{row} {col}");
+                }
+            }
+            // Inverse dynamics gains armature times acceleration, and the
+            // forward algorithms invert it.
+            let tau = crate::rnea(&model, &q, &qd, &qdd).expect("rnea");
+            for dof in 0..nv {
+                let added = armature[dof] * qdd[dof];
+                assert!((tau[dof] - bare_tau[dof] - added).abs() < 1e-9, "{dof}");
+            }
+            let back = aba(&model, &q, &qd, &tau).expect("aba");
+            for (a, b) in back.iter().zip(&qdd) {
+                assert!((a - b).abs() < 1e-8, "{back:?} {qdd:?}");
+            }
+            assert_matches_dense(&model, 31);
+        }
+        let mut model = branching_tree(true, 5);
+        assert!(model.set_joint_armature(0, 0.1).is_err());
+        assert!(model.set_joint_armature(model.nv(), 0.1).is_err());
+        assert!(model.set_joint_armature(6, -0.1).is_err());
+        assert_eq!(model.joint_armature(6), 0.0);
     }
 
     #[test]

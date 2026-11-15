@@ -94,9 +94,10 @@ impl PyGo2LearningBatch {
     /// (each a (low, high) pair, or None), and each control period adds
     /// Gaussian noise of standard deviation `action_noise` to the actions
     /// the robot tracks and, with chance `push_probability`, pushes the base
-    /// by up to `push_velocity` m/s along x and y.
+    /// by up to `push_velocity` m/s along x and y. `armature` gives every
+    /// joint that rotor inertia, kg·m² (the Go2's is 0.01).
     #[new]
-    #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0, gap_width=(0.25, 0.35), gap_levels=1, velocity_limits=false, implicit_pd=false, friction_range=None, motor_strength=None, action_noise=0.0, push_probability=0.0, push_velocity=0.0))]
+    #[pyo3(signature = (num_envs=8, seed=1, threads=0, terrain_seed=None, height_scan=false, random_starts=false, floor_friction=1.0, terrain_size=24.0, terrain_cell=0.1, terrain_amplitude=0.04, terrain_frequency=0.5, gap_depth=0.0, gap_width=(0.25, 0.35), gap_levels=1, velocity_limits=false, implicit_pd=false, friction_range=None, motor_strength=None, action_noise=0.0, push_probability=0.0, push_velocity=0.0, armature=0.0))]
     #[allow(clippy::too_many_arguments)]
     fn new(
         num_envs: usize,
@@ -120,6 +121,7 @@ impl PyGo2LearningBatch {
         action_noise: f64,
         push_probability: f64,
         push_velocity: f64,
+        armature: f64,
     ) -> PyResult<Self> {
         if num_envs == 0 {
             return Err(PyValueError::new_err("num_envs must be greater than zero"));
@@ -163,6 +165,7 @@ impl PyGo2LearningBatch {
                 push_probability,
                 push_velocity_m_s: push_velocity,
             },
+            armature_kg_m2: armature,
         };
         let threads = if threads == 0 {
             std::thread::available_parallelism().map_or(1, |n| n.get())
@@ -421,6 +424,7 @@ mod tests {
             0.0,
             0.0,
             0.0,
+            0.0,
         )
         .unwrap();
         assert_eq!(batch.observation_dim(), 59);
@@ -438,13 +442,13 @@ mod tests {
         assert_eq!(spec["task_id"], "rne.unitree_go2.learning.v1");
         assert!(PyGo2LearningBatch::new(
             0, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1, false, false,
-            None, None, 0.0, 0.0, 0.0
+            None, None, 0.0, 0.0, 0.0, 0.0
         )
         .is_err());
         // Random starts need a terrain.
         assert!(PyGo2LearningBatch::new(
             1, 3, 1, None, false, true, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1, false, false,
-            None, None, 0.0, 0.0, 0.0
+            None, None, 0.0, 0.0, 0.0, 0.0
         )
         .is_err());
     }
@@ -474,6 +478,7 @@ mod tests {
             0.0,
             0.0,
             0.0,
+            0.0,
         )
         .unwrap();
         let gaps = batch.gap_intervals();
@@ -494,7 +499,7 @@ mod tests {
         );
         let flat = PyGo2LearningBatch::new(
             1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1, false, false,
-            None, None, 0.0, 0.0, 0.0,
+            None, None, 0.0, 0.0, 0.0, 0.0,
         )
         .unwrap();
         assert!(flat.gap_intervals().is_empty());
@@ -518,6 +523,7 @@ mod tests {
                 false,
                 None,
                 None,
+                0.0,
                 0.0,
                 0.0,
                 0.0
@@ -547,6 +553,7 @@ mod tests {
             false,
             None,
             None,
+            0.0,
             0.0,
             0.0,
             0.0,
@@ -585,7 +592,7 @@ mod tests {
         batch.set_depth_curriculum(None, false).unwrap();
         let mut flat = PyGo2LearningBatch::new(
             1, 3, 1, None, false, false, 1.0, 24.0, 0.1, 0.04, 0.5, 0.0, WIDTH_M, 1, false, false,
-            None, None, 0.0, 0.0, 0.0,
+            None, None, 0.0, 0.0, 0.0, 0.0,
         )
         .unwrap();
         assert!(flat.level_depths().is_empty());

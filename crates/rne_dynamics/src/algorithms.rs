@@ -206,6 +206,11 @@ pub(crate) fn mass_matrix_from_xup(model: &ArticulatedModel, xup: &[Mat6]) -> De
             }
         }
     }
+    for (dof, spec) in model.dofs.iter().enumerate() {
+        if spec.armature != 0.0 {
+            matrix.set(dof, dof, matrix.get(dof, dof) + spec.armature);
+        }
+    }
     matrix
 }
 
@@ -299,7 +304,7 @@ pub(crate) fn rnea_from_xup(
             &transmitted[index],
         );
         for &dof in &model.bodies[index].dofs {
-            tau[dof] = dot6(&model.dofs[dof].s, &force);
+            tau[dof] = dot6(&model.dofs[dof].s, &force) + model.dofs[dof].armature * qdd[dof];
         }
         if let Some(parent) = model.bodies[index].parent {
             transmitted[parent] = add6(

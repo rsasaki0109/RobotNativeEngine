@@ -206,6 +206,8 @@ def main():
     parser.add_argument("--implicit-pd", action="store_true",
                         help="integrate the joints' PD within each 5 ms physics step instead "
                              "of holding its torque over the step")
+    parser.add_argument("--armature", type=float, default=0.0, metavar="KG_M2",
+                        help="give every joint this rotor inertia (the Go2's is 0.01)")
     parser.add_argument("--domain-randomization", action="store_true",
                         help="train under disturbance: floor friction 0.5-1.25 and motor "
                              "strength 0.9-1.1 per episode, action noise 0.1, and a push of "
@@ -249,6 +251,7 @@ def main():
         args.curriculum, args.depth_levels, args.stages = curriculum, levels, 2
         args.recycle_levels = args.velocity_limits = args.implicit_pd = levels > 1
         args.domain_randomization = levels > 1
+        args.armature = 0.01 if levels > 1 else 0.0
         history = train(args, parser)
         assert len(history) == 2
         assert ("on_stage_gaps" in history[0]) == bool(curriculum)
@@ -281,6 +284,8 @@ def train(args, parser):
         task["velocity_limits"] = True
     if args.implicit_pd:
         task["implicit_pd"] = True
+    if args.armature:
+        task["armature"] = args.armature
     levels = args.depth_levels > 1
     if levels:
         if args.floor != "gaps" or args.curriculum:
@@ -363,6 +368,7 @@ def train(args, parser):
         "recycle_levels": args.recycle_levels if levels else None,
         "velocity_limits": args.velocity_limits,
         "implicit_pd": args.implicit_pd,
+        "armature_kg_m2": args.armature,
         "randomization": disturbances or None,
         "normalize": not args.no_normalize,
         "hyperparameters": {
@@ -382,7 +388,8 @@ def train(args, parser):
                            {"floor": args.floor, "height_scan": args.height_scan,
                             "random_starts": args.floor != "flat",
                             "velocity_limits": args.velocity_limits,
-                            "implicit_pd": args.implicit_pd})
+                            "implicit_pd": args.implicit_pd,
+                            "armature_kg_m2": args.armature})
     assert exported["policy"]["inputs"] == raw.observation_space.shape[0]
     with open(os.path.join(args.out, "policy.json"), "w") as file:
         json.dump(exported, file)
