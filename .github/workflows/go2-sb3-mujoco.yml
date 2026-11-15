@@ -208,6 +208,21 @@ jobs:
           .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
             replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco-damped-5.json" \
             --terrain "$OUT/terrain.json" --substeps 5 --solref 0.004 --dampratio 5 $motors
+          # Where the head strikes, MuJoCo's impulse stays half again RNE's
+          # even damped. Is it the friction (elliptic cone, impratio 100) or
+          # the normal response? The same replay with each changed.
+          for probe in impratio-1 pyramidal frictionless damped-5-frictionless damped-20; do
+            case $probe in
+              impratio-1) flags=(--impratio 1) ;;
+              pyramidal) flags=(--cone pyramidal --impratio 1) ;;
+              frictionless) flags=(--friction 0) ;;
+              damped-5-frictionless) flags=(--dampratio 5 --friction 0) ;;
+              damped-20) flags=(--dampratio 20) ;;
+            esac
+            .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
+              replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco-$probe.json" \
+              --terrain "$OUT/terrain.json" --substeps 5 --solref 0.004 "${flags[@]}" $motors
+          done
           # How hard each walk drives the actuators, against the URDF's limits.
           python examples/148_go2_learning_python/trace_limits.py \
             "$OUT/trace-rne.json" "$OUT/trace-mujoco.json" | tee "$OUT/limits.json"
