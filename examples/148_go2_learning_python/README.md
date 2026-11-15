@@ -619,6 +619,57 @@ falls and distance:
   both simulators (MuJoCo stiff, blind 2026: 277 then 288), so differences
   of that size are not results.
 
+#### The PD integrated within each step
+
+`Go2LearningConfig::implicit_pd` (`train_ppo.py --implicit-pd`) integrates
+the joints' PD within each 5 ms physics step, from the state at its end,
+as `rne_dynamics`' contact step already could: the PD then acts as a
+continuous one does, as the robot's motor drivers do, and stays stable at
+the 5 ms step. The torque-speed curve rides along as per-joint torque bounds
+(`JointPdControl::torque_bounds`), set from the speed at the step's start.
+
+First, the policies above, trained with the held torque, walked in RNE with
+the implicit PD (run 43640346933; crossed and falls):
+
+| Policy, seed | RNE, held | RNE, implicit | MuJoCo stiff |
+|---|---|---|---|
+| Scan 2026 | 606, 0 | 527, 0 | 231, 25 |
+| Scan 2027 | 614, 0 | 506, 2 | 375, 16 |
+| Scan 2028 | 670, 0 | 551, 2 | 276, 38 |
+| Blind 2026 | 338, 3 | 257, 10 | 277, 4 |
+| Blind 2027 | 257, 19 | 155, 12 | 253, 10 |
+| Blind 2028 | 330, 3 | 187, 10 | 279, 4 |
+
+The implicit PD alone does not make RNE behave like MuJoCo for these
+policies: the scan walks lose a sixth of their crossings but still hardly
+fall, and the blind walks do worse than in MuJoCo.
+
+Then retrained with the implicit PD (and the torque-speed curve; run
+43640346938) and walked in both simulators from the same 64 starts (run
+43662833933); crossed, falls and distance:
+
+| Policy, seed | RNE, implicit | MuJoCo stiff | MuJoCo stiff, torque held |
+|---|---|---|---|
+| Scan 2026 | 579, 0, 15.52 m | 517, 8, 14.11 m | 493, 16, 13.67 m |
+| Scan 2027 | 565, 0, 15.14 m | 457, 6, 12.74 m | 501, 13, 13.84 m |
+| Scan 2028 | 543, 0, 14.47 m | 352, 32, 10.44 m | 335, 38, 9.95 m |
+| Blind 2026 | 290, 4, 8.95 m | 214, 10, 7.18 m | 206, 17, 6.94 m |
+| Blind 2027 | 233, 4, 7.44 m | 168, 8, 5.77 m | 156, 11, 5.49 m |
+| Blind 2028 | 298, 6, 9.07 m | 265, 6, 8.35 m | 242, 16, 7.74 m |
+
+- **The scan policies now mostly transfer.** In MuJoCo they cross 352–517
+  gaps where the held-torque policies crossed 231–375, and two of the three
+  fall 6–8 times where they fell 16–25. They keep 65–90% of their RNE
+  crossings, against 38–61% before.
+- **They no longer gain from the held torque in MuJoCo**, so they no longer
+  rely on it.
+- **They walk a little slower**, 2.9–3.1 m/s in RNE against 3.3 before,
+  still crossing about twice the gaps the blind policies do.
+- **Seed 2028 still falls in MuJoCo** (32 of 64 episodes), and every policy
+  crosses more gaps in RNE: what is left is not established.
+- MuJoCo as configured by default (20 ms contact time constant, 5 ms steps)
+  stays far off (0–14 crossings), as for every policy before.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

@@ -587,6 +587,9 @@ All notable changes to Robot Native Engine are documented in this file.
   `train_ppo.py --implicit-pd` trains with it, `walk_policy.py
   --implicit-pd` walks with it, and the binding takes `implicit_pd`.
   `Go2LearningRobot::actuator_torques_nm` reports the last step's torques.
+  Retrained with it, example 148's scan policies keep 65–90% of their
+  RNE gap crossings in MuJoCo, against 38–61% for policies trained with the
+  held torque.
 
 - The Go2 learning task can hold the joints' velocity limits. With
   `Go2LearningConfig::velocity_limits` (`Go2LearningRobot::set_velocity_limits`,
