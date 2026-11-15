@@ -696,6 +696,42 @@ impl Go2LearningRobot {
         Ok(())
     }
 
+    /// Places the robot in a given state, Z-up: the base's position,
+    /// orientation, and linear and angular velocity in the locomotion frame,
+    /// and each joint's position (rad) and velocity (rad/s) in [`LINKS`]
+    /// order. For replaying another simulator's states.
+    pub fn set_state_z_up(
+        &mut self,
+        position_m: Vec3,
+        rotation: Quat,
+        linear_velocity_m_s: Vec3,
+        angular_velocity_rad_s: Vec3,
+        joints: &[(f64, f64); 12],
+    ) -> Result<(), LocomotionError> {
+        let nv = self.sim.quadruped().model().nv();
+        let rotation = rotation.normalize();
+        // The base coordinates are roll, pitch and yaw about fixed x, y and
+        // z: rotation = Rz(yaw) Ry(pitch) Rx(roll); its rates are in the
+        // base frame.
+        let Quat { x, y, z, w } = rotation;
+        let roll = (2.0 * (w * x + y * z)).atan2(1.0 - 2.0 * (x * x + y * y));
+        let pitch = (2.0 * (w * y - z * x)).clamp(-1.0, 1.0).asin();
+        let yaw = (2.0 * (w * z + x * y)).atan2(1.0 - 2.0 * (y * y + z * z));
+        let linear = rotation.conjugate() * linear_velocity_m_s;
+        let angular = rotation.conjugate() * angular_velocity_rad_s;
+        let mut q = vec![0.0; nv];
+        let mut qd = vec![0.0; nv];
+        q[..6].copy_from_slice(&[position_m.x, position_m.y, position_m.z, roll, pitch, yaw]);
+        qd[..6].copy_from_slice(&[
+            linear.x, linear.y, linear.z, angular.x, angular.y, angular.z,
+        ]);
+        for (index, (position, velocity)) in joints.iter().enumerate() {
+            q[6 + self.actuated[index]] = *position;
+            qd[6 + self.actuated[index]] = *velocity;
+        }
+        self.sim.set_state(&q, &qd)
+    }
+
     /// Sets the joints' position targets, in [`LINKS`] order.
     pub fn set_targets_rad(&mut self, targets_rad: &[f64; 12]) {
         for (index, target) in targets_rad.iter().enumerate() {
@@ -1871,6 +1907,29 @@ mod tests {
         assert!(held[2] < free[2] - 2.0, "{held:?} {free:?}");
         // The default leaves the walk as it was.
         assert_eq!(fastest(false), free);
+    }
+
+    #[test]
+    fn a_state_set_z_up_reads_back() {
+        let mut robot = Go2LearningRobot::new(1.0, Floor::Flat).unwrap();
+        let rotation =
+            Quat::from_rotation_z(0.7) * Quat::from_rotation_y(-0.2) * Quat::from_rotation_x(0.1);
+        let joints: [(f64, f64); 12] = std::array::from_fn(|index| {
+            (DEFAULT_RAD[index] + 0.01 * index as f64, 0.1 * index as f64)
+        });
+        let (linear, angular) = (Vec3::new(1.0, -0.5, 0.2), Vec3::new(0.3, 0.2, -0.4));
+        robot
+            .set_state_z_up(Vec3::new(1.0, 2.0, 0.3), rotation, linear, angular, &joints)
+            .unwrap();
+        let (position, read) = robot.base_pose_z_up();
+        let (read_linear, read_angular) = robot.base_velocity_z_up();
+        assert!((position - Vec3::new(1.0, 2.0, 0.3)).length() < 1e-12);
+        assert!(read.dot(rotation).abs() > 1.0 - 1e-12, "{read:?}");
+        assert!((read_linear - linear).length() < 1e-12);
+        assert!((read_angular - angular).length() < 1e-12);
+        for (read, set) in robot.joint_states().iter().zip(&joints) {
+            assert!((read.0 - set.0).abs() < 1e-12 && (read.1 - set.1).abs() < 1e-12);
+        }
     }
 
     #[test]

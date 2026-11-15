@@ -60,6 +60,8 @@ def task_arguments(task):
     limits = {"velocity_limits": True} if task.get("velocity_limits") else {}
     if task.get("implicit_pd"):
         limits["implicit_pd"] = True
+    if "floor_friction" in task:
+        limits["floor_friction"] = task["floor_friction"]
     if task["floor"] == "flat":
         return limits
     arguments = {"terrain_seed": 7, "random_starts": True,
@@ -69,9 +71,13 @@ def task_arguments(task):
     return arguments
 
 
-def walk(policy, task, count):
-    """One episode from each of the first `count` evaluation starts."""
+def walk(policy, task, count, action_noise=0.0, noise_seed=0):
+    """One episode from each of the first `count` evaluation starts; with
+    `action_noise`, Gaussian noise of that standard deviation is added to
+    every action (in action units, before clipping), seeded by
+    `noise_seed`."""
     batch = rne_py_locomotion.Go2LearningBatch(count, 1, 0, **task_arguments(task))
+    noise = np.random.default_rng(noise_seed)
     starts = batch.evaluation_starts(count)
     batch.set_starts(starts)
     gaps = batch.gap_intervals()
@@ -81,6 +87,8 @@ def walk(policy, task, count):
     totals, fell, done = np.zeros(count), np.zeros(count, bool), np.zeros(count, bool)
     for _ in range(batch.episode_steps):
         actions = policy.act(observations)
+        if action_noise > 0.0:
+            actions = np.clip(actions + noise.normal(0.0, action_noise, actions.shape), -1.0, 1.0)
         before_x, before_feet = np.asarray(batch.base_positions())[:, 0], \
             np.asarray(batch.foot_positions())
         step = batch.step(actions.tolist())
@@ -217,17 +225,25 @@ def main():
     parser.add_argument("--implicit-pd", action="store_true",
                         help="walk with the joints' PD integrated within each physics step, "
                              "whatever the policy trained with")
+    parser.add_argument("--friction", type=float, default=None,
+                        help="the floor's friction coefficient (the task's is 1)")
+    parser.add_argument("--action-noise", type=float, default=0.0,
+                        help="standard deviation of Gaussian noise added to every action")
+    parser.add_argument("--noise-seed", type=int, default=0)
     parser.add_argument("--trace", nargs=2, metavar=("EPISODE", "FILE"), default=None,
                         help="write the trace of one episode of --starts")
     args = parser.parse_args()
     exported = json.load(open(args.policy))
     if args.implicit_pd:
         exported["task"]["implicit_pd"] = True
+    if args.friction is not None:
+        exported["task"]["floor_friction"] = args.friction
     if args.trace is not None:
         trace(Policy(exported["policy"]), exported["task"], int(args.trace[0]), args.trace[1])
-    episodes = walk(Policy(exported["policy"]), exported["task"], args.starts)
-    report = {"task": exported["task"], "outcome": summary(episodes), "episodes": episodes,
-              "against": {}}
+    episodes = walk(Policy(exported["policy"]), exported["task"], args.starts,
+                    args.action_noise, args.noise_seed)
+    report = {"task": exported["task"], "action_noise": args.action_noise,
+              "outcome": summary(episodes), "episodes": episodes, "against": {}}
     for entry in args.against:
         name, _, path = entry.partition("=")
         report["against"][name] = compare(episodes, path)
