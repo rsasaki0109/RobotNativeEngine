@@ -51,8 +51,8 @@ jobs:
         run: |
           python -m venv .venv-genesis
           .venv-genesis/bin/pip install --disable-pip-version-check \
-            torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
-          .venv-genesis/bin/pip install --disable-pip-version-check genesis-world==1.4.6
+            torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+          .venv-genesis/bin/pip install --disable-pip-version-check genesis-world==1.4.6 matplotlib
           .venv-genesis/bin/python -c "import genesis, mujoco; print('genesis', genesis.__version__, 'mujoco', mujoco.__version__)"
 
       - name: Build example 147
@@ -126,8 +126,8 @@ jobs:
         run: |
           python -m venv .venv-genesis
           .venv-genesis/bin/pip install --disable-pip-version-check \
-            torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
-          .venv-genesis/bin/pip install --disable-pip-version-check genesis-world==1.4.6
+            torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+          .venv-genesis/bin/pip install --disable-pip-version-check genesis-world==1.4.6 matplotlib
 
       - name: Build example 147
         run: cargo build --locked --release -p go2_learning --example 147_go2_learning
