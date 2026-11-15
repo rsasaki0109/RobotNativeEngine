@@ -156,10 +156,13 @@ def add_floor(spec, floor_friction, terrain):
     floor.group = FLOOR_GROUP
 
 
-def build_model(floor_friction, cone, impratio, terrain=None, substeps=1, solref_s=None):
+def build_model(floor_friction, cone, impratio, terrain=None, substeps=1, solref_s=None,
+                armature=0.0):
     """The Go2 on its floor. `substeps` splits each physics step (a
-    diagnostic: the episode is the same in simulated time), and `solref_s`
-    sets every contact's time constant (MuJoCo's default is 0.02 s)."""
+    diagnostic: the episode is the same in simulated time), `solref_s`
+    sets every contact's time constant (MuJoCo's default is 0.02 s), and
+    `armature` gives every joint that rotor inertia (kg·m²), as RNE's
+    `Go2LearningConfig::armature_kg_m2`."""
     spec = mujoco.MjSpec.from_string(urdf_without_visuals())
     # Links without an <inertial> are massless, as in the URDF specification
     # and in RNE, instead of taking mass from their geoms at 1000 kg/m^3.
@@ -179,6 +182,7 @@ def build_model(floor_friction, cone, impratio, terrain=None, substeps=1, solref
     for name in JOINTS:
         actuator = spec.add_actuator(name=name, target=name, trntype=mujoco.mjtTrn.mjTRN_JOINT)
         actuator.set_to_position(kp=KP_NM_PER_RAD, kv=KD_NM_S_PER_RAD)
+        spec.joint(name).armature = armature
         actuator.forcelimited = True
         # The URDF effort limit, which the importer stores on the joint.
         actuator.forcerange = spec.joint(name).actfrcrange
@@ -193,7 +197,8 @@ class Go2:
         self.terrain = load_terrain(plant.get("terrain"))
         self.substeps = plant.get("substeps", 1)
         self.model = build_model(plant["floor_friction"], plant["cone"], plant["impratio"],
-                                 self.terrain, self.substeps, plant.get("solref_s"))
+                                 self.terrain, self.substeps, plant.get("solref_s"),
+                                 plant.get("armature", 0.0))
         self.data = mujoco.MjData(self.model)
         ids = [self.model.joint(name).id for name in JOINTS]
         self.qpos = np.array([self.model.jnt_qposadr[i] for i in ids])
@@ -1117,6 +1122,8 @@ def main():
             plant["solref_s"] = arguments.solref
         policy, task = load_policy(arguments.policy, arguments.generation)
         trained = json.loads(Path(arguments.policy).read_text()).get("task", {})
+        if trained.get("armature_kg_m2"):
+            plant["armature"] = trained["armature_kg_m2"]
         if arguments.velocity_limits or trained.get("velocity_limits"):
             plant["velocity_limits"] = True
         if arguments.hold_torque:

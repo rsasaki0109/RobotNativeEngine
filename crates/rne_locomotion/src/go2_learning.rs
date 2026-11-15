@@ -101,6 +101,10 @@ pub const START_STREAM: u64 = 0x5354_4152_5453_0147;
 /// An episode's stream of recycled curriculum levels is seeded with its
 /// seed XOR this ([`DepthCurriculum::recycle`]).
 pub const LEVEL_STREAM: u64 = 0x4c45_5645_4c53_0147;
+/// The Go2's rotor inertia per joint, kg·m², as MuJoCo Menagerie's Go2
+/// model gives every joint (`armature="0.01"`): each motor's rotor
+/// reflected through its gearing ([`Go2LearningConfig::armature_kg_m2`]).
+pub const GO2_ARMATURE_KG_M2: f64 = 0.01;
 /// An episode's stream of disturbances ([`Randomization`]) is seeded with
 /// its seed XOR this.
 pub const DISTURBANCE_STREAM: u64 = 0x4449_5354_5552_0147;
@@ -619,6 +623,17 @@ impl Go2LearningRobot {
         Ok(())
     }
 
+    /// Gives every joint the rotor inertia `armature` (kg·m², 0 by
+    /// default; the Go2's is [`GO2_ARMATURE_KG_M2`]): the motor's rotor
+    /// turning with the joint through its gearing, which slows the joint's
+    /// response to a torque as MuJoCo's joint `armature` does. A calf's own
+    /// inertia is about 0.005 kg·m², so the Go2's rotor triples it. Call it
+    /// before [`Self::set_velocity_limits`], whose braking cap reads the
+    /// joints' inertia.
+    pub fn set_joint_armature(&mut self, armature: f64) -> Result<(), LocomotionError> {
+        self.sim.set_joint_armature(armature)
+    }
+
     /// Scales the joints' PD gains by `strength` (1 by default), as a motor
     /// stronger or weaker than nominal. The effort limits and the
     /// torque-speed curve stay as they are.
@@ -1132,6 +1147,9 @@ pub struct Go2LearningConfig {
     pub implicit_pd: bool,
     /// Disturbances for domain randomization; none by default.
     pub randomization: Randomization,
+    /// Rotor inertia of every joint, kg·m² (0 by default; the Go2's is
+    /// [`GO2_ARMATURE_KG_M2`]): see [`Go2LearningRobot::set_joint_armature`].
+    pub armature_kg_m2: f64,
 }
 
 impl Default for Go2LearningConfig {
@@ -1145,6 +1163,7 @@ impl Default for Go2LearningConfig {
             velocity_limits: false,
             implicit_pd: false,
             randomization: Randomization::default(),
+            armature_kg_m2: 0.0,
         }
     }
 }
@@ -1210,6 +1229,9 @@ impl Go2LearningEpisode {
         }
         config.randomization.validate()?;
         let mut robot = Go2LearningRobot::new(config.floor_friction, config.floor)?;
+        if config.armature_kg_m2 != 0.0 {
+            robot.set_joint_armature(config.armature_kg_m2)?;
+        }
         robot.set_velocity_limits(config.velocity_limits)?;
         robot.set_implicit_pd(config.implicit_pd)?;
         Ok(Self {
@@ -2153,6 +2175,40 @@ mod tests {
             })
             .is_err());
         }
+    }
+
+    #[test]
+    fn rotor_inertia_slows_the_swinging_joints() {
+        let swing = |armature_kg_m2: f64| {
+            let mut episode = Go2LearningEpisode::new(Go2LearningConfig {
+                implicit_pd: true,
+                armature_kg_m2,
+                ..Go2LearningConfig::default()
+            })
+            .unwrap();
+            episode.reset();
+            let height = episode.robot().base_pose_z_up().0.z;
+            let mut fastest = [0.0_f64; 3];
+            for step in 0..60 {
+                let sign = if (step / 3) % 2 == 0 { 1.0 } else { -1.0 };
+                episode.step([sign; 12]);
+                for (index, (_, velocity)) in episode.robot().joint_states().iter().enumerate() {
+                    fastest[index % 3] = fastest[index % 3].max(velocity.abs());
+                }
+            }
+            (height, fastest)
+        };
+        let (bare_height, bare) = swing(0.0);
+        let (height, rotor) = swing(GO2_ARMATURE_KG_M2);
+        // It stands as before: the rotor adds no weight.
+        assert!(
+            (height - bare_height).abs() < 0.01,
+            "{height} {bare_height}"
+        );
+        // The calves, lightest of the joints, slow the most.
+        assert!(rotor[2] < 0.8 * bare[2], "{rotor:?} {bare:?}");
+        let mut robot = Go2LearningRobot::new(1.0, Floor::Flat).unwrap();
+        assert!(robot.set_joint_armature(-0.01).is_err());
     }
 
     #[test]

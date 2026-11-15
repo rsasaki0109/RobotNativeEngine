@@ -14,8 +14,9 @@ plant differs:
 - the PD (kp 20, kd 0.5) in Genesis's position control, within the URDF's
   effort limits, and with `--velocity-limits` the torque-speed curve
   (`motor_torque_range`) set before every physics step, as MuJoCo's script;
-- no rotor inertia: Genesis gives each joint 0.1 kg·m² of armature by
-  default, twenty times a calf's own inertia, which RNE and MuJoCo lack;
+- the rotor inertia the policy trained with (its task's `armature_kg_m2`,
+  none by default): Genesis would otherwise give each joint 0.1 kg·m² of
+  armature, twenty times a calf's own inertia;
 - no self-collision, as in RNE and MuJoCo.
 
 Usage: genesis_go2_learning.py stand [--terrain TERRAIN.json]
@@ -109,7 +110,8 @@ class GenesisGo2(mj.Go2):
         urdf.write_text(mj.urdf_without_visuals())
         self.robot = self.scene.add_entity(
             gs.morphs.URDF(file=str(urdf), pos=(0.0, 0.0, mj.SPAWN_HEIGHT_M),
-                           merge_fixed_links=True, default_armature=None),
+                           merge_fixed_links=True,
+                           default_armature=plant.get("armature") or None),
             material=material)
         self.scene.build()
         self.dofs = [joint_dof(self.robot, name) for name in mj.JOINTS]
@@ -256,6 +258,8 @@ def main():
     else:
         policy, task = mj.load_policy(arguments.policy, None)
         trained = json.loads(arguments.policy.read_text()).get("task", {})
+        if trained.get("armature_kg_m2"):
+            plant["armature"] = trained["armature_kg_m2"]
         if arguments.velocity_limits or trained.get("velocity_limits"):
             plant["velocity_limits"] = True
         robot = GenesisGo2(plant, task)

@@ -60,6 +60,8 @@ def task_arguments(task):
     limits = {"velocity_limits": True} if task.get("velocity_limits") else {}
     if task.get("implicit_pd"):
         limits["implicit_pd"] = True
+    if task.get("armature_kg_m2"):
+        limits["armature"] = task["armature_kg_m2"]
     if "floor_friction" in task:
         limits["floor_friction"] = task["floor_friction"]
     if task["floor"] == "flat":

@@ -576,6 +576,19 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Joint rotor inertia in `rne_dynamics`:
+  `ArticulatedModel::set_joint_armature` and `joint_armature` give a joint
+  coordinate the inertia of a motor's rotor reflected through its gearing,
+  which the mass matrix, `rnea`, `aba`, `forward_dynamics` and the contact
+  step all include, as MuJoCo's joint `armature`. `Quadruped` and
+  `QuadrupedTerrainSim` gain `set_joint_armature`; the Go2 learning task
+  takes `Go2LearningConfig::armature_kg_m2` (`GO2_ARMATURE_KG_M2`, 0.01,
+  MuJoCo Menagerie's value), off by default. The binding takes
+  `armature`; example 148's `train_ppo.py --armature` trains with it, and
+  `walk_policy.py`, `mujoco_go2_learning.py` and `genesis_go2_learning.py`
+  walk a policy with the rotor inertia it trained with. The depth-levels
+  workflow trains with 0.01.
+
 - Domain randomization for the Go2 learning task:
   `Go2LearningConfig::randomization` (`Randomization`) draws each
   episode's floor friction and motor strength (a factor on the PD gains)

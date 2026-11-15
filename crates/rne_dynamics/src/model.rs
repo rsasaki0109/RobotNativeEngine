@@ -81,6 +81,9 @@ pub(crate) struct DofSpec {
     pub(crate) limits: Option<(f64, f64)>,
     /// Actuator effort bound (N·m or N) of the joint, when finite.
     pub(crate) max_effort: Option<f64>,
+    /// Rotor inertia reflected through the joint's gearing (kg·m² or kg),
+    /// added to the joint's own diagonal of the mass matrix; zero unless set.
+    pub(crate) armature: f64,
 }
 
 /// Prescribed motion of a fixed base, in the model's world frame: the
@@ -212,6 +215,7 @@ impl ArticulatedModel {
                 s,
                 limits: None,
                 max_effort: None,
+                armature: 0.0,
             });
             link_dofs[0].push(dof);
         }
@@ -243,6 +247,7 @@ impl ArticulatedModel {
                                 limits: position_limits(*kind, *lower, *upper),
                                 max_effort: (effort.is_finite() && *effort > 0.0)
                                     .then_some(*effort),
+                                armature: 0.0,
                             });
                             link_dof.push(global_dof);
                         }
@@ -363,6 +368,36 @@ impl ArticulatedModel {
     /// `max_effort` is not finite and positive.
     pub fn joint_effort_limit(&self, dof: usize) -> Option<f64> {
         self.dofs.get(dof).and_then(|spec| spec.max_effort)
+    }
+
+    /// Rotor inertia of velocity coordinate `dof` (kg·m² for a revolute
+    /// joint, kg for a prismatic one): zero unless set with
+    /// [`Self::set_joint_armature`], and for floating-base coordinates.
+    pub fn joint_armature(&self, dof: usize) -> f64 {
+        self.dofs.get(dof).map_or(0.0, |spec| spec.armature)
+    }
+
+    /// Gives joint coordinate `dof` a rotor inertia, `armature` (kg·m² for
+    /// a revolute joint, kg for a prismatic one): the inertia of a motor's
+    /// rotor reflected through its gearing, which turns with the joint and
+    /// adds to the joint's own diagonal entry of the mass matrix, as
+    /// MuJoCo's joint `armature` does. Every algorithm of this crate
+    /// ([`crate::mass_matrix`], [`crate::rnea`], [`crate::aba`],
+    /// [`crate::forward_dynamics`] and the contact step) includes it.
+    ///
+    /// # Errors
+    ///
+    /// [`DynamicsError::InvalidContact`] for a floating-base coordinate, a
+    /// coordinate out of range, or an armature that is negative or not
+    /// finite.
+    pub fn set_joint_armature(&mut self, dof: usize, armature: f64) -> Result<(), DynamicsError> {
+        if dof < self.base_dof || dof >= self.nv || !(armature.is_finite() && armature >= 0.0) {
+            return Err(DynamicsError::InvalidContact(
+                "armature needs a joint coordinate and a finite, non-negative value",
+            ));
+        }
+        self.dofs[dof].armature = armature;
+        Ok(())
     }
 
     /// Underlying kinematic model used for link ordering and forward kinematics.

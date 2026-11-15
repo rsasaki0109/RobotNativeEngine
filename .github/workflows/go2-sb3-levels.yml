@@ -27,7 +27,9 @@ name: Go2 SB3 PPO depth levels
 # but its policies proved brittle: they fall in RNE too under action noise of
 # 0.1 rad, as often as in MuJoCo. They now train under disturbance
 # (--domain-randomization: floor friction, motor strength, action noise and
-# pushes); the held-out evaluation stays undisturbed.
+# pushes); the held-out evaluation stays undisturbed. Run 43674672352
+# trained so. The joints now also carry the Go2's rotor inertia
+# (--armature 0.01 kg m^2, MuJoCo Menagerie's value), which no plant had.
 # Each job trains one policy, blind or with the height scan, on one seed,
 # and after each of four stages walks it once in each of 64 held-out
 # environments at every level: gaps crossed, falls, how the episodes ended,
@@ -56,6 +58,10 @@ on:
         description: "Integrate the joints' PD within each physics step"
         required: false
         default: "true"
+      armature:
+        description: "Rotor inertia of every joint, kg m^2 (0 for none)"
+        required: false
+        default: "0.01"
       domain_randomization:
         description: "Train under disturbance (friction, motor strength, action noise, pushes)"
         required: false
@@ -91,6 +97,7 @@ jobs:
       LIMITS: ${{ inputs.velocity_limits == 'false' && ' ' || '--velocity-limits' }}
       PD: ${{ inputs.implicit_pd == 'false' && ' ' || '--implicit-pd' }}
       DR: ${{ inputs.domain_randomization == 'false' && ' ' || '--domain-randomization' }}
+      ARMATURE: ${{ inputs.armature || '0.01' }}
       OUT: artifacts/go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
     steps:
       - name: Checkout
@@ -121,7 +128,7 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
           # shellcheck disable=SC2086
-          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN $RECYCLE $LIMITS $PD $DR \
+          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN $RECYCLE $LIMITS $PD $DR --armature "$ARMATURE" \
             --depth-levels "$DEPTH_LEVELS" --timesteps "$TIMESTEPS" --n-envs "$N_ENVS" \
             --seed "$SEED" --out "$OUT" | tee "$OUT.log"
           mv "$OUT.log" "$OUT/train.log"

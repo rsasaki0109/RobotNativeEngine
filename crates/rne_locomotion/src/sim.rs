@@ -298,6 +298,13 @@ impl QuadrupedTerrainSim {
         Ok(())
     }
 
+    /// Gives every actuated joint the rotor inertia `armature` (kg·m²):
+    /// see [`Quadruped::set_joint_armature`]. The simulated quadruped is
+    /// copied if it is shared.
+    pub fn set_joint_armature(&mut self, armature: f64) -> Result<(), LocomotionError> {
+        Arc::make_mut(&mut self.quadruped).set_joint_armature(armature)
+    }
+
     /// Sets the foot- and body-terrain Coulomb friction coefficient.
     pub fn set_friction_coefficient(&mut self, friction: f64) -> Result<(), LocomotionError> {
         if !(friction.is_finite() && friction >= 0.0) {
