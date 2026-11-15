@@ -142,15 +142,14 @@ jobs:
       - name: Trace an episode the simulators disagree on
         run: |
           set -euo pipefail
-          # The first episode MuJoCo (stiff) crosses a gap in and RNE does
-          # not, or else the one where they differ most.
+          # The first episode that falls in MuJoCo (stiff) and not in RNE,
+          # or else the one where RNE crosses the most gaps more.
           episode=$(python - "$OUT/rne.json" <<'PY'
           import json, sys
           pairs = json.load(open(sys.argv[1]))["against"]["stiff"]["episodes"]
-          gap = [p["mujoco"]["gaps_crossed"] - p["rne"]["gaps_crossed"] for p in pairs]
-          clear = [i for i, p in enumerate(pairs)
-                   if p["rne"]["gaps_crossed"] == 0 and p["mujoco"]["gaps_crossed"] > 0]
-          print(clear[0] if clear else max(range(len(gap)), key=lambda i: gap[i]))
+          gap = [p["rne"]["gaps_crossed"] - p["mujoco"]["gaps_crossed"] for p in pairs]
+          fell = [i for i, p in enumerate(pairs) if p["mujoco"]["fell"] and not p["rne"]["fell"]]
+          print(fell[0] if fell else max(range(len(gap)), key=lambda i: gap[i]))
           PY
           )
           echo "episode $episode"
