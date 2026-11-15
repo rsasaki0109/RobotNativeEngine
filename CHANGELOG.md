@@ -576,6 +576,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 147's `genesis_go2_learning.py` walks example 148's gap policies
+  in Genesis 1.4.6 with the MuJoCo script's episode, observation, policies
+  and starts (its `Go2` now reads state through methods a plant overrides),
+  with Genesis's default rotor inertia turned off; the `Go2 SB3 PPO in
+  Genesis` workflow checks the plant and walks each policy in Genesis and
+  RNE. Example 148's README records that Genesis lands where MuJoCo does:
+  both cross 10-40% fewer gaps than RNE, while episode by episode no two
+  of the three simulators agree.
+
 - Example 147's `--replay TRACE.json` steps RNE from the states of a
   MuJoCo trace with the targets it applied, one control period from each
   state or open loop from one (`--replay-from`, `--replay-periods`), with
