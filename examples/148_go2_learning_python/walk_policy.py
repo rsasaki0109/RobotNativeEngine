@@ -62,6 +62,8 @@ def task_arguments(task):
         limits["implicit_pd"] = True
     if task.get("armature_kg_m2"):
         limits["armature"] = task["armature_kg_m2"]
+    if task.get("physics_substeps", 1) != 1:
+        limits["substeps"] = task["physics_substeps"]
     if "floor_friction" in task:
         limits["floor_friction"] = task["floor_friction"]
     if task["floor"] == "flat":
@@ -227,6 +229,9 @@ def main():
     parser.add_argument("--implicit-pd", action="store_true",
                         help="walk with the joints' PD integrated within each physics step, "
                              "whatever the policy trained with")
+    parser.add_argument("--substeps", type=int, default=None,
+                        help="split each 5 ms physics step into this many, whatever the "
+                             "policy trained with (5 steps at MuJoCo's 1 ms)")
     parser.add_argument("--friction", type=float, default=None,
                         help="the floor's friction coefficient (the task's is 1)")
     parser.add_argument("--action-noise", type=float, default=0.0,
@@ -238,6 +243,8 @@ def main():
     exported = json.load(open(args.policy))
     if args.implicit_pd:
         exported["task"]["implicit_pd"] = True
+    if args.substeps is not None:
+        exported["task"]["physics_substeps"] = args.substeps
     if args.friction is not None:
         exported["task"]["floor_friction"] = args.friction
     if args.trace is not None:

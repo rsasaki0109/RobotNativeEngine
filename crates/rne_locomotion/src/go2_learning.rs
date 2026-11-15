@@ -527,6 +527,7 @@ pub struct Go2LearningRobot {
     actuator_torques_nm: [f64; 12],
     /// Factor on the PD gains ([`Self::set_motor_strength`]).
     motor_strength: f64,
+    physics_substeps: usize,
     /// Force on the base, locomotion frame, through its origin, held over
     /// every physics step until changed.
     base_force_n: Vec3,
@@ -588,6 +589,7 @@ impl Go2LearningRobot {
             implicit_pd: false,
             actuator_torques_nm: [0.0; 12],
             motor_strength: 1.0,
+            physics_substeps: 1,
             base_force_n: Vec3::ZERO,
             contact_load: vec![(0.0, 0); links],
         };
@@ -632,6 +634,29 @@ impl Go2LearningRobot {
     /// joints' inertia.
     pub fn set_joint_armature(&mut self, armature: f64) -> Result<(), LocomotionError> {
         self.sim.set_joint_armature(armature)
+    }
+
+    /// Splits each [`DT_S`] physics step into `substeps` steps, 1 by
+    /// default: the PD torque, held or integrated implicitly
+    /// ([`Self::set_implicit_pd`]), and the contacts are then computed that
+    /// much more often, as MuJoCo's position actuators recompute their PD
+    /// every physics step. A control period stays [`CONTROL_DT_S`] long.
+    ///
+    /// # Errors
+    ///
+    /// [`LocomotionError::InvalidInput`] for zero substeps.
+    pub fn set_physics_substeps(&mut self, substeps: usize) -> Result<(), LocomotionError> {
+        if substeps == 0 {
+            return Err(LocomotionError::InvalidInput("physics substeps"));
+        }
+        self.sim.set_step_time_s(DT_S / substeps as f64)?;
+        self.physics_substeps = substeps;
+        Ok(())
+    }
+
+    /// The number of steps each [`DT_S`] physics step is split into.
+    pub fn physics_substeps(&self) -> usize {
+        self.physics_substeps
     }
 
     /// Scales the joints' PD gains by `strength` (1 by default), as a motor
@@ -793,12 +818,13 @@ impl Go2LearningRobot {
         }
     }
 
-    /// One control period: [`DECIMATION`] physics steps, each with the PD
-    /// torque held from its start or integrated implicitly
-    /// ([`Self::set_implicit_pd`]), within the effort limits and, when set,
-    /// the torque-speed curve.
+    /// One control period: [`DECIMATION`] physics steps, each split into
+    /// [`Self::set_physics_substeps`] steps, each with the PD torque held
+    /// from its start or integrated implicitly ([`Self::set_implicit_pd`]),
+    /// within the effort limits and, when set, the torque-speed curve.
     pub fn step(&mut self) -> Result<(), LocomotionError> {
-        for _ in 0..DECIMATION {
+        let dt_s = DT_S / self.physics_substeps as f64;
+        for _ in 0..DECIMATION * self.physics_substeps {
             let positions = self.sim.joint_positions_rad();
             let velocities = self.sim.joint_velocities_rad_s();
             let limits = self.sim.quadruped().effort_limits();
@@ -811,7 +837,7 @@ impl Go2LearningRobot {
                         velocities[joint],
                         speeds[joint],
                         inertias[joint],
-                        DT_S,
+                        dt_s,
                     ),
                     None => (-limit, limit),
                 };
@@ -1150,6 +1176,9 @@ pub struct Go2LearningConfig {
     /// Rotor inertia of every joint, kg·m² (0 by default; the Go2's is
     /// [`GO2_ARMATURE_KG_M2`]): see [`Go2LearningRobot::set_joint_armature`].
     pub armature_kg_m2: f64,
+    /// Steps each [`DT_S`] physics step is split into, 1 by default: see
+    /// [`Go2LearningRobot::set_physics_substeps`].
+    pub physics_substeps: usize,
 }
 
 impl Default for Go2LearningConfig {
@@ -1164,6 +1193,7 @@ impl Default for Go2LearningConfig {
             implicit_pd: false,
             randomization: Randomization::default(),
             armature_kg_m2: 0.0,
+            physics_substeps: 1,
         }
     }
 }
@@ -1234,6 +1264,7 @@ impl Go2LearningEpisode {
         }
         robot.set_velocity_limits(config.velocity_limits)?;
         robot.set_implicit_pd(config.implicit_pd)?;
+        robot.set_physics_substeps(config.physics_substeps)?;
         Ok(Self {
             robot,
             gaps: config.gaps(),
@@ -2175,6 +2206,51 @@ mod tests {
             })
             .is_err());
         }
+    }
+
+    #[test]
+    fn finer_physics_steps_bring_the_pd_to_its_continuous_response() {
+        // Held in the air, a step in every target, one control period: the
+        // joint velocities at its end, with each 5 ms step split `substeps`
+        // ways and the PD held or implicit.
+        let response = |implicit: bool, substeps: usize| {
+            let mut robot = Go2LearningRobot::new(1.0, Floor::Flat).unwrap();
+            robot.set_joint_armature(GO2_ARMATURE_KG_M2).unwrap();
+            robot.set_implicit_pd(implicit).unwrap();
+            robot.set_physics_substeps(substeps).unwrap();
+            let joints: [(f64, f64); 12] = std::array::from_fn(|index| (DEFAULT_RAD[index], 0.0));
+            robot
+                .set_state_z_up(
+                    Vec3::new(0.0, 0.0, 2.0),
+                    Quat::IDENTITY,
+                    Vec3::ZERO,
+                    Vec3::ZERO,
+                    &joints,
+                )
+                .unwrap();
+            let start = robot.sim.time_s();
+            robot.set_targets_rad(&std::array::from_fn(|index| DEFAULT_RAD[index] + 0.3));
+            robot.step().unwrap();
+            assert!((robot.sim.time_s() - start - CONTROL_DT_S).abs() < 1e-12);
+            robot.joint_states().map(|joint| joint.1)
+        };
+        let distance = |a: [f64; 12], b: [f64; 12]| {
+            a.iter()
+                .zip(&b)
+                .map(|(a, b)| (a - b).powi(2))
+                .sum::<f64>()
+                .sqrt()
+        };
+        // A continuous PD, as near as 0.25 ms steps get.
+        let continuous = response(false, 20);
+        for implicit in [false, true] {
+            let coarse = distance(response(implicit, 1), continuous);
+            let fine = distance(response(implicit, 5), continuous);
+            assert!(fine < 0.5 * coarse, "implicit {implicit}: {fine} {coarse}");
+        }
+        let mut robot = Go2LearningRobot::new(1.0, Floor::Flat).unwrap();
+        assert!(robot.set_physics_substeps(0).is_err());
+        assert_eq!(robot.physics_substeps(), 1);
     }
 
     #[test]

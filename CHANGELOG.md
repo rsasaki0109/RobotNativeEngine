@@ -576,6 +576,19 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Physics substeps for the Go2 learning task:
+  `Go2LearningRobot::set_physics_substeps` (`Go2LearningConfig::physics_substeps`,
+  the binding's `substeps`, `--substeps` in example 148's `train_ppo.py`
+  and `walk_policy.py` and in example 147's `--replay`) splits each 5 ms
+  physics step, as MuJoCo's position actuators recompute their PD every
+  millisecond; `QuadrupedTerrainSim::set_step_time_s` sets the step.
+  Example 147's `--replay` takes `--armature` and reports the ground's
+  normal impulse through each link, `mujoco_go2_learning.py replay` the
+  same per body and geom type, and `--dampratio` damps MuJoCo's contacts.
+  Example 148's README shows that MuJoCo's stiff contacts send a striking
+  shin back up with twice RNE's impulse, and that damped they take it as
+  RNE does and the scan policies fall about half as often.
+
 - Joint rotor inertia in `rne_dynamics`:
   `ArticulatedModel::set_joint_armature` and `joint_armature` give a joint
   coordinate the inertia of a motor's rotor reflected through its gearing,
