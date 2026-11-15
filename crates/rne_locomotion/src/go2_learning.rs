@@ -101,6 +101,9 @@ pub const START_STREAM: u64 = 0x5354_4152_5453_0147;
 /// An episode's stream of recycled curriculum levels is seeded with its
 /// seed XOR this ([`DepthCurriculum::recycle`]).
 pub const LEVEL_STREAM: u64 = 0x4c45_5645_4c53_0147;
+/// An episode's stream of disturbances ([`Randomization`]) is seeded with
+/// its seed XOR this.
+pub const DISTURBANCE_STREAM: u64 = 0x4449_5354_5552_0147;
 /// Seed of the held-out evaluation starts.
 pub const EVALUATION_STARTS_SEED: u64 = 0x4556_414C_0147;
 /// Fitness and reward weight per meter sideways.
@@ -518,6 +521,11 @@ pub struct Go2LearningRobot {
     implicit_pd: bool,
     /// The last physics step's actuator torques, by actuated coordinate.
     actuator_torques_nm: [f64; 12],
+    /// Factor on the PD gains ([`Self::set_motor_strength`]).
+    motor_strength: f64,
+    /// Force on the base, locomotion frame, through its origin, held over
+    /// every physics step until changed.
+    base_force_n: Vec3,
     /// By kinematic link: the ground's normal impulse through it and the
     /// physics steps it carried any.
     contact_load: Vec<(f64, usize)>,
@@ -575,6 +583,8 @@ impl Go2LearningRobot {
             velocity_limits_rad_s: None,
             implicit_pd: false,
             actuator_torques_nm: [0.0; 12],
+            motor_strength: 1.0,
+            base_force_n: Vec3::ZERO,
             contact_load: vec![(0.0, 0); links],
         };
         robot.restart_at([0.0, 0.0])?;
@@ -597,12 +607,41 @@ impl Go2LearningRobot {
     /// start.
     pub fn set_implicit_pd(&mut self, implicit: bool) -> Result<(), LocomotionError> {
         let (kp, kd) = if implicit {
-            (KP_NM_PER_RAD, KD_NM_S_PER_RAD)
+            (
+                self.motor_strength * KP_NM_PER_RAD,
+                self.motor_strength * KD_NM_S_PER_RAD,
+            )
         } else {
             (0.0, 0.0)
         };
         self.sim.set_pd_gains(kp, kd)?;
         self.implicit_pd = implicit;
+        Ok(())
+    }
+
+    /// Scales the joints' PD gains by `strength` (1 by default), as a motor
+    /// stronger or weaker than nominal. The effort limits and the
+    /// torque-speed curve stay as they are.
+    pub fn set_motor_strength(&mut self, strength: f64) -> Result<(), LocomotionError> {
+        if !(strength.is_finite() && strength > 0.0) {
+            return Err(LocomotionError::InvalidInput("motor strength"));
+        }
+        self.motor_strength = strength;
+        self.set_implicit_pd(self.implicit_pd)
+    }
+
+    /// Sets the floor's Coulomb friction coefficient.
+    pub fn set_floor_friction(&mut self, friction: f64) -> Result<(), LocomotionError> {
+        self.sim.set_friction_coefficient(friction)
+    }
+
+    /// Holds `force_n` (locomotion frame, through the base origin) on the
+    /// base over every physics step until set again; zero by default.
+    pub fn set_base_force_n(&mut self, force_n: Vec3) -> Result<(), LocomotionError> {
+        if !force_n.is_finite() {
+            return Err(LocomotionError::InvalidInput("base force"));
+        }
+        self.base_force_n = force_n;
         Ok(())
     }
 
@@ -768,19 +807,21 @@ impl Go2LearningRobot {
                     .positions_rad
                     .copy_from_slice(&self.targets_rad);
                 self.command.feedforward_nm.clear();
-                self.sim.step_bounded(&self.command, Vec3::ZERO, &bounds)?
+                self.sim
+                    .step_bounded(&self.command, self.base_force_n, &bounds)?
             } else {
                 let torques: Vec<f64> = (0..12)
                     .map(|joint| {
-                        let torque = KP_NM_PER_RAD * (self.targets_rad[joint] - positions[joint])
-                            - KD_NM_S_PER_RAD * velocities[joint];
+                        let torque = self.motor_strength
+                            * (KP_NM_PER_RAD * (self.targets_rad[joint] - positions[joint])
+                                - KD_NM_S_PER_RAD * velocities[joint]);
                         torque.clamp(bounds[joint][0], bounds[joint][1])
                     })
                     .collect();
                 // With zero PD gains the position targets only fill the command.
                 self.command.positions_rad.copy_from_slice(positions);
                 self.command.feedforward_nm = torques;
-                self.sim.step(&self.command, Vec3::ZERO)?
+                self.sim.step(&self.command, self.base_force_n)?
             };
             for (slot, torque) in self
                 .actuator_torques_nm
@@ -998,6 +1039,77 @@ pub fn has_fallen(position: Vec3, rotation: Quat, ground_m: f64, arena_half_m: f
     clearance < FALL_HEIGHT_M || gravity_z > FALL_GRAVITY_Z || outside
 }
 
+/// Disturbances that train a policy to tolerate a plant other than the one
+/// it trains on (domain randomization). None by default.
+///
+/// Each episode draws its floor friction and motor strength anew; each
+/// control period adds noise to the action and may push the robot. The
+/// draws come from the episode's own stream ([`DISTURBANCE_STREAM`]), so a
+/// batch stays deterministic.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Randomization {
+    /// The floor's friction coefficient, drawn uniformly per episode from
+    /// this range; `None` keeps [`Go2LearningConfig::floor_friction`].
+    pub friction: Option<[f64; 2]>,
+    /// A factor on the joints' PD gains, drawn uniformly per episode from
+    /// this range ([`Go2LearningRobot::set_motor_strength`]); `None` keeps 1.
+    pub motor_strength: Option<[f64; 2]>,
+    /// Standard deviation of Gaussian noise added to each action, in action
+    /// units, every control period. The robot tracks the noisy action
+    /// (clamped to [-1, 1]); the observation and the reward see the
+    /// policy's own.
+    pub action_noise: f64,
+    /// Chance in each control period of a push: a horizontal force on the
+    /// base over that period that changes its velocity by up to
+    /// [`Self::push_velocity_m_s`] along x and along y, uniformly.
+    pub push_probability: f64,
+    /// The largest velocity change of a push along each horizontal axis, in
+    /// meters per second.
+    pub push_velocity_m_s: f64,
+}
+
+impl Default for Randomization {
+    fn default() -> Self {
+        Self {
+            friction: None,
+            motor_strength: None,
+            action_noise: 0.0,
+            push_probability: 0.0,
+            push_velocity_m_s: 0.0,
+        }
+    }
+}
+
+impl Randomization {
+    /// Whether it disturbs nothing.
+    pub fn is_none(&self) -> bool {
+        *self == Self::default()
+    }
+
+    fn validate(&self) -> Result<(), LocomotionError> {
+        let range = |range: Option<[f64; 2]>, positive: bool| {
+            range.is_none_or(|[low, high]| {
+                low.is_finite()
+                    && high.is_finite()
+                    && low <= high
+                    && if positive { low > 0.0 } else { low >= 0.0 }
+            })
+        };
+        let ok = range(self.friction, false)
+            && range(self.motor_strength, true)
+            && self.action_noise.is_finite()
+            && self.action_noise >= 0.0
+            && (0.0..=1.0).contains(&self.push_probability)
+            && self.push_velocity_m_s.is_finite()
+            && self.push_velocity_m_s >= 0.0;
+        if ok {
+            Ok(())
+        } else {
+            Err(LocomotionError::InvalidInput("randomization"))
+        }
+    }
+}
+
 /// A [`Go2LearningEpisode`]'s floor and task.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Go2LearningConfig {
@@ -1018,6 +1130,8 @@ pub struct Go2LearningConfig {
     /// Integrate the joints' PD within each physics step instead of holding
     /// its torque over the step ([`Go2LearningRobot::set_implicit_pd`]).
     pub implicit_pd: bool,
+    /// Disturbances for domain randomization; none by default.
+    pub randomization: Randomization,
 }
 
 impl Default for Go2LearningConfig {
@@ -1030,6 +1144,7 @@ impl Default for Go2LearningConfig {
             seed: 0,
             velocity_limits: false,
             implicit_pd: false,
+            randomization: Randomization::default(),
         }
     }
 }
@@ -1082,6 +1197,7 @@ pub struct Go2LearningEpisode {
     level: Option<u32>,
     level_draws: SplitMix64,
     fixed_start: Option<[f64; 2]>,
+    disturbances: SplitMix64,
 }
 
 impl Go2LearningEpisode {
@@ -1092,6 +1208,7 @@ impl Go2LearningEpisode {
                 "random starts need a terrain",
             ));
         }
+        config.randomization.validate()?;
         let mut robot = Go2LearningRobot::new(config.floor_friction, config.floor)?;
         robot.set_velocity_limits(config.velocity_limits)?;
         robot.set_implicit_pd(config.implicit_pd)?;
@@ -1110,6 +1227,7 @@ impl Go2LearningEpisode {
             level: None,
             level_draws: SplitMix64(config.seed ^ LEVEL_STREAM),
             fixed_start: None,
+            disturbances: SplitMix64(config.seed ^ DISTURBANCE_STREAM),
         })
     }
 
@@ -1216,6 +1334,20 @@ impl Go2LearningEpisode {
             let fraction = (start[1] - low) / (high - low);
             start[1] = south + (0.25 + 0.5 * fraction) * (north - south);
         }
+        let randomization = self.config.randomization;
+        let mut draw = |range: Option<[f64; 2]>, nominal: f64| match range {
+            Some([low, high]) => low + (high - low) * self.disturbances.uniform(),
+            None => nominal,
+        };
+        if randomization.friction.is_some() {
+            let friction = draw(randomization.friction, self.config.floor_friction);
+            self.robot.set_floor_friction(friction)?;
+        }
+        if randomization.motor_strength.is_some() {
+            let strength = draw(randomization.motor_strength, 1.0);
+            self.robot.set_motor_strength(strength)?;
+        }
+        self.robot.set_base_force_n(Vec3::ZERO)?;
         self.robot.restart_at(start)?;
         self.robot.set_targets_rad(&DEFAULT_RAD);
         for _ in 0..SETTLE_STEPS {
@@ -1241,14 +1373,32 @@ impl Go2LearningEpisode {
         action: [f64; 12],
     ) -> Result<EpisodeStep<Vec<f64>>, LocomotionError> {
         let next = action.map(|value| value.clamp(-1.0, 1.0));
+        let randomization = self.config.randomization;
         let mut targets = [0.0; 12];
         let mut step_change = 0.0;
         for index in 0..12 {
             step_change += (next[index] - self.action[index]).powi(2);
-            targets[index] = DEFAULT_RAD[index] + ACTION_SCALE_RAD * next[index];
+            let tracked = if randomization.action_noise > 0.0 {
+                (next[index] + randomization.action_noise * self.disturbances.normal())
+                    .clamp(-1.0, 1.0)
+            } else {
+                next[index]
+            };
+            targets[index] = DEFAULT_RAD[index] + ACTION_SCALE_RAD * tracked;
         }
         self.action = next;
         self.robot.set_targets_rad(&targets);
+        if randomization.push_probability > 0.0 {
+            let force = if self.disturbances.uniform() < randomization.push_probability {
+                let mut change =
+                    || randomization.push_velocity_m_s * (2.0 * self.disturbances.uniform() - 1.0);
+                let change = Vec3::new(change(), change(), 0.0);
+                change * (self.robot.mass_kg() / CONTROL_DT_S)
+            } else {
+                Vec3::ZERO
+            };
+            self.robot.set_base_force_n(force)?;
+        }
         self.robot.step()?;
         self.step += 1;
         let (position, rotation) = self.robot.base_pose_z_up();
@@ -1907,6 +2057,102 @@ mod tests {
         assert!(held[2] < free[2] - 2.0, "{held:?} {free:?}");
         // The default leaves the walk as it was.
         assert_eq!(fastest(false), free);
+    }
+
+    #[test]
+    fn randomization_disturbs_deterministically() {
+        let walk = |randomization: Randomization| {
+            let mut episode = Go2LearningEpisode::new(Go2LearningConfig {
+                implicit_pd: true,
+                randomization,
+                seed: 5,
+                ..Go2LearningConfig::default()
+            })
+            .unwrap();
+            let mut path = Vec::new();
+            for _ in 0..2 {
+                episode.reset();
+                for step in 0..40 {
+                    let sign = if (step / 5) % 2 == 0 { 0.3 } else { -0.3 };
+                    episode.step([sign; 12]);
+                }
+                let (position, _) = episode.robot().base_pose_z_up();
+                path.push(position);
+            }
+            (
+                path,
+                episode.robot().sim.config().friction_coefficient,
+                episode.robot().motor_strength,
+            )
+        };
+        let nominal = walk(Randomization::default());
+        let disturbed = Randomization {
+            friction: Some([0.4, 1.2]),
+            motor_strength: Some([0.8, 1.2]),
+            action_noise: 0.1,
+            push_probability: 0.2,
+            push_velocity_m_s: 0.5,
+        };
+        let (path, friction, strength) = walk(disturbed);
+        // The same seed walks the same; the disturbances move the robot.
+        assert_eq!(walk(disturbed), (path.clone(), friction, strength));
+        assert!(
+            (path[0] - nominal.0[0]).length() > 1e-3,
+            "{path:?} {:?}",
+            nominal.0
+        );
+        assert!(
+            (0.4..=1.2).contains(&friction) && friction != 1.0,
+            "{friction}"
+        );
+        assert!(
+            (0.8..=1.2).contains(&strength) && strength != 1.0,
+            "{strength}"
+        );
+        assert_eq!((nominal.1, nominal.2), (1.0, 1.0));
+
+        // Each disturbance alone moves the robot too.
+        for one in [
+            Randomization {
+                action_noise: 0.1,
+                ..Randomization::default()
+            },
+            Randomization {
+                push_probability: 0.5,
+                push_velocity_m_s: 0.5,
+                ..Randomization::default()
+            },
+            Randomization {
+                motor_strength: Some([0.7, 0.7]),
+                ..Randomization::default()
+            },
+        ] {
+            assert!((walk(one).0[0] - nominal.0[0]).length() > 1e-4, "{one:?}");
+        }
+        for bad in [
+            Randomization {
+                friction: Some([1.0, 0.5]),
+                ..Randomization::default()
+            },
+            Randomization {
+                motor_strength: Some([0.0, 1.0]),
+                ..Randomization::default()
+            },
+            Randomization {
+                action_noise: -0.1,
+                ..Randomization::default()
+            },
+            Randomization {
+                push_probability: 1.5,
+                ..Randomization::default()
+            },
+        ] {
+            assert!(Go2LearningEpisode::new(Go2LearningConfig {
+                randomization: bad,
+                ..Go2LearningConfig::default()
+            })
+            .is_err());
+        }
     }
 
     #[test]

@@ -762,6 +762,46 @@ falls and distance:
   physics from the other two's; a policy trained under disturbance should
   narrow the gap in both if the policy, not RNE, is the cause.
 
+#### Trained under disturbance
+
+`train_ppo.py --domain-randomization` trains under disturbance: each
+episode draws the floor's friction from 0.5–1.25 and a factor of 0.9–1.1
+on the PD gains, every action the robot tracks carries Gaussian noise of
+0.1, and about once an episode the base is pushed by up to 0.5 m/s along x
+and y (`Go2LearningConfig::randomization`). The held-out evaluation stays
+undisturbed. Trained so (run 43674672352) and walked from the same 64
+starts in RNE, in RNE disturbed, in MuJoCo (run 43684863741) and in Genesis
+(`genesis_go2_learning.py`, run 43684866345); crossed and falls:
+
+| Policy, seed | RNE | Noise 0.1 | Noise 0.2 | Friction 0.7 | MuJoCo stiff | Genesis |
+|---|---|---|---|---|---|---|
+| Scan 2026 | 497, 0 | 485, 0 | 445, 4 | 501, 0 | 448, 7 | 428, 12 |
+| Scan 2027 | 592, 2 | 584, 0 | 521, 4 | 603, 0 | 530, 7 | 491, 14 |
+| Scan 2028 | 547, 0 | 532, 0 | 479, 2 | 548, 0 | 483, 7 | 488, 10 |
+| Blind 2026 | 266, 4 | 257, 6 | 222, 8 | 284, 2 | 276, 6 | 265, 4 |
+| Blind 2027 | 266, 1 | 261, 7 | 235, 3 | 271, 3 | 252, 7 | 234, 9 |
+| Blind 2028 | 168, 12 | 157, 13 | 132, 12 | 161, 12 | 140, 15 | 166, 9 |
+
+Against the policies trained undisturbed (above): scan RNE 579/565/543,
+MuJoCo 517/460/363 with 8/6/31 falls, Genesis 464/458/330 with 7/7/25;
+under noise 0.2 they fell 18/15/30 times in RNE.
+
+- **The gap between the simulators mostly closes.** The scan policies keep
+  88–90% of their RNE crossings in MuJoCo and 83–89% in Genesis, against
+  61–89% and 57–81% before; scan 2028, the weak one, now crosses 483 gaps
+  in MuJoCo with 7 falls where it crossed 363 with 31. The blind policies
+  cross about as many gaps in all three (83–104% of RNE).
+- **The policies tolerate disturbance.** Noise of 0.2 now costs the scan
+  policies 2–4 falls where it cost 15–30, and a floor of friction 0.7
+  costs nothing.
+- **In RNE they give up a little.** The scan policies cross 497–592 gaps,
+  about what they crossed undisturbed-trained (543–579), and walk 13.6–15.9
+  m; one blind seed (2028) learned a weaker gait.
+- **So the gap was the policy.** Trained in one exact plant, the policies
+  learned that plant; trained under disturbance, they walk about as well
+  in any of the three. What is left, 7–14 falls in MuJoCo and Genesis
+  against 0–2 in RNE, is not established.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one

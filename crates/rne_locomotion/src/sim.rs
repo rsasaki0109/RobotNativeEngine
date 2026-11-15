@@ -298,6 +298,15 @@ impl QuadrupedTerrainSim {
         Ok(())
     }
 
+    /// Sets the foot- and body-terrain Coulomb friction coefficient.
+    pub fn set_friction_coefficient(&mut self, friction: f64) -> Result<(), LocomotionError> {
+        if !(friction.is_finite() && friction >= 0.0) {
+            return Err(LocomotionError::InvalidInput("friction coefficient"));
+        }
+        self.config.friction_coefficient = friction;
+        Ok(())
+    }
+
     /// Lets `spheres` touch the terrain besides the feet. Each step adds a
     /// contact for every sphere within 1 cm of the terrain, after the feet,
     /// so a robot that kneels or falls lands on its knees or body instead of

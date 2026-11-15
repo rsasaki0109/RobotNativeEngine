@@ -576,6 +576,21 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Domain randomization for the Go2 learning task:
+  `Go2LearningConfig::randomization` (`Randomization`) draws each
+  episode's floor friction and motor strength (a factor on the PD gains)
+  from ranges, adds Gaussian noise to the actions the robot tracks, and
+  pushes the base at random, from the episode's own seeded stream
+  (`DISTURBANCE_STREAM`). None by default. `Go2LearningRobot` gains
+  `set_floor_friction`, `set_motor_strength` and `set_base_force_n`;
+  `QuadrupedTerrainSim::set_friction_coefficient`. The binding takes
+  `friction_range`, `motor_strength`, `action_noise`, `push_probability`
+  and `push_velocity`; example 148's `train_ppo.py --domain-randomization`
+  (and its parts) disturbs the training environments only, and the
+  depth-levels workflow trains so. Trained so, the scan policies keep
+  88-90% of their RNE gap crossings in MuJoCo and 83-89% in Genesis, and
+  fall 2-4 times under action noise of 0.2 where they fell 15-30.
+
 - Example 147's `genesis_go2_learning.py` walks example 148's gap policies
   in Genesis 1.4.6 with the MuJoCo script's episode, observation, policies
   and starts (its `Go2` now reads state through methods a plant overrides),
