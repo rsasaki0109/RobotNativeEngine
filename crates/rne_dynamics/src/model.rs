@@ -382,7 +382,7 @@ impl ArticulatedModel {
     /// rotor reflected through its gearing, which turns with the joint and
     /// adds to the joint's own diagonal entry of the mass matrix, as
     /// MuJoCo's joint `armature` does. Every algorithm of this crate
-    /// ([`crate::mass_matrix`], [`crate::rnea`], [`crate::aba`],
+    /// ([`crate::mass_matrix`], [`crate::rnea`], [`crate::aba()`],
     /// [`crate::forward_dynamics`] and the contact step) includes it.
     ///
     /// # Errors
