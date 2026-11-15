@@ -220,9 +220,18 @@ def main():
                              help="physics steps per 5 ms step of RNE's (default 5: 1 ms)")
         command.add_argument("--friction", type=float, default=1.0)
         command.add_argument("--precision", choices=["32", "64"], default="64")
+        command.add_argument("--output", type=Path, default=None,
+                             help="write the report here (Genesis logs to stdout)")
     evaluate.add_argument("--velocity-limits", action="store_true")
     arguments = parser.parse_args()
-    gs.init(backend=gs.cpu, precision=arguments.precision, logging_level="warning")
+    gs.init(backend=gs.cpu, precision=arguments.precision, logging_level="error")
+
+    def emit(report):
+        text = json.dumps(report)
+        if arguments.output is None:
+            print(text)
+        else:
+            arguments.output.write_text(text + "\n")
     engine = f"genesis {getattr(gs, '__version__', '?')}"
     terrain = getattr(arguments, "terrain", None)
     plant = {"floor_friction": arguments.friction, "substeps": arguments.substeps,
@@ -230,8 +239,8 @@ def main():
 
     if arguments.command == "stand":
         robot = GenesisGo2(plant)
-        print(json.dumps({"engine": engine, "plant": plant, "mass_kg": robot.mass_kg(),
-                          **stand_report(robot, (0.0, 0.0))}))
+        emit({"engine": engine, "plant": plant, "mass_kg": robot.mass_kg(),
+              **stand_report(robot, (0.0, 0.0))})
     elif arguments.command == "check-terrain":
         # Does the field lie as RNE's? Stand the robot with its hind feet
         # over the first gap past the origin and with all four on flat
@@ -241,9 +250,9 @@ def main():
         start, end = gaps[0]
         over = (0.5 * (start + end) + 0.19, 0.0)
         flat = (start - 0.6, 0.0)
-        print(json.dumps({"engine": engine, "gap_m": [start, end],
-                          "hind_feet_over_gap": stand_report(robot, over),
-                          "flat": stand_report(robot, flat)}))
+        emit({"engine": engine, "gap_m": [start, end],
+              "hind_feet_over_gap": stand_report(robot, over),
+              "flat": stand_report(robot, flat)})
     else:
         policy, task = mj.load_policy(arguments.policy, None)
         trained = json.loads(arguments.policy.read_text()).get("task", {})
@@ -280,7 +289,7 @@ def main():
             outcome["gaps_crossed"] = sum(crossed)
             outcome["episodes_crossing_a_gap"] = sum(1 for count in crossed if count > 0)
         report["outcome"] = outcome
-        print(json.dumps(report))
+        emit(report)
 
 
 if __name__ == "__main__":

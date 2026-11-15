@@ -24,6 +24,7 @@ permissions:
 
 env:
   RUN: ${{ inputs.run || '43640346938' }}
+  PYOPENGL_PLATFORM: egl
 
 jobs:
   check:
@@ -49,6 +50,9 @@ jobs:
 
       - name: Install Genesis
         run: |
+          # Genesis builds an offscreen renderer with its scene, which needs EGL.
+          sudo apt-get update -q && sudo apt-get install -y -q libegl1 libegl-mesa0 libgl1 libglu1-mesa
+          export PYOPENGL_PLATFORM=egl
           python -m venv .venv-genesis
           .venv-genesis/bin/pip install --disable-pip-version-check \
             torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
@@ -76,10 +80,13 @@ jobs:
             --gap-depth 0.3
           cd examples/147_go2_learning
           genesis=(../../.venv-genesis/bin/python genesis_go2_learning.py)
-          "${genesis[@]}" stand | tee "../../$OUT/stand.json"
-          "${genesis[@]}" check-terrain "../../$OUT/terrain.json" | tee "../../$OUT/check-terrain.json"
+          "${genesis[@]}" stand --output "../../$OUT/stand.json"
+          cat "../../$OUT/stand.json"
+          "${genesis[@]}" check-terrain "../../$OUT/terrain.json" --output "../../$OUT/check-terrain.json"
+          cat "../../$OUT/check-terrain.json"
           time "${genesis[@]}" evaluate ../../policy/policy.json --terrain "../../$OUT/terrain.json" \
-            --starts 4 | tee "../../$OUT/walk-4.json"
+            --starts 4 --output "../../$OUT/walk-4.json"
+          cat "../../$OUT/walk-4.json"
           # The terrain file is large and reproducible.
           rm "../../$OUT/terrain.json"
 
@@ -124,6 +131,9 @@ jobs:
 
       - name: Install Genesis
         run: |
+          # Genesis builds an offscreen renderer with its scene, which needs EGL.
+          sudo apt-get update -q && sudo apt-get install -y -q libegl1 libegl-mesa0 libgl1 libglu1-mesa
+          export PYOPENGL_PLATFORM=egl
           python -m venv .venv-genesis
           .venv-genesis/bin/pip install --disable-pip-version-check \
             torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
@@ -148,8 +158,8 @@ jobs:
             --terrain 7 --terrain-size 48 --terrain-cell 0.05 --terrain-amplitude 0 \
             --gap-depth 0.3
           (cd examples/147_go2_learning && ../../.venv-genesis/bin/python genesis_go2_learning.py \
-            evaluate ../../policy/policy.json --terrain "../../$OUT/terrain.json" --starts 64) \
-            > "$OUT/genesis.json"
+            evaluate ../../policy/policy.json --terrain "../../$OUT/terrain.json" --starts 64 \
+            --output "../../$OUT/genesis.json")
           python - "$OUT/genesis.json" <<'PY'
           import json, sys
           print(json.load(open(sys.argv[1]))["outcome"])
