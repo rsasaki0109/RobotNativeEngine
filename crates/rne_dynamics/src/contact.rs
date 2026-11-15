@@ -761,6 +761,13 @@ pub struct JointPdControl {
     /// [`ContactStepConfig::enforce_effort_limits`] is set: the tighter of the
     /// two holds. Empty, or an infinite entry, leaves the model's limit alone.
     pub effort_limits: Vec<f64>,
+    /// Lowest and highest actuator torque per actuated joint (N·m or N),
+    /// applied with the effort limits when
+    /// [`ContactStepConfig::enforce_effort_limits`] is set: a torque must lie
+    /// within both. Unlike an effort limit the range need not be symmetric,
+    /// as for a motor whose torque falls with its speed. Empty leaves the
+    /// effort limits alone; infinite ends leave that side alone.
+    pub torque_bounds: Vec<[f64; 2]>,
 }
 
 /// Configuration of one [`contact_step`].
@@ -1023,11 +1030,9 @@ fn step_from_transforms(
                 if held[joint].is_some() {
                     continue;
                 }
-                if let Some(limit) = effort_limit(model, pd, joint) {
-                    if torque.abs() > limit * (1.0 + EFFORT_TOLERANCE) {
-                        held[joint] = Some(torque.clamp(-limit, limit));
-                        changed = true;
-                    }
+                if let Some(saturated) = saturated_torque(model, pd, joint, *torque) {
+                    held[joint] = Some(saturated);
+                    changed = true;
                 }
             }
         }
@@ -1393,7 +1398,51 @@ fn validate_pd(model: &ArticulatedModel, pd: &JointPdControl) -> Result<(), Dyna
             "effort limits must be non-negative",
         ));
     }
+    if !(pd.torque_bounds.is_empty() || pd.torque_bounds.len() == actuated) {
+        return Err(DynamicsError::DimensionMismatch {
+            provided: pd.torque_bounds.len(),
+            expected: actuated,
+        });
+    }
+    if pd.torque_bounds.iter().any(|[lowest, highest]| {
+        lowest.is_nan()
+            || highest.is_nan()
+            || lowest > highest
+            || *lowest == f64::INFINITY
+            || *highest == f64::NEG_INFINITY
+    }) {
+        return Err(DynamicsError::InvalidContact(
+            "torque bounds must be ordered, lowest first",
+        ));
+    }
     Ok(())
+}
+
+/// The torque actuated joint `joint` is held at when `torque` lies outside
+/// its allowed range ([`effort_limit`] and [`JointPdControl::torque_bounds`]),
+/// or `None` when it lies within.
+pub(crate) fn saturated_torque(
+    model: &ArticulatedModel,
+    pd: Option<&JointPdControl>,
+    joint: usize,
+    torque: f64,
+) -> Option<f64> {
+    let limit = effort_limit(model, pd, joint).unwrap_or(f64::INFINITY);
+    let [lowest, highest] = pd
+        .and_then(|pd| pd.torque_bounds.get(joint).copied())
+        .unwrap_or([f64::NEG_INFINITY, f64::INFINITY]);
+    let lowest = lowest.max(-limit);
+    let highest = highest.min(limit);
+    if lowest == f64::NEG_INFINITY && highest == f64::INFINITY {
+        return None;
+    }
+    // Relative to the range's size, as the symmetric limit's tolerance was.
+    let scale = [lowest, highest]
+        .into_iter()
+        .filter(|end| end.is_finite())
+        .fold(0.0_f64, |scale, end| scale.max(end.abs()));
+    let slack = scale * EFFORT_TOLERANCE;
+    (torque > highest + slack || torque < lowest - slack).then(|| torque.clamp(lowest, highest))
 }
 
 /// Effective effort limit of actuated joint `joint`: the tighter of the
@@ -3019,6 +3068,7 @@ mod tests {
             target_positions: vec![target],
             target_velocities: vec![0.0],
             effort_limits: Vec::new(),
+            torque_bounds: Vec::new(),
         };
         let config = ContactStepConfig {
             step_time_s: 0.01,
@@ -3138,6 +3188,7 @@ mod tests {
             target_positions: vec![0.9],
             target_velocities: vec![0.0],
             effort_limits: Vec::new(),
+            torque_bounds: Vec::new(),
         };
         let config = ContactStepConfig::default();
         let (angle, _, _, engaged) = swing(&model, 0.0, Some(&pd), &config, 500);
@@ -3283,6 +3334,7 @@ mod tests {
             target_positions: vec![0.0],
             target_velocities: vec![0.0],
             effort_limits: Vec::new(),
+            torque_bounds: Vec::new(),
         };
         let config = ContactStepConfig::default();
         let mut q = vec![0.0];
@@ -3338,6 +3390,7 @@ mod tests {
             target_positions: vec![0.0],
             target_velocities: vec![0.0],
             effort_limits: vec![limit],
+            torque_bounds: Vec::new(),
         };
         for (limit, applied) in [(2.0, 2.0), (0.0, 0.0), (8.0, 5.0), (f64::INFINITY, 5.0)] {
             let step = contact_step(
@@ -3366,6 +3419,83 @@ mod tests {
             ),
             Err(DynamicsError::InvalidContact(_))
         ));
+    }
+
+    #[test]
+    fn torque_bounds_hold_each_side_within_the_effort_limit() {
+        let model = effort_limited_pendulum(5.0);
+        let config = ContactStepConfig::default();
+        let command = |bounds: [f64; 2]| JointPdControl {
+            position_gains: vec![0.0],
+            velocity_gains: vec![0.0],
+            target_positions: vec![0.0],
+            target_velocities: vec![0.0],
+            effort_limits: Vec::new(),
+            torque_bounds: vec![bounds],
+        };
+        let applied = |torque: f64, bounds: [f64; 2]| {
+            contact_step(
+                &model,
+                &[0.0],
+                &[0.0],
+                &[torque],
+                &[],
+                Some(&command(bounds)),
+                &config,
+                None,
+            )
+            .expect("step")
+            .actuator_torques[0]
+        };
+        // Each side on its own, and the effort limit where it is tighter.
+        assert_eq!(applied(100.0, [-4.0, 1.0]), 1.0);
+        assert_eq!(applied(-100.0, [-4.0, 1.0]), -4.0);
+        assert_eq!(applied(0.5, [-4.0, 1.0]), 0.5);
+        assert_eq!(applied(100.0, [f64::NEG_INFINITY, 8.0]), 5.0);
+        // A range wholly on one side forces the torque there.
+        assert_eq!(applied(0.0, [-3.0, -2.0]), -2.0);
+
+        // An implicit PD past its bound is held at the bound.
+        let pd = JointPdControl {
+            position_gains: vec![400.0],
+            velocity_gains: vec![2.0],
+            target_positions: vec![1.0],
+            target_velocities: vec![0.0],
+            effort_limits: Vec::new(),
+            torque_bounds: vec![[-5.0, 2.0]],
+        };
+        let step = contact_step(
+            &model,
+            &[0.0],
+            &[0.0],
+            &[0.0],
+            &[],
+            Some(&pd),
+            &config,
+            None,
+        )
+        .expect("step");
+        assert_eq!(step.actuator_torques, vec![2.0]);
+        assert_eq!(step.saturated_joints, vec![0]);
+
+        for bounds in [[1.0, -1.0], [f64::NAN, 1.0], [f64::INFINITY, f64::INFINITY]] {
+            assert!(
+                matches!(
+                    contact_step(
+                        &model,
+                        &[0.0],
+                        &[0.0],
+                        &[0.0],
+                        &[],
+                        Some(&command(bounds)),
+                        &config,
+                        None
+                    ),
+                    Err(DynamicsError::InvalidContact(_))
+                ),
+                "{bounds:?}"
+            );
+        }
     }
 
     #[test]
@@ -3463,6 +3593,7 @@ mod tests {
             target_positions: vec![0.0],
             target_velocities: vec![0.0],
             effort_limits: Vec::new(),
+            torque_bounds: Vec::new(),
         };
         let (mut q, mut qd) = (vec![0.0], vec![0.0]);
         for _ in 0..300 {

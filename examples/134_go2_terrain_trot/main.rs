@@ -221,6 +221,7 @@ fn simulate(scene: &Scene, terrain: &ColliderShape) -> Report {
             target_positions: gait_targets(scene, t),
             target_velocities: vec![0.0; actuated],
             effort_limits: Vec::new(),
+            torque_bounds: Vec::new(),
         };
         let contacts = foot_contacts(scene, terrain, &q);
         for contact in &contacts {

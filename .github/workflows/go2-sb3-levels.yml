@@ -18,7 +18,12 @@ name: Go2 SB3 PPO depth levels
 # torque-speed curve: torque falls to zero at the limit and brakes past it
 # (--velocity-limits). Run 43581407624 trained with that curve applied as
 # written, which made light joints chatter at RNE's 5 ms step; past the
-# limit the motor now brakes no harder than a step allows.
+# limit the motor now brakes no harder than a step allows. Runs to
+# 43596078138 set each joint's PD torque at the start of each 5 ms physics
+# step and held it; the scan policies learned a fast gait that relies on the
+# hold and loses it in MuJoCo, whose PD acts every millisecond. The PD is now
+# integrated within each step, as the robot's fast motor drivers act
+# (--implicit-pd).
 # Each job trains one policy, blind or with the height scan, on one seed,
 # and after each of four stages walks it once in each of 64 held-out
 # environments at every level: gaps crossed, falls, how the episodes ended,
@@ -41,6 +46,10 @@ on:
         default: "8"
       velocity_limits:
         description: "Make the motors hold the joints' velocity limits"
+        required: false
+        default: "true"
+      implicit_pd:
+        description: "Integrate the joints' PD within each physics step"
         required: false
         default: "true"
       recycle:
@@ -72,6 +81,7 @@ jobs:
       SCAN: ${{ matrix.sight == 'scan' && '--height-scan' || '' }}
       RECYCLE: ${{ inputs.recycle == 'false' && ' ' || '--recycle-levels' }}
       LIMITS: ${{ inputs.velocity_limits == 'false' && ' ' || '--velocity-limits' }}
+      PD: ${{ inputs.implicit_pd == 'false' && ' ' || '--implicit-pd' }}
       OUT: artifacts/go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
     steps:
       - name: Checkout
@@ -102,7 +112,7 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
           # shellcheck disable=SC2086
-          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN $RECYCLE $LIMITS \
+          .venv/bin/python examples/148_go2_learning_python/train_ppo.py --floor gaps $SCAN $RECYCLE $LIMITS $PD \
             --depth-levels "$DEPTH_LEVELS" --timesteps "$TIMESTEPS" --n-envs "$N_ENVS" \
             --seed "$SEED" --out "$OUT" | tee "$OUT.log"
           mv "$OUT.log" "$OUT/train.log"

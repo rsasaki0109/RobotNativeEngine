@@ -121,6 +121,7 @@ fn build_scene() -> Scene {
         target_positions: stand_q[base..].to_vec(),
         target_velocities: vec![0.0; actuated],
         effort_limits: Vec::new(),
+        torque_bounds: Vec::new(),
     };
     Scene {
         model,
