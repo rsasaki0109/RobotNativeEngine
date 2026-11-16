@@ -13,7 +13,7 @@ on:
       run:
         description: "Go2 SB3 PPO depth levels run whose policies to walk"
         required: false
-        default: "43640346938"
+        default: "43699237646"
   push:
     paths:
       - ".github/workflows/go2-sb3-genesis.yml"
@@ -23,7 +23,7 @@ permissions:
   actions: read
 
 env:
-  RUN: ${{ inputs.run || '43640346938' }}
+  RUN: ${{ inputs.run || '43699237646' }}
   PYOPENGL_PLATFORM: egl
 
 jobs:
@@ -96,6 +96,46 @@ jobs:
         with:
           name: go2-sb3-genesis-check
           path: artifacts/genesis-check
+          if-no-files-found: warn
+          retention-days: 30
+
+  strike:
+    name: Genesis sliding strike
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Genesis
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q libegl1 libegl-mesa0 libgl1 libglu1-mesa
+          python -m venv .venv-genesis
+          .venv-genesis/bin/pip install --disable-pip-version-check \
+            torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+          .venv-genesis/bin/pip install --disable-pip-version-check genesis-world==1.4.6 matplotlib
+
+      - name: A sliding edge strike against its closed form
+        run: |
+          set -euo pipefail
+          # mujoco_strike.py's strike in Genesis: does it give the rigid
+          # Coulomb impulse, as RNE does, or about twice it, as MuJoCo?
+          mkdir -p artifacts/genesis-strike
+          (cd examples/147_go2_learning && ../../.venv-genesis/bin/python genesis_strike.py \
+            --output ../../artifacts/genesis-strike/strike.json)
+          cat artifacts/genesis-strike/strike.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-sb3-genesis-strike
+          path: artifacts/genesis-strike
           if-no-files-found: warn
           retention-days: 30
 

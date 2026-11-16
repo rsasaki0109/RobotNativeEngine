@@ -18,7 +18,13 @@ name: Go2 SB3 PPO in MuJoCo
 # Run 43581407624 trained with that curve chattering at RNE's 5 ms step.
 # Run 43563466782 trained with motors that only gave no torque past the
 # limit, run 43541974300 without limits, and run 43374349191 before the
-# contact fix. Light (minutes), so it runs on demand
+# contact fix.
+# The reference setting is `damped`: five physics steps to each of RNE's, a
+# 4 ms contact time constant and a damping ratio of 5. At dampratio 1 a shin
+# or head that strikes the floor while sliding leaves it about as fast as it
+# came; damped, MuJoCo's strikes match RNE's period by period, though one
+# that slides forward still takes about twice the rigid impulse
+# (mujoco_strike.py, below). Light (minutes), so it runs on demand
 # and when this workflow changes.
 on:
   workflow_dispatch:
@@ -26,7 +32,7 @@ on:
       run:
         description: "Go2 SB3 PPO depth levels run whose policies to walk"
         required: false
-        default: "43640346938"
+        default: "43699237646"
   push:
     paths:
       - ".github/workflows/go2-sb3-mujoco.yml"
@@ -46,7 +52,7 @@ jobs:
         sight: [blind, scan]
         seed: [2026, 2027, 2028]
     env:
-      RUN: ${{ inputs.run || '43640346938' }}
+      RUN: ${{ inputs.run || '43699237646' }}
       NAME: go2-sb3-levels-${{ matrix.sight }}-${{ matrix.seed }}
       OUT: artifacts/go2-sb3-mujoco-${{ matrix.sight }}-${{ matrix.seed }}
     steps:
@@ -101,19 +107,16 @@ jobs:
             --gap-depth 0.3
           cp policy/results.json "$OUT/rne-results.json"
           mujoco=(.venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py)
-          # And the stiff setting with the torques set once per step of
-          # RNE's and held, as RNE's plant held them before --implicit-pd.
-          # (Stiffer contacts still, 2 and 1 ms, changed nothing: run
-          # 43630116940.) And the stiff setting with its contacts damped
-          # two and five times critically: at dampratio 1 a head or shin
-          # that strikes the floor leaves it about as fast as it came, where
-          # RNE's contact stops it.
-          for variant in default stiff held damped-2 damped-5; do
+          # As MuJoCo is configured; stiff (1 ms steps, a 4 ms time
+          # constant); and the reference, stiff with its contacts damped five
+          # times critically. (Stiffer contacts still, 2 and 1 ms, changed
+          # nothing: run 43630116940; the torque held over RNE's 5 ms step:
+          # run 43736761486.)
+          for variant in default stiff damped; do
             case $variant in
               default) flags=() ;;
               stiff) flags=(--substeps 5 --solref 0.004) ;;
-              held) flags=(--substeps 5 --solref 0.004 --hold-torque) ;;
-              damped-*) flags=(--substeps 5 --solref 0.004 --dampratio "${variant#damped-}") ;;
+              damped) flags=(--substeps 5 --solref 0.004 --dampratio 5) ;;
             esac
             "${mujoco[@]}" evaluate policy/policy.json --terrain "$OUT/terrain.json" \
               --starts 64 "${flags[@]}" > "$OUT/mujoco-$variant.json"
@@ -135,17 +138,16 @@ jobs:
           .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
             --starts 64 --against default="$OUT/mujoco-default.json" \
             --against stiff="$OUT/mujoco-stiff.json" \
-            --against held="$OUT/mujoco-held.json" --against damped-2="$OUT/mujoco-damped-2.json" \
-            --against damped-5="$OUT/mujoco-damped-5.json" > "$OUT/rne.json"
+            --against damped="$OUT/mujoco-damped.json" > "$OUT/rne.json"
           # The same policy in RNE with the PD integrated within each step,
           # whatever it trained with.
           .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
-            --starts 64 --implicit-pd --against stiff="$OUT/mujoco-stiff.json" \
-            --against held="$OUT/mujoco-held.json" > "$OUT/rne-implicit.json"
+            --starts 64 --implicit-pd --against damped="$OUT/mujoco-damped.json" \
+            > "$OUT/rne-implicit.json"
           # The same policy in RNE at MuJoCo's 1 ms step: each 5 ms step
           # split in five, the PD and the contacts computed that often.
           .venv/bin/python examples/148_go2_learning_python/walk_policy.py policy/policy.json \
-            --starts 64 --substeps 5 --against stiff="$OUT/mujoco-stiff.json" \
+            --starts 64 --substeps 5 --against damped="$OUT/mujoco-damped.json" \
             > "$OUT/rne-substeps-5.json"
           for report in rne rne-implicit rne-substeps-5; do
             python - "$OUT/$report.json" "$report" <<'PY'
@@ -181,11 +183,11 @@ jobs:
       - name: Trace an episode the simulators disagree on
         run: |
           set -euo pipefail
-          # The first episode that falls in MuJoCo (stiff) and not in RNE,
+          # The first episode that falls in MuJoCo (damped) and not in RNE,
           # or else the one where RNE crosses the most gaps more.
           episode=$(python - "$OUT/rne.json" <<'PY'
           import json, sys
-          pairs = json.load(open(sys.argv[1]))["against"]["stiff"]["episodes"]
+          pairs = json.load(open(sys.argv[1]))["against"]["damped"]["episodes"]
           gap = [p["rne"]["gaps_crossed"] - p["mujoco"]["gaps_crossed"] for p in pairs]
           fell = [i for i, p in enumerate(pairs) if p["mujoco"]["fell"] and not p["rne"]["fell"]]
           print(fell[0] if fell else max(range(len(gap)), key=lambda i: gap[i]))
@@ -196,7 +198,7 @@ jobs:
             --starts 1 --trace "$episode" "$OUT/trace-rne.json" > /dev/null
           .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
             evaluate policy/policy.json --terrain "$OUT/terrain.json" --starts 64 \
-            --substeps 5 --solref 0.004 --trace "$OUT/trace-mujoco.json" \
+            --substeps 5 --solref 0.004 --dampratio 5 --trace "$OUT/trace-mujoco.json" \
             --trace-episode "$episode" > /dev/null
           # MuJoCo from each state of its own trace, one period at a time,
           # with the floor's normal impulse through each body and geom type:
@@ -209,27 +211,16 @@ jobs:
           print(" ".join(flags + (["--velocity-limits"] if task.get("velocity_limits") else [])))
           PY
           )
+          # Damped (the trace's own setting) and stiff. (The same replays
+          # with impratio 1, the pyramidal cone, no friction and dampratio
+          # 20 told the head strikes' impulse lies in friction: run
+          # 43775129292.)
           .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
             replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco.json" --terrain "$OUT/terrain.json" \
-            --substeps 5 --solref 0.004 $motors
+            --substeps 5 --solref 0.004 --dampratio 5 $motors
           .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
-            replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco-damped-5.json" \
-            --terrain "$OUT/terrain.json" --substeps 5 --solref 0.004 --dampratio 5 $motors
-          # Where the head strikes, MuJoCo's impulse stays half again RNE's
-          # even damped. Is it the friction (elliptic cone, impratio 100) or
-          # the normal response? The same replay with each changed.
-          for probe in impratio-1 pyramidal frictionless damped-5-frictionless damped-20; do
-            case $probe in
-              impratio-1) flags=(--impratio 1) ;;
-              pyramidal) flags=(--cone pyramidal --impratio 1) ;;
-              frictionless) flags=(--friction 0) ;;
-              damped-5-frictionless) flags=(--dampratio 5 --friction 0) ;;
-              damped-20) flags=(--dampratio 20) ;;
-            esac
-            .venv-mujoco/bin/python examples/147_go2_learning/mujoco_go2_learning.py \
-              replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco-$probe.json" \
-              --terrain "$OUT/terrain.json" --substeps 5 --solref 0.004 "${flags[@]}" $motors
-          done
+            replay "$OUT/trace-mujoco.json" "$OUT/replay-mujoco-stiff.json" \
+            --terrain "$OUT/terrain.json" --substeps 5 --solref 0.004 $motors
           # How hard each walk drives the actuators, against the URDF's limits.
           python examples/148_go2_learning_python/trace_limits.py \
             "$OUT/trace-rne.json" "$OUT/trace-mujoco.json" | tee "$OUT/limits.json"
