@@ -984,6 +984,42 @@ Genesis takes no friction below 0.01, whose closed form is 0.562):
   replays put the disagreements where a head or shin strikes while the
   robot runs; that every remaining fall starts there is not established.
 
+### Learning speed: RNE against MuJoCo
+
+`train_ppo.py --engine mujoco` trains the same PPO in MuJoCo:
+`mujoco_vec_env.MujocoGo2VecEnv` steps example 147's MuJoCo episode one
+control period at a time, with RNE's observation, reward, fall, time limit
+and start stream, MuJoCo at the comparison's reference (1 ms steps, 4 ms
+contacts damped five times critically), one process per core. The `Go2 SB3
+PPO in RNE and MuJoCo` workflow (`go2-sb3-engines.yml`) first checks that
+an episode stepped through it takes MuJoCo's own episode's rewards exactly,
+then trains both engines with the same hyperparameters, 32 environments
+and 4.06M timesteps on a runner's 4 cores, flat floor, rotor inertia and
+velocity limits on both, and evaluates every stage on RNE's held-out
+environments. Run 43835766892, seed 2026; mean return and distance of 64
+held-out episodes:
+
+| Timesteps | RNE: time, return, distance | MuJoCo: time, return, distance |
+|---|---|---|
+| 0.51M | 58 s, −0.46, 2.0 m | 399 s, 1.73, 4.2 m |
+| 1.02M | 114 s, 6.79, 8.2 m | 778 s, 8.10, 8.6 m |
+| 2.03M | 228 s, 11.10, 11.8 m | 1535 s, 11.31, 11.9 m |
+| 3.05M | 348 s, 12.90, 13.5 m | 2288 s, 11.67, 13.1 m |
+| 4.06M | 472 s, 13.79, 13.9 m | 3040 s, 12.80, 13.2 m |
+
+- **RNE trains 6.4 times as fast**: 8,611 timesteps a second, PPO's updates
+  included, against MuJoCo's 1,337. It reaches a return of 11 in 4 minutes,
+  where MuJoCo takes 26.
+- **Per timestep they learn alike.** Both pass a return of 11 at about 2M
+  timesteps and end at 13–14 m in 5 s; the sample efficiency is the
+  algorithm's, the wall-clock time the simulator's.
+- **Each policy walks in the other engine.** RNE's walks 13.9 m in RNE and
+  12.6 m in MuJoCo, MuJoCo's 15.0 m in MuJoCo and 13.2 m in RNE, neither
+  falling.
+- MuJoCo runs here at 1 ms, the setting its walks are compared at; at its
+  default 5 ms step and contacts the gap policies cross almost nothing in
+  it. One seed; the gap task's depth levels are RNE's alone so far.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
