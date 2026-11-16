@@ -898,6 +898,50 @@ starts; crossed and falls:
 - **What remains**, 4–10 falls of the scan policies in damped MuJoCo, is
   not established; the head strike is one candidate.
 
+#### The head strike: friction in a soft contact
+
+Damped, MuJoCo still gives a striking head half again RNE's impulse. The
+same replays (run 43775129292) with one setting changed at a time tell why:
+neither damping 20 times critically, nor impratio 1, nor the pyramidal cone
+changes it (21.6, 21.5, 20.9 and 18.2 N·s in one strike, against RNE's
+12.7), but without friction MuJoCo and RNE agree (7.0 against 7.3 N·s; 4.4
+against 3.5, 3.5 against 3.5 in others). The head strikes while the robot
+runs forward, and friction at the head, ahead of and below the centre of
+mass, pitches the robot further into the floor: the strike's normal impulse
+grows with the friction. How much is a question with a closed answer.
+
+A 2 kg box, pitched 0.2 rad nose-down, slides forward at 2.6 m/s onto its
+front bottom edge at 0.8 m/s, with no gravity. A rigid impact without
+restitution, sliding throughout, gives the edge
+`P_n = -u_n / (1/m + r_x²/I + μ r_x r_y/I)`: 0.559 N·s without friction and
+1.138 N·s with μ = 1. `rne_dynamics`' test
+`a_sliding_edge_strike_takes_the_coulomb_impulse` checks RNE, and
+`examples/147_go2_learning/mujoco_strike.py` MuJoCo (run 43777399200);
+normal impulse, N·s:
+
+| Friction | Closed form | RNE | MuJoCo default | Stiff | Damped 5× | Pyramidal | Impratio 1 |
+|---|---|---|---|---|---|---|---|
+| 0 | 0.559 | 0.559 | 0.592 | 0.632 | 0.552 | 0.632 | 0.632 |
+| 1 | 1.138 | 1.138 | 2.021 | 2.505 | 2.462 | 2.363 | 2.455 |
+
+- **The check found a bug in RNE first.** Its solve brackets the sliding
+  direction between sampled angles; here the solution fell exactly on a
+  sample, rounding hid it, and the solve fell back to an impulse that broke
+  the contact law: 2.749 N·s, the edge leaving the floor at 1.1 m/s. It is
+  fixed (`CHANGELOG.md`); the Go2's replays never hit the case and are
+  unchanged.
+- **MuJoCo gives the frictional strike about twice the rigid impulse**, at
+  any damping, cone or impratio, and the edge leaves the floor at 0.7–1.1
+  m/s. Without friction it lands within 13% of the rigid answer, exactly
+  when damped. Its soft contact lets the edge sink while friction keeps
+  pitching the box into the floor, and the spring then throws the edge back
+  out.
+- **So the head strikes part where MuJoCo leaves the rigid answer.** In the
+  walks a head that strikes at a run takes half again to twice the impulse
+  in MuJoCo, and the robot pitches up and slows down where in RNE it does
+  not. Whether all of scan 2028's remaining falls in damped MuJoCo run
+  through such strikes is not established.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
