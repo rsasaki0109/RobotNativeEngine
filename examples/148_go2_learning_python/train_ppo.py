@@ -23,6 +23,8 @@ task, flat or on the gaps of `--mujoco-terrain` (a `147_go2_learning
 --write-terrain` file), with no curriculum, levels or randomization; the
 held-out evaluations stay RNE's, and the results record the engine and
 its steps per second.
+With `--engine genesis` they are Genesis's (`genesis_vec_env.GenesisGo2VecEnv`,
+all in one batched scene), on the flat floor only.
 
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py --smoke
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py \\
@@ -191,7 +193,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--floor", choices=["flat", "terrain", "gaps"], default="flat")
-    parser.add_argument("--engine", choices=["rne", "mujoco"], default="rne",
+    parser.add_argument("--engine", choices=["rne", "mujoco", "genesis"], default="rne",
                         help="the simulator the policy trains in (evaluations stay RNE's)")
     parser.add_argument("--workers", type=int, default=4,
                         help="with --engine mujoco, processes stepping the environments")
@@ -328,7 +330,14 @@ def train(args, parser):
         return NativeGo2VecEnv(n_envs=args.eval_envs, seed=args.seed + EVALUATION_SEED_OFFSET,
                                **stage_task(stage))
 
-    if args.engine == "mujoco":
+    if args.engine == "genesis":
+        if args.floor != "flat" or disturbances or args.substeps != 1:
+            parser.error("--engine genesis trains the flat floor, without randomization "
+                         "or --substeps")
+        from genesis_vec_env import GenesisGo2VecEnv
+        raw = GenesisGo2VecEnv(n_envs=args.n_envs, seed=args.seed,
+                               velocity_limits=args.velocity_limits, armature=args.armature)
+    elif args.engine == "mujoco":
         if args.curriculum or levels or disturbances or args.substeps != 1:
             parser.error("--engine mujoco trains on the task itself: no --curriculum, "
                          "--depth-levels, randomization or --substeps")

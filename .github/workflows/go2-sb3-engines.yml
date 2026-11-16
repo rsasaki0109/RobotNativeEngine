@@ -1,15 +1,17 @@
-name: Go2 SB3 PPO in RNE and MuJoCo
+name: Go2 SB3 PPO in RNE, MuJoCo and Genesis
 
-# How fast does the same PPO learn the same Go2 task in RNE and in MuJoCo?
+# How fast does the same PPO learn the same Go2 task in RNE, MuJoCo and
+# Genesis?
 # Each job trains example 148's `train_ppo.py` on one engine with the same
 # hyperparameters, environments and timesteps: RNE's
 # `rne_py_locomotion.Go2LearningBatch` (Rust threads) or MuJoCo's
 # `mujoco_vec_env.MujocoGo2VecEnv` (one process per core), MuJoCo as the
 # comparison's reference sets it (1 ms steps, 4 ms contacts damped five
-# times critically). Both plants carry the Go2's rotor inertia and the
+# times critically), or Genesis's `genesis_vec_env.GenesisGo2VecEnv` (all
+# environments in one batched scene, on the CPU, 1 ms steps). Both plants carry the Go2's rotor inertia and the
 # motors' velocity limits. Every stage is evaluated on RNE's held-out
 # environments; the results record each stage's wall-clock time and the
-# training's steps per second. The final policy then walks in both engines.
+# training's steps per second. The final policy then walks in all three.
 on:
   workflow_dispatch:
     inputs:
@@ -36,9 +38,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: [rne, mujoco]
+        engine: [rne, mujoco, genesis]
         floor: [flat]
-        seed: [2026]
+        seed: [2026, 2027, 2028]
     env:
       TIMESTEPS: ${{ inputs.timesteps || '4000000' }}
       N_ENVS: ${{ inputs.n_envs || '32' }}
@@ -63,9 +65,19 @@ jobs:
       - name: Install SB3 and MuJoCo, build rne_py_locomotion
         run: |
           python -m venv .venv
-          .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 \
-            -r examples/27_mobile_manipulator_rl/requirements-ci.txt \
-            -r examples/116_robot_workbench/python/requirements-mujoco.txt
+          if [ "${{ matrix.engine }}" = genesis ]; then
+            # Genesis needs torch 2.8 and an EGL to build its scene's renderer.
+            sudo apt-get update -q && sudo apt-get install -y -q libegl1 libegl-mesa0 libgl1 libglu1-mesa
+            .venv/bin/pip install --disable-pip-version-check torch==2.8.0 \
+              --index-url https://download.pytorch.org/whl/cpu
+            .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 \
+              stable-baselines3==2.6.0 gymnasium==1.0.0 genesis-world==1.4.6 matplotlib \
+              -r examples/116_robot_workbench/python/requirements-mujoco.txt
+          else
+            .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 \
+              -r examples/27_mobile_manipulator_rl/requirements-ci.txt \
+              -r examples/116_robot_workbench/python/requirements-mujoco.txt
+          fi
           .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
           .venv/bin/python -c "import mujoco, rne_py_locomotion, stable_baselines3; print('mujoco', mujoco.__version__, 'sb3', stable_baselines3.__version__)"
           nproc
@@ -108,7 +120,39 @@ jobs:
           print("the environment steps MuJoCo's episode")
           PY
 
+      - name: Check the Genesis environment stands and steps
+        if: matrix.engine == 'genesis'
+        env:
+          PYOPENGL_PLATFORM: egl
+        run: |
+          set -euo pipefail
+          # Zero actions hold the default pose: every robot stands the
+          # episode out, and the rewards stay finite.
+          cd examples/148_go2_learning_python
+          ../../.venv/bin/python - <<'PY'
+          import time
+          import numpy as np
+          from genesis_vec_env import GenesisGo2VecEnv
+          from genesis_vec_env import mj
+          env = GenesisGo2VecEnv(n_envs=8, velocity_limits=True, armature=0.01)
+          observations = env.reset()
+          assert observations.shape == (8, mj.PROPRIOCEPTION), observations.shape
+          began, total, ended = time.monotonic(), np.zeros(8), 0
+          for _ in range(mj.EPISODE_STEPS):
+              observations, rewards, dones, infos = env.step(np.zeros((8, 12)))
+              assert np.all(np.isfinite(rewards))
+              total += rewards
+              ended += int(dones.sum())
+          elapsed = time.monotonic() - began
+          print("steps/s", 8 * mj.EPISODE_STEPS / elapsed, "returns", total, "ended", ended)
+          assert ended == 8 and all("terminal_observation" in i for i in infos), infos
+          assert np.all(np.abs(total) < 1.0), total
+          print("the Genesis environment stands and steps")
+          PY
+
       - name: Train
+        env:
+          PYOPENGL_PLATFORM: egl
         run: |
           set -euo pipefail
           mkdir -p "$OUT"
@@ -118,9 +162,24 @@ jobs:
             --timesteps "$TIMESTEPS" --n-envs "$N_ENVS" --stages 8 \
             --seed ${{ matrix.seed }} --out "$OUT" | tee "$OUT/train.log"
 
-      - name: Walk the policy in both engines
+      - name: Walk the policy in all three engines
+        env:
+          PYOPENGL_PLATFORM: egl
         run: |
           set -euo pipefail
+          # Genesis in its own environment where training's torch is older.
+          if [ "${{ matrix.engine }}" = genesis ]; then
+            genesis_python=.venv/bin/python
+          else
+            sudo apt-get update -q && sudo apt-get install -y -q libegl1 libegl-mesa0 libgl1 libglu1-mesa
+            python -m venv .venv-genesis
+            .venv-genesis/bin/pip install --disable-pip-version-check torch==2.8.0 \
+              --index-url https://download.pytorch.org/whl/cpu
+            .venv-genesis/bin/pip install --disable-pip-version-check genesis-world==1.4.6 matplotlib
+            genesis_python=.venv-genesis/bin/python
+          fi
+          (cd examples/147_go2_learning && "../../$genesis_python" genesis_go2_learning.py evaluate \
+            "../../$OUT/policy.json" --velocity-limits --output "../../$OUT/walk-genesis.json")
           # From the origin, as the flat task starts: RNE, then MuJoCo damped.
           .venv/bin/python examples/148_go2_learning_python/walk_policy.py "$OUT/policy.json" \
             --starts 1 > "$OUT/walk-rne.json"
@@ -134,7 +193,7 @@ jobs:
           for stage in results["stages"]:
               print(" ", {key: stage.get(key) for key in ("timesteps", "seconds", "mean_return",
                                                            "mean_distance_m", "falls")})
-          for name in ("walk-rne", "walk-mujoco"):
+          for name in ("walk-rne", "walk-mujoco", "walk-genesis"):
               print(name, json.load(open(f"{out}/{name}.json"))["outcome"])
           PY
 
