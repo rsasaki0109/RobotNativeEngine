@@ -38,7 +38,7 @@ jobs:
       matrix:
         engine: [rne, mujoco]
         floor: [flat]
-        seed: [2026]
+        seed: [2026, 2027, 2028]
     env:
       TIMESTEPS: ${{ inputs.timesteps || '4000000' }}
       N_ENVS: ${{ inputs.n_envs || '32' }}
