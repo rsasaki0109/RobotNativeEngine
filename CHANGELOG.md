@@ -597,6 +597,13 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 148 trains in MuJoCo too: `mujoco_vec_env.MujocoGo2VecEnv`
+  steps example 147's MuJoCo episode with RNE's observation, reward and
+  starts, and `train_ppo.py --engine mujoco` trains the same PPO on it. The
+  `Go2 SB3 PPO in RNE and MuJoCo` workflow trains both: on a runner's 4
+  cores RNE runs 8,611 timesteps a second against MuJoCo's 1,337 (6.4
+  times), learning alike per timestep.
+
 - Physics substeps for the Go2 learning task:
   `Go2LearningRobot::set_physics_substeps` (`Go2LearningConfig::physics_substeps`,
   the binding's `substeps`, `--substeps` in example 148's `train_ppo.py`
