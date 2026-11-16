@@ -74,6 +74,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- Example 148's simulator comparison settles on three references: RNE,
+  Genesis, and MuJoCo damped (1 ms steps, 4 ms contacts, damping ratio 5),
+  where MuJoCo's strikes match RNE's period by period. The MuJoCo workflow
+  compares and traces against it and drops its finished probes (held
+  torque, damping ratio 2, the replay variants); both workflows default to
+  the policies with rotor inertia. `genesis_strike.py` (example 147) runs
+  the sliding strike in Genesis, which, like MuJoCo, gives it about twice
+  the rigid impulse RNE gives.
+
 - `Go2LearningConfig::velocity_limits` now gives the motors a torque-speed
   curve (`motor_torque_range`): the torque a motor can give in the
   direction its joint turns falls in a line from the effort limit at rest

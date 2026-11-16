@@ -942,6 +942,48 @@ normal impulse, N·s:
   not. Whether all of scan 2028's remaining falls in damped MuJoCo run
   through such strikes is not established.
 
+#### Three references
+
+What the sections above leave as the comparison: RNE against Genesis and
+against MuJoCo damped, the setting where MuJoCo's strikes match RNE's
+period by period (1 ms steps, a 4 ms contact time constant, damping ratio
+5; `go2-sb3-mujoco.yml` calls it `damped` and compares and traces against
+it). The policies with rotor inertia (run 43699237646) from the same 64
+starts, MuJoCo run 43793701165 and Genesis run 43793701153; crossed and
+falls, and the episodes whose crossings match RNE's:
+
+| Policy, seed | RNE | Genesis | MuJoCo damped | MuJoCo stiff | Same as RNE: Genesis, MuJoCo damped |
+|---|---|---|---|---|---|
+| Scan 2026 | 485, 0 | 477, 4 | 450, 4 | 476, 4 | 52, 49 |
+| Scan 2027 | 484, 0 | 472, 1 | 455, 5 | 419, 9 | 54, 46 |
+| Scan 2028 | 407, 0 | 381, 7 | 389, 6 | 299, 22 | 42, 47 |
+| Blind 2026 | 169, 9 | 161, 8 | 162, 9 | 174, 8 | 21, 12 |
+| Blind 2027 | 211, 11 | 185, 10 | 202, 11 | 203, 6 | 20, 20 |
+| Blind 2028 | 159, 7 | 140, 12 | 132, 10 | 142, 7 | 26, 21 |
+
+And the sliding strike against its closed form (normal impulse, N·s;
+Genesis takes no friction below 0.01, whose closed form is 0.562):
+
+| Friction | Closed form | RNE | Genesis | MuJoCo damped | MuJoCo stiff |
+|---|---|---|---|---|---|
+| 0 (Genesis 0.01) | 0.559 | 0.559 | 0.627 | 0.552 | 0.632 |
+| 1 | 1.138 | 1.138 | 2.118 | 2.462 | 2.505 |
+
+- **Genesis and MuJoCo damped now land together.** The scan policies keep
+  94–98% of their RNE crossings in Genesis and 93–96% in MuJoCo damped, and
+  fall 1–7 and 4–6 times; scan 2028, the weak seed, falls 7 and 6 times.
+  The blind policies cross 83–96% of RNE's in both.
+- **RNE alone gives the strike its rigid impulse.** Genesis, whose rigid
+  solver also treats contacts as soft constraints, gives it 1.9 times, as
+  MuJoCo does about 2 times. Where a body slides into the floor, then, the
+  two references agree with each other and not with the rigid answer, and
+  the few falls they keep and RNE does not are, at least in part, theirs.
+- **What remains is small.** Against the 16–37 falls per scan policy
+  MuJoCo gave before the plant was fixed (rims, velocity limits, implicit
+  PD, rotor inertia, randomization), the references keep 1–7, and the
+  replays put the disagreements where a head or shin strikes while the
+  robot runs; that every remaining fall starts there is not established.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
