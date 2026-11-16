@@ -1,0 +1,148 @@
+name: Go2 SB3 PPO in RNE and MuJoCo
+
+# How fast does the same PPO learn the same Go2 task in RNE and in MuJoCo?
+# Each job trains example 148's `train_ppo.py` on one engine with the same
+# hyperparameters, environments and timesteps: RNE's
+# `rne_py_locomotion.Go2LearningBatch` (Rust threads) or MuJoCo's
+# `mujoco_vec_env.MujocoGo2VecEnv` (one process per core), MuJoCo as the
+# comparison's reference sets it (1 ms steps, 4 ms contacts damped five
+# times critically). Both plants carry the Go2's rotor inertia and the
+# motors' velocity limits. Every stage is evaluated on RNE's held-out
+# environments; the results record each stage's wall-clock time and the
+# training's steps per second. The final policy then walks in both engines.
+on:
+  workflow_dispatch:
+    inputs:
+      timesteps:
+        description: "Training timesteps per job"
+        required: false
+        default: "4000000"
+      n_envs:
+        description: "Parallel environments"
+        required: false
+        default: "32"
+  push:
+    paths:
+      - ".github/workflows/go2-sb3-engines.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    name: Go2 SB3 (${{ matrix.engine }}, ${{ matrix.floor }}, seed ${{ matrix.seed }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [rne, mujoco]
+        floor: [flat]
+        seed: [2026]
+    env:
+      TIMESTEPS: ${{ inputs.timesteps || '4000000' }}
+      N_ENVS: ${{ inputs.n_envs || '32' }}
+      OUT: artifacts/go2-sb3-engines-${{ matrix.engine }}-${{ matrix.floor }}-${{ matrix.seed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-sb3
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install SB3 and MuJoCo, build rne_py_locomotion
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 \
+            -r examples/27_mobile_manipulator_rl/requirements-ci.txt \
+            -r examples/116_robot_workbench/python/requirements-mujoco.txt
+          .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
+          .venv/bin/python -c "import mujoco, rne_py_locomotion, stable_baselines3; print('mujoco', mujoco.__version__, 'sb3', stable_baselines3.__version__)"
+          nproc
+
+      - name: Check the MuJoCo environment against MuJoCo's episode
+        if: matrix.engine == 'mujoco'
+        run: |
+          set -euo pipefail
+          # One episode stepped through MujocoGo2VecEnv and the same through
+          # mujoco_go2_learning.Go2.episode_with: the same rewards and fall.
+          cd examples/148_go2_learning_python
+          ../../.venv/bin/python - <<'PY'
+          import math
+          import numpy as np
+          import mujoco_vec_env as mve
+          from mujoco_vec_env import mj
+          act = lambda step: np.array([0.3 * math.sin(2 * math.pi * step * 0.04 + j)
+                                       for j in range(12)])
+          task = {"velocity_limits": True, "armature": 0.01}
+          env = mve.MujocoGo2VecEnv(n_envs=1, seed=1, workers=1, **task)
+          env.reset()
+          stepped = []
+          for step in range(mj.EPISODE_STEPS):
+              _, reward, done, _ = env.step(act(step)[None, :])
+              stepped.append(float(reward[0]))
+              if done[0]:
+                  break
+          env.close()
+          plant = {**mve.REFERENCE_PLANT, "terrain": None, "armature": 0.01,
+                   "velocity_limits": True}
+          go2, counter, rewards = mj.Go2(plant, {}), [0], []
+          def policy(observation):
+              action = act(counter[0])
+              counter[0] += 1
+              return action
+          go2.episode_with(policy, (0.0, 0.0), lambda reward, fell: rewards.append(reward))
+          print(len(stepped), len(rewards), sum(stepped), sum(rewards))
+          assert len(stepped) == len(rewards)
+          assert np.allclose(stepped, rewards, atol=1e-9), (stepped[:5], rewards[:5])
+          print("the environment steps MuJoCo's episode")
+          PY
+
+      - name: Train
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"
+          .venv/bin/python examples/148_go2_learning_python/train_ppo.py \
+            --engine ${{ matrix.engine }} --workers "$(nproc)" --floor ${{ matrix.floor }} \
+            --velocity-limits --implicit-pd --armature 0.01 \
+            --timesteps "$TIMESTEPS" --n-envs "$N_ENVS" --stages 8 \
+            --seed ${{ matrix.seed }} --out "$OUT" | tee "$OUT/train.log"
+
+      - name: Walk the policy in both engines
+        run: |
+          set -euo pipefail
+          # From the origin, as the flat task starts: RNE, then MuJoCo damped.
+          .venv/bin/python examples/148_go2_learning_python/walk_policy.py "$OUT/policy.json" \
+            --starts 1 > "$OUT/walk-rne.json"
+          .venv/bin/python examples/147_go2_learning/mujoco_go2_learning.py evaluate \
+            "$OUT/policy.json" --substeps 5 --solref 0.004 --dampratio 5 > "$OUT/walk-mujoco.json"
+          python - "$OUT" <<'PY'
+          import json, sys
+          out = sys.argv[1]
+          results = json.load(open(f"{out}/results.json"))
+          print("engine", results["engine"], "steps/s", results["steps_per_second"])
+          for stage in results["stages"]:
+              print(" ", {key: stage.get(key) for key in ("timesteps", "seconds", "mean_return",
+                                                           "mean_distance_m", "falls")})
+          for name in ("walk-rne", "walk-mujoco"):
+              print(name, json.load(open(f"{out}/{name}.json"))["outcome"])
+          PY
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go2-sb3-engines-${{ matrix.engine }}-${{ matrix.floor }}-${{ matrix.seed }}
+          path: ${{ env.OUT }}
+          if-no-files-found: warn
+          retention-days: 30

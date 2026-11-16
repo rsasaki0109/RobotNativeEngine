@@ -17,6 +17,13 @@ Each evaluation then also walks the policy at every level (`by_level`) and
 records how many environments trained at each (`training_levels`).
 `--smoke` trains a few hundred steps on every path for CI.
 
+With `--engine mujoco` the training environments are MuJoCo's
+(`mujoco_vec_env.MujocoGo2VecEnv`, over `--workers` processes) on the same
+task, flat or on the gaps of `--mujoco-terrain` (a `147_go2_learning
+--write-terrain` file), with no curriculum, levels or randomization; the
+held-out evaluations stay RNE's, and the results record the engine and
+its steps per second.
+
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py --smoke
     .venv/bin/python examples/148_go2_learning_python/train_ppo.py \\
         --floor gaps --height-scan --timesteps 20000000 --n-envs 64 \\
@@ -184,6 +191,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--floor", choices=["flat", "terrain", "gaps"], default="flat")
+    parser.add_argument("--engine", choices=["rne", "mujoco"], default="rne",
+                        help="the simulator the policy trains in (evaluations stay RNE's)")
+    parser.add_argument("--workers", type=int, default=4,
+                        help="with --engine mujoco, processes stepping the environments")
+    parser.add_argument("--mujoco-terrain", default=None,
+                        help="with --engine mujoco off the flat floor, the task's terrain file")
     parser.add_argument("--terrain-seed", type=int, default=7)
     parser.add_argument("--height-scan", action="store_true")
     parser.add_argument("--n-envs", type=int, default=16)
@@ -315,8 +328,20 @@ def train(args, parser):
         return NativeGo2VecEnv(n_envs=args.eval_envs, seed=args.seed + EVALUATION_SEED_OFFSET,
                                **stage_task(stage))
 
-    raw = NativeGo2VecEnv(n_envs=args.n_envs, seed=args.seed, **stage_task(stages[0]),
-                          **disturbances)
+    if args.engine == "mujoco":
+        if args.curriculum or levels or disturbances or args.substeps != 1:
+            parser.error("--engine mujoco trains on the task itself: no --curriculum, "
+                         "--depth-levels, randomization or --substeps")
+        if args.floor != "flat" and not args.mujoco_terrain:
+            parser.error("--engine mujoco off the flat floor needs --mujoco-terrain")
+        from mujoco_vec_env import MujocoGo2VecEnv
+        raw = MujocoGo2VecEnv(n_envs=args.n_envs, seed=args.seed, workers=args.workers,
+                              terrain=args.mujoco_terrain, height_scan=args.height_scan,
+                              random_starts=args.floor != "flat",
+                              velocity_limits=args.velocity_limits, armature=args.armature)
+    else:
+        raw = NativeGo2VecEnv(n_envs=args.n_envs, seed=args.seed, **stage_task(stages[0]),
+                              **disturbances)
     if levels:
         raw.set_depth_curriculum(args.promote_after_gaps, args.recycle_levels)
     env = raw if args.no_normalize else VecNormalize(raw, gamma=args.gamma)
@@ -349,7 +374,7 @@ def train(args, parser):
         result.update(stage=index, gap_width_m=None if stage is None else stage[0],
                       gap_depth_m=None if stage is None else stage[1],
                       timesteps=model.num_timesteps,
-                      seconds=round(time.monotonic() - started, 1))
+                      seconds=round(time.monotonic() - started, 1), engine=args.engine)
         if stage != final:
             # The same policy on this stage's own gaps.
             result["on_stage_gaps"] = evaluate(model, held_out(stage), normalize)
@@ -363,6 +388,7 @@ def train(args, parser):
 
     os.makedirs(args.out, exist_ok=True)
     summary = {
+        "engine": args.engine,
         "floor": args.floor,
         "height_scan": args.height_scan,
         "seed": args.seed,
@@ -400,6 +426,7 @@ def train(args, parser):
     assert exported["policy"]["inputs"] == raw.observation_space.shape[0]
     with open(os.path.join(args.out, "policy.json"), "w") as file:
         json.dump(exported, file)
+    raw.close()
     if not args.smoke:
         model.save(os.path.join(args.out, "ppo_go2"))
         if not args.no_normalize:
