@@ -1020,6 +1020,46 @@ held-out episodes:
   default 5 ms step and contacts the gap policies cross almost nothing in
   it. One seed; the gap task's depth levels are RNE's alone so far.
 
+#### Three seeds, and what repeats across runners
+
+The same workflow over seeds 2026–2028 (run 43877055277); timesteps a
+second (PPO's updates included), the whole 4.06M timesteps' time, the
+final return on RNE's held-out episodes and when it first reached 11:
+
+| Engine, seed | Timesteps/s | Time | Final return | Return 11 at |
+|---|---|---|---|---|
+| RNE 2026 | 8,896 | 457 s | 13.81 | 1.52M, 179 s |
+| RNE 2027 | 5,227 | 777 s | 13.23 | 2.03M, 385 s |
+| RNE 2028 | 5,369 | 757 s | 12.89 | 1.52M, 276 s |
+| MuJoCo 2026 | 1,910 | 2,128 s | 12.80 | 2.03M, 1,093 s |
+| MuJoCo 2027 | 2,516 | 1,615 s | 10.81 | never |
+| MuJoCo 2028 | 1,869 | 2,174 s | 9.78 | 3.05M, 1,630 s |
+
+- **RNE trains 2–5 times as fast, about 3 times on average** (6,500
+  against 2,100 timesteps a second). The runners' CPUs differ from job to
+  job, and both engines' speeds move with them: RNE's from 5,200 to 8,900,
+  MuJoCo's from 1,300 to 2,500 over the two runs.
+- **All three RNE seeds pass 11 and end at 12.9–13.8; two of MuJoCo's end
+  below 11.** Every policy walks in both engines without falling, though
+  RNE's seed 2028 walks 6.6 m in MuJoCo against 13.3 m in RNE.
+- **The same seed did not repeat its curve in RNE** (seed 2026's first
+  stage returned −0.46 in run 43835766892 and 5.2 here), where MuJoCo's
+  repeated to the digit. The `Go2 determinism probe` workflow
+  (`go2-determinism-probe.yml`, run 43888130469) ran one job on each of
+  four runners, an Intel Xeon 6975P-C, an Intel Xeon Platinum 8573C, an AMD
+  EPYC 7763 and an AMD EPYC 9V74. Each job ran the same three probes:
+  - **RNE's batch** after 500 periods of fixed actions hashes the same on
+    all four, bit for bit: the simulation repeats across machines.
+  - **Torch's matmul** of fixed matrices hashes one way on the two Intel
+    CPUs and another on the two AMD ones, in float64 and float32.
+  - **SB3's policy** after 65k timesteps from seed 2026 follows the CPU
+    vendor and also changes with torch's thread count (1 or 2).
+- So the learning runs differ by the learner's arithmetic, not by the
+  simulator's: RNE's two seed-2026 runs most likely trained on different
+  CPUs (they ran at 8,611 and 8,896 timesteps a second), and MuJoCo's two
+  on the same kind. A run repeats exactly given the same CPU vendor and
+  torch's thread count.
+
 ## Limits
 
 - The batch is example 147's task, not a general Go2 environment: one
