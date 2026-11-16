@@ -632,7 +632,15 @@ fn raycasts_hit_fixed_and_moving_bodies_at_their_current_pose() {
     let hits = backend.raycast(id, side).expect("raycast");
     assert_eq!(hits.len(), 1);
     assert!((hits[0].distance_m - 1.8).abs() < 1.0e-4);
-    assert!((hits[0].normal - Vec3::NEG_X).length() < 1.0e-6);
+    // The ray finds the face where the box now is: settling may have turned
+    // it by rounding, microradians, which the hit's normal must follow.
+    let face = world.get::<Transform3>(crate_box).expect("pose").rotation * Vec3::NEG_X;
+    assert!((face - Vec3::NEG_X).length() < 1.0e-4, "{face:?}");
+    assert!(
+        (hits[0].normal - face).length() < 1.0e-9,
+        "{:?} {face:?}",
+        hits[0].normal
+    );
     // Too short to reach, or with no direction: nothing.
     let short = RaycastQuery {
         max_distance_m: 1.0,

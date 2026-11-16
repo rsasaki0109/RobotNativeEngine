@@ -50,6 +50,18 @@ use rne_world::Transform3;
 /// Number of evenly spaced angles sampled to bracket the sliding direction.
 const SLIDING_BRACKET_SAMPLES: usize = 32;
 
+/// A sampled sliding direction whose tangential velocity is anti-parallel to
+/// its impulse within this fraction of that velocity is the solution itself:
+/// at a root that falls on a sample, rounding alone sets the sign of the
+/// residual there, and the brackets on either side may both miss it. Only
+/// where the contact slips faster than [`SLIDING_ROOT_MIN_SPEED_M_S`]: at a
+/// standstill the residual is rounding everywhere, and a sample taken for a
+/// root would turn the friction impulse at random.
+const SLIDING_ROOT_TOLERANCE: f64 = 1.0e-12;
+
+/// Slip speed below which a sampled direction is never taken as the root.
+const SLIDING_ROOT_MIN_SPEED_M_S: f64 = 1.0e-6;
+
 /// Re-solves allowed per step while joints newly reach their effort limit.
 const MAX_EFFORT_PASSES: usize = 4;
 
@@ -620,6 +632,13 @@ fn solve_single_contact(
         let (Some(low), Some(high)) = (sample(index), sample(index + 1)) else {
             continue;
         };
+        for edge in [low, high] {
+            if edge.alignment > SLIDING_ROOT_MIN_SPEED_M_S
+                && edge.cross.abs() <= SLIDING_ROOT_TOLERANCE * edge.alignment
+            {
+                return (edge.impulse, ContactState::Sliding);
+            }
+        }
         if low.cross.signum() == high.cross.signum() && low.cross != 0.0 && high.cross != 0.0 {
             continue;
         }
@@ -2765,6 +2784,94 @@ mod tests {
         );
         assert!((q[1] - HALF_EXTENTS_M[1]).abs() < 1.0e-6, "height {}", q[1]);
         assert!(qd[3..].iter().all(|w| w.abs() < 1.0e-6), "spin {qd:?}");
+    }
+
+    #[test]
+    fn a_sliding_edge_strike_takes_the_coulomb_impulse() {
+        // A box pitched nose-down slides forward into the floor on its front
+        // bottom edge, with no gravity: one impact, sliding throughout. In the
+        // plane of motion the impulse P = (P_t, P_n) at the edge, offset r
+        // from the centre of mass, with P_t = -mu P_n against the slip, stops
+        // the edge's approach (restitution zero) when
+        //   P_n = -u_n / (1/m + r_x^2/I + mu r_x r_y / I),
+        // u_n being the edge's normal velocity before. Friction below and
+        // ahead of the centre of mass pitches the box further into the floor
+        // (r_x > 0, r_y < 0), so the impulse exceeds the frictionless one.
+        let (model, link) = box_model(Vec3::ZERO);
+        let [hx, hy, _] = HALF_EXTENTS_M;
+        let (pitch, mu) = (-0.2_f64, 1.0);
+        let rotation = Quat::from_rotation_z(pitch);
+        let edge_local = Vec3::new(hx, -hy, 0.0);
+        let r = rotation * edge_local;
+        let mut q = vec![0.0; 6];
+        q[1] = -r.y;
+        q[5] = pitch;
+        let velocity = Vec3::new(2.6, -0.8, 0.0);
+        let mut qd = vec![0.0; 6];
+        let local = rotation.conjugate() * velocity;
+        qd[..3].copy_from_slice(&[local.x, local.y, local.z]);
+        let config = ContactStepConfig {
+            step_time_s: 1.0e-3,
+            ..ContactStepConfig::default()
+        };
+        let edge = |q: &[f64], mu: f64| {
+            let base = model
+                .kinematic()
+                .forward_kinematics(q)
+                .expect("fk")
+                .transforms()[0];
+            vec![ContactPoint {
+                link,
+                point_local_m: edge_local,
+                normal_world: Vec3::Y,
+                gap_m: (base.translation + base.rotation * edge_local).y,
+                friction_coefficient: mu,
+            }]
+        };
+        // The impulse of the striking step; later steps carry none.
+        let strike = |mu: f64| {
+            let (mut q, mut qd) = (q.clone(), qd.clone());
+            let mut impulses = Vec::new();
+            for _ in 0..20 {
+                let step = contact_step(
+                    &model,
+                    &q,
+                    &qd,
+                    &[0.0; 6],
+                    &edge(&q, mu),
+                    None,
+                    &config,
+                    None,
+                )
+                .expect("step");
+                assert!(step.solver_contact_law_satisfied, "mu {mu}: contact law");
+                impulses.push(step.contacts[0].impulse_world_n_s);
+                q = step.q;
+                qd = step.qd;
+            }
+            impulses
+        };
+        let mass = BOX_MASS_KG;
+        let inertia = BOX_MASS_KG / 3.0 * (hx * hx + hy * hy);
+        let normal_impulse =
+            |mu: f64| -velocity.y / (1.0 / mass + r.x * r.x / inertia + mu * r.x * r.y / inertia);
+        for mu in [0.0, mu] {
+            let impulses = strike(mu);
+            let p_n = normal_impulse(mu);
+            let expected = Vec3::new(-mu * p_n, p_n, 0.0);
+            // Still sliding forward after the impact, as assumed.
+            let spin = (r.x * p_n + r.y * mu * p_n) / inertia;
+            assert!(velocity.x - mu * p_n / mass - r.y * spin > 0.0);
+            assert!(
+                (impulses[0] - expected).length() < 1.0e-3 * p_n,
+                "mu {mu}: {:?} against {expected:?}",
+                impulses[0]
+            );
+            let later: f64 = impulses[1..].iter().map(|impulse| impulse.length()).sum();
+            assert!(later < 0.02 * p_n, "mu {mu}: {later} N·s after the strike");
+        }
+        // Friction raises the normal impulse by about a third here.
+        assert!(normal_impulse(mu) > 1.3 * normal_impulse(0.0));
     }
 
     #[test]
