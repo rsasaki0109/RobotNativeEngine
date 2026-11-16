@@ -12,8 +12,8 @@ All notable changes to Robot Native Engine are documented in this file.
   and the solve fell back to the sticking impulse projected on the cone, which
   the step applied though it broke the contact law: a box sliding forward
   onto its front edge, pitched in the plane of its motion, took 2.4 times the
-  rigid Coulomb impulse and left the floor at 1.1 m/s. A sample within 1e-12
-  of the solution is now taken as it; a test checks the strike against its
+  rigid Coulomb impulse and left the floor at 1.1 m/s. Where the contact
+  slips, a sample within 1e-12 of the solution is now taken as it; a test checks the strike against its
   closed form. `mujoco_strike.py` (example 147) runs the same strike in
   MuJoCo, which gives 1.8–2.2 times that impulse at any damping, cone or
   impratio; example 148's README traces the Go2's head strikes to it.

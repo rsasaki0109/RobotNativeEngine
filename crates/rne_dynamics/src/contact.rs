@@ -53,8 +53,14 @@ const SLIDING_BRACKET_SAMPLES: usize = 32;
 /// A sampled sliding direction whose tangential velocity is anti-parallel to
 /// its impulse within this fraction of that velocity is the solution itself:
 /// at a root that falls on a sample, rounding alone sets the sign of the
-/// residual there, and the brackets on either side may both miss it.
+/// residual there, and the brackets on either side may both miss it. Only
+/// where the contact slips faster than [`SLIDING_ROOT_MIN_SPEED_M_S`]: at a
+/// standstill the residual is rounding everywhere, and a sample taken for a
+/// root would turn the friction impulse at random.
 const SLIDING_ROOT_TOLERANCE: f64 = 1.0e-12;
+
+/// Slip speed below which a sampled direction is never taken as the root.
+const SLIDING_ROOT_MIN_SPEED_M_S: f64 = 1.0e-6;
 
 /// Re-solves allowed per step while joints newly reach their effort limit.
 const MAX_EFFORT_PASSES: usize = 4;
@@ -627,7 +633,9 @@ fn solve_single_contact(
             continue;
         };
         for edge in [low, high] {
-            if edge.alignment > 0.0 && edge.cross.abs() <= SLIDING_ROOT_TOLERANCE * edge.alignment {
+            if edge.alignment > SLIDING_ROOT_MIN_SPEED_M_S
+                && edge.cross.abs() <= SLIDING_ROOT_TOLERANCE * edge.alignment
+            {
                 return (edge.impulse, ContactState::Sliding);
             }
         }
