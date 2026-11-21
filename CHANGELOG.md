@@ -14,7 +14,25 @@ All notable changes to Robot Native Engine are documented in this file.
   Rapier room; Calibrex's `calibrex check` reads the bag, passes the true
   mounting (within 0.01° per axis) and fails one turned 3° in yaw.
 
+- `rne_wbc::WholeBodyConfig::enforce_contact_cones` keeps every contact force
+  inside an inscribed four-sided friction pyramid *during* the whole-body
+  solve (non-negative weights on the pyramid edges). Without it the forces are
+  solved unconstrained and projected onto the cones only afterwards, so the
+  returned torques can rely on a contact pulling on the ground; with several
+  contacts on one flat sole the center of pressure then leaves the sole and a
+  biped tips over. Off by default, so existing results are unchanged.
+  `FrictionCone::pyramid_edges` and `ContactPoint::with_normal` (for models
+  that are not Y-up) come with it.
+
 ### Fixed
+
+- `rne_wbc`'s in-solve torque limits (`enforce_torque_limits`) now solve
+  exactly. The bounded least squares ran 400 projected Gauss-Seidel sweeps
+  from zero, which stalled on the ill-conditioned whole-body system (dynamics
+  rows weighted 1e6 next to tasks weighted 1e2): a standing 32 kg Unitree G1
+  came back with 114 N of its 315 N weight supported. It is now a primal
+  active-set method started from the clamped unconstrained optimum, exact
+  whether or not a bound is active.
 
 - `rne_dynamics`' contact solve no longer misses a contact's sliding
   direction when it falls on one of the angles it samples. Rounding alone set
