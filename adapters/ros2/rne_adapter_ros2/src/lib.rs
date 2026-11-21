@@ -2,25 +2,33 @@
 
 #![deny(missing_docs)]
 
+pub mod cdr;
 pub mod clock;
 pub mod image;
+pub mod imu;
 pub mod jointstate;
 pub mod laserscan;
+pub mod mcap;
 pub mod messages;
 pub mod nav_map;
 pub mod nav_odometry;
 pub mod pointcloud;
 pub mod tf;
 
+pub use cdr::{encode_imu, encode_pointcloud2, encode_tf_message, CdrWriter};
 pub use clock::{to_ros_clock, to_ros_time};
 pub use image::to_ros_image;
+pub use imu::to_ros_imu;
 pub use jointstate::to_ros_joint_state;
 pub use laserscan::pointcloud_to_laserscan;
+pub use mcap::{
+    McapChannelId, McapWriter, Ros2MessageSchema, IMU_SCHEMA, POINTCLOUD2_SCHEMA, TF_MESSAGE_SCHEMA,
+};
 pub use messages::{
-    RosClock, RosHeader, RosImage, RosJointState, RosLaserScan, RosMapMetaData, RosOccupancyGrid,
-    RosOdometry, RosPath, RosPoint, RosPointCloud2, RosPointField, RosPose, RosPoseStamped,
-    RosPoseWithCovariance, RosQuaternion, RosTfMessage, RosTime, RosTransform, RosTransformStamped,
-    RosTwist, RosTwistWithCovariance, RosVector3,
+    RosClock, RosHeader, RosImage, RosImu, RosJointState, RosLaserScan, RosMapMetaData,
+    RosOccupancyGrid, RosOdometry, RosPath, RosPoint, RosPointCloud2, RosPointField, RosPose,
+    RosPoseStamped, RosPoseWithCovariance, RosQuaternion, RosTfMessage, RosTime, RosTransform,
+    RosTransformStamped, RosTwist, RosTwistWithCovariance, RosVector3,
 };
 pub use nav_map::{to_ros_occupancy_grid, to_ros_path, to_ros_pose_stamped};
 pub use nav_odometry::{

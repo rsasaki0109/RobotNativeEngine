@@ -562,6 +562,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
+name = "calibrex_rig_bag"
+version = "0.4.0"
+dependencies = [
+ "rne_adapter_ros2",
+ "rne_core",
+ "rne_data",
+ "rne_ecs",
+ "rne_math",
+ "rne_physics",
+ "rne_physics_rapier",
+ "rne_sensor",
+ "rne_world",
+]
+
+[[package]]
 name = "calloop"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
