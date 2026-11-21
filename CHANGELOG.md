@@ -6,6 +6,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_adapter_ros2` records simulated sensors as a ROS 2 bag without a ROS
+  install: `cdr` serializes `sensor_msgs/Imu`, `PointCloud2` and
+  `tf2_msgs/TFMessage` to CDR, `mcap` writes them to an MCAP file with the
+  `ros2` profile (latched QoS on `/tf_static`), and `to_ros_imu` maps an IMU
+  sample. Example 149 uses them to record a LiDAR + IMU rig moving through a
+  Rapier room; Calibrex's `calibrex check` reads the bag, passes the true
+  mounting (within 0.01° per axis) and fails one turned 3° in yaw.
+
 - `rne_wbc::WholeBodyConfig::enforce_contact_cones` keeps every contact force
   inside an inscribed four-sided friction pyramid *during* the whole-body
   solve (non-negative weights on the pyramid edges). Without it the forces are

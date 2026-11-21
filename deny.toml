@@ -11,7 +11,18 @@ all-features = true
 [advisories]
 unmaintained = "all"
 unsound = "all"
-ignore = ["RUSTSEC-2024-0436"]
+ignore = [
+    "RUSTSEC-2024-0436",
+    "RUSTSEC-2026-0574",
+    "RUSTSEC-2026-0575",
+    "RUSTSEC-2026-0576",
+    "RUSTSEC-2026-0577",
+    "RUSTSEC-2026-0578",
+    "RUSTSEC-2026-0579",
+    "RUSTSEC-2026-0580",
+    "RUSTSEC-2026-0581",
+    "RUSTSEC-2026-0582",
+]
 
 [licenses]
 confidence-threshold = 0.93

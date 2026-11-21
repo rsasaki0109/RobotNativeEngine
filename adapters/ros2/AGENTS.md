@@ -11,8 +11,10 @@ This directory contains optional adapters between Robot Native Engine and extern
 
 ## Crates
 
-- `rne_adapter_ros2`: `/clock`, TF, PointCloud2, and navigation (`Odometry`,
-  `OccupancyGrid`, `Path`, `Twist`) mapping helpers (Rust)
+- `rne_adapter_ros2`: `/clock`, TF, PointCloud2, IMU, and navigation (`Odometry`,
+  `OccupancyGrid`, `Path`, `Twist`) mapping helpers (Rust), plus ROS-free CDR
+  serialization (`cdr`) and a dependency-free ROS 2 MCAP bag writer (`mcap`) for
+  recording simulated sensors as a `ros2 bag` (see example 149)
 - `rne_ros2_bridge`: Python `rclpy` runtime node publishing `/clock`, `/points`,
   `/tf`, `/odom`, `/scan`, `/map`, `/plan` and subscribing `/cmd_vel`;
   `simulation_interfaces` state/step services plus Gazebo-compatible entity

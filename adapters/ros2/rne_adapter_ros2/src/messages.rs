@@ -272,3 +272,25 @@ pub struct RosPath {
     /// Ordered poses.
     pub poses: Vec<RosPoseStamped>,
 }
+
+/// `sensor_msgs/Imu` compatible inertial measurement.
+///
+/// A covariance whose first element is `-1` marks that quantity as not
+/// provided, following the ROS convention.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RosImu {
+    /// Message header; `frame_id` names the IMU frame.
+    pub header: RosHeader,
+    /// Orientation estimate (identity when not provided).
+    pub orientation: RosQuaternion,
+    /// Row-major orientation covariance.
+    pub orientation_covariance: [f64; 9],
+    /// Angular velocity in the IMU frame, radians per second.
+    pub angular_velocity: RosVector3,
+    /// Row-major angular velocity covariance.
+    pub angular_velocity_covariance: [f64; 9],
+    /// Specific force in the IMU frame, meters per second squared.
+    pub linear_acceleration: RosVector3,
+    /// Row-major linear acceleration covariance.
+    pub linear_acceleration_covariance: [f64; 9],
+}
