@@ -19,12 +19,15 @@
 //! every GNSS solution without checks. An SVG of the site, trajectories, and
 //! a sky plot from inside the canyon is written (`--svg <path>` to choose).
 //! `--frames <dir>` also writes one SVG per 1.5 s of the run, which
-//! `scripts/svg_frames_to_gif.py` turns into an animation.
+//! `scripts/svg_frames_to_gif.py` turns into an animation, and `--trace
+//! <path>` a JSON trace (every 0.5 s) for the 3D renderer
+//! `149_gnss_lidar_navigation_render`.
 //!
 //! Run with `cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation`.
 
 mod frames;
 mod gnss;
+mod trace;
 
 use gnss::{GnssOutput, RobotGnss, SolutionLabel, BASE_ENU_M, BODY_HEIGHT_M};
 use rne_core::DeterministicRng;
@@ -57,14 +60,8 @@ const MAP: [f64; 4] = [118.0, -16.0, 165.0, 16.0];
 const MAP_RESOLUTION_M: f64 = 0.1;
 
 fn main() {
-    let svg_path = std::env::args()
-        .skip_while(|a| a != "--svg")
-        .nth(1)
-        .unwrap_or_else(|| "target/149_gnss_lidar_navigation.svg".to_string());
-    let frames_dir = std::env::args()
-        .skip_while(|a| a != "--frames")
-        .nth(1)
-        .map(std::path::PathBuf::from);
+    let (svg_path, frames_dir, trace_path) = output_args();
+    let recording = frames_dir.is_some() || trace_path.is_some();
     let mut frames: Vec<frames::FrameRecord> = Vec::new();
     let mut last_label = None;
     let mut last_heading = false;
@@ -182,7 +179,7 @@ fn main() {
         if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
             let scan = lidar_scan(&scene, truth, t, &mut rng);
             log.clearance_m = log.clearance_m.min(min_range(&scan));
-            if frames_dir.is_some() {
+            if recording {
                 last_scan_points = scan_world_points(&scan, truth);
             }
             hybrid
@@ -198,7 +195,7 @@ fn main() {
             gnss_only.pose(),
             odom,
         );
-        if frames_dir.is_some() && t + 1.0e-9 >= frames.len() as f64 * frames::FRAME_PERIOD_S {
+        if recording && t + 1.0e-9 >= frames.len() as f64 * frames::RECORD_PERIOD_S {
             frames.push(frames::FrameRecord {
                 t,
                 sample_count: log.samples.len(),
@@ -216,6 +213,36 @@ fn main() {
 
     log.print_summary(reached, tick as f64 * DT_S, &hybrid, gnss.base_epoch());
     write_outputs(&svg_path, frames_dir.as_deref(), &scene, &log, &frames);
+    if let Some(path) = trace_path {
+        trace_output(&path, &scene, &log, &frames);
+    }
+}
+
+/// `--svg <path>`, `--frames <dir>` and `--trace <path>`.
+fn output_args() -> (
+    String,
+    Option<std::path::PathBuf>,
+    Option<std::path::PathBuf>,
+) {
+    let value = |flag: &str| std::env::args().skip_while(|a| a != flag).nth(1);
+    (
+        value("--svg").unwrap_or_else(|| "target/149_gnss_lidar_navigation.svg".to_string()),
+        value("--frames").map(std::path::PathBuf::from),
+        value("--trace").map(std::path::PathBuf::from),
+    )
+}
+
+/// Writes the JSON trace for the 3D renderer.
+fn trace_output(
+    path: &std::path::Path,
+    scene: &GnssScene,
+    log: &RunLog,
+    frames: &[frames::FrameRecord],
+) {
+    match trace::write_trace(path, scene, &ReceiverConfig::default().trace, log, frames) {
+        Ok(()) => println!("wrote 3D render trace {}", path.display()),
+        Err(error) => println!("could not write {}: {error}", path.display()),
+    }
 }
 
 /// Writes the summary SVG and, when asked, the animation frames.

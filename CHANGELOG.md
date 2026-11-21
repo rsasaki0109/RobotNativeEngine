@@ -30,7 +30,10 @@ All notable changes to Robot Native Engine are documented in this file.
   canyon into an office and back with a rooftop RTK base (hybrid position
   RMSE 0.05–0.52 m per zone, against 6.9–10.6 m for an EKF fusing every GNSS
   solution). `--frames` writes animation frames that
-  `scripts/svg_frames_to_gif.py` turns into `docs/media/gnss-lidar-navigation.gif`.
+  `scripts/svg_frames_to_gif.py` turns into `docs/media/gnss-lidar-navigation.gif`;
+  `--trace` feeds the `149_gnss_lidar_navigation_render` example (feature
+  `capture`), which renders the run in 3D with `rne_render_wgpu`
+  (`docs/media/gnss-lidar-navigation-3d.gif`).
 
 ### Fixed
 

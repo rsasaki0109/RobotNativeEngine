@@ -13,7 +13,7 @@ renderer-free; libgnss++ stays in the adapter.
 with two antennas from an open plaza down a street canyon into an office and
 back, with an RTK base station on a rooftop.
 
-![Example 149: GNSS outdoors, LiDAR indoors](media/gnss-lidar-navigation.gif)
+![Example 149 rendered in 3D by RNE: GNSS outdoors, LiDAR indoors](media/gnss-lidar-navigation-3d.gif)
 
 ## What the simulation models
 

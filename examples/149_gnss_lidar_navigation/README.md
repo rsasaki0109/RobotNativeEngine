@@ -12,7 +12,22 @@ pursuit steers on the *estimated* pose, so localization errors become driving
 errors. The run takes about 18 s in release mode and writes
 `target/149_gnss_lidar_navigation.svg` (`--svg <path>` to choose).
 
-![Animation: the robot drives from the plaza through the canyon into the office and back; rays show line-of-sight (green), NLOS (red) and diffracted (purple) satellite signals, cyan dots the LiDAR returns, and the badges the localization source and RTK status](../../docs/media/gnss-lidar-navigation.gif)
+![3D render in Robot Native Engine: the robot drives from the plaza down the street canyon into the office; beams show each tracked satellite signal (green line of sight, red NLOS reflections bending at the glass and concrete facades, purple diffraction), cyan dots the LiDAR returns, and the HUD the localization source, the libgnss++ RTK status and the sky at the robot](../../docs/media/gnss-lidar-navigation-3d.gif)
+
+The 3D view is rendered by RNE's wgpu renderer (`rne_render_wgpu`, PBR with
+shadows) from the run's trace; the office roof is cut away so the indoor part
+is visible. To regenerate it (any GPU, or Mesa's lavapipe via
+`mesa-vulkan-drivers`; Pillow and ffmpeg for the HUD and GIF):
+
+```bash
+cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation -- --trace target/gnss3d/trace.json
+cargo run --release -p gnss_lidar_navigation --features capture --example 149_gnss_lidar_navigation_render -- \
+    --trace target/gnss3d/trace.json --output target/gnss3d/frames
+python3 examples/149_gnss_lidar_navigation/encode.py target/gnss3d docs/media/gnss-lidar-navigation-3d.gif
+```
+
+A top-down 2D animation of the same run is in
+[docs/media/gnss-lidar-navigation.gif](../../docs/media/gnss-lidar-navigation.gif); the run summary as a top view and a canyon sky plot:
 
 ![Top view and canyon sky plot](gnss_lidar_navigation.svg)
 

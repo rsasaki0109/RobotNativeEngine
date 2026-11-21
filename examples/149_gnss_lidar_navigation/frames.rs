@@ -15,8 +15,10 @@ use std::f64::consts::{FRAC_PI_2, TAU};
 use std::fmt::Write as _;
 use std::path::Path;
 
-/// Seconds of simulation between frames.
-pub(crate) const FRAME_PERIOD_S: f64 = 1.5;
+/// Seconds of simulation between recorded instants.
+pub(crate) const RECORD_PERIOD_S: f64 = 0.5;
+/// Recorded instants per SVG frame (one frame per 1.5 s).
+const SVG_STRIDE: usize = 3;
 /// Vertical shift of the map below the header bar, in pixels.
 const MAP_SHIFT_PX: f64 = 20.0;
 
@@ -47,13 +49,13 @@ pub(crate) fn write_frames(
     frames: &[FrameRecord],
 ) -> std::io::Result<usize> {
     std::fs::create_dir_all(dir)?;
-    for (index, frame) in frames.iter().enumerate() {
+    for (index, frame) in frames.iter().step_by(SVG_STRIDE).enumerate() {
         std::fs::write(
             dir.join(format!("frame_{index:04}.svg")),
             render_frame(scene, log, frame),
         )?;
     }
-    Ok(frames.len())
+    Ok(frames.len().div_ceil(SVG_STRIDE))
 }
 
 fn render_frame(scene: &GnssScene, log: &RunLog, frame: &FrameRecord) -> String {
