@@ -1,0 +1,21 @@
+[package]
+name = "rne_adapter_gnsspp"
+description = "libgnss++ adapter for Robot Native Engine: SPP, RTK and moving-baseline RTK on rne_gnss observations"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+repository.workspace = true
+links = "rne_gnsspp"
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_gnss = { workspace = true }
+rne_math = { workspace = true }
+thiserror = { workspace = true }
+
+[build-dependencies]
+cc = "1"

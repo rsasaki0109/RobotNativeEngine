@@ -39,7 +39,7 @@ ROS2 is an adapter only. Do not add ROS2, rclrs, rclcpp, DDS, or ROS message dep
 - `crates/rne_data`: typed DataBus, stream IDs, frame payloads
 - `crates/rne_nav`: backend-neutral occupancy grids, costmaps, tiled maps, plan/control, multi-robot avoidance, and timestamped transform tree
 - `crates/rne_slam`: deterministic 2D scan matching, online occupancy SLAM, Monte Carlo localization, and a GNSS-outdoors / LiDAR-indoors localization arbiter
-- `crates/rne_gnss`: ray-traced GNSS simulation (WGS-84 geodesy, Keplerian GPS/Galileo orbits, building occlusion, multipath and NLOS, pseudorange positioning with RAIM)
+- `crates/rne_gnss`: ray-traced GNSS simulation (WGS-84 geodesy, GPS/Galileo orbits and broadcast ephemerides, building occlusion, multi-bounce reflections, knife-edge diffraction, dual-frequency code/carrier/Doppler observations, multi-antenna rigs, built-in SPP with RAIM)
 - `crates/rne_ai`: agent, observation, action, reward, policy traits
 - `crates/rne_accelerator_contract`: vendor-neutral manifest, runtime, and accelerator evidence readers
 - `crates/rne_plugin`: plugin manifest and loading interfaces
@@ -53,6 +53,7 @@ ROS2 is an adapter only. Do not add ROS2, rclrs, rclcpp, DDS, or ROS message dep
 - `crates/rne_traci`: minimal TraCI client for live SUMO co-simulation
 - `adapters/ros2`: ROS2 adapter. ROS2 dependencies are allowed here only.
 - `adapters/ssl`: RoboCup SSL simulation-protocol UDP adapter (protobuf). Keep core crates free of SSL protobuf.
+- `adapters/gnsspp`: libgnss++ (C++20) adapter: SPP, RTK and moving-baseline RTK on `rne_gnss` observations. Keep core crates free of libgnss++ and C++.
 - `adapters/hardware`: process-isolated hardware gateway adapters.
 - `adapters/hardware/rne_hardware_gateway`: bounded TaskSpec-bound playback/shadow/HIL/live gateway contracts
 - `examples`: runnable examples
@@ -180,8 +181,9 @@ Forbidden:
 - `rne_slam` must not depend on a renderer, physics backend, ROS 2, or external
   SLAM stack; it builds on `rne_nav` types without changing them.
 - `rne_gnss` must not depend on a renderer, physics backend, ROS 2, or an
-  external GNSS library; it ray traces its own box scene, and consumers such
-  as `rne_slam` take its fixes through their own plain types.
+  external GNSS library; external solvers such as libgnss++ consume its
+  observations through `adapters/gnsspp`, and consumers such as `rne_slam`
+  take fixes through their own plain types.
 
 ## Pull Request Definition of Done
 

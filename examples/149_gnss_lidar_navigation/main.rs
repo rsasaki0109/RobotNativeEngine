@@ -3,40 +3,43 @@
 //! GNSS outside and LiDAR Monte Carlo localization inside.
 //!
 //! * GNSS: `rne_gnss` ray traces 48 GPS + Galileo satellites through the
-//!   buildings every epoch. Glass and concrete walls block direct signals and
-//!   reflect others, so the receiver sees line-of-sight, multipath, and NLOS
-//!   pseudoranges; its single-point solution uses RAIM to exclude outliers.
+//!   buildings every epoch (direct paths, up to two wall/ground bounces, and
+//!   knife-edge diffraction over building edges) on two frequencies, for two
+//!   antennas on the robot and a base station on a rooftop. libgnss++
+//!   (through `rne_adapter_gnsspp`) solves carrier-phase RTK for the rear
+//!   antenna and moving-baseline RTK between the antennas for heading. Without
+//!   libgnss++ (see `scripts/build_gnsspp.sh`) the rear antenna's built-in
+//!   single-point fixes are used.
 //! * LiDAR: a 360-beam planar scan ray cast against the same geometry, matched
-//!   by AMCL against a prior occupancy map of the building.
-//! * `rne_slam::HybridLocalizer` decides which source corrects the wheel
-//!   odometry EKF, and pure pursuit steers on the *estimated* pose.
+//!   against a prior occupancy map of the building.
+//! * `rne_slam::HybridLocalizer` decides which source corrects the wheel/gyro
+//!   EKF, and pure pursuit steers on the *estimated* pose.
 //!
 //! The run is compared against odometry alone and against an EKF that fuses
-//! every GNSS fix without quality checks. An SVG of the site, trajectories,
-//! and a sky plot from inside the canyon is written next to the binary
-//! (`--svg <path>` to choose).
+//! every GNSS solution without checks. An SVG of the site, trajectories, and
+//! a sky plot from inside the canyon is written (`--svg <path>` to choose).
 //!
 //! Run with `cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation`.
 
+mod gnss;
+
+use gnss::{GnssOutput, RobotGnss, SolutionLabel, BASE_ENU_M, BODY_HEIGHT_M};
 use rne_core::DeterministicRng;
 use rne_gnss::{
-    Constellation, EnuFrame, Geodetic, GnssEpoch, GnssFix, GnssReceiver, GnssScene, ReceiverConfig,
-    SceneBox, SignalPath, SurfaceMaterial,
+    BodyPose, Constellation, EnuFrame, Geodetic, GnssEpoch, GnssScene, ReceiverConfig, SceneBox,
+    SignalPath, SurfaceMaterial,
 };
 use rne_math::Vec3;
 use rne_nav::{
     pure_pursuit_follow, EkfFusion, FrameId, GridCoord, LaserScan2d, OccupancyGrid, Path2d, Pose2d,
     PurePursuitConfig, VelocityCommand2d,
 };
-use rne_slam::{
-    AbsolutePositionFix, AmclConfig, HybridLocalizer, HybridLocalizerConfig, LocalizationSource,
-};
+use rne_slam::{AmclConfig, FixKind, HybridLocalizer, HybridLocalizerConfig, LocalizationSource};
 use std::f64::consts::{FRAC_PI_2, TAU};
 use std::fmt::Write as _;
 
 const DT_S: f64 = 0.05;
 const LIDAR_EVERY_TICKS: usize = 2;
-const ANTENNA_HEIGHT_M: f64 = 0.8;
 const LIDAR_HEIGHT_M: f64 = 0.3;
 const LIDAR_BEAMS: usize = 360;
 const LIDAR_RANGE_M: f64 = 20.0;
@@ -63,14 +66,33 @@ fn main() {
     let mut follower = RouteFollower::new();
     let start = follower.start();
 
-    let mut receiver = GnssReceiver::new(ReceiverConfig::default()).expect("receiver");
-    let config = HybridLocalizerConfig {
+    let mut gnss = RobotGnss::new(
+        &constellation,
+        frame,
+        ReceiverConfig::default(),
+        SKY_EPOCH_S + 300.0,
+    );
+    println!(
+        "GNSS solver: {}",
+        if gnss.uses_libgnss() {
+            "libgnss++ RTK (rear antenna vs rooftop base) + moving-baseline heading"
+        } else {
+            "built-in single-point positioning (libgnss++ not linked; run scripts/build_gnsspp.sh)"
+        }
+    );
+    let mut config = HybridLocalizerConfig {
         amcl: AmclConfig {
             particle_count: 600,
             ..AmclConfig::default()
         },
         ..HybridLocalizerConfig::default()
     };
+    if gnss.uses_libgnss() {
+        // Hand back to GNSS only on RTK fixed solutions; float solutions out
+        // of the canyon can be metres off with a confident covariance.
+        config.enter_gnss_min_kind = FixKind::Fixed;
+        config.min_float_variance_m2 = 4.0;
+    }
     let mut hybrid = HybridLocalizer::new(prior_map, start, config).expect("localizer");
     let mut gnss_only =
         EkfFusion::with_initial_state(config.ekf, start, VelocityCommand2d::ZERO).expect("ekf");
@@ -79,7 +101,6 @@ fn main() {
     let mut truth = start;
     let mut odom = start;
     let mut log = RunLog::default();
-    let mut last_epoch_time = f64::NEG_INFINITY;
     let mut tick = 0_usize;
     let mut reached = false;
 
@@ -107,24 +128,42 @@ fn main() {
             )
             .expect("odometry");
 
-        let antenna = Vec3::new(truth.x_m, truth.y_m, ANTENNA_HEIGHT_M);
-        let fixes = receiver.step(&scene, &constellation, &frame, antenna, SKY_EPOCH_S + t);
-        if let Some(epoch) = receiver.last_epoch() {
-            if epoch.time_s > last_epoch_time {
-                last_epoch_time = epoch.time_s;
+        let body = BodyPose {
+            x_m: truth.x_m,
+            y_m: truth.y_m,
+            z_m: BODY_HEIGHT_M,
+            yaw_rad: truth.yaw_rad,
+        };
+        let outputs = gnss.step(
+            &scene,
+            &constellation,
+            body,
+            hybrid.pose().yaw_rad,
+            SKY_EPOCH_S + t,
+        );
+        if let Some(epoch) = gnss.rear_epoch() {
+            if (epoch.time_s - (SKY_EPOCH_S + t)).abs() < 1.0e-9 {
                 log.record_epoch(epoch, zone(truth));
             }
         }
-        for fix in &fixes {
-            let absolute = to_absolute(fix);
-            hybrid.update_gnss(absolute.as_ref(), t).expect("gnss");
-            if let Some(a) = absolute {
-                let variance = (a.horizontal_std_m * a.horizontal_std_m).max(1.0);
+        for output in &outputs {
+            hybrid.update_gnss(output.fix.as_ref(), t).expect("gnss");
+            if let Some(fix) = output.fix {
+                let floor = match fix.kind {
+                    FixKind::Fixed => config.min_fixed_variance_m2,
+                    FixKind::Float => config.min_float_variance_m2,
+                    FixKind::Single => config.min_gnss_variance_m2,
+                };
+                let variance = (fix.horizontal_std_m * fix.horizontal_std_m).max(floor);
                 gnss_only
-                    .update_position(a.x_m, a.y_m, variance)
+                    .update_position(fix.x_m, fix.y_m, variance)
                     .expect("gnss only");
             }
-            log.record_fix(fix, truth);
+            let fused_heading = match &output.heading {
+                Some(heading) => hybrid.update_gnss_heading(heading).expect("heading"),
+                None => false,
+            };
+            log.record_solution(output, truth, fused_heading);
         }
 
         if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
@@ -146,7 +185,7 @@ fn main() {
         tick += 1;
     }
 
-    log.print_summary(reached, tick as f64 * DT_S, &hybrid);
+    log.print_summary(reached, tick as f64 * DT_S, &hybrid, gnss.base_epoch());
     let svg = render_svg(&scene, &log, SKY_EPOCH_S);
     if let Some(parent) = std::path::Path::new(&svg_path).parent() {
         let _ = std::fs::create_dir_all(parent);
@@ -365,19 +404,6 @@ fn min_range(scan: &LaserScan2d) -> f64 {
         .fold(f64::INFINITY, f64::min)
 }
 
-fn to_absolute(fix: &GnssFix) -> Option<AbsolutePositionFix> {
-    fix.has_position().then_some(AbsolutePositionFix {
-        time_s: fix.measurement_time_s - SKY_EPOCH_S,
-        x_m: fix.position_enu_m.x,
-        y_m: fix.position_enu_m.y,
-        horizontal_std_m: fix.horizontal_std_m,
-        satellites_used: fix.satellites_used,
-        hdop: fix.dop.hdop,
-        consistent: fix.consistent,
-        satellites_excluded: fix.excluded.len(),
-    })
-}
-
 fn gaussian(rng: &mut DeterministicRng) -> f64 {
     let u1 = rng.uniform_f64(1.0e-12, 1.0);
     let u2 = rng.uniform_f64(0.0, 1.0);
@@ -448,11 +474,13 @@ struct SkyStats {
     los: usize,
     multipath: usize,
     nlos: usize,
+    diffracted: usize,
     blocked: usize,
-    fixes: usize,
+    phase_locked: usize,
+    solutions: [usize; 4],
     fix_error: ErrorStats,
-    nlos_used: usize,
-    excluded: usize,
+    headings: usize,
+    heading_error_deg: ErrorStats,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -472,10 +500,11 @@ struct RunLog {
     gnss_only: [ErrorStats; 4],
     odom: [ErrorStats; 4],
     sky: [SkyStats; 4],
-    fixes: Vec<(Vec3, usize)>,
+    fixes: Vec<(Vec3, SolutionLabel)>,
     snapshot: Option<GnssEpoch>,
     clearance_m: f64,
-    /// Zone of each measured epoch whose fix has not been released yet.
+    headings_fused: usize,
+    /// Zone of each measured epoch whose solution has not been recorded yet.
     pending_zones: std::collections::VecDeque<Zone>,
 }
 
@@ -490,6 +519,7 @@ impl Default for RunLog {
             fixes: Vec::new(),
             snapshot: None,
             clearance_m: f64::INFINITY,
+            headings_fused: 0,
             pending_zones: std::collections::VecDeque::new(),
         }
     }
@@ -497,6 +527,15 @@ impl Default for RunLog {
 
 fn planar_error(a: Pose2d, b: Pose2d) -> f64 {
     (a.x_m - b.x_m).hypot(a.y_m - b.y_m)
+}
+
+fn label_index(label: SolutionLabel) -> usize {
+    match label {
+        SolutionLabel::Fixed => 0,
+        SolutionLabel::Float => 1,
+        SolutionLabel::Single => 2,
+        SolutionLabel::None => 3,
+    }
 }
 
 impl RunLog {
@@ -530,12 +569,21 @@ impl RunLog {
         sky.tracked += epoch
             .observations
             .iter()
-            .filter(|o| o.path.is_tracked())
+            .filter(|o| o.path().is_tracked())
             .count();
         sky.los += epoch.count(SignalPath::LineOfSight);
         sky.multipath += epoch.count(SignalPath::LineOfSightMultipath);
         sky.nlos += epoch.count(SignalPath::NonLineOfSight);
+        sky.diffracted += epoch.count(SignalPath::Diffracted);
         sky.blocked += epoch.count(SignalPath::Blocked) + epoch.count(SignalPath::TooWeak);
+        sky.phase_locked += epoch
+            .observations
+            .iter()
+            .filter(|o| {
+                o.primary()
+                    .is_some_and(|p| p.carrier_phase_cycles.is_some())
+            })
+            .count();
         if self.snapshot.is_none()
             && zone == Zone::Canyon
             && (epoch.antenna_enu_m.x - 82.0).abs() < 1.0
@@ -544,27 +592,44 @@ impl RunLog {
         }
     }
 
-    /// Records a released fix against the zone its epoch was measured in.
-    fn record_fix(&mut self, fix: &GnssFix, truth: Pose2d) {
+    /// Records a solution against the zone its epoch was measured in.
+    fn record_solution(&mut self, output: &GnssOutput, truth: Pose2d, fused_heading: bool) {
         let measured_in = self.pending_zones.pop_front().unwrap_or(zone(truth));
         let sky = &mut self.sky[measured_in as usize];
-        sky.excluded += fix.excluded.len();
-        if fix.has_position() {
-            sky.fixes += 1;
-            sky.nlos_used += fix.nlos_used;
-            let p = fix.position_enu_m;
-            sky.fix_error.add((p.x - truth.x_m).hypot(p.y - truth.y_m));
-            self.fixes.push((p, fix.nlos_used));
+        sky.solutions[label_index(output.label)] += 1;
+        if let Some(fix) = output.fix {
+            let error = (fix.x_m - truth.x_m).hypot(fix.y_m - truth.y_m);
+            if output.label == SolutionLabel::Fixed {
+                sky.fix_error.add(error);
+            }
+            self.fixes
+                .push((Vec3::new(fix.x_m, fix.y_m, 0.0), output.label));
+        }
+        if let Some(heading) = output.heading {
+            sky.headings += 1;
+            let error = rne_nav::wrap_angle(heading.yaw_rad - truth.yaw_rad)
+                .abs()
+                .to_degrees();
+            sky.heading_error_deg.add(error);
+        }
+        if fused_heading {
+            self.headings_fused += 1;
         }
     }
 
-    fn print_summary(&self, reached: bool, duration_s: f64, hybrid: &HybridLocalizer) {
+    fn print_summary(
+        &self,
+        reached: bool,
+        duration_s: f64,
+        hybrid: &HybridLocalizer,
+        base: Option<&GnssEpoch>,
+    ) {
         let distance: f64 = self
             .samples
             .windows(2)
             .map(|w| planar_error(w[0].truth, w[1].truth))
             .sum();
-        println!("GNSS outdoors / LiDAR indoors navigation");
+        println!("\nGNSS outdoors / LiDAR indoors navigation");
         println!(
             "  goal {} after {:.1} s, {:.0} m driven, min LiDAR clearance {:.2} m",
             if reached { "reached" } else { "NOT reached" },
@@ -572,20 +637,25 @@ impl RunLog {
             distance,
             self.clearance_m
         );
+        if let Some(base) = base {
+            println!(
+                "  base station on the rooftop at ({:.0}, {:.0}, {:.1}) m tracks {} satellites",
+                BASE_ENU_M.x,
+                BASE_ENU_M.y,
+                BASE_ENU_M.z,
+                base.observations
+                    .iter()
+                    .filter(|o| o.path().is_tracked())
+                    .count()
+            );
+        }
 
-        println!("\nRay-traced sky per zone (mean satellites per epoch, of 48 GPS+Galileo):");
         println!(
-            "  {:<17} {:>7} {:>5} {:>6} {:>5} {:>8} {:>6} {:>11} {:>9} {:>9}",
-            "zone",
-            "tracked",
-            "LOS",
-            "LOS+MP",
-            "NLOS",
-            "blocked",
-            "fix %",
-            "fix RMSE m",
-            "NLOS used",
-            "RAIM excl"
+            "\nRay-traced sky at the rear antenna (mean satellites per epoch, of 48 GPS+Galileo):"
+        );
+        println!(
+            "  {:<17} {:>7} {:>5} {:>6} {:>5} {:>6} {:>7} {:>6}",
+            "zone", "tracked", "LOS", "LOS+MP", "NLOS", "diffr", "blocked", "phase"
         );
         for zone in Zone::ALL {
             let s = &self.sky[zone as usize];
@@ -594,24 +664,54 @@ impl RunLog {
             }
             let n = s.epochs as f64;
             println!(
-                "  {:<17} {:>7.1} {:>5.1} {:>6.1} {:>5.1} {:>8.1} {:>6.0} {:>11.2} {:>9.2} {:>9.2}",
+                "  {:<17} {:>7.1} {:>5.1} {:>6.1} {:>5.1} {:>6.1} {:>7.1} {:>6.1}",
                 zone.label(),
                 s.tracked as f64 / n,
                 s.los as f64 / n,
                 s.multipath as f64 / n,
                 s.nlos as f64 / n,
+                s.diffracted as f64 / n,
                 s.blocked as f64 / n,
-                100.0 * s.fixes as f64 / n,
+                s.phase_locked as f64 / n,
+            );
+        }
+
+        println!("\nGNSS solutions per zone (% of epochs) and accuracy:");
+        println!(
+            "  {:<17} {:>6} {:>6} {:>6} {:>6} {:>13} {:>9} {:>14}",
+            "zone",
+            "fixed",
+            "float",
+            "single",
+            "none",
+            "fixed RMSE m",
+            "heading %",
+            "heading RMSE °"
+        );
+        for zone in Zone::ALL {
+            let s = &self.sky[zone as usize];
+            let total: usize = s.solutions.iter().sum();
+            if total == 0 {
+                continue;
+            }
+            let pct = |i: usize| 100.0 * s.solutions[i] as f64 / total as f64;
+            println!(
+                "  {:<17} {:>6.0} {:>6.0} {:>6.0} {:>6.0} {:>13.3} {:>9.0} {:>14.2}",
+                zone.label(),
+                pct(0),
+                pct(1),
+                pct(2),
+                pct(3),
                 s.fix_error.rmse(),
-                s.nlos_used as f64 / s.fixes.max(1) as f64,
-                s.excluded as f64 / n,
+                100.0 * s.headings as f64 / total as f64,
+                s.heading_error_deg.rmse(),
             );
         }
 
         println!("\nPosition error per zone, RMSE / max in meters:");
         println!(
             "  {:<17} {:>17} {:>17} {:>17}",
-            "zone", "hybrid", "GNSS-only EKF", "odometry only"
+            "zone", "hybrid", "EKF, every fix", "odometry only"
         );
         for zone in Zone::ALL {
             let z = zone as usize;
@@ -645,8 +745,8 @@ impl RunLog {
             time_in[source_index(s.source)] += DT_S;
         }
         println!(
-            "  time in GNSS {:.1} s, LiDAR {:.1} s, dead reckoning {:.1} s",
-            time_in[0], time_in[1], time_in[2]
+            "  time in GNSS {:.1} s, LiDAR {:.1} s, dead reckoning {:.1} s; {} moving-baseline headings fused",
+            time_in[0], time_in[1], time_in[2], self.headings_fused
         );
     }
 }
@@ -694,9 +794,13 @@ fn render_svg(scene: &GnssScene, log: &RunLog, sky_epoch_s: f64) -> String {
     draw_buildings(&mut svg, scene);
 
     // Raw GNSS fixes.
-    for (p, nlos_used) in log.fixes.iter().step_by(2) {
+    for (p, label) in log.fixes.iter().step_by(2) {
         let (px, py) = to_px(p.x, p.y);
-        let color = if *nlos_used > 0 { "#d7301f" } else { "#737373" };
+        let color = match label {
+            SolutionLabel::Fixed => "#1a9850",
+            SolutionLabel::Float => "#fdae61",
+            _ => "#d7301f",
+        };
         let _ = writeln!(
             svg,
             r##"<circle cx="{px:.1}" cy="{py:.1}" r="1.3" fill="{color}" fill-opacity="0.6"/>"##
@@ -707,7 +811,11 @@ fn render_svg(scene: &GnssScene, log: &RunLog, sky_epoch_s: f64) -> String {
     if let Some(epoch) = &log.snapshot {
         let (ax, ay) = to_px(epoch.antenna_enu_m.x, epoch.antenna_enu_m.y);
         for o in &epoch.observations {
-            if let (SignalPath::NonLineOfSight, Some(r)) = (o.path, o.reflection_point_m) {
+            let primary = o.primary();
+            if let Some(r) = primary
+                .filter(|p| p.path.is_indirect())
+                .and_then(|p| p.interaction_point_m)
+            {
                 let (rx, ry) = to_px(r.x, r.y);
                 let _ = writeln!(
                     svg,
@@ -794,8 +902,8 @@ fn render_svg(scene: &GnssScene, log: &RunLog, sky_epoch_s: f64) -> String {
         (SOURCE_COLORS[2], "hybrid: dead reckoning"),
         ("#984ea3", "EKF fusing every GNSS fix"),
         ("#fdae61", "odometry only"),
-        ("#d7301f", "fix using an NLOS satellite"),
-        ("#737373", "fix (LOS only)"),
+        ("#1a9850", "GNSS solution: RTK fixed"),
+        ("#d7301f", "GNSS solution: float / single"),
     ];
     for (i, (color, label)) in legend.iter().enumerate() {
         let lx = 14.0 + (i % 4) as f64 * 225.0;
@@ -918,16 +1026,17 @@ fn render_sky_plot(
             py + 4.0
         );
     }
-    let mut counts = [0usize; 4];
+    let mut counts = [0usize; 5];
     for o in &epoch.observations {
-        if o.path == SignalPath::BelowMask && o.elevation_rad < 0.0 {
+        if o.path() == SignalPath::BelowMask && o.elevation_rad < 0.0 {
             continue;
         }
-        let (color, index) = match o.path {
+        let (color, index) = match o.path() {
             SignalPath::LineOfSight => ("#1a9850", 0),
             SignalPath::LineOfSightMultipath => ("#fee08b", 1),
             SignalPath::NonLineOfSight => ("#d7301f", 2),
-            _ => ("#737373", 3),
+            SignalPath::Diffracted => ("#9e9ac8", 3),
+            _ => ("#737373", 4),
         };
         counts[index] += 1;
         let (px, py) = polar(o.azimuth_rad, o.elevation_rad.max(0.0));
@@ -950,8 +1059,12 @@ fn render_sky_plot(
             format!("NLOS: only a reflection arrives ({})", counts[2]),
         ),
         (
+            "#9e9ac8",
+            format!("diffracted over a building edge ({})", counts[3]),
+        ),
+        (
             "#737373",
-            format!("blocked / too weak / below mask ({})", counts[3]),
+            format!("blocked / too weak / below mask ({})", counts[4]),
         ),
         ("#f7fbff", "open sky above the building skyline".to_string()),
         ("#bdbdbd", "sky masked by buildings".to_string()),
@@ -967,9 +1080,9 @@ fn render_sky_plot(
     }
     let _ = writeln!(
         svg,
-        r##"<text x="{lx:.0}" y="{:.0}" fill="#636363">Dashed red lines in the top view: antenna to the wall</text><text x="{lx:.0}" y="{:.0}" fill="#636363">point each NLOS signal reflected off.</text>"##,
-        top + 30.0 + 6.0 * 22.0 + 10.0,
-        top + 30.0 + 6.0 * 22.0 + 26.0
+        r##"<text x="{lx:.0}" y="{:.0}" fill="#636363">Dashed red lines in the top view: antenna to the first</text><text x="{lx:.0}" y="{:.0}" fill="#636363">wall point or edge of each NLOS / diffracted signal.</text>"##,
+        top + 30.0 + 7.0 * 22.0 + 10.0,
+        top + 30.0 + 7.0 * 22.0 + 26.0
     );
 }
 

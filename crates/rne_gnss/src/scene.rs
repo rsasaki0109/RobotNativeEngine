@@ -124,6 +124,35 @@ impl SceneBox {
         Some((t_enter, normal))
     }
 
+    /// The twelve edges as segment endpoints.
+    pub fn edges(&self) -> [(Vec3, Vec3); 12] {
+        let (lo, hi) = (self.min_m, self.max_m);
+        let corner = |x: bool, y: bool, z: bool| {
+            Vec3::new(
+                if x { hi.x } else { lo.x },
+                if y { hi.y } else { lo.y },
+                if z { hi.z } else { lo.z },
+            )
+        };
+        [
+            // Along x.
+            (corner(false, false, false), corner(true, false, false)),
+            (corner(false, true, false), corner(true, true, false)),
+            (corner(false, false, true), corner(true, false, true)),
+            (corner(false, true, true), corner(true, true, true)),
+            // Along y.
+            (corner(false, false, false), corner(false, true, false)),
+            (corner(true, false, false), corner(true, true, false)),
+            (corner(false, false, true), corner(false, true, true)),
+            (corner(true, false, true), corner(true, true, true)),
+            // Along z.
+            (corner(false, false, false), corner(false, false, true)),
+            (corner(true, false, false), corner(true, false, true)),
+            (corner(false, true, false), corner(false, true, true)),
+            (corner(true, true, false), corner(true, true, true)),
+        ]
+    }
+
     /// The four vertical faces as reflecting facets.
     pub fn vertical_facets(&self, box_index: usize) -> [Facet; 4] {
         let (lo, hi) = (self.min_m, self.max_m);

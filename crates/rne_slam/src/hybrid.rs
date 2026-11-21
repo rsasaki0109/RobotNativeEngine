@@ -51,6 +51,30 @@ pub struct AbsolutePositionFix {
     pub consistent: bool,
     /// Satellites the receiver's RAIM excluded this epoch.
     pub satellites_excluded: usize,
+    /// Solution type.
+    pub kind: FixKind,
+}
+
+/// The type of a GNSS position solution, ordered by quality.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum FixKind {
+    /// Code-only single-point (or differential) positioning.
+    Single,
+    /// Carrier-phase RTK with float ambiguities.
+    Float,
+    /// Carrier-phase RTK with fixed integer ambiguities.
+    Fixed,
+}
+
+/// A GNSS heading from a moving-baseline between two antennas.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct AbsoluteHeadingFix {
+    /// Measurement time in seconds.
+    pub time_s: f64,
+    /// Body heading (from east, counter-clockwise) in radians.
+    pub yaw_rad: f64,
+    /// One-sigma heading error in radians.
+    pub yaw_std_rad: f64,
 }
 
 /// The absolute source currently correcting the estimate.
@@ -97,15 +121,31 @@ pub struct HybridLocalizerConfig {
     pub max_excluded: usize,
     /// Squared-Mahalanobis gate for GNSS fixes (2 DOF; 9.21 is 99 %).
     pub gate_chi_square: f64,
-    /// Floor on the per-axis GNSS variance, in m² (the per-axis variance is
-    /// the reported horizontal sigma squared, a conservative split).
+    /// Floor on the per-axis variance of a single-point fix, in m² (the
+    /// per-axis variance is the reported horizontal sigma squared, a
+    /// conservative split).
     pub min_gnss_variance_m2: f64,
+    /// Floor on the per-axis variance of an RTK float fix, in m².
+    pub min_float_variance_m2: f64,
+    /// Floor on the per-axis variance of an RTK fixed fix, in m².
+    pub min_fixed_variance_m2: f64,
+    /// Heading innovations beyond this many sigma are rejected.
+    pub heading_gate_sigma: f64,
     /// Consecutive healthy epochs before GNSS takes over.
     pub enter_gnss_epochs: usize,
+    /// Least solution type that counts toward taking over. With RTK, use
+    /// [`FixKind::Fixed`]: float solutions coming out of an urban canyon can
+    /// carry metres of bias with a confident covariance.
+    pub enter_gnss_min_kind: FixKind,
     /// Consecutive unhealthy epochs before GNSS hands over.
     pub leave_gnss_epochs: usize,
-    /// Consecutive gate-only rejections after which a fix is accepted anyway.
+    /// Consecutive gate-only rejections after which a fix is accepted anyway,
+    /// if it is an RTK fixed solution or the EKF's horizontal sigma exceeds
+    /// `gate_reset_min_std_m` (a single sustained NLOS or float bias must not
+    /// drag a well-localized estimate).
     pub gate_reset_epochs: usize,
+    /// EKF horizontal sigma above which any gated-out fix may reset, meters.
+    pub gate_reset_min_std_m: f64,
     /// Minimum scan-match score to fuse a LiDAR pose.
     pub lidar_min_score: f64,
     /// Minimum score of the wide relocalization match that starts LiDAR mode.
@@ -147,9 +187,14 @@ impl Default for HybridLocalizerConfig {
             max_excluded: 2,
             gate_chi_square: 9.21,
             min_gnss_variance_m2: 1.0,
+            min_float_variance_m2: 0.25,
+            min_fixed_variance_m2: 4.0e-4,
+            heading_gate_sigma: 4.0,
             enter_gnss_epochs: 5,
+            enter_gnss_min_kind: FixKind::Single,
             leave_gnss_epochs: 3,
             gate_reset_epochs: 150,
+            gate_reset_min_std_m: 3.0,
             lidar_min_score: 0.35,
             lidar_init_min_score: 0.5,
             lidar_map_margin_m: 2.0,
@@ -293,7 +338,12 @@ impl HybridLocalizer {
         let decision = self.judge_gnss(fix);
         let healthy = matches!(decision, GnssDecision::Fused);
         if healthy {
-            self.gnss_good_streak += 1;
+            let qualifies = fix.is_some_and(|f| f.kind >= self.config.enter_gnss_min_kind);
+            self.gnss_good_streak = if qualifies {
+                self.gnss_good_streak + 1
+            } else {
+                0
+            };
             self.gnss_bad_streak = 0;
         } else {
             self.gnss_good_streak = 0;
@@ -327,6 +377,30 @@ impl HybridLocalizer {
         self.ekf
             .update_position(fix.x_m, fix.y_m, self.gnss_variance_m2(fix))?;
         Ok(GnssDecision::Fused)
+    }
+
+    /// Fuses a moving-baseline heading while GNSS is in charge; returns
+    /// whether it was fused. Headings off the estimate by more than
+    /// `heading_gate_sigma` combined sigmas are rejected.
+    pub fn update_gnss_heading(
+        &mut self,
+        heading: &AbsoluteHeadingFix,
+    ) -> Result<bool, HybridError> {
+        if self.source != LocalizationSource::Gnss
+            || !heading.yaw_rad.is_finite()
+            || heading.yaw_std_rad.is_nan()
+            || heading.yaw_std_rad <= 0.0
+        {
+            return Ok(false);
+        }
+        let variance = heading.yaw_std_rad * heading.yaw_std_rad;
+        let innovation = rne_nav::wrap_angle(heading.yaw_rad - self.ekf.pose().yaw_rad);
+        let sigma = (self.ekf.covariance()[2][2] + variance).sqrt();
+        if innovation.abs() > self.config.heading_gate_sigma * sigma {
+            return Ok(false);
+        }
+        self.ekf.update_yaw(heading.yaw_rad, variance)?;
+        Ok(true)
     }
 
     /// Processes one LiDAR scan: relocalizes in the map after a GNSS
@@ -461,7 +535,12 @@ impl HybridLocalizer {
                 .position_mahalanobis_squared(fix.x_m, fix.y_m, self.gnss_variance_m2(fix));
         if d2 > self.config.gate_chi_square {
             self.gate_streak += 1;
-            if self.gate_streak < self.config.gate_reset_epochs {
+            let covariance = self.ekf.covariance();
+            let lost =
+                (covariance[0][0] + covariance[1][1]).sqrt() >= self.config.gate_reset_min_std_m;
+            if self.gate_streak < self.config.gate_reset_epochs
+                || !(fix.kind == FixKind::Fixed || lost)
+            {
                 return GnssDecision::RejectedGate;
             }
         }
@@ -470,7 +549,12 @@ impl HybridLocalizer {
     }
 
     fn gnss_variance_m2(&self, fix: &AbsolutePositionFix) -> f64 {
-        (fix.horizontal_std_m * fix.horizontal_std_m).max(self.config.min_gnss_variance_m2)
+        let floor = match fix.kind {
+            FixKind::Single => self.config.min_gnss_variance_m2,
+            FixKind::Float => self.config.min_float_variance_m2,
+            FixKind::Fixed => self.config.min_fixed_variance_m2,
+        };
+        (fix.horizontal_std_m * fix.horizontal_std_m).max(floor)
     }
 
     fn switch(&mut self, to: LocalizationSource, time_s: f64) {
@@ -562,6 +646,7 @@ mod tests {
             hdop: 1.0,
             consistent: true,
             satellites_excluded: 0,
+            kind: FixKind::Single,
         }
     }
 
@@ -625,6 +710,43 @@ mod tests {
     }
 
     #[test]
+    fn rtk_fixed_fixes_and_moving_base_headings_tighten_the_estimate() {
+        let mut localizer = HybridLocalizer::new(
+            room_map(),
+            Pose2d::new(-50.0, 0.0, 0.0),
+            HybridLocalizerConfig::default(),
+        )
+        .unwrap();
+        let fixed = AbsolutePositionFix {
+            horizontal_std_m: 0.01,
+            kind: FixKind::Fixed,
+            ..good_fix(-50.2, 0.1)
+        };
+        for _ in 0..10 {
+            localizer.update_gnss(Some(&fixed), 0.0).unwrap();
+        }
+        let pose = localizer.pose();
+        assert!(
+            (pose.x_m + 50.2).abs() < 0.01 && (pose.y_m - 0.1).abs() < 0.01,
+            "{pose:?}"
+        );
+        assert!(localizer.ekf().covariance()[0][0] < 1.0e-3);
+        let heading = AbsoluteHeadingFix {
+            time_s: 0.0,
+            yaw_rad: 0.05,
+            yaw_std_rad: 0.005,
+        };
+        assert!(localizer.update_gnss_heading(&heading).unwrap());
+        assert!((localizer.pose().yaw_rad - 0.05).abs() < 0.01);
+        // A wild heading is gated out.
+        let wild = AbsoluteHeadingFix {
+            yaw_rad: 2.5,
+            ..heading
+        };
+        assert!(!localizer.update_gnss_heading(&wild).unwrap());
+    }
+
+    #[test]
     fn outside_the_map_gnss_loss_falls_back_to_dead_reckoning() {
         let mut localizer = HybridLocalizer::new(
             room_map(),
@@ -649,7 +771,7 @@ mod tests {
     }
 
     #[test]
-    fn gate_rejects_an_nlos_jump_but_resets_eventually() {
+    fn gate_rejects_an_nlos_jump_but_an_rtk_fix_resets_it() {
         let config = HybridLocalizerConfig {
             gate_reset_epochs: 4,
             leave_gnss_epochs: 100,
@@ -662,15 +784,22 @@ mod tests {
                 .update_gnss(Some(&good_fix(-50.0, 0.0)), 0.0)
                 .unwrap();
         }
+        // A sustained single-point bias never resets a well-localized EKF...
         let jump = good_fix(-50.0, 25.0);
-        for _ in 0..3 {
+        for _ in 0..10 {
             assert_eq!(
                 localizer.update_gnss(Some(&jump), 0.0).unwrap(),
                 GnssDecision::RejectedGate
             );
         }
+        // ...but an RTK fixed solution that keeps disagreeing does.
+        let fixed = AbsolutePositionFix {
+            horizontal_std_m: 0.02,
+            kind: FixKind::Fixed,
+            ..jump
+        };
         assert_eq!(
-            localizer.update_gnss(Some(&jump), 0.0).unwrap(),
+            localizer.update_gnss(Some(&fixed), 0.0).unwrap(),
             GnssDecision::Fused
         );
         for weak in [

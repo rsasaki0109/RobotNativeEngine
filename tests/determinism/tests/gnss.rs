@@ -6,13 +6,14 @@
 //! classification, fused pose, and source switch is hashed with FNV-1a.
 
 use rne_gnss::{
-    Constellation, EnuFrame, Geodetic, GnssReceiver, GnssScene, ReceiverConfig, SceneBox,
-    SignalPath, SurfaceMaterial,
+    AtmosphereConfig, Constellation, EnuFrame, Geodetic, GnssReceiver, GnssScene, ReceiverConfig,
+    SceneBox, SignalPath, SurfaceMaterial,
 };
 use rne_math::Vec3;
 use rne_nav::{FrameId, GridCoord, LaserScan2d, OccupancyGrid, Pose2d};
 use rne_slam::{
-    AbsolutePositionFix, AmclConfig, HybridLocalizer, HybridLocalizerConfig, LocalizationSource,
+    AbsolutePositionFix, AmclConfig, FixKind, HybridLocalizer, HybridLocalizerConfig,
+    LocalizationSource,
 };
 use std::f64::consts::TAU;
 
@@ -113,7 +114,17 @@ fn run() -> Run {
     let scene = scene();
     let frame = EnuFrame::new(Geodetic::from_degrees(35.0, 139.0, 10.0));
     let constellation = Constellation::gps_galileo_nominal();
-    let mut receiver = GnssReceiver::new(ReceiverConfig::default()).unwrap();
+    // An SBAS-corrected receiver: the broadcast ionosphere is exact and the
+    // satellite errors small, so open-sky fixes are about a metre.
+    let receiver_config = ReceiverConfig {
+        atmosphere: AtmosphereConfig {
+            iono_truth_scale: 1.0,
+            ..AtmosphereConfig::default()
+        },
+        satellite_error_std_m: 0.3,
+        ..ReceiverConfig::default()
+    };
+    let mut receiver = GnssReceiver::new(receiver_config).unwrap();
     let config = HybridLocalizerConfig {
         amcl: AmclConfig {
             particle_count: 200,
@@ -149,13 +160,19 @@ fn run() -> Run {
                 hdop: fix.dop.hdop,
                 consistent: fix.consistent,
                 satellites_excluded: fix.excluded.len(),
+                kind: FixKind::Single,
             });
             localizer.update_gnss(absolute.as_ref(), t).unwrap();
         }
         if let Some(epoch) = receiver.last_epoch() {
             nlos_seen += epoch.count(SignalPath::NonLineOfSight);
             for observation in &epoch.observations {
-                fnv1a(&mut hash, &[observation.path as u8]);
+                fnv1a(&mut hash, &[observation.path() as u8]);
+                for signal in &observation.signals {
+                    if let Some(phase) = signal.carrier_phase_cycles {
+                        fnv1a(&mut hash, &phase.to_le_bytes());
+                    }
+                }
             }
         }
         localizer

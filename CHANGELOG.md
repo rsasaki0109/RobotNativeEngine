@@ -7,20 +7,29 @@ All notable changes to Robot Native Engine are documented in this file.
 ### Added
 
 - `rne_gnss`: ray-traced GNSS simulation. 48 GPS and Galileo satellites on
-  Keplerian orbits are traced through a box scene of buildings; direct paths
-  are tested for occlusion and single-bounce wall and ground reflections are
-  found by the image method, giving line-of-sight, multipath, NLOS and blocked
-  receptions. Pseudoranges carry DLL noise from the ray-traced C/N0, the
-  narrow-correlator multipath error, NLOS excess delay, residual atmosphere,
-  satellite and receiver clock errors; a weighted least-squares solver with
-  DOP and RAIM exclusion produces fixes at a set rate and latency.
+  Keplerian orbits, exported as broadcast ephemerides, are traced through a
+  box scene of buildings: direct paths, up to two specular wall and ground
+  bounces (image method), and knife-edge diffraction over box edges (ITU-R
+  P.526), giving LOS, multipath, NLOS, diffracted and blocked receptions.
+  Receivers produce GPS L1/L2C and Galileo E1/E5a pseudoranges, carrier
+  phases with integer ambiguities per lock arc (slips near the lock threshold
+  and when the tracked path changes) and Doppler, with Klobuchar and
+  Saastamoinen atmospheres, DLL/PLL noise from the ray-traced C/N0, and code
+  and carrier multipath. `AntennaRig` mounts several antennas on a body; a
+  built-in SPP with RAIM gives fixes at a set rate and latency.
+- `adapters/gnsspp/rne_adapter_gnsspp`: libgnss++ SPP, RTK and
+  moving-baseline RTK on `rne_gnss` observations through a C ABI shim;
+  `scripts/build_gnsspp.sh` builds a pinned libgnss++. Without it the adapter
+  is a stub that reports `Unavailable`.
 - `rne_slam::HybridLocalizer`: GNSS outdoors, LiDAR indoors. Gated GNSS fixes
-  correct a wheel/gyro EKF; inside the prior map a wide scan match relocalizes
-  and AMCL refined by a local scan match takes over.
+  (single, float or fixed) and moving-baseline headings correct a wheel/gyro
+  EKF; inside the prior map a wide scan match relocalizes and AMCL refined by
+  a local scan match takes over.
 - `EkfFusion::update_yaw` and `EkfFusion::position_mahalanobis_squared`.
-- Example 149: a robot drives from a plaza down a street canyon into an office
-  and back (hybrid position RMSE 0.04–1.9 m per zone, against 8.7–10 m for
-  an EKF fusing every GNSS fix).
+- Example 149: a robot with two antennas drives from a plaza down a street
+  canyon into an office and back with a rooftop RTK base (hybrid position
+  RMSE 0.05–0.52 m per zone, against 6.9–10.6 m for an EKF fusing every GNSS
+  solution).
 
 ### Fixed
 

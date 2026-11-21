@@ -44,8 +44,8 @@ pub use graph_io::{
     RNE_POSE_GRAPH_FORMAT, RNE_POSE_GRAPH_VERSION,
 };
 pub use hybrid::{
-    AbsolutePositionFix, GnssDecision, HybridError, HybridLocalizer, HybridLocalizerConfig,
-    LocalizationSource, SourceTransition,
+    AbsoluteHeadingFix, AbsolutePositionFix, FixKind, GnssDecision, HybridError, HybridLocalizer,
+    HybridLocalizerConfig, LocalizationSource, SourceTransition,
 };
 pub use icp::{Icp3d, IcpConfig, IcpError, IcpResult};
 pub use imu_preintegration::{

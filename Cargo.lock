@@ -1774,6 +1774,7 @@ dependencies = [
 name = "gnss_lidar_navigation"
 version = "0.4.0"
 dependencies = [
+ "rne_adapter_gnsspp",
  "rne_core",
  "rne_gnss",
  "rne_math",
@@ -4235,6 +4236,16 @@ dependencies = [
  "sha2",
  "thiserror 2.0.18",
  "toml",
+]
+
+[[package]]
+name = "rne_adapter_gnsspp"
+version = "0.4.0"
+dependencies = [
+ "cc",
+ "rne_gnss",
+ "rne_math",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

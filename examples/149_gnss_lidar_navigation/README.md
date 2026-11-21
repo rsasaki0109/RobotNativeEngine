@@ -1,58 +1,74 @@
 # Example 149: GNSS outdoors, LiDAR indoors
 
 ```bash
+scripts/build_gnsspp.sh   # once: libgnss++ for RTK (optional)
 cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation
 ```
 
-A differential-drive robot drives a 320 m round trip: an open plaza, a 30 m
+A differential-drive robot drives a 313 m round trip: an open plaza, a 30 m
 wide street between 25–40 m glass, concrete and metal towers, and a roofed
 single-storey office with a corridor, a north room, pillars and desks. Pure
 pursuit steers on the *estimated* pose, so localization errors become driving
-errors. The run takes about 2.5 s in release mode and writes
+errors. The run takes about 18 s in release mode and writes
 `target/149_gnss_lidar_navigation.svg` (`--svg <path>` to choose).
 
 ![Top view and canyon sky plot](gnss_lidar_navigation.svg)
 
 * **GNSS** — `rne_gnss` ray traces 48 GPS + Galileo satellites through the
-  buildings at 5 Hz: line of sight, wall reflections (multipath), NLOS
-  receptions, and blocked signals, then solves single-point positions with
-  RAIM. Dashed red lines in the top view run from the antenna to the wall
-  points the NLOS signals reflected off; the sky plot shows the building
-  skyline from that point.
+  buildings at 5 Hz for two antennas on the robot (front and rear, 0.8 m
+  apart) and a base station on the roof of the 40 m tower: direct paths, up
+  to two wall/ground bounces, and knife-edge diffraction, on L1/E1 and
+  L2C/E5a, with code, carrier phase and Doppler. libgnss++ solves RTK for the
+  rear antenna against the base (its `low-cost` preset) and moving-baseline
+  RTK between the antennas for heading. Dashed red lines in the top view run
+  from the antenna to the wall point or edge of each NLOS or diffracted
+  signal; the sky plot shows the building skyline from there.
 * **LiDAR** — a 360-beam scan at 0.3 m height, ray cast against the same
   geometry at 10 Hz with 2 cm noise, matched against a prior occupancy map of
   the office rasterized from the scene.
 * **Odometry** — wheel speed with a 1 % scale error and a gyro with a
   0.06 °/s bias.
-* **Arbiter** — `rne_slam::HybridLocalizer` fuses healthy, gated GNSS fixes
-  outdoors, falls back to dead reckoning when they are not, relocalizes with
-  a wide scan match when the estimate enters the map, and then tracks with
-  AMCL refined by a local scan match.
+* **Arbiter** — `rne_slam::HybridLocalizer` fuses healthy, gated RTK
+  solutions and headings outdoors (taking back control only on RTK fixed
+  solutions), falls back to dead reckoning when they are not, relocalizes
+  with a wide scan match when the estimate enters the map, and then tracks
+  with AMCL refined by a local scan match.
+
+Without libgnss++ the example uses the rear antenna's built-in single-point
+fixes instead (canyon RMSE 3.2 m instead of 0.5 m).
 
 ## Results
 
-Position RMSE / max in meters (from the run above; it is deterministic):
+Position RMSE / max in meters (deterministic):
 
-| Zone | Hybrid | EKF fusing every fix | Odometry only |
-|------|--------|----------------------|---------------|
-| Open plaza | 0.68 / 1.22 | 0.75 / 2.69 | 13.50 / 21.87 |
-| Urban canyon | 1.88 / 4.89 | 10.03 / 24.47 | 5.58 / 13.68 |
-| Office forecourt | 0.18 / 0.96 | 8.69 / 12.97 | 5.69 / 6.76 |
-| Indoor office | 0.04 / 0.11 | 8.91 / 9.88 | 8.36 / 9.33 |
+| Zone | Hybrid | EKF fusing every solution | Odometry only |
+|------|--------|---------------------------|---------------|
+| Open plaza | 0.07 / 0.68 | 0.07 / 0.68 | 11.34 / 20.24 |
+| Urban canyon | 0.52 / 1.71 | 6.94 / 13.95 | 5.09 / 12.68 |
+| Office forecourt | 0.12 / 0.20 | 7.80 / 13.24 | 5.43 / 6.36 |
+| Indoor office | 0.05 / 0.14 | 10.56 / 13.74 | 7.84 / 8.75 |
 
-Ray-traced sky, mean satellites per epoch:
+Ray-traced sky at the rear antenna, mean satellites per epoch:
 
-| Zone | Tracked | LOS | LOS + wall multipath | NLOS | Blocked | Fix RMSE (m) | NLOS in fix | RAIM excluded |
-|------|---------|-----|----------------------|------|---------|--------------|-------------|---------------|
-| Open plaza | 11.7 | 9.1 | 2.0 | 0.7 | 1.8 | 2.74 | 0.24 | 0.70 |
-| Urban canyon | 11.5 | 6.8 | 0.7 | 4.0 | 1.9 | 16.43 | 2.92 | 2.39 |
-| Office forecourt | 9.2 | 5.3 | 0.4 | 3.5 | 3.8 | 12.23 | 2.97 | 0.81 |
-| Indoor office | 0.3 | 0.0 | 0.0 | 0.2 | 12.7 | 33.83 (4 % of epochs) | 3.53 | 0.00 |
+| Zone | Tracked | LOS | LOS + wall multipath | NLOS | Diffracted | Blocked | Phase-locked |
+|------|---------|-----|----------------------|------|------------|---------|--------------|
+| Open plaza | 11.8 | 8.7 | 2.2 | 0.8 | 0.2 | 1.6 | 11.7 |
+| Urban canyon | 12.0 | 6.9 | 0.2 | 4.8 | 0.1 | 1.3 | 11.7 |
+| Office forecourt | 10.1 | 5.0 | 0.5 | 3.6 | 1.0 | 2.9 | 9.7 |
+| Indoor office | 0.4 | 0.0 | 0.0 | 0.3 | 0.0 | 12.6 | 0.4 |
 
-The robot keeps at least 1.43 m from every wall. It spends 89 s on GNSS,
-96 s on LiDAR and 124 s on dead reckoning, mostly through the canyon, where
-NLOS-contaminated fixes fail the quality checks. Near the door a few signals
-leak in at low elevation; the rare indoor fixes they make are 34 m off and are
-rejected.
+libgnss++ solutions, % of epochs:
+
+| Zone | Fixed | Float | Single | None | Fixed RMSE | Heading fixed | Heading RMSE |
+|------|-------|-------|--------|------|------------|---------------|--------------|
+| Open plaza | 99 | 1 | 0 | 0 | 1.1 cm | 85 % | 1.3° |
+| Urban canyon | 27 | 49 | 25 | 0 | 0.51 m | 81 % | 2.4° |
+| Office forecourt | 26 | 14 | 60 | 0 | 5.1 m | 43 % | 1.1° |
+| Indoor office | 0 | 2 | 1 | 97 | — | 0 % | — |
+
+The canyon and forecourt fixed RMSEs come from wrong fixes under NLOS
+multipath (10 m off), which the arbiter's gate rejects. The robot keeps at
+least 1.41 m from every wall and spends 96 s on GNSS, 89 s on LiDAR and 99 s
+dead reckoning, mostly through the canyon.
 
 See [GNSS](../../docs/GNSS.md) for the models and their limits.

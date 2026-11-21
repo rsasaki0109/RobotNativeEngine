@@ -209,6 +209,22 @@ impl Constellation {
         Self::new(satellites)
     }
 
+    /// Broadcast ephemerides of every satellite, with orbit time zero at
+    /// `epoch` and reference time `epoch + reference_s` (keep simulation
+    /// times within two hours of it, as real broadcast records are).
+    pub fn broadcast_ephemerides(
+        &self,
+        epoch: crate::time::GnssTime,
+        reference_s: f64,
+    ) -> Vec<crate::ephemeris::BroadcastEphemeris> {
+        self.satellites
+            .iter()
+            .map(|s| {
+                crate::ephemeris::BroadcastEphemeris::from_orbit(s.id, &s.orbit, epoch, reference_s)
+            })
+            .collect()
+    }
+
     /// Satellites in id order.
     pub fn satellites(&self) -> &[Satellite] {
         &self.satellites
