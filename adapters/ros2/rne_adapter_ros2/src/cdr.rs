@@ -6,10 +6,12 @@
 //! encapsulation header. No ROS 2 installation is needed.
 //!
 //! Only the message types the bag writer records are covered: `sensor_msgs/Imu`,
-//! `sensor_msgs/PointCloud2` and `tf2_msgs/TFMessage`.
+//! `sensor_msgs/PointCloud2`, `sensor_msgs/Image`, `sensor_msgs/CameraInfo` and
+//! `tf2_msgs/TFMessage`.
 
 use crate::messages::{
-    RosHeader, RosImu, RosPointCloud2, RosQuaternion, RosTfMessage, RosTransformStamped, RosVector3,
+    RosCameraInfo, RosHeader, RosImage, RosImu, RosPointCloud2, RosQuaternion, RosTfMessage,
+    RosTransformStamped, RosVector3,
 };
 
 /// CDR little-endian encapsulation header (`CDR_LE`, no options).
@@ -178,10 +180,48 @@ pub fn encode_tf_message(message: &RosTfMessage) -> Vec<u8> {
     writer.finish()
 }
 
+/// Serializes a `sensor_msgs/msg/Image`.
+pub fn encode_image(message: &RosImage) -> Vec<u8> {
+    let mut writer = CdrWriter::new();
+    writer.write_header(&message.header);
+    writer.write_u32(message.height);
+    writer.write_u32(message.width);
+    writer.write_string(&message.encoding);
+    writer.write_u8(u8::from(message.is_bigendian));
+    writer.write_u32(message.step);
+    writer.write_bytes(&message.data);
+    writer.finish()
+}
+
+/// Serializes a `sensor_msgs/msg/CameraInfo`.
+pub fn encode_camera_info(message: &RosCameraInfo) -> Vec<u8> {
+    let mut writer = CdrWriter::new();
+    writer.write_header(&message.header);
+    writer.write_u32(message.height);
+    writer.write_u32(message.width);
+    writer.write_string(&message.distortion_model);
+    writer.write_u32(sequence_length(message.d.len()));
+    for value in &message.d {
+        writer.write_f64(*value);
+    }
+    for value in message.k.iter().chain(&message.r).chain(&message.p) {
+        writer.write_f64(*value);
+    }
+    writer.write_u32(message.binning_x);
+    writer.write_u32(message.binning_y);
+    writer.write_u32(message.roi.x_offset);
+    writer.write_u32(message.roi.y_offset);
+    writer.write_u32(message.roi.height);
+    writer.write_u32(message.roi.width);
+    writer.write_bool(message.roi.do_rectify);
+    writer.finish()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::messages::{RosPointField, RosTime, RosTransform};
+    use crate::pinhole_camera_info;
 
     fn header(frame_id: &str) -> RosHeader {
         RosHeader {
@@ -303,5 +343,43 @@ mod tests {
         let bytes = encode_tf_message(&message);
         assert_eq!(&bytes[4..8], &1_u32.to_le_bytes());
         assert_eq!(&bytes[bytes.len() - 8..], &1.0_f64.to_le_bytes());
+    }
+
+    #[test]
+    fn image_payload_ends_with_its_pixels() {
+        let message = RosImage {
+            header: header("camera"),
+            height: 1,
+            width: 2,
+            encoding: "mono8".to_string(),
+            is_bigendian: false,
+            step: 2,
+            data: vec![7, 9],
+        };
+        let bytes = encode_image(&message);
+        assert_eq!(&bytes[bytes.len() - 6..], &[2, 0, 0, 0, 7, 9]);
+        assert!(bytes.windows(6).any(|window| window == b"mono8\0"));
+    }
+
+    #[test]
+    fn camera_info_payload_has_the_fixed_ros2_layout() {
+        let info = pinhole_camera_info(
+            640,
+            480,
+            std::f64::consts::FRAC_PI_2,
+            rne_core::SimTime::from_ticks(3_000_000_007),
+            "camera",
+        );
+        let bytes = encode_camera_info(&info);
+        // header: stamp(8) + "camera\0"(4 + 7) -> 23, then height and width at 24..32.
+        assert_eq!(&bytes[4 + 19 + 1..4 + 19 + 1 + 4], &480_u32.to_le_bytes());
+        // ... then 5 + 9 + 9 + 12 doubles, 2 binning, 4 ROI words and a bool.
+        let tail = 4 * 2 + 4 * 4 + 1;
+        assert_eq!(bytes[bytes.len() - 1], 0);
+        let p_last = bytes.len() - tail - 8;
+        assert_eq!(&bytes[p_last..p_last + 8], &0.0_f64.to_le_bytes());
+        let fx_at = bytes.len() - tail - 8 * (12 + 9 + 9);
+        let fx = f64::from_le_bytes(bytes[fx_at..fx_at + 8].try_into().unwrap());
+        assert!((fx - 240.0).abs() < 1e-9, "{fx}");
     }
 }

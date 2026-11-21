@@ -11,7 +11,8 @@ This directory contains optional adapters between Robot Native Engine and extern
 
 ## Crates
 
-- `rne_adapter_ros2`: `/clock`, TF, PointCloud2, IMU, and navigation (`Odometry`,
+- `rne_adapter_ros2`: `/clock`, TF, PointCloud2, IMU, image (`rgba8`, `mono8`),
+  `CameraInfo`, and navigation (`Odometry`,
   `OccupancyGrid`, `Path`, `Twist`) mapping helpers (Rust), plus ROS-free CDR
   serialization (`cdr`) and a dependency-free ROS 2 MCAP bag writer (`mcap`) for
   recording simulated sensors as a `ros2 bag` (see example 149)
