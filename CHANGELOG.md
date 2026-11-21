@@ -6,14 +6,60 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
-- Example 149 (`scene_replay_render`) renders scenes simulated outside RNE.
+- Example 150 (`scene_replay_render`) renders scenes simulated outside RNE.
   It reads a JSON script of boxes, spheres and cylinders plus camera views,
   draws each view with the wgpu PBR renderer and writes PNGs, so a
   lightweight simulator (for example a Python research sandbox) can produce
   RNE-rendered media without linking against RNE. With `RNE_SKIP_GPU` it
   only validates the script.
 
+- `rne_adapter_ros2` also records cameras: `to_ros_mono8_image` maps an RNE
+  image to a `mono8` `sensor_msgs/Image`, `pinhole_camera_info` gives the
+  `CameraInfo` of RNE's render geometry, and `cdr`/`mcap` serialize and declare
+  both. Example 149 gains a second LiDAR and a camera, rendered without a GPU by
+  a `RenderBackend` that ray-casts the room's colliders, plus `--sensors` and a
+  turned candidate per sensor. On a 90 s bag Calibrex passes imu–lidar for both
+  LiDARs and lidar–lidar on all six axes, and each turned candidate fails only
+  its sensor's pairs; its camera pairs report 1–3° errors against the true
+  mountings, which the example's README traces to Calibrex's camera–LiDAR edge
+  extraction under fast motion.
+
+### Changed
+
+- Example 149's README no longer attributes Calibrex's −1.87 ms IMU–LiDAR time
+  offset to RNE's IMU. Bags with an ideal IMU, an exact accelerometer, a
+  noiseless LiDAR or a 1–2 kHz IMU report −1.7 to −1.8 ms, and Calibrex's own
+  synthetic bag shows the same bias (0 reported as −1.46 ms, +7 ms as +5.52 ms).
+
+### Added
+
+- `rne_adapter_ros2` records simulated sensors as a ROS 2 bag without a ROS
+  install: `cdr` serializes `sensor_msgs/Imu`, `PointCloud2` and
+  `tf2_msgs/TFMessage` to CDR, `mcap` writes them to an MCAP file with the
+  `ros2` profile (latched QoS on `/tf_static`), and `to_ros_imu` maps an IMU
+  sample. Example 149 uses them to record a LiDAR + IMU rig moving through a
+  Rapier room; Calibrex's `calibrex check` reads the bag, passes the true
+  mounting (within 0.01° per axis) and fails one turned 3° in yaw.
+
+- `rne_wbc::WholeBodyConfig::enforce_contact_cones` keeps every contact force
+  inside an inscribed four-sided friction pyramid *during* the whole-body
+  solve (non-negative weights on the pyramid edges). Without it the forces are
+  solved unconstrained and projected onto the cones only afterwards, so the
+  returned torques can rely on a contact pulling on the ground; with several
+  contacts on one flat sole the center of pressure then leaves the sole and a
+  biped tips over. Off by default, so existing results are unchanged.
+  `FrictionCone::pyramid_edges` and `ContactPoint::with_normal` (for models
+  that are not Y-up) come with it.
+
 ### Fixed
+
+- `rne_wbc`'s in-solve torque limits (`enforce_torque_limits`) now solve
+  exactly. The bounded least squares ran 400 projected Gauss-Seidel sweeps
+  from zero, which stalled on the ill-conditioned whole-body system (dynamics
+  rows weighted 1e6 next to tasks weighted 1e2): a standing 32 kg Unitree G1
+  came back with 114 N of its 315 N weight supported. It is now a primal
+  active-set method started from the clamped unconstrained optimum, exact
+  whether or not a bound is active.
 
 - `rne_dynamics`' contact solve no longer misses a contact's sliding
   direction when it falls on one of the angles it samples. Rounding alone set

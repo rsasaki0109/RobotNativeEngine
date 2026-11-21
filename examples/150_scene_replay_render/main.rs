@@ -7,7 +7,7 @@
 //! without linking against it.
 //!
 //! ```text
-//! cargo run -p scene_replay_render --example 149_scene_replay_render -- script.json out_dir
+//! cargo run -p scene_replay_render --example 150_scene_replay_render -- script.json out_dir
 //! ```
 //!
 //! Without arguments, or with `RNE_SKIP_GPU` set, it renders a built-in one-frame
