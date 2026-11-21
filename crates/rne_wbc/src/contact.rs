@@ -28,6 +28,23 @@ impl ContactPoint {
         }
     }
 
+    /// Creates a contact point with an explicit outward normal, for worlds or
+    /// models that are not Y-up (for example a Z-up floating-base model with
+    /// gravity along -Z).
+    pub fn with_normal(
+        link: Entity,
+        point_local_m: Vec3,
+        friction_coefficient: f64,
+        normal_world: Vec3,
+    ) -> Self {
+        Self {
+            link,
+            point_local_m,
+            friction_coefficient,
+            normal_world,
+        }
+    }
+
     /// Returns whether the contact geometry and friction are valid.
     pub fn is_valid(&self) -> bool {
         self.point_local_m.is_finite()
@@ -54,6 +71,18 @@ impl FrictionCone {
             normal: contact.normal_world.normalize_or_zero(),
             coefficient: contact.friction_coefficient,
         }
+    }
+
+    /// Edges of the four-sided friction pyramid inscribed in the cone: unit
+    /// normal plus `coefficient` along each of two orthogonal tangents. Any
+    /// non-negative combination of them lies inside the cone.
+    pub fn pyramid_edges(&self) -> [Vec3; 4] {
+        let n = self.normal;
+        let helper = if n.x.abs() < 0.9 { Vec3::X } else { Vec3::Y };
+        let t1 = n.cross(helper).normalize_or_zero();
+        let t2 = n.cross(t1);
+        let mu = self.coefficient;
+        [n + t1 * mu, n - t1 * mu, n + t2 * mu, n - t2 * mu]
     }
 
     /// Projects a world-frame force onto the friction cone.
