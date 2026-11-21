@@ -55,7 +55,8 @@ speedup.
 ## Use in perception tasks
 
 Example 149 (`--camera`) mounts a forward camera on the robot. It renders
-people as the CC0 human mesh, and cars and bicycles from primitives. Each
+people as the CC0 human mesh, and cars and bicycles (with a posed rider) as
+procedural meshes. Each
 frame comes with exact 2D boxes of the visible part of every object. The
 camera calibration in each task's `setup.json` matches the renderer, so a
 LiDAR detection's 3D box projects onto the rendered object; a test checks

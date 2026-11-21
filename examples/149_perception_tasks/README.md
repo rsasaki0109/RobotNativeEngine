@@ -54,6 +54,9 @@ byte-identical whatever the number of cores.
 
 ## Camera (`--camera`)
 
+`--preview DIR` renders a person, a cyclist and a car alone from the side,
+at 45° and head-on, at 7 m and 18 m, to check how they look.
+
 A forward camera sits on the robot, 1.3 m above the ground and 0.4 m above
 the LiDAR. It captures 640 × 480 frames with a 60° vertical field of view at
 2 Hz (every fifth scan; `--camera-every N` for every N-th). The frames are rendered on the CPU by
@@ -61,8 +64,13 @@ the LiDAR. It captures 640 × 480 frames with a 60° vertical field of view at
 
 - people are the CC0 textured human mesh (`assets/fixtures/kick_human`) in a
   standing pose, turned to their walking direction;
-- cars are a painted body, a glass cabin and four wheels; bicycles are two
-  wheels, a frame and handlebars with the person mesh as the rider;
+- cars and bicycles are meshes generated in `vehicles.rs` (original
+  geometry, no external asset). A car is a 4.4 m sedan: a lofted body, a
+  glass cabin, a roof, tyres with rims, and head and tail lights; four paints.
+  A bicycle is 1.7 m long: tyres, spoked rims, a diamond frame, a fork, a
+  handlebar, a saddle and cranks. The rider is the person mesh posed through
+  its rig (torso leaning forward, pedalling legs, hands on the bar) and
+  seated on the saddle;
 - structures and the ground are boxes, lit by a sun with shadows.
 
 The renderer's item-id map gives the exact 2D box of the visible part of every

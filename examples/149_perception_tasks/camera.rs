@@ -12,13 +12,13 @@ use std::sync::Arc;
 
 use rne_math::{DQuat, Transform3 as MathTransform3, Vec3};
 use rne_render::{
-    load_gltf_scene, Camera, GltfAnimationPlayer, ImageFrame, PbrMaterial, RenderScene,
-    RenderSceneItem, TriangleMesh, VisualShape,
+    load_gltf_scene, Camera, GltfSceneAsset, ImageFrame, PbrMaterial, RenderScene, RenderSceneItem,
+    TriangleMesh, VisualShape,
 };
 use rne_render_cpu::{CpuRayTracer, CpuRayTracerConfig};
 use serde_json::{json, Value};
 
-use crate::{to_engine, yaw_rotation, Kind, Pose2, Task, SENSOR_HEIGHT_M};
+use crate::{to_engine, vehicles, yaw_rotation, Kind, Pose2, Task, SENSOR_HEIGHT_M};
 
 const HUMAN_GLB: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -36,6 +36,8 @@ pub(crate) const SCANS_PER_FRAME: u64 = 5;
 /// Objects with fewer visible pixels are left out of the 2D truth.
 const MIN_VISIBLE_PIXELS: usize = 30;
 const SKY: [f32; 4] = [0.45, 0.6, 0.85, 1.0];
+/// Height of the rider's pelvis joint above the saddle top.
+const RIDER_SEAT_M: f64 = 0.08;
 
 /// One person mesh part: geometry and material, shared by every copy.
 struct HumanPart {
@@ -44,11 +46,87 @@ struct HumanPart {
     material: PbrMaterial,
 }
 
-/// The camera, the person asset and the renderer.
+/// A vehicle mesh part: geometry and color, shared by every copy.
+type VehiclePart = (Arc<TriangleMesh>, [f32; 3]);
+
+/// Car paints, picked by mover index.
+const PAINT: [[f32; 3]; 4] = [
+    [0.55, 0.04, 0.04],
+    [0.75, 0.75, 0.77],
+    [0.04, 0.1, 0.3],
+    [0.06, 0.06, 0.06],
+];
+
+/// The camera, the person and vehicle meshes, and the renderer.
 pub(crate) struct CameraRig {
     human: Vec<HumanPart>,
+    /// The person in the riding pose, placed on the bicycle's saddle (bicycle frame).
+    rider: Vec<HumanPart>,
+    rider_offset: Vec3,
+    cars: Vec<Vec<VehiclePart>>,
+    bicycle: Vec<VehiclePart>,
     tracer: CpuRayTracer,
     camera: Camera,
+}
+
+fn shared(parts: Vec<vehicles::Part>) -> Vec<VehiclePart> {
+    parts
+        .into_iter()
+        .map(|p| (Arc::new(p.mesh), p.color))
+        .collect()
+}
+
+/// Node-local transforms of the standing pose with `extra` rotations, each
+/// about the scene's axes, applied to the named bone after its parents moved.
+fn posed_locals(
+    asset: &GltfSceneAsset,
+    standing: &[MathTransform3],
+    extra: &[(&str, DQuat)],
+) -> Vec<MathTransform3> {
+    fn global(
+        index: usize,
+        asset: &GltfSceneAsset,
+        locals: &mut [MathTransform3],
+        done: &mut [Option<DQuat>],
+        extra: &[(&str, DQuat)],
+    ) -> DQuat {
+        if let Some(rotation) = done[index] {
+            return rotation;
+        }
+        let parent = asset.nodes[index]
+            .parent_index
+            .map_or(DQuat::IDENTITY, |p| global(p, asset, locals, done, extra));
+        let mut rotation = parent * locals[index].rotation;
+        let name = asset.nodes[index].name.as_deref();
+        if let Some((_, delta)) = extra.iter().find(|(n, _)| Some(*n) == name) {
+            rotation = *delta * rotation;
+            locals[index].rotation = parent.inverse() * rotation;
+        }
+        done[index] = Some(rotation);
+        rotation
+    }
+    let mut locals = standing.to_vec();
+    let mut done = vec![None; locals.len()];
+    for index in 0..locals.len() {
+        global(index, asset, &mut locals, &mut done, extra);
+    }
+    locals
+}
+
+/// Scene-frame position of a node, from node-local transforms.
+fn node_position(asset: &GltfSceneAsset, locals: &[MathTransform3], name: &str) -> Option<Vec3> {
+    let mut index = asset
+        .nodes
+        .iter()
+        .position(|n| n.name.as_deref() == Some(name))?;
+    let mut point = Vec3::ZERO;
+    loop {
+        point = locals[index].transform_point(point);
+        match asset.nodes[index].parent_index {
+            Some(parent) => index = parent,
+            None => return Some(point),
+        }
+    }
 }
 
 /// One rendered frame and its 2D truth.
@@ -62,25 +140,43 @@ impl CameraRig {
     pub(crate) fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let asset = load_gltf_scene(Path::new(HUMAN_GLB))?;
         // The first frame of a clip is a relaxed standing pose; sample it once.
-        let player = GltfAnimationPlayer::new((!asset.animations.is_empty()).then_some(0));
-        let human = asset
-            .parts
-            .iter()
-            .enumerate()
-            .map(|(index, part)| {
-                let mut material = part.render_part.material.clone();
-                if let Some(color) = part.render_part.base_color_rgba {
-                    material.base_color_rgba = color;
-                }
-                Ok(HumanPart {
-                    mesh: Arc::new(player.sample_part_cpu(&asset, index)?),
-                    texture: part.render_part.base_color_texture.clone().map(Arc::new),
-                    material,
+        let standing: Vec<MathTransform3> = match asset.animations.first() {
+            Some(clip) => clip.sample_node_transforms(&asset.nodes, 0.0),
+            None => asset.nodes.iter().map(|n| n.bind_transform).collect(),
+        };
+        let riding = posed_locals(&asset, &standing, &vehicles::riding_pose());
+        let sample = |locals: &[MathTransform3]| {
+            asset
+                .parts
+                .iter()
+                .enumerate()
+                .map(|(index, part)| {
+                    let mut material = part.render_part.material.clone();
+                    if let Some(color) = part.render_part.base_color_rgba {
+                        material.base_color_rgba = color;
+                    }
+                    Ok(HumanPart {
+                        mesh: Arc::new(asset.sample_part_with_node_transforms(index, locals)?),
+                        texture: part.render_part.base_color_texture.clone().map(Arc::new),
+                        material,
+                    })
                 })
-            })
-            .collect::<Result<_, rne_render::AnimationSampleError>>()?;
+                .collect::<Result<Vec<_>, rne_render::AnimationSampleError>>()
+        };
+        let pelvis =
+            node_position(&asset, &riding, "pelvis").ok_or("the person mesh has no pelvis")?;
         Ok(Self {
-            human,
+            human: sample(&standing)?,
+            rider: sample(&riding)?,
+            // Sit the pelvis a little above the saddle; the mesh faces +Z,
+            // the bicycle +X.
+            rider_offset: Vec3::from(vehicles::SADDLE) + Vec3::new(0.0, RIDER_SEAT_M, 0.0)
+                - DQuat::from_rotation_y(FRAC_PI_2) * pelvis,
+            cars: PAINT
+                .iter()
+                .map(|paint| shared(vehicles::car(*paint)))
+                .collect(),
+            bicycle: shared(vehicles::bicycle([0.1, 0.25, 0.6])),
             tracer: CpuRayTracer::new(CpuRayTracerConfig::default()),
             camera: Camera {
                 width: IMAGE_WIDTH,
@@ -127,12 +223,17 @@ impl CameraRig {
             };
             let first = scene.items.len() as u32;
             match mover.kind {
-                Kind::Person => self.add_person(&mut scene, position, heading, 0.0),
+                Kind::Person => self.add_person(&mut scene, position, heading),
                 Kind::Cyclist => {
-                    add_bicycle(&mut scene, position, heading);
-                    self.add_person(&mut scene, position, heading, 0.25);
+                    add_vehicle(&mut scene, &self.bicycle, position, heading);
+                    self.add_rider(&mut scene, position, heading);
                 }
-                Kind::Car => add_car(&mut scene, position, heading, index),
+                Kind::Car => add_vehicle(
+                    &mut scene,
+                    &self.cars[index % self.cars.len()],
+                    position,
+                    heading,
+                ),
             }
             let items = (first..scene.items.len() as u32).collect();
             owners.push((index as u32 + 1, mover.kind.class(), items));
@@ -170,21 +271,103 @@ impl CameraRig {
         }
     }
 
-    fn add_person(&self, scene: &mut RenderScene, position: [f64; 2], heading: f64, lift_m: f64) {
+    /// Renders each kind of object alone, from the side, at 45 degrees and
+    /// head-on, near and far, for checking how they look (`--preview`).
+    pub(crate) fn preview(&self, dir: &Path) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+        std::fs::create_dir_all(dir)?;
+        let mut written = Vec::new();
+        for kind in [Kind::Person, Kind::Cyclist, Kind::Car] {
+            for (view, heading) in [
+                ("side", FRAC_PI_2),
+                ("oblique", 0.8),
+                ("front", std::f64::consts::PI),
+            ] {
+                for distance in [7.0, 18.0] {
+                    let mut scene = RenderScene::new();
+                    add_box(
+                        &mut scene,
+                        [0.0, 0.0, -0.05],
+                        [400.0, 400.0, 0.1],
+                        0.0,
+                        [0.32, 0.32, 0.3],
+                    );
+                    let position = [distance, 0.0];
+                    match kind {
+                        Kind::Person => self.add_person(&mut scene, position, heading),
+                        Kind::Cyclist => {
+                            add_vehicle(&mut scene, &self.bicycle, position, heading);
+                            self.add_rider(&mut scene, position, heading);
+                        }
+                        Kind::Car => add_vehicle(&mut scene, &self.cars[0], position, heading),
+                    }
+                    let view_pose = MathTransform3 {
+                        translation: to_engine(0.0, 0.0, CAMERA_HEIGHT_M),
+                        rotation: DQuat::from_rotation_y(-FRAC_PI_2),
+                        scale: Vec3::ONE,
+                    };
+                    let output = self.tracer.render(&self.camera, &view_pose, &scene, SKY);
+                    let name = format!("{kind:?}_{view}_{distance:.0}m.png").to_lowercase();
+                    crate::write_png(
+                        &dir.join(&name),
+                        &output.color.rgba8,
+                        IMAGE_WIDTH,
+                        IMAGE_HEIGHT,
+                    )?;
+                    written.push(name);
+                }
+            }
+        }
+        Ok(written)
+    }
+
+    /// Bounds of the seated rider in the bicycle's frame (tests).
+    #[cfg(test)]
+    pub(crate) fn rider_bounds(&self) -> ([f64; 3], [f64; 3]) {
+        let rotation = DQuat::from_rotation_y(FRAC_PI_2);
+        let mut lo = [f64::MAX; 3];
+        let mut hi = [f64::MIN; 3];
+        for part in &self.rider {
+            for p in &part.mesh.positions {
+                let q = rotation * Vec3::new(f64::from(p[0]), f64::from(p[1]), f64::from(p[2]))
+                    + self.rider_offset;
+                for (k, v) in [q.x, q.y, q.z].into_iter().enumerate() {
+                    lo[k] = lo[k].min(v);
+                    hi[k] = hi[k].max(v);
+                }
+            }
+        }
+        (lo, hi)
+    }
+
+    fn add_person(&self, scene: &mut RenderScene, position: [f64; 2], heading: f64) {
         // The mesh faces glTF +Z; turn that onto the heading.
         let transform = MathTransform3 {
-            translation: to_engine(position[0], position[1], lift_m),
+            translation: to_engine(position[0], position[1], 0.0),
             rotation: yaw_rotation(heading) * DQuat::from_rotation_y(FRAC_PI_2),
             scale: Vec3::ONE,
         };
-        for part in &self.human {
-            let mut item = RenderScene::item_from_dynamic_mesh(empty_mesh(), [1.0; 4]);
-            item.mesh = Some(Arc::clone(&part.mesh));
-            item.transform = transform;
-            item.material = part.material.clone();
-            item.base_color_texture = part.texture.clone();
-            scene.items.push(item);
-        }
+        add_human(scene, &self.human, transform);
+    }
+
+    fn add_rider(&self, scene: &mut RenderScene, position: [f64; 2], heading: f64) {
+        let transform = MathTransform3 {
+            translation: to_engine(position[0], position[1], 0.0)
+                + yaw_rotation(heading) * self.rider_offset,
+            rotation: yaw_rotation(heading) * DQuat::from_rotation_y(FRAC_PI_2),
+            scale: Vec3::ONE,
+        };
+        add_human(scene, &self.rider, transform);
+    }
+}
+
+fn add_human(scene: &mut RenderScene, parts: &[HumanPart], transform: MathTransform3) {
+    for part in parts {
+        let mut item = RenderScene::item_from_dynamic_mesh(empty_mesh(), [1.0; 4]);
+        item.mesh = Some(Arc::clone(&part.mesh));
+        item.transform = transform;
+        item.material = part.material.clone();
+        item.base_color_texture = part.texture.clone();
+        scene.items.push(item);
     }
 }
 
@@ -261,108 +444,19 @@ fn primitive(
     item
 }
 
-/// A point `forward` along and `left` across the heading from `position`.
-fn offset(position: [f64; 2], heading: f64, forward: f64, left: f64) -> [f64; 2] {
-    let (sin, cos) = heading.sin_cos();
-    [
-        position[0] + cos * forward - sin * left,
-        position[1] + sin * forward + cos * left,
-    ]
-}
-
-/// A wheel: a cylinder whose axis runs across the heading.
-fn add_wheel(
-    scene: &mut RenderScene,
-    at: [f64; 2],
-    heading: f64,
-    radius: f64,
-    width: f64,
-    color: [f32; 3],
-) {
-    // Cylinders run along local Z (engine); turn Z onto the lateral axis.
-    let rotation = yaw_rotation(heading);
-    scene.items.push(primitive(
-        VisualShape::Cylinder {
-            radius_m: radius,
-            length_m: width,
-        },
-        [at[0], at[1], radius],
-        rotation,
-        color,
-    ));
-}
-
-fn add_car(scene: &mut RenderScene, position: [f64; 2], heading: f64, index: usize) {
-    const PAINT: [[f32; 3]; 4] = [
-        [0.6, 0.05, 0.05],
-        [0.8, 0.8, 0.82],
-        [0.05, 0.12, 0.35],
-        [0.1, 0.1, 0.1],
-    ];
-    let paint = PAINT[index % PAINT.len()];
-    let glass = [0.08, 0.1, 0.13];
-    // Body, cabin (glass), roof.
-    add_box(
-        scene,
-        [position[0], position[1], 0.65],
-        [4.4, 1.8, 0.6],
-        heading,
-        paint,
-    );
-    let cabin = offset(position, heading, -0.3, 0.0);
-    add_box(
-        scene,
-        [cabin[0], cabin[1], 1.15],
-        [2.3, 1.6, 0.42],
-        heading,
-        glass,
-    );
-    add_box(
-        scene,
-        [cabin[0], cabin[1], 1.4],
-        [2.1, 1.5, 0.08],
-        heading,
-        paint,
-    );
-    for (forward, left) in [(1.35, 0.8), (1.35, -0.8), (-1.35, 0.8), (-1.35, -0.8)] {
-        add_wheel(
-            scene,
-            offset(position, heading, forward, left),
-            heading,
-            0.33,
-            0.24,
-            [0.05, 0.05, 0.05],
-        );
+/// A vehicle (object frame: +x forward, y up) on the ground at `position`.
+fn add_vehicle(scene: &mut RenderScene, parts: &[VehiclePart], position: [f64; 2], heading: f64) {
+    for (mesh, color) in parts {
+        let mut item =
+            RenderScene::item_from_dynamic_mesh(empty_mesh(), [color[0], color[1], color[2], 1.0]);
+        item.mesh = Some(Arc::clone(mesh));
+        item.transform = MathTransform3 {
+            translation: to_engine(position[0], position[1], 0.0),
+            rotation: yaw_rotation(heading),
+            scale: Vec3::ONE,
+        };
+        scene.items.push(item);
     }
-}
-
-fn add_bicycle(scene: &mut RenderScene, position: [f64; 2], heading: f64) {
-    let frame = [0.1, 0.25, 0.6];
-    for forward in [0.55, -0.55] {
-        add_wheel(
-            scene,
-            offset(position, heading, forward, 0.0),
-            heading,
-            0.34,
-            0.04,
-            [0.05, 0.05, 0.05],
-        );
-    }
-    add_box(
-        scene,
-        [position[0], position[1], 0.55],
-        [1.0, 0.05, 0.05],
-        heading,
-        frame,
-    );
-    let bars = offset(position, heading, 0.45, 0.0);
-    add_box(
-        scene,
-        [bars[0], bars[1], 0.85],
-        [0.05, 0.55, 0.04],
-        heading,
-        frame,
-    );
 }
 
 /// The camera frame record (everything but the image).

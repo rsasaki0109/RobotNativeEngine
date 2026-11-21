@@ -25,6 +25,7 @@
 //! mapped to the engine's y-up world for raycasting.
 
 mod camera;
+mod vehicles;
 
 use std::collections::{BTreeMap, VecDeque};
 use std::fs;
@@ -1189,6 +1190,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 duration = Some(args.next().ok_or("--duration-s needs seconds")?.parse()?)
             }
             "--camera" => with_camera = true,
+            "--preview" => {
+                let dir = PathBuf::from(args.next().ok_or("--preview needs a directory")?);
+                for name in camera::CameraRig::new()?.preview(&dir)? {
+                    println!("{}", dir.join(name).display());
+                }
+                return Ok(());
+            }
             "--camera-every" => {
                 scans_per_frame = args
                     .next()
@@ -1473,6 +1481,15 @@ mod tests {
             );
         }
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn rider_sits_on_the_bicycle() {
+        let rig = camera::CameraRig::new().unwrap();
+        let (lo, hi) = rig.rider_bounds();
+        // Feet above the ground, head at a riding height (standing: 1.75 m).
+        assert!(lo[1] > 0.0 && lo[1] < 0.35, "lowest point {}", lo[1]);
+        assert!(hi[1] > 1.4 && hi[1] < 1.75, "top {}", hi[1]);
     }
 
     #[test]
