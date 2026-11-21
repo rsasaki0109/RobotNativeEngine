@@ -606,11 +606,19 @@ impl Controller {
                     // velocity: one frame's velocity swings, and the offset
                     // from a distant person's line swings by a metre with a
                     // few degrees of velocity error.
-                    let left = [-heading[1], heading[0]];
+                    // Measured across the way to the goal, not the robot's
+                    // heading: mid lane change, someone walking straight
+                    // down a corridor would look like drifting.
+                    let way = {
+                        let g = [self.goal[0] - odom[0], self.goal[1] - odom[1]];
+                        let n = g[0].hypot(g[1]).max(1e-6);
+                        [g[0] / n, g[1] / n]
+                    };
+                    let left = [-way[1], way[0]];
                     let normal_left = normal[0] * left[0] + normal[1] * left[1];
                     let drift = history.map_or(0.0, |h| {
                         let v = h.mean_velocity();
-                        -v[0] * heading[1] + v[1] * heading[0]
+                        v[0] * left[0] + v[1] * left[1]
                     });
                     let side = if drift.abs() > PASS_BEHIND_DRIFT_M_S && normal_left.abs() > 0.3 {
                         -drift.signum() * normal_left.signum()
