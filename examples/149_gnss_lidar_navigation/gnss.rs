@@ -138,16 +138,21 @@ impl RobotGnss {
         }
     }
 
-    /// Steps all receivers to `time_s` with the body at its true pose;
-    /// `estimated_yaw_rad` moves the antenna fix to the body origin.
+    /// Steps all receivers to `time_s` with the body at its true pose.
+    /// `estimate` (the localizer's body pose) moves the antenna fix to the
+    /// body origin and, with a `city_model`, predicts from that 3D model
+    /// which satellites are hidden at each antenna; their measurements are
+    /// withheld from RTK (3D-map-aided satellite selection).
     pub(crate) fn step(
         &mut self,
         scene: &GnssScene,
+        city_model: Option<&GnssScene>,
         constellation: &Constellation,
         truth: BodyPose,
-        estimated_yaw_rad: f64,
+        estimate: BodyPose,
         time_s: f64,
     ) -> Vec<GnssOutput> {
+        let estimated_yaw_rad = estimate.yaw_rad;
         let frame = self.frame;
         let released = self.rig.step(scene, constellation, &frame, truth, time_s);
         match &mut self.solver {
@@ -173,6 +178,23 @@ impl RobotGnss {
                 ) else {
                     return Vec::new();
                 };
+                let (rear_epoch, front_epoch) = if let Some(city_model) = city_model {
+                    (
+                        mask_predicted_nlos(
+                            city_model,
+                            rear_epoch,
+                            estimate.transform(LEVER_ARMS_M[REAR]),
+                        ),
+                        mask_predicted_nlos(
+                            city_model,
+                            front_epoch,
+                            estimate.transform(LEVER_ARMS_M[FRONT]),
+                        ),
+                    )
+                } else {
+                    (rear_epoch.clone(), front_epoch.clone())
+                };
+                let (rear_epoch, front_epoch) = (&rear_epoch, &front_epoch);
                 let base_ecef = frame.enu_to_ecef(BASE_ENU_M);
                 let Ok(solution) =
                     rtk.process(rear_epoch, None, base_epoch, Some(base_ecef), navigation)
@@ -204,6 +226,26 @@ impl RobotGnss {
             }
         }
     }
+}
+
+/// Withholds the measurements of satellites that the city model predicts are
+/// hidden from `antenna_enu_m` (the estimated antenna position): their
+/// signals can only be reflections.
+fn mask_predicted_nlos(scene: &GnssScene, epoch: &GnssEpoch, antenna_enu_m: Vec3) -> GnssEpoch {
+    let mut masked = epoch.clone();
+    for satellite in &mut masked.observations {
+        let (sin_az, cos_az) = satellite.azimuth_rad.sin_cos();
+        let (sin_el, cos_el) = satellite.elevation_rad.sin_cos();
+        let direction = Vec3::new(sin_az * cos_el, cos_az * cos_el, sin_el);
+        if scene.occluded(antenna_enu_m, direction, f64::INFINITY) {
+            for signal in &mut satellite.signals {
+                signal.pseudorange_m = None;
+                signal.carrier_phase_cycles = None;
+                signal.doppler_hz = None;
+            }
+        }
+    }
+    masked
 }
 
 fn label(status: SolutionStatus) -> SolutionLabel {

@@ -36,7 +36,21 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 struct TraceBox {
     min: [f64; 3],
     max: [f64; 3],
-    material: String,
+    kind: String,
+}
+
+#[derive(Deserialize)]
+struct TraceCanopy {
+    min: [f64; 3],
+    max: [f64; 3],
+}
+
+#[derive(Deserialize)]
+struct TraceVehicle {
+    kind: String,
+    min: [f64; 3],
+    max: [f64; 3],
+    color: usize,
 }
 
 #[derive(Deserialize)]
@@ -52,6 +66,7 @@ struct TraceFrame {
     estimate: [f64; 3],
     source: String,
     rays: Vec<TraceRay>,
+    vehicles: Vec<TraceVehicle>,
     lidar: Vec<[f64; 2]>,
     trail_samples: usize,
 }
@@ -70,6 +85,7 @@ struct TraceFile {
     base_m: [f64; 3],
     office: [f64; 4],
     boxes: Vec<TraceBox>,
+    canopies: Vec<TraceCanopy>,
     samples: Vec<TraceSample>,
     frames: Vec<TraceFrame>,
 }
@@ -276,6 +292,7 @@ fn inside(office: [f64; 4], x: f64, y: f64) -> bool {
 }
 
 /// Facade detail of a tower: floor bands and vertical mullions.
+/// Facade detail of a tower: floor bands, a parapet and vertical mullions.
 fn tower_details(
     min: [f64; 3],
     max: [f64; 3],
@@ -284,7 +301,7 @@ fn tower_details(
     spacing_m: f64,
 ) {
     let inset = 0.12;
-    let mut z = 3.6;
+    let mut z = min[2] + 3.6;
     while z < max[2] - 0.5 {
         bands.enu_box(
             [min[0] - inset, min[1] - inset, z - 0.25],
@@ -292,7 +309,6 @@ fn tower_details(
         );
         z += 3.6;
     }
-    // Parapet.
     bands.enu_box(
         [min[0] - inset, min[1] - inset, max[2]],
         [max[0] + inset, max[1] + inset, max[2] + 0.9],
@@ -307,12 +323,12 @@ fn tower_details(
         while s < to - 0.5 {
             let (a, b) = if along_x {
                 (
-                    [s - 0.12, fixed - inset, 0.0],
+                    [s - 0.12, fixed - inset, min[2]],
                     [s + 0.12, fixed + inset, max[2]],
                 )
             } else {
                 (
-                    [fixed - inset, s - 0.12, 0.0],
+                    [fixed - inset, s - 0.12, min[2]],
                     [fixed + inset, s + 0.12, max[2]],
                 )
             };
@@ -325,81 +341,102 @@ fn tower_details(
 fn static_city(trace: &TraceFile) -> RenderScene {
     let mut scene = RenderScene::new();
     push_ground(&mut scene, trace.office);
-    push_trees(&mut scene);
     push_buildings(&mut scene, trace);
+    push_street_furniture(&mut scene, trace);
     push_base_station(&mut scene, trace.base_m);
     scene
 }
 
 fn push_ground(scene: &mut RenderScene, office: [f64; 4]) {
-    // Ground: asphalt, plaza paving, sidewalks, office forecourt and floor.
     let mut asphalt = SolidMesh::default();
-    asphalt.enu_box([-80.0, -120.0, -0.2], [240.0, 120.0, 0.0]);
-    push(scene, asphalt, linear([58, 60, 64]), 0.95, 0.0, [0.0; 3]);
+    asphalt.enu_box([-120.0, -140.0, -0.2], [260.0, 140.0, 0.0]);
+    push(scene, asphalt, linear([54, 56, 60]), 0.95, 0.0, [0.0; 3]);
+    // Plaza paving, forecourt, sidewalks (raised kerbs), office floor.
     let mut paving = SolidMesh::default();
-    paving.enu_box([-14.0, -14.0, 0.0], [40.0, 14.0, 0.02]);
-    paving.enu_box([120.0, -14.0, 0.0], [office[2] + 6.0, 14.0, 0.02]);
+    paving.enu_box([-20.0, -18.0, 0.0], [40.0, 18.0, 0.02]);
+    paving.enu_box([120.0, -15.0, 0.0], [office[0], 15.0, 0.02]);
     for y in [9.0, -15.0] {
-        paving.enu_box([40.0, y, 0.0], [120.0, y + 6.0, 0.12]);
+        paving.enu_box([40.0, y, 0.0], [120.0, y + 6.0, 0.14]);
     }
-    push(scene, paving, linear([176, 170, 160]), 0.85, 0.0, [0.0; 3]);
+    push(scene, paving, linear([178, 172, 162]), 0.85, 0.0, [0.0; 3]);
+    let mut kerb = SolidMesh::default();
+    for y in [8.85, -9.15] {
+        kerb.enu_box([40.0, y, 0.0], [120.0, y + 0.3, 0.16]);
+    }
+    push(scene, kerb, linear([150, 148, 144]), 0.8, 0.0, [0.0; 3]);
     let mut seams = SolidMesh::default();
-    let mut x = -14.0;
+    let mut x = -20.0;
     while x <= 40.0 {
-        seams.enu_box([x - 0.03, -14.0, 0.02], [x + 0.03, 14.0, 0.025]);
+        seams.enu_box([x - 0.03, -18.0, 0.02], [x + 0.03, 18.0, 0.025]);
         x += 3.0;
     }
-    let mut y = -14.0;
-    while y <= 14.0 {
-        seams.enu_box([-14.0, y - 0.03, 0.02], [40.0, y + 0.03, 0.025]);
+    let mut y = -18.0;
+    while y <= 18.0 {
+        seams.enu_box([-20.0, y - 0.03, 0.02], [40.0, y + 0.03, 0.025]);
         y += 3.0;
     }
-    push(scene, seams, linear([140, 134, 126]), 0.9, 0.0, [0.0; 3]);
+    push(scene, seams, linear([138, 132, 124]), 0.9, 0.0, [0.0; 3]);
+    // Lane markings, parking bays and zebra crossings at the cross streets.
     let mut paint = SolidMesh::default();
     let mut x = 42.0;
     while x < 118.0 {
-        paint.enu_box([x, 4.4, 0.0], [x + 3.0, 4.6, 0.012]);
-        paint.enu_box([x, -4.6, 0.0], [x + 3.0, -4.4, 0.012]);
+        paint.enu_box([x, -0.1, 0.0], [x + 3.0, 0.1, 0.012]);
         x += 6.0;
+    }
+    for y in [-6.0, 6.0] {
+        paint.enu_box([41.0, y - 0.08, 0.0], [119.0, y + 0.08, 0.012]);
+    }
+    for x0 in [64.0, 94.0] {
+        let mut y = -8.6;
+        while y < 8.6 {
+            paint.enu_box([x0, y, 0.0], [x0 + 3.5, y + 0.5, 0.013]);
+            y += 1.0;
+        }
     }
     push(
         scene,
         paint,
-        linear([235, 235, 225]),
+        linear([236, 236, 228]),
         0.6,
         0.0,
-        [0.02, 0.02, 0.02],
+        [0.03, 0.03, 0.03],
     );
     let mut floor = SolidMesh::default();
     floor.enu_box([office[0], office[1], 0.0], [office[2], office[3], 0.03]);
-    push(scene, floor, linear([200, 196, 186]), 0.6, 0.0, [0.0; 3]);
+    push(scene, floor, linear([204, 200, 190]), 0.6, 0.0, [0.0; 3]);
 }
 
-fn push_trees(scene: &mut RenderScene) {
-    // Trees along the plaza.
-    let mut trunks = SolidMesh::default();
+/// Tree crowns from the trace's canopy volumes (the trunks are boxes).
+/// Crowns between the camera and the robot are cut away, like the office
+/// roof, so the robot stays visible.
+fn push_trees(scene: &mut RenderScene, trace: &TraceFile, eye: Vec3, robot: Vec3) {
     let mut crowns = SolidMesh::default();
-    for (e, n) in [
-        (-6.0, 11.0),
-        (4.0, 11.5),
-        (14.0, 11.0),
-        (24.0, 11.5),
-        (-6.0, -11.0),
-        (4.0, -11.5),
-        (14.0, -11.0),
-        (24.0, -11.5),
-    ] {
-        trunks.cylinder(p(e, n, 1.6), 0.18, 1.6, 8);
-        crowns.cylinder(p(e, n, 4.2), 1.8, 1.1, 10);
-        crowns.cylinder(p(e, n, 5.4), 1.2, 0.6, 10);
+    let mut dark = SolidMesh::default();
+    for c in &trace.canopies {
+        let centre = p(
+            0.5 * (c.min[0] + c.max[0]),
+            0.5 * (c.min[1] + c.max[1]),
+            0.5 * (c.min[2] + c.max[2]),
+        );
+        let along = robot - eye;
+        let s = ((centre - eye).dot(along) / along.length_squared()).clamp(0.0, 1.0);
+        let closest = eye + along * s;
+        if (centre - closest).length() < 0.5 * (c.max[0] - c.min[0]) + 1.5 {
+            continue;
+        }
+        let (cx, cy) = (0.5 * (c.min[0] + c.max[0]), 0.5 * (c.min[1] + c.max[1]));
+        let r = 0.5 * (c.max[0] - c.min[0]);
+        let (z0, z1) = (c.min[2], c.max[2]);
+        let h = z1 - z0;
+        crowns.cylinder(p(cx, cy, z0 + 0.45 * h), r, 0.25 * h, 12);
+        crowns.cylinder(p(cx, cy, z0 + 0.75 * h), 0.75 * r, 0.18 * h, 12);
+        dark.cylinder(p(cx, cy, z0 + 0.2 * h), 0.8 * r, 0.12 * h, 12);
     }
-    push(scene, trunks, linear([92, 66, 44]), 0.9, 0.0, [0.0; 3]);
-    push(scene, crowns, linear([62, 118, 58]), 0.85, 0.0, [0.0; 3]);
+    push(scene, crowns, linear([72, 128, 62]), 0.85, 0.0, [0.0; 3]);
+    push(scene, dark, linear([46, 92, 44]), 0.9, 0.0, [0.0; 3]);
 }
 
 fn push_buildings(scene: &mut RenderScene, trace: &TraceFile) {
-    let office = trace.office;
-    // Buildings.
     let mut glass = SolidMesh::default();
     let mut concrete = SolidMesh::default();
     let mut metal = SolidMesh::default();
@@ -409,14 +446,23 @@ fn push_buildings(scene: &mut RenderScene, trace: &TraceFile) {
     let mut desks = SolidMesh::default();
     let mut roof_edge = SolidMesh::default();
     for b in &trace.boxes {
-        let indoor = inside(
-            office,
-            0.5 * (b.min[0] + b.max[0]),
-            0.5 * (b.min[1] + b.max[1]),
-        ) && b.max[2] < 5.0;
-        if indoor {
-            if b.min[2] > 1.0 {
-                // Roof cut away; keep its rim so the building reads as roofed.
+        match b.kind.as_str() {
+            "glass" => {
+                glass.enu_box(b.min, b.max);
+                tower_details(b.min, b.max, &mut bands, &mut mullions, 3.0);
+            }
+            "metal" => {
+                metal.enu_box(b.min, b.max);
+                tower_details(b.min, b.max, &mut bands, &mut mullions, 2.0);
+            }
+            "concrete" => {
+                concrete.enu_box(b.min, b.max);
+                tower_details(b.min, b.max, &mut bands, &mut mullions, 4.5);
+            }
+            "office" | "pillar" => walls.enu_box(b.min, b.max),
+            "desk" => desks.enu_box(b.min, b.max),
+            "roof" => {
+                // Cut away so the inside shows; keep the rim.
                 let (lo, hi) = (b.min, b.max);
                 for (a, c) in [
                     ([lo[0], lo[1], lo[2]], [hi[0], lo[1] + 0.3, hi[2]]),
@@ -426,28 +472,9 @@ fn push_buildings(scene: &mut RenderScene, trace: &TraceFile) {
                 ] {
                     roof_edge.enu_box(a, c);
                 }
-            } else if b.max[2] < 1.0 {
-                desks.enu_box(b.min, b.max);
-            } else {
-                walls.enu_box(b.min, b.max);
             }
-            continue;
+            _ => {}
         }
-        let spacing = match b.material.as_str() {
-            "glass" => {
-                glass.enu_box(b.min, b.max);
-                3.0
-            }
-            "metal" => {
-                metal.enu_box(b.min, b.max);
-                2.0
-            }
-            _ => {
-                concrete.enu_box(b.min, b.max);
-                4.5
-            }
-        };
-        tower_details(b.min, b.max, &mut bands, &mut mullions, spacing);
     }
     push(scene, glass, linear([70, 120, 160]), 0.06, 0.85, [0.0; 3]);
     push(scene, concrete, linear([196, 188, 172]), 0.9, 0.0, [0.0; 3]);
@@ -466,8 +493,197 @@ fn push_buildings(scene: &mut RenderScene, trace: &TraceFile) {
     );
 }
 
+/// Lamp posts, traffic signals, the bus shelter, benches, the kiosk and the
+/// tree trunks.
+fn push_street_furniture(scene: &mut RenderScene, trace: &TraceFile) {
+    let mut poles = SolidMesh::default();
+    let mut lamps = SolidMesh::default();
+    let mut signal_heads = SolidMesh::default();
+    let mut red = SolidMesh::default();
+    let mut green = SolidMesh::default();
+    let mut shelter_frame = SolidMesh::default();
+    let mut shelter_glass = SolidMesh::default();
+    let mut wood = SolidMesh::default();
+    let mut trunks = SolidMesh::default();
+    let mut kiosk = SolidMesh::default();
+    for b in &trace.boxes {
+        let (cx, cy) = (0.5 * (b.min[0] + b.max[0]), 0.5 * (b.min[1] + b.max[1]));
+        let h = b.max[2];
+        match b.kind.as_str() {
+            "lamp" => {
+                poles.cylinder(p(cx, cy, 0.5 * h), 0.08, 0.5 * h, 8);
+                // The arm leans over the road (toward y = 0).
+                let toward = if cy < 0.0 { 1.0 } else { -1.0 };
+                poles.beam(p(cx, cy, h), p(cx, cy + toward * 1.4, h + 0.2), 0.08);
+                lamps.box_at(
+                    p(cx, cy + toward * 1.5, h + 0.12),
+                    Vec3::new(0.3, 0.06, 0.18),
+                    Quat::IDENTITY,
+                );
+            }
+            "signal" => {
+                poles.cylinder(p(cx, cy, 0.5 * h), 0.09, 0.5 * h, 8);
+                signal_heads.box_at(
+                    p(cx, cy, h - 0.5),
+                    Vec3::new(0.18, 0.5, 0.18),
+                    Quat::IDENTITY,
+                );
+                red.box_at(
+                    p(cx + 0.19, cy, h - 0.2),
+                    Vec3::new(0.02, 0.1, 0.1),
+                    Quat::IDENTITY,
+                );
+                green.box_at(
+                    p(cx + 0.19, cy, h - 0.8),
+                    Vec3::new(0.02, 0.1, 0.1),
+                    Quat::IDENTITY,
+                );
+            }
+            "shelter" => {
+                shelter_glass.enu_box(
+                    [b.min[0], b.max[1] - 0.06, 0.0],
+                    [b.max[0], b.max[1], h - 0.1],
+                );
+                shelter_frame.enu_box(
+                    [b.min[0] - 0.1, b.min[1] - 0.1, h - 0.12],
+                    [b.max[0] + 0.1, b.max[1] + 0.1, h],
+                );
+                for x in [b.min[0], b.max[0]] {
+                    shelter_frame.enu_box([x - 0.05, b.max[1] - 0.1, 0.0], [x + 0.05, b.max[1], h]);
+                }
+                wood.enu_box(
+                    [b.min[0] + 0.4, b.max[1] - 0.5, 0.42],
+                    [b.max[0] - 0.4, b.max[1] - 0.1, 0.48],
+                );
+            }
+            "bench" => {
+                wood.enu_box([b.min[0], b.min[1], 0.38], [b.max[0], b.max[1], h]);
+                poles.enu_box(
+                    [b.min[0] + 0.1, b.min[1], 0.0],
+                    [b.min[0] + 0.2, b.max[1], 0.38],
+                );
+                poles.enu_box(
+                    [b.max[0] - 0.2, b.min[1], 0.0],
+                    [b.max[0] - 0.1, b.max[1], 0.38],
+                );
+            }
+            "kiosk" => {
+                kiosk.enu_box(b.min, b.max);
+                shelter_frame.enu_box(
+                    [b.min[0] - 0.4, b.min[1] - 0.4, b.max[2]],
+                    [b.max[0] + 0.4, b.max[1] + 0.4, b.max[2] + 0.2],
+                );
+            }
+            "trunk" => trunks.cylinder(p(cx, cy, 0.5 * h), 0.16, 0.5 * h, 8),
+            _ => {}
+        }
+    }
+    push(scene, poles, linear([70, 74, 80]), 0.5, 0.6, [0.0; 3]);
+    push(
+        scene,
+        lamps,
+        linear([250, 240, 210]),
+        0.4,
+        0.0,
+        [1.2, 1.1, 0.8],
+    );
+    push(
+        scene,
+        signal_heads,
+        linear([30, 30, 32]),
+        0.6,
+        0.2,
+        [0.0; 3],
+    );
+    push(scene, red, [1.0, 0.1, 0.05, 1.0], 0.4, 0.0, [2.0, 0.2, 0.1]);
+    push(
+        scene,
+        green,
+        [0.1, 1.0, 0.4, 1.0],
+        0.4,
+        0.0,
+        [0.2, 1.6, 0.6],
+    );
+    push(
+        scene,
+        shelter_frame,
+        linear([90, 96, 104]),
+        0.4,
+        0.7,
+        [0.0; 3],
+    );
+    push(
+        scene,
+        shelter_glass,
+        linear([150, 190, 210]),
+        0.05,
+        0.8,
+        [0.0; 3],
+    );
+    push(scene, wood, linear([140, 100, 62]), 0.7, 0.0, [0.0; 3]);
+    push(scene, trunks, linear([92, 66, 44]), 0.9, 0.0, [0.0; 3]);
+    push(scene, kiosk, linear([200, 70, 50]), 0.6, 0.0, [0.0; 3]);
+}
+
+/// Cars (body, glass cabin, wheels) and buses from the frame's vehicles.
+fn push_vehicles(scene: &mut RenderScene, frame: &TraceFrame) {
+    const PAINT: [[u8; 3]; 6] = [
+        [200, 30, 36],
+        [235, 235, 238],
+        [30, 34, 40],
+        [40, 90, 170],
+        [160, 166, 172],
+        [220, 170, 40],
+    ];
+    let mut bodies: [SolidMesh; 6] = Default::default();
+    let mut glass = SolidMesh::default();
+    let mut wheels = SolidMesh::default();
+    let mut bus_body = SolidMesh::default();
+    let mut lights = SolidMesh::default();
+    for v in &frame.vehicles {
+        let (x0, y0, x1, y1, h) = (v.min[0], v.min[1], v.max[0], v.max[1], v.max[2]);
+        if v.kind == "bus" {
+            bus_body.enu_box([x0, y0, 0.35], [x1, y1, h]);
+            glass.enu_box([x0 - 0.02, y0 - 0.02, 1.4], [x1 + 0.02, y1 + 0.02, h - 0.5]);
+        } else {
+            let body = &mut bodies[v.color % PAINT.len()];
+            body.enu_box([x0, y0, 0.3], [x1, y1, 0.95]);
+            let inset = 0.22 * (x1 - x0);
+            glass.enu_box(
+                [x0 + inset, y0 + 0.08, 0.95],
+                [x1 - inset * 0.8, y1 - 0.08, h],
+            );
+            body.enu_box(
+                [x0 + inset + 0.1, y0 + 0.1, h - 0.06],
+                [x1 - inset * 0.8 - 0.1, y1 - 0.1, h],
+            );
+            lights.enu_box([x1, y0 + 0.15, 0.6], [x1 + 0.03, y0 + 0.45, 0.75]);
+            lights.enu_box([x1, y1 - 0.45, 0.6], [x1 + 0.03, y1 - 0.15, 0.75]);
+        }
+        let r = if v.kind == "bus" { 0.5 } else { 0.33 };
+        for x in [x0 + 0.22 * (x1 - x0), x1 - 0.22 * (x1 - x0)] {
+            for y in [y0 + 0.12, y1 - 0.12] {
+                wheels.enu_box([x - r, y - 0.12, 0.0], [x + r, y + 0.12, 2.0 * r]);
+            }
+        }
+    }
+    for (mesh, color) in bodies.into_iter().zip(PAINT) {
+        push(scene, mesh, linear(color), 0.25, 0.5, [0.0; 3]);
+    }
+    push(scene, bus_body, linear([30, 120, 90]), 0.35, 0.3, [0.0; 3]);
+    push(scene, glass, linear([24, 30, 40]), 0.05, 0.6, [0.0; 3]);
+    push(scene, wheels, linear([20, 20, 22]), 0.9, 0.0, [0.0; 3]);
+    push(
+        scene,
+        lights,
+        [1.0, 0.95, 0.8, 1.0],
+        0.3,
+        0.0,
+        [1.5, 1.4, 1.1],
+    );
+}
+
 fn push_base_station(scene: &mut RenderScene, base: [f64; 3]) {
-    // RTK base station on the rooftop: a mast and an antenna disc.
     let mut mast = SolidMesh::default();
     mast.cylinder(p(base[0], base[1], base[2] - 1.0), 0.06, 1.0, 8);
     push(scene, mast, linear([90, 90, 96]), 0.5, 0.7, [0.0; 3]);
@@ -491,8 +707,20 @@ fn source_color(source: &str) -> ([f32; 4], [f32; 3]) {
     }
 }
 
-fn frame_scene(city: &RenderScene, trace: &TraceFile, frame: &TraceFrame) -> RenderScene {
+fn frame_scene(
+    city: &RenderScene,
+    trace: &TraceFile,
+    frame: &TraceFrame,
+    eye: Vec3,
+) -> RenderScene {
     let mut scene = city.clone();
+    push_trees(
+        &mut scene,
+        trace,
+        eye,
+        p(frame.truth[0], frame.truth[1], 0.8),
+    );
+    push_vehicles(&mut scene, frame);
     push_robot(&mut scene, trace, frame);
     push_beams(&mut scene, frame);
     push_trails(&mut scene, trace, frame);
@@ -777,7 +1005,8 @@ fn main() -> Result<()> {
         .enumerate()
     {
         let orbit = chase.update(&trace, frame);
-        let scene = frame_scene(&city, &trace, frame);
+        let eye = orbit.camera_transform().translation;
+        let scene = frame_scene(&city, &trace, frame, eye);
         let image = backend.render_scene_camera(
             &camera,
             &orbit.camera_transform(),

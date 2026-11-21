@@ -3,9 +3,10 @@
 //! tracked satellite signal's ray-traced path as a 3D polyline, the LiDAR
 //! returns, the localization source and the GNSS solution.
 
+use crate::city::{City, Layer, OFFICE};
 use crate::frames::FrameRecord;
 use crate::gnss::{SolutionLabel, BASE_ENU_M, BODY_HEIGHT_M, LEVER_ARMS_M};
-use crate::{RunLog, OFFICE};
+use crate::RunLog;
 use rne_gnss::{trace_satellite, GnssScene, PathKind, SignalPath, TraceConfig};
 use rne_math::Vec3;
 use rne_slam::LocalizationSource;
@@ -19,7 +20,23 @@ const SKY_REACH_M: f64 = 90.0;
 struct TraceBox {
     min: [f64; 3],
     max: [f64; 3],
-    material: &'static str,
+    kind: &'static str,
+    mapped: bool,
+}
+
+#[derive(Serialize)]
+struct TraceCanopy {
+    min: [f64; 3],
+    max: [f64; 3],
+}
+
+#[derive(Serialize)]
+struct TraceVehicle {
+    kind: &'static str,
+    min: [f64; 3],
+    max: [f64; 3],
+    color: usize,
+    heading_east: bool,
 }
 
 #[derive(Serialize)]
@@ -47,6 +64,7 @@ struct TraceFrame {
     error_m: f64,
     antennas: Vec<[f64; 3]>,
     rays: Vec<TraceRay>,
+    vehicles: Vec<TraceVehicle>,
     satellites: Vec<TraceSatellite>,
     lidar: Vec<[f64; 2]>,
     trail_samples: usize,
@@ -67,6 +85,7 @@ struct TraceFile {
     base_m: [f64; 3],
     office: [f64; 4],
     boxes: Vec<TraceBox>,
+    canopies: Vec<TraceCanopy>,
     samples: Vec<TraceSample>,
     frames: Vec<TraceFrame>,
 }
@@ -86,16 +105,6 @@ fn path_name(path: SignalPath) -> &'static str {
         SignalPath::Diffracted => "diffracted",
         SignalPath::Blocked | SignalPath::TooWeak => "blocked",
         SignalPath::BelowMask => "below_mask",
-    }
-}
-
-fn material_name(loss_db: f64) -> &'static str {
-    if loss_db < 3.0 {
-        "metal"
-    } else if loss_db < 6.0 {
-        "glass"
-    } else {
-        "concrete"
     }
 }
 
@@ -148,7 +157,7 @@ fn rays(scene: &GnssScene, trace: &TraceConfig, frame: &FrameRecord) -> Vec<Trac
 /// Writes the trace as JSON.
 pub(crate) fn write_trace(
     path: &Path,
-    scene: &GnssScene,
+    city: &City,
     trace: &TraceConfig,
     log: &RunLog,
     frames: &[FrameRecord],
@@ -159,13 +168,22 @@ pub(crate) fn write_trace(
         lever_arms_m: LEVER_ARMS_M.iter().map(|v| v.to_array()).collect(),
         base_m: BASE_ENU_M.to_array(),
         office: OFFICE,
-        boxes: scene
-            .boxes
+        boxes: city
+            .items
             .iter()
-            .map(|b| TraceBox {
-                min: b.min_m.to_array(),
-                max: b.max_m.to_array(),
-                material: material_name(b.material.reflection_loss_db),
+            .map(|item| TraceBox {
+                min: item.scene_box.min_m.to_array(),
+                max: item.scene_box.max_m.to_array(),
+                kind: item.kind,
+                mapped: item.layer == Layer::Building,
+            })
+            .collect(),
+        canopies: city
+            .canopies
+            .iter()
+            .map(|c| TraceCanopy {
+                min: c.min_m.to_array(),
+                max: c.max_m.to_array(),
             })
             .collect(),
         samples: log
@@ -205,7 +223,21 @@ pub(crate) fn write_trace(
                         })
                         .collect()
                 },
-                rays: rays(scene, trace, f),
+                rays: rays(&city.world_scene(f.t), trace, f),
+                vehicles: city
+                    .vehicles
+                    .iter()
+                    .map(|v| {
+                        let b = v.scene_box(f.t);
+                        TraceVehicle {
+                            kind: v.kind,
+                            min: b.min_m.to_array(),
+                            max: b.max_m.to_array(),
+                            color: v.color,
+                            heading_east: v.speed_m_s >= 0.0 && v.lane_y_m < 0.0,
+                        }
+                    })
+                    .collect(),
                 satellites: f
                     .epoch
                     .iter()

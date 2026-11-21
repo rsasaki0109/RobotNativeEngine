@@ -34,6 +34,57 @@ impl SurfaceMaterial {
     pub const GROUND: Self = Self {
         reflection_loss_db: 12.0,
     };
+    /// Small or rough objects (poles, trunks, benches): they block signals
+    /// but are not traced as specular reflectors.
+    pub const ABSORBER: Self = Self {
+        reflection_loss_db: f64::INFINITY,
+    };
+
+    /// Whether specular reflections off this material are traced.
+    pub fn is_reflective(&self) -> bool {
+        self.reflection_loss_db.is_finite()
+    }
+}
+
+/// A volume of foliage (a tree canopy) that attenuates signals passing
+/// through it without blocking them.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct FoliageVolume {
+    /// Minimum corner in ENU meters.
+    pub min_m: Vec3,
+    /// Maximum corner in ENU meters.
+    pub max_m: Vec3,
+    /// Attenuation per meter of path inside the volume at L1, in dB/m
+    /// (deciduous canopies: about 0.5-1.5 dB/m).
+    pub loss_db_per_m: f64,
+}
+
+impl FoliageVolume {
+    /// Length of the segment `origin + t·direction`, `t ∈ [0, max_t]`, inside
+    /// the volume.
+    pub fn path_length_m(&self, origin_m: Vec3, direction: Vec3, max_t: f64) -> f64 {
+        let (mut t0, mut t1) = (0.0_f64, max_t);
+        for axis in 0..3 {
+            let (o, d) = (origin_m[axis], direction[axis]);
+            let (lo, hi) = (self.min_m[axis], self.max_m[axis]);
+            if d.abs() < 1.0e-15 {
+                if o < lo || o > hi {
+                    return 0.0;
+                }
+                continue;
+            }
+            let (mut a, mut b) = ((lo - o) / d, (hi - o) / d);
+            if a > b {
+                std::mem::swap(&mut a, &mut b);
+            }
+            t0 = t0.max(a);
+            t1 = t1.min(b);
+            if t0 >= t1 {
+                return 0.0;
+            }
+        }
+        (t1 - t0).max(0.0) * direction.length()
+    }
 }
 
 /// An axis-aligned solid box in the ENU frame.
@@ -240,6 +291,9 @@ pub struct GnssScene {
     pub boxes: Vec<SceneBox>,
     /// Optional ground plane for ground multipath.
     pub ground: Option<GroundPlane>,
+    /// Foliage volumes that attenuate signals passing through them.
+    #[serde(default)]
+    pub foliage: Vec<FoliageVolume>,
 }
 
 impl GnssScene {
@@ -251,6 +305,7 @@ impl GnssScene {
                 height_m: 0.0,
                 material: SurfaceMaterial::GROUND,
             }),
+            foliage: Vec::new(),
         }
     }
 
@@ -291,12 +346,22 @@ impl GnssScene {
         self.boxes.iter().any(|b| b.contains(point_m))
     }
 
-    /// All reflecting facets: box walls in box order, then the ground.
+    /// Foliage attenuation in dB at L1 along a ray segment.
+    pub fn foliage_loss_db(&self, origin_m: Vec3, direction: Vec3, max_t: f64) -> f64 {
+        self.foliage
+            .iter()
+            .map(|f| f.loss_db_per_m * f.path_length_m(origin_m, direction, max_t))
+            .sum()
+    }
+
+    /// All reflecting facets: walls of reflective boxes in box order, then
+    /// the ground.
     pub fn facets(&self) -> Vec<Facet> {
         let mut facets: Vec<Facet> = self
             .boxes
             .iter()
             .enumerate()
+            .filter(|(_, b)| b.material.is_reflective())
             .flat_map(|(index, b)| b.vertical_facets(index))
             .collect();
         if let Some(ground) = self.ground {
@@ -351,6 +416,43 @@ mod tests {
             .intersect(Vec3::splat(0.5), Vec3::Z, 10.0)
             .unwrap();
         assert_eq!(t, 0.0);
+    }
+
+    #[test]
+    fn foliage_attenuates_by_path_length() {
+        let mut scene = GnssScene::default();
+        scene.foliage.push(FoliageVolume {
+            min_m: Vec3::new(5.0, -2.0, 0.0),
+            max_m: Vec3::new(9.0, 2.0, 5.0),
+            loss_db_per_m: 1.0,
+        });
+        // 4 m through the canopy along x.
+        assert_relative_eq!(
+            scene.foliage_loss_db(Vec3::new(0.0, 0.0, 1.0), Vec3::X, f64::INFINITY),
+            4.0,
+            epsilon = 1e-9
+        );
+        // Stops where the segment ends.
+        assert_relative_eq!(
+            scene.foliage_loss_db(Vec3::new(0.0, 0.0, 1.0), Vec3::X, 7.0),
+            2.0,
+            epsilon = 1e-9
+        );
+        assert_eq!(
+            scene.foliage_loss_db(Vec3::new(0.0, 0.0, 6.0), Vec3::X, f64::INFINITY),
+            0.0
+        );
+        // Absorbers are not reflectors.
+        scene.add_box(SceneBox::building(
+            0.0,
+            5.0,
+            1.0,
+            6.0,
+            4.0,
+            SurfaceMaterial::ABSORBER,
+        ));
+        assert!(scene.facets().is_empty());
+        assert!(scene.occluded(Vec3::new(0.5, 0.0, 1.0), Vec3::Y, 10.0));
     }
 
     #[test]

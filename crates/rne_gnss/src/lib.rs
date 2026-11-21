@@ -59,7 +59,9 @@ pub use receiver::{
     SatelliteObservation, SignalObservation, SignalPath,
 };
 pub use resources::GnssEnvironment;
-pub use scene::{FacetSource, GnssScene, GroundPlane, RayHit, SceneBox, SurfaceMaterial};
+pub use scene::{
+    FacetSource, FoliageVolume, GnssScene, GroundPlane, RayHit, SceneBox, SurfaceMaterial,
+};
 pub use signal::{SignalConfig, SignalKind};
 pub use solver::{
     chi_square_quantile, solve_position, Dop, PositionSolution, PseudorangeInput, SolveError,

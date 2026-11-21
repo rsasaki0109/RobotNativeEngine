@@ -20,6 +20,8 @@
 //!   loss is the ITU-R P.526 knife-edge loss `J(ν)` with
 //!   `ν = 2 √(Δ / λ)` for the excess path `Δ`, so it depends on frequency.
 //!   Diffraction is traced only when the direct path is blocked.
+//! * **Foliage** — every path is attenuated by the length it runs through
+//!   the scene's foliage volumes (tree canopies).
 //!
 //! Facets and boxes are visited in index order, so results are deterministic.
 
@@ -40,6 +42,10 @@ pub struct TraceConfig {
     /// Diffracted paths longer than the direct one by more than this are
     /// dropped (their knife-edge loss is far beyond tracking), in meters.
     pub max_diffraction_excess_m: f64,
+    /// Surfaces and edges farther than this from the antenna are not traced,
+    /// in meters (distant reflections are long-delayed and weak; this keeps
+    /// large scenes fast).
+    pub max_interaction_distance_m: f64,
 }
 
 impl Default for TraceConfig {
@@ -48,6 +54,7 @@ impl Default for TraceConfig {
             max_reflections: 2,
             diffraction: true,
             max_diffraction_excess_m: 2.0,
+            max_interaction_distance_m: 150.0,
         }
     }
 }
@@ -78,6 +85,8 @@ pub struct PropagationPath {
     pub arrival_direction: Vec3,
     /// Sum of material reflection losses in dB (frequency independent).
     pub reflection_loss_db: f64,
+    /// Attenuation through foliage along the whole path, in dB.
+    pub foliage_loss_db: f64,
     /// Interaction points from the antenna outward, in ENU meters.
     pub points_m: Vec<Vec3>,
     /// The surfaces (or, for diffraction, the box) involved, in order.
@@ -88,12 +97,13 @@ impl PropagationPath {
     /// Total path loss in dB at a carrier wavelength (reflection loss plus,
     /// for a diffracted path, the knife-edge loss).
     pub fn loss_db(&self, wavelength_m: f64) -> f64 {
-        match self.kind {
+        let interaction = match self.kind {
             PathKind::Diffracted => {
                 knife_edge_loss_db(2.0 * (self.excess_delay_m.max(0.0) / wavelength_m).sqrt())
             }
             _ => self.reflection_loss_db,
-        }
+        };
+        interaction + self.foliage_loss_db
     }
 }
 
@@ -158,12 +168,18 @@ pub fn trace_satellite(
             excess_delay_m: 0.0,
             arrival_direction: u,
             reflection_loss_db: 0.0,
+            foliage_loss_db: scene.foliage_loss_db(antenna_m, u, f64::INFINITY),
             points_m: Vec::new(),
             sources: Vec::new(),
         });
     }
 
-    let facets = scene.facets();
+    let reach = config.max_interaction_distance_m;
+    let facets: Vec<Facet> = scene
+        .facets()
+        .into_iter()
+        .filter(|f| box_distance(f.min_m, f.max_m, antenna_m) <= reach)
+        .collect();
     // Facets the satellite illuminates (candidates for the last bounce).
     let lit: Vec<usize> = (0..facets.len())
         .filter(|&i| u.dot(facets[i].normal) > 0.0)
@@ -226,6 +242,18 @@ fn enumerate_sequences(
     }
 }
 
+/// Distance from a point to an axis-aligned box (zero inside).
+fn box_distance(min_m: Vec3, max_m: Vec3, point_m: Vec3) -> f64 {
+    let clamped = point_m.clamp(min_m, max_m);
+    let d = point_m - clamped;
+    let d = Vec3::new(
+        if d.x.is_finite() { d.x } else { 0.0 },
+        if d.y.is_finite() { d.y } else { 0.0 },
+        if d.z.is_finite() { d.z } else { 0.0 },
+    );
+    d.length()
+}
+
 fn mirror(direction: Vec3, normal: Vec3) -> Vec3 {
     direction - normal * (2.0 * direction.dot(normal))
 }
@@ -257,6 +285,7 @@ fn trace_sequence(
     let mut points = Vec::with_capacity(sequence.len());
     let mut length = 0.0;
     let mut loss = 0.0;
+    let mut foliage = 0.0;
     for &index in sequence {
         let facet = &facets[index];
         let n = facet.normal;
@@ -273,6 +302,7 @@ fn trace_sequence(
         }
         length += t;
         loss += facet.material.reflection_loss_db;
+        foliage += scene.foliage_loss_db(origin, direction, t);
         points.push(hit);
         origin = hit + n * SURFACE_EPSILON_M;
         direction = mirror(direction, n);
@@ -280,6 +310,7 @@ fn trace_sequence(
     if scene.occluded(origin, u, f64::INFINITY) {
         return None;
     }
+    foliage += scene.foliage_loss_db(origin, u, f64::INFINITY);
     let last = *points.last()?;
     Some(PropagationPath {
         kind: PathKind::Reflected {
@@ -288,6 +319,7 @@ fn trace_sequence(
         excess_delay_m: length - (last - antenna_m).dot(u),
         arrival_direction: look,
         reflection_loss_db: loss,
+        foliage_loss_db: foliage,
         points_m: points,
         sources: sequence.iter().map(|&i| facets[i].source).collect(),
     })
@@ -306,7 +338,13 @@ fn trace_diffraction(
         d.length() - d.dot(u)
     };
     for (box_index, scene_box) in scene.boxes.iter().enumerate() {
-        let mut best: Option<(f64, Vec3, Vec3)> = None;
+        if !scene_box.material.is_reflective()
+            || box_distance(scene_box.min_m, scene_box.max_m, antenna_m)
+                > config.max_interaction_distance_m
+        {
+            continue;
+        }
+        let mut best: Option<(f64, Vec3, Vec3, f64)> = None;
         for (p0, p1) in scene_box.edges() {
             // Convex 1-D minimisation by golden-section search.
             let (mut lo, mut hi) = (0.0_f64, 1.0_f64);
@@ -322,7 +360,9 @@ fn trace_diffraction(
             }
             let point = p0.lerp(p1, 0.5 * (lo + hi));
             let delta = excess(point);
-            if delta > config.max_diffraction_excess_m || best.is_some_and(|(d, _, _)| delta >= d) {
+            if delta > config.max_diffraction_excess_m
+                || best.is_some_and(|(d, _, _, _)| delta >= d)
+            {
                 continue;
             }
             // Outward offset away from the box at the edge.
@@ -346,14 +386,17 @@ fn trace_diffraction(
             {
                 continue;
             }
-            best = Some((delta, point, toward));
+            let foliage = scene.foliage_loss_db(antenna_m, toward, distance)
+                + scene.foliage_loss_db(lifted, u, f64::INFINITY);
+            best = Some((delta, point, toward, foliage));
         }
-        if let Some((delta, point, toward)) = best {
+        if let Some((delta, point, toward, foliage)) = best {
             out.push(PropagationPath {
                 kind: PathKind::Diffracted,
                 excess_delay_m: delta,
                 arrival_direction: toward,
                 reflection_loss_db: 0.0,
+                foliage_loss_db: foliage,
                 points_m: vec![point],
                 sources: vec![FacetSource::Box(box_index)],
             });
@@ -560,6 +603,42 @@ mod tests {
         );
         // Longer wavelengths diffract more strongly.
         assert!(diffracted.loss_db(0.255) < near_loss);
+    }
+
+    #[test]
+    fn canopy_attenuates_the_direct_path_and_distant_walls_are_culled() {
+        use crate::scene::FoliageVolume;
+        let mut scene = GnssScene::open_sky();
+        scene.foliage.push(FoliageVolume {
+            min_m: Vec3::new(-3.0, -3.0, 3.0),
+            max_m: Vec3::new(3.0, 3.0, 7.0),
+            loss_db_per_m: 1.0,
+        });
+        let p = trace_satellite(
+            &scene,
+            Vec3::new(0.0, 0.0, 1.0),
+            direction(0.0, 90.0),
+            &TraceConfig::default(),
+        );
+        assert!(p.line_of_sight);
+        // 4 m of canopy straight up.
+        assert_relative_eq!(p.paths[0].loss_db(0.19), 4.0, epsilon = 1e-9);
+
+        let mut far = street();
+        far.boxes.iter_mut().for_each(|b| {
+            b.min_m.x += 500.0;
+            b.max_m.x += 500.0;
+        });
+        let culled = trace_satellite(
+            &far,
+            Vec3::new(0.0, 0.0, 1.0),
+            direction(90.0, 30.0),
+            &TraceConfig::default(),
+        );
+        assert!(culled
+            .paths
+            .iter()
+            .all(|path| path.kind == PathKind::Direct));
     }
 
     #[test]

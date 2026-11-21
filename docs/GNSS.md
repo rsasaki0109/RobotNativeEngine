@@ -22,7 +22,7 @@ back, with an RTK base station on a rooftop.
 | Time, geodesy | GPS week / time of week; exact WGS-84 geodetic ↔ ECEF ↔ local ENU. |
 | Satellites | Keplerian orbits; the nominal 24-slot GPS constellation and a Galileo Walker 24/3/1 (48 satellites). Exported as broadcast ephemerides (`NavigationMessage`) that reproduce the simulated orbits to 0.1 mm with the IS-GPS-200 algorithm. |
 | Signal flight | Satellite position at transmission (light-time iteration) and the Sagnac rotation. |
-| Scene | Axis-aligned boxes with a reflection loss per material (concrete 8 dB, glass 4 dB, metal 2 dB) and a ground plane (12 dB). |
+| Scene | Axis-aligned boxes with a reflection loss per material (concrete 8 dB, glass 4 dB, metal 2 dB; `ABSORBER` for poles and trunks, which block but are not traced as reflectors), a ground plane (12 dB), and foliage volumes that attenuate every path by its length inside them (dB/m). Surfaces beyond `max_interaction_distance_m` are not traced. |
 | Direct path | A ray toward each satellite; any box blocks it. |
 | Reflections | Up to `max_reflections` (default 2) specular bounces off walls and the ground by the image method: the look direction is the satellite direction mirrored through the facet sequence, and the ray is traced forward through every facet, bounds and occluders included. Excess path `Σ|Pᵢ − Pᵢ₋₁| − (Pk − A)·u`. |
 | Diffraction | For blocked satellites, the point on each box edge minimising the path (Keller's law for a plane wave), when both legs are clear. Loss is the ITU-R P.526 knife-edge `J(ν)` with `ν = 2√(Δ/λ)`, so it depends on frequency. |
@@ -105,21 +105,23 @@ rate and decides which absolute source corrects it:
 
 ### Results of example 149
 
-313 m round trip at 1.2 m/s; 1 % wheel scale error, 0.06 °/s gyro bias.
-Position RMSE / max in meters:
+A delivery robot drives 329 m along a sidewalk among towers, street trees and
+traffic. Position RMSE / max in meters:
 
 | Zone | Hybrid | EKF fusing every solution | Odometry only |
 |------|--------|---------------------------|---------------|
-| Open plaza | 0.07 / 0.68 | 0.07 / 0.68 | 11.34 / 20.24 |
-| Urban canyon (30 m street, 25–40 m towers) | 0.52 / 1.71 | 6.94 / 13.95 | 5.09 / 12.68 |
-| Office forecourt | 0.12 / 0.20 | 7.80 / 13.24 | 5.43 / 6.36 |
-| Indoor office (roofed) | 0.05 / 0.14 | 10.56 / 13.74 | 7.84 / 8.75 |
+| Open plaza | 0.14 / 1.39 | 0.14 / 1.39 | 12.83 / 22.35 |
+| Street (sidewalk) | 0.10 / 0.29 | 12.17 / 46.99 | 5.64 / 14.33 |
+| Office forecourt | 0.14 / 0.32 | 3.63 / 11.42 | 5.44 / 6.39 |
+| Indoor office | 0.05 / 0.12 | 0.88 / 1.13 | 7.99 / 8.93 |
 
-In the open plaza libgnss++ fixes 99 % of epochs (1.1 cm RMSE) and the moving
-baseline gives heading on 85 % (1.3° RMSE). In the canyon 4.8 of 12 tracked
-satellites are NLOS: only 27 % of epochs fix, some of those fixes are 10 m
-wrong, and float solutions are metres off. The arbiter rejects them and dead
-reckons.
+Withholding the satellites a buildings-only city model predicts are NLOS
+doubles the street RTK fix rate (20 % → 40 %); trees and vehicles, absent from
+the model, still cause NLOS and wrong fixes. A LiDAR prior map of the whole
+route keeps the robot localized where GNSS is poor: its longest
+dead-reckoning stretch is 0 s, while with a map of the office only it stops
+in the street (3 s safety limit) and never relocalizes. See the
+[example's README](../examples/149_gnss_lidar_navigation/README.md#what-each-part-contributes).
 
 ## Limits
 

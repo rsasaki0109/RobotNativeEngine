@@ -18,6 +18,8 @@
 //! The run is compared against odometry alone and against an EKF that fuses
 //! every GNSS solution without checks. An SVG of the site, trajectories, and
 //! a sky plot from inside the canyon is written (`--svg <path>` to choose).
+//! `--no-map-aided-gnss` keeps predicted-NLOS satellites in RTK and
+//! `--indoor-map-only` limits the LiDAR map to the office, for comparison.
 //! `--frames <dir>` also writes one SVG per 1.5 s of the run, which
 //! `scripts/svg_frames_to_gif.py` turns into an animation, and `--trace
 //! <path>` a JSON trace (every 0.5 s) for the 3D renderer
@@ -25,6 +27,7 @@
 //!
 //! Run with `cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation`.
 
+mod city;
 mod frames;
 mod gnss;
 mod trace;
@@ -32,8 +35,7 @@ mod trace;
 use gnss::{GnssOutput, RobotGnss, SolutionLabel, BASE_ENU_M, BODY_HEIGHT_M};
 use rne_core::DeterministicRng;
 use rne_gnss::{
-    BodyPose, Constellation, EnuFrame, Geodetic, GnssEpoch, GnssScene, ReceiverConfig, SceneBox,
-    SignalPath, SurfaceMaterial,
+    BodyPose, Constellation, EnuFrame, Geodetic, GnssEpoch, GnssScene, ReceiverConfig, SignalPath,
 };
 use rne_math::Vec3;
 use rne_nav::{
@@ -53,168 +55,268 @@ const LIDAR_NOISE_M: f64 = 0.02;
 /// Constellation time at the start of the run (sets the sky geometry).
 const SKY_EPOCH_S: f64 = 20_000.0;
 const MAX_TIME_S: f64 = 900.0;
-/// Office building footprint.
-const OFFICE: [f64; 4] = [130.0, -12.0, 160.0, 12.0];
-/// Prior LiDAR map extent `[x0, y0, x1, y1]`.
-const MAP: [f64; 4] = [118.0, -16.0, 165.0, 16.0];
+use city::OFFICE;
+/// Prior LiDAR map extent `[x0, y0, x1, y1]`: the whole route, outdoors
+/// included, as a robot that maps its site beforehand would have.
+const MAP: [f64; 4] = [-14.0, -42.0, 165.0, 42.0];
+/// The office-only map of `--indoor-map-only`.
+const INDOOR_MAP: [f64; 4] = [118.0, -16.0, 165.0, 16.0];
 const MAP_RESOLUTION_M: f64 = 0.1;
+/// Dead reckoning longer than this stops the robot until it relocalizes.
+const MAX_DEAD_RECKONING_S: f64 = 3.0;
 
 fn main() {
     let (svg_path, frames_dir, trace_path) = output_args();
-    let recording = frames_dir.is_some() || trace_path.is_some();
-    let mut frames: Vec<frames::FrameRecord> = Vec::new();
-    let mut last_label = None;
-    let mut last_heading = false;
-    let mut last_scan_points: Vec<(f64, f64)> = Vec::new();
-
-    let frame = EnuFrame::new(Geodetic::from_degrees(36.0827, 140.0764, 25.0));
-    let scene = build_scene();
-    let constellation = Constellation::gps_galileo_nominal();
-    let prior_map = build_prior_map(&scene);
-    let mut follower = RouteFollower::new();
-    let start = follower.start();
-
-    let mut gnss = RobotGnss::new(
-        &constellation,
-        frame,
-        ReceiverConfig::default(),
-        SKY_EPOCH_S + 300.0,
-    );
-    println!(
-        "GNSS solver: {}",
-        if gnss.uses_libgnss() {
-            "libgnss++ RTK (rear antenna vs rooftop base) + moving-baseline heading"
-        } else {
-            "built-in single-point positioning (libgnss++ not linked; run scripts/build_gnsspp.sh)"
-        }
-    );
-    let mut config = HybridLocalizerConfig {
-        amcl: AmclConfig {
-            particle_count: 600,
-            ..AmclConfig::default()
-        },
-        ..HybridLocalizerConfig::default()
-    };
-    if gnss.uses_libgnss() {
-        // Hand back to GNSS only on RTK fixed solutions; float solutions out
-        // of the canyon can be metres off with a confident covariance.
-        config.enter_gnss_min_kind = FixKind::Fixed;
-        config.min_float_variance_m2 = 4.0;
-    }
-    let mut hybrid = HybridLocalizer::new(prior_map, start, config).expect("localizer");
-    let mut gnss_only =
-        EkfFusion::with_initial_state(config.ekf, start, VelocityCommand2d::ZERO).expect("ekf");
-
-    let mut rng = DeterministicRng::new(0x0D0_5EED);
-    let mut truth = start;
-    let mut odom = start;
-    let mut log = RunLog::default();
+    let mut run = Run::new(frames_dir.is_some() || trace_path.is_some());
     let mut tick = 0_usize;
     let mut reached = false;
-
     while (tick as f64) * DT_S < MAX_TIME_S {
-        let t = tick as f64 * DT_S;
-        let Some(command) = follower.command(hybrid.pose()) else {
+        if !run.step(tick) {
             reached = true;
             break;
+        }
+        tick += 1;
+    }
+    run.log.print_summary(
+        reached,
+        tick as f64 * DT_S,
+        &run.hybrid,
+        run.gnss.base_epoch(),
+    );
+    let map_scene = run.city.map_scene();
+    write_outputs(
+        &svg_path,
+        frames_dir.as_deref(),
+        &map_scene,
+        &run.log,
+        &run.frames,
+    );
+    if let Some(path) = trace_path {
+        trace_output(&path, &run.city, &run.log, &run.frames);
+    }
+}
+
+/// The simulation: the world, the robot, its sensors and localizer.
+#[allow(missing_debug_implementations)]
+struct Run {
+    city: city::City,
+    model_scene: GnssScene,
+    constellation: Constellation,
+    follower: RouteFollower,
+    gnss: RobotGnss,
+    config: HybridLocalizerConfig,
+    hybrid: HybridLocalizer,
+    gnss_only: EkfFusion,
+    rng: DeterministicRng,
+    truth: Pose2d,
+    odom: Pose2d,
+    log: RunLog,
+    recording: bool,
+    frames: Vec<frames::FrameRecord>,
+    last_label: Option<SolutionLabel>,
+    last_heading: bool,
+    last_scan_points: Vec<(f64, f64)>,
+    dead_reckoning_s: f64,
+    stopped: bool,
+    map_aided_gnss: bool,
+}
+
+impl Run {
+    fn new(recording: bool) -> Self {
+        let frame = EnuFrame::new(Geodetic::from_degrees(36.0827, 140.0764, 25.0));
+        let city = city::City::build();
+        let constellation = Constellation::gps_galileo_nominal();
+        let indoor_only = std::env::args().any(|a| a == "--indoor-map-only");
+        let prior_map = build_prior_map(
+            &city.map_scene(),
+            if indoor_only { INDOOR_MAP } else { MAP },
+        );
+        // Withhold satellites the city model predicts are hidden (NLOS).
+        let map_aided_gnss = !std::env::args().any(|a| a == "--no-map-aided-gnss");
+        let follower = RouteFollower::new();
+        let start = follower.start();
+        let gnss = RobotGnss::new(
+            &constellation,
+            frame,
+            ReceiverConfig::default(),
+            SKY_EPOCH_S + 300.0,
+        );
+        println!(
+            "GNSS solver: {}",
+            if gnss.uses_libgnss() {
+                "libgnss++ RTK (rear antenna vs rooftop base) + moving-baseline heading"
+            } else {
+                "built-in single-point positioning (libgnss++ not linked; run scripts/build_gnsspp.sh)"
+            }
+        );
+        let mut config = HybridLocalizerConfig {
+            amcl: AmclConfig {
+                particle_count: 600,
+                ..AmclConfig::default()
+            },
+            ..HybridLocalizerConfig::default()
         };
-        truth = integrate(truth, command.linear_m_s, command.angular_rad_s, DT_S);
+        if gnss.uses_libgnss() {
+            // Hand back to GNSS only on RTK fixed solutions; float solutions
+            // out of the canyon can be metres off with a confident covariance.
+            config.enter_gnss_min_kind = FixKind::Fixed;
+            config.min_float_variance_m2 = 4.0;
+        }
+        let hybrid = HybridLocalizer::new(prior_map, start, config).expect("localizer");
+        let gnss_only =
+            EkfFusion::with_initial_state(config.ekf, start, VelocityCommand2d::ZERO).expect("ekf");
+        Self {
+            model_scene: city.model_scene(),
+            city,
+            constellation,
+            follower,
+            gnss,
+            config,
+            hybrid,
+            gnss_only,
+            rng: DeterministicRng::new(0x0D0_5EED),
+            truth: start,
+            odom: start,
+            log: RunLog::default(),
+            recording,
+            frames: Vec::new(),
+            last_label: None,
+            last_heading: false,
+            last_scan_points: Vec::new(),
+            dead_reckoning_s: 0.0,
+            stopped: false,
+            map_aided_gnss,
+        }
+    }
+
+    /// Advances one tick; returns `false` once the route is complete.
+    fn step(&mut self, tick: usize) -> bool {
+        let t = tick as f64 * DT_S;
+        let Some(command) = self.follower.command(self.hybrid.pose()) else {
+            return false;
+        };
+        let command = self.safety_gate(command);
+        self.truth = integrate(self.truth, command.linear_m_s, command.angular_rad_s, DT_S);
 
         // Wheel speed with a 1 % scale error and a gyro yaw rate with a
         // 0.06 °/s residual bias, both with white noise.
-        let odom_v = command.linear_m_s * 1.01 + 0.01 * gaussian(&mut rng);
-        let odom_w = command.angular_rad_s + 0.001 + 0.005 * gaussian(&mut rng);
-        odom = integrate(odom, odom_v, odom_w, DT_S);
-        hybrid.predict(DT_S, odom_v, odom_w).expect("predict");
-        gnss_only.predict(DT_S).expect("predict");
-        gnss_only
+        let odom_v = command.linear_m_s * 1.01 + 0.01 * gaussian(&mut self.rng);
+        let odom_w = command.angular_rad_s + 0.001 + 0.005 * gaussian(&mut self.rng);
+        self.odom = integrate(self.odom, odom_v, odom_w, DT_S);
+        self.hybrid.predict(DT_S, odom_v, odom_w).expect("predict");
+        self.gnss_only.predict(DT_S).expect("predict");
+        self.gnss_only
             .update_odometry(
                 odom_v,
                 odom_w,
-                config.odometry_linear_variance,
-                config.odometry_angular_variance,
+                self.config.odometry_linear_variance,
+                self.config.odometry_angular_variance,
             )
             .expect("odometry");
 
-        let body = BodyPose {
-            x_m: truth.x_m,
-            y_m: truth.y_m,
+        let world = self.city.world_scene(t);
+        self.step_gnss(&world, t);
+        if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
+            let scan = lidar_scan(&world, self.truth, t, &mut self.rng);
+            self.log.clearance_m = self.log.clearance_m.min(min_range(&scan));
+            if self.recording {
+                self.last_scan_points = scan_world_points(&scan, self.truth);
+            }
+            self.hybrid
+                .update_lidar(&scan, self.odom, Pose2d::IDENTITY, t)
+                .expect("lidar");
+        }
+
+        self.log.record_pose(
+            t,
+            self.truth,
+            self.hybrid.pose(),
+            self.hybrid.source(),
+            self.gnss_only.pose(),
+            self.odom,
+        );
+        if self.recording && t + 1.0e-9 >= self.frames.len() as f64 * frames::RECORD_PERIOD_S {
+            self.frames.push(frames::FrameRecord {
+                t,
+                sample_count: self.log.samples.len(),
+                truth: self.truth,
+                estimate: self.hybrid.pose(),
+                source: self.hybrid.source(),
+                label: self.last_label,
+                heading_fixed: self.last_heading,
+                epoch: self.gnss.rear_epoch().cloned(),
+                scan_points: self.last_scan_points.clone(),
+            });
+        }
+        true
+    }
+
+    /// Safety stop: an autonomous robot does not keep driving on odometry
+    /// alone. It stops until GNSS or LiDAR localizes it again.
+    fn safety_gate(&mut self, command: VelocityCommand2d) -> VelocityCommand2d {
+        if self.hybrid.source() == LocalizationSource::DeadReckoning {
+            self.dead_reckoning_s += DT_S;
+        } else {
+            self.dead_reckoning_s = 0.0;
+        }
+        self.log.longest_dead_reckoning_s =
+            self.log.longest_dead_reckoning_s.max(self.dead_reckoning_s);
+        if self.dead_reckoning_s > MAX_DEAD_RECKONING_S {
+            if !self.stopped {
+                self.log.safety_stops += 1;
+            }
+            self.stopped = true;
+            self.log.stopped_s += DT_S;
+            VelocityCommand2d::ZERO
+        } else {
+            self.stopped = false;
+            command
+        }
+    }
+
+    fn step_gnss(&mut self, world: &GnssScene, t: f64) {
+        let pose = |p: Pose2d| BodyPose {
+            x_m: p.x_m,
+            y_m: p.y_m,
             z_m: BODY_HEIGHT_M,
-            yaw_rad: truth.yaw_rad,
+            yaw_rad: p.yaw_rad,
         };
-        let outputs = gnss.step(
-            &scene,
-            &constellation,
-            body,
-            hybrid.pose().yaw_rad,
+        let outputs = self.gnss.step(
+            world,
+            self.map_aided_gnss.then_some(&self.model_scene),
+            &self.constellation,
+            pose(self.truth),
+            pose(self.hybrid.pose()),
             SKY_EPOCH_S + t,
         );
-        if let Some(epoch) = gnss.rear_epoch() {
+        if let Some(epoch) = self.gnss.rear_epoch() {
             if (epoch.time_s - (SKY_EPOCH_S + t)).abs() < 1.0e-9 {
-                log.record_epoch(epoch, zone(truth));
+                self.log.record_epoch(epoch, zone(self.truth));
             }
         }
         for output in &outputs {
-            hybrid.update_gnss(output.fix.as_ref(), t).expect("gnss");
+            self.hybrid
+                .update_gnss(output.fix.as_ref(), t)
+                .expect("gnss");
             if let Some(fix) = output.fix {
                 let floor = match fix.kind {
-                    FixKind::Fixed => config.min_fixed_variance_m2,
-                    FixKind::Float => config.min_float_variance_m2,
-                    FixKind::Single => config.min_gnss_variance_m2,
+                    FixKind::Fixed => self.config.min_fixed_variance_m2,
+                    FixKind::Float => self.config.min_float_variance_m2,
+                    FixKind::Single => self.config.min_gnss_variance_m2,
                 };
                 let variance = (fix.horizontal_std_m * fix.horizontal_std_m).max(floor);
-                gnss_only
+                self.gnss_only
                     .update_position(fix.x_m, fix.y_m, variance)
                     .expect("gnss only");
             }
             let fused_heading = match &output.heading {
-                Some(heading) => hybrid.update_gnss_heading(heading).expect("heading"),
+                Some(heading) => self.hybrid.update_gnss_heading(heading).expect("heading"),
                 None => false,
             };
-            log.record_solution(output, truth, fused_heading);
-            last_label = Some(output.label);
-            last_heading = output.heading.is_some();
+            self.log.record_solution(output, self.truth, fused_heading);
+            self.last_label = Some(output.label);
+            self.last_heading = output.heading.is_some();
         }
-
-        if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
-            let scan = lidar_scan(&scene, truth, t, &mut rng);
-            log.clearance_m = log.clearance_m.min(min_range(&scan));
-            if recording {
-                last_scan_points = scan_world_points(&scan, truth);
-            }
-            hybrid
-                .update_lidar(&scan, odom, Pose2d::IDENTITY, t)
-                .expect("lidar");
-        }
-
-        log.record_pose(
-            t,
-            truth,
-            hybrid.pose(),
-            hybrid.source(),
-            gnss_only.pose(),
-            odom,
-        );
-        if recording && t + 1.0e-9 >= frames.len() as f64 * frames::RECORD_PERIOD_S {
-            frames.push(frames::FrameRecord {
-                t,
-                sample_count: log.samples.len(),
-                truth,
-                estimate: hybrid.pose(),
-                source: hybrid.source(),
-                label: last_label,
-                heading_fixed: last_heading,
-                epoch: gnss.rear_epoch().cloned(),
-                scan_points: last_scan_points.clone(),
-            });
-        }
-        tick += 1;
-    }
-
-    log.print_summary(reached, tick as f64 * DT_S, &hybrid, gnss.base_epoch());
-    write_outputs(&svg_path, frames_dir.as_deref(), &scene, &log, &frames);
-    if let Some(path) = trace_path {
-        trace_output(&path, &scene, &log, &frames);
     }
 }
 
@@ -235,11 +337,11 @@ fn output_args() -> (
 /// Writes the JSON trace for the 3D renderer.
 fn trace_output(
     path: &std::path::Path,
-    scene: &GnssScene,
+    city: &city::City,
     log: &RunLog,
     frames: &[frames::FrameRecord],
 ) {
-    match trace::write_trace(path, scene, &ReceiverConfig::default().trace, log, frames) {
+    match trace::write_trace(path, city, &ReceiverConfig::default().trace, log, frames) {
         Ok(()) => println!("wrote 3D render trace {}", path.display()),
         Err(error) => println!("could not write {}: {error}", path.display()),
     }
@@ -282,68 +384,9 @@ fn scan_world_points(scan: &LaserScan2d, pose: Pose2d) -> Vec<(f64, f64)> {
         .collect()
 }
 
-/// The site: an open plaza (x < 40), a 30 m wide street between 25-40 m
-/// towers (40..120), and a single-storey office with a roof (130..160).
-fn build_scene() -> GnssScene {
-    let mut scene = GnssScene::open_sky();
-    let towers = [
-        // North side of a 30 m wide street.
-        (40.0, 15.0, 65.0, 40.0, 35.0, SurfaceMaterial::GLASS),
-        (70.0, 15.0, 95.0, 35.0, 25.0, SurfaceMaterial::CONCRETE),
-        (100.0, 15.0, 120.0, 40.0, 40.0, SurfaceMaterial::GLASS),
-        // South side.
-        (40.0, -40.0, 60.0, -15.0, 28.0, SurfaceMaterial::CONCRETE),
-        (63.0, -38.0, 90.0, -15.0, 38.0, SurfaceMaterial::GLASS),
-        (94.0, -40.0, 120.0, -15.0, 30.0, SurfaceMaterial::METAL),
-    ];
-    for (x0, y0, x1, y1, h, material) in towers {
-        scene.add_box(SceneBox::building(x0, y0, x1, y1, h, material));
-    }
-
-    let [x0, y0, x1, y1] = OFFICE;
-    let wall = 0.3;
-    let height = 3.7;
-    let concrete = SurfaceMaterial::CONCRETE;
-    // Outer walls with a 3 m door in the west wall.
-    scene.add_box(SceneBox::building(
-        x0,
-        y0,
-        x0 + wall,
-        -1.5,
-        height,
-        concrete,
-    ));
-    scene.add_box(SceneBox::building(x0, 1.5, x0 + wall, y1, height, concrete));
-    scene.add_box(SceneBox::building(x1 - wall, y0, x1, y1, height, concrete));
-    scene.add_box(SceneBox::building(x0, y0, x1, y0 + wall, height, concrete));
-    scene.add_box(SceneBox::building(x0, y1 - wall, x1, y1, height, concrete));
-    // Roof slab.
-    scene.add_box(SceneBox::new(
-        Vec3::new(x0, y0, height),
-        Vec3::new(x1, y1, height + 0.3),
-        concrete,
-    ));
-    // Interior: a partition with a 4 m gap to the north room, a south
-    // partition, pillars, and desks.
-    let interior = [
-        (x0 + wall, 3.9, 148.0, 4.1, height),
-        (152.0, 3.9, x1 - wall, 4.1, height),
-        (136.0, -4.1, x1 - wall, -3.9, height),
-        (139.7, -2.8, 140.3, -2.2, height),
-        (147.7, -2.8, 148.3, -2.2, height),
-        (136.0, 8.5, 139.0, 10.0, 0.75),
-        (143.0, 9.0, 146.0, 11.0, 0.75),
-        (155.0, 5.0, 158.0, 6.5, 0.75),
-    ];
-    for (bx0, by0, bx1, by1, h) in interior {
-        scene.add_box(SceneBox::building(bx0, by0, bx1, by1, h, concrete));
-    }
-    scene
-}
-
 /// Rasterizes the scene at LiDAR height into the prior occupancy map.
-fn build_prior_map(scene: &GnssScene) -> OccupancyGrid {
-    let [x0, y0, x1, y1] = MAP;
+fn build_prior_map(scene: &GnssScene, extent: [f64; 4]) -> OccupancyGrid {
+    let [x0, y0, x1, y1] = extent;
     let width = ((x1 - x0) / MAP_RESOLUTION_M).round() as usize;
     let height = ((y1 - y0) / MAP_RESOLUTION_M).round() as usize;
     let mut grid =
@@ -365,20 +408,23 @@ fn build_prior_map(scene: &GnssScene) -> OccupancyGrid {
     grid
 }
 
-/// Plaza → canyon → office (corridor, north room) → canyon → plaza.
-const ROUTE: [(f64, f64); 13] = [
+/// Plaza → south sidewalk of the street → office (corridor, north room) →
+/// sidewalk → plaza, as a delivery robot would go.
+const ROUTE: [(f64, f64); 15] = [
     (5.0, -2.0),
-    (40.0, 0.0),
-    (120.0, 0.0),
-    (128.0, 0.0),
+    (36.0, -11.5),
+    (122.0, -11.5),
+    (127.0, -2.0),
+    (131.5, 0.0),
     (149.0, 0.0),
     (150.0, 7.0),
     (141.0, 6.5),
     (150.0, 6.0),
     (150.5, 0.0),
-    (128.0, 0.0),
-    (120.0, -1.0),
-    (40.0, -1.0),
+    (131.5, 0.0),
+    (127.0, -2.0),
+    (122.0, -11.0),
+    (36.0, -11.0),
     (10.0, 3.0),
 ];
 
@@ -590,6 +636,9 @@ struct RunLog {
     snapshot: Option<GnssEpoch>,
     clearance_m: f64,
     headings_fused: usize,
+    longest_dead_reckoning_s: f64,
+    safety_stops: usize,
+    stopped_s: f64,
     /// Zone of each measured epoch whose solution has not been recorded yet.
     pending_zones: std::collections::VecDeque<Zone>,
 }
@@ -606,6 +655,9 @@ impl Default for RunLog {
             snapshot: None,
             clearance_m: f64::INFINITY,
             headings_fused: 0,
+            longest_dead_reckoning_s: 0.0,
+            safety_stops: 0,
+            stopped_s: 0.0,
             pending_zones: std::collections::VecDeque::new(),
         }
     }
@@ -834,6 +886,10 @@ impl RunLog {
             "  time in GNSS {:.1} s, LiDAR {:.1} s, dead reckoning {:.1} s; {} moving-baseline headings fused",
             time_in[0], time_in[1], time_in[2], self.headings_fused
         );
+        println!(
+            "  longest dead-reckoning stretch {:.1} s; {} safety stops ({:.1} s stopped, limit {MAX_DEAD_RECKONING_S:.0} s)",
+            self.longest_dead_reckoning_s, self.safety_stops, self.stopped_s
+        );
     }
 }
 
@@ -1011,11 +1067,27 @@ fn render_svg(scene: &GnssScene, log: &RunLog, sky_epoch_s: f64) -> String {
 }
 
 fn draw_buildings(svg: &mut String, scene: &GnssScene) {
-    // Buildings, darker when taller.
-    for b in &scene.boxes {
+    let [x0, y0, x1, y1] = MAP_VIEW;
+    let (cx0, cy0) = to_px(x0, y1);
+    let (cx1, cy1) = to_px(x1, y0);
+    let _ = writeln!(
+        svg,
+        r##"<defs><clipPath id="map-clip"><rect x="{cx0:.1}" y="{cy0:.1}" width="{:.1}" height="{:.1}"/></clipPath></defs><g clip-path="url(#map-clip)">"##,
+        cx1 - cx0,
+        cy1 - cy0
+    );
+    // Lower boxes first so towers draw over their podiums; darker = taller.
+    let mut boxes: Vec<_> = scene
+        .boxes
+        .iter()
+        .filter(|b| b.min_m.z <= 1.0 || b.max_m.z > 20.0)
+        .collect();
+    boxes.sort_by(|a, b| a.max_m.z.total_cmp(&b.max_m.z));
+    for b in boxes {
         let height_m = b.max_m.z;
-        let shade = if b.min_m.z > 1.0 {
-            continue;
+        let area = (b.max_m.x - b.min_m.x) * (b.max_m.y - b.min_m.y);
+        let shade = if !b.material.is_reflective() {
+            "#525252"
         } else if height_m < 1.0 {
             "#d9d9d9"
         } else if height_m < 5.0 {
@@ -1033,7 +1105,7 @@ fn draw_buildings(svg: &mut String, scene: &GnssScene) {
             px1 - px0,
             py1 - py0
         );
-        if height_m >= 5.0 {
+        if height_m >= 9.0 && area >= 150.0 {
             let _ = writeln!(
                 svg,
                 r##"<text x="{:.1}" y="{:.1}" text-anchor="middle" fill="#252525">{height_m:.0} m</text>"##,
@@ -1042,6 +1114,7 @@ fn draw_buildings(svg: &mut String, scene: &GnssScene) {
             );
         }
     }
+    svg.push_str("</g>\n");
     let (ox, oy) = to_px(OFFICE[0], OFFICE[3]);
     let _ = writeln!(
         svg,
