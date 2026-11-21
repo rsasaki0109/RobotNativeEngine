@@ -73,6 +73,8 @@ fn detection_match_m(kind: Kind) -> f64 {
         Kind::Car => 2.0,
     }
 }
+/// Smallest box side written for a detection (box sizes must be positive).
+const MIN_BOX_SIZE_M: f64 = 0.05;
 /// Where hidden movers are parked: under the ground slab, out of every ray's reach.
 const PARKED_DEPTH_M: f64 = -50.0;
 
@@ -979,7 +981,14 @@ fn detection_records(detections: &ScanDetections, pose: Pose2) -> Vec<Value> {
                     [c[0] - sensor[0], c[1] - sensor[1], c[2] - sensor[2]]
                 })
                 .collect();
-            let top = corners[7][2];
+            // Box size from the corners (corner bits: 1 = far along the major
+            // axis, 2 = across, 4 = top); a one-column cluster has no width.
+            let edge = |a: usize, b: usize| {
+                (corners[a][0] - corners[b][0])
+                    .hypot(corners[a][1] - corners[b][1])
+                    .max(MIN_BOX_SIZE_M)
+            };
+            let top = corners[7][2].max(MIN_BOX_SIZE_M);
             let range = sensor[0].hypot(sensor[1]);
             let sigma = 0.08 + 0.01 * range;
             let score = 1.0 - (-(*count as f64) / 12.0).exp();
@@ -988,7 +997,7 @@ fn detection_records(detections: &ScanDetections, pose: Pose2) -> Vec<Value> {
                 "covariance": [sigma * sigma, 0.0, 0.0, 0.0, sigma * sigma, 0.0, 0.0, 0.0, 0.04],
                 "class": kind.class(),
                 "score": (score * 1000.0).round() / 1000.0,
-                "shape": {"height": top, "width": 0.0, "length": 0.0, "rotation_y": 0.0, "corners": offsets},
+                "shape": {"height": top, "width": edge(2, 0), "length": edge(1, 0), "rotation_y": 0.0, "corners": offsets},
             })
         })
         .collect()
