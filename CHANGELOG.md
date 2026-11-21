@@ -6,6 +6,26 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_adapter_ros2` also records cameras: `to_ros_mono8_image` maps an RNE
+  image to a `mono8` `sensor_msgs/Image`, `pinhole_camera_info` gives the
+  `CameraInfo` of RNE's render geometry, and `cdr`/`mcap` serialize and declare
+  both. Example 149 gains a second LiDAR and a camera, rendered without a GPU by
+  a `RenderBackend` that ray-casts the room's colliders, plus `--sensors` and a
+  turned candidate per sensor. On a 90 s bag Calibrex passes imu–lidar for both
+  LiDARs and lidar–lidar on all six axes, and each turned candidate fails only
+  its sensor's pairs; its camera pairs report 1–3° errors against the true
+  mountings, which the example's README traces to Calibrex's camera–LiDAR edge
+  extraction under fast motion.
+
+### Changed
+
+- Example 149's README no longer attributes Calibrex's −1.87 ms IMU–LiDAR time
+  offset to RNE's IMU. Bags with an ideal IMU, an exact accelerometer, a
+  noiseless LiDAR or a 1–2 kHz IMU report −1.7 to −1.8 ms, and Calibrex's own
+  synthetic bag shows the same bias (0 reported as −1.46 ms, +7 ms as +5.52 ms).
+
+### Added
+
 - `rne_adapter_ros2` records simulated sensors as a ROS 2 bag without a ROS
   install: `cdr` serializes `sensor_msgs/Imu`, `PointCloud2` and
   `tf2_msgs/TFMessage` to CDR, `mcap` writes them to an MCAP file with the
