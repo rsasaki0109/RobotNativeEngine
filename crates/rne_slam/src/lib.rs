@@ -12,6 +12,7 @@
 
 pub mod floor_reacquire;
 pub mod graph_io;
+pub mod hybrid;
 pub mod icp;
 pub mod imu_preintegration;
 pub mod lifelong_map;
@@ -41,6 +42,10 @@ pub use floor_reacquire::{
 pub use graph_io::{
     combine_graphs, from_graph_json, load_graph, save_graph, to_graph_json, GraphIoError,
     RNE_POSE_GRAPH_FORMAT, RNE_POSE_GRAPH_VERSION,
+};
+pub use hybrid::{
+    AbsolutePositionFix, GnssDecision, HybridError, HybridLocalizer, HybridLocalizerConfig,
+    LocalizationSource, SourceTransition,
 };
 pub use icp::{Icp3d, IcpConfig, IcpError, IcpResult};
 pub use imu_preintegration::{

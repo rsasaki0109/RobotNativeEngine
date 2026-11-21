@@ -1,0 +1,21 @@
+[package]
+name = "gnss_lidar_navigation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_core = { workspace = true }
+rne_gnss = { workspace = true }
+rne_math = { workspace = true }
+rne_nav = { workspace = true }
+rne_slam = { workspace = true }
+
+[[example]]
+name = "149_gnss_lidar_navigation"
+path = "main.rs"

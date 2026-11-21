@@ -4,7 +4,31 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `rne_gnss`: ray-traced GNSS simulation. 48 GPS and Galileo satellites on
+  Keplerian orbits are traced through a box scene of buildings; direct paths
+  are tested for occlusion and single-bounce wall and ground reflections are
+  found by the image method, giving line-of-sight, multipath, NLOS and blocked
+  receptions. Pseudoranges carry DLL noise from the ray-traced C/N0, the
+  narrow-correlator multipath error, NLOS excess delay, residual atmosphere,
+  satellite and receiver clock errors; a weighted least-squares solver with
+  DOP and RAIM exclusion produces fixes at a set rate and latency.
+- `rne_slam::HybridLocalizer`: GNSS outdoors, LiDAR indoors. Gated GNSS fixes
+  correct a wheel/gyro EKF; inside the prior map a wide scan match relocalizes
+  and AMCL refined by a local scan match takes over.
+- `EkfFusion::update_yaw` and `EkfFusion::position_mahalanobis_squared`.
+- Example 149: a robot drives from a plaza down a street canyon into an office
+  and back (hybrid position RMSE 0.04–1.9 m per zone, against 8.7–10 m for
+  an EKF fusing every GNSS fix).
+
 ### Fixed
+
+- `EkfFusion::update_position` updated the covariance by subtracting the
+  gain itself from the x and y columns instead of `K·H·P`, so a position fix
+  never reduced the heading, velocity and cross covariances correctly. A
+  position fix now applies the full Kalman covariance update; a test checks it
+  against the scalar Kalman posterior.
 
 - `rne_dynamics`' contact solve no longer misses a contact's sliding
   direction when it falls on one of the angles it samples. Rounding alone set

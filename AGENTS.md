@@ -38,7 +38,8 @@ ROS2 is an adapter only. Do not add ROS2, rclrs, rclcpp, DDS, or ROS message dep
 - `crates/rne_asset`: asset database and import pipeline
 - `crates/rne_data`: typed DataBus, stream IDs, frame payloads
 - `crates/rne_nav`: backend-neutral occupancy grids, costmaps, tiled maps, plan/control, multi-robot avoidance, and timestamped transform tree
-- `crates/rne_slam`: deterministic 2D scan matching, online occupancy SLAM, and Monte Carlo localization
+- `crates/rne_slam`: deterministic 2D scan matching, online occupancy SLAM, Monte Carlo localization, and a GNSS-outdoors / LiDAR-indoors localization arbiter
+- `crates/rne_gnss`: ray-traced GNSS simulation (WGS-84 geodesy, Keplerian GPS/Galileo orbits, building occlusion, multipath and NLOS, pseudorange positioning with RAIM)
 - `crates/rne_ai`: agent, observation, action, reward, policy traits
 - `crates/rne_accelerator_contract`: vendor-neutral manifest, runtime, and accelerator evidence readers
 - `crates/rne_plugin`: plugin manifest and loading interfaces
@@ -142,6 +143,7 @@ Allowed dependencies:
 - `rne_nav` may depend on `rne_core`, `rne_ecs`, `rne_math`, and `rne_world`.
 - `rne_planning` may depend on `rne_robot`, `rne_ecs`, and `rne_math`.
 - `rne_slam` may depend on `rne_nav`, `rne_core`, `rne_ecs`, and `rne_math`.
+- `rne_gnss` may depend on `rne_core` and `rne_math`.
 - `rne_accelerator_contract` may depend on `rne_ai`; vendor runtime dependencies remain in adapters.
 - Offline importers such as `rne_plateau` may depend on `rne_traffic`.
 - `adapters/*` may depend on external ecosystems such as ROS2.
@@ -177,6 +179,9 @@ Forbidden:
   changing them.
 - `rne_slam` must not depend on a renderer, physics backend, ROS 2, or external
   SLAM stack; it builds on `rne_nav` types without changing them.
+- `rne_gnss` must not depend on a renderer, physics backend, ROS 2, or an
+  external GNSS library; it ray traces its own box scene, and consumers such
+  as `rne_slam` take its fixes through their own plain types.
 
 ## Pull Request Definition of Done
 

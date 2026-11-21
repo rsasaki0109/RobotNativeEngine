@@ -1,0 +1,22 @@
+[package]
+name = "rne_gnss"
+description = "Ray-traced GNSS simulation for Robot Native Engine: orbits, building occlusion, multipath and NLOS, pseudorange positioning"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+bevy_ecs = { workspace = true }
+rne_core = { workspace = true }
+rne_math = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+approx = "0.5"
