@@ -262,3 +262,10 @@ The committed 144-frame headless capture reports a nearest observed depth of
 `10455576295794772416`. The acceptance test additionally requires the capture to
 repeat exactly, to fill every pixel of the configured resolution, and to change
 between frames as the host vehicle drives.
+
+## Perception tasks
+
+[Example 149](../examples/149_perception_tasks/README.md) uses this model
+(16 channels, Rapier) to scan nine scenes with moving people, cyclists and
+cars. It segments the scans into detections and writes them with ego poses
+and ground truth for tracker evaluation.
