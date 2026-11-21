@@ -13,8 +13,8 @@
 //! - `truth.jsonl`: one `truth3d` record per scan (objects in the `map` frame),
 //! - `summary.json`: detector recall and precision against the truth.
 //!
-//! The format is the replay format of robo-perception
-//! (<https://github.com/rsasaki0109/robo-perception>); nothing here depends on it.
+//! The format is the replay format of robot-perception
+//! (<https://github.com/rsasaki0109/robot-perception>); nothing here depends on it.
 //!
 //! ```bash
 //! cargo run --release -p perception_tasks --example 149_perception_tasks -- \

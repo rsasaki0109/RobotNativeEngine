@@ -4,8 +4,8 @@ Nine scenes, each built to test one part of robot perception, are scanned by
 RNE's simulated LiDAR. A cluster detector turns each scan into object
 detections. The detections, the ego poses and the ground truth are written in
 the replay format of
-[robo-perception](https://github.com/rsasaki0109/robo-perception), so a tracker
-can be scored on each scene. RNE does not depend on robo-perception; the two
+[robot-perception](https://github.com/rsasaki0109/robot-perception), so a tracker
+can be scored on each scene. RNE does not depend on robot-perception; the two
 share only JSONL files.
 
 ```bash
@@ -115,7 +115,7 @@ A detection is a hit when it lies within 0.6 m (person), 1.0 m (cyclist) or
 
 `side_by_side` and `crowd_crossing` lose recall wherever two people are less
 than about 0.3 m apart as seen from the sensor: they merge into one cluster.
-Tracker scores on these outputs are in robo-perception's
+Tracker scores on these outputs are in robot-perception's
 `docs/simulation.md`.
 
 ## Limits
