@@ -2007,6 +2007,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "go2_people"
+version = "0.4.0"
+dependencies = [
+ "rne_ai",
+ "rne_data",
+ "rne_ecs",
+ "rne_math",
+ "rne_physics",
+ "rne_sensor",
+ "rne_world",
+ "serde_json",
+]
+
+[[package]]
 name = "go2_pure_torque"
 version = "0.4.0"
 dependencies = [

@@ -1,0 +1,26 @@
+[package]
+name = "go2_people"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_ai = { workspace = true }
+rne_data = { workspace = true }
+rne_ecs = { workspace = true }
+rne_math = { workspace = true }
+rne_physics = { workspace = true }
+rne_sensor = { workspace = true }
+rne_world = { workspace = true }
+serde_json = { workspace = true }
+
+[[example]]
+name = "151_go2_people"
+path = "main.rs"
+# Run the perception and controller checks with the workspace tests.
+test = true
