@@ -108,13 +108,16 @@ inconclusive; Calibrex asks for about 60 s of the same motion.
 The camera pairs report errors against the true mountings, although the bag's
 camera and LiDAR geometry agree to millimetres when the rig is still (the test
 above). camera–lidar's roll error persists when the motion is slowed: a 60 s
-bag at half speed estimates roll +3.0° (not judged, its control undetected). A
-likely cause is on Calibrex's side: its edge objective recovers LiDAR beams
-from point elevation after moving the points to the image time, and on this
-fast hand-held motion (1.9° median motion per frame) no beams are recovered
-(`median_rings: 0` in its evidence), so it falls back to unstructured edges.
-The bag's `ring` field would give the beams directly. This was not changed or
-verified further here.
+bag at half speed estimates roll +3.0° (not judged, its control undetected). The
+cause is on Calibrex's side: its edge objective recovered LiDAR beams from point
+elevation after moving the points to the image time, and on this fast hand-held
+motion (1.9° median motion per frame) no beams were recovered (`median_rings: 0`
+in its evidence), so it fell back to unstructured edges.
+[rsasaki0109/Calibrex#394](https://github.com/rsasaki0109/Calibrex/pull/394)
+recovers the beams from the points as measured. With it, both camera–lidar
+pairs on this bag are inconclusive instead of failing: the beams give 35–105
+depth edges per frame in the image, too few to judge. Judging them would need a
+scene with more depth discontinuities.
 
 ### The reported time offset
 
@@ -137,8 +140,13 @@ Calibrex's own synthetic LiDAR + IMU bag (`calibrex.data.synthetic_lidar_imu_bag
 −1.46 ms and a true offset of +7 ms as +5.52 ms. At 5, 10 and 20 Hz LiDAR the
 zero-offset bag reports −1.13, −1.46 and −1.73 ms, so the bias does not scale
 with the scan period. It is a near-constant shift of about −1.1 to −1.9 ms in
-Calibrex's rotation-based offset estimate; its source inside the estimator was
-not traced.
+Calibrex's rotation-based offset estimate. Calibrex's rotation solver is exact
+on the true poses, and its gyro-deskewed odometry poses are not shifted in time
+(+0.2 ms); the joint fit of rotation, gyro bias and offset moves the odometry's
+scan-to-scan error (about 0.2° per scan pair) into the weakly constrained
+offset, beyond its reported 0.6 ms standard deviation. Calibrex's
+[simulated-rig tutorial](https://github.com/rsasaki0109/Calibrex/blob/main/docs/tutorials/simulated_rig_rne.md)
+has the experiments.
 
 This is simulated data: it shows that RNE's sensors produce a recording a
 calibration tool reads and judges like a real one, not how accurate Calibrex is

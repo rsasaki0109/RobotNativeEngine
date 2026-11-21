@@ -4,6 +4,14 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Example 149's README traces the camera pairs' errors and the time-offset bias
+  to Calibrex: camera–lidar found no LiDAR beams after moving fast sweeps to the
+  image time (fixed in rsasaki0109/Calibrex#394, which leaves this bag
+  inconclusive, with too few depth edges), and the −1.5 ms offset comes from
+  Calibrex's joint fit absorbing odometry error, not from RNE's sensors.
+
 ### Added
 
 - `rne_adapter_ros2` also records cameras: `to_ros_mono8_image` maps an RNE
