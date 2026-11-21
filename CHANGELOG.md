@@ -29,7 +29,8 @@ All notable changes to Robot Native Engine are documented in this file.
 - Example 149: a robot with two antennas drives from a plaza down a street
   canyon into an office and back with a rooftop RTK base (hybrid position
   RMSE 0.05–0.52 m per zone, against 6.9–10.6 m for an EKF fusing every GNSS
-  solution).
+  solution). `--frames` writes animation frames that
+  `scripts/svg_frames_to_gif.py` turns into `docs/media/gnss-lidar-navigation.gif`.
 
 ### Fixed
 

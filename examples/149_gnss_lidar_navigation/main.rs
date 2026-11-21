@@ -18,9 +18,12 @@
 //! The run is compared against odometry alone and against an EKF that fuses
 //! every GNSS solution without checks. An SVG of the site, trajectories, and
 //! a sky plot from inside the canyon is written (`--svg <path>` to choose).
+//! `--frames <dir>` also writes one SVG per 1.5 s of the run, which
+//! `scripts/svg_frames_to_gif.py` turns into an animation.
 //!
 //! Run with `cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation`.
 
+mod frames;
 mod gnss;
 
 use gnss::{GnssOutput, RobotGnss, SolutionLabel, BASE_ENU_M, BODY_HEIGHT_M};
@@ -58,6 +61,14 @@ fn main() {
         .skip_while(|a| a != "--svg")
         .nth(1)
         .unwrap_or_else(|| "target/149_gnss_lidar_navigation.svg".to_string());
+    let frames_dir = std::env::args()
+        .skip_while(|a| a != "--frames")
+        .nth(1)
+        .map(std::path::PathBuf::from);
+    let mut frames: Vec<frames::FrameRecord> = Vec::new();
+    let mut last_label = None;
+    let mut last_heading = false;
+    let mut last_scan_points: Vec<(f64, f64)> = Vec::new();
 
     let frame = EnuFrame::new(Geodetic::from_degrees(36.0827, 140.0764, 25.0));
     let scene = build_scene();
@@ -164,11 +175,16 @@ fn main() {
                 None => false,
             };
             log.record_solution(output, truth, fused_heading);
+            last_label = Some(output.label);
+            last_heading = output.heading.is_some();
         }
 
         if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
             let scan = lidar_scan(&scene, truth, t, &mut rng);
             log.clearance_m = log.clearance_m.min(min_range(&scan));
+            if frames_dir.is_some() {
+                last_scan_points = scan_world_points(&scan, truth);
+            }
             hybrid
                 .update_lidar(&scan, odom, Pose2d::IDENTITY, t)
                 .expect("lidar");
@@ -182,18 +198,61 @@ fn main() {
             gnss_only.pose(),
             odom,
         );
+        if frames_dir.is_some() && t + 1.0e-9 >= frames.len() as f64 * frames::FRAME_PERIOD_S {
+            frames.push(frames::FrameRecord {
+                t,
+                sample_count: log.samples.len(),
+                truth,
+                estimate: hybrid.pose(),
+                source: hybrid.source(),
+                label: last_label,
+                heading_fixed: last_heading,
+                epoch: gnss.rear_epoch().cloned(),
+                scan_points: last_scan_points.clone(),
+            });
+        }
         tick += 1;
     }
 
     log.print_summary(reached, tick as f64 * DT_S, &hybrid, gnss.base_epoch());
-    let svg = render_svg(&scene, &log, SKY_EPOCH_S);
-    if let Some(parent) = std::path::Path::new(&svg_path).parent() {
+    write_outputs(&svg_path, frames_dir.as_deref(), &scene, &log, &frames);
+}
+
+/// Writes the summary SVG and, when asked, the animation frames.
+fn write_outputs(
+    svg_path: &str,
+    frames_dir: Option<&std::path::Path>,
+    scene: &GnssScene,
+    log: &RunLog,
+    frames: &[frames::FrameRecord],
+) {
+    let svg = render_svg(scene, log, SKY_EPOCH_S);
+    if let Some(parent) = std::path::Path::new(svg_path).parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    match std::fs::write(&svg_path, svg) {
+    match std::fs::write(svg_path, svg) {
         Ok(()) => println!("\nwrote {svg_path}"),
         Err(error) => println!("\ncould not write {svg_path}: {error}"),
     }
+    if let Some(dir) = frames_dir {
+        match frames::write_frames(dir, scene, log, frames) {
+            Ok(count) => println!("wrote {count} animation frames to {}", dir.display()),
+            Err(error) => println!("could not write frames to {}: {error}", dir.display()),
+        }
+    }
+}
+
+/// LiDAR returns in the map frame.
+fn scan_world_points(scan: &LaserScan2d, pose: Pose2d) -> Vec<(f64, f64)> {
+    scan.ranges_m
+        .iter()
+        .enumerate()
+        .filter(|(_, r)| r.is_finite())
+        .map(|(i, r)| {
+            let angle = pose.yaw_rad + scan.angle_min_rad + i as f64 * scan.angle_increment_rad;
+            (pose.x_m + r * angle.cos(), pose.y_m + r * angle.sin())
+        })
+        .collect()
 }
 
 /// The site: an open plaza (x < 40), a 30 m wide street between 25-40 m

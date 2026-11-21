@@ -12,7 +12,16 @@ pursuit steers on the *estimated* pose, so localization errors become driving
 errors. The run takes about 18 s in release mode and writes
 `target/149_gnss_lidar_navigation.svg` (`--svg <path>` to choose).
 
+![Animation: the robot drives from the plaza through the canyon into the office and back; rays show line-of-sight (green), NLOS (red) and diffracted (purple) satellite signals, cyan dots the LiDAR returns, and the badges the localization source and RTK status](../../docs/media/gnss-lidar-navigation.gif)
+
 ![Top view and canyon sky plot](gnss_lidar_navigation.svg)
+
+To regenerate the animation (needs Python Playwright and ffmpeg):
+
+```bash
+cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation -- --frames target/gnss_frames
+python3 scripts/svg_frames_to_gif.py target/gnss_frames docs/media/gnss-lidar-navigation.gif
+```
 
 * **GNSS** — `rne_gnss` ray traces 48 GPS + Galileo satellites through the
   buildings at 5 Hz for two antennas on the robot (front and rear, 0.8 m
