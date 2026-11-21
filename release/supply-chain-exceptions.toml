@@ -13,6 +13,105 @@ rationale = "Rapier 0.22's compatible nalgebra/simba graph still requires paste;
 mitigation = "paste executes only as a checksummed build-time proc macro and processes trusted RNE source tokens, not runtime or network input."
 expires = "2027-02-12"
 
+[[advisory]]
+id = "RUSTSEC-2026-0574"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "The advisory concerns SortedLinkedList's FindMutView::pop; rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search and never reaches that API."
+expires = "2027-02-21"
+
+[[advisory]]
+id = "RUSTSEC-2026-0575"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "The advisory concerns spsc::Consumer/Queue::peek atomic ordering; rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search and never reaches that API."
+expires = "2027-02-21"
+
+[[advisory]]
+id = "RUSTSEC-2026-0576"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "The advisory concerns IndexMap::truncate; rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search and never reaches that API."
+expires = "2027-02-21"
+
+[[advisory]]
+id = "RUSTSEC-2026-0577"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search; its elements are a node reference and a scalar distance with no Drop implementation, so the unwinding-drop path cannot occur."
+expires = "2027-02-21"
+
+[[advisory]]
+id = "RUSTSEC-2026-0578"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "The advisory concerns SortedLinkedList::zeroize; rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search and never reaches that API."
+expires = "2027-02-21"
+
+[[advisory]]
+id = "RUSTSEC-2026-0579"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "The advisory concerns Deque's TryFrom conversion; rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search and never reaches that API."
+expires = "2027-02-21"
+
+[[advisory]]
+id = "RUSTSEC-2026-0580"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "The advisory concerns the pool module's Treiber stack; rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search and never reaches that API."
+expires = "2027-02-21"
+
+[[advisory]]
+id = "RUSTSEC-2026-0581"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "The advisory concerns Deque::make_contiguous; rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search and never reaches that API."
+expires = "2027-02-21"
+
+[[advisory]]
+id = "RUSTSEC-2026-0582"
+package = "heapless"
+version = "0.8.0"
+category = "unsound"
+reachability = "rne_physics_rapier -> rapier3d 0.22.0 -> parry3d 0.17.6 -> rstar 0.12.2 -> heapless 0.8.0"
+owner = "RNE release engineering"
+rationale = "Fixed only in heapless 0.9.4; rstar 0.12.2 is the newest rstar parry3d 0.17 accepts and pins heapless 0.8, so clearing it needs a Rapier/parry upgrade of the vendored third_party/rapier3d and its pinned evidence."
+mitigation = "The advisory concerns IndexMap::insert at u16::MAX entries; rstar 0.12.2 uses heapless only for a fixed-capacity binary_heap::BinaryHeap in nearest-neighbor search and never reaches that API."
+expires = "2027-02-21"
+
 [[duplicate]]
 package = "bit-vec"
 version = "0.7.0"
