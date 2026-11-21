@@ -12,6 +12,7 @@ share only JSONL files.
 cargo run --release -p perception_tasks --example 149_perception_tasks -- --out target/perception_tasks
 cargo run --release -p perception_tasks --example 149_perception_tasks -- --list
 cargo run --release -p perception_tasks --example 149_perception_tasks -- --task occlusion --duration-s 5
+cargo run --release -p perception_tasks --example 149_perception_tasks -- --camera --out target/perception_tasks
 ```
 
 All nine tasks take 5.3 s on 4 cores (16.5 s on one). The tasks run side by
@@ -50,6 +51,30 @@ byte-identical whatever the number of cores.
 - **Ego pose**: the scan always uses the true pose. In `pose_jitter` only the
   pose written to `setup.json` has noise.
 
+## Camera (`--camera`)
+
+A forward camera sits on the robot, 1.3 m above the ground and 0.4 m above
+the LiDAR. It captures 640 × 480 frames with a 60° vertical field of view at
+2 Hz (every fifth scan). The frames are rendered on the CPU by
+`rne_render_cpu` ([CPU_RENDERING.md](../../docs/CPU_RENDERING.md)):
+
+- people are the CC0 textured human mesh (`assets/fixtures/kick_human`) in a
+  standing pose, turned to their walking direction;
+- cars are a painted body, a glass cabin and four wheels; bicycles are two
+  wheels, a frame and handlebars with the person mesh as the rider;
+- structures and the ground are boxes, lit by a sun with shadows.
+
+The renderer's item-id map gives the exact 2D box of the visible part of every
+object at least 30 pixels large. `setup.json` carries the matching pinhole
+intrinsics and the camera-to-LiDAR transform. Every LiDAR detection carries
+the corners of its 3D box, so a camera-LiDAR tracker can project it into the
+image; a test checks that a projected box covers the rendered person
+(IoU > 0.5).
+
+The LiDAR still scans the physics shapes (capsules and boxes), not the
+meshes. Every person is the same mesh, so appearance cannot tell people
+apart. The 9 tasks render about 370 frames in about 2 minutes on 4 cores.
+
 ## Outputs
 
 Each task gets its own directory:
@@ -60,6 +85,8 @@ Each task gets its own directory:
 | `inputs.jsonl` | One `lidar_batch` per scan: detections and pole landmarks in the LiDAR frame |
 | `truth.jsonl` | One `truth3d` per scan: every object within 35 m, `map` frame |
 | `summary.json` | Detector recall and precision against the truth |
+| `camera_frames.jsonl` | With `--camera`: one record per frame (image path, 2D box, class and visible pixels of each object) |
+| `camera/*.png` | With `--camera`: the frames |
 
 `tasks.json` at the top level lists every task's summary.
 
@@ -98,4 +125,5 @@ Tracker scores on these outputs are in robo-perception's
   not overlap.
 - Each scan is instantaneous: no motion distortion within a sweep.
 - Ground removal uses the known flat ground.
-- There is no camera. Camera-LiDAR fusion tasks need rendered images.
+- Camera people do not walk (a fixed standing pose), and the camera and
+  LiDAR see different body shapes (mesh vs capsule).

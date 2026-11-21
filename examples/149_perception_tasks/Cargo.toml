@@ -17,6 +17,9 @@ rne_physics = { workspace = true }
 rne_physics_rapier = { workspace = true }
 rne_sensor = { workspace = true }
 rne_world = { workspace = true }
+png = { workspace = true }
+rne_render = { workspace = true }
+rne_render_cpu = { workspace = true }
 serde_json = { workspace = true }
 
 [[example]]

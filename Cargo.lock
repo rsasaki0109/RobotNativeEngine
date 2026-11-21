@@ -888,6 +888,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "cpu_render"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_math",
+ "rne_render",
+ "rne_render_cpu",
+ "rne_world",
+ "serde_json",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3657,11 +3669,14 @@ checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 name = "perception_tasks"
 version = "0.4.0"
 dependencies = [
+ "png",
  "rne_core",
  "rne_ecs",
  "rne_math",
  "rne_physics",
  "rne_physics_rapier",
+ "rne_render",
+ "rne_render_cpu",
  "rne_sensor",
  "rne_world",
  "serde_json",
@@ -4865,6 +4880,18 @@ dependencies = [
  "thiserror 2.0.18",
  "wgpu",
  "wgpu-3dgs-viewer",
+]
+
+[[package]]
+name = "rne_render_cpu"
+version = "0.4.0"
+dependencies = [
+ "approx",
+ "glam",
+ "rne_core",
+ "rne_math",
+ "rne_render",
+ "rne_world",
 ]
 
 [[package]]

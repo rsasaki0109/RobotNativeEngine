@@ -24,9 +24,11 @@
 //! The scene is described in a `map` frame with x forward, y left and z up and
 //! mapped to the engine's y-up world for raycasting.
 
+mod camera;
+
 use std::collections::{BTreeMap, VecDeque};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use rne_core::SimDuration;
 use rne_ecs::{spawn_named, Entity, World};
@@ -560,6 +562,8 @@ struct Cluster {
     major_extent_m: f64,
     minor_extent_m: f64,
     top_m: f64,
+    /// Corners of the footprint box from the ground to the top, `map` frame.
+    corners_m: [[f64; 3]; 8],
 }
 
 /// What the detector makes of a cluster.
@@ -685,9 +689,21 @@ fn describe(points: &[[f64; 3]], members: &[usize]) -> Cluster {
         centroid[1] + mid_major * sin + mid_minor * cos,
         centroid[2],
     ];
+    let mut corners_m = [[0.0; 3]; 8];
+    for (k, corner) in corners_m.iter_mut().enumerate() {
+        let u = if k & 1 == 0 { major_min } else { major_max };
+        let v = if k & 2 == 0 { minor_min } else { minor_max };
+        let z = if k & 4 == 0 { 0.0 } else { top };
+        *corner = [
+            centroid[0] + u * cos - v * sin,
+            centroid[1] + u * sin + v * cos,
+            z,
+        ];
+    }
     Cluster {
         centroid: center,
         point_count: members.len(),
+        corners_m,
         major_extent_m: a.max(b),
         minor_extent_m: a.min(b),
         top_m: top,
@@ -746,6 +762,8 @@ struct TaskOutput {
     inputs: Vec<Value>,
     truth: Vec<Value>,
     summary: Value,
+    /// One `camera_frame` record per rendered frame (empty without a camera).
+    camera_frames: Vec<Value>,
 }
 
 fn spawn_box(
@@ -866,6 +884,8 @@ fn ego_pose(task: &Task, t: f64) -> Pose2 {
 #[derive(Clone, Debug)]
 struct ScanDetections {
     objects: Vec<(Kind, [f64; 3], usize)>,
+    /// Box corners of each object, `map` frame.
+    corners: Vec<[[f64; 3]; 8]>,
     landmarks: Vec<[f64; 3]>,
 }
 
@@ -890,6 +910,7 @@ fn scan(
         .collect();
     let mut detections = ScanDetections {
         objects: Vec::new(),
+        corners: Vec::new(),
         landmarks: Vec::new(),
     };
     let azimuth_step_rad = (spec.max_angle_rad - spec.min_angle_rad) / f64::from(spec.ray_count);
@@ -900,6 +921,7 @@ fn scan(
                 detections
                     .objects
                     .push((kind, cluster.centroid, cluster.point_count));
+                detections.corners.push(cluster.corners_m);
             }
             Label::Landmark => {
                 if range <= LANDMARK_RANGE_M {
@@ -940,7 +962,56 @@ fn count_hits(objects: &[(Kind, [f64; 3], usize)], truth: &[(u32, Kind, [f64; 3]
     hits
 }
 
-fn simulate(task: &Task, duration_s: f64) -> TaskOutput {
+/// The `lidar_batch` detection records of one scan, in the LiDAR frame.
+fn detection_records(detections: &ScanDetections, pose: Pose2) -> Vec<Value> {
+    detections
+        .objects
+        .iter()
+        .zip(&detections.corners)
+        .map(|((kind, position, count), corners)| {
+            let sensor = pose.to_sensor(*position);
+            // Box corners relative to the detection, LiDAR frame, for
+            // projecting the detection into the camera.
+            let offsets: Vec<f64> = corners
+                .iter()
+                .flat_map(|corner| {
+                    let c = pose.to_sensor(*corner);
+                    [c[0] - sensor[0], c[1] - sensor[1], c[2] - sensor[2]]
+                })
+                .collect();
+            let top = corners[7][2];
+            let range = sensor[0].hypot(sensor[1]);
+            let sigma = 0.08 + 0.01 * range;
+            let score = 1.0 - (-(*count as f64) / 12.0).exp();
+            json!({
+                "position": sensor,
+                "covariance": [sigma * sigma, 0.0, 0.0, 0.0, sigma * sigma, 0.0, 0.0, 0.0, 0.04],
+                "class": kind.class(),
+                "score": (score * 1000.0).round() / 1000.0,
+                "shape": {"height": top, "width": 0.0, "length": 0.0, "rotation_y": 0.0, "corners": offsets},
+            })
+        })
+        .collect()
+}
+
+/// Where camera frames go, when the task has a camera.
+struct CameraOutput<'a> {
+    rig: &'a camera::CameraRig,
+    /// Task directory; images go to its `camera/` folder.
+    dir: &'a Path,
+}
+
+fn write_png(path: &Path, rgba8: &[u8], width: u32, height: u32) -> std::io::Result<()> {
+    let mut encoder = png::Encoder::new(fs::File::create(path)?, width, height);
+    encoder.set_color(png::ColorType::Rgba);
+    encoder.set_depth(png::BitDepth::Eight);
+    encoder
+        .write_header()
+        .and_then(|mut writer| writer.write_image_data(rgba8))
+        .map_err(std::io::Error::other)
+}
+
+fn simulate(task: &Task, duration_s: f64, camera: Option<&CameraOutput>) -> TaskOutput {
     let (mut world, movers) = build_world(task);
     let mut backend = RapierBackend::new();
     let physics_world = backend
@@ -956,6 +1027,10 @@ fn simulate(task: &Task, duration_s: f64) -> TaskOutput {
     let mut poses = Vec::new();
     let (mut truth_count, mut detection_count, mut hit_count) = (0_usize, 0_usize, 0_usize);
     let mut person_points = Vec::new();
+    let mut camera_frames = Vec::new();
+    if let Some(output) = camera {
+        fs::create_dir_all(output.dir.join("camera")).expect("camera directory");
+    }
 
     for k in 0..scans {
         let t = k as f64 * SCAN_PERIOD_S;
@@ -997,22 +1072,20 @@ fn simulate(task: &Task, duration_s: f64) -> TaskOutput {
         };
         poses.push(json!({"timestamp_ns": timestamp_ns, "transform": reported.matrix()}));
 
-        let detection_records: Vec<Value> = detections
-            .objects
-            .iter()
-            .map(|(kind, position, count)| {
-                let sensor = pose.to_sensor(*position);
-                let range = sensor[0].hypot(sensor[1]);
-                let sigma = 0.08 + 0.01 * range;
-                let score = 1.0 - (-(*count as f64) / 12.0).exp();
-                json!({
-                    "position": sensor,
-                    "covariance": [sigma * sigma, 0.0, 0.0, 0.0, sigma * sigma, 0.0, 0.0, 0.0, 0.04],
-                    "class": kind.class(),
-                    "score": (score * 1000.0).round() / 1000.0,
-                })
-            })
-            .collect();
+        if let Some(output) = camera.filter(|_| k % camera::SCANS_PER_FRAME == 0) {
+            let frame = output.rig.render(task, t, pose);
+            let image = format!("camera/{k:06}.png");
+            write_png(
+                &output.dir.join(&image),
+                &frame.rgba8,
+                camera::IMAGE_WIDTH,
+                camera::IMAGE_HEIGHT,
+            )
+            .expect("write camera frame");
+            camera_frames.push(camera::frame_record(timestamp_ns, &image, &frame));
+        }
+
+        let detection_records = detection_records(&detections, pose);
         let landmark_records: Vec<Value> = detections
             .landmarks
             .iter()
@@ -1066,9 +1139,8 @@ fn simulate(task: &Task, duration_s: f64) -> TaskOutput {
         "lidar_frame": "lidar",
         "camera_frame": "camera",
         "lidar_to_reference": identity,
-        "camera_to_reference": identity,
-        "intrinsics": {"fx": 500.0, "fy": 500.0, "cx": 320.0, "cy": 240.0, "skew": 0.0,
-                       "image_width": 640, "image_height": 480},
+        "camera_to_reference": camera::camera_to_lidar(),
+        "intrinsics": camera::intrinsics(),
         "near_plane": 0.3,
         "poses": poses,
         "pose_max_gap_ns": 200_000_000,
@@ -1078,6 +1150,7 @@ fn simulate(task: &Task, duration_s: f64) -> TaskOutput {
         inputs,
         truth,
         summary,
+        camera_frames,
     }
 }
 
@@ -1094,6 +1167,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut out = PathBuf::from("target/perception_tasks");
     let mut only: Option<String> = None;
     let mut duration: Option<f64> = None;
+    let mut with_camera = false;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -1102,6 +1176,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--duration-s" => {
                 duration = Some(args.next().ok_or("--duration-s needs seconds")?.parse()?)
             }
+            "--camera" => with_camera = true,
             "--list" => {
                 for task in tasks() {
                     println!("{:16} {}", task.name, task.description);
@@ -1118,10 +1193,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .collect();
     // Tasks are independent worlds: simulate them side by side. Each scan is
     // also split across threads by `rne_sensor`; outputs do not depend on either.
+    let rig = if with_camera {
+        Some(camera::CameraRig::new()?)
+    } else {
+        None
+    };
+    let dirs: Vec<PathBuf> = selected.iter().map(|task| out.join(task.name)).collect();
     let outputs: Vec<TaskOutput> = std::thread::scope(|scope| {
         let handles: Vec<_> = selected
             .iter()
-            .map(|task| scope.spawn(move || simulate(task, duration.unwrap_or(task.duration_s))))
+            .zip(&dirs)
+            .map(|(task, dir)| {
+                let rig = rig.as_ref();
+                scope.spawn(move || {
+                    let camera = rig.map(|rig| CameraOutput { rig, dir });
+                    simulate(task, duration.unwrap_or(task.duration_s), camera.as_ref())
+                })
+            })
             .collect();
         handles
             .into_iter()
@@ -1142,6 +1230,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
         fs::write(dir.join("inputs.jsonl"), jsonl(&output.inputs))?;
         fs::write(dir.join("truth.jsonl"), jsonl(&output.truth))?;
+        if !output.camera_frames.is_empty() {
+            fs::write(
+                dir.join("camera_frames.jsonl"),
+                jsonl(&output.camera_frames),
+            )?;
+        }
         fs::write(
             dir.join("summary.json"),
             serde_json::to_string_pretty(&output.summary)?,
@@ -1204,7 +1298,7 @@ mod tests {
     #[test]
     fn moving_person_is_detected_where_it_is() {
         let task = single_walker();
-        let output = simulate(&task, task.duration_s);
+        let output = simulate(&task, task.duration_s, None);
         assert_eq!(output.inputs.len(), 30);
         let mut hits = 0;
         for (k, input) in output.inputs.iter().enumerate() {
@@ -1235,7 +1329,7 @@ mod tests {
             0.01,
             0.0,
         ))];
-        let output = simulate(&task, 2.0);
+        let output = simulate(&task, 2.0, None);
         for (k, input) in output.inputs.iter().enumerate() {
             let expected_x = 6.0 - k as f64 * SCAN_PERIOD_S;
             let detection = &input["detections"][0];
@@ -1259,10 +1353,100 @@ mod tests {
             structures: Vec::new(),
             ..single_walker()
         };
-        let output = simulate(&task, 1.0);
+        let output = simulate(&task, 1.0, None);
         for input in &output.inputs {
             assert_eq!(input["detections"].as_array().unwrap().len(), 1);
         }
+    }
+
+    /// Projects a LiDAR-frame point into the image with the written calibration.
+    fn project(setup: &Value, p: [f64; 3]) -> [f64; 2] {
+        let m: Vec<f64> = setup["camera_to_reference"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_f64().unwrap())
+            .collect();
+        // Inverse of a rigid transform: R^T (p - t).
+        let d = [p[0] - m[3], p[1] - m[7], p[2] - m[11]];
+        let c: Vec<f64> = (0..3)
+            .map(|col| m[col] * d[0] + m[4 + col] * d[1] + m[8 + col] * d[2])
+            .collect();
+        let k = &setup["intrinsics"];
+        let f = |key: &str| k[key].as_f64().unwrap();
+        [
+            f("fx") * c[0] / c[2] + f("cx"),
+            f("fy") * c[1] / c[2] + f("cy"),
+        ]
+    }
+
+    #[test]
+    fn camera_truth_matches_projected_lidar_boxes() {
+        let rig = camera::CameraRig::new().unwrap();
+        let dir = std::env::temp_dir().join(format!("rne_149_camera_{}", std::process::id()));
+        let task = single_walker();
+        let output = simulate(
+            &task,
+            1.0,
+            Some(&CameraOutput {
+                rig: &rig,
+                dir: &dir,
+            }),
+        );
+        assert_eq!(output.camera_frames.len(), 2);
+        for (frame, input) in output.camera_frames.iter().zip(
+            output
+                .inputs
+                .iter()
+                .step_by(camera::SCANS_PER_FRAME as usize),
+        ) {
+            assert!(dir.join(frame["image"].as_str().unwrap()).exists());
+            let objects = frame["objects"].as_array().unwrap();
+            assert_eq!(objects.len(), 1, "{frame}");
+            let truth: Vec<f64> = objects[0]["bbox"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_f64().unwrap())
+                .collect();
+            // The person walks on the right of the image (y < 0 at first).
+            assert!(truth[0] > f64::from(camera::IMAGE_WIDTH) / 2.0, "{truth:?}");
+            // The LiDAR detection's box, projected with the written
+            // calibration, lands on the rendered person.
+            let detection = &input["detections"][0];
+            let position: Vec<f64> = detection["position"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_f64().unwrap())
+                .collect();
+            let corners: Vec<f64> = detection["shape"]["corners"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_f64().unwrap())
+                .collect();
+            let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+            for c in corners.chunks(3) {
+                let [u, v] = project(
+                    &output.setup,
+                    [position[0] + c[0], position[1] + c[1], position[2] + c[2]],
+                );
+                (x0, y0, x1, y1) = (x0.min(u), y0.min(v), x1.max(u), y1.max(v));
+            }
+            let ix = (x1.min(truth[2]) - x0.max(truth[0])).max(0.0);
+            let iy = (y1.min(truth[3]) - y0.max(truth[1])).max(0.0);
+            let inter = ix * iy;
+            let union =
+                (x1 - x0) * (y1 - y0) + (truth[2] - truth[0]) * (truth[3] - truth[1]) - inter;
+            assert!(
+                inter / union > 0.5,
+                "IoU {} for {:?} vs {truth:?}",
+                inter / union,
+                [x0, y0, x1, y1]
+            );
+        }
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]
@@ -1271,8 +1455,8 @@ mod tests {
             .into_iter()
             .find(|t| t.name == "pose_jitter")
             .unwrap();
-        let a = simulate(&task, 0.5);
-        let b = simulate(&task, 0.5);
+        let a = simulate(&task, 0.5, None);
+        let b = simulate(&task, 0.5, None);
         assert_eq!(jsonl(&a.inputs), jsonl(&b.inputs));
         assert_eq!(a.setup, b.setup);
         assert_eq!(jsonl(&a.truth), jsonl(&b.truth));

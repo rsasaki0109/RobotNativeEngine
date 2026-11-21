@@ -35,6 +35,7 @@ ROS2 is an adapter only. Do not add ROS2, rclrs, rclcpp, DDS, or ROS message dep
 - `crates/rne_sensor`: sensor traits, specs, outputs, noise models
 - `crates/rne_render`: render traits only
 - `crates/rne_render_wgpu`: wgpu renderer
+- `crates/rne_render_cpu`: deterministic multi-threaded CPU ray tracer (`RenderBackend` without a GPU; color, depth and item-id maps)
 - `crates/rne_asset`: asset database and import pipeline
 - `crates/rne_data`: typed DataBus, stream IDs, frame payloads
 - `crates/rne_nav`: backend-neutral occupancy grids, costmaps, tiled maps, plan/control, multi-robot avoidance, and timestamped transform tree
@@ -138,6 +139,7 @@ Allowed dependencies:
 - `rne_physics_rapier` may depend on `rne_physics` and Rapier.
 - `rne_sensor` may depend on `rne_physics`, `rne_render`, `rne_data`.
 - `rne_render_wgpu` may depend on `rne_render` and wgpu.
+- `rne_render_cpu` may depend on `rne_render`, `rne_math`, `rne_core`, and glam.
 - `rne_traffic` may depend on `rne_core`, `rne_ecs`, `rne_math`, and `rne_world`.
 - `rne_nav` may depend on `rne_core`, `rne_ecs`, `rne_math`, and `rne_world`.
 - `rne_planning` may depend on `rne_robot`, `rne_ecs`, and `rne_math`.
@@ -167,6 +169,7 @@ Forbidden:
   simulates with `rne_dynamics` directly.
 - `rne_physics_native` must not depend on another physics engine, a renderer,
   or ROS 2.
+- `rne_render_cpu` must not depend on a GPU API, a physics backend, or ROS 2.
 - `rne_sensor` must not require a renderer unless the specific sensor is camera-like.
 - `rne_traffic` must not depend on a renderer, physics backend, geospatial importer,
   robotics adapter, or external traffic simulator.
