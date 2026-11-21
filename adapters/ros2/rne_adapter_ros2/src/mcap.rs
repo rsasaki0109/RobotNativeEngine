@@ -74,6 +74,27 @@ pub const POINTCLOUD2_SCHEMA: Ros2MessageSchema = Ros2MessageSchema {
     ),
 };
 
+/// `sensor_msgs/msg/Image`.
+pub const IMAGE_SCHEMA: Ros2MessageSchema = Ros2MessageSchema {
+    name: "sensor_msgs/msg/Image",
+    definition: schema_text!(
+        "std_msgs/Header header\nuint32 height\nuint32 width\nstring encoding\nuint8 is_bigendian\nuint32 step\nuint8[] data\n",
+        "std_msgs/Header" => "builtin_interfaces/Time stamp\nstring frame_id\n",
+        "builtin_interfaces/Time" => "int32 sec\nuint32 nanosec\n",
+    ),
+};
+
+/// `sensor_msgs/msg/CameraInfo`.
+pub const CAMERA_INFO_SCHEMA: Ros2MessageSchema = Ros2MessageSchema {
+    name: "sensor_msgs/msg/CameraInfo",
+    definition: schema_text!(
+        "std_msgs/Header header\nuint32 height\nuint32 width\nstring distortion_model\nfloat64[] d\nfloat64[9] k\nfloat64[9] r\nfloat64[12] p\nuint32 binning_x\nuint32 binning_y\nsensor_msgs/RegionOfInterest roi\n",
+        "std_msgs/Header" => "builtin_interfaces/Time stamp\nstring frame_id\n",
+        "builtin_interfaces/Time" => "int32 sec\nuint32 nanosec\n",
+        "sensor_msgs/RegionOfInterest" => "uint32 x_offset\nuint32 y_offset\nuint32 height\nuint32 width\nbool do_rectify\n",
+    ),
+};
+
 /// `tf2_msgs/msg/TFMessage`, the type of `/tf` and `/tf_static`.
 pub const TF_MESSAGE_SCHEMA: Ros2MessageSchema = Ros2MessageSchema {
     name: "tf2_msgs/msg/TFMessage",
