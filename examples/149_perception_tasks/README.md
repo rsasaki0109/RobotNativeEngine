@@ -13,6 +13,7 @@ cargo run --release -p perception_tasks --example 149_perception_tasks -- --out 
 cargo run --release -p perception_tasks --example 149_perception_tasks -- --list
 cargo run --release -p perception_tasks --example 149_perception_tasks -- --task occlusion --duration-s 5
 cargo run --release -p perception_tasks --example 149_perception_tasks -- --camera --out target/perception_tasks
+cargo run --release -p perception_tasks --example 149_perception_tasks -- --camera --camera-every 1 --task mixed_traffic
 ```
 
 All nine tasks take 5.3 s on 4 cores (16.5 s on one). The tasks run side by
@@ -55,7 +56,7 @@ byte-identical whatever the number of cores.
 
 A forward camera sits on the robot, 1.3 m above the ground and 0.4 m above
 the LiDAR. It captures 640 × 480 frames with a 60° vertical field of view at
-2 Hz (every fifth scan). The frames are rendered on the CPU by
+2 Hz (every fifth scan; `--camera-every N` for every N-th). The frames are rendered on the CPU by
 `rne_render_cpu` ([CPU_RENDERING.md](../../docs/CPU_RENDERING.md)):
 
 - people are the CC0 textured human mesh (`assets/fixtures/kick_human`) in a

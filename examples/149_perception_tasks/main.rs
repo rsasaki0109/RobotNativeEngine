@@ -1008,6 +1008,8 @@ struct CameraOutput<'a> {
     rig: &'a camera::CameraRig,
     /// Task directory; images go to its `camera/` folder.
     dir: &'a Path,
+    /// A frame every this many LiDAR scans.
+    scans_per_frame: u64,
 }
 
 fn write_png(path: &Path, rgba8: &[u8], width: u32, height: u32) -> std::io::Result<()> {
@@ -1081,7 +1083,7 @@ fn simulate(task: &Task, duration_s: f64, camera: Option<&CameraOutput>) -> Task
         };
         poses.push(json!({"timestamp_ns": timestamp_ns, "transform": reported.matrix()}));
 
-        if let Some(output) = camera.filter(|_| k % camera::SCANS_PER_FRAME == 0) {
+        if let Some(output) = camera.filter(|c| k % c.scans_per_frame == 0) {
             let frame = output.rig.render(task, t, pose);
             let image = format!("camera/{k:06}.png");
             write_png(
@@ -1177,6 +1179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut only: Option<String> = None;
     let mut duration: Option<f64> = None;
     let mut with_camera = false;
+    let mut scans_per_frame = camera::SCANS_PER_FRAME;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -1186,6 +1189,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 duration = Some(args.next().ok_or("--duration-s needs seconds")?.parse()?)
             }
             "--camera" => with_camera = true,
+            "--camera-every" => {
+                scans_per_frame = args
+                    .next()
+                    .ok_or("--camera-every needs a scan count")?
+                    .parse()?;
+                if scans_per_frame == 0 {
+                    return Err("--camera-every must be at least 1".into());
+                }
+            }
             "--list" => {
                 for task in tasks() {
                     println!("{:16} {}", task.name, task.description);
@@ -1215,7 +1227,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map(|(task, dir)| {
                 let rig = rig.as_ref();
                 scope.spawn(move || {
-                    let camera = rig.map(|rig| CameraOutput { rig, dir });
+                    let camera = rig.map(|rig| CameraOutput {
+                        rig,
+                        dir,
+                        scans_per_frame,
+                    });
                     simulate(task, duration.unwrap_or(task.duration_s), camera.as_ref())
                 })
             })
@@ -1400,6 +1416,7 @@ mod tests {
             Some(&CameraOutput {
                 rig: &rig,
                 dir: &dir,
+                scans_per_frame: camera::SCANS_PER_FRAME,
             }),
         );
         assert_eq!(output.camera_frames.len(), 2);

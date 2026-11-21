@@ -31,7 +31,7 @@ pub(crate) const CAMERA_HEIGHT_M: f64 = 1.3;
 pub(crate) const IMAGE_WIDTH: u32 = 640;
 pub(crate) const IMAGE_HEIGHT: u32 = 480;
 const FOV_Y_RAD: f64 = 60.0 * std::f64::consts::PI / 180.0;
-/// A camera frame every this many LiDAR scans (2 Hz).
+/// Default: a camera frame every this many LiDAR scans (2 Hz); `--camera-every`.
 pub(crate) const SCANS_PER_FRAME: u64 = 5;
 /// Objects with fewer visible pixels are left out of the 2D truth.
 const MIN_VISIBLE_PIXELS: usize = 30;
