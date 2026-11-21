@@ -10,14 +10,19 @@
 //! stacked unknowns `[qdd; contact forces]`. The floating-base dynamics and the
 //! contact no-slip rows are assigned high weights so they act as constraints,
 //! and the solution is projected into the Coulomb friction cone before the
-//! required joint torques are recovered. Everything is deterministic: the same
+//! required joint torques are recovered. With
+//! [`WholeBodyConfig::enforce_contact_cones`] the forces are instead kept inside
+//! inscribed friction pyramids during the solve, which flat-footed contacts
+//! need; with [`WholeBodyConfig::enforce_torque_limits`] the joint torques are
+//! boxed inside the solve as well. Everything is deterministic: the same
 //! inputs produce the same solution, with no backend, renderer, or wall-clock
 //! dependency.
 //!
 //! # Coordinates
 //!
 //! RNE worlds are Y-up. Contact and task quantities are expressed in world
-//! coordinates unless a name ends in `_local_m`.
+//! coordinates unless a name ends in `_local_m`. [`ContactPoint::new`] assumes
+//! a +Y normal; use [`ContactPoint::with_normal`] for other frames.
 
 #![deny(missing_docs)]
 
