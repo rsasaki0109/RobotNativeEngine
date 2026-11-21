@@ -4,6 +4,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Example 149 (`scene_replay_render`) renders scenes simulated outside RNE.
+  It reads a JSON script of boxes, spheres and cylinders plus camera views,
+  draws each view with the wgpu PBR renderer and writes PNGs, so a
+  lightweight simulator (for example a Python research sandbox) can produce
+  RNE-rendered media without linking against RNE. With `RNE_SKIP_GPU` it
+  only validates the script.
+
 ### Fixed
 
 - `rne_dynamics`' contact solve no longer misses a contact's sliding

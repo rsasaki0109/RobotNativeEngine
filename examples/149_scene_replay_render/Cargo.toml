@@ -1,0 +1,23 @@
+[package]
+name = "scene_replay_render"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+png = { workspace = true }
+rne_math = { workspace = true }
+rne_render = { workspace = true }
+rne_render_wgpu = { workspace = true }
+rne_world = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[[example]]
+name = "149_scene_replay_render"
+path = "main.rs"
