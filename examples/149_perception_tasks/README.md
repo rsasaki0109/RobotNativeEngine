@@ -14,7 +14,9 @@ cargo run --release -p perception_tasks --example 149_perception_tasks -- --list
 cargo run --release -p perception_tasks --example 149_perception_tasks -- --task occlusion --duration-s 5
 ```
 
-All nine tasks take about 17 s on one CPU core.
+All nine tasks take 5.3 s on 4 cores (16.5 s on one). The tasks run side by
+side, and each scan is split across threads by `rne_sensor`. The output is
+byte-identical whatever the number of cores.
 
 ## Tasks
 

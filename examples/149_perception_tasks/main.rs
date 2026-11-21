@@ -1112,12 +1112,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    let selected: Vec<Task> = tasks()
+        .into_iter()
+        .filter(|task| only.as_deref().is_none_or(|name| name == task.name))
+        .collect();
+    // Tasks are independent worlds: simulate them side by side. Each scan is
+    // also split across threads by `rne_sensor`; outputs do not depend on either.
+    let outputs: Vec<TaskOutput> = std::thread::scope(|scope| {
+        let handles: Vec<_> = selected
+            .iter()
+            .map(|task| scope.spawn(move || simulate(task, duration.unwrap_or(task.duration_s))))
+            .collect();
+        handles
+            .into_iter()
+            .map(|handle| {
+                handle
+                    .join()
+                    .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+            })
+            .collect()
+    });
     let mut manifest = Vec::new();
-    for task in tasks() {
-        if only.as_deref().is_some_and(|name| name != task.name) {
-            continue;
-        }
-        let output = simulate(&task, duration.unwrap_or(task.duration_s));
+    for (task, output) in selected.iter().zip(outputs) {
         let dir = out.join(task.name);
         fs::create_dir_all(&dir)?;
         fs::write(

@@ -171,6 +171,29 @@ and Ouster drivers so existing de-skewing nodes consume it unchanged:
 | + channel indices | `x y z intensity ring` | 20 |
 | + timestamps | `x y z intensity ring time` | 24 |
 
+## Parallel scans
+
+A scan of at least `2 * LIDAR_RAYS_PER_WORKER` (4096) rays runs on several
+threads. It uses up to `std::thread::available_parallelism()` workers, each
+with at least 2048 rays. The rays are cut into eight blocks per worker, and
+each worker takes the next free block, so an open-sky sector does not leave a
+worker idle while another works through a crowd.
+
+Every ray's noise is keyed by its ordinal, never by a running generator, and
+the blocks are joined in ray order before bloom. The cloud is therefore
+byte-identical to a single-threaded scan, whatever the number of workers or
+the order they finish in. `LidarRaycaster` requires `Sync` for this; every
+`PhysicsBackend` already is.
+
+The Rapier backend keeps its raycast acceleration structure in a `OnceLock`.
+Concurrent raycasts read it without a lock: a shared read lock costs about ten
+times more under four threads than on one. The first raycast after the scene
+changes rebuilds it.
+
+On 4 cores, example 149 scans its nine tasks (26 M rays) 2.6 times faster than
+on one core. With its tasks also running side by side, the whole example runs
+3.1 times faster.
+
 ## Time, latency, and failure behavior
 
 Sampling is driven only by explicit `SimTime`. `Frame.capture_time` is the scan
