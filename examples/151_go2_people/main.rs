@@ -321,6 +321,9 @@ enum Source {
     NearestMap,
     /// The external tracker on detections filtered by the static map.
     TrackerMap,
+    /// Perfect perception, localized by 2D SLAM: separates where SLAM makes
+    /// the robot walk from what it does to perception.
+    OracleSlam,
     /// `NearestMap` localized by 2D SLAM instead of odometry alone.
     NearestSlam,
     /// `TrackerMap` localized by 2D SLAM instead of odometry alone.
@@ -335,6 +338,7 @@ impl Source {
             Source::Tracker => "tracker",
             Source::NearestMap => "nearest+map",
             Source::TrackerMap => "tracker+map",
+            Source::OracleSlam => "oracle+slam",
             Source::NearestSlam => "nearest+slam",
             Source::TrackerSlam => "tracker+slam",
         }
@@ -348,7 +352,10 @@ impl Source {
     }
 
     fn uses_slam(self) -> bool {
-        matches!(self, Source::NearestSlam | Source::TrackerSlam)
+        matches!(
+            self,
+            Source::OracleSlam | Source::NearestSlam | Source::TrackerSlam
+        )
     }
 }
 
@@ -412,7 +419,29 @@ fn spawn_wall(sim: &mut UrdfSceneSim, index: usize, wall: Wall) {
 }
 
 /// The robot's mission logic on its tracks (odometry frame).
+/// How the controller chooses its command.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ControllerKind {
+    /// Rules: wait for crossing people, change lanes for oncoming ones.
+    Rule,
+    /// Dynamic window: roll out speed and turn-rate pairs and score them.
+    Dwa,
+}
+
+/// Dynamic-window rollout: horizon, step, and the candidate grid.
+const DWA_HORIZON_S: f64 = 3.0;
+const DWA_STEP_S: f64 = 0.25;
+const DWA_SPEEDS: usize = 6;
+const DWA_TURNS: usize = 11;
+/// Predicted passes closer than this are (softly) forbidden.
+const DWA_SAFE_M: f64 = 0.75;
+/// Below this predicted clearance a pass is penalised in proportion.
+const DWA_COMFORT_M: f64 = 1.5;
+
 struct Controller {
+    kind: ControllerKind,
+    /// Last chosen turn rate (DWA smoothness).
+    last_yaw_rate: f64,
     mission: Mission,
     target: Option<u64>,
     /// Last estimate of the target: position, velocity, time.
@@ -462,6 +491,10 @@ impl Controller {
                 }
             }
         };
+        if self.kind == ControllerKind::Dwa {
+            let command = self.dwa(tracks, odom, aim, desired_speed, target);
+            return (command, target);
+        }
         let bearing = wrap((aim[1] - odom[1]).atan2(aim[0] - odom[0]) - odom[2]);
         let mut speed = desired_speed * bearing.cos().max(0.0).powi(2);
         let mut yaw_rate = HEADING_GAIN_PER_S * bearing;
@@ -578,6 +611,71 @@ impl Controller {
             },
             target,
         )
+    }
+
+    /// Dynamic window: every pair of forward speed (0 to `max_speed`) and turn
+    /// rate is rolled out for DWA_HORIZON_S as a unicycle, against every
+    /// tracked person (but the target) moving at its tracked velocity. The
+    /// cheapest wins: predicted clearance first, then the aim, the heading
+    /// to it, progress and smoothness.
+    fn dwa(
+        &mut self,
+        tracks: &[Track],
+        odom: Pose,
+        aim: [f64; 2],
+        max_speed: f64,
+        target: Option<Track>,
+    ) -> UnitreeGo2TrotCommand {
+        let others: Vec<&Track> = tracks
+            .iter()
+            .filter(|t| Some(t.id) != target.map(|t| t.id))
+            .collect();
+        let steps = (DWA_HORIZON_S / DWA_STEP_S).round() as usize;
+        let follow = matches!(self.mission, Mission::Follow { .. });
+        let mut best = (f64::MAX, UnitreeGo2TrotCommand::default());
+        for i in 0..DWA_SPEEDS {
+            let v = max_speed * i as f64 / (DWA_SPEEDS - 1) as f64;
+            for j in 0..DWA_TURNS {
+                let w = MAX_YAW_RATE_RAD_S * (2.0 * j as f64 / (DWA_TURNS - 1) as f64 - 1.0);
+                let (mut x, mut y, mut th) = (odom[0], odom[1], odom[2]);
+                let mut clearance = f64::MAX;
+                for k in 1..=steps {
+                    th += w * DWA_STEP_S;
+                    x += v * th.cos() * DWA_STEP_S;
+                    y += v * th.sin() * DWA_STEP_S;
+                    let t = k as f64 * DWA_STEP_S;
+                    for p in &others {
+                        let d = (p.position[0] + p.velocity[0] * t - x)
+                            .hypot(p.position[1] + p.velocity[1] * t - y);
+                        clearance = clearance.min(d);
+                    }
+                }
+                let to_aim = (aim[0] - x).hypot(aim[1] - y);
+                let aim_cost = if follow {
+                    (to_aim - FOLLOW_DISTANCE_M).abs()
+                } else {
+                    to_aim
+                };
+                let heading = wrap((aim[1] - y).atan2(aim[0] - x) - th).abs();
+                let mut cost = aim_cost + 0.3 * heading + 0.2 * (w - self.last_yaw_rate).abs();
+                if clearance < DWA_SAFE_M {
+                    cost += 100.0 + 100.0 * (DWA_SAFE_M - clearance);
+                } else if clearance < DWA_COMFORT_M {
+                    cost += 1.5 * (DWA_COMFORT_M - clearance);
+                }
+                if cost < best.0 {
+                    best = (
+                        cost,
+                        UnitreeGo2TrotCommand {
+                            forward_speed_m_s: v,
+                            yaw_rate_rad_s: w,
+                        },
+                    );
+                }
+            }
+        }
+        self.last_yaw_rate = best.1.yaw_rate_rad_s;
+        best.1
     }
 
     /// The target track: the chosen id while it lasts; otherwise the track
@@ -839,7 +937,7 @@ impl Perceiver {
         time_s: f64,
     ) -> Vec<Track> {
         match self.source {
-            Source::Oracle => self.oracle.tracks(people, truth, odom),
+            Source::Oracle | Source::OracleSlam => self.oracle.tracks(people, truth, odom),
             Source::Nearest | Source::NearestMap | Source::NearestSlam => {
                 self.nearest.update(detections, time_s, FRAME_S)
             }
@@ -1041,7 +1139,12 @@ impl Localizer {
 }
 
 /// One task under one perception source: the score and a per-frame trace.
-fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Value, Vec<Value>) {
+fn run(
+    task: &Task,
+    source: Source,
+    tracker_command: Option<&[String]>,
+    kind: ControllerKind,
+) -> (Value, Vec<Value>) {
     let mut sim =
         UrdfSceneSim::from_scene_path(&repo_path("assets/scenes/unitree_go2_jump.rne.scene.toml"))
             .expect("load Go2 scene");
@@ -1085,6 +1188,8 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
         },
     };
     let mut controller = Controller {
+        kind,
+        last_yaw_rate: 0.0,
         mission: task.mission,
         target: None,
         target_memory: None,
@@ -1253,12 +1358,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut tracker: Option<Vec<String>> = None;
     let mut duration: Option<f64> = None;
     let mut trials: u32 = 1;
+    let mut kind = ControllerKind::Rule;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--out" => out = PathBuf::from(args.next().ok_or("--out needs a directory")?),
             "--task" => only = Some(args.next().ok_or("--task needs a name")?),
             "--trials" => trials = args.next().ok_or("--trials needs a count")?.parse()?,
+            "--controller" => {
+                kind = match args.next().as_deref() {
+                    Some("rule") => ControllerKind::Rule,
+                    Some("dwa") => ControllerKind::Dwa,
+                    _ => return Err("--controller needs rule or dwa".into()),
+                }
+            }
             "--duration-s" => {
                 duration = Some(args.next().ok_or("--duration-s needs seconds")?.parse()?)
             }
@@ -1287,6 +1400,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
     let mut sources = vec![
         Source::Oracle,
+        Source::OracleSlam,
         Source::Nearest,
         Source::NearestMap,
         Source::NearestSlam,
@@ -1329,7 +1443,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let Some((task, source, trial)) = jobs.get(index) else {
                             break;
                         };
-                        let (mut result, trace) = run(task, *source, tracker.as_deref());
+                        let (mut result, trace) = run(task, *source, tracker.as_deref(), kind);
                         result["trial"] = json!(trial);
                         mine.push((index, result, trace));
                     }
@@ -1378,6 +1492,8 @@ mod tests {
 
     fn controller(mission: Mission, goal: [f64; 2]) -> Controller {
         Controller {
+            kind: ControllerKind::Rule,
+            last_yaw_rate: 0.0,
             mission,
             target: None,
             target_memory: None,
@@ -1440,6 +1556,42 @@ mod tests {
         ];
         let (_, chosen) = c.command(&tracks, [0.0, 0.0, 0.0], 1.0, 0.0);
         assert_eq!(chosen.map(|t| t.id), Some(9));
+    }
+
+    #[test]
+    fn dwa_turns_away_from_a_person_coming_head_on_and_keeps_going() {
+        let mut c = controller(Mission::Goal([10.0, 0.0]), [10.0, 0.0]);
+        c.kind = ControllerKind::Dwa;
+        let tracks = [track(7, [3.0, 0.2], [-0.9, 0.0])];
+        let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 0.0, MAX_SPEED_M_S);
+        // Slightly to the left: pass it on the right, still walking.
+        assert!(command.yaw_rate_rad_s < 0.0, "{command:?}");
+        // With nobody around it heads straight for the goal at full speed.
+        let mut c = controller(Mission::Goal([10.0, 0.0]), [10.0, 0.0]);
+        c.kind = ControllerKind::Dwa;
+        let (command, _) = c.command(&[], [0.0, 0.0, 0.0], 0.0, MAX_SPEED_M_S);
+        assert_eq!(command.yaw_rate_rad_s, 0.0);
+        assert!((command.forward_speed_m_s - MAX_SPEED_M_S).abs() < 1e-12);
+    }
+
+    #[test]
+    fn dwa_does_not_walk_into_a_crossing_person() {
+        let mut c = controller(Mission::Goal([10.0, 0.0]), [10.0, 0.0]);
+        c.kind = ControllerKind::Dwa;
+        // Will be 1 m ahead on the robot's line in about 1.2 s.
+        let tracks = [track(1, [1.0, -1.2], [0.0, 1.0])];
+        let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 0.0, MAX_SPEED_M_S);
+        let (mut x, mut y, mut th) = (0.0, 0.0, 0.0);
+        for k in 1..=12 {
+            th += command.yaw_rate_rad_s * 0.25;
+            x += command.forward_speed_m_s * f64::cos(th) * 0.25;
+            y += command.forward_speed_m_s * f64::sin(th) * 0.25;
+            let t = f64::from(k) * 0.25;
+            assert!(
+                (1.0 - x).hypot(-1.2 + t - y) >= DWA_SAFE_M,
+                "{command:?} at {t} s"
+            );
+        }
     }
 
     #[test]
