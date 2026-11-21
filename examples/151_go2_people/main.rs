@@ -54,10 +54,12 @@ use rne_ai::{
 };
 use rne_ecs::{spawn_named, Entity};
 use rne_math::{Quat, Vec3};
+use rne_nav::{FrameId, LaserScan2d, OccupancyGrid, Pose2d};
 use rne_physics::{Collider, ColliderShape, RigidBody, RigidBodyType};
 use rne_sensor::{
     livox_mid360_spec, LidarRigOcclusion, LidarSpec, LidarSweep, LivoxMid360Pattern, SensorNoiseKey,
 };
+use rne_slam::{Slam2d, SlamConfig};
 use rne_world::Transform3;
 use serde_json::{json, Value};
 
@@ -144,6 +146,13 @@ impl Trajectory {
         let tail = Trajectory::path(&all, speed_m_s, time);
         self.keys.extend_from_slice(&tail.keys[1..]);
         self
+    }
+
+    /// The same path, `dt_s` later.
+    fn shifted(&self, dt_s: f64) -> Self {
+        Self {
+            keys: self.keys.iter().map(|(t, p)| (t + dt_s, *p)).collect(),
+        }
     }
 
     /// Position and velocity at `t`, or `None` outside the path's time span.
@@ -242,7 +251,64 @@ fn tasks() -> Vec<Task> {
                 Wall { center: [8.5, -1.7], half: [8.0, 0.1] },
             ],
         },
+        Task {
+            name: "room",
+            description: "Cross an 11 m room with furniture to a goal while three people walk through it",
+            duration_s: 90.0,
+            mission: Mission::Goal([11.0, -1.0]),
+            people: vec![
+                Trajectory::path(&[[9.0, 3.5], [3.0, -3.5]], 0.8, 6.0),
+                Trajectory::path(&[[2.0, 3.8], [10.0, 3.0], [10.0, -3.5]], 0.6, 12.0),
+                Trajectory::path(&[[11.5, -3.8], [6.0, 1.0], [1.0, 3.5]], 0.7, 25.0),
+            ],
+            walls: vec![
+                // The room: 14 m x 9 m.
+                Wall { center: [5.5, 4.5], half: [7.1, 0.1] },
+                Wall { center: [5.5, -4.5], half: [7.1, 0.1] },
+                Wall { center: [-1.5, 0.0], half: [0.1, 4.5] },
+                Wall { center: [12.5, 0.0], half: [0.1, 4.5] },
+                // Two tables, a shelf and two pillars, clear of the straight path.
+                Wall { center: [3.0, 2.6], half: [0.8, 0.45] },
+                Wall { center: [7.5, -2.9], half: [0.6, 0.6] },
+                Wall { center: [9.0, 3.6], half: [1.2, 0.25] },
+                Wall { center: [5.0, -1.9], half: [0.2, 0.2] },
+                Wall { center: [8.5, 1.5], half: [0.2, 0.2] },
+            ],
+        },
     ]
+}
+
+/// Trials shift every person's start by up to this much (seeded).
+const TRIAL_SHIFT_S: f64 = 2.0;
+
+/// The task for trial `trial`: trial 0 is the task as written; later trials
+/// start each person (but a follow target) up to TRIAL_SHIFT_S earlier or
+/// later, from a seed made of the task name, the trial and the person.
+fn trial_task(task: &Task, trial: u32) -> Task {
+    let mut task = task.clone();
+    if trial == 0 {
+        return task;
+    }
+    let target = match task.mission {
+        Mission::Follow { target } => Some(target),
+        Mission::Goal(_) => None,
+    };
+    let name_hash = task.name.bytes().fold(0xcbf2_9ce4_8422_2325_u64, |h, b| {
+        (h ^ u64::from(b)).wrapping_mul(0x100_0000_01b3)
+    });
+    for (index, person) in task.people.iter_mut().enumerate() {
+        if Some(index) == target {
+            continue;
+        }
+        let mut z = name_hash ^ (u64::from(trial) << 32) ^ index as u64;
+        z = z.wrapping_add(0x9E37_79B9_7F4A_7C15);
+        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+        z ^= z >> 31;
+        let unit = (z >> 11) as f64 / (1_u64 << 53) as f64;
+        *person = person.shifted((2.0 * unit - 1.0) * TRIAL_SHIFT_S);
+    }
+    task
 }
 
 /// Where the robot's perception comes from.
@@ -255,6 +321,10 @@ enum Source {
     NearestMap,
     /// The external tracker on detections filtered by the static map.
     TrackerMap,
+    /// `NearestMap` localized by 2D SLAM instead of odometry alone.
+    NearestSlam,
+    /// `TrackerMap` localized by 2D SLAM instead of odometry alone.
+    TrackerSlam,
 }
 
 impl Source {
@@ -265,11 +335,20 @@ impl Source {
             Source::Tracker => "tracker",
             Source::NearestMap => "nearest+map",
             Source::TrackerMap => "tracker+map",
+            Source::NearestSlam => "nearest+slam",
+            Source::TrackerSlam => "tracker+slam",
         }
     }
 
     fn uses_map(self) -> bool {
-        matches!(self, Source::NearestMap | Source::TrackerMap)
+        matches!(
+            self,
+            Source::NearestMap | Source::TrackerMap | Source::NearestSlam | Source::TrackerSlam
+        )
+    }
+
+    fn uses_slam(self) -> bool {
+        matches!(self, Source::NearestSlam | Source::TrackerSlam)
     }
 }
 
@@ -407,7 +486,9 @@ impl Controller {
             }
             let across = -track.velocity[0] * heading[1] + track.velocity[1] * heading[0];
             let along = track.velocity[0] * heading[0] + track.velocity[1] * heading[1];
-            if across.abs() > 0.3 && along > -0.5 {
+            // Someone coming toward the robot (even diagonally) does not clear
+            // the path by the robot waiting: change lanes instead.
+            if across.abs() > 0.3 && along > -0.3 {
                 // Crossing: wait if its predicted path passes too close.
                 let w = [
                     track.velocity[0] - own_velocity[0],
@@ -759,16 +840,203 @@ impl Perceiver {
     ) -> Vec<Track> {
         match self.source {
             Source::Oracle => self.oracle.tracks(people, truth, odom),
-            Source::Nearest | Source::NearestMap => {
+            Source::Nearest | Source::NearestMap | Source::NearestSlam => {
                 self.nearest.update(detections, time_s, FRAME_S)
             }
-            Source::Tracker | Source::TrackerMap => self
+            Source::Tracker | Source::TrackerMap | Source::TrackerSlam => self
                 .external
                 .as_mut()
                 .expect("--tracker is required for the tracker source")
                 .update(detections, time_s)
                 .expect("tracker update"),
         }
+    }
+}
+
+/// 2D SLAM (`rne_slam`, as in example 131) on a scan of the returns 0.15–0.65 m
+/// above the floor, without the returns of detected people, correcting the
+/// odometry on keyframes by at most a few centimetres each.
+struct Localizer {
+    slam: Slam2d,
+    slam_pose: Pose2d,
+    odom_at_slam: Pose2d,
+    /// Keyframes left out because their scan was degenerate.
+    skipped_degenerate: u32,
+    /// Keyframes processed.
+    keyframes: u32,
+    /// Normal spread of the last keyframe scan.
+    last_spread: Option<f64>,
+}
+
+/// Below this ratio of the smaller to the larger eigenvalue of the scan's
+/// normal information, the scan constrains only one direction. Measured in
+/// these tasks: 0.11-0.21 in the corridor, 0.41-0.96 in the room.
+const DEGENERACY_RATIO: f64 = 0.3;
+
+/// Whether a scan's surfaces all face (nearly) one way, so that scan
+/// matching cannot fix the motion along them. Normals come from neighbouring
+/// beams; `sum(n n^T)` has one small eigenvalue for a corridor.
+fn degenerate(ranges: &[f64], increment: f64) -> bool {
+    normal_spread(ranges, increment).is_some_and(|ratio| ratio < DEGENERACY_RATIO)
+}
+
+/// Smaller over larger eigenvalue of the scan's normal information, or
+/// `None` when the scan has too few surfaces to tell.
+fn normal_spread(ranges: &[f64], increment: f64) -> Option<f64> {
+    let point = |i: usize| {
+        let a = -PI + (i as f64 + 0.5) * increment;
+        [ranges[i] * a.cos(), ranges[i] * a.sin()]
+    };
+    let (mut xx, mut xy, mut yy) = (0.0, 0.0, 0.0);
+    for i in 0..ranges.len() {
+        let j = (i + 1) % ranges.len();
+        if ranges[i].is_nan() || ranges[j].is_nan() {
+            continue;
+        }
+        let (p, q) = (point(i), point(j));
+        let t = [q[0] - p[0], q[1] - p[1]];
+        let length = t[0].hypot(t[1]);
+        // Skip jumps between surfaces.
+        if !(1e-6..0.3).contains(&length) {
+            continue;
+        }
+        let n = [-t[1] / length, t[0] / length];
+        xx += n[0] * n[0];
+        xy += n[0] * n[1];
+        yy += n[1] * n[1];
+    }
+    let trace = xx + yy;
+    if trace < 1.0 {
+        return None;
+    }
+    let root = ((xx - yy).powi(2) / 4.0 + xy * xy).sqrt();
+    Some((trace / 2.0 - root) / (trace / 2.0 + root))
+}
+
+/// Scan band for SLAM: low enough to see walls and furniture.
+const SLAM_BAND_M: (f64, f64) = (0.15, 0.65);
+const SLAM_BEAMS: usize = 720;
+const SLAM_RANGE_M: (f64, f64) = (0.4, 20.0);
+/// A keyframe every this much motion (as in example 131).
+const KEYFRAME_TRANSLATION_M: f64 = 0.15;
+const KEYFRAME_ROTATION_RAD: f64 = 0.15;
+/// The SLAM grid covers the task area around the start.
+const SLAM_GRID_ORIGIN_M: [f64; 2] = [-5.0, -8.0];
+const SLAM_GRID_SIZE_M: [f64; 2] = [26.0, 18.0];
+const SLAM_RESOLUTION_M: f64 = 0.05;
+/// Scan-matching search half-windows per keyframe.
+const SLAM_MAX_CORRECTION_M: f64 = 0.05;
+const SLAM_MAX_CORRECTION_RAD: f64 = 0.02;
+/// Beams on mapped structure a match needs.
+const SLAM_MIN_BEAMS: usize = 80;
+/// Returns this close to a detected person are left out of the SLAM scan.
+const SLAM_PERSON_CLEARANCE_M: f64 = 0.5;
+
+fn pose2d(p: Pose) -> Pose2d {
+    Pose2d::new(p[0], p[1], p[2])
+}
+
+impl Localizer {
+    fn new(start: Pose) -> Self {
+        let grid = OccupancyGrid::new(
+            (SLAM_GRID_SIZE_M[0] / SLAM_RESOLUTION_M) as usize,
+            (SLAM_GRID_SIZE_M[1] / SLAM_RESOLUTION_M) as usize,
+            SLAM_RESOLUTION_M,
+            Pose2d::new(
+                start[0] + SLAM_GRID_ORIGIN_M[0],
+                start[1] + SLAM_GRID_ORIGIN_M[1],
+                0.0,
+            ),
+        )
+        .expect("SLAM grid");
+        let mut config = SlamConfig {
+            max_beams: 360,
+            ..SlamConfig::default()
+        };
+        config.matcher.linear_samples = 7;
+        config.matcher.angular_samples = 7;
+        config.matcher.levels = 4;
+        // Small corrections only: on open floor the scan holds little but
+        // people, and in a corridor nothing pins the motion along it, so a
+        // wide search slides or flips the pose. Odometry carries the rest.
+        config.matcher.linear_window_m = SLAM_MAX_CORRECTION_M;
+        config.matcher.angular_window_rad = SLAM_MAX_CORRECTION_RAD;
+        // Scans with little static structure are not matched at all.
+        config.matcher.min_valid_beams = SLAM_MIN_BEAMS;
+        Self {
+            slam: Slam2d::new(grid, config),
+            slam_pose: pose2d(start),
+            odom_at_slam: pose2d(start),
+            skipped_degenerate: 0,
+            keyframes: 0,
+            last_spread: None,
+        }
+    }
+
+    /// The best pose now: the last SLAM pose moved by the odometry since.
+    fn estimate(&self, odom: Pose) -> Pose {
+        let p = self
+            .slam_pose
+            .compose(self.odom_at_slam.inverse().compose(pose2d(odom)));
+        [p.x_m, p.y_m, p.yaw_rad]
+    }
+
+    /// Processes a frame (base-frame points) as a keyframe when the robot
+    /// has moved enough since the last one.
+    fn update(&mut self, points: &[[f64; 3]], odom: Pose, time_s: f64, people: &[[f64; 2]]) {
+        let since = self.odom_at_slam.inverse().compose(pose2d(odom));
+        let keyframe = self.slam.scans_processed() == 0
+            || since.x_m.hypot(since.y_m) >= KEYFRAME_TRANSLATION_M
+            || since.yaw_rad.abs() >= KEYFRAME_ROTATION_RAD;
+        if !keyframe {
+            return;
+        }
+        let increment = 2.0 * PI / SLAM_BEAMS as f64;
+        let mut ranges = vec![f64::NAN; SLAM_BEAMS];
+        for p in points {
+            if p[2] < SLAM_BAND_M.0 || p[2] > SLAM_BAND_M.1 {
+                continue;
+            }
+            let range = p[0].hypot(p[1]);
+            if range < SLAM_RANGE_M.0 || range > SLAM_RANGE_M.1 {
+                continue;
+            }
+            // People move: their returns would drag the match.
+            if people
+                .iter()
+                .any(|q| (q[0] - p[0]).hypot(q[1] - p[1]) < SLAM_PERSON_CLEARANCE_M)
+            {
+                continue;
+            }
+            let beam = ((p[1].atan2(p[0]) + PI) / increment).floor() as usize % SLAM_BEAMS;
+            if ranges[beam].is_nan() || range < ranges[beam] {
+                ranges[beam] = range;
+            }
+        }
+        self.last_spread = normal_spread(&ranges, increment);
+        if degenerate(&ranges, increment) {
+            // Nothing in the scan pins the motion along one direction (two
+            // parallel walls): matching would slide along it. Odometry only.
+            self.skipped_degenerate += 1;
+            return;
+        }
+        let scan = LaserScan2d {
+            time_s,
+            frame: FrameId::new("base_level"),
+            angle_min_rad: -PI + 0.5 * increment,
+            angle_increment_rad: increment,
+            range_min_m: SLAM_RANGE_M.0,
+            range_max_m: SLAM_RANGE_M.1,
+            ranges_m: ranges,
+        };
+        // The points are already in the base frame.
+        let update = self
+            .slam
+            .process(&scan, pose2d(odom), Pose2d::new(0.0, 0.0, 0.0))
+            .expect("SLAM update");
+        self.keyframes += 1;
+        self.slam_pose = update.pose;
+        self.odom_at_slam = pose2d(odom);
     }
 }
 
@@ -810,7 +1078,7 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
         nearest: NearestTracker::default(),
         map: source.uses_map().then(perception::StaticMap::default),
         external: match (source, tracker_command) {
-            (Source::Tracker | Source::TrackerMap, Some(command)) => {
+            (Source::Tracker | Source::TrackerMap | Source::TrackerSlam, Some(command)) => {
                 Some(ExternalTracker::spawn(command).expect("start the tracker"))
             }
             _ => None,
@@ -828,6 +1096,7 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
     };
     // Odometry starts at the true start pose, so its frame is the world plane.
     let mut odom = start;
+    let mut localizer = source.uses_slam().then(|| Localizer::new(start));
     let mut command = UnitreeGo2TrotCommand::default();
     let mut frame_start = sim
         .named_mount_transform("base", &unitree_go2_mid360_mount())
@@ -846,13 +1115,15 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
             people_now = place_people(&mut sim, task, &people, start, trot.time_s());
             trot.step(&mut sim, command);
             integrate_odometry(&sim, &mut odom, dt);
+            // What the robot believes its pose is.
+            let belief = localizer.as_ref().map_or(odom, |l| l.estimate(odom));
             score.fell |= sim.observe().base_y_m < 0.15;
             score.observe_step(&people_now, true_pose(&sim), dt);
             // Arrived when the robot believes it is at the goal (its
             // odometry); the true remaining distance is reported apart.
             if let Mission::Goal(goal) = task.mission {
                 let g = place(start, goal);
-                if (g[0] - odom[0]).hypot(g[1] - odom[1]) < GOAL_TOLERANCE_M {
+                if (g[0] - belief[0]).hypot(g[1] - belief[1]) < GOAL_TOLERANCE_M {
                     score.goal_time_s = Some(trot.time_s());
                 }
             }
@@ -874,6 +1145,19 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
         frame += 1;
         let truth = true_pose(&sim);
         let points = base_frame_points(&cloud, truth);
+        if let Some(localizer) = localizer.as_mut() {
+            // Person clusters in the base frame (identity pose).
+            let people: Vec<[f64; 2]> = detect_people(&points, [0.0, 0.0, 0.0])
+                .iter()
+                .map(|d| d.position)
+                .collect();
+            localizer.update(&points, odom, trot.time_s(), &people);
+        }
+        // The pose the robot perceives and acts in: SLAM-corrected, or odometry.
+        let odom_raw = odom;
+        let odom = localizer
+            .as_ref()
+            .map_or(odom_raw, |l| l.estimate(odom_raw));
         let detections = match perceiver.map.as_mut() {
             Some(map) => {
                 // Filter with what was static before this frame, then add it.
@@ -899,6 +1183,7 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
             "command": [command.forward_speed_m_s, command.yaw_rate_rad_s],
             "detections": detections.len(), "tracks": tracks.len(),
             "target": chosen.map(|t| t.id), "closest_m": (closest < f64::MAX).then_some(closest),
+            "spread": localizer.as_ref().and_then(|l| l.last_spread),
         }));
         if let Mission::Follow { target } = task.mission {
             score.observe_follow(target as u64, &people_now, truth, odom, chosen);
@@ -919,16 +1204,61 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
     )
 }
 
+/// One row per task and source, over all trials.
+fn print_summary(results: &[Value], tasks: &[Task], sources: &[Source]) {
+    let f = |v: Option<f64>| v.map_or("-".to_owned(), |x| format!("{x:.2}"));
+    let mean = |values: Vec<f64>| {
+        (!values.is_empty()).then(|| values.iter().sum::<f64>() / values.len() as f64)
+    };
+    println!("| task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost |");
+    println!("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+    for task in tasks {
+        for source in sources {
+            let rows: Vec<&Value> = results
+                .iter()
+                .filter(|r| r["task"] == task.name && r["source"] == source.name())
+                .collect();
+            let field = |key: &str| {
+                rows.iter()
+                    .filter_map(|r| r[key].as_f64())
+                    .collect::<Vec<f64>>()
+            };
+            let contacts: Vec<u64> = rows
+                .iter()
+                .map(|r| r["contacts"].as_u64().unwrap_or(0))
+                .collect();
+            println!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                task.name,
+                source.name(),
+                rows.len(),
+                rows.iter().filter(|r| r["fell"] == true).count(),
+                contacts.iter().filter(|c| **c > 0).count(),
+                contacts.iter().sum::<u64>(),
+                f(mean(field("min_distance_m"))),
+                f(field("min_distance_m").into_iter().reduce(f64::min)),
+                f(mean(field("near_miss_s"))),
+                f(mean(field("goal_distance_m"))),
+                f(mean(field("follow_error_m"))),
+                f(mean(field("wrong_target_fraction"))),
+                f(mean(field("lost_fraction"))),
+            );
+        }
+    }
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut out = PathBuf::from("target/go2_people");
     let mut only: Option<String> = None;
     let mut tracker: Option<Vec<String>> = None;
     let mut duration: Option<f64> = None;
+    let mut trials: u32 = 1;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--out" => out = PathBuf::from(args.next().ok_or("--out needs a directory")?),
             "--task" => only = Some(args.next().ok_or("--task needs a name")?),
+            "--trials" => trials = args.next().ok_or("--trials needs a count")?.parse()?,
             "--duration-s" => {
                 duration = Some(args.next().ok_or("--duration-s needs seconds")?.parse()?)
             }
@@ -955,9 +1285,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "near_plane": 0.3,
         }))?,
     )?;
-    let mut sources = vec![Source::Oracle, Source::Nearest, Source::NearestMap];
+    let mut sources = vec![
+        Source::Oracle,
+        Source::Nearest,
+        Source::NearestMap,
+        Source::NearestSlam,
+    ];
     if tracker.is_some() {
-        sources.extend([Source::Tracker, Source::TrackerMap]);
+        sources.extend([Source::Tracker, Source::TrackerMap, Source::TrackerSlam]);
     }
     let selected: Vec<Task> = tasks()
         .into_iter()
@@ -972,57 +1307,56 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if selected.is_empty() {
         return Err("no task matched --task".into());
     }
-    let jobs: Vec<(&Task, Source)> = selected
-        .iter()
-        .flat_map(|t| sources.iter().map(move |s| (t, *s)))
-        .collect();
-    let runs: Vec<(Value, Vec<Value>)> = std::thread::scope(|scope| {
-        let handles: Vec<_> = jobs
-            .iter()
-            .map(|(task, source)| {
-                let tracker = tracker.as_deref();
-                scope.spawn(move || run(task, *source, tracker))
+    let mut jobs: Vec<(Task, Source, u32)> = Vec::new();
+    for task in &selected {
+        for trial in 0..trials {
+            let shifted = trial_task(task, trial);
+            for source in &sources {
+                jobs.push((shifted.clone(), *source, trial));
+            }
+        }
+    }
+    // A pool as large as the machine: each run holds a full simulation.
+    let workers = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let mut runs: Vec<(usize, Value, Vec<Value>)> = std::thread::scope(|scope| {
+        let handles: Vec<_> = (0..workers.min(jobs.len()))
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut mine = Vec::new();
+                    loop {
+                        let index = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        let Some((task, source, trial)) = jobs.get(index) else {
+                            break;
+                        };
+                        let (mut result, trace) = run(task, *source, tracker.as_deref());
+                        result["trial"] = json!(trial);
+                        mine.push((index, result, trace));
+                    }
+                    mine
+                })
             })
             .collect();
         handles
             .into_iter()
-            .map(|h| h.join().unwrap_or_else(|p| std::panic::resume_unwind(p)))
+            .flat_map(|h| h.join().unwrap_or_else(|p| std::panic::resume_unwind(p)))
             .collect()
     });
+    runs.sort_by_key(|(index, _, _)| *index);
     let mut results = Vec::new();
-    for (result, trace) in runs {
-        let name = format!(
-            "{}_{}.jsonl",
-            result["task"].as_str().unwrap_or(""),
-            result["source"].as_str().unwrap_or("")
-        );
-        let lines: String = trace.iter().map(|r| format!("{r}\n")).collect();
-        fs::write(out.join(name), lines)?;
+    for (_, result, trace) in runs {
+        if result["trial"] == 0 {
+            let name = format!(
+                "{}_{}.jsonl",
+                result["task"].as_str().unwrap_or(""),
+                result["source"].as_str().unwrap_or("")
+            );
+            let lines: String = trace.iter().map(|r| format!("{r}\n")).collect();
+            fs::write(out.join(name), lines)?;
+        }
         results.push(result);
     }
-    let f = |v: &Value| v.as_f64().map_or("-".to_owned(), |x| format!("{x:.2}"));
-    println!("| task | perception | fell | contacts | closest (m) | < 0.8 m (s) | goal (s) | left to goal (m) | follow error (m) | wrong target | lost |");
-    println!("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
-    for r in &results {
-        println!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
-            r["task"].as_str().unwrap_or(""),
-            r["source"].as_str().unwrap_or(""),
-            if r["fell"] == true {
-                format!("at {:.1} s", r["duration_s"].as_f64().unwrap_or(0.0))
-            } else {
-                "no".to_owned()
-            },
-            r["contacts"],
-            f(&r["min_distance_m"]),
-            f(&r["near_miss_s"]),
-            f(&r["goal_time_s"]),
-            f(&r["goal_distance_m"]),
-            f(&r["follow_error_m"]),
-            f(&r["wrong_target_fraction"]),
-            f(&r["lost_fraction"]),
-        );
-    }
+    print_summary(&results, &selected, &sources);
     fs::write(
         out.join("results.json"),
         serde_json::to_string_pretty(&results)?,
