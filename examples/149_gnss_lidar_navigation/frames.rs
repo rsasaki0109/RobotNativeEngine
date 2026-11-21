@@ -3,9 +3,10 @@
 //! source and the sky at the robot. `scripts/svg_frames_to_gif.py` turns the
 //! frames into a GIF.
 
-use crate::gnss::{SolutionLabel, BASE_ENU_M};
+use crate::city::{Patch, Signals, Vehicle, BASE_ENU_M, OFFICE};
+use crate::gnss::SolutionLabel;
 use crate::{
-    draw_buildings, source_index, to_px, RunLog, MAP_VIEW, OFFICE, PX_PER_M, SOURCE_COLORS,
+    draw_buildings, draw_ground, source_index, to_px, RunLog, MAP_VIEW, PX_PER_M, SOURCE_COLORS,
 };
 use rne_gnss::{GnssEpoch, GnssScene, SignalPath};
 use rne_math::Vec3;
@@ -34,6 +35,8 @@ pub(crate) struct FrameRecord {
     pub(crate) heading_fixed: bool,
     pub(crate) epoch: Option<GnssEpoch>,
     pub(crate) scan_points: Vec<(f64, f64)>,
+    pub(crate) vehicles: Vec<Vehicle>,
+    pub(crate) signals: Signals,
 }
 
 fn px(x: f64, y: f64) -> (f64, f64) {
@@ -45,6 +48,7 @@ fn px(x: f64, y: f64) -> (f64, f64) {
 pub(crate) fn write_frames(
     dir: &Path,
     scene: &GnssScene,
+    ground: &[Patch],
     log: &RunLog,
     frames: &[FrameRecord],
 ) -> std::io::Result<usize> {
@@ -52,13 +56,13 @@ pub(crate) fn write_frames(
     for (index, frame) in frames.iter().step_by(SVG_STRIDE).enumerate() {
         std::fs::write(
             dir.join(format!("frame_{index:04}.svg")),
-            render_frame(scene, log, frame),
+            render_frame(scene, ground, log, frame),
         )?;
     }
     Ok(frames.len().div_ceil(SVG_STRIDE))
 }
 
-fn render_frame(scene: &GnssScene, log: &RunLog, frame: &FrameRecord) -> String {
+fn render_frame(scene: &GnssScene, ground: &[Patch], log: &RunLog, frame: &FrameRecord) -> String {
     let [x0, y0, x1, y1] = MAP_VIEW;
     let width = (x1 - x0) * PX_PER_M + 20.0;
     let height = (y1 - y0) * PX_PER_M + 50.0 + MAP_SHIFT_PX + 10.0;
@@ -69,7 +73,27 @@ fn render_frame(scene: &GnssScene, log: &RunLog, frame: &FrameRecord) -> String 
     );
     // The map, shifted below the header.
     let _ = writeln!(svg, r##"<g transform="translate(0,{MAP_SHIFT_PX})">"##);
+    draw_ground(&mut svg, ground);
     draw_buildings(&mut svg, scene);
+    // Vehicles.
+    for v in &frame.vehicles {
+        let b = v.scene_box();
+        let (u0, v1) = to_px(b.min_m.x, b.min_m.y);
+        let (u1, v0) = to_px(b.max_m.x, b.max_m.y);
+        let fill = if v.kind == "bus" {
+            "#1f7a5a"
+        } else {
+            [
+                "#c81e24", "#eeeeee", "#22262c", "#2a5aaa", "#a0a6ac", "#dcaa28",
+            ][v.color % 6]
+        };
+        let _ = write!(
+            svg,
+            r##"<rect x="{u0:.1}" y="{v0:.1}" width="{:.1}" height="{:.1}" fill="{fill}" stroke="#252525" stroke-width="0.5"/>"##,
+            u1 - u0,
+            v1 - v0
+        );
+    }
     svg.push_str("</g>\n");
     let (ox, oy) = px(OFFICE[0], OFFICE[3]);
     let _ = writeln!(
@@ -78,7 +102,7 @@ fn render_frame(scene: &GnssScene, log: &RunLog, frame: &FrameRecord) -> String 
         oy - 6.0
     );
     let (bx, by) = px(BASE_ENU_M.x, BASE_ENU_M.y);
-    let (lx, ly) = px(BASE_ENU_M.x, 40.5);
+    let (lx, ly) = px(BASE_ENU_M.x, 45.5);
     let _ = writeln!(
         svg,
         r##"<path d="M{bx:.1},{:.1} l4,8 l-8,0 z" fill="#6a51a3"/><text x="{lx:.1}" y="{ly:.1}" text-anchor="middle" fill="#3f007d" font-size="11">RTK base on the rooftop ▼</text>"##,

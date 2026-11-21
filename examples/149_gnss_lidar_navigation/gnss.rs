@@ -3,6 +3,7 @@
 //! (front antenna against the rear) for heading. Without libgnss++ the rear
 //! antenna's built-in single-point fixes are used instead.
 
+use crate::city::BASE_ENU_M;
 use rne_adapter_gnsspp::{Navigation, Rtk, RtkConfig, RtkMode, Solution, SolutionStatus};
 use rne_gnss::{
     AntennaRig, BodyPose, Constellation, EnuFrame, GnssEpoch, GnssFix, GnssReceiver, GnssScene,
@@ -17,8 +18,6 @@ const FRONT: usize = 0;
 const REAR: usize = 1;
 /// Height of the body origin above the ground.
 pub(crate) const BODY_HEIGHT_M: f64 = 0.3;
-/// Base-station antenna: on the roof of the 40 m glass tower.
-pub(crate) const BASE_ENU_M: Vec3 = Vec3::new(110.0, 28.0, 41.5);
 const ELEVATION_MASK_DEG: f64 = 10.0;
 
 /// What the GNSS produced at one epoch.

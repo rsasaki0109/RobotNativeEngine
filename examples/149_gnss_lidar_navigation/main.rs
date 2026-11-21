@@ -1,6 +1,8 @@
-//! GNSS outdoors, LiDAR indoors: a robot drives from an open plaza down an
-//! urban canyon into an office building and back, localizing with ray-traced
-//! GNSS outside and LiDAR Monte Carlo localization inside.
+//! GNSS outdoors, LiDAR indoors: a robot walks from a plaza along the
+//! sidewalk of a downtown main street (crossing side streets on the
+//! pedestrian signal, among traffic that obeys the signals) into an office
+//! building and back, localizing with ray-traced GNSS outside and LiDAR
+//! Monte Carlo localization inside.
 //!
 //! * GNSS: `rne_gnss` ray traces 48 GPS + Galileo satellites through the
 //!   buildings every epoch (direct paths, up to two wall/ground bounces, and
@@ -11,7 +13,8 @@
 //!   libgnss++ (see `scripts/build_gnsspp.sh`) the rear antenna's built-in
 //!   single-point fixes are used.
 //! * LiDAR: a 360-beam planar scan ray cast against the same geometry, matched
-//!   against a prior occupancy map of the building.
+//!   against a prior occupancy map of the route (buildings and street
+//!   furniture), and used for a reactive obstacle stop.
 //! * `rne_slam::HybridLocalizer` decides which source corrects the wheel/gyro
 //!   EKF, and pure pursuit steers on the *estimated* pose.
 //!
@@ -32,10 +35,12 @@ mod frames;
 mod gnss;
 mod trace;
 
-use gnss::{GnssOutput, RobotGnss, SolutionLabel, BASE_ENU_M, BODY_HEIGHT_M};
+use city::BASE_ENU_M;
+use gnss::{GnssOutput, RobotGnss, SolutionLabel, BODY_HEIGHT_M};
 use rne_core::DeterministicRng;
 use rne_gnss::{
     BodyPose, Constellation, EnuFrame, Geodetic, GnssEpoch, GnssScene, ReceiverConfig, SignalPath,
+    TraceConfig,
 };
 use rne_math::Vec3;
 use rne_nav::{
@@ -58,12 +63,14 @@ const MAX_TIME_S: f64 = 900.0;
 use city::OFFICE;
 /// Prior LiDAR map extent `[x0, y0, x1, y1]`: the whole route, outdoors
 /// included, as a robot that maps its site beforehand would have.
-const MAP: [f64; 4] = [-14.0, -42.0, 165.0, 42.0];
+const MAP: [f64; 4] = [10.0, -55.0, 180.0, 22.0];
 /// The office-only map of `--indoor-map-only`.
-const INDOOR_MAP: [f64; 4] = [118.0, -16.0, 165.0, 16.0];
+const INDOOR_MAP: [f64; 4] = [132.0, -52.0, 178.0, -14.0];
 const MAP_RESOLUTION_M: f64 = 0.1;
 /// Dead reckoning longer than this stops the robot until it relocalizes.
 const MAX_DEAD_RECKONING_S: f64 = 3.0;
+/// A LiDAR return closer than this ahead stops forward motion.
+const STOP_DISTANCE_M: f64 = 0.6;
 
 fn main() {
     let (svg_path, frames_dir, trace_path) = output_args();
@@ -84,10 +91,11 @@ fn main() {
         run.gnss.base_epoch(),
     );
     let map_scene = run.city.map_scene();
+    let ground = run.city.ground.clone();
     write_outputs(
         &svg_path,
         frames_dir.as_deref(),
-        &map_scene,
+        (&map_scene, &ground),
         &run.log,
         &run.frames,
     );
@@ -118,6 +126,10 @@ struct Run {
     last_scan_points: Vec<(f64, f64)>,
     dead_reckoning_s: f64,
     stopped: bool,
+    waiting: bool,
+    blocked: bool,
+    /// Nearest LiDAR return ahead of the robot, from the latest scan.
+    front_clearance_m: f64,
     map_aided_gnss: bool,
 }
 
@@ -138,7 +150,7 @@ impl Run {
         let gnss = RobotGnss::new(
             &constellation,
             frame,
-            ReceiverConfig::default(),
+            receiver_config(),
             SKY_EPOCH_S + 300.0,
         );
         println!(
@@ -161,6 +173,10 @@ impl Run {
             // out of the canyon can be metres off with a confident covariance.
             config.enter_gnss_min_kind = FixKind::Fixed;
             config.min_float_variance_m2 = 4.0;
+            // With RTK in charge outdoors the estimate going into LiDAR mode
+            // is good; gate LiDAR matches so that scans sliding along a
+            // facade or matching parked cars cannot drag it.
+            config.lidar_gate_chi_square = 9.21;
         }
         let hybrid = HybridLocalizer::new(prior_map, start, config).expect("localizer");
         let gnss_only =
@@ -185,6 +201,9 @@ impl Run {
             last_scan_points: Vec::new(),
             dead_reckoning_s: 0.0,
             stopped: false,
+            waiting: false,
+            blocked: false,
+            front_clearance_m: f64::INFINITY,
             map_aided_gnss,
         }
     }
@@ -195,7 +214,9 @@ impl Run {
         let Some(command) = self.follower.command(self.hybrid.pose()) else {
             return false;
         };
+        let command = self.crossing_gate(command, t);
         let command = self.safety_gate(command);
+        let command = self.obstacle_gate(command);
         self.truth = integrate(self.truth, command.linear_m_s, command.angular_rad_s, DT_S);
 
         // Wheel speed with a 1 % scale error and a gyro yaw rate with a
@@ -214,11 +235,13 @@ impl Run {
             )
             .expect("odometry");
 
-        let world = self.city.world_scene(t);
+        self.city.step_traffic(t, DT_S);
+        let world = self.city.world_scene();
         self.step_gnss(&world, t);
         if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
             let scan = lidar_scan(&world, self.truth, t, &mut self.rng);
             self.log.clearance_m = self.log.clearance_m.min(min_range(&scan));
+            self.front_clearance_m = front_range(&scan);
             if self.recording {
                 self.last_scan_points = scan_world_points(&scan, self.truth);
             }
@@ -246,9 +269,35 @@ impl Run {
                 heading_fixed: self.last_heading,
                 epoch: self.gnss.rear_epoch().cloned(),
                 scan_points: self.last_scan_points.clone(),
+                vehicles: self.city.vehicles.clone(),
+                signals: city::signals_at(t),
             });
         }
         true
+    }
+
+    /// Waits at the kerb of a cross street until pedestrians may cross: the
+    /// main-street green with enough of it left to reach the far side.
+    fn crossing_gate(&mut self, command: VelocityCommand2d, t: f64) -> VelocityCommand2d {
+        let pose = self.hybrid.pose();
+        let on_sidewalk = (-city::MAIN_HALF_ROW_M..-city::MAIN_HALF_ROAD_M).contains(&pose.y_m);
+        let east = pose.yaw_rad.cos() > 0.5;
+        let west = pose.yaw_rad.cos() < -0.5;
+        let at_kerb = city::CROSS_STREETS_X.iter().any(|c| {
+            let near = c - pose.x_m;
+            (east && (9.0..11.5).contains(&near)) || (west && (-11.5..-9.0).contains(&near))
+        });
+        if on_sidewalk && at_kerb && !city::signals_at(t).walk_along_main {
+            if !self.waiting {
+                self.log.crossing_waits += 1;
+            }
+            self.waiting = true;
+            self.log.waiting_s += DT_S;
+            VelocityCommand2d::ZERO
+        } else {
+            self.waiting = false;
+            command
+        }
     }
 
     /// Safety stop: an autonomous robot does not keep driving on odometry
@@ -270,6 +319,24 @@ impl Run {
             VelocityCommand2d::ZERO
         } else {
             self.stopped = false;
+            command
+        }
+    }
+
+    /// Reactive stop on raw LiDAR ranges, independent of localization: the
+    /// robot does not drive into anything ahead of it even if it is lost.
+    fn obstacle_gate(&mut self, command: VelocityCommand2d) -> VelocityCommand2d {
+        if command.linear_m_s > 0.0 && self.front_clearance_m < STOP_DISTANCE_M {
+            if !self.blocked {
+                self.log.obstacle_stops += 1;
+            }
+            self.blocked = true;
+            VelocityCommand2d {
+                linear_m_s: 0.0,
+                ..command
+            }
+        } else {
+            self.blocked = false;
             command
         }
     }
@@ -320,6 +387,20 @@ impl Run {
     }
 }
 
+/// The robot's and the base station's receivers. Surfaces more than 90 m
+/// from an antenna are not traced: their reflections arrive more than a
+/// code chip late (no code multipath) and, after two such bounces, too weak.
+fn receiver_config() -> ReceiverConfig {
+    let default = ReceiverConfig::default();
+    ReceiverConfig {
+        trace: TraceConfig {
+            max_interaction_distance_m: 90.0,
+            ..default.trace
+        },
+        ..default
+    }
+}
+
 /// `--svg <path>`, `--frames <dir>` and `--trace <path>`.
 fn output_args() -> (
     String,
@@ -341,7 +422,7 @@ fn trace_output(
     log: &RunLog,
     frames: &[frames::FrameRecord],
 ) {
-    match trace::write_trace(path, city, &ReceiverConfig::default().trace, log, frames) {
+    match trace::write_trace(path, city, &receiver_config().trace, log, frames) {
         Ok(()) => println!("wrote 3D render trace {}", path.display()),
         Err(error) => println!("could not write {}: {error}", path.display()),
     }
@@ -351,11 +432,11 @@ fn trace_output(
 fn write_outputs(
     svg_path: &str,
     frames_dir: Option<&std::path::Path>,
-    scene: &GnssScene,
+    (scene, ground): (&GnssScene, &[city::Patch]),
     log: &RunLog,
     frames: &[frames::FrameRecord],
 ) {
-    let svg = render_svg(scene, log, SKY_EPOCH_S);
+    let svg = render_svg(scene, ground, log, SKY_EPOCH_S);
     if let Some(parent) = std::path::Path::new(svg_path).parent() {
         let _ = std::fs::create_dir_all(parent);
     }
@@ -364,7 +445,7 @@ fn write_outputs(
         Err(error) => println!("\ncould not write {svg_path}: {error}"),
     }
     if let Some(dir) = frames_dir {
-        match frames::write_frames(dir, scene, log, frames) {
+        match frames::write_frames(dir, scene, ground, log, frames) {
             Ok(count) => println!("wrote {count} animation frames to {}", dir.display()),
             Err(error) => println!("could not write frames to {}: {error}", dir.display()),
         }
@@ -408,24 +489,24 @@ fn build_prior_map(scene: &GnssScene, extent: [f64; 4]) -> OccupancyGrid {
     grid
 }
 
-/// Plaza → south sidewalk of the street → office (corridor, north room) →
-/// sidewalk → plaza, as a delivery robot would go.
-const ROUTE: [(f64, f64); 15] = [
-    (5.0, -2.0),
-    (36.0, -11.5),
-    (122.0, -11.5),
-    (127.0, -2.0),
-    (131.5, 0.0),
-    (149.0, 0.0),
-    (150.0, 7.0),
-    (141.0, 6.5),
-    (150.0, 6.0),
-    (150.5, 0.0),
-    (131.5, 0.0),
-    (127.0, -2.0),
-    (122.0, -11.0),
-    (36.0, -11.0),
-    (10.0, 3.0),
+/// Plaza → south sidewalk of the main street (over two crossings) → office
+/// forecourt → office (north room, south room) → back the same way, as a
+/// delivery robot would go.
+const ROUTE: [(f64, f64); 14] = [
+    (22.0, -42.0),
+    (30.0, -12.5),
+    (155.0, -12.5),
+    (155.0, -18.0),
+    (155.0, -26.0),
+    (154.0, -36.5),
+    (146.0, -38.0),
+    (154.0, -37.5),
+    (154.5, -28.0),
+    (155.0, -17.0),
+    (152.0, -12.0),
+    (30.0, -12.0),
+    (25.0, -30.0),
+    (22.0, -40.0),
 ];
 
 /// Follows the route one straight leg at a time (the route doubles back on
@@ -528,6 +609,19 @@ fn lidar_scan(scene: &GnssScene, pose: Pose2d, t: f64, rng: &mut DeterministicRn
     }
 }
 
+/// Nearest return within ±35° of straight ahead.
+fn front_range(scan: &LaserScan2d) -> f64 {
+    scan.ranges_m
+        .iter()
+        .enumerate()
+        .filter(|(i, r)| {
+            let angle = scan.angle_min_rad + *i as f64 * scan.angle_increment_rad;
+            r.is_finite() && angle.sin().atan2(angle.cos()).abs() < 35.0_f64.to_radians()
+        })
+        .map(|(_, r)| *r)
+        .fold(f64::INFINITY, f64::min)
+}
+
 fn min_range(scan: &LaserScan2d) -> f64 {
     scan.ranges_m
         .iter()
@@ -555,8 +649,8 @@ impl Zone {
 
     fn label(self) -> &'static str {
         match self {
-            Self::Plaza => "open plaza",
-            Self::Canyon => "urban canyon",
+            Self::Plaza => "plaza",
+            Self::Canyon => "main street",
             Self::Approach => "office forecourt",
             Self::Indoor => "indoor office",
         }
@@ -567,9 +661,9 @@ fn zone(pose: Pose2d) -> Zone {
     let [x0, y0, x1, y1] = OFFICE;
     if (x0..=x1).contains(&pose.x_m) && (y0..=y1).contains(&pose.y_m) {
         Zone::Indoor
-    } else if pose.x_m < 40.0 {
+    } else if pose.y_m < -15.0 && pose.x_m < 59.0 {
         Zone::Plaza
-    } else if pose.x_m < 120.0 {
+    } else if pose.x_m < 138.0 {
         Zone::Canyon
     } else {
         Zone::Approach
@@ -638,7 +732,10 @@ struct RunLog {
     headings_fused: usize,
     longest_dead_reckoning_s: f64,
     safety_stops: usize,
+    obstacle_stops: usize,
     stopped_s: f64,
+    crossing_waits: usize,
+    waiting_s: f64,
     /// Zone of each measured epoch whose solution has not been recorded yet.
     pending_zones: std::collections::VecDeque<Zone>,
 }
@@ -657,7 +754,10 @@ impl Default for RunLog {
             headings_fused: 0,
             longest_dead_reckoning_s: 0.0,
             safety_stops: 0,
+            obstacle_stops: 0,
             stopped_s: 0.0,
+            crossing_waits: 0,
+            waiting_s: 0.0,
             pending_zones: std::collections::VecDeque::new(),
         }
     }
@@ -724,7 +824,7 @@ impl RunLog {
             .count();
         if self.snapshot.is_none()
             && zone == Zone::Canyon
-            && (epoch.antenna_enu_m.x - 82.0).abs() < 1.0
+            && (epoch.antenna_enu_m.x - 93.0).abs() < 1.0
         {
             self.snapshot = Some(epoch.clone());
         }
@@ -890,6 +990,14 @@ impl RunLog {
             "  longest dead-reckoning stretch {:.1} s; {} safety stops ({:.1} s stopped, limit {MAX_DEAD_RECKONING_S:.0} s)",
             self.longest_dead_reckoning_s, self.safety_stops, self.stopped_s
         );
+        println!(
+            "  {} stops for an obstacle within {STOP_DISTANCE_M} m ahead",
+            self.obstacle_stops
+        );
+        println!(
+            "  waited {} times ({:.1} s) at crossings for the pedestrian signal",
+            self.crossing_waits, self.waiting_s
+        );
     }
 }
 
@@ -903,8 +1011,8 @@ fn source_index(source: LocalizationSource) -> usize {
 
 // ---------------------------------------------------------------- SVG output
 
-const MAP_VIEW: [f64; 4] = [-12.0, -44.0, 166.0, 44.0];
-const PX_PER_M: f64 = 5.2;
+const MAP_VIEW: [f64; 4] = [-5.0, -68.0, 185.0, 40.0];
+const PX_PER_M: f64 = 5.0;
 const SOURCE_COLORS: [&str; 3] = ["#1a9850", "#2c7fb8", "#f46d43"];
 
 fn to_px(x: f64, y: f64) -> (f64, f64) {
@@ -912,7 +1020,7 @@ fn to_px(x: f64, y: f64) -> (f64, f64) {
     ((x - x0) * PX_PER_M + 10.0, (y1 - y) * PX_PER_M + 40.0)
 }
 
-fn render_svg(scene: &GnssScene, log: &RunLog, sky_epoch_s: f64) -> String {
+fn render_svg(scene: &GnssScene, ground: &[city::Patch], log: &RunLog, sky_epoch_s: f64) -> String {
     let [x0, y0, x1, y1] = MAP_VIEW;
     let map_w = (x1 - x0) * PX_PER_M + 20.0;
     let map_h = (y1 - y0) * PX_PER_M + 50.0;
@@ -933,6 +1041,7 @@ fn render_svg(scene: &GnssScene, log: &RunLog, sky_epoch_s: f64) -> String {
         r##"<text x="10" y="24" font-size="16" font-weight="bold">GNSS outdoors (ray traced) / LiDAR indoors: top view</text>"##
     );
 
+    draw_ground(&mut svg, ground);
     draw_buildings(&mut svg, scene);
 
     // Raw GNSS fixes.
@@ -1066,6 +1175,35 @@ fn render_svg(scene: &GnssScene, log: &RunLog, sky_epoch_s: f64) -> String {
     svg
 }
 
+/// Carriageways, sidewalks, plaza and markings, clipped to the map view.
+fn draw_ground(svg: &mut String, ground: &[city::Patch]) {
+    let [x0, y0, x1, y1] = MAP_VIEW;
+    for patch in ground {
+        let [a, b, c, d] = patch.rect;
+        let (a, b, c, d) = (a.max(x0), b.max(y0), c.min(x1), d.min(y1));
+        if a >= c || b >= d {
+            continue;
+        }
+        let fill = match patch.kind {
+            "road" => "#8c8c8c",
+            "sidewalk" => "#e3ded4",
+            "plaza" | "forecourt" => "#ece7dc",
+            "block" => "#d4d0c8",
+            "floor" => "#f4f2ee",
+            _ => "#ffffff",
+        };
+        let (px0, py1) = to_px(a, b);
+        let (px1, py0) = to_px(c, d);
+        let _ = write!(
+            svg,
+            r##"<rect x="{px0:.1}" y="{py0:.1}" width="{:.1}" height="{:.1}" fill="{fill}"/>"##,
+            px1 - px0,
+            py1 - py0
+        );
+    }
+    svg.push('\n');
+}
+
 fn draw_buildings(svg: &mut String, scene: &GnssScene) {
     let [x0, y0, x1, y1] = MAP_VIEW;
     let (cx0, cy0) = to_px(x0, y1);
@@ -1140,7 +1278,7 @@ fn render_sky_plot(
     };
     let _ = writeln!(
         svg,
-        r##"<text x="20" y="{:.0}" font-size="14" font-weight="bold">Sky at the circled point in the canyon (t = {:.0} s)</text>"##,
+        r##"<text x="20" y="{:.0}" font-size="14" font-weight="bold">Sky at the circled point on the main street (t = {:.0} s)</text>"##,
         top - 4.0,
         epoch.time_s - sky_epoch_s
     );

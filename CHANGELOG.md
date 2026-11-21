@@ -26,14 +26,21 @@ All notable changes to Robot Native Engine are documented in this file.
   EKF; inside the prior map a wide scan match relocalizes and AMCL refined by
   a local scan match takes over.
 - `EkfFusion::update_yaw` and `EkfFusion::position_mahalanobis_squared`.
+- `HybridLocalizerConfig::lidar_gate_chi_square` (off by default): LiDAR
+  scan matches outside the gate count as poor matches instead of being
+  fused.
 - `rne_gnss`: foliage volumes (dB/m), non-reflective `ABSORBER` boxes, and a
   tracing distance limit.
-- Example 149: a delivery robot with two antennas drives along a sidewalk
-  among towers, street trees, furniture and traffic into an office and back,
-  with a rooftop RTK base, 3D-city-model NLOS exclusion before RTK, a LiDAR
-  map of the whole route, and a 3 s dead-reckoning safety stop (hybrid
-  position RMSE 0.05–0.14 m per zone, no dead reckoning, against up to 12 m
-  for an EKF fusing every GNSS solution). `--frames` writes animation frames that
+- Example 149: a delivery robot with two antennas walks through a downtown
+  street grid (a 4-lane main street, two cross streets, city blocks built to
+  the property line, signalised intersections with zebra crossings, and
+  traffic that keeps its lane, queues and stops on red) from a plaza into an
+  office and back, waiting at crossings for the pedestrian signal, with a
+  rooftop RTK base, 3D-city-model NLOS exclusion before RTK, a LiDAR map of
+  the whole route, a 3 s dead-reckoning safety stop and a reactive LiDAR
+  obstacle stop (hybrid position RMSE 0.01–0.05 m per zone, longest dead
+  reckoning 1.8 s, against up to 7 m for an EKF fusing every GNSS solution).
+  `--frames` writes animation frames that
   `scripts/svg_frames_to_gif.py` turns into `docs/media/gnss-lidar-navigation.gif`;
   `--trace` feeds the `149_gnss_lidar_navigation_render` example (feature
   `capture`), which renders the run in 3D with `rne_render_wgpu`

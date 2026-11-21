@@ -3,9 +3,9 @@
 //! tracked satellite signal's ray-traced path as a 3D polyline, the LiDAR
 //! returns, the localization source and the GNSS solution.
 
-use crate::city::{City, Layer, OFFICE};
+use crate::city::{City, Layer, BASE_ENU_M, OFFICE};
 use crate::frames::FrameRecord;
-use crate::gnss::{SolutionLabel, BASE_ENU_M, BODY_HEIGHT_M, LEVER_ARMS_M};
+use crate::gnss::{SolutionLabel, BODY_HEIGHT_M, LEVER_ARMS_M};
 use crate::RunLog;
 use rne_gnss::{trace_satellite, GnssScene, PathKind, SignalPath, TraceConfig};
 use rne_math::Vec3;
@@ -36,7 +36,14 @@ struct TraceVehicle {
     min: [f64; 3],
     max: [f64; 3],
     color: usize,
-    heading_east: bool,
+    heading: &'static str,
+    braking: bool,
+}
+
+#[derive(Serialize)]
+struct TracePatch {
+    rect: [f64; 4],
+    kind: &'static str,
 }
 
 #[derive(Serialize)]
@@ -65,6 +72,8 @@ struct TraceFrame {
     antennas: Vec<[f64; 3]>,
     rays: Vec<TraceRay>,
     vehicles: Vec<TraceVehicle>,
+    main_green: bool,
+    cross_green: bool,
     satellites: Vec<TraceSatellite>,
     lidar: Vec<[f64; 2]>,
     trail_samples: usize,
@@ -86,6 +95,7 @@ struct TraceFile {
     office: [f64; 4],
     boxes: Vec<TraceBox>,
     canopies: Vec<TraceCanopy>,
+    ground: Vec<TracePatch>,
     samples: Vec<TraceSample>,
     frames: Vec<TraceFrame>,
 }
@@ -186,6 +196,14 @@ pub(crate) fn write_trace(
                 max: c.max_m.to_array(),
             })
             .collect(),
+        ground: city
+            .ground
+            .iter()
+            .map(|g| TracePatch {
+                rect: g.rect,
+                kind: g.kind,
+            })
+            .collect(),
         samples: log
             .samples
             .iter()
@@ -223,21 +241,24 @@ pub(crate) fn write_trace(
                         })
                         .collect()
                 },
-                rays: rays(&city.world_scene(f.t), trace, f),
-                vehicles: city
+                rays: rays(&city.world_scene_with(&f.vehicles), trace, f),
+                vehicles: f
                     .vehicles
                     .iter()
                     .map(|v| {
-                        let b = v.scene_box(f.t);
+                        let b = v.scene_box();
                         TraceVehicle {
                             kind: v.kind,
                             min: b.min_m.to_array(),
                             max: b.max_m.to_array(),
                             color: v.color,
-                            heading_east: v.speed_m_s >= 0.0 && v.lane_y_m < 0.0,
+                            heading: v.heading.name(),
+                            braking: !v.parked && v.speed_m_s < 0.5 * v.max_speed_m_s,
                         }
                     })
                     .collect(),
+                main_green: f.signals.main_green,
+                cross_green: f.signals.cross_green,
                 satellites: f
                     .epoch
                     .iter()

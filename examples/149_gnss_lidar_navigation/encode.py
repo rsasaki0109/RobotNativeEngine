@@ -110,8 +110,8 @@ def main() -> None:
     parser.add_argument("output", type=Path, help="GIF to write")
     parser.add_argument("--stride", type=int, default=5, help="use every Nth rendered frame")
     parser.add_argument("--fps", type=float, default=7.0)
-    parser.add_argument("--width", type=int, default=560)
-    parser.add_argument("--colors", type=int, default=72)
+    parser.add_argument("--width", type=int, default=540)
+    parser.add_argument("--colors", type=int, default=64)
     args = parser.parse_args()
 
     trace = json.loads((args.capture / "trace.json").read_text())

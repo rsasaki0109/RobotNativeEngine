@@ -161,6 +161,12 @@ pub struct HybridLocalizerConfig {
     pub lidar_max_low_scores: usize,
     /// Per-axis variance of a fused AMCL position, in m².
     pub lidar_position_variance_m2: f64,
+    /// Squared Mahalanobis distance beyond which a LiDAR match is not fused.
+    /// Infinite (off) by default: a gate protects a well-localized estimate
+    /// from matches sliding along a corridor or street, but also keeps LiDAR
+    /// from correcting an estimate that a wrong GNSS fix left off. Enable it
+    /// (for example 9.21, the 99 % gate) when GNSS is RTK-grade.
+    pub lidar_gate_chi_square: f64,
     /// Variance of a fused AMCL yaw, in rad².
     pub lidar_yaw_variance_rad2: f64,
     /// Odometry forward-velocity variance.
@@ -202,6 +208,7 @@ impl Default for HybridLocalizerConfig {
             lidar_init_window_rad: (0.1, 0.6),
             lidar_max_low_scores: 20,
             lidar_position_variance_m2: 0.01,
+            lidar_gate_chi_square: f64::INFINITY,
             lidar_yaw_variance_rad2: 0.0025,
             odometry_linear_variance: 0.0025,
             odometry_angular_variance: 1.0e-4,
@@ -442,6 +449,15 @@ impl HybridLocalizer {
                     .match_scan(&self.field, &points, sensor_from_base, seed)
                     .filter(|matched| matched.score >= min_score)
             });
+        // With a finite gate, a match that disagrees with the EKF beyond it
+        // (a parked car taken for a wall, a scan sliding along a facade)
+        // counts as a poor score instead of dragging the estimate.
+        let variance = self.config.lidar_position_variance_m2;
+        let refined = refined.filter(|matched| {
+            self.ekf
+                .position_mahalanobis_squared(matched.pose.x_m, matched.pose.y_m, variance)
+                <= self.config.lidar_gate_chi_square
+        });
         match refined {
             Some(matched) => {
                 self.lidar_low_streak = 0;
@@ -706,6 +722,42 @@ mod tests {
                 LocalizationSource::Lidar,
                 LocalizationSource::Gnss
             ]
+        );
+    }
+
+    #[test]
+    fn lidar_matches_that_disagree_with_the_estimate_are_not_fused() {
+        let config = HybridLocalizerConfig {
+            amcl: AmclConfig {
+                particle_count: 300,
+                ..AmclConfig::default()
+            },
+            lidar_gate_chi_square: 16.0,
+            ..HybridLocalizerConfig::default()
+        };
+        let truth = Pose2d::new(14.0, -0.7, 0.05);
+        let mut localizer = HybridLocalizer::new(room_map(), truth, config).unwrap();
+        for step in 0..3 {
+            localizer.update_gnss(None, step as f64).unwrap();
+        }
+        for _ in 0..10 {
+            localizer
+                .update_lidar(&scan_at(truth), Pose2d::IDENTITY, Pose2d::IDENTITY, 4.0)
+                .unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::Lidar);
+        // Scans that match 0.5 m away (as if the room had slid) would drag a
+        // well-localized estimate; the gate keeps them out.
+        let elsewhere = Pose2d::new(14.5, -0.7, 0.05);
+        for _ in 0..10 {
+            localizer
+                .update_lidar(&scan_at(elsewhere), Pose2d::IDENTITY, Pose2d::IDENTITY, 5.0)
+                .unwrap();
+        }
+        let pose = localizer.pose();
+        assert!(
+            (pose.x_m - truth.x_m).hypot(pose.y_m - truth.y_m) < 0.2,
+            "{pose:?}"
         );
     }
 

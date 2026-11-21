@@ -10,8 +10,9 @@ localization indoors. The simulation is deterministic, ROS-free and
 renderer-free; libgnss++ stays in the adapter.
 
 [Example 149](../examples/149_gnss_lidar_navigation/README.md) drives a robot
-with two antennas from an open plaza down a street canyon into an office and
-back, with an RTK base station on a rooftop.
+with two antennas through a downtown street grid (signalised intersections,
+traffic that obeys the signals) from a plaza along the main street into an
+office and back, with an RTK base station on a rooftop.
 
 ![Example 149 rendered in 3D by RNE: GNSS outdoors, LiDAR indoors](media/gnss-lidar-navigation-3d.gif)
 
@@ -96,7 +97,12 @@ rate and decides which absolute source corrects it:
    correlative scan match sized by the EKF covariance; a good match seeds an
    `Amcl` particle filter.
 3. **LiDAR** — each AMCL update is refined by a local scan match, and the
-   refined pose and yaw are fused.
+   refined pose and yaw are fused. An optional gate
+   (`lidar_gate_chi_square`, off by default, 99 % in example 149) treats
+   matches that disagree with the EKF (a scan sliding along a facade, a
+   parked car taken for a wall) as poor matches; too many in a row end
+   LiDAR control. It protects an RTK-grade estimate but would also keep
+   LiDAR from correcting an estimate a wrong fix left off.
 4. **Back outside** — `enter_gnss_epochs` consecutive healthy fixes of at
    least `enter_gnss_min_kind` give GNSS control again. A gate reset after
    `gate_reset_epochs` of disagreement needs an RTK fixed solution or an EKF
@@ -105,22 +111,24 @@ rate and decides which absolute source corrects it:
 
 ### Results of example 149
 
-A delivery robot drives 329 m along a sidewalk among towers, street trees and
-traffic. Position RMSE / max in meters:
+A delivery robot walks 370 m along the sidewalk of a 4-lane main street
+between city blocks, crossing two side streets on the pedestrian signal,
+into an office and back. Position RMSE / max in meters:
 
 | Zone | Hybrid | EKF fusing every solution | Odometry only |
 |------|--------|---------------------------|---------------|
-| Open plaza | 0.14 / 1.39 | 0.14 / 1.39 | 12.83 / 22.35 |
-| Street (sidewalk) | 0.10 / 0.29 | 12.17 / 46.99 | 5.64 / 14.33 |
-| Office forecourt | 0.14 / 0.32 | 3.63 / 11.42 | 5.44 / 6.39 |
-| Indoor office | 0.05 / 0.12 | 0.88 / 1.13 | 7.99 / 8.93 |
+| Plaza | 0.01 / 0.09 | 0.02 / 0.09 | 17.47 / 27.16 |
+| Main street (sidewalk) | 0.02 / 0.11 | 0.37 / 4.94 | 8.47 / 23.25 |
+| Office forecourt | 0.04 / 0.13 | 7.08 / 24.04 | 9.33 / 10.28 |
+| Indoor office | 0.05 / 0.19 | 0.76 / 1.13 | 10.38 / 10.79 |
 
 Withholding the satellites a buildings-only city model predicts are NLOS
-doubles the street RTK fix rate (20 % → 40 %); trees and vehicles, absent from
-the model, still cause NLOS and wrong fixes. A LiDAR prior map of the whole
-route keeps the robot localized where GNSS is poor: its longest
-dead-reckoning stretch is 0 s, while with a map of the office only it stops
-in the street (3 s safety limit) and never relocalizes. See the
+keeps the street RTK fixed 99 % of the time (75 %, with many wrong fixes,
+without it); trees and vehicles, absent from the model, still cause some
+wrong fixes, which the gate rejects. The longest dead-reckoning stretch is
+1.8 s. Without the map-aided exclusion the robot has to stop for 132 s in
+the street; without it and without an outdoor LiDAR map it never
+relocalizes. See the
 [example's README](../examples/149_gnss_lidar_navigation/README.md#what-each-part-contributes).
 
 ## Limits
