@@ -14,8 +14,8 @@ cargo run --release -p go2_people --example 151_go2_people -- --out target/go2_p
     --max-association-distance-m 1.0 --recent-track-window-ns 0
 ```
 
-The 9 runs (3 tasks × 3 perception sources) take about 70 s on 4 cores and
-are deterministic. Each run writes a per-frame trace
+The 15 runs (3 tasks × 5 perception sources) take about 2 minutes on 4 cores
+and are deterministic. Each run writes a per-frame trace
 (`<task>_<source>.jsonl`) and a line of `results.json`.
 
 ## Robot, sensor, controller
@@ -49,6 +49,17 @@ are deterministic. Each run writes a per-frame trace
 | `oracle` | True positions, velocities and identities within 12 m (perfect perception) |
 | `nearest` | Mid-360 detections, greedy nearest-neighbour association, smoothed velocity |
 | `tracker` | The same detections through an external tracker speaking robot-perception's JSONL stream (one `lidar_batch` in, one `lidar_frame` out, in lockstep) |
+| `nearest+map`, `tracker+map` | The same, after dropping detections on static structure (below) |
+
+**Static map.** The robot builds a grid of 0.2 m cells in its odometry
+frame from its own scans; no map is given. Each cell records when it was
+first hit in the person band and in how many frames since. A cell is static
+once it was first seen at least 6 s ago and has been hit in at least 15
+frames. Walls are seen from afar long before the robot passes them. The
+Mid-360's pattern hits a given cell only now and then, so a plain frame
+count misses most of the wall. A cluster with more than half its returns on
+static cells is dropped. A person who stands still for less than 6 s is not
+absorbed.
 
 ## Tasks
 
@@ -60,35 +71,44 @@ are deterministic. Each run writes a per-frame trace
 
 ## Results
 
-| task | perception | fell | contacts | closest (m) | < 0.8 m (s) | goal (s) | left to goal (m) | follow error (m) | wrong target | lost |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| follow | oracle | no | 0 | 0.90 | 0.00 | - | - | 0.25 | 0.00 | 0.00 |
-| follow | nearest | no | 0 | 1.07 | 0.00 | - | - | 0.38 | 0.00 | 0.00 |
-| follow | tracker | no | 0 | 1.06 | 0.00 | - | - | 0.38 | 0.00 | 0.00 |
-| crossing | oracle | no | 0 | 0.84 | 0.00 | 52.90 | 1.02 | - | - | - |
-| crossing | nearest | no | 0 | 0.87 | 0.00 | 53.30 | 1.00 | - | - | - |
-| crossing | tracker | no | 0 | 0.89 | 0.00 | 53.30 | 1.00 | - | - | - |
-| corridor | oracle | no | 0 | 0.77 | 0.47 | 64.30 | 1.33 | - | - | - |
-| corridor | nearest | no | 2 | 0.38 | 2.91 | 69.70 | 1.26 | - | - | - |
-| corridor | tracker | no | 1 | 0.52 | 1.21 | 65.40 | 1.25 | - | - | - |
+| task | perception | contacts | closest (m) | < 0.8 m (s) | goal (s) | follow error (m) | wrong target | lost | tracks per frame |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| follow | oracle | 0 | 0.90 | 0.00 | - | 0.25 | 0.00 | 0.00 | 1.28 |
+| follow | nearest | 0 | 1.07 | 0.00 | - | 0.38 | 0.00 | 0.00 | 1.29 |
+| follow | nearest+map | 0 | 1.07 | 0.00 | - | 0.38 | 0.00 | 0.01 | 1.29 |
+| follow | tracker | 0 | 1.06 | 0.00 | - | 0.38 | 0.00 | 0.00 | 1.30 |
+| follow | tracker+map | 0 | 1.06 | 0.00 | - | 0.38 | 0.00 | 0.01 | 1.29 |
+| crossing | oracle | 0 | 0.84 | 0.00 | 52.90 | - | - | - | 0.72 |
+| crossing | nearest | 0 | 0.87 | 0.00 | 53.30 | - | - | - | 0.74 |
+| crossing | nearest+map | 0 | 0.87 | 0.00 | 53.30 | - | - | - | 0.74 |
+| crossing | tracker | 0 | 0.89 | 0.00 | 53.30 | - | - | - | 0.74 |
+| crossing | tracker+map | 0 | 0.89 | 0.00 | 53.30 | - | - | - | 0.74 |
+| corridor | oracle | 0 | 0.77 | 0.47 | 64.30 | - | - | - | 0.94 |
+| corridor | nearest | 2 | 0.38 | 2.91 | 69.70 | - | - | - | 3.63 |
+| corridor | nearest+map | 1 | 0.41 | 2.24 | 66.50 | - | - | - | 2.19 |
+| corridor | tracker | 1 | 0.52 | 1.21 | 65.40 | - | - | - | 4.23 |
+| corridor | tracker+map | 0 | 0.60 | 1.77 | 65.90 | - | - | - | 2.07 |
 
-A contact is a person's centre within 0.55 m of the base's centre. "Goal" is
-when the robot believes it has arrived; "left to goal" is the true remaining
-distance. It is about 1 m in every run, the 4 % odometry scale error over
-12–15 m: a localization problem, not a perception one.
+No run falls. A contact is a person's centre within 0.55 m of the base's
+centre. "Goal" is when the robot believes it has arrived. The true distance
+left is about 1 m in every run, the 4 % odometry scale error over 12–15 m: a
+localization problem, not a perception one.
 
 - **Following and crossing** work with every source. The trackers follow
   0.13 m less precisely than the oracle, from their velocity lag. They never
   switch to the person cutting between or to the one walking past.
 - **The corridor separates the sources.** With perfect perception the robot
-  passes everyone at 0.77 m or more. With Mid-360 detections it touches
+  passes everyone at 0.77 m or more. With raw Mid-360 detections it touches
   people: twice with the nearest-neighbour tracker and once with
-  robot-perception. The cause is visible in the traces. The trackers report
-  3.6–4.2 tracks per frame where about one person is present, because pieces
-  of the corridor walls pass the person test. The controller then changes
-  lanes for phantom people by the walls. Detection false positives, more than
-  tracking, decide the outcome. robot-perception, which confirms tracks more
-  carefully, comes closer to the oracle.
+  robot-perception. The trackers report 3.6–4.2 tracks per frame where about
+  one person is present, because pieces of the corridor walls pass the person
+  test. The controller then changes lanes for phantom people by the walls.
+- **The static map halves the phantoms** (2.1–2.2 tracks per frame). With it,
+  robot-perception passes everyone (0 contacts, 0.60 m closest) and the
+  nearest-neighbour tracker touches one person instead of two. The remaining
+  phantoms are walls seen for less than 6 s, mostly early in the run. The map
+  costs following almost nothing: the target is lost 1 % of the time, when it
+  stands still for 4 s.
 
 ## Development notes
 
@@ -111,5 +131,7 @@ The numbers above are after these fixes, each found from the traces:
   sidestepping.
 - **Perception**: the scan uses the true attitude and a perfect de-skew. The
   robot has no map, so walls are only what the detector makes of them.
+- **Static map**: drift in the odometry frame smears it slowly. A person
+  standing still longer than 6 s becomes part of it.
 - **Not covered**: the camera, VLM cues and SLAM. Combining them with this
   loop is the next step.

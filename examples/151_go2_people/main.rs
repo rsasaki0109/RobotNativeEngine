@@ -251,6 +251,10 @@ enum Source {
     Oracle,
     Nearest,
     Tracker,
+    /// The nearest-neighbour tracker on detections filtered by the static map.
+    NearestMap,
+    /// The external tracker on detections filtered by the static map.
+    TrackerMap,
 }
 
 impl Source {
@@ -259,7 +263,13 @@ impl Source {
             Source::Oracle => "oracle",
             Source::Nearest => "nearest",
             Source::Tracker => "tracker",
+            Source::NearestMap => "nearest+map",
+            Source::TrackerMap => "tracker+map",
         }
+    }
+
+    fn uses_map(self) -> bool {
+        matches!(self, Source::NearestMap | Source::TrackerMap)
     }
 }
 
@@ -734,6 +744,8 @@ struct Perceiver {
     oracle: Oracle,
     nearest: NearestTracker,
     external: Option<ExternalTracker>,
+    /// Static structure seen so far (map sources only).
+    map: Option<perception::StaticMap>,
 }
 
 impl Perceiver {
@@ -747,8 +759,10 @@ impl Perceiver {
     ) -> Vec<Track> {
         match self.source {
             Source::Oracle => self.oracle.tracks(people, truth, odom),
-            Source::Nearest => self.nearest.update(detections, time_s, FRAME_S),
-            Source::Tracker => self
+            Source::Nearest | Source::NearestMap => {
+                self.nearest.update(detections, time_s, FRAME_S)
+            }
+            Source::Tracker | Source::TrackerMap => self
                 .external
                 .as_mut()
                 .expect("--tracker is required for the tracker source")
@@ -794,8 +808,9 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
             range_m: PERCEPTION_RANGE_M,
         },
         nearest: NearestTracker::default(),
+        map: source.uses_map().then(perception::StaticMap::default),
         external: match (source, tracker_command) {
-            (Source::Tracker, Some(command)) => {
+            (Source::Tracker | Source::TrackerMap, Some(command)) => {
                 Some(ExternalTracker::spawn(command).expect("start the tracker"))
             }
             _ => None,
@@ -858,7 +873,16 @@ fn run(task: &Task, source: Source, tracker_command: Option<&[String]>) -> (Valu
         frame_start = end;
         frame += 1;
         let truth = true_pose(&sim);
-        let detections = detect_people(&base_frame_points(&cloud, truth), odom);
+        let points = base_frame_points(&cloud, truth);
+        let detections = match perceiver.map.as_mut() {
+            Some(map) => {
+                // Filter with what was static before this frame, then add it.
+                let detections = perception::detect_moving_people(&points, odom, Some(map));
+                map.update(&points, odom);
+                detections
+            }
+            None => detect_people(&points, odom),
+        };
         let time_s = trot.time_s();
         let tracks = perceiver.tracks(&detections, &people_now, truth, odom, time_s);
         let observed = sim.observe();
@@ -931,9 +955,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "near_plane": 0.3,
         }))?,
     )?;
-    let mut sources = vec![Source::Oracle, Source::Nearest];
+    let mut sources = vec![Source::Oracle, Source::Nearest, Source::NearestMap];
     if tracker.is_some() {
-        sources.push(Source::Tracker);
+        sources.extend([Source::Tracker, Source::TrackerMap]);
     }
     let selected: Vec<Task> = tasks()
         .into_iter()

@@ -9,7 +9,7 @@
 //!   that speaks the robot-perception JSONL stream protocol (one
 //!   `lidar_batch` line in, one `lidar_frame` line out).
 
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 
@@ -46,6 +46,69 @@ const MIN_HEIGHT_SPAN_M: f64 = 0.2;
 /// Person detections from points `[forward, left, height above floor]`
 /// in the robot's base frame, placed in the odometry frame at `odom`.
 pub(crate) fn detect_people(points: &[[f64; 3]], odom: [f64; 3]) -> Vec<Detection> {
+    detect_moving_people(points, odom, None)
+}
+
+/// Grid cell of the static map.
+const STATIC_CELL_M: f64 = 0.2;
+/// A cell is static structure once it was first seen at least this many
+/// frames ago (6 s at 10 Hz) and has been hit in at least
+/// [`STATIC_MIN_HITS`] frames since. Walls are seen from afar long before the
+/// robot passes them; a person standing still for less than 6 s is not
+/// absorbed. The Mid-360's pattern hits a given cell only now and then, so
+/// the hit count is well below the frame count.
+const STATIC_AGE_FRAMES: u64 = 60;
+const STATIC_MIN_HITS: u32 = 15;
+/// A cluster mostly on static cells is structure, not a person.
+const STATIC_SHARE: f64 = 0.5;
+
+/// Where the robot has seen something in the person band for a long time, in
+/// the odometry frame: walls, pillars, furniture. Built online from the
+/// robot's own scans; no map is given.
+#[derive(Default)]
+pub(crate) struct StaticMap {
+    /// Per cell: the frame it was first hit in, and the frames that hit it.
+    cells: HashMap<(i64, i64), (u64, u32)>,
+    frame: u64,
+}
+
+impl StaticMap {
+    fn cell(p: [f64; 2]) -> (i64, i64) {
+        (
+            (p[0] / STATIC_CELL_M).floor() as i64,
+            (p[1] / STATIC_CELL_M).floor() as i64,
+        )
+    }
+
+    /// Counts the cells this frame's person-band returns fall in (once each).
+    pub(crate) fn update(&mut self, points: &[[f64; 3]], odom: [f64; 3]) {
+        let mut cells: Vec<(i64, i64)> = points
+            .iter()
+            .filter(|p| p[2] >= PERSON_BAND_M.0 && p[2] <= PERSON_BAND_M.1)
+            .map(|p| Self::cell(to_odom(odom, [p[0], p[1]])))
+            .collect();
+        cells.sort_unstable();
+        cells.dedup();
+        for cell in cells {
+            self.cells.entry(cell).or_insert((self.frame, 0)).1 += 1;
+        }
+        self.frame += 1;
+    }
+
+    fn is_static(&self, p: [f64; 2]) -> bool {
+        self.cells.get(&Self::cell(p)).is_some_and(|(first, hits)| {
+            self.frame - first >= STATIC_AGE_FRAMES && *hits >= STATIC_MIN_HITS
+        })
+    }
+}
+
+/// [`detect_people`], leaving out clusters that lie mostly on cells `map`
+/// has seen occupied for a long time.
+pub(crate) fn detect_moving_people(
+    points: &[[f64; 3]],
+    odom: [f64; 3],
+    map: Option<&StaticMap>,
+) -> Vec<Detection> {
     let mut cells: BTreeMap<(i64, i64), Vec<usize>> = BTreeMap::new();
     for (index, p) in points.iter().enumerate() {
         if p[2] < PERSON_BAND_M.0 || p[2] > PERSON_BAND_M.1 {
@@ -83,6 +146,15 @@ pub(crate) fn detect_people(points: &[[f64; 3]], odom: [f64; 3]) -> Vec<Detectio
             for k in 0..3 {
                 lo[k] = lo[k].min(points[i][k]);
                 hi[k] = hi[k].max(points[i][k]);
+            }
+        }
+        if let Some(map) = map {
+            let on_static = members
+                .iter()
+                .filter(|&&i| map.is_static(to_odom(odom, [points[i][0], points[i][1]])))
+                .count();
+            if on_static as f64 > STATIC_SHARE * members.len() as f64 {
+                continue;
             }
         }
         let width = (hi[0] - lo[0]).hypot(hi[1] - lo[1]);
@@ -391,6 +463,34 @@ mod tests {
             (p[0] - 8.93).abs() < 0.1 && (p[1] - 3.13).abs() < 0.1,
             "{p:?}"
         );
+    }
+
+    #[test]
+    fn static_map_removes_walls_but_keeps_people_walking_past() {
+        // A wall seen for 7 s; a person walking past it, 0.5 m away.
+        let mut map = StaticMap::default();
+        let wall: Vec<[f64; 3]> = (0..10)
+            .flat_map(|i| {
+                [
+                    [4.0, 0.1 * f64::from(i), 0.5],
+                    [4.0, 0.1 * f64::from(i), 1.0],
+                ]
+            })
+            .collect();
+        for _ in 0..70 {
+            map.update(&wall, [0.0, 0.0, 0.0]);
+        }
+        assert!(detect_moving_people(&wall, [0.0, 0.0, 0.0], Some(&map)).is_empty());
+        assert_eq!(detect_people(&wall, [0.0, 0.0, 0.0]).len(), 1);
+        for k in 0..20 {
+            let person = blob([3.0, -2.0 + 0.1 * f64::from(k)]);
+            assert_eq!(
+                detect_moving_people(&person, [0.0, 0.0, 0.0], Some(&map)).len(),
+                1,
+                "step {k}"
+            );
+            map.update(&person, [0.0, 0.0, 0.0]);
+        }
     }
 
     #[test]
