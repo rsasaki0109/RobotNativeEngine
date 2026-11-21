@@ -14,8 +14,10 @@ cargo run --release -p go2_people --example 151_go2_people -- --out target/go2_p
     --max-association-distance-m 1.0 --recent-track-window-ns 0
 ```
 
-The 15 runs (3 tasks × 5 perception sources) take about 2 minutes on 4 cores
-and are deterministic. Each run writes a per-frame trace
+One pass (4 tasks × 7 perception sources) takes about 4 minutes on 4 cores
+and is deterministic. `--trials N` repeats it with each person (but a follow
+target) starting up to 2 s earlier or later, from a seed, and prints a
+summary over the trials. Each run writes a per-frame trace
 (`<task>_<source>.jsonl`) and a line of `results.json`.
 
 ## Robot, sensor, controller
@@ -50,6 +52,7 @@ and are deterministic. Each run writes a per-frame trace
 | `nearest` | Mid-360 detections, greedy nearest-neighbour association, smoothed velocity |
 | `tracker` | The same detections through an external tracker speaking robot-perception's JSONL stream (one `lidar_batch` in, one `lidar_frame` out, in lockstep) |
 | `nearest+map`, `tracker+map` | The same, after dropping detections on static structure (below) |
+| `nearest+slam`, `tracker+slam` | The same as `+map`, localized by 2D SLAM instead of odometry alone (below) |
 
 **Static map.** The robot builds a grid of 0.2 m cells in its odometry
 frame from its own scans; no map is given. Each cell records when it was
@@ -61,6 +64,25 @@ count misses most of the wall. A cluster with more than half its returns on
 static cells is dropped. A person who stands still for less than 6 s is not
 absorbed.
 
+**SLAM.** `rne_slam`'s 2D SLAM is set up as in example 131. Its scan holds
+the returns 0.15–0.65 m above the floor, minus those within 0.5 m of a
+detected person. The robot then perceives and acts in the SLAM-corrected
+frame. Two safeguards came from failures:
+
+- Run plainly, SLAM made localization worse. On open floor nothing static is
+  in the scan but people, and the heading flipped by π. In the corridor the
+  two parallel walls do not pin the motion along it, and matching slid 4 m.
+- Scan-matching corrections are capped at 5 cm and 0.02 rad per keyframe.
+- Degenerate scans are skipped. The eigenvalue ratio of the scan's
+  surface-normal information measures it: 0.11–0.21 in the corridor and
+  0.41–0.96 in the room; the threshold is 0.3.
+
+| final localization error | odometry | SLAM |
+| --- | --- | --- |
+| crossing (open floor) | 0.69 m | 0.69 m (no structure to match) |
+| corridor | 0.62 m | 0.38 m |
+| room | 0.61 m | 0.04 m |
+
 ## Tasks
 
 | Task | Mission | People |
@@ -68,47 +90,67 @@ absorbed.
 | `follow` | Follow a person 1.2 m behind through two turns and a 4 s stop | One cuts between the robot and its target, one walks past |
 | `crossing` | Walk 12 m to a goal | Four cross the path (0.7–1.1 m/s), one diagonally |
 | `corridor` | Walk 15 m down a 3.2 m wide corridor | Three come the other way (0.7–0.9 m/s) |
+| `room` | Cross a furnished 14 m × 9 m room (walls, two tables, a shelf, two pillars) to a goal 11 m away | Three walk through it, one diagonally toward the robot |
 
 ## Results
 
-| task | perception | contacts | closest (m) | < 0.8 m (s) | goal (s) | follow error (m) | wrong target | lost | tracks per frame |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| follow | oracle | 0 | 0.90 | 0.00 | - | 0.25 | 0.00 | 0.00 | 1.28 |
-| follow | nearest | 0 | 1.07 | 0.00 | - | 0.38 | 0.00 | 0.00 | 1.29 |
-| follow | nearest+map | 0 | 1.07 | 0.00 | - | 0.38 | 0.00 | 0.01 | 1.29 |
-| follow | tracker | 0 | 1.06 | 0.00 | - | 0.38 | 0.00 | 0.00 | 1.30 |
-| follow | tracker+map | 0 | 1.06 | 0.00 | - | 0.38 | 0.00 | 0.01 | 1.29 |
-| crossing | oracle | 0 | 0.84 | 0.00 | 52.90 | - | - | - | 0.72 |
-| crossing | nearest | 0 | 0.87 | 0.00 | 53.30 | - | - | - | 0.74 |
-| crossing | nearest+map | 0 | 0.87 | 0.00 | 53.30 | - | - | - | 0.74 |
-| crossing | tracker | 0 | 0.89 | 0.00 | 53.30 | - | - | - | 0.74 |
-| crossing | tracker+map | 0 | 0.89 | 0.00 | 53.30 | - | - | - | 0.74 |
-| corridor | oracle | 0 | 0.77 | 0.47 | 64.30 | - | - | - | 0.94 |
-| corridor | nearest | 2 | 0.38 | 2.91 | 69.70 | - | - | - | 3.63 |
-| corridor | nearest+map | 1 | 0.41 | 2.24 | 66.50 | - | - | - | 2.19 |
-| corridor | tracker | 1 | 0.52 | 1.21 | 65.40 | - | - | - | 4.23 |
-| corridor | tracker+map | 0 | 0.60 | 1.77 | 65.90 | - | - | - | 2.07 |
+Eight trials per task and source (`--trials 8`):
+
+| task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| follow | oracle | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 |
+| follow | nearest | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.93 | - | 0.55 | 0.12 | 0.07 |
+| follow | nearest+map | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.96 | - | 0.55 | 0.12 | 0.07 |
+| follow | nearest+slam | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.96 | - | 0.55 | 0.12 | 0.07 |
+| follow | tracker | 8 | 0 | 0 | 0 | 1.02 | 0.61 | 0.40 | - | 0.47 | 0.06 | 0.03 |
+| follow | tracker+map | 8 | 0 | 0 | 0 | 1.02 | 0.61 | 0.40 | - | 0.47 | 0.06 | 0.04 |
+| follow | tracker+slam | 8 | 0 | 0 | 0 | 1.02 | 0.61 | 0.40 | - | 0.47 | 0.06 | 0.04 |
+| crossing | oracle | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - |
+| crossing | nearest | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
+| crossing | nearest+map | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
+| crossing | nearest+slam | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
+| crossing | tracker | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.01 | - | - | - |
+| crossing | tracker+map | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.01 | - | - | - |
+| crossing | tracker+slam | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.01 | - | - | - |
+| corridor | oracle | 8 | 0 | 0 | 0 | 0.73 | 0.67 | 0.60 | 1.28 | - | - | - |
+| corridor | nearest | 8 | 0 | 3 | 4 | 0.49 | 0.08 | 2.24 | 1.32 | - | - | - |
+| corridor | nearest+map | 8 | 0 | 6 | 7 | 0.52 | 0.41 | 2.26 | 1.44 | - | - | - |
+| corridor | nearest+slam | 8 | 0 | 6 | 7 | 0.52 | 0.41 | 2.26 | 1.45 | - | - | - |
+| corridor | tracker | 8 | 0 | 4 | 4 | 0.58 | 0.46 | 1.45 | 1.21 | - | - | - |
+| corridor | tracker+map | 8 | 0 | 2 | 2 | 0.59 | 0.40 | 1.93 | 1.09 | - | - | - |
+| corridor | tracker+slam | 8 | 0 | 2 | 2 | 0.59 | 0.40 | 1.93 | 1.03 | - | - | - |
+| room | oracle | 8 | 0 | 0 | 0 | 1.02 | 0.98 | 0.00 | 0.94 | - | - | - |
+| room | nearest | 8 | 0 | 2 | 2 | 0.79 | 0.13 | 0.50 | 0.92 | - | - | - |
+| room | nearest+map | 8 | 0 | 0 | 0 | 0.96 | 0.84 | 0.00 | 0.94 | - | - | - |
+| room | nearest+slam | 8 | 0 | 3 | 3 | 0.61 | 0.05 | 0.86 | 0.42 | - | - | - |
+| room | tracker | 8 | 0 | 2 | 2 | 0.79 | 0.13 | 0.47 | 0.95 | - | - | - |
+| room | tracker+map | 8 | 0 | 0 | 0 | 0.91 | 0.84 | 0.00 | 0.95 | - | - | - |
+| room | tracker+slam | 8 | 0 | 3 | 3 | 0.65 | 0.02 | 0.75 | 0.43 | - | - | - |
 
 No run falls. A contact is a person's centre within 0.55 m of the base's
-centre. "Goal" is when the robot believes it has arrived. The true distance
-left is about 1 m in every run, the 4 % odometry scale error over 12–15 m: a
-localization problem, not a perception one.
+centre. "Left to goal" is the true distance when the robot believes it has
+arrived.
 
-- **Following and crossing** work with every source. The trackers follow
-  0.13 m less precisely than the oracle, from their velocity lag. They never
-  switch to the person cutting between or to the one walking past.
-- **The corridor separates the sources.** With perfect perception the robot
-  passes everyone at 0.77 m or more. With raw Mid-360 detections it touches
-  people: twice with the nearest-neighbour tracker and once with
-  robot-perception. The trackers report 3.6–4.2 tracks per frame where about
-  one person is present, because pieces of the corridor walls pass the person
-  test. The controller then changes lanes for phantom people by the walls.
-- **The static map halves the phantoms** (2.1–2.2 tracks per frame). With it,
-  robot-perception passes everyone (0 contacts, 0.60 m closest) and the
-  nearest-neighbour tracker touches one person instead of two. The remaining
-  phantoms are walls seen for less than 6 s, mostly early in the run. The map
-  costs following almost nothing: the target is lost 1 % of the time, when it
-  stands still for 4 s.
+- **Perfect perception never touches anyone** in 224 runs. Every contact
+  below comes from perception.
+- **Following**: robot-perception follows with no contact. It is on the
+  wrong person 6 % of the time, against 12 % and one contact for the
+  nearest-neighbour tracker. The map and SLAM play no part on open floor.
+- **Crossing** is safe with every source.
+- **Corridor**: wall pieces become phantom people. robot-perception with the
+  static map (or SLAM) is the best real perception: 2 of 8 runs with a
+  contact, against 4 of 8 without the map. The map does not help the
+  nearest-neighbour tracker (3 → 6 of 8). It removes the phantoms, but that
+  tracker's velocities are too noisy to plan a lane change around the people
+  who remain.
+- **Room**: the static map removes the furniture as people. Both trackers go
+  from 2 of 8 runs with a contact to none.
+- **SLAM in the room**: it localizes to 4 cm and halves the goal error
+  (0.94 → 0.42 m). But 3 of 8 runs touch someone, where odometry alone
+  touches nobody. The single run we traced is a controller failure, not a
+  SLAM one: correctly localized, the robot walks a different line and meets
+  the diagonal walker at an angle where it hesitates between waiting and
+  changing lanes. Whether that explains all three runs is not yet known.
 
 ## Development notes
 
@@ -133,5 +175,6 @@ The numbers above are after these fixes, each found from the traces:
   robot has no map, so walls are only what the detector makes of them.
 - **Static map**: drift in the odometry frame smears it slowly. A person
   standing still longer than 6 s becomes part of it.
-- **Not covered**: the camera, VLM cues and SLAM. Combining them with this
-  loop is the next step.
+- **SLAM**: scan matching only; no IMU fusion, no relocalization.
+- **Not covered**: the camera and VLM cues. Combining them with this loop is
+  a next step.
