@@ -14,7 +14,7 @@ cargo run --release -p go2_people --example 151_go2_people -- --out target/go2_p
     --max-association-distance-m 1.0 --recent-track-window-ns 0
 ```
 
-One pass (4 tasks × 7 perception sources) takes about 4 minutes on 4 cores
+One pass (4 tasks × 8 perception sources) takes about 4 minutes on 4 cores
 and is deterministic. `--trials N` repeats it with each person (but a follow
 target) starting up to 2 s earlier or later, from a seed, and prints a
 summary over the trials. Each run writes a per-frame trace
@@ -49,6 +49,7 @@ summary over the trials. Each run writes a per-frame trace
 | Source | What the controller gets |
 | --- | --- |
 | `oracle` | True positions, velocities and identities within 12 m (perfect perception) |
+| `oracle+slam` | The same, but the robot localizes and plans in the SLAM frame. It separates what SLAM does to the path from what it does to perception |
 | `nearest` | Mid-360 detections, greedy nearest-neighbour association, smoothed velocity |
 | `tracker` | The same detections through an external tracker speaking robot-perception's JSONL stream (one `lidar_batch` in, one `lidar_frame` out, in lockstep) |
 | `nearest+map`, `tracker+map` | The same, after dropping detections on static structure (below) |
@@ -94,11 +95,13 @@ frame. Two safeguards came from failures:
 
 ## Results
 
-Eight trials per task and source (`--trials 8`):
+Eight trials per task and source (`--trials 8`), with the rule controller
+(the default):
 
 | task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | follow | oracle | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 |
+| follow | oracle+slam | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 |
 | follow | nearest | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.93 | - | 0.55 | 0.12 | 0.07 |
 | follow | nearest+map | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.96 | - | 0.55 | 0.12 | 0.07 |
 | follow | nearest+slam | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.96 | - | 0.55 | 0.12 | 0.07 |
@@ -106,6 +109,7 @@ Eight trials per task and source (`--trials 8`):
 | follow | tracker+map | 8 | 0 | 0 | 0 | 1.02 | 0.61 | 0.40 | - | 0.47 | 0.06 | 0.04 |
 | follow | tracker+slam | 8 | 0 | 0 | 0 | 1.02 | 0.61 | 0.40 | - | 0.47 | 0.06 | 0.04 |
 | crossing | oracle | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - |
+| crossing | oracle+slam | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - |
 | crossing | nearest | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
 | crossing | nearest+map | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
 | crossing | nearest+slam | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
@@ -113,6 +117,7 @@ Eight trials per task and source (`--trials 8`):
 | crossing | tracker+map | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.01 | - | - | - |
 | crossing | tracker+slam | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.01 | - | - | - |
 | corridor | oracle | 8 | 0 | 0 | 0 | 0.73 | 0.67 | 0.60 | 1.28 | - | - | - |
+| corridor | oracle+slam | 8 | 0 | 0 | 0 | 0.73 | 0.67 | 0.60 | 1.10 | - | - | - |
 | corridor | nearest | 8 | 0 | 3 | 4 | 0.49 | 0.08 | 2.24 | 1.32 | - | - | - |
 | corridor | nearest+map | 8 | 0 | 6 | 7 | 0.52 | 0.41 | 2.26 | 1.44 | - | - | - |
 | corridor | nearest+slam | 8 | 0 | 6 | 7 | 0.52 | 0.41 | 2.26 | 1.45 | - | - | - |
@@ -120,6 +125,7 @@ Eight trials per task and source (`--trials 8`):
 | corridor | tracker+map | 8 | 0 | 2 | 2 | 0.59 | 0.40 | 1.93 | 1.09 | - | - | - |
 | corridor | tracker+slam | 8 | 0 | 2 | 2 | 0.59 | 0.40 | 1.93 | 1.03 | - | - | - |
 | room | oracle | 8 | 0 | 0 | 0 | 1.02 | 0.98 | 0.00 | 0.94 | - | - | - |
+| room | oracle+slam | 8 | 0 | 0 | 0 | 1.01 | 0.99 | 0.00 | 0.42 | - | - | - |
 | room | nearest | 8 | 0 | 2 | 2 | 0.79 | 0.13 | 0.50 | 0.92 | - | - | - |
 | room | nearest+map | 8 | 0 | 0 | 0 | 0.96 | 0.84 | 0.00 | 0.94 | - | - | - |
 | room | nearest+slam | 8 | 0 | 3 | 3 | 0.61 | 0.05 | 0.86 | 0.42 | - | - | - |
@@ -131,8 +137,8 @@ No run falls. A contact is a person's centre within 0.55 m of the base's
 centre. "Left to goal" is the true distance when the robot believes it has
 arrived.
 
-- **Perfect perception never touches anyone** in 224 runs. Every contact
-  below comes from perception.
+- **Perfect perception never touches anyone** in 64 runs, with odometry or
+  SLAM. Every contact below comes from perception.
 - **Following**: robot-perception follows with no contact. It is on the
   wrong person 6 % of the time, against 12 % and one contact for the
   nearest-neighbour tracker. The map and SLAM play no part on open floor.
@@ -147,10 +153,49 @@ arrived.
   from 2 of 8 runs with a contact to none.
 - **SLAM in the room**: it localizes to 4 cm and halves the goal error
   (0.94 → 0.42 m). But 3 of 8 runs touch someone, where odometry alone
-  touches nobody. The single run we traced is a controller failure, not a
-  SLAM one: correctly localized, the robot walks a different line and meets
-  the diagonal walker at an angle where it hesitates between waiting and
-  changing lanes. Whether that explains all three runs is not yet known.
+  touches nobody. `oracle+slam` settles where this comes from: with perfect
+  perception the SLAM-localized robot walks the same corrected line and
+  touches nobody (closest 0.99 m). So the contacts come from perceiving in
+  the SLAM frame, not from the path or the controller. (An earlier reading
+  of one trace blamed the controller; the control source rules that out.)
+  The mechanism is not yet traced. Candidates are the static map, which
+  is built in a frame that jumps at each correction, and track velocities,
+  which see those jumps as motion.
+
+## Dynamic-window controller
+
+`--controller dwa` replaces the rules with a dynamic window. Every pair of
+6 forward speeds and 11 turn rates is rolled out for 3 s as a unicycle,
+against each tracked person moving at its tracked velocity. Predicted
+clearance under 0.75 m is all but forbidden, and clearance under 1.5 m costs
+extra. Then come the distance to the aim, the heading to it, and changes of
+turn rate. Over the same 8 trials it is worse overall, and the rule
+controller stays the default:
+
+| runs with contact (fell) of 8 | follow | crossing | corridor | room |
+| --- | --- | --- | --- | --- |
+| oracle, rule | 0 | 0 | 0 | 0 |
+| oracle, DWA | 0 | 0 | 0 | 4 |
+| oracle+slam, DWA | 0 | 0 | 0 | 7 |
+| tracker+map, rule | 0 | 0 | 2 | 0 |
+| tracker+map, DWA | 0 | 1 | 0 (3 fell) | 3 |
+| nearest+map, DWA | 0 | 0 | 0 (2 fell) | 5 |
+
+- **Corridor**: no contacts with any source, against 2–6 of 8 with the
+  rules. But 13 of 48 runs with real perception fall. The window knows only
+  people, not walls. A phantom person or a noisy velocity makes it swerve,
+  and nothing stops the swerve at the wall. With perfect perception there
+  are no phantoms and no falls.
+- **Room**: contacts even with perfect perception. The window may plan to
+  pass 0.75 m from a person's predicted position. The diagonal walker's
+  constant-velocity prediction is only a few tenths of a metre off, and
+  that is enough to come within 0.55 m. The rules wait for crossers, and
+  that is what keeps the room safe.
+- **Following** is safe but looser: the follow error rises from 0.26 to
+  0.56 m with perfect perception.
+
+To beat the rules, the window would need the scan's obstacles as well as
+people, and a wider margin for people moving across its path.
 
 ## Development notes
 
@@ -176,5 +221,6 @@ The numbers above are after these fixes, each found from the traces:
 - **Static map**: drift in the odometry frame smears it slowly. A person
   standing still longer than 6 s becomes part of it.
 - **SLAM**: scan matching only; no IMU fusion, no relocalization.
+- **DWA**: people only; walls and furniture are not obstacles to it.
 - **Not covered**: the camera and VLM cues. Combining them with this loop is
   a next step.
