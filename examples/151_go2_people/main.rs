@@ -90,6 +90,11 @@ const LANE_LOOKAHEAD_M: f64 = 8.0;
 const LANE_CLEARANCE_M: f64 = 1.1;
 /// The new lane is aimed at this far ahead.
 const LANE_AIM_M: f64 = 1.2;
+/// A new track's velocity, and so the line it walks along, is unreliable for
+/// this long; the side to pass it on is not kept before then.
+const PASS_SIDE_SETTLE_S: f64 = 1.0;
+/// A head-on person drifting sideways faster than this is passed behind.
+const PASS_BEHIND_DRIFT_M_S: f64 = 0.15;
 /// The follower keeps this far behind its target.
 const FOLLOW_DISTANCE_M: f64 = 1.2;
 /// A lost target is re-acquired within this distance of its prediction.
@@ -442,6 +447,8 @@ struct Controller {
     kind: ControllerKind,
     /// Last chosen turn rate (DWA smoothness).
     last_yaw_rate: f64,
+    /// The last lane decision, for the trace: track, side, offset, aim heading.
+    last_lane: Option<(u64, f64, f64, f64)>,
     mission: Mission,
     target: Option<u64>,
     /// Last estimate of the target: position, velocity, time.
@@ -450,6 +457,25 @@ struct Controller {
     goal: [f64; 2],
     /// The side chosen to pass each person on, kept until it is passed.
     pass_side: Vec<(u64, f64)>,
+    /// Each track's history: a side is chosen from its mean velocity, and
+    /// kept only once that has had PASS_SIDE_SETTLE_S to settle.
+    history: Vec<TrackHistory>,
+}
+
+/// What the controller remembers of a track.
+#[derive(Clone, Copy, Debug)]
+struct TrackHistory {
+    id: u64,
+    first_seen_s: f64,
+    velocity_sum: [f64; 2],
+    frames: u32,
+}
+
+impl TrackHistory {
+    fn mean_velocity(&self) -> [f64; 2] {
+        let n = f64::from(self.frames.max(1));
+        [self.velocity_sum[0] / n, self.velocity_sum[1] / n]
+    }
 }
 
 impl Controller {
@@ -499,6 +525,22 @@ impl Controller {
         let mut speed = desired_speed * bearing.cos().max(0.0).powi(2);
         let mut yaw_rate = HEADING_GAIN_PER_S * bearing;
 
+        for track in tracks {
+            match self.history.iter_mut().find(|h| h.id == track.id) {
+                Some(h) => {
+                    h.velocity_sum[0] += track.velocity[0];
+                    h.velocity_sum[1] += track.velocity[1];
+                    h.frames += 1;
+                }
+                None => self.history.push(TrackHistory {
+                    id: track.id,
+                    first_seen_s: time_s,
+                    velocity_sum: track.velocity,
+                    frames: 1,
+                }),
+            }
+        }
+        self.last_lane = None;
         // Yield to crossing people; change lanes early for people coming
         // head-on or standing in the way.
         let heading = [odom[2].cos(), odom[2].sin()];
@@ -558,37 +600,57 @@ impl Controller {
                     && offset.abs() < LANE_CLEARANCE_M
                     && lane.is_none_or(|(g, _)| gap < g)
                 {
-                    // Keep to the side the robot is on; when nearly on the
-                    // line, take the side of the goal.
-                    let remembered = self
-                        .pass_side
-                        .iter()
-                        .find(|(id, _)| *id == track.id)
-                        .map(|(_, s)| *s);
-                    let side = remembered.unwrap_or_else(|| {
-                        if offset.abs() > 0.2 {
-                            offset.signum()
-                        } else {
-                            let g = [
-                                self.goal[0] - track.position[0],
-                                self.goal[1] - track.position[1],
-                            ];
-                            if g[0] * normal[0] + g[1] * normal[1] >= 0.0 {
-                                1.0
-                            } else {
-                                -1.0
-                            }
-                        }
+                    let history = self.history.iter().find(|h| h.id == track.id);
+                    // Someone drifting across the robot's way is passed
+                    // behind. The drift is taken from the track's mean
+                    // velocity: one frame's velocity swings, and the offset
+                    // from a distant person's line swings by a metre with a
+                    // few degrees of velocity error.
+                    let left = [-heading[1], heading[0]];
+                    let normal_left = normal[0] * left[0] + normal[1] * left[1];
+                    let drift = history.map_or(0.0, |h| {
+                        let v = h.mean_velocity();
+                        -v[0] * heading[1] + v[1] * heading[0]
                     });
-                    if remembered.is_none() {
-                        self.pass_side.push((track.id, side));
-                    }
+                    let side = if drift.abs() > PASS_BEHIND_DRIFT_M_S && normal_left.abs() > 0.3 {
+                        -drift.signum() * normal_left.signum()
+                    } else {
+                        // Otherwise keep to the side the robot is on; when
+                        // nearly on the line, take the side of the goal.
+                        let remembered = self
+                            .pass_side
+                            .iter()
+                            .find(|(id, _)| *id == track.id)
+                            .map(|(_, s)| *s);
+                        let side = remembered.unwrap_or_else(|| {
+                            if offset.abs() > 0.2 {
+                                offset.signum()
+                            } else {
+                                let g = [
+                                    self.goal[0] - track.position[0],
+                                    self.goal[1] - track.position[1],
+                                ];
+                                if g[0] * normal[0] + g[1] * normal[1] >= 0.0 {
+                                    1.0
+                                } else {
+                                    -1.0
+                                }
+                            }
+                        });
+                        let settled =
+                            history.is_some_and(|h| time_s - h.first_seen_s >= PASS_SIDE_SETTLE_S);
+                        if remembered.is_none() && settled {
+                            self.pass_side.push((track.id, side));
+                        }
+                        side
+                    };
                     let need = side * LANE_CLEARANCE_M - offset;
                     let aim = [
                         dir[0] * LANE_AIM_M + normal[0] * need,
                         dir[1] * LANE_AIM_M + normal[1] * need,
                     ];
                     lane = Some((gap, aim[1].atan2(aim[0])));
+                    self.last_lane = Some((track.id, side, offset, aim[1].atan2(aim[0])));
                 }
             }
         }
@@ -1190,10 +1252,12 @@ fn run(
     let mut controller = Controller {
         kind,
         last_yaw_rate: 0.0,
+        last_lane: None,
         mission: task.mission,
         target: None,
         target_memory: None,
         pass_side: Vec::new(),
+        history: Vec::new(),
         goal: match task.mission {
             Mission::Goal(g) => place(start, g),
             Mission::Follow { target } => place(start, task.people[target].keys[0].1),
@@ -1289,6 +1353,9 @@ fn run(
             "detections": detections.len(), "tracks": tracks.len(),
             "target": chosen.map(|t| t.id), "closest_m": (closest < f64::MAX).then_some(closest),
             "spread": localizer.as_ref().and_then(|l| l.last_spread),
+            "track_list": tracks.iter().map(|t| json!([t.id, t.position, t.velocity])).collect::<Vec<_>>(),
+            "lane": controller.last_lane,
+            "people": people_now.iter().map(|(id, p, v)| json!([id, p, v])).collect::<Vec<_>>(),
         }));
         if let Mission::Follow { target } = task.mission {
             score.observe_follow(target as u64, &people_now, truth, odom, chosen);
@@ -1494,11 +1561,13 @@ mod tests {
         Controller {
             kind: ControllerKind::Rule,
             last_yaw_rate: 0.0,
+            last_lane: None,
             mission,
             target: None,
             target_memory: None,
             goal,
             pass_side: Vec::new(),
+            history: Vec::new(),
         }
     }
 
@@ -1532,10 +1601,29 @@ mod tests {
         let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 0.0, MAX_SPEED_M_S);
         assert!(command.yaw_rate_rad_s < -0.1, "{command:?}");
         assert!(command.forward_speed_m_s > 0.1, "{command:?}");
-        // Its estimate drifts to the right of the robot: the side is kept.
-        let tracks = [track(7, [4.5, -0.1], [-0.9, 0.05])];
-        let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 0.5, MAX_SPEED_M_S);
+        // After a second the side is kept...
+        let tracks = [track(7, [4.1, 0.3], [-0.9, 0.0])];
+        c.command(&tracks, [0.0, 0.0, 0.0], 1.0, MAX_SPEED_M_S);
+        // ...even when its estimate drifts to the right of the robot.
+        let tracks = [track(7, [3.6, -0.1], [-0.9, 0.05])];
+        let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 1.5, MAX_SPEED_M_S);
         assert!(command.yaw_rate_rad_s < 0.0, "{command:?}");
+    }
+
+    #[test]
+    fn passes_behind_someone_drifting_across_whatever_one_frame_says() {
+        let mut c = controller(Mission::Goal([10.0, 0.0]), [10.0, 0.0]);
+        // Ahead on the right, walking toward the robot and to its left.
+        for (i, t) in [0.0, 0.1, 0.2, 0.3].iter().enumerate() {
+            let x = 5.0 - 0.06 * i as f64;
+            let tracks = [track(7, [x, -1.0 + 0.05 * i as f64], [-0.6, 0.5])];
+            c.command(&tracks, [0.0, 0.0, 0.0], *t, MAX_SPEED_M_S);
+        }
+        // One frame's velocity says it walks straight at the robot, along a
+        // line to the robot's right; the mean still says it drifts left.
+        let tracks = [track(7, [4.8, -0.8], [-0.7, 0.0])];
+        let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 0.4, MAX_SPEED_M_S);
+        assert!(command.yaw_rate_rad_s < 0.0, "pass behind, on the right: {command:?}");
     }
 
     #[test]
