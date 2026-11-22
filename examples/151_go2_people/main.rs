@@ -934,7 +934,8 @@ fn base_frame_points(cloud: &rne_data::PointCloud, truth: Pose) -> Vec<[f64; 3]>
 /// Safety layer for the static map: the box ahead of the base that must be
 /// free of returns on static cells for the robot to walk forward. A person
 /// standing still long enough joins the static map and is no longer
-/// detected; this still stops the robot short of them. Returns elsewhere
+/// detected; this still stops the robot short of them. Only static clusters
+/// that pass the person test count, not walls. Returns elsewhere
 /// are left to the controller: stopping in front of someone walking toward
 /// the robot, or for a wall at an angle mid lane change, makes things worse.
 /// It starts clear of the robot's own front legs and head (returns up to
@@ -1433,7 +1434,23 @@ fn run(
                     .filter(|p| map.is_static(perception::to_odom(odom, [p[0], p[1]])))
                     .copied()
                     .collect();
-                path_blocked(&on_static)
+                // Only person-shaped static clusters: a wall the robot
+                // walks beside is the controller's business.
+                let shaped: Vec<[f64; 2]> = detect_people(&on_static, [0.0, 0.0, 0.0])
+                    .iter()
+                    .map(|d| d.position)
+                    .collect();
+                path_blocked(
+                    &on_static
+                        .iter()
+                        .filter(|p| {
+                            shaped
+                                .iter()
+                                .any(|c| (c[0] - p[0]).hypot(c[1] - p[1]) < 0.6)
+                        })
+                        .copied()
+                        .collect::<Vec<_>>(),
+                )
             });
         if blocked {
             next.forward_speed_m_s = 0.0;
