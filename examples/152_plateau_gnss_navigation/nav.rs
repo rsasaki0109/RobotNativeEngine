@@ -670,6 +670,7 @@ fn build_localizer(
     config.lidar_anisotropic = true;
     // Pedestrians are not in the map: keep them out of the scan matches.
     config.lidar_drop_unmapped_returns = true;
+    config.lidar_unmapped_distance_m = 0.5;
     config.gnss_reanchor_fixes = 15;
     config.lidar_gate_chi_square = 16.0;
     if factor_graph {

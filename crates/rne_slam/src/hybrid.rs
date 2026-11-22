@@ -211,15 +211,20 @@ pub struct HybridLocalizerConfig {
     pub lidar_gate_chi_square: f64,
     /// Drop returns the prior map cannot explain before tracking: beams
     /// whose endpoint, placed at the current estimate, lies in mapped free
-    /// space at least the likelihood field's reach
-    /// (`amcl.likelihood.max_distance_m`) from any mapped structure (a cell
-    /// counts as mapped free once it has any free evidence). These
+    /// space at least `lidar_unmapped_distance_m` from any mapped structure
+    /// (a cell counts as mapped free once it has any free evidence). These
     /// are pedestrians, vehicles and other things that move; left in, a
     /// person walking beside the robot looks like a pole that keeps pace
     /// with it and holds the match back. When more than half the returns
     /// would go, the estimate is the more likely culprit and the scan is
     /// used whole. Off by default.
     pub lidar_drop_unmapped_returns: bool,
+    /// Distance from mapped structure beyond which a return is unexplained,
+    /// meters; capped at the likelihood field's reach
+    /// (`amcl.likelihood.max_distance_m`). Smaller drops people walking
+    /// close to facades and poles too, but tolerates less error in the
+    /// estimate.
+    pub lidar_unmapped_distance_m: f64,
     /// Variance of a fused AMCL yaw, in rad².
     pub lidar_yaw_variance_rad2: f64,
     /// Odometry forward-velocity variance.
@@ -267,6 +272,7 @@ impl Default for HybridLocalizerConfig {
             lidar_anisotropic: false,
             lidar_max_variance_m2: 100.0,
             lidar_drop_unmapped_returns: false,
+            lidar_unmapped_distance_m: 1.0,
             lidar_yaw_variance_rad2: 0.0025,
             odometry_linear_variance: 0.0025,
             odometry_angular_variance: 1.0e-4,
@@ -652,6 +658,14 @@ impl HybridLocalizer {
         sensor_from_base: Pose2d,
     ) -> Option<LaserScan2d> {
         let sensor = self.ekf.pose().compose(sensor_from_base);
+        // The field is exp(-d²/2σ²) within its reach and zero beyond.
+        let likelihood = self.config.amcl.likelihood;
+        let distance = self.config.lidar_unmapped_distance_m;
+        let threshold = if distance >= likelihood.max_distance_m {
+            0.0
+        } else {
+            (-(distance * distance) / (2.0 * likelihood.sigma_m * likelihood.sigma_m)).exp()
+        };
         let mut filtered = scan.clone();
         let (mut valid, mut dropped) = (0_usize, 0_usize);
         for (index, range) in filtered.ranges_m.iter_mut().enumerate() {
@@ -667,7 +681,7 @@ impl HybridLocalizer {
                 .world_to_grid(end)
                 .and_then(|coord| self.map.probability(coord))
                 .is_some_and(|p| p < 0.5);
-            if free && self.field.score(end) <= 0.0 {
+            if free && self.field.score(end) <= threshold {
                 *range = f64::INFINITY;
                 dropped += 1;
             }
