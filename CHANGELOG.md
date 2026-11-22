@@ -14,6 +14,13 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 150 (`scene_replay_render`) renders scenes simulated outside RNE.
+  It reads a JSON script of boxes, spheres and cylinders plus camera views,
+  draws each view with the wgpu PBR renderer and writes PNGs, so a
+  lightweight simulator (for example a Python research sandbox) can produce
+  RNE-rendered media without linking against RNE. With `RNE_SKIP_GPU` it
+  only validates the script.
+
 - `rne_adapter_ros2` also records cameras: `to_ros_mono8_image` maps an RNE
   image to a `mono8` `sensor_msgs/Image`, `pinhole_camera_info` gives the
   `CameraInfo` of RNE's render geometry, and `cdr`/`mcap` serialize and declare
