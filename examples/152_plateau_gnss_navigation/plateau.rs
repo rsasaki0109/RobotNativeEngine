@@ -30,7 +30,13 @@ pub(crate) struct PlateauCity {
     pub(crate) frame: EnuFrame,
     pub(crate) mesh: Arc<TriangleMesh>,
     pub(crate) buildings: Vec<Building>,
+    /// Terrain heights on a grid (see [`TERRAIN_CELL_M`]).
+    terrain: Vec<f64>,
+    terrain_half_cells: usize,
 }
+
+/// Terrain grid spacing, meters.
+const TERRAIN_CELL_M: f64 = 2.0;
 
 impl PlateauCity {
     /// Loads the buildings of `CityGML` tiles within `radius_m` of `center`
@@ -114,17 +120,42 @@ impl PlateauCity {
         if buildings.is_empty() {
             return Err(format!("no buildings within {radius_m} m of {center:?}"));
         }
-        Ok(Self {
+        let mut city = Self {
             name: name.to_string(),
             frame,
             mesh: Arc::new(TriangleMesh::new(triangles)),
             buildings,
-        })
+            terrain: Vec::new(),
+            terrain_half_cells: (radius_m / TERRAIN_CELL_M).ceil() as usize + 1,
+        };
+        let n = 2 * city.terrain_half_cells + 1;
+        let half = city.terrain_half_cells as f64;
+        city.terrain = (0..n * n)
+            .map(|k| {
+                let x = ((k % n) as f64 - half) * TERRAIN_CELL_M;
+                let y = ((k / n) as f64 - half) * TERRAIN_CELL_M;
+                city.ground_idw(x, y)
+            })
+            .collect();
+        Ok(city)
     }
 
-    /// Ground height at a point: the lowest building base nearby (PLATEAU
-    /// buildings stand on the terrain), inverse-distance weighted.
+    /// Ground height at a point, interpolated from the terrain grid.
     pub(crate) fn ground_m(&self, x: f64, y: f64) -> f64 {
+        let n = 2 * self.terrain_half_cells + 1;
+        let half = self.terrain_half_cells as f64;
+        let gx = (x / TERRAIN_CELL_M + half).clamp(0.0, (n - 2) as f64);
+        let gy = (y / TERRAIN_CELL_M + half).clamp(0.0, (n - 2) as f64);
+        let (i, j) = (gx.floor() as usize, gy.floor() as usize);
+        let (fx, fy) = (gx - i as f64, gy - j as f64);
+        let h = |i: usize, j: usize| self.terrain[j * n + i];
+        (1.0 - fy) * ((1.0 - fx) * h(i, j) + fx * h(i + 1, j))
+            + fy * ((1.0 - fx) * h(i, j + 1) + fx * h(i + 1, j + 1))
+    }
+
+    /// Ground height at a point from the bases of nearby buildings (PLATEAU
+    /// buildings stand on the terrain), inverse-distance weighted.
+    fn ground_idw(&self, x: f64, y: f64) -> f64 {
         let (mut sum, mut weight) = (0.0, 0.0);
         for b in &self.buildings {
             let dx = (b.bounds[0] - x).max(x - b.bounds[2]).max(0.0);
@@ -141,6 +172,77 @@ impl PlateauCity {
         } else {
             0.0
         }
+    }
+
+    /// Adds the street furniture LOD2 models leave out along a route: utility
+    /// poles and signposts every 6-14 m (an irregular, fixed sequence) about
+    /// 0.8 m in front of the facades on both sides, and a vending machine
+    /// against the facade at every fourth spot. They are part of the city
+    /// for the sensors and the prior map (GNSS treats them as small
+    /// absorbers). Returns how many were placed.
+    pub(crate) fn add_street_furniture(&mut self, route: &[(f64, f64)]) -> usize {
+        const SPACING_M: [f64; 8] = [6.0, 9.0, 13.0, 7.0, 11.0, 8.0, 14.0, 10.0];
+        let mut triangles = self.mesh.triangles().to_vec();
+        let mut placed: Vec<(f64, f64)> = Vec::new();
+        let mut object = self.buildings.len() as u32 + 1_000_000;
+        let (mut k, mut carry) = (0_usize, 0.0);
+        for leg in route.windows(2) {
+            let (a, b) = (leg[0], leg[1]);
+            let length = (b.0 - a.0).hypot(b.1 - a.1);
+            if length < 1.0e-6 {
+                continue;
+            }
+            let (dx, dy) = ((b.0 - a.0) / length, (b.1 - a.1) / length);
+            let mut s = SPACING_M[k % SPACING_M.len()] - carry;
+            while s < length {
+                let (px, py) = (a.0 + dx * s, a.1 + dy * s);
+                let ground = self.ground_m(px, py);
+                for side in [-1.0, 1.0] {
+                    let (nx, ny) = (-dy * side, dx * side);
+                    let Some((h, _)) = self.mesh.raycast(
+                        Vec3::new(px, py, ground + 1.0),
+                        Vec3::new(nx, ny, 0.0),
+                        25.0,
+                    ) else {
+                        continue;
+                    };
+                    let vending = k % 4 == 3;
+                    let offset = if vending { h - 0.4 } else { h - 0.8 };
+                    if offset < 1.8 {
+                        continue;
+                    }
+                    let (cx, cy) = (px + nx * offset, py + ny * offset);
+                    if placed.iter().any(|q| (q.0 - cx).hypot(q.1 - cy) < 3.0) {
+                        continue;
+                    }
+                    let z = self.ground_m(cx, cy);
+                    let (half_along, half_across, height) = if vending {
+                        (0.5, 0.35, 1.8)
+                    } else {
+                        (0.15, 0.15, 8.0)
+                    };
+                    // Axis-aligned along the street direction's dominant axis.
+                    let (hx, hy) = if dx.abs() > dy.abs() {
+                        (half_along, half_across)
+                    } else {
+                        (half_across, half_along)
+                    };
+                    triangles.extend(rne_gnss::box_triangles(
+                        Vec3::new(cx - hx, cy - hy, z - 0.5),
+                        Vec3::new(cx + hx, cy + hy, z + height),
+                        SurfaceMaterial::ABSORBER,
+                        object,
+                    ));
+                    object += 1;
+                    placed.push((cx, cy));
+                }
+                k += 1;
+                s += SPACING_M[k % SPACING_M.len()];
+            }
+            carry = length - (s - SPACING_M[k % SPACING_M.len()]);
+        }
+        self.mesh = Arc::new(TriangleMesh::new(triangles));
+        placed.len()
     }
 
     /// Roof height under a point (for drawing), or `None` on open ground.

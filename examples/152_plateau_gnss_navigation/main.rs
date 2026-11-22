@@ -9,8 +9,38 @@
 //! cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_navigation
 //! ```
 
+// Shared with example 151, which uses all of it.
+#[allow(dead_code)]
+#[path = "../151_gnss_lidar_navigation/gnss.rs"]
+mod gnss;
+mod nav;
 mod plateau;
+#[cfg(feature = "capture")]
+mod render;
 
+#[cfg(feature = "capture")]
+fn render_area(
+    dir: &Path,
+    city: &PlateauCity,
+    route: &[(f64, f64)],
+    base: Vec3,
+    run: &RunReport,
+) -> Result<(), String> {
+    render::render(dir, city, route, base, run).map_err(|e| e.to_string())
+}
+
+#[cfg(not(feature = "capture"))]
+fn render_area(
+    _dir: &Path,
+    _city: &PlateauCity,
+    _route: &[(f64, f64)],
+    _base: Vec3,
+    _run: &RunReport,
+) -> Result<(), String> {
+    Err("--render needs `--features capture`".into())
+}
+
+use nav::{RunOptions, RunReport};
 use plateau::PlateauCity;
 use rne_gnss::Constellation;
 use rne_math::Vec3;
@@ -23,6 +53,12 @@ struct Area {
     tiles: &'static [&'static str],
     center: (f64, f64),
     ground_tp_m: f64,
+    /// Walking route waypoints in ENU meters; the route between them is
+    /// planned over the streets.
+    waypoints: &'static [(f64, f64)],
+    /// RTK reference station: a pole in a nearby park (latitude, longitude
+    /// degrees), beyond the loaded buildings so its sky is open.
+    base: (f64, f64),
 }
 
 const AREAS: [Area; 2] = [
@@ -32,6 +68,11 @@ const AREAS: [Area; 2] = [
         tiles: &["53393585", "53393586", "53393595", "53393596"],
         center: (35.6590, 139.7010),
         ground_tp_m: 15.0,
+        // The scramble crossing, west up the Dogenzaka side, north up Koen-dori,
+        // and back to the crossing.
+        waypoints: &[(-40.0, 47.0), (-180.0, 70.0), (25.0, 250.0), (-40.0, 47.0)],
+        // Yoyogi Park, about 1.3 km north-west.
+        base: (35.6690, 139.6950),
     },
     Area {
         name: "Shinjuku",
@@ -40,6 +81,15 @@ const AREAS: [Area; 2] = [
         // The west exit and the Nishi-Shinjuku skyscrapers.
         center: (35.6905, 139.6955),
         ground_tp_m: 38.0,
+        // From the west exit side west among the towers, north, and back.
+        waypoints: &[
+            (140.0, -140.0),
+            (-100.0, 33.0),
+            (33.0, 180.0),
+            (140.0, -140.0),
+        ],
+        // Shinjuku Gyoen, about 1.4 km east-south-east.
+        base: (35.6850, 139.7090),
     },
 ];
 
@@ -59,6 +109,12 @@ fn main() -> Result<(), String> {
             .nth(1)
             .unwrap_or_else(|| "target/plateau/tokyo23".to_string()),
     );
+    let survey_only = std::env::args().any(|a| a == "--survey");
+    let quick = std::env::args().any(|a| a == "--quick");
+    let render_dir = std::env::args()
+        .skip_while(|a| a != "--render")
+        .nth(1)
+        .map(PathBuf::from);
     let constellations = [
         ("GPS+Galileo", Constellation::gps_galileo_nominal()),
         (
@@ -66,7 +122,11 @@ fn main() -> Result<(), String> {
             Constellation::gps_galileo_qzss_nominal(),
         ),
     ];
-    for area in &AREAS {
+    let only = std::env::args().skip_while(|a| a != "--area").nth(1);
+    for area in AREAS
+        .iter()
+        .filter(|a| only.as_ref().is_none_or(|o| o.eq_ignore_ascii_case(a.slug)))
+    {
         let paths: Vec<PathBuf> = area
             .tiles
             .iter()
@@ -79,7 +139,7 @@ fn main() -> Result<(), String> {
             ));
         }
         let started = std::time::Instant::now();
-        let city = PlateauCity::load(
+        let mut city = PlateauCity::load(
             area.name,
             &paths,
             area.center,
@@ -94,17 +154,117 @@ fn main() -> Result<(), String> {
             city.mesh.diffraction_edges().len(),
             started.elapsed().as_secs_f64()
         );
+        let mut qzss_survey = None;
         for (label, constellation) in &constellations {
             let survey = survey(&city, constellation);
             survey.print(label);
-            if label.ends_with("QZSS") {
-                let png = PathBuf::from(format!("target/152_{}_sky.png", area.slug));
-                write_map(&png, &city, &survey)?;
-                println!("  wrote {}", png.display());
+            qzss_survey = Some(survey);
+        }
+        let survey = qzss_survey.expect("survey");
+        if survey_only {
+            let png = PathBuf::from(format!("target/152_{}_sky.png", area.slug));
+            write_map(&png, &city, &survey, &[], None)?;
+            println!("  wrote {}", png.display());
+            continue;
+        }
+        let route = nav::plan_route(&city, area.waypoints);
+        let furniture = city.add_street_furniture(&route);
+        let length: f64 = route
+            .windows(2)
+            .map(|s| (s[1].0 - s[0].0).hypot(s[1].1 - s[0].1))
+            .sum();
+        let base = base_station(&city, area.base);
+        println!(
+            "  route: {length:.0} m over {} waypoints, {furniture} poles and vending machines along it; RTK base in a park at ({:.0}, {:.0}, {:.0}) m",
+            route.len(),
+            base.x,
+            base.y,
+            base.z
+        );
+        let mut main_run = None;
+        for (label, options) in [
+            (
+                "map-aided GNSS + QZSS",
+                RunOptions {
+                    map_aided_gnss: true,
+                    qzss: true,
+                    record: render_dir.is_some(),
+                },
+            ),
+            (
+                "GNSS + QZSS, no map aid",
+                RunOptions {
+                    map_aided_gnss: false,
+                    qzss: true,
+                    record: false,
+                },
+            ),
+            (
+                "map-aided GNSS, no QZSS",
+                RunOptions {
+                    map_aided_gnss: true,
+                    qzss: false,
+                    record: false,
+                },
+            ),
+        ] {
+            if quick && main_run.is_some() {
+                break;
             }
+            let started = std::time::Instant::now();
+            let report = nav::run(&city, &route, base, options);
+            print_report(label, &report, started.elapsed().as_secs_f64());
+            main_run.get_or_insert(report);
+        }
+        let png = PathBuf::from(format!("target/152_{}_sky.png", area.slug));
+        write_map(&png, &city, &survey, &route, main_run.as_ref())?;
+        println!("  wrote {}", png.display());
+        if let (Some(dir), Some(run)) = (&render_dir, &main_run) {
+            render_area(&dir.join(area.slug), &city, &route, base, run)?;
         }
     }
     Ok(())
+}
+
+/// The RTK reference station: an antenna on a 2 m pole in a park, at street
+/// level (a base hundreds of metres above the rover would leave a
+/// tropospheric difference that the double differences do not cancel).
+fn base_station(city: &PlateauCity, (lat, lon): (f64, f64)) -> Vec3 {
+    let at = city
+        .frame
+        .ecef_to_enu(rne_gnss::Geodetic::from_degrees(lat, lon, 0.0).to_ecef());
+    Vec3::new(at.x, at.y, city.ground_m(at.x, at.y) + 2.0)
+}
+
+fn print_report(label: &str, report: &RunReport, wall_s: f64) {
+    let (rmse, max) = report.rmse_max();
+    let [fixed, float, single, none] = report.fix_shares();
+    let epochs = report.epochs.max(1) as f64;
+    println!(
+        "  {label:<24} goal {} in {:.0} s ({:.0} m); error RMSE {rmse:.2} m, max {max:.2} m; \
+         RTK fixed {fixed:.0} % float {float:.0} % single {single:.0} % none {none:.0} %",
+        if report.reached {
+            "reached"
+        } else {
+            "NOT reached"
+        },
+        report.duration_s,
+        report.distance_m,
+    );
+    println!(
+        "  {:<24} sky: {:.1} tracked ({:.1} LOS, {:.1} NLOS/diffracted); GNSS {:.0} s, LiDAR {:.0} s, \
+         dead reckoning {:.0} s (longest {:.1} s, {} safety stops); min LiDAR clearance {:.2} m [{wall_s:.0} s]",
+        "",
+        report.tracked / epochs,
+        report.los / epochs,
+        report.nlos / epochs,
+        report.time_in[0],
+        report.time_in[1],
+        report.time_in[2],
+        report.longest_dead_reckoning_s,
+        report.safety_stops,
+        report.clearance_m,
+    );
 }
 
 /// Satellites in view at each street point.
@@ -172,7 +332,13 @@ fn survey(city: &PlateauCity, constellation: &Constellation) -> Survey {
     Survey { points }
 }
 
-fn write_map(path: &Path, city: &PlateauCity, survey: &Survey) -> Result<(), String> {
+fn write_map(
+    path: &Path,
+    city: &PlateauCity,
+    survey: &Survey,
+    route: &[(f64, f64)],
+    run: Option<&RunReport>,
+) -> Result<(), String> {
     const PX_PER_M: f64 = 1.5;
     let half = SURVEY_RADIUS_M;
     let size = (2.0 * half * PX_PER_M) as usize;
@@ -210,6 +376,46 @@ fn write_map(path: &Path, city: &PlateauCity, survey: &Survey) -> Result<(), Str
             };
             let i = (row * size + col) * 3;
             rgb[i..i + 3].copy_from_slice(&colour);
+        }
+    }
+    let mut plot = |x: f64, y: f64, colour: [u8; 3], radius: i64| {
+        let col = ((x + half) * PX_PER_M) as i64;
+        let row = ((half - y) * PX_PER_M) as i64;
+        for dr in -radius..=radius {
+            for dc in -radius..=radius {
+                let (r, c) = (row + dr, col + dc);
+                if r >= 0 && c >= 0 && (r as usize) < size && (c as usize) < size {
+                    let i = (r as usize * size + c as usize) * 3;
+                    rgb[i..i + 3].copy_from_slice(&colour);
+                }
+            }
+        }
+    };
+    // The planned route in white, then the walked track coloured by the
+    // localization source (blue GNSS, magenta LiDAR, orange dead reckoning).
+    for pair in route.windows(2) {
+        let (a, b) = (pair[0], pair[1]);
+        let steps = ((b.0 - a.0).hypot(b.1 - a.1) * PX_PER_M * 2.0)
+            .ceil()
+            .max(1.0) as usize;
+        for k in 0..=steps {
+            let f = k as f64 / steps as f64;
+            plot(
+                a.0 + f * (b.0 - a.0),
+                a.1 + f * (b.1 - a.1),
+                [255, 255, 255],
+                1,
+            );
+        }
+    }
+    if let Some(run) = run {
+        for (truth, _, source) in &run.track {
+            let colour = match source {
+                rne_slam::LocalizationSource::Gnss => [40, 110, 255],
+                rne_slam::LocalizationSource::Lidar => [230, 40, 230],
+                rne_slam::LocalizationSource::DeadReckoning => [255, 140, 0],
+            };
+            plot(truth.x_m, truth.y_m, colour, 1);
         }
     }
     let file = std::fs::File::create(path).map_err(|e| e.to_string())?;

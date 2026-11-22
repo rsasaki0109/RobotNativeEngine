@@ -21,13 +21,13 @@ office and back, with an RTK base station on a rooftop.
 | Stage | Model |
 |-------|-------|
 | Time, geodesy | GPS week / time of week; exact WGS-84 geodetic ↔ ECEF ↔ local ENU. |
-| Satellites | Keplerian orbits; the nominal 24-slot GPS constellation and a Galileo Walker 24/3/1 (48 satellites). Exported as broadcast ephemerides (`NavigationMessage`) that reproduce the simulated orbits to 0.1 mm with the IS-GPS-200 algorithm. |
+| Satellites | Keplerian orbits; the nominal 24-slot GPS constellation, a Galileo Walker 24/3/1, and QZSS (three quasi-zenith satellites with apogee over 135° E, one geostationary at 127° E). Exported as broadcast ephemerides (`NavigationMessage`) that reproduce the simulated orbits to 0.1 mm with the IS-GPS-200 algorithm. The satellite clock carries the relativistic term `F·e·√A·sin E` (up to 65 m for QZSS's e = 0.075) that receivers correct from the ephemeris. |
 | Signal flight | Satellite position at transmission (light-time iteration) and the Sagnac rotation. |
-| Scene | Axis-aligned boxes with a reflection loss per material (concrete 8 dB, glass 4 dB, metal 2 dB; `ABSORBER` for poles and trunks, which block but are not traced as reflectors), a ground plane (12 dB), and foliage volumes that attenuate every path by its length inside them (dB/m). Surfaces beyond `max_interaction_distance_m` are not traced. |
+| Scene | Axis-aligned boxes and a `TriangleMesh` of arbitrary buildings (for example PLATEAU LOD2, through a BVH), with a reflection loss per material (concrete 8 dB, glass 4 dB, metal 2 dB; `ABSORBER` for poles and trunks, which block but are not traced as reflectors), a ground plane (12 dB), and foliage volumes that attenuate every path by its length inside them (dB/m). Surfaces beyond `max_interaction_distance_m` are not traced; mesh triangles smaller than `min_reflector_area_m2` (4 m², about a Fresnel zone) are not specular reflectors, and two-bounce paths can be limited to the `max_multi_bounce_facets` nearest facets. |
 | Direct path | A ray toward each satellite; any box blocks it. |
 | Reflections | Up to `max_reflections` (default 2) specular bounces off walls and the ground by the image method: the look direction is the satellite direction mirrored through the facet sequence, and the ray is traced forward through every facet, bounds and occluders included. Excess path `Σ|Pᵢ − Pᵢ₋₁| − (Pk − A)·u`. |
-| Diffraction | For blocked satellites, the point on each box edge minimising the path (Keller's law for a plane wave), when both legs are clear. Loss is the ITU-R P.526 knife-edge `J(ν)` with `ν = 2√(Δ/λ)`, so it depends on frequency. |
-| Signals | GPS L1 C/A and L2C, Galileo E1 and E5a: frequency, chip length, relative power, iono scaling. |
+| Diffraction | For blocked satellites, the point on each box edge, and on each convex crease of a mesh object (roof outlines, building corners), minimising the path (Keller's law for a plane wave), when both legs are clear. Loss is the ITU-R P.526 knife-edge `J(ν)` with `ν = 2√(Δ/λ)`, so it depends on frequency. |
+| Signals | GPS and QZSS L1 C/A and L2C, Galileo E1 and E5a: frequency, chip length, relative power, iono scaling. |
 | Tracking | The direct path when LOS, else the strongest indirect path (NLOS or diffracted). Later replicas within a chip distort the code (narrow-correlator envelope) and carrier (phasor sum), and fade the C/N0. |
 | Pseudorange | Geometric range + receiver clock + satellite orbit/clock error (shared by all receivers) + true ionosphere (Klobuchar × truth scale, `(f₁/f)²`) + true troposphere (Saastamoinen × truth scale) + excess path + code multipath + DLL noise from C/N0. |
 | Carrier phase | The same with the ionosphere sign reversed, carrier multipath, PLL noise, and an integer ambiguity per lock arc. Lock needs `phase_lock_threshold_dbhz`; slips occur at random near it, and whenever the tracked path changes by more than a quarter wavelength (its phase jumps by the path change). A new arc sets the loss-of-lock flag. |
@@ -37,7 +37,8 @@ office and back, with an RTK base station on a rooftop.
 
 Not modelled: multi-bounce paths combined with diffraction, diffraction while
 the direct path is clear, polarisation beyond a per-bounce loss, receiver
-acquisition time, and non-box geometry.
+acquisition time, GLONASS and BeiDou, and diffuse scattering off surfaces
+smaller than a Fresnel zone.
 
 ### Sensor behavior
 
@@ -59,7 +60,7 @@ exposes:
 
 * `Navigation::new(&NavigationMessage)` — ephemerides and Klobuchar
   coefficients.
-* `Spp` — libgnss++ single-point positioning.
+* `Spp` — libgnss++ single-point positioning (GPS, Galileo, QZSS).
 * `Rtk` (`RtkMode::Kinematic`, `Static`, `MovingBase`) with `RtkConfig`
   (elevation mask, ratio threshold, libgnss++ presets such as `low-cost` or
   `moving-base`, ambiguity reset after consecutive non-fixed epochs) and
@@ -102,7 +103,13 @@ rate and decides which absolute source corrects it:
    matches that disagree with the EKF (a scan sliding along a facade, a
    parked car taken for a wall) as poor matches; too many in a row end
    LiDAR control. It protects an RTK-grade estimate but would also keep
-   LiDAR from correcting an estimate a wrong fix left off.
+   LiDAR from correcting an estimate a wrong fix left off. With
+   `lidar_anisotropic` (off by default), each match is fused with a
+   covariance from the curvature of its score instead: along a featureless
+   corridor it constrains only the cross-track position. The scan is also
+   matched from the particle filter's estimate over a wider window; that
+   match is used unless it fits clearly worse, and re-anchors the EKF when
+   the two stay metres apart.
 4. **Back outside** — `enter_gnss_epochs` consecutive healthy fixes of at
    least `enter_gnss_min_kind` give GNSS control again. A gate reset after
    `gate_reset_epochs` of disagreement needs an RTK fixed solution or an EKF
@@ -131,10 +138,24 @@ the street; without it and without an outdoor LiDAR map it never
 relocalizes. See the
 [example's README](../examples/151_gnss_lidar_navigation/README.md#what-each-part-contributes).
 
+## Real streets: Shibuya and Shinjuku
+
+[Example 152](../examples/152_plateau_gnss_navigation/README.md) builds the
+scene from Project PLATEAU's LOD2 model of Tokyo
+(`scripts/fetch_plateau_tokyo.py` extracts the meshes around Shibuya
+Station and Nishi-Shinjuku from the official archive with range requests)
+and runs the same robot there. QZSS roughly quadruples the share of
+street points that see eight or more satellites; with it and the 3D-map
+NLOS exclusion the robot walks both routes (750 m and 960 m) with a
+position RMSE of 0.24 m and 0.66 m, while among the Nishi-Shinjuku towers
+dropping either the exclusion or QZSS gets it lost or stopped.
+
+![Example 152 rendered in 3D: GNSS and LiDAR navigation among the PLATEAU buildings around Shibuya Station](media/plateau-gnss-shibuya.gif)
+
 ## Limits
 
-* The scene is axis-aligned boxes; arbitrary meshes (for example a PLATEAU
-  city model) would need a BVH and triangle intersection.
+* Mesh buildings come from LOD2 models: prisms with roofs, no facade
+  detail, and the facade material is guessed.
 * libgnss++ RTK covariances are not used as reported (they come back
   constant); the example floors the variance per solution type instead.
 * The hybrid arbiter is a rule-based switch with hysteresis, not a factor

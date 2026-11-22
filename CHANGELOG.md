@@ -6,6 +6,33 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_gnss` traces triangle-mesh buildings: `TriangleMesh` (BVH closest and
+  any-hit queries, range queries, an inside test, convex-crease diffraction
+  edges) in `GnssScene::mesh`, with mesh triangles as reflectors above
+  `TraceConfig::min_reflector_area_m2` and diffraction over mesh edges; a
+  street traced as boxes and as a mesh gives the same paths.
+  `TraceConfig::max_multi_bounce_facets` bounds the two-bounce search.
+  `Propagation::blocked_by` is now a `FacetSource`.
+- QZSS in `rne_gnss` (`GnssSystem::Qzss`, `Constellation::qzss_nominal`,
+  `gps_galileo_qzss_nominal`, QZSS L1 C/A and L2C) and in the libgnss++
+  adapter; the simulated satellite clock carries the relativistic term of
+  eccentric orbits, which receivers correct from the ephemeris.
+- `rne_plateau::parse_building_triangles`: each building's triangulated LOD2
+  surfaces with their semantic class.
+- `scripts/fetch_plateau_tokyo.py` extracts PLATEAU Tokyo meshes from the
+  official archive with HTTP range requests.
+- `EkfFusion::update_position_covariance`, and
+  `HybridLocalizerConfig::lidar_anisotropic` (off by default): scan matches
+  fused with a covariance from the curvature of their score, the particle
+  filter's match preferred over a wider window, and the EKF re-anchored when
+  the two stay metres apart.
+- Example 152: the GNSS/LiDAR robot of example 151 walking real streets
+  around Shibuya Station and in Nishi-Shinjuku from PLATEAU's LOD2 model,
+  with QZSS and a park reference station; a sky survey, three
+  configurations per area and a 3D render (`docs/media/plateau-gnss-*.gif`).
+
+### Added
+
 - Example 149 lets Calibrex judge the camera and the IMU's lever arm. A ring of
   36 floor-to-ceiling posts, two in three leaning 35°, gives the LiDAR beams
   depth discontinuities in the image: on a 90 s bag both camera–lidar pairs
