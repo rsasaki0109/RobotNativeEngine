@@ -4,6 +4,19 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Example 149 lets Calibrex judge the camera and the IMU's lever arm. A ring of
+  36 floor-to-ceiling posts, two in three leaning 35°, gives the LiDAR beams
+  depth discontinuities in the image: on a 90 s bag both camera–lidar pairs
+  pass with the true mountings and fail with the camera turned 3° (roll 3.0°
+  and 3.4°), while every other pair keeps its verdict. `--rotation-speed`
+  multiplies the frequencies of the rig's rotation (default 1, the same bag as
+  before); at 2 imu–lidar judges all six axes on a 90 s IMU + LiDAR bag (lever
+  arm within 5 mm), and the new `shifted_imu.yaml` (IMU moved 5 cm) fails on x.
+  The README traces camera–imu's remaining 1° error to Calibrex's pure-rotation
+  fits absorbing the rig's translation.
+
 ### Changed
 
 - Example 149's README traces the camera pairs' errors and the time-offset bias
