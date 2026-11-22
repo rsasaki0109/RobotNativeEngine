@@ -931,33 +931,23 @@ fn base_frame_points(cloud: &rne_data::PointCloud, truth: Pose) -> Vec<[f64; 3]>
         .collect()
 }
 
-/// Safety layer for the static map: the box ahead of the base that must be
-/// free of returns on static cells for the robot to walk forward. A person
-/// standing still long enough joins the static map and is no longer
-/// detected; this still stops the robot short of them. Only static clusters
-/// that pass the person test count, not walls. Returns elsewhere
-/// are left to the controller: stopping in front of someone walking toward
-/// the robot, or for a wall at an angle mid lane change, makes things worse.
-/// It starts clear of the robot's own front legs and head (returns up to
-/// 0.47 m ahead of the base).
-const SAFETY_BOX_X_M: (f64, f64) = (0.55, 1.0);
-const SAFETY_BOX_HALF_WIDTH_M: f64 = 0.3;
-const SAFETY_BOX_HEIGHT_M: (f64, f64) = (0.15, 1.0);
-const SAFETY_MIN_RETURNS: usize = 3;
+/// Safety layer for the static map. A person standing still long enough
+/// joins the static map and is no longer detected. The robot does not walk
+/// forward while the centre of a person-shaped cluster of static returns is
+/// in this region ahead of the base, nor for SAFETY_HOLD_S after. Walls
+/// (which fail the person test) and returns not on the map are left to the
+/// controller: stopping in front of someone walking toward the robot, or
+/// for a wall at an angle mid lane change, makes things worse.
+const SAFETY_AHEAD_M: (f64, f64) = (0.3, 1.25);
+const SAFETY_HALF_WIDTH_M: f64 = 0.45;
+const SAFETY_HOLD_S: f64 = 1.0;
 
-/// Whether enough returns (base frame, z up) are in the safety box.
-fn path_blocked(points: &[[f64; 3]]) -> bool {
-    points
-        .iter()
-        .filter(|p| {
-            p[0] > SAFETY_BOX_X_M.0
-                && p[0] < SAFETY_BOX_X_M.1
-                && p[1].abs() < SAFETY_BOX_HALF_WIDTH_M
-                && p[2] > SAFETY_BOX_HEIGHT_M.0
-                && p[2] < SAFETY_BOX_HEIGHT_M.1
-        })
-        .count()
-        >= SAFETY_MIN_RETURNS
+/// Whether a person-shaped static cluster (centre in the base frame) is in
+/// the way.
+fn static_person_ahead(centres: &[[f64; 2]]) -> bool {
+    centres.iter().any(|c| {
+        c[0] > SAFETY_AHEAD_M.0 && c[0] < SAFETY_AHEAD_M.1 && c[1].abs() < SAFETY_HALF_WIDTH_M
+    })
 }
 
 /// The new command, moved toward `next` at the allowed rates.
@@ -1362,6 +1352,7 @@ fn run(
     let mut frame = 0_u64;
     let mut people_now = Vec::new();
     let mut trace = Vec::new();
+    let mut safety_hold_until_s = f64::NEG_INFINITY;
 
     while trot.time_s() < task.duration_s && score.goal_time_s.is_none() && !score.fell {
         for _ in 0..STEPS_PER_FRAME {
@@ -1427,31 +1418,23 @@ fn run(
             .base_linear_velocity_x_m_s
             .hypot(observed.base_linear_velocity_z_m_s);
         let (mut next, chosen) = controller.command(&tracks, odom, time_s, speed_now);
-        let blocked = safety
+        if safety
             && perceiver.map.as_ref().is_some_and(|map| {
                 let on_static: Vec<[f64; 3]> = points
                     .iter()
                     .filter(|p| map.is_static(perception::to_odom(odom, [p[0], p[1]])))
                     .copied()
                     .collect();
-                // Only person-shaped static clusters: a wall the robot
-                // walks beside is the controller's business.
-                let shaped: Vec<[f64; 2]> = detect_people(&on_static, [0.0, 0.0, 0.0])
+                let centres: Vec<[f64; 2]> = detect_people(&on_static, [0.0, 0.0, 0.0])
                     .iter()
                     .map(|d| d.position)
                     .collect();
-                path_blocked(
-                    &on_static
-                        .iter()
-                        .filter(|p| {
-                            shaped
-                                .iter()
-                                .any(|c| (c[0] - p[0]).hypot(c[1] - p[1]) < 0.6)
-                        })
-                        .copied()
-                        .collect::<Vec<_>>(),
-                )
-            });
+                static_person_ahead(&centres)
+            })
+        {
+            safety_hold_until_s = time_s + SAFETY_HOLD_S;
+        }
+        let blocked = time_s < safety_hold_until_s;
         if blocked {
             next.forward_speed_m_s = 0.0;
             score.safety_stop_s += FRAME_S;
@@ -1738,13 +1721,13 @@ mod tests {
     }
 
     #[test]
-    fn safety_layer_stops_for_returns_right_ahead_only() {
-        let leg = |x: f64, y: f64| (0..4).map(move |i| [x, y, 0.2 + 0.1 * f64::from(i)]);
-        assert!(path_blocked(&leg(0.7, 0.1).collect::<Vec<_>>()));
-        // Beside the path, farther ahead, or on the floor: not blocked.
-        assert!(!path_blocked(&leg(0.7, 0.6).collect::<Vec<_>>()));
-        assert!(!path_blocked(&leg(1.5, 0.0).collect::<Vec<_>>()));
-        assert!(!path_blocked(&[[0.7, 0.0, 0.05]; 10]));
+    fn safety_layer_stops_for_a_static_person_right_ahead_only() {
+        assert!(static_person_ahead(&[[0.7, 0.1]]));
+        assert!(static_person_ahead(&[[0.35, -0.3]]));
+        // Beside the path or farther ahead: not in the way.
+        assert!(!static_person_ahead(&[[0.7, 0.8]]));
+        assert!(!static_person_ahead(&[[1.6, 0.0]]));
+        assert!(!static_person_ahead(&[]));
     }
 
     #[test]
