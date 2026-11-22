@@ -95,6 +95,9 @@ const LANE_AIM_M: f64 = 1.2;
 const PASS_SIDE_SETTLE_S: f64 = 1.0;
 /// A head-on person drifting sideways faster than this is passed behind.
 const PASS_BEHIND_DRIFT_M_S: f64 = 0.15;
+/// A kept side is given up once the robot is this far on the other side of
+/// the person's line.
+const PASS_SIDE_SWITCH_M: f64 = 0.4;
 /// The follower keeps this far behind its target.
 const FOLLOW_DISTANCE_M: f64 = 1.2;
 /// A lost target is re-acquired within this distance of its prediction.
@@ -278,6 +281,39 @@ fn tasks() -> Vec<Task> {
                 Wall { center: [9.0, 3.6], half: [1.2, 0.25] },
                 Wall { center: [5.0, -1.9], half: [0.2, 0.2] },
                 Wall { center: [8.5, 1.5], half: [0.2, 0.2] },
+            ],
+        },
+        Task {
+            name: "crowd",
+            description: "Cross a 20 m x 9.6 m hall to a goal 14 m away among nine people: head-on, crossing, diagonal, overtaking, and a pair standing in the way",
+            duration_s: 120.0,
+            mission: Mission::Goal([14.0, 0.0]),
+            people: vec![
+                // Head-on, in three lanes.
+                Trajectory::path(&[[17.0, 0.2], [-2.0, 0.2]], 0.9, 8.0),
+                Trajectory::path(&[[17.0, 1.6], [-2.0, 1.6]], 0.8, 22.0),
+                Trajectory::path(&[[17.0, 0.8], [-2.0, 0.8]], 0.7, 45.0),
+                // Crossing, both ways.
+                Trajectory::path(&[[6.0, 4.6], [6.0, -4.6]], 1.0, 18.0),
+                Trajectory::path(&[[9.0, -4.6], [9.0, 4.6]], 0.8, 30.0),
+                // Diagonal, toward the robot.
+                Trajectory::path(&[[15.0, 4.0], [5.0, -4.0]], 0.7, 5.0),
+                // Overtakes the robot from behind, 1 m to its left.
+                Trajectory::path(&[[-2.2, 1.0], [17.0, 1.0]], 1.2, 15.0),
+                // A pair standing in the way, 0.6 m apart, long enough for
+                // the static map to take them in; then they walk off.
+                Trajectory::path(&[[11.0, 0.4], [11.0, 0.4]], 1.0, 0.0)
+                    .wait(55.0)
+                    .then(&[[11.5, 4.5]], 0.6),
+                Trajectory::path(&[[11.0, -0.2], [11.0, -0.2]], 1.0, 0.0)
+                    .wait(55.0)
+                    .then(&[[11.5, 4.5]], 0.6),
+            ],
+            walls: vec![
+                Wall { center: [7.5, 4.9], half: [10.1, 0.1] },
+                Wall { center: [7.5, -4.9], half: [10.1, 0.1] },
+                Wall { center: [-2.6, 0.0], half: [0.1, 4.9] },
+                Wall { center: [17.6, 0.0], half: [0.1, 4.9] },
             ],
         },
     ]
@@ -639,6 +675,11 @@ impl Controller {
                             .iter()
                             .find(|(id, _)| *id == track.id)
                             .map(|(_, s)| *s);
+                        // A kept side is given up once the robot is
+                        // clearly on the other side of the person's line
+                        // (it went round someone else): crossing back in
+                        // front of them is the one thing not to do.
+                        let remembered = remembered.filter(|s| s * offset > -PASS_SIDE_SWITCH_M);
                         let side = remembered.unwrap_or_else(|| {
                             if offset.abs() > 0.2 {
                                 offset.signum()
@@ -657,6 +698,7 @@ impl Controller {
                         let settled =
                             history.is_some_and(|h| time_s - h.first_seen_s >= PASS_SIDE_SETTLE_S);
                         if remembered.is_none() && settled {
+                            self.pass_side.retain(|(id, _)| *id != track.id);
                             self.pass_side.push((track.id, side));
                         }
                         side
