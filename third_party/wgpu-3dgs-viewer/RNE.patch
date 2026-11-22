@@ -1,0 +1,117 @@
+--- upstream/Cargo.toml
++++ rne/Cargo.toml
+@@ -173,3 +173,6 @@
+ [dependencies.winit]
+ version = "0.30.8"
+ optional = true
++
++# RNE: keep the vendored package out of the engine workspace.
++[workspace]
+--- upstream/src/shader/render.wgsl
++++ rne/src/shader/render.wgsl
+@@ -1,6 +1,24 @@
+ // Vertex
+ 
+-const max_radius = 2.0;
++// RNE modification (see RNE_PATCH.md): Inria-correct EWA splatting.
++//
++// Upstream 0.2.0 used `proj[i][i] * size` as the pixel focal length (2f instead
++// of f), so its 2D covariance was 4x too large; it added a 0.1 low-pass in those
++// doubled units (~0.025 px^2) and drew `exp(-q^2)` with `q` in units of
++// `sqrt(lambda)` of that covariance. Every splat came out sqrt(2) wider than the
++// trained footprint. This version follows the reference rasterizer
++// (Kerbl et al. 2023, diff-gaussian-rasterization):
++// - focal length f = proj[i][i] * size / 2 pixels, with the 1.3 * tan(fov / 2)
++//   clamp of the view-space x/z, y/z in the Jacobian;
++// - +0.3 px^2 low-pass on the 2D covariance diagonal (no Mip-Splatting
++//   opacity compensation);
++// - quad half-axes of 3 sigma along the eigenvectors, `quad_offset` carrying the
++//   offset in sigma units of each axis, so |q|^2 = d^T Sigma^-1 d;
++// - alpha = min(0.99, opacity * exp(-0.5 |q|^2)), discarded below 1/255.
++const max_radius = 3.0;
++const max_extent_px = 1024.0;
++const min_alpha = 1.0 / 255.0;
++const max_alpha = 0.99;
+ const point_size = 0.01;
+ 
+ struct Camera {
+@@ -199,9 +217,17 @@
+         cov3d[2], cov3d[4], cov3d[5],
+     );
+ 
+-    let focal = vec2<f32>(camera.proj[0][0], camera.proj[1][1]) * camera.size;
++    // Pixel focal length: NDC spans 2 units over `size` pixels.
++    let focal = vec2<f32>(camera.proj[0][0], camera.proj[1][1]) * camera.size * 0.5;
+ 
+-    let t = camera.view * model_transform_mat() * vec4<f32>(gaussian.pos, 1.0);
++    let t_view = camera.view * model_transform_mat() * vec4<f32>(gaussian.pos, 1.0);
++    // Clamp the Jacobian's x/z, y/z to 1.3 * tan(fov / 2) like the reference.
++    let lim = 1.3 * vec2<f32>(1.0 / camera.proj[0][0], 1.0 / camera.proj[1][1]);
++    let t = vec3<f32>(
++        clamp(t_view.x / t_view.z, -lim.x, lim.x) * t_view.z,
++        clamp(t_view.y / t_view.z, -lim.y, lim.y) * t_view.z,
++        t_view.z,
++    );
+     let j = transpose(mat3x3<f32>(
+         focal.x / t.z, 0.0, -(focal.x * t.x) / (t.z * t.z),
+         0.0, focal.y / t.z, -(focal.y * t.y) / (t.z * t.z),
+@@ -211,7 +237,7 @@
+ 
+     let cov2d = (j * w * sr) * vrk * transpose(j * w * sr);
+ 
+-    let low_pass = vec3<f32>(0.1, 0.0, 0.1);
++    let low_pass = vec3<f32>(0.3, 0.0, 0.3);
+ 
+     return vec3<f32>(cov2d[0][0], cov2d[0][1], cov2d[1][1]) + low_pass;
+ }
+@@ -499,18 +525,29 @@
+         return out;
+     }
+ 
+-    let diag_dir = normalize(vec2<f32>(cov2d.y, lambda_1 - cov2d.x));
++    // Eigenvector of lambda_1; fall back to the x axis for an isotropic covariance.
++    let diag_vec = vec2<f32>(cov2d.y, lambda_1 - cov2d.x);
++    let diag_dir = select(
++        vec2<f32>(1.0, 0.0),
++        normalize(diag_vec),
++        dot(diag_vec, diag_vec) > 1e-12,
++    );
+     let ortho_diag_dir = vec2<f32>(diag_dir.y, -diag_dir.x);
+-    let major_len = min(max_radius * sqrt(lambda_1), 1024.0);
+-    let minor_len = min(max_radius * sqrt(lambda_2), 1024.0);
+-    let major_axis = major_len * diag_dir * gaussian_transform.size;
+-    let minor_axis = minor_len * ortho_diag_dir * gaussian_transform.size;
++    // One standard deviation along each principal axis, in pixels.
++    let major_sigma = sqrt(lambda_1) * gaussian_transform.size;
++    let minor_sigma = sqrt(lambda_2) * gaussian_transform.size;
++    // 3 sigma per axis, truncated (not rescaled) for extremely large splats.
++    let quad_extent = vec2<f32>(
++        min(max_radius, max_extent_px / max(major_sigma, 1e-6)),
++        min(max_radius, max_extent_px / max(minor_sigma, 1e-6)),
++    );
+ 
+-    let quad_offset = quad_offset(vert_index) * max_radius;
++    // `quad_offset` is in sigma units; pixels map to NDC by 2 / size.
++    let quad_offset = quad_offset(vert_index) * quad_extent;
+     let clip_pos = (
+         proj_pos.xy
+-        + quad_offset.x * proj_pos.w * major_axis / camera.size
+-        + quad_offset.y * proj_pos.w * minor_axis / camera.size
++        + quad_offset.x * major_sigma * proj_pos.w * 2.0 * diag_dir / camera.size
++        + quad_offset.y * minor_sigma * proj_pos.w * 2.0 * ortho_diag_dir / camera.size
+     );
+ 
+     out.clip_pos = vec4<f32>(clip_pos, proj_pos.zw);
+@@ -543,7 +580,11 @@
+         discard;
+     }
+ 
+-    let alpha = in.color.a * exp(-radius_sq);
++    // radius_sq = d^T Sigma^-1 d, so this is the Gaussian exp(-d^2 / (2 sigma^2)).
++    let alpha = min(max_alpha, in.color.a * exp(-0.5 * radius_sq));
++    if alpha < min_alpha {
++        discard;
++    }
+     return vec4<f32>(in.color.rgb, alpha);
+ }
+ 

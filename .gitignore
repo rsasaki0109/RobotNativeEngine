@@ -1,5 +1,6 @@
 /target
 /third_party/rapier3d/target/
+/third_party/wgpu-3dgs-viewer/target/
 /fuzz/target/
 /artifacts/
 .venv/

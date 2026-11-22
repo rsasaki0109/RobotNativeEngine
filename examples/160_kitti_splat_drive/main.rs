@@ -117,7 +117,8 @@ fn main() {
             let mut drive = world.get_mut::<AckermannDrive>(car).expect("drive");
             let steering =
                 pure_pursuit_steering(&pose, waypoints[target], WHEELBASE_M, LOOKAHEAD_M);
-            drive.target_steering_rad = steering.clamp(-drive.max_steering_rad, drive.max_steering_rad);
+            drive.target_steering_rad =
+                steering.clamp(-drive.max_steering_rad, drive.max_steering_rad);
             drive.target_speed_m_s = if done { 0.0 } else { speed };
         }
 
@@ -125,7 +126,8 @@ fn main() {
             let drive = world.get::<AckermannDrive>(car).expect("drive").clone();
             let yaw = yaw_of(pose.rotation);
             let cross = cross_track(&waypoints, index, pose.translation);
-            let math_pose = MathTransform::from_translation_rotation(pose.translation, pose.rotation);
+            let math_pose =
+                MathTransform::from_translation_rotation(pose.translation, pose.rotation);
             render_frame(
                 &mut backend,
                 &mut background,
@@ -229,7 +231,10 @@ fn read_path(path: &Path) -> (Vec<Vec3>, f64) {
     let text = fs::read_to_string(path).expect("path csv");
     let mut points: Vec<Vec3> = Vec::new();
     let mut yaw = None;
-    for line in text.lines().filter(|l| !l.starts_with('#') && !l.trim().is_empty()) {
+    for line in text
+        .lines()
+        .filter(|l| !l.starts_with('#') && !l.trim().is_empty())
+    {
         let v: Vec<f64> = line.split(',').map(|s| s.trim().parse().unwrap()).collect();
         let p = Vec3::new(v[1], v[2], v[3]);
         if points.last().is_none_or(|last| (p - *last).length() >= 1.0) {

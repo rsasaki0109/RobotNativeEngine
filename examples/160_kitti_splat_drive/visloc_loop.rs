@@ -156,8 +156,9 @@ fn main() {
             drive.clone()
         };
 
-        let err = ((est_p.x - truth.translation.x).powi(2) + (est_p.z - truth.translation.z).powi(2))
-            .sqrt();
+        let err = ((est_p.x - truth.translation.x).powi(2)
+            + (est_p.z - truth.translation.z).powi(2))
+        .sqrt();
         writeln!(
             log,
             "{t:.2},{:.3},{:.3},{true_yaw:.4},{:.3},{:.3},{est_yaw:.4},{},{err:.3},{:.3},{:.2}",
@@ -243,11 +244,8 @@ impl RneCamera {
             rne_render_3dgs::load_gaussian_splat_background(backend.device(), &environment)
                 .expect("splat background");
         // Same pinhole as CAMERA: fy 707.0912, principal point at the centre.
-        let camera = rne_render::Camera::new(
-            W as u32,
-            H as u32,
-            2.0 * (0.5 * H as f64 / 707.0912).atan(),
-        );
+        let camera =
+            rne_render::Camera::new(W as u32, H as u32, 2.0 * (0.5 * H as f64 / 707.0912).atan());
         Self {
             backend,
             background,
@@ -336,14 +334,25 @@ fn localize(bin: &str, map: &str, png: &Path, out: &Path) -> Option<(M3, [f64; 3
     let _ = fs::remove_dir_all(&euroc);
     fs::create_dir_all(cam.join("data")).ok()?;
     fs::copy(png, cam.join("data/1000000000.png")).ok()?;
-    fs::write(cam.join("data.csv"), "#timestamp,filename\n1000000000,1000000000.png\n").ok()?;
+    fs::write(
+        cam.join("data.csv"),
+        "#timestamp,filename\n1000000000,1000000000.png\n",
+    )
+    .ok()?;
     let result = out.join("localized");
     let status = Command::new(bin)
         .args(["--map", map, "--euroc-dir"])
         .arg(&euroc)
         .arg("--out-dir")
         .arg(&result)
-        .args(["--max-hamming", "90", "--reprojection-px", "5", "--max-points", "1500"])
+        .args([
+            "--max-hamming",
+            "90",
+            "--reprojection-px",
+            "5",
+            "--max-points",
+            "1500",
+        ])
         .args(["--min-inliers", "15"])
         .stdout(Stdio::null())
         .status()
@@ -356,7 +365,10 @@ fn localize(bin: &str, map: &str, png: &Path, out: &Path) -> Option<(M3, [f64; 3
         if line.starts_with('#') || line.trim().is_empty() {
             continue;
         }
-        let v: Vec<f64> = line.split_whitespace().map(|s| s.parse().unwrap()).collect();
+        let v: Vec<f64> = line
+            .split_whitespace()
+            .map(|s| s.parse().unwrap())
+            .collect();
         let r = quat_to_m3(v[4], v[5], v[6], v[7]);
         return Some((r, [v[1], v[2], v[3]]));
     }
@@ -365,9 +377,21 @@ fn localize(bin: &str, map: &str, png: &Path, out: &Path) -> Option<(M3, [f64; 3
 
 fn quat_to_m3(x: f64, y: f64, z: f64, w: f64) -> M3 {
     [
-        [1.0 - 2.0 * (y * y + z * z), 2.0 * (x * y - w * z), 2.0 * (x * z + w * y)],
-        [2.0 * (x * y + w * z), 1.0 - 2.0 * (x * x + z * z), 2.0 * (y * z - w * x)],
-        [2.0 * (x * z - w * y), 2.0 * (y * z + w * x), 1.0 - 2.0 * (x * x + y * y)],
+        [
+            1.0 - 2.0 * (y * y + z * z),
+            2.0 * (x * y - w * z),
+            2.0 * (x * z + w * y),
+        ],
+        [
+            2.0 * (x * y + w * z),
+            1.0 - 2.0 * (x * x + z * z),
+            2.0 * (y * z - w * x),
+        ],
+        [
+            2.0 * (x * z - w * y),
+            2.0 * (y * z + w * x),
+            1.0 - 2.0 * (x * x + y * y),
+        ],
     ]
 }
 
@@ -444,7 +468,10 @@ fn read_path(path: &Path) -> (Vec<Vec3>, f64) {
     let text = fs::read_to_string(path).expect("path csv");
     let mut points: Vec<Vec3> = Vec::new();
     let mut yaw = None;
-    for line in text.lines().filter(|l| !l.starts_with('#') && !l.trim().is_empty()) {
+    for line in text
+        .lines()
+        .filter(|l| !l.starts_with('#') && !l.trim().is_empty())
+    {
         let v: Vec<f64> = line.split(',').map(|s| s.trim().parse().unwrap()).collect();
         let p = Vec3::new(v[1], v[2], v[3]);
         if points.last().is_none_or(|last| (p - *last).length() >= 1.0) {

@@ -1,0 +1,3 @@
+# Preserve the licensed upstream package byte-for-byte, including CRLF and
+# upstream trailing whitespace.
+** -text -whitespace
