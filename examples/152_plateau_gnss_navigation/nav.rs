@@ -3,6 +3,7 @@
 //! a LiDAR prior map rasterized from the city model along the route, and
 //! `rne_slam::HybridLocalizer` with the same safety logic.
 
+use crate::crowd::{pedestrian_boxes, pedestrian_range, Crowd, Weather};
 use crate::gnss::{GnssOutput, RobotGnss, SolutionLabel, BODY_HEIGHT_M};
 use crate::plateau::PlateauCity;
 use rne_core::DeterministicRng;
@@ -48,6 +49,8 @@ pub(crate) struct RunOptions {
     pub record: bool,
     /// Use the sliding-window factor graph instead of the hybrid arbiter.
     pub factor_graph: bool,
+    /// Pedestrians and rain.
+    pub weather: Weather,
 }
 
 /// The robot's localizer: the rule-based arbiter or the factor graph.
@@ -407,6 +410,8 @@ pub(crate) struct RunReport {
     pub time_in: [f64; 3],
     pub longest_dead_reckoning_s: f64,
     pub safety_stops: usize,
+    /// Time stopped for something within 0.6 m ahead (pedestrians), s.
+    pub obstacle_wait_s: f64,
     pub stopped_s: f64,
     pub clearance_m: f64,
     /// `(truth, estimate, source)` every 0.5 s, for drawing.
@@ -466,10 +471,18 @@ pub(crate) fn run(
     } else {
         Constellation::gps_galileo_nominal()
     };
-    let scene = GnssScene {
+    let mut scene = GnssScene {
         mesh: Some(city.mesh.clone()),
         ..GnssScene::open_sky()
     };
+    if options.weather.rain {
+        if let Some(ground) = &mut scene.ground {
+            ground.material = crate::crowd::wet(ground.material);
+        }
+    }
+    // The city model used for NLOS prediction has no pedestrians.
+    let model = scene.clone();
+    let crowd = Crowd::new(route, options.weather.pedestrians, 0xC0_0D);
     let receiver = receiver_config();
     let mut gnss = RobotGnss::new(
         &constellation,
@@ -526,9 +539,11 @@ pub(crate) fn run(
         odom = integrate(odom, odom_v, odom_w, DT_S);
         hybrid.predict(DT_S, odom_v, odom_w);
 
+        let people = crowd.positions(t);
+        scene.boxes = pedestrian_boxes(&people, |x, y| city.ground_m(x, y));
         let outputs: Vec<GnssOutput> = gnss.step(
             &scene,
-            options.map_aided_gnss.then_some(&scene),
+            options.map_aided_gnss.then_some(&model),
             &constellation,
             body(truth),
             body(hybrid.pose()),
@@ -550,7 +565,7 @@ pub(crate) fn run(
             }
         }
         if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
-            let scan = lidar_scan(&slice, truth, t, &mut rng);
+            let scan = lidar_scan(&slice, &people, options.weather.rain, truth, t, &mut rng);
             if options.record {
                 last_scan = scan_points(&scan, truth);
             }
@@ -713,6 +728,7 @@ impl Safety {
         }
         if command.linear_m_s > 0.0 && front_clearance_m < STOP_DISTANCE_M {
             command.linear_m_s = 0.0;
+            report.obstacle_wait_s += DT_S;
         }
         command
     }
@@ -748,6 +764,8 @@ fn integrate(pose: Pose2d, v: f64, w: f64, dt: f64) -> Pose2d {
 /// buildings in view, as a 3D sensor would.
 fn lidar_scan(
     slice: &OccupancyGrid,
+    people: &[(f64, f64)],
+    rain: bool,
     pose: Pose2d,
     t: f64,
     rng: &mut DeterministicRng,
@@ -756,19 +774,43 @@ fn lidar_scan(
     let ranges_m = (0..LIDAR_BEAMS)
         .map(|beam| {
             let angle = pose.yaw_rad + TAU * beam as f64 / LIDAR_BEAMS as f64;
-            let noise = LIDAR_NOISE_M * gaussian(rng);
+            // A fixed number of draws per beam keeps runs comparable.
+            let (n, drop, rain_hit, rain_range) = (
+                gaussian(rng),
+                rng.uniform_f64(0.0, 1.0),
+                rng.uniform_f64(0.0, 1.0),
+                rng.uniform_f64(0.3, 4.0),
+            );
             let (dx, dy) = (angle.cos(), angle.sin());
             let mut r = STEP_M;
+            let mut range = f64::INFINITY;
             while r <= LIDAR_RANGE_M {
                 let p = Vec3::new(pose.x_m + r * dx, pose.y_m + r * dy, 0.0);
                 match slice.world_to_grid(p) {
-                    Some(coord) if slice.is_occupied(coord) => return r + noise,
+                    Some(coord) if slice.is_occupied(coord) => {
+                        range = r;
+                        break;
+                    }
                     Some(_) => {}
-                    None => return f64::INFINITY,
+                    None => break,
                 }
                 r += STEP_M;
             }
-            f64::INFINITY
+            if let Some(person) = pedestrian_range(people, pose.x_m, pose.y_m, dx, dy) {
+                range = range.min(person);
+            }
+            if rain {
+                // Rain: wet, scattered returns drop out, ranges get noisier,
+                // and drops close to the sensor return the beam early.
+                if drop < 0.15 {
+                    return f64::INFINITY;
+                }
+                if rain_hit < 0.02 && rain_range < range {
+                    return rain_range;
+                }
+                return range + 3.0 * LIDAR_NOISE_M * n;
+            }
+            range + LIDAR_NOISE_M * n
         })
         .collect();
     LaserScan2d {
@@ -795,9 +837,11 @@ fn scan_points(scan: &LaserScan2d, pose: Pose2d) -> Vec<(f64, f64)> {
         .collect()
 }
 
-/// Nearest return within ±35° of straight ahead.
+/// The third-nearest return within ±35° of straight ahead (an obstacle hits
+/// several beams; a raindrop one).
 fn front_range(scan: &LaserScan2d) -> f64 {
-    scan.ranges_m
+    let mut ahead: Vec<f64> = scan
+        .ranges_m
         .iter()
         .enumerate()
         .filter(|(i, r)| {
@@ -805,7 +849,9 @@ fn front_range(scan: &LaserScan2d) -> f64 {
             r.is_finite() && angle.sin().atan2(angle.cos()).abs() < 35.0_f64.to_radians()
         })
         .map(|(_, r)| *r)
-        .fold(f64::INFINITY, f64::min)
+        .collect();
+    ahead.sort_by(f64::total_cmp);
+    ahead.get(2).copied().unwrap_or(f64::INFINITY)
 }
 
 fn gaussian(rng: &mut DeterministicRng) -> f64 {
@@ -859,6 +905,8 @@ mod tests {
         let mut ranges_m = vec![f64::INFINITY; 360];
         ranges_m[180] = 0.5; // behind
         ranges_m[20] = 3.0; // 20° to the left
+        ranges_m[21] = 3.1;
+        ranges_m[22] = 3.2;
         let scan = LaserScan2d {
             time_s: 0.0,
             frame: FrameId::new("laser"),
@@ -868,8 +916,31 @@ mod tests {
             range_max_m: 40.0,
             ranges_m,
         };
-        assert_eq!(front_range(&scan), 3.0);
+        assert_eq!(front_range(&scan), 3.2);
         let points = scan_points(&scan, Pose2d::new(1.0, 2.0, 0.0));
-        assert_eq!(points.len(), 2);
+        assert_eq!(points.len(), 4);
+    }
+
+    #[test]
+    fn a_pedestrian_ahead_stops_the_robot_and_rain_degrades_the_scan() {
+        // An empty 20 x 20 m slice; one pedestrian 1.5 m ahead.
+        let slice = OccupancyGrid::new(200, 200, 0.1, Pose2d::new(-10.0, -10.0, 0.0)).expect("map");
+        let pose = Pose2d::new(0.0, 0.0, 0.0);
+        let mut rng = DeterministicRng::new(3);
+        let scan = lidar_scan(&slice, &[(1.5, 0.0)], false, pose, 0.0, &mut rng);
+        let ahead = front_range(&scan);
+        assert!((ahead - 1.25).abs() < 0.1, "{ahead}");
+        // Rain: some beams drop out, a few return from drops close by.
+        let dry = scan.ranges_m.iter().filter(|r| r.is_finite()).count();
+        let mut finite = 0;
+        for _ in 0..20 {
+            let wet = lidar_scan(&slice, &[(1.5, 0.0)], true, pose, 0.0, &mut rng);
+            finite += wet.ranges_m.iter().filter(|r| r.is_finite()).count();
+        }
+        assert!((15..30).contains(&dry), "only the pedestrian: {dry}");
+        assert!(
+            finite > 20 * dry,
+            "drops return beams that would see nothing: {finite}"
+        );
     }
 }

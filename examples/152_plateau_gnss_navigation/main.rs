@@ -10,6 +10,7 @@
 //! ```
 
 // Shared with example 151, which uses all of it.
+mod crowd;
 #[allow(dead_code)]
 #[path = "../151_gnss_lidar_navigation/gnss.rs"]
 mod gnss;
@@ -40,6 +41,7 @@ fn render_area(
     Err("--render needs `--features capture`".into())
 }
 
+use crowd::Weather;
 use nav::{RunOptions, RunReport};
 use plateau::PlateauCity;
 use rne_gnss::Constellation;
@@ -111,6 +113,7 @@ fn main() -> Result<(), String> {
     );
     let survey_only = std::env::args().any(|a| a == "--survey");
     let quick = std::env::args().any(|a| a == "--quick");
+    let conditions = std::env::args().any(|a| a == "--conditions");
     let only_config = std::env::args().skip_while(|a| a != "--config").nth(1);
     let render_dir = std::env::args()
         .skip_while(|a| a != "--render")
@@ -183,53 +186,12 @@ fn main() -> Result<(), String> {
             base.z
         );
         let mut main_run = None;
-        for (label, options) in [
-            (
-                "map-aided GNSS + QZSS",
-                RunOptions {
-                    map_aided_gnss: true,
-                    qzss: true,
-                    record: render_dir.is_some(),
-                    factor_graph: false,
-                },
-            ),
-            (
-                "GNSS + QZSS, no map aid",
-                RunOptions {
-                    map_aided_gnss: false,
-                    qzss: true,
-                    record: false,
-                    factor_graph: false,
-                },
-            ),
-            (
-                "factor graph",
-                RunOptions {
-                    map_aided_gnss: true,
-                    qzss: true,
-                    record: false,
-                    factor_graph: true,
-                },
-            ),
-            (
-                "factor graph, no map aid",
-                RunOptions {
-                    map_aided_gnss: false,
-                    qzss: true,
-                    record: false,
-                    factor_graph: true,
-                },
-            ),
-            (
-                "map-aided GNSS, no QZSS",
-                RunOptions {
-                    map_aided_gnss: true,
-                    qzss: false,
-                    record: false,
-                    factor_graph: false,
-                },
-            ),
-        ] {
+        let runs = if conditions {
+            condition_runs()
+        } else {
+            standard_runs(render_dir.is_some())
+        };
+        for (label, options, glass_from_m) in runs {
             if quick && main_run.is_some() {
                 break;
             }
@@ -239,7 +201,12 @@ fn main() -> Result<(), String> {
                 }
             }
             let started = std::time::Instant::now();
-            let report = nav::run(&city, &route, base, options);
+            let report = if options.weather.rain || glass_from_m != plateau::GLASS_TOWER_HEIGHT_M {
+                let styled = city.restyled(glass_from_m, options.weather.rain);
+                nav::run(&styled, &route, base, options)
+            } else {
+                nav::run(&city, &route, base, options)
+            };
             print_report(label, &report, started.elapsed().as_secs_f64());
             main_run.get_or_insert(report);
         }
@@ -251,6 +218,98 @@ fn main() -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// The configurations compared by default, as `(label, options, glass
+/// curtain walls from this height)`; `record` keeps frames of the first.
+fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
+    vec![
+        (
+            "map-aided GNSS + QZSS",
+            RunOptions {
+                map_aided_gnss: true,
+                qzss: true,
+                record,
+                factor_graph: false,
+                weather: Weather::default(),
+            },
+        ),
+        (
+            "GNSS + QZSS, no map aid",
+            RunOptions {
+                map_aided_gnss: false,
+                qzss: true,
+                record: false,
+                factor_graph: false,
+                weather: Weather::default(),
+            },
+        ),
+        (
+            "factor graph",
+            RunOptions {
+                map_aided_gnss: true,
+                qzss: true,
+                record: false,
+                factor_graph: true,
+                weather: Weather::default(),
+            },
+        ),
+        (
+            "factor graph, no map aid",
+            RunOptions {
+                map_aided_gnss: false,
+                qzss: true,
+                record: false,
+                factor_graph: true,
+                weather: Weather::default(),
+            },
+        ),
+        (
+            "map-aided GNSS, no QZSS",
+            RunOptions {
+                map_aided_gnss: true,
+                qzss: false,
+                record: false,
+                factor_graph: false,
+                weather: Weather::default(),
+            },
+        ),
+    ]
+    .into_iter()
+    .map(|(label, options)| (label, options, plateau::GLASS_TOWER_HEIGHT_M))
+    .collect()
+}
+
+/// `--conditions`: the main configuration in a crowd, in rain, and with
+/// more glass, as `(label, options, glass curtain walls from this height)`.
+fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
+    let options = |weather, factor_graph| RunOptions {
+        map_aided_gnss: true,
+        qzss: true,
+        record: false,
+        factor_graph,
+        weather,
+    };
+    let crowd = Weather {
+        pedestrians: 60,
+        rain: false,
+    };
+    let rain = Weather {
+        pedestrians: 60,
+        rain: true,
+    };
+    let glass = plateau::GLASS_TOWER_HEIGHT_M;
+    vec![
+        ("crowd", options(crowd, false), glass),
+        ("crowd + rain", options(rain, false), glass),
+        ("crowd + rain, factor graph", options(rain, true), glass),
+        ("glass from 20 m", options(Weather::default(), false), 20.0),
+        (
+            "glass from 20 m, factor graph",
+            options(Weather::default(), true),
+            20.0,
+        ),
+    ]
 }
 
 /// The RTK reference station: an antenna on a 2 m pole in a park, at street
@@ -280,7 +339,8 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
     );
     println!(
         "  {:<24} sky: {:.1} tracked ({:.1} LOS, {:.1} NLOS/diffracted); GNSS {:.0} s, LiDAR {:.0} s, \
-         dead reckoning {:.0} s (longest {:.1} s, {} safety stops); min LiDAR clearance {:.2} m [{wall_s:.0} s]",
+         dead reckoning {:.0} s (longest {:.1} s, {} safety stops); waited for obstacles {:.0} s; \
+         min LiDAR clearance {:.2} m [{wall_s:.0} s]",
         "",
         report.tracked / epochs,
         report.los / epochs,
@@ -290,6 +350,7 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
         report.time_in[2],
         report.longest_dead_reckoning_s,
         report.safety_stops,
+        report.obstacle_wait_s,
         report.clearance_m,
     );
 }

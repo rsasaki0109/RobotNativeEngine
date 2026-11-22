@@ -245,6 +245,39 @@ impl PlateauCity {
         placed.len()
     }
 
+    /// The same city with other surface materials: walls of buildings at
+    /// least `glass_from_m` tall as glass curtain walls, and, when `wet`,
+    /// rain-wet surfaces (stronger reflectors).
+    pub(crate) fn restyled(&self, glass_from_m: f64, wet: bool) -> Self {
+        let triangles = self
+            .mesh
+            .triangles()
+            .iter()
+            .map(|tri| {
+                let mut tri = *tri;
+                if tri.material != SurfaceMaterial::ABSORBER {
+                    // Street furniture keeps its material.
+                    if let Some(building) = self.buildings.get(tri.object as usize) {
+                        let height = building.z_range.1 - building.z_range.0;
+                        tri.material = if tri.normal.z <= 0.7 && height >= glass_from_m {
+                            SurfaceMaterial::GLASS
+                        } else {
+                            SurfaceMaterial::CONCRETE
+                        };
+                    }
+                    if wet {
+                        tri.material = crate::crowd::wet(tri.material);
+                    }
+                }
+                tri
+            })
+            .collect();
+        Self {
+            mesh: Arc::new(TriangleMesh::new(triangles)),
+            ..self.clone()
+        }
+    }
+
     /// Roof height under a point (for drawing), or `None` on open ground.
     pub(crate) fn roof_m(&self, x: f64, y: f64) -> Option<f64> {
         let top = 1000.0;
