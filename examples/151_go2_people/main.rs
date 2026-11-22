@@ -1004,12 +1004,16 @@ fn static_track_id(position: [f64; 2]) -> u64 {
     (1 << 62) | (cell(position[0]) << 21) | cell(position[1])
 }
 
-/// Whether a person-shaped static cluster (centre in the base frame) is in
-/// the way.
-fn static_person_ahead(centres: &[[f64; 2]]) -> bool {
-    centres.iter().any(|c| {
-        c[0] > SAFETY_AHEAD_M.0 && c[0] < SAFETY_AHEAD_M.1 && c[1].abs() < SAFETY_HALF_WIDTH_M
-    })
+/// The nearest person-shaped static cluster (centre in the base frame) in
+/// the way, if any.
+fn static_person_blocking(centres: &[[f64; 2]]) -> Option<[f64; 2]> {
+    centres
+        .iter()
+        .filter(|c| {
+            c[0] > SAFETY_AHEAD_M.0 && c[0] < SAFETY_AHEAD_M.1 && c[1].abs() < SAFETY_HALF_WIDTH_M
+        })
+        .min_by(|a, b| a[0].total_cmp(&b[0]))
+        .copied()
 }
 
 /// The new command, moved toward `next` at the allowed rates.
@@ -1527,8 +1531,17 @@ fn run(
                 }),
         );
         let (mut next, chosen) = controller.command(&plan_tracks, odom, time_s, speed_now);
-        if static_person_ahead(&static_people) {
+        if let Some(c) = static_person_blocking(&static_people) {
             safety_hold_until_s = time_s + SAFETY_HOLD_S;
+            // Turn in place away from them until they are out of the way: a
+            // lane change's heading can leave someone standing close still
+            // in front, and they may be waiting for the robot to move.
+            let away = if c[1].abs() > 0.05 {
+                -c[1].signum()
+            } else {
+                next.yaw_rate_rad_s.signum()
+            };
+            next.yaw_rate_rad_s = away * MAX_YAW_RATE_RAD_S;
         }
         let blocked = time_s < safety_hold_until_s;
         if blocked {
@@ -1834,12 +1847,15 @@ mod tests {
 
     #[test]
     fn safety_layer_stops_for_a_static_person_right_ahead_only() {
-        assert!(static_person_ahead(&[[0.7, 0.1]]));
-        assert!(static_person_ahead(&[[0.35, -0.3]]));
+        assert_eq!(
+            static_person_blocking(&[[1.1, 0.0], [0.7, 0.1]]),
+            Some([0.7, 0.1])
+        );
+        assert!(static_person_blocking(&[[0.35, -0.3]]).is_some());
         // Beside the path or farther ahead: not in the way.
-        assert!(!static_person_ahead(&[[0.7, 0.8]]));
-        assert!(!static_person_ahead(&[[1.6, 0.0]]));
-        assert!(!static_person_ahead(&[]));
+        assert!(static_person_blocking(&[[0.7, 0.8]]).is_none());
+        assert!(static_person_blocking(&[[1.6, 0.0]]).is_none());
+        assert!(static_person_blocking(&[]).is_none());
     }
 
     #[test]
