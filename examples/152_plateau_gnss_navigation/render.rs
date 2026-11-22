@@ -538,7 +538,7 @@ fn push_rain(scene: &mut RenderScene, frame: &FrameRecord) {
             .wrapping_add(1_442_695_040_888_963_407);
         (state >> 11) as f64 / (1_u64 << 53) as f64
     };
-    for _ in 0..900 {
+    for _ in 0..400 {
         let (dx, dy) = (next() * 50.0 - 25.0, next() * 50.0 - 25.0);
         let z = frame.ground_m + next() * 14.0;
         let (ex, ey) = (frame.truth.x_m + dx, frame.truth.y_m + dy);
@@ -667,6 +667,12 @@ pub(crate) fn render(
             "error_m": error,
             "los": los,
             "nlos": nlos,
+            "weather": match (frame.people.is_empty(), frame.rain) {
+                (true, false) => "",
+                (false, false) => "crowd",
+                (true, true) => "rain",
+                (false, true) => "crowd + rain",
+            },
         }));
         if k % 50 == 0 {
             println!(
