@@ -2588,6 +2588,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "kitti_splat_drive"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_core",
+ "rne_ecs",
+ "rne_math",
+ "rne_physics",
+ "rne_render",
+ "rne_render_3dgs",
+ "rne_render_wgpu",
+ "rne_robot",
+ "rne_world",
+]
+
+[[package]]
 name = "latency_in_the_loop"
 version = "0.4.0"
 dependencies = [

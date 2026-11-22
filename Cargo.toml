@@ -130,6 +130,7 @@ members = [
   "examples/76_ssl_small_pitch",
   "examples/77_g1_workbench_mission",
   "examples/78_tsukuba_3dgs_background",
+  "examples/160_kitti_splat_drive",
   "examples/79_tsukuba_full_run",
   "examples/80_ssl_adapter_smoke",
   "examples/81_g1_head_splat_background",
