@@ -72,10 +72,13 @@ const LIDAR_TOPIC: &str = "/lidar/points";
 const LIDAR2_TOPIC: &str = "/lidar2/points";
 const IMAGE_TOPIC: &str = "/camera/image_raw";
 const CAMERA_INFO_TOPIC: &str = "/camera/camera_info";
+const IMAGE2_TOPIC: &str = "/camera2/image_raw";
+const CAMERA2_INFO_TOPIC: &str = "/camera2/camera_info";
 const LIDAR_FRAME: &str = "lidar";
 const LIDAR2_FRAME: &str = "lidar2";
 const IMU_FRAME: &str = "imu";
 const CAMERA_FRAME: &str = "camera";
+const CAMERA2_FRAME: &str = "camera2";
 /// Bag clock at simulation time zero: an ordinary wall-clock epoch, as a robot records.
 const BAG_EPOCH_NS: u64 = 1_700_000_000_000_000_000;
 const IMU_RATE_HZ: u64 = 200;
@@ -99,6 +102,12 @@ const LIDAR_SENSOR_ID: u64 = 1;
 const IMU_SENSOR_ID: u64 = 2;
 const LIDAR2_SENSOR_ID: u64 = 3;
 const CAMERA_SENSOR_ID: u64 = 4;
+const CAMERA2_SENSOR_ID: u64 = 5;
+/// `--board` stands the checkerboard this far ahead of [`TURN_CENTRE_M`] along x.
+const BOARD_DISTANCE_M: f64 = 1.6;
+/// `--motion board` holds each pose this long, then moves to the next in [`BOARD_MOVE_S`].
+const BOARD_HOLD_S: f64 = 1.5;
+const BOARD_MOVE_S: f64 = 1.0;
 /// Each turned candidate turns one sensor this much.
 const TURN_DEG: f64 = 3.0;
 /// How far the `shifted_imu` candidate moves the IMU, meters.
@@ -140,6 +149,8 @@ struct Rig {
     lidar2: Mount,
     /// The camera's optical frame (x right, y down, z forward).
     camera: Mount,
+    /// The second camera (`--sensors camera2`), 10 cm to the right of the first.
+    camera2: Mount,
 }
 
 fn true_rig() -> Rig {
@@ -159,7 +170,128 @@ fn true_rig() -> Rig {
             rotation: forward_optical * intrinsic_xyz_deg(4.0, -2.5, 1.5),
             translation_m: Vec3::new(CAMERA_OFFSET_M[0], CAMERA_OFFSET_M[1], CAMERA_OFFSET_M[2]),
         },
+        camera2: Mount {
+            rotation: forward_optical * intrinsic_xyz_deg(4.5, -1.5, 0.8),
+            translation_m: Vec3::new(
+                CAMERA_OFFSET_M[0],
+                CAMERA_OFFSET_M[1] - 0.10,
+                CAMERA_OFFSET_M[2],
+            ),
+        },
     }
+}
+
+/// A checkerboard by its inner corners and square size (`--board COLSxROWSxSQUARE_M`).
+///
+/// It stands [`BOARD_DISTANCE_M`] ahead of the turn centre facing the rig, with one
+/// white square of margin around its squares, and is a thin collider, so the LiDARs
+/// see it and the camera images its pattern.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct BoardSpec {
+    columns: u32,
+    rows: u32,
+    square_m: f64,
+}
+
+impl BoardSpec {
+    fn parse(text: &str) -> Result<Self, String> {
+        let parts: Vec<&str> = text.split('x').collect();
+        let error = || format!("--board takes COLSxROWSxSQUARE_M (inner corners), not {text:?}");
+        if parts.len() != 3 {
+            return Err(error());
+        }
+        let columns: u32 = parts[0].parse().map_err(|_| error())?;
+        let rows: u32 = parts[1].parse().map_err(|_| error())?;
+        let square_m: f64 = parts[2].parse().map_err(|_| error())?;
+        if columns < 2 || rows < 2 || !(square_m.is_finite() && square_m > 0.0) {
+            return Err(error());
+        }
+        Ok(Self {
+            columns,
+            rows,
+            square_m,
+        })
+    }
+
+    /// Half extents of the board: the squares and a one-square margin, 1 cm thick.
+    fn half_extents_m(self) -> Vec3 {
+        Vec3::new(
+            f64::from(self.columns + 3) * self.square_m * 0.5,
+            f64::from(self.rows + 3) * self.square_m * 0.5,
+            0.005,
+        )
+    }
+
+    /// The board's pose in the z-up world: its x and y run along the pattern's columns
+    /// and rows, its z away from the rig (the camera's optical axes at the start).
+    fn pose_ros() -> (Quat, Vec3) {
+        let rotation = Quat::from_rotation_z(-FRAC_PI_2) * Quat::from_rotation_x(-FRAC_PI_2);
+        let centre = Vec3::new(
+            TURN_CENTRE_M[0] + BOARD_DISTANCE_M,
+            TURN_CENTRE_M[1],
+            TURN_CENTRE_M[2],
+        );
+        (rotation, centre)
+    }
+
+    /// The pattern's gray level at board coordinates `(a, b)` (metres from its centre).
+    fn gray(self, a: f64, b: f64) -> f64 {
+        let half = self.half_extents_m();
+        let column = ((a + half.x) / self.square_m).floor() as i64;
+        let row = ((b + half.y) / self.square_m).floor() as i64;
+        let inside = (1..=i64::from(self.columns) + 1).contains(&column)
+            && (1..=i64::from(self.rows) + 1).contains(&row);
+        if inside && (column + row) % 2 == 0 {
+            0.08
+        } else {
+            0.9
+        }
+    }
+}
+
+/// The camera poses `--motion board` holds in front of the board: the board in each
+/// cell of a 5 x 4 grid over the image, then tilted about each of its axes, then nearer
+/// and farther. Returned as optical frames in the z-up world.
+fn board_tour_camera_poses() -> Vec<(Quat, Vec3)> {
+    let (board_rotation, centre) = BoardSpec::pose_ros();
+    let towards_rig = board_rotation * -Vec3::Z;
+    let mut poses = Vec::new();
+    // Facing the board, moved parallel to it so its centre images at normalized
+    // (ox, oy): the pattern's corners reach into every cell of a 5 x 4 grid.
+    for oy in [-0.33, -0.11, 0.11, 0.33] {
+        for ox in [-0.47, -0.2, 0.0, 0.2, 0.47] {
+            let distance = 1.3;
+            let position = centre + towards_rig * distance
+                - board_rotation * Vec3::new(ox * distance, oy * distance, 0.0);
+            poses.push((board_rotation, position));
+        }
+    }
+    // Then looking at the board from 20-32 deg off its normal, nearer and farther.
+    let tilted = [
+        (1.2, Vec3::Y, 32.0_f64),
+        (1.2, Vec3::Y, -32.0),
+        (1.2, Vec3::X, 32.0),
+        (1.2, Vec3::X, -32.0),
+        (0.95, Vec3::Y, 20.0),
+        (0.95, Vec3::X, -20.0),
+        (1.9, Vec3::X, 25.0),
+        (1.9, Vec3::Y, -25.0),
+    ];
+    for (distance, axis, degrees) in tilted {
+        let tilt = Quat::from_axis_angle(board_rotation * axis, degrees.to_radians());
+        let position = centre + tilt * towards_rig * distance;
+        // Look at the board centre, optical y as close to down as it goes.
+        let forward = (centre - position).normalize();
+        let down = Vec3::new(0.0, 0.0, -1.0);
+        let y = (down - forward * down.dot(forward)).normalize();
+        let x = y.cross(forward);
+        let look = Quat::from_mat4(&rne_math::Mat4::from_cols_array(&[
+            x.x, x.y, x.z, 0.0, y.x, y.y, y.z, 0.0, forward.x, forward.y, forward.z, 0.0, 0.0, 0.0,
+            0.0, 1.0,
+        ]));
+        poses.push((look, position));
+    }
+    poses
 }
 
 /// Rotation taking ROS-convention (z-up) vectors into RNE's y-up convention.
@@ -184,20 +316,54 @@ struct Motion {
     /// Turn the rig about the camera's optical centre, without translating it
     /// (`--motion turn`): the recording a targetless intrinsics calibration needs.
     in_place: bool,
+    /// Hold the camera still at each of [`board_tour_camera_poses`] in turn
+    /// (`--motion board`): the recording a checkerboard calibration needs.
+    board_tour: bool,
 }
 
 impl Motion {
     const HAND_HELD: Self = Self {
         rotation_speed: 1.0,
         in_place: false,
+        board_tour: false,
     };
     const TURN_IN_PLACE: Self = Self {
         rotation_speed: 1.0,
         in_place: true,
+        board_tour: false,
     };
+    const BOARD_TOUR: Self = Self {
+        rotation_speed: 1.0,
+        in_place: false,
+        board_tour: true,
+    };
+
+    /// The rig pose holding the camera (mounted at `CAMERA_OFFSET_M` with the true
+    /// rotation) at the board tour's pose at `time_s`.
+    fn board_tour_rig_pose(time_s: f64) -> (Quat, Vec3) {
+        let poses = board_tour_camera_poses();
+        let period = BOARD_HOLD_S + BOARD_MOVE_S;
+        let step = (time_s.max(0.0) / period).floor();
+        let index = step as usize % poses.len();
+        let into = time_s.max(0.0) - step * period;
+        let (mut rotation, mut position) = poses[index];
+        if into > BOARD_HOLD_S {
+            let t = ((into - BOARD_HOLD_S) / BOARD_MOVE_S).clamp(0.0, 1.0);
+            let smooth = t * t * (3.0 - 2.0 * t);
+            let (next_rotation, next_position) = poses[(index + 1) % poses.len()];
+            rotation = rotation.slerp(next_rotation, smooth);
+            position = position.lerp(next_position, smooth);
+        }
+        let camera = true_rig().camera;
+        let rig_rotation = rotation * camera.rotation.inverse();
+        (rig_rotation, position - rig_rotation * camera.translation_m)
+    }
 
     /// The rig (LiDAR frame) pose in a z-up world.
     fn rig_pose_ros(self, time_s: f64) -> (Quat, Vec3) {
+        if self.board_tour {
+            return Self::board_tour_rig_pose(time_s);
+        }
         let turn_s = self.rotation_speed * time_s;
         let rotation_vector = Vec3::new(
             0.5 * (1.3 * turn_s).sin(),
@@ -375,6 +541,27 @@ fn spawn_room(world: &mut World) {
     }
 }
 
+/// Stands `board` in the room as a thin fixed collider; returns its entity.
+fn spawn_board(world: &mut World, board: BoardSpec) -> Entity {
+    let m = ros_to_rne();
+    let (rotation, centre) = BoardSpec::pose_ros();
+    let entity = spawn_named(world, "board");
+    world.entity_mut(entity).insert((
+        RigidBody {
+            body_type: RigidBodyType::Fixed,
+            ..RigidBody::default()
+        },
+        Collider {
+            shape: ColliderShape::Cuboid {
+                half_extents_m: board.half_extents_m(),
+            },
+            ..Collider::default()
+        },
+        Transform3::from_translation_rotation(m * centre, m * rotation),
+    ));
+    entity
+}
+
 /// A CPU [`RenderBackend`] that ray-casts the cuboid colliders of an ECS world.
 ///
 /// Every face has its own gray level, varied by a deterministic texture of
@@ -386,6 +573,10 @@ fn spawn_room(world: &mut World) {
 struct ColliderRenderer {
     /// `(box_from_world, half extents, texture key)` of every cuboid collider.
     boxes: Vec<(Transform3, Vec3, u64)>,
+    /// The checkerboard's texture key and pattern: its large faces show the squares.
+    board: Option<(u64, BoardSpec)>,
+    /// Rays per pixel along each axis, averaged (1: one ray through the centre).
+    samples: u32,
 }
 
 impl ColliderRenderer {
@@ -404,7 +595,34 @@ impl ColliderRenderer {
             })
             .collect();
         boxes.sort_by_key(|entry| entry.2);
-        Self { boxes }
+        Self {
+            boxes,
+            board: None,
+            samples: 1,
+        }
+    }
+
+    /// Draws `board`'s pattern on the collider of `entity` and renders `samples` x
+    /// `samples` rays per pixel, so the squares' edges are antialiased.
+    fn with_board(mut self, entity: Entity, board: BoardSpec, samples: u32) -> Self {
+        self.board = Some((entity.to_bits(), board));
+        self.samples = samples.max(1);
+        self
+    }
+
+    /// The texture key of the nearest box along `origin + t * direction`.
+    fn hit_key(&self, origin: Vec3, direction: Vec3) -> Option<u64> {
+        let mut best: Option<(f64, u64)> = None;
+        for (box_from_world, half, key) in &self.boxes {
+            let local_origin = box_from_world.rotation * origin + box_from_world.translation;
+            let local_direction = box_from_world.rotation * direction;
+            if let Some((t, _)) = slab_hit(local_origin, local_direction, *half) {
+                if best.is_none_or(|(nearest, _)| t < nearest) {
+                    best = Some((t, *key));
+                }
+            }
+        }
+        best.map(|(_, key)| key)
     }
 
     /// Nearest hit along `origin + t * direction`: `(t, gray level)`.
@@ -438,7 +656,12 @@ impl ColliderRenderer {
                         ((b / TEXTURE_CELL_M).floor() as i64 as u64).wrapping_mul(0x85EB_CA6B),
                     ),
             );
-            let albedo = base * (0.9 + 0.2 * ((cell % 1000) as f64 / 999.0));
+            let mut albedo = base * (0.9 + 0.2 * ((cell % 1000) as f64 / 999.0));
+            if let Some((board_key, board)) = self.board {
+                if board_key == *key && normal_axis == 2 {
+                    albedo = board.gray(hit.x, hit.y);
+                }
+            }
             let cosine = local_direction.normalize()[normal_axis].abs();
             let gray = (255.0 * albedo * (0.45 + 0.55 * cosine))
                 .round()
@@ -504,21 +727,47 @@ impl RenderBackend for ColliderRenderer {
         let mut color = self.render_clear(camera.render_target(), clear_color)?;
         let mut depth = vec![camera.far_m as f32; (camera.width * camera.height) as usize];
         let focal = (f64::from(camera.height) / 2.0) / (camera.fov_y_rad / 2.0).tan();
+        let samples = self.samples;
         for row in 0..camera.height {
             for column in 0..camera.width {
                 // A ray through the pixel center with unit forward (-z) component,
                 // so the hit distance is the linear depth.
-                let direction = Vec3::new(
-                    (f64::from(column) + 0.5 - f64::from(camera.width) / 2.0) / focal,
-                    -(f64::from(row) + 0.5 - f64::from(camera.height) / 2.0) / focal,
-                    -1.0,
-                );
-                let Some((t, gray)) = self.cast(view.translation, view.rotation * direction) else {
+                let ray = |dx: f64, dy: f64| {
+                    Vec3::new(
+                        (f64::from(column) + dx - f64::from(camera.width) / 2.0) / focal,
+                        -(f64::from(row) + dy - f64::from(camera.height) / 2.0) / focal,
+                        -1.0,
+                    )
+                };
+                let Some((t, gray)) = self.cast(view.translation, view.rotation * ray(0.5, 0.5))
+                else {
                     continue;
                 };
                 if t < camera.near_m || t > camera.far_m {
                     continue;
                 }
+                // Only the board needs antialiasing: its squares' corners are what a
+                // checkerboard calibration measures; the room keeps one ray per pixel.
+                let on_board = self.board.is_some_and(|(board_key, _)| {
+                    self.hit_key(view.translation, view.rotation * ray(0.5, 0.5)) == Some(board_key)
+                });
+                let gray = if samples > 1 && on_board {
+                    // Average a samples x samples grid of rays: the depth stays the
+                    // centre ray's, so silhouettes keep sharp depth edges.
+                    let mut sum = 0.0;
+                    for sy in 0..samples {
+                        for sx in 0..samples {
+                            let dx = (f64::from(sx) + 0.5) / f64::from(samples);
+                            let dy = (f64::from(sy) + 0.5) / f64::from(samples);
+                            sum += self
+                                .cast(view.translation, view.rotation * ray(dx, dy))
+                                .map_or(f64::from(gray), |(_, g)| f64::from(g));
+                        }
+                    }
+                    (sum / f64::from(samples * samples)).round() as u8
+                } else {
+                    gray
+                };
                 let index = (row * camera.width + column) as usize;
                 depth[index] = t as f32;
                 color.rgba8[4 * index..4 * index + 4].copy_from_slice(&[gray, gray, gray, 255]);
@@ -652,6 +901,7 @@ struct Sensors {
     imu: bool,
     lidar2: bool,
     camera: bool,
+    camera2: bool,
 }
 
 impl Sensors {
@@ -659,6 +909,7 @@ impl Sensors {
         imu: true,
         lidar2: true,
         camera: true,
+        camera2: false,
     };
 
     fn parse(list: &str) -> Result<Self, String> {
@@ -666,6 +917,7 @@ impl Sensors {
             imu: false,
             lidar2: false,
             camera: false,
+            camera2: false,
         };
         for name in list.split(',').map(str::trim) {
             match name {
@@ -673,6 +925,7 @@ impl Sensors {
                 "imu" => sensors.imu = true,
                 "lidar2" => sensors.lidar2 = true,
                 "camera" => sensors.camera = true,
+                "camera2" => sensors.camera2 = true,
                 other => return Err(format!("unknown sensor {other:?}")),
             }
         }
@@ -689,6 +942,8 @@ enum Topic {
     Image,
     CameraInfo,
     TfStatic,
+    Image2,
+    CameraInfo2,
 }
 
 /// One recorded message, before it is sorted into the bag by log time.
@@ -707,6 +962,7 @@ struct Recording {
     lidar2_messages: usize,
     lidar2_points: usize,
     camera_frames: usize,
+    camera2_frames: usize,
 }
 
 /// Casts one full scan of a LiDAR mounted at `mount` starting at `start_s`,
@@ -775,9 +1031,10 @@ struct Scene {
 }
 
 impl Scene {
-    fn new(rig: Rig, motion: Motion) -> io::Result<Self> {
+    fn new(rig: Rig, motion: Motion, board: Option<BoardSpec>) -> io::Result<Self> {
         let mut world = World::new();
         spawn_room(&mut world);
+        let board_entity = board.map(|board| (spawn_board(&mut world, board), board));
         let mut backend = RapierBackend::new();
         let physics_world = backend
             .create_world(PhysicsWorldDesc::default())
@@ -786,7 +1043,10 @@ impl Scene {
         backend
             .sync_from_ecs(&mut world, physics_world)
             .map_err(io::Error::other)?;
-        let renderer = ColliderRenderer::from_world(&mut world);
+        let mut renderer = ColliderRenderer::from_world(&mut world);
+        if let Some((entity, board)) = board_entity {
+            renderer = renderer.with_board(entity, board, 3);
+        }
 
         // The rig body is the LiDAR frame; it carries no collider so rays never hit it.
         let rig_body = spawn_named(&mut world, "rig");
@@ -893,9 +1153,9 @@ impl Scene {
         &mut self,
         duration_s: f64,
         (mount, options): (Mount, CameraOptions),
+        (image_topic, info_topic, frame, sensor_id): (Topic, Topic, &str, u64),
         events: &mut Vec<Event>,
-        recording: &mut Recording,
-    ) {
+    ) -> usize {
         let spec = camera_spec_with(options.lens);
         let frames = (duration_s * CAMERA_RATE_HZ as f64).floor() as u64;
         for frame_index in 0..frames {
@@ -906,13 +1166,13 @@ impl Scene {
                 &spec,
                 SimTime::from_ticks(seconds_to_ns(time_s)),
                 &RenderScene::new(),
-                SensorNoiseKey::new(ROOT_SEED, 0, CAMERA_SENSOR_ID, frame_index),
+                SensorNoiseKey::new(ROOT_SEED, 0, sensor_id, frame_index),
             );
             let stamp = SimTime::from_ticks(BAG_EPOCH_NS + seconds_to_ns(time_s));
             events.push(Event {
                 log_time_ns: stamp.ticks(),
-                topic: Topic::Image,
-                payload: encode_image(&to_ros_mono8_image(&sample.rgb, stamp, CAMERA_FRAME)),
+                topic: image_topic,
+                payload: encode_image(&to_ros_mono8_image(&sample.rgb, stamp, frame)),
             });
             let info = match options.info {
                 CameraInfoMode::True => Some(camera_info(
@@ -921,16 +1181,11 @@ impl Scene {
                     spec.fov_y_rad,
                     &spec.distortion,
                     stamp,
-                    CAMERA_FRAME,
+                    frame,
                 )),
                 CameraInfoMode::Zero => {
-                    let mut info = pinhole_camera_info(
-                        spec.width,
-                        spec.height,
-                        spec.fov_y_rad,
-                        stamp,
-                        CAMERA_FRAME,
-                    );
+                    let mut info =
+                        pinhole_camera_info(spec.width, spec.height, spec.fov_y_rad, stamp, frame);
                     info.k = [0.0; 9];
                     info.p = [0.0; 12];
                     Some(info)
@@ -940,12 +1195,12 @@ impl Scene {
             if let Some(info) = info {
                 events.push(Event {
                     log_time_ns: stamp.ticks(),
-                    topic: Topic::CameraInfo,
+                    topic: info_topic,
                     payload: encode_camera_info(&info),
                 });
             }
-            recording.camera_frames += 1;
         }
+        frames as usize
     }
 }
 
@@ -956,6 +1211,7 @@ fn tf_static_event(rig: Rig, sensors: Sensors) -> Event {
         (sensors.imu, IMU_FRAME, rig.imu),
         (sensors.lidar2, LIDAR2_FRAME, rig.lidar2),
         (sensors.camera, CAMERA_FRAME, rig.camera),
+        (sensors.camera2, CAMERA2_FRAME, rig.camera2),
     ]
     .into_iter()
     .filter(|(enabled, _, _)| *enabled)
@@ -995,8 +1251,15 @@ fn write_bag(bag_path: &Path, mut events: Vec<Event>) -> io::Result<()> {
             false,
         ),
         (Topic::TfStatic, "/tf_static", TF_MESSAGE_SCHEMA, true),
+        (Topic::Image2, IMAGE2_TOPIC, IMAGE_SCHEMA, false),
+        (
+            Topic::CameraInfo2,
+            CAMERA2_INFO_TOPIC,
+            CAMERA_INFO_SCHEMA,
+            false,
+        ),
     ];
-    let mut channels = [None; 6];
+    let mut channels = [None; 8];
     for (topic, name, schema, latched) in declared {
         if events
             .iter()
@@ -1026,8 +1289,9 @@ fn simulate(
     sensors: Sensors,
     motion: Motion,
     camera: CameraOptions,
+    board: Option<BoardSpec>,
 ) -> io::Result<Recording> {
-    let mut scene = Scene::new(rig, motion)?;
+    let mut scene = Scene::new(rig, motion, board)?;
     let mut events = Vec::new();
     let mut recording = Recording::default();
     if sensors.imu {
@@ -1052,11 +1316,29 @@ fn simulate(
         );
     }
     if sensors.camera {
-        scene.record_camera(
+        recording.camera_frames = scene.record_camera(
             duration_s,
             (rig.camera, camera),
+            (
+                Topic::Image,
+                Topic::CameraInfo,
+                CAMERA_FRAME,
+                CAMERA_SENSOR_ID,
+            ),
             &mut events,
-            &mut recording,
+        );
+    }
+    if sensors.camera2 {
+        recording.camera2_frames = scene.record_camera(
+            duration_s,
+            (rig.camera2, camera),
+            (
+                Topic::Image2,
+                Topic::CameraInfo2,
+                CAMERA2_FRAME,
+                CAMERA2_SENSOR_ID,
+            ),
+            &mut events,
         );
     }
     events.push(tf_static_event(rig, sensors));
@@ -1082,6 +1364,7 @@ fn frames_yaml(rig: Rig, sensors: Sensors) -> String {
         (sensors.imu, IMU_FRAME, rig.imu),
         (sensors.lidar2, LIDAR2_FRAME, rig.lidar2),
         (sensors.camera, CAMERA_FRAME, rig.camera),
+        (sensors.camera2, CAMERA2_FRAME, rig.camera2),
     ] {
         if !enabled {
             continue;
@@ -1146,11 +1429,13 @@ struct Args {
     sensors: Sensors,
     motion: Motion,
     camera: CameraOptions,
+    board: Option<BoardSpec>,
 }
 
 const USAGE: &str = "usage: 149_calibrex_rig_bag [--out DIR] [--duration-s SECONDS] \
-     [--sensors lidar,imu,lidar2,camera] [--rotation-speed FACTOR] \
-     [--motion hand-held|turn] [--lens K1,K2,P1,P2[,K3]] [--camera-info true|zero|none]";
+     [--sensors lidar,imu,lidar2,camera,camera2] [--rotation-speed FACTOR] \
+     [--motion hand-held|turn|board] [--lens K1,K2,P1,P2[,K3]] \
+     [--camera-info true|zero|none] [--board COLSxROWSxSQUARE_M]";
 
 fn exit_usage(error: &str) -> ! {
     eprintln!("{error}\n{USAGE}");
@@ -1164,6 +1449,7 @@ fn parse_args() -> Args {
         sensors: Sensors::ALL,
         motion: Motion::HAND_HELD,
         camera: CameraOptions::default(),
+        board: None,
     };
     let mut iter = std::env::args().skip(1);
     while let Some(flag) = iter.next() {
@@ -1188,6 +1474,7 @@ fn parse_args() -> Args {
                 args.motion = match value.as_str() {
                     "hand-held" => Motion::HAND_HELD,
                     "turn" => Motion::TURN_IN_PLACE,
+                    "board" => Motion::BOARD_TOUR,
                     other => exit_usage(&format!("unknown --motion {other:?}")),
                 };
                 args.motion.rotation_speed = speed;
@@ -1195,6 +1482,10 @@ fn parse_args() -> Args {
             ("--lens", Some(value)) => {
                 args.camera.lens =
                     CameraOptions::parse_lens(&value).unwrap_or_else(|error| exit_usage(&error));
+            }
+            ("--board", Some(value)) => {
+                args.board =
+                    Some(BoardSpec::parse(&value).unwrap_or_else(|error| exit_usage(&error)));
             }
             ("--camera-info", Some(value)) => {
                 args.camera.info =
@@ -1227,7 +1518,11 @@ fn main() -> io::Result<()> {
         args.sensors,
         args.motion,
         args.camera,
+        args.board,
     )?;
+    if args.motion.board_tour && args.board.is_none() {
+        eprintln!("note: --motion board without --board holds the rig in front of nothing");
+    }
 
     let mut candidates = vec![("good.yaml", rig)];
     if args.sensors.imu {
@@ -1256,7 +1551,24 @@ fn main() -> io::Result<()> {
             .collect::<Vec<_>>()
             .join(", ")
     );
-    if args.sensors.camera && args.camera.info != CameraInfoMode::True {
+    if let (Some(board), true) = (args.board, args.sensors.camera) {
+        let camchain = args.out.join("intrinsics_camchain.yaml");
+        let spec = format!("{}x{}x{}", board.columns, board.rows, board.square_m);
+        let right = if args.sensors.camera2 {
+            format!(" --right-topic {IMAGE2_TOPIC}")
+        } else {
+            String::new()
+        };
+        println!(
+            "next: calibrate the camera(s) with the board, then check with them:\n  calibrex \
+             intrinsics guide --board {spec} --bag {bag} --topic {IMAGE_TOPIC}{right} \
+             --no-window --output {camchain}\n  calibrex check {bag} --tf {good} \
+             --intrinsics {camchain} --board {spec}",
+            bag = bag.display(),
+            camchain = camchain.display(),
+            good = args.out.join("good.yaml").display(),
+        );
+    } else if args.sensors.camera && args.camera.info != CameraInfoMode::True {
         let camchain = args.out.join("intrinsics_camchain.yaml");
         println!(
             "next: the camera has no calibrated CameraInfo; calibrate it from the bag, then \
@@ -1309,8 +1621,9 @@ mod tests {
         for step in 0..=4800 {
             let motion = Motion {
                 rotation_speed: if step % 2 == 0 { 1.0 } else { 2.0 },
-                // --motion turn too: it turns the rig about the camera instead.
+                // --motion turn and board too: they hold the rig near the turn centre.
                 in_place: step % 3 == 0,
+                board_tour: step % 5 == 0,
             };
             let (rotation, position) = motion.rig_pose_ros(f64::from(step / 2) * 0.05);
             for offset in [
@@ -1356,6 +1669,7 @@ mod tests {
             Sensors::ALL,
             Motion::HAND_HELD,
             CameraOptions::default(),
+            None,
         )
         .unwrap();
         assert_eq!(recording.imu_messages, 200);
@@ -1396,6 +1710,7 @@ mod tests {
             sensors,
             Motion::HAND_HELD,
             CameraOptions::default(),
+            None,
         )
         .unwrap();
         assert_eq!(recording.imu_messages, 0);
@@ -1697,6 +2012,93 @@ mod tests {
     }
 
     #[test]
+    fn every_board_tour_pose_sees_the_whole_board_unoccluded_and_holds_still() {
+        let board = BoardSpec::parse("7x5x0.08").unwrap();
+        let mut world = World::new();
+        spawn_room(&mut world);
+        let entity = spawn_board(&mut world, board);
+        let renderer = ColliderRenderer::from_world(&mut world).with_board(entity, board, 1);
+        let (board_rotation, centre) = BoardSpec::pose_ros();
+        let half = board.half_extents_m();
+        let spec = camera_spec();
+        let focal = f64::from(spec.height) / 2.0 / (spec.fov_y_rad / 2.0).tan();
+        let m = ros_to_rne();
+        let poses = board_tour_camera_poses();
+        assert!(poses.len() >= 28);
+        for (index, (rotation, position)) in poses.iter().enumerate() {
+            // The board's outer corners image inside the frame, with a margin.
+            for (sx, sy) in [(-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)] {
+                let corner = centre + board_rotation * Vec3::new(sx * half.x, sy * half.y, 0.0);
+                let optical = rotation.inverse() * (corner - position);
+                let (u, v) = (focal * optical.x / optical.z, focal * optical.y / optical.z);
+                assert!(optical.z > 0.3, "pose {index}: corner behind the camera");
+                assert!(
+                    u.abs() < f64::from(spec.width) / 2.0 - 4.0
+                        && v.abs() < f64::from(spec.height) / 2.0 - 4.0,
+                    "pose {index}: corner at ({u:.0}, {v:.0}) px off the centre"
+                );
+            }
+            // Nothing stands between the camera and the board.
+            let direction = (centre - *position).normalize();
+            let (t, _) = renderer.cast(m * *position, m * direction).unwrap();
+            let expected = (centre - *position).dot(board_rotation * -Vec3::Z).abs()
+                / direction.dot(board_rotation * -Vec3::Z).abs();
+            assert!(
+                (t - expected).abs() < 0.02,
+                "pose {index}: hit {t:.3} m, board {expected:.3} m"
+            );
+            // The rig holds still while it shows the pose.
+            let start = index as f64 * (BOARD_HOLD_S + BOARD_MOVE_S);
+            let (r0, p0) = Motion::BOARD_TOUR.rig_pose_ros(start + 0.01);
+            let (r1, p1) = Motion::BOARD_TOUR.rig_pose_ros(start + BOARD_HOLD_S - 0.01);
+            assert!(r0.angle_between(r1) < 1e-6 && (p0 - p1).length() < 1e-9);
+            let camera = true_rig().camera;
+            assert!((p0 + r0 * camera.translation_m - *position).length() < 1e-9);
+        }
+    }
+
+    #[test]
+    fn the_board_pattern_has_a_white_margin_and_alternating_squares() {
+        let board = BoardSpec::parse("7x5x0.08").unwrap();
+        let half = board.half_extents_m();
+        let s = board.square_m;
+        // The margin square is white, the first pattern square dark, its neighbour light.
+        assert!(board.gray(-half.x + 0.5 * s, -half.y + 0.5 * s) > 0.5);
+        assert!(board.gray(-half.x + 1.5 * s, -half.y + 1.5 * s) < 0.5);
+        assert!(board.gray(-half.x + 2.5 * s, -half.y + 1.5 * s) > 0.5);
+        assert!(BoardSpec::parse("7x5").is_err() && BoardSpec::parse("1x5x0.1").is_err());
+    }
+
+    #[test]
+    fn a_second_camera_is_recorded_with_its_own_topics_and_mounting() {
+        let dir = std::env::temp_dir().join("calibrex_rig_camera2");
+        fs::create_dir_all(&dir).unwrap();
+        let bag = dir.join("rig.mcap");
+        let recording = simulate(
+            &bag,
+            0.2,
+            true_rig(),
+            Sensors::parse("camera,camera2").unwrap(),
+            Motion::BOARD_TOUR,
+            CameraOptions::default(),
+            Some(BoardSpec::parse("7x5x0.08").unwrap()),
+        )
+        .unwrap();
+        assert_eq!((recording.camera_frames, recording.camera2_frames), (2, 2));
+        let bytes = fs::read(&bag).unwrap();
+        for topic in [IMAGE2_TOPIC, CAMERA2_INFO_TOPIC] {
+            assert!(read_records(&bytes).iter().any(|(op, body)| *op == 0x04
+                && body.windows(topic.len()).any(|w| w == topic.as_bytes())));
+        }
+        let yaml = frames_yaml(true_rig(), Sensors::parse("camera,camera2").unwrap());
+        assert!(yaml.contains("name: camera2"));
+        let rig = true_rig();
+        assert!(
+            ((rig.camera.translation_m - rig.camera2.translation_m).length() - 0.10).abs() < 1e-12
+        );
+    }
+
+    #[test]
     fn camera_info_follows_the_lens_and_the_mode() {
         let dir = std::env::temp_dir().join("calibrex_rig_camera_info_modes");
         fs::create_dir_all(&dir).unwrap();
@@ -1715,6 +2117,7 @@ mod tests {
                 sensors,
                 Motion::TURN_IN_PLACE,
                 CameraOptions { lens, info: mode },
+                None,
             )
             .unwrap();
             let bytes = fs::read(&bag).unwrap();
