@@ -19,7 +19,8 @@
 //! fixes. Fixes are fused only while GNSS is in charge, so isolated
 //! healthy-looking fixes in a degraded stretch, often NLOS-biased, are not. A
 //! fix that keeps failing only the gate for `gate_reset_epochs` is accepted, to
-//! recover from a drifted, over-confident estimate. The arbiter takes a plain
+//! recover from a drifted, over-confident estimate; outside GNSS mode it
+//! re-anchors the estimate, so the following fixes pass the gate. The arbiter takes a plain
 //! [`AbsolutePositionFix`], so it does not depend on a GNSS simulator.
 
 use crate::likelihood::LikelihoodField;
@@ -371,8 +372,15 @@ impl HybridLocalizer {
         fix: Option<&AbsolutePositionFix>,
         time_s: f64,
     ) -> Result<GnssDecision, HybridError> {
-        let decision = self.judge_gnss(fix);
+        let (decision, gate_reset) = self.judge_gnss(fix);
         let healthy = matches!(decision, GnssDecision::Fused);
+        if let (true, Some(fix)) = (gate_reset && self.source != LocalizationSource::Gnss, fix) {
+            // The estimate is wrong, not the fix: re-anchor it there, or the
+            // next fixes would fail the gate again and GNSS could never
+            // collect the consecutive fixes it needs to take over.
+            self.ekf
+                .update_position(fix.x_m, fix.y_m, self.gnss_variance_m2(fix))?;
+        }
         if healthy {
             let qualifies = fix.is_some_and(|f| f.kind >= self.config.enter_gnss_min_kind);
             self.gnss_good_streak = if qualifies {
@@ -681,9 +689,10 @@ impl HybridLocalizer {
         )
     }
 
-    fn judge_gnss(&mut self, fix: Option<&AbsolutePositionFix>) -> GnssDecision {
+    /// The decision on a fix, and whether it passed only by a gate reset.
+    fn judge_gnss(&mut self, fix: Option<&AbsolutePositionFix>) -> (GnssDecision, bool) {
         let Some(fix) = fix else {
-            return GnssDecision::Missing;
+            return (GnssDecision::Missing, false);
         };
         let finite = fix.x_m.is_finite() && fix.y_m.is_finite() && fix.horizontal_std_m.is_finite();
         if !finite
@@ -693,7 +702,7 @@ impl HybridLocalizer {
             || fix.horizontal_std_m > self.config.max_horizontal_std_m
             || fix.satellites_excluded > self.config.max_excluded
         {
-            return GnssDecision::RejectedQuality;
+            return (GnssDecision::RejectedQuality, false);
         }
         let d2 =
             self.ekf
@@ -706,11 +715,12 @@ impl HybridLocalizer {
             if self.gate_streak < self.config.gate_reset_epochs
                 || !(fix.kind == FixKind::Fixed || lost)
             {
-                return GnssDecision::RejectedGate;
+                return (GnssDecision::RejectedGate, false);
             }
         }
+        let reset = d2 > self.config.gate_chi_square;
         self.gate_streak = 0;
-        GnssDecision::Fused
+        (GnssDecision::Fused, reset)
     }
 
     fn gnss_variance_m2(&self, fix: &AbsolutePositionFix) -> f64 {
@@ -1075,5 +1085,35 @@ mod tests {
                 GnssDecision::RejectedQuality
             );
         }
+    }
+
+    #[test]
+    fn a_gate_reset_outside_gnss_mode_lets_gnss_take_back_over() {
+        let config = HybridLocalizerConfig {
+            gate_reset_epochs: 4,
+            ..HybridLocalizerConfig::default()
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(-50.0, 0.0, 0.0), config).unwrap();
+        // GNSS drops out: dead reckoning.
+        for _ in 0..20 {
+            localizer.update_gnss(None, 0.0).unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+        // RTK comes back 20 m from the (wrong) estimate.
+        let fixed = AbsolutePositionFix {
+            horizontal_std_m: 0.02,
+            kind: FixKind::Fixed,
+            ..good_fix(-50.0, 20.0)
+        };
+        for _ in 0..40 {
+            localizer.update_gnss(Some(&fixed), 1.0).unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+        assert!(
+            (localizer.pose().y_m - 20.0).abs() < 0.1,
+            "{:?}",
+            localizer.pose()
+        );
     }
 }
