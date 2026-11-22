@@ -158,6 +158,16 @@ pub struct HybridLocalizerConfig {
     pub gate_reset_epochs: usize,
     /// EKF horizontal sigma above which any gated-out fix may reset, meters.
     pub gate_reset_min_std_m: f64,
+    /// After this many RTK fixed fixes in a row fail only the gate while
+    /// agreeing among themselves relative to the odometry (to within
+    /// `gnss_reanchor_spread_m`), the estimate is re-anchored on them: the
+    /// receiver keeps reporting the same place as the wheels move, so the
+    /// estimate, not the receiver, is wrong. LiDAR tracking restarts from
+    /// there. Zero (off) by default.
+    pub gnss_reanchor_fixes: usize,
+    /// Largest distance of a rejected fix's offset from the run's mean
+    /// offset for re-anchoring, meters.
+    pub gnss_reanchor_spread_m: f64,
     /// Minimum scan-match score to fuse a LiDAR pose.
     pub lidar_min_score: f64,
     /// Minimum score of the wide relocalization match that starts LiDAR mode.
@@ -191,6 +201,17 @@ pub struct HybridLocalizerConfig {
     /// from correcting an estimate that a wrong GNSS fix left off. Enable it
     /// (for example 9.21, the 99 % gate) when GNSS is RTK-grade.
     pub lidar_gate_chi_square: f64,
+    /// Drop returns the prior map cannot explain before tracking: beams
+    /// whose endpoint, placed at the current estimate, lies in mapped free
+    /// space at least the likelihood field's reach
+    /// (`amcl.likelihood.max_distance_m`) from any mapped structure (a cell
+    /// counts as mapped free once it has any free evidence). These
+    /// are pedestrians, vehicles and other things that move; left in, a
+    /// person walking beside the robot looks like a pole that keeps pace
+    /// with it and holds the match back. When more than half the returns
+    /// would go, the estimate is the more likely culprit and the scan is
+    /// used whole. Off by default.
+    pub lidar_drop_unmapped_returns: bool,
     /// Variance of a fused AMCL yaw, in rad².
     pub lidar_yaw_variance_rad2: f64,
     /// Odometry forward-velocity variance.
@@ -225,6 +246,8 @@ impl Default for HybridLocalizerConfig {
             leave_gnss_epochs: 3,
             gate_reset_epochs: 150,
             gate_reset_min_std_m: 3.0,
+            gnss_reanchor_fixes: 0,
+            gnss_reanchor_spread_m: 0.5,
             lidar_min_score: 0.35,
             lidar_init_min_score: 0.5,
             lidar_map_margin_m: 2.0,
@@ -235,6 +258,7 @@ impl Default for HybridLocalizerConfig {
             lidar_gate_chi_square: f64::INFINITY,
             lidar_anisotropic: false,
             lidar_max_variance_m2: 100.0,
+            lidar_drop_unmapped_returns: false,
             lidar_yaw_variance_rad2: 0.0025,
             odometry_linear_variance: 0.0025,
             odometry_angular_variance: 1.0e-4,
@@ -281,6 +305,12 @@ pub struct HybridLocalizer {
     /// Consecutive scans whose preferred particle-filter match lay metres
     /// from the EKF.
     reanchor_streak: usize,
+    /// Odometry-only pose, re-synced to the estimate when a run of rejected
+    /// RTK fixes starts.
+    dead_reckoned: Pose2d,
+    /// Offsets of the current run of gate-rejected RTK fixed fixes from
+    /// `dead_reckoned`.
+    rejected_offsets: Vec<(f64, f64)>,
     last_amcl: Option<AmclUpdate>,
     transitions: Vec<SourceTransition>,
 }
@@ -307,6 +337,8 @@ impl HybridLocalizer {
             gate_streak: 0,
             lidar_low_streak: 0,
             reanchor_streak: 0,
+            dead_reckoned: initial_pose,
+            rejected_offsets: Vec::new(),
             last_amcl: None,
             transitions: Vec::new(),
         })
@@ -357,6 +389,13 @@ impl HybridLocalizer {
         angular_rad_s: f64,
     ) -> Result<(), HybridError> {
         self.ekf.predict(dt_s)?;
+        if linear_m_s.is_finite() && angular_rad_s.is_finite() && dt_s.is_finite() {
+            self.dead_reckoned = self.dead_reckoned.compose(Pose2d::new(
+                linear_m_s * dt_s,
+                0.0,
+                angular_rad_s * dt_s,
+            ));
+        }
         self.ekf.update_odometry(
             linear_m_s,
             angular_rad_s,
@@ -373,6 +412,11 @@ impl HybridLocalizer {
         time_s: f64,
     ) -> Result<GnssDecision, HybridError> {
         let (decision, gate_reset) = self.judge_gnss(fix);
+        if let Some(fix) = fix {
+            if self.reanchor_on_rejected_fixes(fix, decision, time_s)? {
+                return Ok(GnssDecision::RejectedGate);
+            }
+        }
         let healthy = matches!(decision, GnssDecision::Fused);
         if let (true, Some(fix)) = (gate_reset && self.source != LocalizationSource::Gnss, fix) {
             // The estimate is wrong, not the fix: re-anchor it there, or the
@@ -467,6 +511,12 @@ impl HybridLocalizer {
             }
             return Ok(None);
         }
+        let filtered = if self.config.lidar_drop_unmapped_returns {
+            self.without_unmapped_returns(scan, sensor_from_base)
+        } else {
+            None
+        };
+        let scan = filtered.as_ref().unwrap_or(scan);
         let Some(amcl) = self.amcl.as_mut() else {
             return Ok(None);
         };
@@ -583,6 +633,97 @@ impl HybridLocalizer {
             self.switch(LocalizationSource::DeadReckoning, time_s);
         }
         Ok(Some(update))
+    }
+
+    /// The scan without the returns the map cannot explain at the current
+    /// estimate (see `lidar_drop_unmapped_returns`); `None` when nothing is
+    /// dropped or too much would be.
+    fn without_unmapped_returns(
+        &self,
+        scan: &LaserScan2d,
+        sensor_from_base: Pose2d,
+    ) -> Option<LaserScan2d> {
+        let sensor = self.ekf.pose().compose(sensor_from_base);
+        let mut filtered = scan.clone();
+        let (mut valid, mut dropped) = (0_usize, 0_usize);
+        for (index, range) in filtered.ranges_m.iter_mut().enumerate() {
+            if !(range.is_finite() && *range >= scan.range_min_m && *range <= scan.range_max_m) {
+                continue;
+            }
+            valid += 1;
+            let angle = scan.angle_min_rad + scan.angle_increment_rad * index as f64;
+            let end =
+                sensor.transform_point(Vec3::new(angle.cos() * *range, angle.sin() * *range, 0.0));
+            let free = self
+                .map
+                .world_to_grid(end)
+                .and_then(|coord| self.map.probability(coord))
+                .is_some_and(|p| p < 0.5);
+            if free && self.field.score(end) <= 0.0 {
+                *range = f64::INFINITY;
+                dropped += 1;
+            }
+        }
+        (dropped > 0 && 2 * dropped <= valid).then_some(filtered)
+    }
+
+    /// Tracks runs of gate-rejected RTK fixed fixes (see
+    /// `gnss_reanchor_fixes`); returns whether the estimate was re-anchored.
+    fn reanchor_on_rejected_fixes(
+        &mut self,
+        fix: &AbsolutePositionFix,
+        decision: GnssDecision,
+        time_s: f64,
+    ) -> Result<bool, HybridError> {
+        let needed = self.config.gnss_reanchor_fixes;
+        if needed == 0 {
+            return Ok(false);
+        }
+        match (decision, fix.kind) {
+            (GnssDecision::RejectedGate, FixKind::Fixed) => {}
+            // Other rejections neither confirm nor break a run.
+            (GnssDecision::RejectedGate | GnssDecision::RejectedQuality, _) => return Ok(false),
+            _ => {
+                self.rejected_offsets.clear();
+                return Ok(false);
+            }
+        }
+        if self.rejected_offsets.is_empty() {
+            self.dead_reckoned = self.ekf.pose();
+        }
+        let origin = self.dead_reckoned;
+        self.rejected_offsets
+            .push((fix.x_m - origin.x_m, fix.y_m - origin.y_m));
+        if self.rejected_offsets.len() > needed {
+            self.rejected_offsets.remove(0);
+        }
+        if self.rejected_offsets.len() < needed {
+            return Ok(false);
+        }
+        let n = needed as f64;
+        let (mx, my) = self
+            .rejected_offsets
+            .iter()
+            .fold((0.0, 0.0), |(a, b), (x, y)| (a + x / n, b + y / n));
+        let spread = self
+            .rejected_offsets
+            .iter()
+            .map(|(x, y)| (x - mx).hypot(y - my))
+            .fold(0.0, f64::max);
+        if spread > self.config.gnss_reanchor_spread_m {
+            return Ok(false);
+        }
+        let pose = Pose2d::new(origin.x_m + mx, origin.y_m + my, self.ekf.pose().yaw_rad);
+        self.ekf = EkfFusion::with_initial_state(self.config.ekf, pose, self.ekf.velocity())?;
+        self.rejected_offsets.clear();
+        self.gate_streak = 0;
+        // The particle filter followed the old placement; search the map
+        // again around the new one.
+        if self.amcl.take().is_some() || self.source == LocalizationSource::DeadReckoning {
+            self.lidar_search = true;
+            self.switch(LocalizationSource::DeadReckoning, time_s);
+        }
+        Ok(true)
     }
 
     /// Whether the arbiter is searching the map for a LiDAR relocalization.
@@ -882,6 +1023,92 @@ mod tests {
                 LocalizationSource::Gnss
             ]
         );
+    }
+
+    #[test]
+    fn returns_from_people_in_mapped_free_space_are_dropped() {
+        let config = HybridLocalizerConfig {
+            lidar_drop_unmapped_returns: true,
+            ..HybridLocalizerConfig::default()
+        };
+        let truth = Pose2d::new(13.0, 0.0, 0.0);
+        let localizer = HybridLocalizer::new(room_map(), truth, config).unwrap();
+        let clean = scan_at(truth);
+        assert!(localizer
+            .without_unmapped_returns(&clean, Pose2d::IDENTITY)
+            .is_none());
+        // A person 1.5 m ahead hides the beams around 0°; the pillar at
+        // (16, 1) and the walls stay.
+        let mut crowded = clean.clone();
+        for beam in [0, 1, 2, 178, 179] {
+            crowded.ranges_m[beam] = 1.5;
+        }
+        let filtered = localizer
+            .without_unmapped_returns(&crowded, Pose2d::IDENTITY)
+            .unwrap();
+        for (beam, (&kept, &original)) in filtered.ranges_m.iter().zip(&clean.ranges_m).enumerate()
+        {
+            if [0, 1, 2, 178, 179].contains(&beam) {
+                assert!(kept.is_infinite());
+            } else {
+                assert_eq!(kept, original, "beam {beam}");
+            }
+        }
+        // Placed 3 m off, most returns look unexplained: the estimate is
+        // suspect, not the scan, so nothing is dropped.
+        let lost = HybridLocalizer::new(room_map(), Pose2d::new(16.0, 2.0, 1.0), config).unwrap();
+        assert!(lost
+            .without_unmapped_returns(&crowded, Pose2d::IDENTITY)
+            .is_none());
+    }
+
+    #[test]
+    fn rtk_fixes_that_agree_with_the_odometry_re_anchor_a_lost_estimate() {
+        let config = HybridLocalizerConfig {
+            gnss_reanchor_fixes: 10,
+            ..HybridLocalizerConfig::default()
+        };
+        // The estimate starts 20 m off and confident; the robot drives east
+        // at 1 m/s and the receiver reports where it really is.
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(0.0, 20.0, 0.0), config).unwrap();
+        let fixed = |x: f64| AbsolutePositionFix {
+            horizontal_std_m: 0.02,
+            kind: FixKind::Fixed,
+            ..good_fix(x, 0.0)
+        };
+        let mut reanchored_at = None;
+        for step in 0..30 {
+            let t = f64::from(step) * 0.2;
+            localizer.predict(0.2, 1.0, 0.0).unwrap();
+            let decision = localizer.update_gnss(Some(&fixed(t + 0.2)), t).unwrap();
+            if reanchored_at.is_none() && localizer.pose().y_m.abs() < 1.0 {
+                reanchored_at = Some(step);
+            }
+            if reanchored_at.is_none() {
+                assert_eq!(decision, GnssDecision::RejectedGate);
+            }
+        }
+        assert_eq!(reanchored_at, Some(9));
+        let pose = localizer.pose();
+        assert!(
+            (pose.x_m - 6.0).abs() < 0.1 && pose.y_m.abs() < 0.1,
+            "{pose:?}"
+        );
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+
+        // Fixes that wander (a wrong ambiguity in multipath) never do.
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(0.0, 20.0, 0.0), config).unwrap();
+        for step in 0..60 {
+            let t = f64::from(step) * 0.2;
+            localizer.predict(0.2, 1.0, 0.0).unwrap();
+            let jitter = if step % 2 == 0 { 1.0 } else { -1.0 };
+            localizer
+                .update_gnss(Some(&fixed(t + 0.2 + jitter)), t)
+                .unwrap();
+        }
+        assert!(localizer.pose().y_m > 19.0, "{:?}", localizer.pose());
     }
 
     #[test]

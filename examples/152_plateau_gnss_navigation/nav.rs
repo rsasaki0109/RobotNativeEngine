@@ -662,6 +662,8 @@ fn build_localizer(
     // scan matches with their degeneracy-aware covariance, preferring the
     // particle filter's match (no fixed gate, so it can correct the EKF).
     config.lidar_anisotropic = true;
+    // Pedestrians are not in the map: keep them out of the scan matches.
+    config.lidar_drop_unmapped_returns = true;
     if factor_graph {
         Localizer::Graph(Box::new(
             FactorGraphLocalizer::new(
