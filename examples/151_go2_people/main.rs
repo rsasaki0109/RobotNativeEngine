@@ -852,6 +852,8 @@ struct Score {
     tracks_per_frame_sum: u64,
     frames: u32,
     fell: bool,
+    /// Time the safety layer held the robot.
+    safety_stop_s: f64,
 }
 
 /// Task-plane point to the world plane: rotated by the start heading, then translated.
@@ -935,6 +937,32 @@ fn base_frame_points(cloud: &rne_data::PointCloud, truth: Pose) -> Vec<[f64; 3]>
             (local[0].hypot(local[1]) > 0.4).then_some([local[0], local[1], p.y])
         })
         .collect()
+}
+
+/// Safety layer: the box ahead of the base that must be free of returns for
+/// the robot to walk forward, whatever perception made of them. A person
+/// standing still long enough joins the static map and is no longer
+/// detected; this still stops the robot short of them.
+/// It starts clear of the robot's own front legs and head (returns up to
+/// 0.47 m ahead of the base).
+const SAFETY_BOX_X_M: (f64, f64) = (0.55, 1.0);
+const SAFETY_BOX_HALF_WIDTH_M: f64 = 0.3;
+const SAFETY_BOX_HEIGHT_M: (f64, f64) = (0.15, 1.0);
+const SAFETY_MIN_RETURNS: usize = 3;
+
+/// Whether enough returns (base frame, z up) are in the safety box.
+fn path_blocked(points: &[[f64; 3]]) -> bool {
+    points
+        .iter()
+        .filter(|p| {
+            p[0] > SAFETY_BOX_X_M.0
+                && p[0] < SAFETY_BOX_X_M.1
+                && p[1].abs() < SAFETY_BOX_HALF_WIDTH_M
+                && p[2] > SAFETY_BOX_HEIGHT_M.0
+                && p[2] < SAFETY_BOX_HEIGHT_M.1
+        })
+        .count()
+        >= SAFETY_MIN_RETURNS
 }
 
 /// The new command, moved toward `next` at the allowed rates.
@@ -1034,6 +1062,7 @@ impl Score {
             "wrong_target_fraction": follow.then(|| per(self.wrong_target_frames)),
             "lost_fraction": follow.then(|| per(self.lost_frames)),
             "tracks_per_frame": self.tracks_per_frame_sum as f64 / f64::from(self.frames.max(1)),
+            "safety_stop_s": self.safety_stop_s,
         })
     }
 }
@@ -1265,6 +1294,7 @@ fn run(
     source: Source,
     tracker_command: Option<&[String]>,
     kind: ControllerKind,
+    safety: bool,
 ) -> (Value, Vec<Value>) {
     let mut sim =
         UrdfSceneSim::from_scene_path(&repo_path("assets/scenes/unitree_go2_jump.rne.scene.toml"))
@@ -1401,7 +1431,12 @@ fn run(
         let speed_now = observed
             .base_linear_velocity_x_m_s
             .hypot(observed.base_linear_velocity_z_m_s);
-        let (next, chosen) = controller.command(&tracks, odom, time_s, speed_now);
+        let (mut next, chosen) = controller.command(&tracks, odom, time_s, speed_now);
+        let blocked = safety && path_blocked(&points);
+        if blocked {
+            next.forward_speed_m_s = 0.0;
+            score.safety_stop_s += FRAME_S;
+        }
         command = rate_limited(command, next);
         score.frames += 1;
         score.tracks_per_frame_sum += tracks.len() as u64;
@@ -1414,6 +1449,7 @@ fn run(
             "spread": localizer.as_ref().and_then(|l| l.last_spread),
             "track_list": tracks.iter().map(|t| json!([t.id, t.position, t.velocity])).collect::<Vec<_>>(),
             "lane": controller.last_lane,
+            "blocked": blocked,
             "people": people_now.iter().map(|(id, p, v)| json!([id, p, v])).collect::<Vec<_>>(),
         }));
         if let Mission::Follow { target } = task.mission {
@@ -1441,8 +1477,10 @@ fn print_summary(results: &[Value], tasks: &[Task], sources: &[Source]) {
     let mean = |values: Vec<f64>| {
         (!values.is_empty()).then(|| values.iter().sum::<f64>() / values.len() as f64)
     };
-    println!("| task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost |");
-    println!("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+    println!("| task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost | safety stop, mean (s) |");
+    println!(
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
+    );
     for task in tasks {
         for source in sources {
             let rows: Vec<&Value> = results
@@ -1459,7 +1497,7 @@ fn print_summary(results: &[Value], tasks: &[Task], sources: &[Source]) {
                 .map(|r| r["contacts"].as_u64().unwrap_or(0))
                 .collect();
             println!(
-                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
                 task.name,
                 source.name(),
                 rows.len(),
@@ -1473,6 +1511,7 @@ fn print_summary(results: &[Value], tasks: &[Task], sources: &[Source]) {
                 f(mean(field("follow_error_m"))),
                 f(mean(field("wrong_target_fraction"))),
                 f(mean(field("lost_fraction"))),
+                f(mean(field("safety_stop_s"))),
             );
         }
     }
@@ -1485,12 +1524,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut duration: Option<f64> = None;
     let mut trials: u32 = 1;
     let mut kind = ControllerKind::Rule;
+    let mut safety = true;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--out" => out = PathBuf::from(args.next().ok_or("--out needs a directory")?),
             "--task" => only = Some(args.next().ok_or("--task needs a name")?),
             "--trials" => trials = args.next().ok_or("--trials needs a count")?.parse()?,
+            "--no-safety" => safety = false,
             "--controller" => {
                 kind = match args.next().as_deref() {
                     Some("rule") => ControllerKind::Rule,
@@ -1569,7 +1610,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let Some((task, source, trial)) = jobs.get(index) else {
                             break;
                         };
-                        let (mut result, trace) = run(task, *source, tracker.as_deref(), kind);
+                        let (mut result, trace) =
+                            run(task, *source, tracker.as_deref(), kind, safety);
                         result["trial"] = json!(trial);
                         mine.push((index, result, trace));
                     }
@@ -1674,6 +1716,16 @@ mod tests {
         let tracks = [track(7, [3.6, -0.1], [-0.9, 0.05])];
         let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 1.5, MAX_SPEED_M_S);
         assert!(command.yaw_rate_rad_s < 0.0, "{command:?}");
+    }
+
+    #[test]
+    fn safety_layer_stops_for_returns_right_ahead_only() {
+        let leg = |x: f64, y: f64| (0..4).map(move |i| [x, y, 0.2 + 0.1 * f64::from(i)]);
+        assert!(path_blocked(&leg(0.7, 0.1).collect::<Vec<_>>()));
+        // Beside the path, farther ahead, or on the floor: not blocked.
+        assert!(!path_blocked(&leg(0.7, 0.6).collect::<Vec<_>>()));
+        assert!(!path_blocked(&leg(1.5, 0.0).collect::<Vec<_>>()));
+        assert!(!path_blocked(&[[0.7, 0.0, 0.05]; 10]));
     }
 
     #[test]
