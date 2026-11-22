@@ -215,15 +215,33 @@ fn qzss_joins_spp_and_rtk() {
     // Tokyo, where QZSS is overhead.
     let frame = EnuFrame::new(Geodetic::from_degrees(35.68, 139.77, 40.0));
     let scene = GnssScene::open_sky();
-    let open_sky_count = |c: &Constellation| {
+    // Over a day of QZSS orbits (whose eccentricity makes the relativistic
+    // clock term tens of metres), SPP uses the QZSS satellites and stays
+    // metre-level.
+    let antenna = Vec3::new(0.0, 0.0, 1.5);
+    for hour in [0.0, 5.5, 11.0, 17.0] {
+        let t = hour * 3600.0;
         let mut receiver = GnssReceiver::new(config).unwrap();
-        let epoch = receiver.observe(&scene, c, &frame, Vec3::new(0.0, 0.0, 1.5), 0.0);
+        let epoch = receiver.observe(&scene, &constellation, &frame, antenna, t);
         let mut spp = Spp::new(10.0).unwrap();
-        spp.process(&epoch, None, &navigation).unwrap().satellites
-    };
-    let with_qzss = open_sky_count(&constellation);
-    let without = open_sky_count(&Constellation::gps_galileo_nominal());
-    assert!(with_qzss >= without + 2, "{with_qzss} vs {without}");
+        let message = NavigationMessage::from_constellation(
+            &constellation,
+            config.epoch,
+            t,
+            config.atmosphere.klobuchar,
+        );
+        let solution = spp
+            .process(&epoch, None, &Navigation::new(&message).unwrap())
+            .unwrap();
+        let qzss_up = epoch
+            .observations
+            .iter()
+            .filter(|o| o.id.system == rne_gnss::GnssSystem::Qzss && o.elevation_rad > 0.2)
+            .count();
+        assert!(qzss_up >= 2, "hour {hour}: {qzss_up} QZSS up");
+        let error = frame.ecef_vector_to_enu(solution.position_ecef_m - frame.enu_to_ecef(antenna));
+        assert!(error.length() < 8.0, "hour {hour}: SPP error {error:?}");
+    }
 
     let base_enu = Vec3::new(-150.0, 80.0, 12.0);
     let base_ecef = frame.enu_to_ecef(base_enu);

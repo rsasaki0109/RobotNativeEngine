@@ -130,7 +130,14 @@ pub struct TriangleMesh {
     nodes: Vec<BvhNode>,
     order: Vec<u32>,
     edges: Vec<DiffractionEdge>,
+    /// Edge indices bucketed by the horizontal cell of their midpoint.
+    edge_cells: BTreeMap<(i64, i64), Vec<u32>>,
+    /// Longest horizontal half-length of any edge, meters.
+    edge_reach_m: f64,
 }
+
+/// Horizontal cell size of the edge buckets, meters.
+const EDGE_CELL_M: f64 = 32.0;
 
 impl TriangleMesh {
     /// Builds the BVH and diffraction edges.
@@ -140,6 +147,8 @@ impl TriangleMesh {
             triangles,
             nodes: Vec::new(),
             edges: Vec::new(),
+            edge_cells: BTreeMap::new(),
+            edge_reach_m: 0.0,
         };
         if !mesh.triangles.is_empty() {
             let centroids: Vec<Vec3> = mesh.triangles.iter().map(MeshTriangle::centroid).collect();
@@ -153,7 +162,38 @@ impl TriangleMesh {
             mesh.build(0, 0, count, &centroids);
         }
         mesh.edges = diffraction_edges(&mesh.triangles);
+        for (index, edge) in mesh.edges.iter().enumerate() {
+            let mid = 0.5 * (edge.start_m + edge.end_m);
+            let key = (
+                (mid.x / EDGE_CELL_M).floor() as i64,
+                (mid.y / EDGE_CELL_M).floor() as i64,
+            );
+            mesh.edge_cells.entry(key).or_default().push(index as u32);
+            let half = 0.5 * (edge.end_m - edge.start_m).truncate().length();
+            mesh.edge_reach_m = mesh.edge_reach_m.max(half);
+        }
         mesh
+    }
+
+    /// Indices (ascending) of diffraction edges that may come within
+    /// `radius_m` of `point_m` horizontally (a superset; callers still test
+    /// the exact distance).
+    pub fn edges_near(&self, point_m: Vec3, radius_m: f64) -> Vec<usize> {
+        let r = radius_m + self.edge_reach_m;
+        if !r.is_finite() {
+            return (0..self.edges.len()).collect();
+        }
+        let cell = |v: f64| (v / EDGE_CELL_M).floor() as i64;
+        let mut found = Vec::new();
+        for i in cell(point_m.x - r)..=cell(point_m.x + r) {
+            for j in cell(point_m.y - r)..=cell(point_m.y + r) {
+                if let Some(bucket) = self.edge_cells.get(&(i, j)) {
+                    found.extend(bucket.iter().map(|&k| k as usize));
+                }
+            }
+        }
+        found.sort_unstable();
+        found
     }
 
     /// The triangles, in construction order.
@@ -243,6 +283,36 @@ impl TriangleMesh {
             (limit, hit)
         });
         hit
+    }
+
+    /// Indices (ascending) of triangles whose bounding box lies within
+    /// `radius_m` of `point_m`.
+    pub fn triangles_within(&self, point_m: Vec3, radius_m: f64) -> Vec<usize> {
+        let mut found = Vec::new();
+        if self.nodes.is_empty() {
+            return found;
+        }
+        let distance = |lo: Vec3, hi: Vec3| (point_m - point_m.clamp(lo, hi)).length();
+        let mut stack = vec![0_usize];
+        while let Some(node) = stack.pop() {
+            let n = &self.nodes[node];
+            if distance(n.min_m, n.max_m) > radius_m {
+                continue;
+            }
+            if n.count > 0 {
+                for &index in &self.order[n.first as usize..(n.first + n.count) as usize] {
+                    let [a, b, c] = self.triangles[index as usize].vertices;
+                    if distance(a.min(b).min(c), a.max(b).max(c)) <= radius_m {
+                        found.push(index as usize);
+                    }
+                }
+            } else {
+                stack.push(n.first as usize);
+                stack.push(n.first as usize + 1);
+            }
+        }
+        found.sort_unstable();
+        found
     }
 
     /// Whether a point is inside a closed object: the first surface straight
@@ -517,6 +587,33 @@ mod tests {
             if brute.is_finite() {
                 assert_relative_eq!(brute, bvh, epsilon = 1.0e-9);
             }
+        }
+    }
+
+    #[test]
+    fn range_query_matches_brute_force() {
+        let mut triangles = Vec::new();
+        for i in 0..30 {
+            let x = (i % 6) as f64 * 20.0;
+            let y = (i / 6) as f64 * 20.0;
+            triangles.extend(box_triangles(
+                Vec3::new(x, y, 0.0),
+                Vec3::new(x + 8.0, y + 8.0, 10.0),
+                SurfaceMaterial::GLASS,
+                i,
+            ));
+        }
+        let mesh = TriangleMesh::new(triangles.clone());
+        let p = Vec3::new(37.0, 41.0, 1.5);
+        for radius in [5.0, 15.0, 40.0] {
+            let brute: Vec<usize> = (0..triangles.len())
+                .filter(|&i| {
+                    let [a, b, c] = triangles[i].vertices;
+                    let (lo, hi) = (a.min(b).min(c), a.max(b).max(c));
+                    (p - p.clamp(lo, hi)).length() <= radius
+                })
+                .collect();
+            assert_eq!(mesh.triangles_within(p, radius), brute);
         }
     }
 

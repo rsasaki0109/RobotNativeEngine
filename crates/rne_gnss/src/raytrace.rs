@@ -196,7 +196,7 @@ pub fn trace_satellite(
 
     let reach = config.max_interaction_distance_m;
     let facets: Vec<(f64, Facet)> = scene
-        .facets(config.min_reflector_area_m2)
+        .facets_near(antenna_m, reach, config.min_reflector_area_m2)
         .into_iter()
         .map(|f| (box_distance(f.min_m, f.max_m, antenna_m), f))
         .filter(|(d, _)| *d <= reach)
@@ -485,13 +485,30 @@ fn trace_mesh_diffraction(
     // Best candidate per object: (excess, point, lifted point, edge index).
     let mut best: std::collections::BTreeMap<u32, (f64, Vec3, Vec3, usize)> =
         std::collections::BTreeMap::new();
-    for (index, edge) in mesh.diffraction_edges().iter().enumerate() {
+    for index in mesh.edges_near(antenna_m, config.max_interaction_distance_m) {
+        let edge = &mesh.diffraction_edges()[index];
         if box_distance(
             edge.start_m.min(edge.end_m),
             edge.start_m.max(edge.end_m),
             antenna_m,
         ) > config.max_interaction_distance_m
         {
+            continue;
+        }
+        // Cheap bound: excess(P) = |d⊥|² / (|d| + d·u) ≥ |d⊥|² / 2|d|, with
+        // d = P − A and d⊥ its part across the satellite ray. Skip edges
+        // whose closest approach to the ray already exceeds the limit.
+        let (a, b) = (edge.start_m - antenna_m, edge.end_m - antenna_m);
+        let (a_perp, b_perp) = (a - u * a.dot(u), b - u * b.dot(u));
+        let span = b_perp - a_perp;
+        let s = if span.length_squared() > 0.0 {
+            (-a_perp.dot(span) / span.length_squared()).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let closest_perp = (a_perp + span * s).length_squared();
+        let far = a.length().max(b.length()).max(1.0e-9);
+        if closest_perp / (2.0 * far) > config.max_diffraction_excess_m {
             continue;
         }
         let point = minimise_on_segment(edge.start_m, edge.end_m, excess);

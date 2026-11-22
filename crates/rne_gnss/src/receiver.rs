@@ -251,6 +251,11 @@ pub struct SatelliteObservation {
     pub elevation_rad: f64,
     /// Satellite ECEF position at transmission, in the reception-time frame.
     pub satellite_ecef_m: Vec3,
+    /// The relativistic satellite-clock correction `−c·F·e·√A·sin E` that a
+    /// receiver computes from the broadcast ephemeris and adds back to the
+    /// pseudorange, meters (zero for circular orbits).
+    #[serde(default)]
+    pub relativistic_correction_m: f64,
     /// Signals tracked for this satellite (primary first).
     pub signals: Vec<SignalObservation>,
 }
@@ -500,6 +505,13 @@ impl GnssReceiver {
             let satellite_ecef = transmit_position(satellite.orbit, receiver_ecef, time_s);
             let line_ecef = satellite_ecef - receiver_ecef;
             let range = line_ecef.length();
+            // The satellite clock runs with the periodic relativistic offset
+            // of an eccentric orbit, which the broadcast clock polynomial
+            // leaves for the receiver to correct.
+            let relativistic_m = SPEED_OF_LIGHT_M_S
+                * satellite
+                    .orbit
+                    .relativistic_clock_s(time_s - range / SPEED_OF_LIGHT_M_S);
             let direction = frame.ecef_vector_to_enu(line_ecef / range);
             let (azimuth_rad, elevation_rad) = azimuth_elevation(direction);
             let mut observation = SatelliteObservation {
@@ -507,6 +519,7 @@ impl GnssReceiver {
                 azimuth_rad,
                 elevation_rad,
                 satellite_ecef_m: satellite_ecef,
+                relativistic_correction_m: relativistic_m,
                 signals: Vec::new(),
             };
             let signals: Vec<SignalKind> = self.config.tracked_signals(satellite.id).collect();
@@ -552,7 +565,7 @@ impl GnssReceiver {
                     SignalKind::GalE5a => 3,
                 };
                 let draw = draws[row];
-                let common = range + satellite_error + tropo;
+                let common = range + satellite_error + tropo - relativistic_m;
                 let signal_obs = self.track_signal(
                     satellite.id,
                     signal,
@@ -761,7 +774,7 @@ impl GnssReceiver {
             inputs.push(PseudorangeInput {
                 id: o.id,
                 satellite_ecef_m: o.satellite_ecef_m,
-                pseudorange_m: pseudorange - correction,
+                pseudorange_m: pseudorange + o.relativistic_correction_m - correction,
                 sigma_m: self.measurement_sigma_m(o.elevation_rad, primary.cn0_dbhz),
             });
         }

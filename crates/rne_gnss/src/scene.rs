@@ -395,15 +395,44 @@ impl GnssScene {
     /// reflective mesh triangles of at least `min_triangle_area_m2`, then the
     /// ground.
     pub fn facets(&self, min_triangle_area_m2: f64) -> Vec<Facet> {
+        self.facets_near(Vec3::ZERO, f64::INFINITY, min_triangle_area_m2)
+    }
+
+    /// The reflecting facets whose extent lies within `radius_m` of
+    /// `point_m`, in the order of [`Self::facets`] (the ground is always
+    /// included). Mesh triangles are found through the BVH.
+    pub fn facets_near(
+        &self,
+        point_m: Vec3,
+        radius_m: f64,
+        min_triangle_area_m2: f64,
+    ) -> Vec<Facet> {
+        let within = |lo: Vec3, hi: Vec3| {
+            let d = point_m - point_m.clamp(lo, hi);
+            Vec3::new(
+                if d.x.is_finite() { d.x } else { 0.0 },
+                if d.y.is_finite() { d.y } else { 0.0 },
+                if d.z.is_finite() { d.z } else { 0.0 },
+            )
+            .length()
+                <= radius_m
+        };
         let mut facets: Vec<Facet> = self
             .boxes
             .iter()
             .enumerate()
             .filter(|(_, b)| b.material.is_reflective())
             .flat_map(|(index, b)| b.vertical_facets(index))
+            .filter(|f| within(f.min_m, f.max_m))
             .collect();
         if let Some(mesh) = &self.mesh {
-            for (index, tri) in mesh.triangles().iter().enumerate() {
+            let indices = if radius_m.is_finite() {
+                mesh.triangles_within(point_m, radius_m)
+            } else {
+                (0..mesh.triangles().len()).collect()
+            };
+            for index in indices {
+                let tri = &mesh.triangles()[index];
                 if !tri.material.is_reflective() || tri.area_m2() < min_triangle_area_m2 {
                     continue;
                 }

@@ -96,6 +96,31 @@ impl KeplerOrbit {
         (EARTH_MU_M3_S2 / self.semi_major_axis_m.powi(3)).sqrt()
     }
 
+    /// Eccentric anomaly at `time_s` after the epoch (Kepler's equation).
+    pub fn eccentric_anomaly_rad(&self, time_s: f64) -> f64 {
+        let mean = self.mean_anomaly_rad + self.mean_motion_rad_s() * time_s;
+        let e = self.eccentricity;
+        let mut eccentric = mean;
+        for _ in 0..10 {
+            let step = (eccentric - e * eccentric.sin() - mean) / (1.0 - e * eccentric.cos());
+            eccentric -= step;
+            if step.abs() < 1.0e-14 {
+                break;
+            }
+        }
+        eccentric
+    }
+
+    /// The relativistic satellite-clock offset of an eccentric orbit,
+    /// `F·e·√A·sin E` with `F = −2√μ / c²` (IS-GPS-200 20.3.3.3.3.1), in
+    /// seconds; zero for a circular orbit.
+    pub fn relativistic_clock_s(&self, time_s: f64) -> f64 {
+        const F: f64 = -4.442_807_633e-10;
+        F * self.eccentricity
+            * self.semi_major_axis_m.sqrt()
+            * self.eccentric_anomaly_rad(time_s).sin()
+    }
+
     /// Earth-fixed (ECEF) satellite position at `time_s` after the epoch.
     pub fn position_ecef(&self, time_s: f64) -> Vec3 {
         let mean = self.mean_anomaly_rad + self.mean_motion_rad_s() * time_s;
@@ -299,6 +324,18 @@ pub fn wrap_two_pi(angle_rad: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn relativistic_clock_term_vanishes_for_circular_orbits_and_is_large_for_qzo() {
+        let gps = Constellation::gps_nominal();
+        assert_eq!(gps.satellites()[0].orbit.relativistic_clock_s(1234.0), 0.0);
+        let qzo = Constellation::qzss_nominal().satellites()[0].orbit;
+        let peak = (0..96)
+            .map(|k| (qzo.relativistic_clock_s(f64::from(k) * 900.0) * SPEED_OF_LIGHT_M_S).abs())
+            .fold(0.0, f64::max);
+        // F·e·√A·c ≈ 4.44e-10 · 0.075 · 6493 · 3e8 ≈ 65 m.
+        assert!((peak - 64.9).abs() < 1.5, "{peak}");
+    }
 
     #[test]
     fn a_qzss_satellite_is_always_high_over_tokyo() {
