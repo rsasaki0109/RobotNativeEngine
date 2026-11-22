@@ -114,6 +114,11 @@ fn main() -> Result<(), String> {
     let survey_only = std::env::args().any(|a| a == "--survey");
     let quick = std::env::args().any(|a| a == "--quick");
     let conditions = std::env::args().any(|a| a == "--conditions");
+    let seeds: u64 = std::env::args()
+        .skip_while(|a| a != "--seeds")
+        .nth(1)
+        .map_or(Ok(1), |n| n.parse())
+        .map_err(|e| format!("--seeds: {e}"))?;
     let only_config = std::env::args().skip_while(|a| a != "--config").nth(1);
     let render_dir = std::env::args()
         .skip_while(|a| a != "--render")
@@ -200,15 +205,22 @@ fn main() -> Result<(), String> {
                     continue;
                 }
             }
-            let started = std::time::Instant::now();
-            let report = if options.weather.rain || glass_from_m != plateau::GLASS_TOWER_HEIGHT_M {
-                let styled = city.restyled(glass_from_m, options.weather.rain);
-                nav::run(&styled, &route, base, options)
-            } else {
-                nav::run(&city, &route, base, options)
-            };
-            print_report(label, &report, started.elapsed().as_secs_f64());
-            main_run.get_or_insert(report);
+            let styled = (options.weather.rain || glass_from_m != plateau::GLASS_TOWER_HEIGHT_M)
+                .then(|| city.restyled(glass_from_m, options.weather.rain));
+            let mut summary = Vec::new();
+            for seed in 0..seeds {
+                let started = std::time::Instant::now();
+                let options = RunOptions { seed, ..options };
+                let report = nav::run(styled.as_ref().unwrap_or(&city), &route, base, options);
+                print_report(label, &report, started.elapsed().as_secs_f64());
+                summary.push(report.summary());
+                if seed == 0 {
+                    main_run.get_or_insert(report);
+                }
+            }
+            if seeds > 1 {
+                print_summary(label, &summary);
+            }
         }
         let png = PathBuf::from(format!("target/152_{}_sky.png", area.slug));
         write_map(&png, &city, &survey, &route, main_run.as_ref())?;
@@ -232,6 +244,7 @@ fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
                 record,
                 factor_graph: false,
                 weather: Weather::default(),
+                seed: 0,
             },
         ),
         (
@@ -242,6 +255,7 @@ fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
                 record: false,
                 factor_graph: false,
                 weather: Weather::default(),
+                seed: 0,
             },
         ),
         (
@@ -252,6 +266,7 @@ fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
                 record: false,
                 factor_graph: true,
                 weather: Weather::default(),
+                seed: 0,
             },
         ),
         (
@@ -262,6 +277,7 @@ fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
                 record: false,
                 factor_graph: true,
                 weather: Weather::default(),
+                seed: 0,
             },
         ),
         (
@@ -272,6 +288,7 @@ fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
                 record: false,
                 factor_graph: false,
                 weather: Weather::default(),
+                seed: 0,
             },
         ),
     ]
@@ -280,8 +297,8 @@ fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
     .collect()
 }
 
-/// `--conditions`: the main configuration in a crowd, in rain, and with
-/// more glass, as `(label, options, glass curtain walls from this height)`.
+/// `--conditions`: the main configuration, hybrid and factor graph, in clear
+/// weather, in a crowd, in rain, and with more glass, as `(label, options, glass curtain walls from this height)`.
 fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
     let options = |weather, factor_graph| RunOptions {
         map_aided_gnss: true,
@@ -289,6 +306,7 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         record: false,
         factor_graph,
         weather,
+        seed: 0,
     };
     let crowd = Weather {
         pedestrians: 60,
@@ -299,17 +317,16 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         rain: true,
     };
     let glass = plateau::GLASS_TOWER_HEIGHT_M;
+    let clear = Weather::default();
     vec![
-        ("crowd", options(crowd, false), glass),
+        ("clear, hybrid", options(clear, false), glass),
+        ("clear, factor graph", options(clear, true), glass),
+        ("crowd, hybrid", options(crowd, false), glass),
         ("crowd, factor graph", options(crowd, true), glass),
-        ("crowd + rain", options(rain, false), glass),
+        ("crowd + rain, hybrid", options(rain, false), glass),
         ("crowd + rain, factor graph", options(rain, true), glass),
-        ("glass from 20 m", options(Weather::default(), false), 20.0),
-        (
-            "glass from 20 m, factor graph",
-            options(Weather::default(), true),
-            20.0,
-        ),
+        ("glass from 20 m, hybrid", options(clear, false), 20.0),
+        ("glass from 20 m, factor graph", options(clear, true), 20.0),
     ]
 }
 
@@ -353,6 +370,24 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
         report.safety_stops,
         report.obstacle_wait_s,
         report.clearance_m,
+    );
+}
+
+/// One line over several seeds: goals reached, median and worst RMSE, the
+/// worst error and the longest dead reckoning.
+fn print_summary(label: &str, runs: &[nav::RunSummary]) {
+    let mut rmse: Vec<f64> = runs.iter().map(|r| r.rmse_m).collect();
+    rmse.sort_by(f64::total_cmp);
+    let fold = |f: fn(&nav::RunSummary) -> f64| runs.iter().map(f).fold(0.0, f64::max);
+    println!(
+        "  {label:<24} SUMMARY over {} seeds: goal reached {}/{}; RMSE median {:.2} m, worst {:.2} m; max error {:.2} m; longest dead reckoning {:.1} s",
+        runs.len(),
+        runs.iter().filter(|r| r.reached).count(),
+        runs.len(),
+        rmse[rmse.len() / 2],
+        rmse.last().copied().unwrap_or(0.0),
+        fold(|r| r.max_m),
+        fold(|r| r.longest_dead_reckoning_s),
     );
 }
 

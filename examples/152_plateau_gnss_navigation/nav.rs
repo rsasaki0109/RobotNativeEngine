@@ -51,6 +51,9 @@ pub(crate) struct RunOptions {
     pub factor_graph: bool,
     /// Pedestrians and rain.
     pub weather: Weather,
+    /// Noise realization: 0 is the documented run; others reseed the
+    /// receiver, the sensors and the crowd.
+    pub seed: u64,
 }
 
 /// The robot's localizer: the rule-based arbiter or the factor graph.
@@ -392,6 +395,15 @@ fn distance_to_route(route: &[(f64, f64)], x: f64, y: f64) -> f64 {
         .fold(f64::INFINITY, f64::min)
 }
 
+/// The figures of a run compared across seeds.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct RunSummary {
+    pub reached: bool,
+    pub rmse_m: f64,
+    pub max_m: f64,
+    pub longest_dead_reckoning_s: f64,
+}
+
 /// What a run produced.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct RunReport {
@@ -421,6 +433,16 @@ pub(crate) struct RunReport {
 }
 
 impl RunReport {
+    pub(crate) fn summary(&self) -> RunSummary {
+        let (rmse_m, max_m) = self.rmse_max();
+        RunSummary {
+            reached: self.reached,
+            rmse_m,
+            max_m,
+            longest_dead_reckoning_s: self.longest_dead_reckoning_s,
+        }
+    }
+
     pub(crate) fn rmse_max(&self) -> (f64, f64) {
         let n = self.errors.len().max(1) as f64;
         let rmse = (self.errors.iter().map(|e| e * e).sum::<f64>() / n).sqrt();
@@ -482,8 +504,12 @@ pub(crate) fn run(
     }
     // The city model used for NLOS prediction has no pedestrians.
     let model = scene.clone();
-    let crowd = Crowd::new(route, options.weather.pedestrians, 0xC0_0D);
-    let receiver = receiver_config();
+    let crowd = Crowd::new(route, options.weather.pedestrians, 0xC0_0D ^ options.seed);
+    let mut receiver = receiver_config();
+    // A large odd multiplier spreads small seeds over the whole range.
+    let reseed = options.seed.wrapping_mul(0x9E37_79B9_7F4A_7C15);
+    receiver.seed ^= reseed;
+    receiver.satellite_error_seed ^= reseed;
     let mut gnss = RobotGnss::new(
         &constellation,
         city.frame,
@@ -500,7 +526,7 @@ pub(crate) fn run(
     // simulated LiDAR sees and the robot's prior map.
     let slice = build_prior_map(city, route);
     let mut hybrid = build_localizer(&slice, start, gnss.uses_libgnss(), options.factor_graph);
-    let mut rng = DeterministicRng::new(0x5_1B_0A);
+    let mut rng = DeterministicRng::new(0x5_1B_0A ^ reseed);
     let (mut truth, mut odom) = (start, start);
     let mut report = RunReport {
         clearance_m: f64::INFINITY,
