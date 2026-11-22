@@ -664,6 +664,7 @@ fn build_localizer(
     config.lidar_anisotropic = true;
     // Pedestrians are not in the map: keep them out of the scan matches.
     config.lidar_drop_unmapped_returns = true;
+    config.gnss_reanchor_fixes = 15;
     if factor_graph {
         Localizer::Graph(Box::new(
             FactorGraphLocalizer::new(
