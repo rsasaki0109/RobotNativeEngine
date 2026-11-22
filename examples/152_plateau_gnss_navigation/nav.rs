@@ -22,7 +22,7 @@ use std::f64::consts::TAU;
 
 const DT_S: f64 = 0.05;
 const LIDAR_EVERY_TICKS: usize = 2;
-const LIDAR_HEIGHT_M: f64 = 0.3;
+pub(crate) const LIDAR_HEIGHT_M: f64 = 0.3;
 const LIDAR_BEAMS: usize = 360;
 const LIDAR_RANGE_M: f64 = 40.0;
 const LIDAR_NOISE_M: f64 = 0.02;
@@ -131,6 +131,10 @@ pub(crate) struct FrameRecord {
     pub epoch: Option<rne_gnss::GnssEpoch>,
     /// LiDAR returns in the map frame.
     pub scan: Vec<(f64, f64)>,
+    /// Pedestrians, map frame.
+    pub people: Vec<(f64, f64)>,
+    /// Whether it is raining.
+    pub rain: bool,
 }
 
 /// Seconds between recorded frames.
@@ -628,6 +632,8 @@ pub(crate) fn run(
                 label: last_label,
                 epoch: gnss.rear_epoch().cloned(),
                 scan: last_scan.clone(),
+                people: people.clone(),
+                rain: options.weather.rain,
             });
         }
         if verbose && tick.is_multiple_of(600) {

@@ -2,12 +2,13 @@
 //! the LOD2 buildings (glass towers and concrete), the terrain, the street
 //! furniture, the robot with its trail coloured by localization source, the
 //! ray-traced satellite signals (line of sight green, NLOS red through their
-//! reflection points, diffraction purple) and the LiDAR returns, from a chase
+//! reflection points, diffraction purple), the LiDAR beams and returns
+//! (cyan), and pedestrians and rain when the run has them, from a chase
 //! camera. PNG frames plus `frames.json` (for `encode.py`'s HUD) go to the
 //! output directory.
 
 use crate::gnss::{SolutionLabel, LEVER_ARMS_M};
-use crate::nav::{FrameRecord, RunReport};
+use crate::nav::{FrameRecord, RunReport, LIDAR_HEIGHT_M};
 use crate::plateau::PlateauCity;
 use rne_gnss::{trace_satellite, GnssScene, PathKind, SignalPath, SurfaceMaterial};
 use rne_math::{Quat, Vec3};
@@ -394,6 +395,8 @@ fn frame_items(
 
     push_signals(scene, gnss_scene, frame);
     push_lidar(scene, city, frame);
+    push_people(scene, city, frame);
+    push_rain(scene, frame);
 }
 
 /// The tracked satellite signals at the rear antenna.
@@ -471,25 +474,83 @@ fn push_signals(scene: &mut RenderScene, gnss_scene: &GnssScene, frame: &FrameRe
     );
 }
 
-/// The LiDAR returns at scan height.
+/// The LiDAR scan: a beam from the sensor to every other return, and the
+/// returns themselves.
 fn push_lidar(scene: &mut RenderScene, city: &PlateauCity, frame: &FrameRecord) {
-    let mut points = SolidMesh::default();
+    let (mut beams, mut hits) = (SolidMesh::default(), SolidMesh::default());
+    let (x, y) = (frame.truth.x_m, frame.truth.y_m);
+    let sensor = p(x, y, frame.ground_m + LIDAR_HEIGHT_M);
     for (i, &(px, py)) in frame.scan.iter().enumerate() {
+        let hit = p(px, py, city.ground_m(px, py) + LIDAR_HEIGHT_M);
         if i % 2 == 0 {
-            points.box_at(
-                p(px, py, city.ground_m(px, py) + 0.3),
-                Vec3::splat(0.09),
-                Quat::IDENTITY,
-            );
+            beams.beam(sensor, hit, 0.03);
         }
+        hits.box_at(hit, Vec3::splat(0.1), Quat::IDENTITY);
     }
     push(
         scene,
-        points,
-        linear([40, 230, 255]),
+        beams,
+        linear([40, 200, 230]),
         0.4,
         0.0,
-        [0.1, 0.7, 0.8],
+        [0.05, 0.35, 0.45],
+    );
+    push(
+        scene,
+        hits,
+        linear([60, 240, 255]),
+        0.4,
+        0.0,
+        [0.2, 0.9, 1.0],
+    );
+}
+
+/// Pedestrians: a body and a head each, in a few clothing colours.
+fn push_people(scene: &mut RenderScene, city: &PlateauCity, frame: &FrameRecord) {
+    const CLOTHES: [[u8; 3]; 4] = [[40, 45, 60], [150, 40, 40], [220, 215, 200], [60, 90, 70]];
+    let mut bodies: [SolidMesh; 4] = Default::default();
+    let mut heads = SolidMesh::default();
+    for (i, &(px, py)) in frame.people.iter().enumerate() {
+        let z = city.ground_m(px, py);
+        bodies[i % CLOTHES.len()].box_at(
+            p(px, py, z + 0.75),
+            Vec3::new(0.22, 0.75, 0.15),
+            Quat::IDENTITY,
+        );
+        heads.box_at(p(px, py, z + 1.6), Vec3::splat(0.11), Quat::IDENTITY);
+    }
+    for (mesh, colour) in bodies.into_iter().zip(CLOTHES) {
+        push(scene, mesh, linear(colour), 0.8, 0.0, [0.0; 3]);
+    }
+    push(scene, heads, linear([225, 185, 150]), 0.7, 0.0, [0.0; 3]);
+}
+
+/// Rain streaks around the robot, different every frame (deterministic).
+fn push_rain(scene: &mut RenderScene, frame: &FrameRecord) {
+    if !frame.rain {
+        return;
+    }
+    let mut streaks = SolidMesh::default();
+    let mut state = (frame.t * 1000.0) as u64 ^ 0x9E37_79B9_7F4A_7C15;
+    let mut next = || {
+        state = state
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        (state >> 11) as f64 / (1_u64 << 53) as f64
+    };
+    for _ in 0..900 {
+        let (dx, dy) = (next() * 50.0 - 25.0, next() * 50.0 - 25.0);
+        let z = frame.ground_m + next() * 14.0;
+        let (ex, ey) = (frame.truth.x_m + dx, frame.truth.y_m + dy);
+        streaks.beam(p(ex, ey, z), p(ex + 0.05, ey, z + 0.7), 0.025);
+    }
+    push(
+        scene,
+        streaks,
+        linear([200, 210, 225]),
+        0.2,
+        0.0,
+        [0.25, 0.27, 0.3],
     );
 }
 

@@ -194,7 +194,10 @@ fn main() -> Result<(), String> {
         let runs = if conditions {
             condition_runs()
         } else {
-            standard_runs(render_dir.is_some())
+            standard_runs(
+                render_dir.is_some(),
+                std::env::args().any(|a| a == "--render-weather"),
+            )
         };
         for (label, options, glass_from_m) in runs {
             if quick && main_run.is_some() {
@@ -233,17 +236,29 @@ fn main() -> Result<(), String> {
 }
 
 /// The configurations compared by default, as `(label, options, glass
-/// curtain walls from this height)`; `record` keeps frames of the first.
-fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
+/// curtain walls from this height)`; `record` keeps frames of the first,
+/// which runs in a crowd and rain with `weather`.
+fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, f64)> {
     vec![
         (
-            "map-aided GNSS + QZSS",
+            if weather {
+                "map-aided GNSS + QZSS, crowd + rain"
+            } else {
+                "map-aided GNSS + QZSS"
+            },
             RunOptions {
                 map_aided_gnss: true,
                 qzss: true,
                 record,
                 factor_graph: false,
-                weather: Weather::default(),
+                weather: if weather {
+                    Weather {
+                        pedestrians: PEDESTRIANS,
+                        rain: true,
+                    }
+                } else {
+                    Weather::default()
+                },
                 seed: 0,
             },
         ),
@@ -297,6 +312,9 @@ fn standard_runs(record: bool) -> Vec<(&'static str, RunOptions, f64)> {
     .collect()
 }
 
+/// Pedestrians along the route in the crowd conditions.
+const PEDESTRIANS: usize = 60;
+
 /// `--conditions`: the main configuration, hybrid and factor graph, in clear
 /// weather, in a crowd, in rain, and with more glass, as `(label, options, glass curtain walls from this height)`.
 fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
@@ -309,11 +327,11 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         seed: 0,
     };
     let crowd = Weather {
-        pedestrians: 60,
+        pedestrians: PEDESTRIANS,
         rain: false,
     };
     let rain = Weather {
-        pedestrians: 60,
+        pedestrians: PEDESTRIANS,
         rain: true,
     };
     let glass = plateau::GLASS_TOWER_HEIGHT_M;

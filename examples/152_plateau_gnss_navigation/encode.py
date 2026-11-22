@@ -60,7 +60,12 @@ def hud(image, area, frame, width):
         fill=(220, 220, 220),
     )
     # Legend.
-    legend = [((60, 230, 120), "line of sight"), ((255, 60, 50), "NLOS reflection"), ((170, 90, 255), "diffracted")]
+    legend = [
+        ((60, 230, 120), "line of sight"),
+        ((255, 60, 50), "NLOS reflection"),
+        ((170, 90, 255), "diffracted"),
+        ((60, 240, 255), "LiDAR"),
+    ]
     lx, ly = pad, image.height - pad - small.size
     for colour, label in legend:
         draw.rectangle([lx, ly + small.size // 3, lx + small.size, ly + small.size // 3 + 4], fill=colour)
