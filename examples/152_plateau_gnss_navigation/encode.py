@@ -40,8 +40,7 @@ def hud(image, area, frame, width):
     big, small = font(max(12, width // 36)), font(max(10, width // 50))
     pad = width // 60
     draw.rectangle([0, 0, width, pad * 2 + big.size + small.size * 2 + 6], fill=(10, 12, 18, 170))
-    weather = f", {frame['weather']}" if frame.get("weather") else ""
-    draw.text((pad, pad), f"{area} - PLATEAU LOD2, ray-traced GPS+Galileo+QZSS{weather}", font=big, fill=(255, 255, 255))
+    draw.text((pad, pad), f"{area} - PLATEAU LOD2, ray-traced GPS+Galileo+QZSS", font=big, fill=(255, 255, 255))
     source = frame["source"]
     y = pad + big.size + 4
     draw.text(
@@ -52,6 +51,9 @@ def hud(image, area, frame, width):
     )
     x = pad + draw.textlength(f"t {frame['t']:5.0f} s   localization: ", font=small)
     draw.text((x, y), SOURCE_NAMES.get(source, source), font=small, fill=SOURCE_COLOURS.get(source, (255, 255, 255)))
+    if frame.get("weather"):
+        x += draw.textlength(SOURCE_NAMES.get(source, source), font=small)
+        draw.text((x, y), f"   {frame['weather']}", font=small, fill=(220, 220, 220))
     y += small.size + 2
     draw.text(
         (pad, y),

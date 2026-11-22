@@ -474,7 +474,7 @@ fn push_signals(scene: &mut RenderScene, gnss_scene: &GnssScene, frame: &FrameRe
     );
 }
 
-/// The LiDAR scan: a beam from the sensor to every other return, and the
+/// The LiDAR scan: a beam from the sensor to every fourth return, and the
 /// returns themselves.
 fn push_lidar(scene: &mut RenderScene, city: &PlateauCity, frame: &FrameRecord) {
     let (mut beams, mut hits) = (SolidMesh::default(), SolidMesh::default());
@@ -482,7 +482,7 @@ fn push_lidar(scene: &mut RenderScene, city: &PlateauCity, frame: &FrameRecord) 
     let sensor = p(x, y, frame.ground_m + LIDAR_HEIGHT_M);
     for (i, &(px, py)) in frame.scan.iter().enumerate() {
         let hit = p(px, py, city.ground_m(px, py) + LIDAR_HEIGHT_M);
-        if i % 2 == 0 {
+        if i % 4 == 0 {
             beams.beam(sensor, hit, 0.03);
         }
         hits.box_at(hit, Vec3::splat(0.1), Quat::IDENTITY);
