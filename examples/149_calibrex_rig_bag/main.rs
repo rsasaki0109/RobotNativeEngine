@@ -42,8 +42,8 @@ use std::io::{self, BufWriter};
 use std::path::{Path, PathBuf};
 
 use rne_adapter_ros2::{
-    encode_camera_info, encode_image, encode_imu, encode_pointcloud2, encode_tf_message,
-    pinhole_camera_info, to_ros_imu, to_ros_mono8_image, to_ros_pointcloud2,
+    camera_info, encode_camera_info, encode_image, encode_imu, encode_pointcloud2,
+    encode_tf_message, pinhole_camera_info, to_ros_imu, to_ros_mono8_image, to_ros_pointcloud2,
     to_ros_transform_stamped, McapWriter, RosTfMessage, CAMERA_INFO_SCHEMA, IMAGE_SCHEMA,
     IMU_SCHEMA, POINTCLOUD2_SCHEMA, TF_MESSAGE_SCHEMA,
 };
@@ -62,8 +62,8 @@ use rne_render::{
 };
 use rne_sensor::{
     sample_camera_rgbd_keyed, sample_imu_stateful_diagnostic_with_kinematics, sample_lidar_swept,
-    CameraSpec, ImuAxisErrors, ImuKinematicState, ImuMount, ImuSpec, ImuState, LidarSpec,
-    LidarSweep, SensorNoiseKey,
+    CameraDistortion, CameraSpec, ImuAxisErrors, ImuKinematicState, ImuMount, ImuSpec, ImuState,
+    LidarSpec, LidarSweep, SensorNoiseKey,
 };
 use rne_world::Transform3;
 
@@ -84,6 +84,10 @@ const CAMERA_RATE_HZ: u64 = 10;
 const CAMERA_WIDTH: u32 = 480;
 const CAMERA_HEIGHT: u32 = 360;
 const CAMERA_FOV_Y_DEG: f64 = 70.0;
+/// The camera's optical centre in the LiDAR frame, in metres.
+const CAMERA_OFFSET_M: [f64; 3] = [0.12, 0.02, -0.06];
+/// Where `--motion turn` holds the camera's optical centre, in the z-up world.
+const TURN_CENTRE_M: [f64; 3] = [0.0, 0.0, 1.3];
 /// Edge length of the procedural texture cells, in meters.
 const TEXTURE_CELL_M: f64 = 0.15;
 /// Each scan is cast in this many sub-sweeps between exactly sampled rig poses.
@@ -153,7 +157,7 @@ fn true_rig() -> Rig {
         },
         camera: Mount {
             rotation: forward_optical * intrinsic_xyz_deg(4.0, -2.5, 1.5),
-            translation_m: Vec3::new(0.12, 0.02, -0.06),
+            translation_m: Vec3::new(CAMERA_OFFSET_M[0], CAMERA_OFFSET_M[1], CAMERA_OFFSET_M[2]),
         },
     }
 }
@@ -177,11 +181,19 @@ struct Motion {
     /// translation): 2 turns twice as fast, which makes the lever arm of the IMU
     /// observable.
     rotation_speed: f64,
+    /// Turn the rig about the camera's optical centre, without translating it
+    /// (`--motion turn`): the recording a targetless intrinsics calibration needs.
+    in_place: bool,
 }
 
 impl Motion {
     const HAND_HELD: Self = Self {
         rotation_speed: 1.0,
+        in_place: false,
+    };
+    const TURN_IN_PLACE: Self = Self {
+        rotation_speed: 1.0,
+        in_place: true,
     };
 
     /// The rig (LiDAR frame) pose in a z-up world.
@@ -192,12 +204,18 @@ impl Motion {
             0.45 * (1.1 * turn_s + 0.4).sin(),
             1.0 * (0.6 * turn_s).sin(),
         );
+        let rotation = Quat::from_scaled_axis(rotation_vector);
+        if self.in_place {
+            let centre = Vec3::new(TURN_CENTRE_M[0], TURN_CENTRE_M[1], TURN_CENTRE_M[2]);
+            let offset = Vec3::new(CAMERA_OFFSET_M[0], CAMERA_OFFSET_M[1], CAMERA_OFFSET_M[2]);
+            return (rotation, centre - rotation * offset);
+        }
         let position = Vec3::new(
             0.6 * (0.5 * time_s).sin() + 0.04 * time_s,
             0.5 * (0.35 * time_s + 0.2).sin(),
             1.3 + 0.15 * (0.8 * time_s).sin(),
         );
-        (Quat::from_scaled_axis(rotation_vector), position)
+        (rotation, position)
     }
 
     /// World pose of the RNE LiDAR sensor frame (y-up scan frame) at a time.
@@ -513,14 +531,72 @@ impl RenderBackend for ColliderRenderer {
     }
 }
 
+#[cfg(test)]
 fn camera_spec() -> CameraSpec {
+    camera_spec_with(CameraDistortion::default())
+}
+
+fn camera_spec_with(lens: CameraDistortion) -> CameraSpec {
     CameraSpec {
         width: CAMERA_WIDTH,
         height: CAMERA_HEIGHT,
         fov_y_rad: CAMERA_FOV_Y_DEG.to_radians(),
         seed: 13,
         read_noise_stddev: 0.01,
+        distortion: lens,
         ..CameraSpec::default()
+    }
+}
+
+/// What `/camera/camera_info` says (`--camera-info`).
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+enum CameraInfoMode {
+    /// The true intrinsics and distortion.
+    #[default]
+    True,
+    /// An uncalibrated camera: `K` and `D` all zero, as a driver publishes before
+    /// calibration.
+    Zero,
+    /// No `CameraInfo` topic at all.
+    None,
+}
+
+/// The camera's lens and what its `CameraInfo` says.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+struct CameraOptions {
+    lens: CameraDistortion,
+    info: CameraInfoMode,
+}
+
+impl CameraOptions {
+    /// `--lens K1,K2,P1,P2[,K3]` (OpenCV / ROS `plumb_bob` order).
+    fn parse_lens(text: &str) -> Result<CameraDistortion, String> {
+        let values = text
+            .split(',')
+            .map(|value| value.trim().parse::<f64>())
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|error| format!("--lens: {error}"))?;
+        if !(values.len() == 4 || values.len() == 5) || values.iter().any(|v| !v.is_finite()) {
+            return Err("--lens takes K1,K2,P1,P2[,K3]".to_string());
+        }
+        Ok(CameraDistortion {
+            k1: values[0],
+            k2: values[1],
+            p1: values[2],
+            p2: values[3],
+            k3: values.get(4).copied().unwrap_or(0.0),
+        })
+    }
+
+    fn parse_info(text: &str) -> Result<CameraInfoMode, String> {
+        match text {
+            "true" => Ok(CameraInfoMode::True),
+            "zero" => Ok(CameraInfoMode::Zero),
+            "none" => Ok(CameraInfoMode::None),
+            other => Err(format!(
+                "--camera-info takes true, zero or none, not {other:?}"
+            )),
+        }
     }
 }
 
@@ -816,11 +892,11 @@ impl Scene {
     fn record_camera(
         &mut self,
         duration_s: f64,
-        mount: Mount,
+        (mount, options): (Mount, CameraOptions),
         events: &mut Vec<Event>,
         recording: &mut Recording,
     ) {
-        let spec = camera_spec();
+        let spec = camera_spec_with(options.lens);
         let frames = (duration_s * CAMERA_RATE_HZ as f64).floor() as u64;
         for frame_index in 0..frames {
             let time_s = frame_index as f64 / CAMERA_RATE_HZ as f64;
@@ -838,17 +914,36 @@ impl Scene {
                 topic: Topic::Image,
                 payload: encode_image(&to_ros_mono8_image(&sample.rgb, stamp, CAMERA_FRAME)),
             });
-            events.push(Event {
-                log_time_ns: stamp.ticks(),
-                topic: Topic::CameraInfo,
-                payload: encode_camera_info(&pinhole_camera_info(
+            let info = match options.info {
+                CameraInfoMode::True => Some(camera_info(
                     spec.width,
                     spec.height,
                     spec.fov_y_rad,
+                    &spec.distortion,
                     stamp,
                     CAMERA_FRAME,
                 )),
-            });
+                CameraInfoMode::Zero => {
+                    let mut info = pinhole_camera_info(
+                        spec.width,
+                        spec.height,
+                        spec.fov_y_rad,
+                        stamp,
+                        CAMERA_FRAME,
+                    );
+                    info.k = [0.0; 9];
+                    info.p = [0.0; 12];
+                    Some(info)
+                }
+                CameraInfoMode::None => None,
+            };
+            if let Some(info) = info {
+                events.push(Event {
+                    log_time_ns: stamp.ticks(),
+                    topic: Topic::CameraInfo,
+                    payload: encode_camera_info(&info),
+                });
+            }
             recording.camera_frames += 1;
         }
     }
@@ -930,6 +1025,7 @@ fn simulate(
     rig: Rig,
     sensors: Sensors,
     motion: Motion,
+    camera: CameraOptions,
 ) -> io::Result<Recording> {
     let mut scene = Scene::new(rig, motion)?;
     let mut events = Vec::new();
@@ -956,7 +1052,12 @@ fn simulate(
         );
     }
     if sensors.camera {
-        scene.record_camera(duration_s, rig.camera, &mut events, &mut recording);
+        scene.record_camera(
+            duration_s,
+            (rig.camera, camera),
+            &mut events,
+            &mut recording,
+        );
     }
     events.push(tf_static_event(rig, sensors));
     write_bag(bag_path, events)?;
@@ -1044,10 +1145,17 @@ struct Args {
     duration_s: f64,
     sensors: Sensors,
     motion: Motion,
+    camera: CameraOptions,
 }
 
 const USAGE: &str = "usage: 149_calibrex_rig_bag [--out DIR] [--duration-s SECONDS] \
-     [--sensors lidar,imu,lidar2,camera] [--rotation-speed FACTOR]";
+     [--sensors lidar,imu,lidar2,camera] [--rotation-speed FACTOR] \
+     [--motion hand-held|turn] [--lens K1,K2,P1,P2[,K3]] [--camera-info true|zero|none]";
+
+fn exit_usage(error: &str) -> ! {
+    eprintln!("{error}\n{USAGE}");
+    std::process::exit(2);
+}
 
 fn parse_args() -> Args {
     let mut args = Args {
@@ -1055,6 +1163,7 @@ fn parse_args() -> Args {
         duration_s: 40.0,
         sensors: Sensors::ALL,
         motion: Motion::HAND_HELD,
+        camera: CameraOptions::default(),
     };
     let mut iter = std::env::args().skip(1);
     while let Some(flag) = iter.next() {
@@ -1073,6 +1182,23 @@ fn parse_args() -> Args {
                         eprintln!("--rotation-speed takes a positive factor\n{USAGE}");
                         std::process::exit(2);
                     });
+            }
+            ("--motion", Some(value)) => {
+                let speed = args.motion.rotation_speed;
+                args.motion = match value.as_str() {
+                    "hand-held" => Motion::HAND_HELD,
+                    "turn" => Motion::TURN_IN_PLACE,
+                    other => exit_usage(&format!("unknown --motion {other:?}")),
+                };
+                args.motion.rotation_speed = speed;
+            }
+            ("--lens", Some(value)) => {
+                args.camera.lens =
+                    CameraOptions::parse_lens(&value).unwrap_or_else(|error| exit_usage(&error));
+            }
+            ("--camera-info", Some(value)) => {
+                args.camera.info =
+                    CameraOptions::parse_info(&value).unwrap_or_else(|error| exit_usage(&error));
             }
             ("--sensors", Some(value)) => {
                 args.sensors = Sensors::parse(&value).unwrap_or_else(|error| {
@@ -1094,7 +1220,14 @@ fn main() -> io::Result<()> {
     fs::create_dir_all(&args.out)?;
     let rig = true_rig();
     let bag = args.out.join("rig.mcap");
-    let recording = simulate(&bag, args.duration_s, rig, args.sensors, args.motion)?;
+    let recording = simulate(
+        &bag,
+        args.duration_s,
+        rig,
+        args.sensors,
+        args.motion,
+        args.camera,
+    )?;
 
     let mut candidates = vec![("good.yaml", rig)];
     if args.sensors.imu {
@@ -1123,17 +1256,30 @@ fn main() -> io::Result<()> {
             .collect::<Vec<_>>()
             .join(", ")
     );
-    println!(
-        "next: calibrex check {} --tf {}",
-        bag.display(),
-        args.out.join("good.yaml").display()
-    );
+    if args.sensors.camera && args.camera.info != CameraInfoMode::True {
+        let camchain = args.out.join("intrinsics_camchain.yaml");
+        println!(
+            "next: the camera has no calibrated CameraInfo; calibrate it from the bag, then \
+             check with it:\n  calibrex intrinsics rotate --bag {bag} --topic {IMAGE_TOPIC} \
+             --output {camchain}\n  calibrex check {bag} --tf {good} --intrinsics {camchain}",
+            bag = bag.display(),
+            camchain = camchain.display(),
+            good = args.out.join("good.yaml").display(),
+        );
+    } else {
+        println!(
+            "next: calibrex check {} --tf {}",
+            bag.display(),
+            args.out.join("good.yaml").display()
+        );
+    }
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rne_adapter_ros2::RosCameraInfo;
     use rne_physics::RaycastQuery;
 
     fn read_records(bytes: &[u8]) -> Vec<(u8, &[u8])> {
@@ -1163,6 +1309,8 @@ mod tests {
         for step in 0..=4800 {
             let motion = Motion {
                 rotation_speed: if step % 2 == 0 { 1.0 } else { 2.0 },
+                // --motion turn too: it turns the rig about the camera instead.
+                in_place: step % 3 == 0,
             };
             let (rotation, position) = motion.rig_pose_ros(f64::from(step / 2) * 0.05);
             for offset in [
@@ -1185,6 +1333,7 @@ mod tests {
     fn rotation_speed_turns_faster_along_the_same_path() {
         let brisk = Motion {
             rotation_speed: 2.0,
+            ..Motion::HAND_HELD
         };
         for time_s in [0.0, 0.7, 3.1, 12.5] {
             let (rotation, position) = brisk.rig_pose_ros(time_s);
@@ -1200,7 +1349,15 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("rne_calibrex_rig_{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
         let bag = dir.join("rig.mcap");
-        let recording = simulate(&bag, 1.0, true_rig(), Sensors::ALL, Motion::HAND_HELD).unwrap();
+        let recording = simulate(
+            &bag,
+            1.0,
+            true_rig(),
+            Sensors::ALL,
+            Motion::HAND_HELD,
+            CameraOptions::default(),
+        )
+        .unwrap();
         assert_eq!(recording.imu_messages, 200);
         assert_eq!(recording.lidar_messages, 9);
         assert_eq!(recording.lidar2_messages, 9);
@@ -1238,6 +1395,7 @@ mod tests {
             true_rig(),
             sensors,
             Motion::HAND_HELD,
+            CameraOptions::default(),
         )
         .unwrap();
         assert_eq!(recording.imu_messages, 0);
@@ -1381,14 +1539,86 @@ mod tests {
             SimTime::from_ticks(0),
             "camera",
         );
+        assert_lidar_lands_on_depth(
+            (&world, &backend, physics_world),
+            time_s,
+            &rendered.depth.depth_m,
+            &spec,
+            &info,
+        );
+    }
+
+    /// The same through a distorted lens: the frame RNE renders and its
+    /// `CameraInfo` (`plumb_bob` D, projected as OpenCV does) agree.
+    #[test]
+    fn a_distorted_camera_info_describes_the_rendered_frame() {
+        let (mut world, backend, physics_world) = room_physics();
+        let mut renderer = ColliderRenderer::from_world(&mut world);
+        let rig = true_rig();
+        let time_s = 3.0;
+        let lens = CameraOptions::parse_lens("-0.18,0.04,0.0008,-0.0006").unwrap();
+        let spec = CameraSpec {
+            read_noise_stddev: 0.0,
+            ..camera_spec_with(lens)
+        };
+        // A scene with an item takes the depth-rendering path; the collider renderer
+        // draws the room and ignores the item.
+        let scene = RenderScene {
+            items: vec![RenderScene::item_from_visual(
+                Transform3::default(),
+                rne_render::VisualShape::Sphere { radius_m: 0.01 },
+                [1.0; 4],
+                Transform3::default(),
+            )],
+        };
+        let sample = sample_camera_rgbd_keyed(
+            &mut renderer,
+            &Motion::HAND_HELD.camera_render_pose_rne(time_s, rig.camera),
+            &spec,
+            SimTime::from_ticks(0),
+            &scene,
+            SensorNoiseKey::new(0, 0, 0, 0),
+        );
+        assert_eq!(
+            (sample.depth.width, sample.depth.height),
+            (spec.width, spec.height)
+        );
+        let info = camera_info(
+            spec.width,
+            spec.height,
+            spec.fov_y_rad,
+            &lens,
+            SimTime::from_ticks(0),
+            "camera",
+        );
+        assert_lidar_lands_on_depth(
+            (&world, &backend, physics_world),
+            time_s,
+            &sample.depth.depth_m,
+            &spec,
+            &info,
+        );
+    }
+
+    /// Projects the LiDAR's points at `time_s` through the published intrinsics and
+    /// distortion (OpenCV's model) and compares them with the rendered depth.
+    fn assert_lidar_lands_on_depth(
+        (world, backend, physics_world): (&World, &RapierBackend, PhysicsWorldId),
+        time_s: f64,
+        depth_m: &[f32],
+        spec: &CameraSpec,
+        info: &RosCameraInfo,
+    ) {
+        let rig = true_rig();
         let (fx, cx, fy, cy) = (info.k[0], info.k[2], info.k[4], info.k[5]);
+        let d = &info.d;
         let to_ros = ros_to_rne().inverse();
         let mut differences = Vec::new();
         for segment in 0..SEGMENTS_PER_SCAN {
             let cloud = sample_lidar_swept(
-                &backend,
+                backend,
                 physics_world,
-                &world,
+                world,
                 &LidarSweep::stationary(Motion::HAND_HELD.lidar_pose_rne(time_s)),
                 &LidarSpec {
                     range_noise_stddev_m: 0.0,
@@ -1408,8 +1638,12 @@ mod tests {
                 if optical.z < 0.5 {
                     continue;
                 }
-                let u = fx * optical.x / optical.z + cx;
-                let v = fy * optical.y / optical.z + cy;
+                let (x, y) = (optical.x / optical.z, optical.y / optical.z);
+                let r2 = x * x + y * y;
+                let radial = 1.0 + d[0] * r2 + d[1] * r2 * r2 + d[4] * r2 * r2 * r2;
+                let x_d = x * radial + 2.0 * d[2] * x * y + d[3] * (r2 + 2.0 * x * x);
+                let y_d = y * radial + d[2] * (r2 + 2.0 * y * y) + 2.0 * d[3] * x * y;
+                let (u, v) = (fx * x_d + cx, fy * y_d + cy);
                 let (column, row) = (u.round(), v.round());
                 if column < 1.0
                     || row < 1.0
@@ -1425,7 +1659,7 @@ mod tests {
                     .map(|(dr, dc)| {
                         let index =
                             (row as i64 + dr) as u32 * spec.width + (column as i64 + dc) as u32;
-                        (f64::from(rendered.depth.depth_m[index as usize]) - optical.z).abs()
+                        (f64::from(depth_m[index as usize]) - optical.z).abs()
                     })
                     .fold(f64::INFINITY, f64::min);
                 differences.push(difference);
@@ -1442,6 +1676,59 @@ mod tests {
             differences.iter().filter(|d| **d < 0.02).count() as f64 / differences.len() as f64;
         assert!(median < 0.005, "median depth difference {median}");
         assert!(close > 0.95, "{close} of points within 2 cm");
+    }
+
+    #[test]
+    fn turning_in_place_holds_the_camera_centre_and_keeps_clear_of_the_posts() {
+        let rig = true_rig();
+        let centre = Vec3::new(TURN_CENTRE_M[0], TURN_CENTRE_M[1], TURN_CENTRE_M[2]);
+        let mut turned = 0.0_f64;
+        for step in 0..400 {
+            let time_s = f64::from(step) * 0.1;
+            let (rotation, position) = Motion::TURN_IN_PLACE.rig_pose_ros(time_s);
+            let camera = position + rotation * rig.camera.translation_m;
+            assert!(
+                (camera - centre).length() < 1e-9,
+                "camera moved at {time_s} s"
+            );
+            turned = turned.max(rotation.to_scaled_axis().length());
+        }
+        assert!(turned.to_degrees() > 45.0);
+    }
+
+    #[test]
+    fn camera_info_follows_the_lens_and_the_mode() {
+        let dir = std::env::temp_dir().join("calibrex_rig_camera_info_modes");
+        fs::create_dir_all(&dir).unwrap();
+        let sensors = Sensors::parse("camera").unwrap();
+        let lens = CameraOptions::parse_lens("-0.1,0.02,0.0,0.0,-0.003").unwrap();
+        for (mode, expected) in [
+            (CameraInfoMode::True, Some(true)),
+            (CameraInfoMode::Zero, Some(false)),
+            (CameraInfoMode::None, None),
+        ] {
+            let bag = dir.join(format!("{mode:?}.mcap"));
+            simulate(
+                &bag,
+                0.2,
+                true_rig(),
+                sensors,
+                Motion::TURN_IN_PLACE,
+                CameraOptions { lens, info: mode },
+            )
+            .unwrap();
+            let bytes = fs::read(&bag).unwrap();
+            let declared = read_records(&bytes).iter().any(|(op, body)| {
+                *op == 0x04
+                    && body
+                        .windows(CAMERA_INFO_TOPIC.len())
+                        .any(|w| w == CAMERA_INFO_TOPIC.as_bytes())
+            });
+            assert_eq!(declared, expected.is_some(), "{mode:?}");
+        }
+        assert!(CameraOptions::parse_lens("1,2,3").is_err());
+        assert!(CameraOptions::parse_info("maybe").is_err());
+        assert_eq!(lens.k3, -0.003);
     }
 
     #[test]
