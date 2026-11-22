@@ -541,9 +541,14 @@ pub(crate) fn run(
 
         let people = crowd.positions(t, (truth.x_m, truth.y_m));
         scene.boxes = pedestrian_boxes(&people, |x, y| city.ground_m(x, y));
+        // NLOS prediction needs a pose: once the robot is dead reckoning
+        // it may be lost, and predicting from a wrong pose would withhold
+        // the very satellites that could relocalize it.
+        let map_aid =
+            options.map_aided_gnss && hybrid.source() != LocalizationSource::DeadReckoning;
         let outputs: Vec<GnssOutput> = gnss.step(
             &scene,
-            options.map_aided_gnss.then_some(&model),
+            map_aid.then_some(&model),
             &constellation,
             body(truth),
             body(hybrid.pose()),
