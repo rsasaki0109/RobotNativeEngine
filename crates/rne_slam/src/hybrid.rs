@@ -20,7 +20,13 @@
 //! healthy-looking fixes in a degraded stretch, often NLOS-biased, are not. A
 //! fix that keeps failing only the gate for `gate_reset_epochs` is accepted, to
 //! recover from a drifted, over-confident estimate; outside GNSS mode it
-//! re-anchors the estimate, so the following fixes pass the gate. The arbiter takes a plain
+//! re-anchors the estimate, so the following fixes pass the gate. With
+//! `gnss_reanchor_fixes`, a run of gate-rejected RTK fixed fixes that agree
+//! among themselves relative to the odometry re-anchors it sooner and
+//! restarts LiDAR tracking there; with `lidar_drop_unmapped_returns`,
+//! returns in mapped free space (people, vehicles) are left out of LiDAR
+//! tracking. Both, with a finite `lidar_gate_chi_square`, keep a crowded
+//! street from dragging the estimate. The arbiter takes a plain
 //! [`AbsolutePositionFix`], so it does not depend on a GNSS simulator.
 
 use crate::likelihood::LikelihoodField;
