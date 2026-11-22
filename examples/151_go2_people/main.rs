@@ -995,6 +995,15 @@ const SAFETY_AHEAD_M: (f64, f64) = (0.3, 1.25);
 const SAFETY_HALF_WIDTH_M: f64 = 0.45;
 const SAFETY_HOLD_S: f64 = 1.0;
 
+/// Person-shaped static clusters this far ahead are planned around.
+const STATIC_PLAN_AHEAD_M: f64 = 3.0;
+
+/// A stable id for a static cluster: its 0.5 m cell, above any tracker id.
+fn static_track_id(position: [f64; 2]) -> u64 {
+    let cell = |v: f64| ((v / 0.5).floor() as i64 + (1 << 20)) as u64;
+    (1 << 62) | (cell(position[0]) << 21) | cell(position[1])
+}
+
 /// Whether a person-shaped static cluster (centre in the base frame) is in
 /// the way.
 fn static_person_ahead(centres: &[[f64; 2]]) -> bool {
@@ -1482,21 +1491,43 @@ fn run(
         let speed_now = observed
             .base_linear_velocity_x_m_s
             .hypot(observed.base_linear_velocity_z_m_s);
-        let (mut next, chosen) = controller.command(&tracks, odom, time_s, speed_now);
-        if safety
-            && perceiver.map.as_ref().is_some_and(|map| {
+        // Person-shaped clusters of static returns (base frame): with the
+        // map, a person standing still long enough is one of these.
+        let static_people: Vec<[f64; 2]> = match perceiver.map.as_ref() {
+            Some(map) if safety => {
                 let on_static: Vec<[f64; 3]> = points
                     .iter()
                     .filter(|p| map.is_static(perception::to_odom(odom, [p[0], p[1]])))
                     .copied()
                     .collect();
-                let centres: Vec<[f64; 2]> = detect_people(&on_static, [0.0, 0.0, 0.0])
+                detect_people(&on_static, [0.0, 0.0, 0.0])
                     .iter()
                     .map(|d| d.position)
-                    .collect();
-                static_person_ahead(&centres)
-            })
-        {
+                    .collect()
+            }
+            _ => Vec::new(),
+        };
+        // Those near the path ahead are planned around as standing people,
+        // so that the robot does not wait forever for someone who is
+        // waiting for it.
+        let mut plan_tracks = tracks.clone();
+        plan_tracks.extend(
+            static_people
+                .iter()
+                .filter(|c| {
+                    c[0] > 0.0 && c[0] < STATIC_PLAN_AHEAD_M && c[1].abs() < LANE_CLEARANCE_M
+                })
+                .map(|c| {
+                    let position = perception::to_odom(odom, *c);
+                    Track {
+                        id: static_track_id(position),
+                        position,
+                        velocity: [0.0, 0.0],
+                    }
+                }),
+        );
+        let (mut next, chosen) = controller.command(&plan_tracks, odom, time_s, speed_now);
+        if static_person_ahead(&static_people) {
             safety_hold_until_s = time_s + SAFETY_HOLD_S;
         }
         let blocked = time_s < safety_hold_until_s;
