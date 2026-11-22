@@ -82,6 +82,14 @@ resamples (systematic, deterministic) when the effective sample size falls below
 half. `Amcl::update(scan, odom, sensor_from_base)` returns the weighted-mean
 estimate; the estimate converges near truth and is bit-identical across runs.
 
+## GNSS / LiDAR hand-over
+
+`HybridLocalizer` fuses gated GNSS fixes (`AbsolutePositionFix`) outdoors and,
+when they turn unhealthy inside the prior map, relocalizes with a wide
+correlative scan match sized by the EKF covariance, then tracks with `Amcl`
+refined by a local scan match. It reports the active `LocalizationSource` and
+every `SourceTransition`. See [GNSS](GNSS.md).
+
 ## 3D point-cloud ICP
 
 `Icp3d::align(source, target, initial, config)` registers a 3D source cloud onto

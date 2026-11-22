@@ -14,6 +14,7 @@ approx = "0.5"
 rne_ai = { workspace = true }
 rne_core = { workspace = true }
 rne_ecs = { workspace = true }
+rne_gnss = { workspace = true }
 rne_math = { workspace = true }
 rne_nav = { workspace = true }
 rne_physics = { workspace = true }

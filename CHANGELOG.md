@@ -82,6 +82,56 @@ All notable changes to Robot Native Engine are documented in this file.
   active-set method started from the clamped unconstrained optimum, exact
   whether or not a bound is active.
 
+### Added
+
+- `rne_gnss`: ray-traced GNSS simulation. 48 GPS and Galileo satellites on
+  Keplerian orbits, exported as broadcast ephemerides, are traced through a
+  box scene of buildings: direct paths, up to two specular wall and ground
+  bounces (image method), and knife-edge diffraction over box edges (ITU-R
+  P.526), giving LOS, multipath, NLOS, diffracted and blocked receptions.
+  Receivers produce GPS L1/L2C and Galileo E1/E5a pseudoranges, carrier
+  phases with integer ambiguities per lock arc (slips near the lock threshold
+  and when the tracked path changes) and Doppler, with Klobuchar and
+  Saastamoinen atmospheres, DLL/PLL noise from the ray-traced C/N0, and code
+  and carrier multipath. `AntennaRig` mounts several antennas on a body; a
+  built-in SPP with RAIM gives fixes at a set rate and latency.
+- `adapters/gnsspp/rne_adapter_gnsspp`: libgnss++ SPP, RTK and
+  moving-baseline RTK on `rne_gnss` observations through a C ABI shim;
+  `scripts/build_gnsspp.sh` builds a pinned libgnss++. Without it the adapter
+  is a stub that reports `Unavailable`.
+- `rne_slam::HybridLocalizer`: GNSS outdoors, LiDAR indoors. Gated GNSS fixes
+  (single, float or fixed) and moving-baseline headings correct a wheel/gyro
+  EKF; inside the prior map a wide scan match relocalizes and AMCL refined by
+  a local scan match takes over.
+- `EkfFusion::update_yaw` and `EkfFusion::position_mahalanobis_squared`.
+- `HybridLocalizerConfig::lidar_gate_chi_square` (off by default): LiDAR
+  scan matches outside the gate count as poor matches instead of being
+  fused.
+- `rne_gnss`: foliage volumes (dB/m), non-reflective `ABSORBER` boxes, and a
+  tracing distance limit.
+- Example 151: a delivery robot with two antennas walks through a downtown
+  street grid (a 4-lane main street, two cross streets, city blocks built to
+  the property line, signalised intersections with zebra crossings, and
+  traffic that keeps its lane, queues and stops on red) from a plaza into an
+  office and back, waiting at crossings for the pedestrian signal, with a
+  rooftop RTK base, 3D-city-model NLOS exclusion before RTK, a LiDAR map of
+  the whole route, a 3 s dead-reckoning safety stop and a reactive LiDAR
+  obstacle stop (hybrid position RMSE 0.01–0.05 m per zone, longest dead
+  reckoning 1.8 s, against up to 7 m for an EKF fusing every GNSS solution).
+  `--frames` writes animation frames that
+  `scripts/svg_frames_to_gif.py` turns into `docs/media/gnss-lidar-navigation.gif`;
+  `--trace` feeds the `151_gnss_lidar_navigation_render` example (feature
+  `capture`), which renders the run in 3D with `rne_render_wgpu`
+  (`docs/media/gnss-lidar-navigation-3d.gif`).
+
+### Fixed
+
+- `EkfFusion::update_position` updated the covariance by subtracting the
+  gain itself from the x and y columns instead of `K·H·P`, so a position fix
+  never reduced the heading, velocity and cross covariances correctly. A
+  position fix now applies the full Kalman covariance update; a test checks it
+  against the scalar Kalman posterior.
+
 - `rne_dynamics`' contact solve no longer misses a contact's sliding
   direction when it falls on one of the angles it samples. Rounding alone set
   the residual's sign there, both brackets beside it could miss the root,

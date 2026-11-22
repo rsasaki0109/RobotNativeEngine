@@ -221,6 +221,12 @@ moment. The board and floor marks are drawn from the lifelong map itself.
 A*/DWA/pure-pursuit, multi-robot avoidance, an EKF, 3D ICP, and online 2D
 SLAM with loop closure and AMCL (a ROS 2 adapter maps to Nav2). Details:
 [Navigation](docs/NAVIGATION.md), [SLAM](docs/SLAM.md).
+`rne_gnss` ray traces GPS and Galileo signals through buildings (multi-bounce
+reflections, diffraction, NLOS) into dual-frequency code and carrier-phase
+observations; libgnss++ solves RTK and moving-baseline heading from them, and
+a localization arbiter uses GNSS outdoors and LiDAR indoors:
+[GNSS](docs/GNSS.md), [example 151](examples/151_gnss_lidar_navigation/README.md)
+([3D animation](docs/media/gnss-lidar-navigation-3d.gif)).
 
 ## Warehouse fleet operations
 

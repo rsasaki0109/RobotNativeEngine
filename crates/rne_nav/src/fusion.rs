@@ -9,6 +9,8 @@
 //! * [`EkfFusion::update_odometry`] fuses a forward velocity and yaw rate.
 //! * [`EkfFusion::update_yaw_rate`] fuses an IMU yaw rate only.
 //! * [`EkfFusion::update_position`] fuses a planar position fix (e.g. GPS).
+//! * [`EkfFusion::update_yaw`] fuses an absolute heading (e.g. from scan
+//!   matching against a map).
 //!
 //! All arithmetic is plain `f64` with index-ordered updates and no random
 //! numbers, so a recorded sequence of measurements replays bit-for-bit.
@@ -360,14 +362,55 @@ impl EkfFusion {
             row[1] = self.covariance[i][0] * inv[0][1] + self.covariance[i][1] * inv[1][1];
         }
 
+        // P <- P - K H P, where H selects the x and y rows.
+        let row0 = self.covariance[0];
+        let row1 = self.covariance[1];
         for (i, gain_row) in gain.iter().enumerate() {
             self.state[i] += gain_row[0] * innovation[0] + gain_row[1] * innovation[1];
-            self.covariance[i][0] -= gain_row[0];
-            self.covariance[i][1] -= gain_row[1];
+            for (j, cell) in self.covariance[i].iter_mut().enumerate() {
+                *cell -= gain_row[0] * row0[j] + gain_row[1] * row1[j];
+            }
         }
         self.state[2] = wrap_angle(self.state[2]);
         self.symmetrize();
         Ok(())
+    }
+
+    /// Fuses an absolute yaw measurement; the innovation is wrapped to `(-pi, pi]`.
+    pub fn update_yaw(&mut self, yaw_rad: f64, variance_rad2: f64) -> Result<(), FusionError> {
+        if !yaw_rad.is_finite() {
+            return Err(FusionError::NonFiniteInput);
+        }
+        if variance_rad2 <= 0.0 || !variance_rad2.is_finite() {
+            return Err(FusionError::InvalidVariance);
+        }
+        let innovation = wrap_angle(yaw_rad - self.state[2]);
+        let s = self.covariance[2][2] + variance_rad2;
+        let row: [f64; STATE_DIM] = self.covariance[2];
+        for i in 0..STATE_DIM {
+            let gain = self.covariance[i][2] / s;
+            self.state[i] += gain * innovation;
+            for (j, value) in row.iter().enumerate() {
+                self.covariance[i][j] -= gain * value;
+            }
+        }
+        self.state[2] = wrap_angle(self.state[2]);
+        self.symmetrize();
+        Ok(())
+    }
+
+    /// Squared Mahalanobis distance of a planar position fix from the
+    /// current estimate, for gating outliers before [`Self::update_position`].
+    pub fn position_mahalanobis_squared(&self, x_m: f64, y_m: f64, variance_m2: f64) -> f64 {
+        let (dx, dy) = (x_m - self.state[0], y_m - self.state[1]);
+        let a = self.covariance[0][0] + variance_m2;
+        let b = self.covariance[0][1];
+        let d = self.covariance[1][1] + variance_m2;
+        let det = a * d - b * b;
+        if det <= f64::MIN_POSITIVE || !det.is_finite() {
+            return f64::INFINITY;
+        }
+        (d * dx * dx - 2.0 * b * dx * dy + a * dy * dy) / det
     }
 
     /// Fuses a geographic fix by projecting it through a `NavSat` transform.
@@ -574,6 +617,67 @@ mod tests {
         let pose = filter.pose();
         assert!(pose.x_m > 0.0 && pose.y_m > 0.0);
         assert!((pose.x_m - pose.y_m).abs() < 1.0e-6);
+    }
+
+    #[test]
+    fn position_update_shrinks_covariance_like_a_scalar_kalman_filter() {
+        let mut filter = EkfFusion::new(EkfConfig::default()).unwrap();
+        let prior = filter.covariance()[0][0];
+        let r = 0.5;
+        filter.update_position(1.0, 0.0, r).unwrap();
+        // Uncorrelated x/y prior: posterior variance is P R / (P + R).
+        assert_relative_eq!(
+            filter.covariance()[0][0],
+            prior * r / (prior + r),
+            epsilon = 1e-12
+        );
+        assert_relative_eq!(
+            filter.covariance()[1][1],
+            prior * r / (prior + r),
+            epsilon = 1e-12
+        );
+        // Uncorrelated states keep their variance.
+        assert_relative_eq!(
+            filter.covariance()[2][2],
+            EkfConfig::default().initial_yaw_variance_rad2,
+            epsilon = 1e-12
+        );
+        for i in 0..5 {
+            for j in 0..5 {
+                assert_relative_eq!(
+                    filter.covariance()[i][j],
+                    filter.covariance()[j][i],
+                    epsilon = 1e-15
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn yaw_update_wraps_across_pi() {
+        let mut filter = EkfFusion::with_initial_state(
+            EkfConfig::default(),
+            Pose2d::new(0.0, 0.0, 3.1),
+            VelocityCommand2d::ZERO,
+        )
+        .unwrap();
+        filter.update_yaw(-3.1, 1.0e-4).unwrap();
+        // The short way round from 3.1 to -3.1 crosses pi, not zero.
+        assert!(
+            filter.pose().yaw_rad.abs() > 3.0,
+            "{}",
+            filter.pose().yaw_rad
+        );
+        assert!(filter.covariance()[2][2] < EkfConfig::default().initial_yaw_variance_rad2);
+    }
+
+    #[test]
+    fn mahalanobis_gate_separates_inliers_from_outliers() {
+        let filter = EkfFusion::new(EkfConfig::default()).unwrap();
+        let near = filter.position_mahalanobis_squared(0.5, 0.0, 1.0);
+        let far = filter.position_mahalanobis_squared(20.0, 0.0, 1.0);
+        assert_relative_eq!(near, 0.125, epsilon = 1e-12);
+        assert!(far > 100.0);
     }
 
     #[test]

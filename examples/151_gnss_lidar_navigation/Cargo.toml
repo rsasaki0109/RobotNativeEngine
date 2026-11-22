@@ -1,0 +1,36 @@
+[package]
+name = "gnss_lidar_navigation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[features]
+default = []
+capture = ["dep:rne_render", "dep:rne_render_wgpu", "dep:png"]
+
+[dependencies]
+rne_adapter_gnsspp = { workspace = true }
+rne_core = { workspace = true }
+rne_gnss = { workspace = true }
+rne_math = { workspace = true }
+rne_nav = { workspace = true }
+rne_slam = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+rne_render = { workspace = true, optional = true }
+rne_render_wgpu = { workspace = true, optional = true }
+png = { workspace = true, optional = true }
+
+[[example]]
+name = "151_gnss_lidar_navigation"
+path = "main.rs"
+
+[[example]]
+name = "151_gnss_lidar_navigation_render"
+path = "render3d.rs"
+required-features = ["capture"]

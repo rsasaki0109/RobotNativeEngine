@@ -1787,6 +1787,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "gnss_lidar_navigation"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_adapter_gnsspp",
+ "rne_core",
+ "rne_gnss",
+ "rne_math",
+ "rne_nav",
+ "rne_render",
+ "rne_render_wgpu",
+ "rne_slam",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "go2_authority_turn"
 version = "0.4.0"
 dependencies = [
@@ -4243,6 +4260,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rne_adapter_gnsspp"
+version = "0.4.0"
+dependencies = [
+ "cc",
+ "rne_gnss",
+ "rne_math",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "rne_adapter_ros2"
 version = "0.4.0"
 dependencies = [
@@ -4430,6 +4457,7 @@ dependencies = [
  "rne_ai",
  "rne_core",
  "rne_ecs",
+ "rne_gnss",
  "rne_math",
  "rne_nav",
  "rne_physics",
@@ -4491,6 +4519,18 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+]
+
+[[package]]
+name = "rne_gnss"
+version = "0.4.0"
+dependencies = [
+ "approx",
+ "bevy_ecs",
+ "rne_core",
+ "rne_math",
+ "serde",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

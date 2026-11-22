@@ -185,8 +185,11 @@ constant-velocity model and plain `f64` arithmetic (no random numbers, so replay
 is bit-identical). `predict(dt_s)` advances the model and inflates the
 covariance with `EkfConfig` process noise; measurements are fused through
 `update_odometry` (forward velocity + yaw rate), `update_yaw_rate` (IMU only),
-and `update_position` (a planar fix such as GPS, in the map frame). Angles wrap
-to `(-pi, pi]` and the covariance is re-symmetrized after every update.
+`update_position` (a planar fix such as GPS, in the map frame), and
+`update_yaw` (an absolute heading, e.g. from scan matching). Angles wrap to
+`(-pi, pi]` and the covariance is re-symmetrized after every update.
+`position_mahalanobis_squared` gates a fix before it is fused. A ray-traced
+GNSS receiver to feed it lives in `rne_gnss`; see [GNSS](GNSS.md).
 
 `pose_with_covariance` exposes the `[x, y, yaw]` sub-block for
 `geometry_msgs/PoseWithCovariance`. `update_navsat` projects a geographic fix

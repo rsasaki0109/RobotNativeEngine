@@ -24,6 +24,7 @@ members = [
   "crates/rne_robot",
   "crates/rne_nav",
   "crates/rne_slam",
+  "crates/rne_gnss",
   "crates/rne_data",
   "crates/rne_log",
   "crates/rne_sensor",
@@ -47,6 +48,7 @@ members = [
   "crates/rne_usd",
   "adapters/ros2/rne_adapter_ros2",
   "adapters/ssl/rne_adapter_ssl",
+  "adapters/gnsspp/rne_adapter_gnsspp",
   "adapters/hardware/rne_hardware_gateway",
   "adapters/hardware/rne_hardware_lekiwi",
   "examples/00_hello_world",
@@ -188,6 +190,7 @@ members = [
   "examples/145_contact_slide",
   "examples/147_go2_learning",
   "examples/146_contact_closed_form",
+  "examples/151_gnss_lidar_navigation",
   "examples/149_calibrex_rig_bag",
   "examples/150_scene_replay_render",
   "examples/go2_indoor",
@@ -281,6 +284,8 @@ rne_render_wgpu = { version = "=0.4.0", path = "crates/rne_render_wgpu" }
 rne_robot = { version = "=0.4.0", path = "crates/rne_robot" }
 rne_nav = { version = "=0.4.0", path = "crates/rne_nav" }
 rne_slam = { version = "=0.4.0", path = "crates/rne_slam" }
+rne_gnss = { version = "=0.4.0", path = "crates/rne_gnss" }
+rne_adapter_gnsspp = { version = "=0.4.0", path = "adapters/gnsspp/rne_adapter_gnsspp" }
 rne_sdf = { version = "=0.4.0", path = "crates/rne_sdf" }
 rne_sensor = { version = "=0.4.0", path = "crates/rne_sensor" }
 rne_sumo = { version = "=0.4.0", path = "crates/rne_sumo" }
