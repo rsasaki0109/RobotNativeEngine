@@ -301,6 +301,7 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
     let glass = plateau::GLASS_TOWER_HEIGHT_M;
     vec![
         ("crowd", options(crowd, false), glass),
+        ("crowd, factor graph", options(crowd, true), glass),
         ("crowd + rain", options(rain, false), glass),
         ("crowd + rain, factor graph", options(rain, true), glass),
         ("glass from 20 m", options(Weather::default(), false), 20.0),
