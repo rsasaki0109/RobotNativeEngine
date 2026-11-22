@@ -59,7 +59,7 @@ impl GaussianSplatBackground {
             )));
         }
         let gaussians = load_gaussians(&environment.ply_path)?;
-        let viewer = Viewer::new(device, wgpu::TextureFormat::Rgba8UnormSrgb, &gaussians)
+        let viewer = Viewer::new(device, wgpu::TextureFormat::Rgba8Unorm, &gaussians)
             .map_err(|error| GaussianSplatError::Init(error.to_string()))?;
         Ok(Self {
             viewer,
@@ -112,9 +112,9 @@ impl BackgroundRenderPass for GaussianSplatBackground {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: f64::from(clear_color[0]),
-                            g: f64::from(clear_color[1]),
-                            b: f64::from(clear_color[2]),
+                            r: srgb_encode(f64::from(clear_color[0])),
+                            g: srgb_encode(f64::from(clear_color[1])),
+                            b: srgb_encode(f64::from(clear_color[2])),
                             a: f64::from(clear_color[3]),
                         }),
                         store: wgpu::StoreOp::Store,
@@ -207,5 +207,15 @@ mod tests {
         )
         .expect("manifest");
         load_gaussians(&environment.ply_path).expect("fixture ply");
+    }
+}
+
+/// The clear colour is linear; the background target view is not sRGB, so encode it here.
+fn srgb_encode(linear: f64) -> f64 {
+    let c = linear.clamp(0.0, 1.0);
+    if c <= 0.003_130_8 {
+        c * 12.92
+    } else {
+        1.055 * c.powf(1.0 / 2.4) - 0.055
     }
 }
