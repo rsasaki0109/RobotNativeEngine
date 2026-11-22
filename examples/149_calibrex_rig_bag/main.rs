@@ -97,6 +97,8 @@ const LIDAR2_SENSOR_ID: u64 = 3;
 const CAMERA_SENSOR_ID: u64 = 4;
 /// Each turned candidate turns one sensor this much.
 const TURN_DEG: f64 = 3.0;
+/// How far the `shifted_imu` candidate moves the IMU, meters.
+const SHIFT_M: f64 = 0.05;
 /// The true IMU rotation in the LiDAR frame, intrinsic x-y-z angles in degrees.
 const MOUNT_RPY_DEG: [f64; 3] = [2.0, -3.0, 92.0];
 
@@ -167,53 +169,71 @@ fn optical_from_render() -> Quat {
     Quat::from_rotation_x(PI)
 }
 
-/// The rig (LiDAR frame) pose in a z-up world: a smooth hand-held motion that
-/// turns about all three axes, so that every rotation axis of the mountings is
-/// observable.
-fn rig_pose_ros(time_s: f64) -> (Quat, Vec3) {
-    let rotation_vector = Vec3::new(
-        0.5 * (1.3 * time_s).sin(),
-        0.45 * (1.1 * time_s + 0.4).sin(),
-        1.0 * (0.6 * time_s).sin(),
-    );
-    let position = Vec3::new(
-        0.6 * (0.5 * time_s).sin() + 0.04 * time_s,
-        0.5 * (0.35 * time_s + 0.2).sin(),
-        1.3 + 0.15 * (0.8 * time_s).sin(),
-    );
-    (Quat::from_scaled_axis(rotation_vector), position)
+/// How the hand-held rig moves: a smooth motion that turns about all three
+/// axes, so that every rotation axis of the mountings is observable.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Motion {
+    /// Multiplies the rotation's frequencies (not its amplitude, nor the
+    /// translation): 2 turns twice as fast, which makes the lever arm of the IMU
+    /// observable.
+    rotation_speed: f64,
 }
 
-/// World pose of the RNE LiDAR sensor frame (y-up scan frame) at a time.
-fn lidar_pose_rne(time_s: f64) -> Transform3 {
-    let (rotation, position) = rig_pose_ros(time_s);
-    let m = ros_to_rne();
-    Transform3::from_translation_rotation(m * position, m * rotation * m.inverse())
-}
+impl Motion {
+    const HAND_HELD: Self = Self {
+        rotation_speed: 1.0,
+    };
 
-/// World pose of a LiDAR mounted on the rig, in its RNE scan frame.
-fn mounted_lidar_pose_rne(time_s: f64, mount: Mount) -> Transform3 {
-    lidar_pose_rne(time_s).mul_transform(&mount.rne_converted())
-}
+    /// The rig (LiDAR frame) pose in a z-up world.
+    fn rig_pose_ros(self, time_s: f64) -> (Quat, Vec3) {
+        let turn_s = self.rotation_speed * time_s;
+        let rotation_vector = Vec3::new(
+            0.5 * (1.3 * turn_s).sin(),
+            0.45 * (1.1 * turn_s + 0.4).sin(),
+            1.0 * (0.6 * turn_s).sin(),
+        );
+        let position = Vec3::new(
+            0.6 * (0.5 * time_s).sin() + 0.04 * time_s,
+            0.5 * (0.35 * time_s + 0.2).sin(),
+            1.3 + 0.15 * (0.8 * time_s).sin(),
+        );
+        (Quat::from_scaled_axis(rotation_vector), position)
+    }
 
-/// World pose of the camera's RNE render frame (-z forward, y up).
-fn camera_render_pose_rne(time_s: f64, mount: Mount) -> Transform3 {
-    let m = ros_to_rne();
-    let lidar_from_render = Transform3::from_translation_rotation(
-        m * mount.translation_m,
-        m * mount.rotation * optical_from_render(),
-    );
-    lidar_pose_rne(time_s).mul_transform(&lidar_from_render)
-}
+    /// World pose of the RNE LiDAR sensor frame (y-up scan frame) at a time.
+    fn lidar_pose_rne(self, time_s: f64) -> Transform3 {
+        let (rotation, position) = self.rig_pose_ros(time_s);
+        let m = ros_to_rne();
+        Transform3::from_translation_rotation(m * position, m * rotation * m.inverse())
+    }
 
-/// World-frame linear and angular velocity of the rig, by central differences.
-fn rig_velocity_rne(time_s: f64) -> (Vec3, Vec3) {
-    const STEP_S: f64 = 1.0e-5;
-    let before = lidar_pose_rne(time_s - STEP_S);
-    let after = lidar_pose_rne(time_s + STEP_S);
-    let linear = (after.translation - before.translation) / (2.0 * STEP_S);
-    let angular = (after.rotation * before.rotation.inverse()).to_scaled_axis() / (2.0 * STEP_S);
-    (linear, angular)
+    /// World pose of a LiDAR mounted on the rig, in its RNE scan frame.
+    fn mounted_lidar_pose_rne(self, time_s: f64, mount: Mount) -> Transform3 {
+        self.lidar_pose_rne(time_s)
+            .mul_transform(&mount.rne_converted())
+    }
+
+    /// World pose of the camera's RNE render frame (-z forward, y up).
+    fn camera_render_pose_rne(self, time_s: f64, mount: Mount) -> Transform3 {
+        let m = ros_to_rne();
+        let lidar_from_render = Transform3::from_translation_rotation(
+            m * mount.translation_m,
+            m * mount.rotation * optical_from_render(),
+        );
+        self.lidar_pose_rne(time_s)
+            .mul_transform(&lidar_from_render)
+    }
+
+    /// World-frame linear and angular velocity of the rig, by central differences.
+    fn rig_velocity_rne(self, time_s: f64) -> (Vec3, Vec3) {
+        const STEP_S: f64 = 1.0e-5;
+        let before = self.lidar_pose_rne(time_s - STEP_S);
+        let after = self.lidar_pose_rne(time_s + STEP_S);
+        let linear = (after.translation - before.translation) / (2.0 * STEP_S);
+        let angular =
+            (after.rotation * before.rotation.inverse()).to_scaled_axis() / (2.0 * STEP_S);
+        (linear, angular)
+    }
 }
 
 /// One static box of the room, in z-up coordinates.
@@ -619,9 +639,9 @@ fn cast_scan(
     backend: &RapierBackend,
     physics_world: PhysicsWorldId,
     world: &World,
+    motion: Motion,
     mount: Mount,
-    sensor_id: u64,
-    scan_index: u64,
+    (sensor_id, scan_index): (u64, u64),
     start_s: f64,
 ) -> PointCloud {
     let to_ros = ros_to_rne().inverse();
@@ -629,8 +649,8 @@ fn cast_scan(
     for segment in 0..SEGMENTS_PER_SCAN {
         let segment_start_s = start_s + f64::from(segment) * segment_duration_s();
         let sweep = LidarSweep::new(
-            mounted_lidar_pose_rne(segment_start_s, mount),
-            mounted_lidar_pose_rne(segment_start_s + segment_duration_s(), mount),
+            motion.mounted_lidar_pose_rne(segment_start_s, mount),
+            motion.mounted_lidar_pose_rne(segment_start_s + segment_duration_s(), mount),
         );
         let key = SensorNoiseKey::new(
             ROOT_SEED,
@@ -649,7 +669,8 @@ fn cast_scan(
         for index in 0..cloud.points_m.len() {
             let point_time_s = segment_start_s + cloud.timestamps_s[index];
             // The point in the sensor frame at the instant it was measured.
-            let local = mounted_lidar_pose_rne(point_time_s, mount)
+            let local = motion
+                .mounted_lidar_pose_rne(point_time_s, mount)
                 .to_matrix()
                 .inverse()
                 .transform_point3(cloud.points_m[index]);
@@ -674,10 +695,11 @@ struct Scene {
     renderer: ColliderRenderer,
     rig_body: Entity,
     imu: Entity,
+    motion: Motion,
 }
 
 impl Scene {
-    fn new(rig: Rig) -> io::Result<Self> {
+    fn new(rig: Rig, motion: Motion) -> io::Result<Self> {
         let mut world = World::new();
         spawn_room(&mut world);
         let mut backend = RapierBackend::new();
@@ -693,7 +715,7 @@ impl Scene {
         // The rig body is the LiDAR frame; it carries no collider so rays never hit it.
         let rig_body = spawn_named(&mut world, "rig");
         world.entity_mut(rig_body).insert((
-            lidar_pose_rne(0.0),
+            motion.lidar_pose_rne(0.0),
             RigidBody {
                 body_type: RigidBodyType::Kinematic,
                 ..RigidBody::default()
@@ -715,6 +737,7 @@ impl Scene {
             renderer,
             rig_body,
             imu,
+            motion,
         })
     }
 
@@ -731,7 +754,7 @@ impl Scene {
         let imu_samples = (duration_s * IMU_RATE_HZ as f64).floor() as u64;
         for index in 0..imu_samples {
             let time_s = index as f64 / IMU_RATE_HZ as f64;
-            set_rig_state(&mut self.world, self.rig_body, time_s);
+            set_rig_state(&mut self.world, self.rig_body, self.motion, time_s);
             let sample = sample_imu_stateful_diagnostic_with_kinematics(
                 &self.world,
                 self.imu,
@@ -768,9 +791,9 @@ impl Scene {
                 &self.backend,
                 self.physics_world,
                 &self.world,
+                self.motion,
                 mount,
-                sensor_id,
-                scan_index,
+                (sensor_id, scan_index),
                 start_s,
             );
             let stamp = SimTime::from_ticks(BAG_EPOCH_NS + seconds_to_ns(start_s));
@@ -803,7 +826,7 @@ impl Scene {
             let time_s = frame_index as f64 / CAMERA_RATE_HZ as f64;
             let sample = sample_camera_rgbd_keyed(
                 &mut self.renderer,
-                &camera_render_pose_rne(time_s, mount),
+                &self.motion.camera_render_pose_rne(time_s, mount),
                 &spec,
                 SimTime::from_ticks(seconds_to_ns(time_s)),
                 &RenderScene::new(),
@@ -901,8 +924,14 @@ fn write_bag(bag_path: &Path, mut events: Vec<Event>) -> io::Result<()> {
 }
 
 /// Simulates the rig for `duration_s` and writes the bag to `bag_path`.
-fn simulate(bag_path: &Path, duration_s: f64, rig: Rig, sensors: Sensors) -> io::Result<Recording> {
-    let mut scene = Scene::new(rig)?;
+fn simulate(
+    bag_path: &Path,
+    duration_s: f64,
+    rig: Rig,
+    sensors: Sensors,
+    motion: Motion,
+) -> io::Result<Recording> {
+    let mut scene = Scene::new(rig, motion)?;
     let mut events = Vec::new();
     let mut recording = Recording::default();
     if sensors.imu {
@@ -934,10 +963,10 @@ fn simulate(bag_path: &Path, duration_s: f64, rig: Rig, sensors: Sensors) -> io:
     Ok(recording)
 }
 
-fn set_rig_state(world: &mut World, rig: Entity, time_s: f64) {
-    let (linear, angular) = rig_velocity_rne(time_s);
+fn set_rig_state(world: &mut World, rig: Entity, motion: Motion, time_s: f64) {
+    let (linear, angular) = motion.rig_velocity_rne(time_s);
     if let Some(mut transform) = world.get_mut::<Transform3>(rig) {
-        *transform = lidar_pose_rne(time_s);
+        *transform = motion.lidar_pose_rne(time_s);
     }
     if let Some(mut body) = world.get_mut::<RigidBody>(rig) {
         body.linear_velocity_m_s = linear;
@@ -977,6 +1006,17 @@ fn turned_imu(rig: Rig, degrees: f64) -> Rig {
     }
 }
 
+/// The IMU moved along the LiDAR x axis: its lever arm is wrong, its rotation is not.
+fn shifted_imu(rig: Rig, meters: f64) -> Rig {
+    Rig {
+        imu: Mount {
+            translation_m: rig.imu.translation_m + Vec3::new(meters, 0.0, 0.0),
+            ..rig.imu
+        },
+        ..rig
+    }
+}
+
 /// The second LiDAR turned about its own z axis.
 fn turned_lidar2(rig: Rig, degrees: f64) -> Rig {
     Rig {
@@ -1003,16 +1043,18 @@ struct Args {
     out: PathBuf,
     duration_s: f64,
     sensors: Sensors,
+    motion: Motion,
 }
 
-const USAGE: &str =
-    "usage: 149_calibrex_rig_bag [--out DIR] [--duration-s SECONDS] [--sensors lidar,imu,lidar2,camera]";
+const USAGE: &str = "usage: 149_calibrex_rig_bag [--out DIR] [--duration-s SECONDS] \
+     [--sensors lidar,imu,lidar2,camera] [--rotation-speed FACTOR]";
 
 fn parse_args() -> Args {
     let mut args = Args {
         out: PathBuf::from("target/calibrex_rig"),
         duration_s: 40.0,
         sensors: Sensors::ALL,
+        motion: Motion::HAND_HELD,
     };
     let mut iter = std::env::args().skip(1);
     while let Some(flag) = iter.next() {
@@ -1021,6 +1063,16 @@ fn parse_args() -> Args {
             ("--out", Some(value)) => args.out = PathBuf::from(value),
             ("--duration-s", Some(value)) => {
                 args.duration_s = value.parse().expect("--duration-s takes seconds");
+            }
+            ("--rotation-speed", Some(value)) => {
+                args.motion.rotation_speed = value
+                    .parse()
+                    .ok()
+                    .filter(|speed: &f64| speed.is_finite() && *speed > 0.0)
+                    .unwrap_or_else(|| {
+                        eprintln!("--rotation-speed takes a positive factor\n{USAGE}");
+                        std::process::exit(2);
+                    });
             }
             ("--sensors", Some(value)) => {
                 args.sensors = Sensors::parse(&value).unwrap_or_else(|error| {
@@ -1042,12 +1094,13 @@ fn main() -> io::Result<()> {
     fs::create_dir_all(&args.out)?;
     let rig = true_rig();
     let bag = args.out.join("rig.mcap");
-    let recording = simulate(&bag, args.duration_s, rig, args.sensors)?;
+    let recording = simulate(&bag, args.duration_s, rig, args.sensors, args.motion)?;
 
     let mut candidates = vec![("good.yaml", rig)];
     if args.sensors.imu {
         candidates.push(("turned_imu.yaml", turned_imu(rig, TURN_DEG)));
         candidates.push(("turned.yaml", turned_imu(rig, TURN_DEG)));
+        candidates.push(("shifted_imu.yaml", shifted_imu(rig, SHIFT_M)));
     }
     if args.sensors.lidar2 {
         candidates.push(("turned_lidar2.yaml", turned_lidar2(rig, TURN_DEG)));
@@ -1061,7 +1114,8 @@ fn main() -> io::Result<()> {
 
     println!("wrote {}: {recording:?}", bag.display());
     println!(
-        "candidates in {}: {} (each turned_* turns one sensor {TURN_DEG} deg)",
+        "candidates in {}: {} (each turned_* turns one sensor {TURN_DEG} deg; \
+         shifted_imu moves the IMU {SHIFT_M} m)",
         args.out.display(),
         candidates
             .iter()
@@ -1097,17 +1151,20 @@ mod tests {
 
     #[test]
     fn the_rig_keeps_clear_of_the_posts() {
-        // Every sensor stays outside each post grown by 0.4 m, over two minutes,
-        // so no sensor starts inside an object or sees it closer than its range
-        // floor.
+        // Every sensor stays outside each post grown by 0.4 m, over two minutes
+        // and at the rotation speeds the README uses, so no sensor starts inside
+        // an object or sees it closer than its range floor.
         let posts: Vec<RoomBox> = room_boxes()
             .into_iter()
             .filter(|room_box| room_box.name.starts_with("post_"))
             .collect();
         assert_eq!(posts.len(), POST_NAMES.len());
         let rig = true_rig();
-        for step in 0..=2400 {
-            let (rotation, position) = rig_pose_ros(f64::from(step) * 0.05);
+        for step in 0..=4800 {
+            let motion = Motion {
+                rotation_speed: if step % 2 == 0 { 1.0 } else { 2.0 },
+            };
+            let (rotation, position) = motion.rig_pose_ros(f64::from(step / 2) * 0.05);
             for offset in [
                 Vec3::ZERO,
                 rig.imu.translation_m,
@@ -1118,14 +1175,23 @@ mod tests {
                 for post in &posts {
                     let local = post.rotation.inverse() * (sensor - post.center_m);
                     let clear = (0..3).any(|i| local[i].abs() > post.half_extents_m[i] + 0.4);
-                    assert!(
-                        clear,
-                        "{} at {sensor:?}, t = {}",
-                        post.name,
-                        f64::from(step) * 0.05
-                    );
+                    assert!(clear, "{} at {sensor:?}, {motion:?}", post.name);
                 }
             }
+        }
+    }
+
+    #[test]
+    fn rotation_speed_turns_faster_along_the_same_path() {
+        let brisk = Motion {
+            rotation_speed: 2.0,
+        };
+        for time_s in [0.0, 0.7, 3.1, 12.5] {
+            let (rotation, position) = brisk.rig_pose_ros(time_s);
+            let (slow_rotation, _) = Motion::HAND_HELD.rig_pose_ros(2.0 * time_s);
+            let (_, slow_position) = Motion::HAND_HELD.rig_pose_ros(time_s);
+            assert!(rotation.angle_between(slow_rotation) < 1e-6);
+            assert!(position.distance(slow_position) < 1e-12);
         }
     }
 
@@ -1134,7 +1200,7 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("rne_calibrex_rig_{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
         let bag = dir.join("rig.mcap");
-        let recording = simulate(&bag, 1.0, true_rig(), Sensors::ALL).unwrap();
+        let recording = simulate(&bag, 1.0, true_rig(), Sensors::ALL, Motion::HAND_HELD).unwrap();
         assert_eq!(recording.imu_messages, 200);
         assert_eq!(recording.lidar_messages, 9);
         assert_eq!(recording.lidar2_messages, 9);
@@ -1166,7 +1232,14 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("rne_calibrex_lidar_{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
         let sensors = Sensors::parse("lidar").unwrap();
-        let recording = simulate(&dir.join("rig.mcap"), 0.5, true_rig(), sensors).unwrap();
+        let recording = simulate(
+            &dir.join("rig.mcap"),
+            0.5,
+            true_rig(),
+            sensors,
+            Motion::HAND_HELD,
+        )
+        .unwrap();
         assert_eq!(recording.imu_messages, 0);
         assert_eq!(recording.lidar2_messages, 0);
         assert_eq!(recording.camera_frames, 0);
@@ -1204,12 +1277,20 @@ mod tests {
             translation_m: Vec3::ZERO,
         };
         for mount in [primary, true_rig().lidar2] {
-            let scan = cast_scan(&backend, physics_world, &world, mount, 9, 0, start_s);
+            let scan = cast_scan(
+                &backend,
+                physics_world,
+                &world,
+                Motion::HAND_HELD,
+                mount,
+                (9, 0),
+                start_s,
+            );
             assert!(!scan.points_m.is_empty());
             for (point, offset_s) in scan.points_m.iter().zip(&scan.timestamps_s) {
                 assert!((0.0..0.1).contains(offset_s));
                 // Back to the z-up world with the pose at the point's own time.
-                let (rotation, position) = rig_pose_ros(start_s + offset_s);
+                let (rotation, position) = Motion::HAND_HELD.rig_pose_ros(start_s + offset_s);
                 let in_lidar = mount.rotation * *point + mount.translation_m;
                 let world_point = rotation * in_lidar + position;
                 assert!(world_point.x.abs() < 6.05 && world_point.y.abs() < 5.05);
@@ -1223,7 +1304,7 @@ mod tests {
         let (mut world, backend, physics_world) = room_physics();
         let mut renderer = ColliderRenderer::from_world(&mut world);
         assert_eq!(renderer.boxes.len(), room_boxes().len());
-        let pose = camera_render_pose_rne(3.0, true_rig().camera);
+        let pose = Motion::HAND_HELD.camera_render_pose_rne(3.0, true_rig().camera);
         let spec = camera_spec();
         let camera = Camera::new(spec.width, spec.height, spec.fov_y_rad);
         let view = rne_math::Transform3 {
@@ -1279,7 +1360,7 @@ mod tests {
         let rig = true_rig();
         let time_s = 3.0;
         let spec = camera_spec();
-        let pose = camera_render_pose_rne(time_s, rig.camera);
+        let pose = Motion::HAND_HELD.camera_render_pose_rne(time_s, rig.camera);
         let view = rne_math::Transform3 {
             translation: pose.translation,
             rotation: pose.rotation,
@@ -1308,7 +1389,7 @@ mod tests {
                 &backend,
                 physics_world,
                 &world,
-                &LidarSweep::stationary(lidar_pose_rne(time_s)),
+                &LidarSweep::stationary(Motion::HAND_HELD.lidar_pose_rne(time_s)),
                 &LidarSpec {
                     range_noise_stddev_m: 0.0,
                     ..lidar_segment_spec(segment)
@@ -1318,7 +1399,8 @@ mod tests {
             for point in &cloud.points_m {
                 // World -> LiDAR (ROS) -> camera optical frame, as Calibrex does.
                 let lidar = to_ros
-                    * lidar_pose_rne(time_s)
+                    * Motion::HAND_HELD
+                        .lidar_pose_rne(time_s)
                         .to_matrix()
                         .inverse()
                         .transform_point3(*point);
@@ -1367,7 +1449,7 @@ mod tests {
         let mount = true_rig().imu;
         let mut world = World::new();
         let rig = spawn_named(&mut world, "rig");
-        let (rotation, position) = rig_pose_ros(0.0);
+        let (rotation, position) = Motion::HAND_HELD.rig_pose_ros(0.0);
         let m = ros_to_rne();
         world.entity_mut(rig).insert((
             Transform3::from_translation_rotation(m * position, m * rotation * m.inverse()),
