@@ -6,6 +6,8 @@ use rne_math::Vec3;
 
 /// Body radius of a pedestrian for the LiDAR, meters.
 pub(crate) const PEDESTRIAN_RADIUS_M: f64 = 0.28;
+/// Pedestrians keep at least this far from the robot's centre, meters.
+pub(crate) const PERSONAL_SPACE_M: f64 = 0.9;
 /// Height of a pedestrian, meters.
 const PEDESTRIAN_HEIGHT_M: f64 = 1.7;
 
@@ -72,15 +74,26 @@ impl Crowd {
         }
     }
 
-    /// Pedestrian positions at `time_s`.
-    pub(crate) fn positions(&self, time_s: f64) -> Vec<(f64, f64)> {
+    /// Pedestrian positions at `time_s`; anyone who would come closer than
+    /// [`PERSONAL_SPACE_M`] to the robot at `robot` steps around it.
+    pub(crate) fn positions(&self, time_s: f64, robot: (f64, f64)) -> Vec<(f64, f64)> {
         self.walkers
             .iter()
             .map(|w| {
                 // Back and forth over the span.
                 let d = (w.phase_m + w.speed_m_s * time_s).rem_euclid(2.0 * w.span_m);
                 let along = if d < w.span_m { d } else { 2.0 * w.span_m - d };
-                self.point_beside(w.start_m + along, w.lateral_m)
+                let (x, y) = self.point_beside(w.start_m + along, w.lateral_m);
+                let (dx, dy) = (x - robot.0, y - robot.1);
+                let distance = dx.hypot(dy);
+                if distance >= PERSONAL_SPACE_M {
+                    (x, y)
+                } else if distance > 1.0e-6 {
+                    let scale = PERSONAL_SPACE_M / distance;
+                    (robot.0 + dx * scale, robot.1 + dy * scale)
+                } else {
+                    (robot.0 + w.lateral_m.signum() * PERSONAL_SPACE_M, robot.1)
+                }
             })
             .collect()
     }
@@ -173,11 +186,23 @@ mod tests {
         let route = [(0.0, 0.0), (100.0, 0.0), (100.0, 50.0)];
         let crowd = Crowd::new(&route, 20, 7);
         for t in [0.0, 13.0, 77.0, 400.0] {
-            for (x, y) in crowd.positions(t) {
+            for (x, y) in crowd.positions(t, (-100.0, -100.0)) {
                 // Within 3 m of one of the legs.
                 let near_first = (0.0..=100.0).contains(&x) && y.abs() <= 3.0 + 1e-9;
                 let near_second = (97.0..=103.0).contains(&x) && (-3.0..=53.0).contains(&y);
                 assert!(near_first || near_second, "({x}, {y}) at {t}");
+            }
+        }
+    }
+
+    #[test]
+    fn pedestrians_step_around_the_robot() {
+        let route = [(0.0, 0.0), (100.0, 0.0)];
+        let crowd = Crowd::new(&route, 40, 9);
+        for t in 0..200 {
+            let robot = (f64::from(t) * 0.5, 0.0);
+            for (x, y) in crowd.positions(f64::from(t), robot) {
+                assert!((x - robot.0).hypot(y - robot.1) >= PERSONAL_SPACE_M - 1e-9);
             }
         }
     }

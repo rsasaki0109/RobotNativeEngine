@@ -539,7 +539,7 @@ pub(crate) fn run(
         odom = integrate(odom, odom_v, odom_w, DT_S);
         hybrid.predict(DT_S, odom_v, odom_w);
 
-        let people = crowd.positions(t);
+        let people = crowd.positions(t, (truth.x_m, truth.y_m));
         scene.boxes = pedestrian_boxes(&people, |x, y| city.ground_m(x, y));
         let outputs: Vec<GnssOutput> = gnss.step(
             &scene,
