@@ -220,8 +220,9 @@ holds leave camera–imu and imu–lidar only roll to judge.
 rendered from the pose at its own time, the middle row at the stamp. On a 20 s
 `--motion turn` bag, `calibrex intrinsics rotate --rolling-shutter` estimated a
 readout of 25.9 ± 0.5 ms (the bands step the continuous readout Calibrex models)
-and moved the principal point from 0.9 px off to within 0.1 px, the focal lengths
-staying within 0.5 %. The turn is slow enough here that the readout matters
+and moved the principal point from (−0.87, −0.38) px to (−0.50, −0.01) px off; the
+focal lengths stayed within 0.5 % either way (fx −0.22 % → −0.07 %, fy +0.15 % →
++0.48 %). The turn is slow enough here that the readout matters
 little; Calibrex's synthetic test, turned faster, shows the 1.5 % it can cost.
 
 ### The lever arm
