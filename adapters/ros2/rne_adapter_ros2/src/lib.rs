@@ -16,7 +16,7 @@ pub mod nav_odometry;
 pub mod pointcloud;
 pub mod tf;
 
-pub use camera_info::pinhole_camera_info;
+pub use camera_info::{camera_info, pinhole_camera_info};
 pub use cdr::{
     encode_camera_info, encode_image, encode_imu, encode_pointcloud2, encode_tf_message, CdrWriter,
 };

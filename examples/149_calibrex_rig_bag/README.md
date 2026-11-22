@@ -16,6 +16,11 @@ calibrex check target/calibrex_rig/rig.mcap --tf target/calibrex_rig/turned_lida
 - `--rotation-speed` multiplies the frequencies of the rig's rotation (default
   1; the amplitude and the translation are unchanged). At 2 the IMU's lever arm
   is observable, see [The lever arm](#the-lever-arm).
+- `--motion turn` turns the rig about the camera's optical centre instead of
+  carrying it by hand, `--lens K1,K2,P1,P2[,K3]` gives the camera lens
+  distortion (OpenCV / ROS `plumb_bob` coefficients), and `--camera-info
+  true|zero|none` publishes the true `CameraInfo`, an uncalibrated one (all-zero
+  `K`) or none. See [Camera intrinsics from the bag](#camera-intrinsics-from-the-bag).
 - Install Calibrex from its repository
   (`pip install "calibrex[opencv] @ git+https://github.com/rsasaki0109/Calibrex.git"`;
   OpenCV is needed for camera-imu). It reads the bag with its own pure-Python
@@ -130,6 +135,45 @@ the translation switched off the same check passes with errors under 0.02°, and
 neither an ideal IMU nor a camera at the rig's rotation centre changes the
 1.03° error. On a hand-held rig the translation follows the rotation (here
 their frequencies beat over about a minute), so the error does not average out.
+
+### Camera intrinsics from the bag
+
+A robot's camera often has no calibrated `CameraInfo`. Without one Calibrex
+skips the camera pairs (`missing_intrinsics`); with `--motion turn` the bag is
+also what its targetless intrinsics calibration needs:
+
+```bash
+cargo run --release -p calibrex_rig_bag --example 149_calibrex_rig_bag -- \
+    --out target/calibrex_intrinsics --duration-s 40 --sensors imu,camera \
+    --motion turn --lens -0.18,0.04,0.0008,-0.0006 --camera-info none
+calibrex intrinsics rotate --bag target/calibrex_intrinsics/rig.mcap \
+    --topic /camera/image_raw --seconds 20 --output target/calibrex_intrinsics/intrinsics_camchain.yaml
+calibrex check target/calibrex_intrinsics/rig.mcap --tf target/calibrex_intrinsics/good.yaml \
+    --intrinsics target/calibrex_intrinsics/intrinsics_camchain.yaml
+```
+
+From the first 20 s (1 min 45 s on a 4-core container), against the true
+camera (f = 257.07 px, principal point 239.5, 179.5, k1 −0.18, k2 0.04):
+
+| | fx | fy | cx | cy | k1 | k2 |
+|---|---|---|---|---|---|---|
+| estimated | 257.42 | 258.64 | 239.67 | 179.75 | −0.1786 | 0.0392 |
+| error | +0.13 % | +0.61 % | +0.17 px | +0.25 px | +0.0014 | −0.0008 |
+
+Its transfer RMS is 1.13 px (Calibrex warns above 1 px): the room's flat
+15 cm cells are rendered one ray per pixel. The check with those intrinsics, on
+the 40 s bag:
+
+| Candidate | imu–lidar | camera–imu | camera–lidar |
+|---|---|---|---|
+| `good.yaml` | **pass** (within 0.053°) | **pass** (roll 0.063°, pitch 0.0006°, yaw 0.003°) | **pass** (within 0.25°) |
+| `turned_imu.yaml` | **fail**: yaw 2.95° | **fail**: pitch 2.99° | pass |
+| `turned_camera.yaml` | pass | **fail**: roll 3.06° | **fail**: roll 2.9° |
+
+camera–imu, inconclusive on the hand-held bag, passes here: turning about the
+camera leaves no translation for its pure-rotation fits to absorb. camera-focal
+is inconclusive (its held-out check fails) but reads an fy scale of 0.9938, the
+estimated intrinsics' 0.6 % long fy seen from the IMU.
 
 ### The lever arm
 

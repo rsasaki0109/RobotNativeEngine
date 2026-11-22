@@ -6,6 +6,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 149 records what a targetless intrinsics calibration needs:
+  `--motion turn` turns the rig about the camera's optical centre,
+  `--lens K1,K2,P1,P2[,K3]` gives the camera lens distortion, and
+  `--camera-info true|zero|none` publishes the true `CameraInfo`, an
+  uncalibrated one (all-zero `K`) or none, so Calibrex can calibrate the camera
+  from the bag (`calibrex intrinsics rotate`) and check the rig with it
+  (`calibrex check --intrinsics`).
+- `rne_adapter_ros2::camera_info` publishes a distorted camera's `CameraInfo`
+  (`plumb_bob` `D = [k1, k2, p1, p2, k3]`).
+
 - Example 149 lets Calibrex judge the camera and the IMU's lever arm. A ring of
   36 floor-to-ceiling posts, two in three leaning 35°, gives the LiDAR beams
   depth discontinuities in the image: on a 90 s bag both camera–lidar pairs
@@ -18,6 +28,14 @@ All notable changes to Robot Native Engine are documented in this file.
   fits absorbing the rig's translation.
 
 ### Changed
+
+- `CameraDistortion` now has OpenCV's and ROS's meaning: a ray at ideal
+  normalized `(x, y)` is imaged at `distort(x, y)`. The resampling applied the
+  model the other way round, so `k1 < 0` rendered pincushion instead of barrel
+  and no `CameraInfo` could describe the frames. A distorted camera also renders
+  its ideal frame as large as its lens needs (`CameraSpec::ideal_render_spec`),
+  so a barrel lens's corners show the scene instead of the clamped frame edge.
+  Examples 46 and 71 now render the barrel distortion their comments describe.
 
 - Example 149's README traces the camera pairs' errors and the time-offset bias
   to Calibrex: camera–lidar found no LiDAR beams after moving fast sweeps to the
