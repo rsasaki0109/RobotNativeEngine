@@ -859,18 +859,68 @@ fn place(start: Pose, p: [f64; 2]) -> [f64; 2] {
 
 /// Moves every person to its place at `t` (or parks it) and returns
 /// `(id, position, velocity)` of those present, in the world plane.
+/// Reactive people yield to the robot: a walking person slows when the robot
+/// is in their way, closer than YIELD_START_M ahead and within
+/// YIELD_HALF_WIDTH_M of their line, and stops YIELD_STOP_M from it. Each
+/// person walks their scripted path on their own clock, which runs slower
+/// while they yield, so they resume where they stopped.
+const YIELD_START_M: f64 = 1.5;
+const YIELD_STOP_M: f64 = 0.8;
+const YIELD_HALF_WIDTH_M: f64 = 0.7;
+
+/// The pace (0 to 1) at which a person at `p` walking at `v` (scripted)
+/// goes on, with the robot at `robot`.
+fn yield_pace(p: [f64; 2], v: [f64; 2], robot: [f64; 2]) -> f64 {
+    let speed = v[0].hypot(v[1]);
+    if speed < 0.1 {
+        return 1.0;
+    }
+    let h = [v[0] / speed, v[1] / speed];
+    let r = [robot[0] - p[0], robot[1] - p[1]];
+    let ahead = r[0] * h[0] + r[1] * h[1];
+    let lateral = (r[0] * h[1] - r[1] * h[0]).abs();
+    if ahead <= 0.0 || ahead >= YIELD_START_M || lateral >= YIELD_HALF_WIDTH_M {
+        return 1.0;
+    }
+    ((ahead - YIELD_STOP_M) / (YIELD_START_M - YIELD_STOP_M)).clamp(0.0, 1.0)
+}
+
+/// Each person's own clock (scripted time) and the last real time.
+struct PeopleClocks {
+    clocks: Vec<f64>,
+    last_t: f64,
+}
+
 fn place_people(
     sim: &mut UrdfSceneSim,
     task: &Task,
     entities: &[Entity],
     start: Pose,
     t: f64,
+    reactive: Option<&mut PeopleClocks>,
 ) -> Vec<(u64, [f64; 2], [f64; 2])> {
     let mut present = Vec::new();
     let (sin, cos) = start[2].sin_cos();
+    let robot = true_pose(sim);
+    let mut reactive = reactive;
     for (i, (path, entity)) in task.people.iter().zip(entities).enumerate() {
-        let transform = match path.state(t) {
+        let (clock, pace) = match reactive.as_deref_mut() {
+            Some(c) => {
+                let dt = t - c.last_t;
+                let now = c.clocks[i];
+                let pace = path.state(now).map_or(1.0, |(p, v)| {
+                    let world_p = place(start, p);
+                    let world_v = [cos * v[0] - sin * v[1], sin * v[0] + cos * v[1]];
+                    yield_pace(world_p, world_v, [robot[0], robot[1]])
+                });
+                c.clocks[i] = now + dt * pace;
+                (c.clocks[i], pace)
+            }
+            None => (t, 1.0),
+        };
+        let transform = match path.state(clock) {
             Some((p, v)) => {
+                let v = [v[0] * pace, v[1] * pace];
                 present.push((
                     i as u64,
                     place(start, p),
@@ -886,6 +936,9 @@ fn place_people(
             }
         };
         sim.world_mut().entity_mut(*entity).insert(transform);
+    }
+    if let Some(c) = reactive {
+        c.last_t = t;
     }
     present
 }
@@ -1280,6 +1333,7 @@ fn run(
     tracker_command: Option<&[String]>,
     kind: ControllerKind,
     safety: bool,
+    reactive: bool,
 ) -> (Value, Vec<Value>) {
     let mut sim =
         UrdfSceneSim::from_scene_path(&repo_path("assets/scenes/unitree_go2_jump.rne.scene.toml"))
@@ -1353,10 +1407,21 @@ fn run(
     let mut people_now = Vec::new();
     let mut trace = Vec::new();
     let mut safety_hold_until_s = f64::NEG_INFINITY;
+    let mut clocks = reactive.then(|| PeopleClocks {
+        clocks: vec![0.0; task.people.len()],
+        last_t: 0.0,
+    });
 
     while trot.time_s() < task.duration_s && score.goal_time_s.is_none() && !score.fell {
         for _ in 0..STEPS_PER_FRAME {
-            people_now = place_people(&mut sim, task, &people, start, trot.time_s());
+            people_now = place_people(
+                &mut sim,
+                task,
+                &people,
+                start,
+                trot.time_s(),
+                clocks.as_mut(),
+            );
             trot.step(&mut sim, command);
             integrate_odometry(&sim, &mut odom, dt);
             // What the robot believes its pose is.
@@ -1527,6 +1592,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut trials: u32 = 1;
     let mut kind = ControllerKind::Rule;
     let mut safety = true;
+    let mut reactive = false;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -1534,6 +1600,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--task" => only = Some(args.next().ok_or("--task needs a name")?),
             "--trials" => trials = args.next().ok_or("--trials needs a count")?.parse()?,
             "--no-safety" => safety = false,
+            "--reactive-people" => reactive = true,
             "--controller" => {
                 kind = match args.next().as_deref() {
                     Some("rule") => ControllerKind::Rule,
@@ -1613,7 +1680,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             break;
                         };
                         let (mut result, trace) =
-                            run(task, *source, tracker.as_deref(), kind, safety);
+                            run(task, *source, tracker.as_deref(), kind, safety, reactive);
                         result["trial"] = json!(trial);
                         mine.push((index, result, trace));
                     }
@@ -1718,6 +1785,20 @@ mod tests {
         let tracks = [track(7, [3.6, -0.1], [-0.9, 0.05])];
         let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 1.5, MAX_SPEED_M_S);
         assert!(command.yaw_rate_rad_s < 0.0, "{command:?}");
+    }
+
+    #[test]
+    fn people_yield_to_a_robot_in_their_way_only() {
+        let v = [1.0, 0.0];
+        // Right ahead: stopped at YIELD_STOP_M, slowing from YIELD_START_M.
+        assert_eq!(yield_pace([0.0, 0.0], v, [0.7, 0.0]), 0.0);
+        let half = yield_pace([0.0, 0.0], v, [1.15, 0.1]);
+        assert!(half > 0.3 && half < 0.7, "{half}");
+        // Behind, beside, far ahead, or standing still: no change.
+        assert_eq!(yield_pace([0.0, 0.0], v, [-0.7, 0.0]), 1.0);
+        assert_eq!(yield_pace([0.0, 0.0], v, [1.0, 0.9]), 1.0);
+        assert_eq!(yield_pace([0.0, 0.0], v, [2.0, 0.0]), 1.0);
+        assert_eq!(yield_pace([0.0, 0.0], [0.0, 0.0], [0.7, 0.0]), 1.0);
     }
 
     #[test]
