@@ -467,14 +467,22 @@ struct Controller {
 struct TrackHistory {
     id: u64,
     first_seen_s: f64,
-    velocity_sum: [f64; 2],
+    /// Smoothed velocity: the plain mean over the first frames, then a
+    /// moving average with VELOCITY_SMOOTHING_WEIGHT per frame (about 1 s).
+    velocity: [f64; 2],
     frames: u32,
 }
 
+/// The weight of a new frame in a track's smoothed velocity, once it has
+/// more than 1 / this many frames.
+const VELOCITY_SMOOTHING_WEIGHT: f64 = 0.1;
+
 impl TrackHistory {
-    fn mean_velocity(&self) -> [f64; 2] {
-        let n = f64::from(self.frames.max(1));
-        [self.velocity_sum[0] / n, self.velocity_sum[1] / n]
+    fn observe(&mut self, velocity: [f64; 2]) {
+        self.frames += 1;
+        let w = (1.0 / f64::from(self.frames)).max(VELOCITY_SMOOTHING_WEIGHT);
+        self.velocity[0] += w * (velocity[0] - self.velocity[0]);
+        self.velocity[1] += w * (velocity[1] - self.velocity[1]);
     }
 }
 
@@ -527,15 +535,11 @@ impl Controller {
 
         for track in tracks {
             match self.history.iter_mut().find(|h| h.id == track.id) {
-                Some(h) => {
-                    h.velocity_sum[0] += track.velocity[0];
-                    h.velocity_sum[1] += track.velocity[1];
-                    h.frames += 1;
-                }
+                Some(h) => h.observe(track.velocity),
                 None => self.history.push(TrackHistory {
                     id: track.id,
                     first_seen_s: time_s,
-                    velocity_sum: track.velocity,
+                    velocity: track.velocity,
                     frames: 1,
                 }),
             }
@@ -583,9 +587,17 @@ impl Controller {
                 // Head-on or standing: measured from the line the person walks
                 // along (the line to the goal for someone standing), not from
                 // the robot's own heading, which may be skewed.
-                let speed_p = track.velocity[0].hypot(track.velocity[1]);
+                // The line it walks along, from its smoothed velocity: one
+                // frame's direction is off by up to 20 degrees, which moves
+                // the line by 2 m at 6 m.
+                let velocity = self
+                    .history
+                    .iter()
+                    .find(|h| h.id == track.id)
+                    .map_or(track.velocity, |h| h.velocity);
+                let speed_p = velocity[0].hypot(velocity[1]);
                 let dir = if speed_p > 0.2 {
-                    [-track.velocity[0] / speed_p, -track.velocity[1] / speed_p]
+                    [-velocity[0] / speed_p, -velocity[1] / speed_p]
                 } else {
                     let g = [self.goal[0] - odom[0], self.goal[1] - odom[1]];
                     let n = g[0].hypot(g[1]).max(1e-6);
@@ -602,10 +614,7 @@ impl Controller {
                 {
                     let history = self.history.iter().find(|h| h.id == track.id);
                     // Someone drifting across the robot's way is passed
-                    // behind. The drift is taken from the track's mean
-                    // velocity: one frame's velocity swings, and the offset
-                    // from a distant person's line swings by a metre with a
-                    // few degrees of velocity error.
+                    // behind, judged by the track's smoothed velocity.
                     // Measured across the way to the goal, not the robot's
                     // heading: mid lane change, someone walking straight
                     // down a corridor would look like drifting.
@@ -617,7 +626,7 @@ impl Controller {
                     let left = [-way[1], way[0]];
                     let normal_left = normal[0] * left[0] + normal[1] * left[1];
                     let drift = history.map_or(0.0, |h| {
-                        let v = h.mean_velocity();
+                        let v = h.velocity;
                         v[0] * left[0] + v[1] * left[1]
                     });
                     let side = if drift.abs() > PASS_BEHIND_DRIFT_M_S && normal_left.abs() > 0.3 {
@@ -1534,9 +1543,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     runs.sort_by_key(|(index, _, _)| *index);
     let mut results = Vec::new();
     for (_, result, trace) in runs {
-        if result["trial"] == 0 {
+        {
+            // Trial 0 keeps the plain name; later trials get a suffix.
+            let trial = result["trial"].as_u64().unwrap_or(0);
+            let suffix = if trial == 0 {
+                String::new()
+            } else {
+                format!("_t{trial}")
+            };
             let name = format!(
-                "{}_{}.jsonl",
+                "{}_{}{suffix}.jsonl",
                 result["task"].as_str().unwrap_or(""),
                 result["source"].as_str().unwrap_or("")
             );
@@ -1621,17 +1637,22 @@ mod tests {
     #[test]
     fn passes_behind_someone_drifting_across_whatever_one_frame_says() {
         let mut c = controller(Mission::Goal([10.0, 0.0]), [10.0, 0.0]);
-        // Ahead on the right, walking toward the robot and to its left.
+        // Ahead, a little to the right, walking toward the robot and
+        // drifting to its left.
         for (i, t) in [0.0, 0.1, 0.2, 0.3].iter().enumerate() {
-            let x = 5.0 - 0.06 * i as f64;
-            let tracks = [track(7, [x, -1.0 + 0.05 * i as f64], [-0.6, 0.5])];
+            let x = 5.0 - 0.1 * i as f64;
+            let tracks = [track(7, [x, -0.3 + 0.025 * i as f64], [-0.8, 0.25])];
             c.command(&tracks, [0.0, 0.0, 0.0], *t, MAX_SPEED_M_S);
         }
         // One frame's velocity says it walks straight at the robot, along a
-        // line to the robot's right; the mean still says it drifts left.
-        let tracks = [track(7, [4.8, -0.8], [-0.7, 0.0])];
+        // line nearly through it; the smoothed velocity still says it
+        // drifts left.
+        let tracks = [track(7, [4.6, -0.15], [-0.85, -0.05])];
         let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 0.4, MAX_SPEED_M_S);
-        assert!(command.yaw_rate_rad_s < 0.0, "pass behind, on the right: {command:?}");
+        assert!(
+            command.yaw_rate_rad_s < 0.0,
+            "pass behind, on the right: {command:?}"
+        );
     }
 
     #[test]

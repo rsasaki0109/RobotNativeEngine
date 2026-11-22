@@ -18,7 +18,7 @@ One pass (4 tasks × 8 perception sources) takes about 4 minutes on 4 cores
 and is deterministic. `--trials N` repeats it with each person (but a follow
 target) starting up to 2 s earlier or later, from a seed, and prints a
 summary over the trials. Each run writes a per-frame trace
-(`<task>_<source>.jsonl`) and a line of `results.json`.
+(`<task>_<source>.jsonl`, with a `_t<trial>` suffix after the first trial) and a line of `results.json`. The trace records the tracks, the true people and the controller's lane decision.
 
 ## Robot, sensor, controller
 
