@@ -95,7 +95,7 @@ impl StaticMap {
         self.frame += 1;
     }
 
-    fn is_static(&self, p: [f64; 2]) -> bool {
+    pub(crate) fn is_static(&self, p: [f64; 2]) -> bool {
         self.cells.get(&Self::cell(p)).is_some_and(|(first, hits)| {
             self.frame - first >= STATIC_AGE_FRAMES && *hits >= STATIC_MIN_HITS
         })

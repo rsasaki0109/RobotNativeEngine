@@ -95,9 +95,6 @@ const LANE_AIM_M: f64 = 1.2;
 const PASS_SIDE_SETTLE_S: f64 = 1.0;
 /// A head-on person drifting sideways faster than this is passed behind.
 const PASS_BEHIND_DRIFT_M_S: f64 = 0.15;
-/// A kept side is given up once the robot is this far on the other side of
-/// the person's line.
-const PASS_SIDE_SWITCH_M: f64 = 0.4;
 /// The follower keeps this far behind its target.
 const FOLLOW_DISTANCE_M: f64 = 1.2;
 /// A lost target is re-acquired within this distance of its prediction.
@@ -675,11 +672,6 @@ impl Controller {
                             .iter()
                             .find(|(id, _)| *id == track.id)
                             .map(|(_, s)| *s);
-                        // A kept side is given up once the robot is
-                        // clearly on the other side of the person's line
-                        // (it went round someone else): crossing back in
-                        // front of them is the one thing not to do.
-                        let remembered = remembered.filter(|s| s * offset > -PASS_SIDE_SWITCH_M);
                         let side = remembered.unwrap_or_else(|| {
                             if offset.abs() > 0.2 {
                                 offset.signum()
@@ -939,10 +931,12 @@ fn base_frame_points(cloud: &rne_data::PointCloud, truth: Pose) -> Vec<[f64; 3]>
         .collect()
 }
 
-/// Safety layer: the box ahead of the base that must be free of returns for
-/// the robot to walk forward, whatever perception made of them. A person
+/// Safety layer for the static map: the box ahead of the base that must be
+/// free of returns on static cells for the robot to walk forward. A person
 /// standing still long enough joins the static map and is no longer
-/// detected; this still stops the robot short of them.
+/// detected; this still stops the robot short of them. Returns elsewhere
+/// are left to the controller: stopping in front of someone walking toward
+/// the robot, or for a wall at an angle mid lane change, makes things worse.
 /// It starts clear of the robot's own front legs and head (returns up to
 /// 0.47 m ahead of the base).
 const SAFETY_BOX_X_M: (f64, f64) = (0.55, 1.0);
@@ -1432,7 +1426,15 @@ fn run(
             .base_linear_velocity_x_m_s
             .hypot(observed.base_linear_velocity_z_m_s);
         let (mut next, chosen) = controller.command(&tracks, odom, time_s, speed_now);
-        let blocked = safety && path_blocked(&points);
+        let blocked = safety
+            && perceiver.map.as_ref().is_some_and(|map| {
+                let on_static: Vec<[f64; 3]> = points
+                    .iter()
+                    .filter(|p| map.is_static(perception::to_odom(odom, [p[0], p[1]])))
+                    .copied()
+                    .collect();
+                path_blocked(&on_static)
+            });
         if blocked {
             next.forward_speed_m_s = 0.0;
             score.safety_stop_s += FRAME_S;
