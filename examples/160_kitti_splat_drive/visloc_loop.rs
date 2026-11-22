@@ -10,6 +10,7 @@
 //! ```text
 //! --path CSV --render-server BIN --ply PLY --localizer BIN --map DIR --out DIR
 //! [--speed 7] [--loc-every 0.5] [--odom-scale 1.02] [--gyro-bias 0.003] [--no-vision]
+//! [--manifest SPLAT.toml]   render the camera with RNE's own renderer instead of the server
 //! ```
 //!
 //! Frames: the SLAM world is z-up (x, y, z); RNE is y-up: rne = (x, z, -y), yaw is shared.
@@ -48,13 +49,15 @@ fn main() {
     fs::create_dir_all(out.join("frames")).expect("out dir");
 
     let (waypoints, start_yaw) = read_path(&path_csv);
-    let mut camera = if vision {
-        Some(RenderServer::start(
-            &arg("--render-server").expect("--render-server"),
-            &arg("--ply").expect("--ply"),
-        ))
-    } else {
+    let mut camera = if !vision {
         None
+    } else if let Some(manifest) = arg("--manifest") {
+        Some(Sensor::Rne(Box::new(RneCamera::new(&manifest))))
+    } else {
+        Some(Sensor::Server(RenderServer::start(
+            &arg("--render-server").expect("--render-server or --manifest"),
+            &arg("--ply").expect("--ply"),
+        )))
     };
     let localizer = arg("--localizer").unwrap_or_default();
     let map = arg("--map").unwrap_or_default();
@@ -97,7 +100,10 @@ fn main() {
             next_loc += loc_every;
             tries += 1;
             let (r_wc, c) = camera_in_slam(truth.translation, true_yaw);
-            let rgb = camera.as_mut().unwrap().render(&r_wc, &c);
+            let rgb = match camera.as_mut().unwrap() {
+                Sensor::Server(server) => server.render(&r_wc, &c),
+                Sensor::Rne(rne) => rne.render(truth.translation, truth.rotation),
+            };
             let png_path = out.join("frames").join(format!("{frame:04}.png"));
             write_rgb_png(&png_path, &rgb);
             frame += 1;
@@ -212,6 +218,72 @@ fn car_from_camera(r_wc: &M3, c: &[f64; 3]) -> (Vec3, f64) {
 /// Columns: the optical x (right), y (down), z (forward) axes in the base frame.
 fn base_from_optical() -> M3 {
     [[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]]
+}
+
+enum Sensor {
+    /// visloc-rs `gsplat_render_server` (the renderer the map was built with).
+    Server(RenderServer),
+    /// RNE's own hybrid renderer (wgpu-3dgs-viewer).
+    Rne(Box<RneCamera>),
+}
+
+struct RneCamera {
+    backend: rne_render_wgpu::WgpuRenderBackend,
+    background: rne_render_3dgs::GaussianSplatBackground,
+    environment: rne_render::GaussianSplatEnvironment,
+    camera: rne_render::Camera,
+}
+
+impl RneCamera {
+    fn new(manifest: &str) -> Self {
+        let environment = rne_render::validate_gaussian_splat_manifest(Path::new(manifest))
+            .expect("splat manifest");
+        let backend = rne_render_wgpu::WgpuRenderBackend::new().expect("wgpu backend");
+        let background =
+            rne_render_3dgs::load_gaussian_splat_background(backend.device(), &environment)
+                .expect("splat background");
+        // Same pinhole as CAMERA: fy 707.0912, principal point at the centre.
+        let camera = rne_render::Camera::new(
+            W as u32,
+            H as u32,
+            2.0 * (0.5 * H as f64 / 707.0912).atan(),
+        );
+        Self {
+            backend,
+            background,
+            environment,
+            camera,
+        }
+    }
+
+    /// RGB8 front-camera image for the car at `position` / `rotation` (RNE frame).
+    fn render(&mut self, position: Vec3, rotation: Quat) -> Vec<u8> {
+        // Car frame: +X forward, +Y up, +Z right; RNE cameras look along local -Z.
+        let mount = Vec3::new(MOUNT[0], MOUNT[2], -MOUNT[1]);
+        let view = rne_math::Transform3::from_translation_rotation(
+            position + rotation * mount,
+            (rotation * Quat::from_rotation_y(-std::f64::consts::FRAC_PI_2)).normalize(),
+        );
+        let scene = rne_render::HybridRenderScene::new(
+            self.environment.clone(),
+            rne_render::RenderScene::new(),
+        );
+        let image = rne_render_3dgs::render_hybrid_scene_camera(
+            &mut self.backend,
+            &mut self.background,
+            &self.camera,
+            &view,
+            &scene,
+            [0.0, 0.0, 0.0, 1.0],
+        )
+        .expect("rne render");
+        image
+            .color
+            .rgba8
+            .chunks_exact(4)
+            .flat_map(|p| [p[0], p[1], p[2]])
+            .collect()
+    }
 }
 
 struct RenderServer {
