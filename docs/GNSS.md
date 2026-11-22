@@ -128,8 +128,7 @@ prior (Schur complement). A particle filter runs alongside and seeds a
 second scan match; the window is shifted onto it, or onto a run of
 consistent RTK fixes the kernel keeps rejecting, when the estimate has
 clearly lost them. In the Tokyo streets of example 152 it reaches the
-goal in every run, crowds and rain included, where the hybrid gets lost
-among the Nishi-Shinjuku towers.
+goal in every run, crowds and rain included, without tuning for them.
 
 ### Results of example 151
 
@@ -160,16 +159,17 @@ scene from Project PLATEAU's LOD2 model of Tokyo
 (`scripts/fetch_plateau_tokyo.py` extracts the meshes around Shibuya
 Station and Nishi-Shinjuku from the official archive with range requests)
 and runs the same robot there. QZSS roughly quadruples the share of
-street points that see eight or more satellites. With the factor graph the
-robot walks both routes (750 m and 960 m) with a position RMSE of 0.30 m
-and 0.45 m; the hybrid arbiter manages Shibuya but among the
-Nishi-Shinjuku towers stops or gets lost depending on the noise.
+street points that see eight or more satellites. The robot walks both
+routes (750 m and 960 m) with a position RMSE of 0.18 m and 1.27 m with
+the hybrid arbiter, 0.30 m and 0.45 m with the factor graph.
 `--conditions --seeds 3` adds 60 pedestrians on the sidewalks (LiDAR
 returns and GNSS occluders), rain (LiDAR dropouts, noise and drop returns;
 wet, stronger reflectors) and glass curtain walls from 20 m: the factor
-graph reaches the goal in all 24 runs (RMSE median at most 2.1 m), while
-the hybrid fails every Nishi-Shinjuku crowd run, because pedestrians hide
-the street furniture its scan matches depend on along the corridors.
+graph reaches the goal in all 24 runs (RMSE median at most 2.1 m), the
+hybrid in 23. The hybrid needs three options for that: LiDAR returns in
+the map's free space (pedestrians) are dropped, scan matches are gated, and
+a run of RTK fixes that agree relative to the odometry but fail the gate
+re-anchors it. Without them it failed every Nishi-Shinjuku crowd run.
 
 ![Example 152 rendered in 3D: GNSS and LiDAR navigation among the PLATEAU buildings around Shibuya Station](media/plateau-gnss-shibuya.gif)
 

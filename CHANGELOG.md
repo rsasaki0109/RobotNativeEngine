@@ -42,6 +42,13 @@ All notable changes to Robot Native Engine are documented in this file.
 - `HybridLocalizer`: a GNSS gate reset while LiDAR or dead reckoning is the
   source now re-anchors the EKF on the fix; before, the reset accepted the
   fix but left the estimate where it was, so the gate kept rejecting GNSS.
+- `HybridLocalizerConfig::lidar_drop_unmapped_returns` (off by default):
+  returns in the prior map's free space, away from any mapped structure,
+  are left out of LiDAR tracking. `gnss_reanchor_fixes` (off by default):
+  a run of gate-rejected RTK fixed fixes (float too while dead reckoning)
+  that agree relative to the odometry re-anchors the estimate. With both
+  and the LiDAR gate, example 152's hybrid reaches the goal in 23 of 24
+  crowd, rain and glass runs instead of 16.
 
 ### Added
 
