@@ -152,7 +152,7 @@ doubles the first and quadruples the second, makes it observable. On a 90 s
 Calibrex also reports an IMU–LiDAR time offset although both sensors are
 stamped from the same simulation clock (reported, not judged): −3.3 ms on the
 40 s bag, −3.1 and −3.6 ms for the two LiDARs on the 90 s bag (the room without
-posts gave −1.9 ms), and −1.0 ms at `--rotation-speed 2`. It is not RNE's
+posts gave −1.9 to −2.2 ms), and −1.0 ms at `--rotation-speed 2`. It is not RNE's
 sensors: on true poses Calibrex's solver recovers the offset to the
 microsecond, and its own noise-free synthetic bag shows a bias of −1.1 to
 −1.7 ms with or without translation. Calibrex fits the offset jointly with the
