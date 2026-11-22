@@ -2,12 +2,15 @@
 //!
 //! Buildings and walls are axis-aligned boxes in the local ENU frame, each
 //! with a [`SurfaceMaterial`] that sets how much a specular reflection off it
-//! attenuates a GNSS signal. An optional horizontal ground plane adds ground
-//! multipath. Boxes are tested by the slab method in index order, so results
-//! are deterministic.
+//! attenuates a GNSS signal, and optionally a [`TriangleMesh`] of arbitrary
+//! buildings (for example a PLATEAU LOD2 city model). An optional horizontal
+//! ground plane adds ground multipath. Boxes are tested by the slab method in
+//! index order and the mesh through its BVH, so results are deterministic.
 
+use crate::mesh::TriangleMesh;
 use rne_math::Vec3;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 /// Electromagnetic surface properties at L1.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -214,6 +217,7 @@ impl SceneBox {
             max_m: hi,
             material: self.material,
             source: FacetSource::Box(box_index),
+            triangle: None,
         };
         [
             facet(Vec3::X, Vec3::new(hi.x, lo.y, lo.z)),
@@ -229,14 +233,17 @@ impl SceneBox {
 pub enum FacetSource {
     /// A face of the box with this index in [`GnssScene::boxes`].
     Box(usize),
+    /// The triangle with this index in the scene's [`TriangleMesh`].
+    Triangle(usize),
     /// The ground plane.
     Ground,
 }
 
-/// An axis-aligned planar reflector, bounded by a box's extent.
+/// A planar reflector: a box face (axis-aligned, bounded by the box's extent)
+/// or a mesh triangle.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Facet {
-    /// Outward unit normal (an axis direction).
+    /// Outward unit normal.
     pub normal: Vec3,
     /// A point on the plane.
     pub point_m: Vec3,
@@ -248,12 +255,21 @@ pub struct Facet {
     pub material: SurfaceMaterial,
     /// Origin of the facet.
     pub source: FacetSource,
+    /// The triangle's vertices for a mesh facet; `None` for a box face or the
+    /// ground, whose extent is `min_m..max_m`.
+    pub triangle: Option<[Vec3; 3]>,
 }
 
 impl Facet {
     /// Whether an in-plane point lies within the facet's bounds.
     pub fn contains_in_plane(&self, point_m: Vec3) -> bool {
         const EPS: f64 = 1.0e-9;
+        if let Some([v0, v1, v2]) = self.triangle {
+            let n = self.normal;
+            return [(v0, v1), (v1, v2), (v2, v0)]
+                .iter()
+                .all(|&(a, b)| (b - a).cross(point_m - a).dot(n) >= -1.0e-7);
+        }
         (0..3).all(|axis| {
             self.normal[axis] != 0.0
                 || (point_m[axis] >= self.min_m[axis] - EPS
@@ -294,6 +310,10 @@ pub struct GnssScene {
     /// Foliage volumes that attenuate signals passing through them.
     #[serde(default)]
     pub foliage: Vec<FoliageVolume>,
+    /// Buildings as triangles, shared between scenes that differ only in
+    /// their boxes (for example per-frame vehicles).
+    #[serde(default)]
+    pub mesh: Option<Arc<TriangleMesh>>,
 }
 
 impl GnssScene {
@@ -306,6 +326,7 @@ impl GnssScene {
                 material: SurfaceMaterial::GROUND,
             }),
             foliage: Vec::new(),
+            mesh: None,
         }
     }
 
@@ -315,9 +336,20 @@ impl GnssScene {
         self.boxes.len() - 1
     }
 
-    /// Closest box hit along a ray (the ground plane is not an occluder).
+    /// Closest box or mesh hit along a ray (the ground plane is not an
+    /// occluder).
     pub fn raycast(&self, origin_m: Vec3, direction: Vec3, max_distance_m: f64) -> Option<RayHit> {
         let mut best: Option<RayHit> = None;
+        if let Some(mesh) = &self.mesh {
+            if let Some((distance_m, index)) = mesh.raycast(origin_m, direction, max_distance_m) {
+                best = Some(RayHit {
+                    distance_m,
+                    point_m: origin_m + direction * distance_m,
+                    normal: mesh.triangles()[index].normal,
+                    source: FacetSource::Triangle(index),
+                });
+            }
+        }
         for (index, scene_box) in self.boxes.iter().enumerate() {
             let limit = best.map_or(max_distance_m, |hit| hit.distance_m);
             if let Some((distance_m, normal)) = scene_box.intersect(origin_m, direction, limit) {
@@ -339,11 +371,16 @@ impl GnssScene {
         self.boxes
             .iter()
             .any(|b| b.intersect(origin_m, direction, max_distance_m).is_some())
+            || self
+                .mesh
+                .as_ref()
+                .is_some_and(|m| m.occluded(origin_m, direction, max_distance_m))
     }
 
-    /// Whether a point is inside any solid box.
+    /// Whether a point is inside any solid box or closed mesh object.
     pub fn inside_solid(&self, point_m: Vec3) -> bool {
         self.boxes.iter().any(|b| b.contains(point_m))
+            || self.mesh.as_ref().is_some_and(|m| m.contains(point_m))
     }
 
     /// Foliage attenuation in dB at L1 along a ray segment.
@@ -355,8 +392,9 @@ impl GnssScene {
     }
 
     /// All reflecting facets: walls of reflective boxes in box order, then
-    /// the ground.
-    pub fn facets(&self) -> Vec<Facet> {
+    /// reflective mesh triangles of at least `min_triangle_area_m2`, then the
+    /// ground.
+    pub fn facets(&self, min_triangle_area_m2: f64) -> Vec<Facet> {
         let mut facets: Vec<Facet> = self
             .boxes
             .iter()
@@ -364,6 +402,23 @@ impl GnssScene {
             .filter(|(_, b)| b.material.is_reflective())
             .flat_map(|(index, b)| b.vertical_facets(index))
             .collect();
+        if let Some(mesh) = &self.mesh {
+            for (index, tri) in mesh.triangles().iter().enumerate() {
+                if !tri.material.is_reflective() || tri.area_m2() < min_triangle_area_m2 {
+                    continue;
+                }
+                let [a, b, c] = tri.vertices;
+                facets.push(Facet {
+                    normal: tri.normal,
+                    point_m: a,
+                    min_m: a.min(b).min(c),
+                    max_m: a.max(b).max(c),
+                    material: tri.material,
+                    source: FacetSource::Triangle(index),
+                    triangle: Some(tri.vertices),
+                });
+            }
+        }
         if let Some(ground) = self.ground {
             facets.push(Facet {
                 normal: Vec3::Z,
@@ -372,6 +427,7 @@ impl GnssScene {
                 max_m: Vec3::splat(f64::INFINITY),
                 material: ground.material,
                 source: FacetSource::Ground,
+                triangle: None,
             });
         }
         facets
@@ -451,7 +507,7 @@ mod tests {
             4.0,
             SurfaceMaterial::ABSORBER,
         ));
-        assert!(scene.facets().is_empty());
+        assert!(scene.facets(0.0).is_empty());
         assert!(scene.occluded(Vec3::new(0.5, 0.0, 1.0), Vec3::Y, 10.0));
     }
 

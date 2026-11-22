@@ -276,16 +276,153 @@ struct ParsedBuilding {
     polygons: Vec<ParsedBuildingPolygon>,
 }
 
+/// Semantic class of a `CityGML` building boundary surface.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "snake_case")]
-enum BuildingSurface {
+pub enum BuildingSurface {
+    /// `bldg:RoofSurface`.
     Roof,
+    /// `bldg:WallSurface`.
     Wall,
+    /// `bldg:GroundSurface`.
     Ground,
+    /// `bldg:OuterCeilingSurface`.
     OuterCeiling,
+    /// `bldg:OuterFloorSurface`.
     OuterFloor,
+    /// `bldg:ClosureSurface`.
     Closure,
+    /// LOD1 solids and surfaces without a semantic class.
     Unknown,
+}
+
+/// One triangle of a building surface, in source coordinates.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SourceTriangle {
+    /// Semantic class of the surface the triangle belongs to.
+    pub surface: BuildingSurface,
+    /// Vertices as `[first, second, height]` source triples (latitude and
+    /// longitude degrees for geographic CRSs), wound like the source polygon
+    /// (counter-clockwise seen from outside in `CityGML`).
+    pub vertices: [[f64; 3]; 3],
+}
+
+/// A building's triangulated LOD2 boundary surfaces (or LOD1 solid).
+#[derive(Clone, Debug, PartialEq)]
+pub struct BuildingTriangles {
+    /// `gml:id` of the building.
+    pub id: String,
+    /// Level of detail the geometry came from (2, or 1 as a fallback).
+    pub lod: u8,
+    /// `bldg:measuredHeight`, if present.
+    pub measured_height_m: Option<f64>,
+    /// Triangles of every surface.
+    pub triangles: Vec<SourceTriangle>,
+}
+
+/// Parses and triangulates every building of a `CityGML` document without
+/// writing any asset, for consumers that need raw geometry (for example a
+/// GNSS ray tracer). Buildings are sorted by id; polygons that cannot be
+/// triangulated are skipped.
+///
+/// # Errors
+///
+/// Returns an error when the XML is malformed or a building has no id or
+/// invalid coordinates.
+pub fn parse_building_triangles(xml: &str) -> Result<Vec<BuildingTriangles>, ImportError> {
+    let document = Document::parse(xml).map_err(|error| ImportError::Xml(error.to_string()))?;
+    let source_crs = document
+        .descendants()
+        .find_map(|node| node.attribute("srsName"))
+        .map(str::to_owned);
+    let mode = resolve_coordinate_mode(CoordinateMode::Auto, source_crs.as_deref());
+    let mut buildings = parse_buildings(&document, &HashMap::new())?;
+    buildings.sort_by(|left, right| left.id.cmp(&right.id));
+    Ok(buildings
+        .into_iter()
+        .map(|building| {
+            let mut triangles = Vec::new();
+            for polygon in &building.polygons {
+                let Some(first) = polygon.geometry.exterior.first() else {
+                    continue;
+                };
+                // Triangulate in a local metric frame around the polygon.
+                let origin = SourceOrigin {
+                    first_deg_or_m: first.first_deg_or_m,
+                    second_deg_or_m: first.second_deg_or_m,
+                    height_m: first.height_m,
+                };
+                let local = |ring: &[SourcePoint]| -> Vec<[f64; 3]> {
+                    ring.iter()
+                        .map(|p| source_to_local(*p, mode, origin))
+                        .collect()
+                };
+                let exterior = local(&polygon.geometry.exterior);
+                let interiors: Vec<Vec<[f64; 3]>> = polygon
+                    .geometry
+                    .interiors
+                    .iter()
+                    .map(|r| local(r))
+                    .collect();
+                let Ok(indices) = triangulate_polygon_with_holes(&exterior, &interiors) else {
+                    continue;
+                };
+                let source: Vec<SourcePoint> = polygon
+                    .geometry
+                    .exterior
+                    .iter()
+                    .chain(polygon.geometry.interiors.iter().flatten())
+                    .copied()
+                    .collect();
+                let points: Vec<[f64; 3]> = exterior
+                    .iter()
+                    .chain(interiors.iter().flatten())
+                    .copied()
+                    .collect();
+                let ring_normal = newell_normal(&exterior);
+                for [a, b, c] in indices {
+                    let n = triangle_normal(points[a], points[b], points[c]);
+                    let dot = n[0] * ring_normal[0] + n[1] * ring_normal[1] + n[2] * ring_normal[2];
+                    let [a, b, c] = if dot < 0.0 { [a, c, b] } else { [a, b, c] };
+                    let triple = |p: SourcePoint| [p.first_deg_or_m, p.second_deg_or_m, p.height_m];
+                    triangles.push(SourceTriangle {
+                        surface: polygon.surface,
+                        vertices: [triple(source[a]), triple(source[b]), triple(source[c])],
+                    });
+                }
+            }
+            BuildingTriangles {
+                id: building.id,
+                lod: building.lod,
+                measured_height_m: building.measured_height_m,
+                triangles,
+            }
+        })
+        .collect())
+}
+
+fn newell_normal(points: &[[f64; 3]]) -> [f64; 3] {
+    let mut normal = [0.0; 3];
+    for index in 0..points.len() {
+        let current = points[index];
+        let next = points[(index + 1) % points.len()];
+        normal[0] += (current[1] - next[1]) * (current[2] + next[2]);
+        normal[1] += (current[2] - next[2]) * (current[0] + next[0]);
+        normal[2] += (current[0] - next[0]) * (current[1] + next[1]);
+    }
+    normal
+}
+
+fn triangle_normal(a: [f64; 3], b: [f64; 3], c: [f64; 3]) -> [f64; 3] {
+    let (u, v) = (
+        [b[0] - a[0], b[1] - a[1], b[2] - a[2]],
+        [c[0] - a[0], c[1] - a[1], c[2] - a[2]],
+    );
+    [
+        u[1] * v[2] - u[2] * v[1],
+        u[2] * v[0] - u[0] * v[2],
+        u[0] * v[1] - u[1] * v[0],
+    ]
 }
 
 #[derive(Clone, Debug, PartialEq)]

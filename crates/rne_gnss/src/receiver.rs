@@ -372,6 +372,7 @@ fn path_signature(path: &crate::raytrace::PropagationPath) -> u64 {
     for source in &path.sources {
         let code = match source {
             FacetSource::Box(index) => *index as u64 + 1,
+            FacetSource::Triangle(index) => (*index as u64 + 1) << 32,
             FacetSource::Ground => 0,
         };
         hash = hash.wrapping_mul(0x100_0000_01B3) ^ code;
