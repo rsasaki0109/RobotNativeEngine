@@ -89,7 +89,7 @@ All notable changes to Robot Native Engine are documented in this file.
   fused.
 - `rne_gnss`: foliage volumes (dB/m), non-reflective `ABSORBER` boxes, and a
   tracing distance limit.
-- Example 149: a delivery robot with two antennas walks through a downtown
+- Example 150: a delivery robot with two antennas walks through a downtown
   street grid (a 4-lane main street, two cross streets, city blocks built to
   the property line, signalised intersections with zebra crossings, and
   traffic that keeps its lane, queues and stops on red) from a plaza into an
@@ -100,7 +100,7 @@ All notable changes to Robot Native Engine are documented in this file.
   reckoning 1.8 s, against up to 7 m for an EKF fusing every GNSS solution).
   `--frames` writes animation frames that
   `scripts/svg_frames_to_gif.py` turns into `docs/media/gnss-lidar-navigation.gif`;
-  `--trace` feeds the `149_gnss_lidar_navigation_render` example (feature
+  `--trace` feeds the `150_gnss_lidar_navigation_render` example (feature
   `capture`), which renders the run in 3D with `rne_render_wgpu`
   (`docs/media/gnss-lidar-navigation-3d.gif`).
 

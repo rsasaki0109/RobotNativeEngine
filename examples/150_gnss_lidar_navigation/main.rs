@@ -26,9 +26,9 @@
 //! `--frames <dir>` also writes one SVG per 1.5 s of the run, which
 //! `scripts/svg_frames_to_gif.py` turns into an animation, and `--trace
 //! <path>` a JSON trace (every 0.5 s) for the 3D renderer
-//! `149_gnss_lidar_navigation_render`.
+//! `150_gnss_lidar_navigation_render`.
 //!
-//! Run with `cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation`.
+//! Run with `cargo run --release -p gnss_lidar_navigation --example 150_gnss_lidar_navigation`.
 
 mod city;
 mod frames;
@@ -409,7 +409,7 @@ fn output_args() -> (
 ) {
     let value = |flag: &str| std::env::args().skip_while(|a| a != flag).nth(1);
     (
-        value("--svg").unwrap_or_else(|| "target/149_gnss_lidar_navigation.svg".to_string()),
+        value("--svg").unwrap_or_else(|| "target/150_gnss_lidar_navigation.svg".to_string()),
         value("--frames").map(std::path::PathBuf::from),
         value("--trace").map(std::path::PathBuf::from),
     )

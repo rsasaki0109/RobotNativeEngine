@@ -9,12 +9,12 @@ observations through `adapters/gnsspp/rne_adapter_gnsspp`. `rne_slam`'s
 localization indoors. The simulation is deterministic, ROS-free and
 renderer-free; libgnss++ stays in the adapter.
 
-[Example 149](../examples/149_gnss_lidar_navigation/README.md) drives a robot
+[Example 150](../examples/150_gnss_lidar_navigation/README.md) drives a robot
 with two antennas through a downtown street grid (signalised intersections,
 traffic that obeys the signals) from a plaza along the main street into an
 office and back, with an RTK base station on a rooftop.
 
-![Example 149 rendered in 3D by RNE: GNSS outdoors, LiDAR indoors](media/gnss-lidar-navigation-3d.gif)
+![Example 150 rendered in 3D by RNE: GNSS outdoors, LiDAR indoors](media/gnss-lidar-navigation-3d.gif)
 
 ## What the simulation models
 
@@ -98,7 +98,7 @@ rate and decides which absolute source corrects it:
    `Amcl` particle filter.
 3. **LiDAR** — each AMCL update is refined by a local scan match, and the
    refined pose and yaw are fused. An optional gate
-   (`lidar_gate_chi_square`, off by default, 99 % in example 149) treats
+   (`lidar_gate_chi_square`, off by default, 99 % in example 150) treats
    matches that disagree with the EKF (a scan sliding along a facade, a
    parked car taken for a wall) as poor matches; too many in a row end
    LiDAR control. It protects an RTK-grade estimate but would also keep
@@ -109,7 +109,7 @@ rate and decides which absolute source corrects it:
    that is already uncertain, so a sustained NLOS or float bias cannot drag
    a well-localized estimate.
 
-### Results of example 149
+### Results of example 150
 
 A delivery robot walks 370 m along the sidewalk of a 4-lane main street
 between city blocks, crossing two side streets on the pedestrian signal,
@@ -129,7 +129,7 @@ wrong fixes, which the gate rejects. The longest dead-reckoning stretch is
 1.8 s. Without the map-aided exclusion the robot has to stop for 132 s in
 the street; without it and without an outdoor LiDAR map it never
 relocalizes. See the
-[example's README](../examples/149_gnss_lidar_navigation/README.md#what-each-part-contributes).
+[example's README](../examples/150_gnss_lidar_navigation/README.md#what-each-part-contributes).
 
 ## Limits
 

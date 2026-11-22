@@ -1,6 +1,6 @@
-//! 3D render of example 149 with Robot Native Engine's wgpu renderer.
+//! 3D render of example 150 with Robot Native Engine's wgpu renderer.
 //!
-//! Reads the trace written by `149_gnss_lidar_navigation --trace`, builds the
+//! Reads the trace written by `150_gnss_lidar_navigation --trace`, builds the
 //! city (glass, concrete and metal towers with floor bands and mullions, the
 //! streets, sidewalks, crossings and plaza, the office with its roof cut
 //! away, traffic with head and brake lights, signals showing their phase),
@@ -13,10 +13,10 @@
 //! `encode.py` adds the HUD and encodes the GIF.
 //!
 //! ```bash
-//! cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation -- --trace target/gnss3d/trace.json
-//! cargo run --release -p gnss_lidar_navigation --features capture --example 149_gnss_lidar_navigation_render -- \
+//! cargo run --release -p gnss_lidar_navigation --example 150_gnss_lidar_navigation -- --trace target/gnss3d/trace.json
+//! cargo run --release -p gnss_lidar_navigation --features capture --example 150_gnss_lidar_navigation_render -- \
 //!     --trace target/gnss3d/trace.json --output target/gnss3d/frames
-//! python3 examples/149_gnss_lidar_navigation/encode.py target/gnss3d docs/media/gnss-lidar-navigation-3d.gif
+//! python3 examples/150_gnss_lidar_navigation/encode.py target/gnss3d docs/media/gnss-lidar-navigation-3d.gif
 //! ```
 //!
 //! Without a GPU, Mesa's lavapipe Vulkan driver works (`mesa-vulkan-drivers`).

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Rasterizes a directory of SVG frames (frame_0000.svg, ...) into a GIF.
 
-Used for example 149:
+Used for example 150:
 
-    cargo run --release -p gnss_lidar_navigation --example 149_gnss_lidar_navigation -- --frames target/gnss_frames
+    cargo run --release -p gnss_lidar_navigation --example 150_gnss_lidar_navigation -- --frames target/gnss_frames
     python3 scripts/svg_frames_to_gif.py target/gnss_frames docs/media/gnss-lidar-navigation.gif
 
 Needs Python Playwright with a Chromium build and ffmpeg. Set
