@@ -169,7 +169,9 @@ pub struct HybridLocalizerConfig {
     /// `gnss_reanchor_spread_m`), the estimate is re-anchored on them: the
     /// receiver keeps reporting the same place as the wheels move, so the
     /// estimate, not the receiver, is wrong. LiDAR tracking restarts from
-    /// there. Zero (off) by default.
+    /// there, searching a window sized by the fixes' variance. While dead
+    /// reckoning, float fixes count too (a lost robot that has stopped may
+    /// never get a fixed solution). Zero (off) by default.
     pub gnss_reanchor_fixes: usize,
     /// Largest distance of a rejected fix's offset from the run's mean
     /// offset for re-anchoring, meters.
@@ -315,8 +317,8 @@ pub struct HybridLocalizer {
     /// RTK fixes starts.
     dead_reckoned: Pose2d,
     /// Offsets of the current run of gate-rejected RTK fixed fixes from
-    /// `dead_reckoned`.
-    rejected_offsets: Vec<(f64, f64)>,
+    /// `dead_reckoned`, with their variances.
+    rejected_offsets: Vec<(f64, f64, f64)>,
     last_amcl: Option<AmclUpdate>,
     transitions: Vec<SourceTransition>,
 }
@@ -685,8 +687,10 @@ impl HybridLocalizer {
         if needed == 0 {
             return Ok(false);
         }
+        let lost = self.source == LocalizationSource::DeadReckoning;
         match (decision, fix.kind) {
             (GnssDecision::RejectedGate, FixKind::Fixed) => {}
+            (GnssDecision::RejectedGate, FixKind::Float) if lost => {}
             // Other rejections neither confirm nor break a run.
             (GnssDecision::RejectedGate | GnssDecision::RejectedQuality, _) => return Ok(false),
             _ => {
@@ -698,8 +702,11 @@ impl HybridLocalizer {
             self.dead_reckoned = self.ekf.pose();
         }
         let origin = self.dead_reckoned;
-        self.rejected_offsets
-            .push((fix.x_m - origin.x_m, fix.y_m - origin.y_m));
+        self.rejected_offsets.push((
+            fix.x_m - origin.x_m,
+            fix.y_m - origin.y_m,
+            self.gnss_variance_m2(fix),
+        ));
         if self.rejected_offsets.len() > needed {
             self.rejected_offsets.remove(0);
         }
@@ -710,17 +717,26 @@ impl HybridLocalizer {
         let (mx, my) = self
             .rejected_offsets
             .iter()
-            .fold((0.0, 0.0), |(a, b), (x, y)| (a + x / n, b + y / n));
+            .fold((0.0, 0.0), |(a, b), (x, y, _)| (a + x / n, b + y / n));
         let spread = self
             .rejected_offsets
             .iter()
-            .map(|(x, y)| (x - mx).hypot(y - my))
+            .map(|(x, y, _)| (x - mx).hypot(y - my))
             .fold(0.0, f64::max);
+        let variance_m2 = self
+            .rejected_offsets
+            .iter()
+            .map(|(_, _, v)| *v)
+            .fold(self.config.ekf.initial_position_variance_m2, f64::max);
         if spread > self.config.gnss_reanchor_spread_m {
             return Ok(false);
         }
         let pose = Pose2d::new(origin.x_m + mx, origin.y_m + my, self.ekf.pose().yaw_rad);
-        self.ekf = EkfFusion::with_initial_state(self.config.ekf, pose, self.ekf.velocity())?;
+        let ekf = EkfConfig {
+            initial_position_variance_m2: variance_m2,
+            ..self.config.ekf
+        };
+        self.ekf = EkfFusion::with_initial_state(ekf, pose, self.ekf.velocity())?;
         self.rejected_offsets.clear();
         self.gate_streak = 0;
         // The particle filter followed the old placement; search the map
@@ -1115,6 +1131,38 @@ mod tests {
                 .unwrap();
         }
         assert!(localizer.pose().y_m > 19.0, "{:?}", localizer.pose());
+
+        // Float fixes re-anchor only once the arbiter is dead reckoning,
+        // with the float fixes' uncertainty.
+        let float = |x: f64| AbsolutePositionFix {
+            kind: FixKind::Float,
+            ..good_fix(x, 0.0)
+        };
+        let confident = HybridLocalizerConfig {
+            ekf: EkfConfig {
+                initial_position_variance_m2: 0.01,
+                ..config.ekf
+            },
+            ..config
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(0.0, 20.0, 0.0), confident).unwrap();
+        // The first `leave_gnss_epochs` rejections, while GNSS is still in
+        // charge, do not count; the next ten do.
+        let leave = confident.leave_gnss_epochs;
+        for step in 0..leave + 9 {
+            let decision = localizer
+                .update_gnss(Some(&float(0.0)), f64::from(step as u32))
+                .unwrap();
+            assert_eq!(decision, GnssDecision::RejectedGate, "step {step}");
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+        assert!(localizer.pose().y_m > 19.0, "{:?}", localizer.pose());
+        localizer.update_gnss(Some(&float(0.0)), 20.0).unwrap();
+        let pose = localizer.pose();
+        assert!(pose.x_m.hypot(pose.y_m) < 0.1, "{pose:?}");
+        let covariance = localizer.ekf().covariance();
+        assert!(covariance[0][0] >= 0.99, "{covariance:?}");
     }
 
     #[test]
