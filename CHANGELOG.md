@@ -14,6 +14,13 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 150 (`scene_replay_render`) renders scenes simulated outside RNE.
+  It reads a JSON script of boxes, spheres and cylinders plus camera views,
+  draws each view with the wgpu PBR renderer and writes PNGs, so a
+  lightweight simulator (for example a Python research sandbox) can produce
+  RNE-rendered media without linking against RNE. With `RNE_SKIP_GPU` it
+  only validates the script.
+
 - `rne_adapter_ros2` also records cameras: `to_ros_mono8_image` maps an RNE
   image to a `mono8` `sensor_msgs/Image`, `pinhole_camera_info` gives the
   `CameraInfo` of RNE's render geometry, and `cdr`/`mcap` serialize and declare
@@ -89,7 +96,7 @@ All notable changes to Robot Native Engine are documented in this file.
   fused.
 - `rne_gnss`: foliage volumes (dB/m), non-reflective `ABSORBER` boxes, and a
   tracing distance limit.
-- Example 150: a delivery robot with two antennas walks through a downtown
+- Example 151: a delivery robot with two antennas walks through a downtown
   street grid (a 4-lane main street, two cross streets, city blocks built to
   the property line, signalised intersections with zebra crossings, and
   traffic that keeps its lane, queues and stops on red) from a plaza into an
@@ -100,7 +107,7 @@ All notable changes to Robot Native Engine are documented in this file.
   reckoning 1.8 s, against up to 7 m for an EKF fusing every GNSS solution).
   `--frames` writes animation frames that
   `scripts/svg_frames_to_gif.py` turns into `docs/media/gnss-lidar-navigation.gif`;
-  `--trace` feeds the `150_gnss_lidar_navigation_render` example (feature
+  `--trace` feeds the `151_gnss_lidar_navigation_render` example (feature
   `capture`), which renders the run in 3D with `rne_render_wgpu`
   (`docs/media/gnss-lidar-navigation-3d.gif`).
 

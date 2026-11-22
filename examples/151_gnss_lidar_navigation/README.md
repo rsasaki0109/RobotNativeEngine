@@ -1,8 +1,8 @@
-# Example 150: GNSS outdoors, LiDAR indoors
+# Example 151: GNSS outdoors, LiDAR indoors
 
 ```bash
 scripts/build_gnsspp.sh   # once: libgnss++ for RTK (optional)
-cargo run --release -p gnss_lidar_navigation --example 150_gnss_lidar_navigation
+cargo run --release -p gnss_lidar_navigation --example 151_gnss_lidar_navigation
 ```
 
 A delivery robot drives a 370 m round trip through a small downtown laid out
@@ -24,7 +24,7 @@ localization errors become driving errors. The robot stops if it has been
 dead reckoning for more than 3 s, and a reactive LiDAR check stops forward
 motion when anything is within 0.6 m ahead, whatever the localizer thinks.
 The run takes about a minute in release mode and writes
-`target/150_gnss_lidar_navigation.svg` (`--svg <path>` to choose).
+`target/151_gnss_lidar_navigation.svg` (`--svg <path>` to choose).
 
 ![3D render in Robot Native Engine: the robot walks from the plaza along the main street, waits at the crossings while the traffic stops at the signals, and enters the office; beams show each tracked satellite signal (green line of sight, red NLOS reflections bending at the glass and concrete facades, purple diffraction), cyan dots the LiDAR returns, and the HUD the localization source, the libgnss++ RTK status and the sky at the robot](../../docs/media/gnss-lidar-navigation-3d.gif)
 
@@ -34,10 +34,10 @@ is visible. To regenerate it (any GPU, or Mesa's lavapipe via
 `mesa-vulkan-drivers`; Pillow and ffmpeg for the HUD and GIF):
 
 ```bash
-cargo run --release -p gnss_lidar_navigation --example 150_gnss_lidar_navigation -- --trace target/gnss3d/trace.json
-cargo run --release -p gnss_lidar_navigation --features capture --example 150_gnss_lidar_navigation_render -- \
+cargo run --release -p gnss_lidar_navigation --example 151_gnss_lidar_navigation -- --trace target/gnss3d/trace.json
+cargo run --release -p gnss_lidar_navigation --features capture --example 151_gnss_lidar_navigation_render -- \
     --trace target/gnss3d/trace.json --output target/gnss3d/frames
-python3 examples/150_gnss_lidar_navigation/encode.py target/gnss3d docs/media/gnss-lidar-navigation-3d.gif
+python3 examples/151_gnss_lidar_navigation/encode.py target/gnss3d docs/media/gnss-lidar-navigation-3d.gif
 ```
 
 A top-down 2D animation of the same run is in
@@ -48,7 +48,7 @@ A top-down 2D animation of the same run is in
 To regenerate the animation (needs Python Playwright and ffmpeg):
 
 ```bash
-cargo run --release -p gnss_lidar_navigation --example 150_gnss_lidar_navigation -- --frames target/gnss_frames
+cargo run --release -p gnss_lidar_navigation --example 151_gnss_lidar_navigation -- --frames target/gnss_frames
 python3 scripts/svg_frames_to_gif.py target/gnss_frames docs/media/gnss-lidar-navigation.gif
 ```
 

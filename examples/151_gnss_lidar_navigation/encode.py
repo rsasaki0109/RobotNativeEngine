@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Adds a HUD to example 150's RNE-rendered 3D frames and encodes a GIF.
+"""Adds a HUD to example 151's RNE-rendered 3D frames and encodes a GIF.
 
-    python3 examples/150_gnss_lidar_navigation/encode.py target/gnss3d docs/media/gnss-lidar-navigation-3d.gif
+    python3 examples/151_gnss_lidar_navigation/encode.py target/gnss3d docs/media/gnss-lidar-navigation-3d.gif
 
-`target/gnss3d` must hold `trace.json` (from `150_gnss_lidar_navigation
---trace`) and `frames/` (from `150_gnss_lidar_navigation_render`). The HUD
+`target/gnss3d` must hold `trace.json` (from `151_gnss_lidar_navigation
+--trace`) and `frames/` (from `151_gnss_lidar_navigation_render`). The HUD
 shows the localization source, the GNSS solution, the error, the satellite
 counts, and a sky plot at the robot. Needs Pillow and ffmpeg.
 """

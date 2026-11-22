@@ -225,7 +225,7 @@ SLAM with loop closure and AMCL (a ROS 2 adapter maps to Nav2). Details:
 reflections, diffraction, NLOS) into dual-frequency code and carrier-phase
 observations; libgnss++ solves RTK and moving-baseline heading from them, and
 a localization arbiter uses GNSS outdoors and LiDAR indoors:
-[GNSS](docs/GNSS.md), [example 150](examples/150_gnss_lidar_navigation/README.md)
+[GNSS](docs/GNSS.md), [example 151](examples/151_gnss_lidar_navigation/README.md)
 ([3D animation](docs/media/gnss-lidar-navigation-3d.gif)).
 
 ## Warehouse fleet operations

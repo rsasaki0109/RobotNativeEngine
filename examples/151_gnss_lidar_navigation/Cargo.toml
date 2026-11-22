@@ -27,10 +27,10 @@ rne_render_wgpu = { workspace = true, optional = true }
 png = { workspace = true, optional = true }
 
 [[example]]
-name = "150_gnss_lidar_navigation"
+name = "151_gnss_lidar_navigation"
 path = "main.rs"
 
 [[example]]
-name = "150_gnss_lidar_navigation_render"
+name = "151_gnss_lidar_navigation_render"
 path = "render3d.rs"
 required-features = ["capture"]

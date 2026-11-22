@@ -1,4 +1,4 @@
-//! A JSON trace of the run for the 3D renderer (`150_gnss_lidar_navigation_render`):
+//! A JSON trace of the run for the 3D renderer (`151_gnss_lidar_navigation_render`):
 //! the scene boxes, and per recorded instant the robot, its antennas, every
 //! tracked satellite signal's ray-traced path as a 3D polyline, the LiDAR
 //! returns, the localization source and the GNSS solution.
@@ -173,7 +173,7 @@ pub(crate) fn write_trace(
     frames: &[FrameRecord],
 ) -> std::io::Result<()> {
     let file = TraceFile {
-        format: "rne-150-gnss-lidar-trace/1",
+        format: "rne-151-gnss-lidar-trace/1",
         body_height_m: BODY_HEIGHT_M,
         lever_arms_m: LEVER_ARMS_M.iter().map(|v| v.to_array()).collect(),
         base_m: BASE_ENU_M.to_array(),
