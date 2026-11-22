@@ -237,7 +237,7 @@ fn room_boxes() -> Vec<RoomBox> {
         half_extents_m: Vec3::from_array(half),
         rotation,
     };
-    vec![
+    let mut boxes = vec![
         boxed("floor", [0.0, 0.0, -0.05], [7.0, 6.0, 0.05], level),
         boxed("ceiling", [0.0, 0.0, 3.05], [7.0, 6.0, 0.05], level),
         boxed("wall_east", [6.05, 0.0, 1.5], [0.05, 6.0, 1.6], level),
@@ -277,8 +277,45 @@ fn room_boxes() -> Vec<RoomBox> {
             [1.0, 0.8, 0.05],
             euler(18.0, 0.0, 0.0),
         ),
-    ]
+    ];
+    // A ring of floor-to-ceiling posts: wherever the camera looks, several stand
+    // in front of a wall more than a metre behind them, so each LiDAR beam has
+    // depth discontinuities in the image for camera-lidar to align.
+    for (index, name) in POST_NAMES.iter().enumerate() {
+        let k = index as f64;
+        let azimuth = (k * 360.0 / POST_NAMES.len() as f64 + 7.0 * (1.7 * k).sin()).to_radians();
+        let radius = [2.0, 2.7, 3.4, 4.1][index % 4];
+        let half = 0.07 + 0.03 * (index % 3) as f64;
+        let x = radius * azimuth.cos();
+        let mut y = radius * azimuth.sin();
+        // Keep the rig's path (|y| < 0.5 m, drifting toward +x) clear.
+        if y.abs() < 1.8 && x > -1.5 {
+            y = 1.8_f64.copysign(y);
+        }
+        // Two in three posts lean sideways (about the line to the room centre),
+        // so their silhouettes are slanted: a vertical shift of the image moves a
+        // slanted edge sideways, which vertical edges alone would not show.
+        let lean = [0.0_f64, 35.0, -35.0][index % 3];
+        boxes.push(boxed(
+            name,
+            [x, y, 1.5],
+            [half, half, 1.5 / lean.to_radians().cos() + 0.1],
+            Quat::from_rotation_z(y.atan2(x))
+                * Quat::from_rotation_x(lean.to_radians())
+                * Quat::from_rotation_z((25.0 * k).to_radians()),
+        ));
+    }
+    boxes
 }
+
+/// The posts of [`room_boxes`], 10 degrees apart on average.
+const POST_NAMES: [&str; 36] = [
+    "post_00", "post_01", "post_02", "post_03", "post_04", "post_05", "post_06", "post_07",
+    "post_08", "post_09", "post_10", "post_11", "post_12", "post_13", "post_14", "post_15",
+    "post_16", "post_17", "post_18", "post_19", "post_20", "post_21", "post_22", "post_23",
+    "post_24", "post_25", "post_26", "post_27", "post_28", "post_29", "post_30", "post_31",
+    "post_32", "post_33", "post_34", "post_35",
+];
 
 fn spawn_room(world: &mut World) {
     let m = ros_to_rne();
@@ -363,7 +400,7 @@ impl ColliderRenderer {
                         ((b / TEXTURE_CELL_M).floor() as i64 as u64).wrapping_mul(0x85EB_CA6B),
                     ),
             );
-            let albedo = base * (0.8 + 0.4 * ((cell % 1000) as f64 / 999.0));
+            let albedo = base * (0.9 + 0.2 * ((cell % 1000) as f64 / 999.0));
             let cosine = local_direction.normalize()[normal_axis].abs();
             let gray = (255.0 * albedo * (0.45 + 0.55 * cosine))
                 .round()
@@ -1059,6 +1096,40 @@ mod tests {
     }
 
     #[test]
+    fn the_rig_keeps_clear_of_the_posts() {
+        // Every sensor stays outside each post grown by 0.4 m, over two minutes,
+        // so no sensor starts inside an object or sees it closer than its range
+        // floor.
+        let posts: Vec<RoomBox> = room_boxes()
+            .into_iter()
+            .filter(|room_box| room_box.name.starts_with("post_"))
+            .collect();
+        assert_eq!(posts.len(), POST_NAMES.len());
+        let rig = true_rig();
+        for step in 0..=2400 {
+            let (rotation, position) = rig_pose_ros(f64::from(step) * 0.05);
+            for offset in [
+                Vec3::ZERO,
+                rig.imu.translation_m,
+                rig.lidar2.translation_m,
+                rig.camera.translation_m,
+            ] {
+                let sensor = position + rotation * offset;
+                for post in &posts {
+                    let local = post.rotation.inverse() * (sensor - post.center_m);
+                    let clear = (0..3).any(|i| local[i].abs() > post.half_extents_m[i] + 0.4);
+                    assert!(
+                        clear,
+                        "{} at {sensor:?}, t = {}",
+                        post.name,
+                        f64::from(step) * 0.05
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn short_bag_holds_every_topic_in_time_order() {
         let dir = std::env::temp_dir().join(format!("rne_calibrex_rig_{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
@@ -1265,10 +1336,17 @@ mod tests {
                 {
                     continue;
                 }
-                let depth = f64::from(
-                    rendered.depth.depth_m[(row as u32 * spec.width + column as u32) as usize],
-                );
-                differences.push((depth - optical.z).abs());
+                // The nearest rendered depth within a pixel: next to a post's
+                // silhouette the rounded pixel may show what is behind it.
+                let difference = (-1..=1)
+                    .flat_map(|dr| (-1..=1).map(move |dc| (dr, dc)))
+                    .map(|(dr, dc)| {
+                        let index =
+                            (row as i64 + dr) as u32 * spec.width + (column as i64 + dc) as u32;
+                        (f64::from(rendered.depth.depth_m[index as usize]) - optical.z).abs()
+                    })
+                    .fold(f64::INFINITY, f64::min);
+                differences.push(difference);
             }
         }
         assert!(
