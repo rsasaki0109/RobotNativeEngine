@@ -74,8 +74,10 @@ map cannot tell them from a pillar. Detections there are dropped, and the
 robot would walk into them. So, with the map, the static returns are
 clustered again. While a cluster that passes the person test has its centre
 0.3–1.25 m ahead and within 0.45 m of the robot's axis, the robot does not
-walk forward, and for 1 s after. Walls fail the person test. `--no-safety`
-turns the layer off. Three earlier versions failed, and the reasons shape
+walk forward, and for 1 s after; it turns in place away from it instead.
+Such clusters up to 3 m ahead are also given to the controller as standing
+people, so that it plans around them. Walls fail the person test.
+`--no-safety` turns the layer off. Three earlier versions failed, and the reasons shape
 this one:
 
 - Stopping for any return 0.55–1.0 m ahead stopped the robot in front of
@@ -126,11 +128,11 @@ Eight trials per task and source (`--trials 8`), with the rule controller
 | follow | oracle | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 | 0.00 |
 | follow | oracle+slam | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 | 0.00 |
 | follow | nearest | 8 | 0 | 0 | 0 | 0.97 | 0.64 | 0.74 | - | 0.55 | 0.12 | 0.07 | 0.00 |
-| follow | nearest+map | 8 | 0 | 0 | 0 | 0.97 | 0.63 | 0.90 | - | 0.56 | 0.12 | 0.07 | 3.84 |
-| follow | nearest+slam | 8 | 0 | 0 | 0 | 0.97 | 0.63 | 0.90 | - | 0.56 | 0.12 | 0.07 | 3.84 |
+| follow | nearest+map | 8 | 0 | 0 | 0 | 0.97 | 0.63 | 0.88 | - | 0.56 | 0.12 | 0.07 | 3.92 |
+| follow | nearest+slam | 8 | 0 | 0 | 0 | 0.97 | 0.63 | 0.88 | - | 0.56 | 0.12 | 0.07 | 3.92 |
 | follow | tracker | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.37 | - | 0.47 | 0.06 | 0.03 | 0.00 |
-| follow | tracker+map | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.44 | - | 0.49 | 0.06 | 0.04 | 3.71 |
-| follow | tracker+slam | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.44 | - | 0.49 | 0.06 | 0.04 | 3.71 |
+| follow | tracker+map | 8 | 0 | 0 | 0 | 1.03 | 0.64 | 0.44 | - | 0.49 | 0.06 | 0.03 | 3.81 |
+| follow | tracker+slam | 8 | 0 | 0 | 0 | 1.03 | 0.64 | 0.44 | - | 0.49 | 0.06 | 0.03 | 3.81 |
 | crossing | oracle | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - | 0.00 |
 | crossing | oracle+slam | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - | 0.00 |
 | crossing | nearest | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - | 0.00 |
@@ -143,10 +145,10 @@ Eight trials per task and source (`--trials 8`), with the rule controller
 | corridor | oracle+slam | 8 | 0 | 0 | 0 | 0.71 | 0.67 | 0.70 | 1.17 | - | - | - | 0.00 |
 | corridor | nearest | 8 | 0 | 0 | 0 | 0.70 | 0.59 | 0.82 | 1.11 | - | - | - | 0.00 |
 | corridor | nearest+map | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.26 | - | - | - | 0.00 |
-| corridor | nearest+slam | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.08 | - | - | - | 0.00 |
+| corridor | nearest+slam | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.10 | - | - | - | 0.00 |
 | corridor | tracker | 8 | 0 | 1 | 1 | 0.68 | 0.54 | 0.77 | 1.30 | - | - | - | 0.00 |
-| corridor | tracker+map | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.24 | - | - | - | 0.00 |
-| corridor | tracker+slam | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.04 | - | - | - | 0.00 |
+| corridor | tracker+map | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.25 | - | - | - | 0.00 |
+| corridor | tracker+slam | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.02 | - | - | - | 0.00 |
 | room | oracle | 8 | 0 | 0 | 0 | 1.01 | 0.98 | 0.00 | 0.94 | - | - | - | 0.00 |
 | room | oracle+slam | 8 | 0 | 0 | 0 | 1.01 | 0.99 | 0.00 | 0.42 | - | - | - | 0.00 |
 | room | nearest | 8 | 0 | 0 | 0 | 0.97 | 0.86 | 0.00 | 0.96 | - | - | - | 0.00 |
@@ -158,11 +160,11 @@ Eight trials per task and source (`--trials 8`), with the rule controller
 | crowd | oracle | 8 | 0 | 0 | 0 | 0.87 | 0.82 | 0.00 | 1.18 | - | - | - | 0.00 |
 | crowd | oracle+slam | 8 | 0 | 0 | 0 | 0.69 | 0.63 | 1.45 | 0.43 | - | - | - | 0.00 |
 | crowd | nearest | 8 | 0 | 4 | 4 | 0.42 | 0.04 | 3.76 | 1.19 | - | - | - | 0.00 |
-| crowd | nearest+map | 8 | 0 | 4 | 4 | 0.41 | 0.10 | 1.87 | 1.21 | - | - | - | 9.69 |
-| crowd | nearest+slam | 8 | 0 | 3 | 5 | 0.53 | 0.26 | 1.89 | 0.43 | - | - | - | 10.84 |
+| crowd | nearest+map | 8 | 0 | 4 | 4 | 0.41 | 0.10 | 1.98 | 1.20 | - | - | - | 1.48 |
+| crowd | nearest+slam | 8 | 0 | 3 | 6 | 0.53 | 0.26 | 3.09 | 0.43 | - | - | - | 8.21 |
 | crowd | tracker | 8 | 0 | 3 | 4 | 0.52 | 0.09 | 2.25 | 1.12 | - | - | - | 0.00 |
-| crowd | tracker+map | 8 | 0 | 1 | 1 | 0.67 | 0.05 | 3.02 | 1.17 | - | - | - | 10.29 |
-| crowd | tracker+slam | 8 | 0 | 1 | 3 | 0.74 | 0.38 | 0.71 | 0.43 | - | - | - | 10.19 |
+| crowd | tracker+map | 8 | 0 | 1 | 1 | 0.69 | 0.05 | 0.58 | 1.18 | - | - | - | 0.60 |
+| crowd | tracker+slam | 8 | 0 | 1 | 3 | 0.69 | 0.33 | 2.83 | 0.43 | - | - | - | 6.76 |
 
 No run falls. A contact is a person's centre within 0.55 m of the base's
 centre. "Left to goal" is the true distance when the robot believes it has
@@ -245,6 +247,43 @@ controller trusting single frames of correct, noisy tracks. A tracker's
 velocity noise matters to the robot through decisions like this one, which
 the tracking metrics do not show.
 
+## Reactive people
+
+The people above walk their scripts whatever the robot does, so a robot that
+stops is walked into. With `--reactive-people`, a walking person slows when
+the robot is in their way (closer than 1.5 m ahead, within 0.7 m of their
+line) and stops 0.8 m from it. Each walks their script on their own clock
+and resumes where they stopped. Standing people do not react, and nor does
+the overtaker unless the robot is in its lane. Eight trials:
+
+| runs with contact of 8 | follow | crossing | corridor | room | crowd |
+| --- | --- | --- | --- | --- | --- |
+| oracle | 0 | 0 | 0 | 0 | 0 |
+| oracle+slam | 0 | 0 | 0 | 0 | 0 |
+| nearest | 0 | 0 | 0 | 0 | 2 |
+| nearest+map | 0 | 0 | 0 | 0 | 2 (1 stuck) |
+| nearest+slam | 0 | 0 | 0 | 0 | 0 |
+| tracker | 0 | 0 | 0 | 0 | 1 |
+| tracker+map | 0 | 0 | 0 | 0 | 1 (1 stuck) |
+| tracker+slam | 0 | 0 | 0 | 0 | 0 |
+
+"Stuck" runs did not reach the goal in 120 s.
+
+- Contacts in the crowd fall from 1–4 of 8 to 0–2 of 8. The SLAM sources
+  have none.
+- Reactive people exposed a deadlock. A person who stopped for the robot
+  stood still for 6 s, joined the static map, and the safety layer then
+  held the robot while the person waited for it. 8 of 32 map runs were
+  stuck. Two changes cut that to 2: static person-shaped clusters ahead are
+  planned around as standing people, and while one blocks the way the
+  robot turns in place away from it.
+- The 2 stuck runs (one trial, both odometry-map sources) are a limit of
+  the robot: it crept to 0.55 m of a person who had stopped for it. At that
+  range most of their returns fall inside the 0.4 m the scan ignores around
+  the base, and the trot cannot step back or sideways. Turning in place did
+  not free it. Close by, the person's distance hovers at the contact
+  threshold, and one of those runs counts 9 contacts.
+
 ## Dynamic-window controller
 
 `--controller dwa` replaces the rules with a dynamic window. Every pair of
@@ -295,8 +334,9 @@ The numbers above are after these fixes, each found from the traces:
 
 ## Limits
 
-- **People**: kinematic capsules on scripted paths. They do not react to the
-  robot, and their colliders are sensors, so contacts are counted from
+- **People**: kinematic capsules on scripted paths. By default they do not
+  react to the robot (`--reactive-people` makes them stop for it, but not
+  step aside), and their colliders are sensors, so contacts are counted from
   distance and the robot is never pushed.
 - **Robot motion**: the trot takes forward speed and yaw rate only, with no
   sidestepping.
