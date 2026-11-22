@@ -98,7 +98,9 @@ QZSS's near-zenith satellites are what a canyon can still see.
 The LiDAR map carries the robot through Shibuya with or without the
 GNSS aids. Among the Nishi-Shinjuku towers the hybrid arbiter needs both
 aids: without QZSS it has to stop for 96 s, and without the NLOS exclusion
-it gets lost.
+it gets lost: wrong RTK fixes that slip through move the estimate, and the
+LiDAR gate below then keeps the scans from pulling it back (with the gate
+off, that run reaches the goal with 6.4 m RMSE).
 
 The hybrid here runs with three options for streets like these (all off
 by default in `HybridLocalizerConfig`):
@@ -110,6 +112,8 @@ by default in `HybridLocalizerConfig`):
 * `lidar_gate_chi_square` (16) — a scan match far outside the EKF's
   uncertainty is not fused: on a featureless street the matches slide
   along it, and one slide used to carry the estimate tens of metres off.
+  It presumes GNSS fixes rarely mislead, which the NLOS exclusion
+  provides.
 * `gnss_reanchor_fixes` (15) — the gate's price is that a wrong estimate
   rejects correct fixes too. When 15 gate-rejected RTK fixed solutions in
   a row agree to within 0.5 m relative to the wheel odometry, the
