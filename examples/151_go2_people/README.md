@@ -14,7 +14,7 @@ cargo run --release -p go2_people --example 151_go2_people -- --out target/go2_p
     --max-association-distance-m 1.0 --recent-track-window-ns 0
 ```
 
-One pass (4 tasks × 8 perception sources) takes about 4 minutes on 4 cores
+One pass (5 tasks × 8 perception sources) takes about 6 minutes on 4 cores
 and is deterministic. `--trials N` repeats it with each person (but a follow
 target) starting up to 2 s earlier or later, from a seed, and prints a
 summary over the trials. Each run writes a per-frame trace
@@ -40,9 +40,10 @@ summary over the trials. Each run writes a per-frame trace
   - It changes lanes early, at walking speed, for someone coming head-on or
     standing in the way. It aims 1.1 m clear of the line that person walks
     along, from the track's velocity smoothed over about 1 s. Someone
-    drifting sideways (across the way to the goal) is passed behind. Otherwise the robot keeps to its
-    side of the person's line, and holds that side once the track is 1 s
-    old.
+    drifting sideways (across the way to the goal) is passed behind.
+    Otherwise the robot keeps to its side of the person's line, and holds
+    that side once the track is 1 s old.
+  - A safety layer for the static map (below) stops forward motion.
   - In `follow` it keeps one track as the target, 1.2 m behind it. When that
     track is lost, it takes the track nearest the target's predicted
     position.
@@ -67,6 +68,24 @@ Mid-360's pattern hits a given cell only now and then, so a plain frame
 count misses most of the wall. A cluster with more than half its returns on
 static cells is dropped. A person who stands still for less than 6 s is not
 absorbed.
+
+**Safety layer.** A person who stands still for longer is absorbed: the
+map cannot tell them from a pillar. Detections there are dropped, and the
+robot would walk into them. So, with the map, the static returns are
+clustered again. While a cluster that passes the person test has its centre
+0.3–1.25 m ahead and within 0.45 m of the robot's axis, the robot does not
+walk forward, and for 1 s after. Walls fail the person test. `--no-safety`
+turns the layer off. Three earlier versions failed, and the reasons shape
+this one:
+
+- Stopping for any return 0.55–1.0 m ahead stopped the robot in front of
+  people coming head-on, who do not react to it, and for corridor walls
+  when it was angled mid lane change. Corridor runs with a contact went from
+  0–1 of 8 to 6–8 of 8.
+- Stopping for any static return still stopped for the walls.
+- Counting static returns in a box flickered in the SLAM frame, where the
+  cells shift with each correction. The rate-limited robot crept on between
+  flickers, and closer than the box's near edge nothing blocked at all.
 
 **SLAM.** `rne_slam`'s 2D SLAM is set up as in example 131. Its scan holds
 the returns 0.15–0.65 m above the floor, minus those within 0.5 m of a
@@ -95,65 +114,83 @@ frame. Two safeguards came from failures:
 | `crossing` | Walk 12 m to a goal | Four cross the path (0.7–1.1 m/s), one diagonally |
 | `corridor` | Walk 15 m down a 3.2 m wide corridor | Three come the other way (0.7–0.9 m/s) |
 | `room` | Cross a furnished 14 m × 9 m room (walls, two tables, a shelf, two pillars) to a goal 11 m away | Three walk through it, one diagonally toward the robot |
+| `crowd` | Cross a 20 m × 9.6 m hall to a goal 14 m away | Nine: three head-on, two crossing, one diagonal, one overtaking from behind, and a pair standing in the way for 55 s, long enough to join the static map |
 
 ## Results
 
 Eight trials per task and source (`--trials 8`), with the rule controller
 (the default):
 
-| task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| follow | oracle | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 |
-| follow | oracle+slam | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 |
-| follow | nearest | 8 | 0 | 0 | 0 | 0.97 | 0.64 | 0.74 | - | 0.55 | 0.12 | 0.07 |
-| follow | nearest+map | 8 | 0 | 0 | 0 | 0.97 | 0.64 | 0.74 | - | 0.55 | 0.12 | 0.07 |
-| follow | nearest+slam | 8 | 0 | 0 | 0 | 0.97 | 0.64 | 0.74 | - | 0.55 | 0.12 | 0.07 |
-| follow | tracker | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.37 | - | 0.47 | 0.06 | 0.03 |
-| follow | tracker+map | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.37 | - | 0.47 | 0.06 | 0.04 |
-| follow | tracker+slam | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.37 | - | 0.47 | 0.06 | 0.04 |
-| crossing | oracle | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - |
-| crossing | oracle+slam | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - |
-| crossing | nearest | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
-| crossing | nearest+map | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
-| crossing | nearest+slam | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
-| crossing | tracker | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - |
-| crossing | tracker+map | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - |
-| crossing | tracker+slam | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - |
-| corridor | oracle | 8 | 0 | 0 | 0 | 0.71 | 0.67 | 0.70 | 1.27 | - | - | - |
-| corridor | oracle+slam | 8 | 0 | 0 | 0 | 0.71 | 0.67 | 0.70 | 1.17 | - | - | - |
-| corridor | nearest | 8 | 0 | 0 | 0 | 0.70 | 0.59 | 0.82 | 1.11 | - | - | - |
-| corridor | nearest+map | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.26 | - | - | - |
-| corridor | nearest+slam | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.08 | - | - | - |
-| corridor | tracker | 8 | 0 | 1 | 1 | 0.68 | 0.54 | 0.77 | 1.30 | - | - | - |
-| corridor | tracker+map | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.24 | - | - | - |
-| corridor | tracker+slam | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.04 | - | - | - |
-| room | oracle | 8 | 0 | 0 | 0 | 1.01 | 0.98 | 0.00 | 0.94 | - | - | - |
-| room | oracle+slam | 8 | 0 | 0 | 0 | 1.01 | 0.99 | 0.00 | 0.42 | - | - | - |
-| room | nearest | 8 | 0 | 0 | 0 | 0.97 | 0.86 | 0.00 | 0.96 | - | - | - |
-| room | nearest+map | 8 | 0 | 0 | 0 | 0.98 | 0.88 | 0.00 | 0.98 | - | - | - |
-| room | nearest+slam | 8 | 0 | 0 | 0 | 0.99 | 0.94 | 0.00 | 0.42 | - | - | - |
-| room | tracker | 8 | 0 | 0 | 0 | 1.01 | 0.92 | 0.00 | 0.98 | - | - | - |
-| room | tracker+map | 8 | 0 | 0 | 0 | 0.94 | 0.86 | 0.00 | 0.94 | - | - | - |
-| room | tracker+slam | 8 | 0 | 0 | 0 | 1.01 | 0.94 | 0.00 | 0.42 | - | - | - |
+| task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost | safety stop, mean (s) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| follow | oracle | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 | 0.00 |
+| follow | oracle+slam | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 | 0.00 |
+| follow | nearest | 8 | 0 | 0 | 0 | 0.97 | 0.64 | 0.74 | - | 0.55 | 0.12 | 0.07 | 0.00 |
+| follow | nearest+map | 8 | 0 | 0 | 0 | 0.97 | 0.63 | 0.90 | - | 0.56 | 0.12 | 0.07 | 3.84 |
+| follow | nearest+slam | 8 | 0 | 0 | 0 | 0.97 | 0.63 | 0.90 | - | 0.56 | 0.12 | 0.07 | 3.84 |
+| follow | tracker | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.37 | - | 0.47 | 0.06 | 0.03 | 0.00 |
+| follow | tracker+map | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.44 | - | 0.49 | 0.06 | 0.04 | 3.71 |
+| follow | tracker+slam | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.44 | - | 0.49 | 0.06 | 0.04 | 3.71 |
+| crossing | oracle | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - | 0.00 |
+| crossing | oracle+slam | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - | 0.00 |
+| crossing | nearest | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - | 0.00 |
+| crossing | nearest+map | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - | 0.00 |
+| crossing | nearest+slam | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - | 0.00 |
+| crossing | tracker | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - | 0.00 |
+| crossing | tracker+map | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - | 0.00 |
+| crossing | tracker+slam | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - | 0.00 |
+| corridor | oracle | 8 | 0 | 0 | 0 | 0.71 | 0.67 | 0.70 | 1.27 | - | - | - | 0.00 |
+| corridor | oracle+slam | 8 | 0 | 0 | 0 | 0.71 | 0.67 | 0.70 | 1.17 | - | - | - | 0.00 |
+| corridor | nearest | 8 | 0 | 0 | 0 | 0.70 | 0.59 | 0.82 | 1.11 | - | - | - | 0.00 |
+| corridor | nearest+map | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.26 | - | - | - | 0.00 |
+| corridor | nearest+slam | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.08 | - | - | - | 0.00 |
+| corridor | tracker | 8 | 0 | 1 | 1 | 0.68 | 0.54 | 0.77 | 1.30 | - | - | - | 0.00 |
+| corridor | tracker+map | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.24 | - | - | - | 0.00 |
+| corridor | tracker+slam | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.04 | - | - | - | 0.00 |
+| room | oracle | 8 | 0 | 0 | 0 | 1.01 | 0.98 | 0.00 | 0.94 | - | - | - | 0.00 |
+| room | oracle+slam | 8 | 0 | 0 | 0 | 1.01 | 0.99 | 0.00 | 0.42 | - | - | - | 0.00 |
+| room | nearest | 8 | 0 | 0 | 0 | 0.97 | 0.86 | 0.00 | 0.96 | - | - | - | 0.00 |
+| room | nearest+map | 8 | 0 | 0 | 0 | 0.98 | 0.88 | 0.00 | 0.98 | - | - | - | 0.00 |
+| room | nearest+slam | 8 | 0 | 0 | 0 | 0.99 | 0.94 | 0.00 | 0.42 | - | - | - | 0.00 |
+| room | tracker | 8 | 0 | 0 | 0 | 1.01 | 0.92 | 0.00 | 0.98 | - | - | - | 0.00 |
+| room | tracker+map | 8 | 0 | 0 | 0 | 0.94 | 0.86 | 0.00 | 0.94 | - | - | - | 0.00 |
+| room | tracker+slam | 8 | 0 | 0 | 0 | 1.01 | 0.94 | 0.00 | 0.42 | - | - | - | 0.00 |
+| crowd | oracle | 8 | 0 | 0 | 0 | 0.87 | 0.82 | 0.00 | 1.18 | - | - | - | 0.00 |
+| crowd | oracle+slam | 8 | 0 | 0 | 0 | 0.69 | 0.63 | 1.45 | 0.43 | - | - | - | 0.00 |
+| crowd | nearest | 8 | 0 | 4 | 4 | 0.42 | 0.04 | 3.76 | 1.19 | - | - | - | 0.00 |
+| crowd | nearest+map | 8 | 0 | 4 | 4 | 0.41 | 0.10 | 1.87 | 1.21 | - | - | - | 9.69 |
+| crowd | nearest+slam | 8 | 0 | 3 | 5 | 0.53 | 0.26 | 1.89 | 0.43 | - | - | - | 10.84 |
+| crowd | tracker | 8 | 0 | 3 | 4 | 0.52 | 0.09 | 2.25 | 1.12 | - | - | - | 0.00 |
+| crowd | tracker+map | 8 | 0 | 1 | 1 | 0.67 | 0.05 | 3.02 | 1.17 | - | - | - | 10.29 |
+| crowd | tracker+slam | 8 | 0 | 1 | 3 | 0.74 | 0.38 | 0.71 | 0.43 | - | - | - | 10.19 |
 
 No run falls. A contact is a person's centre within 0.55 m of the base's
 centre. "Left to goal" is the true distance when the robot believes it has
 arrived.
 
-- **One contact in 256 runs.** Perfect perception touches nobody, with
-  odometry or SLAM.
-- **Following**: no contacts. robot-perception is on the wrong person 6 % of
-  the time, against 12 % for the nearest-neighbour tracker.
-- **Crossing** is safe with every source.
+- **Perfect perception touches nobody** in 80 runs, with odometry or SLAM.
+- **Following, crossing, room**: no contacts with any source.
+  robot-perception is on the wrong person 6 % of the time when following,
+  against 12 % for the nearest-neighbour tracker.
 - **Corridor**: one contact in 48 runs with real perception
   (robot-perception without the map, closest 0.54 m against the 0.55 m
-  contact distance). The robot started that lane change late and was a
-  third of the way across when the person arrived. Wall pieces still become
-  phantom people without the map, but they no longer decide where the robot
-  walks. The map shortens the time spent within 0.8 m of someone
-  (0.77 → 0.67 s for robot-perception).
-- **Room**: no contacts with any source. SLAM localizes to 4 cm and halves
-  the goal error (0.94 → 0.42 m).
+  contact distance). The robot started that lane change late.
+- **Crowd**: here the sources separate. robot-perception with the static
+  map (with or without SLAM) has a contact in 1 of 8 runs. Without the map,
+  or with the nearest-neighbour tracker, it is 3–4 of 8.
+  - The standing pair joins the static map. Without the safety layer, the
+    robot walked into them in 7 of 8 map runs. With it, the robot waits
+    about 10 s in front of them.
+  - Every remaining contact is with a person who was being tracked. 14 of
+    16 happen at 20–24 s, when a head-on walker, a crosser and the
+    overtaker are all within 2 m. The robot stops or slows for the crosser,
+    and the head-on walker (11) or the overtaker (3) walks into it. With
+    perfect perception the robot reaches that moment at a different time
+    and never touches anyone. Track noise changes when it waits.
+  - The crowd was first written with the diagonal walker and a second
+    head-on walker in the same few seconds. Even perfect perception touched
+    someone there, which measures the controller, not perception. They were
+    spaced until perfect perception passed 16 of 16 runs.
 
 ### How the contacts were found
 
@@ -217,7 +254,7 @@ clearance under 0.75 m is all but forbidden, and clearance under 1.5 m costs
 extra. Then come the distance to the aim, the heading to it, and changes of
 turn rate. Over the same 8 trials it is worse overall, and the rule
 controller stays the default (DWA as of this write-up; the rule rows are
-after both fixes below):
+after the fixes above):
 
 | runs with contact (fell) of 8 | follow | crossing | corridor | room |
 | --- | --- | --- | --- | --- |
@@ -266,7 +303,9 @@ The numbers above are after these fixes, each found from the traces:
 - **Perception**: the scan uses the true attitude and a perfect de-skew. The
   robot has no map, so walls are only what the detector makes of them.
 - **Static map**: drift in the odometry frame smears it slowly. A person
-  standing still longer than 6 s becomes part of it.
+  standing still longer than 6 s becomes part of it; the safety layer
+  keeps the robot from walking into them, but the controller no longer
+  plans around them.
 - **SLAM**: scan matching only; no IMU fusion, no relocalization.
 - **DWA**: people only; walls and furniture are not obstacles to it.
 - **Not covered**: the camera and VLM cues. Combining them with this loop is
