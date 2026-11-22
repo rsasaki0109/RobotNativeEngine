@@ -61,9 +61,9 @@ use rne_render::{
     RenderTarget,
 };
 use rne_sensor::{
-    sample_camera_rgbd_keyed, sample_imu_stateful_diagnostic_with_kinematics, sample_lidar_swept,
-    CameraDistortion, CameraSpec, ImuAxisErrors, ImuKinematicState, ImuMount, ImuSpec, ImuState,
-    LidarSpec, LidarSweep, SensorNoiseKey,
+    sample_camera_rgbd_swept, sample_imu_stateful_diagnostic_with_kinematics, sample_lidar_swept,
+    CameraDistortion, CameraSpec, CameraSweep, ImuAxisErrors, ImuKinematicState, ImuMount, ImuSpec,
+    ImuState, LidarSpec, LidarSweep, SensorNoiseKey,
 };
 use rne_world::Transform3;
 
@@ -826,6 +826,8 @@ enum CameraInfoMode {
 struct CameraOptions {
     lens: CameraDistortion,
     info: CameraInfoMode,
+    /// Rolling-shutter readout, first row to last (`--readout-ms`); 0 is a global shutter.
+    readout_s: f64,
 }
 
 impl CameraOptions {
@@ -1167,13 +1169,25 @@ impl Scene {
         (image_topic, info_topic, frame, sensor_id): (Topic, Topic, &str, u64),
         events: &mut Vec<Event>,
     ) -> usize {
-        let spec = camera_spec_with(options.lens);
+        let spec = CameraSpec {
+            readout_time_s: options.readout_s,
+            // Rows read in bands, each from the pose at its own time: 24 bands of 15
+            // rows approximate a continuous readout.
+            rolling_shutter_bands: if options.readout_s > 0.0 { 24 } else { 1 },
+            ..camera_spec_with(options.lens)
+        };
         let frames = (duration_s * CAMERA_RATE_HZ as f64).floor() as u64;
         for frame_index in 0..frames {
             let time_s = frame_index as f64 / CAMERA_RATE_HZ as f64;
-            let sample = sample_camera_rgbd_keyed(
+            // The middle row is read at the frame's stamp, as Calibrex assumes.
+            let half = 0.5 * options.readout_s;
+            let sweep = CameraSweep::new(
+                self.motion.camera_render_pose_rne(time_s - half, mount),
+                self.motion.camera_render_pose_rne(time_s + half, mount),
+            );
+            let sample = sample_camera_rgbd_swept(
                 &mut self.renderer,
-                &self.motion.camera_render_pose_rne(time_s, mount),
+                &sweep,
                 &spec,
                 SimTime::from_ticks(seconds_to_ns(time_s)),
                 &RenderScene::new(),
@@ -1446,7 +1460,7 @@ struct Args {
 const USAGE: &str = "usage: 149_calibrex_rig_bag [--out DIR] [--duration-s SECONDS] \
      [--sensors lidar,imu,lidar2,camera,camera2] [--rotation-speed FACTOR] \
      [--motion hand-held|turn|board] [--lens K1,K2,P1,P2[,K3]] \
-     [--camera-info true|zero|none] [--board COLSxROWSxSQUARE_M]";
+     [--camera-info true|zero|none] [--board COLSxROWSxSQUARE_M] [--readout-ms MS]";
 
 fn exit_usage(error: &str) -> ! {
     eprintln!("{error}\n{USAGE}");
@@ -1497,6 +1511,14 @@ fn parse_args() -> Args {
             ("--board", Some(value)) => {
                 args.board =
                     Some(BoardSpec::parse(&value).unwrap_or_else(|error| exit_usage(&error)));
+            }
+            ("--readout-ms", Some(value)) => {
+                args.camera.readout_s = value
+                    .parse::<f64>()
+                    .ok()
+                    .filter(|ms| ms.is_finite() && *ms >= 0.0)
+                    .unwrap_or_else(|| exit_usage("--readout-ms takes milliseconds"))
+                    / 1000.0;
             }
             ("--camera-info", Some(value)) => {
                 args.camera.info =
@@ -1604,6 +1626,7 @@ mod tests {
     use super::*;
     use rne_adapter_ros2::RosCameraInfo;
     use rne_physics::RaycastQuery;
+    use rne_sensor::sample_camera_rgbd_keyed;
 
     fn read_records(bytes: &[u8]) -> Vec<(u8, &[u8])> {
         let body = &bytes[8..bytes.len() - 8];
@@ -2127,7 +2150,11 @@ mod tests {
                 true_rig(),
                 sensors,
                 Motion::TURN_IN_PLACE,
-                CameraOptions { lens, info: mode },
+                CameraOptions {
+                    lens,
+                    info: mode,
+                    readout_s: 0.0,
+                },
                 None,
             )
             .unwrap();
