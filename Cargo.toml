@@ -191,6 +191,7 @@ members = [
   "examples/147_go2_learning",
   "examples/146_contact_closed_form",
   "examples/151_gnss_lidar_navigation",
+  "examples/152_plateau_gnss_navigation",
   "examples/149_calibrex_rig_bag",
   "examples/150_scene_replay_render",
   "examples/go2_indoor",

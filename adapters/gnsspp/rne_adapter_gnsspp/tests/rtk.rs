@@ -197,3 +197,62 @@ fn rtk_replays_bit_identically() {
     };
     assert_eq!(run(), run());
 }
+
+#[test]
+fn qzss_joins_spp_and_rtk() {
+    if !is_available() {
+        return;
+    }
+    let config = ReceiverConfig::default();
+    let constellation = Constellation::gps_galileo_qzss_nominal();
+    let message = NavigationMessage::from_constellation(
+        &constellation,
+        config.epoch,
+        0.0,
+        config.atmosphere.klobuchar,
+    );
+    let navigation = Navigation::new(&message).expect("navigation");
+    // Tokyo, where QZSS is overhead.
+    let frame = EnuFrame::new(Geodetic::from_degrees(35.68, 139.77, 40.0));
+    let scene = GnssScene::open_sky();
+    let open_sky_count = |c: &Constellation| {
+        let mut receiver = GnssReceiver::new(config).unwrap();
+        let epoch = receiver.observe(&scene, c, &frame, Vec3::new(0.0, 0.0, 1.5), 0.0);
+        let mut spp = Spp::new(10.0).unwrap();
+        spp.process(&epoch, None, &navigation).unwrap().satellites
+    };
+    let with_qzss = open_sky_count(&constellation);
+    let without = open_sky_count(&Constellation::gps_galileo_nominal());
+    assert!(with_qzss >= without + 2, "{with_qzss} vs {without}");
+
+    let base_enu = Vec3::new(-150.0, 80.0, 12.0);
+    let base_ecef = frame.enu_to_ecef(base_enu);
+    let mut base = GnssReceiver::new(ReceiverConfig { seed: 1, ..config }).unwrap();
+    let mut rover = GnssReceiver::new(ReceiverConfig { seed: 3, ..config }).unwrap();
+    let mut rtk = Rtk::new(RtkMode::Kinematic, 10.0, 3.0).unwrap();
+    rtk.set_base_position(base_ecef).unwrap();
+    let (mut fixed, mut last_error) = (0, f64::INFINITY);
+    for step in 0..100 {
+        let t = f64::from(step) * 0.2;
+        let antenna = Vec3::new(t, 0.0, 0.8);
+        let base_epoch = base.observe(&scene, &constellation, &frame, base_enu, t);
+        let rover_epoch = rover.observe(&scene, &constellation, &frame, antenna, t);
+        let solution = rtk
+            .process(
+                &rover_epoch,
+                None,
+                &base_epoch,
+                Some(base_ecef),
+                &navigation,
+            )
+            .unwrap();
+        if solution.status == SolutionStatus::Fixed {
+            fixed += 1;
+            last_error = frame
+                .ecef_vector_to_enu(solution.position_ecef_m - frame.enu_to_ecef(antenna))
+                .length();
+        }
+    }
+    assert!(fixed >= 50, "{fixed} fixed epochs");
+    assert!(last_error < 0.05, "RTK error {last_error} m");
+}

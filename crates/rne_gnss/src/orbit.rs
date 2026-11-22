@@ -1,4 +1,5 @@
-//! Keplerian satellite orbits and nominal GPS / Galileo constellations.
+//! Keplerian satellite orbits and nominal GPS, Galileo and QZSS
+//! constellations.
 //!
 //! Orbits are propagated from Keplerian elements with a Newton solve of
 //! Kepler's equation and rotated into the Earth-fixed frame with the WGS-84
@@ -24,6 +25,9 @@ pub enum GnssSystem {
     Gps,
     /// European Galileo.
     Galileo,
+    /// Japanese Quasi-Zenith Satellite System (Michibiki), GPS-compatible
+    /// L1 C/A and L2C on GPS time.
+    Qzss,
 }
 
 impl GnssSystem {
@@ -32,6 +36,7 @@ impl GnssSystem {
         match self {
             Self::Gps => 'G',
             Self::Galileo => 'E',
+            Self::Qzss => 'J',
         }
     }
 }
@@ -202,6 +207,51 @@ impl Constellation {
         Self::new(satellites)
     }
 
+    /// The four-satellite QZSS: QZS-1R, -2 and -4 (J01-J03) in quasi-zenith
+    /// orbits (geosynchronous, e 0.075, i 41°, perigee argument 270°) sharing
+    /// one figure-eight ground track whose northern loop, at apogee, is over
+    /// 135° E, one passing every 8 hours, and QZS-3 (J07) geostationary at
+    /// 127° E. From Japan one QZO satellite is always high in the sky.
+    pub fn qzss_nominal() -> Self {
+        let a = (EARTH_MU_M3_S2 / EARTH_ROTATION_RAD_S.powi(2)).cbrt();
+        let mut satellites: Vec<Satellite> = (0..3)
+            .map(|k| {
+                // Apogee (argument of latitude 90°, longitude node + 90°) at
+                // t = 120°·k / n with the Earth-fixed node then at 45° E.
+                let k = f64::from(k);
+                Satellite {
+                    id: SatelliteId {
+                        system: GnssSystem::Qzss,
+                        prn: k as u8 + 1,
+                    },
+                    orbit: KeplerOrbit {
+                        semi_major_axis_m: a,
+                        eccentricity: 0.075,
+                        inclination_rad: 41.0_f64.to_radians(),
+                        ascending_node_rad: (45.0 + 120.0 * k).to_radians(),
+                        argument_of_perigee_rad: 270.0_f64.to_radians(),
+                        mean_anomaly_rad: (180.0 - 120.0 * k).to_radians(),
+                    },
+                }
+            })
+            .collect();
+        satellites.push(Satellite {
+            id: SatelliteId {
+                system: GnssSystem::Qzss,
+                prn: 7,
+            },
+            orbit: KeplerOrbit::circular(a, 0.1_f64.to_radians(), 0.0, 127.0_f64.to_radians()),
+        });
+        Self::new(satellites)
+    }
+
+    /// GPS, Galileo and QZSS together (a receiver in Japan).
+    pub fn gps_galileo_qzss_nominal() -> Self {
+        let mut satellites = Self::gps_galileo_nominal().satellites;
+        satellites.extend(Self::qzss_nominal().satellites);
+        Self::new(satellites)
+    }
+
     /// GPS and Galileo together.
     pub fn gps_galileo_nominal() -> Self {
         let mut satellites = Self::gps_nominal().satellites;
@@ -249,6 +299,38 @@ pub fn wrap_two_pi(angle_rad: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_qzss_satellite_is_always_high_over_tokyo() {
+        let qzss = Constellation::qzss_nominal();
+        let tokyo = crate::geodesy::Geodetic::from_degrees(35.68, 139.77, 40.0);
+        let frame = crate::geodesy::EnuFrame::new(tokyo);
+        let elevation = |s: &Satellite, t: f64| {
+            let d = frame.ecef_vector_to_enu(s.orbit.position_ecef(t) - tokyo.to_ecef());
+            (d.z / d.length()).asin().to_degrees()
+        };
+        for hour in 0..48 {
+            let t = f64::from(hour) * 1800.0;
+            let highest = qzss.satellites()[..3]
+                .iter()
+                .map(|s| elevation(s, t))
+                .fold(f64::NEG_INFINITY, f64::max);
+            assert!(highest > 60.0, "t {t}: {highest}");
+            // The geostationary QZS-3 stays put, about 48° up to the south.
+            assert!((elevation(&qzss.satellites()[3], t) - 48.0).abs() < 3.0);
+        }
+        // Apogee over 135° E, about 41° N.
+        let apogee =
+            crate::geodesy::Geodetic::from_ecef(qzss.satellites()[0].orbit.position_ecef(0.0));
+        assert!(
+            (apogee.longitude_rad.to_degrees() - 135.0).abs() < 1.0,
+            "{apogee:?}"
+        );
+        assert!(
+            (apogee.latitude_rad.to_degrees() - 41.0).abs() < 2.0,
+            "{apogee:?}"
+        );
+    }
     use approx::assert_relative_eq;
 
     #[test]
