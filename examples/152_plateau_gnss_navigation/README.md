@@ -84,24 +84,40 @@ QZSS's near-zenith satellites are what a canyon can still see.
 
 | Area | Configuration | Goal | Position RMSE / max | RTK fixed | GNSS / LiDAR time | Longest dead reckoning |
 |------|---------------|------|---------------------|-----------|-------------------|------------------------|
-| Shibuya | map-aided GNSS + QZSS | reached, 797 s | 0.29 / 2.83 m | 56 % | 415 / 382 s | 0.1 s |
-| Shibuya | no map aid | reached, 797 s | 0.23 / 1.83 m | 33 % | 290 / 506 s | 0.1 s |
-| Shibuya | no QZSS | reached, 785 s | 0.23 / 2.04 m | 28 % | 164 / 621 s | 0.1 s |
+| Shibuya | map-aided GNSS + QZSS | reached, 802 s | 0.18 / 1.51 m | 53 % | 393 / 408 s | 0.1 s |
+| Shibuya | no map aid | reached, 788 s | 0.19 / 1.47 m | 40 % | 317 / 471 s | 0.1 s |
+| Shibuya | no QZSS | reached, 782 s | 0.41 / 2.40 m | 24 % | 157 / 626 s | 0.1 s |
 | Shibuya | **factor graph** | reached, 776 s | 0.30 / 3.31 m | 61 % | — | 0.1 s |
 | Shibuya | factor graph, no map aid | reached, 787 s | 0.27 / 3.52 m | 48 % | — | 0.1 s |
-| Nishi-Shinjuku | map-aided GNSS + QZSS | reached, 1436 s, after a 256 s safety stop | 10.39 / 40.19 m | 26 % | 174 / 917 s | 256 s |
-| Nishi-Shinjuku | no map aid | reached, 1050 s | 1.98 / 10.67 m | 15 % | 69 / 957 s | 20 s |
-| Nishi-Shinjuku | no QZSS | **not reached** (stopped) | 9.73 / 12.67 m | 11 % | 36 / 711 s | 1052 s |
+| Nishi-Shinjuku | map-aided GNSS + QZSS | reached, 1059 s | 1.27 / 6.79 m | 31 % | 217 / 835 s | 5.7 s |
+| Nishi-Shinjuku | no map aid | **not reached** (lost) | 35.26 / 75.35 m | 13 % | 98 / 1481 s | 93 s |
+| Nishi-Shinjuku | no QZSS | reached, 1171 s, after a 96 s safety stop | 3.45 / 8.96 m | 18 % | 60 / 1013 s | 96 s |
 | Nishi-Shinjuku | **factor graph** | reached, 986 s | 0.45 / 2.39 m | 35 % | — | 0.1 s |
 | Nishi-Shinjuku | factor graph, no map aid | reached, 995 s | 1.18 / 35.64 m | 12 % | — | 0.1 s |
 
 The LiDAR map carries the robot through Shibuya with or without the
-GNSS aids. Among the Nishi-Shinjuku towers the hybrid arbiter is fragile:
-without QZSS too few satellites remain and the robot stops for good, and
-even with everything on, whether it gets through depends on the noise
-realization (`--seeds`, below): in this run (seed 0) a stretch of scan
-matches on a featureless street drifts, the GNSS gate refuses the RTK fixes
-that disagree, and the robot stops for 256 s before RTK takes it back.
+GNSS aids. Among the Nishi-Shinjuku towers the hybrid arbiter needs both
+aids: without QZSS it has to stop for 96 s, and without the NLOS exclusion
+it gets lost.
+
+The hybrid here runs with three options for streets like these (all off
+by default in `HybridLocalizerConfig`):
+
+* `lidar_drop_unmapped_returns` — returns in the map's free space, a metre
+  or more from any mapped structure, are pedestrians (or anything else
+  that moves) and are left out of tracking. A person walking beside the
+  robot otherwise looks like a pole keeping pace with it.
+* `lidar_gate_chi_square` (16) — a scan match far outside the EKF's
+  uncertainty is not fused: on a featureless street the matches slide
+  along it, and one slide used to carry the estimate tens of metres off.
+* `gnss_reanchor_fixes` (15) — the gate's price is that a wrong estimate
+  rejects correct fixes too. When 15 gate-rejected RTK fixed solutions in
+  a row agree to within 0.5 m relative to the wheel odometry, the
+  estimate, not the receiver, is wrong: the EKF is re-anchored there and
+  LiDAR tracking restarts. (While dead reckoning, float solutions count.)
+
+Without them the hybrid reached the Nishi-Shinjuku goal in 2 of 3 noise
+realizations even on a clear day, in 0 of 3 in a crowd.
 
 The **factor graph** (`rne_slam::FactorGraphLocalizer`, `--config "factor
 graph"`) weighs the last few seconds of odometry, GNSS and LiDAR together
@@ -135,27 +151,33 @@ above. Summary over 3 seeds:
 
 | Area | Condition | Hybrid: goal | RMSE median / worst | Max | Factor graph: goal | RMSE median / worst | Max |
 |------|-----------|--------------|---------------------|-----|--------------------|---------------------|-----|
-| Shibuya | clear | 3/3 | 0.28 / 0.29 m | 2.8 m | 3/3 | 0.12 / 0.30 m | 3.3 m |
-| Shibuya | crowd | 3/3 | 0.98 / 2.12 m | 11.2 m | 3/3 | 0.53 / 0.84 m | 5.7 m |
-| Shibuya | crowd + rain | 2/3 | 15.08 / 19.58 m | 59.6 m | 3/3 | 1.24 / 1.56 m | 7.3 m |
-| Shibuya | glass from 20 m | 3/3 | 0.19 / 0.28 m | 2.5 m | 3/3 | 0.08 / 0.16 m | 3.9 m |
-| Nishi-Shinjuku | clear | 2/3 | 8.26 / 10.39 m | 40.2 m | 3/3 | 0.82 / 1.23 m | 10.4 m |
-| Nishi-Shinjuku | crowd | **0/3** | 25.90 / 34.02 m | 77.1 m | 3/3 | 1.56 / 3.47 m | 13.4 m |
-| Nishi-Shinjuku | crowd + rain | **0/3** | 38.73 / 142.66 m | 258.1 m | 3/3 | 2.10 / 2.41 m | 18.3 m |
-| Nishi-Shinjuku | glass from 20 m | 3/3 | 2.19 / 6.24 m | 20.8 m | 3/3 | 0.61 / 0.85 m | 4.4 m |
+| Shibuya | clear | 3/3 | 0.18 / 0.39 m | 2.8 m | 3/3 | 0.12 / 0.30 m | 3.3 m |
+| Shibuya | crowd | 3/3 | 0.44 / 1.02 m | 5.9 m | 3/3 | 0.53 / 0.84 m | 5.7 m |
+| Shibuya | crowd + rain | 3/3 | 0.83 / 0.91 m | 7.3 m | 3/3 | 1.24 / 1.56 m | 7.3 m |
+| Shibuya | glass from 20 m | 3/3 | 0.24 / 0.30 m | 2.4 m | 3/3 | 0.08 / 0.16 m | 3.9 m |
+| Nishi-Shinjuku | clear | 3/3 | 1.27 / 3.81 m | 9.3 m | 3/3 | 0.82 / 1.23 m | 10.4 m |
+| Nishi-Shinjuku | crowd | **2/3** | 1.93 / 42.61 m | 60.2 m | 3/3 | 1.56 / 3.47 m | 13.4 m |
+| Nishi-Shinjuku | crowd + rain | 3/3 | 1.81 / 13.37 m | 47.8 m | 3/3 | 2.10 / 2.41 m | 18.3 m |
+| Nishi-Shinjuku | glass from 20 m | 3/3 | 1.19 / 1.36 m | 11.6 m | 3/3 | 0.61 / 0.85 m | 4.4 m |
 
-The factor graph reaches the goal in all 24 runs and never dead-reckons
-for more than 0.4 s; the crowd and the rain roughly double or triple its
-error, and its worst moments (up to 18 m in the Nishi-Shinjuku rain) are
-short and corrected by the next good RTK fix. The hybrid does well in
-Shibuya until it rains, but in Nishi-Shinjuku the crowd defeats it in every
-run: on the long straight streets between the towers the street furniture
-is the only thing the scan matcher can lock onto along the street, the
-pedestrians hide it, the matches slide, and once the estimate is tens of
-metres off the GNSS gate rejects the correct RTK fixes as outliers. Its
-dead reckoning stretches (up to 1062 s) are safety stops, not driving
-blind. The glass canyon matters less than expected: more multipath, but
-the NLOS exclusion and the robust kernels take most of it.
+Before the three options above, the hybrid reached the goal in 2/3
+Shibuya crowd + rain runs (RMSE median 15 m) and in 0/3 Nishi-Shinjuku
+crowd and crowd + rain runs.
+
+Both localizers keep the robot going through crowds, rain and glass in
+47 of 48 runs. The factor graph reaches the goal in all 24 and never
+dead-reckons for more than 0.4 s; the crowd and the rain roughly double or
+triple its error, and its worst moments (up to 18 m in the Nishi-Shinjuku
+rain) are short and corrected by the next good RTK fix. The hybrid is now
+as accurate in Shibuya, a little less so in Nishi-Shinjuku, and has the
+one failure: at a corner west of the station (about (−20, −45) m) the scan
+matches slip a few metres while the robot turns, it drifts into a deep
+canyon and stops there for 613 s, where the receiver tracks 5–6
+satellites and its float solutions wander by metres, so nothing
+trustworthy can re-anchor it. Its other dead reckoning stretches (up to
+183 s) are also safety stops, not driving blind. The glass canyon matters
+less than expected: more multipath, but the NLOS exclusion and the robust
+kernels take most of it.
 
 ## Limits
 
