@@ -111,6 +111,7 @@ fn main() -> Result<(), String> {
     );
     let survey_only = std::env::args().any(|a| a == "--survey");
     let quick = std::env::args().any(|a| a == "--quick");
+    let only_config = std::env::args().skip_while(|a| a != "--config").nth(1);
     let render_dir = std::env::args()
         .skip_while(|a| a != "--render")
         .nth(1)
@@ -189,6 +190,7 @@ fn main() -> Result<(), String> {
                     map_aided_gnss: true,
                     qzss: true,
                     record: render_dir.is_some(),
+                    factor_graph: false,
                 },
             ),
             (
@@ -197,6 +199,25 @@ fn main() -> Result<(), String> {
                     map_aided_gnss: false,
                     qzss: true,
                     record: false,
+                    factor_graph: false,
+                },
+            ),
+            (
+                "factor graph",
+                RunOptions {
+                    map_aided_gnss: true,
+                    qzss: true,
+                    record: false,
+                    factor_graph: true,
+                },
+            ),
+            (
+                "factor graph, no map aid",
+                RunOptions {
+                    map_aided_gnss: false,
+                    qzss: true,
+                    record: false,
+                    factor_graph: true,
                 },
             ),
             (
@@ -205,11 +226,17 @@ fn main() -> Result<(), String> {
                     map_aided_gnss: true,
                     qzss: false,
                     record: false,
+                    factor_graph: false,
                 },
             ),
         ] {
             if quick && main_run.is_some() {
                 break;
+            }
+            if let Some(only) = &only_config {
+                if !label.contains(only.as_str()) {
+                    continue;
+                }
             }
             let started = std::time::Instant::now();
             let report = nav::run(&city, &route, base, options);

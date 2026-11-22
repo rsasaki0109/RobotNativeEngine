@@ -26,6 +26,13 @@ All notable changes to Robot Native Engine are documented in this file.
   fused with a covariance from the curvature of their score, the particle
   filter's match preferred over a wider window, and the EKF re-anchored when
   the two stay metres apart.
+- `rne_slam::FactorGraphLocalizer`: a sliding-window factor graph of
+  odometry, GNSS (Cauchy kernel) and LiDAR scan-match (Huber kernel,
+  curvature-based covariance) factors, solved by reweighted Gauss–Newton on
+  block-tridiagonal normal equations with Schur-complement marginalization,
+  a particle filter seeding a second scan match, and re-anchoring onto
+  consistent RTK fixes or particle-filter matches when lost.
+  `match_position_covariance` is shared with `HybridLocalizer`.
 - Example 152: the GNSS/LiDAR robot of example 151 walking real streets
   around Shibuya Station and in Nishi-Shinjuku from PLATEAU's LOD2 model,
   with QZSS and a park reference station; a sky survey, three

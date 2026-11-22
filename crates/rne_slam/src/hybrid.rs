@@ -24,17 +24,13 @@
 
 use crate::likelihood::LikelihoodField;
 use crate::localization::{Amcl, AmclConfig, AmclUpdate};
-use crate::scan_match::{scan_points_2d, ScanMatchConfig, ScanMatcher};
+use crate::scan_match::{match_position_covariance, scan_points_2d, ScanMatchConfig, ScanMatcher};
 use rne_math::Vec3;
 use rne_nav::{
     EkfConfig, EkfFusion, FusionError, GridError, LaserScan2d, OccupancyGrid, Pose2d,
     VelocityCommand2d,
 };
 use serde::{Deserialize, Serialize};
-
-/// Curvature ratio below which a scan match counts as degenerate in its
-/// weaker direction.
-const LIDAR_DEGENERACY_RATIO: f64 = 0.2;
 
 /// With anisotropic LiDAR fusion, the particle filter's match is used unless
 /// the EKF-seeded one scores higher by more than this.
@@ -664,13 +660,7 @@ impl HybridLocalizer {
         Pose2d::new(pose.x_m - along * cos, pose.y_m - along * sin, pose.yaw_rad)
     }
 
-    /// Position covariance of a scan match. The match score's Hessian `H`
-    /// around the matched pose measures how sharply each direction is
-    /// pinned. When the weaker direction's curvature is under
-    /// [`LIDAR_DEGENERACY_RATIO`] of the stronger one (a corridor, a single
-    /// facade), that direction's variance grows by the shortfall, up to
-    /// `lidar_max_variance_m2`; otherwise the match is isotropic with
-    /// `lidar_position_variance_m2`.
+    /// Position covariance of a scan match (see [`match_position_covariance`]).
     fn match_covariance(
         &self,
         points: &[Vec3],
@@ -681,43 +671,14 @@ impl HybridLocalizer {
         if !self.config.lidar_anisotropic || points.is_empty() {
             return [[base, 0.0], [0.0, base]];
         }
-        let score = |dx: f64, dy: f64| {
-            let sensor =
-                Pose2d::new(pose.x_m + dx, pose.y_m + dy, pose.yaw_rad).compose(sensor_from_base);
-            points
-                .iter()
-                .map(|p| self.field.score_interpolated(sensor.transform_point(*p)))
-                .sum::<f64>()
-                / points.len() as f64
-        };
-        let h = 2.0 * self.field.resolution_m();
-        let s0 = score(0.0, 0.0);
-        let sxx = (score(h, 0.0) - 2.0 * s0 + score(-h, 0.0)) / (h * h);
-        let syy = (score(0.0, h) - 2.0 * s0 + score(0.0, -h)) / (h * h);
-        let sxy = (score(h, h) - score(h, -h) - score(-h, h) + score(-h, -h)) / (4.0 * h * h);
-        // Eigen-decomposition of the (negated) Hessian.
-        let (a, b, d) = (-sxx, -sxy, -syy);
-        let mean = 0.5 * (a + d);
-        let spread = (0.25 * (a - d) * (a - d) + b * b).sqrt();
-        let curvatures = [mean + spread, mean - spread];
-        let angle = 0.5 * (2.0 * b).atan2(a - d);
-        let (sin, cos) = angle.sin_cos();
-        let strong = curvatures[0].max(f64::MIN_POSITIVE);
-        let variance = curvatures.map(|c| {
-            (base * LIDAR_DEGENERACY_RATIO * strong / c.max(f64::MIN_POSITIVE))
-                .clamp(base, self.config.lidar_max_variance_m2)
-        });
-        // R diag(variance) Rᵀ with R's first column (cos, sin).
-        [
-            [
-                variance[0] * cos * cos + variance[1] * sin * sin,
-                (variance[0] - variance[1]) * sin * cos,
-            ],
-            [
-                (variance[0] - variance[1]) * sin * cos,
-                variance[0] * sin * sin + variance[1] * cos * cos,
-            ],
-        ]
+        match_position_covariance(
+            &self.field,
+            points,
+            sensor_from_base,
+            pose,
+            base,
+            self.config.lidar_max_variance_m2,
+        )
     }
 
     fn judge_gnss(&mut self, fix: Option<&AbsolutePositionFix>) -> GnssDecision {

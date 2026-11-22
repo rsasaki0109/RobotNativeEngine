@@ -116,6 +116,21 @@ rate and decides which absolute source corrects it:
    that is already uncertain, so a sustained NLOS or float bias cannot drag
    a well-localized estimate.
 
+### Factor graph
+
+`FactorGraphLocalizer` is the alternative to the switching arbiter: a
+sliding window (60 pose nodes, one per GNSS epoch and LiDAR scan) of
+odometry factors, GNSS position and heading factors under a Cauchy kernel,
+and LiDAR scan-match factors with the curvature-based covariance under a
+Huber kernel, solved by iteratively reweighted Gauss–Newton on the
+block-tridiagonal normal equations; the oldest node is marginalized into a
+prior (Schur complement). A particle filter runs alongside and seeds a
+second scan match; the window is shifted onto it, or onto a run of
+consistent RTK fixes the kernel keeps rejecting, when the estimate has
+clearly lost them. In the Tokyo streets of example 152 it halves the
+hybrid's error in Shibuya and still reaches the goal in Nishi-Shinjuku
+without the NLOS exclusion, where the hybrid gets lost.
+
 ### Results of example 151
 
 A delivery robot walks 370 m along the sidewalk of a 4-lane main street

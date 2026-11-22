@@ -186,6 +186,64 @@ fn score_pose(
     }
 }
 
+/// Curvature ratio below which a scan match counts as degenerate in its
+/// weaker direction.
+const DEGENERACY_RATIO: f64 = 0.2;
+
+/// Position covariance of a scan match from the curvature of the match
+/// score around `pose`. The score's Hessian measures how sharply each
+/// direction is pinned; when the weaker direction's curvature is under a
+/// fifth of the stronger one (a featureless corridor, a single facade), that
+/// direction's variance grows by the shortfall, up to `max_variance_m2`;
+/// otherwise the match is isotropic with `base_variance_m2`.
+pub fn match_position_covariance(
+    field: &LikelihoodField,
+    points: &[Vec3],
+    sensor_from_base: Pose2d,
+    pose: Pose2d,
+    base_variance_m2: f64,
+    max_variance_m2: f64,
+) -> [[f64; 2]; 2] {
+    let base = base_variance_m2;
+    if points.is_empty() {
+        return [[base, 0.0], [0.0, base]];
+    }
+    let score = |dx: f64, dy: f64| {
+        let sensor =
+            Pose2d::new(pose.x_m + dx, pose.y_m + dy, pose.yaw_rad).compose(sensor_from_base);
+        points
+            .iter()
+            .map(|p| field.score_interpolated(sensor.transform_point(*p)))
+            .sum::<f64>()
+            / points.len() as f64
+    };
+    let h = 2.0 * field.resolution_m();
+    let s0 = score(0.0, 0.0);
+    let sxx = (score(h, 0.0) - 2.0 * s0 + score(-h, 0.0)) / (h * h);
+    let syy = (score(0.0, h) - 2.0 * s0 + score(0.0, -h)) / (h * h);
+    let sxy = (score(h, h) - score(h, -h) - score(-h, h) + score(-h, -h)) / (4.0 * h * h);
+    let (a, b, d) = (-sxx, -sxy, -syy);
+    let mean = 0.5 * (a + d);
+    let spread = (0.25 * (a - d) * (a - d) + b * b).sqrt();
+    let curvatures = [mean + spread, mean - spread];
+    let angle = 0.5 * (2.0 * b).atan2(a - d);
+    let (sin, cos) = angle.sin_cos();
+    let strong = curvatures[0].max(f64::MIN_POSITIVE);
+    let variance = curvatures.map(|c| {
+        (base * DEGENERACY_RATIO * strong / c.max(f64::MIN_POSITIVE)).clamp(base, max_variance_m2)
+    });
+    [
+        [
+            variance[0] * cos * cos + variance[1] * sin * sin,
+            (variance[0] - variance[1]) * sin * cos,
+        ],
+        [
+            (variance[0] - variance[1]) * sin * cos,
+            variance[0] * sin * sin + variance[1] * cos * cos,
+        ],
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

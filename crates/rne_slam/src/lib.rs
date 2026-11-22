@@ -10,6 +10,7 @@
 
 #![deny(missing_docs)]
 
+pub mod factor_graph;
 pub mod floor_reacquire;
 pub mod graph_io;
 pub mod hybrid;
@@ -35,6 +36,7 @@ pub mod slam;
 pub mod slam3d;
 pub mod systems;
 
+pub use factor_graph::{FactorGraphConfig, FactorGraphError, FactorGraphLocalizer};
 pub use floor_reacquire::{
     reacquire_floor, FloorAmbiguity, FloorCandidate, FloorHypothesis, FloorIdentification,
     ReacquisitionConfig, ReacquisitionError,
@@ -71,7 +73,9 @@ pub use relocalize::{
     GlobalRelocalizer, RelocalizationConfig, RelocalizationError, RelocalizationResult,
 };
 pub use resources::{PendingSlamScans, SlamScanInput, SlamState};
-pub use scan_match::{scan_points_2d, ScanMatchConfig, ScanMatchResult, ScanMatcher};
+pub use scan_match::{
+    match_position_covariance, scan_points_2d, ScanMatchConfig, ScanMatchResult, ScanMatcher,
+};
 pub use se3::{
     mat3_add, mat3_identity, mat3_mul, mat3_scale, mat3_vec, skew, so3_exp, so3_left_jacobian,
     so3_left_jacobian_inverse, so3_log, Se3,

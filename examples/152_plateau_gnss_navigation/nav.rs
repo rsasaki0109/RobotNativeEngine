@@ -12,7 +12,10 @@ use rne_nav::{
     pure_pursuit_follow, FrameId, GridCoord, LaserScan2d, OccupancyGrid, Path2d, Pose2d,
     PurePursuitConfig, VelocityCommand2d,
 };
-use rne_slam::{AmclConfig, FixKind, HybridLocalizer, HybridLocalizerConfig, LocalizationSource};
+use rne_slam::{
+    AbsoluteHeadingFix, AbsolutePositionFix, AmclConfig, FactorGraphConfig, FactorGraphLocalizer,
+    FixKind, HybridLocalizer, HybridLocalizerConfig, LocalizationSource,
+};
 use std::collections::BinaryHeap;
 use std::f64::consts::TAU;
 
@@ -43,6 +46,69 @@ pub(crate) struct RunOptions {
     pub qzss: bool,
     /// Record frames for the 3D render.
     pub record: bool,
+    /// Use the sliding-window factor graph instead of the hybrid arbiter.
+    pub factor_graph: bool,
+}
+
+/// The robot's localizer: the rule-based arbiter or the factor graph.
+enum Localizer {
+    Hybrid(Box<HybridLocalizer>),
+    Graph(Box<FactorGraphLocalizer>),
+}
+
+impl Localizer {
+    fn pose(&self) -> Pose2d {
+        match self {
+            Self::Hybrid(h) => h.pose(),
+            Self::Graph(g) => g.pose(),
+        }
+    }
+
+    fn source(&self) -> LocalizationSource {
+        match self {
+            Self::Hybrid(h) => h.source(),
+            Self::Graph(g) => g.source(),
+        }
+    }
+
+    fn predict(&mut self, dt_s: f64, v: f64, w: f64) {
+        match self {
+            Self::Hybrid(h) => h.predict(dt_s, v, w).expect("predict"),
+            Self::Graph(g) => g.predict(dt_s, v, w),
+        }
+    }
+
+    fn update_gnss(
+        &mut self,
+        fix: Option<&AbsolutePositionFix>,
+        heading: Option<&AbsoluteHeadingFix>,
+        t: f64,
+    ) {
+        match self {
+            Self::Hybrid(h) => {
+                h.update_gnss(fix, t).expect("gnss");
+                if let Some(heading) = heading {
+                    h.update_gnss_heading(heading).expect("heading");
+                }
+            }
+            Self::Graph(g) => {
+                g.update_gnss(fix, t);
+                if let Some(heading) = heading {
+                    g.update_gnss_heading(heading);
+                }
+            }
+        }
+    }
+
+    fn update_lidar(&mut self, scan: &LaserScan2d, odom: Pose2d, t: f64) {
+        match self {
+            Self::Hybrid(h) => {
+                h.update_lidar(scan, odom, Pose2d::IDENTITY, t)
+                    .expect("lidar");
+            }
+            Self::Graph(g) => g.update_lidar(scan, odom, Pose2d::IDENTITY, t),
+        }
+    }
 }
 
 /// One recorded instant for the 3D render.
@@ -420,22 +486,7 @@ pub(crate) fn run(
     // The terrain-following slice at LiDAR height along the route: what the
     // simulated LiDAR sees and the robot's prior map.
     let slice = build_prior_map(city, route);
-    let mut config = HybridLocalizerConfig {
-        amcl: AmclConfig {
-            particle_count: 600,
-            ..AmclConfig::default()
-        },
-        ..HybridLocalizerConfig::default()
-    };
-    if gnss.uses_libgnss() {
-        config.enter_gnss_min_kind = FixKind::Fixed;
-        config.min_float_variance_m2 = 4.0;
-    }
-    // PLATEAU LOD2 streets are featureless corridors at LiDAR height: fuse
-    // scan matches with their degeneracy-aware covariance, preferring the
-    // particle filter's match (no fixed gate, so it can correct the EKF).
-    config.lidar_anisotropic = true;
-    let mut hybrid = HybridLocalizer::new(slice.clone(), start, config).expect("localizer");
+    let mut hybrid = build_localizer(&slice, start, gnss.uses_libgnss(), options.factor_graph);
     let mut rng = DeterministicRng::new(0x5_1B_0A);
     let (mut truth, mut odom) = (start, start);
     let mut report = RunReport {
@@ -473,7 +524,7 @@ pub(crate) fn run(
         let odom_v = command.linear_m_s * 1.01 + 0.01 * gaussian(&mut rng);
         let odom_w = command.angular_rad_s + 0.001 + 0.005 * gaussian(&mut rng);
         odom = integrate(odom, odom_v, odom_w, DT_S);
-        hybrid.predict(DT_S, odom_v, odom_w).expect("predict");
+        hybrid.predict(DT_S, odom_v, odom_w);
 
         let outputs: Vec<GnssOutput> = gnss.step(
             &scene,
@@ -490,10 +541,7 @@ pub(crate) fn run(
         }
         for output in &outputs {
             last_label = Some(output.label);
-            hybrid.update_gnss(output.fix.as_ref(), t).expect("gnss");
-            if let Some(heading) = &output.heading {
-                hybrid.update_gnss_heading(heading).expect("heading");
-            }
+            hybrid.update_gnss(output.fix.as_ref(), output.heading.as_ref(), t);
             match output.label {
                 SolutionLabel::Fixed => report.fixed += 1,
                 SolutionLabel::Float => report.float += 1,
@@ -510,9 +558,7 @@ pub(crate) fn run(
             report.clearance_m = report
                 .clearance_m
                 .min(scan.ranges_m.iter().copied().fold(f64::INFINITY, f64::min));
-            hybrid
-                .update_lidar(&scan, odom, Pose2d::IDENTITY, t)
-                .expect("lidar");
+            hybrid.update_lidar(&scan, odom, t);
         }
         let estimate = hybrid.pose();
         report
@@ -545,6 +591,51 @@ pub(crate) fn run(
     }
     report.duration_s = tick as f64 * DT_S;
     report
+}
+
+/// The hybrid arbiter (degeneracy-aware LiDAR fusion) or the factor graph,
+/// both with a 600-particle filter.
+fn build_localizer(
+    slice: &OccupancyGrid,
+    start: Pose2d,
+    uses_libgnss: bool,
+    factor_graph: bool,
+) -> Localizer {
+    let mut config = HybridLocalizerConfig {
+        amcl: AmclConfig {
+            particle_count: 600,
+            ..AmclConfig::default()
+        },
+        ..HybridLocalizerConfig::default()
+    };
+    if uses_libgnss {
+        config.enter_gnss_min_kind = FixKind::Fixed;
+        config.min_float_variance_m2 = 4.0;
+    }
+    // PLATEAU LOD2 streets are featureless corridors at LiDAR height: fuse
+    // scan matches with their degeneracy-aware covariance, preferring the
+    // particle filter's match (no fixed gate, so it can correct the EKF).
+    config.lidar_anisotropic = true;
+    if factor_graph {
+        Localizer::Graph(Box::new(
+            FactorGraphLocalizer::new(
+                slice,
+                start,
+                FactorGraphConfig {
+                    amcl: AmclConfig {
+                        particle_count: 600,
+                        ..AmclConfig::default()
+                    },
+                    ..FactorGraphConfig::default()
+                },
+            )
+            .expect("graph"),
+        ))
+    } else {
+        Localizer::Hybrid(Box::new(
+            HybridLocalizer::new(slice.clone(), start, config).expect("localizer"),
+        ))
+    }
 }
 
 /// Pure pursuit along the route one leg at a time (it doubles back on
@@ -627,7 +718,7 @@ impl Safety {
     }
 }
 
-fn log_progress(t: f64, report: &RunReport, hybrid: &HybridLocalizer, truth: Pose2d, wall_s: f64) {
+fn log_progress(t: f64, report: &RunReport, hybrid: &Localizer, truth: Pose2d, wall_s: f64) {
     eprintln!(
         "    t {t:5.0} s truth ({:7.1}, {:7.1}) error {:5.2} m {:?}; RTK fixed/float/single/none {}/{}/{}/{} [{wall_s:.0} s]",
         truth.x_m,

@@ -9,8 +9,9 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 The same delivery robot as [example 151](../151_gnss_lidar_navigation/README.md),
 but in real streets: around **Shibuya Station** and the **Nishi-Shinjuku**
 tower district, built from Project PLATEAU's LOD2 city model. The full run
-(both areas, three configurations each) takes about 25 minutes;
-`--quick` runs only the main configuration, `--area shibuya` one area, and
+(both areas, five configurations each) takes about 40 minutes;
+`--quick` runs only the main configuration, `--config "factor graph"` the
+configurations whose label contains the text, `--area shibuya` one area, and
 `--survey` only the sky survey (seconds).
 
 ![3D render in RNE: the robot walks from the Shibuya scramble crossing west and up Koen-dori among the PLATEAU LOD2 buildings; green rays are line-of-sight satellites, red NLOS reflections off the facades, purple diffraction over roof edges; the trail is blue while RTK localizes it and magenta while the LiDAR map does](../../docs/media/plateau-gnss-shibuya.gif)
@@ -50,8 +51,8 @@ tower district, built from Project PLATEAU's LOD2 city model. The full run
   poles, signposts and vending machines. The example places them along the
   route (every 6–14 m, irregularly, near the facades); they are part of the
   world, the prior map and the GNSS scene.
-* **Localization** — `rne_slam::HybridLocalizer` as in example 151, with
-  `lidar_anisotropic` on: each scan match is fused with a covariance from
+* **Localization** — `rne_slam::HybridLocalizer` as in example 151 (or the
+  sliding-window `FactorGraphLocalizer`, below), with `lidar_anisotropic` on: each scan match is fused with a covariance from
   the curvature of its score, so a match along a corridor constrains only
   the cross-track position, and the particle filter's own match (over a
   wider window) can re-anchor the EKF when it explains the scans better.
@@ -85,15 +86,29 @@ QZSS's near-zenith satellites are what a canyon can still see.
 | Shibuya | map-aided GNSS + QZSS | reached, 799 s | 0.24 / 2.70 m | 61 % | 400 / 398 s | 0.1 s |
 | Shibuya | no map aid | reached, 795 s | 0.19 / 1.60 m | 34 % | 298 / 497 s | 0.1 s |
 | Shibuya | no QZSS | reached, 790 s | 0.27 / 3.02 m | 25 % | 159 / 631 s | 0.1 s |
+| Shibuya | **factor graph** | reached, 773 s | 0.12 / 2.31 m | 64 % | — | 0.1 s |
+| Shibuya | factor graph, no map aid | reached, 776 s | 0.14 / 1.51 m | 45 % | — | 0.1 s |
 | Nishi-Shinjuku | map-aided GNSS + QZSS | reached, 1014 s | 0.66 / 3.49 m | 35 % | 198 / 815 s | 0.1 s |
 | Nishi-Shinjuku | no map aid | **not reached** (lost) | 6.99 / 10.73 m | 55 % | 37 / 1763 s | 0.1 s |
 | Nishi-Shinjuku | no QZSS | reached, 1208 s, after a 178 s safety stop | 3.82 / 9.31 m | 19 % | 89 / 940 s | 178 s |
+| Nishi-Shinjuku | **factor graph** | reached, 996 s | 0.74 / 4.18 m | 29 % | — | 0.8 s |
+| Nishi-Shinjuku | factor graph, no map aid | **reached**, 1011 s | 1.47 / 35.66 m | 12 % | — | 0.1 s |
 
 The LiDAR map carries the robot through Shibuya with or without the
-GNSS aids. Among the Nishi-Shinjuku towers it does not: there both the
-3D-map NLOS exclusion and QZSS are needed. Without the exclusion, wrong RTK
+GNSS aids. Among the Nishi-Shinjuku towers the hybrid arbiter needs both
+the 3D-map NLOS exclusion and QZSS: without the exclusion, wrong RTK
 solutions are accepted and the robot gets lost; without QZSS, too few
 satellites remain and the robot has to stop.
+
+The **factor graph** (`rne_slam::FactorGraphLocalizer`, `--config "factor
+graph"`) weighs the last few seconds of odometry, GNSS and LiDAR together
+instead of switching: GNSS fixes go in under a Cauchy kernel, so a wrong
+RTK fix that disagrees with the odometry and the scans loses its weight
+rather than being gated by one threshold. It halves the error in Shibuya
+and reaches the goal in Nishi-Shinjuku even without the NLOS exclusion,
+where the hybrid gets lost, though with one 36 m excursion before RTK
+re-anchors it. Its "GNSS / LiDAR time" is not comparable (it does not
+switch), so the table leaves it out.
 
 ## Limits
 
