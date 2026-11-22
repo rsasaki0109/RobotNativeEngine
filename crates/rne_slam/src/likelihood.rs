@@ -116,6 +116,25 @@ impl LikelihoodField {
         }
     }
 
+    /// Likelihood at a world point, bilinearly interpolated between cell
+    /// centres (smooth enough for finite differences); zero outside.
+    pub fn score_interpolated(&self, point_m: Vec3) -> f64 {
+        let local = self.origin.inverse_transform_point(point_m);
+        let gx = local.x / self.resolution_m - 0.5;
+        let gy = local.y / self.resolution_m - 0.5;
+        let (x0, y0) = (gx.floor(), gy.floor());
+        let (fx, fy) = (gx - x0, gy - y0);
+        let value = |x: f64, y: f64| {
+            if x < 0.0 || y < 0.0 || x >= self.width as f64 || y >= self.height as f64 {
+                0.0
+            } else {
+                self.values[y as usize * self.width + x as usize]
+            }
+        };
+        (1.0 - fy) * ((1.0 - fx) * value(x0, y0) + fx * value(x0 + 1.0, y0))
+            + fy * ((1.0 - fx) * value(x0, y0 + 1.0) + fx * value(x0 + 1.0, y0 + 1.0))
+    }
+
     /// Projects a world point onto integer cell coordinates, if inside.
     pub fn world_to_grid(&self, point_m: Vec3) -> Option<GridCoord> {
         let local = self.origin.inverse_transform_point(point_m);

@@ -32,6 +32,21 @@ use rne_nav::{
 };
 use serde::{Deserialize, Serialize};
 
+/// Curvature ratio below which a scan match counts as degenerate in its
+/// weaker direction.
+const LIDAR_DEGENERACY_RATIO: f64 = 0.2;
+
+/// With anisotropic LiDAR fusion, the particle filter's match is used unless
+/// the EKF-seeded one scores higher by more than this.
+const LIDAR_SEED_SCORE_MARGIN: f64 = 0.02;
+
+/// With anisotropic LiDAR fusion, a particle-filter match farther than this
+/// from the EKF re-anchors the EKF there, meters.
+const LIDAR_REANCHOR_M: f64 = 2.0;
+
+/// Consecutive scans of such disagreement before the EKF is re-anchored.
+const LIDAR_REANCHOR_SCANS: usize = 10;
+
 /// A planar absolute position fix from a satellite receiver.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AbsolutePositionFix {
@@ -161,6 +176,18 @@ pub struct HybridLocalizerConfig {
     pub lidar_max_low_scores: usize,
     /// Per-axis variance of a fused AMCL position, in m².
     pub lidar_position_variance_m2: f64,
+    /// Fuse each scan match with a covariance from the curvature of the match
+    /// score around it, instead of the isotropic
+    /// `lidar_position_variance_m2`: a scan along a featureless corridor
+    /// pins the cross-track position but not the along-track one, and an
+    /// isotropic update would drag the estimate toward wherever the match
+    /// stopped. With it, the scan is also matched from the particle filter's
+    /// estimate over a wider window, and that match replaces the EKF-seeded
+    /// one (re-anchoring the EKF if it is metres away) unless it explains the
+    /// scan clearly worse. Off by default.
+    pub lidar_anisotropic: bool,
+    /// Upper bound on a direction's variance from the curvature, m².
+    pub lidar_max_variance_m2: f64,
     /// Squared Mahalanobis distance beyond which a LiDAR match is not fused.
     /// Infinite (off) by default: a gate protects a well-localized estimate
     /// from matches sliding along a corridor or street, but also keeps LiDAR
@@ -209,6 +236,8 @@ impl Default for HybridLocalizerConfig {
             lidar_max_low_scores: 20,
             lidar_position_variance_m2: 0.01,
             lidar_gate_chi_square: f64::INFINITY,
+            lidar_anisotropic: false,
+            lidar_max_variance_m2: 100.0,
             lidar_yaw_variance_rad2: 0.0025,
             odometry_linear_variance: 0.0025,
             odometry_angular_variance: 1.0e-4,
@@ -252,6 +281,9 @@ pub struct HybridLocalizer {
     gnss_bad_streak: usize,
     gate_streak: usize,
     lidar_low_streak: usize,
+    /// Consecutive scans whose preferred particle-filter match lay metres
+    /// from the EKF.
+    reanchor_streak: usize,
     last_amcl: Option<AmclUpdate>,
     transitions: Vec<SourceTransition>,
 }
@@ -277,6 +309,7 @@ impl HybridLocalizer {
             gnss_bad_streak: 0,
             gate_streak: 0,
             lidar_low_streak: 0,
+            reanchor_streak: 0,
             last_amcl: None,
             transitions: Vec::new(),
         })
@@ -440,28 +473,102 @@ impl HybridLocalizer {
         // with the particle filter's estimate, which can recover a larger
         // error but has drifted more on its own.
         let points = scan_points_2d(scan, self.config.amcl.max_beams);
-        let matcher = ScanMatcher::new(ScanMatchConfig::default());
+        // Degeneracy-aware tracking searches a wider window, so the particle
+        // filter's seed can reach the pose even when it is off by a metre.
+        let matcher = ScanMatcher::new(if self.config.lidar_anisotropic {
+            ScanMatchConfig {
+                linear_window_m: 1.0,
+                linear_samples: 9,
+                levels: 4,
+                ..ScanMatchConfig::default()
+            }
+        } else {
+            ScanMatchConfig::default()
+        });
         let min_score = self.config.lidar_min_score;
-        let refined = [self.ekf.pose(), update.estimate]
-            .into_iter()
-            .find_map(|seed| {
-                matcher
-                    .match_scan(&self.field, &points, sensor_from_base, seed)
-                    .filter(|matched| matched.score >= min_score)
-            });
+        let anisotropic = self.config.lidar_anisotropic;
+        let mut candidates = [self.ekf.pose(), update.estimate].into_iter().map(|seed| {
+            matcher
+                .match_scan(&self.field, &points, sensor_from_base, seed)
+                .filter(|matched| matched.score >= min_score)
+        });
+        let refined = if anisotropic {
+            // A local match seeded by the EKF can lock onto a nearby score
+            // peak (facade steps repeat along a street) and hold the estimate
+            // back; the particle filter integrates the scans over time. Use
+            // its match unless it fits clearly worse.
+            let ekf_match = candidates.next().flatten();
+            let amcl_match = candidates.next().flatten();
+            match (ekf_match, amcl_match) {
+                (Some(e), Some(a)) if a.score + LIDAR_SEED_SCORE_MARGIN >= e.score => {
+                    Some((a, true))
+                }
+                (Some(e), _) => Some((e, false)),
+                (None, a) => a.map(|a| (a, true)),
+            }
+        } else {
+            candidates.flatten().next().map(|m| (m, false))
+        };
         // With a finite gate, a match that disagrees with the EKF beyond it
         // (a parked car taken for a wall, a scan sliding along a facade)
         // counts as a poor score instead of dragging the estimate.
-        let variance = self.config.lidar_position_variance_m2;
-        let refined = refined.filter(|matched| {
-            self.ekf
-                .position_mahalanobis_squared(matched.pose.x_m, matched.pose.y_m, variance)
-                <= self.config.lidar_gate_chi_square
-        });
+        let refined = refined
+            .map(|(mut matched, from_particles)| {
+                let covariance = self.match_covariance(&points, sensor_from_base, matched.pose);
+                // The particle filter has integrated the scans along the
+                // corridor; only a local match's degenerate direction is
+                // meaningless.
+                if !from_particles {
+                    matched.pose = self.drop_degenerate_innovation(matched.pose, covariance);
+                }
+                (matched, covariance, from_particles)
+            })
+            .filter(|(matched, covariance, _)| {
+                self.ekf.position_mahalanobis_squared_covariance(
+                    matched.pose.x_m,
+                    matched.pose.y_m,
+                    *covariance,
+                ) <= self.config.lidar_gate_chi_square
+            });
         match refined {
-            Some(matched) => {
+            Some((matched, covariance, from_particles)) => {
                 self.lidar_low_streak = 0;
-                self.fuse_lidar_pose(matched.pose)?;
+                let estimate = self.ekf.pose();
+                let apart = |p: Pose2d| (p.x_m - estimate.x_m).hypot(p.y_m - estimate.y_m);
+                if from_particles && apart(matched.pose) > LIDAR_REANCHOR_M {
+                    // The EKF and the particle filter disagree by metres;
+                    // when the particle filter keeps explaining the scans at
+                    // least as well, the EKF has lost it (typically along a
+                    // corridor, where single scans cannot pull it):
+                    // re-anchor it there.
+                    self.reanchor_streak += 1;
+                    if self.reanchor_streak >= LIDAR_REANCHOR_SCANS {
+                        self.ekf = EkfFusion::with_initial_state(
+                            self.config.ekf,
+                            matched.pose,
+                            self.ekf.velocity(),
+                        )?;
+                        self.reanchor_streak = 0;
+                    } else {
+                        // Not yet: fuse nothing from this scan.
+                        return Ok(Some(update));
+                    }
+                } else {
+                    self.reanchor_streak = 0;
+                    if anisotropic && !from_particles && apart(update.estimate) > LIDAR_REANCHOR_M {
+                        // The particle filter wandered off while the EKF's
+                        // match explains the scan better: re-seed it.
+                        let config = AmclConfig {
+                            initial_translation_std_m: 0.15,
+                            initial_rotation_std_rad: 0.05,
+                            ..self.config.amcl
+                        };
+                        let mut amcl = Amcl::new(&self.map, matched.pose, config)?;
+                        amcl.update(scan, odom_pose, sensor_from_base);
+                        self.amcl = Some(amcl);
+                    }
+                }
+                self.fuse_lidar_pose(matched.pose, covariance)?;
             }
             None => self.lidar_low_streak += 1,
         }
@@ -520,16 +627,97 @@ impl HybridLocalizer {
         amcl.update(scan, odom_pose, sensor_from_base);
         self.amcl = Some(amcl);
         self.lidar_low_streak = 0;
-        self.fuse_lidar_pose(matched.pose)?;
+        let covariance = self.match_covariance(&points, sensor_from_base, matched.pose);
+        self.fuse_lidar_pose(matched.pose, covariance)?;
         self.switch(LocalizationSource::Lidar, time_s);
         Ok(())
     }
 
-    fn fuse_lidar_pose(&mut self, pose: Pose2d) -> Result<(), FusionError> {
+    fn fuse_lidar_pose(
+        &mut self,
+        pose: Pose2d,
+        covariance_m2: [[f64; 2]; 2],
+    ) -> Result<(), FusionError> {
         self.ekf
-            .update_position(pose.x_m, pose.y_m, self.config.lidar_position_variance_m2)?;
+            .update_position_covariance(pose.x_m, pose.y_m, covariance_m2)?;
         self.ekf
             .update_yaw(pose.yaw_rad, self.config.lidar_yaw_variance_rad2)
+    }
+
+    /// Removes the part of a match's position innovation along a direction
+    /// the scan does not constrain at all (variance at
+    /// `lidar_max_variance_m2`): many weak updates toward where a match
+    /// happened to stop along a corridor would otherwise add up.
+    fn drop_degenerate_innovation(&self, pose: Pose2d, covariance_m2: [[f64; 2]; 2]) -> Pose2d {
+        let [[a, b], [_, d]] = covariance_m2;
+        let mean = 0.5 * (a + d);
+        let spread = (0.25 * (a - d) * (a - d) + b * b).sqrt();
+        if mean + spread < 0.99 * self.config.lidar_max_variance_m2 {
+            return pose;
+        }
+        // Unit eigenvector of the large eigenvalue.
+        let angle = 0.5 * (2.0 * b).atan2(a - d);
+        let (sin, cos) = angle.sin_cos();
+        let estimate = self.ekf.pose();
+        let (dx, dy) = (pose.x_m - estimate.x_m, pose.y_m - estimate.y_m);
+        let along = dx * cos + dy * sin;
+        Pose2d::new(pose.x_m - along * cos, pose.y_m - along * sin, pose.yaw_rad)
+    }
+
+    /// Position covariance of a scan match. The match score's Hessian `H`
+    /// around the matched pose measures how sharply each direction is
+    /// pinned. When the weaker direction's curvature is under
+    /// [`LIDAR_DEGENERACY_RATIO`] of the stronger one (a corridor, a single
+    /// facade), that direction's variance grows by the shortfall, up to
+    /// `lidar_max_variance_m2`; otherwise the match is isotropic with
+    /// `lidar_position_variance_m2`.
+    fn match_covariance(
+        &self,
+        points: &[Vec3],
+        sensor_from_base: Pose2d,
+        pose: Pose2d,
+    ) -> [[f64; 2]; 2] {
+        let base = self.config.lidar_position_variance_m2;
+        if !self.config.lidar_anisotropic || points.is_empty() {
+            return [[base, 0.0], [0.0, base]];
+        }
+        let score = |dx: f64, dy: f64| {
+            let sensor =
+                Pose2d::new(pose.x_m + dx, pose.y_m + dy, pose.yaw_rad).compose(sensor_from_base);
+            points
+                .iter()
+                .map(|p| self.field.score_interpolated(sensor.transform_point(*p)))
+                .sum::<f64>()
+                / points.len() as f64
+        };
+        let h = 2.0 * self.field.resolution_m();
+        let s0 = score(0.0, 0.0);
+        let sxx = (score(h, 0.0) - 2.0 * s0 + score(-h, 0.0)) / (h * h);
+        let syy = (score(0.0, h) - 2.0 * s0 + score(0.0, -h)) / (h * h);
+        let sxy = (score(h, h) - score(h, -h) - score(-h, h) + score(-h, -h)) / (4.0 * h * h);
+        // Eigen-decomposition of the (negated) Hessian.
+        let (a, b, d) = (-sxx, -sxy, -syy);
+        let mean = 0.5 * (a + d);
+        let spread = (0.25 * (a - d) * (a - d) + b * b).sqrt();
+        let curvatures = [mean + spread, mean - spread];
+        let angle = 0.5 * (2.0 * b).atan2(a - d);
+        let (sin, cos) = angle.sin_cos();
+        let strong = curvatures[0].max(f64::MIN_POSITIVE);
+        let variance = curvatures.map(|c| {
+            (base * LIDAR_DEGENERACY_RATIO * strong / c.max(f64::MIN_POSITIVE))
+                .clamp(base, self.config.lidar_max_variance_m2)
+        });
+        // R diag(variance) Rᵀ with R's first column (cos, sin).
+        [
+            [
+                variance[0] * cos * cos + variance[1] * sin * sin,
+                (variance[0] - variance[1]) * sin * cos,
+            ],
+            [
+                (variance[0] - variance[1]) * sin * cos,
+                variance[0] * sin * sin + variance[1] * cos * cos,
+            ],
+        ]
     }
 
     fn judge_gnss(&mut self, fix: Option<&AbsolutePositionFix>) -> GnssDecision {
@@ -759,6 +947,63 @@ mod tests {
             (pose.x_m - truth.x_m).hypot(pose.y_m - truth.y_m) < 0.2,
             "{pose:?}"
         );
+    }
+
+    #[test]
+    fn corridor_matches_are_loose_along_the_corridor_and_tight_across_it() {
+        // A 60 m corridor, 4 m wide, along x.
+        let mut grid = OccupancyGrid::new(800, 100, 0.1, Pose2d::new(-40.0, -5.0, 0.0)).unwrap();
+        for y in 0..grid.height() {
+            for x in 0..grid.width() {
+                let coord = GridCoord {
+                    x: x as isize,
+                    y: y as isize,
+                };
+                let world = grid.grid_to_world(coord);
+                if world.y.abs() >= 2.0 {
+                    grid.mark_occupied(coord);
+                } else {
+                    grid.mark_free(coord);
+                }
+            }
+        }
+        let config = HybridLocalizerConfig {
+            lidar_anisotropic: true,
+            ..HybridLocalizerConfig::default()
+        };
+        let corridor = HybridLocalizer::new(grid, Pose2d::IDENTITY, config).unwrap();
+        let beams = 180;
+        let ranges_m: Vec<f64> = (0..beams)
+            .map(|b| {
+                let angle = TAU * b as f64 / beams as f64;
+                let s = angle.sin().abs();
+                if s > 0.1 {
+                    (2.0 / s).min(12.0)
+                } else {
+                    f64::INFINITY
+                }
+            })
+            .collect();
+        let scan = LaserScan2d {
+            time_s: 0.0,
+            frame: FrameId::new("laser"),
+            angle_min_rad: 0.0,
+            angle_increment_rad: TAU / beams as f64,
+            range_min_m: 0.05,
+            range_max_m: 12.0,
+            ranges_m,
+        };
+        let points = scan_points_2d(&scan, 180);
+        let c = corridor.match_covariance(&points, Pose2d::IDENTITY, Pose2d::IDENTITY);
+        assert!(c[0][0] > 50.0 * c[1][1], "{c:?}");
+        assert!(c[1][1] <= 0.011, "{c:?}");
+
+        // The closed room with a pillar constrains both directions.
+        let truth = Pose2d::new(14.0, -0.7, 0.0);
+        let room = HybridLocalizer::new(room_map(), truth, config).unwrap();
+        let points = scan_points_2d(&scan_at(truth), 180);
+        let c = room.match_covariance(&points, Pose2d::IDENTITY, truth);
+        assert!(c[0][0] < 3.0 * c[1][1] && c[1][1] < 3.0 * c[0][0], "{c:?}");
     }
 
     #[test]

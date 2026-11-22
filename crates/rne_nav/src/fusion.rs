@@ -336,16 +336,36 @@ impl EkfFusion {
         y_m: f64,
         variance_m2: f64,
     ) -> Result<(), FusionError> {
+        if variance_m2 <= 0.0 {
+            return Err(FusionError::InvalidVariance);
+        }
+        self.update_position_covariance(x_m, y_m, [[variance_m2, 0.0], [0.0, variance_m2]])
+    }
+
+    /// Fuses a planar position measurement with a full 2×2 covariance, for
+    /// measurements that constrain one direction better than the other (a
+    /// LiDAR scan matched in a corridor constrains the cross-track position
+    /// but hardly the along-track one).
+    pub fn update_position_covariance(
+        &mut self,
+        x_m: f64,
+        y_m: f64,
+        covariance_m2: [[f64; 2]; 2],
+    ) -> Result<(), FusionError> {
         if !x_m.is_finite() || !y_m.is_finite() {
             return Err(FusionError::NonFiniteInput);
         }
-        if variance_m2 <= 0.0 {
+        let [[a, b], [c, d]] = covariance_m2;
+        if !(a > 0.0 && d > 0.0 && a.is_finite() && d.is_finite() && b.is_finite())
+            || (b - c).abs() > 1.0e-9 * (a + d)
+            || a * d - b * c <= 0.0
+        {
             return Err(FusionError::InvalidVariance);
         }
         let innovation = [x_m - self.state[0], y_m - self.state[1]];
         let s = [
-            [self.covariance[0][0] + variance_m2, self.covariance[0][1]],
-            [self.covariance[1][0], self.covariance[1][1] + variance_m2],
+            [self.covariance[0][0] + a, self.covariance[0][1] + b],
+            [self.covariance[1][0] + c, self.covariance[1][1] + d],
         ];
         let det = s[0][0] * s[1][1] - s[0][1] * s[1][0];
         if det.abs() < f64::MIN_POSITIVE {
@@ -397,6 +417,25 @@ impl EkfFusion {
         self.state[2] = wrap_angle(self.state[2]);
         self.symmetrize();
         Ok(())
+    }
+
+    /// Squared Mahalanobis distance of a planar position measurement with a
+    /// full covariance from the current estimate.
+    pub fn position_mahalanobis_squared_covariance(
+        &self,
+        x_m: f64,
+        y_m: f64,
+        covariance_m2: [[f64; 2]; 2],
+    ) -> f64 {
+        let (dx, dy) = (x_m - self.state[0], y_m - self.state[1]);
+        let a = self.covariance[0][0] + covariance_m2[0][0];
+        let b = self.covariance[0][1] + covariance_m2[0][1];
+        let d = self.covariance[1][1] + covariance_m2[1][1];
+        let det = a * d - b * b;
+        if det <= f64::MIN_POSITIVE || !det.is_finite() {
+            return f64::INFINITY;
+        }
+        (d * dx * dx - 2.0 * b * dx * dy + a * dy * dy) / det
     }
 
     /// Squared Mahalanobis distance of a planar position fix from the
@@ -492,6 +531,38 @@ fn mul_5x5(
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+
+    #[test]
+    fn an_anisotropic_position_fix_corrects_only_the_constrained_direction() {
+        let start = || {
+            let mut f = EkfFusion::new(EkfConfig::default()).unwrap();
+            f.update_position(0.0, 0.0, 1.0).unwrap();
+            f
+        };
+        // Diagonal covariance matches the scalar update.
+        let (mut a, mut b) = (start(), start());
+        a.update_position(2.0, -1.0, 0.04).unwrap();
+        b.update_position_covariance(2.0, -1.0, [[0.04, 0.0], [0.0, 0.04]])
+            .unwrap();
+        assert_relative_eq!(a.pose().x_m, b.pose().x_m, epsilon = 1e-12);
+        assert_relative_eq!(a.covariance()[1][1], b.covariance()[1][1], epsilon = 1e-12);
+        // Tight across x, loose along y: x moves, y hardly does.
+        let mut c = start();
+        c.update_position_covariance(2.0, -1.0, [[0.01, 0.0], [0.0, 1.0e4]])
+            .unwrap();
+        assert!((c.pose().x_m - 2.0).abs() < 0.05, "{:?}", c.pose());
+        assert!(c.pose().y_m.abs() < 0.01, "{:?}", c.pose());
+        assert!(
+            c.position_mahalanobis_squared_covariance(
+                c.pose().x_m,
+                30.0,
+                [[0.01, 0.0], [0.0, 1.0e4]]
+            ) < 1.0
+        );
+        assert!(c
+            .update_position_covariance(0.0, 0.0, [[0.01, 0.5], [0.5, 0.01]])
+            .is_err());
+    }
 
     #[test]
     fn gps_pulls_a_dead_reckoned_estimate_back() {
