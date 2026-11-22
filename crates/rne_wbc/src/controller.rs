@@ -80,6 +80,16 @@ pub struct WholeBodyConfig {
     /// compromise. When false (the default) the unconstrained solution is
     /// clipped afterward, preserving the historical behavior.
     pub enforce_torque_limits: bool,
+    /// When true, every contact force is constrained *inside* the solve to an
+    /// inscribed four-sided friction pyramid (non-negative normal force,
+    /// tangential force within `friction_coefficient / sqrt(2)` per axis at
+    /// worst), so the returned torques never rely on a contact pulling on the
+    /// ground. When false (the default) the forces are solved unconstrained and
+    /// projected onto the friction cones afterwards, preserving the historical
+    /// behavior. Flat-footed contacts (several points on one sole) need this:
+    /// the unconstrained solve readily puts the center of pressure outside the
+    /// sole.
+    pub enforce_contact_cones: bool,
 }
 
 impl Default for WholeBodyConfig {
@@ -96,6 +106,7 @@ impl Default for WholeBodyConfig {
             solver_regularization: 1.0e-9,
             torque_limits_nm: None,
             enforce_torque_limits: false,
+            enforce_contact_cones: false,
         }
     }
 }
@@ -438,62 +449,104 @@ impl WholeBodyController {
         // returns the best *feasible* compromise instead of clipping the
         // unconstrained torques afterward (which distorts the whole motion).
         let nj = nv - model.base_dof();
-        let (solution, torque_from_solve) = match &self.config.torque_limits_nm {
-            Some(limits) if self.config.enforce_torque_limits && limits.len() == nj => {
-                let cols_total = cols + nj;
-                let mut extended: Vec<Vec<f64>> = rows
-                    .iter()
-                    .map(|row| {
-                        let mut padded = row.clone();
-                        padded.resize(cols_total, 0.0);
-                        padded
-                    })
-                    .collect();
-                let mut extended_rhs = rhs.clone();
-                // tau_j = (M qdd + h - J^T f)_j  ->  M_j qdd - J^T_j f - tau_j = -h_j
-                // Weighted like the dynamics rows so the box actually bounds the
-                // joint torques instead of a decoupled slack variable.
-                let tau_scale = self.config.dynamics_weight.sqrt();
-                for j in 0..nj {
-                    let r = model.base_dof() + j;
-                    let mut row = vec![0.0; cols_total];
-                    for column in 0..nv {
-                        row[column] = mass.get(r, column) * tau_scale;
-                    }
-                    for (contact, jacobian) in contact_jacobians.iter().enumerate() {
-                        for component in 0..3 {
-                            row[nv + 3 * contact + component] -= jacobian[component][r] * tau_scale;
-                        }
-                    }
-                    row[cols + j] = -tau_scale;
-                    extended.push(row);
-                    extended_rhs.push(-bias[r] * tau_scale);
-                }
-                let solution = solve_box_least_squares(
-                    &extended,
-                    &extended_rhs,
-                    cols_total,
-                    cols,
-                    limits,
-                    self.config.solver_regularization,
-                )
-                .ok_or(WbcError::SingularSystem)?;
-                (solution, true)
+        let enforce_torques = matches!(
+            &self.config.torque_limits_nm,
+            Some(limits) if self.config.enforce_torque_limits && limits.len() == nj
+        );
+        let mut total_cols = cols;
+        if enforce_torques {
+            total_cols = cols + nj;
+            for row in &mut rows {
+                row.resize(total_cols, 0.0);
             }
-            _ => (
-                solve_least_squares(&rows, &rhs, cols, self.config.solver_regularization)
-                    .ok_or(WbcError::SingularSystem)?,
-                false,
-            ),
-        };
+            // tau_j = (M qdd + h - J^T f)_j  ->  M_j qdd - J^T_j f - tau_j = -h_j
+            // Weighted like the dynamics rows so the box actually bounds the
+            // joint torques instead of a decoupled slack variable.
+            let tau_scale = self.config.dynamics_weight.sqrt();
+            for j in 0..nj {
+                let r = model.base_dof() + j;
+                let mut row = vec![0.0; total_cols];
+                for column in 0..nv {
+                    row[column] = mass.get(r, column) * tau_scale;
+                }
+                for (contact, jacobian) in contact_jacobians.iter().enumerate() {
+                    for component in 0..3 {
+                        row[nv + 3 * contact + component] -= jacobian[component][r] * tau_scale;
+                    }
+                }
+                row[cols + j] = -tau_scale;
+                rows.push(row);
+                rhs.push(-bias[r] * tau_scale);
+            }
+        }
+        // With contact cones enforced, each 3D force becomes non-negative
+        // weights on the four edges of its friction pyramid: f = E lambda.
+        let pyramids: Option<Vec<[Vec3; 4]>> = self
+            .config
+            .enforce_contact_cones
+            .then(|| cones.iter().map(FrictionCone::pyramid_edges).collect());
+        let force_cols = if pyramids.is_some() { 4 } else { 3 } * contacts.len();
+        if let Some(edges) = &pyramids {
+            let new_cols = total_cols + contacts.len();
+            for row in &mut rows {
+                let mut out = Vec::with_capacity(new_cols);
+                out.extend_from_slice(&row[..nv]);
+                for (contact, contact_edges) in edges.iter().enumerate() {
+                    let block = &row[nv + 3 * contact..nv + 3 * contact + 3];
+                    for edge in contact_edges {
+                        out.push(block[0] * edge.x + block[1] * edge.y + block[2] * edge.z);
+                    }
+                }
+                out.extend_from_slice(&row[cols..]);
+                *row = out;
+            }
+            total_cols = new_cols;
+        }
+        let mut lower = vec![f64::NEG_INFINITY; total_cols];
+        let mut upper = vec![f64::INFINITY; total_cols];
+        if pyramids.is_some() {
+            for value in &mut lower[nv..nv + force_cols] {
+                *value = 0.0;
+            }
+        }
+        if enforce_torques {
+            if let Some(limits) = &self.config.torque_limits_nm {
+                for (j, limit) in limits.iter().enumerate() {
+                    lower[nv + force_cols + j] = -limit.abs();
+                    upper[nv + force_cols + j] = limit.abs();
+                }
+            }
+        }
+        let torque_from_solve = enforce_torques;
+        let solution = if enforce_torques || pyramids.is_some() {
+            solve_bounded_least_squares(
+                &rows,
+                &rhs,
+                total_cols,
+                &lower,
+                &upper,
+                self.config.solver_regularization,
+            )
+        } else {
+            solve_least_squares(&rows, &rhs, total_cols, self.config.solver_regularization)
+        }
+        .ok_or(WbcError::SingularSystem)?;
         let joint_acceleration = solution[..nv].to_vec();
         let mut contact_forces_world_n = Vec::with_capacity(contacts.len());
         for (contact, cone) in cones.iter().enumerate() {
-            let force = Vec3::new(
-                solution[nv + 3 * contact],
-                solution[nv + 3 * contact + 1],
-                solution[nv + 3 * contact + 2],
-            );
+            let force = match &pyramids {
+                Some(edges) => edges[contact]
+                    .iter()
+                    .enumerate()
+                    .fold(Vec3::ZERO, |sum, (k, edge)| {
+                        sum + *edge * solution[nv + 4 * contact + k]
+                    }),
+                None => Vec3::new(
+                    solution[nv + 3 * contact],
+                    solution[nv + 3 * contact + 1],
+                    solution[nv + 3 * contact + 2],
+                ),
+            };
             contact_forces_world_n.push(cone.project(force));
         }
 
@@ -517,7 +570,7 @@ impl WholeBodyController {
         let mut base_wrench_residual = [0.0; 6];
         base_wrench_residual.copy_from_slice(&generalized[..6]);
         let mut joint_torque_nm = if torque_from_solve {
-            solution[cols..cols + nj].to_vec()
+            solution[nv + force_cols..nv + force_cols + nj].to_vec()
         } else {
             generalized[model.base_dof()..].to_vec()
         };
@@ -673,14 +726,10 @@ fn solve_least_squares(
     )
 }
 
-/// Box-constrained linear least squares solved by projected gradient.
-///
-/// Minimizes `||A x - b||^2 + regularization * ||x||^2` subject to
-/// `-limits[i] <= x[box_start + i] <= limits[i]`. The projection just clamps the
-/// constrained coordinates, and the step size is set from a power-iteration
-/// estimate of the Lipschitz constant, so the method is deterministic and needs
-/// no external solver.
-#[allow(clippy::needless_range_loop)]
+/// Box-constrained linear least squares with symmetric bounds
+/// `-limits[i] <= x[box_start + i] <= limits[i]`; see
+/// [`solve_bounded_least_squares`].
+#[cfg(test)]
 fn solve_box_least_squares(
     rows: &[Vec<f64>],
     rhs: &[f64],
@@ -689,12 +738,38 @@ fn solve_box_least_squares(
     limits: &[f64],
     regularization: f64,
 ) -> Option<Vec<f64>> {
-    // Coordinate-descent sweeps. Deterministic and fixed so replays match.
-    const ITERATIONS: usize = 400;
-    // Column equilibration: divide each column by its norm so the scaled system
-    // has unit-norm columns, which is what makes the coordinate descent below
-    // converge quickly. (`A' = A D` with `D = diag(1 / norm)`, so the recovered
-    // variables are `x = D x'`.)
+    let mut lower = vec![f64::NEG_INFINITY; cols];
+    let mut upper = vec![f64::INFINITY; cols];
+    for (i, limit) in limits.iter().enumerate() {
+        lower[box_start + i] = -limit.abs();
+        upper[box_start + i] = limit.abs();
+    }
+    solve_bounded_least_squares(rows, rhs, cols, &lower, &upper, regularization)
+}
+
+/// Bounded linear least squares: minimizes `||A x - b||^2 + regularization *
+/// ||x||^2` subject to `lower <= x <= upper` (infinite entries leave a side
+/// free).
+///
+/// A primal active-set method on the column-equilibrated normal equations: it
+/// starts from the unconstrained optimum clamped to the bounds, solves the free
+/// coordinates exactly with the bounded ones held, steps to the first bound it
+/// meets, and releases a held coordinate whose multiplier has the wrong sign,
+/// until the KKT conditions hold. It is exact (up to round-off) whether or not
+/// bounds are active, deterministic, and needs no external solver. The earlier
+/// zero-started coordinate descent stalled on whole-body systems (dynamics rows
+/// weighted 1e6 next to tasks weighted 1e2): a standing biped came back
+/// carrying a third of its weight.
+#[allow(clippy::needless_range_loop)]
+fn solve_bounded_least_squares(
+    rows: &[Vec<f64>],
+    rhs: &[f64],
+    cols: usize,
+    lower: &[f64],
+    upper: &[f64],
+    regularization: f64,
+) -> Option<Vec<f64>> {
+    const MAX_ITERATIONS: usize = 1000;
     let mut column_norm = vec![0.0; cols];
     for row in rows {
         for (column, value) in row.iter().enumerate() {
@@ -712,8 +787,8 @@ fn solve_box_least_squares(
             }
         })
         .collect();
-
-    // Normal equations H = A'^T A' + reg I and gradient g = A'^T b (in scaled x).
+    // Normal equations in scaled variables x' = D^-1 x: H = A'^T A' + reg I,
+    // g = A'^T b with A' = A D.
     let mut h = vec![vec![0.0; cols]; cols];
     let mut g = vec![0.0; cols];
     for (row, target) in rows.iter().zip(rhs) {
@@ -738,50 +813,132 @@ fn solve_box_least_squares(
         }
         h[i][i] += regularization;
     }
+    let lo: Vec<f64> = (0..cols).map(|i| lower[i] * column_scale[i]).collect();
+    let hi: Vec<f64> = (0..cols).map(|i| upper[i] * column_scale[i]).collect();
 
-    // Scaled-space bounds for the boxed coordinates.
-    let bounds: Vec<f64> = (0..limits.len())
-        .map(|i| limits[i].abs().max(0.0) * column_scale[box_start + i])
-        .collect();
+    // Feasible start and its active set.
+    let mut x: Vec<f64> = match solve_spd(&h, &g) {
+        Some(free) => free
+            .iter()
+            .enumerate()
+            .map(|(i, value)| value.clamp(lo[i], hi[i]))
+            .collect(),
+        None => (0..cols).map(|i| 0.0_f64.clamp(lo[i], hi[i])).collect(),
+    };
+    let mut held: Vec<bool> = (0..cols).map(|i| x[i] <= lo[i] || x[i] >= hi[i]).collect();
 
-    // Projected coordinate descent (projected Gauss-Seidel) on the SPD normal
-    // equations `H x = g`. Each coordinate takes its exact one-dimensional
-    // minimizer
-    //
-    //     x_i <- (g_i - sum_{j != i} H_ij x_j) / H_ii,  clipped to its bound,
-    //
-    // which converges monotonically for a symmetric positive-definite `H`. A
-    // plain steepest-descent step with `1 / lambda_max` stalls on the
-    // ill-conditioned systems a whole-body solve produces (the joint-torque
-    // variables in particular), which is how `tau` used to come back at zero.
-    let mut x = vec![0.0; cols];
-    for _ in 0..ITERATIONS {
-        for i in 0..cols {
-            let mut residual = g[i];
-            for (j, value) in x.iter().enumerate() {
-                if j != i {
-                    residual -= h[i][j] * value;
-                }
+    for _ in 0..MAX_ITERATIONS {
+        // Solve the free coordinates with the held ones fixed.
+        let free: Vec<usize> = (0..cols).filter(|&i| !held[i]).collect();
+        let mut reduced = vec![vec![0.0; free.len()]; free.len()];
+        let mut reduced_rhs = vec![0.0; free.len()];
+        for (a, &i) in free.iter().enumerate() {
+            reduced_rhs[a] = g[i]
+                - (0..cols)
+                    .filter(|&j| held[j])
+                    .map(|j| h[i][j] * x[j])
+                    .sum::<f64>();
+            for (b, &j) in free.iter().enumerate() {
+                reduced[a][b] = h[i][j];
             }
-            let diagonal = h[i][i];
-            if diagonal.abs() <= 1.0e-18 {
+        }
+        let target = solve_spd(&reduced, &reduced_rhs)?;
+        // Longest step toward the target that stays feasible.
+        let mut step = 1.0_f64;
+        let mut blocking = None;
+        for (a, &i) in free.iter().enumerate() {
+            let delta = target[a] - x[i];
+            let limit = if delta < 0.0 {
+                (lo[i] - x[i]) / delta
+            } else if delta > 0.0 {
+                (hi[i] - x[i]) / delta
+            } else {
+                f64::INFINITY
+            };
+            if limit < step {
+                step = limit.max(0.0);
+                blocking = Some(i);
+            }
+        }
+        for (a, &i) in free.iter().enumerate() {
+            x[i] += step * (target[a] - x[i]);
+        }
+        if let Some(i) = blocking {
+            x[i] = if (x[i] - lo[i]).abs() <= (x[i] - hi[i]).abs() {
+                lo[i]
+            } else {
+                hi[i]
+            };
+            held[i] = true;
+            continue;
+        }
+        // At the optimum of the free coordinates: release the held coordinate
+        // whose gradient points into the feasible region the most.
+        let mut release = None;
+        let mut worst = 1.0e-12;
+        for i in 0..cols {
+            if !held[i] {
                 continue;
             }
-            let mut value = residual / diagonal;
-            if i >= box_start {
-                let bound = bounds[i - box_start];
-                value = value.clamp(-bound, bound);
+            // Gradient of 0.5 x'Hx - g'x.
+            let gradient = (0..cols).map(|j| h[i][j] * x[j]).sum::<f64>() - g[i];
+            let violation = if x[i] <= lo[i] { -gradient } else { gradient };
+            if violation > worst {
+                worst = violation;
+                release = Some(i);
             }
-            x[i] = value;
+        }
+        match release {
+            Some(i) => held[i] = false,
+            None => break,
         }
     }
-
     Some(
         x.iter()
             .zip(&column_scale)
             .map(|(value, scale)| value / scale)
             .collect(),
     )
+}
+
+/// Solves a small symmetric positive-definite system by Cholesky factorization.
+#[allow(clippy::needless_range_loop)]
+fn solve_spd(matrix: &[Vec<f64>], rhs: &[f64]) -> Option<Vec<f64>> {
+    let n = rhs.len();
+    let mut l = vec![vec![0.0; n]; n];
+    for i in 0..n {
+        for j in 0..=i {
+            let mut sum = matrix[i][j];
+            for k in 0..j {
+                sum -= l[i][k] * l[j][k];
+            }
+            if i == j {
+                if sum <= 0.0 {
+                    return None;
+                }
+                l[i][i] = sum.sqrt();
+            } else {
+                l[i][j] = sum / l[j][j];
+            }
+        }
+    }
+    let mut y = vec![0.0; n];
+    for i in 0..n {
+        let mut sum = rhs[i];
+        for k in 0..i {
+            sum -= l[i][k] * y[k];
+        }
+        y[i] = sum / l[i][i];
+    }
+    let mut x = vec![0.0; n];
+    for i in (0..n).rev() {
+        let mut sum = y[i];
+        for k in i + 1..n {
+            sum -= l[k][i] * x[k];
+        }
+        x[i] = sum / l[i][i];
+    }
+    Some(x)
 }
 
 #[cfg(test)]
@@ -959,5 +1116,133 @@ mod tests {
             controller.solve(&model, &[0.0; 6], &[0.0; 6], &contacts, None, None, None),
             Err(WbcError::TorqueLimitDimension { .. })
         ));
+    }
+
+    #[test]
+    fn bounded_solver_is_exact_when_no_bound_is_active() {
+        // Rows weighted like a whole-body solve: a 1e6 "dynamics" row next to
+        // 1e2 "task" rows. Zero-started coordinate descent stalled here.
+        let w_dyn = 1.0e3;
+        let rows = vec![
+            vec![w_dyn, w_dyn, -w_dyn],
+            vec![10.0, 0.0, 0.0],
+            vec![0.0, 10.0, 0.0],
+            vec![0.0, 0.0, 1.0e-2],
+        ];
+        let rhs = vec![9.81 * w_dyn, 10.0, 20.0, 0.0];
+        let free = solve_least_squares(&rows, &rhs, 3, 1.0e-12).unwrap();
+        let lower = vec![f64::NEG_INFINITY, f64::NEG_INFINITY, -1.0e6];
+        let upper = vec![f64::INFINITY, f64::INFINITY, 1.0e6];
+        let bounded = solve_bounded_least_squares(&rows, &rhs, 3, &lower, &upper, 1.0e-12).unwrap();
+        for (a, b) in free.iter().zip(&bounded) {
+            assert_relative_eq!(a, b, epsilon = 1.0e-6, max_relative = 1.0e-6);
+        }
+    }
+
+    #[test]
+    fn pyramid_edges_lie_on_the_cone() {
+        let cone = FrictionCone {
+            normal: Vec3::Z,
+            coefficient: 0.5,
+        };
+        for edge in cone.pyramid_edges() {
+            assert_relative_eq!(edge.dot(Vec3::Z), 1.0, epsilon = 1.0e-12);
+            let tangential = (edge - Vec3::Z).length();
+            assert_relative_eq!(tangential, 0.5, epsilon = 1.0e-12);
+            assert!(cone.contains(edge * 3.0));
+        }
+    }
+
+    #[test]
+    fn enforced_cones_keep_every_contact_pushing() {
+        // Two contacts 0.2 m apart and a commanded pitch acceleration that
+        // pushing contacts can deliver (with friction) but that the
+        // minimum-norm unconstrained solve makes with one contact pulling.
+        const SPIN: f64 = 40.0;
+        let (_world, model, base) = floating_body();
+        let contacts = vec![
+            ContactPoint::new(base, Vec3::new(0.1, -0.2, 0.0), 0.8),
+            ContactPoint::new(base, Vec3::new(-0.1, -0.2, 0.0), 0.8),
+        ];
+        let spin = BaseAttitudeTask {
+            desired_angular_acceleration_rad_s2: Vec3::new(0.0, 0.0, SPIN),
+        };
+        let solve = |enforce: bool| {
+            WholeBodyController::new(WholeBodyConfig {
+                enforce_contact_cones: enforce,
+                ..WholeBodyConfig::default()
+            })
+            .solve(
+                &model,
+                &[0.0; 6],
+                &[0.0; 6],
+                &contacts,
+                Some(&ComTask::hold(Vec3::ZERO)),
+                Some(&spin),
+                None,
+            )
+            .expect("solve")
+        };
+        // Unconstrained: the generalized force balance uses a pulling contact,
+        // visible as a base-wrench residual once forces are projected.
+        let free = solve(false);
+        let free_residual: f64 = free
+            .base_wrench_residual
+            .iter()
+            .map(|v| v * v)
+            .sum::<f64>()
+            .sqrt();
+        let constrained = solve(true);
+        assert!(constrained
+            .contact_forces_world_n
+            .iter()
+            .all(|force| force.y >= -1.0e-9));
+        let residual: f64 = constrained
+            .base_wrench_residual
+            .iter()
+            .map(|v| v * v)
+            .sum::<f64>()
+            .sqrt();
+        // Consistent with the forces it returns: no hidden pulling contact.
+        assert!(residual < 1.0e-6, "residual {residual}");
+        assert!(free_residual > 1.0, "free residual {free_residual}");
+        // It still supports the weight.
+        let vertical: f64 = constrained.contact_forces_world_n.iter().map(|f| f.y).sum();
+        assert!(vertical > 0.5 * 3.0 * 9.81);
+    }
+
+    #[test]
+    fn enforced_cones_match_the_free_solve_when_inactive() {
+        let (_world, model, base) = floating_body();
+        let contacts = vec![
+            ContactPoint::new(base, Vec3::new(0.1, -0.2, 0.0), 0.8),
+            ContactPoint::new(base, Vec3::new(-0.1, -0.2, 0.0), 0.8),
+        ];
+        let solve = |enforce: bool| {
+            WholeBodyController::new(WholeBodyConfig {
+                enforce_contact_cones: enforce,
+                ..WholeBodyConfig::default()
+            })
+            .solve(
+                &model,
+                &[0.0; 6],
+                &[0.0; 6],
+                &contacts,
+                Some(&ComTask::hold(Vec3::ZERO)),
+                None,
+                None,
+            )
+            .expect("solve")
+        };
+        let (free, constrained) = (solve(false), solve(true));
+        for (a, b) in free
+            .contact_forces_world_n
+            .iter()
+            .zip(&constrained.contact_forces_world_n)
+        {
+            // The squeeze between the two contacts is free in the dynamics and
+            // only weakly regularized, so compare the supporting components.
+            assert!((a.y - b.y).abs() < 1.0e-3, "{a:?} vs {b:?}");
+        }
     }
 }

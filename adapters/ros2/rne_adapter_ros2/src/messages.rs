@@ -272,3 +272,67 @@ pub struct RosPath {
     /// Ordered poses.
     pub poses: Vec<RosPoseStamped>,
 }
+
+/// `sensor_msgs/Imu` compatible inertial measurement.
+///
+/// A covariance whose first element is `-1` marks that quantity as not
+/// provided, following the ROS convention.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RosImu {
+    /// Message header; `frame_id` names the IMU frame.
+    pub header: RosHeader,
+    /// Orientation estimate (identity when not provided).
+    pub orientation: RosQuaternion,
+    /// Row-major orientation covariance.
+    pub orientation_covariance: [f64; 9],
+    /// Angular velocity in the IMU frame, radians per second.
+    pub angular_velocity: RosVector3,
+    /// Row-major angular velocity covariance.
+    pub angular_velocity_covariance: [f64; 9],
+    /// Specific force in the IMU frame, meters per second squared.
+    pub linear_acceleration: RosVector3,
+    /// Row-major linear acceleration covariance.
+    pub linear_acceleration_covariance: [f64; 9],
+}
+
+/// `sensor_msgs/RegionOfInterest` compatible region.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct RosRegionOfInterest {
+    /// Leftmost pixel of the region.
+    pub x_offset: u32,
+    /// Topmost pixel of the region.
+    pub y_offset: u32,
+    /// Region height in pixels (0 for the full image).
+    pub height: u32,
+    /// Region width in pixels (0 for the full image).
+    pub width: u32,
+    /// Whether the region should be rectified.
+    pub do_rectify: bool,
+}
+
+/// `sensor_msgs/CameraInfo` compatible calibration message.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RosCameraInfo {
+    /// Message header; `frame_id` names the camera optical frame.
+    pub header: RosHeader,
+    /// Image height in pixels.
+    pub height: u32,
+    /// Image width in pixels.
+    pub width: u32,
+    /// Distortion model name, such as `plumb_bob`.
+    pub distortion_model: String,
+    /// Distortion coefficients of `distortion_model`.
+    pub d: Vec<f64>,
+    /// Row-major 3x3 intrinsic matrix.
+    pub k: [f64; 9],
+    /// Row-major 3x3 rectification rotation.
+    pub r: [f64; 9],
+    /// Row-major 3x4 projection matrix.
+    pub p: [f64; 12],
+    /// Horizontal binning factor (0 or 1 for none).
+    pub binning_x: u32,
+    /// Vertical binning factor (0 or 1 for none).
+    pub binning_y: u32,
+    /// Region of interest.
+    pub roi: RosRegionOfInterest,
+}
