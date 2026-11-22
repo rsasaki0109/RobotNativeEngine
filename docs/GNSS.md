@@ -127,9 +127,9 @@ block-tridiagonal normal equations; the oldest node is marginalized into a
 prior (Schur complement). A particle filter runs alongside and seeds a
 second scan match; the window is shifted onto it, or onto a run of
 consistent RTK fixes the kernel keeps rejecting, when the estimate has
-clearly lost them. In the Tokyo streets of example 152 it halves the
-hybrid's error in Shibuya and still reaches the goal in Nishi-Shinjuku
-without the NLOS exclusion, where the hybrid gets lost.
+clearly lost them. In the Tokyo streets of example 152 it reaches the
+goal in every run, crowds and rain included, where the hybrid gets lost
+among the Nishi-Shinjuku towers.
 
 ### Results of example 151
 
@@ -160,10 +160,16 @@ scene from Project PLATEAU's LOD2 model of Tokyo
 (`scripts/fetch_plateau_tokyo.py` extracts the meshes around Shibuya
 Station and Nishi-Shinjuku from the official archive with range requests)
 and runs the same robot there. QZSS roughly quadruples the share of
-street points that see eight or more satellites; with it and the 3D-map
-NLOS exclusion the robot walks both routes (750 m and 960 m) with a
-position RMSE of 0.24 m and 0.66 m, while among the Nishi-Shinjuku towers
-dropping either the exclusion or QZSS gets it lost or stopped.
+street points that see eight or more satellites. With the factor graph the
+robot walks both routes (750 m and 960 m) with a position RMSE of 0.30 m
+and 0.45 m; the hybrid arbiter manages Shibuya but among the
+Nishi-Shinjuku towers stops or gets lost depending on the noise.
+`--conditions --seeds 3` adds 60 pedestrians on the sidewalks (LiDAR
+returns and GNSS occluders), rain (LiDAR dropouts, noise and drop returns;
+wet, stronger reflectors) and glass curtain walls from 20 m: the factor
+graph reaches the goal in all 24 runs (RMSE median at most 2.1 m), while
+the hybrid fails every Nishi-Shinjuku crowd run, because pedestrians hide
+the street furniture its scan matches depend on along the corridors.
 
 ![Example 152 rendered in 3D: GNSS and LiDAR navigation among the PLATEAU buildings around Shibuya Station](media/plateau-gnss-shibuya.gif)
 

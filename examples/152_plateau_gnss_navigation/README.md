@@ -12,7 +12,8 @@ tower district, built from Project PLATEAU's LOD2 city model. The full run
 (both areas, five configurations each) takes about 40 minutes;
 `--quick` runs only the main configuration, `--config "factor graph"` the
 configurations whose label contains the text, `--area shibuya` one area, and
-`--survey` only the sky survey (seconds).
+`--survey` only the sky survey (seconds); `--conditions` runs crowds, rain and
+glass canyons instead, `--seeds N` each N times with different noise.
 
 ![3D render in RNE: the robot walks from the Shibuya scramble crossing west and up Koen-dori among the PLATEAU LOD2 buildings; green rays are line-of-sight satellites, red NLOS reflections off the facades, purple diffraction over roof edges; the trail is blue while RTK localizes it and magenta while the LiDAR map does](../../docs/media/plateau-gnss-shibuya.gif)
 
@@ -83,39 +84,87 @@ QZSS's near-zenith satellites are what a canyon can still see.
 
 | Area | Configuration | Goal | Position RMSE / max | RTK fixed | GNSS / LiDAR time | Longest dead reckoning |
 |------|---------------|------|---------------------|-----------|-------------------|------------------------|
-| Shibuya | map-aided GNSS + QZSS | reached, 799 s | 0.24 / 2.70 m | 61 % | 400 / 398 s | 0.1 s |
-| Shibuya | no map aid | reached, 795 s | 0.19 / 1.60 m | 34 % | 298 / 497 s | 0.1 s |
-| Shibuya | no QZSS | reached, 790 s | 0.27 / 3.02 m | 25 % | 159 / 631 s | 0.1 s |
-| Shibuya | **factor graph** | reached, 773 s | 0.12 / 2.31 m | 64 % | — | 0.1 s |
-| Shibuya | factor graph, no map aid | reached, 776 s | 0.14 / 1.51 m | 45 % | — | 0.1 s |
-| Nishi-Shinjuku | map-aided GNSS + QZSS | reached, 1014 s | 0.66 / 3.49 m | 35 % | 198 / 815 s | 0.1 s |
-| Nishi-Shinjuku | no map aid | **not reached** (lost) | 6.99 / 10.73 m | 55 % | 37 / 1763 s | 0.1 s |
-| Nishi-Shinjuku | no QZSS | reached, 1208 s, after a 178 s safety stop | 3.82 / 9.31 m | 19 % | 89 / 940 s | 178 s |
-| Nishi-Shinjuku | **factor graph** | reached, 996 s | 0.74 / 4.18 m | 29 % | — | 0.8 s |
-| Nishi-Shinjuku | factor graph, no map aid | **reached**, 1011 s | 1.47 / 35.66 m | 12 % | — | 0.1 s |
+| Shibuya | map-aided GNSS + QZSS | reached, 797 s | 0.29 / 2.83 m | 56 % | 415 / 382 s | 0.1 s |
+| Shibuya | no map aid | reached, 797 s | 0.23 / 1.83 m | 33 % | 290 / 506 s | 0.1 s |
+| Shibuya | no QZSS | reached, 785 s | 0.23 / 2.04 m | 28 % | 164 / 621 s | 0.1 s |
+| Shibuya | **factor graph** | reached, 776 s | 0.30 / 3.31 m | 61 % | — | 0.1 s |
+| Shibuya | factor graph, no map aid | reached, 787 s | 0.27 / 3.52 m | 48 % | — | 0.1 s |
+| Nishi-Shinjuku | map-aided GNSS + QZSS | reached, 1436 s, after a 256 s safety stop | 10.39 / 40.19 m | 26 % | 174 / 917 s | 256 s |
+| Nishi-Shinjuku | no map aid | reached, 1050 s | 1.98 / 10.67 m | 15 % | 69 / 957 s | 20 s |
+| Nishi-Shinjuku | no QZSS | **not reached** (stopped) | 9.73 / 12.67 m | 11 % | 36 / 711 s | 1052 s |
+| Nishi-Shinjuku | **factor graph** | reached, 986 s | 0.45 / 2.39 m | 35 % | — | 0.1 s |
+| Nishi-Shinjuku | factor graph, no map aid | reached, 995 s | 1.18 / 35.64 m | 12 % | — | 0.1 s |
 
 The LiDAR map carries the robot through Shibuya with or without the
-GNSS aids. Among the Nishi-Shinjuku towers the hybrid arbiter needs both
-the 3D-map NLOS exclusion and QZSS: without the exclusion, wrong RTK
-solutions are accepted and the robot gets lost; without QZSS, too few
-satellites remain and the robot has to stop.
+GNSS aids. Among the Nishi-Shinjuku towers the hybrid arbiter is fragile:
+without QZSS too few satellites remain and the robot stops for good, and
+even with everything on, whether it gets through depends on the noise
+realization (`--seeds`, below): in this run (seed 0) a stretch of scan
+matches on a featureless street drifts, the GNSS gate refuses the RTK fixes
+that disagree, and the robot stops for 256 s before RTK takes it back.
 
 The **factor graph** (`rne_slam::FactorGraphLocalizer`, `--config "factor
 graph"`) weighs the last few seconds of odometry, GNSS and LiDAR together
 instead of switching: GNSS fixes go in under a Cauchy kernel, so a wrong
 RTK fix that disagrees with the odometry and the scans loses its weight
-rather than being gated by one threshold. It halves the error in Shibuya
-and reaches the goal in Nishi-Shinjuku even without the NLOS exclusion,
-where the hybrid gets lost, though with one 36 m excursion before RTK
-re-anchors it. Its "GNSS / LiDAR time" is not comparable (it does not
-switch), so the table leaves it out.
+rather than being gated by one threshold. It reaches the goal everywhere
+without a stop, even without the NLOS exclusion, though then with one 36 m
+excursion before RTK re-anchors it. Its "GNSS / LiDAR time" is not
+comparable (it does not switch), so the table leaves it out.
+
+### Crowds, rain and glass canyons (`--conditions --seeds 3`)
+
+Does the robot keep driving when the street is less tidy? `--conditions`
+runs the map-aided GNSS + QZSS configuration with both localizers under:
+
+* **crowd** — 60 pedestrians walking the sidewalks along the route (1.2–3 m
+  either side, 0.9–1.6 m/s, back and forth over 30–90 m stretches). They
+  are LiDAR returns (0.28 m bodies, not in the prior map) and GNSS
+  occluders, and step around the robot rather than walk through it; the
+  robot's safety gate waits when one is in its path.
+* **crowd + rain** — also rain: 15 % of LiDAR beams drop out, the range
+  noise triples, 2 % of beams return off drops at 0.3–4 m, and wet facades
+  and roads reflect GNSS more strongly (concrete 6 dB, asphalt 9 dB, glass
+  3.5 dB reflection loss instead of 8, 12 and 4 dB).
+* **glass from 20 m** — every facade of a building at least 20 m tall is a
+  glass curtain wall (instead of from 45 m): stronger multipath everywhere.
+
+`--seeds N` repeats each with N different noise realizations (receiver
+noise, satellite errors, LiDAR noise, pedestrians); seed 0 is the run
+above. Summary over 3 seeds:
+
+| Area | Condition | Hybrid: goal | RMSE median / worst | Max | Factor graph: goal | RMSE median / worst | Max |
+|------|-----------|--------------|---------------------|-----|--------------------|---------------------|-----|
+| Shibuya | clear | 3/3 | 0.28 / 0.29 m | 2.8 m | 3/3 | 0.12 / 0.30 m | 3.3 m |
+| Shibuya | crowd | 3/3 | 0.98 / 2.12 m | 11.2 m | 3/3 | 0.53 / 0.84 m | 5.7 m |
+| Shibuya | crowd + rain | 2/3 | 15.08 / 19.58 m | 59.6 m | 3/3 | 1.24 / 1.56 m | 7.3 m |
+| Shibuya | glass from 20 m | 3/3 | 0.19 / 0.28 m | 2.5 m | 3/3 | 0.08 / 0.16 m | 3.9 m |
+| Nishi-Shinjuku | clear | 2/3 | 8.26 / 10.39 m | 40.2 m | 3/3 | 0.82 / 1.23 m | 10.4 m |
+| Nishi-Shinjuku | crowd | **0/3** | 25.90 / 34.02 m | 77.1 m | 3/3 | 1.56 / 3.47 m | 13.4 m |
+| Nishi-Shinjuku | crowd + rain | **0/3** | 38.73 / 142.66 m | 258.1 m | 3/3 | 2.10 / 2.41 m | 18.3 m |
+| Nishi-Shinjuku | glass from 20 m | 3/3 | 2.19 / 6.24 m | 20.8 m | 3/3 | 0.61 / 0.85 m | 4.4 m |
+
+The factor graph reaches the goal in all 24 runs and never dead-reckons
+for more than 0.4 s; the crowd and the rain roughly double or triple its
+error, and its worst moments (up to 18 m in the Nishi-Shinjuku rain) are
+short and corrected by the next good RTK fix. The hybrid does well in
+Shibuya until it rains, but in Nishi-Shinjuku the crowd defeats it in every
+run: on the long straight streets between the towers the street furniture
+is the only thing the scan matcher can lock onto along the street, the
+pedestrians hide it, the matches slide, and once the estimate is tens of
+metres off the GNSS gate rejects the correct RTK fixes as outliers. Its
+dead reckoning stretches (up to 1062 s) are safety stops, not driving
+blind. The glass canyon matters less than expected: more multipath, but
+the NLOS exclusion and the robust kernels take most of it.
 
 ## Limits
 
 * LOD2 buildings are prisms with roofs: no balconies, signs, glass detail or
   ground-floor arcades, and the facade material is guessed from the height.
-* The street furniture is synthetic, and there are no vehicles or
-  pedestrians.
+* The street furniture and the pedestrians are synthetic; there are no
+  vehicles, and pedestrians do not obstruct one another or cross the street.
+* Rain does not attenuate GNSS (well under 0.1 dB at L-band) and does not
+  change the LiDAR's maximum range.
 * The terrain is interpolated from building bases, not a road surface model.
 * The constellation is nominal (24 GPS, 24 Galileo, 4 QZSS); a real receiver
   in Tokyo also tracks GLONASS and BeiDou and sees more satellites.

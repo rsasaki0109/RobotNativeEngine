@@ -37,6 +37,11 @@ All notable changes to Robot Native Engine are documented in this file.
   around Shibuya Station and in Nishi-Shinjuku from PLATEAU's LOD2 model,
   with QZSS and a park reference station; a sky survey, three
   configurations per area and a 3D render (`docs/media/plateau-gnss-*.gif`).
+  `--conditions` adds pedestrians on the sidewalks, rain and glass canyons,
+  and `--seeds N` repeats each run over N noise realizations.
+- `HybridLocalizer`: a GNSS gate reset while LiDAR or dead reckoning is the
+  source now re-anchors the EKF on the fix; before, the reset accepted the
+  fix but left the estimate where it was, so the gate kept rejecting GNSS.
 
 ### Added
 
