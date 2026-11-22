@@ -757,8 +757,19 @@ impl RenderBackend for ColliderRenderer {
                     let mut sum = 0.0;
                     for sy in 0..samples {
                         for sx in 0..samples {
-                            let dx = (f64::from(sx) + 0.5) / f64::from(samples);
-                            let dy = (f64::from(sy) + 0.5) / f64::from(samples);
+                            // Jittered within each sub-cell: a regular grid would put
+                            // an edge parallel to the rows or columns (a board facing
+                            // the camera) at one of `samples` levels, biasing its
+                            // corners; jittered samples average to the true coverage.
+                            let jitter = mix64(
+                                u64::from(row) << 32
+                                    | u64::from(column) << 8
+                                    | u64::from(sy * samples + sx),
+                            );
+                            let jx = (jitter & 0xFFFF) as f64 / 65536.0;
+                            let jy = ((jitter >> 16) & 0xFFFF) as f64 / 65536.0;
+                            let dx = (f64::from(sx) + jx) / f64::from(samples);
+                            let dy = (f64::from(sy) + jy) / f64::from(samples);
                             sum += self
                                 .cast(view.translation, view.rotation * ray(dx, dy))
                                 .map_or(f64::from(gray), |(_, g)| f64::from(g));
