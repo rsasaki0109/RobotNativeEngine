@@ -36,6 +36,7 @@ Inputs (PLY, path CSV, visloc map) are not in the repository; see lidar_slam
 | odometry only | - | 5.55 / 17.17 m | 5.97 / 17.37 m |
 | closed loop, visloc-rs renderer | 65 / 86 | 0.07 / 0.71 m | 0.13 / 0.82 m |
 | closed loop, RNE renderer (sqrt(2) workaround) | 52 / 86 | 0.10 / 0.80 m | 0.16 / 0.98 m |
+| closed loop, RNE renderer (shader fix) | 59 / 86 | 0.11 / 0.85 m | 0.18 / 0.96 m |
 
 Open-loop localization of 172 RNE front-camera frames: none before the footprint fix,
 115 (median 5.2 cm) with a 1/sqrt(2) size workaround, 128 (median 6.2 cm) with the shader fix.
