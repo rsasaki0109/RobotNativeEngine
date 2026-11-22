@@ -39,8 +39,8 @@ summary over the trials. Each run writes a per-frame trace
     0.9 m.
   - It changes lanes early, at walking speed, for someone coming head-on or
     standing in the way. It aims 1.1 m clear of the line that person walks
-    along. Someone drifting sideways (by the track's mean velocity, across
-    the way to the goal) is passed behind. Otherwise the robot keeps to its
+    along, from the track's velocity smoothed over about 1 s. Someone
+    drifting sideways (across the way to the goal) is passed behind. Otherwise the robot keeps to its
     side of the person's line, and holds that side once the track is 1 s
     old.
   - In `follow` it keeps one track as the target, 1.2 m behind it. When that
@@ -105,57 +105,57 @@ Eight trials per task and source (`--trials 8`), with the rule controller
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | follow | oracle | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 |
 | follow | oracle+slam | 8 | 0 | 0 | 0 | 0.90 | 0.90 | 0.00 | - | 0.26 | 0.00 | 0.00 |
-| follow | nearest | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.93 | - | 0.55 | 0.12 | 0.07 |
-| follow | nearest+map | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.96 | - | 0.55 | 0.12 | 0.07 |
-| follow | nearest+slam | 8 | 0 | 1 | 1 | 0.96 | 0.54 | 0.96 | - | 0.55 | 0.12 | 0.07 |
-| follow | tracker | 8 | 0 | 0 | 0 | 1.02 | 0.61 | 0.40 | - | 0.47 | 0.06 | 0.03 |
-| follow | tracker+map | 8 | 0 | 0 | 0 | 1.02 | 0.61 | 0.40 | - | 0.47 | 0.06 | 0.04 |
-| follow | tracker+slam | 8 | 0 | 0 | 0 | 1.02 | 0.61 | 0.40 | - | 0.47 | 0.06 | 0.04 |
+| follow | nearest | 8 | 0 | 0 | 0 | 0.97 | 0.64 | 0.74 | - | 0.55 | 0.12 | 0.07 |
+| follow | nearest+map | 8 | 0 | 0 | 0 | 0.97 | 0.64 | 0.74 | - | 0.55 | 0.12 | 0.07 |
+| follow | nearest+slam | 8 | 0 | 0 | 0 | 0.97 | 0.64 | 0.74 | - | 0.55 | 0.12 | 0.07 |
+| follow | tracker | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.37 | - | 0.47 | 0.06 | 0.03 |
+| follow | tracker+map | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.37 | - | 0.47 | 0.06 | 0.04 |
+| follow | tracker+slam | 8 | 0 | 0 | 0 | 1.03 | 0.63 | 0.37 | - | 0.47 | 0.06 | 0.04 |
 | crossing | oracle | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - |
 | crossing | oracle+slam | 8 | 0 | 0 | 0 | 0.86 | 0.72 | 0.10 | 1.00 | - | - | - |
 | crossing | nearest | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
 | crossing | nearest+map | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
 | crossing | nearest+slam | 8 | 0 | 0 | 0 | 0.94 | 0.76 | 0.07 | 0.99 | - | - | - |
-| crossing | tracker | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.01 | - | - | - |
-| crossing | tracker+map | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.01 | - | - | - |
-| crossing | tracker+slam | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.01 | - | - | - |
-| corridor | oracle | 8 | 0 | 0 | 0 | 0.73 | 0.67 | 0.60 | 1.28 | - | - | - |
-| corridor | oracle+slam | 8 | 0 | 0 | 0 | 0.73 | 0.67 | 0.60 | 1.10 | - | - | - |
-| corridor | nearest | 8 | 0 | 4 | 4 | 0.56 | 0.28 | 1.79 | 1.29 | - | - | - |
-| corridor | nearest+map | 8 | 1 | 6 | 7 | 0.49 | 0.20 | 1.81 | 1.41 | - | - | - |
-| corridor | nearest+slam | 8 | 0 | 6 | 7 | 0.49 | 0.20 | 1.81 | 1.24 | - | - | - |
-| corridor | tracker | 8 | 0 | 5 | 5 | 0.53 | 0.43 | 1.80 | 1.32 | - | - | - |
-| corridor | tracker+map | 8 | 0 | 1 | 1 | 0.61 | 0.51 | 1.76 | 1.39 | - | - | - |
-| corridor | tracker+slam | 8 | 0 | 1 | 1 | 0.61 | 0.51 | 1.76 | 1.27 | - | - | - |
-| room | oracle | 8 | 0 | 0 | 0 | 1.02 | 0.98 | 0.00 | 0.94 | - | - | - |
+| crossing | tracker | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - |
+| crossing | tracker+map | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - |
+| crossing | tracker+slam | 8 | 0 | 0 | 0 | 0.95 | 0.77 | 0.06 | 1.00 | - | - | - |
+| corridor | oracle | 8 | 0 | 0 | 0 | 0.71 | 0.67 | 0.70 | 1.27 | - | - | - |
+| corridor | oracle+slam | 8 | 0 | 0 | 0 | 0.71 | 0.67 | 0.70 | 1.17 | - | - | - |
+| corridor | nearest | 8 | 0 | 0 | 0 | 0.70 | 0.59 | 0.82 | 1.11 | - | - | - |
+| corridor | nearest+map | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.26 | - | - | - |
+| corridor | nearest+slam | 8 | 0 | 0 | 0 | 0.72 | 0.62 | 0.72 | 1.08 | - | - | - |
+| corridor | tracker | 8 | 0 | 1 | 1 | 0.68 | 0.54 | 0.77 | 1.30 | - | - | - |
+| corridor | tracker+map | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.24 | - | - | - |
+| corridor | tracker+slam | 8 | 0 | 0 | 0 | 0.73 | 0.62 | 0.67 | 1.04 | - | - | - |
+| room | oracle | 8 | 0 | 0 | 0 | 1.01 | 0.98 | 0.00 | 0.94 | - | - | - |
 | room | oracle+slam | 8 | 0 | 0 | 0 | 1.01 | 0.99 | 0.00 | 0.42 | - | - | - |
-| room | nearest | 8 | 0 | 0 | 0 | 0.92 | 0.79 | 0.03 | 0.97 | - | - | - |
-| room | nearest+map | 8 | 0 | 0 | 0 | 0.96 | 0.87 | 0.00 | 0.95 | - | - | - |
-| room | nearest+slam | 8 | 0 | 0 | 0 | 0.92 | 0.75 | 0.09 | 0.43 | - | - | - |
-| room | tracker | 8 | 0 | 0 | 0 | 0.95 | 0.86 | 0.00 | 0.97 | - | - | - |
-| room | tracker+map | 8 | 0 | 0 | 0 | 0.90 | 0.82 | 0.00 | 0.94 | - | - | - |
-| room | tracker+slam | 8 | 0 | 0 | 0 | 0.96 | 0.84 | 0.00 | 0.42 | - | - | - |
+| room | nearest | 8 | 0 | 0 | 0 | 0.97 | 0.86 | 0.00 | 0.96 | - | - | - |
+| room | nearest+map | 8 | 0 | 0 | 0 | 0.98 | 0.88 | 0.00 | 0.98 | - | - | - |
+| room | nearest+slam | 8 | 0 | 0 | 0 | 0.99 | 0.94 | 0.00 | 0.42 | - | - | - |
+| room | tracker | 8 | 0 | 0 | 0 | 1.01 | 0.92 | 0.00 | 0.98 | - | - | - |
+| room | tracker+map | 8 | 0 | 0 | 0 | 0.94 | 0.86 | 0.00 | 0.94 | - | - | - |
+| room | tracker+slam | 8 | 0 | 0 | 0 | 1.01 | 0.94 | 0.00 | 0.42 | - | - | - |
 
-One run falls (`nearest+map` in the corridor). A contact is a person's centre within 0.55 m of the base's
+No run falls. A contact is a person's centre within 0.55 m of the base's
 centre. "Left to goal" is the true distance when the robot believes it has
 arrived.
 
-- **Perfect perception never touches anyone** in 64 runs, with odometry or
-  SLAM. Every contact below comes from perception.
-- **Following**: robot-perception follows with no contact. It is on the
-  wrong person 6 % of the time, against 12 % and one contact for the
-  nearest-neighbour tracker. The map and SLAM play no part on open floor.
+- **One contact in 256 runs.** Perfect perception touches nobody, with
+  odometry or SLAM.
+- **Following**: no contacts. robot-perception is on the wrong person 6 % of
+  the time, against 12 % for the nearest-neighbour tracker.
 - **Crossing** is safe with every source.
-- **Corridor**: wall pieces become phantom people. robot-perception with the
-  static map (or SLAM) is the best real perception: 1 of 8 runs with a
-  contact, against 5 of 8 without the map. The map does not help the
-  nearest-neighbour tracker (4 → 6 of 8). It removes the phantoms, but that
-  tracker's velocities are too noisy to plan a lane change around the people
-  who remain.
+- **Corridor**: one contact in 48 runs with real perception
+  (robot-perception without the map, closest 0.54 m against the 0.55 m
+  contact distance). The robot started that lane change late and was a
+  third of the way across when the person arrived. Wall pieces still become
+  phantom people without the map, but they no longer decide where the robot
+  walks. The map shortens the time spent within 0.8 m of someone
+  (0.77 → 0.67 s for robot-perception).
 - **Room**: no contacts with any source. SLAM localizes to 4 cm and halves
   the goal error (0.94 → 0.42 m).
 
-### How the room contacts were found
+### How the contacts were found
 
 Before the pass-side fix, 3 of 8 SLAM runs in the room touched
 someone, and the trackers without the map 2 of 8. `oracle+slam` touched
@@ -174,8 +174,8 @@ The controller was at fault:
 
 Two changes fixed it:
 
-- Someone drifting across is passed behind, judged by the track's mean
-  velocity.
+- Someone drifting across is passed behind, judged by the track's
+  averaged velocity.
 - No side is kept from a track younger than 1 s.
 
 A first version measured drift against the robot's heading. Mid lane change,
@@ -183,9 +183,30 @@ that made people walking straight down the corridor look like drifting, and
 all 8 corridor runs touched someone, even with perfect perception. Drift is
 now measured across the way to the goal.
 
-In the corridor the fix moved each count by about one run of eight:
-`tracker+map` 2 → 1, `tracker` 4 → 5, `nearest` 3 → 4. Following and
-crossing did not change.
+The corridor came next. Even with the static map, 1 of 8
+robot-perception runs touched someone, and 5 of 8 without it. Again the
+tracking was right: the person came head-on, 7 cm from the robot's lane.
+But one frame's track velocity swung sideways by ±0.3 m/s. At 6 m that
+moves the line the person walks along by up to 2 m. The robot kept
+starting its lane change and calling it done, and after 6 s it was only
+0.57 m across. The lane geometry now uses the same smoothed velocity: the
+plain mean over a track's first frames, then a moving average of about
+1 s.
+
+| runs with contact of 8 | corridor before | corridor after | room before | room after |
+| --- | --- | --- | --- | --- |
+| robot-perception | 4 | 1 | 2 | 0 |
+| robot-perception + map | 2 | 0 | 0 | 0 |
+| robot-perception + map + SLAM | 2 | 0 | 3 | 0 |
+| nearest neighbour | 3 | 0 | 2 | 0 |
+| nearest neighbour + map | 6 | 0 | 0 | 0 |
+| nearest neighbour + map + SLAM | 6 | 0 | 3 | 0 |
+
+"Before" is the controller as first written; "after" has both fixes. The
+contacts looked like perception failures (phantoms, SLAM) but were the
+controller trusting single frames of correct, noisy tracks. A tracker's
+velocity noise matters to the robot through decisions like this one, which
+the tracking metrics do not show.
 
 ## Dynamic-window controller
 
@@ -196,18 +217,18 @@ clearance under 0.75 m is all but forbidden, and clearance under 1.5 m costs
 extra. Then come the distance to the aim, the heading to it, and changes of
 turn rate. Over the same 8 trials it is worse overall, and the rule
 controller stays the default (DWA as of this write-up; the rule rows are
-after the pass-side fix):
+after both fixes below):
 
 | runs with contact (fell) of 8 | follow | crossing | corridor | room |
 | --- | --- | --- | --- | --- |
 | oracle, rule | 0 | 0 | 0 | 0 |
 | oracle, DWA | 0 | 0 | 0 | 4 |
 | oracle+slam, DWA | 0 | 0 | 0 | 7 |
-| tracker+map, rule | 0 | 0 | 1 | 0 |
+| tracker+map, rule | 0 | 0 | 0 | 0 |
 | tracker+map, DWA | 0 | 1 | 0 (3 fell) | 3 |
 | nearest+map, DWA | 0 | 0 | 0 (2 fell) | 5 |
 
-- **Corridor**: no contacts with any source, against 1–6 of 8 with the
+- **Corridor**: no contacts with any source, against 0–1 of 8 with the
   rules. But 13 of 48 runs with real perception fall. The window knows only
   people, not walls. A phantom person or a noisy velocity makes it swerve,
   and nothing stops the swerve at the wall. With perfect perception there
