@@ -8,12 +8,15 @@
 //!
 //! ```text
 //! --manifest PATH   splat manifest (.rne.splat.toml)
+//! --segments PATH   instead of --manifest: one splat per stretch of the route, as lines
+//!                   `start_frame, manifest`; the splat switches by the path's KITTI frame
 //! --path PATH       CSV: t_s, x, y, z, yaw (RNE frame: +Y up)
 //! --out DIR         PNG frames and drive.csv
 //! --render-every S  seconds between captured frames (default 0.2)
 //! --speed M_S       target speed (default 7.0)
 //! ```
 
+use kitti_splat_drive::{parse_path, parse_segments, segment_for, Segment};
 use png::{BitDepth, ColorType, Encoder};
 use rne_core::SimDuration;
 use rne_ecs::{spawn_named, World};
@@ -47,22 +50,21 @@ const CHASE_HEIGHT: u32 = 360;
 const CLEAR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 fn main() {
-    let manifest = PathBuf::from(arg("--manifest").expect("--manifest"));
+    let segments = load_segments();
     let path_csv = PathBuf::from(arg("--path").expect("--path"));
     let out = PathBuf::from(arg("--out").unwrap_or_else(|| "kitti_splat_drive".into()));
     let render_every: f64 = arg("--render-every").map_or(0.2, |v| v.parse().unwrap());
     let speed: f64 = arg("--speed").map_or(7.0, |v| v.parse().unwrap());
     fs::create_dir_all(&out).expect("output directory");
 
-    let (waypoints, start_yaw) = read_path(&path_csv);
+    let path = parse_path(&fs::read_to_string(&path_csv).expect("path csv")).expect("path");
+    let (waypoints, start_yaw) = (path.points.clone(), path.start_yaw);
     println!("{} waypoints, start yaw {start_yaw:.3}", waypoints.len());
 
-    let environment = validate_gaussian_splat_manifest(&manifest).expect("splat manifest");
     let mut backend = WgpuRenderBackend::new().expect("wgpu backend");
     println!("adapter ready");
-    let mut background =
-        load_gaussian_splat_background(backend.device(), &environment).expect("splat background");
-    println!("splat loaded: {}", environment.ply_path.display());
+    let mut segment = segment_for(&segments, path.frames[0]);
+    let (mut environment, mut background) = load_splat(&backend, &segments[segment]);
 
     let mut world = World::new();
     let car = spawn_named(&mut world, "car");
@@ -122,6 +124,12 @@ fn main() {
             drive.target_speed_m_s = if done { 0.0 } else { speed };
         }
 
+        let wanted = segment_for(&segments, path.frames[index]);
+        if wanted != segment {
+            segment = wanted;
+            (environment, background) = load_splat(&backend, &segments[segment]);
+        }
+
         if t + 1e-9 >= next_capture || done {
             let drive = world.get::<AckermannDrive>(car).expect("drive").clone();
             let yaw = yaw_of(pose.rotation);
@@ -166,6 +174,38 @@ fn main() {
         t += 1.0 / SIM_HZ;
     }
     println!("drove {t:.1} s, {frame} frames -> {}", out.display());
+}
+
+fn load_segments() -> Vec<Segment> {
+    if let Some(list) = arg("--segments") {
+        let list = PathBuf::from(list);
+        let base = list.parent().unwrap_or(Path::new(".")).to_path_buf();
+        parse_segments(&fs::read_to_string(&list).expect("segments"), &base).expect("segments")
+    } else {
+        vec![Segment {
+            start_frame: 0,
+            manifest: PathBuf::from(arg("--manifest").expect("--manifest or --segments")),
+            map: None,
+        }]
+    }
+}
+
+fn load_splat(
+    backend: &WgpuRenderBackend,
+    segment: &Segment,
+) -> (
+    rne_render::GaussianSplatEnvironment,
+    rne_render_3dgs::GaussianSplatBackground,
+) {
+    let environment = validate_gaussian_splat_manifest(&segment.manifest).expect("splat manifest");
+    let background =
+        load_gaussian_splat_background(backend.device(), &environment).expect("splat background");
+    println!(
+        "splat from frame {}: {}",
+        segment.start_frame,
+        environment.ply_path.display()
+    );
+    (environment, background)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -225,24 +265,6 @@ fn render_frame(
         image.color.height,
         &image.color.rgba8,
     );
-}
-
-fn read_path(path: &Path) -> (Vec<Vec3>, f64) {
-    let text = fs::read_to_string(path).expect("path csv");
-    let mut points: Vec<Vec3> = Vec::new();
-    let mut yaw = None;
-    for line in text
-        .lines()
-        .filter(|l| !l.starts_with('#') && !l.trim().is_empty())
-    {
-        let v: Vec<f64> = line.split(',').map(|s| s.trim().parse().unwrap()).collect();
-        let p = Vec3::new(v[1], v[2], v[3]);
-        if points.last().is_none_or(|last| (p - *last).length() >= 1.0) {
-            points.push(p);
-            yaw.get_or_insert(v[4]);
-        }
-    }
-    (points, yaw.unwrap_or(0.0))
 }
 
 fn path_height(points: &[Vec3], index: usize, p: Vec3) -> f64 {

@@ -9,6 +9,9 @@ publish = false
 [lints]
 workspace = true
 
+[lib]
+path = "lib.rs"
+
 [dependencies]
 png = { workspace = true }
 rne_core = { workspace = true }

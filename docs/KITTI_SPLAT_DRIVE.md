@@ -16,6 +16,15 @@ height of the SLAM path.
   map built from splat renders at the SLAM camera poses. Fixes more than 3 m from the
   estimate are rejected. The car starts at a known pose.
 
+**Long routes.** One splat of the whole 2.2 km drive does not fit a CPU renderer's 128 MiB
+storage-binding limit, so the route is trained as overlapping stretches (about 400 KITTI
+frames each). Both examples take `--segments LIST` instead of `--manifest`: one line per
+stretch, `start_frame, manifest[, map_dir]` (relative paths from the list's directory). The
+path CSV's sixth column is the KITTI frame; the splat switches when the car's path progress
+crosses a segment's start frame. In 161 the splat follows the true pose (it is the world the
+camera sees) and the localization map follows the car's own estimate. The parsing lives in the
+package's library (`lib.rs`) with unit tests.
+
 Inputs (PLY, path CSV, visloc map) are not in the repository; see lidar_slam
 `tools/rne_kitti_splat_drive`.
 

@@ -11,10 +11,14 @@
 //! --path CSV --render-server BIN --ply PLY --localizer BIN --map DIR --out DIR
 //! [--speed 7] [--loc-every 0.5] [--odom-scale 1.02] [--gyro-bias 0.003] [--no-vision]
 //! [--manifest SPLAT.toml]   render the camera with RNE's own renderer instead of the server
+//! [--segments LIST]         RNE renderer with one splat and map per stretch of the route:
+//!                           lines `start_frame, manifest, map_dir`. The splat follows the
+//!                           true pose (it is the world); the map follows the estimate.
 //! ```
 //!
 //! Frames: the SLAM world is z-up (x, y, z); RNE is y-up: rne = (x, z, -y), yaw is shared.
 
+use kitti_splat_drive::{parse_path, parse_segments, segment_for, Segment};
 use png::{BitDepth, ColorType, Encoder};
 use rne_core::SimDuration;
 use rne_ecs::{spawn_named, World};
@@ -48,19 +52,19 @@ fn main() {
     let vision = !std::env::args().any(|a| a == "--no-vision");
     fs::create_dir_all(out.join("frames")).expect("out dir");
 
-    let (waypoints, start_yaw) = read_path(&path_csv);
-    let mut camera = if !vision {
-        None
-    } else if let Some(manifest) = arg("--manifest") {
-        Some(Sensor::Rne(Box::new(RneCamera::new(&manifest))))
-    } else {
-        Some(Sensor::Server(RenderServer::start(
-            &arg("--render-server").expect("--render-server or --manifest"),
-            &arg("--ply").expect("--ply"),
-        )))
-    };
+    let path = parse_path(&fs::read_to_string(&path_csv).expect("path csv")).expect("path");
+    let (waypoints, start_yaw) = (path.points.clone(), path.start_yaw);
+    let segments = segments_with_maps();
+    let mut camera = vision.then(|| make_camera(segments.as_deref(), path.frames[0]));
     let localizer = arg("--localizer").unwrap_or_default();
-    let map = arg("--map").unwrap_or_default();
+    let fixed_map = arg("--map").unwrap_or_default();
+    // Long enough to finish the path at the target speed, with margin.
+    let path_length: f64 = waypoints.windows(2).map(|w| (w[1] - w[0]).length()).sum();
+    let max_time = 30.0 + 1.5 * path_length / speed;
+    let mut splat_segment = segments
+        .as_ref()
+        .map_or(0, |s| segment_for(s, path.frames[0]));
+    let mut true_index = 0usize;
 
     let mut world = World::new();
     let car = spawn_named(&mut world, "car");
@@ -99,6 +103,28 @@ fn main() {
         if vision && t + 1e-9 >= next_loc {
             next_loc += loc_every;
             tries += 1;
+            let map = match &segments {
+                Some(segments) => {
+                    // The world the camera sees: the splat of the true position's stretch.
+                    true_index = advance(&waypoints, true_index, truth.translation);
+                    let wanted = segment_for(segments, path.frames[true_index]);
+                    if wanted != splat_segment {
+                        splat_segment = wanted;
+                        if let Some(Sensor::Rne(rne)) = camera.as_mut() {
+                            rne.load(&segments[wanted].manifest.to_string_lossy());
+                        }
+                    }
+                    // The map the car looks itself up in: chosen by its own estimate.
+                    let mine = segment_for(segments, path.frames[index]);
+                    segments[mine]
+                        .map
+                        .clone()
+                        .unwrap()
+                        .to_string_lossy()
+                        .into_owned()
+                }
+                None => fixed_map.clone(),
+            };
             let (r_wc, c) = camera_in_slam(truth.translation, true_yaw);
             let rgb = match camera.as_mut().unwrap() {
                 Sensor::Server(server) => server.render(&r_wc, &c),
@@ -130,31 +156,8 @@ fn main() {
             }
             continue;
         };
-        while index + 1 < waypoints.len()
-            && (waypoints[index + 1] - est_p).length() <= (waypoints[index] - est_p).length()
-        {
-            index += 1;
-        }
-        let mut target = index;
-        while target + 1 < waypoints.len() && (waypoints[target] - est_p).length() < LOOKAHEAD_M {
-            target += 1;
-        }
-        let done = index + 2 >= waypoints.len()
-            || (target + 1 == waypoints.len() && (waypoints[target] - est_p).length() < 2.0);
-        let est_pose = Transform3 {
-            translation: est_p,
-            rotation: Quat::from_rotation_y(est_yaw),
-            scale: Vec3::ONE,
-        };
-        let drive_now = {
-            let mut drive = world.get_mut::<AckermannDrive>(car).expect("drive");
-            let steering =
-                pure_pursuit_steering(&est_pose, waypoints[target], WHEELBASE_M, LOOKAHEAD_M);
-            drive.target_steering_rad =
-                steering.clamp(-drive.max_steering_rad, drive.max_steering_rad);
-            drive.target_speed_m_s = if done { 0.0 } else { speed };
-            drive.clone()
-        };
+        index = advance(&waypoints, index, est_p);
+        let (drive_now, done) = steer(&mut world, car, &waypoints, index, (est_p, est_yaw), speed);
 
         let err = ((est_p.x - truth.translation.x).powi(2)
             + (est_p.z - truth.translation.z).powi(2))
@@ -171,7 +174,7 @@ fn main() {
             drive_now.speed_m_s
         )
         .unwrap();
-        if done || t > 120.0 {
+        if done || t > max_time {
             break;
         }
 
@@ -195,6 +198,63 @@ fn main() {
         "drove {t:.1} s; visual fixes {fixes}/{tries}; log {}",
         out.join("loop.csv").display()
     );
+}
+
+/// Pure pursuit on the estimated pose; returns the drive state and whether the path is done.
+fn steer(
+    world: &mut World,
+    car: rne_ecs::Entity,
+    waypoints: &[Vec3],
+    index: usize,
+    (est_p, est_yaw): (Vec3, f64),
+    speed: f64,
+) -> (AckermannDrive, bool) {
+    let mut target = index;
+    while target + 1 < waypoints.len() && (waypoints[target] - est_p).length() < LOOKAHEAD_M {
+        target += 1;
+    }
+    let done = index + 2 >= waypoints.len()
+        || (target + 1 == waypoints.len() && (waypoints[target] - est_p).length() < 2.0);
+    let est_pose = Transform3 {
+        translation: est_p,
+        rotation: Quat::from_rotation_y(est_yaw),
+        scale: Vec3::ONE,
+    };
+    let mut drive = world.get_mut::<AckermannDrive>(car).expect("drive");
+    let steering = pure_pursuit_steering(&est_pose, waypoints[target], WHEELBASE_M, LOOKAHEAD_M);
+    drive.target_steering_rad = steering.clamp(-drive.max_steering_rad, drive.max_steering_rad);
+    drive.target_speed_m_s = if done { 0.0 } else { speed };
+    (drive.clone(), done)
+}
+
+fn segments_with_maps() -> Option<Vec<Segment>> {
+    arg("--segments").map(|list| {
+        let list = PathBuf::from(list);
+        let base = list.parent().unwrap_or(Path::new(".")).to_path_buf();
+        let segments =
+            parse_segments(&fs::read_to_string(&list).expect("segments"), &base).expect("segments");
+        assert!(
+            segments.iter().all(|s| s.map.is_some()),
+            "--segments needs a map per segment"
+        );
+        segments
+    })
+}
+
+fn make_camera(segments: Option<&[Segment]>, first_frame: u32) -> Sensor {
+    if let Some(segments) = segments {
+        let first = segment_for(segments, first_frame);
+        Sensor::Rne(Box::new(RneCamera::new(
+            &segments[first].manifest.to_string_lossy(),
+        )))
+    } else if let Some(manifest) = arg("--manifest") {
+        Sensor::Rne(Box::new(RneCamera::new(&manifest)))
+    } else {
+        Sensor::Server(RenderServer::start(
+            &arg("--render-server").expect("--render-server or --manifest"),
+            &arg("--ply").expect("--ply"),
+        ))
+    }
 }
 
 /// The true front camera in the SLAM world: world <- camera rotation and centre.
@@ -237,12 +297,8 @@ struct RneCamera {
 
 impl RneCamera {
     fn new(manifest: &str) -> Self {
-        let environment = rne_render::validate_gaussian_splat_manifest(Path::new(manifest))
-            .expect("splat manifest");
         let backend = rne_render_wgpu::WgpuRenderBackend::new().expect("wgpu backend");
-        let background =
-            rne_render_3dgs::load_gaussian_splat_background(backend.device(), &environment)
-                .expect("splat background");
+        let (environment, background) = Self::load_splat(&backend, manifest);
         // Same pinhole as CAMERA: fy 707.0912, principal point at the centre.
         let camera =
             rne_render::Camera::new(W as u32, H as u32, 2.0 * (0.5 * H as f64 / 707.0912).atan());
@@ -252,6 +308,27 @@ impl RneCamera {
             environment,
             camera,
         }
+    }
+
+    fn load_splat(
+        backend: &rne_render_wgpu::WgpuRenderBackend,
+        manifest: &str,
+    ) -> (
+        rne_render::GaussianSplatEnvironment,
+        rne_render_3dgs::GaussianSplatBackground,
+    ) {
+        let environment = rne_render::validate_gaussian_splat_manifest(Path::new(manifest))
+            .expect("splat manifest");
+        let background =
+            rne_render_3dgs::load_gaussian_splat_background(backend.device(), &environment)
+                .expect("splat background");
+        println!("splat: {}", environment.ply_path.display());
+        (environment, background)
+    }
+
+    /// Switches to another splat.
+    fn load(&mut self, manifest: &str) {
+        (self.environment, self.background) = Self::load_splat(&self.backend, manifest);
     }
 
     /// RGB8 front-camera image for the car at `position` / `rotation` (RNE frame).
@@ -464,22 +541,14 @@ fn cross_track(points: &[Vec3], p: Vec3) -> f64 {
     (dx * (p.z - a.z) - dz * (p.x - a.x)) / len
 }
 
-fn read_path(path: &Path) -> (Vec<Vec3>, f64) {
-    let text = fs::read_to_string(path).expect("path csv");
-    let mut points: Vec<Vec3> = Vec::new();
-    let mut yaw = None;
-    for line in text
-        .lines()
-        .filter(|l| !l.starts_with('#') && !l.trim().is_empty())
+/// Path progress: the closest waypoint at or after `index`.
+fn advance(points: &[Vec3], mut index: usize, p: Vec3) -> usize {
+    while index + 1 < points.len()
+        && (points[index + 1] - p).length() <= (points[index] - p).length()
     {
-        let v: Vec<f64> = line.split(',').map(|s| s.trim().parse().unwrap()).collect();
-        let p = Vec3::new(v[1], v[2], v[3]);
-        if points.last().is_none_or(|last| (p - *last).length() >= 1.0) {
-            points.push(p);
-            yaw.get_or_insert(v[4]);
-        }
+        index += 1;
     }
-    (points, yaw.unwrap_or(0.0))
+    index
 }
 
 fn write_rgb_png(path: &Path, rgb: &[u8]) {
