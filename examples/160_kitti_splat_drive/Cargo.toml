@@ -24,3 +24,7 @@ rne_world = { workspace = true }
 [[example]]
 name = "160_kitti_splat_drive"
 path = "main.rs"
+
+[[example]]
+name = "161_kitti_splat_visloc_loop"
+path = "visloc_loop.rs"

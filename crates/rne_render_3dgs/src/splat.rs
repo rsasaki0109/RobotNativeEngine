@@ -11,7 +11,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 use thiserror::Error;
-use wgpu_3dgs_viewer::{Gaussians, Viewer};
+use wgpu_3dgs_viewer::{GaussianDisplayMode, GaussianShDegree, Gaussians, Viewer};
 
 /// Error while loading or rendering a Gaussian splat background.
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
@@ -99,6 +99,20 @@ impl BackgroundRenderPass for GaussianSplatBackground {
             &mut self.viewer,
             queue,
             UVec2::new(camera.width, camera.height),
+        );
+
+        // wgpu-3dgs-viewer 0.2 takes the pixel focal length as `proj[i][i] * size`
+        // (twice the true `proj[i][i] * size / 2`), so its 2D covariance is 4x too large,
+        // and then draws `exp(-q^2)` over a quad whose half-extent is `max_radius * sqrt(lambda)`
+        // in those doubled units. Net effect: every splat is drawn with sigma * sqrt(2).
+        // Its per-splat `size` multiplies the quad axes, so 1/sqrt(2) restores the
+        // trained footprint exp(-d^2 / (2 sigma^2)).
+        self.viewer.update_gaussian_transform(
+            queue,
+            std::f32::consts::FRAC_1_SQRT_2,
+            GaussianDisplayMode::Splat,
+            GaussianShDegree::new_unchecked(3),
+            false,
         );
 
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {

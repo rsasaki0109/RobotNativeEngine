@@ -34,10 +34,10 @@ use std::path::{Path, PathBuf};
 const SIM_HZ: f64 = 50.0;
 const WHEELBASE_M: f64 = 2.71;
 const LOOKAHEAD_M: f64 = 6.0;
-/// KITTI rectified image_02 at half resolution.
-const CAM_WIDTH: u32 = 613;
-const CAM_HEIGHT: u32 = 185;
-const CAM_FY: f64 = 353.5456;
+/// KITTI rectified image_02 (principal point at the image centre).
+const CAM_WIDTH: u32 = 1226;
+const CAM_HEIGHT: u32 = 370;
+const CAM_FY: f64 = 707.0912;
 /// image_02 in the OXTS body frame (x forward, y left, z up), from the KITTI calibration.
 const CAM_IN_BASE: [f64; 3] = [1.144, -0.246, 0.726];
 /// OXTS unit height above the road.
@@ -157,6 +157,10 @@ fn main() {
             break;
         }
         ackermann_kinematics(&mut world, dt);
+        // The kinematic model drives in the X-Z plane; follow the road's height along the path.
+        if let Some(mut pose) = world.get_mut::<Transform3>(car) {
+            pose.translation.y = path_height(&waypoints, index, pose.translation);
+        }
         t += 1.0 / SIM_HZ;
     }
     println!("drove {t:.1} s, {frame} frames -> {}", out.display());
@@ -234,6 +238,18 @@ fn read_path(path: &Path) -> (Vec<Vec3>, f64) {
         }
     }
     (points, yaw.unwrap_or(0.0))
+}
+
+fn path_height(points: &[Vec3], index: usize, p: Vec3) -> f64 {
+    let a = points[index];
+    let b = points[(index + 1).min(points.len() - 1)];
+    let ab = Vec3::new(b.x - a.x, 0.0, b.z - a.z);
+    let len2 = ab.x * ab.x + ab.z * ab.z;
+    if len2 < 1e-9 {
+        return a.y;
+    }
+    let s = (((p.x - a.x) * ab.x + (p.z - a.z) * ab.z) / len2).clamp(0.0, 1.0);
+    a.y + s * (b.y - a.y)
 }
 
 fn yaw_of(rotation: Quat) -> f64 {
