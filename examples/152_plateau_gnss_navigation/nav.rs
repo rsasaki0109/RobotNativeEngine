@@ -508,6 +508,9 @@ pub(crate) struct RunReport {
     pub obstacle_wait_s: f64,
     pub stopped_s: f64,
     pub clearance_m: f64,
+    /// Time with a person or a vehicle within 0.5 m of the robot's centre
+    /// (closer than its 0.35 m footprint and a 0.15 m margin), s.
+    pub close_s: f64,
     /// `(truth, estimate, source)` every 0.5 s, for drawing.
     pub track: Vec<(Pose2d, Pose2d, LocalizationSource)>,
     /// Frames for the 3D render (when recording).
@@ -661,6 +664,8 @@ pub(crate) fn run(
         hybrid.predict(DT_S, odom_v, odom_w);
 
         let movers = street.at(t, (truth.x_m, truth.y_m), city);
+        report.close_s +=
+            DT_S * f64::from(u8::from(movers.nearest_m((truth.x_m, truth.y_m)) < 0.5));
         scene.boxes = movers.gnss_boxes(city);
         // NLOS prediction needs a pose: once the robot is dead reckoning
         // it may be lost, and predicting from a wrong pose would withhold

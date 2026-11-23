@@ -191,6 +191,24 @@ impl Street {
 }
 
 impl Movers {
+    /// Distance from `(x, y)` to the nearest person's body or vehicle,
+    /// meters.
+    pub(crate) fn nearest_m(&self, (x, y): (f64, f64)) -> f64 {
+        let people = self
+            .people
+            .iter()
+            .map(|p| (p.0 - x).hypot(p.1 - y) - crate::crowd::PEDESTRIAN_RADIUS_M);
+        let vehicles = self.vehicles.iter().map(|v| {
+            let (sin, cos) = v.yaw_rad.sin_cos();
+            let (dx, dy) = (x - v.center.0, y - v.center.1);
+            let (u, w) = (dx * cos + dy * sin, -dx * sin + dy * cos);
+            (u.abs() - v.half.0)
+                .max(0.0)
+                .hypot((w.abs() - v.half.1).max(0.0))
+        });
+        people.chain(vehicles).fold(f64::INFINITY, f64::min)
+    }
+
     /// The people (absorbers) and vehicles (metal) for the GNSS ray tracer.
     pub(crate) fn gnss_boxes(&self, city: &PlateauCity) -> Vec<SceneBox> {
         let mut boxes = pedestrian_boxes(&self.people, |x, y| city.ground_m(x, y));

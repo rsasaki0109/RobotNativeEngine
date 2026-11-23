@@ -152,8 +152,10 @@ impl Crowd {
         )
     }
 
-    /// Pedestrian positions at `time_s`; anyone who would come closer than
-    /// [`PERSONAL_SPACE_M`] to the robot at `robot` steps around it.
+    /// Pedestrian positions at `time_s`; anyone walking the sidewalk who
+    /// would come closer than [`PERSONAL_SPACE_M`] to the robot at `robot`
+    /// steps around it. People on the scramble crossing do not: the robot
+    /// has to find its way through them.
     pub(crate) fn positions(&self, time_s: f64, robot: (f64, f64)) -> Vec<(f64, f64)> {
         let walking = self.walkers.iter().map(|w| {
             // Back and forth over the span.
@@ -164,12 +166,8 @@ impl Crowd {
                 w.lateral_m,
             )
         });
-        let crossing = self
-            .crossers
-            .iter()
-            .map(|c| (self.crosser_at(c, time_s), 1.0));
+        let crossing = self.crossers.iter().map(|c| self.crosser_at(c, time_s));
         walking
-            .chain(crossing)
             .map(|((x, y), side)| {
                 let (dx, dy) = (x - robot.0, y - robot.1);
                 let distance = dx.hypot(dy);
@@ -182,6 +180,7 @@ impl Crowd {
                     (robot.0 + side.signum() * PERSONAL_SPACE_M, robot.1)
                 }
             })
+            .chain(crossing)
             .collect()
     }
 
