@@ -193,36 +193,7 @@ fn validate(city: &PlateauCity, csv: &Path) -> Result<(), String> {
         100.0 * f64::from(tp) / f64::from((tp + fp).max(1)),
         100.0 * f64::from(tp) / f64::from((tp + fn_).max(1)),
     );
-    // Per system: does the model do as well on BeiDou's inclined orbits?
-    let mut by_system = String::new();
-    for (letter, name) in [
-        ('G', "GPS"),
-        ('E', "Galileo"),
-        ('J', "QZSS"),
-        ('C', "BeiDou"),
-    ] {
-        let members: Vec<(&Row, &Class)> = rows
-            .iter()
-            .zip(&classes)
-            .filter(|(r, _)| r.system == letter)
-            .collect();
-        if members.is_empty() {
-            continue;
-        }
-        let hits = members
-            .iter()
-            .filter(|(r, c)| (**c == Class::LineOfSight) == r.cn0_dbhz.is_some_and(|c| c >= 40.0))
-            .count();
-        by_system.push_str(&format!(
-            " {name} {:.0} % ({});",
-            100.0 * hits as f64 / members.len() as f64,
-            members.len()
-        ));
-    }
-    println!(
-        "  agreement by system (satellite-epochs):{}",
-        by_system.trim_end_matches(';')
-    );
+    print_by_system(&rows, &classes);
     // Against elevation alone (the best mask, chosen after the fact), over
     // all satellites and between 20 and 60 degrees, where the street decides.
     let strong = |r: &Row| r.cn0_dbhz.is_some_and(|c| c >= 40.0);
@@ -277,4 +248,37 @@ fn validate(city: &PlateauCity, csv: &Path) -> Result<(), String> {
         cov / (sp * ss)
     );
     Ok(())
+}
+
+/// How often the line-of-sight call agrees with a strong signal, per system.
+fn print_by_system(rows: &[Row], classes: &[Class]) {
+    let mut by_system = String::new();
+    for (letter, name) in [
+        ('G', "GPS"),
+        ('E', "Galileo"),
+        ('J', "QZSS"),
+        ('C', "BeiDou"),
+    ] {
+        let members: Vec<(&Row, &Class)> = rows
+            .iter()
+            .zip(classes)
+            .filter(|(r, _)| r.system == letter)
+            .collect();
+        if members.is_empty() {
+            continue;
+        }
+        let hits = members
+            .iter()
+            .filter(|(r, c)| (**c == Class::LineOfSight) == r.cn0_dbhz.is_some_and(|c| c >= 40.0))
+            .count();
+        by_system.push_str(&format!(
+            " {name} {:.0} % ({});",
+            100.0 * hits as f64 / members.len() as f64,
+            members.len()
+        ));
+    }
+    println!(
+        "  agreement by system (satellite-epochs):{}",
+        by_system.trim_end_matches(';')
+    );
 }
