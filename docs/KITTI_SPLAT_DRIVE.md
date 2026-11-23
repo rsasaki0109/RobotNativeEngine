@@ -26,6 +26,15 @@ crosses a segment's start frame. In 161 the splat follows the true pose (it is t
 camera sees) and the localization map follows the car's own estimate. The parsing lives in the
 package's library (`lib.rs`) with unit tests.
 
+**Maps the car can recognise.** A localization map built from `gsplat_render_server` renders
+does not match what RNE's renderer shows the car closely enough on stretches b-g (KITTI frames
+380-2761): on segment b, 22 of 81 fixes with server-built maps against 34 of 81 with maps whose
+colour comes from RNE's own renders. `161 --render-poses TUM --manifest SPLAT --out DIR` renders
+the RNE camera at the SLAM camera poses for that; the maps take depth from the server and are
+built with `tum_rgbd_save_map --track-keyframes 8 --match-radius-px 12`, which tracks each
+landmark over more keyframes (segment d, midpoint queries: 39/39 against 22/39). On repetitive
+residential stretches the localizer also needs `--loc-args "--ratio 0.9 --min-inliers 12"`.
+
 Inputs (PLY, path CSV, visloc map) are not in the repository; see lidar_slam
 `tools/rne_kitti_splat_drive`.
 
@@ -50,3 +59,12 @@ Inputs (PLY, path CSV, visloc map) are not in the repository; see lidar_slam
 
 Open-loop localization of 172 RNE front-camera frames: none before the footprint fix,
 115 (median 5.2 cm) with a 1/sqrt(2) size workaround, 128 (median 6.2 cm) with the shader fix.
+
+## Results (KITTI 0018, whole drive 2.2 km, seven splats, 7 m/s, CPU lavapipe)
+
+| | visual fixes | cross-track mean / max | estimate error mean / max |
+|---|---|---|---|
+| odometry only | - | 34.99 / 227.19 m | 115.81 / 388.67 m |
+| server-colour maps | 127 / 626 | 6.92 / 66.34 m | 21.04 / 134.44 m |
+| RNE-colour maps, 8-keyframe tracks | 412 / 655 | 2.73 / 33.75 m | 3.45 / 31.78 m |
+| + ratio 0.9, 12 inliers | 580 / 633 | 0.11 / 0.84 m | 0.25 / 2.54 m |
