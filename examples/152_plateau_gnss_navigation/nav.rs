@@ -213,6 +213,29 @@ pub(crate) struct FrameRecord {
     pub movers: Movers,
     /// Whether it is raining.
     pub rain: bool,
+    /// A 3D LiDAR scan in the map frame (with `--lidar3d`).
+    pub scan3d: Vec<Vec3>,
+}
+
+/// A 3D scan for the render, from its own noise stream so recording does not
+/// change the run (empty without `--lidar3d`).
+fn record_scan3d(
+    city: &PlateauCity,
+    movers: &Movers,
+    options: RunOptions,
+    truth: Pose2d,
+) -> Vec<Vec3> {
+    if !options.lidar3d {
+        return Vec::new();
+    }
+    let ground = city.ground_m(truth.x_m, truth.y_m);
+    let mut rng = DeterministicRng::new(0x0005_CA3D);
+    let (sin, cos) = truth.yaw_rad.sin_cos();
+    let origin = Vec3::new(truth.x_m, truth.y_m, ground + lidar3d::SENSOR_HEIGHT_M);
+    lidar3d::scan(city, movers, options.weather.rain, truth, ground, &mut rng)
+        .into_iter()
+        .map(|p| origin + Vec3::new(cos * p.x - sin * p.y, sin * p.x + cos * p.y, p.z))
+        .collect()
 }
 
 /// Seconds between recorded frames.
@@ -736,6 +759,7 @@ pub(crate) fn run(
                 scan: last_scan.clone(),
                 movers: movers.clone(),
                 rain: options.weather.rain,
+                scan3d: record_scan3d(city, &movers, options, truth),
             });
         }
         if verbose && tick.is_multiple_of(600) {

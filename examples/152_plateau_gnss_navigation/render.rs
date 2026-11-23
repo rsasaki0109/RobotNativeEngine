@@ -394,7 +394,11 @@ fn frame_items(
     );
 
     push_signals(scene, gnss_scene, frame);
-    push_lidar(scene, city, frame);
+    if frame.scan3d.is_empty() {
+        push_lidar(scene, city, frame);
+    } else {
+        push_lidar3d(scene, frame);
+    }
     push_people(scene, city, frame);
     push_vehicles(scene, frame);
     push_rain(scene, frame);
@@ -504,6 +508,33 @@ fn push_lidar(scene: &mut RenderScene, city: &PlateauCity, frame: &FrameRecord) 
         0.0,
         [0.2, 0.9, 1.0],
     );
+}
+
+/// A 3D LiDAR scan: every other return as a small cube, coloured from cyan
+/// near the ground to white up the facades.
+fn push_lidar3d(scene: &mut RenderScene, frame: &FrameRecord) {
+    let mut bands: [SolidMesh; 3] = Default::default();
+    for (i, point) in frame.scan3d.iter().enumerate() {
+        if i % 2 != 0 {
+            continue;
+        }
+        let height = point.z - frame.ground_m;
+        let band = if height < 1.5 {
+            0
+        } else if height < 6.0 {
+            1
+        } else {
+            2
+        };
+        bands[band].box_at(pv(*point), Vec3::splat(0.07), Quat::IDENTITY);
+    }
+    for (mesh, (colour, glow)) in bands.into_iter().zip([
+        ([40, 230, 255], [0.15, 0.8, 1.0]),
+        ([120, 240, 255], [0.4, 0.85, 1.0]),
+        ([220, 250, 255], [0.75, 0.9, 1.0]),
+    ]) {
+        push(scene, mesh, linear(colour), 0.4, 0.0, glow);
+    }
 }
 
 /// Pedestrians: a body and a head each, in a few clothing colours.
@@ -689,11 +720,17 @@ pub(crate) fn render(
             "error_m": error,
             "los": los,
             "nlos": nlos,
-            "weather": match (frame.movers.people.is_empty(), frame.rain) {
-                (true, false) => "",
-                (false, false) => "crowd",
-                (true, true) => "rain",
-                (false, true) => "crowd + rain",
+            "weather": match (
+                !frame.movers.vehicles.is_empty(),
+                frame.movers.people.is_empty(),
+                frame.rain,
+            ) {
+                (true, _, false) => "rush hour",
+                (true, _, true) => "rush hour + rain",
+                (false, true, false) => "",
+                (false, false, false) => "crowd",
+                (false, true, true) => "rain",
+                (false, false, true) => "crowd + rain",
             },
         }));
         if k % 50 == 0 {

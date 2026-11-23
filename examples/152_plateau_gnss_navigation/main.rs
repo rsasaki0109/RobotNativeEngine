@@ -259,12 +259,12 @@ fn main() -> Result<(), String> {
 
 /// The configurations compared by default, as `(label, options, glass
 /// curtain walls from this height)`; `record` keeps frames of the first,
-/// which runs in a crowd and rain with `weather`.
+/// which runs at rush hour in the rain with `weather`.
 fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, f64)> {
     vec![
         (
             if weather {
-                "map-aided GNSS + QZSS, crowd + rain"
+                "map-aided GNSS + QZSS, rush hour + rain"
             } else {
                 "map-aided GNSS + QZSS"
             },
@@ -275,10 +275,10 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: false,
                 weather: if weather {
                     Weather {
-                        pedestrians: PEDESTRIANS,
+                        pedestrians: RUSH_HOUR_PEDESTRIANS,
                         rain: true,
-                        scramble: 0,
-                        vehicles: 0,
+                        scramble: SCRAMBLE_CROSSERS,
+                        vehicles: RUSH_HOUR_VEHICLES,
                     }
                 } else {
                     Weather::default()
