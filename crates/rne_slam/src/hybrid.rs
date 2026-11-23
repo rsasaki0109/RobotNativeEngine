@@ -848,7 +848,7 @@ impl HybridLocalizer {
                 .iter()
                 .filter_map(|(d, p)| p.map(|p| (*d, p)))
         };
-        let (Some((d0, p0)), Some((d1, p1))) = (matches().next(), matches().last()) else {
+        let (Some((d0, p0)), Some((d1, p1))) = (matches().next(), matches().next_back()) else {
             return false;
         };
         let travel = d1 - d0;
