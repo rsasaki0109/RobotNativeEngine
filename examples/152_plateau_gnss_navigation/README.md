@@ -29,6 +29,14 @@ pedestrians, the vehicles and the rain. Shibuya is shown at rush hour in
 the rain, localizing with the 3D LiDAR (below); without `--lidar3d` the
 render draws the planar scan's beams instead.
 
+The city in the renders is PLATEAU's own: the buildings carry their
+photo textures (`app:ParameterizedTexture`, fetched with
+`fetch_plateau_tokyo.py --textures` and shrunk to 256 px, packed into
+4096 px atlases), the streets are PLATEAU's road surfaces (`tran`) draped
+over the terrain, and the railway viaducts and pedestrian decks around the
+stations are its bridges (`brid`). `--render-preview DIR` renders the city
+alone at eight points along the route, without running the robot.
+
 ## What is simulated
 
 * **City** — `scripts/fetch_plateau_tokyo.py` reads the 5.3 GB PLATEAU
@@ -392,6 +400,9 @@ one).
 
 * LOD2 buildings are prisms with roofs: no balconies, signs, glass detail or
   ground-floor arcades, and the facade material is guessed from the height.
+* The bridges, decks and road surfaces are drawn but not yet part of the
+  GNSS and LiDAR models, and the photo textures do not change the facade
+  material.
 * The street furniture, the pedestrians and the traffic are synthetic:
   pedestrians walk fixed stretches or straight across the crossing and do
   not obstruct one another; vehicles keep to two lanes beside the route at
@@ -410,9 +421,11 @@ under the PLATEAU site policy (compatible with CC BY 4.0). The model is
 fetched at run time and not stored in this repository; the media in
 `docs/media` are derived from it.
 
-To regenerate the GIFs (any GPU, or Mesa's lavapipe; Pillow for the HUD):
+To regenerate the GIFs (any GPU, or Mesa's lavapipe; Pillow for the HUD
+and the textures):
 
 ```bash
+python3 scripts/fetch_plateau_tokyo.py --textures
 cargo run --release -p plateau_gnss_navigation --features capture \
     --example 152_plateau_gnss_navigation -- --quick --area shibuya --lidar3d --render-weather --render target/152_render
 cargo run --release -p plateau_gnss_navigation --features capture \
