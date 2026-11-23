@@ -51,13 +51,19 @@ for actors, as the harmonics would have to rotate with them. `load_splat_actor(p
 actor PLY authored in the actor's own frame. Proxy depth (`splat_proxy_depth_from_ply`) does
 not include actors.
 
-![First a 3DGS render with two added cars next to the real KITTI photo of the same spot, then the 3DGS view turns its head left and right at a paused real photo; then a parked black car, cut out of the KITTI splat, pulls out in front of the silver ego car behind a red lead car (third-person view, ego camera inset)](media/kitti-splat-cutin.gif)
+![A 3DGS render with two added cars next to the real KITTI photo of the same spot; the 3DGS view turning its head at a paused photo; a parked black car pulling out in front of the blue ego car (third-person view, ego camera inset); then a fast-forward over the whole 2.2 km drive, with a minimap of the LiDAR SLAM map](media/kitti-splat-cutin.gif)
 
 The GIF opens at KITTI frame 160: the inset holds the real camera photo, and the main view is
 the splat with two actor cars that are not in the photo. At frame 186 the photo stays paused
 while the splat, rendered from the same camera pose, turns up to 30 degrees left and right
-about the vertical. The cars are three splats cut from the scene (`--actor` red, `--cut-in-actor` black,
-`--ego-actor` silver).
+about the vertical. In the cut-in the lead car (red) and the cut-in car (black) are splats cut
+from the scene. The ego car is a CG model turned into splats: the surfaces of the
+[CarConcept](https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept)
+glTF sample (Darmstadt Graphics Group, CC BY 4.0; logos left out) are sampled into flat
+Gaussians, about 180 000, with lighting baked into their colour. Cars cut from the street were
+seen only from a distance, so they turn blurry this close to the chase camera. The GIF ends
+with a fast-forward of the closed-loop run over the whole drive (seven splats), and the
+minimap shows where each part sits on the 2.2 km route.
 
 `162_kitti_splat_traffic` uses this for car following. A car cut out of the KITTI 0018 splat
 (the Gaussians inside an oriented box around a parked car, about 1000) drives ahead of the ego
