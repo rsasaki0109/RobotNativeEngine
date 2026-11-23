@@ -59,11 +59,13 @@ pub struct CameraRgbdSample {
     pub depth: ImageDepth,
 }
 
-/// Brown-Conrady lens distortion coefficients.
+/// Brown-Conrady lens distortion coefficients, with OpenCV's and ROS's meaning.
 ///
-/// All coefficients are dimensionless and act on normalized pinhole coordinates. Zero
-/// coefficients are an exact identity: the image is returned untouched rather than
-/// resampled.
+/// All coefficients are dimensionless and act on normalized pinhole coordinates: a ray
+/// whose ideal normalized coordinates are `(x, y)` is imaged at [`Self::distort`]`(x, y)`.
+/// They are therefore the `plumb_bob` coefficients `[k1, k2, p1, p2, k3]` of the camera's
+/// `sensor_msgs/CameraInfo`, and what a calibration tool estimates. Zero coefficients are
+/// an exact identity: the image is returned untouched rather than resampled.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct CameraDistortion {
     /// First radial coefficient. Negative values produce barrel distortion.
@@ -93,7 +95,29 @@ impl CameraDistortion {
             y * radial + self.p1 * (r2 + 2.0 * y * y) + 2.0 * self.p2 * x * y,
         )
     }
+
+    /// Maps distorted normalized coordinates back to ideal ones, inverting
+    /// [`Self::distort`] by fixed-point iteration (as OpenCV's `undistortPoints` does).
+    pub fn undistort(&self, x_d: f64, y_d: f64) -> (f64, f64) {
+        let (mut x, mut y) = (x_d, y_d);
+        for _ in 0..UNDISTORT_ITERATIONS {
+            let r2 = x * x + y * y;
+            let radial = 1.0 + self.k1 * r2 + self.k2 * r2 * r2 + self.k3 * r2 * r2 * r2;
+            if radial.abs() < 1e-9 {
+                break;
+            }
+            let dx = 2.0 * self.p1 * x * y + self.p2 * (r2 + 2.0 * x * x);
+            let dy = self.p1 * (r2 + 2.0 * y * y) + 2.0 * self.p2 * x * y;
+            x = (x_d - dx) / radial;
+            y = (y_d - dy) / radial;
+        }
+        (x, y)
+    }
 }
+
+/// Fixed-point iterations of [`CameraDistortion::undistort`]; enough for sub-micro-pixel
+/// round trips at the distortion of ordinary lenses.
+const UNDISTORT_ITERATIONS: usize = 40;
 
 /// Sensor pose at the start and end of one frame readout.
 ///
@@ -237,6 +261,48 @@ impl CameraSpec {
         }
         f64::from(self.height.max(1)) * 0.5 / half
     }
+
+    /// The ideal (undistorted) frame to render before the lens is applied: the same
+    /// focal length and centred principal point, enlarged so it holds every ray the
+    /// distorted output images. Barrel distortion widens the view, so its corners need
+    /// rays beyond this spec's own frame; without distortion it is this spec.
+    pub fn ideal_render_spec(&self) -> CameraSpec {
+        if self.distortion.is_identity() || self.width == 0 || self.height == 0 {
+            return *self;
+        }
+        let focal_px = self.focal_length_px();
+        let half_width = f64::from(self.width) * 0.5;
+        let half_height = f64::from(self.height) * 0.5;
+        let (mut reach_x, mut reach_y) = (half_width, half_height);
+        let steps = 64_u32;
+        for step in 0..=steps {
+            let t = f64::from(step) / f64::from(steps);
+            let along_x = (2.0 * t - 1.0) * half_width;
+            let along_y = (2.0 * t - 1.0) * half_height;
+            for (px, py) in [
+                (along_x, -half_height),
+                (along_x, half_height),
+                (-half_width, along_y),
+                (half_width, along_y),
+            ] {
+                let (x_u, y_u) = self.distortion.undistort(px / focal_px, py / focal_px);
+                reach_x = reach_x.max(x_u.abs() * focal_px + 2.0);
+                reach_y = reach_y.max(y_u.abs() * focal_px + 2.0);
+            }
+        }
+        // Bound the enlargement: a lens model this far outside its range would not
+        // describe a real lens anyway.
+        let width = (2.0 * reach_x.min(3.0 * half_width)).ceil() as u32;
+        let height = (2.0 * reach_y.min(3.0 * half_height)).ceil() as u32;
+        let (width, height) = (width.max(self.width), height.max(self.height));
+        CameraSpec {
+            width,
+            height,
+            fov_y_rad: 2.0 * (f64::from(height) * 0.5 / focal_px).atan(),
+            distortion: CameraDistortion::default(),
+            ..*self
+        }
+    }
 }
 
 /// Samples an RGB camera attached to the given entity transform.
@@ -300,16 +366,25 @@ pub fn sample_camera_rgbd_swept<R: RenderBackend + ?Sized>(
     scene: &RenderScene,
     noise_key: SensorNoiseKey,
 ) -> CameraRgbdSample {
-    let camera = Camera::new(spec.width, spec.height, spec.fov_y_rad);
-    let output = render_frame(render, &camera, sweep, spec, sim_time, scene);
+    // A lens that widens the view (barrel distortion) images rays outside the ideal
+    // frame: render the ideal image as large as those rays need, at the same focal length.
+    let render_spec = spec.ideal_render_spec();
+    let camera = Camera::new(render_spec.width, render_spec.height, render_spec.fov_y_rad);
+    let output = render_frame(render, &camera, sweep, &render_spec, sim_time, scene);
 
+    let source = (output.color.width, output.color.height);
     let mut rgba8 = output.color.rgba8;
     let mut depth_m = output.depth.depth_m;
-    apply_sensor_response(&mut rgba8, &mut depth_m, spec, noise_key);
+    apply_sensor_response(&mut rgba8, &mut depth_m, spec, source, noise_key);
 
+    let (width, height) = if spec.distortion.is_identity() {
+        source
+    } else {
+        (spec.width, spec.height)
+    };
     CameraRgbdSample {
-        rgb: ImageRgb8::from_rgba8(output.color.width, output.color.height, rgba8),
-        depth: ImageDepth::new(output.depth.width, output.depth.height, depth_m),
+        rgb: ImageRgb8::from_rgba8(width, height, rgba8),
+        depth: ImageDepth::new(width, height, depth_m),
     }
 }
 
@@ -432,6 +507,7 @@ fn apply_sensor_response(
     rgba8: &mut Vec<u8>,
     depth_m: &mut Vec<f32>,
     spec: &CameraSpec,
+    source: (u32, u32),
     noise_key: SensorNoiseKey,
 ) {
     if spec.is_ideal() || spec.width == 0 || spec.height == 0 {
@@ -439,8 +515,8 @@ fn apply_sensor_response(
     }
 
     if !spec.distortion.is_identity() {
-        *rgba8 = distort_color(rgba8, spec);
-        *depth_m = distort_depth(depth_m, spec);
+        *rgba8 = distort_color(rgba8, spec, source);
+        *depth_m = distort_depth(depth_m, spec, source);
     }
     if spec.vignette_strength > 0.0 {
         apply_vignette(rgba8, spec);
@@ -456,55 +532,68 @@ fn apply_sensor_response(
 
 /// Returns the source sample position in pixels for an output pixel.
 ///
-/// Output pixel coordinates are treated as ideal pinhole coordinates, and the forward
-/// Brown-Conrady model gives the position to read from the rendered image. Positions
-/// outside the rendered image clamp to the edge rather than introducing black borders
-/// that later stages would then amplify.
-fn source_position(spec: &CameraSpec, px: u32, py: u32) -> (f64, f64) {
+/// The rendered image is the ideal pinhole image. An output pixel is a distorted
+/// position, so it shows the ray at its undistorted position: the inverse
+/// Brown-Conrady model gives where to read the rendered image, and a ray at ideal
+/// `(x, y)` lands at `distort(x, y)` as in OpenCV and ROS. Positions outside the
+/// rendered image clamp to the edge rather than introducing black borders that later
+/// stages would then amplify.
+///
+/// `source` is the rendered image's size: the same focal length and centred principal
+/// point as the output, but possibly larger (see [`CameraSpec::ideal_render_spec`]).
+fn source_position(spec: &CameraSpec, source: (u32, u32), px: u32, py: u32) -> (f64, f64) {
     let focal_px = spec.focal_length_px();
     let center_x = f64::from(spec.width) * 0.5;
     let center_y = f64::from(spec.height) * 0.5;
     let x = (f64::from(px) + 0.5 - center_x) / focal_px;
     let y = (f64::from(py) + 0.5 - center_y) / focal_px;
-    let (x_d, y_d) = spec.distortion.distort(x, y);
+    let (x_u, y_u) = spec.distortion.undistort(x, y);
     (
-        x_d * focal_px + center_x - 0.5,
-        y_d * focal_px + center_y - 0.5,
+        x_u * focal_px + f64::from(source.0) * 0.5 - 0.5,
+        y_u * focal_px + f64::from(source.1) * 0.5 - 0.5,
     )
 }
 
-fn distort_color(rgba8: &[u8], spec: &CameraSpec) -> Vec<u8> {
+fn distort_color(rgba8: &[u8], spec: &CameraSpec, source: (u32, u32)) -> Vec<u8> {
     let width = spec.width as usize;
     let height = spec.height as usize;
+    let (source_width, source_height) = (source.0 as usize, source.1 as usize);
     let mut output = vec![0_u8; width * height * 4];
 
     for py in 0..spec.height {
         for px in 0..spec.width {
-            let (source_x, source_y) = source_position(spec, px, py);
+            let (source_x, source_y) = source_position(spec, source, px, py);
             let target = (py as usize * width + px as usize) * 4;
             for channel in 0..4 {
-                output[target + channel] =
-                    bilinear_channel(rgba8, width, height, source_x, source_y, channel);
+                output[target + channel] = bilinear_channel(
+                    rgba8,
+                    source_width,
+                    source_height,
+                    source_x,
+                    source_y,
+                    channel,
+                );
             }
         }
     }
     output
 }
 
-fn distort_depth(depth_m: &[f32], spec: &CameraSpec) -> Vec<f32> {
+fn distort_depth(depth_m: &[f32], spec: &CameraSpec, source: (u32, u32)) -> Vec<f32> {
     let width = spec.width as usize;
     let height = spec.height as usize;
+    let (source_width, source_height) = (source.0 as usize, source.1 as usize);
     let mut output = vec![0.0_f32; width * height];
 
     for py in 0..spec.height {
         for px in 0..spec.width {
-            let (source_x, source_y) = source_position(spec, px, py);
+            let (source_x, source_y) = source_position(spec, source, px, py);
             // Nearest neighbour: blending depth across a discontinuity would invent
             // surfaces that do not exist.
-            let sx = (source_x.round().max(0.0) as usize).min(width.saturating_sub(1));
-            let sy = (source_y.round().max(0.0) as usize).min(height.saturating_sub(1));
+            let sx = (source_x.round().max(0.0) as usize).min(source_width.saturating_sub(1));
+            let sy = (source_y.round().max(0.0) as usize).min(source_height.saturating_sub(1));
             let target = py as usize * width + px as usize;
-            if let Some(value) = depth_m.get(sy * width + sx) {
+            if let Some(value) = depth_m.get(sy * source_width + sx) {
                 output[target] = *value;
             }
         }
@@ -691,6 +780,7 @@ mod tests {
             &mut rgba8,
             &mut depth_m,
             &spec,
+            (spec.width, spec.height),
             SensorNoiseKey::new(1, 2, 3, 4),
         );
 
@@ -723,7 +813,7 @@ mod tests {
         }
 
         // With no distortion the resampling grid is the pixel grid itself.
-        let (source_x, source_y) = source_position(&spec, 7, 5);
+        let (source_x, source_y) = source_position(&spec, (spec.width, spec.height), 7, 5);
         assert_relative_eq!(source_x, 7.0, epsilon = 1e-9);
         assert_relative_eq!(source_y, 5.0, epsilon = 1e-9);
     }
@@ -750,7 +840,85 @@ mod tests {
     }
 
     #[test]
-    fn barrel_distortion_samples_inward_and_pincushion_outward() {
+    fn a_barrel_lens_renders_a_larger_ideal_frame_at_the_same_focal_length() {
+        let barrel = CameraSpec {
+            distortion: CameraDistortion {
+                k1: -0.2,
+                k2: 0.04,
+                ..CameraDistortion::default()
+            },
+            ..test_spec()
+        };
+        let ideal = barrel.ideal_render_spec();
+        assert!(ideal.width > barrel.width && ideal.height > barrel.height);
+        assert!(ideal.distortion.is_identity());
+        assert_relative_eq!(
+            ideal.focal_length_px(),
+            barrel.focal_length_px(),
+            epsilon = 1e-9
+        );
+        // Every output pixel then reads inside the rendered frame.
+        let source = (ideal.width, ideal.height);
+        for (px, py) in [
+            (0, 0),
+            (barrel.width - 1, barrel.height - 1),
+            (0, barrel.height / 2),
+        ] {
+            let (x, y) = source_position(&barrel, source, px, py);
+            assert!(x >= 0.0 && x <= f64::from(ideal.width - 1));
+            assert!(y >= 0.0 && y <= f64::from(ideal.height - 1));
+        }
+        // An undistorted camera renders its own frame.
+        assert_eq!(test_spec().ideal_render_spec(), test_spec());
+    }
+
+    #[test]
+    fn undistort_inverts_distort() {
+        let distortion = CameraDistortion {
+            k1: -0.25,
+            k2: 0.08,
+            k3: -0.01,
+            p1: 0.002,
+            p2: -0.0015,
+        };
+        for (x, y) in [(0.0, 0.0), (0.3, -0.2), (-0.6, 0.45), (0.7, 0.5)] {
+            let (x_d, y_d) = distortion.distort(x, y);
+            let (x_u, y_u) = distortion.undistort(x_d, y_d);
+            assert_relative_eq!(x_u, x, epsilon = 1e-9);
+            assert_relative_eq!(y_u, y, epsilon = 1e-9);
+        }
+    }
+
+    #[test]
+    fn a_ray_lands_where_the_opencv_model_projects_it() {
+        // The output pixel at OpenCV's projection of a ray must read the rendered (ideal)
+        // image where that ray is: its ideal pinhole pixel.
+        let spec = CameraSpec {
+            distortion: CameraDistortion {
+                k1: -0.2,
+                k2: 0.05,
+                p1: 0.001,
+                ..CameraDistortion::default()
+            },
+            ..test_spec()
+        };
+        let focal_px = spec.focal_length_px();
+        let cx = f64::from(spec.width) * 0.5 - 0.5;
+        let cy = f64::from(spec.height) * 0.5 - 0.5;
+        let (px, py) = (3_u32, 2_u32);
+        let (x_d, y_d) = (
+            (f64::from(px) - cx) / focal_px,
+            (f64::from(py) - cy) / focal_px,
+        );
+        let (source_x, source_y) = source_position(&spec, (spec.width, spec.height), px, py);
+        let ray = ((source_x - cx) / focal_px, (source_y - cy) / focal_px);
+        let (reprojected_x, reprojected_y) = spec.distortion.distort(ray.0, ray.1);
+        assert_relative_eq!(reprojected_x, x_d, epsilon = 1e-9);
+        assert_relative_eq!(reprojected_y, y_d, epsilon = 1e-9);
+    }
+
+    #[test]
+    fn barrel_distortion_shows_a_wider_view_and_pincushion_a_narrower_one() {
         let barrel = CameraSpec {
             distortion: CameraDistortion {
                 k1: -0.3,
@@ -768,13 +936,19 @@ mod tests {
         let ideal = test_spec();
 
         let centre_x = f64::from(ideal.width) * 0.5;
-        let ideal_offset = (source_position(&ideal, 0, 0).0 - centre_x).abs();
-        let barrel_offset = (source_position(&barrel, 0, 0).0 - centre_x).abs();
-        let pincushion_offset = (source_position(&pincushion, 0, 0).0 - centre_x).abs();
+        let ideal_offset =
+            (source_position(&ideal, (ideal.width, ideal.height), 0, 0).0 - centre_x).abs();
+        let barrel_offset =
+            (source_position(&barrel, (barrel.width, barrel.height), 0, 0).0 - centre_x).abs();
+        let pincushion_offset =
+            (source_position(&pincushion, (pincushion.width, pincushion.height), 0, 0).0
+                - centre_x)
+                .abs();
 
-        // Barrel distortion magnifies the centre, so a corner reads from nearer the axis.
-        assert!(barrel_offset < ideal_offset);
-        assert!(pincushion_offset > ideal_offset);
+        // Barrel distortion squeezes the periphery inward, so a corner pixel shows a ray
+        // from farther off the axis (a wider view); pincushion the reverse.
+        assert!(barrel_offset > ideal_offset);
+        assert!(pincushion_offset < ideal_offset);
     }
 
     #[test]
@@ -797,6 +971,7 @@ mod tests {
             &mut rgba8,
             &mut depth_m,
             &spec,
+            (spec.width, spec.height),
             SensorNoiseKey::new(1, 1, 1, 1),
         );
 
