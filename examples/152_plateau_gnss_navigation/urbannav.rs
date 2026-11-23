@@ -190,6 +190,35 @@ fn validate(city: &PlateauCity, csv: &Path) -> Result<(), String> {
         100.0 * f64::from(tp) / f64::from((tp + fp).max(1)),
         100.0 * f64::from(tp) / f64::from((tp + fn_).max(1)),
     );
+    // Against elevation alone (the best mask, chosen after the fact), over
+    // all satellites and between 20 and 60 degrees, where the street decides.
+    let strong = |r: &Row| r.cn0_dbhz.is_some_and(|c| c >= 40.0);
+    let agree = |band: (f64, f64), predict: &dyn Fn(&Row, Class) -> bool| {
+        let members: Vec<(&Row, &Class)> = rows
+            .iter()
+            .zip(&classes)
+            .filter(|(r, _)| (band.0..band.1).contains(&r.el_deg))
+            .collect();
+        let hits = members
+            .iter()
+            .filter(|(r, c)| predict(r, **c) == strong(r))
+            .count();
+        hits as f64 / members.len().max(1) as f64
+    };
+    for band in [(0.0, 90.1), (20.0, 60.0)] {
+        let model = agree(band, &|_, c| c == Class::LineOfSight);
+        let (mask, by_elevation) = (5..90)
+            .map(|m| (m, agree(band, &|r, _| r.el_deg >= f64::from(m))))
+            .fold((0, 0.0), |best, x| if x.1 > best.1 { x } else { best });
+        println!(
+            "  elevation {:>2.0}-{:<2.0} deg: the model agrees with the signal {:.1} %, the best \
+             elevation mask ({mask} deg) {:.1} %",
+            band.0,
+            band.1.min(90.0),
+            100.0 * model,
+            100.0 * by_elevation
+        );
+    }
     // Per epoch: satellites the model predicts in line of sight vs tracked
     // strongly.
     let mut per_epoch: Vec<(f64, usize, usize)> = Vec::new();
