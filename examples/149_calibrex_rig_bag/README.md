@@ -24,7 +24,8 @@ calibrex check target/calibrex_rig/rig.mcap --tf target/calibrex_rig/turned_lida
 - `--board COLSxROWSxSQUARE_M` stands a checkerboard in the room and `--motion
   board` holds the rig still at 28 poses in front of it; `--sensors camera2` adds a
   second camera 10 cm to the right; `--readout-ms` reads the cameras out row by row
-  (rolling shutter). See [A checkerboard](#a-checkerboard) and
+  (rolling shutter); `--supersample N` renders every pixel with N × N jittered
+  rays (one by default). See [A checkerboard](#a-checkerboard) and
   [Rolling shutter](#rolling-shutter).
 - Install Calibrex from its repository
   (`pip install "calibrex[opencv] @ git+https://github.com/rsasaki0109/Calibrex.git"`;
@@ -177,8 +178,11 @@ the 40 s bag:
 
 camera–imu, inconclusive on the hand-held bag, passes here: turning about the
 camera leaves no translation for its pure-rotation fits to absorb. camera-focal
-is inconclusive (its held-out check fails) but reads an fy scale of 0.9938, the
-estimated intrinsics' 0.6 % long fy seen from the IMU.
+(with Calibrex's 2 s held-out blocks and 0.2 % std floor) reads fy scale 0.9937
+and warns: the estimated intrinsics' fy is 0.6 % long. With the true intrinsics it
+passes, both scales within 0.06 %. Its tracked rotations differ from the true ones
+by 0.1–0.4 % across the recording, which is why its std is floored; `--supersample
+3`, which antialiases the whole image, halves the roll part of that but not the rest.
 
 ### A checkerboard
 
