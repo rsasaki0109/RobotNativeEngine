@@ -6,6 +6,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 150 (`scene_replay_render`) also renders mesh items (STL, OBJ,
+  glTF, GLB; relative paths resolve against the script). `flat_color`
+  replaces a mesh's materials with the item colour. Its indoor fill light is
+  dimmer, so the directional shadows stay visible.
+
+- `rne_py.DiffDriveSim.from_scene(path)` builds the differential-drive simulator
+  from a `.rne.scene.toml` (robots, obstacles, sensors) instead of the built-in
+  empty world; `fixed_delta_s` and `contact_count` expose the physics step and
+  the last step's contacts.
+
 - `rne_gnss` traces triangle-mesh buildings: `TriangleMesh` (BVH closest and
   any-hit queries, range queries, an inside test, convex-crease diffraction
   edges) in `GnssScene::mesh`, with mesh triangles as reflectors above
