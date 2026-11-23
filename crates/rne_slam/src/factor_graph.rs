@@ -103,10 +103,12 @@ pub struct FactorGraphConfig {
     pub lidar_reanchor_m: f64,
     /// Consecutive scans of such disagreement before re-anchoring.
     pub lidar_reanchor_scans: usize,
-    /// For this long after an RTK fixed fix carried full weight, a
-    /// particle-filter match metres from the graph is taken for the particle
-    /// filter having wandered (in a crowd, along a featureless street): it
-    /// is re-seeded at the graph instead of moving the graph, seconds.
+    /// For this long after an RTK fixed fix, a particle-filter match more
+    /// than `lidar_reanchor_m` from both the graph and where that fix puts
+    /// the robot now (its offset from the graph carried along) is taken for
+    /// the particle filter having wandered (in a crowd, along a featureless
+    /// street): it is re-seeded at the graph instead of moving the graph,
+    /// seconds.
     pub lidar_reanchor_rtk_hold_s: f64,
 }
 
@@ -216,8 +218,8 @@ pub struct FactorGraphLocalizer {
     next_id: u64,
     accumulated: Accumulated,
     last_gnss_s: f64,
-    /// Time of the last RTK fixed fix that carried full weight.
-    last_fixed_s: f64,
+    /// Time of the last RTK fixed fix and its offset from the graph.
+    last_fixed: (f64, f64, f64),
     last_lidar_s: f64,
     time_s: f64,
     /// Offsets (fix − estimate) of consecutive rejected RTK fixed fixes.
@@ -259,7 +261,7 @@ impl FactorGraphLocalizer {
             next_id: 1,
             accumulated: Accumulated::default(),
             last_gnss_s: f64::NEG_INFINITY,
-            last_fixed_s: f64::NEG_INFINITY,
+            last_fixed: (f64::NEG_INFINITY, 0.0, 0.0),
             last_lidar_s: f64::NEG_INFINITY,
             time_s: 0.0,
             rejected_offsets: Vec::new(),
@@ -347,14 +349,14 @@ impl FactorGraphLocalizer {
         let Some(index) = self.index_of(node) else {
             return;
         };
-        if fix.kind == FixKind::Fixed && weight >= 0.5 {
-            self.last_fixed_s = self.time_s;
+        let pose = self.nodes[index].pose;
+        if fix.kind == FixKind::Fixed {
+            self.last_fixed = (self.time_s, fix.x_m - pose[0], fix.y_m - pose[1]);
         }
         if fix.kind != FixKind::Fixed || weight >= 0.1 {
             self.rejected_offsets.clear();
             return;
         }
-        let pose = self.nodes[index].pose;
         self.rejected_offsets
             .push((fix.x_m - pose[0], fix.y_m - pose[1]));
         let n = self.rejected_offsets.len();
@@ -448,10 +450,15 @@ impl FactorGraphLocalizer {
             (Some(g), _) => Some((g, false)),
             (None, p) => p.map(|p| (p, true)),
         };
-        let rtk_holds = self.time_s - self.last_fixed_s <= c.lidar_reanchor_rtk_hold_s;
+        let (fixed_s, dx, dy) = self.last_fixed;
+        let rtk_disagrees = |p: Pose2d| {
+            self.time_s - fixed_s <= c.lidar_reanchor_rtk_hold_s
+                && (p.x_m - graph_pose.x_m - dx).hypot(p.y_m - graph_pose.y_m - dy)
+                    > c.lidar_reanchor_m
+        };
         let chosen = match chosen {
-            Some((p, true)) if rtk_holds && apart(p.pose) > c.lidar_reanchor_m => {
-                // RTK fixed fixes hold the graph: the particle filter is what
+            Some((p, true)) if apart(p.pose) > c.lidar_reanchor_m && rtk_disagrees(p.pose) => {
+                // A recent RTK fixed fix says the particle filter is what
                 // wandered off.
                 self.lidar_reanchor_streak = 0;
                 if graph_match.is_none() {

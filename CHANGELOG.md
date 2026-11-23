@@ -19,8 +19,8 @@ All notable changes to Robot Native Engine are documented in this file.
   coordinates), `--render-preview` renders still views of the city, and
   `scripts/fetch_plateau_tokyo.py --textures` fetches the photos.
 - `FactorGraphConfig::lidar_reanchor_rtk_hold_s`: shortly after an RTK
-  fixed fix carried full weight, a particle filter that wandered off is
-  re-seeded at the graph instead of re-anchoring it.
+  fixed fix, a particle filter that wandered off from both the graph and
+  that fix is re-seeded at the graph instead of re-anchoring it.
 
 - `rne_slam::PointCloudMap` localizes a level 3D LiDAR scan in a
   point-cloud map (Huber-weighted point-to-plane Gauss–Newton over x, y, z
