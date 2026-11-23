@@ -32,6 +32,7 @@ pub mod atmosphere;
 pub mod components;
 pub mod ephemeris;
 pub mod geodesy;
+pub mod mesh;
 pub mod orbit;
 pub mod raytrace;
 pub mod receiver;
@@ -47,6 +48,7 @@ pub use atmosphere::{saastamoinen_delay_m, AtmosphereConfig, KlobucharParams, GP
 pub use components::GnssAntenna;
 pub use ephemeris::{BroadcastEphemeris, NavigationMessage};
 pub use geodesy::{azimuth_elevation, EnuFrame, Geodetic};
+pub use mesh::{box_triangles, DiffractionEdge, MeshTriangle, TriangleMesh};
 pub use orbit::{
     Constellation, GnssSystem, KeplerOrbit, Satellite, SatelliteId, EARTH_ROTATION_RAD_S,
     SPEED_OF_LIGHT_M_S,

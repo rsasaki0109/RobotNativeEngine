@@ -18,25 +18,37 @@ pub enum SignalKind {
     GalE1,
     /// Galileo E5a.
     GalE5a,
+    /// QZSS L1 C/A.
+    QzsL1Ca,
+    /// QZSS L2C.
+    QzsL2C,
 }
 
 impl SignalKind {
     /// Every simulated signal.
-    pub const ALL: [Self; 4] = [Self::GpsL1Ca, Self::GpsL2C, Self::GalE1, Self::GalE5a];
+    pub const ALL: [Self; 6] = [
+        Self::GpsL1Ca,
+        Self::GpsL2C,
+        Self::GalE1,
+        Self::GalE5a,
+        Self::QzsL1Ca,
+        Self::QzsL2C,
+    ];
 
     /// The system transmitting the signal.
     pub fn system(self) -> GnssSystem {
         match self {
             Self::GpsL1Ca | Self::GpsL2C => GnssSystem::Gps,
             Self::GalE1 | Self::GalE5a => GnssSystem::Galileo,
+            Self::QzsL1Ca | Self::QzsL2C => GnssSystem::Qzss,
         }
     }
 
     /// Carrier frequency in Hz.
     pub fn frequency_hz(self) -> f64 {
         match self {
-            Self::GpsL1Ca | Self::GalE1 => GPS_L1_HZ,
-            Self::GpsL2C => 1_227.60e6,
+            Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca => GPS_L1_HZ,
+            Self::GpsL2C | Self::QzsL2C => 1_227.60e6,
             Self::GalE5a => 1_176.45e6,
         }
     }
@@ -49,7 +61,9 @@ impl SignalKind {
     /// Length of one code chip in meters.
     pub fn chip_length_m(self) -> f64 {
         match self {
-            Self::GpsL1Ca | Self::GpsL2C | Self::GalE1 => SPEED_OF_LIGHT_M_S / 1.023e6,
+            Self::GpsL1Ca | Self::GpsL2C | Self::GalE1 | Self::QzsL1Ca | Self::QzsL2C => {
+                SPEED_OF_LIGHT_M_S / 1.023e6
+            }
             Self::GalE5a => SPEED_OF_LIGHT_M_S / 10.23e6,
         }
     }
@@ -57,15 +71,15 @@ impl SignalKind {
     /// Received power relative to L1 C/A in dB.
     pub fn power_offset_db(self) -> f64 {
         match self {
-            Self::GpsL1Ca | Self::GalE1 => 0.0,
-            Self::GpsL2C => -1.5,
+            Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca => 0.0,
+            Self::GpsL2C | Self::QzsL2C => -1.5,
             Self::GalE5a => 1.0,
         }
     }
 
     /// Whether this is the system's first (L1-band) signal.
     pub fn is_primary(self) -> bool {
-        matches!(self, Self::GpsL1Ca | Self::GalE1)
+        matches!(self, Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca)
     }
 
     /// Ionospheric delay at this frequency relative to L1.
@@ -76,8 +90,8 @@ impl SignalKind {
     /// RINEX 3 observation code (frequency band and attribute), e.g. `1C`.
     pub fn rinex_code(self) -> &'static str {
         match self {
-            Self::GpsL1Ca | Self::GalE1 => "1C",
-            Self::GpsL2C => "2L",
+            Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca => "1C",
+            Self::GpsL2C | Self::QzsL2C => "2L",
             Self::GalE5a => "5Q",
         }
     }
