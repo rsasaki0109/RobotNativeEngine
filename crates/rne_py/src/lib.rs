@@ -1062,6 +1062,16 @@ impl PyDiffDriveSim {
         }
     }
 
+    /// Builds the simulator from a `.rne.scene.toml` file (robots, obstacles, sensors).
+    #[staticmethod]
+    fn from_scene(scene_path: &str) -> PyResult<Self> {
+        DiffDriveSim::from_scene_path(Path::new(scene_path))
+            .map(|inner| Self { inner })
+            .map_err(|error| {
+                pyo3::exceptions::PyValueError::new_err(format!("load scene {scene_path}: {error}"))
+            })
+    }
+
     fn reset(&mut self) -> PyObservation {
         self.inner.reset().into()
     }
@@ -1075,6 +1085,18 @@ impl PyDiffDriveSim {
     #[getter]
     fn step_count(&self) -> u64 {
         self.inner.step_count()
+    }
+
+    /// Fixed physics step in seconds.
+    #[getter]
+    fn fixed_delta_s(&self) -> f64 {
+        self.inner.fixed_delta().as_seconds().value()
+    }
+
+    /// Number of contact events reported by the last physics step.
+    #[getter]
+    fn contact_count(&self) -> usize {
+        self.inner.last_contacts().len()
     }
 }
 

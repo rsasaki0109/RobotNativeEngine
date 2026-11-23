@@ -39,7 +39,7 @@ ROS2 is an adapter only. Do not add ROS2, rclrs, rclcpp, DDS, or ROS message dep
 - `crates/rne_data`: typed DataBus, stream IDs, frame payloads
 - `crates/rne_nav`: backend-neutral occupancy grids, costmaps, tiled maps, plan/control, multi-robot avoidance, and timestamped transform tree
 - `crates/rne_slam`: deterministic 2D scan matching, online occupancy SLAM, Monte Carlo localization, and a GNSS-outdoors / LiDAR-indoors localization arbiter
-- `crates/rne_gnss`: ray-traced GNSS simulation (WGS-84 geodesy, GPS/Galileo orbits and broadcast ephemerides, building occlusion, multi-bounce reflections, knife-edge diffraction, dual-frequency code/carrier/Doppler observations, multi-antenna rigs, built-in SPP with RAIM)
+- `crates/rne_gnss`: ray-traced GNSS simulation (WGS-84 geodesy, GPS/Galileo/QZSS orbits and broadcast ephemerides, building occlusion against boxes or a BVH triangle mesh, multi-bounce reflections, knife-edge diffraction, dual-frequency code/carrier/Doppler observations, multi-antenna rigs, built-in SPP with RAIM)
 - `crates/rne_ai`: agent, observation, action, reward, policy traits
 - `crates/rne_accelerator_contract`: vendor-neutral manifest, runtime, and accelerator evidence readers
 - `crates/rne_plugin`: plugin manifest and loading interfaces

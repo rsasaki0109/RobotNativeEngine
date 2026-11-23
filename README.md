@@ -226,7 +226,11 @@ reflections, diffraction, NLOS) into dual-frequency code and carrier-phase
 observations; libgnss++ solves RTK and moving-baseline heading from them, and
 a localization arbiter uses GNSS outdoors and LiDAR indoors:
 [GNSS](docs/GNSS.md), [example 151](examples/151_gnss_lidar_navigation/README.md)
-([3D animation](docs/media/gnss-lidar-navigation-3d.gif)).
+([3D animation](docs/media/gnss-lidar-navigation-3d.gif)); in real Tokyo
+streets from PLATEAU's LOD2 model, with QZSS:
+[example 152](examples/152_plateau_gnss_navigation/README.md)
+([Shibuya](docs/media/plateau-gnss-shibuya.gif),
+[Shinjuku](docs/media/plateau-gnss-shinjuku.gif)).
 
 ## Warehouse fleet operations
 

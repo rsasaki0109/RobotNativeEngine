@@ -1,0 +1,31 @@
+[package]
+name = "plateau_gnss_navigation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[features]
+default = []
+capture = ["dep:rne_render", "dep:rne_render_wgpu", "dep:serde_json"]
+
+[dependencies]
+png = { workspace = true }
+rne_adapter_gnsspp = { workspace = true }
+rne_core = { workspace = true }
+rne_gnss = { workspace = true }
+rne_math = { workspace = true }
+rne_nav = { workspace = true }
+rne_plateau = { workspace = true }
+rne_slam = { workspace = true }
+rne_render = { workspace = true, optional = true }
+rne_render_wgpu = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+
+[[example]]
+name = "152_plateau_gnss_navigation"
+path = "main.rs"
