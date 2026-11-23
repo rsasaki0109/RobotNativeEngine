@@ -54,6 +54,7 @@ All notable changes to Robot Native Engine are documented in this file.
   stops fusing matches that stay put while the wheels move.
 
 ### Added
+
 - Example 149 records checkerboard calibrations: `--board COLSxROWSxSQUARE_M`
   stands a checkerboard in the room (a collider the LiDARs see, its pattern
   antialiased with jittered rays), `--motion board` holds the rig still at 28
