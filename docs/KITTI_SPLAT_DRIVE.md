@@ -14,7 +14,8 @@ height of the SLAM path.
   camera is rendered at the true pose (`--manifest`: RNE's renderer; otherwise visloc-rs
   `gsplat_render_server`) and localized by visloc-rs `basalt_euroc_localize_demo` against a
   map built from splat renders at the SLAM camera poses. Fixes more than 3 m from the
-  estimate are rejected. The car starts at a known pose.
+  estimate are rejected (3 m, growing by 0.5 m per second without a fix, so the car can
+  recover after a gap). The car starts at a known pose.
 
 **Long routes.** One splat of the whole 2.2 km drive does not fit a CPU renderer's 128 MiB
 storage-binding limit, so the route is trained as overlapping stretches (about 400 KITTI

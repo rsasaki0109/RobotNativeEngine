@@ -95,6 +95,7 @@ fn main() {
     .unwrap();
     let (mut t, mut next_loc, mut index, mut frame) = (0.0, 0.0, 0usize, 0usize);
     let (mut fixes, mut tries) = (0usize, 0usize);
+    let mut last_fix_t = 0.0;
     loop {
         let truth = *world.get::<Transform3>(car).expect("pose");
         let true_yaw = yaw_of(truth.rotation);
@@ -135,13 +136,16 @@ fn main() {
             frame += 1;
             if let Some((r, c)) = localize(&localizer, &map, &png_path, &out) {
                 let (p, yaw) = car_from_camera(&r, &c);
-                // Gate: a fix more than 3 m from the estimate is taken as a wrong match.
+                // Gate: a fix far from the estimate is taken as a wrong match. The gate grows
+                // with the time since the last fix, as dead reckoning drifts (3 m + 0.5 m/s).
+                let gate = 3.0 + 0.5 * (t - last_fix_t);
                 let (e, _) = estimate.unwrap();
-                if ((p.x - e.x).powi(2) + (p.z - e.z).powi(2)).sqrt() < 3.0 {
+                if ((p.x - e.x).powi(2) + (p.z - e.z).powi(2)).sqrt() < gate {
                     // Keep the road height of the truth: the map does not drive the car's y.
                     estimate = Some((Vec3::new(p.x, truth.translation.y, p.z), yaw));
                     fix = true;
                     fixes += 1;
+                    last_fix_t = t;
                 }
             }
         }
