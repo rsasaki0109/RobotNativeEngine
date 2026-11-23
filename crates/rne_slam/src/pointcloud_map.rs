@@ -294,12 +294,13 @@ fn solve4(mut a: [[f64; 4]; 4], mut b: [f64; 4]) -> Option<[f64; 4]> {
         }
         a.swap(col, pivot);
         b.swap(col, pivot);
-        for row in col + 1..4 {
-            let f = a[row][col] / a[col][col];
-            for k in col..4 {
-                a[row][k] -= f * a[col][k];
+        let (pivot_row, pivot_b) = (a[col], b[col]);
+        for (row, rhs) in a.iter_mut().zip(b.iter_mut()).skip(col + 1) {
+            let f = row[col] / pivot_row[col];
+            for (value, p) in row.iter_mut().zip(pivot_row).skip(col) {
+                *value -= f * p;
             }
-            b[row] -= f * b[col];
+            *rhs -= f * pivot_b;
         }
     }
     let mut x = [0.0; 4];

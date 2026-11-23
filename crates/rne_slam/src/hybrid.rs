@@ -33,6 +33,7 @@
 
 use crate::likelihood::LikelihoodField;
 use crate::localization::{Amcl, AmclConfig, AmclUpdate};
+use crate::pointcloud_map::PointCloudMatch;
 use crate::scan_match::{match_position_covariance, scan_points_2d, ScanMatchConfig, ScanMatcher};
 use rne_math::Vec3;
 use rne_nav::{
@@ -859,6 +860,74 @@ impl HybridLocalizer {
         progress * travel.signum() < 0.5 * travel.abs()
     }
 
+    /// Processes a 3D LiDAR scan's match in a point-cloud map (or `None`
+    /// when the scan did not match), in place of [`Self::update_lidar`]:
+    /// the caller matches the scan, from [`Self::pose`] while tracking and
+    /// over [`Self::lidar_search_window_m`] while searching. A match while
+    /// searching relocalizes the robot and starts LiDAR mode; while
+    /// tracking, matches pass `lidar_gate_chi_square` (against their own
+    /// covariance) and `lidar_motion_check_scans` before they are fused, and
+    /// `lidar_max_low_scores` consecutive scans without one end LiDAR mode.
+    pub fn update_lidar_match(
+        &mut self,
+        matched: Option<&PointCloudMatch>,
+        time_s: f64,
+    ) -> Result<(), HybridError> {
+        if self.source != LocalizationSource::Lidar {
+            if let Some(m) = matched {
+                if self.lidar_search
+                    && self.source == LocalizationSource::DeadReckoning
+                    && self.map_covers(self.pose())
+                {
+                    self.fuse_point_cloud_match(m)?;
+                    self.lidar_low_streak = 0;
+                    self.motion_history.clear();
+                    self.motion_lock_scans = 0;
+                    self.switch(LocalizationSource::Lidar, time_s);
+                }
+            }
+            return Ok(());
+        }
+        let gated = matched.filter(|m| {
+            self.ekf.position_mahalanobis_squared_covariance(
+                m.pose.x_m,
+                m.pose.y_m,
+                m.position_covariance_m2,
+            ) <= self.config.lidar_gate_chi_square
+        });
+        if self.matches_hold_the_robot_back(gated.map(|m| m.pose)) {
+            return Ok(());
+        }
+        match gated {
+            Some(m) => {
+                self.lidar_low_streak = 0;
+                self.fuse_point_cloud_match(m)?;
+            }
+            None => self.lidar_low_streak += 1,
+        }
+        if self.lidar_low_streak >= self.config.lidar_max_low_scores
+            || !self.map_covers(self.pose())
+        {
+            self.switch(LocalizationSource::DeadReckoning, time_s);
+            self.lidar_search = true;
+        }
+        Ok(())
+    }
+
+    /// Half-width of the area a relocalizing match should search, meters:
+    /// three sigma of the estimate, within `lidar_init_window_m`.
+    pub fn lidar_search_window_m(&self) -> f64 {
+        let covariance = self.ekf.covariance();
+        let (min_m, max_m) = self.config.lidar_init_window_m;
+        (3.0 * covariance[0][0].max(covariance[1][1]).sqrt()).clamp(min_m, max_m)
+    }
+
+    fn fuse_point_cloud_match(&mut self, m: &PointCloudMatch) -> Result<(), FusionError> {
+        self.ekf
+            .update_position_covariance(m.pose.x_m, m.pose.y_m, m.position_covariance_m2)?;
+        self.ekf.update_yaw(m.pose.yaw_rad, m.yaw_variance_rad2)
+    }
+
     /// Whether the arbiter is searching the map for a LiDAR relocalization.
     pub fn lidar_searching(&self) -> bool {
         self.lidar_search && self.amcl.is_none()
@@ -1321,6 +1390,71 @@ mod tests {
         let followed = run(10);
         assert!(held < 13.5, "{held}");
         assert!(followed > 14.4, "{followed}");
+    }
+
+    fn cloud_match(x: f64, y: f64, variance: [f64; 2]) -> PointCloudMatch {
+        PointCloudMatch {
+            pose: Pose2d::new(x, y, 0.0),
+            z_m: 0.6,
+            position_covariance_m2: [[variance[0], 0.0], [0.0, variance[1]]],
+            yaw_variance_rad2: 1.0e-4,
+            rmse_m: 0.02,
+            inlier_fraction: 0.9,
+            converged: true,
+        }
+    }
+
+    #[test]
+    fn point_cloud_matches_relocalize_track_and_hand_back() {
+        let config = HybridLocalizerConfig {
+            lidar_gate_chi_square: 16.0,
+            ..HybridLocalizerConfig::default()
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(13.0, 0.0, 0.0), config).unwrap();
+        // GNSS mode ignores matches.
+        localizer
+            .update_lidar_match(Some(&cloud_match(14.0, 0.0, [0.01, 0.01])), 0.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+        assert!((localizer.pose().x_m - 13.0).abs() < 1e-9);
+        for step in 0..3 {
+            localizer.update_gnss(None, f64::from(step)).unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+        assert!(localizer.lidar_search_window_m() >= 0.5);
+        // A match relocalizes the robot (1 m off) and starts LiDAR mode.
+        localizer
+            .update_lidar_match(Some(&cloud_match(14.0, 0.0, [0.01, 0.01])), 3.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Lidar);
+        assert!(
+            (localizer.pose().x_m - 14.0).abs() < 0.1,
+            "{:?}",
+            localizer.pose()
+        );
+        // A match 3 m along a direction it constrains fails the gate; one
+        // whose covariance says that direction is loose passes.
+        localizer
+            .update_lidar_match(Some(&cloud_match(17.0, 0.0, [0.01, 0.01])), 3.1)
+            .unwrap();
+        assert!(
+            (localizer.pose().x_m - 14.0).abs() < 0.1,
+            "{:?}",
+            localizer.pose()
+        );
+        localizer
+            .update_lidar_match(Some(&cloud_match(17.0, 0.05, [100.0, 0.01])), 3.2)
+            .unwrap();
+        let pose = localizer.pose();
+        assert!((pose.x_m - 14.0).abs() < 0.1 && pose.y_m > 0.02, "{pose:?}");
+        // Scans without a match end LiDAR mode.
+        for step in 0..config.lidar_max_low_scores {
+            localizer
+                .update_lidar_match(None, 4.0 + 0.1 * step as f64)
+                .unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
     }
 
     #[test]

@@ -20,6 +20,7 @@
 use crate::hybrid::{AbsoluteHeadingFix, AbsolutePositionFix, FixKind, LocalizationSource};
 use crate::likelihood::LikelihoodField;
 use crate::localization::{Amcl, AmclConfig};
+use crate::pointcloud_map::PointCloudMatch;
 use crate::scan_match::{match_position_covariance, scan_points_2d, ScanMatchConfig, ScanMatcher};
 use rne_nav::{wrap_angle, GridError, LaserScan2d, OccupancyGrid, Pose2d};
 use serde::{Deserialize, Serialize};
@@ -505,6 +506,41 @@ impl FactorGraphLocalizer {
         self.optimize();
     }
 
+    /// Adds a 3D LiDAR scan's match in a point-cloud map as a position and a
+    /// yaw factor (Huber kernel), in place of [`Self::update_lidar`]. The
+    /// caller matches the scan from [`Self::pose`].
+    pub fn update_lidar_match(&mut self, matched: &PointCloudMatch, time_s: f64) {
+        self.time_s = self.time_s.max(time_s);
+        let c = self.config;
+        let node = self.add_node(time_s);
+        self.unaries.push(Unary {
+            node,
+            measurement: Measurement::Position {
+                x: matched.pose.x_m,
+                y: matched.pose.y_m,
+                info: invert2(matched.position_covariance_m2),
+            },
+            origin: Origin::Lidar,
+            scale: c.lidar_huber_scale,
+            kernel: Kernel::Huber(0),
+            weight: 1.0,
+            time_s,
+        });
+        self.unaries.push(Unary {
+            node,
+            measurement: Measurement::Yaw {
+                yaw: matched.pose.yaw_rad,
+                info: 1.0 / matched.yaw_variance_rad2.max(1.0e-12),
+            },
+            origin: Origin::Lidar,
+            scale: c.lidar_huber_scale,
+            kernel: Kernel::Huber(1),
+            weight: 1.0,
+            time_s,
+        });
+        self.optimize();
+    }
+
     /// Translates every node and the prior, dropping the absolute factors
     /// that described the old placement.
     fn shift_window(&mut self, dx: f64, dy: f64) {
@@ -929,6 +965,35 @@ mod tests {
             satellites_excluded: 0,
             kind,
         }
+    }
+
+    #[test]
+    fn point_cloud_matches_pull_the_graph() {
+        let mut graph = FactorGraphLocalizer::new(
+            &open_map(),
+            Pose2d::new(0.0, 0.0, 0.0),
+            FactorGraphConfig::default(),
+        )
+        .unwrap();
+        for step in 0..20 {
+            graph.predict(0.1, 1.0, 0.0);
+            let t = 0.1 * f64::from(step + 1);
+            // The scans say the robot is 0.5 m north of where odometry puts it,
+            // and do not constrain it along x.
+            let matched = PointCloudMatch {
+                pose: Pose2d::new(t, 0.5, 0.0),
+                z_m: 0.6,
+                position_covariance_m2: [[100.0, 0.0], [0.0, 0.01]],
+                yaw_variance_rad2: 1.0e-4,
+                rmse_m: 0.02,
+                inlier_fraction: 0.9,
+                converged: true,
+            };
+            graph.update_lidar_match(&matched, t);
+        }
+        let pose = graph.pose();
+        assert!((pose.y_m - 0.5).abs() < 0.1, "{pose:?}");
+        assert!((pose.x_m - 2.0).abs() < 0.2, "{pose:?}");
     }
 
     #[test]
