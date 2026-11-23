@@ -103,6 +103,11 @@ pub struct FactorGraphConfig {
     pub lidar_reanchor_m: f64,
     /// Consecutive scans of such disagreement before re-anchoring.
     pub lidar_reanchor_scans: usize,
+    /// For this long after an RTK fixed fix carried full weight, a
+    /// particle-filter match metres from the graph is taken for the particle
+    /// filter having wandered (in a crowd, along a featureless street): it
+    /// is re-seeded at the graph instead of moving the graph, seconds.
+    pub lidar_reanchor_rtk_hold_s: f64,
 }
 
 impl Default for FactorGraphConfig {
@@ -137,6 +142,7 @@ impl Default for FactorGraphConfig {
             lidar_seed_score_margin: 0.02,
             lidar_reanchor_m: 2.0,
             lidar_reanchor_scans: 10,
+            lidar_reanchor_rtk_hold_s: 5.0,
         }
     }
 }
@@ -210,6 +216,8 @@ pub struct FactorGraphLocalizer {
     next_id: u64,
     accumulated: Accumulated,
     last_gnss_s: f64,
+    /// Time of the last RTK fixed fix that carried full weight.
+    last_fixed_s: f64,
     last_lidar_s: f64,
     time_s: f64,
     /// Offsets (fix − estimate) of consecutive rejected RTK fixed fixes.
@@ -251,6 +259,7 @@ impl FactorGraphLocalizer {
             next_id: 1,
             accumulated: Accumulated::default(),
             last_gnss_s: f64::NEG_INFINITY,
+            last_fixed_s: f64::NEG_INFINITY,
             last_lidar_s: f64::NEG_INFINITY,
             time_s: 0.0,
             rejected_offsets: Vec::new(),
@@ -338,6 +347,9 @@ impl FactorGraphLocalizer {
         let Some(index) = self.index_of(node) else {
             return;
         };
+        if fix.kind == FixKind::Fixed && weight >= 0.5 {
+            self.last_fixed_s = self.time_s;
+        }
         if fix.kind != FixKind::Fixed || weight >= 0.1 {
             self.rejected_offsets.clear();
             return;
@@ -436,6 +448,19 @@ impl FactorGraphLocalizer {
             (Some(g), _) => Some((g, false)),
             (None, p) => p.map(|p| (p, true)),
         };
+        let rtk_holds = self.time_s - self.last_fixed_s <= c.lidar_reanchor_rtk_hold_s;
+        let chosen = match chosen {
+            Some((p, true)) if rtk_holds && apart(p.pose) > c.lidar_reanchor_m => {
+                // RTK fixed fixes hold the graph: the particle filter is what
+                // wandered off.
+                self.lidar_reanchor_streak = 0;
+                if graph_match.is_none() {
+                    self.reseed_particles(graph_pose, scan, odom_pose, sensor_from_base);
+                }
+                graph_match.map(|g| (g, false))
+            }
+            other => other,
+        };
         let Some((matched, from_particles)) = chosen else {
             return;
         };
@@ -457,15 +482,7 @@ impl FactorGraphLocalizer {
             if !from_particles && apart(update.estimate) > c.lidar_reanchor_m {
                 // The particle filter wandered off while the graph's match
                 // fits better: re-seed it there.
-                let config = AmclConfig {
-                    initial_translation_std_m: 0.15,
-                    initial_rotation_std_rad: 0.05,
-                    ..c.amcl
-                };
-                if let Ok(mut amcl) = Amcl::new(&self.map, matched.pose, config) {
-                    amcl.update(scan, odom_pose, sensor_from_base);
-                    self.amcl = amcl;
-                }
+                self.reseed_particles(matched.pose, scan, odom_pose, sensor_from_base);
             }
         }
         let covariance = match_position_covariance(
@@ -504,6 +521,25 @@ impl FactorGraphLocalizer {
             time_s,
         });
         self.optimize();
+    }
+
+    /// Restarts the particle filter tightly around `pose`.
+    fn reseed_particles(
+        &mut self,
+        pose: Pose2d,
+        scan: &LaserScan2d,
+        odom_pose: Pose2d,
+        sensor_from_base: Pose2d,
+    ) {
+        let config = AmclConfig {
+            initial_translation_std_m: 0.15,
+            initial_rotation_std_rad: 0.05,
+            ..self.config.amcl
+        };
+        if let Ok(mut amcl) = Amcl::new(&self.map, pose, config) {
+            amcl.update(scan, odom_pose, sensor_from_base);
+            self.amcl = amcl;
+        }
     }
 
     /// Adds a 3D LiDAR scan's match in a point-cloud map as a position and a
@@ -1136,6 +1172,58 @@ mod tests {
         }
         let pose = graph.pose();
         assert!((pose.x_m - t).abs() < 0.2, "{pose:?} vs {t}");
+    }
+
+    /// The largest along-track error of a corridor drive on RTK fixes during
+    /// which the particle filter is knocked 6 m along the corridor, where its
+    /// scans look the same.
+    fn worst_error_with_a_wandering_particle_filter(config: FactorGraphConfig) -> f64 {
+        let map = corridor();
+        let mut graph =
+            FactorGraphLocalizer::new(&map, Pose2d::new(0.0, 0.0, 0.0), config).unwrap();
+        let mut t = 0.0;
+        let mut worst: f64 = 0.0;
+        for step in 0..300 {
+            graph.predict(0.05, 1.0, 0.0);
+            t += 0.05;
+            if step == 40 {
+                let wandered = Pose2d::new(t + 6.0, 0.0, 0.0);
+                graph.reseed_particles(
+                    wandered,
+                    &corridor_scan(0.0),
+                    Pose2d::new(t, 0.0, 0.0),
+                    Pose2d::IDENTITY,
+                );
+            }
+            if step % 2 == 1 {
+                graph.update_lidar(
+                    &corridor_scan(0.0),
+                    Pose2d::new(t, 0.0, 0.0),
+                    Pose2d::IDENTITY,
+                    t,
+                );
+            }
+            if step % 4 == 3 {
+                graph.update_gnss(Some(&fix(t, 0.0, FixKind::Fixed, 0.01)), t);
+            }
+            if step > 40 {
+                worst = worst.max((graph.pose().x_m - t).abs());
+            }
+        }
+        worst
+    }
+
+    #[test]
+    fn rtk_fixes_keep_a_wandering_particle_filter_from_moving_the_graph() {
+        let held = worst_error_with_a_wandering_particle_filter(FactorGraphConfig::default());
+        assert!(held < 0.2, "{held}");
+        // Without the hold, the particle filter re-anchors the graph onto its
+        // wrong place until the rejected RTK fixes pull it back.
+        let unheld = worst_error_with_a_wandering_particle_filter(FactorGraphConfig {
+            lidar_reanchor_rtk_hold_s: -1.0,
+            ..FactorGraphConfig::default()
+        });
+        assert!(unheld > 3.0, "{unheld}");
     }
 
     #[test]
