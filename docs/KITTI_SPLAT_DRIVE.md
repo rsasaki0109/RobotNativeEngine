@@ -95,6 +95,19 @@ linked within `R` m, dropping bins or poles caught in the box. A cut-out car was
 from the road, so
 it looks right from behind and from its kerb-side flank, not from the front.
 
+`mesh_to_actor.py` turns a textured car mesh (glTF/GLB and other formats trimesh reads) into
+an actor PLY instead. It samples each part evenly into flat Gaussians (`--spacing`, 2 cm by
+default), picks colours from the material names (paint, glass, tyres, rims, lamps; licence
+plate textures are dropped), bakes a fixed sun, sky light, paint reflections and a soft contact
+shadow into the colours, and leaves out interior parts behind opaque glass. The ego car in the
+GIF is the CarConcept glTF sample (CC BY 4.0) made this way:
+
+```sh
+pip install trimesh
+python3 examples/160_kitti_splat_drive/mesh_to_actor.py CarConcept.glb ego.ply --paint 0.08,0.20,0.50
+cargo run --release -p kitti_splat_drive --example 162_kitti_splat_traffic -- ... --ego-actor ego.ply
+```
+
 ## Splat colour pass fixes
 
 - `rne_render_3dgs` draws the splat through a non-sRGB view of the hybrid target: splat colours
