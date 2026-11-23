@@ -72,6 +72,36 @@ render draws the planar scan's beams instead.
   toward Dogenzaka, north up Koen-dori and back (750 m); Shinjuku from near
   the station's west side among the towers and back (960 m).
 
+### How the hybrid switches
+
+`rne_slam::HybridLocalizer` keeps one EKF on the wheel odometry and lets
+one absolute source at a time correct it. The render's HUD shows the
+verdict on every GNSS solution, the LiDAR match, and each switch with its
+reason; the bar at the bottom is the source over the whole run.
+
+```mermaid
+stateDiagram-v2
+    [*] --> GNSS
+    GNSS --> DeadReckoning: 3 solutions in a row rejected
+    DeadReckoning --> LiDAR: the scan finds its place in the map\n(searched over the EKF's uncertainty)
+    LiDAR --> DeadReckoning: no reliable match for 20 scans\nor the robot leaves the map
+    DeadReckoning --> GNSS: 5 RTK fixed solutions in a row pass
+    LiDAR --> GNSS: 5 RTK fixed solutions in a row pass
+```
+
+A GNSS solution passes when it uses at least 6 satellites, its HDOP is at
+most 2.5, its reported sigma at most 4 m, the receiver's consistency check
+excluded at most 2 satellites, and it lies within the EKF's 99 % gate. It
+is fused only while GNSS is in charge; outside, passing solutions only
+count toward taking over. Two escapes keep a wrong estimate from locking
+GNSS out: 15 gate-rejected RTK fixed solutions that agree with each other
+relative to the odometry re-anchor the estimate on them, and a solution
+that has failed only the gate for 30 s is taken anyway if it is RTK fixed
+or the EKF's own uncertainty has grown past 3 m. After 3 s of dead reckoning the robot stops until GNSS or the
+LiDAR has it again. The factor graph does not switch: it weighs the last
+seconds of all sources together, and its HUD lines report the inputs
+instead of verdicts.
+
 ## Results
 
 ### Sky along the streets (`--survey`)
