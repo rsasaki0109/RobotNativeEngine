@@ -31,6 +31,10 @@
       "value": null,
       "methods": [
         {
+          "name": "from_scene",
+          "text_signature": "(scene_path)"
+        },
+        {
           "name": "reset",
           "text_signature": "($self)"
         },
@@ -40,6 +44,8 @@
         }
       ],
       "properties": [
+        "contact_count",
+        "fixed_delta_s",
         "step_count"
       ]
     },
