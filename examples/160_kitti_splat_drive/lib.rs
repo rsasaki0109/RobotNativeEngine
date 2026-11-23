@@ -4,7 +4,7 @@
 //! splat of the whole route does not fit a CPU renderer's buffers. The examples switch splat
 //! (and localization map) by the KITTI frame of the car's closest path point.
 
-use rne_math::Vec3;
+use rne_math::{DMat4, DVec3, Quat, Transform3, Vec3};
 use std::path::{Path, PathBuf};
 
 /// The path the car follows, thinned to points at least 1 m apart.
@@ -117,6 +117,23 @@ pub fn segment_for(segments: &[Segment], frame: u32) -> usize {
         .unwrap_or(0)
 }
 
+/// RNE camera pose of a SLAM camera: `r_wc` is the world <- optical camera rotation (x right,
+/// y down, z forward; world z up) and `c` its centre. SLAM (x, y, z) maps to RNE (x, z, -y); an
+/// RNE camera looks along its local -Z with +Y up, so its +X, +Y, -Z are the optical x, -y, z.
+pub fn rne_view_from_slam(r_wc: &[[f64; 3]; 3], c: &[f64; 3]) -> Transform3 {
+    let to_rne = |v: [f64; 3]| Vec3::new(v[0], v[2], -v[1]);
+    let column = |j: usize, sign: f64| {
+        to_rne([sign * r_wc[0][j], sign * r_wc[1][j], sign * r_wc[2][j]]).extend(0.0)
+    };
+    let basis = DMat4::from_cols(
+        column(0, 1.0),
+        column(1, -1.0),
+        column(2, -1.0),
+        DVec3::ZERO.extend(1.0),
+    );
+    Transform3::from_translation_rotation(to_rne(*c), Quat::from_mat4(&basis).normalize())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -160,5 +177,20 @@ mod tests {
     fn segments_reject_unordered_starts() {
         assert!(parse_segments("10, a.toml\n10, b.toml\n", Path::new(".")).is_err());
         assert!(parse_segments("", Path::new(".")).is_err());
+    }
+
+    #[test]
+    fn slam_camera_maps_to_rne_view() {
+        // Optical camera looking along SLAM +x (x right = -y, y down = -z), centre (1, 2, 3).
+        let r_wc = [[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]];
+        let view = rne_view_from_slam(&r_wc, &[1.0, 2.0, 3.0]);
+        assert!((view.translation - Vec3::new(1.0, 3.0, -2.0)).length() < 1e-12);
+        // Looks along RNE +x (local -Z), +Y stays up, +X is SLAM -y = RNE +z.
+        let forward = view.rotation * Vec3::new(0.0, 0.0, -1.0);
+        let up = view.rotation * Vec3::new(0.0, 1.0, 0.0);
+        let right = view.rotation * Vec3::new(1.0, 0.0, 0.0);
+        assert!((forward - Vec3::new(1.0, 0.0, 0.0)).length() < 1e-12);
+        assert!((up - Vec3::new(0.0, 1.0, 0.0)).length() < 1e-12);
+        assert!((right - Vec3::new(0.0, 0.0, 1.0)).length() < 1e-12);
     }
 }

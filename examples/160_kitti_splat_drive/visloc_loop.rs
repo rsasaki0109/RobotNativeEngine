@@ -14,11 +14,13 @@
 //! [--segments LIST]         RNE renderer with one splat and map per stretch of the route:
 //!                           lines `start_frame, manifest, map_dir`. The splat follows the
 //!                           true pose (it is the world); the map follows the estimate.
+//! [--render-poses TUM --manifest SPLAT.toml --out DIR]
+//!                           only render RNE camera images at SLAM camera poses into DIR/rgb
 //! ```
 //!
 //! Frames: the SLAM world is z-up (x, y, z); RNE is y-up: rne = (x, z, -y), yaw is shared.
 
-use kitti_splat_drive::{parse_path, parse_segments, segment_for, Segment};
+use kitti_splat_drive::{parse_path, parse_segments, rne_view_from_slam, segment_for, Segment};
 use png::{BitDepth, ColorType, Encoder};
 use rne_core::SimDuration;
 use rne_ecs::{spawn_named, World};
@@ -50,6 +52,10 @@ fn main() {
     let odom_scale: f64 = arg("--odom-scale").map_or(1.02, |v| v.parse().unwrap());
     let gyro_bias: f64 = arg("--gyro-bias").map_or(0.003, |v| v.parse().unwrap());
     let vision = !std::env::args().any(|a| a == "--no-vision");
+    if let Some(poses) = arg("--render-poses") {
+        render_poses(&poses, &arg("--manifest").expect("--manifest"), &out);
+        return;
+    }
     fs::create_dir_all(out.join("frames")).expect("out dir");
 
     let path = parse_path(&fs::read_to_string(&path_csv).expect("path csv")).expect("path");
@@ -343,6 +349,11 @@ impl RneCamera {
             position + rotation * mount,
             (rotation * Quat::from_rotation_y(-std::f64::consts::FRAC_PI_2)).normalize(),
         );
+        self.render_view(&view)
+    }
+
+    /// RGB8 image of an RNE camera pose (looking along its local -Z, +Y up).
+    fn render_view(&mut self, view: &rne_math::Transform3) -> Vec<u8> {
         let scene = rne_render::HybridRenderScene::new(
             self.environment.clone(),
             rne_render::RenderScene::new(),
@@ -351,7 +362,7 @@ impl RneCamera {
             &mut self.backend,
             &mut self.background,
             &self.camera,
-            &view,
+            view,
             &scene,
             [0.0, 0.0, 0.0, 1.0],
         )
@@ -553,6 +564,34 @@ fn advance(points: &[Vec3], mut index: usize, p: Vec3) -> usize {
         index += 1;
     }
     index
+}
+
+/// Renders RNE front-camera images at SLAM camera poses (TUM: `t x y z qx qy qz qw`, world <-
+/// camera, optical axes) into `out/rgb/<t>.png`, e.g. to build a localization map from the same
+/// renderer the car's camera uses.
+fn render_poses(poses: &str, manifest: &str, out: &Path) {
+    fs::create_dir_all(out.join("rgb")).expect("out dir");
+    let mut camera = RneCamera::new(manifest);
+    let text = fs::read_to_string(poses).expect("poses");
+    let mut count = 0;
+    for line in text.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let f: Vec<&str> = line.split_whitespace().collect();
+        let v: Vec<f64> = f[1..8].iter().map(|s| s.parse().expect("pose")).collect();
+        let view = rne_view_from_slam(&quat_to_m3(v[3], v[4], v[5], v[6]), &[v[0], v[1], v[2]]);
+        write_rgb_png(
+            &out.join("rgb").join(format!("{}.png", f[0])),
+            &camera.render_view(&view),
+        );
+        count += 1;
+    }
+    println!(
+        "rendered {count} RNE frames into {}",
+        out.join("rgb").display()
+    );
 }
 
 fn write_rgb_png(path: &Path, rgb: &[u8]) {
