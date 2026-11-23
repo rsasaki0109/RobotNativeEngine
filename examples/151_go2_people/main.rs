@@ -508,7 +508,8 @@ struct Controller {
 
 /// The crowd check: the rules weigh one person at a time, so their command,
 /// and a few alternatives, are rolled out for CROWD_HORIZON_S against every
-/// tracked person (but a follow target) at constant velocity. The rules'
+/// tracked person (but a follow target) at constant velocity, with its
+/// turn but other speeds. The rules'
 /// command stands unless it comes closer than CROWD_SAFE_M to someone and an
 /// alternative stays clear by CROWD_GAIN_M more: waiting for a crosser while
 /// someone else walks into the robot is the case it is for.
@@ -556,19 +557,14 @@ fn crowd_checked(
     if own >= CROWD_SAFE_M {
         return proposal;
     }
-    let candidates = [0.0, MAX_SPEED_M_S].into_iter().flat_map(|v| {
-        [
-            -MAX_YAW_RATE_RAD_S,
-            0.0,
-            proposal.yaw_rate_rad_s,
-            MAX_YAW_RATE_RAD_S,
-        ]
+    // Speed only: the rules' turn is kept. The rollout knows nothing of
+    // walls, and hard turns it picked drove the robot into corridor walls.
+    let candidates = [0.0, 0.5 * MAX_SPEED_M_S, MAX_SPEED_M_S]
         .into_iter()
-        .map(move |w| UnitreeGo2TrotCommand {
+        .map(|v| UnitreeGo2TrotCommand {
             forward_speed_m_s: v,
-            yaw_rate_rad_s: w,
-        })
-    });
+            yaw_rate_rad_s: proposal.yaw_rate_rad_s,
+        });
     let best = candidates
         .map(|c| (predicted_clearance(tracks, skip, odom, c), c))
         .max_by(|a, b| a.0.total_cmp(&b.0));
