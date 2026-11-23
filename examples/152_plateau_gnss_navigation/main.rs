@@ -135,26 +135,7 @@ fn main() -> Result<(), String> {
         ),
     ];
     if let Some(csv) = std::env::args().skip_while(|a| a != "--urbannav").nth(1) {
-        let paths: Vec<PathBuf> = urbannav::TILES
-            .iter()
-            .map(|mesh| data.join(format!("{mesh}_bldg_6697_2_op.gml")))
-            .collect();
-        let started = std::time::Instant::now();
-        let city = PlateauCity::load(
-            "Shinjuku (UrbanNav drive)",
-            &paths,
-            urbannav::CENTER,
-            urbannav::GROUND_TP_M,
-            urbannav::RADIUS_M,
-        )?;
-        println!(
-            "{}: {} buildings, {} triangles ({:.1} s)",
-            city.name,
-            city.buildings.len(),
-            city.mesh.triangles().len(),
-            started.elapsed().as_secs_f64()
-        );
-        return urbannav::validate(&city, Path::new(&csv));
+        return urbannav::run(&data, Path::new(&csv));
     }
     let only = std::env::args().skip_while(|a| a != "--area").nth(1);
     for area in AREAS

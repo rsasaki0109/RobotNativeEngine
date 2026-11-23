@@ -12,17 +12,17 @@
 use crate::plateau::PlateauCity;
 use rne_gnss::{trace_satellite, Geodetic, GnssScene};
 use rne_math::Vec3;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// The tiles the drive crosses (PLATEAU third-level meshes).
-pub(crate) const TILES: [&str; 6] = [
+const TILES: [&str; 6] = [
     "53394514", "53394515", "53394524", "53394525", "53394534", "53394535",
 ];
 /// The drive's centre and the radius of buildings loaded around it.
-pub(crate) const CENTER: (f64, f64) = (35.6890, 139.6900);
-pub(crate) const RADIUS_M: f64 = 1_300.0;
+const CENTER: (f64, f64) = (35.6890, 139.6900);
+const RADIUS_M: f64 = 1_300.0;
 /// Tokyo Peil height of the ground around the centre, meters.
-pub(crate) const GROUND_TP_M: f64 = 38.0;
+const GROUND_TP_M: f64 = 38.0;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Class {
@@ -72,9 +72,41 @@ fn median(mut v: Vec<f64>) -> f64 {
     v[v.len() / 2]
 }
 
+/// Loads the PLATEAU tiles the drive crosses from `data` and validates
+/// against the CSV.
+pub(crate) fn run(data: &Path, csv: &Path) -> Result<(), String> {
+    let paths: Vec<PathBuf> = TILES
+        .iter()
+        .map(|mesh| data.join(format!("{mesh}_bldg_6697_2_op.gml")))
+        .collect();
+    if let Some(missing) = paths.iter().find(|p| !p.exists()) {
+        return Err(format!(
+            "{} is missing: run `python3 scripts/fetch_plateau_tokyo.py {}` first",
+            missing.display(),
+            TILES.join(" ")
+        ));
+    }
+    let started = std::time::Instant::now();
+    let city = PlateauCity::load(
+        "Shinjuku (UrbanNav drive)",
+        &paths,
+        CENTER,
+        GROUND_TP_M,
+        RADIUS_M,
+    )?;
+    println!(
+        "{}: {} buildings, {} triangles ({:.1} s)",
+        city.name,
+        city.buildings.len(),
+        city.mesh.triangles().len(),
+        started.elapsed().as_secs_f64()
+    );
+    validate(&city, csv)
+}
+
 /// Traces every satellite-epoch of the CSV and prints how the measured
 /// signals compare with the predictions.
-pub(crate) fn validate(city: &PlateauCity, csv: &Path) -> Result<(), String> {
+fn validate(city: &PlateauCity, csv: &Path) -> Result<(), String> {
     let rows = read(csv)?;
     let scene = GnssScene {
         mesh: Some(city.mesh.clone()),
