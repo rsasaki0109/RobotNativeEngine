@@ -51,7 +51,12 @@ for actors, as the harmonics would have to rotate with them. `load_splat_actor(p
 actor PLY authored in the actor's own frame. Proxy depth (`splat_proxy_depth_from_ply`) does
 not include actors.
 
-![A parked car, cut out of the KITTI splat, pulls out in front of the blue ego car (third-person view, ego camera inset)](media/kitti-splat-cutin.gif)
+![First the 3DGS view turns its head left and right at the spot of a paused real KITTI photo; then a parked black car, cut out of the KITTI splat, pulls out in front of the blue ego car behind a silver lead car (third-person view, ego camera inset)](media/kitti-splat-cutin.gif)
+
+The GIF opens at KITTI frame 186: the inset holds the real camera photo, and the main view is the
+splat rendered from the same camera pose, turned up to 30 degrees left and right about the
+vertical. The cars are three splats cut from the scene (`--actor` silver, `--cut-in-actor` black,
+`--ego-actor` blue).
 
 `162_kitti_splat_traffic` uses this for car following. A car cut out of the KITTI 0018 splat
 (the Gaussians inside an oriented box around a parked car, about 1000) drives ahead of the ego
