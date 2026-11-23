@@ -6,6 +6,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 149 records checkerboard calibrations: `--board COLSxROWSxSQUARE_M`
+  stands a checkerboard in the room (a collider the LiDARs see, its pattern
+  antialiased with jittered rays), `--motion board` holds the rig still at 28
+  poses in front of it, `--sensors camera2` adds a second camera 10 cm to the
+  right and `--readout-ms` reads the cameras out row by row. With Calibrex's
+  stereo board guide on such a bag, both focal lengths came within 0.34 % and the
+  baseline within 0.5 mm, and `calibrex check --board` judged camera–lidar on all
+  six axes (within 5 mm).
+
 - Example 149 records what a targetless intrinsics calibration needs:
   `--motion turn` turns the rig about the camera's optical centre,
   `--lens K1,K2,P1,P2[,K3]` gives the camera lens distortion, and

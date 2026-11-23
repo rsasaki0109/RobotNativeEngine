@@ -21,6 +21,11 @@ calibrex check target/calibrex_rig/rig.mcap --tf target/calibrex_rig/turned_lida
   distortion (OpenCV / ROS `plumb_bob` coefficients), and `--camera-info
   true|zero|none` publishes the true `CameraInfo`, an uncalibrated one (all-zero
   `K`) or none. See [Camera intrinsics from the bag](#camera-intrinsics-from-the-bag).
+- `--board COLSxROWSxSQUARE_M` stands a checkerboard in the room and `--motion
+  board` holds the rig still at 28 poses in front of it; `--sensors camera2` adds a
+  second camera 10 cm to the right; `--readout-ms` reads the cameras out row by row
+  (rolling shutter). See [A checkerboard](#a-checkerboard) and
+  [Rolling shutter](#rolling-shutter).
 - Install Calibrex from its repository
   (`pip install "calibrex[opencv] @ git+https://github.com/rsasaki0109/Calibrex.git"`;
   OpenCV is needed for camera-imu). It reads the bag with its own pure-Python
@@ -174,6 +179,51 @@ camera–imu, inconclusive on the hand-held bag, passes here: turning about the
 camera leaves no translation for its pure-rotation fits to absorb. camera-focal
 is inconclusive (its held-out check fails) but reads an fy scale of 0.9938, the
 estimated intrinsics' 0.6 % long fy seen from the IMU.
+
+### A checkerboard
+
+`--board 7x5x0.08` stands a 7 × 5 (inner corners), 8 cm checkerboard 1.6 m ahead of
+the rig, with one white square of margin, as a 1 cm thick collider: the LiDARs see
+it and the camera images its pattern, with 3 × 3 jittered rays per board pixel
+(a regular grid quantized edges parallel to the pixel rows and biased the corners
+of a board seen square on by 2 %). `--motion board` holds the camera still for
+1.5 s at each of 28 poses (the board in every cell of a 5 × 4 image grid, tilted
+20–32° four ways, nearer and farther), moving 1 s between them:
+
+```bash
+cargo run --release -p calibrex_rig_bag --example 149_calibrex_rig_bag -- \
+    --out target/calibrex_board --duration-s 70 --sensors imu,camera,camera2 \
+    --motion board --board 7x5x0.08 --lens -0.18,0.04,0.0008,-0.0006 --camera-info none
+calibrex intrinsics guide --board 7x5x0.08 --bag target/calibrex_board/rig.mcap \
+    --topic /camera/image_raw --right-topic /camera2/image_raw --no-window \
+    --output target/calibrex_board/intrinsics_camchain.yaml
+calibrex check target/calibrex_board/rig.mcap --tf target/calibrex_board/good.yaml \
+    --intrinsics target/calibrex_board/intrinsics_camchain.yaml --board 7x5x0.08
+```
+
+The guide's stereo calibration (16 and 13 views; the tour ends before its
+precision goals) gave both focal lengths within 0.34 %, the principal points within
+0.4 px, k1 within 0.0012, and the baseline 0.0996 ± 0.0008 m (true 0.10 m). With
+those intrinsics and the board:
+
+| Candidate | camera–lidar | camera2–lidar | camera–camera2 | camera–imu |
+|---|---|---|---|---|
+| `good.yaml` | **pass**, all six axes (within 0.073°, 5 mm) | **pass**, all six axes (within 0.081°, 2.4 mm) | **pass** (within 0.044°) | pass (roll 0.17°) |
+| `turned_camera.yaml` | **fail**: roll 2.93° | pass | pass (roll 0.2°) | **fail**: roll 2.84° |
+
+camera–lidar judges the translation only with the board (`--board`); the
+holds leave camera–imu and imu–lidar only roll to judge.
+
+### Rolling shutter
+
+`--readout-ms 30` reads each frame out over 30 ms in 24 bands of 15 rows, each
+rendered from the pose at its own time, the middle row at the stamp. On a 20 s
+`--motion turn` bag, `calibrex intrinsics rotate --rolling-shutter` estimated a
+readout of 25.9 ± 0.5 ms (the bands step the continuous readout Calibrex models)
+and moved the principal point from (−0.87, −0.38) px to (−0.50, −0.01) px off; the
+focal lengths stayed within 0.5 % either way (fx −0.22 % → −0.07 %, fy +0.15 % →
++0.48 %). The turn is slow enough here that the readout matters
+little; Calibrex's synthetic test, turned faster, shows the 1.5 % it can cost.
 
 ### The lever arm
 
