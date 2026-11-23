@@ -51,7 +51,7 @@ for actors, as the harmonics would have to rotate with them. `load_splat_actor(p
 actor PLY authored in the actor's own frame. Proxy depth (`splat_proxy_depth_from_ply`) does
 not include actors.
 
-![A parked car, cut out of the KITTI splat, pulls out in front of the ego car](media/kitti-splat-cutin.gif)
+![A parked car, cut out of the KITTI splat, pulls out in front of the blue ego car (third-person view, ego camera inset)](media/kitti-splat-cutin.gif)
 
 `162_kitti_splat_traffic` uses this for car following. A car cut out of the KITTI 0018 splat
 (the Gaussians inside an oriented box around a parked car, about 1000) drives ahead of the ego
