@@ -489,6 +489,8 @@ struct Controller {
     kind: ControllerKind,
     /// Last chosen turn rate (DWA smoothness).
     last_yaw_rate: f64,
+    /// Check the rules' command against everyone (see CROWD_HORIZON_S).
+    crowd_check: bool,
     /// The last lane decision, for the trace: track, side, offset, aim heading.
     last_lane: Option<(u64, f64, f64, f64)>,
     mission: Mission,
@@ -502,6 +504,78 @@ struct Controller {
     /// Each track's history: a side is chosen from its mean velocity, and
     /// kept only once that has had PASS_SIDE_SETTLE_S to settle.
     history: Vec<TrackHistory>,
+}
+
+/// The crowd check: the rules weigh one person at a time, so their command,
+/// and a few alternatives, are rolled out for CROWD_HORIZON_S against every
+/// tracked person (but a follow target) at constant velocity. The rules'
+/// command stands unless it comes closer than CROWD_SAFE_M to someone and an
+/// alternative stays clear by CROWD_GAIN_M more: waiting for a crosser while
+/// someone else walks into the robot is the case it is for.
+const CROWD_HORIZON_S: f64 = 3.0;
+const CROWD_SAFE_M: f64 = 0.75;
+const CROWD_GAIN_M: f64 = 0.2;
+
+/// The closest predicted approach to any of `tracks` (but `skip`) for a
+/// unicycle command held from `odom`.
+fn predicted_clearance(
+    tracks: &[Track],
+    skip: Option<u64>,
+    odom: Pose,
+    command: UnitreeGo2TrotCommand,
+) -> f64 {
+    let steps = (CROWD_HORIZON_S / DWA_STEP_S).round() as usize;
+    let (v, w) = (command.forward_speed_m_s, command.yaw_rate_rad_s);
+    let (mut x, mut y, mut th) = (odom[0], odom[1], odom[2]);
+    let mut clearance = f64::MAX;
+    for track in tracks.iter().filter(|t| Some(t.id) != skip) {
+        clearance = clearance.min((track.position[0] - x).hypot(track.position[1] - y));
+    }
+    for k in 1..=steps {
+        th += w * DWA_STEP_S;
+        x += v * th.cos() * DWA_STEP_S;
+        y += v * th.sin() * DWA_STEP_S;
+        let t = k as f64 * DWA_STEP_S;
+        for track in tracks.iter().filter(|t| Some(t.id) != skip) {
+            let d = (track.position[0] + track.velocity[0] * t - x)
+                .hypot(track.position[1] + track.velocity[1] * t - y);
+            clearance = clearance.min(d);
+        }
+    }
+    clearance
+}
+
+/// The rules' command, or a clearly safer alternative (see CROWD_HORIZON_S).
+fn crowd_checked(
+    proposal: UnitreeGo2TrotCommand,
+    tracks: &[Track],
+    odom: Pose,
+    skip: Option<u64>,
+) -> UnitreeGo2TrotCommand {
+    let own = predicted_clearance(tracks, skip, odom, proposal);
+    if own >= CROWD_SAFE_M {
+        return proposal;
+    }
+    let candidates = [0.0, MAX_SPEED_M_S].into_iter().flat_map(|v| {
+        [
+            -MAX_YAW_RATE_RAD_S,
+            0.0,
+            proposal.yaw_rate_rad_s,
+            MAX_YAW_RATE_RAD_S,
+        ]
+        .into_iter()
+        .map(move |w| UnitreeGo2TrotCommand {
+            forward_speed_m_s: v,
+            yaw_rate_rad_s: w,
+        })
+    });
+    let best = candidates
+        .map(|c| (predicted_clearance(tracks, skip, odom, c), c))
+        .max_by(|a, b| a.0.total_cmp(&b.0));
+    match best {
+        Some((clearance, command)) if clearance >= own + CROWD_GAIN_M => command,
+        _ => proposal,
+    }
 }
 
 /// What the controller remembers of a track.
@@ -726,13 +800,16 @@ impl Controller {
                 speed = speed.min(0.1);
             }
         }
-        (
-            UnitreeGo2TrotCommand {
-                forward_speed_m_s: speed,
-                yaw_rate_rad_s: yaw_rate.clamp(-MAX_YAW_RATE_RAD_S, MAX_YAW_RATE_RAD_S),
-            },
-            target,
-        )
+        let proposal = UnitreeGo2TrotCommand {
+            forward_speed_m_s: speed,
+            yaw_rate_rad_s: yaw_rate.clamp(-MAX_YAW_RATE_RAD_S, MAX_YAW_RATE_RAD_S),
+        };
+        let command = if self.crowd_check {
+            crowd_checked(proposal, tracks, odom, target.map(|t| t.id))
+        } else {
+            proposal
+        };
+        (command, target)
     }
 
     /// Dynamic window: every pair of forward speed (0 to `max_speed`) and turn
@@ -1449,6 +1526,7 @@ fn run(
     safety: bool,
     reactive: bool,
     vlm_command: Option<&[String]>,
+    crowd_check: bool,
 ) -> (Value, Vec<Value>) {
     let mut sim =
         UrdfSceneSim::from_scene_path(&repo_path("assets/scenes/unitree_go2_jump.rne.scene.toml"))
@@ -1496,6 +1574,7 @@ fn run(
     let mut controller = Controller {
         kind,
         last_yaw_rate: 0.0,
+        crowd_check,
         last_lane: None,
         mission: task.mission,
         target: None,
@@ -1784,6 +1863,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut kind = ControllerKind::Rule;
     let mut safety = true;
     let mut reactive = false;
+    let mut crowd_check = true;
     let mut vlm: Option<Vec<String>> = None;
     let mut only_sources: Option<Vec<String>> = None;
     let mut args = std::env::args().skip(1);
@@ -1794,6 +1874,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--trials" => trials = args.next().ok_or("--trials needs a count")?.parse()?,
             "--no-safety" => safety = false,
             "--reactive-people" => reactive = true,
+            "--no-crowd-check" => crowd_check = false,
             // The VLM command, as one argument (split on whitespace); it
             // adds the tracker+map+vlm source.
             "--vlm" => {
@@ -1906,6 +1987,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             safety,
                             reactive,
                             vlm.as_deref(),
+                            crowd_check,
                         );
                         result["trial"] = json!(trial);
                         mine.push((index, result, trace));
@@ -1964,6 +2046,7 @@ mod tests {
         Controller {
             kind: ControllerKind::Rule,
             last_yaw_rate: 0.0,
+            crowd_check: false,
             last_lane: None,
             mission,
             target: None,
@@ -2011,6 +2094,27 @@ mod tests {
         let tracks = [track(7, [3.6, -0.1], [-0.9, 0.05])];
         let (command, _) = c.command(&tracks, [0.0, 0.0, 0.0], 1.5, MAX_SPEED_M_S);
         assert!(command.yaw_rate_rad_s < 0.0, "{command:?}");
+    }
+
+    #[test]
+    fn crowd_check_keeps_safe_commands_and_avoids_waiting_in_someones_path() {
+        let go = UnitreeGo2TrotCommand {
+            forward_speed_m_s: MAX_SPEED_M_S,
+            yaw_rate_rad_s: 0.0,
+        };
+        // Nobody near: the proposal stands.
+        assert_eq!(crowd_checked(go, &[], [0.0, 0.0, 0.0], None), go);
+        // Waiting while someone walks straight at the robot from the side:
+        // anything else is clearly safer.
+        let wait = UnitreeGo2TrotCommand {
+            forward_speed_m_s: 0.0,
+            yaw_rate_rad_s: 0.0,
+        };
+        let tracks = [track(3, [0.0, -2.0], [0.0, 0.8])];
+        let chosen = crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], None);
+        assert!(chosen.forward_speed_m_s > 0.0, "{chosen:?}");
+        // A follow target is not an obstacle.
+        assert_eq!(crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], Some(3)), wait);
     }
 
     #[test]
