@@ -18,14 +18,16 @@ different noise, `--lidar3d` localizes with a 3D LiDAR, `--avoid` walks
 around people and `--urbannav` checks the ray tracer against a real drive
 (below).
 
-![3D render in RNE: the robot walks from the Shibuya scramble crossing west and up Koen-dori among the PLATEAU LOD2 buildings, in rain and among pedestrians; green rays are line-of-sight satellites, red NLOS reflections off the facades, purple diffraction over roof edges; cyan lines are the LiDAR beams and returns; the trail is blue while RTK localizes it and magenta while the LiDAR map does](../../docs/media/plateau-gnss-shibuya.gif)
+![3D render in RNE: the robot walks from the Shibuya scramble crossing west and up Koen-dori among the PLATEAU LOD2 buildings at rush hour in the rain (a scramble crossing, crowds on the sidewalks, traffic); green rays are line-of-sight satellites, red NLOS reflections off the facades, purple diffraction over roof edges; cyan points are the 3D LiDAR's returns; the trail is blue while RTK localizes it and magenta while the LiDAR map does](../../docs/media/plateau-gnss-shibuya.gif)
 
 ![The same in Nishi-Shinjuku, among the skyscrapers west of the station, on a clear day](../../docs/media/plateau-gnss-shinjuku.gif)
 
 The renders overlay the simulation on the city: the ray-traced satellite
 signals at the rear antenna (each NLOS ray through its reflection points),
-the LiDAR scan (every fourth beam and every return), the pedestrians and
-the rain. Shibuya is shown in the crowd + rain condition below.
+the 3D LiDAR's returns (cyan near the ground, white up the facades), the
+pedestrians, the vehicles and the rain. Shibuya is shown at rush hour in
+the rain, localizing with the 3D LiDAR (below); without `--lidar3d` the
+render draws the planar scan's beams instead.
 
 ## What is simulated
 
@@ -373,9 +375,9 @@ To regenerate the GIFs (any GPU, or Mesa's lavapipe; Pillow for the HUD):
 
 ```bash
 cargo run --release -p plateau_gnss_navigation --features capture \
-    --example 152_plateau_gnss_navigation -- --quick --area shibuya --render-weather --render target/152_render
+    --example 152_plateau_gnss_navigation -- --quick --area shibuya --lidar3d --render-weather --render target/152_render
 cargo run --release -p plateau_gnss_navigation --features capture \
-    --example 152_plateau_gnss_navigation -- --quick --area shinjuku --render target/152_render
+    --example 152_plateau_gnss_navigation -- --quick --area shinjuku --lidar3d --render target/152_render
 python3 examples/152_plateau_gnss_navigation/encode.py target/152_render/shibuya docs/media/plateau-gnss-shibuya.gif --stride 4
 python3 examples/152_plateau_gnss_navigation/encode.py target/152_render/shinjuku docs/media/plateau-gnss-shinjuku.gif --stride 4
 ```
