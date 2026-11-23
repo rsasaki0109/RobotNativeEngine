@@ -186,6 +186,11 @@ pub struct HybridLocalizerConfig {
     /// Largest distance of a rejected fix's offset from the run's mean
     /// offset for re-anchoring, meters.
     pub gnss_reanchor_spread_m: f64,
+    /// Least distance the wheels must cover over a run of rejected fixes
+    /// for it to re-anchor, meters. A receiver standing still in a canyon
+    /// can report the same biased float solution for minutes; once the
+    /// robot moves, the bias changes with the geometry. Zero by default.
+    pub gnss_reanchor_min_travel_m: f64,
     /// Minimum scan-match score to fuse a LiDAR pose.
     pub lidar_min_score: f64,
     /// Minimum score of the wide relocalization match that starts LiDAR mode.
@@ -282,6 +287,7 @@ impl Default for HybridLocalizerConfig {
             gate_reset_min_std_m: 3.0,
             gnss_reanchor_fixes: 0,
             gnss_reanchor_spread_m: 0.5,
+            gnss_reanchor_min_travel_m: 0.0,
             lidar_min_score: 0.35,
             lidar_init_min_score: 0.5,
             lidar_map_margin_m: 2.0,
@@ -354,8 +360,8 @@ pub struct HybridLocalizer {
     /// RTK fixes starts.
     dead_reckoned: Pose2d,
     /// Offsets of the current run of gate-rejected RTK fixed fixes from
-    /// `dead_reckoned`, with their variances.
-    rejected_offsets: Vec<(f64, f64, f64)>,
+    /// `dead_reckoned`, with their variances and where `dead_reckoned` was.
+    rejected_offsets: Vec<(f64, f64, f64, (f64, f64))>,
     last_amcl: Option<AmclUpdate>,
     transitions: Vec<SourceTransition>,
 }
@@ -763,6 +769,7 @@ impl HybridLocalizer {
             fix.x_m - origin.x_m,
             fix.y_m - origin.y_m,
             self.gnss_variance_m2(fix),
+            (origin.x_m, origin.y_m),
         ));
         if self.rejected_offsets.len() > needed {
             self.rejected_offsets.remove(0);
@@ -774,18 +781,24 @@ impl HybridLocalizer {
         let (mx, my) = self
             .rejected_offsets
             .iter()
-            .fold((0.0, 0.0), |(a, b), (x, y, _)| (a + x / n, b + y / n));
+            .fold((0.0, 0.0), |(a, b), (x, y, _, _)| (a + x / n, b + y / n));
         let spread = self
             .rejected_offsets
             .iter()
-            .map(|(x, y, _)| (x - mx).hypot(y - my))
+            .map(|(x, y, _, _)| (x - mx).hypot(y - my))
             .fold(0.0, f64::max);
         let variance_m2 = self
             .rejected_offsets
             .iter()
-            .map(|(_, _, v)| *v)
+            .map(|(_, _, v, _)| *v)
             .fold(self.config.ekf.initial_position_variance_m2, f64::max);
-        if spread > self.config.gnss_reanchor_spread_m {
+        let travelled = match (self.rejected_offsets.first(), self.rejected_offsets.last()) {
+            (Some(first), Some(last)) => (last.3 .0 - first.3 .0).hypot(last.3 .1 - first.3 .1),
+            _ => 0.0,
+        };
+        if spread > self.config.gnss_reanchor_spread_m
+            || travelled < self.config.gnss_reanchor_min_travel_m
+        {
             return Ok(false);
         }
         let pose = Pose2d::new(origin.x_m + mx, origin.y_m + my, self.ekf.pose().yaw_rad);
@@ -1343,6 +1356,22 @@ mod tests {
         assert!(pose.x_m.hypot(pose.y_m) < 0.1, "{pose:?}");
         let covariance = localizer.ekf().covariance();
         assert!(covariance[0][0] >= 0.99, "{covariance:?}");
+
+        // With a minimum travel, a robot standing still does not take the
+        // same (possibly biased) float solution repeated.
+        let still = HybridLocalizerConfig {
+            gnss_reanchor_min_travel_m: 3.0,
+            ..confident
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(0.0, 20.0, 0.0), still).unwrap();
+        for step in 0..60 {
+            localizer.predict(0.2, 0.0, 0.0).unwrap();
+            localizer
+                .update_gnss(Some(&float(0.0)), f64::from(step))
+                .unwrap();
+        }
+        assert!(localizer.pose().y_m > 19.0, "{:?}", localizer.pose());
     }
 
     #[test]
