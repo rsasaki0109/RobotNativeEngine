@@ -18,6 +18,10 @@ const LANES_M: [f64; 2] = [5.0, -5.0];
 /// Vehicles keep out of this radius around the route's start (the
 /// pedestrian crossing there), meters.
 const CROSSING_CLEAR_M: f64 = 18.0;
+/// Vehicles keep their footprint at least this far from the route the
+/// robot walks (a lane beside one leg of the route can cross the next leg
+/// at a corner), meters.
+const ROUTE_CLEAR_M: f64 = 1.5;
 
 /// A vehicle at one instant: footprint centre, heading and half sizes.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -39,7 +43,8 @@ struct Vehicle {
 /// Vehicles driving along the route's street at 6-12 m/s, deterministic
 /// from the seed. They are left out wherever their footprint would be
 /// inside a building (the route's street is not always wide enough for two
-/// lanes) and near the crossing at the start.
+/// lanes), within `ROUTE_CLEAR_M` of the route (they do not drive through
+/// the robot) and near the crossing at the start.
 #[derive(Clone, Debug)]
 pub(crate) struct Traffic {
     route: Vec<(f64, f64)>,
@@ -109,15 +114,22 @@ impl Traffic {
                 let ground = city.ground_m(x, y);
                 let (sin, cos) = yaw.sin_cos();
                 let (hl, hw) = (0.5 * v.size.0, 0.5 * v.size.1);
-                // The footprint's corners and centre must all be outside
-                // buildings.
-                let clear = [(0.0, 0.0), (hl, hw), (hl, -hw), (-hl, hw), (-hl, -hw)]
-                    .iter()
-                    .all(|(a, b)| {
-                        let p =
-                            Vec3::new(x + a * cos - b * sin, y + a * sin + b * cos, ground + 1.0);
-                        !city.mesh.contains(p)
-                    });
+                // The footprint's corners, ends and centre must all be outside
+                // buildings and clear of the route.
+                let points = [
+                    (0.0, 0.0),
+                    (hl, hw),
+                    (hl, -hw),
+                    (-hl, hw),
+                    (-hl, -hw),
+                    (hl, 0.0),
+                    (-hl, 0.0),
+                ];
+                let clear = points.iter().all(|(a, b)| {
+                    let (px, py) = (x + a * cos - b * sin, y + a * sin + b * cos);
+                    !city.mesh.contains(Vec3::new(px, py, ground + 1.0))
+                        && crate::nav::distance_to_route(&self.route, px, py) >= ROUTE_CLEAR_M
+                });
                 clear.then_some(VehicleBox {
                     center: (x, y),
                     ground_m: ground,
