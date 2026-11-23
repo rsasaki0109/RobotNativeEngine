@@ -170,6 +170,19 @@ hybrid in 23. The hybrid needs three options for that: LiDAR returns in
 the map's free space (pedestrians) are dropped, scan matches are gated, and
 a run of RTK fixes that agree relative to the odometry but fail the gate
 re-anchors it. Without them it failed every Nishi-Shinjuku crowd run.
+With a 16-ring 3D LiDAR matched against a point-cloud map of the same mesh
+(`--lidar3d`, `rne_slam::PointCloudMap`), both localizers reach the goal
+in all 24 runs with an RMSE median of 0.05-0.32 m (hybrid) and under a
+centimetre (factor graph): the scan sees over the crowd to the facades,
+which pin the robot along the street where the planar slice could not.
+
+The ray tracer was checked against a real drive through the same streets:
+`--urbannav` traces the satellites of the UrbanNav Tokyo Shinjuku run
+(u-blox F9P, Applanix reference) through PLATEAU. Signals it predicts in
+line of sight were tracked 96 % of the time at a median 44 dB-Hz, NLOS 65 %
+at 31 dB-Hz and blocked 27 % at 26 dB-Hz; between 20 and 60° elevation it
+calls a strong signal right 78.5 % of the time against 71 % for the best
+elevation mask.
 
 ![Example 152 rendered in 3D: GNSS and LiDAR navigation among the PLATEAU buildings around Shibuya Station](media/plateau-gnss-shibuya.gif)
 

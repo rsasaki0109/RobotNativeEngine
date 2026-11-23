@@ -6,6 +6,22 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_slam::PointCloudMap` localizes a level 3D LiDAR scan in a
+  point-cloud map (Huber-weighted point-to-plane Gauss–Newton over x, y, z
+  and yaw, planar covariance from the inverse information, and the share
+  of the scan on mapped surfaces), and `HybridLocalizer` and
+  `FactorGraphLocalizer` take such matches (`update_lidar_match`).
+  `HybridLocalizerConfig::gnss_reanchor_min_travel_m` keeps a robot standing
+  still from re-anchoring on a repeated biased fix.
+- Example 152: `--lidar3d` (a 16-ring LiDAR ray traced through the PLATEAU
+  mesh and matched against a point cloud sampled from it; both localizers
+  reach the goal in all 24 crowd, rain and glass runs), `--urbannav` (the
+  ray tracer against the UrbanNav Tokyo Shinjuku drive; `urbannav.py`
+  prepares the satellites and measured C/N0), a rush-hour condition (a
+  denser crowd, a scramble crossing whose people do not yield, and buses,
+  trucks and cars that are metal GNSS reflectors and LiDAR obstacles), and
+  `--avoid` (tracked people and nearby structure, avoided with
+  `rne_nav::avoid_velocities`).
 - `rne_gnss` traces triangle-mesh buildings: `TriangleMesh` (BVH closest and
   any-hit queries, range queries, an inside test, convex-crease diffraction
   edges) in `GnssScene::mesh`, with mesh triangles as reflectors above
