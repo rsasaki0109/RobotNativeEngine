@@ -27,6 +27,8 @@ const STATIC_RANGE_M: f64 = 1.0;
 const UNMAPPED_M: f64 = 0.4;
 /// Consecutive unmapped returns closer than this belong to one person.
 const CLUSTER_GAP_M: f64 = 0.5;
+/// Clusters are cut into pieces no longer than this (vehicles), meters.
+const MAX_PIECE_M: f64 = 1.0;
 
 /// The tracker and its clock.
 pub(crate) struct Avoider {
@@ -99,16 +101,35 @@ impl Avoider {
                 people[0].extend(tail);
             }
         }
+        // A long cluster (the side of a bus) is cut into pieces of at most
+        // `MAX_PIECE_M`: one circle around it would cover the whole street.
         let detections: Vec<Detection> = people
             .iter()
             .filter(|g| g.len() >= 2)
-            .map(|g| {
-                let center = g.iter().fold(Vec3::ZERO, |a, p| a + *p) / g.len() as f64;
-                let radius = g.iter().map(|p| (*p - center).length()).fold(0.0, f64::max);
-                Detection {
-                    position_m: center,
-                    radius_m: radius.max(0.25),
+            .flat_map(|g| {
+                let mut pieces: Vec<Vec<Vec3>> = vec![Vec::new()];
+                for p in g {
+                    let piece = pieces.last_mut().expect("piece");
+                    if piece
+                        .first()
+                        .is_some_and(|q| (*p - *q).length() > MAX_PIECE_M)
+                    {
+                        pieces.push(vec![*p]);
+                    } else {
+                        piece.push(*p);
+                    }
                 }
+                pieces.into_iter().map(|piece| {
+                    let center = piece.iter().fold(Vec3::ZERO, |a, p| a + *p) / piece.len() as f64;
+                    let radius = piece
+                        .iter()
+                        .map(|p| (*p - center).length())
+                        .fold(0.0, f64::max);
+                    Detection {
+                        position_m: center,
+                        radius_m: radius.max(0.25),
+                    }
+                })
             })
             .collect();
         let dt = if self.last_scan_s.is_finite() {
