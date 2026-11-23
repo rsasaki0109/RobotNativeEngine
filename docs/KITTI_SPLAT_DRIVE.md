@@ -38,6 +38,34 @@ residential stretches the localizer also needs `--loc-args "--ratio 0.9 --min-in
 Inputs (PLY, path CSV, visloc map) are not in the repository; see lidar_slam
 `tools/rne_kitti_splat_drive`.
 
+## Traffic: moving splat actors (example 162)
+
+`rne_render_3dgs` can put movable splats ("actors": a car, a bus, a pedestrian) into a splat
+background. `GaussianSplatBackground::from_environment_with_actors(device, environment, actors)`
+appends each actor's Gaussians to the background's GPU buffer, hidden at first;
+`set_actor_pose(queue, index, Some(&world_from_actor))` rewrites only that actor's range of
+the buffer. Because the actor shares the scene's buffer, the viewer depth-sorts its Gaussians
+together with the scene's, so it occludes and is occluded by the street correctly. Motion is
+rigid with uniform scale; view-dependent colour (spherical harmonics above degree 0) is dropped
+for actors, as the harmonics would have to rotate with them. `load_splat_actor(path)` reads an
+actor PLY authored in the actor's own frame. Proxy depth (`splat_proxy_depth_from_ply`) does
+not include actors.
+
+`162_kitti_splat_traffic` uses this for car following. A car cut out of the KITTI 0018 splat
+(the Gaussians inside an oriented box around a parked car, about 1000) drives ahead of the ego
+car on the SLAM path: it cruises, stops and pulls away; the ego follows with the Intelligent
+Driver Model (`kitti_splat_drive::Idm`) and its front camera is rendered with the lead car in
+the street.
+
+```text
+162_kitti_splat_traffic --manifest SPLAT.toml --actor CAR.ply --path PATH.csv --out DIR
+  [--render-every 0.2] [--duration 40] [--lead-start 22] [--stop-at 14]
+```
+
+The actor frame is +x forward, +y left, +z up with the origin at the bottom centre; the
+example turns it into RNE's y-up car frame. A cut-out car was only ever seen from the road, so
+it looks right from behind and from its kerb-side flank, not from the front.
+
 ## Splat colour pass fixes
 
 - `rne_render_3dgs` draws the splat through a non-sRGB view of the hybrid target: splat colours

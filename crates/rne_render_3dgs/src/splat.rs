@@ -1,5 +1,6 @@
 //! Gaussian splat background loading and hybrid compositing.
 
+use crate::actors::{hidden_actor_gaussians, place_actor_gaussians, ActorLayout, SplatActorAsset};
 use crate::camera::RneSplatCamera;
 use glam::UVec2;
 use rne_math::Transform3;
@@ -27,12 +28,17 @@ pub enum GaussianSplatError {
     /// GPU initialization for the splat viewer failed.
     #[error("failed to initialize Gaussian splat viewer: {0}")]
     Init(String),
+    /// An actor index or asset was invalid.
+    #[error("Gaussian splat actor: {0}")]
+    Actor(String),
 }
 
 /// GPU-resident Gaussian splat background for hybrid compositing.
 pub struct GaussianSplatBackground {
     viewer: Viewer,
     environment: GaussianSplatEnvironment,
+    actors: Vec<SplatActorAsset>,
+    layout: ActorLayout,
 }
 
 impl std::fmt::Debug for GaussianSplatBackground {
@@ -50,6 +56,17 @@ impl GaussianSplatBackground {
         device: &wgpu::Device,
         environment: &GaussianSplatEnvironment,
     ) -> Result<Self, GaussianSplatError> {
+        Self::from_environment_with_actors(device, environment, Vec::new())
+    }
+
+    /// Loads a splat cloud plus movable actors. Actors share the scene's buffer (so they are
+    /// sorted, and occlude and are occluded, together with it) and start hidden; place them
+    /// with [`Self::set_actor_pose`].
+    pub fn from_environment_with_actors(
+        device: &wgpu::Device,
+        environment: &GaussianSplatEnvironment,
+        actors: Vec<SplatActorAsset>,
+    ) -> Result<Self, GaussianSplatError> {
         const MIN_STORAGE_BUFFERS_PER_COMPUTE_STAGE: u32 = 9;
         let limits = device.limits();
         if limits.max_storage_buffers_per_shader_stage < MIN_STORAGE_BUFFERS_PER_COMPUTE_STAGE {
@@ -58,13 +75,55 @@ impl GaussianSplatBackground {
                 limits.max_storage_buffers_per_shader_stage
             )));
         }
-        let gaussians = load_gaussians(&environment.ply_path)?;
+        let mut gaussians = load_gaussians(&environment.ply_path)?;
+        let lens: Vec<usize> = actors.iter().map(SplatActorAsset::len).collect();
+        let layout = ActorLayout::new(gaussians.gaussians.len(), &lens);
+        for actor in &actors {
+            gaussians.gaussians.extend(hidden_actor_gaussians(actor));
+        }
         let viewer = Viewer::new(device, wgpu::TextureFormat::Rgba8Unorm, &gaussians)
             .map_err(|error| GaussianSplatError::Init(error.to_string()))?;
         Ok(Self {
             viewer,
             environment: environment.clone(),
+            actors,
+            layout,
         })
+    }
+
+    /// Number of actors loaded with [`Self::from_environment_with_actors`].
+    #[must_use]
+    pub fn actor_count(&self) -> usize {
+        self.layout.len()
+    }
+
+    /// Places actor `index` at `world_from_actor` (RNE world frame; rigid motion and uniform
+    /// scale from `scale.x`), or hides it with `None`. Takes effect from the next render.
+    pub fn set_actor_pose(
+        &mut self,
+        queue: &wgpu::Queue,
+        index: usize,
+        world_from_actor: Option<&Transform3>,
+    ) -> Result<(), GaussianSplatError> {
+        let (start, _) = self.layout.range(index).ok_or_else(|| {
+            GaussianSplatError::Actor(format!(
+                "actor {index} out of range ({} loaded)",
+                self.layout.len()
+            ))
+        })?;
+        let asset = &self.actors[index];
+        let gaussians = match world_from_actor {
+            // The buffer holds Gaussians in the PLY's frame: undo the manifest transform.
+            Some(pose) => place_actor_gaussians(
+                asset,
+                &self.environment.transform.inverse().mul_transform(pose),
+            ),
+            None => hidden_actor_gaussians(asset),
+        };
+        self.viewer
+            .gaussians_buffer
+            .update_range(queue, start, &gaussians);
+        Ok(())
     }
 
     /// Stable renderer identity from the manifest.
@@ -158,6 +217,18 @@ pub fn render_hybrid_scene_camera(
     clear_color: [f32; 4],
 ) -> Result<CameraPassOutput, RenderError> {
     backend.render_hybrid_scene_camera(background, camera, view, &hybrid.foreground, clear_color)
+}
+
+/// Loads a movable actor from a splat PLY authored in the actor's own frame.
+pub fn load_splat_actor(path: &Path) -> Result<SplatActorAsset, GaussianSplatError> {
+    let gaussians = load_gaussians(path)?;
+    if gaussians.gaussians.is_empty() {
+        return Err(GaussianSplatError::Actor(format!(
+            "{} has no Gaussians",
+            path.display()
+        )));
+    }
+    Ok(SplatActorAsset::new(gaussians.gaussians))
 }
 
 fn load_gaussians(path: &Path) -> Result<Gaussians, GaussianSplatError> {
