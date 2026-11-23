@@ -25,8 +25,10 @@
 //! among themselves relative to the odometry re-anchors it sooner and
 //! restarts LiDAR tracking there; with `lidar_drop_unmapped_returns`,
 //! returns in mapped free space (people, vehicles) are left out of LiDAR
-//! tracking. Both, with a finite `lidar_gate_chi_square`, keep a crowded
-//! street from dragging the estimate. The arbiter takes a plain
+//! tracking; with `lidar_motion_check_scans`, matches that keep cancelling
+//! the wheels' motion (locked onto someone walking alongside) are not fused.
+//! These, with a finite `lidar_gate_chi_square`, keep a crowded street from
+//! dragging the estimate. The arbiter takes a plain
 //! [`AbsolutePositionFix`], so it does not depend on a GNSS simulator.
 
 use crate::likelihood::LikelihoodField;
@@ -49,6 +51,9 @@ const LIDAR_REANCHOR_M: f64 = 2.0;
 
 /// Consecutive scans of such disagreement before the EKF is re-anchored.
 const LIDAR_REANCHOR_SCANS: usize = 10;
+
+/// Least travel over the motion-check window for the check to judge, meters.
+const LIDAR_LOCK_MIN_TRAVEL_M: f64 = 0.5;
 
 /// A planar absolute position fix from a satellite receiver.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -225,6 +230,13 @@ pub struct HybridLocalizerConfig {
     /// close to facades and poles too, but tolerates less error in the
     /// estimate.
     pub lidar_unmapped_distance_m: f64,
+    /// Over this many scans, matches whose corrections along the direction
+    /// of travel cancel at least half the distance the wheels covered (and
+    /// at least `LIDAR_LOCK_MIN_TRAVEL_M` of it) are not fused: they have
+    /// locked onto something that moves with the robot, such as a person
+    /// walking beside it, and would hold the estimate back while it walks
+    /// on. Zero (off) by default.
+    pub lidar_motion_check_scans: usize,
     /// Variance of a fused AMCL yaw, in rad².
     pub lidar_yaw_variance_rad2: f64,
     /// Odometry forward-velocity variance.
@@ -273,6 +285,7 @@ impl Default for HybridLocalizerConfig {
             lidar_max_variance_m2: 100.0,
             lidar_drop_unmapped_returns: false,
             lidar_unmapped_distance_m: 1.0,
+            lidar_motion_check_scans: 0,
             lidar_yaw_variance_rad2: 0.0025,
             odometry_linear_variance: 0.0025,
             odometry_angular_variance: 1.0e-4,
@@ -319,6 +332,11 @@ pub struct HybridLocalizer {
     /// Consecutive scans whose preferred particle-filter match lay metres
     /// from the EKF.
     reanchor_streak: usize,
+    /// Signed distance the wheels covered since the last scan, meters.
+    travelled_since_scan_m: f64,
+    /// Per recent scan: distance travelled, and the match's correction
+    /// along the heading (zero when nothing was matched).
+    motion_history: std::collections::VecDeque<(f64, f64)>,
     /// Odometry-only pose, re-synced to the estimate when a run of rejected
     /// RTK fixes starts.
     dead_reckoned: Pose2d,
@@ -351,6 +369,8 @@ impl HybridLocalizer {
             gate_streak: 0,
             lidar_low_streak: 0,
             reanchor_streak: 0,
+            travelled_since_scan_m: 0.0,
+            motion_history: std::collections::VecDeque::new(),
             dead_reckoned: initial_pose,
             rejected_offsets: Vec::new(),
             last_amcl: None,
@@ -403,6 +423,9 @@ impl HybridLocalizer {
         angular_rad_s: f64,
     ) -> Result<(), HybridError> {
         self.ekf.predict(dt_s)?;
+        if linear_m_s.is_finite() && dt_s.is_finite() {
+            self.travelled_since_scan_m += linear_m_s * dt_s;
+        }
         if linear_m_s.is_finite() && angular_rad_s.is_finite() && dt_s.is_finite() {
             self.dead_reckoned = self.dead_reckoned.compose(Pose2d::new(
                 linear_m_s * dt_s,
@@ -598,6 +621,11 @@ impl HybridLocalizer {
                     *covariance,
                 ) <= self.config.lidar_gate_chi_square
             });
+        if self.matches_hold_the_robot_back(refined.as_ref().map(|(m, _, _)| m.pose)) {
+            // Neither fused nor counted as a poor match: odometry carries the
+            // estimate until the matches follow the robot again.
+            return Ok(Some(update));
+        }
         match refined {
             Some((matched, covariance, from_particles)) => {
                 self.lidar_low_streak = 0;
@@ -760,6 +788,33 @@ impl HybridLocalizer {
             self.switch(LocalizationSource::DeadReckoning, time_s);
         }
         Ok(true)
+    }
+
+    /// Records this scan's travel and match correction (see
+    /// `lidar_motion_check_scans`); returns whether recent matches cancel
+    /// the robot's motion.
+    fn matches_hold_the_robot_back(&mut self, matched: Option<Pose2d>) -> bool {
+        let travelled = std::mem::take(&mut self.travelled_since_scan_m);
+        let window = self.config.lidar_motion_check_scans;
+        if window == 0 {
+            return false;
+        }
+        let estimate = self.ekf.pose();
+        let (sin, cos) = estimate.yaw_rad.sin_cos();
+        // Re-anchoring jumps are judged by their own streak, not here.
+        let along = matched
+            .map(|m| (m.x_m - estimate.x_m, m.y_m - estimate.y_m))
+            .filter(|(dx, dy)| dx.hypot(*dy) <= LIDAR_REANCHOR_M)
+            .map_or(0.0, |(dx, dy)| dx * cos + dy * sin);
+        self.motion_history.push_back((travelled, along));
+        while self.motion_history.len() > window {
+            self.motion_history.pop_front();
+        }
+        let (moved, corrected) = self
+            .motion_history
+            .iter()
+            .fold((0.0, 0.0), |(m, c), (t, a)| (m + t, c + a));
+        moved.abs() >= LIDAR_LOCK_MIN_TRAVEL_M && corrected * moved.signum() <= -0.5 * moved.abs()
     }
 
     /// Whether the arbiter is searching the map for a LiDAR relocalization.
@@ -1177,6 +1232,53 @@ mod tests {
         assert!(pose.x_m.hypot(pose.y_m) < 0.1, "{pose:?}");
         let covariance = localizer.ekf().covariance();
         assert!(covariance[0][0] >= 0.99, "{covariance:?}");
+    }
+
+    #[test]
+    fn matches_that_cancel_the_wheels_motion_are_not_fused() {
+        // In LiDAR mode, the wheels drive the robot 2 m east while every
+        // scan looks as if it had not moved (locked onto something that
+        // keeps pace with it).
+        let run = |window: usize| {
+            let config = HybridLocalizerConfig {
+                amcl: AmclConfig {
+                    particle_count: 300,
+                    ..AmclConfig::default()
+                },
+                lidar_motion_check_scans: window,
+                ..HybridLocalizerConfig::default()
+            };
+            let start = Pose2d::new(13.0, 0.0, 0.0);
+            let mut localizer = HybridLocalizer::new(room_map(), start, config).unwrap();
+            for step in 0..3 {
+                localizer.update_gnss(None, f64::from(step)).unwrap();
+            }
+            for _ in 0..3 {
+                localizer
+                    .update_lidar(&scan_at(start), start, Pose2d::IDENTITY, 3.0)
+                    .unwrap();
+            }
+            assert_eq!(localizer.source(), LocalizationSource::Lidar);
+            let mut odom = start;
+            for step in 0..20 {
+                localizer.predict(0.1, 1.0, 0.0).unwrap();
+                odom = Pose2d::new(odom.x_m + 0.1, 0.0, 0.0);
+                localizer
+                    .update_lidar(
+                        &scan_at(start),
+                        odom,
+                        Pose2d::IDENTITY,
+                        4.0 + f64::from(step),
+                    )
+                    .unwrap();
+            }
+            assert_eq!(localizer.source(), LocalizationSource::Lidar);
+            localizer.pose().x_m
+        };
+        let held = run(0);
+        assert!(held < 13.5, "{held}");
+        let followed = run(10);
+        assert!(followed > 14.4, "{followed}");
     }
 
     #[test]
