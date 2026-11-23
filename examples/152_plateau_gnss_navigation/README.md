@@ -263,6 +263,48 @@ since. The hybrid's error includes its GNSS stretches, where it does not
 use the LiDAR; in clear Shibuya it is larger than with the slice (0.32
 against 0.18 m), which has not been traced.
 
+### Rush hour, and walking around people (`--avoid`)
+
+The **rush hour** condition puts 150 people on the sidewalks, a scramble
+crossing at the start (and end) of the route where 120 people cross on each
+45 s walk phase of a 100 s cycle, straight across and diagonally, and 40
+buses, trucks and cars in two lanes beside the route. The sidewalk walkers
+step aside for the robot; the people on the crossing do not. The vehicles
+are metal boxes to the GNSS ray tracer (strong reflectors the NLOS
+exclusion's city model does not have) and obstacles to both LiDARs. With
+the planar slice the factor graph loses the robot there (RMSE 114 m, one
+run); with `--lidar3d` both localizers keep it:
+
+| Area | Localizer | `--avoid` | Goal | Time | RMSE median | Waiting for obstacles | Someone within 0.5 m |
+|------|-----------|-----------|------|------|-------------|-----------------------|----------------------|
+| Shibuya | hybrid | – | 3/3 | 781-795 s | 0.12 m | 0-2 s | 0.0-1.9 s |
+| Shibuya | hybrid | ✓ | 3/3 | 841-852 s | 0.15 m | 0 s | 5.5-9.2 s |
+| Shibuya | factor graph | – | 3/3 | 769-770 s | 0.00 m | 1-2 s | 0.0-1.2 s |
+| Shibuya | factor graph | ✓ | 3/3 | 837-912 s | 0.00 m | 0 s | 7.4-18.4 s |
+| Nishi-Shinjuku | hybrid | – | 3/3 | 1037-1039 s | 0.06 m | 81-86 s | 12.0-87.7 s |
+| Nishi-Shinjuku | hybrid | ✓ | 3/3 | 1046-1114 s | 0.06 m | 0 s | 5.6-9.4 s |
+| Nishi-Shinjuku | factor graph | – | 3/3 | 1033-1036 s | 0.00 m | 86-89 s | 9.4-85.9 s |
+| Nishi-Shinjuku | factor graph | ✓ | 3/3 | 1048-1124 s | 0.03 m | 0 s | 8.9-15.7 s |
+
+"Someone within 0.5 m" is the time a person's body or a vehicle was closer
+than 0.5 m to the robot's centre (its footprint is 0.35 m): a near miss or
+worse. Without `--avoid` the robot follows the route and stops for anything
+within 0.6 m ahead. In Nishi-Shinjuku the crossing at the start catches it:
+it stops for about 85 s while the crowd crosses, and the people who do not
+give way walk into it from the sides, for up to 88 s in a run. `--avoid`
+clusters the returns the map cannot explain into people (cutting long
+clusters, the sides of buses, into 1 m pieces), tracks them, and picks the
+command nearest the route follower's whose rollout clears them, for 2 s or,
+in a crowd where nothing does, for 1 or 0.5 s (standing still among people
+who do not give way is not safer than moving on). It never waits there and
+keeps the near misses under 16 s in every run. In Shibuya, where the robot
+starts in the middle of the crossing just as the walk phase begins, the
+plain follower walks straight out ahead of the crowd; `--avoid` slows down
+to weave and is caught by it, with more near misses (5-18 s) and a minute
+longer to the goal. A planner that avoids people reactively helps where the
+robot would otherwise stand in their way, and hurts where pressing on was
+the safer choice; deciding which is the open problem.
+
 ### The ray tracer against a real drive (`--urbannav`)
 
 How close is the simulated sky to the real one in these streets? The
