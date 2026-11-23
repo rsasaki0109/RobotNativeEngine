@@ -132,17 +132,7 @@ fn main() -> Result<(), String> {
         .skip_while(|a| a != "--render")
         .nth(1)
         .map(PathBuf::from);
-    let constellations = [
-        ("GPS+Galileo", Constellation::gps_galileo_nominal()),
-        (
-            "GPS+Galileo+QZSS",
-            Constellation::gps_galileo_qzss_nominal(),
-        ),
-        (
-            "+BeiDou (all four)",
-            Constellation::gps_galileo_qzss_beidou_nominal(),
-        ),
-    ];
+    let constellations = survey_constellations();
     if let Some(csv) = std::env::args().skip_while(|a| a != "--urbannav").nth(1) {
         return urbannav::run(&data, Path::new(&csv));
     }
@@ -262,6 +252,21 @@ fn main() -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// The constellations the sky survey compares.
+fn survey_constellations() -> [(&'static str, Constellation); 3] {
+    [
+        ("GPS+Galileo", Constellation::gps_galileo_nominal()),
+        (
+            "GPS+Galileo+QZSS",
+            Constellation::gps_galileo_qzss_nominal(),
+        ),
+        (
+            "+BeiDou (all four)",
+            Constellation::gps_galileo_qzss_beidou_nominal(),
+        ),
+    ]
 }
 
 /// The configurations compared by default, as `(label, options, glass
