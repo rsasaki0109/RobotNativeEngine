@@ -15,9 +15,14 @@ configurations whose label contains the text, `--area shibuya` one area, and
 `--survey` only the sky survey (seconds); `--conditions` runs crowds, rain and
 glass canyons instead, `--seeds N` each N times with different noise.
 
-![3D render in RNE: the robot walks from the Shibuya scramble crossing west and up Koen-dori among the PLATEAU LOD2 buildings; green rays are line-of-sight satellites, red NLOS reflections off the facades, purple diffraction over roof edges; the trail is blue while RTK localizes it and magenta while the LiDAR map does](../../docs/media/plateau-gnss-shibuya.gif)
+![3D render in RNE: the robot walks from the Shibuya scramble crossing west and up Koen-dori among the PLATEAU LOD2 buildings, in rain and among pedestrians; green rays are line-of-sight satellites, red NLOS reflections off the facades, purple diffraction over roof edges; cyan lines are the LiDAR beams and returns; the trail is blue while RTK localizes it and magenta while the LiDAR map does](../../docs/media/plateau-gnss-shibuya.gif)
 
-![The same in Nishi-Shinjuku, among the skyscrapers west of the station](../../docs/media/plateau-gnss-shinjuku.gif)
+![The same in Nishi-Shinjuku, among the skyscrapers west of the station, on a clear day](../../docs/media/plateau-gnss-shinjuku.gif)
+
+The renders overlay the simulation on the city: the ray-traced satellite
+signals at the rear antenna (each NLOS ray through its reflection points),
+the LiDAR scan (every fourth beam and every return), the pedestrians and
+the rain. Shibuya is shown in the crowd + rain condition below.
 
 ## What is simulated
 
@@ -174,11 +179,23 @@ dead-reckons for more than 0.4 s; the crowd and the rain roughly double or
 triple its error, and its worst moments (up to 18 m in the Nishi-Shinjuku
 rain) are short and corrected by the next good RTK fix. The hybrid is now
 as accurate in Shibuya, a little less so in Nishi-Shinjuku, and has the
-one failure: at a corner west of the station (about (−20, −45) m) the scan
-matches slip a few metres while the robot turns, it drifts into a deep
-canyon and stops there for 613 s, where the receiver tracks 5–6
-satellites and its float solutions wander by metres, so nothing
-trustworthy can re-anchor it. Its other dead reckoning stretches (up to
+one failure. Approaching a corner west of the station (about (−20, −45) m)
+along a street that constrains the scan only across it, the estimate
+stops while the robot walks on: for over a second both scan matches pull
+it back to the same spot with high scores (0.92–0.96) and a tight
+covariance, while the robot swerves and briefly waits for a pedestrian
+beside it. A person walking within a metre of a facade or pole is not
+dropped as unmapped, and one who keeps pace with the robot looks like a
+fixed feature. The particle filter's estimate is right along the street
+at that moment, but 1.5 m off across it, so it is re-seeded onto the
+EKF's match rather than the other way round. The estimate leaves the
+corner 2–4 m off, the robot drifts into a deep canyon and stops there for
+613 s, where the receiver tracks 5–6 satellites and its float solutions
+wander by metres, so nothing trustworthy can re-anchor it. Dropping
+returns from 0.5 m of mapped structure (`lidar_unmapped_distance_m`)
+instead of 1 m gets this run through and improves the rain runs (worst
+RMSE 4.2 m instead of 13.4 m), but loses another crowd run, so the
+example keeps 1 m. Its other dead reckoning stretches (up to
 183 s) are also safety stops, not driving blind. The glass canyon matters
 less than expected: more multipath, but the NLOS exclusion and the robust
 kernels take most of it.
@@ -204,7 +221,9 @@ To regenerate the GIFs (any GPU, or Mesa's lavapipe; Pillow for the HUD):
 
 ```bash
 cargo run --release -p plateau_gnss_navigation --features capture \
-    --example 152_plateau_gnss_navigation -- --quick --render target/152_render
-python3 examples/152_plateau_gnss_navigation/encode.py target/152_render/shibuya docs/media/plateau-gnss-shibuya.gif
-python3 examples/152_plateau_gnss_navigation/encode.py target/152_render/shinjuku docs/media/plateau-gnss-shinjuku.gif
+    --example 152_plateau_gnss_navigation -- --quick --area shibuya --render-weather --render target/152_render
+cargo run --release -p plateau_gnss_navigation --features capture \
+    --example 152_plateau_gnss_navigation -- --quick --area shinjuku --render target/152_render
+python3 examples/152_plateau_gnss_navigation/encode.py target/152_render/shibuya docs/media/plateau-gnss-shibuya.gif --stride 4
+python3 examples/152_plateau_gnss_navigation/encode.py target/152_render/shinjuku docs/media/plateau-gnss-shinjuku.gif --stride 4
 ```
