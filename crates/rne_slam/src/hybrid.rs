@@ -1429,6 +1429,7 @@ mod tests {
             yaw_variance_rad2: 1.0e-4,
             rmse_m: 0.02,
             inlier_fraction: 0.9,
+            fit_fraction: 0.9,
             converged: true,
         }
     }

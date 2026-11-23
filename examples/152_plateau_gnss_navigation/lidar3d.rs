@@ -194,13 +194,15 @@ pub(crate) fn match_config() -> PointCloudMatchConfig {
     }
 }
 
-/// Whether a match is good enough to use.
+/// Whether a match is good enough to use: most of the scan lies on mapped
+/// surfaces (the RMS residual would also count people next to walls).
 pub(crate) fn acceptable(m: &PointCloudMatch) -> bool {
-    m.rmse_m <= 0.15 && m.inlier_fraction >= 0.6
+    m.fit_fraction >= 0.6
 }
 
 /// A relocalizing match: tries starts on a grid over `±window_m` around
-/// `around` and keeps the best acceptable one (lowest residual).
+/// `around` and keeps the best acceptable one (most of the scan on mapped
+/// surfaces).
 pub(crate) fn search(
     map: &PointCloudMap,
     points: &[Vec3],
@@ -222,7 +224,7 @@ pub(crate) fn search(
             let Some(m) = map.match_scan(points, seed, z_m, &config) else {
                 continue;
             };
-            if acceptable(&m) && best.is_none_or(|b| m.rmse_m < b.rmse_m) {
+            if acceptable(&m) && best.is_none_or(|b| m.fit_fraction > b.fit_fraction) {
                 best = Some(m);
             }
         }

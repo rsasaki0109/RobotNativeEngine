@@ -98,6 +98,10 @@ pub struct PointCloudMatch {
     pub rmse_m: f64,
     /// Share of the scan's points that were used.
     pub inlier_fraction: f64,
+    /// Share of the scan's points within twice the Huber threshold of a
+    /// map surface: unlike the RMS residual, people and rain next to
+    /// mapped surfaces do not lower it, so it judges the fit robustly.
+    pub fit_fraction: f64,
     /// Whether the iteration converged.
     pub converged: bool,
 }
@@ -165,8 +169,8 @@ impl PointCloudMap {
         let mut last = None;
         for _ in 0..config.max_iterations {
             let normal = self.normal_equations(points_sensor, state, config)?;
-            let (h, b, inliers, rmse) = normal;
-            last = Some((h, inliers, rmse));
+            let (h, b, inliers, rmse, fits) = normal;
+            last = Some((h, inliers, rmse, fits));
             // Levenberg damping relative to the information's scale keeps a
             // direction the scan does not constrain where it started.
             let scale = (0..4).map(|i| h[i][i]).fold(0.0, f64::max);
@@ -183,7 +187,7 @@ impl PointCloudMap {
                 break;
             }
         }
-        let (h, inliers, rmse) = last?;
+        let (h, inliers, rmse, fits) = last?;
         let fraction = inliers as f64 / points_sensor.len() as f64;
         if inliers < config.min_inliers || fraction < config.min_inlier_fraction {
             return None;
@@ -221,23 +225,24 @@ impl PointCloudMap {
             yaw_variance_rad2: (sigma2 * c3[3]).max(config.min_yaw_variance_rad2),
             rmse_m: rmse,
             inlier_fraction: fraction,
+            fit_fraction: fits as f64 / points_sensor.len() as f64,
             converged,
         })
     }
 
     /// Huber-weighted Gauss–Newton normal equations at `state`: information,
-    /// right-hand side, inliers and residual RMS.
+    /// right-hand side, inliers, residual RMS and the points that fit.
     #[allow(clippy::type_complexity)]
     fn normal_equations(
         &self,
         points_sensor: &[Vec3],
         state: [f64; 4],
         config: &PointCloudMatchConfig,
-    ) -> Option<([[f64; 4]; 4], [f64; 4], usize, f64)> {
+    ) -> Option<([[f64; 4]; 4], [f64; 4], usize, f64, usize)> {
         let (sin, cos) = state[3].sin_cos();
         let mut h = [[0.0; 4]; 4];
         let mut b = [0.0; 4];
-        let (mut inliers, mut squared) = (0_usize, 0.0);
+        let (mut inliers, mut squared, mut fits) = (0_usize, 0.0, 0_usize);
         for p in points_sensor {
             // The rotated point relative to the sensor, and in the world.
             let rotated = Vec3::new(cos * p.x - sin * p.y, sin * p.x + cos * p.y, p.z);
@@ -265,8 +270,11 @@ impl PointCloudMap {
             }
             inliers += 1;
             squared += residual * residual;
+            if residual.abs() <= 2.0 * config.huber_m {
+                fits += 1;
+            }
         }
-        (inliers > 0).then(|| (h, b, inliers, (squared / inliers as f64).sqrt()))
+        (inliers > 0).then(|| (h, b, inliers, (squared / inliers as f64).sqrt(), fits))
     }
 }
 
@@ -426,7 +434,7 @@ mod tests {
         assert!((m.pose.y_m + 1.0).abs() < 0.05, "{m:?}");
         assert!(m.pose.yaw_rad.abs() < 0.005, "{m:?}");
         assert!((m.z_m - 0.6).abs() < 0.05, "{m:?}");
-        assert!(m.inlier_fraction > 0.9, "{m:?}");
+        assert!(m.inlier_fraction > 0.9 && m.fit_fraction > 0.9, "{m:?}");
     }
 
     #[test]
