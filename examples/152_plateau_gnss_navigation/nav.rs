@@ -702,7 +702,13 @@ pub(crate) fn run(
     // The terrain-following slice at LiDAR height along the route: what the
     // simulated LiDAR sees and the robot's prior map.
     let slice = build_prior_map(city, route);
-    let mut hybrid = build_localizer(&slice, start, gnss.uses_libgnss(), options.factor_graph);
+    let mut hybrid = build_localizer(
+        &slice,
+        start,
+        gnss.uses_libgnss(),
+        options.factor_graph,
+        options.lidar3d,
+    );
     let mut rng = DeterministicRng::new(0x5_1B_0A ^ reseed);
     // The 3D LiDAR draws from its own stream (the rest of the noise is the
     // same as with the planar slice).
@@ -841,6 +847,7 @@ fn build_localizer(
     start: Pose2d,
     uses_libgnss: bool,
     factor_graph: bool,
+    lidar3d: bool,
 ) -> Localizer {
     let mut config = HybridLocalizerConfig {
         amcl: AmclConfig {
@@ -861,6 +868,9 @@ fn build_localizer(
     config.lidar_drop_unmapped_returns = true;
     config.gnss_reanchor_fixes = 15;
     config.lidar_gate_chi_square = 16.0;
+    // The 3D LiDAR holds the robot wherever the map reaches: it keeps
+    // charge, and RTK fixes correct it instead of taking over.
+    config.lidar_keeps_charge = lidar3d;
     if factor_graph {
         Localizer::Graph(Box::new(
             FactorGraphLocalizer::new(

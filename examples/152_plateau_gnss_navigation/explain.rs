@@ -73,9 +73,15 @@ impl Explainer {
             return;
         };
         let verdict = match decision {
+            GnssDecision::Fused if self.source == LocalizationSource::Lidar => {
+                "corrects the LiDAR map match".to_string()
+            }
             GnssDecision::Fused => "used".to_string(),
             GnssDecision::Healthy if fix.kind == FixKind::Fixed => {
                 "passes; waiting for 5 in a row to trust GNSS".to_string()
+            }
+            GnssDecision::Healthy if self.source == LocalizationSource::Lidar => {
+                "passes, but only RTK fixed corrects LiDAR".to_string()
             }
             GnssDecision::Healthy => "passes, but only RTK fixed can take over".to_string(),
             GnssDecision::Missing => "missing".to_string(),
@@ -117,6 +123,10 @@ impl Explainer {
                 "GNSS -> dead reckoning: 3 solutions in a row rejected ({})",
                 self.last_rejection
             ),
+            (LocalizationSource::Gnss, LocalizationSource::Lidar) => {
+                "GNSS -> LiDAR map: the 3D scan agrees with GNSS; it keeps charge, GNSS corrects it"
+                    .to_string()
+            }
             (_, LocalizationSource::Lidar) => {
                 "dead reckoning -> LiDAR map: the scan found its place in the map".to_string()
             }
