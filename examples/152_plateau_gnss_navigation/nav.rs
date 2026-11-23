@@ -586,6 +586,9 @@ pub(crate) struct RunReport {
     pub track: Vec<(Pose2d, Pose2d, LocalizationSource)>,
     /// Frames for the 3D render (when recording).
     pub frames: Vec<FrameRecord>,
+    /// The constellations the receiver tracked, e.g. "GPS+Galileo+QZSS".
+    #[cfg_attr(not(feature = "capture"), allow(dead_code))]
+    pub constellation: &'static str,
 }
 
 impl RunReport {
@@ -637,6 +640,21 @@ pub(crate) fn receiver_config() -> ReceiverConfig {
     }
 }
 
+/// The satellites a run's receiver tracks, and their name for the HUD.
+fn constellation(options: &RunOptions) -> (Constellation, &'static str) {
+    match (options.qzss, options.beidou) {
+        (true, true) => (
+            Constellation::gps_galileo_qzss_beidou_nominal(),
+            "GPS+Galileo+QZSS+BeiDou",
+        ),
+        (true, false) => (
+            Constellation::gps_galileo_qzss_nominal(),
+            "GPS+Galileo+QZSS",
+        ),
+        (false, _) => (Constellation::gps_galileo_nominal(), "GPS+Galileo"),
+    }
+}
+
 /// The ray-traced GNSS scene (the ground wet in rain), and the city model
 /// used for NLOS prediction, which never has the pedestrians added.
 fn gnss_scene(city: &PlateauCity, rain: bool) -> (GnssScene, GnssScene) {
@@ -661,11 +679,7 @@ pub(crate) fn run(
     options: RunOptions,
     cloud: Option<&PointCloudMap>,
 ) -> RunReport {
-    let constellation = match (options.qzss, options.beidou) {
-        (true, true) => Constellation::gps_galileo_qzss_beidou_nominal(),
-        (true, false) => Constellation::gps_galileo_qzss_nominal(),
-        (false, _) => Constellation::gps_galileo_nominal(),
-    };
+    let (constellation, constellation_name) = constellation(&options);
     let (mut scene, model) = gnss_scene(city, options.weather.rain);
     let street = Street::new(route, options.weather, options.seed);
     let mut receiver = receiver_config();
@@ -696,6 +710,7 @@ pub(crate) fn run(
     let (mut truth, mut odom) = (start, start);
     let mut report = RunReport {
         clearance_m: f64::INFINITY,
+        constellation: constellation_name,
         ..RunReport::default()
     };
     let mut leg = 0;

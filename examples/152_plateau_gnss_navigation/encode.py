@@ -51,7 +51,7 @@ def fitted(draw, text, typeface, width):
     return text + "..."
 
 
-def hud(image, area, frame, width, timeline):
+def hud(image, area, frame, width, timeline, constellation="GPS+Galileo+QZSS"):
     scale = width / image.width
     image = image.resize((width, round(image.height * scale)), Image.LANCZOS)
     draw = ImageDraw.Draw(image, "RGBA")
@@ -59,7 +59,11 @@ def hud(image, area, frame, width, timeline):
     pad = width // 60
     lines = 4 if frame.get("gnss") else 2
     draw.rectangle([0, 0, width, pad * 2 + big.size + (small.size + 2) * lines + 4], fill=(10, 12, 18, 170))
-    draw.text((pad, pad), f"{area} - PLATEAU LOD2, ray-traced GPS+Galileo+QZSS", font=big, fill=(255, 255, 255))
+    title = f"{area} - PLATEAU LOD2, ray-traced {constellation}"
+    heading = big
+    while draw.textlength(title, font=heading) > width - 2 * pad and heading.size > 10:
+        heading = font(heading.size - 1)
+    draw.text((pad, pad), title, font=heading, fill=(255, 255, 255))
     source = frame["source"]
     y = pad + big.size + 4
     draw.text(
@@ -137,7 +141,7 @@ def main():
     images = []
     for frame in meta["frames"][:: args.stride]:
         image = Image.open(args.capture / frame["file"]).convert("RGB")
-        images.append(hud(image, meta["area"], frame, args.width, timeline))
+        images.append(hud(image, meta["area"], frame, args.width, timeline, meta.get("constellation", "GPS+Galileo+QZSS")))
     # One palette for the whole GIF: colours from sample frames plus the
     # exact HUD and legend colours, so those never shift.
     samples = images[:: max(1, len(images) // 12)]

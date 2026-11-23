@@ -931,7 +931,11 @@ pub(crate) fn render(
     }
     std::fs::write(
         dir.join("frames.json"),
-        serde_json::to_string(&serde_json::json!({"area": city.name, "frames": index}))?,
+        serde_json::to_string(&serde_json::json!({
+            "area": city.name,
+            "constellation": run.constellation,
+            "frames": index,
+        }))?,
     )?;
     println!("  wrote {} frames to {}", index.len(), dir.display());
     Ok(())
