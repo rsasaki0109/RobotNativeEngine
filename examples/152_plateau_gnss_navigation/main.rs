@@ -206,16 +206,7 @@ fn main() -> Result<(), String> {
             )
         };
         // The 3D LiDAR's prior map: the mesh and terrain along the route.
-        let cloud = use_lidar3d.then(|| {
-            let started = std::time::Instant::now();
-            let map = lidar3d::build_map(&city, &route, lidar3d::RANGE_M + 4.0);
-            println!(
-                "  3D LiDAR map: {} points ({:.1} s)",
-                map.len(),
-                started.elapsed().as_secs_f64()
-            );
-            map
-        });
+        let cloud = use_lidar3d.then(|| lidar3d::build_map(&city, &route, lidar3d::RANGE_M + 4.0));
         for (label, options, glass_from_m) in runs {
             if quick && main_run.is_some() {
                 break;

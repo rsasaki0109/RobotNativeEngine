@@ -132,12 +132,13 @@ fn person_hit(city: &PlateauCity, people: &[(f64, f64)], origin: Vec3, dir: Vec3
 
 /// The prior map: the mesh's surfaces and the open terrain within
 /// `corridor_m` of the route, up to `MAP_MAX_HEIGHT_M` above the ground,
-/// sampled every `MAP_SPACING_M`, with exact normals.
+/// sampled every `MAP_SPACING_M`, with exact normals. Prints its size.
 pub(crate) fn build_map(
     city: &PlateauCity,
     route: &[(f64, f64)],
     corridor_m: f64,
 ) -> PointCloudMap {
+    let started = std::time::Instant::now();
     let near = |x: f64, y: f64| crate::nav::distance_to_route(route, x, y) <= corridor_m;
     let (mut points, mut normals) = (Vec::new(), Vec::new());
     for triangle in city.mesh.triangles() {
@@ -177,7 +178,13 @@ pub(crate) fn build_map(
             y += MAP_SPACING_M;
         }
     }
-    PointCloudMap::new(&points, &normals, 1.0).expect("point-cloud map")
+    let map = PointCloudMap::new(&points, &normals, 1.0).expect("point-cloud map");
+    println!(
+        "  3D LiDAR map: {} points ({:.1} s)",
+        map.len(),
+        started.elapsed().as_secs_f64()
+    );
+    map
 }
 
 /// The scan reduced for matching.
