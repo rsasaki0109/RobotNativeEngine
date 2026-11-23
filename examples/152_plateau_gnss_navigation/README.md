@@ -216,6 +216,47 @@ is not. The example leaves the motion check off. Its other dead reckoning stretc
 less than expected: more multipath, but the NLOS exclusion and the robust
 kernels take most of it.
 
+### The ray tracer against a real drive (`--urbannav`)
+
+How close is the simulated sky to the real one in these streets? The
+[UrbanNav](https://github.com/IPNL-POLYU/UrbanNavDataset) Tokyo dataset
+(IPNL, PolyU; MIT licence) has a 35-minute drive through Nishi-Shinjuku on
+19 December 2018 with a u-blox F9P receiver and an Applanix POS LV620
+reference. `urbannav.py` reads its rover RINEX, the broadcast ephemerides
+and the reference, and lists once a second every GPS, Galileo and QZSS
+satellite above 5° with its direction at the true position and the C/N0 the
+receiver measured. `--urbannav` traces each direction through PLATEAU
+(six 1 km tiles around the drive, 14 280 buildings) and sorts them into line
+of sight, NLOS (only a reflected or diffracted path) and blocked:
+
+```bash
+python3 scripts/fetch_plateau_tokyo.py 53394514 53394515 53394524 53394534
+# Tokyo_Data/Shinjuku/{reference.csv, base.nav, rover_ublox.obs} from the dataset
+python3 examples/152_plateau_gnss_navigation/urbannav.py target/urbannav/Shinjuku target/urbannav/shinjuku_sky.csv
+cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_navigation -- --urbannav target/urbannav/shinjuku_sky.csv
+```
+
+| Predicted | Share of 40 243 satellite-epochs | Tracked by the receiver | C/N0 median | ≥ 40 dB-Hz |
+|-----------|-------|---------|------|------|
+| line of sight | 56.7 % | 96.4 % | 44 dB-Hz | 69.5 % |
+| NLOS (reflected or diffracted) | 15.9 % | 64.6 % | 31 dB-Hz | 4.2 % |
+| blocked | 27.4 % | 26.7 % | 26 dB-Hz | 0.4 % |
+
+The classes separate the way the physics says they should: what the model
+calls line of sight is tracked and strong, what it calls NLOS is tracked but
+about 13 dB weaker (the reflection loss), and what it calls blocked is
+mostly lost. 98 % of the strong signals were predicted line of sight. As a
+classifier of strong signals the model agrees with the receiver on 82 % of
+the satellite-epochs, against 79 % for the best elevation mask (50°,
+chosen after the fact); between 20 and 60° elevation, where the street
+rather than the elevation decides, 78.5 % against 71 %. Its misses: 30 %
+of the predicted line-of-sight signals were weaker than 40 dB-Hz (trees,
+overpasses and pedestrian decks are not in LOD2, and the reference point is
+the vehicle's IMU, 2.8 m above the terrain, not the antenna), and 27 % of
+the predicted blocked ones were still tracked (diffraction the model
+underestimates, and buildings whose LOD2 outline is larger than the real
+one).
+
 ## Limits
 
 * LOD2 buildings are prisms with roofs: no balconies, signs, glass detail or
