@@ -272,8 +272,9 @@ buses, trucks and cars in two lanes beside the route. The sidewalk walkers
 step aside for the robot; the people on the crossing do not. The vehicles
 are metal boxes to the GNSS ray tracer (strong reflectors the NLOS
 exclusion's city model does not have) and obstacles to both LiDARs. With
-the planar slice the factor graph loses the robot there (RMSE 114 m, one
-run); with `--lidar3d` both localizers keep it:
+the planar slice the factor graph loses the robot there (RMSE 114 m in a
+trial run before the vehicles were added); with `--lidar3d` both
+localizers keep it:
 
 | Area | Localizer | `--avoid` | Goal | Time | RMSE median | Waiting for obstacles | Someone within 0.5 m |
 |------|-----------|-----------|------|------|-------------|-----------------------|----------------------|
@@ -300,8 +301,8 @@ who do not give way is not safer than moving on). It never waits there and
 keeps the near misses under 16 s in every run. In Shibuya, where the robot
 starts in the middle of the crossing just as the walk phase begins, the
 plain follower walks straight out ahead of the crowd; `--avoid` slows down
-to weave and is caught by it, with more near misses (5-18 s) and a minute
-longer to the goal. A planner that avoids people reactively helps where the
+to weave and is caught by it, with more near misses (5-18 s) and one to
+two minutes longer to the goal. A planner that avoids people reactively helps where the
 robot would otherwise stand in their way, and hurts where pressing on was
 the safer choice; deciding which is the open problem.
 
