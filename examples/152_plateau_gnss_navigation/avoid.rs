@@ -125,7 +125,10 @@ impl Avoider {
     }
 
     /// The command closest to `desired` that clears every obstacle for two
-    /// seconds; turning in place passes through unchanged.
+    /// seconds, or, in a crowd where none does, for one or half a second:
+    /// standing still among people who do not give way is not safer than
+    /// moving on (the "freezing robot"). Turning in place passes through
+    /// unchanged.
     pub(crate) fn command(
         &self,
         desired: VelocityCommand2d,
@@ -134,21 +137,27 @@ impl Avoider {
         if desired.linear_m_s <= 0.0 {
             return desired;
         }
-        avoid_velocities(
-            estimate,
-            ROBOT_RADIUS_M,
-            &self.obstacles,
-            desired,
-            1.2,
-            1.0,
-            &AvoidanceConfig {
-                time_horizon_s: 2.0,
-                simulation_step_s: 0.2,
-                linear_samples: 7,
-                angular_samples: 15,
-                safety_margin_m: 0.15,
-            },
-        )
+        for horizon_s in [2.0, 1.0, 0.5] {
+            let command = avoid_velocities(
+                estimate,
+                ROBOT_RADIUS_M,
+                &self.obstacles,
+                desired,
+                1.2,
+                1.0,
+                &AvoidanceConfig {
+                    time_horizon_s: horizon_s,
+                    simulation_step_s: 0.1,
+                    linear_samples: 7,
+                    angular_samples: 15,
+                    safety_margin_m: 0.15,
+                },
+            );
+            if command != VelocityCommand2d::ZERO {
+                return command;
+            }
+        }
+        VelocityCommand2d::ZERO
     }
 }
 

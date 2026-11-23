@@ -114,17 +114,14 @@ impl Traffic {
                 let ground = city.ground_m(x, y);
                 let (sin, cos) = yaw.sin_cos();
                 let (hl, hw) = (0.5 * v.size.0, 0.5 * v.size.1);
-                // The footprint's corners, ends and centre must all be outside
-                // buildings and clear of the route.
-                let points = [
-                    (0.0, 0.0),
-                    (hl, hw),
-                    (hl, -hw),
-                    (-hl, hw),
-                    (-hl, -hw),
-                    (hl, 0.0),
-                    (-hl, 0.0),
-                ];
+                // The footprint's outline (every metre along its sides) and
+                // centre must all be outside buildings and clear of the route.
+                let steps = (2.0 * hl).ceil() as usize;
+                let mut points = vec![(0.0, 0.0), (hl, 0.0), (-hl, 0.0)];
+                for k in 0..=steps {
+                    let a = -hl + 2.0 * hl * k as f64 / steps.max(1) as f64;
+                    points.extend([(a, hw), (a, -hw)]);
+                }
                 let clear = points.iter().all(|(a, b)| {
                     let (px, py) = (x + a * cos - b * sin, y + a * sin + b * cos);
                     !city.mesh.contains(Vec3::new(px, py, ground + 1.0))
