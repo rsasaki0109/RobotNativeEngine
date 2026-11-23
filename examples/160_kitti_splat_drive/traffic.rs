@@ -19,6 +19,7 @@
 //! [--render-every 0.2] [--duration 40] [--lead-start 22] [--stop-at 14]
 //! [--cut-in S]            a second car parked at path arc length S, off to the right, pulls
 //!                         out in front of the ego when the ego comes within 20 m
+//! [--cut-in-actor PLY]    car splat for the cut-in car (default: the --actor car)
 //! [--ego-actor PLY]       draw the ego car too, as this car splat
 //! [--chase BACK,UP,PITCH] also render a third-person view: BACK m behind the ego along the
 //!                         path, UP m above its camera height, pitched down PITCH degrees
@@ -96,7 +97,13 @@ fn main() {
     let lengths = arc_lengths(&points);
 
     let mut backend = WgpuRenderBackend::new().expect("wgpu backend");
-    let actors = actor_list(&actor_path, cut_in.is_some(), ego_actor.clone());
+    let cut_in_actor = cut_in.map(|_| {
+        arg("--cut-in-actor").map_or_else(
+            || load_splat_actor(&actor_path).expect("actor"),
+            |p| load_splat_actor(Path::new(&p)).expect("cut-in actor"),
+        )
+    });
+    let actors = actor_list(&actor_path, cut_in_actor, ego_actor.clone());
     // The splat for a stretch of the route, with the same actors in it.
     let load = |backend: &WgpuRenderBackend, manifest: &Path| {
         let environment = validate_gaussian_splat_manifest(manifest).expect("manifest");
@@ -254,13 +261,15 @@ fn load_segments() -> Vec<Segment> {
 }
 
 /// Lead car, then the cut-in car (if any), then the ego car (if drawn).
-fn actor_list(path: &Path, cut_in: bool, ego: Option<SplatActorAsset>) -> Vec<SplatActorAsset> {
+fn actor_list(
+    path: &Path,
+    cut_in: Option<SplatActorAsset>,
+    ego: Option<SplatActorAsset>,
+) -> Vec<SplatActorAsset> {
     let actor = load_splat_actor(path).expect("actor");
     println!("actor: {} Gaussians", actor.len());
-    let mut actors = vec![actor.clone()];
-    if cut_in {
-        actors.push(actor);
-    }
+    let mut actors = vec![actor];
+    actors.extend(cut_in);
     actors.extend(ego);
     actors
 }
