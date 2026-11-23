@@ -110,17 +110,30 @@ impl Localizer {
         }
     }
 
-    /// Matches a 3D scan against the point-cloud map and feeds the match:
-    /// from the estimate while tracking, over the search window (once a
-    /// second) while the hybrid is dead reckoning.
+    /// Every `LIDAR3D_PERIOD_S`, takes a 3D scan from the true pose
+    /// (`sensed`: the pedestrians, rain and the pose), matches it against
+    /// the point-cloud map and feeds the match: from the estimate while
+    /// tracking, over the search window (once a second) while the hybrid is
+    /// dead reckoning.
     fn update_lidar3d(
         &mut self,
         map: &PointCloudMap,
         city: &PlateauCity,
-        points: &[Vec3],
+        sensed: (&[(f64, f64)], bool, Pose2d),
         t: f64,
-        last_search_s: &mut f64,
+        state: &mut Lidar3dState,
     ) {
+        if t - state.last_scan_s < LIDAR3D_PERIOD_S - 1.0e-6 {
+            return;
+        }
+        state.last_scan_s = t;
+        let Lidar3dState {
+            rng, last_search_s, ..
+        } = state;
+        let (people, rain, truth) = sensed;
+        let ground = city.ground_m(truth.x_m, truth.y_m);
+        let points = lidar3d::scan(city, people, rain, truth, ground, rng);
+        let points = &lidar3d::downsample(&points)[..];
         let pose = self.pose();
         let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
         let local = || {
@@ -154,6 +167,26 @@ impl Localizer {
                     .expect("lidar");
             }
             Self::Graph(g) => g.update_lidar(scan, odom, Pose2d::IDENTITY, t),
+        }
+    }
+}
+
+/// Seconds between 3D LiDAR scans.
+const LIDAR3D_PERIOD_S: f64 = 0.2;
+
+/// The 3D LiDAR's noise stream and timing.
+struct Lidar3dState {
+    rng: DeterministicRng,
+    last_scan_s: f64,
+    last_search_s: f64,
+}
+
+impl Lidar3dState {
+    fn new(seed: u64) -> Self {
+        Self {
+            rng: DeterministicRng::new(seed),
+            last_scan_s: f64::NEG_INFINITY,
+            last_search_s: f64::NEG_INFINITY,
         }
     }
 }
@@ -534,7 +567,6 @@ pub(crate) fn run(
     options: RunOptions,
     cloud: Option<&PointCloudMap>,
 ) -> RunReport {
-    let cloud = cloud.filter(|_| options.lidar3d);
     let constellation = if options.qzss {
         Constellation::gps_galileo_qzss_nominal()
     } else {
@@ -574,10 +606,9 @@ pub(crate) fn run(
     let slice = build_prior_map(city, route);
     let mut hybrid = build_localizer(&slice, start, gnss.uses_libgnss(), options.factor_graph);
     let mut rng = DeterministicRng::new(0x5_1B_0A ^ reseed);
-    // The 3D LiDAR draws from its own stream, so the rest of the run's noise
-    // is the same as with the planar slice.
-    let mut rng3d = DeterministicRng::new(0x3D_11DA ^ reseed);
-    let mut last_search_s = f64::NEG_INFINITY;
+    // The 3D LiDAR draws from its own stream (the rest of the noise is the
+    // same as with the planar slice).
+    let mut lidar3d_state = Lidar3dState::new(0x3D_11DA ^ reseed);
     let (mut truth, mut odom) = (start, start);
     let mut report = RunReport {
         clearance_m: f64::INFINITY,
@@ -655,21 +686,10 @@ pub(crate) fn run(
             report.clearance_m = report
                 .clearance_m
                 .min(scan.ranges_m.iter().copied().fold(f64::INFINITY, f64::min));
-            match cloud {
+            match cloud.filter(|_| options.lidar3d) {
                 Some(map) => {
-                    if tick.is_multiple_of(2 * LIDAR_EVERY_TICKS) {
-                        let ground = city.ground_m(truth.x_m, truth.y_m);
-                        let points = lidar3d::scan(
-                            city,
-                            &people,
-                            options.weather.rain,
-                            truth,
-                            ground,
-                            &mut rng3d,
-                        );
-                        let points = lidar3d::downsample(&points);
-                        hybrid.update_lidar3d(map, city, &points, t, &mut last_search_s);
-                    }
+                    let sensed = (&people[..], options.weather.rain, truth);
+                    hybrid.update_lidar3d(map, city, sensed, t, &mut lidar3d_state);
                 }
                 None => hybrid.update_lidar(&scan, odom, t),
             }
