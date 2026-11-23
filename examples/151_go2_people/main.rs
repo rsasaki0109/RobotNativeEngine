@@ -491,6 +491,9 @@ struct Controller {
     last_yaw_rate: f64,
     /// Check the rules' command against everyone (see CROWD_HORIZON_S).
     crowd_check: bool,
+    /// Scan returns that are not people (odometry frame), for the crowd
+    /// check's alternatives: set each frame before `command`.
+    obstacles: Vec<[f64; 2]>,
     /// The last lane decision, for the trace: track, side, offset, aim heading.
     last_lane: Option<(u64, f64, f64, f64)>,
     mission: Mission,
@@ -516,6 +519,30 @@ struct Controller {
 const CROWD_HORIZON_S: f64 = 3.0;
 const CROWD_SAFE_M: f64 = 0.75;
 const CROWD_GAIN_M: f64 = 0.2;
+/// Closest an alternative may come to a scan return (base centre).
+const CROWD_WALL_M: f64 = 0.45;
+
+/// The closest predicted approach to any of `points` (static) for a
+/// unicycle command held from `odom` for CROWD_HORIZON_S.
+fn predicted_clearance_points(
+    points: &[[f64; 2]],
+    odom: Pose,
+    command: UnitreeGo2TrotCommand,
+) -> f64 {
+    let steps = (CROWD_HORIZON_S / DWA_STEP_S).round() as usize;
+    let (v, w) = (command.forward_speed_m_s, command.yaw_rate_rad_s);
+    let (mut x, mut y, mut th) = (odom[0], odom[1], odom[2]);
+    let mut clearance = f64::MAX;
+    for _ in 1..=steps {
+        th += w * DWA_STEP_S;
+        x += v * th.cos() * DWA_STEP_S;
+        y += v * th.sin() * DWA_STEP_S;
+        for p in points {
+            clearance = clearance.min((p[0] - x).hypot(p[1] - y));
+        }
+    }
+    clearance
+}
 
 /// The closest predicted approach to any of `tracks` (but `skip`) for a
 /// unicycle command held from `odom`.
@@ -552,19 +579,34 @@ fn crowd_checked(
     tracks: &[Track],
     odom: Pose,
     skip: Option<u64>,
+    obstacles: &[[f64; 2]],
 ) -> UnitreeGo2TrotCommand {
     let own = predicted_clearance(tracks, skip, odom, proposal);
     if own >= CROWD_SAFE_M {
         return proposal;
     }
-    // Speed only: the rules' turn is kept. The rollout knows nothing of
-    // walls, and hard turns it picked drove the robot into corridor walls.
-    let candidates = [0.0, 0.5 * MAX_SPEED_M_S, MAX_SPEED_M_S]
+    let candidates = [0.0, MAX_SPEED_M_S].into_iter().flat_map(|v| {
+        [
+            -MAX_YAW_RATE_RAD_S,
+            0.0,
+            proposal.yaw_rate_rad_s,
+            MAX_YAW_RATE_RAD_S,
+        ]
         .into_iter()
-        .map(|v| UnitreeGo2TrotCommand {
+        .map(move |w| UnitreeGo2TrotCommand {
             forward_speed_m_s: v,
-            yaw_rate_rad_s: proposal.yaw_rate_rad_s,
-        });
+            yaw_rate_rad_s: w,
+        })
+    });
+    // The people rollout knows nothing of walls: alternatives that come
+    // closer than CROWD_WALL_M to a scan return (and closer than the
+    // proposal does) are out. Without this, hard turns drove the robot into
+    // corridor walls.
+    let own_wall = predicted_clearance_points(obstacles, odom, proposal);
+    let candidates = candidates.filter(|c| {
+        let wall = predicted_clearance_points(obstacles, odom, *c);
+        wall >= CROWD_WALL_M || wall >= own_wall
+    });
     let best = candidates
         .map(|c| (predicted_clearance(tracks, skip, odom, c), c))
         .max_by(|a, b| a.0.total_cmp(&b.0));
@@ -801,7 +843,13 @@ impl Controller {
             yaw_rate_rad_s: yaw_rate.clamp(-MAX_YAW_RATE_RAD_S, MAX_YAW_RATE_RAD_S),
         };
         let command = if self.crowd_check {
-            crowd_checked(proposal, tracks, odom, target.map(|t| t.id))
+            crowd_checked(
+                proposal,
+                tracks,
+                odom,
+                target.map(|t| t.id),
+                &self.obstacles,
+            )
         } else {
             proposal
         };
@@ -1571,6 +1619,7 @@ fn run(
         kind,
         last_yaw_rate: 0.0,
         crowd_check,
+        obstacles: Vec::new(),
         last_lane: None,
         mission: task.mission,
         target: None,
@@ -1748,6 +1797,17 @@ fn run(
                     }
                 }),
         );
+        // Scan returns within reach of a rollout, but people's.
+        controller.obstacles = points
+            .iter()
+            .filter(|p| p[2] > perception::PERSON_BAND_M.0 && p[0].hypot(p[1]) < 2.0)
+            .map(|p| perception::to_odom(odom, [p[0], p[1]]))
+            .filter(|p| {
+                plan_tracks
+                    .iter()
+                    .all(|t| (t.position[0] - p[0]).hypot(t.position[1] - p[1]) > 0.5)
+            })
+            .collect();
         let (mut next, chosen) = controller.command(&plan_tracks, odom, time_s, speed_now);
         if let Some(c) = static_person_blocking(&static_people) {
             safety_hold_until_s = time_s + SAFETY_HOLD_S;
@@ -2043,6 +2103,7 @@ mod tests {
             kind: ControllerKind::Rule,
             last_yaw_rate: 0.0,
             crowd_check: false,
+            obstacles: Vec::new(),
             last_lane: None,
             mission,
             target: None,
@@ -2099,7 +2160,7 @@ mod tests {
             yaw_rate_rad_s: 0.0,
         };
         // Nobody near: the proposal stands.
-        assert_eq!(crowd_checked(go, &[], [0.0, 0.0, 0.0], None), go);
+        assert_eq!(crowd_checked(go, &[], [0.0, 0.0, 0.0], None, &[]), go);
         // Waiting while someone walks straight at the robot from the side:
         // anything else is clearly safer.
         let wait = UnitreeGo2TrotCommand {
@@ -2107,10 +2168,13 @@ mod tests {
             yaw_rate_rad_s: 0.0,
         };
         let tracks = [track(3, [0.0, -2.0], [0.0, 0.8])];
-        let chosen = crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], None);
+        let chosen = crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], None, &[]);
         assert!(chosen.forward_speed_m_s > 0.0, "{chosen:?}");
         // A follow target is not an obstacle.
-        assert_eq!(crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], Some(3)), wait);
+        assert_eq!(
+            crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], Some(3), &[]),
+            wait
+        );
     }
 
     #[test]
