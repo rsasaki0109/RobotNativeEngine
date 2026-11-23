@@ -284,6 +284,47 @@ the overtaker unless the robot is in its lane. Eight trials:
   not free it. Close by, the person's distance hovers at the contact
   threshold, and one of those runs counts 9 contacts.
 
+## Camera and VLM
+
+`--vlm "<command>"` adds `tracker+map+vlm`: `tracker+map` with a forward
+camera and a pretrained VLM. The camera sits on the Go2's head (0.45 m up,
+level, 60° vertical field of view) and is rendered on the CPU by
+`rne_render_cpu`, with the CC0 human mesh for people. The VLM is a separate
+process speaking one JSON line each way (`{"image": path}` in, person boxes
+out); robot-perception's `scripts/vlm/vlm_people_server.py` runs
+Florence-2's `<OD>` prompt:
+
+```bash
+cargo run --release -p go2_people --example 151_go2_people -- --task crowd \
+    --sources tracker+map,tracker+map+vlm --out target/go2_people \
+    --vlm "python3 /path/to/robot-perception/scripts/vlm/vlm_people_server.py" \
+    --tracker /path/to/robot-perception stream --setup target/go2_people/stream_setup.json \
+    --max-association-distance-m 1.0 --recent-track-window-ns 0
+```
+
+The VLM is asked at most once a second, and only with a person-shaped
+static cluster in view within 10 m. Its answer counts 1 s later, about what
+Florence-2 takes on a CPU. Static clusters whose image column falls in a
+person box go back to the tracker as people for 10 s, instead of being left
+to the map. The VLM finds the rendered people reliably, standing pair
+included. Eight trials in the crowd:
+
+| crowd, 8 trials | people | runs with contact | safety stop, mean (s) | stuck | VLM queries per run | detections given back per run |
+| --- | --- | --- | --- | --- | --- | --- |
+| tracker+map | scripted | 1 | 0.60 | 0 | - | - |
+| tracker+map+vlm | scripted | 2 | 0.19 | 0 | 43 | 452 |
+| tracker+map | reactive | 1 | 11.0 | 1 | - | - |
+| tracker+map+vlm | reactive | 1 | 10.5 | 1 | 46 | 451 |
+
+The VLM changes what the tracker sees but not how the robot does, within
+the noise of 8 trials. The geometric fixes above already cover the case it
+was meant for: a standing person absorbed by the map is planned around and
+stopped for whatever the map calls them. The remaining crowd contacts come
+from moments when three or four people are close at once, and the stuck run
+from a person inside the 0.4 m the scan ignores, where a camera 0.3 m ahead
+of the base does not help either. One run costs about 3 minutes instead of
+1.
+
 ## Dynamic-window controller
 
 `--controller dwa` replaces the rules with a dynamic window. Every pair of
@@ -348,5 +389,5 @@ The numbers above are after these fixes, each found from the traces:
   plans around them.
 - **SLAM**: scan matching only; no IMU fusion, no relocalization.
 - **DWA**: people only; walls and furniture are not obstacles to it.
-- **Not covered**: the camera and VLM cues. Combining them with this loop is
-  a next step.
+- **Camera**: one standing pose for every person; the image is rendered from
+  the true pose, and the VLM sees no motion blur or exposure changes.
