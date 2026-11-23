@@ -308,8 +308,13 @@ one).
 
 * LOD2 buildings are prisms with roofs: no balconies, signs, glass detail or
   ground-floor arcades, and the facade material is guessed from the height.
-* The street furniture and the pedestrians are synthetic; there are no
-  vehicles, and pedestrians do not obstruct one another or cross the street.
+* The street furniture, the pedestrians and the traffic are synthetic:
+  pedestrians walk fixed stretches or straight across the crossing and do
+  not obstruct one another; vehicles keep to two lanes beside the route at
+  constant speed (no signals, no turning; they are left out where a lane
+  would run into a building or within 1.5 m of the route).
+* The 3D LiDAR's map is the mesh the world is made of, so map error and
+  change are absent and its accuracy is optimistic.
 * Rain does not attenuate GNSS (well under 0.1 dB at L-band) and does not
   change the LiDAR's maximum range.
 * The terrain is interpolated from building bases, not a road surface model.
