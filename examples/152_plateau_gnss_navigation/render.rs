@@ -396,6 +396,7 @@ fn frame_items(
     push_signals(scene, gnss_scene, frame);
     push_lidar(scene, city, frame);
     push_people(scene, city, frame);
+    push_vehicles(scene, frame);
     push_rain(scene, frame);
 }
 
@@ -510,7 +511,7 @@ fn push_people(scene: &mut RenderScene, city: &PlateauCity, frame: &FrameRecord)
     const CLOTHES: [[u8; 3]; 4] = [[40, 45, 60], [150, 40, 40], [220, 215, 200], [60, 90, 70]];
     let mut bodies: [SolidMesh; 4] = Default::default();
     let mut heads = SolidMesh::default();
-    for (i, &(px, py)) in frame.people.iter().enumerate() {
+    for (i, &(px, py)) in frame.movers.people.iter().enumerate() {
         let z = city.ground_m(px, py);
         bodies[i % CLOTHES.len()].box_at(
             p(px, py, z + 0.75),
@@ -523,6 +524,27 @@ fn push_people(scene: &mut RenderScene, city: &PlateauCity, frame: &FrameRecord)
         push(scene, mesh, linear(colour), 0.8, 0.0, [0.0; 3]);
     }
     push(scene, heads, linear([225, 185, 150]), 0.7, 0.0, [0.0; 3]);
+}
+
+/// Vehicles: a body and a darker glasshouse.
+fn push_vehicles(scene: &mut RenderScene, frame: &FrameRecord) {
+    let (mut bodies, mut windows) = (SolidMesh::default(), SolidMesh::default());
+    for v in &frame.movers.vehicles {
+        let rotation = Quat::from_rotation_y(v.yaw_rad);
+        let (hl, hw, hh) = v.half;
+        bodies.box_at(
+            p(v.center.0, v.center.1, v.ground_m + 0.2 + 0.6 * hh),
+            Vec3::new(hl, 0.6 * hh, hw),
+            rotation,
+        );
+        windows.box_at(
+            p(v.center.0, v.center.1, v.ground_m + 0.2 + 1.5 * hh),
+            Vec3::new(0.9 * hl, 0.35 * hh, 0.95 * hw),
+            rotation,
+        );
+    }
+    push(scene, bodies, linear([200, 200, 205]), 0.3, 0.6, [0.0; 3]);
+    push(scene, windows, linear([40, 50, 60]), 0.1, 0.2, [0.0; 3]);
 }
 
 /// Rain streaks around the robot, different every frame (deterministic).
@@ -667,7 +689,7 @@ pub(crate) fn render(
             "error_m": error,
             "los": los,
             "nlos": nlos,
-            "weather": match (frame.people.is_empty(), frame.rain) {
+            "weather": match (frame.movers.people.is_empty(), frame.rain) {
                 (true, false) => "",
                 (false, false) => "crowd",
                 (true, true) => "rain",

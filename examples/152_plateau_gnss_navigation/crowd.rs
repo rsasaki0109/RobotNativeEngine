@@ -23,6 +23,8 @@ pub(crate) struct Weather {
     /// on the walk signal, straight across and diagonally (a scramble
     /// crossing).
     pub scramble: usize,
+    /// Vehicles on the street beside the route.
+    pub vehicles: usize,
 }
 
 /// One pedestrian walking back and forth along a stretch of the route.

@@ -20,6 +20,7 @@ mod nav;
 mod plateau;
 #[cfg(feature = "capture")]
 mod render;
+mod traffic;
 mod urbannav;
 
 #[cfg(feature = "capture")]
@@ -277,6 +278,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                         pedestrians: PEDESTRIANS,
                         rain: true,
                         scramble: 0,
+                        vehicles: 0,
                     }
                 } else {
                     Weather::default()
@@ -350,6 +352,8 @@ const PEDESTRIANS: usize = 60;
 /// crossing at the route's start.
 const RUSH_HOUR_PEDESTRIANS: usize = 150;
 const SCRAMBLE_CROSSERS: usize = 120;
+/// Vehicles on the street at rush hour.
+const RUSH_HOUR_VEHICLES: usize = 40;
 
 /// `--conditions`: the main configuration, hybrid and factor graph, in clear
 /// weather, in a crowd, in rain, and with more glass, as `(label, options, glass curtain walls from this height)`.
@@ -368,18 +372,21 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         pedestrians: PEDESTRIANS,
         rain: false,
         scramble: 0,
+        vehicles: 0,
     };
     let rain = Weather {
         pedestrians: PEDESTRIANS,
         rain: true,
         scramble: 0,
+        vehicles: 0,
     };
-    // Rush hour: a denser crowd along the route and a scramble crossing at
-    // its start and end.
+    // Rush hour: a denser crowd along the route, a scramble crossing at its
+    // start and end, and traffic on the street.
     let rush = Weather {
         pedestrians: RUSH_HOUR_PEDESTRIANS,
         rain: false,
         scramble: SCRAMBLE_CROSSERS,
+        vehicles: RUSH_HOUR_VEHICLES,
     };
     let glass = plateau::GLASS_TOWER_HEIGHT_M;
     let clear = Weather::default();

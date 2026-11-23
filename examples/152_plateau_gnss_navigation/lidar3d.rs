@@ -4,6 +4,7 @@
 use crate::crowd::{PEDESTRIAN_HEIGHT_M, PEDESTRIAN_RADIUS_M};
 use crate::nav::gaussian;
 use crate::plateau::PlateauCity;
+use crate::traffic::{vehicle_range, Movers};
 use rne_core::DeterministicRng;
 use rne_math::Vec3;
 use rne_nav::Pose2d;
@@ -37,7 +38,7 @@ fn elevation(ring: usize) -> f64 {
 /// comparable.
 pub(crate) fn scan(
     city: &PlateauCity,
-    people: &[(f64, f64)],
+    movers: &Movers,
     rain: bool,
     pose: Pose2d,
     ground_m: f64,
@@ -64,7 +65,10 @@ pub(crate) fn scan(
             if let Some(t) = ground_hit(city, origin, world, range) {
                 range = t;
             }
-            if let Some(t) = person_hit(city, people, origin, world) {
+            if let Some(t) = person_hit(city, &movers.people, origin, world) {
+                range = range.min(t);
+            }
+            if let Some(t) = vehicle_range(&movers.vehicles, origin, world) {
                 range = range.min(t);
             }
             if !range.is_finite() || range > RANGE_M {

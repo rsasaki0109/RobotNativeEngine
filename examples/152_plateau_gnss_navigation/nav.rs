@@ -4,10 +4,11 @@
 //! `rne_slam::HybridLocalizer` with the same safety logic.
 
 use crate::avoid::Avoider;
-use crate::crowd::{pedestrian_boxes, pedestrian_range, Crowd, Weather};
+use crate::crowd::{pedestrian_range, Weather};
 use crate::gnss::{GnssOutput, RobotGnss, SolutionLabel, BODY_HEIGHT_M};
 use crate::lidar3d;
 use crate::plateau::PlateauCity;
+use crate::traffic::{vehicle_range_planar, Movers, Street};
 use rne_core::DeterministicRng;
 use rne_gnss::{BodyPose, Constellation, GnssScene, ReceiverConfig, SignalPath, TraceConfig};
 use rne_math::Vec3;
@@ -122,7 +123,7 @@ impl Localizer {
         &mut self,
         map: &PointCloudMap,
         city: &PlateauCity,
-        sensed: (&[(f64, f64)], bool, Pose2d),
+        sensed: (&Movers, bool, Pose2d),
         t: f64,
         state: &mut Lidar3dState,
     ) {
@@ -133,9 +134,9 @@ impl Localizer {
         let Lidar3dState {
             rng, last_search_s, ..
         } = state;
-        let (people, rain, truth) = sensed;
+        let (movers, rain, truth) = sensed;
         let ground = city.ground_m(truth.x_m, truth.y_m);
-        let points = lidar3d::scan(city, people, rain, truth, ground, rng);
+        let points = lidar3d::scan(city, movers, rain, truth, ground, rng);
         let points = &lidar3d::downsample(&points)[..];
         let pose = self.pose();
         let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
@@ -208,8 +209,8 @@ pub(crate) struct FrameRecord {
     pub epoch: Option<rne_gnss::GnssEpoch>,
     /// LiDAR returns in the map frame.
     pub scan: Vec<(f64, f64)>,
-    /// Pedestrians, map frame.
-    pub people: Vec<(f64, f64)>,
+    /// Pedestrians and vehicles.
+    pub movers: Movers,
     /// Whether it is raining.
     pub rain: bool,
 }
@@ -592,8 +593,7 @@ pub(crate) fn run(
         Constellation::gps_galileo_nominal()
     };
     let (mut scene, model) = gnss_scene(city, options.weather.rain);
-    let crowd = Crowd::new(route, options.weather.pedestrians, 0xC0_0D ^ options.seed)
-        .with_scramble(options.weather.scramble, 0x5C_4A ^ options.seed);
+    let street = Street::new(route, options.weather, options.seed);
     let mut receiver = receiver_config();
     // A large odd multiplier spreads small seeds over the whole range.
     let reseed = options.seed.wrapping_mul(0x9E37_79B9_7F4A_7C15);
@@ -660,8 +660,8 @@ pub(crate) fn run(
         odom = integrate(odom, odom_v, odom_w, DT_S);
         hybrid.predict(DT_S, odom_v, odom_w);
 
-        let people = crowd.positions(t, (truth.x_m, truth.y_m));
-        scene.boxes = pedestrian_boxes(&people, |x, y| city.ground_m(x, y));
+        let movers = street.at(t, (truth.x_m, truth.y_m), city);
+        scene.boxes = movers.gnss_boxes(city);
         // NLOS prediction needs a pose: once the robot is dead reckoning
         // it may be lost, and predicting from a wrong pose would withhold
         // the very satellites that could relocalize it.
@@ -691,7 +691,7 @@ pub(crate) fn run(
             }
         }
         if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
-            let scan = lidar_scan(&slice, &people, options.weather.rain, truth, t, &mut rng);
+            let scan = lidar_scan(&slice, &movers, options.weather.rain, truth, t, &mut rng);
             if options.record {
                 last_scan = scan_points(&scan, truth);
             }
@@ -701,7 +701,7 @@ pub(crate) fn run(
                 .min(scan.ranges_m.iter().copied().fold(f64::INFINITY, f64::min));
             match cloud.filter(|_| options.lidar3d) {
                 Some(map) => {
-                    let sensed = (&people[..], options.weather.rain, truth);
+                    let sensed = (&movers, options.weather.rain, truth);
                     hybrid.update_lidar3d(map, city, sensed, t, &mut lidar3d_state);
                 }
                 None => hybrid.update_lidar(&scan, odom, t),
@@ -729,7 +729,7 @@ pub(crate) fn run(
                 label: last_label,
                 epoch: gnss.rear_epoch().cloned(),
                 scan: last_scan.clone(),
-                people: people.clone(),
+                movers: movers.clone(),
                 rain: options.weather.rain,
             });
         }
@@ -945,7 +945,7 @@ fn integrate(pose: Pose2d, v: f64, w: f64, dt: f64) -> Pose2d {
 /// buildings in view, as a 3D sensor would.
 fn lidar_scan(
     slice: &OccupancyGrid,
-    people: &[(f64, f64)],
+    movers: &Movers,
     rain: bool,
     pose: Pose2d,
     t: f64,
@@ -977,8 +977,13 @@ fn lidar_scan(
                 }
                 r += STEP_M;
             }
-            if let Some(person) = pedestrian_range(people, pose.x_m, pose.y_m, dx, dy) {
+            if let Some(person) = pedestrian_range(&movers.people, pose.x_m, pose.y_m, dx, dy) {
                 range = range.min(person);
+            }
+            let at = (pose.x_m, pose.y_m);
+            if let Some(car) = vehicle_range_planar(&movers.vehicles, at, (dx, dy), LIDAR_HEIGHT_M)
+            {
+                range = range.min(car);
             }
             if rain {
                 // Rain: wet, scattered returns drop out, ranges get noisier,
@@ -1108,14 +1113,18 @@ mod tests {
         let slice = OccupancyGrid::new(200, 200, 0.1, Pose2d::new(-10.0, -10.0, 0.0)).expect("map");
         let pose = Pose2d::new(0.0, 0.0, 0.0);
         let mut rng = DeterministicRng::new(3);
-        let scan = lidar_scan(&slice, &[(1.5, 0.0)], false, pose, 0.0, &mut rng);
+        let person = Movers {
+            people: vec![(1.5, 0.0)],
+            vehicles: Vec::new(),
+        };
+        let scan = lidar_scan(&slice, &person, false, pose, 0.0, &mut rng);
         let ahead = front_range(&scan);
         assert!((ahead - 1.25).abs() < 0.1, "{ahead}");
         // Rain: some beams drop out, a few return from drops close by.
         let dry = scan.ranges_m.iter().filter(|r| r.is_finite()).count();
         let mut finite = 0;
         for _ in 0..20 {
-            let wet = lidar_scan(&slice, &[(1.5, 0.0)], true, pose, 0.0, &mut rng);
+            let wet = lidar_scan(&slice, &person, true, pose, 0.0, &mut rng);
             finite += wet.ranges_m.iter().filter(|r| r.is_finite()).count();
         }
         assert!((15..30).contains(&dry), "only the pedestrian: {dry}");
