@@ -11,6 +11,11 @@ All notable changes to Robot Native Engine are documented in this file.
   replaces a mesh's materials with the item colour. Its indoor fill light is
   dimmer, so the directional shadows stay visible.
 
+- `rne_py.DiffDriveSim.from_scene(path)` builds the differential-drive simulator
+  from a `.rne.scene.toml` (robots, obstacles, sensors) instead of the built-in
+  empty world; `fixed_delta_s` and `contact_count` expose the physics step and
+  the last step's contacts.
+
 - Example 149 records what a targetless intrinsics calibration needs:
   `--motion turn` turns the rig about the camera's optical centre,
   `--lens K1,K2,P1,P2[,K3]` gives the camera lens distortion, and
