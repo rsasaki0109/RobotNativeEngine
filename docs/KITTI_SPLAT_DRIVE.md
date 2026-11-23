@@ -94,8 +94,10 @@ Open-loop localization of 172 RNE front-camera frames: none before the footprint
 
 ![Car driving itself 2.2 km through the KITTI 0018 splats, steering by camera only](media/kitti-splat-drive.gif)
 
-Top: the car's front camera (RNE render). Bottom: LiDAR map, route, the car steering by visual
-fixes (orange) and the same car on wheel odometry only (red). KITTI is CC BY-NC-SA 3.0.
+First the real KITTI photo above the splat render from the same pose; then the drive, the car's
+front camera (RNE render) above the LiDAR map with the car steering by visual fixes (orange) and
+the same car on wheel odometry only (red); halfway, the car stops and the camera sways 1.5 m
+off the recorded path to show the street is 3D. KITTI is CC BY-NC-SA 3.0.
 
 ## Results (KITTI 0018, whole drive 2.2 km, seven splats, 7 m/s, CPU lavapipe)
 
