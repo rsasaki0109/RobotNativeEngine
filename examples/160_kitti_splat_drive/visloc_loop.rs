@@ -14,6 +14,7 @@
 //! [--segments LIST]         RNE renderer with one splat and map per stretch of the route:
 //!                           lines `start_frame, manifest, map_dir`. The splat follows the
 //!                           true pose (it is the world); the map follows the estimate.
+//! [--loc-args "FLAGS"]      extra flags for the localizer, e.g. "--ratio 0.9 --min-inliers 12"
 //! [--render-poses TUM --manifest SPLAT.toml --out DIR]
 //!                           only render RNE camera images at SLAM camera poses into DIR/rgb
 //! ```
@@ -446,6 +447,8 @@ fn localize(bin: &str, map: &str, png: &Path, out: &Path) -> Option<(M3, [f64; 3
             "1500",
         ])
         .args(["--min-inliers", "15"])
+        // Extra localizer flags (later flags override the defaults above).
+        .args(arg("--loc-args").unwrap_or_default().split_whitespace())
         .stdout(Stdio::null())
         .status()
         .ok()?;
