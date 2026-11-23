@@ -16,6 +16,55 @@ All notable changes to Robot Native Engine are documented in this file.
   empty world; `fixed_delta_s` and `contact_count` expose the physics step and
   the last step's contacts.
 
+- `rne_gnss` traces triangle-mesh buildings: `TriangleMesh` (BVH closest and
+  any-hit queries, range queries, an inside test, convex-crease diffraction
+  edges) in `GnssScene::mesh`, with mesh triangles as reflectors above
+  `TraceConfig::min_reflector_area_m2` and diffraction over mesh edges; a
+  street traced as boxes and as a mesh gives the same paths.
+  `TraceConfig::max_multi_bounce_facets` bounds the two-bounce search.
+  `Propagation::blocked_by` is now a `FacetSource`.
+- QZSS in `rne_gnss` (`GnssSystem::Qzss`, `Constellation::qzss_nominal`,
+  `gps_galileo_qzss_nominal`, QZSS L1 C/A and L2C) and in the libgnss++
+  adapter; the simulated satellite clock carries the relativistic term of
+  eccentric orbits, which receivers correct from the ephemeris.
+- `rne_plateau::parse_building_triangles`: each building's triangulated LOD2
+  surfaces with their semantic class.
+- `scripts/fetch_plateau_tokyo.py` extracts PLATEAU Tokyo meshes from the
+  official archive with HTTP range requests.
+- `EkfFusion::update_position_covariance`, and
+  `HybridLocalizerConfig::lidar_anisotropic` (off by default): scan matches
+  fused with a covariance from the curvature of their score, the particle
+  filter's match preferred over a wider window, and the EKF re-anchored when
+  the two stay metres apart.
+- `rne_slam::FactorGraphLocalizer`: a sliding-window factor graph of
+  odometry, GNSS (Cauchy kernel) and LiDAR scan-match (Huber kernel,
+  curvature-based covariance) factors, solved by reweighted Gauss–Newton on
+  block-tridiagonal normal equations with Schur-complement marginalization,
+  a particle filter seeding a second scan match, and re-anchoring onto
+  consistent RTK fixes or particle-filter matches when lost.
+  `match_position_covariance` is shared with `HybridLocalizer`.
+- Example 152: the GNSS/LiDAR robot of example 151 walking real streets
+  around Shibuya Station and in Nishi-Shinjuku from PLATEAU's LOD2 model,
+  with QZSS and a park reference station; a sky survey, three
+  configurations per area and a 3D render (`docs/media/plateau-gnss-*.gif`).
+  `--conditions` adds pedestrians on the sidewalks, rain and glass canyons,
+  and `--seeds N` repeats each run over N noise realizations.
+- `HybridLocalizer`: a GNSS gate reset while LiDAR or dead reckoning is the
+  source now re-anchors the EKF on the fix; before, the reset accepted the
+  fix but left the estimate where it was, so the gate kept rejecting GNSS.
+- `HybridLocalizerConfig::lidar_drop_unmapped_returns` (off by default):
+  returns in the prior map's free space, away from any mapped structure,
+  are left out of LiDAR tracking. `gnss_reanchor_fixes` (off by default):
+  a run of gate-rejected RTK fixed fixes (float too while dead reckoning)
+  that agree relative to the odometry re-anchors the estimate. With both
+  and the LiDAR gate, example 152's hybrid reaches the goal in 23 of 24
+  crowd, rain and glass runs instead of 16.
+  `lidar_unmapped_distance_m` sets how far from mapped structure a return
+  must be to be dropped, and `lidar_motion_check_scans` (off by default)
+  stops fusing matches that stay put while the wheels move.
+
+### Added
+
 - Example 149 records checkerboard calibrations: `--board COLSxROWSxSQUARE_M`
   stands a checkerboard in the room (a collider the LiDARs see, its pattern
   antialiased with jittered rays), `--motion board` holds the rig still at 28

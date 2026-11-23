@@ -329,3 +329,52 @@ fn imports_lod2_and_lod31_road_semantics_into_traffic_schema() {
     fs::remove_dir_all(output).expect("remove semantic output");
     fs::remove_dir_all(repeated_output).expect("remove repeated semantic output");
 }
+
+#[test]
+fn building_triangles_cover_roofs_and_walls_with_consistent_winding() {
+    let xml = fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/plateau_lod2_textured.gml"),
+    )
+    .expect("fixture");
+    let buildings = rne_plateau::parse_building_triangles(&xml).expect("parse");
+    assert!(!buildings.is_empty());
+    for building in &buildings {
+        assert_eq!(building.lod, 2);
+        let kinds: std::collections::BTreeSet<_> =
+            building.triangles.iter().map(|t| t.surface).collect();
+        assert!(
+            kinds.contains(&rne_plateau::BuildingSurface::Roof),
+            "{kinds:?}"
+        );
+        assert!(
+            kinds.contains(&rne_plateau::BuildingSurface::Wall),
+            "{kinds:?}"
+        );
+        // A closed, consistently wound surface encloses a non-zero signed
+        // volume (its sign depends on the CRS axis order).
+        let o = building.triangles[0].vertices[0];
+        let rel = |p: [f64; 3]| [p[0] - o[0], p[1] - o[1], p[2] - o[2]];
+        let volume: f64 = building
+            .triangles
+            .iter()
+            .map(|t| {
+                let [a, b, c] = t.vertices.map(rel);
+                a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0])
+                    + a[2] * (b[0] * c[1] - b[1] * c[0])
+            })
+            .sum::<f64>()
+            / 6.0;
+        let unsigned: f64 = building
+            .triangles
+            .iter()
+            .map(|t| {
+                let [a, b, c] = t.vertices.map(rel);
+                (a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0])
+                    + a[2] * (b[0] * c[1] - b[1] * c[0]))
+                    .abs()
+            })
+            .sum::<f64>()
+            / 6.0;
+        assert!(volume.abs() > 0.2 * unsigned, "{volume} vs {unsigned}");
+    }
+}

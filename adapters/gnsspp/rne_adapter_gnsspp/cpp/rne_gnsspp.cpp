@@ -11,7 +11,11 @@
 namespace {
 
 libgnss::GNSSSystem toSystem(uint8_t system) {
-    return system == 4 ? libgnss::GNSSSystem::Galileo : libgnss::GNSSSystem::GPS;
+    switch (system) {
+        case 4: return libgnss::GNSSSystem::Galileo;
+        case 0x10: return libgnss::GNSSSystem::QZSS;
+        default: return libgnss::GNSSSystem::GPS;
+    }
 }
 
 struct SignalInfo {
@@ -25,6 +29,8 @@ SignalInfo toSignal(uint8_t signal) {
         case 1: return {libgnss::SignalType::GPS_L2C, "C2L", "L2L"};
         case 2: return {libgnss::SignalType::GAL_E1, "C1C", "L1C"};
         case 3: return {libgnss::SignalType::GAL_E5A, "C5Q", "L5Q"};
+        case 4: return {libgnss::SignalType::QZS_L1CA, "C1C", "L1C"};
+        case 5: return {libgnss::SignalType::QZS_L2C, "C2L", "L2L"};
         default: return {libgnss::SignalType::GPS_L1CA, "C1C", "L1C"};
     }
 }

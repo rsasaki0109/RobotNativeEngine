@@ -136,6 +136,8 @@ fn signal_code(signal: SignalKind) -> u8 {
         SignalKind::GpsL2C => 1,
         SignalKind::GalE1 => 2,
         SignalKind::GalE5a => 3,
+        SignalKind::QzsL1Ca => 4,
+        SignalKind::QzsL2C => 5,
     }
 }
 
@@ -144,6 +146,7 @@ fn system_code(system: GnssSystem) -> u8 {
     match system {
         GnssSystem::Gps => 1,
         GnssSystem::Galileo => 4,
+        GnssSystem::Qzss => 0x10,
     }
 }
 
@@ -667,6 +670,8 @@ mod tests {
         assert!(!SolutionStatus::from_code(0).has_position());
         assert_eq!(signal_code(SignalKind::GalE5a), 3);
         assert_eq!(system_code(GnssSystem::Galileo), 4);
+        assert_eq!(system_code(GnssSystem::Qzss), 0x10);
+        assert_eq!(signal_code(SignalKind::QzsL2C), 5);
     }
 
     #[test]

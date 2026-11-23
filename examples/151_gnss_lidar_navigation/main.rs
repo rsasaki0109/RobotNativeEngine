@@ -152,6 +152,7 @@ impl Run {
             frame,
             receiver_config(),
             SKY_EPOCH_S + 300.0,
+            BASE_ENU_M,
         );
         println!(
             "GNSS solver: {}",

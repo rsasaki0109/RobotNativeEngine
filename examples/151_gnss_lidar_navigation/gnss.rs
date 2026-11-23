@@ -3,7 +3,6 @@
 //! (front antenna against the rear) for heading. Without libgnss++ the rear
 //! antenna's built-in single-point fixes are used instead.
 
-use crate::city::BASE_ENU_M;
 use rne_adapter_gnsspp::{Navigation, Rtk, RtkConfig, RtkMode, Solution, SolutionStatus};
 use rne_gnss::{
     AntennaRig, BodyPose, Constellation, EnuFrame, GnssEpoch, GnssFix, GnssReceiver, GnssScene,
@@ -59,6 +58,8 @@ pub(crate) struct RobotGnss {
     rig: AntennaRig,
     solver: Solver,
     frame: EnuFrame,
+    /// RTK base station antenna in ENU meters.
+    base_enu_m: Vec3,
 }
 
 impl std::fmt::Debug for RobotGnss {
@@ -76,6 +77,7 @@ impl RobotGnss {
         frame: EnuFrame,
         config: ReceiverConfig,
         reference_s: f64,
+        base_enu_m: Vec3,
     ) -> Self {
         let rig = AntennaRig::new(&LEVER_ARMS_M, config).expect("rig");
         let solver = (|| {
@@ -95,7 +97,7 @@ impl RobotGnss {
                 ..RtkConfig::new(RtkMode::Kinematic)
             })
             .ok()?;
-            rtk.set_base_position(frame.enu_to_ecef(BASE_ENU_M)).ok()?;
+            rtk.set_base_position(frame.enu_to_ecef(base_enu_m)).ok()?;
             let heading = Rtk::with_config(&RtkConfig {
                 elevation_mask_deg: ELEVATION_MASK_DEG,
                 preset: "moving-base".to_string(),
@@ -116,7 +118,12 @@ impl RobotGnss {
             })
         })()
         .unwrap_or(Solver::BuiltIn);
-        Self { rig, solver, frame }
+        Self {
+            rig,
+            solver,
+            frame,
+            base_enu_m,
+        }
     }
 
     /// Whether libgnss++ RTK is in use.
@@ -165,7 +172,7 @@ impl RobotGnss {
                 heading,
                 base,
             } => {
-                base.step(scene, constellation, &frame, BASE_ENU_M, time_s);
+                base.step(scene, constellation, &frame, self.base_enu_m, time_s);
                 let rear_receiver = &self.rig.antennas()[REAR].receiver;
                 if !rear_receiver.measured_at(time_s) || !base.measured_at(time_s) {
                     return Vec::new();
@@ -194,7 +201,7 @@ impl RobotGnss {
                     (rear_epoch.clone(), front_epoch.clone())
                 };
                 let (rear_epoch, front_epoch) = (&rear_epoch, &front_epoch);
-                let base_ecef = frame.enu_to_ecef(BASE_ENU_M);
+                let base_ecef = frame.enu_to_ecef(self.base_enu_m);
                 let Ok(solution) =
                     rtk.process(rear_epoch, None, base_epoch, Some(base_ecef), navigation)
                 else {

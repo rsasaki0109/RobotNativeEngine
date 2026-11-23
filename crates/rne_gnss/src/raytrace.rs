@@ -46,6 +46,26 @@ pub struct TraceConfig {
     /// in meters (distant reflections are long-delayed and weak; this keeps
     /// large scenes fast).
     pub max_interaction_distance_m: f64,
+    /// Mesh triangles smaller than this are not traced as specular
+    /// reflectors, m² (a specular reflection needs a surface comparable to
+    /// the first Fresnel zone, a few m² at L1 at street distances; smaller
+    /// details scatter rather than mirror).
+    #[serde(default = "default_min_reflector_area")]
+    pub min_reflector_area_m2: f64,
+    /// Only this many facets nearest the antenna are combined into
+    /// multi-bounce paths (single bounces use every facet in range), which
+    /// bounds the `O(n²)` search on detailed meshes. Unlimited by default;
+    /// a few dozen keeps a city model fast.
+    #[serde(default = "default_max_multi_bounce_facets")]
+    pub max_multi_bounce_facets: usize,
+}
+
+fn default_min_reflector_area() -> f64 {
+    4.0
+}
+
+fn default_max_multi_bounce_facets() -> usize {
+    usize::MAX
 }
 
 impl Default for TraceConfig {
@@ -55,6 +75,8 @@ impl Default for TraceConfig {
             diffraction: true,
             max_diffraction_excess_m: 2.0,
             max_interaction_distance_m: 150.0,
+            min_reflector_area_m2: default_min_reflector_area(),
+            max_multi_bounce_facets: default_max_multi_bounce_facets(),
         }
     }
 }
@@ -121,8 +143,8 @@ pub fn knife_edge_loss_db(nu: f64) -> f64 {
 pub struct Propagation {
     /// Whether the direct path is unobstructed.
     pub line_of_sight: bool,
-    /// The box blocking the direct path, if any.
-    pub blocked_by: Option<usize>,
+    /// The box or mesh triangle blocking the direct path, if any.
+    pub blocked_by: Option<FacetSource>,
     /// All paths: the direct path first when LOS, then reflections by bounce
     /// count, then diffraction.
     pub paths: Vec<PropagationPath>,
@@ -149,10 +171,8 @@ pub fn trace_satellite(
     let u = satellite_direction.normalize();
     let blocked_by = scene
         .raycast(antenna_m, u, f64::INFINITY)
-        .and_then(|hit| match hit.source {
-            FacetSource::Box(index) => Some(index),
-            FacetSource::Ground => None,
-        });
+        .map(|hit| hit.source)
+        .filter(|source| *source != FacetSource::Ground);
     let mut propagation = Propagation {
         line_of_sight: blocked_by.is_none(),
         blocked_by,
@@ -175,27 +195,52 @@ pub fn trace_satellite(
     }
 
     let reach = config.max_interaction_distance_m;
-    let facets: Vec<Facet> = scene
-        .facets()
+    let facets: Vec<(f64, Facet)> = scene
+        .facets_near(antenna_m, reach, config.min_reflector_area_m2)
         .into_iter()
-        .filter(|f| box_distance(f.min_m, f.max_m, antenna_m) <= reach)
+        .map(|f| (box_distance(f.min_m, f.max_m, antenna_m), f))
+        .filter(|(d, _)| *d <= reach)
         .collect();
+    let all: Vec<Facet> = facets.iter().map(|(_, f)| *f).collect();
     // Facets the satellite illuminates (candidates for the last bounce).
-    let lit: Vec<usize> = (0..facets.len())
-        .filter(|&i| u.dot(facets[i].normal) > 0.0)
-        .collect();
+    let lit = |set: &[Facet]| -> Vec<usize> {
+        (0..set.len())
+            .filter(|&i| u.dot(set[i].normal) > 0.0)
+            .collect()
+    };
     let mut sequence = Vec::with_capacity(config.max_reflections);
-    for depth in 1..=config.max_reflections {
+    if config.max_reflections >= 1 {
         enumerate_sequences(
             scene,
-            &facets,
-            &lit,
+            &all,
+            &lit(&all),
             antenna_m,
             u,
-            depth,
+            1,
             &mut sequence,
             &mut propagation.paths,
         );
+    }
+    if config.max_reflections >= 2 {
+        // The nearest facets (ties by scene order), kept in scene order.
+        let mut ranked: Vec<usize> = (0..facets.len()).collect();
+        ranked.sort_by(|&a, &b| facets[a].0.total_cmp(&facets[b].0).then(a.cmp(&b)));
+        ranked.truncate(config.max_multi_bounce_facets);
+        ranked.sort_unstable();
+        let near: Vec<Facet> = ranked.iter().map(|&i| facets[i].1).collect();
+        let near_lit = lit(&near);
+        for depth in 2..=config.max_reflections {
+            enumerate_sequences(
+                scene,
+                &near,
+                &near_lit,
+                antenna_m,
+                u,
+                depth,
+                &mut sequence,
+                &mut propagation.paths,
+            );
+        }
     }
     if config.diffraction && !propagation.line_of_sight {
         trace_diffraction(scene, antenna_m, u, config, &mut propagation.paths);
@@ -402,6 +447,115 @@ fn trace_diffraction(
             });
         }
     }
+    if let Some(mesh) = &scene.mesh {
+        trace_mesh_diffraction(scene, mesh, antenna_m, u, config, out);
+    }
+}
+
+/// The point on segment `p0..p1` minimising `excess` (convex along a line),
+/// by golden-section search.
+fn minimise_on_segment(p0: Vec3, p1: Vec3, excess: impl Fn(Vec3) -> f64) -> Vec3 {
+    let (mut lo, mut hi) = (0.0_f64, 1.0_f64);
+    let ratio = 0.618_033_988_749_895;
+    for _ in 0..48 {
+        let a = hi - ratio * (hi - lo);
+        let b = lo + ratio * (hi - lo);
+        if excess(p0.lerp(p1, a)) < excess(p0.lerp(p1, b)) {
+            hi = b;
+        } else {
+            lo = a;
+        }
+    }
+    p0.lerp(p1, 0.5 * (lo + hi))
+}
+
+/// Adds the best diffracted path over each mesh object's edges.
+fn trace_mesh_diffraction(
+    scene: &GnssScene,
+    mesh: &crate::mesh::TriangleMesh,
+    antenna_m: Vec3,
+    u: Vec3,
+    config: &TraceConfig,
+    out: &mut Vec<PropagationPath>,
+) {
+    let excess = |point: Vec3| {
+        let d = point - antenna_m;
+        d.length() - d.dot(u)
+    };
+    // Best candidate per object: (excess, point, lifted point, edge index).
+    let mut best: std::collections::BTreeMap<u32, (f64, Vec3, Vec3, usize)> =
+        std::collections::BTreeMap::new();
+    for index in mesh.edges_near(antenna_m, config.max_interaction_distance_m) {
+        let edge = &mesh.diffraction_edges()[index];
+        if box_distance(
+            edge.start_m.min(edge.end_m),
+            edge.start_m.max(edge.end_m),
+            antenna_m,
+        ) > config.max_interaction_distance_m
+        {
+            continue;
+        }
+        // Cheap bound: excess(P) = |d⊥|² / (|d| + d·u) ≥ |d⊥|² / 2|d|, with
+        // d = P − A and d⊥ its part across the satellite ray. Skip edges
+        // whose closest approach to the ray already exceeds the limit.
+        let (a, b) = (edge.start_m - antenna_m, edge.end_m - antenna_m);
+        let (a_perp, b_perp) = (a - u * a.dot(u), b - u * b.dot(u));
+        let span = b_perp - a_perp;
+        let s = if span.length_squared() > 0.0 {
+            (-a_perp.dot(span) / span.length_squared()).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let closest_perp = (a_perp + span * s).length_squared();
+        let far = a.length().max(b.length()).max(1.0e-9);
+        if closest_perp / (2.0 * far) > config.max_diffraction_excess_m {
+            continue;
+        }
+        let point = minimise_on_segment(edge.start_m, edge.end_m, excess);
+        let delta = excess(point);
+        if delta > config.max_diffraction_excess_m
+            || best.get(&edge.object).is_some_and(|b| delta >= b.0)
+        {
+            continue;
+        }
+        let lifted = point + edge.outward * 1.0e-4;
+        let to_edge = lifted - antenna_m;
+        let distance = to_edge.length();
+        if distance < 1.0e-6 {
+            continue;
+        }
+        let toward = to_edge / distance;
+        if scene.occluded(antenna_m, toward, distance - 1.0e-6)
+            || scene.occluded(lifted, u, f64::INFINITY)
+        {
+            continue;
+        }
+        best.insert(edge.object, (delta, point, lifted, index));
+    }
+    for (delta, point, lifted, index) in best.into_values() {
+        let to_edge = lifted - antenna_m;
+        let distance = to_edge.length();
+        let toward = to_edge / distance;
+        let foliage = scene.foliage_loss_db(antenna_m, toward, distance)
+            + scene.foliage_loss_db(lifted, u, f64::INFINITY);
+        let edge = &mesh.diffraction_edges()[index];
+        // Attribute the path to the nearest triangle of the edge's object
+        // for path identity (the first triangle hit just below the edge).
+        let source = mesh
+            .raycast(lifted, -edge.outward, 1.0)
+            .map_or(FacetSource::Triangle(usize::MAX), |(_, t)| {
+                FacetSource::Triangle(t)
+            });
+        out.push(PropagationPath {
+            kind: PathKind::Diffracted,
+            excess_delay_m: delta,
+            arrival_direction: toward,
+            reflection_loss_db: 0.0,
+            foliage_loss_db: foliage,
+            points_m: vec![point],
+            sources: vec![source],
+        });
+    }
 }
 
 #[cfg(test)]
@@ -459,7 +613,7 @@ mod tests {
         let antenna = Vec3::new(0.0, 0.0, 1.0);
         let low_east = trace_satellite(&scene, antenna, direction(90.0, 40.0), &single_bounce());
         assert!(!low_east.line_of_sight);
-        assert_eq!(low_east.blocked_by, Some(0));
+        assert_eq!(low_east.blocked_by, Some(FacetSource::Box(0)));
         let high_east = trace_satellite(&scene, antenna, direction(90.0, 80.0), &single_bounce());
         assert!(high_east.line_of_sight);
     }
@@ -639,6 +793,77 @@ mod tests {
             .paths
             .iter()
             .all(|path| path.kind == PathKind::Direct));
+    }
+
+    #[test]
+    fn a_street_traced_as_a_mesh_matches_the_same_street_as_boxes() {
+        let boxes = street();
+        let mut triangles = Vec::new();
+        for (object, b) in boxes.boxes.iter().enumerate() {
+            triangles.extend(crate::mesh::box_triangles(
+                b.min_m,
+                b.max_m,
+                b.material,
+                object as u32,
+            ));
+        }
+        let mesh = GnssScene {
+            mesh: Some(std::sync::Arc::new(crate::mesh::TriangleMesh::new(
+                triangles,
+            ))),
+            ..GnssScene::default()
+        };
+        let config = TraceConfig {
+            min_reflector_area_m2: 0.0,
+            ..TraceConfig::default()
+        };
+        let antenna = Vec3::new(1.0, 3.0, 1.5);
+        let summary = |p: &Propagation| {
+            let mut reflected: Vec<(u8, f64)> = p
+                .paths
+                .iter()
+                .filter_map(|path| match path.kind {
+                    PathKind::Reflected { bounces } => Some((bounces, path.excess_delay_m)),
+                    _ => None,
+                })
+                .collect();
+            reflected.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.total_cmp(&b.1)));
+            // A reflection point on a wall's triangulation diagonal is found
+            // in both triangles.
+            reflected.dedup_by(|a, b| a.0 == b.0 && (a.1 - b.1).abs() < 1.0e-6);
+            let diffracted = p
+                .paths
+                .iter()
+                .filter(|path| path.kind == PathKind::Diffracted)
+                .map(|path| path.excess_delay_m)
+                .fold(f64::INFINITY, f64::min);
+            (p.line_of_sight, reflected, diffracted)
+        };
+        let mut compared = 0;
+        for az in (7..360).step_by(23) {
+            for el in [12.0, 25.0, 40.0, 63.0] {
+                let u = direction(f64::from(az), el);
+                let (los_b, refl_b, diff_b) =
+                    summary(&trace_satellite(&boxes, antenna, u, &config));
+                let (los_m, refl_m, diff_m) = summary(&trace_satellite(&mesh, antenna, u, &config));
+                assert_eq!(los_b, los_m, "az {az} el {el}");
+                assert_eq!(
+                    refl_b.len(),
+                    refl_m.len(),
+                    "az {az} el {el}: {refl_b:?} vs {refl_m:?}"
+                );
+                for (b, m) in refl_b.iter().zip(&refl_m) {
+                    assert_eq!(b.0, m.0);
+                    assert_relative_eq!(b.1, m.1, epsilon = 1.0e-6);
+                }
+                assert_eq!(diff_b.is_finite(), diff_m.is_finite(), "az {az} el {el}");
+                if diff_b.is_finite() {
+                    assert_relative_eq!(diff_b, diff_m, epsilon = 1.0e-6);
+                }
+                compared += refl_b.len();
+            }
+        }
+        assert!(compared > 20, "{compared}");
     }
 
     #[test]
