@@ -26,8 +26,9 @@ The renders overlay the simulation on the city: the ray-traced satellite
 signals at the rear antenna (each NLOS ray through its reflection points),
 the 3D LiDAR's returns (cyan near the ground, white up the facades), the
 pedestrians, the vehicles and the rain. Shibuya is shown at rush hour in
-the rain, localizing with the 3D LiDAR (below); without `--lidar3d` the
-render draws the planar scan's beams instead.
+the rain, localizing with the 3D LiDAR (below), and both track BeiDou as
+well (`--beidou`); without `--lidar3d` the render draws the planar scan's
+beams instead.
 
 The city in the renders is PLATEAU's own: the buildings carry their
 photo textures (`app:ParameterizedTexture`, fetched with
@@ -121,10 +122,15 @@ of the centre (one epoch):
 |------|---------------|------------------|-------------|-------------|
 | Shibuya | GPS + Galileo | 4.0 of 13 | 7 % | 41 % |
 | Shibuya | GPS + Galileo + QZSS | 5.7 of 16 | 29 % | 23 % |
+| Shibuya | + BeiDou | 9.3 of 30 | 63 % | 14 % |
 | Nishi-Shinjuku | GPS + Galileo | 4.6 of 13 | 9 % | 30 % |
 | Nishi-Shinjuku | GPS + Galileo + QZSS | 6.5 of 16 | 34 % | 11 % |
+| Nishi-Shinjuku | + BeiDou | 10.8 of 30 | 79 % | 4 % |
 
-QZSS's near-zenith satellites are what a canyon can still see.
+QZSS's near-zenith satellites are what a canyon can still see, and
+BeiDou, whose IGSO and geostationary satellites stand high over Japan,
+nearly doubles the count (`--beidou`; the results below are without it
+unless noted).
 
 ![Sky map around Shibuya Station: satellites in line of sight (green many, red few) and the walked route](../../docs/media/plateau-gnss-shibuya-sky.png)
 
@@ -427,9 +433,9 @@ and the textures):
 ```bash
 python3 scripts/fetch_plateau_tokyo.py --textures
 cargo run --release -p plateau_gnss_navigation --features capture \
-    --example 152_plateau_gnss_navigation -- --quick --area shibuya --lidar3d --render-weather --render target/152_render
+    --example 152_plateau_gnss_navigation -- --quick --area shibuya --lidar3d --beidou --render-weather --render target/152_render
 cargo run --release -p plateau_gnss_navigation --features capture \
-    --example 152_plateau_gnss_navigation -- --quick --area shinjuku --lidar3d --render target/152_render
+    --example 152_plateau_gnss_navigation -- --quick --area shinjuku --lidar3d --beidou --render target/152_render
 python3 examples/152_plateau_gnss_navigation/encode.py target/152_render/shibuya docs/media/plateau-gnss-shibuya.gif --stride 4
 python3 examples/152_plateau_gnss_navigation/encode.py target/152_render/shinjuku docs/media/plateau-gnss-shinjuku.gif --stride 4
 ```

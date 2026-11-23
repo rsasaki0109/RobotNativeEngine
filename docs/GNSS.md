@@ -21,13 +21,13 @@ office and back, with an RTK base station on a rooftop.
 | Stage | Model |
 |-------|-------|
 | Time, geodesy | GPS week / time of week; exact WGS-84 geodetic ↔ ECEF ↔ local ENU. |
-| Satellites | Keplerian orbits; the nominal 24-slot GPS constellation, a Galileo Walker 24/3/1, and QZSS (three quasi-zenith satellites with apogee over 135° E, one geostationary at 127° E). Exported as broadcast ephemerides (`NavigationMessage`) that reproduce the simulated orbits to 0.1 mm with the IS-GPS-200 algorithm. The satellite clock carries the relativistic term `F·e·√A·sin E` (up to 65 m for QZSS's e = 0.075) that receivers correct from the ephemeris. |
+| Satellites | Keplerian orbits; the nominal 24-slot GPS constellation, a Galileo Walker 24/3/1, QZSS (three quasi-zenith satellites with apogee over 135° E, one geostationary at 127° E), and BeiDou-3 (24 MEO, three IGSO crossing 118° E, geostationary satellites at 80, 110.5 and 140° E). Exported as broadcast ephemerides (`NavigationMessage`) that reproduce the simulated orbits to 0.1 mm with the IS-GPS-200 algorithm (BeiDou's to within 5 cm with the BeiDou ICD's); BeiDou's use the CGCS2000 constants, BeiDou time (GPS time − 14 s) and, for the geostationary satellites, the BeiDou ICD's frame tilted by 5°, so libgnss++ places every satellite where the simulation did. The satellite clock carries the relativistic term `F·e·√A·sin E` (up to 65 m for QZSS's e = 0.075) that receivers correct from the ephemeris. |
 | Signal flight | Satellite position at transmission (light-time iteration) and the Sagnac rotation. |
 | Scene | Axis-aligned boxes and a `TriangleMesh` of arbitrary buildings (for example PLATEAU LOD2, through a BVH), with a reflection loss per material (concrete 8 dB, glass 4 dB, metal 2 dB; `ABSORBER` for poles and trunks, which block but are not traced as reflectors), a ground plane (12 dB), and foliage volumes that attenuate every path by its length inside them (dB/m). Surfaces beyond `max_interaction_distance_m` are not traced; mesh triangles smaller than `min_reflector_area_m2` (4 m², about a Fresnel zone) are not specular reflectors, and two-bounce paths can be limited to the `max_multi_bounce_facets` nearest facets. |
 | Direct path | A ray toward each satellite; any box blocks it. |
 | Reflections | Up to `max_reflections` (default 2) specular bounces off walls and the ground by the image method: the look direction is the satellite direction mirrored through the facet sequence, and the ray is traced forward through every facet, bounds and occluders included. Excess path `Σ|Pᵢ − Pᵢ₋₁| − (Pk − A)·u`. |
 | Diffraction | For blocked satellites, the point on each box edge, and on each convex crease of a mesh object (roof outlines, building corners), minimising the path (Keller's law for a plane wave), when both legs are clear. Loss is the ITU-R P.526 knife-edge `J(ν)` with `ν = 2√(Δ/λ)`, so it depends on frequency. |
-| Signals | GPS and QZSS L1 C/A and L2C, Galileo E1 and E5a: frequency, chip length, relative power, iono scaling. |
+| Signals | GPS and QZSS L1 C/A and L2C, Galileo E1 and E5a, BeiDou B1I and B3I: frequency, chip length, relative power, iono scaling. |
 | Tracking | The direct path when LOS, else the strongest indirect path (NLOS or diffracted). Later replicas within a chip distort the code (narrow-correlator envelope) and carrier (phasor sum), and fade the C/N0. |
 | Pseudorange | Geometric range + receiver clock + satellite orbit/clock error (shared by all receivers) + true ionosphere (Klobuchar × truth scale, `(f₁/f)²`) + true troposphere (Saastamoinen × truth scale) + excess path + code multipath + DLL noise from C/N0. |
 | Carrier phase | The same with the ionosphere sign reversed, carrier multipath, PLL noise, and an integer ambiguity per lock arc. Lock needs `phase_lock_threshold_dbhz`; slips occur at random near it, and whenever the tracked path changes by more than a quarter wavelength (its phase jumps by the path change). A new arc sets the loss-of-lock flag. |
@@ -37,7 +37,7 @@ office and back, with an RTK base station on a rooftop.
 
 Not modelled: multi-bounce paths combined with diffraction, diffraction while
 the direct path is clear, polarisation beyond a per-bounce loss, receiver
-acquisition time, GLONASS and BeiDou, and diffuse scattering off surfaces
+acquisition time, GLONASS, and diffuse scattering off surfaces
 smaller than a Fresnel zone.
 
 ### Sensor behavior

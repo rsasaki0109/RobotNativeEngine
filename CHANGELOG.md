@@ -6,6 +6,22 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_gnss` simulates BeiDou-3 (`Constellation::beidou_nominal`, B1I and
+  B3I): its broadcast ephemerides use the CGCS2000 constants, BeiDou time
+  and the BeiDou ICD's tilted frame for geostationary satellites, and
+  `rne_adapter_gnsspp` passes BeiDou to libgnss++, which fixes RTK with
+  GPS, Galileo, QZSS and BeiDou together.
+- Example 152: `--beidou` (with BeiDou, 63 % of Shibuya's and 79 % of
+  Nishi-Shinjuku's street points see eight or more satellites, against 29
+  and 34 %); `--urbannav` includes BeiDou; the 3D render shows PLATEAU's
+  photo textures, roads (`rne_plateau::parse_road_triangles`) and bridges
+  (`parse_bridge_triangles`; `BuildingTriangles` carries texture
+  coordinates), `--render-preview` renders still views of the city, and
+  `scripts/fetch_plateau_tokyo.py --textures` fetches the photos.
+- `FactorGraphConfig::lidar_reanchor_rtk_hold_s`: shortly after an RTK
+  fixed fix carried full weight, a particle filter that wandered off is
+  re-seeded at the graph instead of re-anchoring it.
+
 - `rne_slam::PointCloudMap` localizes a level 3D LiDAR scan in a
   point-cloud map (Huber-weighted point-to-plane Gauss–Newton over x, y, z
   and yaw, planar covariance from the inverse information, and the share
