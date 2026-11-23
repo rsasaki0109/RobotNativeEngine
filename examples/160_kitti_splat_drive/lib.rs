@@ -209,6 +209,26 @@ impl Idm {
     }
 }
 
+/// Lateral offset (m, + right of the path) of a parked car before it pulls out.
+pub const PARKED_OFFSET_M: f64 = 2.4;
+/// Ego distance (m) at which the parked car starts to pull out.
+pub const CUT_IN_TRIGGER_M: f64 = 20.0;
+/// Seconds to move from the kerb into the lane.
+pub const CUT_IN_DURATION_S: f64 = 2.5;
+
+/// A car pulling out from the kerb: lateral offset (m, + right) and lateral rate after `tau`
+/// seconds of the manoeuvre (smoothstep from the kerb to the lane centre).
+pub fn cut_in_lateral(tau: f64) -> (f64, f64) {
+    let u = (tau / CUT_IN_DURATION_S).clamp(0.0, 1.0);
+    let smooth = u * u * (3.0 - 2.0 * u);
+    let rate = if (0.0..1.0).contains(&u) {
+        -PARKED_OFFSET_M * 6.0 * u * (1.0 - u) / CUT_IN_DURATION_S
+    } else {
+        0.0
+    };
+    (PARKED_OFFSET_M * (1.0 - smooth), rate)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -303,5 +323,14 @@ mod tests {
         assert!(idm.accel(8.0, None, 0.0).abs() < 1e-12);
         assert!(idm.accel(6.0, Some(8.0), 0.0) < -3.0);
         assert!(idm.accel(6.0, Some(60.0), 6.0) > 0.0);
+    }
+
+    #[test]
+    fn cut_in_moves_smoothly_from_the_kerb_into_the_lane() {
+        assert_eq!(cut_in_lateral(-1.0), (PARKED_OFFSET_M, 0.0));
+        let (mid, rate) = cut_in_lateral(CUT_IN_DURATION_S / 2.0);
+        assert!((mid - PARKED_OFFSET_M / 2.0).abs() < 1e-12);
+        assert!(rate < 0.0);
+        assert_eq!(cut_in_lateral(CUT_IN_DURATION_S + 1.0), (0.0, 0.0));
     }
 }

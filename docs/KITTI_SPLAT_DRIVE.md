@@ -59,8 +59,12 @@ the street.
 
 ```text
 162_kitti_splat_traffic --manifest SPLAT.toml --actor CAR.ply --path PATH.csv --out DIR
-  [--render-every 0.2] [--duration 40] [--lead-start 22] [--stop-at 14]
+  [--render-every 0.2] [--duration 40] [--lead-start 22] [--stop-at 14] [--cut-in S]
 ```
+
+With `--cut-in S` a second copy of the car is parked 2.4 m right of the path at arc length `S`
+and pulls out into the lane (2.5 s, smoothstep, heading along its motion) when the ego comes
+within 20 m; once it is within 1.3 m of the lane centre it becomes the ego's leader.
 
 The actor frame is +x forward, +y left, +z up with the origin at the bottom centre; the
 example turns it into RNE's y-up car frame. A cut-out car was only ever seen from the road, so
