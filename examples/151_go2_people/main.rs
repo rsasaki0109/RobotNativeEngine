@@ -41,6 +41,7 @@
 //!     --setup target/go2_people/stream_setup.json --max-association-distance-m 1.0 --recent-track-window-ns 0
 //! ```
 
+mod camera;
 mod perception;
 
 use std::f64::consts::PI;
@@ -366,6 +367,9 @@ enum Source {
     NearestSlam,
     /// `TrackerMap` localized by 2D SLAM instead of odometry alone.
     TrackerSlam,
+    /// `TrackerMap`, with a camera and a VLM: static person-shaped clusters
+    /// the VLM sees as people are kept as people.
+    TrackerMapVlm,
 }
 
 impl Source {
@@ -379,13 +383,18 @@ impl Source {
             Source::OracleSlam => "oracle+slam",
             Source::NearestSlam => "nearest+slam",
             Source::TrackerSlam => "tracker+slam",
+            Source::TrackerMapVlm => "tracker+map+vlm",
         }
     }
 
     fn uses_map(self) -> bool {
         matches!(
             self,
-            Source::NearestMap | Source::TrackerMap | Source::NearestSlam | Source::TrackerSlam
+            Source::NearestMap
+                | Source::TrackerMap
+                | Source::NearestSlam
+                | Source::TrackerSlam
+                | Source::TrackerMapVlm
         )
     }
 
@@ -846,6 +855,9 @@ struct Score {
     fell: bool,
     /// Time the safety layer held the robot.
     safety_stop_s: f64,
+    /// VLM queries, and detections it brought back.
+    vlm_queries: u32,
+    vlm_restored: u32,
 }
 
 /// Task-plane point to the world plane: rotated by the start heading, then translated.
@@ -1114,6 +1126,8 @@ impl Score {
             "lost_fraction": follow.then(|| per(self.lost_frames)),
             "tracks_per_frame": self.tracks_per_frame_sum as f64 / f64::from(self.frames.max(1)),
             "safety_stop_s": self.safety_stop_s,
+            "vlm_queries": self.vlm_queries,
+            "vlm_restored": self.vlm_restored,
         })
     }
 }
@@ -1142,12 +1156,13 @@ impl Perceiver {
             Source::Nearest | Source::NearestMap | Source::NearestSlam => {
                 self.nearest.update(detections, time_s, FRAME_S)
             }
-            Source::Tracker | Source::TrackerMap | Source::TrackerSlam => self
-                .external
-                .as_mut()
-                .expect("--tracker is required for the tracker source")
-                .update(detections, time_s)
-                .expect("tracker update"),
+            Source::Tracker | Source::TrackerMap | Source::TrackerSlam | Source::TrackerMapVlm => {
+                self.external
+                    .as_mut()
+                    .expect("--tracker is required for the tracker source")
+                    .update(detections, time_s)
+                    .expect("tracker update")
+            }
         }
     }
 }
@@ -1339,6 +1354,92 @@ impl Localizer {
     }
 }
 
+/// The VLM is asked at most this often, and only with a static person-shaped
+/// cluster in view within VLM_RANGE_M.
+const VLM_PERIOD_S: f64 = 1.0;
+const VLM_RANGE_M: f64 = 10.0;
+/// Its answer arrives this much later (simulated time): Florence-2 on a CPU.
+const VLM_LATENCY_S: f64 = 1.0;
+/// A cluster whose image column is within this margin of a person box is
+/// confirmed; a confirmation holds this long, within VLM_MATCH_M.
+const VLM_MARGIN_PX: f64 = 10.0;
+const VLM_HOLD_S: f64 = 10.0;
+const VLM_MATCH_M: f64 = 0.5;
+
+/// The camera, the VLM and what it has confirmed.
+struct VlmState {
+    rig: camera::CameraRig,
+    vlm: camera::Vlm,
+    last_query_s: f64,
+    /// Answers on their way: (time they arrive, confirmed odometry positions).
+    pending: Vec<(f64, Vec<[f64; 2]>)>,
+    /// Confirmed people: odometry position and the time it arrived.
+    confirmed: Vec<([f64; 2], f64)>,
+    queries: u32,
+    restored: u32,
+}
+
+impl VlmState {
+    fn new(command: &[String]) -> Self {
+        static RUNS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let n = RUNS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let dir = std::env::temp_dir().join(format!("go2_people_vlm_{}_{n}", std::process::id()));
+        Self {
+            rig: camera::CameraRig::new().expect("camera rig"),
+            vlm: camera::Vlm::spawn(command, &dir).expect("start the VLM"),
+            last_query_s: f64::NEG_INFINITY,
+            pending: Vec::new(),
+            confirmed: Vec::new(),
+            queries: 0,
+            restored: 0,
+        }
+    }
+
+    /// Delivers answers that have arrived, and asks again if it is time and
+    /// a static person-shaped cluster (base frame) is in view.
+    fn step(
+        &mut self,
+        time_s: f64,
+        odom: Pose,
+        truth: Pose,
+        static_people: &[[f64; 2]],
+        walls: &[Wall],
+        people: &[(u64, [f64; 2], [f64; 2])],
+    ) {
+        let (arrived, waiting): (Vec<_>, Vec<_>) =
+            self.pending.drain(..).partition(|(at, _)| *at <= time_s);
+        self.pending = waiting;
+        for (at, positions) in arrived {
+            self.confirmed
+                .extend(positions.into_iter().map(|p| (p, at)));
+        }
+        self.confirmed.retain(|(_, at)| time_s - at < VLM_HOLD_S);
+        let in_view: Vec<(f64, [f64; 2])> = static_people
+            .iter()
+            .filter(|c| c[0].hypot(c[1]) < VLM_RANGE_M)
+            .filter_map(|c| camera::column(*c).map(|u| (u, *c)))
+            .collect();
+        if in_view.is_empty() || time_s - self.last_query_s < VLM_PERIOD_S {
+            return;
+        }
+        self.last_query_s = time_s;
+        self.queries += 1;
+        let shown: Vec<([f64; 2], [f64; 2])> = people.iter().map(|(_, p, v)| (*p, *v)).collect();
+        let image = self.rig.render(truth, walls, &shown);
+        let boxes = self.vlm.people(&image).expect("VLM answer");
+        let positions = in_view
+            .into_iter()
+            .filter(|(u, _)| {
+                boxes
+                    .iter()
+                    .any(|b| *u >= b[0] - VLM_MARGIN_PX && *u <= b[2] + VLM_MARGIN_PX)
+            })
+            .map(|(_, c)| perception::to_odom(odom, c))
+            .collect();
+        self.pending.push((time_s + VLM_LATENCY_S, positions));
+    }
+}
+
 /// One task under one perception source: the score and a per-frame trace.
 fn run(
     task: &Task,
@@ -1347,6 +1448,7 @@ fn run(
     kind: ControllerKind,
     safety: bool,
     reactive: bool,
+    vlm_command: Option<&[String]>,
 ) -> (Value, Vec<Value>) {
     let mut sim =
         UrdfSceneSim::from_scene_path(&repo_path("assets/scenes/unitree_go2_jump.rne.scene.toml"))
@@ -1384,9 +1486,10 @@ fn run(
         nearest: NearestTracker::default(),
         map: source.uses_map().then(perception::StaticMap::default),
         external: match (source, tracker_command) {
-            (Source::Tracker | Source::TrackerMap | Source::TrackerSlam, Some(command)) => {
-                Some(ExternalTracker::spawn(command).expect("start the tracker"))
-            }
+            (
+                Source::Tracker | Source::TrackerMap | Source::TrackerSlam | Source::TrackerMapVlm,
+                Some(command),
+            ) => Some(ExternalTracker::spawn(command).expect("start the tracker")),
             _ => None,
         },
     };
@@ -1420,6 +1523,19 @@ fn run(
     let mut people_now = Vec::new();
     let mut trace = Vec::new();
     let mut safety_hold_until_s = f64::NEG_INFINITY;
+    let task_walls: Vec<Wall> = task
+        .walls
+        .iter()
+        .map(|w| Wall {
+            center: place(start, w.center),
+            half: w.half,
+        })
+        .collect();
+    let mut vlm_state = match (source, vlm_command) {
+        (Source::TrackerMapVlm, Some(command)) => Some(VlmState::new(command)),
+        (Source::TrackerMapVlm, None) => panic!("--vlm is required for tracker+map+vlm"),
+        _ => None,
+    };
     let mut clocks = reactive.then(|| PeopleClocks {
         clocks: vec![0.0; task.people.len()],
         last_t: 0.0,
@@ -1489,12 +1605,6 @@ fn run(
             }
             None => detect_people(&points, odom),
         };
-        let time_s = trot.time_s();
-        let tracks = perceiver.tracks(&detections, &people_now, truth, odom, time_s);
-        let observed = sim.observe();
-        let speed_now = observed
-            .base_linear_velocity_x_m_s
-            .hypot(observed.base_linear_velocity_z_m_s);
         // Person-shaped clusters of static returns (base frame): with the
         // map, a person standing still long enough is one of these.
         let static_people: Vec<[f64; 2]> = match perceiver.map.as_ref() {
@@ -1511,6 +1621,39 @@ fn run(
             }
             _ => Vec::new(),
         };
+        let time_s = trot.time_s();
+        // With the camera: static person-shaped clusters the VLM sees as
+        // people go back to the tracker.
+        let mut detections = detections;
+        if let Some(v) = vlm_state.as_mut() {
+            v.step(
+                time_s,
+                odom,
+                truth,
+                &static_people,
+                &task_walls,
+                &people_now,
+            );
+            let all = detect_people(&points, odom);
+            for d in all {
+                let confirmed = v
+                    .confirmed
+                    .iter()
+                    .any(|(p, _)| (p[0] - d.position[0]).hypot(p[1] - d.position[1]) < VLM_MATCH_M);
+                let present = detections.iter().any(|e| {
+                    (e.position[0] - d.position[0]).hypot(e.position[1] - d.position[1]) < 0.3
+                });
+                if confirmed && !present {
+                    detections.push(d);
+                    v.restored += 1;
+                }
+            }
+        }
+        let tracks = perceiver.tracks(&detections, &people_now, truth, odom, time_s);
+        let observed = sim.observe();
+        let speed_now = observed
+            .base_linear_velocity_x_m_s
+            .hypot(observed.base_linear_velocity_z_m_s);
         // Those near the path ahead are planned around as standing people,
         // so that the robot does not wait forever for someone who is
         // waiting for it.
@@ -1568,6 +1711,10 @@ fn run(
         }
     }
 
+    if let Some(v) = &vlm_state {
+        score.vlm_queries = v.queries;
+        score.vlm_restored = v.restored;
+    }
     let end = true_pose(&sim);
     let goal_distance = match task.mission {
         Mission::Goal(g) => {
@@ -1637,6 +1784,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut kind = ControllerKind::Rule;
     let mut safety = true;
     let mut reactive = false;
+    let mut vlm: Option<Vec<String>> = None;
+    let mut only_sources: Option<Vec<String>> = None;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -1645,6 +1794,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--trials" => trials = args.next().ok_or("--trials needs a count")?.parse()?,
             "--no-safety" => safety = false,
             "--reactive-people" => reactive = true,
+            // The VLM command, as one argument (split on whitespace); it
+            // adds the tracker+map+vlm source.
+            "--vlm" => {
+                vlm = Some(
+                    args.next()
+                        .ok_or("--vlm needs a command")?
+                        .split_whitespace()
+                        .map(str::to_owned)
+                        .collect(),
+                );
+            }
+            "--sources" => {
+                only_sources = Some(
+                    args.next()
+                        .ok_or("--sources needs names")?
+                        .split(',')
+                        .map(str::to_owned)
+                        .collect(),
+                );
+            }
             "--controller" => {
                 kind = match args.next().as_deref() {
                     Some("rule") => ControllerKind::Rule,
@@ -1687,6 +1856,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ];
     if tracker.is_some() {
         sources.extend([Source::Tracker, Source::TrackerMap, Source::TrackerSlam]);
+        if vlm.is_some() {
+            sources.push(Source::TrackerMapVlm);
+        }
+    }
+    if let Some(names) = &only_sources {
+        sources.retain(|s| names.iter().any(|n| n == s.name()));
     }
     let selected: Vec<Task> = tasks()
         .into_iter()
@@ -1723,8 +1898,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let Some((task, source, trial)) = jobs.get(index) else {
                             break;
                         };
-                        let (mut result, trace) =
-                            run(task, *source, tracker.as_deref(), kind, safety, reactive);
+                        let (mut result, trace) = run(
+                            task,
+                            *source,
+                            tracker.as_deref(),
+                            kind,
+                            safety,
+                            reactive,
+                            vlm.as_deref(),
+                        );
                         result["trial"] = json!(trial);
                         mine.push((index, result, trace));
                     }
