@@ -21,9 +21,18 @@
 //!   "static_items": [Item],
 //!   "frames": [{ "items": [Item], "views": [View] }]
 //! }
-//! Item = { "shape": "box" | "sphere" | "cylinder", "size_m": [x, y, z],
+//! Item = { "shape": "box" | "sphere" | "cylinder" | "mesh", "size_m": [x, y, z],
 //!          "radius_m": f, "length_m": f, "pos_m": [x, y, z], "rot": [x, y, z, w],
-//!          "color_rgba": [r, g, b, a], "roughness": f, "emissive_rgb": [r, g, b] }
+//!          "color_rgba": [r, g, b, a], "roughness": f, "emissive_rgb": [r, g, b],
+//!          "path": "model.gltf", "scale": [x, y, z], "flat_color": bool }
+//! ```
+//!
+//! A `"mesh"` item loads an STL, OBJ, glTF or GLB file; a relative `path` resolves
+//! against the script's directory. Its own materials and textures are used unless
+//! `flat_color` is set, which replaces them with `color_rgba` (for objects whose
+//! colour carries meaning, such as an instructed target).
+//!
+//! ```text
 //! View = { "out": "file.png", "width": u, "height": u, "fov_y_rad": f,
 //!          "eye_m": [x, y, z], "rot": [x, y, z, w] }   // camera looks down local -Z
 //! ```
@@ -57,6 +66,12 @@ struct Item {
     roughness: f32,
     #[serde(default)]
     emissive_rgb: [f32; 3],
+    #[serde(default)]
+    path: Option<String>,
+    #[serde(default)]
+    scale: Option<[f64; 3]>,
+    #[serde(default)]
+    flat_color: bool,
 }
 
 /// One camera view to render.
@@ -116,6 +131,10 @@ fn to_render_item(item: &Item) -> Result<RenderSceneItem, String> {
             radius_m: item.radius_m.ok_or("cylinder needs radius_m")?,
             length_m: item.length_m.ok_or("cylinder needs length_m")?,
         },
+        "mesh" => VisualShape::Mesh {
+            path: item.path.clone().ok_or("mesh needs path")?,
+            scale: Vec3::from_array(item.scale.unwrap_or([1.0; 3])),
+        },
         other => return Err(format!("unknown shape {other}")),
     };
     let world = Transform3::from_translation_rotation(Vec3::from_array(item.pos_m), quat(item.rot));
@@ -158,10 +177,38 @@ fn indoor_environment() -> EnvironmentLighting {
     EnvironmentLighting {
         map: Some(Arc::new(map)),
         intensity: 1.0,
-        diffuse_strength: 0.65,
+        // modest fill so the directional light's shadow map stays visible
+        diffuse_strength: 0.42,
         specular_strength: 0.3,
         rotation_rad: 0.0,
     }
+}
+
+/// Converts items and loads mesh files (relative paths resolve against `root`).
+fn render_items(items: &[Item], root: &Path) -> Result<Vec<RenderSceneItem>, String> {
+    let mut out = Vec::with_capacity(items.len());
+    for item in items {
+        let render = to_render_item(item)?;
+        if !matches!(render.shape, VisualShape::Mesh { .. }) {
+            out.push(render);
+            continue;
+        }
+        let mut scene = RenderScene::new();
+        scene.items.push(render);
+        scene
+            .resolve_mesh_assets_with_roots(&[root])
+            .map_err(|error| format!("mesh {:?}: {error}", item.path))?;
+        for mut part in scene.items {
+            if item.flat_color {
+                part.base_color_texture = None;
+                part.color_rgba = item.color_rgba;
+                part.material.base_color_rgba = [1.0; 4];
+                part.material.roughness = item.roughness.clamp(0.0, 1.0);
+            }
+            out.push(part);
+        }
+    }
+    Ok(out)
 }
 
 fn write_png(path: &Path, width: u32, height: u32, rgba: &[u8]) -> std::io::Result<()> {
@@ -190,21 +237,22 @@ fn demo_script() -> Script {
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let (script, out_dir) = if args.len() >= 2 {
+    let (script, out_dir, root) = if args.len() >= 2 {
         let text = std::fs::read_to_string(&args[0]).expect("read replay script");
         let script: Script = serde_json::from_str(&text).expect("parse replay script");
-        (script, PathBuf::from(&args[1]))
+        let root = Path::new(&args[0])
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_default();
+        (script, PathBuf::from(&args[1]), root)
     } else {
         (
             demo_script(),
             std::env::temp_dir().join("rne_scene_replay_demo"),
+            PathBuf::new(),
         )
     };
-    let static_items: Vec<RenderSceneItem> = script
-        .static_items
-        .iter()
-        .map(|item| to_render_item(item).expect("valid static item"))
-        .collect();
+    let static_items = render_items(&script.static_items, &root).expect("valid static items");
     let views: usize = script.frames.iter().map(|f| f.views.len()).sum();
     println!(
         "replay script: {} static items, {} frames, {} views",
@@ -234,11 +282,9 @@ fn main() {
     for frame in &script.frames {
         let mut scene = RenderScene::new();
         scene.items.extend(static_items.iter().cloned());
-        for item in &frame.items {
-            scene
-                .items
-                .push(to_render_item(item).expect("valid frame item"));
-        }
+        scene
+            .items
+            .extend(render_items(&frame.items, &root).expect("valid frame items"));
         for view in &frame.views {
             let camera = Camera::new(view.width, view.height, view.fov_y_rad);
             let pose = rne_math::Transform3::from_translation_rotation(
@@ -272,6 +318,18 @@ mod tests {
             let render = to_render_item(item).expect("valid item");
             assert_eq!(render.color_rgba, item.color_rgba);
         }
+    }
+
+    #[test]
+    fn mesh_item_needs_a_path() {
+        let mut item = demo_script().static_items[0].clone();
+        item.shape = "mesh".to_owned();
+        assert!(to_render_item(&item).is_err());
+        item.path = Some("model.gltf".to_owned());
+        assert!(matches!(
+            to_render_item(&item).map(|r| r.shape),
+            Ok(VisualShape::Mesh { .. })
+        ));
     }
 
     #[test]

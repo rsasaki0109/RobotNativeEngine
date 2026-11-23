@@ -6,6 +6,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 150 (`scene_replay_render`) also renders mesh items (STL, OBJ,
+  glTF, GLB; relative paths resolve against the script). `flat_color`
+  replaces a mesh's materials with the item colour. Its indoor fill light is
+  dimmer, so the directional shadows stay visible.
+
 - Example 149 records what a targetless intrinsics calibration needs:
   `--motion turn` turns the rig about the camera's optical centre,
   `--lens K1,K2,P1,P2[,K3]` gives the camera lens distortion, and

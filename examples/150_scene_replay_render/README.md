@@ -1,8 +1,11 @@
 # 150 · Scene replay render
 
 Renders scenes that were simulated **outside** RNE with RNE's wgpu PBR renderer.
-The external simulator writes a JSON script of primitives (boxes, spheres and
-cylinders) and camera views. This example draws every view and writes PNG files.
+The external simulator writes a JSON script of primitives (boxes, spheres,
+cylinders and meshes) and camera views. This example draws every view and writes
+PNG files. A mesh item loads an STL, OBJ, glTF or GLB file. A relative path
+resolves against the script's directory. `flat_color` replaces the mesh's
+materials with the item colour.
 
 ```bash
 cargo run --release -p scene_replay_render --example 150_scene_replay_render -- script.json out_dir
