@@ -3,6 +3,7 @@
 //! a LiDAR prior map rasterized from the city model along the route, and
 //! `rne_slam::HybridLocalizer` with the same safety logic.
 
+use crate::avoid::Avoider;
 use crate::crowd::{pedestrian_boxes, pedestrian_range, Crowd, Weather};
 use crate::gnss::{GnssOutput, RobotGnss, SolutionLabel, BODY_HEIGHT_M};
 use crate::lidar3d;
@@ -58,6 +59,8 @@ pub(crate) struct RunOptions {
     /// Localize with a 16-ring 3D LiDAR matched against a point-cloud map of
     /// the mesh, instead of the planar slice.
     pub lidar3d: bool,
+    /// Walk around people (`avoid.rs`) instead of stopping for them.
+    pub avoid: bool,
 }
 
 /// The robot's localizer: the rule-based arbiter or the factor graph.
@@ -559,6 +562,22 @@ pub(crate) fn receiver_config() -> ReceiverConfig {
     }
 }
 
+/// The ray-traced GNSS scene (the ground wet in rain), and the city model
+/// used for NLOS prediction, which never has the pedestrians added.
+fn gnss_scene(city: &PlateauCity, rain: bool) -> (GnssScene, GnssScene) {
+    let mut scene = GnssScene {
+        mesh: Some(city.mesh.clone()),
+        ..GnssScene::open_sky()
+    };
+    if rain {
+        if let Some(ground) = &mut scene.ground {
+            ground.material = crate::crowd::wet(ground.material);
+        }
+    }
+    let model = scene.clone();
+    (scene, model)
+}
+
 /// Walks the route once.
 pub(crate) fn run(
     city: &PlateauCity,
@@ -572,18 +591,9 @@ pub(crate) fn run(
     } else {
         Constellation::gps_galileo_nominal()
     };
-    let mut scene = GnssScene {
-        mesh: Some(city.mesh.clone()),
-        ..GnssScene::open_sky()
-    };
-    if options.weather.rain {
-        if let Some(ground) = &mut scene.ground {
-            ground.material = crate::crowd::wet(ground.material);
-        }
-    }
-    // The city model used for NLOS prediction has no pedestrians.
-    let model = scene.clone();
-    let crowd = Crowd::new(route, options.weather.pedestrians, 0xC0_0D ^ options.seed);
+    let (mut scene, model) = gnss_scene(city, options.weather.rain);
+    let crowd = Crowd::new(route, options.weather.pedestrians, 0xC0_0D ^ options.seed)
+        .with_scramble(options.weather.scramble, 0x5C_4A ^ options.seed);
     let mut receiver = receiver_config();
     // A large odd multiplier spreads small seeds over the whole range.
     let reseed = options.seed.wrapping_mul(0x9E37_79B9_7F4A_7C15);
@@ -615,8 +625,7 @@ pub(crate) fn run(
         ..RunReport::default()
     };
     let mut leg = 0;
-    let mut safety = Safety::default();
-    let mut front_clearance = f64::INFINITY;
+    let mut drive = Driver::new(options.avoid);
     let body = |p: Pose2d| BodyPose {
         x_m: p.x_m,
         y_m: p.y_m,
@@ -633,12 +642,16 @@ pub(crate) fn run(
         if t > TIMEOUT_S {
             break;
         }
-        let command = follow_route(route, &mut leg, hybrid.pose());
+        let command = drive.command(
+            route,
+            &mut leg,
+            (hybrid.pose(), hybrid.source()),
+            &mut report,
+        );
         let Some(command) = command else {
             report.reached = true;
             break;
         };
-        let command = safety.gate(command, hybrid.source(), front_clearance, &mut report);
         let previous = truth;
         truth = integrate(truth, command.linear_m_s, command.angular_rad_s, DT_S);
         report.distance_m += (truth.x_m - previous.x_m).hypot(truth.y_m - previous.y_m);
@@ -682,7 +695,7 @@ pub(crate) fn run(
             if options.record {
                 last_scan = scan_points(&scan, truth);
             }
-            front_clearance = front_range(&scan);
+            drive.sense(&scan, hybrid.pose(), &slice, t);
             report.clearance_m = report
                 .clearance_m
                 .min(scan.ranges_m.iter().copied().fold(f64::INFINITY, f64::min));
@@ -816,6 +829,49 @@ fn follow_route(
         });
     }
     None
+}
+
+/// The route follower, the optional avoidance and the safety gate.
+struct Driver {
+    safety: Safety,
+    front_clearance_m: f64,
+    avoider: Option<Avoider>,
+}
+
+impl Driver {
+    fn new(avoid: bool) -> Self {
+        Self {
+            safety: Safety::default(),
+            front_clearance_m: f64::INFINITY,
+            avoider: avoid.then(Avoider::new),
+        }
+    }
+
+    /// Updates the clearance ahead and the obstacles from a scan.
+    fn sense(&mut self, scan: &LaserScan2d, estimate: Pose2d, map: &OccupancyGrid, t: f64) {
+        self.front_clearance_m = front_range(scan);
+        if let Some(avoider) = &mut self.avoider {
+            avoider.sense(scan, estimate, map, t);
+        }
+    }
+
+    /// The command for this tick (`None` at the goal).
+    fn command(
+        &mut self,
+        route: &[(f64, f64)],
+        leg: &mut usize,
+        (estimate, source): (Pose2d, LocalizationSource),
+        report: &mut RunReport,
+    ) -> Option<VelocityCommand2d> {
+        let mut command = follow_route(route, leg, estimate)?;
+        if let Some(avoider) = &self.avoider {
+            command = avoider.command(command, estimate);
+        }
+        Some(
+            self.safety
+                .gate(command, source, self.front_clearance_m, report),
+        )
+    }
 }
 
 /// Stops after 3 s of dead reckoning (until GNSS or LiDAR localizes again)

@@ -10,6 +10,7 @@
 //! ```
 
 // Shared with example 151, which uses all of it.
+mod avoid;
 mod crowd;
 #[allow(dead_code)]
 #[path = "../151_gnss_lidar_navigation/gnss.rs"]
@@ -116,6 +117,7 @@ fn main() -> Result<(), String> {
     let survey_only = std::env::args().any(|a| a == "--survey");
     let quick = std::env::args().any(|a| a == "--quick");
     let use_lidar3d = std::env::args().any(|a| a == "--lidar3d");
+    let avoid = std::env::args().any(|a| a == "--avoid");
     let conditions = std::env::args().any(|a| a == "--conditions");
     let seeds: u64 = std::env::args()
         .skip_while(|a| a != "--seeds")
@@ -224,6 +226,7 @@ fn main() -> Result<(), String> {
                 let options = RunOptions {
                     seed,
                     lidar3d: use_lidar3d,
+                    avoid,
                     ..options
                 };
                 let report = nav::run(
@@ -273,12 +276,14 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                     Weather {
                         pedestrians: PEDESTRIANS,
                         rain: true,
+                        scramble: 0,
                     }
                 } else {
                     Weather::default()
                 },
                 seed: 0,
                 lidar3d: false,
+                avoid: false,
             },
         ),
         (
@@ -291,6 +296,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 weather: Weather::default(),
                 seed: 0,
                 lidar3d: false,
+                avoid: false,
             },
         ),
         (
@@ -303,6 +309,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 weather: Weather::default(),
                 seed: 0,
                 lidar3d: false,
+                avoid: false,
             },
         ),
         (
@@ -315,6 +322,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 weather: Weather::default(),
                 seed: 0,
                 lidar3d: false,
+                avoid: false,
             },
         ),
         (
@@ -327,6 +335,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 weather: Weather::default(),
                 seed: 0,
                 lidar3d: false,
+                avoid: false,
             },
         ),
     ]
@@ -337,6 +346,10 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
 
 /// Pedestrians along the route in the crowd conditions.
 const PEDESTRIANS: usize = 60;
+/// Pedestrians along the route at rush hour, and people on the scramble
+/// crossing at the route's start.
+const RUSH_HOUR_PEDESTRIANS: usize = 150;
+const SCRAMBLE_CROSSERS: usize = 120;
 
 /// `--conditions`: the main configuration, hybrid and factor graph, in clear
 /// weather, in a crowd, in rain, and with more glass, as `(label, options, glass curtain walls from this height)`.
@@ -349,14 +362,24 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         weather,
         seed: 0,
         lidar3d: false,
+        avoid: false,
     };
     let crowd = Weather {
         pedestrians: PEDESTRIANS,
         rain: false,
+        scramble: 0,
     };
     let rain = Weather {
         pedestrians: PEDESTRIANS,
         rain: true,
+        scramble: 0,
+    };
+    // Rush hour: a denser crowd along the route and a scramble crossing at
+    // its start and end.
+    let rush = Weather {
+        pedestrians: RUSH_HOUR_PEDESTRIANS,
+        rain: false,
+        scramble: SCRAMBLE_CROSSERS,
     };
     let glass = plateau::GLASS_TOWER_HEIGHT_M;
     let clear = Weather::default();
@@ -369,6 +392,8 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         ("crowd + rain, factor graph", options(rain, true), glass),
         ("glass from 20 m, hybrid", options(clear, false), 20.0),
         ("glass from 20 m, factor graph", options(clear, true), 20.0),
+        ("rush hour, hybrid", options(rush, false), glass),
+        ("rush hour, factor graph", options(rush, true), glass),
     ]
 }
 
