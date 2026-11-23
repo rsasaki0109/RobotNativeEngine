@@ -13,8 +13,9 @@
 //! marginalized into a Gaussian prior on the next one.
 //!
 //! Unlike [`crate::HybridLocalizer`], nothing switches between sources: all
-//! evidence of the last seconds is weighed together. [`Self::source`] only
-//! reports which absolute factors are currently carrying weight.
+//! evidence of the last seconds is weighed together.
+//! [`FactorGraphLocalizer::source`] only reports which absolute factors are
+//! currently carrying weight.
 
 use crate::hybrid::{AbsoluteHeadingFix, AbsolutePositionFix, FixKind, LocalizationSource};
 use crate::likelihood::LikelihoodField;
