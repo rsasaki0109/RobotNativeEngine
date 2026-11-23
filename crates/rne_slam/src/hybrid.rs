@@ -25,8 +25,8 @@
 //! among themselves relative to the odometry re-anchors it sooner and
 //! restarts LiDAR tracking there; with `lidar_drop_unmapped_returns`,
 //! returns in mapped free space (people, vehicles) are left out of LiDAR
-//! tracking; with `lidar_motion_check_scans`, matches that keep cancelling
-//! the wheels' motion (locked onto someone walking alongside) are not fused.
+//! tracking; with `lidar_motion_check_scans`, matches that stay put while
+//! the wheels move (locked onto someone walking alongside) are not fused.
 //! These, with a finite `lidar_gate_chi_square`, keep a crowded street from
 //! dragging the estimate. The arbiter takes a plain
 //! [`AbsolutePositionFix`], so it does not depend on a GNSS simulator.
@@ -54,6 +54,10 @@ const LIDAR_REANCHOR_SCANS: usize = 10;
 
 /// Least travel over the motion-check window for the check to judge, meters.
 const LIDAR_LOCK_MIN_TRAVEL_M: f64 = 0.5;
+
+/// A locked match is released once a match is within this of the estimate
+/// along the direction of travel, meters.
+const LIDAR_LOCK_RELEASE_M: f64 = 0.25;
 
 /// A planar absolute position fix from a satellite receiver.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -230,12 +234,16 @@ pub struct HybridLocalizerConfig {
     /// close to facades and poles too, but tolerates less error in the
     /// estimate.
     pub lidar_unmapped_distance_m: f64,
-    /// Over this many scans, matches whose corrections along the direction
-    /// of travel cancel at least half the distance the wheels covered (and
-    /// at least `LIDAR_LOCK_MIN_TRAVEL_M` of it) are not fused: they have
-    /// locked onto something that moves with the robot, such as a person
-    /// walking beside it, and would hold the estimate back while it walks
-    /// on. Zero (off) by default.
+    /// When, over this many scans, the matched positions advance along the
+    /// direction of travel by less than half the distance the wheels covered
+    /// (at least `LIDAR_LOCK_MIN_TRAVEL_M` of it), the matches are not fused:
+    /// they have locked onto something that moves with the robot, such as a
+    /// person walking beside it, and would hold the estimate back while it
+    /// walks on. A correct match that is merely offset from the estimate
+    /// advances with the robot and passes. Once locked, matches stay
+    /// unfused until one agrees with the estimate along the direction of
+    /// travel (within `LIDAR_LOCK_RELEASE_M`), or for three windows at
+    /// most. Zero (off) by default.
     pub lidar_motion_check_scans: usize,
     /// Variance of a fused AMCL yaw, in rad².
     pub lidar_yaw_variance_rad2: f64,
@@ -334,9 +342,13 @@ pub struct HybridLocalizer {
     reanchor_streak: usize,
     /// Signed distance the wheels covered since the last scan, meters.
     travelled_since_scan_m: f64,
-    /// Per recent scan: distance travelled, and the match's correction
-    /// along the heading (zero when nothing was matched).
-    motion_history: std::collections::VecDeque<(f64, f64)>,
+    /// Per recent scan: the wheels' distance so far, and the matched
+    /// position, if any.
+    motion_history: std::collections::VecDeque<(f64, Option<(f64, f64)>)>,
+    /// The wheels' distance since the start, meters.
+    travelled_m: f64,
+    /// Scans skipped since the matches locked (zero when not locked).
+    motion_lock_scans: usize,
     /// Odometry-only pose, re-synced to the estimate when a run of rejected
     /// RTK fixes starts.
     dead_reckoned: Pose2d,
@@ -371,6 +383,8 @@ impl HybridLocalizer {
             reanchor_streak: 0,
             travelled_since_scan_m: 0.0,
             motion_history: std::collections::VecDeque::new(),
+            travelled_m: 0.0,
+            motion_lock_scans: 0,
             dead_reckoned: initial_pose,
             rejected_offsets: Vec::new(),
             last_amcl: None,
@@ -790,31 +804,59 @@ impl HybridLocalizer {
         Ok(true)
     }
 
-    /// Records this scan's travel and match correction (see
-    /// `lidar_motion_check_scans`); returns whether recent matches cancel
-    /// the robot's motion.
+    /// Records this scan's travel and matched position (see
+    /// `lidar_motion_check_scans`); returns whether this match is not to be
+    /// fused because the matches stay put while the wheels move.
     fn matches_hold_the_robot_back(&mut self, matched: Option<Pose2d>) -> bool {
-        let travelled = std::mem::take(&mut self.travelled_since_scan_m);
+        self.travelled_m += std::mem::take(&mut self.travelled_since_scan_m);
         let window = self.config.lidar_motion_check_scans;
         if window == 0 {
             return false;
         }
-        let estimate = self.ekf.pose();
-        let (sin, cos) = estimate.yaw_rad.sin_cos();
-        // Re-anchoring jumps are judged by their own streak, not here.
-        let along = matched
-            .map(|m| (m.x_m - estimate.x_m, m.y_m - estimate.y_m))
-            .filter(|(dx, dy)| dx.hypot(*dy) <= LIDAR_REANCHOR_M)
-            .map_or(0.0, |(dx, dy)| dx * cos + dy * sin);
-        self.motion_history.push_back((travelled, along));
+        self.motion_history
+            .push_back((self.travelled_m, matched.map(|m| (m.x_m, m.y_m))));
         while self.motion_history.len() > window {
             self.motion_history.pop_front();
         }
-        let (moved, corrected) = self
-            .motion_history
-            .iter()
-            .fold((0.0, 0.0), |(m, c), (t, a)| (m + t, c + a));
-        moved.abs() >= LIDAR_LOCK_MIN_TRAVEL_M && corrected * moved.signum() <= -0.5 * moved.abs()
+        let estimate = self.ekf.pose();
+        let (sin, cos) = estimate.yaw_rad.sin_cos();
+        let locked = self.matches_stay_put(sin, cos);
+        if self.motion_lock_scans == 0 {
+            if locked {
+                self.motion_lock_scans = 1;
+            }
+            return locked;
+        }
+        let agrees = matched.is_some_and(|m| {
+            ((m.x_m - estimate.x_m) * cos + (m.y_m - estimate.y_m) * sin).abs()
+                <= LIDAR_LOCK_RELEASE_M
+        });
+        if (agrees && !locked) || self.motion_lock_scans >= 3 * window {
+            self.motion_lock_scans = 0;
+            self.motion_history.clear();
+            return false;
+        }
+        self.motion_lock_scans += 1;
+        true
+    }
+
+    /// Whether the matched positions in the window advanced by less than
+    /// half the wheels' travel, along the heading `(cos, sin)`.
+    fn matches_stay_put(&self, sin: f64, cos: f64) -> bool {
+        let matches = || {
+            self.motion_history
+                .iter()
+                .filter_map(|(d, p)| p.map(|p| (*d, p)))
+        };
+        let (Some((d0, p0)), Some((d1, p1))) = (matches().next(), matches().last()) else {
+            return false;
+        };
+        let travel = d1 - d0;
+        if travel.abs() < LIDAR_LOCK_MIN_TRAVEL_M {
+            return false;
+        }
+        let progress = (p1.0 - p0.0) * cos + (p1.1 - p0.1) * sin;
+        progress * travel.signum() < 0.5 * travel.abs()
     }
 
     /// Whether the arbiter is searching the map for a LiDAR relocalization.
@@ -1276,8 +1318,8 @@ mod tests {
             localizer.pose().x_m
         };
         let held = run(0);
-        assert!(held < 13.5, "{held}");
         let followed = run(10);
+        assert!(held < 13.5, "{held}");
         assert!(followed > 14.4, "{followed}");
     }
 
