@@ -3,7 +3,7 @@
 //! Each scan is placed at the estimated pose. Returns the prior map cannot
 //! explain (in its free space, away from mapped structure) are grouped into
 //! people and tracked with a constant-velocity tracker; returns off mapped
-//! structure within a few metres (poles, facades) become static obstacles.
+//! structure within a metre (poles, facades) become static obstacles.
 //! `rne_nav::avoid_velocities` then picks the command closest to the route
 //! follower's whose two-second rollout clears all of them, predicting the
 //! people's motion, or stops.
@@ -18,8 +18,11 @@ use rne_nav::{
 const ROBOT_RADIUS_M: f64 = 0.35;
 /// People are tracked within this range, meters.
 const TRACK_RANGE_M: f64 = 8.0;
-/// Mapped returns within this range are static obstacles, meters.
-const STATIC_RANGE_M: f64 = 3.0;
+/// Mapped returns within this range are static obstacles, meters. The route
+/// is planned clear of mapped structure, so only what the robot has come
+/// close to while stepping around people counts; more would keep the
+/// two-second rollouts slowing it past every pole.
+const STATIC_RANGE_M: f64 = 1.0;
 /// A return this far (or more) from any mapped occupied cell is unmapped.
 const UNMAPPED_M: f64 = 0.4;
 /// Consecutive unmapped returns closer than this belong to one person.
