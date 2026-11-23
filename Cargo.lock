@@ -3771,6 +3771,7 @@ dependencies = [
 name = "plateau_gnss_navigation"
 version = "0.4.0"
 dependencies = [
+ "image",
  "png",
  "rne_adapter_gnsspp",
  "rne_core",

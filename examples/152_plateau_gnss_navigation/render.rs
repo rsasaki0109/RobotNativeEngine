@@ -56,6 +56,13 @@ impl SolidMesh {
         self.indices.extend([base, base + 1, base + 2]);
     }
 
+    /// A triangle with texture coordinates.
+    fn textured(&mut self, corners: [Vec3; 3], normal: Vec3, uv: [[f32; 2]; 3]) {
+        self.triangle(corners, normal);
+        let n = self.texcoords.len();
+        self.texcoords[n - 3..].copy_from_slice(&uv);
+    }
+
     fn face(&mut self, points: [Vec3; 4], normal: Vec3) {
         self.triangle([points[0], points[1], points[2]], normal);
         self.triangle([points[0], points[2], points[3]], normal);
@@ -165,7 +172,7 @@ fn environment() -> EnvironmentLighting {
                 let up = 1.0 - y * 2.0;
                 (0.58 - 0.35 * up, 0.70 - 0.30 * up, 0.93 - 0.12 * up)
             } else {
-                (0.18, 0.17, 0.16)
+                (0.34, 0.32, 0.29)
             };
             rgba.extend([r, g, b, 1.0]);
         }
@@ -175,8 +182,8 @@ fn environment() -> EnvironmentLighting {
             EnvironmentMap::from_rgba32f(width, height, rgba).expect("environment"),
         )),
         intensity: 0.9,
-        diffuse_strength: 0.75,
-        specular_strength: 0.55,
+        diffuse_strength: 1.1,
+        specular_strength: 0.3,
         rotation_rad: 0.0,
     }
 }
@@ -191,6 +198,13 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> RenderScene {
         SolidMesh::default(),
     );
     for tri in city.mesh.triangles() {
+        if city
+            .buildings
+            .get(tri.object as usize)
+            .is_some_and(|b| b.textured)
+        {
+            continue; // drawn with its photos below
+        }
         let corners = tri.vertices.map(pv);
         let normal = pv(tri.normal);
         let mesh = if tri.material == SurfaceMaterial::ABSORBER {
@@ -231,6 +245,7 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> RenderScene {
         0.0,
         [0.0; 3],
     );
+    scene.items.extend(facade_items(city));
     push(
         &mut scene,
         furniture,
@@ -275,19 +290,26 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> RenderScene {
     push(
         &mut scene,
         ground,
-        linear([70, 72, 76]),
+        linear([128, 124, 116]),
         0.95,
         0.0,
         [0.0; 3],
     );
+
+    // PLATEAU's road surfaces, draped over the terrain.
+    let mut roads = SolidMesh::default();
+    for corners in city.roads.iter() {
+        drape(city, *corners, &mut roads);
+    }
+    push(&mut scene, roads, linear([38, 39, 43]), 0.9, 0.0, [0.0; 3]);
 
     // The planned route as a faint line on the ground.
     let mut line = SolidMesh::default();
     for pair in route.windows(2) {
         let (a, b) = (pair[0], pair[1]);
         line.beam(
-            p(a.0, a.1, city.ground_m(a.0, a.1) + 0.03),
-            p(b.0, b.1, city.ground_m(b.0, b.1) + 0.03),
+            p(a.0, a.1, city.ground_m(a.0, a.1) + 0.14),
+            p(b.0, b.1, city.ground_m(b.0, b.1) + 0.14),
             0.25,
         );
     }
@@ -300,6 +322,132 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> RenderScene {
         [0.25, 0.25, 0.22],
     );
     scene
+}
+
+/// Draws a flat ENU triangle on the terrain, split until its edges are at
+/// most 4 m so it follows the slopes.
+fn drape(city: &PlateauCity, corners: [Vec3; 3], mesh: &mut SolidMesh) {
+    let [a, b, c] = corners;
+    let longest = (a - b).length().max((b - c).length()).max((c - a).length());
+    if longest > 4.0 {
+        let (ab, bc, ca) = ((a + b) * 0.5, (b + c) * 0.5, (c + a) * 0.5);
+        for part in [[a, ab, ca], [ab, b, bc], [ca, bc, c], [ab, bc, ca]] {
+            drape(city, part, mesh);
+        }
+        return;
+    }
+    let lifted = corners.map(|v| p(v.x, v.y, city.ground_m(v.x, v.y) + 0.1));
+    let normal = (lifted[1] - lifted[0]).cross(lifted[2] - lifted[0]);
+    // Face up in the renderer's frame (y up), whatever the source winding.
+    if normal.y < 0.0 {
+        mesh.triangle(
+            [lifted[0], lifted[2], lifted[1]],
+            -normal.normalize_or_zero(),
+        );
+    } else {
+        mesh.triangle(lifted, normal.normalize_or_zero());
+    }
+}
+
+/// Atlas size, pixels (within every GPU's texture limit).
+const ATLAS_PX: u32 = 4096;
+/// Edge pixels repeated around each photo, so filtering does not bleed.
+const ATLAS_PAD_PX: u32 = 2;
+
+/// The photo-textured buildings: their photos packed into atlases (one
+/// draw item each) and their untextured surfaces in plain concrete.
+fn facade_items(city: &PlateauCity) -> Vec<RenderSceneItem> {
+    let facades = &city.facades;
+    if facades.images.is_empty() {
+        return Vec::new();
+    }
+    // Cells as large as the photo count allows: 256 px for up to 2048
+    // photos over eight atlases, smaller beyond.
+    let total = facades.images.len() as u32;
+    let mut cell = 256;
+    while cell > 32 && total.div_ceil((ATLAS_PX / cell).pow(2)) > 8 {
+        cell /= 2;
+    }
+    let per_row = ATLAS_PX / cell;
+    let per_atlas = per_row * per_row;
+    let inner = cell - 2 * ATLAS_PAD_PX;
+    let atlases = total.div_ceil(per_atlas) as usize;
+    let mut pixels = vec![vec![0_u8; (ATLAS_PX * ATLAS_PX * 4) as usize]; atlases];
+    let mut missing = 0;
+    for (k, path) in facades.images.iter().enumerate() {
+        let k = k as u32;
+        let (atlas, slot) = ((k / per_atlas) as usize, k % per_atlas);
+        let (cx, cy) = ((slot % per_row) * cell, (slot / per_row) * cell);
+        let Ok(photo) = image::open(path) else {
+            missing += 1;
+            continue;
+        };
+        let photo = image::imageops::resize(
+            &photo.to_rgba8(),
+            inner,
+            inner,
+            image::imageops::FilterType::Triangle,
+        );
+        for y in 0..cell {
+            for x in 0..cell {
+                let sx = x.saturating_sub(ATLAS_PAD_PX).min(inner - 1);
+                let sy = y.saturating_sub(ATLAS_PAD_PX).min(inner - 1);
+                let o = (((cy + y) * ATLAS_PX + cx + x) * 4) as usize;
+                pixels[atlas][o..o + 4].copy_from_slice(&photo.get_pixel(sx, sy).0);
+            }
+        }
+    }
+    if missing > 0 {
+        println!("  {missing} facade photos could not be read");
+    }
+    let mut meshes: Vec<SolidMesh> = (0..atlases).map(|_| SolidMesh::default()).collect();
+    let mut plain = SolidMesh::default();
+    let size = ATLAS_PX as f32;
+    for facade in &facades.triangles {
+        let corners = facade.vertices.map(pv);
+        let normal = (corners[1] - corners[0])
+            .cross(corners[2] - corners[0])
+            .normalize_or_zero();
+        match facade.texture {
+            Some((image, uv)) => {
+                let (atlas, slot) = ((image / per_atlas) as usize, image % per_atlas);
+                let (cx, cy) = ((slot % per_row) * cell, (slot / per_row) * cell);
+                // CityGML's v runs up from the image's lower edge.
+                let uv = uv.map(|[u, v]| {
+                    [
+                        (cx as f32 + ATLAS_PAD_PX as f32 + u.clamp(0.0, 1.0) * inner as f32) / size,
+                        (cy as f32
+                            + ATLAS_PAD_PX as f32
+                            + (1.0 - v.clamp(0.0, 1.0)) * inner as f32)
+                            / size,
+                    ]
+                });
+                meshes[atlas].textured(corners, normal, uv);
+            }
+            None => plain.triangle(corners, normal),
+        }
+    }
+    let mut items = Vec::new();
+    for (mesh, rgba) in meshes.into_iter().zip(pixels) {
+        if mesh.positions.is_empty() {
+            continue;
+        }
+        // Aerial photos are dark beside the renderer's untextured greys.
+        let mut item = mesh.item([1.25, 1.25, 1.25, 1.0], 0.8, 0.0, [0.0; 3]);
+        item.base_color_texture = Some(Arc::new(rne_render::ImageFrame::from_rgba8(
+            ATLAS_PX, ATLAS_PX, rgba,
+        )));
+        items.push(item);
+    }
+    if !plain.positions.is_empty() {
+        items.push(plain.item(linear([190, 186, 178]), 0.85, 0.0, [0.0; 3]));
+    }
+    println!(
+        "  {} facade photos in {atlases} atlases ({cell} px each), {} textured triangles",
+        facades.images.len(),
+        facades.triangles.len()
+    );
+    items
 }
 
 /// The robot, its trail, the satellite signals and the LiDAR returns.
@@ -362,8 +510,8 @@ fn frame_items(
             LocalizationSource::DeadReckoning => 2,
         };
         trails[k].beam(
-            p(a.x_m, a.y_m, city.ground_m(a.x_m, a.y_m) + 0.08),
-            p(b.x_m, b.y_m, city.ground_m(b.x_m, b.y_m) + 0.08),
+            p(a.x_m, a.y_m, city.ground_m(a.x_m, a.y_m) + 0.18),
+            p(b.x_m, b.y_m, city.ground_m(b.x_m, b.y_m) + 0.18),
             0.35,
         );
     }
@@ -651,6 +799,43 @@ fn write_png(path: &Path, width: u32, height: u32, rgba: &[u8]) -> Result<()> {
     encoder.set_color(png::ColorType::Rgba);
     encoder.set_depth(png::BitDepth::Eight);
     encoder.write_header()?.write_image_data(rgba)?;
+    Ok(())
+}
+
+/// Renders the city alone at eight points along the route, alternately from
+/// the chase camera's distance and from 140 m (`--render-preview`), without
+/// running the robot.
+pub(crate) fn preview(dir: &Path, city: &PlateauCity, route: &[(f64, f64)]) -> Result<()> {
+    std::fs::create_dir_all(dir)?;
+    let mut backend = WgpuRenderBackend::new()?;
+    backend.set_environment(environment());
+    let scene = static_city(city, route);
+    let mut camera = Camera::new(WIDTH, HEIGHT, 0.9);
+    camera.far_m = 900.0;
+    for k in 0..8 {
+        let i = (k * (route.len() - 2)) / 7;
+        let (a, b) = (route[i], route[i + 1]);
+        let heading = (b.1 - a.1).atan2(b.0 - a.0);
+        let orbit = CameraOrbit {
+            yaw_rad: (-heading.cos()).atan2(heading.sin()),
+            pitch_rad: if k % 2 == 0 { 0.95 } else { 0.55 },
+            distance_m: if k % 2 == 0 { 42.0 } else { 140.0 },
+            focus: p(a.0, a.1, city.ground_m(a.0, a.1) + 3.0),
+        };
+        let image = backend.render_scene_camera(
+            &camera,
+            &orbit.camera_transform(),
+            &scene,
+            [0.58, 0.70, 0.93, 1.0],
+        )?;
+        write_png(
+            &dir.join(format!("preview_{k}.png")),
+            WIDTH,
+            HEIGHT,
+            &image.color.rgba8,
+        )?;
+    }
+    println!("  wrote 8 previews to {}", dir.display());
     Ok(())
 }
 

@@ -35,6 +35,16 @@ fn render_area(
     render::render(dir, city, route, base, run).map_err(|e| e.to_string())
 }
 
+#[cfg(feature = "capture")]
+fn preview_area(dir: &Path, city: &PlateauCity, route: &[(f64, f64)]) -> Result<(), String> {
+    render::preview(dir, city, route).map_err(|e| e.to_string())
+}
+
+#[cfg(not(feature = "capture"))]
+fn preview_area(_dir: &Path, _city: &PlateauCity, _route: &[(f64, f64)]) -> Result<(), String> {
+    Err("--render-preview needs `--features capture`".into())
+}
+
 #[cfg(not(feature = "capture"))]
 fn render_area(
     _dir: &Path,
@@ -195,6 +205,13 @@ fn main() -> Result<(), String> {
             base.y,
             base.z
         );
+        if let Some(dir) = std::env::args()
+            .skip_while(|a| a != "--render-preview")
+            .nth(1)
+        {
+            preview_area(&Path::new(&dir).join(area.slug), &city, &route)?;
+            continue;
+        }
         let mut main_run = None;
         let runs = if conditions {
             condition_runs()
