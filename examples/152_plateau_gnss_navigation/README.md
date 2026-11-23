@@ -209,14 +209,14 @@ above. Summary over 3 seeds:
 
 | Area | Condition | Hybrid: goal | RMSE median / worst | Max | Factor graph: goal | RMSE median / worst | Max |
 |------|-----------|--------------|---------------------|-----|--------------------|---------------------|-----|
-| Shibuya | clear | 3/3 | 0.18 / 0.39 m | 2.8 m | 3/3 | 0.12 / 0.30 m | 3.3 m |
-| Shibuya | crowd | 3/3 | 0.44 / 1.02 m | 5.9 m | 3/3 | 0.53 / 0.84 m | 5.7 m |
-| Shibuya | crowd + rain | 3/3 | 0.83 / 0.91 m | 7.3 m | 3/3 | 1.24 / 1.56 m | 7.3 m |
-| Shibuya | glass from 20 m | 3/3 | 0.24 / 0.30 m | 2.4 m | 3/3 | 0.08 / 0.16 m | 3.9 m |
-| Nishi-Shinjuku | clear | 3/3 | 1.27 / 3.81 m | 9.3 m | 3/3 | 0.82 / 1.23 m | 10.4 m |
-| Nishi-Shinjuku | crowd | **2/3** | 1.93 / 42.61 m | 60.2 m | 3/3 | 1.56 / 3.47 m | 13.4 m |
-| Nishi-Shinjuku | crowd + rain | 3/3 | 1.81 / 13.37 m | 47.8 m | 3/3 | 2.10 / 2.41 m | 18.3 m |
-| Nishi-Shinjuku | glass from 20 m | 3/3 | 1.19 / 1.36 m | 11.6 m | 3/3 | 0.61 / 0.85 m | 4.4 m |
+| Shibuya | clear | 3/3 | 0.18 / 0.39 m | 2.8 m | 3/3 | 0.12 / 0.31 m | 3.3 m |
+| Shibuya | crowd | 3/3 | 0.44 / 1.02 m | 5.9 m | 3/3 | 0.48 / 0.52 m | 4.8 m |
+| Shibuya | crowd + rain | 3/3 | 0.83 / 0.91 m | 7.3 m | 3/3 | 0.68 / 0.80 m | 6.3 m |
+| Shibuya | glass from 20 m | 3/3 | 0.24 / 0.30 m | 2.4 m | 3/3 | 0.07 / 0.07 m | 0.8 m |
+| Nishi-Shinjuku | clear | 3/3 | 1.27 / 3.81 m | 9.3 m | 3/3 | 0.61 / 1.17 m | 8.7 m |
+| Nishi-Shinjuku | crowd | **2/3** | 1.93 / 42.61 m | 60.2 m | 3/3 | 1.13 / 1.83 m | 13.7 m |
+| Nishi-Shinjuku | crowd + rain | 3/3 | 1.81 / 13.37 m | 47.8 m | 3/3 | 1.54 / 1.63 m | 12.6 m |
+| Nishi-Shinjuku | glass from 20 m | 3/3 | 1.19 / 1.36 m | 11.6 m | 3/3 | 0.59 / 0.84 m | 5.3 m |
 
 Before the three options above, the hybrid reached the goal in 2/3
 Shibuya crowd + rain runs (RMSE median 15 m) and in 0/3 Nishi-Shinjuku
@@ -224,9 +224,9 @@ crowd and crowd + rain runs.
 
 Both localizers keep the robot going through crowds, rain and glass in
 47 of 48 runs. The factor graph reaches the goal in all 24 and never
-dead-reckons for more than 0.4 s; the crowd and the rain roughly double or
-triple its error, and its worst moments (up to 18 m in the Nishi-Shinjuku
-rain) are short and corrected by the next good RTK fix. The hybrid is now
+dead-reckons for more than 0.1 s; the crowd and the rain roughly double or
+triple its error, and its worst moments (up to 14 m in the Nishi-Shinjuku
+crowd) are short and corrected by the next good RTK fix. The hybrid is now
 as accurate in Shibuya, a little less so in Nishi-Shinjuku, and has the
 one failure. Approaching a corner west of the station (about (−20, −45) m)
 along a street that constrains the scan only across it, the estimate
@@ -265,6 +265,48 @@ is not. The example leaves the motion check off. Its other dead reckoning stretc
 less than expected: more multipath, but the NLOS exclusion and the robust
 kernels take most of it.
 
+### With BeiDou (`--beidou`)
+
+BeiDou-3 puts more satellites over Japan than any other constellation (its
+three IGSO satellites loop over 118° E). With `--beidou` the receiver also
+tracks it; the same conditions, summary over 3 seeds (RMSE median / worst,
+max error):
+
+| Area | Condition | Hybrid: goal | RMSE | Max | Factor graph: goal | RMSE | Max |
+|------|-----------|--------------|------|-----|--------------------|------|-----|
+| Shibuya | clear | 3/3 | 0.31 / 0.35 m | 4.8 m | 3/3 | 0.06 / 0.13 m | 1.7 m |
+| Shibuya | crowd | 3/3 | 0.10 / 0.14 m | 1.7 m | 3/3 | 0.45 / 0.67 m | 7.0 m |
+| Shibuya | crowd + rain | 3/3 | 0.43 / 1.80 m | 10.0 m | 3/3 | 0.29 / 0.51 m | 5.0 m |
+| Shibuya | glass from 20 m | 3/3 | 0.13 / 0.27 m | 3.0 m | 3/3 | 0.07 / 0.36 m | 3.1 m |
+| Nishi-Shinjuku | clear | 3/3 | 1.58 / 1.59 m | 9.0 m | 3/3 | 0.68 / 0.75 m | 5.4 m |
+| Nishi-Shinjuku | crowd | 3/3 | 1.14 / 1.35 m | 7.1 m | 3/3 | 0.76 / 1.00 m | 6.8 m |
+| Nishi-Shinjuku | crowd + rain | 3/3 | 1.39 / 1.66 m | 9.1 m | 3/3 | 0.86 / 5.86 m | 26.1 m |
+| Nishi-Shinjuku | glass from 20 m | 3/3 | 1.13 / 1.37 m | 9.5 m | 3/3 | 0.64 / 0.71 m | 6.1 m |
+
+RTK fixed rises from 37–60 % to 68–89 % of the time in Shibuya and from
+28–37 % to 49–59 % in Nishi-Shinjuku, and the time without any solution
+drops from 7–10 % to 2–3 % and from 35–37 % to 17–20 %. Both localizers
+reach the goal in all 48 runs; the hybrid's Nishi-Shinjuku crowd failure
+is gone. Most medians improve; the hybrid in clear Nishi-Shinjuku does
+not (1.58 m, with one 42 s dead-reckoning stretch), and one factor-graph rain run there has a 26 m excursion
+before a fix pulls it back.
+
+The first BeiDou runs found a factor-graph failure (2 of 3 Nishi-Shinjuku
+crowd and crowd + rain runs, up to 590 m off). Along a street that
+constrains the scan only across it, the particle filter's match slides
+along the street among the people; after 10 such scans more than 2 m from
+the graph, the graph re-anchors onto it. The correct RTK fixes now
+disagree with the estimate by metres and are down-weighted as outliers,
+and the NLOS exclusion, ray tracing from the wrong position, drops line
+of sight satellites until there is no solution at all. With
+`lidar_reanchor_rtk_hold_s` (5 s), a particle-filter match that is more
+than 2 m from both the graph and where the last RTK fixed fix puts the
+robot (its offset from the graph carried along) re-seeds the particle
+filter at the graph instead of moving the graph. The fix is measured
+against where it puts the robot, whether or not the graph accepted it,
+since a graph that has already drifted rejects exactly the fixes that
+would catch it. The tables above are with it.
+
 ### A 3D LiDAR (`--lidar3d`)
 
 Every hybrid failure above came from the planar slice: at 0.3 m a LOD2
@@ -290,13 +332,13 @@ brackets):
 | Area | Condition | Hybrid: goal | RMSE median | Factor graph: goal | RMSE median |
 |------|-----------|--------------|-------------|--------------------|-------------|
 | Shibuya | clear | 3/3 | 0.32 m (0.18) | 3/3 | 0.00 m (0.12) |
-| Shibuya | crowd | 3/3 | 0.17 m (0.44) | 3/3 | 0.00 m (0.53) |
-| Shibuya | crowd + rain | 3/3 | 0.09 m (0.83) | 3/3 | 0.00 m (1.24) |
-| Shibuya | glass from 20 m | 3/3 | 0.14 m (0.24) | 3/3 | 0.00 m (0.08) |
-| Nishi-Shinjuku | clear | 3/3 | 0.08 m (1.27) | 3/3 | 0.00 m (0.82) |
-| Nishi-Shinjuku | crowd | 3/3 | 0.08 m (1.93, 2/3) | 3/3 | 0.00 m (1.56) |
-| Nishi-Shinjuku | crowd + rain | 3/3 | 0.05 m (1.81) | 3/3 | 0.00 m (2.10) |
-| Nishi-Shinjuku | glass from 20 m | 3/3 | 0.05 m (1.19) | 3/3 | 0.00 m (0.61) |
+| Shibuya | crowd | 3/3 | 0.17 m (0.44) | 3/3 | 0.00 m (0.48) |
+| Shibuya | crowd + rain | 3/3 | 0.09 m (0.83) | 3/3 | 0.00 m (0.68) |
+| Shibuya | glass from 20 m | 3/3 | 0.14 m (0.24) | 3/3 | 0.00 m (0.07) |
+| Nishi-Shinjuku | clear | 3/3 | 0.08 m (1.27) | 3/3 | 0.00 m (0.61) |
+| Nishi-Shinjuku | crowd | 3/3 | 0.08 m (1.93, 2/3) | 3/3 | 0.00 m (1.13) |
+| Nishi-Shinjuku | crowd + rain | 3/3 | 0.05 m (1.81) | 3/3 | 0.00 m (1.54) |
+| Nishi-Shinjuku | glass from 20 m | 3/3 | 0.05 m (1.19) | 3/3 | 0.00 m (0.59) |
 
 Both reach the goal in all 24 runs and never dead-reckon for more than
 0.2 s. The scan sees over the crowd to the facades, their setbacks and the
