@@ -1,0 +1,111 @@
+[package]
+name = "wgpu-3dgs-viewer"
+version = "0.2.0"
+edition = "2024"
+authors = ["Lio Qing"]
+license = "MIT"
+description = "A 3D Gaussian splatting viewer written in Rust using wgpu."
+readme = "README.md"
+include = [
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "Cargo.toml",
+    "Cargo.lock",
+    "src/**/*",
+]
+repository = "https://github.com/LioQing/wgpu-3dgs-viewer"
+keywords = ["gaussian-splatting", "point-cloud", "wgpu", "graphics", "ply"]
+categories = ["graphics", "rendering", "wasm"]
+
+[lib]
+name = "wgpu_3dgs_viewer"
+path = "src/lib.rs"
+
+[[bin]]
+name = "simple-wgpu-3dgs-viewer"
+path = "src/bin/simple.rs"
+required-features = ["bin-simple"]
+
+[[bin]]
+name = "selection-wgpu-3dgs-viewer"
+path = "src/bin/selection.rs"
+required-features = ["bin-selection"]
+
+[[bin]]
+name = "mask-wgpu-3dgs-viewer"
+path = "src/bin/mask.rs"
+required-features = ["bin-mask"]
+
+[[bin]]
+name = "dev-wgpu-3dgs-viewer"
+path = "src/bin/dev.rs"
+required-features = ["bin-dev"]
+
+[features]
+bin-simple = [
+    "bin-core",
+    "dep:clap",
+    "dep:env_logger",
+    "dep:futures",
+    "dep:winit",
+]
+bin-selection = [
+    "bin-core",
+    "query-cursor",
+    "query-toolset",
+    "query-texture-overlay",
+    "multi-model",
+    "dep:clap",
+    "dep:env_logger",
+    "dep:futures",
+    "dep:winit",
+]
+bin-mask = [
+    "bin-core",
+    "mask-gizmo",
+    "dep:clap",
+    "dep:env_logger",
+    "dep:futures",
+    "dep:winit",
+]
+bin-dev = [
+    "bin-core",
+    "mask-gizmo",
+    "dep:clap",
+    "dep:env_logger",
+    "dep:futures",
+    "dep:winit",
+]
+bin-core = []
+query-cursor = []
+query-toolset = ["query-tool", "query-texture-tool"]
+query-tool = []
+query-texture = []
+query-texture-tool = ["query-texture"]
+query-texture-overlay = ["query-texture"]
+multi-model = []
+mask = []
+mask-evaluator = ["mask"]
+mask-gizmo = ["mask-evaluator"]
+
+[dependencies]
+bytemuck = { version = "1.21.0", features = [
+    "derive",
+    "extern_crate_alloc",
+    "min_const_generics",
+] }
+bitflags = { version = "2.8.0", features = ["bytemuck"] }
+half = { version = "2.4.1", features = ["bytemuck"] }
+glam = { version = "0.29.2", features = ["bytemuck"] }
+log = "0.4.25"
+oneshot = "0.1.8"
+paste = "1.0.15"
+ply-rs = "0.1.3"
+thiserror = "2.0.11"
+wgpu = "24.0.1"
+
+clap = { version = "4.5.27", features = ["derive"], optional = true }
+env_logger = { version = "0.11.6", optional = true }
+futures = { version = "0.3.31", optional = true }
+winit = { version = "0.30.8", optional = true }
