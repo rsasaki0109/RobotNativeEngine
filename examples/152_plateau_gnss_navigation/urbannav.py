@@ -3,10 +3,10 @@
 
 Reads the UrbanNav Tokyo "Shinjuku" run (IPNL, PolyU; MIT licence): the
 u-blox F9P rover's RINEX observations, the broadcast ephemerides and the
-Applanix POS LV620 ground truth. Writes, once a second, every GPS, Galileo
-and QZSS satellite above the elevation mask with its azimuth and elevation
-at the true antenna position and the C/N0 the receiver measured on L1 (empty
-when it did not track the satellite):
+Applanix POS LV620 ground truth. Writes, once a second, every GPS, Galileo,
+QZSS and BeiDou satellite above the elevation mask with its azimuth and elevation
+at the true antenna position and the C/N0 the receiver measured on L1 (B1I
+for BeiDou; empty when it did not track the satellite):
 
     python3 examples/152_plateau_gnss_navigation/urbannav.py \\
         target/urbannav/Shinjuku target/urbannav/shinjuku_sky.csv
@@ -24,9 +24,13 @@ import csv
 import math
 import pathlib
 
-MU = {"G": 3.986005e14, "J": 3.986005e14, "E": 3.986004418e14}
+MU = {"G": 3.986005e14, "J": 3.986005e14, "E": 3.986004418e14, "C": 3.986004418e14}
 OMEGA_E = 7.2921151467e-5
-SYSTEMS = "GEJ"
+# BeiDou's ephemerides use CGCS2000's rotation rate and BeiDou time (BDT),
+# 14 s behind GPS time.
+OMEGA = {"G": OMEGA_E, "J": OMEGA_E, "E": OMEGA_E, "C": 7.292115e-5}
+BDT_MINUS_GPST_S = -14.0
+SYSTEMS = "GEJC"
 MASK_DEG = 5.0
 
 
@@ -61,12 +65,20 @@ def read_nav(path):
             "codes", "week", "l2p", "accuracy", "health", "tgd", "iodc",
         ]
         eph = dict(zip(names, values))
+        eph["system"] = sys
         ephs.setdefault(line[:3].replace(" ", "0"), []).append(eph)
     return ephs
 
 
-def sat_position(eph, sys, tow):
+def beidou_geo(prn):
+    """BeiDou's geostationary satellites (the BeiDou ICD's list)."""
+    return prn <= 5 or 59 <= prn <= 63
+
+
+def sat_position(eph, sys, tow, prn=0):
     """ECEF of the satellite at GPS time of week `tow` (no light-time)."""
+    if sys == "C":
+        tow += BDT_MINUS_GPST_S
     a = eph["sqrta"] ** 2
     tk = tow - eph["toe"]
     if tk > 302400:
@@ -88,7 +100,19 @@ def sat_position(eph, sys, tow):
     r = a * (1 - e * math.cos(big_e)) + dr
     inc = eph["i0"] + di + eph["idot"] * tk
     x, y = r * math.cos(u), r * math.sin(u)
-    omega = eph["omega0"] + (eph["omegadot"] - OMEGA_E) * tk - OMEGA_E * eph["toe"]
+    w = OMEGA[sys]
+    if sys == "C" and beidou_geo(prn):
+        # In an inertial frame tilted by -5 deg about x, then turned with
+        # the Earth.
+        omega = eph["omega0"] + eph["omegadot"] * tk - w * eph["toe"]
+        gx = x * math.cos(omega) - y * math.cos(inc) * math.sin(omega)
+        gy = x * math.sin(omega) + y * math.cos(inc) * math.cos(omega)
+        gz = y * math.sin(inc)
+        c5, s5 = math.cos(math.radians(-5)), math.sin(math.radians(-5))
+        gy, gz = c5 * gy + s5 * gz, -s5 * gy + c5 * gz
+        cr, sr = math.cos(w * tk), math.sin(w * tk)
+        return (gx * cr + gy * sr, -gx * sr + gy * cr, gz)
+    omega = eph["omega0"] + (eph["omegadot"] - w) * tk - w * eph["toe"]
     return (
         x * math.cos(omega) - y * math.cos(inc) * math.sin(omega),
         x * math.sin(omega) + y * math.cos(inc) * math.cos(omega),
@@ -97,6 +121,8 @@ def sat_position(eph, sys, tow):
 
 
 def best_ephemeris(candidates, tow):
+    if candidates and candidates[0].get("system") == "C":
+        tow += BDT_MINUS_GPST_S
     healthy = [e for e in candidates if e["health"] == 0] or candidates
     return min(healthy, key=lambda e: abs(((tow - e["toe"] + 302400) % 604800) - 302400))
 
@@ -167,32 +193,40 @@ def main():
         for r in rows:
             reference.append(tuple(float(v) for v in (r[0], r[2], r[3], r[4], r[5], r[6], r[7])))
     times = [r[0] for r in reference]
-    written = 0
+    rows = []
+    for tow in sorted(obs):
+        k = bisect.bisect_left(times, tow)
+        if k >= len(times) or abs(times[k] - tow) > 0.06:
+            continue
+        _, lat, lon, h, x, y, z = reference[k]
+        rx = (x, y, z)
+        for sat, candidates in sorted(ephs.items()):
+            eph = best_ephemeris(candidates, tow)
+            pos = sat_position(eph, sat[0], tow - 0.075, int(sat[1:]))
+            # Earth rotation during the signal's flight.
+            theta = OMEGA_E * 0.075
+            pos = (
+                pos[0] * math.cos(theta) + pos[1] * math.sin(theta),
+                -pos[0] * math.sin(theta) + pos[1] * math.cos(theta),
+                pos[2],
+            )
+            az, el = az_el(rx, math.radians(lat), math.radians(lon), pos)
+            if el < MASK_DEG:
+                continue
+            cn0 = obs[tow].get(sat)
+            rows.append([tow, lat, lon, h, sat, f"{az:.2f}", f"{el:.2f}", "" if cn0 is None else cn0])
+    # Satellites the receiver never tracked anywhere on the drive say nothing
+    # about the street: its 2018 firmware decoded neither BeiDou's
+    # geostationary satellites nor the then-new BDS-3.
+    tracked = {r[4] for r in rows if r[7] != ""}
+    dropped = sorted({r[4] for r in rows} - tracked)
+    rows = [r for r in rows if r[4] in tracked]
     with open(args.output, "w", newline="") as out:
         w = csv.writer(out)
         w.writerow(["tow_s", "lat_deg", "lon_deg", "height_m", "sat", "az_deg", "el_deg", "cn0_dbhz"])
-        for tow in sorted(obs):
-            k = bisect.bisect_left(times, tow)
-            if k >= len(times) or abs(times[k] - tow) > 0.06:
-                continue
-            _, lat, lon, h, x, y, z = reference[k]
-            rx = (x, y, z)
-            for sat, candidates in sorted(ephs.items()):
-                eph = best_ephemeris(candidates, tow)
-                pos = sat_position(eph, sat[0], tow - 0.075)
-                # Earth rotation during the signal's flight.
-                theta = OMEGA_E * 0.075
-                pos = (
-                    pos[0] * math.cos(theta) + pos[1] * math.sin(theta),
-                    -pos[0] * math.sin(theta) + pos[1] * math.cos(theta),
-                    pos[2],
-                )
-                az, el = az_el(rx, math.radians(lat), math.radians(lon), pos)
-                if el < MASK_DEG:
-                    continue
-                cn0 = obs[tow].get(sat)
-                w.writerow([tow, lat, lon, h, sat, f"{az:.2f}", f"{el:.2f}", "" if cn0 is None else cn0])
-                written += 1
+        w.writerows(rows)
+    written = len(rows)
+    print(f"never tracked, left out: {' '.join(dropped) or 'none'}")
     print(f"wrote {args.output}: {written} satellite-epochs over {len(obs)} epochs")
 
 

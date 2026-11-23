@@ -1,9 +1,9 @@
 //! `--urbannav CSV`: the ray tracer against a real drive through Shinjuku.
 //!
 //! The CSV (from `urbannav.py`) lists, once a second along the UrbanNav
-//! Tokyo "Shinjuku" run, every GPS, Galileo and QZSS satellite above 5° at
-//! the true antenna position, with the C/N0 the u-blox receiver measured
-//! (empty when it did not track the satellite). Each direction is traced
+//! Tokyo "Shinjuku" run, every GPS, Galileo, QZSS and BeiDou satellite
+//! above 5° at the true antenna position, with the C/N0 the u-blox receiver
+//! measured (empty when it did not track the satellite). Each direction is traced
 //! through the PLATEAU model of the same streets: line of sight, NLOS (only
 //! a reflected or diffracted path reaches the antenna) or blocked. The
 //! measured C/N0 of each class shows whether the model's predictions are
@@ -34,6 +34,8 @@ enum Class {
 /// One satellite at one epoch.
 struct Row {
     tow_s: f64,
+    /// The RINEX system letter (G, E, J, C).
+    system: char,
     lat_deg: f64,
     lon_deg: f64,
     height_m: f64,
@@ -53,6 +55,7 @@ fn read(path: &Path) -> Result<Vec<Row>, String> {
         let num = |s: &str| s.trim().parse::<f64>().map_err(|e| format!("{line}: {e}"));
         rows.push(Row {
             tow_s: num(f[0])?,
+            system: f[4].trim().chars().next().unwrap_or('?'),
             lat_deg: num(f[1])?,
             lon_deg: num(f[2])?,
             height_m: num(f[3])?,
@@ -141,7 +144,7 @@ fn validate(city: &PlateauCity, csv: &Path) -> Result<(), String> {
     }
     let epochs = heights.len();
     println!(
-        "UrbanNav Shinjuku: {} satellite-epochs (GPS, Galileo, QZSS above 5°) over {epochs} s; \
+        "UrbanNav Shinjuku: {} satellite-epochs (GPS, Galileo, QZSS, BeiDou above 5°) over {epochs} s; \
          the reference point is {:.1} m above the PLATEAU terrain (median)",
         rows.len(),
         median(heights)
@@ -189,6 +192,36 @@ fn validate(city: &PlateauCity, csv: &Path) -> Result<(), String> {
         100.0 * open_sky,
         100.0 * f64::from(tp) / f64::from((tp + fp).max(1)),
         100.0 * f64::from(tp) / f64::from((tp + fn_).max(1)),
+    );
+    // Per system: does the model do as well on BeiDou's inclined orbits?
+    let mut by_system = String::new();
+    for (letter, name) in [
+        ('G', "GPS"),
+        ('E', "Galileo"),
+        ('J', "QZSS"),
+        ('C', "BeiDou"),
+    ] {
+        let members: Vec<(&Row, &Class)> = rows
+            .iter()
+            .zip(&classes)
+            .filter(|(r, _)| r.system == letter)
+            .collect();
+        if members.is_empty() {
+            continue;
+        }
+        let hits = members
+            .iter()
+            .filter(|(r, c)| (**c == Class::LineOfSight) == r.cn0_dbhz.is_some_and(|c| c >= 40.0))
+            .count();
+        by_system.push_str(&format!(
+            " {name} {:.0} % ({});",
+            100.0 * hits as f64 / members.len() as f64,
+            members.len()
+        ));
+    }
+    println!(
+        "  agreement by system (satellite-epochs):{}",
+        by_system.trim_end_matches(';')
     );
     // Against elevation alone (the best mask, chosen after the fact), over
     // all satellites and between 20 and 60 degrees, where the street decides.

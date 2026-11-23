@@ -345,9 +345,13 @@ How close is the simulated sky to the real one in these streets? The
 (IPNL, PolyU; MIT licence) has a 35-minute drive through Nishi-Shinjuku on
 19 December 2018 with a u-blox F9P receiver and an Applanix POS LV620
 reference. `urbannav.py` reads its rover RINEX, the broadcast ephemerides
-and the reference, and lists once a second every GPS, Galileo and QZSS
-satellite above 5° with its direction at the true position and the C/N0 the
-receiver measured. `--urbannav` traces each direction through PLATEAU
+and the reference, and lists once a second every GPS, Galileo, QZSS and
+BeiDou satellite above 5° with its direction at the true position and the
+C/N0 the receiver measured (BeiDou in BeiDou time, with its own Earth
+constants and the geostationary satellites' tilted-frame orbit formula).
+Satellites the receiver never tracked anywhere on the drive are left out:
+its 2018 firmware decoded neither BeiDou's geostationary satellites (C01–C04,
+although they stood 19–47° above Tokyo) nor the then-new BDS-3. `--urbannav` traces each direction through PLATEAU
 (six 1 km tiles around the drive, 14 280 buildings) and sorts them into line
 of sight, NLOS (only a reflected or diffracted path) and blocked:
 
@@ -358,23 +362,28 @@ python3 examples/152_plateau_gnss_navigation/urbannav.py target/urbannav/Shinjuk
 cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_navigation -- --urbannav target/urbannav/shinjuku_sky.csv
 ```
 
-| Predicted | Share of 40 243 satellite-epochs | Tracked by the receiver | C/N0 median | ≥ 40 dB-Hz |
+| Predicted | Share of 58 913 satellite-epochs | Tracked by the receiver | C/N0 median | ≥ 40 dB-Hz |
 |-----------|-------|---------|------|------|
-| line of sight | 56.7 % | 96.4 % | 44 dB-Hz | 69.5 % |
-| NLOS (reflected or diffracted) | 15.9 % | 64.6 % | 31 dB-Hz | 4.2 % |
-| blocked | 27.4 % | 26.7 % | 26 dB-Hz | 0.4 % |
+| line of sight | 58.3 % | 92.8 % | 44 dB-Hz | 66.0 % |
+| NLOS (reflected or diffracted) | 14.9 % | 60.0 % | 31 dB-Hz | 4.6 % |
+| blocked | 26.9 % | 23.6 % | 26 dB-Hz | 0.4 % |
 
 The classes separate the way the physics says they should: what the model
 calls line of sight is tracked and strong, what it calls NLOS is tracked but
 about 13 dB weaker (the reflection loss), and what it calls blocked is
 mostly lost. 98 % of the strong signals were predicted line of sight. As a
-classifier of strong signals the model agrees with the receiver on 82 % of
-the satellite-epochs, against 79 % for the best elevation mask (50°,
+classifier of strong signals the model agrees with the receiver on 79 % of
+the satellite-epochs, about as often as the best elevation mask (53°,
 chosen after the fact); between 20 and 60° elevation, where the street
-rather than the elevation decides, 78.5 % against 71 %. Its misses: 30 %
+rather than the elevation decides, 75 % against 72 %. By system it agrees
+on 84 % of the GPS and Galileo satellite-epochs and on 74 % of the QZSS
+and BeiDou ones (without BeiDou: 82 % overall, against 79 % for the best
+mask, and 78.5 % against 71 % between 20 and 60°). Over the drive it predicts 16.4 satellites in line of
+sight per second (10.9 without BeiDou); the receiver tracked 11.0 at 40
+dB-Hz or more (7.7). Its misses: 34 %
 of the predicted line-of-sight signals were weaker than 40 dB-Hz (trees,
 overpasses and pedestrian decks are not in LOD2, and the reference point is
-the vehicle's IMU, 2.8 m above the terrain, not the antenna), and 27 % of
+the vehicle's IMU, 2.8 m above the terrain, not the antenna), and 24 % of
 the predicted blocked ones were still tracked (diffraction the model
 underestimates, and buildings whose LOD2 outline is larger than the real
 one).
