@@ -67,6 +67,11 @@ the street.
 With `--cut-in S` a second copy of the car is parked 2.4 m right of the path at arc length `S`
 and pulls out into the lane (2.5 s, smoothstep, heading along its motion) when the ego comes
 within 20 m; once it is within 1.3 m of the lane centre it becomes the ego's leader.
+`--ego-actor PLY` draws the ego car as a splat as well, and `--chase BACK,UP,PITCH` adds a
+third-person view from `BACK` m behind the ego along the path (`UP` m above the camera height,
+pitched down `PITCH` degrees). Because that camera stays on the recorded path near the recorded
+height, the street renders as well as from the front camera; views from higher up do not (the
+splat was trained from street level only).
 
 The actor frame is +x forward, +y left, +z up with the origin at the bottom centre; the
 example turns it into RNE's y-up car frame. A cut-out car was only ever seen from the road, so

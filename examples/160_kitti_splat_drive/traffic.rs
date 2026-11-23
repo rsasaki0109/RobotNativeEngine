@@ -16,6 +16,10 @@
 //! [--render-every 0.2] [--duration 40] [--lead-start 22] [--stop-at 14]
 //! [--cut-in S]            a second car parked at path arc length S, off to the right, pulls
 //!                         out in front of the ego when the ego comes within 20 m
+//! [--ego-actor PLY]       draw the ego car too, as this car splat
+//! [--chase BACK,UP,PITCH] also render a third-person view: BACK m behind the ego along the
+//!                         path, UP m above its camera height, pitched down PITCH degrees
+//!                         (chase_NNNN.png)
 //! ```
 
 use kitti_splat_drive::{
@@ -71,6 +75,14 @@ fn main() {
     let lead_start: f64 = arg("--lead-start").map_or(22.0, |v| v.parse().unwrap());
     let stop_at: f64 = arg("--stop-at").map_or(14.0, |v| v.parse().unwrap());
     let cut_in: Option<f64> = arg("--cut-in").map(|v| v.parse().unwrap());
+    let ego_actor = arg("--ego-actor").map(|p| load_splat_actor(Path::new(&p)).expect("ego actor"));
+    let chase: Option<[f64; 3]> = arg("--chase").map(|v| {
+        let parts: Vec<f64> = v
+            .split(',')
+            .map(|x| x.trim().parse().expect("--chase"))
+            .collect();
+        [parts[0], parts[1], parts[2]]
+    });
     fs::create_dir_all(&out).expect("output directory");
 
     let path = parse_path(&fs::read_to_string(arg("--path").expect("--path")).expect("path"))
@@ -82,16 +94,16 @@ fn main() {
     let environment = validate_gaussian_splat_manifest(Path::new(&manifest)).expect("manifest");
     let actor = load_splat_actor(&actor_path).expect("actor");
     println!("actor: {} Gaussians", actor.len());
-    let mut background = GaussianSplatBackground::from_environment_with_actors(
-        backend.device(),
-        &environment,
-        if cut_in.is_some() {
-            vec![actor.clone(), actor]
-        } else {
-            vec![actor]
-        },
-    )
-    .expect("splat");
+    let mut background =
+        GaussianSplatBackground::from_environment_with_actors(backend.device(), &environment, {
+            let mut actors = vec![actor.clone()];
+            if cut_in.is_some() {
+                actors.push(actor);
+            }
+            actors.extend(ego_actor.clone());
+            actors
+        })
+        .expect("splat");
     let scene = HybridRenderScene::new(environment.clone(), RenderScene::new());
     let camera = Camera::new(
         CAM_WIDTH,
@@ -154,6 +166,13 @@ fn main() {
                     .set_actor_pose(backend.queue(), 1, Some(&pose))
                     .expect("actor pose");
             }
+            if ego_actor.is_some() {
+                let ego_index = background.actor_count() - 1;
+                let pose = car_pose(&points, &lengths, ego_s, 0.0, 0.0);
+                background
+                    .set_actor_pose(backend.queue(), ego_index, Some(&pose))
+                    .expect("ego pose");
+            }
             let image = render_front(
                 &mut backend,
                 &mut background,
@@ -163,6 +182,30 @@ fn main() {
                 ego_yaw,
             );
             write_png(&out.join(format!("front_{frame:04}.png")), &image);
+            if let Some([back, up, pitch]) = chase {
+                let (p, yaw) = pose_at(&points, &lengths, (ego_s - back).max(0.0));
+                let rotation = Quat::from_rotation_y(yaw);
+                let mount = Vec3::new(CAM_IN_BASE[0], CAM_IN_BASE[2] + up, -CAM_IN_BASE[1]);
+                let view = Transform3::from_translation_rotation(
+                    p + rotation * mount,
+                    (rotation
+                        * Quat::from_rotation_y(-FRAC_PI_2)
+                        * Quat::from_rotation_x(-pitch.to_radians()))
+                    .normalize(),
+                );
+                let image = render_hybrid_scene_camera(
+                    &mut backend,
+                    &mut background,
+                    &camera,
+                    &view,
+                    &scene,
+                    [0.0, 0.0, 0.0, 1.0],
+                )
+                .expect("chase render")
+                .color
+                .rgba8;
+                write_png(&out.join(format!("chase_{frame:04}.png")), &image);
+            }
             writeln!(
                 log,
                 "{t:.2},{frame},{ego_s:.3},{ego_v:.3},{accel:.3},{lead_s:.3},{lead_v:.3},\
