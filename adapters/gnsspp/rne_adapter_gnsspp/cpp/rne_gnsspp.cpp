@@ -14,6 +14,7 @@ libgnss::GNSSSystem toSystem(uint8_t system) {
     switch (system) {
         case 4: return libgnss::GNSSSystem::Galileo;
         case 0x10: return libgnss::GNSSSystem::QZSS;
+        case 8: return libgnss::GNSSSystem::BeiDou;
         default: return libgnss::GNSSSystem::GPS;
     }
 }
@@ -31,6 +32,8 @@ SignalInfo toSignal(uint8_t signal) {
         case 3: return {libgnss::SignalType::GAL_E5A, "C5Q", "L5Q"};
         case 4: return {libgnss::SignalType::QZS_L1CA, "C1C", "L1C"};
         case 5: return {libgnss::SignalType::QZS_L2C, "C2L", "L2L"};
+        case 6: return {libgnss::SignalType::BDS_B1I, "C2I", "L2I"};
+        case 7: return {libgnss::SignalType::BDS_B3I, "C6I", "L6I"};
         default: return {libgnss::SignalType::GPS_L1CA, "C1C", "L1C"};
     }
 }

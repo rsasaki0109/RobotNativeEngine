@@ -22,17 +22,23 @@ pub enum SignalKind {
     QzsL1Ca,
     /// QZSS L2C.
     QzsL2C,
+    /// BeiDou B1I.
+    BdsB1I,
+    /// BeiDou B3I.
+    BdsB3I,
 }
 
 impl SignalKind {
     /// Every simulated signal.
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 8] = [
         Self::GpsL1Ca,
         Self::GpsL2C,
         Self::GalE1,
         Self::GalE5a,
         Self::QzsL1Ca,
         Self::QzsL2C,
+        Self::BdsB1I,
+        Self::BdsB3I,
     ];
 
     /// The system transmitting the signal.
@@ -41,6 +47,7 @@ impl SignalKind {
             Self::GpsL1Ca | Self::GpsL2C => GnssSystem::Gps,
             Self::GalE1 | Self::GalE5a => GnssSystem::Galileo,
             Self::QzsL1Ca | Self::QzsL2C => GnssSystem::Qzss,
+            Self::BdsB1I | Self::BdsB3I => GnssSystem::BeiDou,
         }
     }
 
@@ -50,6 +57,8 @@ impl SignalKind {
             Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca => GPS_L1_HZ,
             Self::GpsL2C | Self::QzsL2C => 1_227.60e6,
             Self::GalE5a => 1_176.45e6,
+            Self::BdsB1I => 1_561.098e6,
+            Self::BdsB3I => 1_268.52e6,
         }
     }
 
@@ -64,14 +73,15 @@ impl SignalKind {
             Self::GpsL1Ca | Self::GpsL2C | Self::GalE1 | Self::QzsL1Ca | Self::QzsL2C => {
                 SPEED_OF_LIGHT_M_S / 1.023e6
             }
-            Self::GalE5a => SPEED_OF_LIGHT_M_S / 10.23e6,
+            Self::GalE5a | Self::BdsB3I => SPEED_OF_LIGHT_M_S / 10.23e6,
+            Self::BdsB1I => SPEED_OF_LIGHT_M_S / 2.046e6,
         }
     }
 
     /// Received power relative to L1 C/A in dB.
     pub fn power_offset_db(self) -> f64 {
         match self {
-            Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca => 0.0,
+            Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca | Self::BdsB1I | Self::BdsB3I => 0.0,
             Self::GpsL2C | Self::QzsL2C => -1.5,
             Self::GalE5a => 1.0,
         }
@@ -79,7 +89,10 @@ impl SignalKind {
 
     /// Whether this is the system's first (L1-band) signal.
     pub fn is_primary(self) -> bool {
-        matches!(self, Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca)
+        matches!(
+            self,
+            Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca | Self::BdsB1I
+        )
     }
 
     /// Ionospheric delay at this frequency relative to L1.
@@ -93,6 +106,8 @@ impl SignalKind {
             Self::GpsL1Ca | Self::GalE1 | Self::QzsL1Ca => "1C",
             Self::GpsL2C | Self::QzsL2C => "2L",
             Self::GalE5a => "5Q",
+            Self::BdsB1I => "2I",
+            Self::BdsB3I => "6I",
         }
     }
 }
