@@ -577,6 +577,8 @@ struct ColliderRenderer {
     board: Option<(u64, BoardSpec)>,
     /// Rays per pixel along each axis, averaged (1: one ray through the centre).
     samples: u32,
+    /// Supersample every pixel (`--supersample`), not only the board's.
+    supersample_all: bool,
 }
 
 impl ColliderRenderer {
@@ -599,11 +601,21 @@ impl ColliderRenderer {
             boxes,
             board: None,
             samples: 1,
+            supersample_all: false,
         }
     }
 
     /// Draws `board`'s pattern on the collider of `entity` and renders `samples` x
     /// `samples` rays per pixel, so the squares' edges are antialiased.
+    /// Renders every pixel with `samples` x `samples` jittered rays.
+    fn with_supersampling(mut self, samples: u32) -> Self {
+        if samples > 1 {
+            self.samples = samples;
+            self.supersample_all = true;
+        }
+        self
+    }
+
     fn with_board(mut self, entity: Entity, board: BoardSpec, samples: u32) -> Self {
         self.board = Some((entity.to_bits(), board));
         self.samples = samples.max(1);
@@ -748,9 +760,11 @@ impl RenderBackend for ColliderRenderer {
                 }
                 // Only the board needs antialiasing: its squares' corners are what a
                 // checkerboard calibration measures; the room keeps one ray per pixel.
-                let on_board = self.board.is_some_and(|(board_key, _)| {
-                    self.hit_key(view.translation, view.rotation * ray(0.5, 0.5)) == Some(board_key)
-                });
+                let on_board = self.supersample_all
+                    || self.board.is_some_and(|(board_key, _)| {
+                        self.hit_key(view.translation, view.rotation * ray(0.5, 0.5))
+                            == Some(board_key)
+                    });
                 let gray = if samples > 1 && on_board {
                     // Average a samples x samples grid of rays: the depth stays the
                     // centre ray's, so silhouettes keep sharp depth edges.
@@ -828,6 +842,9 @@ struct CameraOptions {
     info: CameraInfoMode,
     /// Rolling-shutter readout, first row to last (`--readout-ms`); 0 is a global shutter.
     readout_s: f64,
+    /// Jittered rays per pixel along each axis for the whole image (`--supersample`); 0
+    /// or 1 renders one ray per pixel (the board alone is always antialiased).
+    supersample: u32,
 }
 
 impl CameraOptions {
@@ -1044,7 +1061,12 @@ struct Scene {
 }
 
 impl Scene {
-    fn new(rig: Rig, motion: Motion, board: Option<BoardSpec>) -> io::Result<Self> {
+    fn new(
+        rig: Rig,
+        motion: Motion,
+        board: Option<BoardSpec>,
+        supersample: u32,
+    ) -> io::Result<Self> {
         let mut world = World::new();
         spawn_room(&mut world);
         let board_entity = board.map(|board| (spawn_board(&mut world, board), board));
@@ -1060,6 +1082,7 @@ impl Scene {
         if let Some((entity, board)) = board_entity {
             renderer = renderer.with_board(entity, board, 3);
         }
+        renderer = renderer.with_supersampling(supersample);
 
         // The rig body is the LiDAR frame; it carries no collider so rays never hit it.
         let rig_body = spawn_named(&mut world, "rig");
@@ -1316,7 +1339,7 @@ fn simulate(
     camera: CameraOptions,
     board: Option<BoardSpec>,
 ) -> io::Result<Recording> {
-    let mut scene = Scene::new(rig, motion, board)?;
+    let mut scene = Scene::new(rig, motion, board, camera.supersample)?;
     let mut events = Vec::new();
     let mut recording = Recording::default();
     if sensors.imu {
@@ -1460,7 +1483,7 @@ struct Args {
 const USAGE: &str = "usage: 149_calibrex_rig_bag [--out DIR] [--duration-s SECONDS] \
      [--sensors lidar,imu,lidar2,camera,camera2] [--rotation-speed FACTOR] \
      [--motion hand-held|turn|board] [--lens K1,K2,P1,P2[,K3]] \
-     [--camera-info true|zero|none] [--board COLSxROWSxSQUARE_M] [--readout-ms MS]";
+     [--camera-info true|zero|none] [--board COLSxROWSxSQUARE_M] [--readout-ms MS] [--supersample N]";
 
 fn exit_usage(error: &str) -> ! {
     eprintln!("{error}\n{USAGE}");
@@ -1511,6 +1534,13 @@ fn parse_args() -> Args {
             ("--board", Some(value)) => {
                 args.board =
                     Some(BoardSpec::parse(&value).unwrap_or_else(|error| exit_usage(&error)));
+            }
+            ("--supersample", Some(value)) => {
+                args.camera.supersample = value
+                    .parse()
+                    .ok()
+                    .filter(|n: &u32| (1..=8).contains(n))
+                    .unwrap_or_else(|| exit_usage("--supersample takes 1 to 8"));
             }
             ("--readout-ms", Some(value)) => {
                 args.camera.readout_s = value
@@ -2154,6 +2184,7 @@ mod tests {
                     lens,
                     info: mode,
                     readout_s: 0.0,
+                    supersample: 1,
                 },
                 None,
             )
