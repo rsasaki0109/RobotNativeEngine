@@ -5,6 +5,7 @@
 
 use crate::avoid::Avoider;
 use crate::crowd::{pedestrian_range, Weather};
+use crate::explain::{Explainer, Status};
 use crate::gnss::{GnssOutput, RobotGnss, SolutionLabel, BODY_HEIGHT_M};
 use crate::lidar3d;
 use crate::plateau::PlateauCity;
@@ -18,7 +19,8 @@ use rne_nav::{
 };
 use rne_slam::{
     AbsoluteHeadingFix, AbsolutePositionFix, AmclConfig, FactorGraphConfig, FactorGraphLocalizer,
-    FixKind, HybridLocalizer, HybridLocalizerConfig, LocalizationSource, PointCloudMap,
+    FixKind, GnssDecision, HybridLocalizer, HybridLocalizerConfig, LocalizationSource,
+    PointCloudMap,
 };
 use std::collections::BinaryHeap;
 use std::f64::consts::TAU;
@@ -92,25 +94,44 @@ impl Localizer {
         }
     }
 
+    /// Feeds a GNSS epoch; the hybrid's verdict on it, if it judges.
     fn update_gnss(
         &mut self,
         fix: Option<&AbsolutePositionFix>,
         heading: Option<&AbsoluteHeadingFix>,
         t: f64,
-    ) {
+    ) -> Option<GnssDecision> {
         match self {
             Self::Hybrid(h) => {
-                h.update_gnss(fix, t).expect("gnss");
+                let decision = h.update_gnss(fix, t).expect("gnss");
                 if let Some(heading) = heading {
                     h.update_gnss_heading(heading).expect("heading");
                 }
+                Some(decision)
             }
             Self::Graph(g) => {
                 g.update_gnss(fix, t);
                 if let Some(heading) = heading {
                     g.update_gnss_heading(heading);
                 }
+                None
             }
+        }
+    }
+
+    /// The LiDAR's state in words: the latest 3D match's fit, or the particle
+    /// filter's mean score with the planar scan.
+    fn lidar_words(&self, fit3d: Option<f64>) -> String {
+        match (self, fit3d) {
+            (_, Some(fit)) => format!(
+                "LiDAR: {:.0} % of the 3D scan on mapped surfaces",
+                100.0 * fit
+            ),
+            (Self::Hybrid(h), None) => h.last_amcl_update().map_or_else(
+                || "LiDAR: not tracking (GNSS in charge)".to_string(),
+                |u| format!("LiDAR: map match score {:.2}", u.mean_score),
+            ),
+            (Self::Graph(_), None) => "LiDAR: planar scan matched every 0.1 s".to_string(),
         }
     }
 
@@ -132,7 +153,10 @@ impl Localizer {
         }
         state.last_scan_s = t;
         let Lidar3dState {
-            rng, last_search_s, ..
+            rng,
+            last_search_s,
+            last_fit,
+            ..
         } = state;
         let (movers, rain, truth) = sensed;
         let ground = city.ground_m(truth.x_m, truth.y_m);
@@ -147,17 +171,22 @@ impl Localizer {
         match self {
             Self::Hybrid(h) => match h.source() {
                 LocalizationSource::Lidar => {
-                    h.update_lidar_match(local().as_ref(), t).expect("lidar");
+                    let m = local();
+                    *last_fit = m.map(|m| m.fit_fraction);
+                    h.update_lidar_match(m.as_ref(), t).expect("lidar");
                 }
                 LocalizationSource::DeadReckoning if t - *last_search_s >= 1.0 => {
                     *last_search_s = t;
                     let found = lidar3d::search(map, points, pose, z, h.lidar_search_window_m());
+                    *last_fit = found.map(|m| m.fit_fraction);
                     h.update_lidar_match(found.as_ref(), t).expect("lidar");
                 }
                 _ => {}
             },
             Self::Graph(g) => {
-                if let Some(m) = local() {
+                let m = local();
+                *last_fit = m.map(|m| m.fit_fraction);
+                if let Some(m) = m {
                     g.update_lidar_match(&m, t);
                 }
             }
@@ -183,6 +212,8 @@ struct Lidar3dState {
     rng: DeterministicRng,
     last_scan_s: f64,
     last_search_s: f64,
+    /// Share of the latest scan on mapped surfaces, once one matched.
+    last_fit: Option<f64>,
 }
 
 impl Lidar3dState {
@@ -191,6 +222,7 @@ impl Lidar3dState {
             rng: DeterministicRng::new(seed),
             last_scan_s: f64::NEG_INFINITY,
             last_search_s: f64::NEG_INFINITY,
+            last_fit: None,
         }
     }
 }
@@ -215,6 +247,8 @@ pub(crate) struct FrameRecord {
     pub rain: bool,
     /// A 3D LiDAR scan in the map frame (with `--lidar3d`).
     pub scan3d: Vec<Vec3>,
+    /// What the localizer did and why.
+    pub status: Status,
 }
 
 /// A 3D scan for the render, from its own noise stream so recording does not
@@ -500,6 +534,18 @@ pub(crate) fn distance_to_route(route: &[(f64, f64)], x: f64, y: f64) -> f64 {
         .fold(f64::INFINITY, f64::min)
 }
 
+impl RunReport {
+    /// Counts a GNSS solution by type.
+    fn count(&mut self, label: SolutionLabel) {
+        match label {
+            SolutionLabel::Fixed => self.fixed += 1,
+            SolutionLabel::Float => self.float += 1,
+            SolutionLabel::Single => self.single += 1,
+            SolutionLabel::None => self.none += 1,
+        }
+    }
+}
+
 /// The figures of a run compared across seeds.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct RunSummary {
@@ -652,6 +698,7 @@ pub(crate) fn run(
     };
     let mut leg = 0;
     let mut drive = Driver::new(options.avoid);
+    let mut explain = Explainer::new();
     let body = |p: Pose2d| BodyPose {
         x_m: p.x_m,
         y_m: p.y_m,
@@ -710,13 +757,9 @@ pub(crate) fn run(
         }
         for output in &outputs {
             last_label = Some(output.label);
-            hybrid.update_gnss(output.fix.as_ref(), output.heading.as_ref(), t);
-            match output.label {
-                SolutionLabel::Fixed => report.fixed += 1,
-                SolutionLabel::Float => report.float += 1,
-                SolutionLabel::Single => report.single += 1,
-                SolutionLabel::None => report.none += 1,
-            }
+            let decision = hybrid.update_gnss(output.fix.as_ref(), output.heading.as_ref(), t);
+            explain.gnss(output, decision, hybrid.pose());
+            report.count(output.label);
         }
         if tick.is_multiple_of(LIDAR_EVERY_TICKS) {
             let scan = lidar_scan(&slice, &movers, options.weather.rain, truth, t, &mut rng);
@@ -735,6 +778,8 @@ pub(crate) fn run(
                 None => hybrid.update_lidar(&scan, odom, t),
             }
         }
+        explain.lidar(hybrid.lidar_words(lidar3d_state.last_fit));
+        explain.source(t, hybrid.source());
         let estimate = hybrid.pose();
         report
             .errors
@@ -760,6 +805,7 @@ pub(crate) fn run(
                 movers: movers.clone(),
                 rain: options.weather.rain,
                 scan3d: record_scan3d(city, &movers, options, truth),
+                status: explain.status(t),
             });
         }
         if verbose && tick.is_multiple_of(600) {

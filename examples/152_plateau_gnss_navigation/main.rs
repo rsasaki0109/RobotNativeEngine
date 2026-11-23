@@ -12,6 +12,7 @@
 // Shared with example 151, which uses all of it.
 mod avoid;
 mod crowd;
+mod explain;
 #[allow(dead_code)]
 #[path = "../151_gnss_lidar_navigation/gnss.rs"]
 mod gnss;

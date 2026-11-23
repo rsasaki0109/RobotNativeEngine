@@ -720,6 +720,9 @@ pub(crate) fn render(
             "error_m": error,
             "los": los,
             "nlos": nlos,
+            "gnss": frame.status.gnss,
+            "lidar": frame.status.lidar,
+            "event": frame.status.event,
             "weather": match (
                 !frame.movers.vehicles.is_empty(),
                 frame.movers.people.is_empty(),
