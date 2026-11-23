@@ -9,6 +9,9 @@
 //!
 //! ```text
 //! --manifest SPLAT.toml   street splat
+//! --segments LIST         instead of --manifest: one splat per stretch of the route
+//!                         (`start_frame, manifest` lines, as for examples 160/161); the
+//!                         actors move with the ego from splat to splat
 //! --actor PLY             car splat in its own frame (+x forward, +y left, +z up, origin at
 //!                         the bottom centre)
 //! --path CSV              t_s, x, y, z, yaw (RNE frame, OXTS unit above the road)
@@ -23,13 +26,15 @@
 //! ```
 
 use kitti_splat_drive::{
-    arc_length_near, arc_lengths, cut_in_lateral, parse_path, pose_at, Idm, CUT_IN_TRIGGER_M,
-    PARKED_OFFSET_M,
+    arc_length_near, arc_lengths, cut_in_lateral, parse_path, parse_segments, pose_at, segment_for,
+    Idm, Segment, CUT_IN_TRIGGER_M, PARKED_OFFSET_M,
 };
 use png::{BitDepth, ColorType, Encoder};
 use rne_math::{Quat, Transform3, Vec3};
 use rne_render::{validate_gaussian_splat_manifest, Camera, HybridRenderScene, RenderScene};
-use rne_render_3dgs::{load_splat_actor, render_hybrid_scene_camera, GaussianSplatBackground};
+use rne_render_3dgs::{
+    load_splat_actor, render_hybrid_scene_camera, GaussianSplatBackground, SplatActorAsset,
+};
 use rne_render_wgpu::WgpuRenderBackend;
 use std::f64::consts::FRAC_PI_2;
 use std::fs::{self, File};
@@ -67,7 +72,7 @@ fn lead_speed(t: f64, stop_at: f64) -> f64 {
 }
 
 fn main() {
-    let manifest = arg("--manifest").expect("--manifest");
+    let segments = load_segments();
     let actor_path = PathBuf::from(arg("--actor").expect("--actor"));
     let out = PathBuf::from(arg("--out").unwrap_or_else(|| "kitti_splat_traffic".into()));
     let render_every: f64 = arg("--render-every").map_or(0.2, |v| v.parse().unwrap());
@@ -87,24 +92,27 @@ fn main() {
 
     let path = parse_path(&fs::read_to_string(arg("--path").expect("--path")).expect("path"))
         .expect("path");
-    let points = path.points;
+    let points = path.points.clone();
     let lengths = arc_lengths(&points);
 
     let mut backend = WgpuRenderBackend::new().expect("wgpu backend");
-    let environment = validate_gaussian_splat_manifest(Path::new(&manifest)).expect("manifest");
-    let actor = load_splat_actor(&actor_path).expect("actor");
-    println!("actor: {} Gaussians", actor.len());
-    let mut background =
-        GaussianSplatBackground::from_environment_with_actors(backend.device(), &environment, {
-            let mut actors = vec![actor.clone()];
-            if cut_in.is_some() {
-                actors.push(actor);
-            }
-            actors.extend(ego_actor.clone());
-            actors
-        })
+    let actors = actor_list(&actor_path, cut_in.is_some(), ego_actor.clone());
+    // The splat for a stretch of the route, with the same actors in it.
+    let load = |backend: &WgpuRenderBackend, manifest: &Path| {
+        let environment = validate_gaussian_splat_manifest(manifest).expect("manifest");
+        println!("splat: {}", environment.ply_path.display());
+        let background = GaussianSplatBackground::from_environment_with_actors(
+            backend.device(),
+            &environment,
+            actors.clone(),
+        )
         .expect("splat");
-    let scene = HybridRenderScene::new(environment.clone(), RenderScene::new());
+        let scene = HybridRenderScene::new(environment, RenderScene::new());
+        (background, scene)
+    };
+    let segment_of = |index: usize| segment_for(&segments, path.frames[index]);
+    let mut segment = segment_of(0);
+    let (mut background, mut scene) = load(&backend, &segments[segment].manifest);
     let camera = Camera::new(
         CAM_WIDTH,
         CAM_HEIGHT,
@@ -154,6 +162,10 @@ fn main() {
             // Keep the projection consistent with the path the actors are placed on.
             let (_, h) = arc_length_near(&points, &lengths, hint, ego_p);
             hint = h;
+            if segment_of(hint) != segment {
+                segment = segment_of(hint);
+                (background, scene) = load(&backend, &segments[segment].manifest);
+            }
             let lead_pose = car_pose(&points, &lengths, lead_s, 0.0, 0.0);
             background
                 .set_actor_pose(backend.queue(), 0, Some(&lead_pose))
@@ -182,28 +194,15 @@ fn main() {
                 ego_yaw,
             );
             write_png(&out.join(format!("front_{frame:04}.png")), &image);
-            if let Some([back, up, pitch]) = chase {
-                let (p, yaw) = pose_at(&points, &lengths, (ego_s - back).max(0.0));
-                let rotation = Quat::from_rotation_y(yaw);
-                let mount = Vec3::new(CAM_IN_BASE[0], CAM_IN_BASE[2] + up, -CAM_IN_BASE[1]);
-                let view = Transform3::from_translation_rotation(
-                    p + rotation * mount,
-                    (rotation
-                        * Quat::from_rotation_y(-FRAC_PI_2)
-                        * Quat::from_rotation_x(-pitch.to_radians()))
-                    .normalize(),
-                );
-                let image = render_hybrid_scene_camera(
+            if let Some(chase) = chase {
+                let image = render_chase(
                     &mut backend,
                     &mut background,
                     &camera,
-                    &view,
                     &scene,
-                    [0.0, 0.0, 0.0, 1.0],
-                )
-                .expect("chase render")
-                .color
-                .rgba8;
+                    pose_at(&points, &lengths, (ego_s - chase[0]).max(0.0)),
+                    chase,
+                );
                 write_png(&out.join(format!("chase_{frame:04}.png")), &image);
             }
             writeln!(
@@ -236,6 +235,64 @@ fn car_pose(points: &[Vec3], lengths: &[f64], s: f64, lateral: f64, yaw_offset: 
         p + right * lateral - Vec3::new(0.0, BASE_HEIGHT_M, 0.0),
         Quat::from_rotation_y(yaw + yaw_offset) * Quat::from_rotation_x(-FRAC_PI_2),
     )
+}
+
+/// `--segments LIST`, or one segment from `--manifest`.
+fn load_segments() -> Vec<Segment> {
+    match arg("--segments") {
+        Some(list) => {
+            let list = PathBuf::from(list);
+            let base = list.parent().unwrap_or(Path::new(".")).to_path_buf();
+            parse_segments(&fs::read_to_string(&list).expect("segments"), &base).expect("segments")
+        }
+        None => vec![Segment {
+            start_frame: 0,
+            manifest: PathBuf::from(arg("--manifest").expect("--manifest or --segments")),
+            map: None,
+        }],
+    }
+}
+
+/// Lead car, then the cut-in car (if any), then the ego car (if drawn).
+fn actor_list(path: &Path, cut_in: bool, ego: Option<SplatActorAsset>) -> Vec<SplatActorAsset> {
+    let actor = load_splat_actor(path).expect("actor");
+    println!("actor: {} Gaussians", actor.len());
+    let mut actors = vec![actor.clone()];
+    if cut_in {
+        actors.push(actor);
+    }
+    actors.extend(ego);
+    actors
+}
+
+/// Third-person view from the path point `(position, yaw)` behind the ego, raised by `up` and
+/// pitched down `pitch` degrees (`chase = [back, up, pitch]`).
+fn render_chase(
+    backend: &mut WgpuRenderBackend,
+    background: &mut GaussianSplatBackground,
+    camera: &Camera,
+    scene: &HybridRenderScene,
+    (position, yaw): (Vec3, f64),
+    [_, up, pitch]: [f64; 3],
+) -> Vec<u8> {
+    let rotation = Quat::from_rotation_y(yaw);
+    let mount = Vec3::new(CAM_IN_BASE[0], CAM_IN_BASE[2] + up, -CAM_IN_BASE[1]);
+    let view = Transform3::from_translation_rotation(
+        position + rotation * mount,
+        (rotation * Quat::from_rotation_y(-FRAC_PI_2) * Quat::from_rotation_x(-pitch.to_radians()))
+            .normalize(),
+    );
+    render_hybrid_scene_camera(
+        backend,
+        background,
+        camera,
+        &view,
+        scene,
+        [0.0, 0.0, 0.0, 1.0],
+    )
+    .expect("chase render")
+    .color
+    .rgba8
 }
 
 fn render_front(

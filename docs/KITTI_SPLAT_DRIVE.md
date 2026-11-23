@@ -60,7 +60,7 @@ Driver Model (`kitti_splat_drive::Idm`) and its front camera is rendered with th
 the street.
 
 ```text
-162_kitti_splat_traffic --manifest SPLAT.toml --actor CAR.ply --path PATH.csv --out DIR
+162_kitti_splat_traffic --manifest SPLAT.toml|--segments LIST --actor CAR.ply --path PATH.csv --out DIR
   [--render-every 0.2] [--duration 40] [--lead-start 22] [--stop-at 14] [--cut-in S]
 ```
 
@@ -72,6 +72,9 @@ third-person view from `BACK` m behind the ego along the path (`UP` m above the 
 pitched down `PITCH` degrees). Because that camera stays on the recorded path near the recorded
 height, the street renders as well as from the front camera; views from higher up do not (the
 splat was trained from street level only).
+
+With `--segments` the route can span several splats; each switch reloads the next splat with
+the same actors, so the cars carry on across it.
 
 The actor frame is +x forward, +y left, +z up with the origin at the bottom centre; the
 example turns it into RNE's y-up car frame. A cut-out car was only ever seen from the road, so
