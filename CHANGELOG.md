@@ -18,6 +18,10 @@ All notable changes to Robot Native Engine are documented in this file.
   (`parse_bridge_triangles`; `BuildingTriangles` carries texture
   coordinates), `--render-preview` renders still views of the city, and
   `scripts/fetch_plateau_tokyo.py --textures` fetches the photos.
+  The render also lays out the streets PLATEAU's LOD1 roads leave out:
+  raised sidewalks with curbs, tiles and tactile paving along every road
+  at least 10 m wide, white edge lines, asphalt, and zebra crossings where
+  the roads enter PLATEAU's intersections.
 - `FactorGraphConfig::lidar_reanchor_rtk_hold_s`: shortly after an RTK
   fixed fix, a particle filter that wandered off from both the graph and
   that fix is re-seeded at the graph instead of re-anchoring it.

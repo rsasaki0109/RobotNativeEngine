@@ -35,8 +35,17 @@ photo textures (`app:ParameterizedTexture`, fetched with
 `fetch_plateau_tokyo.py --textures` and shrunk to 256 px, packed into
 4096 px atlases), the streets are PLATEAU's road surfaces (`tran`) draped
 over the terrain, and the railway viaducts and pedestrian decks around the
-stations are its bridges (`brid`). `--render-preview DIR` renders the city
-alone at eight points along the route, without running the robot.
+stations are its bridges (`brid`). PLATEAU's LOD1 roads run from building
+line to building line, sidewalks included, so the render places those
+itself (`streets.rs`): it rasterizes the roads at 0.5 m, and every road at
+least 10 m wide gets a 3 m sidewalk along its building lines, raised 15 cm
+behind a curb and paved in 30 cm tiles with a line of yellow tactile
+paving; marching squares over the distance from the building line give
+smooth curbs and the white edge lines. The road polygons without a section
+type (`uro:sectionType`) are PLATEAU's intersections, and every wide road
+gets a zebra crossing where it enters one. The asphalt and the tiles are
+generated textures. `--render-preview DIR` renders the city alone at eight
+points along the route, without running the robot.
 
 ## What is simulated
 

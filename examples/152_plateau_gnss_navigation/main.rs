@@ -21,6 +21,8 @@ mod nav;
 mod plateau;
 #[cfg(feature = "capture")]
 mod render;
+#[cfg(feature = "capture")]
+mod streets;
 mod traffic;
 mod urbannav;
 

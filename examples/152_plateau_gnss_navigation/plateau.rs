@@ -62,6 +62,10 @@ pub(crate) struct PlateauCity {
     /// drawing on the terrain.
     #[cfg_attr(not(feature = "capture"), allow(dead_code))]
     pub(crate) roads: Arc<Vec<[Vec3; 3]>>,
+    /// The roads' intersections (PLATEAU's road polygons without a section
+    /// type), one triangle list per polygon.
+    #[cfg_attr(not(feature = "capture"), allow(dead_code))]
+    pub(crate) junctions: Arc<Vec<Vec<[Vec3; 3]>>>,
     /// Terrain heights on a grid (see [`TERRAIN_CELL_M`]).
     terrain: Vec<f64>,
     terrain_half_cells: usize,
@@ -150,14 +154,20 @@ fn sibling(path: &Path, suffix: &str) -> Option<PathBuf> {
     Some(path.with_file_name(format!("{mesh}_{suffix}")))
 }
 
+/// Road and intersection triangles.
+type Roads = (Vec<[Vec3; 3]>, Vec<Vec<[Vec3; 3]>>);
+
 /// The road surfaces of the tiles' transportation files (next to the
-/// building files) within `radius_m` of the origin.
+/// building files) within `radius_m` of the origin, and the intersections
+/// among them: PLATEAU splits its roads into sections (`uro:sectionType`)
+/// and the intersections between them, which have none.
 fn load_roads(
     paths: &[PathBuf],
     to_enu: &dyn Fn([f64; 3]) -> Vec3,
     radius_m: f64,
-) -> Result<Vec<[Vec3; 3]>, String> {
+) -> Result<Roads, String> {
     let mut roads = Vec::new();
+    let mut junctions = Vec::new();
     for path in paths {
         let Some(tran) = sibling(path, "tran_6668_op.gml") else {
             continue;
@@ -165,9 +175,20 @@ fn load_roads(
         let Ok(xml) = std::fs::read_to_string(&tran) else {
             continue;
         };
+        let sections: std::collections::HashSet<&str> = xml
+            .split("<tran:Road gml:id=\"")
+            .skip(1)
+            .filter_map(|chunk| {
+                let id = chunk.split('"').next()?;
+                let body = chunk.split("</tran:Road>").next()?;
+                body.contains("sectionType").then_some(id)
+            })
+            .collect();
         for road in rne_plateau::parse_road_triangles(&xml)
             .map_err(|e| format!("{}: {e}", tran.display()))?
         {
+            let junction = !sections.contains(road.id.as_str());
+            let mut polygon = Vec::new();
             for triangle in road.triangles {
                 let corners = triangle.map(|v| {
                     let p = to_enu([v[0], v[1], 0.0]);
@@ -175,11 +196,17 @@ fn load_roads(
                 });
                 if corners.iter().any(|c| c.x.hypot(c.y) <= radius_m) {
                     roads.push(corners);
+                    if junction {
+                        polygon.push(corners);
+                    }
                 }
+            }
+            if !polygon.is_empty() {
+                junctions.push(polygon);
             }
         }
     }
-    Ok(roads)
+    Ok((roads, junctions))
 }
 
 impl PlateauCity {
@@ -282,14 +309,16 @@ impl PlateauCity {
         if buildings.is_empty() {
             return Err(format!("no buildings within {radius_m} m of {center:?}"));
         }
+        // Roads reach past the buildings, as far as the render's terrain.
+        let (roads, junctions) = load_roads(paths, &to_enu, radius_m + 300.0)?;
         let mut city = Self {
             name: name.to_string(),
             frame,
             mesh: Arc::new(TriangleMesh::new(triangles)),
             buildings,
             facades: Arc::new(facades),
-            // Roads reach past the buildings, as far as the render's terrain.
-            roads: Arc::new(load_roads(paths, &to_enu, radius_m + 300.0)?),
+            roads: Arc::new(roads),
+            junctions: Arc::new(junctions),
             terrain: Vec::new(),
             terrain_half_cells: (radius_m / TERRAIN_CELL_M).ceil() as usize + 1,
         };

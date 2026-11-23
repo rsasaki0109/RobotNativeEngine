@@ -10,6 +10,7 @@
 use crate::gnss::{SolutionLabel, LEVER_ARMS_M};
 use crate::nav::{FrameRecord, RunReport, LIDAR_HEIGHT_M};
 use crate::plateau::PlateauCity;
+use crate::streets::{Streets, ASPHALT_TILE_M, ROAD_LIFT_M};
 use rne_gnss::{trace_satellite, GnssScene, PathKind, SignalPath, SurfaceMaterial};
 use rne_math::{Quat, Vec3};
 use rne_render::{
@@ -30,7 +31,7 @@ const HEIGHT: u32 = 540;
 const SKY_REACH_M: f64 = 160.0;
 
 /// ENU (east, north, up) to the renderer's Y-up frame (x east, y up, z south).
-fn p(e: f64, n: f64, u: f64) -> Vec3 {
+pub(crate) fn p(e: f64, n: f64, u: f64) -> Vec3 {
     Vec3::new(e, u, -n)
 }
 
@@ -39,8 +40,8 @@ fn pv(v: Vec3) -> Vec3 {
 }
 
 #[derive(Default)]
-struct SolidMesh {
-    positions: Vec<[f32; 3]>,
+pub(crate) struct SolidMesh {
+    pub(crate) positions: Vec<[f32; 3]>,
     normals: Vec<[f32; 3]>,
     texcoords: Vec<[f32; 2]>,
     indices: Vec<u32>,
@@ -57,13 +58,13 @@ impl SolidMesh {
     }
 
     /// A triangle with texture coordinates.
-    fn textured(&mut self, corners: [Vec3; 3], normal: Vec3, uv: [[f32; 2]; 3]) {
+    pub(crate) fn textured(&mut self, corners: [Vec3; 3], normal: Vec3, uv: [[f32; 2]; 3]) {
         self.triangle(corners, normal);
         let n = self.texcoords.len();
         self.texcoords[n - 3..].copy_from_slice(&uv);
     }
 
-    fn face(&mut self, points: [Vec3; 4], normal: Vec3) {
+    pub(crate) fn face(&mut self, points: [Vec3; 4], normal: Vec3) {
         self.triangle([points[0], points[1], points[2]], normal);
         self.triangle([points[0], points[2], points[3]], normal);
     }
@@ -112,7 +113,7 @@ impl SolidMesh {
         );
     }
 
-    fn item(
+    pub(crate) fn item(
         self,
         color: [f32; 4],
         roughness: f32,
@@ -134,7 +135,7 @@ impl SolidMesh {
     }
 }
 
-fn linear(rgb: [u8; 3]) -> [f32; 4] {
+pub(crate) fn linear(rgb: [u8; 3]) -> [f32; 4] {
     let c = rgb.map(|v| {
         let s = f32::from(v) / 255.0;
         if s <= 0.04045 {
@@ -189,7 +190,7 @@ fn environment() -> EnvironmentLighting {
 }
 
 /// Buildings, furniture, terrain and the planned route.
-fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> RenderScene {
+fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> (RenderScene, Streets) {
     let mut scene = RenderScene::new();
     let (mut glass, mut concrete, mut roofs, mut furniture) = (
         SolidMesh::default(),
@@ -255,7 +256,7 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> RenderScene {
         [0.0; 3],
     );
 
-    // Terrain around the route on a 4 m grid.
+    // The streets and the ground around the route.
     let (mut x0, mut y0, mut x1, mut y1) = (
         f64::INFINITY,
         f64::INFINITY,
@@ -269,47 +270,30 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> RenderScene {
         y1 = y1.max(y);
     }
     let margin = 220.0;
-    let cell = 4.0;
-    let (nx, ny) = (
-        ((x1 - x0 + 2.0 * margin) / cell) as usize,
-        ((y1 - y0 + 2.0 * margin) / cell) as usize,
-    );
-    let mut ground = SolidMesh::default();
-    let at = |i: usize, j: usize| {
-        let (x, y) = (x0 - margin + i as f64 * cell, y0 - margin + j as f64 * cell);
-        p(x, y, city.ground_m(x, y) - 0.05)
-    };
-    for j in 0..ny {
-        for i in 0..nx {
-            let (a, b, c, d) = (at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j + 1));
-            let normal = (c - a).cross(b - a).normalize_or_zero();
-            let normal = if normal.y < 0.0 { -normal } else { normal };
-            ground.face([a, d, c, b], normal);
-        }
-    }
-    push(
-        &mut scene,
-        ground,
-        linear([128, 124, 116]),
-        0.95,
-        0.0,
-        [0.0; 3],
-    );
-
-    // PLATEAU's road surfaces, draped over the terrain.
+    let streets = Streets::new(city, [x0 - margin, y0 - margin, x1 + margin, y1 + margin]);
     let mut roads = SolidMesh::default();
     for corners in city.roads.iter() {
         drape(city, *corners, &mut roads);
     }
-    push(&mut scene, roads, linear([38, 39, 43]), 0.9, 0.0, [0.0; 3]);
+    scene
+        .items
+        .extend(crate::streets::street_items(city, &streets, roads));
 
     // The planned route as a faint line on the ground.
     let mut line = SolidMesh::default();
     for pair in route.windows(2) {
         let (a, b) = (pair[0], pair[1]);
         line.beam(
-            p(a.0, a.1, city.ground_m(a.0, a.1) + 0.14),
-            p(b.0, b.1, city.ground_m(b.0, b.1) + 0.14),
+            p(
+                a.0,
+                a.1,
+                city.ground_m(a.0, a.1) + streets.surface_m(a.0, a.1) + 0.03,
+            ),
+            p(
+                b.0,
+                b.1,
+                city.ground_m(b.0, b.1) + streets.surface_m(b.0, b.1) + 0.03,
+            ),
             0.25,
         );
     }
@@ -321,11 +305,11 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> RenderScene {
         0.0,
         [0.25, 0.25, 0.22],
     );
-    scene
+    (scene, streets)
 }
 
-/// Draws a flat ENU triangle on the terrain, split until its edges are at
-/// most 4 m so it follows the slopes.
+/// Draws a flat ENU road triangle on the terrain, split until its edges are
+/// at most 4 m so it follows the slopes, textured as asphalt.
 fn drape(city: &PlateauCity, corners: [Vec3; 3], mesh: &mut SolidMesh) {
     let [a, b, c] = corners;
     let longest = (a - b).length().max((b - c).length()).max((c - a).length());
@@ -336,17 +320,8 @@ fn drape(city: &PlateauCity, corners: [Vec3; 3], mesh: &mut SolidMesh) {
         }
         return;
     }
-    let lifted = corners.map(|v| p(v.x, v.y, city.ground_m(v.x, v.y) + 0.1));
-    let normal = (lifted[1] - lifted[0]).cross(lifted[2] - lifted[0]);
-    // Face up in the renderer's frame (y up), whatever the source winding.
-    if normal.y < 0.0 {
-        mesh.triangle(
-            [lifted[0], lifted[2], lifted[1]],
-            -normal.normalize_or_zero(),
-        );
-    } else {
-        mesh.triangle(lifted, normal.normalize_or_zero());
-    }
+    let lifted = corners.map(|v| p(v.x, v.y, city.ground_m(v.x, v.y) + ROAD_LIFT_M));
+    crate::streets::flat(mesh, lifted, ASPHALT_TILE_M);
 }
 
 /// Atlas size, pixels (within every GPU's texture limit).
@@ -455,15 +430,12 @@ fn frame_items(
     scene: &mut RenderScene,
     gnss_scene: &GnssScene,
     city: &PlateauCity,
+    streets: &Streets,
     run: &RunReport,
     frame: &FrameRecord,
 ) {
-    let (x, y, yaw, z) = (
-        frame.truth.x_m,
-        frame.truth.y_m,
-        frame.truth.yaw_rad,
-        frame.ground_m,
-    );
+    let (x, y, yaw) = (frame.truth.x_m, frame.truth.y_m, frame.truth.yaw_rad);
+    let z = frame.ground_m + streets.surface_m(x, y);
     let mut body = SolidMesh::default();
     let rotation = Quat::from_rotation_y(yaw);
     body.box_at(p(x, y, z + 0.3), Vec3::new(0.45, 0.25, 0.3), rotation);
@@ -510,8 +482,16 @@ fn frame_items(
             LocalizationSource::DeadReckoning => 2,
         };
         trails[k].beam(
-            p(a.x_m, a.y_m, city.ground_m(a.x_m, a.y_m) + 0.18),
-            p(b.x_m, b.y_m, city.ground_m(b.x_m, b.y_m) + 0.18),
+            p(
+                a.x_m,
+                a.y_m,
+                city.ground_m(a.x_m, a.y_m) + streets.surface_m(a.x_m, a.y_m) + 0.07,
+            ),
+            p(
+                b.x_m,
+                b.y_m,
+                city.ground_m(b.x_m, b.y_m) + streets.surface_m(b.x_m, b.y_m) + 0.07,
+            ),
             0.35,
         );
     }
@@ -547,7 +527,7 @@ fn frame_items(
     } else {
         push_lidar3d(scene, frame);
     }
-    push_people(scene, city, frame);
+    push_people(scene, city, streets, frame);
     push_vehicles(scene, frame);
     push_rain(scene, frame);
 }
@@ -686,12 +666,17 @@ fn push_lidar3d(scene: &mut RenderScene, frame: &FrameRecord) {
 }
 
 /// Pedestrians: a body and a head each, in a few clothing colours.
-fn push_people(scene: &mut RenderScene, city: &PlateauCity, frame: &FrameRecord) {
+fn push_people(
+    scene: &mut RenderScene,
+    city: &PlateauCity,
+    streets: &Streets,
+    frame: &FrameRecord,
+) {
     const CLOTHES: [[u8; 3]; 4] = [[40, 45, 60], [150, 40, 40], [220, 215, 200], [60, 90, 70]];
     let mut bodies: [SolidMesh; 4] = Default::default();
     let mut heads = SolidMesh::default();
     for (i, &(px, py)) in frame.movers.people.iter().enumerate() {
-        let z = city.ground_m(px, py);
+        let z = city.ground_m(px, py) + streets.surface_m(px, py);
         bodies[i % CLOTHES.len()].box_at(
             p(px, py, z + 0.75),
             Vec3::new(0.22, 0.75, 0.15),
@@ -809,7 +794,7 @@ pub(crate) fn preview(dir: &Path, city: &PlateauCity, route: &[(f64, f64)]) -> R
     std::fs::create_dir_all(dir)?;
     let mut backend = WgpuRenderBackend::new()?;
     backend.set_environment(environment());
-    let scene = static_city(city, route);
+    let (scene, _) = static_city(city, route);
     let mut camera = Camera::new(WIDTH, HEIGHT, 0.9);
     camera.far_m = 900.0;
     for k in 0..8 {
@@ -862,7 +847,7 @@ pub(crate) fn render(
         mesh: Some(city.mesh.clone()),
         ..GnssScene::open_sky()
     };
-    let base_scene = static_city(city, route);
+    let (base_scene, streets) = static_city(city, route);
     let mut camera = Camera::new(WIDTH, HEIGHT, 0.9);
     camera.far_m = 900.0;
     let mut chase = Chase {
@@ -875,7 +860,7 @@ pub(crate) fn render(
     for (k, frame) in run.frames.iter().step_by(stride.max(1)).enumerate() {
         let orbit = chase.update(frame);
         let mut scene = base_scene.clone();
-        frame_items(&mut scene, &gnss_scene, city, run, frame);
+        frame_items(&mut scene, &gnss_scene, city, &streets, run, frame);
         let image = backend.render_scene_camera(
             &camera,
             &orbit.camera_transform(),
