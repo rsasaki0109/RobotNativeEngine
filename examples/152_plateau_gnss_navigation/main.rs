@@ -120,6 +120,7 @@ fn main() -> Result<(), String> {
     let quick = std::env::args().any(|a| a == "--quick");
     let use_lidar3d = std::env::args().any(|a| a == "--lidar3d");
     let avoid = std::env::args().any(|a| a == "--avoid");
+    let beidou = std::env::args().any(|a| a == "--beidou");
     let conditions = std::env::args().any(|a| a == "--conditions");
     let seeds: u64 = std::env::args()
         .skip_while(|a| a != "--seeds")
@@ -136,6 +137,10 @@ fn main() -> Result<(), String> {
         (
             "GPS+Galileo+QZSS",
             Constellation::gps_galileo_qzss_nominal(),
+        ),
+        (
+            "+BeiDou (all four)",
+            Constellation::gps_galileo_qzss_beidou_nominal(),
         ),
     ];
     if let Some(csv) = std::env::args().skip_while(|a| a != "--urbannav").nth(1) {
@@ -228,6 +233,7 @@ fn main() -> Result<(), String> {
                 let options = RunOptions {
                     seed,
                     lidar3d: use_lidar3d,
+                    beidou,
                     avoid,
                     ..options
                 };
@@ -286,6 +292,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 },
                 seed: 0,
                 lidar3d: false,
+                beidou: false,
                 avoid: false,
             },
         ),
@@ -299,6 +306,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 weather: Weather::default(),
                 seed: 0,
                 lidar3d: false,
+                beidou: false,
                 avoid: false,
             },
         ),
@@ -312,6 +320,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 weather: Weather::default(),
                 seed: 0,
                 lidar3d: false,
+                beidou: false,
                 avoid: false,
             },
         ),
@@ -325,6 +334,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 weather: Weather::default(),
                 seed: 0,
                 lidar3d: false,
+                beidou: false,
                 avoid: false,
             },
         ),
@@ -338,6 +348,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 weather: Weather::default(),
                 seed: 0,
                 lidar3d: false,
+                beidou: false,
                 avoid: false,
             },
         ),
@@ -367,6 +378,7 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         weather,
         seed: 0,
         lidar3d: false,
+        beidou: false,
         avoid: false,
     };
     let crowd = Weather {

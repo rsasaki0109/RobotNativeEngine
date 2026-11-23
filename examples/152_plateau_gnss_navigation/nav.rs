@@ -50,6 +50,8 @@ pub(crate) struct RunOptions {
     pub map_aided_gnss: bool,
     /// Include QZSS.
     pub qzss: bool,
+    /// Include BeiDou too (with QZSS).
+    pub beidou: bool,
     /// Record frames for the 3D render.
     pub record: bool,
     /// Use the sliding-window factor graph instead of the hybrid arbiter.
@@ -659,10 +661,10 @@ pub(crate) fn run(
     options: RunOptions,
     cloud: Option<&PointCloudMap>,
 ) -> RunReport {
-    let constellation = if options.qzss {
-        Constellation::gps_galileo_qzss_nominal()
-    } else {
-        Constellation::gps_galileo_nominal()
+    let constellation = match (options.qzss, options.beidou) {
+        (true, true) => Constellation::gps_galileo_qzss_beidou_nominal(),
+        (true, false) => Constellation::gps_galileo_qzss_nominal(),
+        (false, _) => Constellation::gps_galileo_nominal(),
     };
     let (mut scene, model) = gnss_scene(city, options.weather.rain);
     let street = Street::new(route, options.weather, options.seed);
