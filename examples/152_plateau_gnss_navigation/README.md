@@ -12,8 +12,11 @@ tower district, built from Project PLATEAU's LOD2 city model. The full run
 (both areas, five configurations each) takes about 40 minutes;
 `--quick` runs only the main configuration, `--config "factor graph"` the
 configurations whose label contains the text, `--area shibuya` one area, and
-`--survey` only the sky survey (seconds); `--conditions` runs crowds, rain and
-glass canyons instead, `--seeds N` each N times with different noise.
+`--survey` only the sky survey (seconds); `--conditions` runs crowds, rain,
+glass canyons and rush hour instead, `--seeds N` each N times with
+different noise, `--lidar3d` localizes with a 3D LiDAR, `--avoid` walks
+around people and `--urbannav` checks the ray tracer against a real drive
+(below).
 
 ![3D render in RNE: the robot walks from the Shibuya scramble crossing west and up Koen-dori among the PLATEAU LOD2 buildings, in rain and among pedestrians; green rays are line-of-sight satellites, red NLOS reflections off the facades, purple diffraction over roof edges; cyan lines are the LiDAR beams and returns; the trail is blue while RTK localizes it and magenta while the LiDAR map does](../../docs/media/plateau-gnss-shibuya.gif)
 
@@ -215,6 +218,50 @@ is not. The example leaves the motion check off. Its other dead reckoning stretc
 183 s) are also safety stops, not driving blind. The glass canyon matters
 less than expected: more multipath, but the NLOS exclusion and the robust
 kernels take most of it.
+
+### A 3D LiDAR (`--lidar3d`)
+
+Every hybrid failure above came from the planar slice: at 0.3 m a LOD2
+street is two flat walls, the poles are the only thing that pins the robot
+along it, and the people on the sidewalk hide them. `--lidar3d` gives the
+robot a 16-ring LiDAR instead (±15°, 1° azimuth, 60 m, 5 Hz, held level),
+ray traced through the same mesh, the terrain and the people (upright
+cylinders), with the same rain model. Its prior map is the mesh's surfaces
+and the open terrain within 64 m of the route, up to 18 m above the ground,
+sampled every 0.4 m with their exact normals (6.4 M points in
+Nishi-Shinjuku, built in about a minute). `rne_slam::PointCloudMap`
+matches each scan (downsampled to 0.6 m voxels) by Huber-weighted
+point-to-plane Gauss–Newton over x, y, z and yaw and reports its planar
+covariance from the inverse information. A match is used when 60 % of the
+scan lies within 0.2 m of a mapped surface (the RMS residual would count
+the people next to the walls). Both localizers take the match in place of
+the planar scan match (`update_lidar_match`); while the hybrid is dead
+reckoning, a search over its uncertainty, once a second, relocalizes it.
+
+Summary over 3 seeds, RMSE median (the 2D slice's, from the table above, in
+brackets):
+
+| Area | Condition | Hybrid: goal | RMSE median | Factor graph: goal | RMSE median |
+|------|-----------|--------------|-------------|--------------------|-------------|
+| Shibuya | clear | 3/3 | 0.32 m (0.18) | 3/3 | 0.00 m (0.12) |
+| Shibuya | crowd | 3/3 | 0.17 m (0.44) | 3/3 | 0.00 m (0.53) |
+| Shibuya | crowd + rain | 3/3 | 0.09 m (0.83) | 3/3 | 0.00 m (1.24) |
+| Shibuya | glass from 20 m | 3/3 | 0.14 m (0.24) | 3/3 | 0.00 m (0.08) |
+| Nishi-Shinjuku | clear | 3/3 | 0.08 m (1.27) | 3/3 | 0.00 m (0.82) |
+| Nishi-Shinjuku | crowd | 3/3 | 0.08 m (1.93, 2/3) | 3/3 | 0.00 m (1.56) |
+| Nishi-Shinjuku | crowd + rain | 3/3 | 0.05 m (1.81) | 3/3 | 0.00 m (2.10) |
+| Nishi-Shinjuku | glass from 20 m | 3/3 | 0.05 m (1.19) | 3/3 | 0.00 m (0.61) |
+
+Both reach the goal in all 24 runs and never dead-reckon for more than
+0.2 s. The scan sees over the crowd to the facades, their setbacks and the
+changing heights of the buildings, which pin the robot along the street;
+the corner west of Shinjuku Station that the planar hybrid could not pass
+is no longer special. The factor graph's centimetre RMSE is optimistic:
+the map is the same mesh the world is made of, where a real map would
+differ from the street by its survey error and by everything that changed
+since. The hybrid's error includes its GNSS stretches, where it does not
+use the LiDAR; in clear Shibuya it is larger than with the slice (0.32
+against 0.18 m), which has not been traced.
 
 ### The ray tracer against a real drive (`--urbannav`)
 
