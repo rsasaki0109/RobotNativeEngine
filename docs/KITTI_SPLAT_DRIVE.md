@@ -60,6 +60,11 @@ Inputs (PLY, path CSV, visloc map) are not in the repository; see lidar_slam
 Open-loop localization of 172 RNE front-camera frames: none before the footprint fix,
 115 (median 5.2 cm) with a 1/sqrt(2) size workaround, 128 (median 6.2 cm) with the shader fix.
 
+![Car driving itself 2.2 km through the KITTI 0018 splats, steering by camera only](media/kitti-splat-drive.gif)
+
+Top: the car's front camera (RNE render). Bottom: LiDAR map, route, the car steering by visual
+fixes (orange) and the same car on wheel odometry only (red). KITTI is CC BY-NC-SA 3.0.
+
 ## Results (KITTI 0018, whole drive 2.2 km, seven splats, 7 m/s, CPU lavapipe)
 
 | | visual fixes | cross-track mean / max | estimate error mean / max |
