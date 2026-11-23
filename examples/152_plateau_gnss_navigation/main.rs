@@ -14,6 +14,7 @@ mod crowd;
 #[allow(dead_code)]
 #[path = "../151_gnss_lidar_navigation/gnss.rs"]
 mod gnss;
+mod lidar3d;
 mod nav;
 mod plateau;
 #[cfg(feature = "capture")]
@@ -113,6 +114,7 @@ fn main() -> Result<(), String> {
     );
     let survey_only = std::env::args().any(|a| a == "--survey");
     let quick = std::env::args().any(|a| a == "--quick");
+    let use_lidar3d = std::env::args().any(|a| a == "--lidar3d");
     let conditions = std::env::args().any(|a| a == "--conditions");
     let seeds: u64 = std::env::args()
         .skip_while(|a| a != "--seeds")
@@ -199,6 +201,17 @@ fn main() -> Result<(), String> {
                 std::env::args().any(|a| a == "--render-weather"),
             )
         };
+        // The 3D LiDAR's prior map: the mesh and terrain along the route.
+        let cloud = use_lidar3d.then(|| {
+            let started = std::time::Instant::now();
+            let map = lidar3d::build_map(&city, &route, lidar3d::RANGE_M + 4.0);
+            println!(
+                "  3D LiDAR map: {} points ({:.1} s)",
+                map.len(),
+                started.elapsed().as_secs_f64()
+            );
+            map
+        });
         for (label, options, glass_from_m) in runs {
             if quick && main_run.is_some() {
                 break;
@@ -213,8 +226,18 @@ fn main() -> Result<(), String> {
             let mut summary = Vec::new();
             for seed in 0..seeds {
                 let started = std::time::Instant::now();
-                let options = RunOptions { seed, ..options };
-                let report = nav::run(styled.as_ref().unwrap_or(&city), &route, base, options);
+                let options = RunOptions {
+                    seed,
+                    lidar3d: use_lidar3d,
+                    ..options
+                };
+                let report = nav::run(
+                    styled.as_ref().unwrap_or(&city),
+                    &route,
+                    base,
+                    options,
+                    cloud.as_ref(),
+                );
                 print_report(label, &report, started.elapsed().as_secs_f64());
                 summary.push(report.summary());
                 if seed == 0 {
@@ -260,6 +283,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                     Weather::default()
                 },
                 seed: 0,
+                lidar3d: false,
             },
         ),
         (
@@ -271,6 +295,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: false,
                 weather: Weather::default(),
                 seed: 0,
+                lidar3d: false,
             },
         ),
         (
@@ -282,6 +307,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: true,
                 weather: Weather::default(),
                 seed: 0,
+                lidar3d: false,
             },
         ),
         (
@@ -293,6 +319,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: true,
                 weather: Weather::default(),
                 seed: 0,
+                lidar3d: false,
             },
         ),
         (
@@ -304,6 +331,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: false,
                 weather: Weather::default(),
                 seed: 0,
+                lidar3d: false,
             },
         ),
     ]
@@ -325,6 +353,7 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         factor_graph,
         weather,
         seed: 0,
+        lidar3d: false,
     };
     let crowd = Weather {
         pedestrians: PEDESTRIANS,

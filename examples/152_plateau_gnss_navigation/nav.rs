@@ -5,6 +5,7 @@
 
 use crate::crowd::{pedestrian_boxes, pedestrian_range, Crowd, Weather};
 use crate::gnss::{GnssOutput, RobotGnss, SolutionLabel, BODY_HEIGHT_M};
+use crate::lidar3d;
 use crate::plateau::PlateauCity;
 use rne_core::DeterministicRng;
 use rne_gnss::{BodyPose, Constellation, GnssScene, ReceiverConfig, SignalPath, TraceConfig};
@@ -15,7 +16,7 @@ use rne_nav::{
 };
 use rne_slam::{
     AbsoluteHeadingFix, AbsolutePositionFix, AmclConfig, FactorGraphConfig, FactorGraphLocalizer,
-    FixKind, HybridLocalizer, HybridLocalizerConfig, LocalizationSource,
+    FixKind, HybridLocalizer, HybridLocalizerConfig, LocalizationSource, PointCloudMap,
 };
 use std::collections::BinaryHeap;
 use std::f64::consts::TAU;
@@ -54,6 +55,9 @@ pub(crate) struct RunOptions {
     /// Noise realization: 0 is the documented run; others reseed the
     /// receiver, the sensors and the crowd.
     pub seed: u64,
+    /// Localize with a 16-ring 3D LiDAR matched against a point-cloud map of
+    /// the mesh, instead of the planar slice.
+    pub lidar3d: bool,
 }
 
 /// The robot's localizer: the rule-based arbiter or the factor graph.
@@ -101,6 +105,43 @@ impl Localizer {
                 g.update_gnss(fix, t);
                 if let Some(heading) = heading {
                     g.update_gnss_heading(heading);
+                }
+            }
+        }
+    }
+
+    /// Matches a 3D scan against the point-cloud map and feeds the match:
+    /// from the estimate while tracking, over the search window (once a
+    /// second) while the hybrid is dead reckoning.
+    fn update_lidar3d(
+        &mut self,
+        map: &PointCloudMap,
+        city: &PlateauCity,
+        points: &[Vec3],
+        t: f64,
+        last_search_s: &mut f64,
+    ) {
+        let pose = self.pose();
+        let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
+        let local = || {
+            map.match_scan(points, pose, z, &lidar3d::match_config())
+                .filter(lidar3d::acceptable)
+        };
+        match self {
+            Self::Hybrid(h) => match h.source() {
+                LocalizationSource::Lidar => {
+                    h.update_lidar_match(local().as_ref(), t).expect("lidar");
+                }
+                LocalizationSource::DeadReckoning if t - *last_search_s >= 1.0 => {
+                    *last_search_s = t;
+                    let found = lidar3d::search(map, points, pose, z, h.lidar_search_window_m());
+                    h.update_lidar_match(found.as_ref(), t).expect("lidar");
+                }
+                _ => {}
+            },
+            Self::Graph(g) => {
+                if let Some(m) = local() {
+                    g.update_lidar_match(&m, t);
                 }
             }
         }
@@ -386,7 +427,7 @@ fn build_prior_map(city: &PlateauCity, route: &[(f64, f64)]) -> OccupancyGrid {
     grid
 }
 
-fn distance_to_route(route: &[(f64, f64)], x: f64, y: f64) -> f64 {
+pub(crate) fn distance_to_route(route: &[(f64, f64)], x: f64, y: f64) -> f64 {
     route
         .windows(2)
         .map(|s| {
@@ -491,7 +532,9 @@ pub(crate) fn run(
     route: &[(f64, f64)],
     base_enu_m: Vec3,
     options: RunOptions,
+    cloud: Option<&PointCloudMap>,
 ) -> RunReport {
+    let cloud = cloud.filter(|_| options.lidar3d);
     let constellation = if options.qzss {
         Constellation::gps_galileo_qzss_nominal()
     } else {
@@ -531,6 +574,10 @@ pub(crate) fn run(
     let slice = build_prior_map(city, route);
     let mut hybrid = build_localizer(&slice, start, gnss.uses_libgnss(), options.factor_graph);
     let mut rng = DeterministicRng::new(0x5_1B_0A ^ reseed);
+    // The 3D LiDAR draws from its own stream, so the rest of the run's noise
+    // is the same as with the planar slice.
+    let mut rng3d = DeterministicRng::new(0x3D_11DA ^ reseed);
+    let mut last_search_s = f64::NEG_INFINITY;
     let (mut truth, mut odom) = (start, start);
     let mut report = RunReport {
         clearance_m: f64::INFINITY,
@@ -608,7 +655,24 @@ pub(crate) fn run(
             report.clearance_m = report
                 .clearance_m
                 .min(scan.ranges_m.iter().copied().fold(f64::INFINITY, f64::min));
-            hybrid.update_lidar(&scan, odom, t);
+            match cloud {
+                Some(map) => {
+                    if tick.is_multiple_of(2 * LIDAR_EVERY_TICKS) {
+                        let ground = city.ground_m(truth.x_m, truth.y_m);
+                        let points = lidar3d::scan(
+                            city,
+                            &people,
+                            options.weather.rain,
+                            truth,
+                            ground,
+                            &mut rng3d,
+                        );
+                        let points = lidar3d::downsample(&points);
+                        hybrid.update_lidar3d(map, city, &points, t, &mut last_search_s);
+                    }
+                }
+                None => hybrid.update_lidar(&scan, odom, t),
+            }
         }
         let estimate = hybrid.pose();
         report
@@ -895,7 +959,7 @@ fn front_range(scan: &LaserScan2d) -> f64 {
     ahead.get(2).copied().unwrap_or(f64::INFINITY)
 }
 
-fn gaussian(rng: &mut DeterministicRng) -> f64 {
+pub(crate) fn gaussian(rng: &mut DeterministicRng) -> f64 {
     let u1 = rng.uniform_f64(1.0e-12, 1.0);
     let u2 = rng.uniform_f64(0.0, 1.0);
     (-2.0 * u1.ln()).sqrt() * (TAU * u2).cos()

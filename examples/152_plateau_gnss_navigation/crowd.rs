@@ -9,7 +9,7 @@ pub(crate) const PEDESTRIAN_RADIUS_M: f64 = 0.28;
 /// Pedestrians keep at least this far from the robot's centre, meters.
 pub(crate) const PERSONAL_SPACE_M: f64 = 0.9;
 /// Height of a pedestrian, meters.
-const PEDESTRIAN_HEIGHT_M: f64 = 1.7;
+pub(crate) const PEDESTRIAN_HEIGHT_M: f64 = 1.7;
 
 /// Conditions of a run.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
