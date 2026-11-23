@@ -49,6 +49,9 @@ All notable changes to Robot Native Engine are documented in this file.
   that agree relative to the odometry re-anchors the estimate. With both
   and the LiDAR gate, example 152's hybrid reaches the goal in 23 of 24
   crowd, rain and glass runs instead of 16.
+  `lidar_unmapped_distance_m` sets how far from mapped structure a return
+  must be to be dropped, and `lidar_motion_check_scans` (off by default)
+  stops fusing matches that stay put while the wheels move.
 
 ### Added
 

@@ -195,7 +195,23 @@ wander by metres, so nothing trustworthy can re-anchor it. Dropping
 returns from 0.5 m of mapped structure (`lidar_unmapped_distance_m`)
 instead of 1 m gets this run through and improves the rain runs (worst
 RMSE 4.2 m instead of 13.4 m), but loses another crowd run, so the
-example keeps 1 m. Its other dead reckoning stretches (up to
+example keeps 1 m.
+
+`lidar_motion_check_scans` targets the lock itself: when the matched
+positions stay put while the wheels move, the matches are not fused until
+one agrees with the estimate again. It gets the stuck run through too,
+but over the 24 runs the hybrid still reaches the goal in 23, with the
+failure elsewhere (RMSE median, m):
+
+| Hybrid | Shibuya clear / crowd / rain / glass | Nishi-Shinjuku clear / crowd / rain / glass | Failed run |
+|--------|--------------------------------------|---------------------------------------------|------------|
+| as above | 0.18 / 0.44 / 0.83 / 0.24 | 1.27 / 1.93 / 1.81 / 1.19 | Nishi-Shinjuku crowd (lost) |
+| + motion check (10 scans) | 0.23 / 0.57 / 0.25 / 0.21 | 1.61 / 1.29 / 4.07 / 2.38 | Nishi-Shinjuku crowd + rain (lost) |
+
+Every fix for one run moves the failure to another: a switching arbiter
+that trusts one source at a time stays brittle among these towers,
+which the factor graph, weighing a few seconds of all of them together,
+is not. The example leaves the motion check off. Its other dead reckoning stretches (up to
 183 s) are also safety stops, not driving blind. The glass canyon matters
 less than expected: more multipath, but the NLOS exclusion and the robust
 kernels take most of it.
