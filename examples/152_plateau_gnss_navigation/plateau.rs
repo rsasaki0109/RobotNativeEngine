@@ -334,6 +334,92 @@ impl PlateauCity {
         Ok(city)
     }
 
+    /// A synthetic suburb, not a PLATEAU area: one straight road `length_m`
+    /// long along east-west through the ENU origin at `center` (latitude,
+    /// longitude degrees), lined with two-storey houses at both ends and
+    /// open (fields, a riverbank) for `open_m` in the middle, where a
+    /// LiDAR has nothing within reach but the ground.
+    pub(crate) fn suburb(name: &str, center: (f64, f64), length_m: f64, open_m: f64) -> Self {
+        const ROAD_HALF_WIDTH_M: f64 = 4.0;
+        const SETBACK_M: f64 = 3.0;
+        let frame = EnuFrame::new(Geodetic::from_degrees(center.0, center.1, GEOID_TOKYO_M));
+        // A fixed irregular sequence for widths, gaps, depths and heights.
+        let pick = |k: usize, lo: f64, hi: f64| {
+            let h = (k as u64)
+                .wrapping_mul(0x9E37_79B9_7F4A_7C15)
+                .rotate_left(17)
+                % 1000;
+            lo + (hi - lo) * h as f64 / 999.0
+        };
+        let mut triangles = Vec::new();
+        let mut buildings = Vec::new();
+        let half = length_m * 0.5;
+        let mut k = 0;
+        for side in [-1.0_f64, 1.0] {
+            // Two rows: houses on the road, and a second row behind them.
+            for row in 0..2 {
+                let mut x = -half - 20.0;
+                while x < half + 20.0 {
+                    let width = pick(k, 7.0, 11.0);
+                    let gap = pick(k + 1, 2.5, 7.0);
+                    let depth = pick(k + 2, 7.0, 10.0);
+                    let height = pick(k + 3, 5.5, 9.0);
+                    k += 4;
+                    let (x0, x1) = (x, x + width);
+                    x = x1 + gap;
+                    if x1 > -open_m * 0.5 && x0 < open_m * 0.5 {
+                        continue;
+                    }
+                    let near = ROAD_HALF_WIDTH_M + SETBACK_M + f64::from(row) * 14.0;
+                    let (y0, y1) = if side > 0.0 {
+                        (near, near + depth)
+                    } else {
+                        (-near - depth, -near)
+                    };
+                    let object = buildings.len() as u32;
+                    triangles.extend(rne_gnss::box_triangles(
+                        Vec3::new(x0, y0, 0.0),
+                        Vec3::new(x1, y1, height),
+                        SurfaceMaterial::CONCRETE,
+                        object,
+                    ));
+                    buildings.push(Building {
+                        bounds: [x0, y0, x1, y1],
+                        z_range: (0.0, height),
+                        textured: false,
+                    });
+                }
+            }
+        }
+        let (a, b) = (-half - 150.0, half + 150.0);
+        let (w, e) = (-ROAD_HALF_WIDTH_M, ROAD_HALF_WIDTH_M);
+        let roads = vec![
+            [
+                Vec3::new(a, w, 0.0),
+                Vec3::new(b, w, 0.0),
+                Vec3::new(b, e, 0.0),
+            ],
+            [
+                Vec3::new(a, w, 0.0),
+                Vec3::new(b, e, 0.0),
+                Vec3::new(a, e, 0.0),
+            ],
+        ];
+        let terrain_half_cells = ((half + 300.0) / TERRAIN_CELL_M).ceil() as usize + 1;
+        let n = 2 * terrain_half_cells + 1;
+        Self {
+            name: name.to_string(),
+            frame,
+            mesh: Arc::new(TriangleMesh::new(triangles)),
+            buildings,
+            facades: Arc::new(Facades::default()),
+            roads: Arc::new(roads),
+            junctions: Arc::new(Vec::new()),
+            terrain: vec![0.0; n * n],
+            terrain_half_cells,
+        }
+    }
+
     /// Ground height at a point, interpolated from the terrain grid.
     pub(crate) fn ground_m(&self, x: f64, y: f64) -> f64 {
         let n = 2 * self.terrain_half_cells + 1;

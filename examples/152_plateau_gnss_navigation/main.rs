@@ -78,9 +78,12 @@ struct Area {
     /// RTK reference station: a pole in a nearby park (latitude, longitude
     /// degrees), beyond the loaded buildings so its sky is open.
     base: (f64, f64),
+    /// Run only when named with `--area` (the open areas that show what
+    /// GNSS adds), not by default.
+    by_name_only: bool,
 }
 
-const AREAS: [Area; 2] = [
+const AREAS: [Area; 4] = [
     Area {
         name: "Shibuya",
         slug: "shibuya",
@@ -92,6 +95,7 @@ const AREAS: [Area; 2] = [
         waypoints: &[(-40.0, 47.0), (-180.0, 70.0), (25.0, 250.0), (-40.0, 47.0)],
         // Yoyogi Park, about 1.3 km north-west.
         base: (35.6690, 139.6950),
+        by_name_only: false,
     },
     Area {
         name: "Shinjuku",
@@ -109,8 +113,47 @@ const AREAS: [Area; 2] = [
         ],
         // Shinjuku Gyoen, about 1.4 km east-south-east.
         base: (35.6850, 139.7090),
+        by_name_only: false,
+    },
+    Area {
+        name: "Shinjuku Central Park",
+        slug: "park",
+        tiles: &["53394524", "53394525", "53394534", "53394535"],
+        // The park west of the Nishi-Shinjuku towers: open sky, and nothing
+        // a LiDAR map of buildings has within reach in the middle of it.
+        center: (35.6895, 139.6905),
+        ground_tp_m: 40.0,
+        // From the towers west into the park, its length north to south, and
+        // back.
+        waypoints: &[
+            (100.0, -60.0),
+            (-60.0, -10.0),
+            (-70.0, 200.0),
+            (-60.0, -200.0),
+            (100.0, -60.0),
+        ],
+        // Shinjuku Gyoen, about 1.8 km east-south-east.
+        base: (35.6850, 139.7090),
+        by_name_only: true,
+    },
+    Area {
+        name: "Suburb (synthetic)",
+        slug: "suburb",
+        // No tiles: [`PlateauCity::suburb`], a straight road with houses at
+        // both ends and fields in the middle.
+        tiles: &[],
+        center: (35.7000, 139.4500),
+        ground_tp_m: 0.0,
+        waypoints: &[(-560.0, 0.0), (560.0, 0.0)],
+        // A field about 1 km south.
+        base: (35.6910, 139.4500),
+        by_name_only: true,
     },
 ];
+
+/// The synthetic suburb's road length and its open middle, meters.
+const SUBURB_LENGTH_M: f64 = 1200.0;
+const SUBURB_OPEN_M: f64 = 500.0;
 
 /// Radius of buildings loaded around each station, meters.
 const LOAD_RADIUS_M: f64 = 450.0;
@@ -120,6 +163,37 @@ const SURVEY_STEP_M: f64 = 3.0;
 const ANTENNA_HEIGHT_M: f64 = 1.5;
 const ELEVATION_MASK_DEG: f64 = 10.0;
 const SKY_EPOCH_S: f64 = 20_000.0;
+
+/// The area's PLATEAU buildings, or the synthetic suburb for an area
+/// without tiles.
+fn load_city(area: &Area, data: &Path) -> Result<PlateauCity, String> {
+    if area.tiles.is_empty() {
+        return Ok(PlateauCity::suburb(
+            area.name,
+            area.center,
+            SUBURB_LENGTH_M,
+            SUBURB_OPEN_M,
+        ));
+    }
+    let paths: Vec<PathBuf> = area
+        .tiles
+        .iter()
+        .map(|mesh| data.join(format!("{mesh}_bldg_6697_2_op.gml")))
+        .collect();
+    if let Some(missing) = paths.iter().find(|p| !p.exists()) {
+        return Err(format!(
+            "{} is missing: run `python3 scripts/fetch_plateau_tokyo.py` first",
+            missing.display()
+        ));
+    }
+    PlateauCity::load(
+        area.name,
+        &paths,
+        area.center,
+        area.ground_tp_m,
+        LOAD_RADIUS_M,
+    )
+}
 
 fn main() -> Result<(), String> {
     let data = PathBuf::from(
@@ -149,29 +223,12 @@ fn main() -> Result<(), String> {
         return urbannav::run(&data, Path::new(&csv));
     }
     let only = std::env::args().skip_while(|a| a != "--area").nth(1);
-    for area in AREAS
-        .iter()
-        .filter(|a| only.as_ref().is_none_or(|o| o.eq_ignore_ascii_case(a.slug)))
-    {
-        let paths: Vec<PathBuf> = area
-            .tiles
-            .iter()
-            .map(|mesh| data.join(format!("{mesh}_bldg_6697_2_op.gml")))
-            .collect();
-        if let Some(missing) = paths.iter().find(|p| !p.exists()) {
-            return Err(format!(
-                "{} is missing: run `python3 scripts/fetch_plateau_tokyo.py` first",
-                missing.display()
-            ));
-        }
+    for area in AREAS.iter().filter(|a| {
+        only.as_ref()
+            .map_or(!a.by_name_only, |o| o.eq_ignore_ascii_case(a.slug))
+    }) {
         let started = std::time::Instant::now();
-        let mut city = PlateauCity::load(
-            area.name,
-            &paths,
-            area.center,
-            area.ground_tp_m,
-            LOAD_RADIUS_M,
-        )?;
+        let mut city = load_city(area, &data)?;
         println!(
             "{}: {} buildings, {} triangles, {} diffraction edges within {LOAD_RADIUS_M} m ({:.1} s)",
             city.name,
