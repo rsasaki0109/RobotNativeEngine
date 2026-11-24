@@ -482,13 +482,16 @@ cargo run --release -p plateau_gnss_navigation --features capture --example 152_
 
 | Case (3D LiDAR, BeiDou) | With GNSS: RMSE (max) | Without GNSS: RMSE (max) |
 |------|-----------------------|--------------------------|
-| **Open ground** (`--area suburb`): a synthetic 1.2 km straight road, houses at both ends and 500 m of fields between them | 0.00 m (0.15 m) | 87 m (234 m) |
+| **Open ground** (`--area suburb`): a synthetic 1.2 km straight road, houses at both ends and 500 m of rice paddies and fields between them | 0.01 m (0.28 m) | 87 m (235 m) |
 | **Unknown start** (`--area shibuya --unknown-start`): both start 25 m from the truth with a 30 m sigma | 0.60 m (25 m, the first second) | 61 m (109 m) |
 | **Park** (`--area park`): through Shinjuku Central Park and back | 0.17 m (3.0 m) | 2.1 m (10.5 m) |
 | **Off the map** (`--area shibuya --map-gap 430:570`): the spur north of the route's turn, 140 m there and back, is not in the LiDAR map | 0.10 m (1.6 m) | 1.06 m (5.4 m) |
 | **Construction** (`--area shibuya --map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.13 m (1.4 m) | 1.09 m (2.5 m) |
 
-* **Open ground.** In the fields the scan holds only the ground, which
+* **Open ground.** The suburb is made up, not PLATEAU: two-storey gabled
+  houses behind block walls or hedges, cars in the drives, garden trees,
+  then rice paddies and vegetable fields with woods and farmhouses only
+  beyond the LiDAR's 60 m. In the fields the scan holds only the ground, which
   fits the map anywhere: such a match pins no horizontal direction and is
   not used (the HUD says only open ground is in reach). GNSS, RTK fixed
   under the open sky, takes charge and hands back to LiDAR among the houses
@@ -516,7 +519,7 @@ without GNSS, whose LiDAR still has the first 300 m). GNSS is what carries
 the robot where the sky is open and the map has nothing to hold: fields,
 river banks, car parks, and a start with no idea where it is.
 
-![A synthetic suburb: GNSS takes charge across 500 m of fields where the LiDAR sees only the ground; the localizer without GNSS drifts 230 m off](../../docs/media/plateau-gnss-suburb.gif)
+![A synthetic suburb: GNSS takes charge across 500 m of fields where the LiDAR sees only the ground; the localizer without GNSS, which has neither the RTK positions nor the dual-antenna heading, curves 235 m off](../../docs/media/plateau-gnss-suburb.gif)
 
 ![Shibuya with the localizers switched on 25 m from where they think: the localizer without GNSS never finds itself, up to 109 m off](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
 

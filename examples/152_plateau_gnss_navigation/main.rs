@@ -138,7 +138,7 @@ const AREAS: [Area; 4] = [
         by_name_only: true,
     },
     Area {
-        name: "Suburb (synthetic)",
+        name: "Suburb",
         slug: "suburb",
         // No tiles: [`suburb::build`], a straight road with houses at
         // both ends and fields in the middle.

@@ -38,7 +38,8 @@ All notable changes to Robot Native Engine are documented in this file.
   rebuilt stretch: 0.13 against 1.09 m). The HUD adds a top-down map of
   the robot's and the ghost's tracks.
 - Example 152: `--area suburb`, a synthetic straight road with 500 m of
-  fields between two rows of houses (0.00 against 87 m RMSE), and
+  rice paddies and fields between two rows of gabled houses with walls,
+  hedges, cars and trees (0.01 against 87 m RMSE), and
   `--area park`, Shinjuku Central Park; both run only when named. A 3D
   match that pins no horizontal direction (only open ground in reach) is no
   longer used.
