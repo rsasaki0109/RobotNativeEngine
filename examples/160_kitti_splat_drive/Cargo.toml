@@ -31,3 +31,7 @@ path = "main.rs"
 [[example]]
 name = "161_kitti_splat_visloc_loop"
 path = "visloc_loop.rs"
+
+[[example]]
+name = "162_kitti_splat_traffic"
+path = "traffic.rs"

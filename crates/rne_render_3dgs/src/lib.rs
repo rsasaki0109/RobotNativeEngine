@@ -2,17 +2,19 @@
 
 #![deny(missing_docs)]
 
+mod actors;
 mod camera;
 mod depth;
 mod splat;
 mod validation;
 
+pub use actors::{hidden_actor_gaussians, place_actor_gaussians, SplatActorAsset};
 pub use depth::{
     composite_mesh_and_splat_depth, splat_proxy_depth_from_gaussians, splat_proxy_depth_from_ply,
 };
 pub use splat::{
-    load_gaussian_splat_background, render_hybrid_scene_camera, GaussianSplatBackground,
-    GaussianSplatError,
+    load_gaussian_splat_background, load_splat_actor, render_hybrid_scene_camera,
+    GaussianSplatBackground, GaussianSplatError,
 };
 pub use validation::{
     validate_registered_splat_depth, validate_registered_splat_multiview_depth,
