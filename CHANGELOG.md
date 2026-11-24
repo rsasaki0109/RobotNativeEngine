@@ -22,6 +22,10 @@ All notable changes to Robot Native Engine are documented in this file.
   raised sidewalks with curbs, tiles and tactile paving along every road
   at least 10 m wide, white edge lines, asphalt, and zebra crossings where
   the roads enter PLATEAU's intersections.
+- `HybridLocalizerConfig::lidar_keeps_charge`: with point-cloud matches,
+  LiDAR stays in charge wherever the map covers the robot and RTK fixes
+  correct it instead of taking over; example 152 enables it with
+  `--lidar3d` (one hand-over a run instead of 40–50, RMSE 0.01–0.04 m).
 - `FactorGraphConfig::lidar_reanchor_rtk_hold_s`: shortly after an RTK
   fixed fix, a particle filter that wandered off from both the graph and
   that fix is re-seeded at the graph instead of re-anchoring it.

@@ -340,14 +340,14 @@ brackets):
 
 | Area | Condition | Hybrid: goal | RMSE median | Factor graph: goal | RMSE median |
 |------|-----------|--------------|-------------|--------------------|-------------|
-| Shibuya | clear | 3/3 | 0.32 m (0.18) | 3/3 | 0.00 m (0.12) |
-| Shibuya | crowd | 3/3 | 0.17 m (0.44) | 3/3 | 0.00 m (0.48) |
-| Shibuya | crowd + rain | 3/3 | 0.09 m (0.83) | 3/3 | 0.00 m (0.68) |
-| Shibuya | glass from 20 m | 3/3 | 0.14 m (0.24) | 3/3 | 0.00 m (0.07) |
-| Nishi-Shinjuku | clear | 3/3 | 0.08 m (1.27) | 3/3 | 0.00 m (0.61) |
-| Nishi-Shinjuku | crowd | 3/3 | 0.08 m (1.93, 2/3) | 3/3 | 0.00 m (1.13) |
-| Nishi-Shinjuku | crowd + rain | 3/3 | 0.05 m (1.81) | 3/3 | 0.00 m (1.54) |
-| Nishi-Shinjuku | glass from 20 m | 3/3 | 0.05 m (1.19) | 3/3 | 0.00 m (0.59) |
+| Shibuya | clear | 3/3 | 0.03 m (0.18) | 3/3 | 0.00 m (0.12) |
+| Shibuya | crowd | 3/3 | 0.02 m (0.44) | 3/3 | 0.00 m (0.48) |
+| Shibuya | crowd + rain | 3/3 | 0.03 m (0.83) | 3/3 | 0.00 m (0.68) |
+| Shibuya | glass from 20 m | 3/3 | 0.03 m (0.24) | 3/3 | 0.00 m (0.07) |
+| Nishi-Shinjuku | clear | 3/3 | 0.01 m (1.27) | 3/3 | 0.00 m (0.61) |
+| Nishi-Shinjuku | crowd | 3/3 | 0.01 m (1.93, 2/3) | 3/3 | 0.00 m (1.13) |
+| Nishi-Shinjuku | crowd + rain | 3/3 | 0.01 m (1.81) | 3/3 | 0.00 m (1.54) |
+| Nishi-Shinjuku | glass from 20 m | 3/3 | 0.01 m (1.19) | 3/3 | 0.00 m (0.59) |
 
 Both reach the goal in all 24 runs and never dead-reckon for more than
 0.2 s. The scan sees over the crowd to the facades, their setbacks and the
@@ -356,9 +356,17 @@ the corner west of Shinjuku Station that the planar hybrid could not pass
 is no longer special. The factor graph's centimetre RMSE is optimistic:
 the map is the same mesh the world is made of, where a real map would
 differ from the street by its survey error and by everything that changed
-since. The hybrid's error includes its GNSS stretches, where it does not
-use the LiDAR; in clear Shibuya it is larger than with the slice (0.32
-against 0.18 m), which has not been traced.
+since.
+
+With the 3D LiDAR the hybrid keeps LiDAR in charge
+(`HybridLocalizerConfig::lidar_keeps_charge`): the first scan that agrees
+with GNSS takes over, and RTK fixed fixes that pass the gate are fused as
+corrections instead of taking over again; GNSS is in charge again only
+where the map cannot place the robot. Before, GNSS took over after every
+five RTK fixed fixes in a row and handed back after three unusable epochs,
+40–50 times a run in these canyons (some stretches lasting seconds); the
+hybrid's RMSE was 0.05–0.32 m, most of it from its GNSS stretches. Now it
+hands over once, at the start, or not at all.
 
 ### Rush hour, and walking around people (`--avoid`)
 
@@ -375,12 +383,12 @@ localizers keep it:
 
 | Area | Localizer | `--avoid` | Goal | Time | RMSE median | Waiting for obstacles | Someone within 0.5 m |
 |------|-----------|-----------|------|------|-------------|-----------------------|----------------------|
-| Shibuya | hybrid | – | 3/3 | 781-795 s | 0.12 m | 0-2 s | 0.0-1.9 s |
-| Shibuya | hybrid | ✓ | 3/3 | 841-852 s | 0.15 m | 0 s | 5.5-9.2 s |
+| Shibuya | hybrid | – | 3/3 | 770-772 s | 0.02 m | 1 s | 0.0-1.9 s |
+| Shibuya | hybrid | ✓ | 3/3 | 812-914 s | 0.04 m | 0 s | 7.2-9.2 s |
 | Shibuya | factor graph | – | 3/3 | 769-770 s | 0.00 m | 1-2 s | 0.0-1.2 s |
 | Shibuya | factor graph | ✓ | 3/3 | 837-912 s | 0.00 m | 0 s | 7.4-18.4 s |
-| Nishi-Shinjuku | hybrid | – | 3/3 | 1037-1039 s | 0.06 m | 81-86 s | 12.0-87.7 s |
-| Nishi-Shinjuku | hybrid | ✓ | 3/3 | 1046-1114 s | 0.06 m | 0 s | 5.6-9.4 s |
+| Nishi-Shinjuku | hybrid | – | 3/3 | 1034-1035 s | 0.01 m | 85-87 s | 10.4-82.3 s |
+| Nishi-Shinjuku | hybrid | ✓ | 3/3 | 1046-1114 s | 0.01 m | 0 s | 8.8-11.5 s |
 | Nishi-Shinjuku | factor graph | – | 3/3 | 1033-1036 s | 0.00 m | 86-89 s | 9.4-85.9 s |
 | Nishi-Shinjuku | factor graph | ✓ | 3/3 | 1048-1124 s | 0.03 m | 0 s | 8.9-15.7 s |
 
@@ -389,7 +397,7 @@ than 0.5 m to the robot's centre (its footprint is 0.35 m): a near miss or
 worse. Without `--avoid` the robot follows the route and stops for anything
 within 0.6 m ahead. In Nishi-Shinjuku the crossing at the start catches it:
 it stops for about 85 s while the crowd crosses, and the people who do not
-give way walk into it from the sides, for up to 88 s in a run. `--avoid`
+give way walk into it from the sides, for up to 86 s in a run. `--avoid`
 clusters the returns the map cannot explain into people (cutting long
 clusters, the sides of buses, into 1 m pieces), tracks them, and picks the
 command nearest the route follower's whose rollout clears them, for 2 s or,
