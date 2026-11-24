@@ -224,7 +224,8 @@ fn main() -> Result<(), String> {
             )
         };
         // The 3D LiDAR's prior map: the mesh and terrain along the route.
-        let cloud = use_lidar3d.then(|| lidar3d::build_map(&city, &route, lidar3d::RANGE_M + 4.0));
+        let cloud = use_lidar3d
+            .then(|| lidar3d::build_map(&city, &route, lidar3d::RANGE_M + 4.0, map_edit()));
         for (label, options, glass_from_m) in runs {
             if quick && main_run.is_some() {
                 break;
@@ -239,13 +240,13 @@ fn main() -> Result<(), String> {
             let mut summary = Vec::new();
             for seed in 0..seeds {
                 let started = std::time::Instant::now();
-                let options = RunOptions {
+                let options = with_flags(RunOptions {
                     seed,
                     lidar3d: use_lidar3d,
                     beidou,
                     avoid,
                     ..options
-                };
+                });
                 let report = nav::run(
                     styled.as_ref().unwrap_or(&city),
                     &route,
@@ -274,6 +275,36 @@ fn main() -> Result<(), String> {
 }
 
 /// The constellations the sky survey compares.
+/// `--ghost` and `--unknown-start` on a run's options.
+fn with_flags(options: RunOptions) -> RunOptions {
+    RunOptions {
+        ghost: std::env::args().any(|a| a == "--ghost"),
+        unknown_start: std::env::args().any(|a| a == "--unknown-start"),
+        ..options
+    }
+}
+
+/// `--map-gap S0:S1` leaves the stretch of the route from S0 to S1 meters
+/// out of the 3D LiDAR's map; `--map-shift S0:S1:DX:DY` moves the facades
+/// along that stretch by (DX, DY) meters in the map, as if they had been
+/// rebuilt since the survey.
+fn map_edit() -> lidar3d::MapEdit {
+    let numbers = |flag: &str| {
+        std::env::args().skip_while(|a| a != flag).nth(1).map(|v| {
+            v.split(':')
+                .map(|n| {
+                    n.parse::<f64>()
+                        .unwrap_or_else(|e| panic!("{flag} {v}: {e}"))
+                })
+                .collect::<Vec<_>>()
+        })
+    };
+    lidar3d::MapEdit {
+        gap: numbers("--map-gap").map(|v| (v[0], v[1])),
+        shift: numbers("--map-shift").map(|v| ((v[0], v[1]), (v[2], v[3]))),
+    }
+}
+
 fn survey_constellations() -> [(&'static str, Constellation); 3] {
     [
         ("GPS+Galileo", Constellation::gps_galileo_nominal()),
@@ -318,6 +349,8 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 lidar3d: false,
                 beidou: false,
                 avoid: false,
+                ghost: false,
+                unknown_start: false,
             },
         ),
         (
@@ -332,6 +365,8 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 lidar3d: false,
                 beidou: false,
                 avoid: false,
+                ghost: false,
+                unknown_start: false,
             },
         ),
         (
@@ -346,6 +381,8 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 lidar3d: false,
                 beidou: false,
                 avoid: false,
+                ghost: false,
+                unknown_start: false,
             },
         ),
         (
@@ -360,6 +397,8 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 lidar3d: false,
                 beidou: false,
                 avoid: false,
+                ghost: false,
+                unknown_start: false,
             },
         ),
         (
@@ -374,6 +413,8 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 lidar3d: false,
                 beidou: false,
                 avoid: false,
+                ghost: false,
+                unknown_start: false,
             },
         ),
     ]
@@ -404,6 +445,8 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         lidar3d: false,
         beidou: false,
         avoid: false,
+        ghost: false,
+        unknown_start: false,
     };
     let crowd = Weather {
         pedestrians: PEDESTRIANS,
@@ -483,6 +526,15 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
         report.close_s,
         report.clearance_m,
     );
+    if !report.ghost_errors.is_empty() {
+        let e = &report.ghost_errors;
+        let rmse = (e.iter().map(|v| v * v).sum::<f64>() / e.len() as f64).sqrt();
+        println!(
+            "  {:<24} without GNSS (--ghost): error RMSE {rmse:.2} m, max {:.2} m",
+            "",
+            e.iter().copied().fold(0.0, f64::max)
+        );
+    }
 }
 
 /// One line over several seeds: goals reached, median and worst RMSE, the

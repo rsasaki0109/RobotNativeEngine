@@ -66,6 +66,12 @@ pub(crate) struct RunOptions {
     pub lidar3d: bool,
     /// Walk around people (`avoid.rs`) instead of stopping for them.
     pub avoid: bool,
+    /// Also run a localizer that never sees GNSS (the same LiDAR and wheels)
+    /// and record where it thinks the robot is: what GNSS adds, side by side.
+    pub ghost: bool,
+    /// Start the localizers 25 m from the truth (sigma 30 m), as if switched
+    /// on somewhere unknown.
+    pub unknown_start: bool,
 }
 
 /// The robot's localizer: the rule-based arbiter or the factor graph.
@@ -139,9 +145,8 @@ impl Localizer {
 
     /// Every `LIDAR3D_PERIOD_S`, takes a 3D scan from the true pose
     /// (`sensed`: the pedestrians, rain and the pose), matches it against
-    /// the point-cloud map and feeds the match: from the estimate while
-    /// tracking, over the search window (once a second) while the hybrid is
-    /// dead reckoning.
+    /// the point-cloud map and feeds the match (see [`Self::match_lidar3d`]).
+    /// Returns the scan, reduced for matching, when one was taken.
     fn update_lidar3d(
         &mut self,
         map: &PointCloudMap,
@@ -149,21 +154,34 @@ impl Localizer {
         sensed: (&Movers, bool, Pose2d),
         t: f64,
         state: &mut Lidar3dState,
-    ) {
+    ) -> Option<Vec<Vec3>> {
         if t - state.last_scan_s < LIDAR3D_PERIOD_S - 1.0e-6 {
-            return;
+            return None;
         }
         state.last_scan_s = t;
-        let Lidar3dState {
-            rng,
-            last_search_s,
-            last_fit,
-            ..
-        } = state;
         let (movers, rain, truth) = sensed;
         let ground = city.ground_m(truth.x_m, truth.y_m);
-        let points = lidar3d::scan(city, movers, rain, truth, ground, rng);
-        let points = &lidar3d::downsample(&points)[..];
+        let points = lidar3d::scan(city, movers, rain, truth, ground, &mut state.rng);
+        let points = lidar3d::downsample(&points);
+        self.match_lidar3d(map, city, &points, t, &mut state.matching);
+        Some(points)
+    }
+
+    /// Matches a scan against the point-cloud map and feeds the match: from
+    /// the estimate while tracking, over the search window (once a second)
+    /// while the hybrid is dead reckoning.
+    fn match_lidar3d(
+        &mut self,
+        map: &PointCloudMap,
+        city: &PlateauCity,
+        points: &[Vec3],
+        t: f64,
+        state: &mut MatchState,
+    ) {
+        let MatchState {
+            last_search_s,
+            last_fit,
+        } = state;
         let pose = self.pose();
         let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
         let local = || {
@@ -213,9 +231,38 @@ const LIDAR3D_PERIOD_S: f64 = 0.2;
 struct Lidar3dState {
     rng: DeterministicRng,
     last_scan_s: f64,
+    matching: MatchState,
+}
+
+/// A localizer that never sees GNSS, on the same LiDAR and wheels
+/// (`--ghost`): what the robot would know without it.
+struct Ghost {
+    localizer: Localizer,
+    matching: MatchState,
+}
+
+impl Ghost {
+    fn error_m(&self, truth: Pose2d) -> f64 {
+        let p = self.localizer.pose();
+        (p.x_m - truth.x_m).hypot(p.y_m - truth.y_m)
+    }
+}
+
+/// A localizer's 3D matching state.
+#[derive(Debug)]
+struct MatchState {
     last_search_s: f64,
     /// Share of the latest scan on mapped surfaces, once one matched.
     last_fit: Option<f64>,
+}
+
+impl MatchState {
+    fn new() -> Self {
+        Self {
+            last_search_s: f64::NEG_INFINITY,
+            last_fit: None,
+        }
+    }
 }
 
 impl Lidar3dState {
@@ -223,8 +270,7 @@ impl Lidar3dState {
         Self {
             rng: DeterministicRng::new(seed),
             last_scan_s: f64::NEG_INFINITY,
-            last_search_s: f64::NEG_INFINITY,
-            last_fit: None,
+            matching: MatchState::new(),
         }
     }
 }
@@ -251,6 +297,8 @@ pub(crate) struct FrameRecord {
     pub scan3d: Vec<Vec3>,
     /// What the localizer did and why.
     pub status: Status,
+    /// The estimate of the localizer without GNSS (`--ghost`).
+    pub ghost: Option<Pose2d>,
 }
 
 /// A 3D scan for the render, from its own noise stream so recording does not
@@ -523,6 +571,25 @@ fn build_prior_map(city: &PlateauCity, route: &[(f64, f64)]) -> OccupancyGrid {
     grid
 }
 
+/// Distance from a point to the route and the arc length along the route
+/// of the nearest point on it, meters.
+pub(crate) fn station_on_route(route: &[(f64, f64)], x: f64, y: f64) -> (f64, f64) {
+    let (mut best, mut station, mut walked) = (f64::INFINITY, 0.0, 0.0);
+    for s in route.windows(2) {
+        let (a, b) = (s[0], s[1]);
+        let (dx, dy) = (b.0 - a.0, b.1 - a.1);
+        let l2 = (dx * dx + dy * dy).max(1.0e-12);
+        let t = (((x - a.0) * dx + (y - a.1) * dy) / l2).clamp(0.0, 1.0);
+        let d = (x - a.0 - t * dx).hypot(y - a.1 - t * dy);
+        if d < best {
+            best = d;
+            station = walked + t * l2.sqrt();
+        }
+        walked += l2.sqrt();
+    }
+    (best, station)
+}
+
 pub(crate) fn distance_to_route(route: &[(f64, f64)], x: f64, y: f64) -> f64 {
     route
         .windows(2)
@@ -584,6 +651,8 @@ pub(crate) struct RunReport {
     pub close_s: f64,
     /// `(truth, estimate, source)` every 0.5 s, for drawing.
     pub track: Vec<(Pose2d, Pose2d, LocalizationSource)>,
+    /// Errors of the localizer without GNSS every 0.5 s (`--ghost`), meters.
+    pub ghost_errors: Vec<f64>,
     /// Frames for the 3D render (when recording).
     pub frames: Vec<FrameRecord>,
     /// The constellations the receiver tracked, e.g. "GPS+Galileo+QZSS".
@@ -682,18 +751,9 @@ pub(crate) fn run(
     let (constellation, constellation_name) = constellation(&options);
     let (mut scene, model) = gnss_scene(city, options.weather.rain);
     let street = Street::new(route, options.weather, options.seed);
-    let mut receiver = receiver_config();
     // A large odd multiplier spreads small seeds over the whole range.
     let reseed = options.seed.wrapping_mul(0x9E37_79B9_7F4A_7C15);
-    receiver.seed ^= reseed;
-    receiver.satellite_error_seed ^= reseed;
-    let mut gnss = RobotGnss::new(
-        &constellation,
-        city.frame,
-        receiver,
-        SKY_EPOCH_S + 300.0,
-        base_enu_m,
-    );
+    let mut gnss = robot_gnss(city, &constellation, base_enu_m, reseed);
     let start = Pose2d::new(
         route[0].0,
         route[0].1,
@@ -702,13 +762,7 @@ pub(crate) fn run(
     // The terrain-following slice at LiDAR height along the route: what the
     // simulated LiDAR sees and the robot's prior map.
     let slice = build_prior_map(city, route);
-    let mut hybrid = build_localizer(
-        &slice,
-        start,
-        gnss.uses_libgnss(),
-        options.factor_graph,
-        options.lidar3d,
-    );
+    let (mut hybrid, mut ghost) = localizers(&slice, start, gnss.uses_libgnss(), &options);
     let mut rng = DeterministicRng::new(0x5_1B_0A ^ reseed);
     // The 3D LiDAR draws from its own stream (the rest of the noise is the
     // same as with the planar slice).
@@ -755,6 +809,9 @@ pub(crate) fn run(
         let odom_w = command.angular_rad_s + 0.001 + 0.005 * gaussian(&mut rng);
         odom = integrate(odom, odom_v, odom_w, DT_S);
         hybrid.predict(DT_S, odom_v, odom_w);
+        ghost
+            .iter_mut()
+            .for_each(|g| g.localizer.predict(DT_S, odom_v, odom_w));
 
         let movers = street.at(t, (truth.x_m, truth.y_m), city);
         report.close_s +=
@@ -781,6 +838,10 @@ pub(crate) fn run(
         for output in &outputs {
             last_label = Some(output.label);
             let decision = hybrid.update_gnss(output.fix.as_ref(), output.heading.as_ref(), t);
+            // No solution, ever: it hands over to the LiDAR at once.
+            ghost
+                .iter_mut()
+                .for_each(|g| _ = g.localizer.update_gnss(None, None, t));
             explain.gnss(output, decision, hybrid.pose());
             report.count(output.label);
         }
@@ -796,24 +857,27 @@ pub(crate) fn run(
             match cloud.filter(|_| options.lidar3d) {
                 Some(map) => {
                     let sensed = (&movers, options.weather.rain, truth);
-                    hybrid.update_lidar3d(map, city, sensed, t, &mut lidar3d_state);
+                    let points = hybrid.update_lidar3d(map, city, sensed, t, &mut lidar3d_state);
+                    if let (Some(g), Some(points)) = (ghost.as_mut(), points) {
+                        g.localizer
+                            .match_lidar3d(map, city, &points, t, &mut g.matching);
+                    }
                 }
                 None => hybrid.update_lidar(&scan, odom, t),
             }
         }
-        explain.lidar(hybrid.lidar_words(lidar3d_state.last_fit));
+        explain.lidar(hybrid.lidar_words(lidar3d_state.matching.last_fit));
         explain.source(t, hybrid.source());
         let estimate = hybrid.pose();
         report
             .errors
             .push((estimate.x_m - truth.x_m).hypot(estimate.y_m - truth.y_m));
-        report.time_in[match hybrid.source() {
-            LocalizationSource::Gnss => 0,
-            LocalizationSource::Lidar => 1,
-            LocalizationSource::DeadReckoning => 2,
-        }] += DT_S;
+        report.time_in[source_index(hybrid.source())] += DT_S;
         if tick.is_multiple_of(10) {
             report.track.push((truth, estimate, hybrid.source()));
+            report
+                .ghost_errors
+                .extend(ghost.as_ref().map(|g| g.error_m(truth)));
         }
         if options.record && t + 1.0e-9 >= report.frames.len() as f64 * RECORD_PERIOD_S {
             report.frames.push(FrameRecord {
@@ -828,6 +892,7 @@ pub(crate) fn run(
                 movers: movers.clone(),
                 rain: options.weather.rain,
                 scan3d: record_scan3d(city, &movers, options, truth),
+                ghost: ghost.as_ref().map(|g| g.localizer.pose()),
                 status: explain.status(t),
             });
         }
@@ -842,9 +907,74 @@ pub(crate) fn run(
 
 /// The hybrid arbiter (degeneracy-aware LiDAR fusion) or the factor graph,
 /// both with a 600-particle filter.
-fn build_localizer(
+/// The receiver pair, its noise reseeded by `reseed`.
+fn robot_gnss(
+    city: &PlateauCity,
+    constellation: &Constellation,
+    base_enu_m: Vec3,
+    reseed: u64,
+) -> RobotGnss {
+    let mut receiver = receiver_config();
+    receiver.seed ^= reseed;
+    receiver.satellite_error_seed ^= reseed;
+    RobotGnss::new(
+        constellation,
+        city.frame,
+        receiver,
+        SKY_EPOCH_S + 300.0,
+        base_enu_m,
+    )
+}
+
+/// The run's localizer, and the one without GNSS when asked for
+/// (`--ghost`, 3D LiDAR only), both from [`initial_estimate`].
+fn localizers(
     slice: &OccupancyGrid,
     start: Pose2d,
+    uses_libgnss: bool,
+    options: &RunOptions,
+) -> (Localizer, Option<Ghost>) {
+    let initial = initial_estimate(start, options);
+    let localizer = |factor_graph: bool| {
+        build_localizer(slice, initial, uses_libgnss, factor_graph, options.lidar3d)
+    };
+    let ghost = (options.ghost && options.lidar3d).then(|| Ghost {
+        localizer: localizer(false),
+        matching: MatchState::new(),
+    });
+    (localizer(options.factor_graph), ghost)
+}
+
+/// Index of a source in [`RunReport::time_in`].
+fn source_index(source: LocalizationSource) -> usize {
+    match source {
+        LocalizationSource::Gnss => 0,
+        LocalizationSource::Lidar => 1,
+        LocalizationSource::DeadReckoning => 2,
+    }
+}
+
+/// Where the localizers start and their position sigma: the truth to a
+/// decimetre, or 25 m off (in a direction set by the seed) with a 30 m sigma
+/// and the heading within about 10 degrees, as from a magnetometer.
+fn initial_estimate(start: Pose2d, options: &RunOptions) -> (Pose2d, f64) {
+    if !options.unknown_start {
+        return (start, 0.1);
+    }
+    let angle = 0.7 + options.seed as f64 * 2.3;
+    (
+        Pose2d::new(
+            start.x_m + 25.0 * angle.cos(),
+            start.y_m + 25.0 * angle.sin(),
+            start.yaw_rad + 0.15,
+        ),
+        30.0,
+    )
+}
+
+fn build_localizer(
+    slice: &OccupancyGrid,
+    (start, start_sigma_m): (Pose2d, f64),
     uses_libgnss: bool,
     factor_graph: bool,
     lidar3d: bool,
@@ -871,6 +1001,10 @@ fn build_localizer(
     // The 3D LiDAR holds the robot wherever the map reaches: it keeps
     // charge, and RTK fixes correct it instead of taking over.
     config.lidar_keeps_charge = lidar3d;
+    if start_sigma_m > 1.0 {
+        config.ekf.initial_position_variance_m2 = start_sigma_m * start_sigma_m;
+        config.ekf.initial_yaw_variance_rad2 = 0.04;
+    }
     if factor_graph {
         Localizer::Graph(Box::new(
             FactorGraphLocalizer::new(

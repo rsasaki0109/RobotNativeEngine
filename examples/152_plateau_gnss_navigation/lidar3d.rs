@@ -134,16 +134,43 @@ fn person_hit(city: &PlateauCity, people: &[(f64, f64)], origin: Vec3, dir: Vec3
         })
 }
 
+/// How the prior map differs from the city, by stretches of the route
+/// (meters along it: a point belongs to the stretch its nearest route point
+/// lies in).
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct MapEdit {
+    /// Nothing mapped here yet.
+    pub gap: Option<(f64, f64)>,
+    /// The buildings here were rebuilt since the survey: the map has their
+    /// facades this far (east, north, meters) from where they stand.
+    pub shift: Option<((f64, f64), (f64, f64))>,
+}
+
 /// The prior map: the mesh's surfaces and the open terrain within
 /// `corridor_m` of the route, up to `MAP_MAX_HEIGHT_M` above the ground,
-/// sampled every `MAP_SPACING_M`, with exact normals. Prints its size.
+/// sampled every `MAP_SPACING_M`, with exact normals, as edited by `edit`.
+/// Prints its size.
 pub(crate) fn build_map(
     city: &PlateauCity,
     route: &[(f64, f64)],
     corridor_m: f64,
+    edit: MapEdit,
 ) -> PointCloudMap {
     let started = std::time::Instant::now();
-    let near = |x: f64, y: f64| crate::nav::distance_to_route(route, x, y) <= corridor_m;
+    let within = |s: f64, range: (f64, f64)| (range.0..=range.1).contains(&s);
+    // Where a sample goes in the map, if anywhere.
+    let place = |p: Vec3, facade: bool| {
+        let (d, s) = crate::nav::station_on_route(route, p.x, p.y);
+        if d > corridor_m || edit.gap.is_some_and(|g| within(s, g)) {
+            return None;
+        }
+        match edit.shift {
+            Some((range, (dx, dy))) if facade && within(s, range) => {
+                Some(Vec3::new(p.x + dx, p.y + dy, p.z))
+            }
+            _ => Some(p),
+        }
+    };
     let (mut points, mut normals) = (Vec::new(), Vec::new());
     for triangle in city.mesh.triangles() {
         let [a, b, c] = triangle.vertices;
@@ -154,9 +181,12 @@ pub(crate) fn build_map(
             for j in 0..=(k - i) {
                 let (u, v) = (i as f64 / k as f64, j as f64 / k as f64);
                 let p = a + (b - a) * u + (c - a) * v;
-                if p.z - city.ground_m(p.x, p.y) <= MAP_MAX_HEIGHT_M && near(p.x, p.y) {
-                    points.push(p);
-                    normals.push(normal);
+                let height = p.z - city.ground_m(p.x, p.y);
+                if height <= MAP_MAX_HEIGHT_M {
+                    if let Some(q) = place(p, height > 0.5) {
+                        points.push(q);
+                        normals.push(normal);
+                    }
                 }
             }
         }
@@ -167,9 +197,11 @@ pub(crate) fn build_map(
         while y <= hi.y {
             let mut x = lo.x;
             while x <= hi.x {
-                if near(x, y) {
-                    let z = city.ground_m(x, y);
-                    if !city.mesh.contains(Vec3::new(x, y, z + 0.3)) {
+                let z = city.ground_m(x, y);
+                if place(Vec3::new(x, y, z), false).is_some()
+                    && !city.mesh.contains(Vec3::new(x, y, z + 0.3))
+                {
+                    {
                         let e = 0.5;
                         let gx = (city.ground_m(x + e, y) - city.ground_m(x - e, y)) / (2.0 * e);
                         let gy = (city.ground_m(x, y + e) - city.ground_m(x, y - e)) / (2.0 * e);

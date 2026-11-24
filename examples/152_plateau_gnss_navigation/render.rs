@@ -13,6 +13,7 @@ use crate::plateau::PlateauCity;
 use crate::streets::{Streets, ASPHALT_TILE_M, ROAD_LIFT_M};
 use rne_gnss::{trace_satellite, GnssScene, PathKind, SignalPath, SurfaceMaterial};
 use rne_math::{Quat, Vec3};
+use rne_nav::Pose2d;
 use rne_render::{
     Camera, EnvironmentLighting, EnvironmentMap, PbrMaterial, RenderBackend, RenderScene,
     RenderSceneItem, TriangleMesh,
@@ -521,6 +522,7 @@ fn frame_items(
         [0.6, 0.3, 0.0],
     );
 
+    push_ghost(scene, city, streets, run, frame);
     push_signals(scene, gnss_scene, frame);
     if frame.scan3d.is_empty() {
         push_lidar(scene, city, frame);
@@ -663,6 +665,67 @@ fn push_lidar3d(scene: &mut RenderScene, frame: &FrameRecord) {
     ]) {
         push(scene, mesh, linear(colour), 0.4, 0.0, glow);
     }
+}
+
+/// The localizer without GNSS (`--ghost`): a pale glowing robot where it
+/// thinks the robot is, its track so far, and a red line to the robot.
+fn push_ghost(
+    scene: &mut RenderScene,
+    city: &PlateauCity,
+    streets: &Streets,
+    run: &RunReport,
+    frame: &FrameRecord,
+) {
+    let Some(ghost) = frame.ghost else { return };
+    let at = |q: Pose2d, lift: f64| {
+        p(
+            q.x_m,
+            q.y_m,
+            city.ground_m(q.x_m, q.y_m) + streets.surface_m(q.x_m, q.y_m) + lift,
+        )
+    };
+    let mut body = SolidMesh::default();
+    body.box_at(
+        at(ghost, 0.3),
+        Vec3::new(0.45, 0.25, 0.3),
+        Quat::from_rotation_y(ghost.yaw_rad),
+    );
+    let mut trail = SolidMesh::default();
+    let poses: Vec<Pose2d> = run
+        .frames
+        .iter()
+        .take_while(|f| f.t <= frame.t + 1.0e-9)
+        .filter_map(|f| f.ghost)
+        .collect();
+    for pair in poses.windows(2) {
+        trail.beam(at(pair[0], 0.12), at(pair[1], 0.12), 0.2);
+    }
+    let mut gap = SolidMesh::default();
+    gap.beam(at(frame.truth, 0.8), at(ghost, 0.8), 0.08);
+    push(
+        scene,
+        body,
+        linear([225, 235, 255]),
+        0.4,
+        0.0,
+        [0.45, 0.5, 0.6],
+    );
+    push(
+        scene,
+        trail,
+        linear([225, 235, 255]),
+        0.5,
+        0.0,
+        [0.3, 0.33, 0.4],
+    );
+    push(
+        scene,
+        gap,
+        linear([255, 60, 40]),
+        0.5,
+        0.0,
+        [0.7, 0.1, 0.05],
+    );
 }
 
 /// Pedestrians: a body and a head each, in a few clothing colours.
@@ -888,6 +951,9 @@ pub(crate) fn render(
                 _ => "no solution",
             },
             "error_m": error,
+            "ghost_error_m": frame.ghost.map(|g| {
+                (g.x_m - frame.truth.x_m).hypot(g.y_m - frame.truth.y_m)
+            }),
             "los": los,
             "nlos": nlos,
             "gnss": frame.status.gnss,

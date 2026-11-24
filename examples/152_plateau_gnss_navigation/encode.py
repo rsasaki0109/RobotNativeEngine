@@ -51,13 +51,16 @@ def fitted(draw, text, typeface, width):
     return text + "..."
 
 
+GHOST_COLOUR = (255, 120, 100)
+
+
 def hud(image, area, frame, width, timeline, constellation="GPS+Galileo+QZSS"):
     scale = width / image.width
     image = image.resize((width, round(image.height * scale)), Image.LANCZOS)
     draw = ImageDraw.Draw(image, "RGBA")
     big, small = font(max(12, width // 36)), font(max(10, width // 50))
     pad = width // 60
-    lines = 4 if frame.get("gnss") else 2
+    lines = (4 if frame.get("gnss") else 2) + (frame.get("ghost_error_m") is not None)
     draw.rectangle([0, 0, width, pad * 2 + big.size + (small.size + 2) * lines + 4], fill=(10, 12, 18, 170))
     title = f"{area} - PLATEAU LOD2, ray-traced {constellation}"
     heading = big
@@ -93,6 +96,15 @@ def hud(image, area, frame, width, timeline, constellation="GPS+Galileo+QZSS"):
         draw.text((pad, y), fitted(draw, frame["gnss"], small, width - 2 * pad), font=small, fill=colour)
         y += small.size + 2
         draw.text((pad, y), fitted(draw, frame["lidar"], small, width - 2 * pad), font=small, fill=LIDAR_COLOUR)
+    if frame.get("ghost_error_m") is not None:
+        # The same LiDAR and wheels without GNSS: the pale robot.
+        y += small.size + 2
+        draw.text(
+            (pad, y),
+            f"without GNSS (pale robot, red line): {frame['ghost_error_m']:.1f} m off",
+            font=small,
+            fill=GHOST_COLOUR,
+        )
     # Legend.
     legend = [
         ((60, 230, 120), "line of sight"),
@@ -134,6 +146,7 @@ def main():
     parser.add_argument("--fps", type=float, default=7.0)
     parser.add_argument("--width", type=int, default=560)
     parser.add_argument("--colors", type=int, default=64)
+    parser.add_argument("--label", default="", help="what the run shows, after the area in the title")
     args = parser.parse_args()
 
     meta = json.loads((args.capture / "frames.json").read_text())
@@ -141,7 +154,8 @@ def main():
     images = []
     for frame in meta["frames"][:: args.stride]:
         image = Image.open(args.capture / frame["file"]).convert("RGB")
-        images.append(hud(image, meta["area"], frame, args.width, timeline, meta.get("constellation", "GPS+Galileo+QZSS")))
+        area = f"{meta['area']}, {args.label}" if args.label else meta["area"]
+        images.append(hud(image, area, frame, args.width, timeline, meta.get("constellation", "GPS+Galileo+QZSS")))
     # One palette for the whole GIF: colours from sample frames plus the
     # exact HUD and legend colours, so those never shift.
     samples = images[:: max(1, len(images) // 12)]
@@ -152,6 +166,7 @@ def main():
         (255, 255, 255),
         LIDAR_COLOUR,
         EVENT_COLOUR,
+        GHOST_COLOUR,
     ] + [c for _, c in VERDICT_COLOURS]
     sheet = Image.new("RGB", (args.width, sum(im.height for im in samples)))
     y = 0
