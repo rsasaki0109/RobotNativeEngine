@@ -129,7 +129,10 @@ impl Localizer {
 
     /// The LiDAR's state in words: the latest 3D match's fit, or the particle
     /// filter's mean score with the planar scan.
-    fn lidar_words(&self, fit3d: Option<f64>) -> String {
+    fn lidar_words(&self, fit3d: Option<f64>, open_ground: bool) -> String {
+        if open_ground {
+            return "LiDAR: only open ground in reach, nothing to pin the position".to_string();
+        }
         match (self, fit3d) {
             (_, Some(fit)) => format!(
                 "LiDAR: {:.0} % of the 3D scan on mapped surfaces",
@@ -181,12 +184,17 @@ impl Localizer {
         let MatchState {
             last_search_s,
             last_fit,
+            open_ground,
         } = state;
         let pose = self.pose();
         let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
-        let local = || {
-            map.match_scan(points, pose, z, &lidar3d::match_config())
-                .filter(lidar3d::acceptable)
+        let raw = || map.match_scan(points, pose, z, &lidar3d::match_config());
+        let mut local = || {
+            let m = raw();
+            *open_ground = m
+                .as_ref()
+                .is_some_and(|m| m.fit_fraction >= 0.6 && !lidar3d::acceptable(m));
+            m.filter(lidar3d::acceptable)
         };
         match self {
             Self::Hybrid(h) => match h.source() {
@@ -199,6 +207,7 @@ impl Localizer {
                 }
                 LocalizationSource::DeadReckoning if t - *last_search_s >= 1.0 => {
                     *last_search_s = t;
+                    local();
                     let found = lidar3d::search(map, points, pose, z, h.lidar_search_window_m());
                     *last_fit = found.map(|m| m.fit_fraction);
                     h.update_lidar_match(found.as_ref(), t).expect("lidar");
@@ -256,6 +265,9 @@ struct MatchState {
     last_search_s: f64,
     /// Share of the latest scan on mapped surfaces, once one matched.
     last_fit: Option<f64>,
+    /// Whether the latest scan fit the map but held nothing that pins the
+    /// position (only open ground in reach).
+    open_ground: bool,
 }
 
 impl MatchState {
@@ -263,6 +275,7 @@ impl MatchState {
         Self {
             last_search_s: f64::NEG_INFINITY,
             last_fit: None,
+            open_ground: false,
         }
     }
 }
@@ -868,7 +881,10 @@ pub(crate) fn run(
                 None => hybrid.update_lidar(&scan, odom, t),
             }
         }
-        explain.lidar(hybrid.lidar_words(lidar3d_state.matching.last_fit));
+        explain.lidar(hybrid.lidar_words(
+            lidar3d_state.matching.last_fit,
+            lidar3d_state.matching.open_ground,
+        ));
         explain.source(t, hybrid.source());
         let estimate = hybrid.pose();
         report

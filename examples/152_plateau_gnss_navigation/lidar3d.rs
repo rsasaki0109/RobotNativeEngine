@@ -237,10 +237,17 @@ pub(crate) fn match_config() -> PointCloudMatchConfig {
     }
 }
 
+/// Position variance, m², above which a match pins no horizontal direction:
+/// on open ground the scan holds only the ground, which fits anywhere.
+const UNCONSTRAINED_VARIANCE_M2: f64 = 25.0;
+
 /// Whether a match is good enough to use: most of the scan lies on mapped
-/// surfaces (the RMS residual would also count people next to walls).
+/// surfaces (the RMS residual would also count people next to walls), and
+/// something in it pins the position in at least one horizontal direction.
 pub(crate) fn acceptable(m: &PointCloudMatch) -> bool {
-    m.fit_fraction >= 0.6
+    let [[xx, xy], [_, yy]] = m.position_covariance_m2;
+    let smaller = 0.5 * (xx + yy) - (0.25 * (xx - yy).powi(2) + xy * xy).sqrt();
+    m.fit_fraction >= 0.6 && smaller < UNCONSTRAINED_VARIANCE_M2
 }
 
 /// A relocalizing match: tries starts on a grid over `±window_m` around
