@@ -248,6 +248,19 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> (RenderScene, Street
         [0.0; 3],
     );
     scene.items.extend(facade_items(city));
+    if let Some(scenery) = &city.scenery {
+        for (colour, roughness, triangles) in &scenery.solids {
+            let mut mesh = SolidMesh::default();
+            for t in triangles {
+                let corners = t.map(pv);
+                let normal = (corners[1] - corners[0])
+                    .cross(corners[2] - corners[0])
+                    .normalize_or_zero();
+                mesh.triangle(corners, normal);
+            }
+            push(&mut scene, mesh, linear(*colour), *roughness, 0.0, [0.0; 3]);
+        }
+    }
     push(
         &mut scene,
         furniture,
@@ -279,6 +292,11 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> (RenderScene, Street
     scene
         .items
         .extend(crate::streets::street_items(city, &streets, roads));
+    if let Some(scenery) = &city.scenery {
+        scene
+            .items
+            .extend(crate::streets::cover_items(city, scenery));
+    }
 
     // The planned route as a faint line on the ground.
     let mut line = SolidMesh::default();

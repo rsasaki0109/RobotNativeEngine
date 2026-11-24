@@ -9,7 +9,7 @@
 //! `SIDEWALK_M` of every road at least `WIDE_ROAD_M` wide. Marching squares
 //! turn the raster back into smooth curbs and lines.
 
-use crate::plateau::PlateauCity;
+use crate::plateau::{Cover, PlateauCity, Scenery};
 use crate::render::{linear, p, SolidMesh};
 use rne_math::Vec3;
 use rne_render::{ImageFrame, RenderSceneItem};
@@ -396,7 +396,12 @@ pub(crate) fn street_items(
             items.push(item);
         }
     };
-    let tiles = Arc::new(paving(512, 16, [168, 163, 155], 3));
+    // A synthetic area's ground outside the road is grass, not paving.
+    let tiles = Arc::new(if city.scenery.is_some() {
+        cover_texture(Cover::Grass)
+    } else {
+        paving(512, 16, [168, 163, 155], 3)
+    });
     textured(ground, tiles.clone(), 0.9);
     textured(roads, Arc::new(asphalt(512)), 0.85);
     textured(sidewalk, tiles, 0.9);
@@ -692,6 +697,111 @@ fn noise(u: f64, v: f64, period: i64, seed: u64) -> f64 {
 fn to_srgb(rgb: [f64; 3]) -> [u8; 4] {
     let c = rgb.map(|v| v.round().clamp(0.0, 255.0) as u8);
     [c[0], c[1], c[2], 255]
+}
+
+/// Metres one tile of a ground cover's texture spans.
+fn cover_tile_m(cover: Cover) -> f64 {
+    match cover {
+        Cover::Grass | Cover::Dirt => 6.0,
+        Cover::Rows => 7.2,
+        Cover::Paddy | Cover::Soil | Cover::Concrete => 4.8,
+    }
+}
+
+/// The texture of a ground cover, 512 px over [`cover_tile_m`]; rows run
+/// east-west.
+fn cover_texture(cover: Cover) -> ImageFrame {
+    let size = 512_u32;
+    if cover == Cover::Concrete {
+        return paving(size, 4, [178, 175, 168], 7);
+    }
+    let mut rgba = Vec::with_capacity((size * size * 4) as usize);
+    for y in 0..size {
+        for x in 0..size {
+            let (u, v) = (
+                f64::from(x) / f64::from(size),
+                f64::from(y) / f64::from(size),
+            );
+            let broad = noise(u, v, 3, 11) * 0.6 + noise(u, v, 11, 12) * 0.4;
+            let grain = hash(i64::from(x), i64::from(y), 13);
+            let rgb = match cover {
+                Cover::Grass => {
+                    let t = 0.85 + (broad - 0.5) * 0.3 + (grain - 0.5) * 0.12;
+                    [84.0 * t, 116.0 * t, 56.0 * t]
+                }
+                Cover::Paddy => {
+                    // Young rice in rows 0.3 m apart over muddy water.
+                    let row = (v * 16.0).fract();
+                    let hill = (u * 24.0).fract();
+                    let plant = (row - 0.5).abs() < 0.16 && (hill - 0.5).abs() < 0.3;
+                    let t = 0.9 + (broad - 0.5) * 0.2 + (grain - 0.5) * 0.08;
+                    if plant {
+                        [96.0 * t, 138.0 * t, 58.0 * t]
+                    } else {
+                        [92.0 * t, 104.0 * t, 96.0 * t]
+                    }
+                }
+                Cover::Rows => {
+                    // Ridges of leafy vegetables 0.9 m apart on dark soil.
+                    let row = (v * 8.0).fract();
+                    let leaf = (row - 0.5).abs() < 0.22 && grain > 0.25;
+                    let t = 0.9 + (broad - 0.5) * 0.25 + (grain - 0.5) * 0.1;
+                    if leaf {
+                        [70.0 * t, 118.0 * t, 52.0 * t]
+                    } else {
+                        [96.0 * t, 76.0 * t, 58.0 * t]
+                    }
+                }
+                Cover::Soil => {
+                    let furrow = ((v * 32.0).fract() - 0.5).abs() * 0.12;
+                    let t = 0.88 + furrow + (broad - 0.5) * 0.2 + (grain - 0.5) * 0.1;
+                    [118.0 * t, 92.0 * t, 68.0 * t]
+                }
+                Cover::Dirt => {
+                    let t = 0.9 + (broad - 0.5) * 0.2 + (grain - 0.5) * 0.12;
+                    [150.0 * t, 130.0 * t, 100.0 * t]
+                }
+                Cover::Concrete => unreachable!(),
+            };
+            rgba.extend(to_srgb(rgb));
+        }
+    }
+    ImageFrame::from_rgba8(size, size, rgba)
+}
+
+/// A synthetic area's ground covers (fields, drives) just above the grass.
+pub(crate) fn cover_items(city: &PlateauCity, scenery: &Scenery) -> Vec<RenderSceneItem> {
+    let lift = ROAD_LIFT_M + CURB_M + 0.02;
+    let mut items = Vec::new();
+    for cover in [
+        Cover::Grass,
+        Cover::Paddy,
+        Cover::Rows,
+        Cover::Soil,
+        Cover::Concrete,
+        Cover::Dirt,
+    ] {
+        let mut mesh = SolidMesh::default();
+        let tile = cover_tile_m(cover);
+        // Paths sit a little above the fields they cross.
+        let lift = if cover == Cover::Dirt {
+            lift + 0.01
+        } else {
+            lift
+        };
+        for (_, quad) in scenery.ground.iter().filter(|(c, _)| *c == cover) {
+            let v = quad.map(|(x, y)| p(x, y, city.ground_m(x, y) + lift));
+            flat(&mut mesh, [v[0], v[1], v[2]], tile);
+            flat(&mut mesh, [v[0], v[2], v[3]], tile);
+        }
+        if !mesh.positions.is_empty() {
+            let roughness = if cover == Cover::Paddy { 0.35 } else { 0.9 };
+            let mut item = mesh.item([1.0; 4], roughness, 0.0, [0.0; 3]);
+            item.base_color_texture = Some(Arc::new(cover_texture(cover)));
+            items.push(item);
+        }
+    }
+    items
 }
 
 /// Worn asphalt: aggregate grain, darker and lighter patches and stains.

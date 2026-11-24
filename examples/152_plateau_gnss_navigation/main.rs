@@ -23,6 +23,7 @@ mod plateau;
 mod render;
 #[cfg(feature = "capture")]
 mod streets;
+mod suburb;
 mod traffic;
 mod urbannav;
 
@@ -139,7 +140,7 @@ const AREAS: [Area; 4] = [
     Area {
         name: "Suburb (synthetic)",
         slug: "suburb",
-        // No tiles: [`PlateauCity::suburb`], a straight road with houses at
+        // No tiles: [`suburb::build`], a straight road with houses at
         // both ends and fields in the middle.
         tiles: &[],
         center: (35.7000, 139.4500),
@@ -168,7 +169,7 @@ const SKY_EPOCH_S: f64 = 20_000.0;
 /// without tiles.
 fn load_city(area: &Area, data: &Path) -> Result<PlateauCity, String> {
     if area.tiles.is_empty() {
-        return Ok(PlateauCity::suburb(
+        return Ok(suburb::build(
             area.name,
             area.center,
             SUBURB_LENGTH_M,

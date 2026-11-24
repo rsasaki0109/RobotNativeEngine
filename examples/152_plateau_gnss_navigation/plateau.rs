@@ -22,8 +22,9 @@ pub(crate) struct Building {
     pub(crate) bounds: [f64; 4],
     /// Lowest point (ground) and highest point in ENU meters.
     pub(crate) z_range: (f64, f64),
-    /// Whether the building has photo textures: the render draws it from
-    /// [`PlateauCity::facades`] instead of the ray-tracing mesh.
+    /// Whether the render draws it from its photo textures
+    /// ([`PlateauCity::facades`]) or the synthetic scenery
+    /// ([`PlateauCity::scenery`]) instead of the ray-tracing mesh.
     #[cfg_attr(not(feature = "capture"), allow(dead_code))]
     pub(crate) textured: bool,
 }
@@ -69,6 +70,40 @@ pub(crate) struct PlateauCity {
     /// Terrain heights on a grid (see [`TERRAIN_CELL_M`]).
     terrain: Vec<f64>,
     terrain_half_cells: usize,
+    /// What the render draws of a synthetic area, instead of its mesh and
+    /// paved ground.
+    #[cfg_attr(not(feature = "capture"), allow(dead_code))]
+    pub(crate) scenery: Option<Arc<Scenery>>,
+}
+
+/// A ground cover of a synthetic area.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(not(feature = "capture"), allow(dead_code))]
+pub(crate) enum Cover {
+    /// Lawn and verges.
+    Grass,
+    /// Flooded rice paddy, young plants in rows.
+    Paddy,
+    /// Vegetable rows on dark soil.
+    Rows,
+    /// Ploughed soil.
+    Soil,
+    /// Concrete (driveways).
+    Concrete,
+    /// Packed earth (paths between the fields).
+    Dirt,
+}
+
+/// What the render draws of a synthetic area: solids in flat colours (the
+/// same objects the sensor mesh has, plus windows and doors) and ground
+/// covers over the grass.
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(not(feature = "capture"), allow(dead_code))]
+pub(crate) struct Scenery {
+    /// Triangles by colour (sRGB) and roughness, wound outward.
+    pub(crate) solids: Vec<([u8; 3], f32, Vec<[Vec3; 3]>)>,
+    /// Ground covers as ENU quads.
+    pub(crate) ground: Vec<(Cover, [(f64, f64); 4])>,
 }
 
 /// Terrain grid spacing, meters.
@@ -321,6 +356,7 @@ impl PlateauCity {
             junctions: Arc::new(junctions),
             terrain: Vec::new(),
             terrain_half_cells: (radius_m / TERRAIN_CELL_M).ceil() as usize + 1,
+            scenery: None,
         };
         let n = 2 * city.terrain_half_cells + 1;
         let half = city.terrain_half_cells as f64;
@@ -334,78 +370,20 @@ impl PlateauCity {
         Ok(city)
     }
 
-    /// A synthetic suburb, not a PLATEAU area: one straight road `length_m`
-    /// long along east-west through the ENU origin at `center` (latitude,
-    /// longitude degrees), lined with two-storey houses at both ends and
-    /// open (fields, a riverbank) for `open_m` in the middle, where a
-    /// LiDAR has nothing within reach but the ground.
-    pub(crate) fn suburb(name: &str, center: (f64, f64), length_m: f64, open_m: f64) -> Self {
-        const ROAD_HALF_WIDTH_M: f64 = 4.0;
-        const SETBACK_M: f64 = 3.0;
+    /// A synthetic area (see [`crate::suburb`]): its sensor mesh, the
+    /// objects in it (all drawn from `scenery`), its roads, flat terrain out
+    /// to `extent_m` and what the render draws.
+    pub(crate) fn synthetic(
+        name: &str,
+        center: (f64, f64),
+        triangles: Vec<MeshTriangle>,
+        buildings: Vec<Building>,
+        roads: Vec<[Vec3; 3]>,
+        extent_m: f64,
+        scenery: Scenery,
+    ) -> Self {
         let frame = EnuFrame::new(Geodetic::from_degrees(center.0, center.1, GEOID_TOKYO_M));
-        // A fixed irregular sequence for widths, gaps, depths and heights.
-        let pick = |k: usize, lo: f64, hi: f64| {
-            let h = (k as u64)
-                .wrapping_mul(0x9E37_79B9_7F4A_7C15)
-                .rotate_left(17)
-                % 1000;
-            lo + (hi - lo) * h as f64 / 999.0
-        };
-        let mut triangles = Vec::new();
-        let mut buildings = Vec::new();
-        let half = length_m * 0.5;
-        let mut k = 0;
-        for side in [-1.0_f64, 1.0] {
-            // Two rows: houses on the road, and a second row behind them.
-            for row in 0..2 {
-                let mut x = -half - 20.0;
-                while x < half + 20.0 {
-                    let width = pick(k, 7.0, 11.0);
-                    let gap = pick(k + 1, 2.5, 7.0);
-                    let depth = pick(k + 2, 7.0, 10.0);
-                    let height = pick(k + 3, 5.5, 9.0);
-                    k += 4;
-                    let (x0, x1) = (x, x + width);
-                    x = x1 + gap;
-                    if x1 > -open_m * 0.5 && x0 < open_m * 0.5 {
-                        continue;
-                    }
-                    let near = ROAD_HALF_WIDTH_M + SETBACK_M + f64::from(row) * 14.0;
-                    let (y0, y1) = if side > 0.0 {
-                        (near, near + depth)
-                    } else {
-                        (-near - depth, -near)
-                    };
-                    let object = buildings.len() as u32;
-                    triangles.extend(rne_gnss::box_triangles(
-                        Vec3::new(x0, y0, 0.0),
-                        Vec3::new(x1, y1, height),
-                        SurfaceMaterial::CONCRETE,
-                        object,
-                    ));
-                    buildings.push(Building {
-                        bounds: [x0, y0, x1, y1],
-                        z_range: (0.0, height),
-                        textured: false,
-                    });
-                }
-            }
-        }
-        let (a, b) = (-half - 150.0, half + 150.0);
-        let (w, e) = (-ROAD_HALF_WIDTH_M, ROAD_HALF_WIDTH_M);
-        let roads = vec![
-            [
-                Vec3::new(a, w, 0.0),
-                Vec3::new(b, w, 0.0),
-                Vec3::new(b, e, 0.0),
-            ],
-            [
-                Vec3::new(a, w, 0.0),
-                Vec3::new(b, e, 0.0),
-                Vec3::new(a, e, 0.0),
-            ],
-        ];
-        let terrain_half_cells = ((half + 300.0) / TERRAIN_CELL_M).ceil() as usize + 1;
+        let terrain_half_cells = (extent_m / TERRAIN_CELL_M).ceil() as usize + 1;
         let n = 2 * terrain_half_cells + 1;
         Self {
             name: name.to_string(),
@@ -417,6 +395,7 @@ impl PlateauCity {
             junctions: Arc::new(Vec::new()),
             terrain: vec![0.0; n * n],
             terrain_half_cells,
+            scenery: Some(Arc::new(scenery)),
         }
     }
 
