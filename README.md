@@ -16,6 +16,15 @@ Every frame below is rendered by wgpu from deterministic simulation or pinned
 camera state; gates and regeneration commands are in
 [README showcase acceptance](docs/README_SHOWCASE.md).
 
+<p align="center">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="docs/media/kitti-splat-hero.png">
+    <img src="docs/media/kitti-splat-hero.gif" alt="A real KITTI street rebuilt as 3D Gaussian Splatting from LiDAR SLAM poses and used as a driving simulator: added cars next to the real photo, a free look-around at a paused photo, a parked car cutting in front of the ego car under Intelligent Driver Model control, and a fast-forward over the whole 2.2 km drive with a LiDAR map minimap" width="900">
+  </picture>
+  <br><b>Real street 3DGS · driving simulator</b><br>
+  <sub>KITTI raw drive 0018 rebuilt as seven 3D Gaussian Splatting segments from LiDAR SLAM poses. Cars are movable splat actors sorted with the scene; a parked car cuts in and the ego brakes under the Intelligent Driver Model. Over the whole 2.2 km the car also steers itself by visual localization on its rendered camera (0.25 m mean error). KITTI is CC BY-NC-SA 3.0 (non-commercial); the data is not in the repository. <a href="docs/KITTI_SPLAT_DRIVE.md">how it is made</a> · <a href="examples/160_kitti_splat_drive/traffic.rs">source</a></sub>
+</p>
+
 <table>
   <tr>
     <td colspan="2" align="center">

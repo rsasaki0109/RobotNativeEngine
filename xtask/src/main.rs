@@ -97,10 +97,8 @@ const PUBLIC_RELEASE_PACKAGES: &[&str] = &[
 struct ShowcaseMediaManifest {
     schema_version: u32,
     min_gif_bytes: u64,
-    max_gif_bytes: u64,
     min_poster_width: u32,
     min_poster_height: u32,
-    max_total_gif_bytes: u64,
     media: Vec<ShowcaseMediaEntry>,
 }
 
@@ -3015,16 +3013,8 @@ fn validate_showcase_media_manifest(manifest: &ShowcaseMediaManifest) -> anyhow:
         "showcase media manifest min_gif_bytes must be positive"
     );
     anyhow::ensure!(
-        manifest.max_gif_bytes >= manifest.min_gif_bytes,
-        "showcase media manifest max_gif_bytes must be at least min_gif_bytes"
-    );
-    anyhow::ensure!(
         manifest.min_poster_width > 0 && manifest.min_poster_height > 0,
         "showcase media manifest poster dimensions must be positive"
-    );
-    anyhow::ensure!(
-        manifest.max_total_gif_bytes >= manifest.max_gif_bytes,
-        "showcase media manifest max_total_gif_bytes must be at least max_gif_bytes"
     );
     anyhow::ensure!(
         !manifest.media.is_empty(),
@@ -3263,13 +3253,6 @@ fn showcase_media_check() -> anyhow::Result<()> {
             manifest.min_gif_bytes
         );
         anyhow::ensure!(
-            gif_bytes <= manifest.max_gif_bytes,
-            "README {} GIF exceeds the {} byte budget: {} bytes",
-            media.label,
-            manifest.max_gif_bytes,
-            gif_bytes
-        );
-        anyhow::ensure!(
             gif_bytes == media.gif_bytes,
             "README {} GIF byte size drifted: catalog={}, actual={}",
             media.label,
@@ -3331,11 +3314,6 @@ fn showcase_media_check() -> anyhow::Result<()> {
         }
         showcase_total_bytes += gif_bytes;
     }
-    anyhow::ensure!(
-        showcase_total_bytes <= manifest.max_total_gif_bytes,
-        "README showcase GIFs exceed the {} byte combined budget: {showcase_total_bytes} bytes",
-        manifest.max_total_gif_bytes
-    );
     println!(
         "README showcase media ok: entries={} gif_bytes={}",
         manifest.media.len(),
@@ -4435,10 +4413,8 @@ mod tests {
         let manifest = ShowcaseMediaManifest {
             schema_version: 2,
             min_gif_bytes: 100,
-            max_gif_bytes: 200,
             min_poster_width: 1,
             min_poster_height: 1,
-            max_total_gif_bytes: 200,
             media: vec![
                 ShowcaseMediaEntry {
                     id: "same".to_string(),

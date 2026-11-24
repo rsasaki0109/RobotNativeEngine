@@ -1,10 +1,8 @@
 # Front-page README media catalog consumed by `xtask showcase-media-check`.
 schema_version = 2
 min_gif_bytes = 100_000
-max_gif_bytes = 5_000_000
 min_poster_width = 960
 min_poster_height = 540
-max_total_gif_bytes = 12_000_000
 
 [[media]]
 id = "house-mobile-manipulation"

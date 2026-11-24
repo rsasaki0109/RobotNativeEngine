@@ -15,8 +15,6 @@ observation state.
 - GIF and poster bytes, SHA-256 digests, dimensions, README references, metadata
   evidence, provenance paths, and license paths are checked by
   `cargo run -p xtask -- showcase-media-check`.
-- Each GIF is at most 5 MB. The five front-page GIFs together are capped at
-  12 MB for a mobile-friendly README.
 - Visual-only overlays may improve legibility, but their transforms and task
   state must be rebuilt from the simulation and declared in metadata.
 
@@ -33,9 +31,20 @@ observation state.
 | Go2 turns a door knob | `showcase-go2-door.gif` / `.png` | 1,247,917 | 124,167 | 960 x 540 |
 | PLATEAU UAV RGB-D flight | `showcase-uav.gif` / `.png` | 4,451,885 | 585,765 | 960 x 540 |
 
-The current GIF total is **11,480,408 bytes**, below the 12,000,000-byte
-combined ceiling. `showcase-media-check` verifies the exact total; regeneration
-must update the manifest's sizes and hashes in the same change.
+The current GIF total is **11,480,408 bytes**. There is no size budget (GitHub
+serves repository files up to 100 MB), but `showcase-media-check` verifies each
+GIF's exact size and hash, so regeneration must update the manifest in the same
+change.
+
+## KITTI street hero (outside the catalog)
+
+The banner above the showcase, `kitti-splat-hero.gif` / `.png`, is a 3DGS
+reconstruction of KITTI raw drive 0018 driven by examples 161 and 162. Its
+inputs (the KITTI recording, the trained splats and the car assets) cannot be
+committed: KITTI is CC BY-NC-SA 3.0, non-commercial only. So it has no headless
+smoke path in CI and is not in the catalog. How it is made, the measured
+closed-loop results and the asset credits (the ego car is the CarConcept glTF
+sample, CC BY 4.0) are in [KITTI_SPLAT_DRIVE.md](KITTI_SPLAT_DRIVE.md).
 
 ## Task gates
 
