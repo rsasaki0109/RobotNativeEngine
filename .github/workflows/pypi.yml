@@ -24,6 +24,9 @@ env:
 jobs:
   sdist:
     runs-on: ubuntu-latest
+    env:
+      # See the wheels job: avoid rustup re-syncing rust-toolchain.toml components.
+      RUSTUP_TOOLCHAIN: "1.95.0"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.95.0
@@ -37,8 +40,6 @@ jobs:
           # maturin omits the vendored [patch] crates; add them (see the script).
           python release/sdist_add_vendored.py dist/*.tar.gz .
       - name: Smoke-test building from the sdist
-        env:
-          RUSTUP_TOOLCHAIN: "1.95.0"
         run: |
           python -m venv sdist-smoke
           sdist-smoke/bin/python -m pip install --disable-pip-version-check dist/*.tar.gz
