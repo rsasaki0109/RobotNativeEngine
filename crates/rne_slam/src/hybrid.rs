@@ -387,6 +387,10 @@ pub struct HybridLocalizer {
     /// Offsets of the current run of gate-rejected RTK fixed fixes from
     /// `dead_reckoned`, with their variances and where `dead_reckoned` was.
     rejected_offsets: Vec<(f64, f64, f64, (f64, f64))>,
+    /// RTK showed the map wrong where LiDAR was in charge
+    /// (`lidar_keeps_charge`): until a match agrees with the estimate again,
+    /// a relocalizing match must agree too.
+    lidar_distrusted: bool,
     last_amcl: Option<AmclUpdate>,
     transitions: Vec<SourceTransition>,
 }
@@ -419,6 +423,7 @@ impl HybridLocalizer {
             motion_lock_scans: 0,
             dead_reckoned: initial_pose,
             rejected_offsets: Vec::new(),
+            lidar_distrusted: false,
             last_amcl: None,
             transitions: Vec::new(),
         })
@@ -853,6 +858,7 @@ impl HybridLocalizer {
             // RTK says the map is wrong here: GNSS holds the robot until a
             // match agrees with it again.
             self.lidar_search = false;
+            self.lidar_distrusted = true;
             self.switch(LocalizationSource::Gnss, time_s);
         } else if self.amcl.take().is_some() || self.source == LocalizationSource::DeadReckoning {
             self.lidar_search = true;
@@ -931,8 +937,6 @@ impl HybridLocalizer {
     ) -> Result<(), HybridError> {
         if self.source != LocalizationSource::Lidar {
             if let Some(m) = matched {
-                let searching =
-                    self.lidar_search && self.source == LocalizationSource::DeadReckoning;
                 let agrees = || {
                     self.ekf.position_mahalanobis_squared_covariance(
                         m.pose.x_m,
@@ -940,6 +944,9 @@ impl HybridLocalizer {
                         m.position_covariance_m2,
                     ) <= LIDAR_HANDOVER_CHI_SQUARE
                 };
+                let searching = self.lidar_search
+                    && self.source == LocalizationSource::DeadReckoning
+                    && (!self.lidar_distrusted || agrees());
                 let certain = {
                     let c = self.ekf.covariance();
                     (c[0][0] + c[1][1]).sqrt() <= LIDAR_HANDOVER_MAX_SIGMA_M
@@ -949,6 +956,7 @@ impl HybridLocalizer {
                     && certain
                     && agrees();
                 if (searching || takes_over) && self.map_covers(self.pose()) {
+                    self.lidar_distrusted = false;
                     self.fuse_point_cloud_match(m)?;
                     self.lidar_low_streak = 0;
                     self.motion_history.clear();
@@ -1640,12 +1648,20 @@ mod tests {
             "{:?}",
             localizer.pose()
         );
-        // A match that still disagrees does not take back over; one that
-        // agrees does.
+        // A match that still disagrees does not take back over, not even
+        // while dead reckoning through a GNSS outage; one that agrees does.
         localizer
             .update_lidar_match(Some(&cloud_match(13.0, 0.0, [1e-4, 1e-4])), 17.0)
             .unwrap();
         assert_eq!(localizer.source(), LocalizationSource::Gnss);
+        for step in 0..3 {
+            localizer.update_gnss(None, 17.1 + f64::from(step)).unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+        localizer
+            .update_lidar_match(Some(&cloud_match(13.0, 0.0, [1e-4, 1e-4])), 17.5)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
         localizer
             .update_lidar_match(Some(&cloud_match(15.0, 0.0, [1e-4, 1e-4])), 18.0)
             .unwrap();
