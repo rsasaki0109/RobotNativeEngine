@@ -1,0 +1,40 @@
+name: crates.io dry run
+
+# Rehearses `cargo publish` for the whole workspace without uploading anything.
+# It packages every publishable crate, in dependency order, and builds each
+# packaged crate against the others (see docs/CRATES_IO.md). Publishing itself
+# is a manual step; nothing here has access to a crates.io token.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "**/Cargo.toml"
+      - "docs/CRATES_IO.md"
+      - ".github/workflows/crates-dry-run.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crates-dry-run-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: crates-dry-run
+      - name: Dry-run publish of every publishable crate
+        env:
+          # Do not let rustup re-sync the components in rust-toolchain.toml.
+          RUSTUP_TOOLCHAIN: "1.95.0"
+        # rne_py ships through PyPI (pypi.yml); the cdylib is not useful on
+        # crates.io but stays in the frozen publishable set (xtask release-*).
+        run: cargo publish --workspace --exclude rne_py --dry-run --locked
