@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -33,6 +34,15 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check "maturin==${MATURIN_VERSION}"
           maturin sdist --manifest-path crates/rne_py/Cargo.toml --out dist
+          # maturin omits the vendored [patch] crates; add them (see the script).
+          python release/sdist_add_vendored.py dist/*.tar.gz .
+      - name: Smoke-test building from the sdist
+        env:
+          RUSTUP_TOOLCHAIN: "1.95.0"
+        run: |
+          python -m venv sdist-smoke
+          sdist-smoke/bin/python -m pip install --disable-pip-version-check dist/*.tar.gz
+          sdist-smoke/bin/python release/python_wheel_smoke.py
       - uses: actions/upload-artifact@v4
         with:
           name: dist-sdist
