@@ -468,55 +468,57 @@ covers, the 3D LiDAR holds the robot on its own: the renders above are
 magenta (LiDAR) from start to goal, and GNSS seems to add nothing. It adds
 the cases where a LiDAR map cannot hold the robot. `--ghost` runs a second
 localizer beside the real one, on the same LiDAR and wheels but without
-GNSS, and the render draws where it thinks the robot is: a red robot under
-a tall red pole, its track in red, and a red line to the real one. Three such cases in Shibuya (3D
-LiDAR, BeiDou):
+GNSS. The render draws where it thinks the robot is (a red robot under a
+tall red pole, its track in red, a red line to the real one), and the HUD
+adds a top-down map of the route with the robot's track in yellow and the
+ghost's in red, since the ghost is often out of the camera's view.
 
 ```bash
 cargo run --release -p plateau_gnss_navigation --features capture --example 152_plateau_gnss_navigation -- \
+  --quick --area suburb --lidar3d --beidou --ghost --render target/152_render_suburb
+cargo run --release -p plateau_gnss_navigation --features capture --example 152_plateau_gnss_navigation -- \
   --quick --area shibuya --lidar3d --beidou --ghost --unknown-start --render target/152_render_unknown
-cargo run --release -p plateau_gnss_navigation --features capture --example 152_plateau_gnss_navigation -- \
-  --quick --area shibuya --lidar3d --beidou --ghost --map-gap 430:570 --render target/152_render_gap
-cargo run --release -p plateau_gnss_navigation --features capture --example 152_plateau_gnss_navigation -- \
-  --quick --area shibuya --lidar3d --beidou --ghost --map-shift 430:570:2.5:0 --render target/152_render_shift
 ```
 
-| Case | With GNSS: RMSE (max) | Without GNSS: RMSE (max) |
+| Case (3D LiDAR, BeiDou) | With GNSS: RMSE (max) | Without GNSS: RMSE (max) |
 |------|-----------------------|--------------------------|
-| **Unknown start** (`--unknown-start`): both start 25 m from the truth with a 30 m sigma | 0.60 m (25 m, the first second) | 61 m (109 m) |
-| **Off the map** (`--map-gap 430:570`): the spur north of the route's turn, 140 m there and back, is not in the LiDAR map | 0.10 m (1.6 m) | 1.06 m (5.4 m) |
-| **Construction** (`--map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.13 m (1.4 m) | 1.09 m (2.5 m) |
+| **Open ground** (`--area suburb`): a synthetic 1.2 km straight road, houses at both ends and 500 m of fields between them | 0.00 m (0.15 m) | 87 m (234 m) |
+| **Unknown start** (`--area shibuya --unknown-start`): both start 25 m from the truth with a 30 m sigma | 0.60 m (25 m, the first second) | 61 m (109 m) |
+| **Park** (`--area park`): through Shinjuku Central Park and back | 0.17 m (3.0 m) | 2.1 m (10.5 m) |
+| **Off the map** (`--area shibuya --map-gap 430:570`): the spur north of the route's turn, 140 m there and back, is not in the LiDAR map | 0.10 m (1.6 m) | 1.06 m (5.4 m) |
+| **Construction** (`--area shibuya --map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.13 m (1.4 m) | 1.09 m (2.5 m) |
 
+* **Open ground.** In the fields the scan holds only the ground, which
+  fits the map anywhere: such a match pins no horizontal direction and is
+  not used (the HUD says only open ground is in reach). GNSS, RTK fixed
+  under the open sky, takes charge and hands back to LiDAR among the houses
+  at the far end. Without GNSS the robot dead reckons across the fields,
+  its heading drifting, and reaches the far houses too far off for the
+  matcher to find itself again.
 * **Unknown start.** The first RTK fixed solution, a second in, puts the
   robot where it is; LiDAR takes over from there. Without GNSS the scan
   matcher searches a few metres around a start 25 m off, fits whatever it
   finds there and never recovers.
-* **Off the map.** Where the map has nothing, the LiDAR loses its match and
-  GNSS takes charge (RTK fixes 95–100 % of the time on the spur); LiDAR
-  takes back over where the map resumes. Without GNSS the robot dead
-  reckons through the spur and comes out up to 5.4 m off.
-* **Construction.** The scans fit the old facades, 2.5 m from the robot.
-  The RTK fixed fixes disagree with LiDAR, consistently among themselves;
-  after 15 of them the hybrid concludes the map is wrong there, re-anchors
-  on GNSS and lets LiDAR back only with a match that agrees
-  (`HybridLocalizerConfig::lidar_keeps_charge`). Without GNSS the robot
-  walks the spur 2.5 m off.
+* **Park, off the map, construction.** Small: the toilets and shelters in
+  the park, and the buildings around the spur, keep something within the
+  LiDAR's 60 m most of the way, and the wheels carry the robot through the
+  rest.
+  On the rebuilt spur the RTK fixed fixes disagree with LiDAR, consistently
+  among themselves; after 15 of them the hybrid concludes the map is wrong
+  there, re-anchors on GNSS and lets LiDAR back only with a match that
+  agrees (`HybridLocalizerConfig::lidar_keeps_charge`).
 
-These depend on RTK where the map fails: a rebuilt block in a canyon
-without fixes (tried at 250–500 m along the route) leaves the hybrid dead
-reckoning there, and once its uncertainty has grown past the map's error
-it relocalizes onto the old facades again. The fourth case where a LiDAR
-map fails, a long road between featureless walls, does not occur on these
-routes: the 3D scan sees setbacks, cross streets and the changing heights
-of the buildings within 60 m everywhere. The 2D comparison in
-[robot-localization](https://github.com/rsasaki0109/robot-localization)
-has it.
+Among tall buildings GNSS does not replace the map. With most of
+Shibuya's route left out of the LiDAR map (`--map-gap 300:754`), RTK fixes
+only 10–16 % of the time in the canyons, the robot dead reckons between
+fixes, stops for safety and does not reach the goal (21 m RMSE; 2.1 m
+without GNSS, whose LiDAR still has the first 300 m). GNSS is what carries
+the robot where the sky is open and the map has nothing to hold: fields,
+river banks, car parks, and a start with no idea where it is.
 
-![Shibuya with the localizers switched on 25 m from where they think: the red line from the robot to the red pole of the localizer without GNSS, 19 m away, while the real one is on the robot](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
+![A synthetic suburb: GNSS takes charge across 500 m of fields where the LiDAR sees only the ground; the localizer without GNSS drifts 230 m off](../../docs/media/plateau-gnss-suburb.gif)
 
-![Shibuya with the north spur missing from the LiDAR map: GNSS takes charge on the spur, the localizer without GNSS drifts](../../docs/media/plateau-gnss-shibuya-off-map.gif)
-
-![Shibuya with the north spur rebuilt 2.5 m from the map: RTK takes charge, the localizer without GNSS walks the old facades](../../docs/media/plateau-gnss-shibuya-construction.gif)
+![Shibuya with the localizers switched on 25 m from where they think: the localizer without GNSS never finds itself, up to 109 m off](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
 
 ## Limits
 

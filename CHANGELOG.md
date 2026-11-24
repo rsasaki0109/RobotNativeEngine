@@ -35,7 +35,13 @@ All notable changes to Robot Native Engine are documented in this file.
   and draws it; `--unknown-start`, `--map-gap S0:S1` and
   `--map-shift S0:S1:DX:DY` show where GNSS is needed (unknown start: 0.6
   against 61 m RMSE; a stretch missing from the map: 0.10 against 1.06 m; a
-  rebuilt stretch: 0.13 against 1.09 m).
+  rebuilt stretch: 0.13 against 1.09 m). The HUD adds a top-down map of
+  the robot's and the ghost's tracks.
+- Example 152: `--area suburb`, a synthetic straight road with 500 m of
+  fields between two rows of houses (0.00 against 87 m RMSE), and
+  `--area park`, Shinjuku Central Park; both run only when named. A 3D
+  match that pins no horizontal direction (only open ground in reach) is no
+  longer used.
 - `FactorGraphConfig::lidar_reanchor_rtk_hold_s`: shortly after an RTK
   fixed fix, a particle filter that wandered off from both the graph and
   that fix is re-seeded at the graph instead of re-anchoring it.
