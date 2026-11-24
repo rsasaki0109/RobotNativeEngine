@@ -461,6 +461,63 @@ the predicted blocked ones were still tracked (diffraction the model
 underestimates, and buildings whose LOD2 outline is larger than the real
 one).
 
+### What GNSS adds (`--ghost`)
+
+With the map the world is made of, a known start and a route the map
+covers, the 3D LiDAR holds the robot on its own: the renders above are
+magenta (LiDAR) from start to goal, and GNSS seems to add nothing. It adds
+the cases where a LiDAR map cannot hold the robot. `--ghost` runs a second
+localizer beside the real one, on the same LiDAR and wheels but without
+GNSS, and the render draws where it thinks the robot is: a pale robot, its
+track, and a red line to the real one. Three such cases in Shibuya (3D
+LiDAR, BeiDou):
+
+```bash
+cargo run --release -p plateau_gnss_navigation --features capture --example 152_plateau_gnss_navigation -- \
+  --quick --area shibuya --lidar3d --beidou --ghost --unknown-start --render target/152_render_unknown
+cargo run --release -p plateau_gnss_navigation --features capture --example 152_plateau_gnss_navigation -- \
+  --quick --area shibuya --lidar3d --beidou --ghost --map-gap 430:570 --render target/152_render_gap
+cargo run --release -p plateau_gnss_navigation --features capture --example 152_plateau_gnss_navigation -- \
+  --quick --area shibuya --lidar3d --beidou --ghost --map-shift 430:570:2.5:0 --render target/152_render_shift
+```
+
+| Case | With GNSS: RMSE (max) | Without GNSS: RMSE (max) |
+|------|-----------------------|--------------------------|
+| **Unknown start** (`--unknown-start`): both start 25 m from the truth with a 30 m sigma | 0.60 m (25 m, the first second) | 61 m (109 m) |
+| **Off the map** (`--map-gap 430:570`): the spur north of the route's turn, 140 m there and back, is not in the LiDAR map | 0.10 m (1.6 m) | 1.06 m (5.4 m) |
+| **Construction** (`--map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.13 m (1.4 m) | 1.09 m (2.5 m) |
+
+* **Unknown start.** The first RTK fixed solution, a second in, puts the
+  robot where it is; LiDAR takes over from there. Without GNSS the scan
+  matcher searches a few metres around a start 25 m off, fits whatever it
+  finds there and never recovers.
+* **Off the map.** Where the map has nothing, the LiDAR loses its match and
+  GNSS takes charge (RTK fixes 95–100 % of the time on the spur); LiDAR
+  takes back over where the map resumes. Without GNSS the robot dead
+  reckons through the spur and comes out up to 5.4 m off.
+* **Construction.** The scans fit the old facades, 2.5 m from the robot.
+  The RTK fixed fixes disagree with LiDAR, consistently among themselves;
+  after 15 of them the hybrid concludes the map is wrong there, re-anchors
+  on GNSS and lets LiDAR back only with a match that agrees
+  (`HybridLocalizerConfig::lidar_keeps_charge`). Without GNSS the robot
+  walks the spur 2.5 m off.
+
+These depend on RTK where the map fails: a rebuilt block in a canyon
+without fixes (tried at 250–500 m along the route) leaves the hybrid dead
+reckoning there, and once its uncertainty has grown past the map's error
+it relocalizes onto the old facades again. The fourth case where a LiDAR
+map fails, a long road between featureless walls, does not occur on these
+routes: the 3D scan sees setbacks, cross streets and the changing heights
+of the buildings within 60 m everywhere. The 2D comparison in
+[robot-localization](https://github.com/rsasaki0109/robot-localization)
+has it.
+
+![Shibuya with the localizers switched on 25 m from where they think: the red line from the robot to the pale robot of the localizer without GNSS, 19 m away, while the real one is on the robot](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
+
+![Shibuya with the north spur missing from the LiDAR map: GNSS takes charge on the spur, the localizer without GNSS drifts](../../docs/media/plateau-gnss-shibuya-off-map.gif)
+
+![Shibuya with the north spur rebuilt 2.5 m from the map: RTK takes charge, the localizer without GNSS walks the old facades](../../docs/media/plateau-gnss-shibuya-construction.gif)
+
 ## Limits
 
 * LOD2 buildings are prisms with roofs: no balconies, signs, glass detail or

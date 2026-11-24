@@ -26,6 +26,16 @@ All notable changes to Robot Native Engine are documented in this file.
   LiDAR stays in charge wherever the map covers the robot and RTK fixes
   correct it instead of taking over; example 152 enables it with
   `--lidar3d` (one hand-over a run instead of 40–50, RMSE 0.01–0.04 m).
+- With `lidar_keeps_charge`, RTK can show the LiDAR map wrong: after
+  `gnss_reanchor_fixes` consistent RTK fixed fixes that disagree with it,
+  the hybrid re-anchors on GNSS and hands it charge, and LiDAR takes back
+  over (or relocalizes) only with a match that agrees, from an estimate
+  within 2 m.
+- Example 152: `--ghost` runs a localizer without GNSS beside the real one
+  and draws it; `--unknown-start`, `--map-gap S0:S1` and
+  `--map-shift S0:S1:DX:DY` show where GNSS is needed (unknown start: 0.6
+  against 61 m RMSE; a stretch missing from the map: 0.10 against 1.06 m; a
+  rebuilt stretch: 0.13 against 1.09 m).
 - `FactorGraphConfig::lidar_reanchor_rtk_hold_s`: shortly after an RTK
   fixed fix, a particle filter that wandered off from both the graph and
   that fix is re-seeded at the graph instead of re-anchoring it.
