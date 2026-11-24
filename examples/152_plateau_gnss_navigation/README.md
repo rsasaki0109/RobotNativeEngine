@@ -482,16 +482,18 @@ cargo run --release -p plateau_gnss_navigation --features capture --example 152_
 
 | Case (3D LiDAR, BeiDou) | With GNSS: RMSE (max) | Without GNSS: RMSE (max) |
 |------|-----------------------|--------------------------|
-| **Open ground** (`--area suburb`): a synthetic 1.2 km straight road, houses at both ends and 500 m of rice paddies and fields between them | 0.01 m (0.28 m) | 87 m (235 m) |
+| **Open ground** (`--area suburb`): a synthetic 1.2 km straight road, houses at both ends and 500 m of rice paddies and fields between them | 0.00 m (0.05 m) | 87 m (235 m) |
 | **Unknown start** (`--area shibuya --unknown-start`): both start 25 m from the truth with a 30 m sigma | 0.60 m (25 m, the first second) | 61 m (109 m) |
 | **Park** (`--area park`): through Shinjuku Central Park and back | 0.17 m (3.0 m) | 2.1 m (10.5 m) |
 | **Off the map** (`--area shibuya --map-gap 430:570`): the spur north of the route's turn, 140 m there and back, is not in the LiDAR map | 0.10 m (1.6 m) | 1.06 m (5.4 m) |
 | **Construction** (`--area shibuya --map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.13 m (1.4 m) | 1.09 m (2.5 m) |
 
 * **Open ground.** The suburb is made up, not PLATEAU: two-storey gabled
-  houses behind block walls or hedges, cars in the drives, garden trees,
-  then rice paddies and vegetable fields with woods and farmhouses only
-  beyond the LiDAR's 60 m. In the fields the scan holds only the ground, which
+  houses with eaves, balconies and air conditioners behind block walls or
+  hedges, cars in the drives, garden trees, concrete utility poles with
+  their wires, side lanes with curve mirrors and vending machines; then
+  rice paddies and vegetable fields, with woods, farmhouses and
+  greenhouses only beyond the LiDAR's 60 m and hills on the horizon. In the fields the scan holds only the ground, which
   fits the map anywhere: such a match pins no horizontal direction and is
   not used (the HUD says only open ground is in reach). GNSS, RTK fixed
   under the open sky, takes charge and hands back to LiDAR among the houses

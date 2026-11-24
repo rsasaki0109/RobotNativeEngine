@@ -39,7 +39,7 @@ All notable changes to Robot Native Engine are documented in this file.
   the robot's and the ghost's tracks.
 - Example 152: `--area suburb`, a synthetic straight road with 500 m of
   rice paddies and fields between two rows of gabled houses with walls,
-  hedges, cars and trees (0.01 against 87 m RMSE), and
+  hedges, cars, trees, utility poles and wires (0.00 against 87 m RMSE), and
   `--area park`, Shinjuku Central Park; both run only when named. A 3D
   match that pins no horizontal direction (only open ground in reach) is no
   longer used.
