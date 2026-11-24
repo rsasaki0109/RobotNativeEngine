@@ -6,6 +6,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `docs/CRATES_IO.md` and the `crates.io dry run` workflow rehearse
+  `cargo publish --workspace --exclude rne_py` for the 35 publishable crates
+  without uploading anything, and record the caveats: the patched Rapier is
+  not used by crates.io installs, and publishing stays a manual step.
+
 - Example 150 (`scene_replay_render`) also renders mesh items (STL, OBJ,
   glTF, GLB; relative paths resolve against the script). `flat_color`
   replaces a mesh's materials with the item colour. Its indoor fill light is
