@@ -94,14 +94,35 @@ pub(crate) enum Cover {
     Dirt,
 }
 
-/// What the render draws of a synthetic area: solids in flat colours (the
-/// same objects the sensor mesh has, plus windows and doors) and ground
-/// covers over the grass.
+/// The surface pattern of a synthetic solid, tinted by its colour.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(not(feature = "capture"), allow(dead_code))]
+pub(crate) enum Finish {
+    Plain,
+    /// Horizontal lap siding.
+    Siding,
+    /// Rendered wall.
+    Stucco,
+    /// Roof tiles in rows down the slope.
+    Tiles,
+    /// Concrete blocks.
+    Blocks,
+    Leaves,
+    Bark,
+}
+
+/// Triangles of a synthetic area in one colour (sRGB), roughness and
+/// finish.
+pub(crate) type Solid = ([u8; 3], f32, Finish, Vec<[Vec3; 3]>);
+
+/// What the render draws of a synthetic area: solids in colours and
+/// finishes (the same objects the sensor mesh has, plus windows, doors,
+/// wires and the hills) and ground covers over the grass.
 #[derive(Clone, Debug, Default)]
 #[cfg_attr(not(feature = "capture"), allow(dead_code))]
 pub(crate) struct Scenery {
-    /// Triangles by colour (sRGB) and roughness, wound outward.
-    pub(crate) solids: Vec<([u8; 3], f32, Vec<[Vec3; 3]>)>,
+    /// Triangles by colour (sRGB), roughness and finish, wound outward.
+    pub(crate) solids: Vec<Solid>,
     /// Ground covers as ENU quads.
     pub(crate) ground: Vec<(Cover, [(f64, f64); 4])>,
 }

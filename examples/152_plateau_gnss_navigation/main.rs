@@ -252,7 +252,12 @@ fn main() -> Result<(), String> {
             continue;
         }
         let route = nav::plan_route(&city, area.waypoints);
-        let furniture = city.add_street_furniture(&route);
+        // The synthetic suburb has its own poles.
+        let furniture = if area.tiles.is_empty() {
+            0
+        } else {
+            city.add_street_furniture(&route)
+        };
         let length: f64 = route
             .windows(2)
             .map(|s| (s[1].0 - s[0].0).hypot(s[1].1 - s[0].1))

@@ -249,17 +249,9 @@ fn static_city(city: &PlateauCity, route: &[(f64, f64)]) -> (RenderScene, Street
     );
     scene.items.extend(facade_items(city));
     if let Some(scenery) = &city.scenery {
-        for (colour, roughness, triangles) in &scenery.solids {
-            let mut mesh = SolidMesh::default();
-            for t in triangles {
-                let corners = t.map(pv);
-                let normal = (corners[1] - corners[0])
-                    .cross(corners[2] - corners[0])
-                    .normalize_or_zero();
-                mesh.triangle(corners, normal);
-            }
-            push(&mut scene, mesh, linear(*colour), *roughness, 0.0, [0.0; 3]);
-        }
+        scene
+            .items
+            .extend(crate::streets::scenery_items(&scenery.solids));
     }
     push(
         &mut scene,
@@ -918,7 +910,11 @@ pub(crate) fn preview(dir: &Path, city: &PlateauCity, route: &[(f64, f64)]) -> R
     backend.set_environment(environment());
     let (scene, _) = static_city(city, route);
     let mut camera = Camera::new(WIDTH, HEIGHT, 0.9);
-    camera.far_m = 900.0;
+    camera.far_m = if city.scenery.is_some() {
+        1500.0
+    } else {
+        900.0
+    };
     for k in 0..8 {
         let i = (k * (route.len() - 2)) / 7;
         let (a, b) = (route[i], route[i + 1]);
@@ -971,7 +967,11 @@ pub(crate) fn render(
     };
     let (base_scene, streets) = static_city(city, route);
     let mut camera = Camera::new(WIDTH, HEIGHT, 0.9);
-    camera.far_m = 900.0;
+    camera.far_m = if city.scenery.is_some() {
+        1500.0
+    } else {
+        900.0
+    };
     let mut chase = Chase {
         yaw: 0.0,
         focus: Vec3::ZERO,

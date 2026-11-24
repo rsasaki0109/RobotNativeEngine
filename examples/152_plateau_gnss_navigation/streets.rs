@@ -9,7 +9,7 @@
 //! `SIDEWALK_M` of every road at least `WIDE_ROAD_M` wide. Marching squares
 //! turn the raster back into smooth curbs and lines.
 
-use crate::plateau::{Cover, PlateauCity, Scenery};
+use crate::plateau::{Cover, Finish, PlateauCity, Scenery, Solid};
 use crate::render::{linear, p, SolidMesh};
 use rne_math::Vec3;
 use rne_render::{ImageFrame, RenderSceneItem};
@@ -800,6 +800,126 @@ pub(crate) fn cover_items(city: &PlateauCity, scenery: &Scenery) -> Vec<RenderSc
             item.base_color_texture = Some(Arc::new(cover_texture(cover)));
             items.push(item);
         }
+    }
+    items
+}
+
+/// Metres one tile of a finish's texture spans, and the texture (neutral,
+/// tinted by the solid's colour).
+fn finish_texture(finish: Finish) -> (f64, ImageFrame) {
+    let size = 256_u32;
+    let mut rgba = Vec::with_capacity((size * size * 4) as usize);
+    let tile = match finish {
+        Finish::Plain => 4.0,
+        Finish::Siding | Finish::Stucco | Finish::Blocks => 2.4,
+        Finish::Tiles => 2.4,
+        Finish::Leaves => 3.0,
+        Finish::Bark => 1.5,
+    };
+    for y in 0..size {
+        for x in 0..size {
+            let (u, v) = (
+                f64::from(x) / f64::from(size),
+                f64::from(y) / f64::from(size),
+            );
+            let grain = hash(i64::from(x), i64::from(y), 21) - 0.5;
+            let broad = noise(u, v, 4, 22) - 0.5;
+            let t = match finish {
+                Finish::Plain => 1.0,
+                Finish::Siding => {
+                    // Boards 0.2 m tall (12 to the tile), a shadow line under each.
+                    let board = (v * 12.0).fract();
+                    let seam = if board > 0.88 {
+                        0.78
+                    } else {
+                        1.0 - board * 0.06
+                    };
+                    seam + grain * 0.03 + broad * 0.04
+                }
+                Finish::Stucco => 0.96 + broad * 0.08 + grain * 0.05,
+                Finish::Tiles => {
+                    // Rows 0.3 m down the slope (8 to the tile), staggered joints.
+                    let row = (v * 8.0).fract();
+                    let shift = if (v * 8.0) as i64 % 2 == 0 { 0.0 } else { 0.5 };
+                    let col = (u * 8.0 + shift).fract();
+                    let edge = if row > 0.85 { 0.7 } else { 1.0 - row * 0.12 };
+                    let joint = if col < 0.04 { 0.85 } else { 1.0 };
+                    let tone = hash((u * 8.0 + shift) as i64, (v * 8.0) as i64, 23) - 0.5;
+                    edge * joint * (1.0 + tone * 0.08) + grain * 0.03
+                }
+                Finish::Blocks => {
+                    // Blocks 0.4 by 0.2 m (6 by 12 to the tile), staggered.
+                    let row = (v * 12.0).fract();
+                    let shift = if (v * 12.0) as i64 % 2 == 0 { 0.0 } else { 0.5 };
+                    let col = (u * 6.0 + shift).fract();
+                    let joint = row < 0.08 || col < 0.04;
+                    (if joint { 0.72 } else { 1.0 }) + grain * 0.06 + broad * 0.06
+                }
+                Finish::Leaves => {
+                    let clumps = noise(u, v, 8, 24) * 0.6 + noise(u, v, 23, 25) * 0.4;
+                    0.7 + clumps * 0.55 + grain * 0.12
+                }
+                Finish::Bark => {
+                    let streak = noise(u * 0.2, v * 3.0, 9, 26);
+                    0.75 + streak * 0.4 + grain * 0.1
+                }
+            };
+            let level = (t * 235.0).clamp(0.0, 255.0);
+            rgba.extend(to_srgb([level, level, level]));
+        }
+    }
+    (tile, ImageFrame::from_rgba8(size, size, rgba))
+}
+
+/// Texture coordinates of an ENU point on a surface with normal `n`, in
+/// tiles of `tile` metres: walls run along their length and up, slopes
+/// along the contour and down, flat surfaces east and north.
+fn surface_uv(v: Vec3, n: Vec3, tile: f64) -> [f32; 2] {
+    let h = (n.x * n.x + n.y * n.y).sqrt();
+    let (u, w) = if h < 0.05 {
+        (v.x, v.y)
+    } else {
+        let (hx, hy) = (n.x / h, n.y / h);
+        let along = -hy * v.x + hx * v.y;
+        if n.z.abs() > 0.3 {
+            // A slope: rows run along the contour.
+            (along, -(hx * v.x + hy * v.y) * (1.0 + n.z.abs()))
+        } else {
+            (along, -v.z)
+        }
+    };
+    [(u / tile) as f32, (w / tile) as f32]
+}
+
+/// A synthetic area's solids, one draw item per colour, roughness and
+/// finish.
+pub(crate) fn scenery_items(solids: &[Solid]) -> Vec<RenderSceneItem> {
+    let mut textures: Vec<(Finish, f64, Arc<ImageFrame>)> = Vec::new();
+    let mut items = Vec::new();
+    for (colour, roughness, finish, triangles) in solids {
+        let (tile, texture) = match textures.iter().find(|(f, _, _)| f == finish) {
+            Some((_, tile, texture)) => (*tile, texture.clone()),
+            None => {
+                let (tile, image) = finish_texture(*finish);
+                let texture = Arc::new(image);
+                textures.push((*finish, tile, texture.clone()));
+                (tile, texture)
+            }
+        };
+        let mut mesh = SolidMesh::default();
+        for t in triangles {
+            let n = (t[1] - t[0]).cross(t[2] - t[0]).normalize_or_zero();
+            let uv = t.map(|v| surface_uv(v, n, tile));
+            mesh.textured(t.map(|v| p(v.x, v.y, v.z)), p(n.x, n.y, n.z), uv);
+        }
+        if mesh.positions.is_empty() {
+            continue;
+        }
+        let mut item = mesh.item(linear(*colour), *roughness, 0.0, [0.0; 3]);
+        if *finish != Finish::Plain {
+            item.base_color_texture = Some(texture);
+        }
+        items.push(item);
     }
     items
 }
