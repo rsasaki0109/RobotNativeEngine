@@ -468,8 +468,8 @@ covers, the 3D LiDAR holds the robot on its own: the renders above are
 magenta (LiDAR) from start to goal, and GNSS seems to add nothing. It adds
 the cases where a LiDAR map cannot hold the robot. `--ghost` runs a second
 localizer beside the real one, on the same LiDAR and wheels but without
-GNSS, and the render draws where it thinks the robot is: a pale robot, its
-track, and a red line to the real one. Three such cases in Shibuya (3D
+GNSS, and the render draws where it thinks the robot is: a red robot under
+a tall red pole, its track in red, and a red line to the real one. Three such cases in Shibuya (3D
 LiDAR, BeiDou):
 
 ```bash
@@ -512,7 +512,7 @@ of the buildings within 60 m everywhere. The 2D comparison in
 [robot-localization](https://github.com/rsasaki0109/robot-localization)
 has it.
 
-![Shibuya with the localizers switched on 25 m from where they think: the red line from the robot to the pale robot of the localizer without GNSS, 19 m away, while the real one is on the robot](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
+![Shibuya with the localizers switched on 25 m from where they think: the red line from the robot to the red pole of the localizer without GNSS, 19 m away, while the real one is on the robot](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
 
 ![Shibuya with the north spur missing from the LiDAR map: GNSS takes charge on the spur, the localizer without GNSS drifts](../../docs/media/plateau-gnss-shibuya-off-map.gif)
 

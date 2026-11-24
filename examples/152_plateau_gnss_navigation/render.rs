@@ -667,8 +667,9 @@ fn push_lidar3d(scene: &mut RenderScene, frame: &FrameRecord) {
     }
 }
 
-/// The localizer without GNSS (`--ghost`): a pale glowing robot where it
-/// thinks the robot is, its track so far, and a red line to the robot.
+/// The localizer without GNSS (`--ghost`): a red robot where it thinks the
+/// robot is, under a tall red pole so it reads from the chase camera, its
+/// track so far in red, and a red line to the robot.
 fn push_ghost(
     scene: &mut RenderScene,
     city: &PlateauCity,
@@ -690,6 +691,8 @@ fn push_ghost(
         Vec3::new(0.45, 0.25, 0.3),
         Quat::from_rotation_y(ghost.yaw_rad),
     );
+    body.beam(at(ghost, 0.6), at(ghost, 3.0), 0.12);
+    body.box_at(at(ghost, 3.2), Vec3::new(0.3, 0.3, 0.3), Quat::IDENTITY);
     let mut trail = SolidMesh::default();
     let poses: Vec<Pose2d> = run
         .frames
@@ -698,25 +701,25 @@ fn push_ghost(
         .filter_map(|f| f.ghost)
         .collect();
     for pair in poses.windows(2) {
-        trail.beam(at(pair[0], 0.12), at(pair[1], 0.12), 0.2);
+        trail.beam(at(pair[0], 0.1), at(pair[1], 0.1), 0.25);
     }
     let mut gap = SolidMesh::default();
     gap.beam(at(frame.truth, 0.8), at(ghost, 0.8), 0.08);
     push(
         scene,
         body,
-        linear([225, 235, 255]),
+        linear([235, 30, 30]),
         0.4,
         0.0,
-        [0.45, 0.5, 0.6],
+        [0.8, 0.05, 0.05],
     );
     push(
         scene,
         trail,
-        linear([225, 235, 255]),
+        linear([200, 40, 40]),
         0.5,
         0.0,
-        [0.3, 0.33, 0.4],
+        [0.45, 0.05, 0.05],
     );
     push(
         scene,

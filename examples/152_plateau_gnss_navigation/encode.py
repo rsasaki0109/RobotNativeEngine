@@ -97,11 +97,11 @@ def hud(image, area, frame, width, timeline, constellation="GPS+Galileo+QZSS"):
         y += small.size + 2
         draw.text((pad, y), fitted(draw, frame["lidar"], small, width - 2 * pad), font=small, fill=LIDAR_COLOUR)
     if frame.get("ghost_error_m") is not None:
-        # The same LiDAR and wheels without GNSS: the pale robot.
+        # The same LiDAR and wheels without GNSS: the red robot under a pole.
         y += small.size + 2
         draw.text(
             (pad, y),
-            f"without GNSS (pale robot, red line): {frame['ghost_error_m']:.1f} m off",
+            f"without GNSS (red pole, red track): {frame['ghost_error_m']:.1f} m off",
             font=small,
             fill=GHOST_COLOUR,
         )
