@@ -2232,11 +2232,17 @@ impl PrimitiveRenderer {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                 | wgpu::TextureUsages::COPY_SRC
                 | wgpu::TextureUsages::TEXTURE_BINDING,
-            view_formats: &[],
+            view_formats: &[wgpu::TextureFormat::Rgba8Unorm],
         });
         let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor::default());
+        // Radiance-field backgrounds (3DGS) produce display-referred sRGB colours, so they are
+        // written through a non-sRGB view of the same texture: no second sRGB encode.
+        let background_view = color_texture.create_view(&wgpu::TextureViewDescriptor {
+            format: Some(wgpu::TextureFormat::Rgba8Unorm),
+            ..Default::default()
+        });
 
-        background.render_background(device, queue, &color_view, camera, view, clear_color)?;
+        background.render_background(device, queue, &background_view, camera, view, clear_color)?;
 
         let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("rne_hybrid_depth_target"),

@@ -2588,6 +2588,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "kitti_splat_drive"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_core",
+ "rne_ecs",
+ "rne_math",
+ "rne_physics",
+ "rne_render",
+ "rne_render_3dgs",
+ "rne_render_wgpu",
+ "rne_robot",
+ "rne_world",
+]
+
+[[package]]
 name = "latency_in_the_loop"
 version = "0.4.0"
 dependencies = [
@@ -6417,8 +6433,6 @@ dependencies = [
 [[package]]
 name = "wgpu-3dgs-viewer"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65b8834c6a4922e921665083f63042ad6ca76d6e23e321132c76e82ae89aadd5"
 dependencies = [
  "bitflags 2.13.0",
  "bytemuck",

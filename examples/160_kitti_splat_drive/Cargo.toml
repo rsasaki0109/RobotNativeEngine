@@ -1,0 +1,37 @@
+[package]
+name = "kitti_splat_drive"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+png = { workspace = true }
+rne_core = { workspace = true }
+rne_ecs = { workspace = true }
+rne_math = { workspace = true }
+rne_physics = { workspace = true }
+rne_render = { workspace = true }
+rne_render_3dgs = { workspace = true }
+rne_render_wgpu = { workspace = true }
+rne_robot = { workspace = true }
+rne_world = { workspace = true }
+
+[[example]]
+name = "160_kitti_splat_drive"
+path = "main.rs"
+
+[[example]]
+name = "161_kitti_splat_visloc_loop"
+path = "visloc_loop.rs"
+
+[[example]]
+name = "162_kitti_splat_traffic"
+path = "traffic.rs"
