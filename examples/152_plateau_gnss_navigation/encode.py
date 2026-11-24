@@ -52,16 +52,63 @@ def fitted(draw, text, typeface, width):
 
 
 GHOST_COLOUR = (255, 120, 100)
+ROBOT_COLOUR = (250, 200, 40)
 
 
-def hud(image, area, frame, width, timeline, constellation="GPS+Galileo+QZSS"):
+class Minimap:
+    """A north-up map of the roads with the robot's and the ghost's tracks,
+    for runs with `--ghost`: the ghost is often too far away for the chase
+    camera to show."""
+
+    def __init__(self, data, size):
+        x0, y0, x1, y1 = data["bounds"]
+        span = max(x1 - x0, y1 - y0)
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        self.size = size
+        self.px = lambda x, y: (
+            (x - cx) / span * (size - 8) + size / 2,
+            size / 2 - (y - cy) / span * (size - 8),
+        )
+        self.base = Image.new("RGBA", (size, size), (20, 22, 28, 200))
+        draw = ImageDraw.Draw(self.base)
+        for t in data["roads"]:
+            draw.polygon([self.px(t[0], t[1]), self.px(t[2], t[3]), self.px(t[4], t[5])], fill=(95, 98, 105, 255))
+        draw.line([self.px(x, y) for x, y in data["route"]], fill=(200, 200, 200, 255), width=1)
+
+    def draw(self, image, x, y, frames, upto, small):
+        """Pastes the map at `(x, y)` with the tracks of `frames[: upto + 1]`."""
+        tile = self.base.copy()
+        draw = ImageDraw.Draw(tile)
+        seen = frames[: upto + 1]
+        truth = [self.px(*f["truth"]) for f in seen if f.get("truth")]
+        ghost = [self.px(*f["ghost"]) for f in seen if f.get("ghost")]
+        if len(ghost) > 1:
+            draw.line(ghost, fill=GHOST_COLOUR, width=2)
+        if len(truth) > 1:
+            draw.line(truth, fill=ROBOT_COLOUR, width=2)
+        for points, colour in ((ghost, GHOST_COLOUR), (truth, ROBOT_COLOUR)):
+            if points:
+                (px, py), r = points[-1], 4
+                draw.ellipse([px - r, py - r, px + r, py + r], fill=colour, outline=(0, 0, 0))
+        image.paste(tile, (x, y), tile)
+        out = ImageDraw.Draw(image)
+        ly = y + self.size + 2
+        out.text((x, ly), "robot", font=small, fill=ROBOT_COLOUR)
+        out.text((x + out.textlength("robot  ", font=small), ly), "without GNSS", font=small, fill=GHOST_COLOUR)
+
+
+def hud(image, area, frame, width, timeline, constellation="GPS+Galileo+QZSS", minimap=None):
     scale = width / image.width
     image = image.resize((width, round(image.height * scale)), Image.LANCZOS)
     draw = ImageDraw.Draw(image, "RGBA")
     big, small = font(max(12, width // 36)), font(max(10, width // 50))
     pad = width // 60
     lines = (4 if frame.get("gnss") else 2) + (frame.get("ghost_error_m") is not None)
-    draw.rectangle([0, 0, width, pad * 2 + big.size + (small.size + 2) * lines + 4], fill=(10, 12, 18, 170))
+    hud_bottom = pad * 2 + big.size + (small.size + 2) * lines + 4
+    draw.rectangle([0, 0, width, hud_bottom], fill=(10, 12, 18, 170))
+    if minimap is not None:
+        frames, upto, mm = minimap
+        mm.draw(image, width - mm.size - pad, hud_bottom + pad, frames, upto, small)
     title = f"{area} - PLATEAU LOD2, ray-traced {constellation}"
     heading = big
     while draw.textlength(title, font=heading) > width - 2 * pad and heading.size > 10:
@@ -101,7 +148,7 @@ def hud(image, area, frame, width, timeline, constellation="GPS+Galileo+QZSS"):
         y += small.size + 2
         draw.text(
             (pad, y),
-            f"without GNSS (red pole, red track): {frame['ghost_error_m']:.1f} m off",
+            f"without GNSS (red, map at right): {frame['ghost_error_m']:.1f} m off",
             font=small,
             fill=GHOST_COLOUR,
         )
@@ -151,11 +198,23 @@ def main():
 
     meta = json.loads((args.capture / "frames.json").read_text())
     timeline = [(f["t"], f["source"]) for f in meta["frames"]]
+    mm = Minimap(meta["map"], args.width * 2 // 7) if meta.get("map") else None
     images = []
-    for frame in meta["frames"][:: args.stride]:
+    for k in range(0, len(meta["frames"]), args.stride):
+        frame = meta["frames"][k]
         image = Image.open(args.capture / frame["file"]).convert("RGB")
         area = f"{meta['area']}, {args.label}" if args.label else meta["area"]
-        images.append(hud(image, area, frame, args.width, timeline, meta.get("constellation", "GPS+Galileo+QZSS")))
+        images.append(
+            hud(
+                image,
+                area,
+                frame,
+                args.width,
+                timeline,
+                meta.get("constellation", "GPS+Galileo+QZSS"),
+                (meta["frames"], k, mm) if mm else None,
+            )
+        )
     # One palette for the whole GIF: colours from sample frames plus the
     # exact HUD and legend colours, so those never shift.
     samples = images[:: max(1, len(images) // 12)]
@@ -167,6 +226,7 @@ def main():
         LIDAR_COLOUR,
         EVENT_COLOUR,
         GHOST_COLOUR,
+        ROBOT_COLOUR,
     ] + [c for _, c in VERDICT_COLOURS]
     sheet = Image.new("RGB", (args.width, sum(im.height for im in samples)))
     y = 0

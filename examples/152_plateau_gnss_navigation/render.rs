@@ -853,6 +853,44 @@ fn write_png(path: &Path, width: u32, height: u32, rgba: &[u8]) -> Result<()> {
     Ok(())
 }
 
+/// What the HUD's top-down map needs when there is a ghost: the route and
+/// the road triangles around it and around the ghost's track, rounded to
+/// decimetres.
+fn minimap(city: &PlateauCity, route: &[(f64, f64)], run: &RunReport) -> serde_json::Value {
+    let ghosts: Vec<(f64, f64)> = run
+        .frames
+        .iter()
+        .filter_map(|f| f.ghost.map(|g| (g.x_m, g.y_m)))
+        .collect();
+    if ghosts.is_empty() {
+        return serde_json::Value::Null;
+    }
+    let (mut lo, mut hi) = (
+        (f64::INFINITY, f64::INFINITY),
+        (f64::NEG_INFINITY, f64::NEG_INFINITY),
+    );
+    for &(x, y) in route.iter().chain(&ghosts) {
+        lo = (lo.0.min(x), lo.1.min(y));
+        hi = (hi.0.max(x), hi.1.max(y));
+    }
+    let margin = 30.0;
+    let inside = |v: &Vec3| {
+        v.x > lo.0 - margin && v.x < hi.0 + margin && v.y > lo.1 - margin && v.y < hi.1 + margin
+    };
+    let dm = |v: f64| (v * 10.0).round() / 10.0;
+    let roads: Vec<[f64; 6]> = city
+        .roads
+        .iter()
+        .filter(|t| t.iter().any(inside))
+        .map(|[a, b, c]| [dm(a.x), dm(a.y), dm(b.x), dm(b.y), dm(c.x), dm(c.y)])
+        .collect();
+    serde_json::json!({
+        "bounds": [lo.0 - margin, lo.1 - margin, hi.0 + margin, hi.1 + margin],
+        "route": route.iter().map(|&(x, y)| [dm(x), dm(y)]).collect::<Vec<_>>(),
+        "roads": roads,
+    })
+}
+
 /// Renders the city alone at eight points along the route, alternately from
 /// the chase camera's distance and from 140 m (`--render-preview`), without
 /// running the robot.
@@ -957,6 +995,8 @@ pub(crate) fn render(
             "ghost_error_m": frame.ghost.map(|g| {
                 (g.x_m - frame.truth.x_m).hypot(g.y_m - frame.truth.y_m)
             }),
+            "truth": [frame.truth.x_m, frame.truth.y_m],
+            "ghost": frame.ghost.map(|g| [g.x_m, g.y_m]),
             "los": los,
             "nlos": nlos,
             "gnss": frame.status.gnss,
@@ -988,6 +1028,7 @@ pub(crate) fn render(
         serde_json::to_string(&serde_json::json!({
             "area": city.name,
             "constellation": run.constellation,
+            "map": minimap(city, route, run),
             "frames": index,
         }))?,
     )?;
