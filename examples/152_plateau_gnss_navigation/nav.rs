@@ -168,8 +168,8 @@ impl Localizer {
     }
 
     /// Matches a scan against the point-cloud map and feeds the match: from
-    /// the estimate while tracking, over the search window (once a second)
-    /// while the hybrid is dead reckoning.
+    /// the estimate while tracking or while GNSS is in charge, over the
+    /// search window (once a second) while the hybrid is dead reckoning.
     fn match_lidar3d(
         &mut self,
         map: &PointCloudMap,
@@ -190,7 +190,9 @@ impl Localizer {
         };
         match self {
             Self::Hybrid(h) => match h.source() {
-                LocalizationSource::Lidar => {
+                // While GNSS is in charge a match that agrees with it takes
+                // over (with `lidar_keeps_charge`; ignored otherwise).
+                LocalizationSource::Lidar | LocalizationSource::Gnss => {
                     let m = local();
                     *last_fit = m.map(|m| m.fit_fraction);
                     h.update_lidar_match(m.as_ref(), t).expect("lidar");
