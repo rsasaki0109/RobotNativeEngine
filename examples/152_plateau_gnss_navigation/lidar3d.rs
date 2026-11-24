@@ -267,7 +267,11 @@ pub(crate) fn search(
             let Some(m) = map.match_scan(points, seed, z_m, &config) else {
                 continue;
             };
-            if acceptable(&m) && best.is_none_or(|b| m.fit_fraction > b.fit_fraction) {
+            // A match that slid out of the window is not an answer to this
+            // search (it fits some other street).
+            let inside =
+                (m.pose.x_m - around.x_m).hypot(m.pose.y_m - around.y_m) <= window_m * 1.5 + 1.0;
+            if inside && acceptable(&m) && best.is_none_or(|b| m.fit_fraction > b.fit_fraction) {
                 best = Some(m);
             }
         }
