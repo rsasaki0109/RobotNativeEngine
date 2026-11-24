@@ -398,7 +398,17 @@ cargo run -p xtask -- ci
 
 ## Python and ROS 2 adapters
 
-The Python adapter exposes native environments for policy experiments:
+The Python adapter exposes native environments for policy experiments. It
+installs with pip (a Rust toolchain is required to build from source).
+Once published to PyPI (see `.github/workflows/pypi.yml`), prebuilt wheels
+install with `pip install rne_py`:
+
+```bash
+pip install ./crates/rne_py
+# or: pip install "git+https://github.com/rsasaki0109/RobotNativeEngine#subdirectory=crates/rne_py"
+```
+
+For development:
 
 ```bash
 python3 -m venv .venv
