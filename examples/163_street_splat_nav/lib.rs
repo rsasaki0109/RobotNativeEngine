@@ -561,17 +561,8 @@ pub fn drive_localized(
                     next_fix += config.fix_every_s;
                     report.fixes_attempted += 1;
                     if let Some(fix) = localize(&state, estimate) {
-                        let gate = config.fix_gate_m + config.fix_gate_growth_m_s * (t - last_fix);
-                        if (fix.x_m - estimate.x_m).hypot(fix.y_m - estimate.y_m) <= gate {
-                            let a = config.fix_blend;
-                            let dyaw = (fix.yaw_rad - estimate.yaw_rad + std::f64::consts::PI)
-                                .rem_euclid(std::f64::consts::TAU)
-                                - std::f64::consts::PI;
-                            estimate = Pose2d::new(
-                                estimate.x_m + a * (fix.x_m - estimate.x_m),
-                                estimate.y_m + a * (fix.y_m - estimate.y_m),
-                                estimate.yaw_rad + a * dyaw,
-                            );
+                        if let Some(next) = accept_fix(config, estimate, fix, t - last_fix) {
+                            estimate = next;
                             last_fix = t;
                             report.fixes_accepted += 1;
                         } else {
@@ -618,21 +609,7 @@ pub fn drive_localized(
                 d
             };
             if localize.is_some() {
-                // wheel odometry: what the wheels measured, with their errors
-                let ov = moved / config.step_s * (1.0 + config.odom_scale_error);
-                let moving = moved > 1e-6 || w.abs() > 1e-6;
-                let ow = w * (1.0 + config.odom_yaw_scale_error)
-                    + if moving {
-                        config.odom_yaw_bias_rad_s
-                    } else {
-                        0.0
-                    };
-                let eyaw = estimate.yaw_rad + ow * config.step_s;
-                estimate = Pose2d::new(
-                    estimate.x_m + ov * config.step_s * eyaw.cos(),
-                    estimate.y_m + ov * config.step_s * eyaw.sin(),
-                    eyaw,
-                );
+                estimate = odometry_step(config, estimate, moved, w);
             }
             if on_edge {
                 report.kerb_time_s += config.step_s;
@@ -652,10 +629,52 @@ pub fn drive_localized(
     }
     report.time_s = t;
     report.trajectory_hash = hash;
-    if !walk_distances.is_empty() {
-        walk_distances.sort_by(f64::total_cmp);
-        report.walk_distance_median_m = walk_distances[walk_distances.len() / 2];
-        report.walk_distance_max_m = *walk_distances.last().unwrap_or(&0.0);
+    finish_report(&mut report, walk_distances, errors);
+    Ok(report)
+}
+
+/// The estimate after a fix `since_s` after the last accepted one, or `None` when the gate
+/// rejects the fix.
+fn accept_fix(config: &NavConfig, estimate: Pose2d, fix: Pose2d, since_s: f64) -> Option<Pose2d> {
+    let gate = config.fix_gate_m + config.fix_gate_growth_m_s * since_s;
+    if (fix.x_m - estimate.x_m).hypot(fix.y_m - estimate.y_m) > gate {
+        return None;
+    }
+    let a = config.fix_blend;
+    let dyaw = (fix.yaw_rad - estimate.yaw_rad + std::f64::consts::PI)
+        .rem_euclid(std::f64::consts::TAU)
+        - std::f64::consts::PI;
+    Some(Pose2d::new(
+        estimate.x_m + a * (fix.x_m - estimate.x_m),
+        estimate.y_m + a * (fix.y_m - estimate.y_m),
+        estimate.yaw_rad + a * dyaw,
+    ))
+}
+
+/// One step of wheel odometry: the distance the wheels really moved and the commanded yaw
+/// rate, with `config`'s errors.
+fn odometry_step(config: &NavConfig, estimate: Pose2d, moved_m: f64, w_rad_s: f64) -> Pose2d {
+    let ov = moved_m / config.step_s * (1.0 + config.odom_scale_error);
+    let moving = moved_m > 1e-6 || w_rad_s.abs() > 1e-6;
+    let ow = w_rad_s * (1.0 + config.odom_yaw_scale_error)
+        + if moving {
+            config.odom_yaw_bias_rad_s
+        } else {
+            0.0
+        };
+    let yaw = estimate.yaw_rad + ow * config.step_s;
+    Pose2d::new(
+        estimate.x_m + ov * config.step_s * yaw.cos(),
+        estimate.y_m + ov * config.step_s * yaw.sin(),
+        yaw,
+    )
+}
+
+fn finish_report(report: &mut DriveReport, mut walk: Vec<f64>, mut errors: Vec<f64>) {
+    if !walk.is_empty() {
+        walk.sort_by(f64::total_cmp);
+        report.walk_distance_median_m = walk[walk.len() / 2];
+        report.walk_distance_max_m = *walk.last().unwrap_or(&0.0);
     }
     if !errors.is_empty() {
         report.pose_error_rmse_m =
@@ -664,7 +683,6 @@ pub fn drive_localized(
         report.pose_error_median_m = errors[errors.len() / 2];
         report.pose_error_max_m = *errors.last().unwrap_or(&0.0);
     }
-    Ok(report)
 }
 
 #[cfg(test)]

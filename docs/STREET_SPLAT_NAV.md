@@ -78,12 +78,16 @@ With `--localizer BIN` the robot steers on its own estimate, not on ground truth
 | --- | --- | --- |
 | RNE, fixes replace the estimate, 0.5 m gate | 573 of 629 (13 gated) | 15.8 / 2.7 / 73 cm |
 | RNE, half-way blend, 0.25 m gate (default) | 529 of 572 (23 gated) | 8.6 / 2.0 / 48 cm |
+| the same, run again | 538 of 575 (18 gated) | 5.5 / 2.0 / 31 cm |
 | visloc-rs Nav2 run (thirteenth, with people) | 719 of 800 images | 8.9 / 2.3 / 72 cm |
 
 The map was built from visloc-rs `gsplat_render_server` renders and the fixes come from
 RNE's renders, yet with the prior 97 % of the frames localize (2.4 cm median error). The
 wrong fixes that remain (0.3 to 1.2 m off, 25 to 36 inliers) come in short runs, and the
-gate and the blend absorb them. Headless with localization the drive takes 6 minutes on
+gate and the blend absorb them. Runs with fixes are not bit-for-bit repeatable: the
+localizer gives the same answers for the same images, but RNE's splat renders on CPU
+lavapipe differ slightly from run to run, and the two runs above part at the second fix.
+Runs on ground truth repeat exactly. Headless with localization the drive takes 6 minutes on
 CPU (about 570 front-camera renders and fixes).
 
 ## Next
