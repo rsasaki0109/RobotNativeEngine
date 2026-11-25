@@ -24,7 +24,9 @@ summary over the trials. Each run writes a per-frame trace
 
 - **Robot**: the welded Go2 (`unitree_go2_jump`) on `rne_ai`'s model-based
   trot, at the speed and turn rate validated in examples 126 and 130
-  (0.25 m/s, 0.5 rad/s). Commands are rate limited.
+  (0.25 m/s, 0.5 rad/s). A signed speed of −0.1 m/s was also tested for
+  10 s with no fall, less than 0.2 rad of heading drift and more than
+  0.5 m of backward travel. Commands are rate limited.
 - **Sensor**: the upside-down Livox Mid-360 with the measured Go2 rig
   occlusion (`docs/LIVOX_MID360.md`), at 10 Hz. It looks mostly down, so a
   person 2 m away shows only from the shins to the knees.
@@ -76,7 +78,8 @@ map cannot tell them from a pillar. Detections there are dropped, and the
 robot would walk into them. So, with the map, the static returns are
 clustered again. While a cluster that passes the person test has its centre
 0.3–1.25 m ahead and within 0.45 m of the robot's axis, the robot does not
-walk forward, and for 1 s after; it turns in place away from it instead.
+walk forward, and for 1 s after. It turns away and can back up when the
+cluster is close and the rear is clear.
 Such clusters up to 3 m ahead are also given to the controller as standing
 people, so that it plans around them. Walls fail the person test.
 `--no-safety` turns the layer off. Three earlier versions failed, and the reasons shape
@@ -122,8 +125,8 @@ frame. Two safeguards came from failures:
 
 ## Results
 
-Eight trials per task and source (`--trials 8`), with the rule controller
-(the default):
+The table records the forward-only baseline, with eight trials per task
+and source (`--trials 8`) using the default rule controller:
 
 | task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost | safety stop, mean (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -201,12 +204,14 @@ arrived.
 The rules weigh one person at a time, so the crowd's contacts came from
 waiting for one person while another walked in. The crowd check rolls the
 rules' command out for 3 s against every track (at constant velocity, a
-follow target excepted), with 8 alternatives: stop or full speed, each
-turning hard left, hard right, straight, or as the rules do. The rules'
+follow target excepted). It tries stop and full forward speed, each with
+hard left, hard right, straight, and the rules' turn. If the rear scan
+is clear, it also tries backing up at −0.1 m/s going straight or using
+the rules' turn. The same wall clearance check applies. The rules'
 command stands unless it comes within 0.75 m of someone and an alternative
 stays clear by 0.2 m more. `--no-crowd-check` turns it off.
 
-| runs with contact of 8 (crowd) | without | first version | speed only | final |
+| runs with contact of 8 (crowd) | without | first version | speed only | wall-checked forward |
 | --- | --- | --- | --- | --- |
 | scripted, nearest+map | 4 | 2 | 4 | 4 |
 | scripted, tracker | 3 | 3 | 3 | 3 |
@@ -220,14 +225,14 @@ stays clear by 0.2 m more. `--no-crowd-check` turns it off.
   perception runs, and contacts in 3 sources.
 - **Speed only** (stop, half or full, keeping the rules' turn): no falls,
   and nothing gained; against reactive people 4 nearest+map runs got stuck.
-- **Final**: the turning alternatives again, but none that come within
+- **Wall-checked forward**: the turning alternatives again, but none that come within
   0.45 m of a scan return that is not a person (and closer than the rules'
   command does). No falls; against reactive people, the map sources'
   contacts go from 1–2 of 8 to 0. Against scripted people nothing changes:
   the head-on walker and the overtaker still walk into a robot that has
   little room to turn away in time.
 - The first version had freed the stuck runs by turning toward whatever
-  was free, walls included. The final one does not, and they remain.
+  was free, walls included. The wall-checked forward rollout left them stuck.
 
 ### How the contacts were found
 
@@ -289,7 +294,8 @@ stops is walked into. With `--reactive-people`, a walking person slows when
 the robot is in their way (closer than 1.5 m ahead, within 0.7 m of their
 line) and stops 0.8 m from it. Each walks their script on their own clock
 and resumes where they stopped. Standing people do not react, and nor does
-the overtaker unless the robot is in its lane. Eight trials:
+the overtaker unless the robot is in its lane. The forward-only baseline
+used eight trials per source:
 
 | runs with contact of 8 | follow | crossing | corridor | room | crowd |
 | --- | --- | --- | --- | --- | --- |
@@ -313,12 +319,19 @@ the overtaker unless the robot is in its lane. Eight trials:
   planned around as standing people, and while one blocks the way the
   robot turns in place away from it.
 - The 2 stuck runs (both odometry-map sources) are a limit of
-  the robot: it crept to 0.55 m of a person who had stopped for it. At that
-  range most of their returns fall inside the 0.4 m the scan ignores around
-  the base, and the trot cannot step back or sideways. Turning in place did
+  the earlier controller: it crept to 0.55 m of a person who had stopped
+  for it. At that range most of their returns fall inside the 0.4 m that
+  perception ignores around the base. Turning in place did
   not free it. Close by, the person's distance hovers at the contact
   threshold, and before the crowd check one of those runs counted 9
-  contacts. Now neither touches anyone.
+  contacts. With the wall-checked rollout, neither touched anyone.
+- The safety layer now backs away once per block when a static person
+  cluster is within 0.8 m ahead and the rear scan is clear. The retreat
+  lasts up to 2 s at up to 0.1 m/s, with the turn away from the person.
+  Every new scan checks the rear corridor (0.8 m deep, ±0.35 m wide).
+  A return more than 0.05 m above the floor in that corridor cancels
+  reverse immediately. This check includes returns within 0.4 m of the
+  base, which the person detector and map exclude.
 
 ## Camera and VLM
 
@@ -415,17 +428,19 @@ The numbers above are after these fixes, each found from the traces:
   react to the robot (`--reactive-people` makes them stop for it, but not
   step aside), and their colliders are sensors, so contacts are counted from
   distance and the robot is never pushed.
-- **Robot motion**: the trot takes forward speed and yaw rate only, with no
-  sidestepping.
+- **Robot motion**: the trot takes signed longitudinal speed and yaw
+  rate. The controller can back up with a clear rear scan. Sidestepping
+  would require a lateral trot command.
 - **Perception**: the scan uses the true attitude and a perfect de-skew. The
   robot has no map, so walls are only what the detector makes of them.
 - **Static map**: drift in the odometry frame smears it slowly. A person
-  standing still longer than 6 s becomes part of it; the safety layer
-  keeps the robot from walking into them, but the controller no longer
-  plans around them.
+  standing still longer than 6 s becomes part of it. Planning and the
+  safety layer then depend on finding a person-shaped static cluster
+  in the scan.
 - **SLAM**: scan matching only; no IMU fusion, no relocalization.
 - **DWA**: people only; walls and furniture are not obstacles to it.
 - **Crowd check**: people move at constant velocity in its rollout; walls
-  are the scan returns of the moment, within 2 m.
+  are the scan returns of the moment, within 2 m. Reverse depends on
+  what the rear LiDAR can see in the latest frame.
 - **Camera**: one standing pose for every person; the image is rendered from
   the true pose, and the VLM sees no motion blur or exposure changes.

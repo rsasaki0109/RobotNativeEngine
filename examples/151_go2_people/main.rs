@@ -76,6 +76,7 @@ const CONTACT_M: f64 = 0.55;
 const NEAR_MISS_M: f64 = 0.8;
 /// The trot's validated walking speed and turn rate (examples 126, 130).
 const MAX_SPEED_M_S: f64 = 0.25;
+const REVERSE_SPEED_M_S: f64 = -0.1;
 const MAX_YAW_RATE_RAD_S: f64 = 0.5;
 /// Command changes are rate limited so stopping and starting do not jolt the trot.
 const MAX_ACCEL_M_S2: f64 = 0.3;
@@ -494,6 +495,8 @@ struct Controller {
     /// Scan returns that are not people (odometry frame), for the crowd
     /// check's alternatives: set each frame before `command`.
     obstacles: Vec<[f64; 2]>,
+    /// Rear clearance from the latest scan, including returns from people.
+    rear_clear: bool,
     /// The last lane decision, for the trace: track, side, offset, aim heading.
     last_lane: Option<(u64, f64, f64, f64)>,
     mission: Mission,
@@ -580,6 +583,7 @@ fn crowd_checked(
     odom: Pose,
     skip: Option<u64>,
     obstacles: &[[f64; 2]],
+    rear_clear: bool,
 ) -> UnitreeGo2TrotCommand {
     let own = predicted_clearance(tracks, skip, odom, proposal);
     if own >= CROWD_SAFE_M {
@@ -603,7 +607,15 @@ fn crowd_checked(
     // proposal does) are out. Without this, hard turns drove the robot into
     // corridor walls.
     let own_wall = predicted_clearance_points(obstacles, odom, proposal);
-    let candidates = candidates.filter(|c| {
+    let reverse = [0.0, proposal.yaw_rate_rad_s]
+        .into_iter()
+        .filter(|_| rear_clear)
+        .map(|yaw_rate_rad_s| UnitreeGo2TrotCommand {
+            forward_speed_m_s: REVERSE_SPEED_M_S,
+            yaw_rate_rad_s,
+        });
+    // Keep the existing options preferred on equal clearance.
+    let candidates = reverse.chain(candidates).filter(|c| {
         let wall = predicted_clearance_points(obstacles, odom, *c);
         wall >= CROWD_WALL_M || wall >= own_wall
     });
@@ -849,6 +861,7 @@ impl Controller {
                 odom,
                 target.map(|t| t.id),
                 &self.obstacles,
+                self.rear_clear,
             )
         } else {
             proposal
@@ -1103,16 +1116,15 @@ fn closest_person(people: &[(u64, [f64; 2], [f64; 2])], truth: Pose) -> f64 {
 }
 
 /// A frame's returns as `[forward, left, height above floor]` in the base
-/// frame at the frame's end, beyond 0.4 m.
+/// frame at the frame's end.
 fn base_frame_points(cloud: &rne_data::PointCloud, truth: Pose) -> Vec<[f64; 3]> {
     let (sin, cos) = truth[2].sin_cos();
     cloud
         .points_m
         .iter()
-        .filter_map(|p| {
+        .map(|p| {
             let (dx, dy) = (p.x - truth[0], -p.z - truth[1]);
-            let local = [cos * dx + sin * dy, -sin * dx + cos * dy];
-            (local[0].hypot(local[1]) > 0.4).then_some([local[0], local[1], p.y])
+            [cos * dx + sin * dy, -sin * dx + cos * dy, p.y]
         })
         .collect()
 }
@@ -1127,6 +1139,12 @@ fn base_frame_points(cloud: &rne_data::PointCloud, truth: Pose) -> Vec<[f64; 3]>
 const SAFETY_AHEAD_M: (f64, f64) = (0.3, 1.25);
 const SAFETY_HALF_WIDTH_M: f64 = 0.45;
 const SAFETY_HOLD_S: f64 = 1.0;
+const RETREAT_TRIGGER_M: f64 = 0.8;
+const RETREAT_DURATION_S: f64 = 2.0;
+const REAR_DEPTH_M: f64 = 0.8;
+const REAR_HALF_WIDTH_M: f64 = 0.35;
+/// Reject floor returns in the rear check, retaining low obstacles.
+const REAR_MIN_HEIGHT_M: f64 = 0.05;
 
 /// Person-shaped static clusters this far ahead are planned around.
 const STATIC_PLAN_AHEAD_M: f64 = 3.0;
@@ -1147,6 +1165,43 @@ fn static_person_blocking(centres: &[[f64; 2]]) -> Option<[f64; 2]> {
         })
         .min_by(|a, b| a[0].total_cmp(&b[0]))
         .copied()
+}
+
+/// The swept rear corridor must be clear of above-floor scan returns.
+fn rear_clear(points: &[[f64; 3]]) -> bool {
+    !points.iter().any(|p| {
+        (-REAR_DEPTH_M..=0.0).contains(&p[0])
+            && p[1].abs() <= REAR_HALF_WIDTH_M
+            && p[2] > REAR_MIN_HEIGHT_M
+    })
+}
+
+/// One short retreat per block. Keep it active if the near cluster drops
+/// out of view, and cancel it for the rest of the block if the rear fills.
+fn safety_retreat(
+    until_s: &mut Option<f64>,
+    time_s: f64,
+    blocked: bool,
+    close_person: bool,
+    rear_clear: bool,
+) -> bool {
+    if !blocked {
+        *until_s = None;
+    } else if let Some(end_s) = until_s {
+        if !rear_clear {
+            *end_s = end_s.min(time_s);
+        }
+    } else if close_person && rear_clear {
+        *until_s = Some(time_s + RETREAT_DURATION_S);
+    }
+    until_s.is_some_and(|end_s| time_s < end_s)
+}
+
+/// An occupied rear corridor overrides the deceleration ramp for reverse.
+fn stop_reverse(command: &mut UnitreeGo2TrotCommand, rear_clear: bool) {
+    if !rear_clear {
+        command.forward_speed_m_s = command.forward_speed_m_s.max(0.0);
+    }
 }
 
 /// The new command, moved toward `next` at the allowed rates.
@@ -1620,6 +1675,7 @@ fn run(
         last_yaw_rate: 0.0,
         crowd_check,
         obstacles: Vec::new(),
+        rear_clear: true,
         last_lane: None,
         mission: task.mission,
         target: None,
@@ -1647,6 +1703,7 @@ fn run(
     let mut people_now = Vec::new();
     let mut trace = Vec::new();
     let mut safety_hold_until_s = f64::NEG_INFINITY;
+    let mut retreat_until_s = None;
     let task_walls: Vec<Wall> = task
         .walls
         .iter()
@@ -1706,7 +1763,10 @@ fn run(
         frame_start = end;
         frame += 1;
         let truth = true_pose(&sim);
-        let points = base_frame_points(&cloud, truth);
+        let mut points = base_frame_points(&cloud, truth);
+        controller.rear_clear = rear_clear(&points);
+        // Keep the established near-base exclusion for mapping and detection.
+        points.retain(|p| p[0].hypot(p[1]) > 0.4);
         if let Some(localizer) = localizer.as_mut() {
             // Person clusters in the base frame (identity pose).
             let people: Vec<[f64; 2]> = detect_people(&points, [0.0, 0.0, 0.0])
@@ -1809,9 +1869,10 @@ fn run(
             })
             .collect();
         let (mut next, chosen) = controller.command(&plan_tracks, odom, time_s, speed_now);
-        if let Some(c) = static_person_blocking(&static_people) {
-            safety_hold_until_s = time_s + SAFETY_HOLD_S;
-            // Turn in place away from them until they are out of the way: a
+        let blocking_person = static_person_blocking(&static_people);
+        if let Some(c) = blocking_person {
+            safety_hold_until_s = safety_hold_until_s.max(time_s + SAFETY_HOLD_S);
+            // Turn away from them until they are out of the way: a
             // lane change's heading can leave someone standing close still
             // in front, and they may be waiting for the robot to move.
             let away = if c[1].abs() > 0.05 {
@@ -1822,11 +1883,26 @@ fn run(
             next.yaw_rate_rad_s = away * MAX_YAW_RATE_RAD_S;
         }
         let blocked = time_s < safety_hold_until_s;
+        let retreating = safety_retreat(
+            &mut retreat_until_s,
+            time_s,
+            blocked,
+            blocking_person.is_some_and(|c| c[0] <= RETREAT_TRIGGER_M),
+            controller.rear_clear,
+        );
+        if let Some(end_s) = retreat_until_s {
+            safety_hold_until_s = safety_hold_until_s.max(end_s);
+        }
         if blocked {
-            next.forward_speed_m_s = 0.0;
+            // Start braking early enough to end the reverse command within
+            // its time budget, allowing for the next frame's duration.
+            let braking_s =
+                retreat_until_s.map_or(0.0, |end_s| (end_s - time_s - FRAME_S).max(0.0));
+            next.forward_speed_m_s = REVERSE_SPEED_M_S.max(-MAX_ACCEL_M_S2 * braking_s);
             score.safety_stop_s += FRAME_S;
         }
         command = rate_limited(command, next);
+        stop_reverse(&mut command, controller.rear_clear);
         score.frames += 1;
         score.tracks_per_frame_sum += tracks.len() as u64;
         let closest = closest_person(&people_now, truth);
@@ -1838,7 +1914,8 @@ fn run(
             "spread": localizer.as_ref().and_then(|l| l.last_spread),
             "track_list": tracks.iter().map(|t| json!([t.id, t.position, t.velocity])).collect::<Vec<_>>(),
             "lane": controller.last_lane,
-            "blocked": blocked,
+            "blocked": blocked, "blocking_person": blocking_person,
+            "retreating": retreating, "rear_clear": controller.rear_clear,
             "people": people_now.iter().map(|(id, p, v)| json!([id, p, v])).collect::<Vec<_>>(),
         }));
         if let Mission::Follow { target } = task.mission {
@@ -2104,6 +2181,7 @@ mod tests {
             last_yaw_rate: 0.0,
             crowd_check: false,
             obstacles: Vec::new(),
+            rear_clear: true,
             last_lane: None,
             mission,
             target: None,
@@ -2160,7 +2238,7 @@ mod tests {
             yaw_rate_rad_s: 0.0,
         };
         // Nobody near: the proposal stands.
-        assert_eq!(crowd_checked(go, &[], [0.0, 0.0, 0.0], None, &[]), go);
+        assert_eq!(crowd_checked(go, &[], [0.0, 0.0, 0.0], None, &[], true), go);
         // Waiting while someone walks straight at the robot from the side:
         // anything else is clearly safer.
         let wait = UnitreeGo2TrotCommand {
@@ -2168,13 +2246,67 @@ mod tests {
             yaw_rate_rad_s: 0.0,
         };
         let tracks = [track(3, [0.0, -2.0], [0.0, 0.8])];
-        let chosen = crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], None, &[]);
+        let chosen = crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], None, &[], true);
         assert!(chosen.forward_speed_m_s > 0.0, "{chosen:?}");
         // A follow target is not an obstacle.
         assert_eq!(
-            crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], Some(3), &[]),
+            crowd_checked(wait, &tracks, [0.0, 0.0, 0.0], Some(3), &[], true),
             wait
         );
+    }
+
+    #[test]
+    fn crowd_check_reverses_only_when_the_rear_and_wall_rollout_allow_it() {
+        let wait = UnitreeGo2TrotCommand::default();
+        let tracks = [track(3, [1.4, 0.0], [-0.4, 0.0])];
+        let origin = [0.0, 0.0, 0.0];
+        let chosen = crowd_checked(wait, &tracks, origin, None, &[], true);
+        assert_eq!(chosen.forward_speed_m_s, REVERSE_SPEED_M_S);
+        assert_eq!(crowd_checked(wait, &tracks, origin, None, &[], false), wait);
+        assert_eq!(
+            crowd_checked(wait, &tracks, origin, None, &[[-0.6, 0.0]], true),
+            wait,
+        );
+    }
+
+    #[test]
+    fn safety_retreat_is_bounded_and_stops_on_a_rear_return() {
+        let mut until_s = None;
+        assert!(!safety_retreat(&mut until_s, 0.0, false, true, true));
+        assert!(!safety_retreat(&mut until_s, 0.0, true, false, true));
+        assert!(!safety_retreat(&mut until_s, 0.0, true, true, false));
+        assert!(safety_retreat(&mut until_s, 0.0, true, true, true));
+        assert!(safety_retreat(&mut until_s, 1.0, true, false, true));
+        assert!(!safety_retreat(&mut until_s, 2.0, true, true, true));
+        assert!(!safety_retreat(&mut until_s, 2.1, false, false, true));
+
+        let rear_points = [[-0.3, 0.0, 0.1]];
+        assert!(!rear_clear(&rear_points));
+        assert!(rear_clear(&[[-0.6, 0.0, 0.0], [-0.6, 0.4, 0.2]]));
+        assert!(safety_retreat(&mut until_s, 2.2, true, true, true));
+        assert!(!safety_retreat(
+            &mut until_s,
+            2.3,
+            true,
+            true,
+            rear_clear(&rear_points)
+        ));
+        assert!(!safety_retreat(&mut until_s, 2.4, true, true, true));
+
+        let reverse = UnitreeGo2TrotCommand {
+            forward_speed_m_s: REVERSE_SPEED_M_S,
+            yaw_rate_rad_s: 0.2,
+        };
+        let mut command = UnitreeGo2TrotCommand::default();
+        for _ in 0..10 {
+            command = rate_limited(command, reverse);
+        }
+        assert_eq!(command, reverse);
+        command = rate_limited(command, UnitreeGo2TrotCommand::default());
+        assert!(command.forward_speed_m_s < 0.0);
+        stop_reverse(&mut command, rear_clear(&rear_points));
+        assert_eq!(command.forward_speed_m_s, 0.0);
+        assert!(command.yaw_rate_rad_s > 0.0);
     }
 
     #[test]
