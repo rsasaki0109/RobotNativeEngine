@@ -211,14 +211,14 @@ the rules' turn. The same wall clearance check applies. The rules'
 command stands unless it comes within 0.75 m of someone and an alternative
 stays clear by 0.2 m more. `--no-crowd-check` turns it off.
 
-| runs with contact of 8 (crowd) | without | first version | speed only | wall-checked forward |
-| --- | --- | --- | --- | --- |
-| scripted, nearest+map | 4 | 2 | 4 | 4 |
-| scripted, tracker | 3 | 3 | 3 | 3 |
-| scripted, tracker+map | 1 | 1 | 1 | 1 |
-| reactive, nearest+map | 2 (1 stuck) | 0 | 2 (4 stuck) | 0 (1 stuck) |
-| reactive, tracker+map | 1 (1 stuck) | 1 | 0 (1 stuck) | 0 (1 stuck) |
-| corridor runs that fell (scripted, real perception), of 48 | 0 | 7 | 0 | 0 |
+| runs with contact of 8 (crowd) | without | first version | speed only | wall-checked forward | with reverse |
+| --- | --- | --- | --- | --- | --- |
+| scripted, nearest+map | 4 | 2 | 4 | 4 | pending |
+| scripted, tracker | 3 | 3 | 3 | 3 | pending |
+| scripted, tracker+map | 1 | 1 | 1 | 1 | pending |
+| reactive, nearest+map | 2 (1 stuck) | 0 | 2 (4 stuck) | 0 (1 stuck) | 0 |
+| reactive, tracker+map | 1 (1 stuck) | 1 | 0 (1 stuck) | 0 (1 stuck) | 0 |
+| corridor runs that fell (scripted, real perception), of 48 | 0 | 7 | 0 | 0 | pending |
 
 - **First version**: the rollout knew only people. Its hard turns cleared
   them and drove the robot into the corridor's walls: 7 falls in 48 real
@@ -308,7 +308,22 @@ used eight trials per source:
 | tracker+map | 0 | 0 | 0 | 0 | 0 (1 stuck) |
 | tracker+slam | 0 | 0 | 0 | 0 | 0 |
 
-"Stuck" runs did not reach the goal in 120 s.
+A stuck run finishes with more than 5 m remaining (`goal_distance_m`).
+The two stuck runs in the forward-only baseline timed out at 120 s.
+
+With reverse enabled, the two affected sources were rerun in release
+with eight trials each. The stream tracker was built from commit
+`da917101` of robot-perception (binary name `factor-tracker`).
+
+| reactive crowd | runs | fell | runs with contact | stuck | mean remaining (m) | max remaining (m) |
+| --- | --- | --- | --- | --- | --- | --- |
+| nearest+map | 8 | 0 | 0 | 0 | 1.20 | 1.41 |
+| tracker+map | 8 | 0 | 0 | 0 | 1.15 | 1.25 |
+
+In the two previously stuck trials, the crowd check backed up before
+the safety layer took over. Both subsequently used the bounded safety
+retreat. Trial 2 for `nearest+map` finished in 71.8 s and trial 6 for
+`tracker+map` in 69.1 s.
 
 - Contacts in the crowd fall from 1–4 of 8 to 0–2 of 8. Only the sources
   without the map have any.
