@@ -654,6 +654,7 @@ impl TrackHistory {
 
 impl Controller {
     /// Picks the target and returns the command and the chosen track.
+    #[allow(clippy::too_many_lines)] // Keep the rule priorities in reading order.
     fn command(
         &mut self,
         tracks: &[Track],
@@ -1617,6 +1618,7 @@ impl VlmState {
 }
 
 /// One task under one perception source: the score and a per-frame trace.
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)] // One closed-loop trial.
 fn run(
     task: &Task,
     source: Source,
@@ -1987,6 +1989,7 @@ fn print_summary(results: &[Value], tasks: &[Task], sources: &[Source]) {
     }
 }
 
+#[allow(clippy::too_many_lines)] // Parse options and run the evaluation matrix.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut out = PathBuf::from("target/go2_people");
     let mut only: Option<String> = None;
